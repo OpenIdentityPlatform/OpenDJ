@@ -104,7 +104,23 @@
      <para>List a set of resources</para>
     </listitem>
    </varlistentry>
+
+      <varlistentry>
+          <term><link linkend="modifyPassword">modifyPassword</link></term>
+          <listitem>
+              <para>Change Your Password</para>
+          </listitem>
+      </varlistentry>
+
+      <varlistentry>
+          <term><link linkend="resetPassword">resetPassword</link></term>
+          <listitem>
+              <para>Reset a Password</para>
+          </listitem>
+      </varlistentry>
   </variablelist>
+
+
 
   <para>The present implementation in OpenDJ maps JSON resources onto LDAP
   entries, meaning REST clients can in principle do just about anything an
@@ -1270,4 +1286,76 @@ $ curl
   </variablelist>
   -->
  </section>
+
+    <section xml:id="modifyPassword">
+        <title>Change Your Password</title>
+
+        <note>
+            <para>This action requires HTTPS to avoid sending the password over an insecure connection.</para>
+        </note>
+
+        <para>Perform an HTTPS POST with the header Content-Type: application/json, _action=modifyPassword in the query string, and the old and new passwords in JSON format as the POST data.</para>
+
+        <para>The JSON POST DATA must include the following fields:</para>
+
+        <variablelist>
+            <varlistentry>
+                <term>oldPassword</term>
+                <listitem>
+                    <para>The value of this field is the current password as a UTF-8 string.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>newPassword</term>
+                <listitem>
+                    <para>The value of this field is the new password as a UTF-8 string.</para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+
+        <para>On success, the HTTP status code is 200 OK, and the response body is an empty JSON resource:</para>
+
+        <screen>$ curl \
+            --request POST \
+            --cacert ca-cert.pem \
+            --user bjensen:hifalutin \
+            --header "Content-Type: application/json" \
+            --data '{"oldPassword": "hifalutin", "newPassword": "chngthspwd"}' \
+            --silent \
+            https://localhost:8443/api/users/bjensen?_action=modifyPassword
+
+            {}
+        </screen>
+    </section>
+
+    <section xml:id="resetPassword">
+        <title>Reset a Password</title>
+
+        <para>Whenever one user changes another user’s password, DS servers consider it a password reset. Often, password policies specify that users must change their passwords again after a password reset.</para>
+
+        <note>
+            <para>This action requires HTTPS to avoid sending the password over an insecure connection.</para>
+        </note>
+
+        <para>Perform an HTTPS POST with the header Content-Type: application/json, _action=resetPassword in the query string, and an empty JSON document ({}) as the POST data.</para>
+
+        <para>The JSON POST DATA must include the following fields:</para>
+
+        <para>The following example demonstrates an administrator changing a user’s password. Before trying this example, make sure the password administrator has been given the password-reset privilege. Otherwise, the password administrator has insufficient access. On success, the HTTP status code is 200 OK, and the response body is a JSON resource with a generatedPassword containing the new password:</para>
+
+        <screen>$ curl \
+            --request POST \
+            --cacert ca-cert.pem \
+            --user kvaughan:bribery \
+            --header "Content-Type: application/json" \
+            --data '{}' \
+            --silent \
+            https://localhost:8443/api/users/bjensen?_action=resetPassword
+
+            {"generatedPassword":"new-password"}
+        </screen>
+
+        <para>As password administrator, provide the new, generated password to the user.</para>
+
+    </section>
 </chapter>
