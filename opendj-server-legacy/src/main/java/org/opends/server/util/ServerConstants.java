@@ -1981,7 +1981,7 @@ public final class ServerConstants
   /**
    * The value that will be used for the vendorName attribute in the root DSE.
    */
-  public static final String SERVER_VENDOR_NAME = "ForgeRock AS.";
+  public static final String SERVER_VENDOR_NAME = "Open Identity Platform Community";
 
 
 

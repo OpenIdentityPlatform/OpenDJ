@@ -320,7 +320,7 @@ public class ConfigFromConnection extends ConfigReader
       }
       catch (OpenDsException oe)
       {
-        errors.add(oe);
+        //errors.add(oe);
       }
     }
   }
