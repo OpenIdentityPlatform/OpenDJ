@@ -537,8 +537,8 @@ public class ServerDescriptor
 
     return areAttributeTypesEqual(schema1, schema2)
         && areObjectClassesEqual(schema1, schema2)
-        && Objects.equals(schema1.getMatchingRules(), schema2.getMatchingRules())
-        && Objects.equals(schema1.getSyntaxes(), schema2.getSyntaxes());
+        && (schema1.getMatchingRules().size()==schema2.getMatchingRules().size() && schema1.getMatchingRules().containsAll(schema2.getMatchingRules()))
+        && (schema1.getSyntaxes().size()==schema2.getSyntaxes().size() && schema1.getSyntaxes().containsAll(schema2.getSyntaxes()));
   }
 
   private static boolean areAttributeTypesEqual(Schema schema1, Schema schema2)

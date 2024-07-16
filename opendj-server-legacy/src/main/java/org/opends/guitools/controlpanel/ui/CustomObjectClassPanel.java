@@ -973,7 +973,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
         .type(getObjectClassType())
         .obsolete(obsolete.isSelected())
         .extraProperties(getExtraProperties())
-        .addToSchema()
+        .addToSchemaOverwrite()
         .toSchema()
         .getObjectClass(getOID());
   }
