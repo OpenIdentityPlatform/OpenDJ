@@ -34,7 +34,7 @@
         <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <localized.jars.classifier>i18n</localized.jars.classifier>
-        <commons.version>2.1.4</commons.version>
+        <commons.version>2.1.5-SNAPSHOT</commons.version>
         <freemarker.version>2.3.31</freemarker.version>
         <grizzly-framework.version>2.3.35</grizzly-framework.version>
         <metrics-core.version>3.1.2</metrics-core.version>
