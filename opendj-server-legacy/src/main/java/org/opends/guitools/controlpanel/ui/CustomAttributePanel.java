@@ -1082,7 +1082,7 @@ class CustomAttributePanel extends SchemaElementPanel
         .noUserModification(nonModifiable.isSelected())
         .singleValue(singleValued.isSelected())
         .extraProperties(getExtraProperties())
-        .addToSchema()
+        .addToSchemaOverwrite()
       .toSchema()
       .getAttributeType(getOID());
   }

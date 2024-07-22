@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>4.6.5-SNAPSHOT</version>
+    <version>4.6.6-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-openidm-account-change-notification-handler</artifactId>
   <name>OpenDJ account change notification handler for OpenIDM</name>

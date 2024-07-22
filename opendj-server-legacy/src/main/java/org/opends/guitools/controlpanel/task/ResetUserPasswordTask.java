@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ExecutionException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
@@ -197,44 +198,51 @@ public class ResetUserPasswordTask extends Task
         passwordModifyRequest.setOldPassword(currentPassword);
       }
       passwordModifyRequest.setNewPassword(newPassword);
-      connectionWrapper.getConnection()
-                       .extendedRequestAsync(passwordModifyRequest)
-                       .thenOnResultOrException(
-                         new ResultHandler<PasswordModifyExtendedResult>()
-                         {
-                           @Override
-                           public void handleResult(final PasswordModifyExtendedResult passwordModifyExtendedResult)
-                           {
-                             if (lastException == null && currentPassword != null)
+      try {
+          connectionWrapper.getConnection()
+                           .extendedRequestAsync(passwordModifyRequest)
+                           .thenOnResultOrException(
+                             new ResultHandler<PasswordModifyExtendedResult>()
                              {
-                               try
+                               @Override
+                               public void handleResult(final PasswordModifyExtendedResult passwordModifyExtendedResult)
                                {
-                                 // The connections must be updated, just update the environment, which
-                                 // is what we use to clone connections and to launch scripts.
-                                 // The environment will also be used if we want to reconnect.
-                                 rebind(getInfo().getConnection());
-                                 if (getInfo().getUserDataConnection() != null)
+                                 if (lastException == null && currentPassword != null)
                                  {
-                                   rebind(getInfo().getUserDataConnection());
+                                   try
+                                   {
+                                     // The connections must be updated, just update the environment, which
+                                     // is what we use to clone connections and to launch scripts.
+                                     // The environment will also be used if we want to reconnect.
+                                     rebind(getInfo().getConnection());
+                                     if (getInfo().getUserDataConnection() != null)
+                                     {
+                                       rebind(getInfo().getUserDataConnection());
+                                     }
+                                   }
+                                   catch (final LdapException e)
+                                   {
+                                     lastException = e;
+                                     state = State.FINISHED_WITH_ERROR;
+                                   }
                                  }
+                                 state = State.FINISHED_SUCCESSFULLY;
                                }
-                               catch (final LdapException e)
+                             },
+                             new ExceptionHandler<LdapException>()
+                             {
+                               @Override
+                               public void handleException(final LdapException e)
                                {
-                                 lastException = e;
                                  state = State.FINISHED_WITH_ERROR;
                                }
-                             }
-                             state = State.FINISHED_SUCCESSFULLY;
-                           }
-                         },
-                         new ExceptionHandler<LdapException>()
-                         {
-                           @Override
-                           public void handleException(final LdapException e)
-                           {
-                             state = State.FINISHED_WITH_ERROR;
-                           }
-                         });
+                             }).get();
+      } catch (Exception e) {
+          if (state != State.FINISHED_WITH_ERROR) {
+            lastException = e;
+            state = State.FINISHED_WITH_ERROR;
+          }
+      }
   }
 
   private void rebind(ConnectionWrapper conn) throws LdapException

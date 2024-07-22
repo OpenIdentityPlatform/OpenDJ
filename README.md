@@ -7,7 +7,6 @@
 [![License](https://img.shields.io/badge/license-CDDL-blue.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/LICENSE.md)
 [![Downloads](https://img.shields.io/github/downloads/OpenIdentityPlatform/OpenDJ/total.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/releases)
 [![Docker](https://img.shields.io/docker/pulls/openidentityplatform/opendj.svg)](https://hub.docker.com/r/openidentityplatform/opendj)
-[![Gitter](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/OpenIdentityPlatform/OpenDJ)
 [![Top language](https://img.shields.io/github/languages/top/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ)
 [![Code size in bytes](https://img.shields.io/github/languages/code-size/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ)
 
@@ -17,7 +16,7 @@ by your organization. Its easy installation process, combined with the power of 
 the simplest, fastest directory to deploy and manage and allow [store LDAPv3 database in Cassandra/Scylla cluster](https://github.com/OpenIdentityPlatform/OpenDJ/wiki/How-To#store-ldap-catalog-data-in-cassandra-nosql-cluster).
 
 An open source, lightweight, embeddable directory that can easily share real-time customer, device, and user identity data across enterprise, cloud, social, and mobile environments.
-* Massive data scale and high availability providings developers with ultra-lightweight ways to access identity data
+* Massive data scale and high availability provide developers with ultra-lightweight ways to access identity data
 * High Performance - ms response times & tens of thousands of w/r per sec
 * Multi Master replication for high availability
 
@@ -52,13 +51,12 @@ cd OpenDJ/opendj-server-legacy/target/package/opendj
 bin/start-ds
 bin/stop-ds
 ```
-See the wiki for [Full Installation guide, Administration guide, and Developers guide](https://github.com/OpenIdentityPlatform/OpenDJ/wiki)
 
-## Support and Mailing List Information
-* OpenDJ Community Wiki: https://github.com/OpenIdentityPlatform/OpenDJ/wiki
-* OpenDJ Community Discussions: https://github.com/OpenIdentityPlatform/OpenDJ/discussions
-* OpenDJ Community Issues: https://github.com/OpenIdentityPlatform/OpenDJ/issues
-* OpenDJ Commercial support RFP: support@3a-systems.ru (English, Russian)
+## Support 
+* OpenDJ Community [documentation](https://github.com/OpenIdentityPlatform/OpenDJ/wiki)
+* OpenDJ Community [discussions](https://github.com/OpenIdentityPlatform/OpenDJ/discussions)
+* OpenDJ Community [issues](https://github.com/OpenIdentityPlatform/OpenDJ/issues)
+* OpenDJ [commercial support](https://github.com/OpenIdentityPlatform/.github/wiki/Approved-Vendor-List)
 
 ## Contributing
 Please, make [Pull request](https://github.com/OpenIdentityPlatform/OpenDJ/pulls)

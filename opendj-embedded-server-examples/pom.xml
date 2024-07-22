@@ -20,7 +20,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.openidentityplatform.opendj</groupId>
-        <version>4.6.5-SNAPSHOT</version>
+        <version>4.6.6-SNAPSHOT</version>
     </parent>
 
     <artifactId>opendj-embedded-server-examples</artifactId>
