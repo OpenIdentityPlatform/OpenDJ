@@ -447,7 +447,7 @@
    </listitem>
   </varlistentry>
 
-  <varlistentry xml:id="virtual-list-view-response-control">
+  <varlistentry xml:id="relax-rules-control">
    <term>The LDAP Relax Rules Control</term>
    <listitem>
     <indexterm>
