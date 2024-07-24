@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions copyright 2024 3A Systems,LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -37,6 +38,7 @@ import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.controls.RelaxRulesControl;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Syntax;
@@ -108,7 +110,8 @@ public class LocalBackendAddOperation
   private Map<AttributeType, List<Attribute>> operationalAttributes;
   /** The set of user attributes for the entry to add. */
   private Map<AttributeType, List<Attribute>> userAttributes;
-
+  /** Indicates whether the request included the RelaxRules request control. */
+  private boolean RelaxRulesControlRequested=false;
   /**
    * Creates a new operation that may be used to add a new entry in a
    * local backend of the Directory Server.
@@ -122,6 +125,10 @@ public class LocalBackendAddOperation
     LocalBackendWorkflowElement.attachLocalOperation (add, this);
   }
 
+  @Override
+  public boolean isSynchronizationOperation() {
+    return super.isSynchronizationOperation()||RelaxRulesControlRequested;
+  }
 
 
   /**
@@ -406,7 +413,7 @@ public class LocalBackendAddOperation
       // sensitive information to the client.
       try
       {
-        if (!getAccessControlHandler().isAllowed(this))
+        if (!getAccessControlHandler().isAllowed(this) || (RelaxRulesControlRequested && !clientConnection.hasPrivilege(Privilege.BYPASS_ACL, this)))
         {
           setResultCodeAndMessageNoInfoDisclosure(entryDN,
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -956,6 +963,10 @@ public class LocalBackendAddOperation
       {
         // We don't need to do anything here because it's already handled
         // in LocalBackendAddOperation.handlePasswordPolicy().
+      }
+      else if (RelaxRulesControl.OID.equals(oid))
+      {
+        RelaxRulesControlRequested = true;
       }
       else if (c.isCritical() && !backend.supportsControl(oid))
       {

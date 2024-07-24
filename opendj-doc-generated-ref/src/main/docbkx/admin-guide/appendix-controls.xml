@@ -21,6 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011 ForgeRock AS
+  !      Portions copyright 2024 3A Systems,LLC.
   !    
 -->
 <appendix xml:id='appendix-controls'
@@ -443,6 +444,20 @@
     xlink:href='http://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv'
     >draft-ietf-ldapext-ldapv3-vlv - LDAP Extensions for Scrolling View
     Browsing of Search Results</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="virtual-list-view-response-control">
+   <term>The LDAP Relax Rules Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Relax Rules Control</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.4203.666.5.12</para>
+    <para>Internet-Draft: <link
+            xlink:href='https://tools.ietf.org/html/draft-zeilenga-ldap-relax-03'
+    >ddraft-zeilenga-ldap-relax-03 - The LDAP Relax Rules Control</link></para>
    </listitem>
   </varlistentry>
  </variablelist>
