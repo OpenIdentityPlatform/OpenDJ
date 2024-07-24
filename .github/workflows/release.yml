@@ -110,6 +110,30 @@ jobs:
            git tag -f ${{ github.event.inputs.releaseVersion }}
            git push --quiet --force
            git push --quiet --force origin ${{ github.event.inputs.releaseVersion }}
+
+      - uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: OpenIdentityPlatform/doc.openidentityplatform.org
+          path: doc.openidentityplatform.org
+      - name: Publish docs to site
+        continue-on-error: true
+        shell: bash
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          export REPO_NAME_LC=$(echo '${{github.event.repository.name}}' | tr '[:upper:]' '[:lower:]')
+          export SITE_DOC_FOLDER=${REPO_NAME_LC}-doc-generated-ref
+          cd doc.openidentityplatform.org
+          rm -rf ${REPO_NAME_LC}
+          mv ../${SITE_DOC_FOLDER}/target/docbkx/bootstrap ../doc.openidentityplatform.org/${REPO_NAME_LC}
+          git add -A
+          git commit -a -m "upload ${{ github.event.repository.name }} docs after release ${{ github.event.inputs.releaseVersion }}"
+          git tag -f ${{ github.event.repository.name }}-${{ github.event.inputs.releaseVersion }}
+          git push --quiet --force
+          git push --quiet --force origin ${{ github.event.repository.name }}-${{ github.event.inputs.releaseVersion }}
+
   release-docker:
     name: Docker release
     runs-on: 'ubuntu-latest'
