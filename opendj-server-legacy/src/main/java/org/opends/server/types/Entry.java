@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2023-2024 3A Systems, LLC.
  */
 package org.opends.server.types;
 
@@ -3027,9 +3028,7 @@ public class Entry
   {
     if (attrList.get(0).isVirtual())
     {
-      // The existing attribute is already virtual,
-      // so we've got a different conflict, but we'll let the first win.
-      // FIXME -- Should we handle this differently?
+      attrList.add(collectiveAttr);
       return;
     }
 
