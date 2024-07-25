@@ -104,7 +104,7 @@ jobs:
         run:   |
            cd ${{ github.event.repository.name }}.wiki
            rm -rf docbkx
-           mv ../opendj-doc-generated-ref/target/docbkx ../${{ github.event.repository.name }}.wiki
+           cp -R ../opendj-doc-generated-ref/target/docbkx ../${{ github.event.repository.name }}.wiki
            git add -A
            git commit -a -m "upload docs after release ${{ github.event.inputs.releaseVersion }}"
            git tag -f ${{ github.event.inputs.releaseVersion }}
@@ -127,7 +127,7 @@ jobs:
           export SITE_DOC_FOLDER=${REPO_NAME_LC}-doc-generated-ref
           cd doc.openidentityplatform.org
           rm -rf ${REPO_NAME_LC}
-          mv ../${SITE_DOC_FOLDER}/target/docbkx/bootstrap ../doc.openidentityplatform.org/${REPO_NAME_LC}
+          cp -R ../${SITE_DOC_FOLDER}/target/docbkx/bootstrap ../doc.openidentityplatform.org/${REPO_NAME_LC}
           git add -A
           git commit -a -m "upload ${{ github.event.repository.name }} docs after release ${{ github.event.inputs.releaseVersion }}"
           git tag -f ${{ github.event.repository.name }}-${{ github.event.inputs.releaseVersion }}
