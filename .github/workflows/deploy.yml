@@ -156,5 +156,5 @@ jobs:
           rm -rf ${REPO_NAME_LC}
           cp -R ../${SITE_DOC_FOLDER}/target/docbkx/bootstrap ../doc.openidentityplatform.org/${REPO_NAME_LC}
           git add -A
-          git commit -a -m "upload docs after deploy ${{ github.sha }}"
+          git commit -a -m "upload ${{github.event.repository.name}} docs after deploy ${{ github.sha }}"
           git push --force https://github.com/OpenIdentityPlatform/doc.openidentityplatform.org.git

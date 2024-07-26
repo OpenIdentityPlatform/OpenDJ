@@ -123,12 +123,10 @@ jobs:
         run: |
           export REPO_NAME_LC=$(echo '${{github.event.repository.name}}' | tr '[:upper:]' '[:lower:]')
           export SITE_DOC_FOLDER=${REPO_NAME_LC}-doc-generated-ref
+          export TAG_NAME='${{github.event.repository.name}}-${{ github.event.inputs.releaseVersion }}'
           cd doc.openidentityplatform.org
-          rm -rf ${REPO_NAME_LC}
-          cp -R ../${SITE_DOC_FOLDER}/target/docbkx/bootstrap ../doc.openidentityplatform.org/${REPO_NAME_LC}
-          git add -A
-          git commit -a -m "upload ${{github.event.repository.name}} docs after release ${{ github.event.inputs.releaseVersion }}"
-          git push --force https://github.com/OpenIdentityPlatform/doc.openidentityplatform.org.git
+          git tag -f '${TAG_NAME}'
+          git push --quiet --force origin '${TAG_NAME}'
 
   release-docker:
     name: Docker release
