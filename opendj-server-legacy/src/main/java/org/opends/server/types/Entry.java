@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2023-2024 3A Systems, LLC.
  */
 package org.opends.server.types;
 
@@ -2616,7 +2617,7 @@ public class Entry
    */
   public DN getAliasedDN() throws DirectoryException
   {
-    AttributeType aliasType = getSchema().getAttributeType(ATTR_REFERRAL_URL);
+    AttributeType aliasType = getSchema().getAttributeType(ATTR_ALIAS_DN);
     if (aliasType.isPlaceHolder())
     {
       // This should not happen -- The server doesn't have an aliasedObjectName attribute type defined.

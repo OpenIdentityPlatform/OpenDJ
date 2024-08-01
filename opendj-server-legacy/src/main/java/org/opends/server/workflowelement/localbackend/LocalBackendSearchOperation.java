@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2024 3A Systems, LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -20,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.LocalBackend;
@@ -196,6 +198,16 @@ public class LocalBackendSearchOperation
 
     try
     {
+      //DereferenceAliasesPolicy
+      if (DereferenceAliasesPolicy.ALWAYS.equals(getDerefPolicy()) || DereferenceAliasesPolicy.FINDING_BASE.equals(getDerefPolicy())) {
+        final Entry baseEntry=DirectoryServer.getEntry(baseDN);
+        if (baseEntry!=null && baseEntry.isAlias()) {
+          setBaseDN(baseEntry.getAliasedDN());
+          processSearch(executePostOpPlugins);
+          return;
+        }
+      }
+
       // If there's a persistent search, then register it with the server.
       boolean processSearchNow = true;
       if (persistentSearch != null)

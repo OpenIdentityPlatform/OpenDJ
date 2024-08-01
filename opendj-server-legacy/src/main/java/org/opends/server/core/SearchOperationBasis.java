@@ -13,15 +13,11 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2024 3A Systems, LLC.
  */
 package org.opends.server.core;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -453,6 +449,7 @@ public class SearchOperationBasis
   {
     return returnEntry(entry, controls, true);
   }
+  Set<DN> dereferenced=new HashSet<>();
 
   @Override
   public final boolean returnEntry(Entry entry, List<Control> controls,
@@ -564,6 +561,27 @@ public class SearchOperationBasis
     if (evaluateAci && !getACIHandler().maySend(this, unfilteredSearchEntry))
     {
       return true;
+    }
+
+    //DereferenceAliasesPolicy
+    if ( DereferenceAliasesPolicy.ALWAYS.equals(getDerefPolicy()) || DereferenceAliasesPolicy.IN_SEARCHING.equals(getDerefPolicy()) ) {
+      if (entry.isAlias() && !baseDN.equals(entry.getName())) {
+        try {
+          final DN dn = entry.getAliasedDN();
+          final Entry dereference = DirectoryServer.getEntry(dn);
+          if (dereferenced.contains(dn)) {
+            return true;
+          }
+          dereferenced.add(dn);
+          return returnEntry(dereference, controls, true);
+        } catch (DirectoryException e) {
+          throw new RuntimeException(e);
+        }
+      }
+      if (dereferenced.contains(entry.getName())) {
+        return true;
+      }
+      dereferenced.add(entry.getName());
     }
 
     // Make a copy of the entry and pare it down to only include the set
