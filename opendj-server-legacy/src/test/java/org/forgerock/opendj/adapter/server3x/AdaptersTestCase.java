@@ -12,7 +12,6 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
- * Portions copyright 2024 3A Systems,LLC.
  */
 package org.forgerock.opendj.adapter.server3x;
 
@@ -40,7 +39,12 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.controls.*;
+import org.forgerock.opendj.ldap.controls.GenericControl;
+import org.forgerock.opendj.ldap.controls.MatchedValuesRequestControl;
+import org.forgerock.opendj.ldap.controls.PermissiveModifyRequestControl;
+import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
+import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
+import org.forgerock.opendj.ldap.controls.SubentriesRequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.CompareRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
@@ -572,25 +576,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
                 "modified@example.com");
     }
 
-    @Test
-    public void testAdapterModifyRequestRelax() throws LdapException, DecodeException {
-        final ModifyRequest changeRequest =
-                Requests.newModifyRequest("uid=user.2, o=test")
-                        .addControl(new RelaxRulesControl())
-                        .addModification(ModificationType.REPLACE, "pwdChangedTime", "20211203224637.000Z");
-
-        final Connection connection = Adapters.newRootConnectionFactory().getConnection();
-        final Result result = connection.modify(changeRequest);
-        assertThat(result.getDiagnosticMessage()).isEmpty();
-        assertThat(result.getMatchedDN()).isEmpty();
-
-        //Verifies that entry has been correctly modified.
-        final SearchResultEntry srEntry =
-                connection.searchSingleEntry(Requests.newSearchRequest(
-                        "uid=user.2, o=test", SearchScope.BASE_OBJECT, "(uid=user.2)").addAttribute("+"));
-        assertThat(srEntry.getAttribute("pwdChangedTime").firstValueAsString()).isEqualTo(
-                "20211203224637.000Z");
-    }
     /**
      * Tries to modify the existing entry with the same values but using the
      * permissive modify control.
@@ -787,6 +772,4 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             assertThat(entry.getControls().size()).isEqualTo(sdkEntry.getControls().size());
         }
     }
-
-
 }
