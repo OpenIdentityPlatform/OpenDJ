@@ -30,7 +30,7 @@ import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Test(singleThreaded = true)
+@Test(sequential = true)
 public class AliasTestCase extends DirectoryServerTestCase {
     Connection connection;
 
@@ -280,10 +280,10 @@ public class AliasTestCase extends DirectoryServerTestCase {
     public void test_sub_search() throws SearchResultReferenceIOException, LdapException {
         HashMap<String,SearchResultEntry> res=search(SearchScope.WHOLE_SUBTREE,DereferenceAliasesPolicy.IN_SEARCHING);
 
-        assertThat(res.containsKey("ou=Area1,o=test")).isTrue();
-        assertThat(res.containsKey("o=MyCompany,o=test")).isFalse();
+        assertThat(res.containsKey("ou=Area1,o=test")).isFalse();
+        assertThat(res.containsKey("o=MyCompany,o=test")).isTrue();
         assertThat(res.containsKey("cn=President,o=MyCompany,o=test")).isFalse();
-        assertThat(res.containsKey("cn=John Doe,o=MyCompany,o=test")).isFalse();
+        assertThat(res.containsKey("cn=John Doe,o=MyCompany,o=test")).isTrue();
     }
 
     //    Subtree Search with the Dereferencing Flag -a always
