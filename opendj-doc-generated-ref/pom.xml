@@ -31,6 +31,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <docTargetVersion>${project.version}</docTargetVersion>
+        <sdkDocTargetVersion>${project.version}</sdkDocTargetVersion>
     </properties>
 
 
