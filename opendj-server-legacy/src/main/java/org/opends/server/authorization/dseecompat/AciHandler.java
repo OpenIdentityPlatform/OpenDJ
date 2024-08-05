@@ -14,6 +14,7 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2013 Manuel Gaupp
+ * Portions Copyright 2024 3A Systems, LLC.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -1032,7 +1033,7 @@ public final class AciHandler extends
   {
     evalCtx.setEvaluationResult(NO_REASON, null);
 
-    if (evalCtx.getAllowList().isEmpty()
+    if (evalCtx.getAllowList().isEmpty() && evalCtx.getDenyList().isEmpty()
         && (!evalCtx.isGetEffectiveRightsEval()
             || evalCtx.hasRights(ACI_SELF)
             || !evalCtx.isTargAttrFilterMatchAciEmpty()))
