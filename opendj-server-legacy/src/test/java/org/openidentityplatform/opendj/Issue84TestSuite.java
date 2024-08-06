@@ -77,6 +77,7 @@ public class Issue84TestSuite extends DirectoryServerTestCase {
         return connection;
     }
 
+    @Test
     public void test_user() throws LdapException {
         try(Connection connection=getConnection("uid=user.1,ou=People,o=test","password")){
             final SearchRequest request =Requests.newSearchRequest("ou=Services,o=test", SearchScope.WHOLE_SUBTREE,"(&)");
@@ -88,6 +89,7 @@ public class Issue84TestSuite extends DirectoryServerTestCase {
         }
     }
 
+    @Test
     public void test_service() throws LdapException, SearchResultReferenceIOException {
         try(Connection connection=getConnection("uid=service.1,ou=Services,o=test","password")){
             final SearchRequest request =Requests.newSearchRequest("ou=Services,o=test", SearchScope.WHOLE_SUBTREE,"(&)");
