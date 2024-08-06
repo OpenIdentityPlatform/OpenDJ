@@ -21,6 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011-2014 ForgeRock AS
+  !      Portions copyright 2024 3A Systems,LLC.
   !
 -->
 <book xml:id='admin-guide'
@@ -40,7 +41,14 @@
    <year>2011-2014</year>
    <holder>ForgeRock AS</holder>
   </copyright>
+  <copyright>
+   <year>2024- </year>
+   <holder>Open Identity Platform Community</holder>
+  </copyright>
   <authorgroup>
+   <author>
+    <personname><firstname>Valery </firstname><surname>Kharseko</surname></personname>
+   </author>
    <author>
     <personname><firstname>Mark </firstname><surname>Craig</surname></personname>
    </author>

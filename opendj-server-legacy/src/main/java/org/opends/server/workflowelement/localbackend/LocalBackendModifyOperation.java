@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2011 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions copyright 2024 3A Systems,LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -33,6 +34,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.controls.RelaxRulesControl;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
@@ -123,6 +125,8 @@ public class LocalBackendModifyOperation
   private boolean permissiveModify;
   /** Indicates whether the request included the password policy request control. */
   private boolean pwPolicyControlRequested;
+  /** Indicates whether the request included the RelaxRules request control. */
+  private boolean RelaxRulesControlRequested=false;
   /** The post-read request control, if present. */
   private LDAPPostReadRequestControl postReadRequest;
   /** The pre-read request control, if present. */
@@ -161,6 +165,11 @@ public class LocalBackendModifyOperation
   {
     super(modify);
     LocalBackendWorkflowElement.attachLocalOperation (modify, this);
+  }
+
+  @Override
+  public boolean isSynchronizationOperation() {
+    return super.isSynchronizationOperation()||RelaxRulesControlRequested;
   }
 
   /**
@@ -527,7 +536,7 @@ public class LocalBackendModifyOperation
   {
     try
     {
-      if (!getAccessControlHandler().isAllowed(this))
+      if (!getAccessControlHandler().isAllowed(this) || (RelaxRulesControlRequested && !clientConnection.hasPrivilege(Privilege.BYPASS_ACL, this)))
       {
         setResultCodeAndMessageNoInfoDisclosure(modifiedEntry,
             ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -683,6 +692,10 @@ public class LocalBackendModifyOperation
       else if (OID_PASSWORD_POLICY_CONTROL.equals(oid))
       {
         pwPolicyControlRequested = true;
+      }
+      else if (RelaxRulesControl.OID.equals(oid))
+      {
+        RelaxRulesControlRequested = true;
       }
       else if (c.isCritical() && !backend.supportsControl(oid))
       {

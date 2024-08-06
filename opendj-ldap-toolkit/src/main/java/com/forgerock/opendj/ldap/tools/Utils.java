@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions copyright 2014-2016 ForgeRock AS.
+ * Portions copyright 2022-2024 3A Systems,LLC.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -58,19 +59,7 @@ import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
-import org.forgerock.opendj.ldap.controls.AuthorizationIdentityRequestControl;
-import org.forgerock.opendj.ldap.controls.AuthorizationIdentityResponseControl;
-import org.forgerock.opendj.ldap.controls.Control;
-import org.forgerock.opendj.ldap.controls.GenericControl;
-import org.forgerock.opendj.ldap.controls.GetEffectiveRightsRequestControl;
-import org.forgerock.opendj.ldap.controls.PasswordExpiredResponseControl;
-import org.forgerock.opendj.ldap.controls.PasswordExpiringResponseControl;
-import org.forgerock.opendj.ldap.controls.PasswordPolicyErrorType;
-import org.forgerock.opendj.ldap.controls.PasswordPolicyRequestControl;
-import org.forgerock.opendj.ldap.controls.PasswordPolicyResponseControl;
-import org.forgerock.opendj.ldap.controls.PasswordPolicyWarningType;
-import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
+import org.forgerock.opendj.ldap.controls.*;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Request;
 import org.forgerock.opendj.ldap.responses.BindResult;
@@ -379,6 +368,8 @@ final class Utils {
         case "effectiverights":
         case "geteffectiverights":
             return GetEffectiveRightsRequestControl.OID;
+        case "relaxrules":
+            return RelaxRulesControl.OID;
         case "noop":
         case "no-op":
         case "subentries":
