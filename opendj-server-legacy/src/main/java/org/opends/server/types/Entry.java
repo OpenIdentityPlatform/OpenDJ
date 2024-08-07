@@ -2617,7 +2617,7 @@ public class Entry
    */
   public DN getAliasedDN() throws DirectoryException
   {
-    AttributeType aliasType = getSchema().getAttributeType(ATTR_REFERRAL_URL);
+    AttributeType aliasType = getSchema().getAttributeType(ATTR_ALIAS_DN);
     if (aliasType.isPlaceHolder())
     {
       // This should not happen -- The server doesn't have an aliasedObjectName attribute type defined.
