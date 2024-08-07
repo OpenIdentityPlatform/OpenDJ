@@ -58,10 +58,14 @@ bin/stop-ds
 * OpenDJ Community [issues](https://github.com/OpenIdentityPlatform/OpenDJ/issues)
 * OpenDJ [commercial support](https://github.com/OpenIdentityPlatform/.github/wiki/Approved-Vendor-List)
 
-## Contributing
-Please, make [Pull request](https://github.com/OpenIdentityPlatform/OpenDJ/pulls)
-
 ## Thanks 🥰
 * Sun OpenDS
 * Oracle OpenDS
 * Forgerock OpenDJ
+
+## Contributing
+Please, make [Pull request](https://github.com/OpenIdentityPlatform/OpenDJ/pulls)
+
+<a href="https://github.com/OpenIdentityPlatform/OpenDJ/graphs/contributors">
+  <img src="https://contributors-img.web.app/image?repo=OpenIdentityPlatform/OpenDJ" />
+</a>
