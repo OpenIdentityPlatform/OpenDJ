@@ -359,7 +359,6 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.13.0</version>
                     <configuration>
-                        <release>8</release>
                         <fork>true</fork>
                         <compilerArgs>
                         	<arg>-XDignore.symbol.file</arg>
