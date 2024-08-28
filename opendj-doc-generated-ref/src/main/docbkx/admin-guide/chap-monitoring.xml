@@ -21,6 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011-2013 ForgeRock AS
+  !      Portions Copyright 2024 3A Systems, LLC
   !    
 -->
 <chapter xml:id='chap-monitoring'
@@ -192,6 +193,9 @@ SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/opendj"
   xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
   >Evolving</link></para>
 
+  <para>Configure the server to activate JMX access.
+   The following example uses the reserved port number, 1689:</para>
+
   <screen>$ dsconfig
  set-connection-handler-prop
  --port 4444
@@ -203,33 +207,56 @@ SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/opendj"
  --trustAll
  --no-prompt</screen>
 
-  <para>By default, no users have privileges to access the JMX connection. The
-  following command adds JMX privileges for Directory Manager.</para>
+  <para>Add appropriate privileges to access JMX monitoring information.
+   By default, no users have privileges to access the JMX connection.
 
-  <screen>$ dsconfig
- set-root-dn-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --add default-root-privilege-name:jmx-notify
- --add default-root-privilege-name:jmx-read
- --add default-root-privilege-name:jmx-write
- --trustAll
- --no-prompt</screen>
+   The following commands create a user with JMX privileges, who can authenticate over an insecure connection:</para>
 
-  <para>You must also configure security to login remotely. See the section on
-  <citetitle>Using SSL</citetitle> in <link
-  xlink:href="http://docs.oracle.com/javase/1.5.0/docs/guide/management/agent.html#SSL_enabled"
-  xlink:show="new"><citetitle>Monitoring and Management Using
-  JMX</citetitle></link> for hints.</para>
-  
-  <para>Alternatively, you can connect to a local server process by using the
-  server process identifier.</para>
+  <screen>$ bin/dsconfig
+   create-password-policy
+   --policy-name "Allow insecure authentication"
+   --type password-policy
+   --set default-password-storage-scheme:PBKDF2-HMAC-SHA256
+   --set password-attribute:userPassword
+   --trustAll --no-prompt
+   --hostname opendj.example.com
+   --port 4444
+   --bindDN "cn=Directory Manager"
+   --bindPassword password</screen>
 
-  <screen>$ cat ../logs/server.pid
-3363
-$ jvisualvm --openpid 3363 &amp;</screen>
+  <screen>$ bin/ldapmodify --port 1389 --bindDN "cn=Directory Manager" --bindPassword password
+   dn: uid=JMX Monitor,dc=example,dc=com
+   objectClass: top
+   objectClass: person
+   objectClass: organizationalPerson
+   objectClass: inetOrgPerson
+   cn: JMX Monitor
+   sn: User
+   uid: JMX Monitor
+   userPassword: password
+   ds-privilege-name: monitor-read
+   ds-privilege-name: jmx-notify
+   ds-privilege-name: jmx-read
+   ds-privilege-name: jmx-write
+   ds-pwp-password-policy-dn: cn=Allow insecure authentication,cn=Password Policies,cn=config
+
+   Processing ADD request for uid=JMX Monitor,dc=example,dc=com
+   ADD operation successful for DN uid=JMX Monitor,dc=example,dc=com
+   ^C
+  </screen>
+
+  <para>Connect remotely.</para>
+
+  <screen>$ jconsole &amp;</screen>
+
+  <para>
+   <itemizedlist>
+    <listitem>Remote process: <term><literal>service:jmx:rmi:///jndi/rmi://localhost:1689/org.opends.server.protocols.jmx.client-unknown</literal></term></listitem>
+    <listitem>Username: <term><literal>uid=JMX Monitor,dc=example,dc=com</literal></term></listitem>
+    <listitem>Password: <term><literal>password</literal></term></listitem>
+    <listitem>Connect -> Insecure connection</listitem>
+   </itemizedlist>
+  </para>
  </section>
 
  <section xml:id="monitoring-status-and-tasks">
