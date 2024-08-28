@@ -382,7 +382,7 @@
 	</file>
     <!-- Adds Generated config.ldif file -->
     <file>
-      <source>${basedir}/resource/config/config.ldif</source>
+      <source>${project.build.directory}/template/config/config.ldif</source>
       <outputDirectory>template/config</outputDirectory>
     </file>
 

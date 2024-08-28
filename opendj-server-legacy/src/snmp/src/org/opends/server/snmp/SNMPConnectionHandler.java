@@ -249,12 +249,16 @@ public final class SNMPConnectionHandler
         try {
             String url = "jar:" + file.toURI().toURL() + "!/";
             URL u = new URL(url);
-            URLClassLoader sysloader =
-              (URLClassLoader)ClassLoader.getSystemClassLoader();
-            Class sysclass = URLClassLoader.class;
-            Method method = sysclass.getDeclaredMethod("addURL", URL.class);
-            method.setAccessible(true);
-            method.invoke(sysloader, u);
+            ClassLoader sysloader =ClassLoader.getSystemClassLoader();
+            try {
+                Method method = sysloader.getClass().getDeclaredMethod("addURL", URL.class);
+                method.setAccessible(true);
+                method.invoke(sysloader, u);
+            }catch (NoSuchMethodException e) {
+                Method method = sysloader.getClass().getDeclaredMethod("appendToClassPathForInstrumentation", String.class);
+                method.setAccessible(true);
+                method.invoke(sysloader, file.toString());
+            }
         }
         catch (Throwable t) {
         }
