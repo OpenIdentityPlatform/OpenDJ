@@ -208,7 +208,9 @@ SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/opendj"
  --no-prompt</screen>
 
   <para>Add appropriate privileges to access JMX monitoring information.
-   By default, no users have privileges to access the JMX connection. The following commands create a user with JMX privileges, who can authenticate over an insecure connection:</para>
+   By default, no users have privileges to access the JMX connection.
+
+   The following commands create a user with JMX privileges, who can authenticate over an insecure connection:</para>
 
   <screen>$ bin/dsconfig
    create-password-policy
@@ -217,9 +219,9 @@ SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/opendj"
    --set default-password-storage-scheme:PBKDF2-HMAC-SHA256
    --set password-attribute:userPassword
    --trustAll --no-prompt
-   --hostname localhost
-   --port 4444 -
-   -bindDN "cn=Directory Manager"
+   --hostname opendj.example.com
+   --port 4444
+   --bindDN "cn=Directory Manager"
    --bindPassword password</screen>
 
   <screen>$ bin/ldapmodify --port 1389 --bindDN "cn=Directory Manager" --bindPassword password
@@ -245,7 +247,7 @@ SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/opendj"
 
   <para>Connect remotely.</para>
 
-  <screen>$jconsole &amp;</screen>
+  <screen>$ jconsole &amp;</screen>
 
   <para>
    <itemizedlist>
