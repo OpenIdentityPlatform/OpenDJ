@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2024 3A Systems, LLC
  */
 package org.opends.server.snmp;
 
