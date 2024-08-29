@@ -155,6 +155,7 @@ LDIF processing complete.  10003 entries written</screen>
       server, and then run the <command>import-ldif</command> command.</para>
       <screen>$ stop-ds
 $ import-ldif
+          --offline
  --includeBranch dc=example,dc=org
  --backendID userRoot
  --ldifFile /path/to/generated.ldif</screen>
@@ -193,6 +194,7 @@ $ import-ldif
      export data using the <command>export-ldif</command> command.</para>
      <screen>$ stop-ds
 $ export-ldif
+         --offline
  --includeBranch dc=example,dc=org
  --backendID userRoot
  --ldifFile /path/to/backup.ldif</screen>
