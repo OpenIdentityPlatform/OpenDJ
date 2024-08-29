@@ -194,7 +194,7 @@ $ import-ldif
      export data using the <command>export-ldif</command> command.</para>
      <screen>$ stop-ds
 $ export-ldif
-         --offline
+ --offline
  --includeBranch dc=example,dc=org
  --backendID userRoot
  --ldifFile /path/to/backup.ldif</screen>
