@@ -13,7 +13,7 @@
  *
  * Portions Copyright 2006-2007-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
- * Portions Copyright 2023 3A Systems LLC.
+ * Portions Copyright 2023-2024 3A Systems LLC.
  */
 package org.opends.server.config;
 
@@ -398,8 +398,11 @@ public final class JMXMBean
             get(attributeName, configEntryDN, op.getErrorMessage());
         throw new AttributeNotFoundException(message.toString());
       }
-
-      return getJmxAttribute(attributeName).getValue();
+      Attribute attr=getJmxAttribute(attributeName);
+      if (attr==null) {
+        throw new AttributeNotFoundException(attributeName);
+      }
+      return attr.getValue();
     }
     catch (AttributeNotFoundException e)
     {
