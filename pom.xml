@@ -58,7 +58,13 @@
         <checkstyleVersion>5.5</checkstyleVersion>
         <ant.contrib.version>1.0b3</ant.contrib.version>
         <argLine>-Xmx512m</argLine>
-    </properties>
+
+        <docHomepageUrl>https://doc.openidentityplatform.org/opendj/</docHomepageUrl>
+        <docWikiUrl>https://github.com/OpenIdentityPlatform/OpenDJ/wiki</docWikiUrl>
+        <docGuideRefUrl>https://doc.openidentityplatform.org/opendj/man-pages/</docGuideRefUrl>
+        <docGuideAdminUrl>https://doc.openidentityplatform.org/opendj/admin-guide/</docGuideAdminUrl>
+
+      </properties>
 
     <inceptionYear>2011</inceptionYear>
     <url>https://github.com/OpenIdentityPlatform/OpenDJ</url>
@@ -410,7 +416,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.3.1</version>
                 </plugin>
                 
                 <plugin>

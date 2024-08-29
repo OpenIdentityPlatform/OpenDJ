@@ -31,10 +31,6 @@
     <!-- Product information properties -->
     <patchFixIds />
     <isDebugBuild>false</isDebugBuild>
-    <docHomepageUrl>http://opendj.forgerock.org/</docHomepageUrl>
-    <docWikiUrl>http://opendj.forgerock.org/docs.html</docWikiUrl>
-    <docGuideRefUrl>http://opendj.forgerock.org/doc/admin-guide/index.html</docGuideRefUrl>
-    <docGuideAdminUrl>http://opendj.forgerock.org/doc/admin-guide/index.html</docGuideAdminUrl>
     <doclint>none</doclint>
   </properties>
   <dependencies>
