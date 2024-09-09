@@ -125,8 +125,8 @@ jobs:
           export SITE_DOC_FOLDER=${REPO_NAME_LC}-doc-generated-ref
           export TAG_NAME='${{github.event.repository.name}}-${{ github.event.inputs.releaseVersion }}'
           cd doc.openidentityplatform.org
-          git tag -f '${TAG_NAME}'
-          git push --quiet --force origin '${TAG_NAME}'
+          git tag -f ${TAG_NAME}
+          git push --quiet --force origin ${TAG_NAME}
 
   release-docker:
     name: Docker release
