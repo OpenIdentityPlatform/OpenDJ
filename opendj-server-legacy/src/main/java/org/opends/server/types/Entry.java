@@ -2196,7 +2196,7 @@ public class Entry
             logger.error(message);
           }
         }
-        else
+        else if (!structuralClass.equals(parentStructuralClass))
         {
           Collection<NameForm> allNFs = getSchema().getNameForms(parentStructuralClass);
           if(allNFs != null)
