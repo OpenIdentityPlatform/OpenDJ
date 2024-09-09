@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2018-2024 3A Systems, LLC
 -->
 <!-- OpenDJ final archive content descriptor -->
 <component>
@@ -382,7 +383,7 @@
 	</file>
     <!-- Adds Generated config.ldif file -->
     <file>
-      <source>${basedir}/resource/config/config.ldif</source>
+      <source>${project.build.directory}/template/config/config.ldif</source>
       <outputDirectory>template/config</outputDirectory>
     </file>
 

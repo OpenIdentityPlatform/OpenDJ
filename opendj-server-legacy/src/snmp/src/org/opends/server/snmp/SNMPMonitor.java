@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2014 ForgeRock AS.
+ * Portions Copyright 2024 3A Systems, LLC.
  */
 package org.opends.server.snmp;
 
@@ -289,10 +290,10 @@ public class SNMPMonitor
       {
         try
         {
-          Attribute attr = (Attribute) server.getAttribute(name, attribute);
+          Object attr = server.getAttribute(name, attribute);
           if (attr != null)
           {
-            return attr.getValue();
+            return attr instanceof  Attribute  ? ((Attribute) attr).getValue(): attr;
           }
         }
         catch (Exception ex)

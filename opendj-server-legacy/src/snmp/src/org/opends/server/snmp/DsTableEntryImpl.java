@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2024 3A Systems, LLC.
  */
 package org.opends.server.snmp;
 
@@ -142,8 +143,10 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
                 ObjectName name = (ObjectName) iter.next();
                 Object value = this.monitor.getAttribute(name,
                         "ds-backend-entry-count");
-                if (value != null) {
+                if (value != null && value instanceof String) {
                     result = result + new Long((String) value);
+                }else if (value != null && value instanceof Long) {
+                    result = result + (Long)value;
                 }
             }
             return SNMPMonitor.gauge32Value(result);

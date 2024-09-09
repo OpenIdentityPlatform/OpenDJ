@@ -91,14 +91,9 @@ ds-backend-base-dn: dc=example,dc=com
   Server Monitoring MIB</link>.</para>
   
   <para>OpenDJ SNMP-based monitoring depends on OpenDMK, which you must
-  <link xlink:href="http://opendmk.java.net/download/" xlink:show="new">download
-  separately</link>. Install the <link xlink:show="new"
-  xlink:href="http://java.net/projects/opendmk/content/download/opendmk-1.0-b02-bin-dual-01-Oct-2007_19-17-46.jar"
-  >Full Binary Bundle</link> by using the graphical installer, which requires
-  that you accept the <link xlink:show="new"
-  xlink:href="http://java.net/projects/opendmk/content/legal_notices/LICENSE_BINARY.txt"
-  >Binary License for Project OpenDMK</link>. OpenDJ directory server that you
-  download from ForgeRock is built with OpenDMK, but due to licensing OpenDMK
+  <link xlink:href="https://github.com/OpenIdentityPlatform/OpenDJ/raw/master/opendj-server-legacy/opendmk/jdmkrt.jar" xlink:show="new">download
+  separately</link>. OpenDJ directory server that you
+  download from GitHub is built with OpenDMK, but due to licensing OpenDMK
   is not part of OpenDJ. SNMP is therefore not enabled by default.</para>
 
   <para>To run the OpenDMK installer, use the self-extracting .jar.</para>
