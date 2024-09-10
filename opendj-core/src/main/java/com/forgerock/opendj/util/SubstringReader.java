@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2024 3A Systems, LLC.
  */
 
 package com.forgerock.opendj.util;
@@ -135,6 +136,15 @@ public class SubstringReader {
     public int skipWhitespaces() {
         int skipped = 0;
         while (pos < length && source.charAt(pos) == ' ') {
+            skipped++;
+            pos++;
+        }
+        return skipped;
+    }
+
+    public int skipDelims() {
+        int skipped = 0;
+        while (pos < length && (source.charAt(pos) == ' ' || source.charAt(pos) == '$')) {
             skipped++;
             pos++;
         }
