@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2024 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -509,10 +510,13 @@ final class SchemaUtils {
             if (c == '(') {
                 values = new LinkedHashSet<>();
                 do {
+                    if (!values.isEmpty()) {
+                        reader.reset();
+                    }
                     values.add(readRuleID(reader));
-
-                    // Skip over any trailing spaces
-                    reader.skipWhitespaces();
+                    // Skip over any delims spaces
+                    reader.skipDelims();
+                    reader.mark();
                 } while (reader.read() != ')');
                 values = Collections.unmodifiableSet(values);
             } else {

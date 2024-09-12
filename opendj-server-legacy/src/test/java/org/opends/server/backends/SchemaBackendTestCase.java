@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2024 3A Systems, LLC.
  */
 package org.opends.server.backends;
 
@@ -3430,6 +3431,93 @@ public class SchemaBackendTestCase extends BackendTestCase
     }
   }
 
+  @Test
+  public void testAddDITStructureRuleSupSuccessful() throws Exception
+  {
+    String ldif = toLdif(
+            "dn: cn=schema",
+            "changetype: modify",
+            "add: nameForms",
+            "nameForms: ( 1.3.6.1.4.1.56521.999.8.1.7 NAME 'commonNameForm' DESC 'Name Form for a commonName orgRole structure' OC organizationalRole MUST cn )",
+            "-",
+            "add: ditStructureRules",
+            "dITStructureRules: ( 150 NAME 'commonNameStructureRule'  FORM commonNameForm )",
+            "dITStructureRules: ( 151 NAME 'commonNameStructureRule2' FORM commonNameForm )",
+            "dITStructureRules: ( 152 NAME 'commonNameStructureRule3' FORM commonNameForm SUP ( 150 $ 151 ) )"
+
+            );
+
+    int ruleID = 152;
+    assertSchemaHasDITStructureRule(ruleID, false);
+
+    try
+    {
+      runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
+      assertSchemaHasDITStructureRule(ruleID, true);
+    }
+    finally
+    {
+      // delete in reverse order
+      String ldif2 = toLdif(
+              "dn: cn=schema",
+              "changetype: modify",
+              "delete: ditStructureRules",
+              "dITStructureRules: ( 152 NAME 'commonNameStructureRule3' FORM commonNameForm SUP ( 150 151 ) )",
+              "dITStructureRules: ( 150 NAME 'commonNameStructureRule'  FORM commonNameForm )",
+              "dITStructureRules: ( 151 NAME 'commonNameStructureRule2' FORM commonNameForm )",
+              "-",
+              "delete: nameForms",
+              "nameForms: ( 1.3.6.1.4.1.56521.999.8.1.7 NAME 'commonNameForm' DESC 'Name Form for a commonName orgRole structure' OC organizationalRole MUST cn )"
+              );
+      runModify(argsNotPermissive(), ldif2, System.err, SUCCESS);
+      assertSchemaHasDITStructureRule(ruleID, false);
+    }
+  }
+
+  @Test
+  public void testAddDITStructureRuleSupSuccessful2() throws Exception
+  {
+    String ldif = toLdif(
+            "dn: cn=schema",
+            "changetype: modify",
+            "add: nameForms",
+            "nameForms: ( 1.3.6.1.4.1.56521.999.8.1.7 NAME 'commonNameForm' DESC 'Name Form for a commonName orgRole structure' OC organizationalRole MUST cn )",
+            "-",
+            "add: ditStructureRules",
+            "dITStructureRules: ( 150 NAME 'commonNameStructureRule'  FORM commonNameForm )",
+            "dITStructureRules: ( 151 NAME 'commonNameStructureRule2' FORM commonNameForm )",
+            "dITStructureRules: ( 152 NAME 'commonNameStructureRule3' FORM commonNameForm )",
+            "dITStructureRules: ( 153 NAME 'commonNameStructureRule4' FORM commonNameForm SUP ( 150 151 152 ) )"
+
+    );
+
+    int ruleID = 153;
+    assertSchemaHasDITStructureRule(ruleID, false);
+
+    try
+    {
+      runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
+      assertSchemaHasDITStructureRule(ruleID, true);
+    }
+    finally
+    {
+      // delete in reverse order
+      String ldif2 = toLdif(
+              "dn: cn=schema",
+              "changetype: modify",
+              "delete: ditStructureRules",
+              "dITStructureRules: ( 153 NAME 'commonNameStructureRule4' FORM commonNameForm SUP ( 150 $ 151 $ 152 ) )",
+              "dITStructureRules: ( 150 NAME 'commonNameStructureRule'  FORM commonNameForm )",
+              "dITStructureRules: ( 151 NAME 'commonNameStructureRule2' FORM commonNameForm )",
+              "dITStructureRules: ( 152 NAME 'commonNameStructureRule3' FORM commonNameForm )",
+              "-",
+              "delete: nameForms",
+              "nameForms: ( 1.3.6.1.4.1.56521.999.8.1.7 NAME 'commonNameForm' DESC 'Name Form for a commonName orgRole structure' OC organizationalRole MUST cn )"
+      );
+      runModify(argsNotPermissive(), ldif2, System.err, SUCCESS);
+      assertSchemaHasDITStructureRule(ruleID, false);
+    }
+  }
   private void assertSchemaHasDITStructureRule(int ruleID, boolean expected)
   {
     boolean hasDITStructureRule = getSchema().hasDITStructureRule(ruleID);
