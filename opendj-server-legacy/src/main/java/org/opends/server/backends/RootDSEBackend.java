@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2024 3A Systems, LLC.
  */
 package org.opends.server.backends;
 
@@ -187,10 +188,10 @@ public class RootDSEBackend
                                  BuildVersion.binaryVersion().toString()));
 
     // Construct the set of objectclasses to include in the root DSE entry.
-    dseObjectClasses = new HashMap<>(2);
+    dseObjectClasses = new HashMap<>(configEntry.getObjectClasses().size());
     dseObjectClasses.put(getTopObjectClass(), OC_TOP);
     dseObjectClasses.put(serverContext.getSchema().getObjectClass(OC_ROOT_DSE), OC_ROOT_DSE);
-
+    dseObjectClasses.putAll(configEntry.getObjectClasses());
     // Set the backend ID for this backend. The identifier needs to be
     // specific enough to avoid conflict with user backend identifiers.
     setBackendID("__root.dse__");
