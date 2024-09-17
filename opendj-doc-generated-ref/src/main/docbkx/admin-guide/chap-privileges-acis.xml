@@ -264,6 +264,22 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
    </variablelist>
+   <note>
+   <para>Different LDAP server implementations that support Netscape's ACI syntax
+   may support different multi-valued quotation styles or policies. Specifically,
+   this can relate to <replaceable>attr-list</replaceable> and <replaceable>OID</replaceable>
+   values.</para>
+   <para>OpenDJ ONLY offers support for the so-called "All-Encompassing" quotation
+   style, as is demonstrated throughout this guide. For instance:</para>
+     <literal>(targetattr = "<replaceable>attr1 || attr2 || attr3</replaceable>")</literal>
+   <para>Other implementations may also support the so-called "Individual" quotation
+   style, which is expressed as:</para>
+     <literal>(targetattr = <replaceable>"attr1" || "attr2" || "attr3"</replaceable>)</literal>
+   <para>Users migrating to OpenDJ from an implementation that not only supports the
+   "Individual" quotation style, but is actively using it, will need to take care to
+   sanitize any inbound ACIs bearing this style of quotation, else errors will occur
+   during integration.</para>
+   </note>
   </section>
 
   <section xml:id="aci-permissions">
@@ -1007,11 +1023,17 @@ The LDAP password modify operation was successful</screen>
    <para>Collective attributes provide a standard mechanism for defining
    attributes that appear on all the entries in a particular subtree. OpenDJ
    extends collective attributes to give you fine-grained control over the
-   which entries in the subtree are targetted. Also, OpenDJ lets you use
-   virtual attributes, such as <literal>isMemberOf</literal> to construct the
-   filter for targetting entries to which the collective attributes apply. This
-   allows you, for example, to define administrative privileges that apply to
-   all users who belong to an administrator group.</para>
+   which entries in the subtree are targeted.</para>
+
+   <para>Also, by also extending the RFC 3672 <literal>SpecificationFilter</literal>
+   component, users may leverage virtual attributes, such as <literal>isMemberOf</literal>,
+   to construct a search filter for targeting entries to which the collective
+   attributes apply. This allows you, for example, to define administrative
+   privileges that apply to all users who belong to an administrator group.</para>
+
+   <para>In addition to this feature, the traditional <literal>Refinement</literal>
+   <literal>ASN.1 CHOICE</literal> component -- also defined within RFC 3672 -- is
+   supported for use as a <literal>SpecificationFilter</literal> statement as well.</para>
    
    <step>
     <para>Create an LDAP subentry that specifies the collective attributes.</para>

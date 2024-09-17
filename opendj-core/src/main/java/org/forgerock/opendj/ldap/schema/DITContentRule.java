@@ -687,7 +687,7 @@ public final class DITContentRule extends AbstractSchemaElement {
 
             final String firstClass = iterator.next();
             if (iterator.hasNext()) {
-                buffer.append(" AUX (");
+                buffer.append(" AUX ( ");
                 buffer.append(firstClass);
 
                 while (iterator.hasNext()) {
