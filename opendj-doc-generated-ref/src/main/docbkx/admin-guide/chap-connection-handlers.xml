@@ -457,7 +457,7 @@ Certificate reply was installed in keystore</screen>
    The password for the key store and the private key is stored in clear text
    in the file <filename>/path/to/opendj/config/keystore.pin</filename>.</para>
 
-   <para>If you want to secure communications, but did not chose to configure
+   <para>If you want to secure communications, but chose not to configure
    LDAP Secure Access at setup time, this procedure can help. The following
    steps explain how to create and install a key pair with a self-signed
    certificate in preparation to configure LDAPS or HTTPS. First you create a
@@ -699,8 +699,8 @@ $ dsconfig
 
   <para>Using the OpenDJ directory server global configuration properties, you
   can add global restrictions on how clients access the server. These settings
-  are per server, and so much be set independently on each server in replication
-  topology.</para>
+  are server-specific, and must be set independently on each server participating
+  within the replication topology.</para>
 
   <para>These global settings are fairly coarse-grained. For a full discussion
   of the rich set of administrative privileges and fine-grained access control

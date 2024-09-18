@@ -629,4 +629,518 @@ myCustomAttribute: Testing 1, 2, 3...
    </varlistentry>
   </variablelist>
  </section>
+ <section xml:id="nf-dsr-schema">
+ <title>Working With DIT Structure Rules &amp; Name Forms</title>
+  <para>This section contains useful information regarding name forms and
+  DIT structure rules.</para>
+  <note>At this time, the OpenDJ Control Panel does not support the management
+  of name forms and DIT structure rules. These schema definition types can
+  only be implemented and managed by way of direct schema file edits (which will
+  necessitate a restart of OpenDJ), <emphasis>or</emphasis> through a use of
+  <command>ldapmodify</command> against the server's <literal>cn=schema</literal>
+  context.</note>
+ <section xml:id="nf-schema">
+  <title>Name Forms</title>
+  <para>From clause 13.1.8 of <link xlink:href="https://www.itu.int/rec/T-REC-X.501" xlink:show="new">
+   <citetitle>ITU-T Rec. X.501</citetitle></link> and <link xlink:href="http://tools.ietf.org/html/rfc4512#section-4.1.7.2" xlink:show="new">
+   <citetitle>Section 4.1.7.2 of RFC 4512</citetitle></link></para>
+   <variablelist>
+    <varlistentry>
+     <listitem>
+      <emphasis>name form: A name form specifies a permissible RDN for entries
+      of a particular structural object class. A name form identifies a named object
+      class and one or more attribute types to be used for naming (i.e., for the
+      RDN). Name forms are primitive pieces of specification used in the definition
+      of DIT structure rules.</emphasis>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+   <para>In simplest terms, a name form is a particular schema definition which
+   requires specific RDN syntaxes for use upon entries bearing a specific 
+   STRUCTURAL class.</para>
+   <para>To offer an example of this, consider the following UDDIv3 name form, per
+   the <filename>03-uddiv3.ldif</filename> file included with OpenDJ:</para>
+   <screen>
+      nameForms: ( 1.3.6.1.1.10.15.1
+         NAME 'uddiBusinessEntityNameForm'
+         OC uddiBusinessEntity
+         MUST ( uddiBusinessKey )
+         X-ORIGIN 'RFC 4403' )</screen>
+   <para>This name form states that any entry bearing the STRUCTURAL class
+   <literal>uddiBusinessEntity</literal> MUST ONLY be designated using the
+   <literal>uddiBusinessKey</literal> as the principal RDN attribute type, for
+   example, "<literal>uddiBusinessKey=ABC123</literal>".</para>
+   <para>Alternatively, when devising custom name forms, it is possible to enforce
+   the use of specific attribute types within multi-valued RDNs. Consider the following
+   hypothetical name form:</para>
+   <screen>
+      nameForms: ( 1.3.6.1.4.1.56521.999.98.15
+         NAME 'cnOrgForm'
+         OC groupOfUniqueNames
+         MUST ( cn $ o ) )</screen>
+   <para>This name form states that any entry bearing the STRUCTURAL object class
+   <literal>groupOfUniqueNames</literal> MUST be designated using attribute types
+   <literal>cn</literal> <emphasis>and</emphasis> <literal>o</literal> for a
+   qualifying entry bearing a multi-valued RDN, such as
+   "<literal>cn=Auditors+o=Acme Audit Co</literal>".</para>
+   <para>Name forms also allow use of MAY clauses. Consider the following
+   hypothetical name form, similar to the above:</para>
+   <screen>
+      nameForms: ( 1.3.6.1.4.1.56521.999.98.16
+         NAME 'cnOrgAltForm'
+         OC groupOfUniqueNames
+         MUST cn
+         MAY o )</screen>
+   <para>This rule enforces use of the <literal>cn</literal> RDN attribute type the
+   same as before, but while it no longer requires use of <literal>o</literal>, it
+   will not reject it when present. As such, either of the following RDNs are acceptable:</para>
+   <itemizedlist>
+    <listitem><literal>cn=Corporate Auditors</literal></listitem>
+    <listitem><literal>cn=Third Party Auditors+o=Acme Audit Co</literal></listitem>
+   </itemizedlist>
+   <para>But, regardless of the permutations, a name form does little good in practice
+   -- unless it is referenced by a DIT structure rule.</para>
+  </section>
+  <section xml:id="dsr-schema">
+   <title>DIT Structure Rules</title>
+   <para>From clause 13.1.6 of <link xlink:href="https://www.itu.int/rec/T-REC-X.501" xlink:show="new">
+   <citetitle>ITU-T Rec. X.501</citetitle></link> and <link xlink:href="http://tools.ietf.org/html/rfc4512#section-4.1.7.1" xlink:show="new">
+   <citetitle>Section 4.1.7.1 of RFC 4512</citetitle></link></para>
+   <variablelist>
+    <varlistentry>
+     <listitem><emphasis>DIT structure rule: A rule governing the structure of the DIT
+     by specifying a permitted superior to subordinate entry relationship. A structure
+     rule relates a name form, and therefore a structural object class, to superior
+     structure rules. This permits entries of the structural object class identified
+     by the name form to exist in the DIT as subordinates to entries governed by the
+     indicated superior structure rules.</emphasis></listitem>
+    </varlistentry>
+   </variablelist>
+   <para>In short, a DIT structure rule enforces the terms of its prescribed name form.
+   To offer a simple analogy, if a name form presents a law, the DIT structure rule is
+   the public official upholding that law.</para>
+   <para>Consider this structure rule, per the included <filename>03-uddiv3.ldif</filename>
+   file:</para>
+   <screen>
+     dITStructureRules: ( 1
+        NAME 'uddiBusinessEntityStructureRule'
+        FORM uddiBusinessEntityNameForm
+        X-ORIGIN 'RFC 4403' )</screen>
+   <para>This rule employs the <literal>uddiBusinessEntityNameForm</literal> definition,
+   and constrains entries bearing the STRUCTURAL object class of the name form -- also
+   known as the <literal>namedObjectClass</literal> -- to the RDN attribute type (in this
+   case, <literal>uddiBusinessKey</literal>).</para>
+   <para>When a DIT structure rule is introduced to the directory schema, it will not
+   be evaluated until an entry is added to the DIT it enforces.</para>
+   <para>DIT structure rules shall not influence preexisting entries, even if based
+   upon now-illegal STRUCTURAL class and RDN combinations.</para>
+   <para>Once structure rules have been established, when a new entry is added to, or
+   renamed within the DIT in violation of a structure rule, OpenDJ will return "Object
+   class violation (65)" along with additional contextual information for debugging
+   purposes.</para>
+   <note><para>As of version 4.8.0, OpenDJ is currently using the result code of "Object
+   class violation (65)" for certain name form related errors, where it should be using
+   "Naming violation (64)".</para>
+   <para>This issue will be resolved in a future release of the package to avoid introducing
+   breaking changes. Users are advised to update any external scripts or applications which
+   may match the <emphasis>incorrect result code</emphasis>, and take steps to allow recognition
+   of the <emphasis>correct result code</emphasis> in parallel for maximum compatibility.</para></note>
+   <para>But when a new entry is successfully added to or renamed within the DIT, a new
+   operational attribute type appears on the entry: <literal>governingStructureRule</literal>.</para>
+   <para>From clause 13.1.7 of <link xlink:href="https://www.itu.int/rec/T-REC-X.501" xlink:show="new">
+   <citetitle>ITU-T Rec. X.501:</citetitle></link></para>
+   <variablelist>
+    <varlistentry>
+     <listitem>
+      <emphasis>Governing structure rule (of an entry): With respect to a particular
+      entry, the single DIT structure rule that applies to the entry. This rule is indicated
+      by the governingStructureRule operational attribute.</emphasis>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+   <para>See also <link xlink:href="http://tools.ietf.org/html/rfc4512#section-3.4.6" xlink:show="new">
+   <citetitle>Section 3.4.6 of RFC 4512</citetitle></link>.</para>
+   <para>In simplest terms, the <literal>governingStructureRule</literal> contains
+   the integer identifier of the DIT structure rule which governs the entry. In the
+   case of the above DIT structure rule, it would appear in LDAP search results as
+   follows:</para>
+   <variablelist>
+    <varlistentry>
+     <term><literal>governingStructureRule: 1</literal></term>
+    </varlistentry>
+   </variablelist>
+   <para>Instances of this attribute type may be used for diagnostic reasons, or
+   by client applications designed to determine the appropriate RDN syntax to
+   be applied for a new entry, or for an entry being renamed and/or moved, in
+   advance of the request.</para>
+   <para>DIT structure rules can be configured in such a way that a particular rule
+   extends from, or is subordinate to, another DIT structure rule using the SUP clause.</para>
+   <tip>A superior DIT structure rule is often referred to as a superior structure
+   rule, per clause 13.1.9 of <link xlink:href="https://www.itu.int/rec/T-REC-X.501" xlink:show="new">
+   <citetitle>ITU-T Rec. X.501</citetitle></link>.</tip>
+   <para>The purpose of the SUP clause is to allow an entry with a particular RDN
+   syntax to reside beneath one of multiple possible choices. For example:</para>
+   <variablelist>
+    <varlistentry>
+     <screen>SUP ( 20 21 )</screen>
+    </varlistentry>
+   </variablelist>
+   <para>In this example, the integer identifiers 20 and 21 indicate that the bearer
+   of this clause will allow entries to reside as subordinates to <emphasis>either</emphasis>
+   of the entries governed by those rules.</para>
+   <para>Also note that rules can be <emphasis>recursive</emphasis> or "self-referencing".
+   This manifests as an instance where a DIT structure rule possesses a SUP clause member
+   that matches its own integer identifier. This is a particularly useful feature because
+   it allows nesting of compliant entries -- for example, those bearing the <literal>organizationalUnit</literal>
+   STRUCTURAL class -- to exist within superior entries of like-design.</para>
+   <para>For an example of recursive rules in action, see the <literal>ouStructure</literal>
+   rule (21) in the next section.</para>
+   </section>
+   <section xml:id="dsr-dit-design-schema">
+   <title>DIT Design Under Governance - A Practical Overview</title>
+   <para>This section will cover the highlights of creating initial DIT content while
+   under the control of easily-understood DIT structure rules enforcing the use of
+   common attribute types within entry RDNs.</para>
+   <para>The following basic assumptions apply:</para>
+   <itemizedlist>
+    <listitem><para>A new <literal>userRoot</literal> backend exists <emphasis>and</emphasis>
+    is identified by the <literal>base-dn</literal> of <literal>dc=example,dc=com</literal>,
+    containing no entries whatsoever, and ...</para></listitem>
+    <listitem><para>The eight (8) definitions described have already been saved
+    to <literal>/opt/opendj/config/schema/99-user.ldif</literal> or a similar
+    file, or otherwise added via <command>ldapmodify</command></para></listitem>
+   </itemizedlist>
+   <para>To begin, let's take a look at the following <literal>nameForms</literal>
+   definitions:</para>
+   <screen>
+      #
+      nameForms: ( 1.3.6.1.4.1.56521.999.2.7.1
+         NAME 'rootSuffixForm'
+         OC domain
+         MUST dc )
+      #
+      nameForms: ( 1.3.6.1.4.1.56521.999.2.7.2
+         NAME 'ouForm'
+         OC organizationalUnit
+         MUST ou )
+      #
+      nameForms: ( 1.3.6.1.4.1.56521.999.2.7.3
+         NAME 'accountForm'
+         OC inetOrgPerson
+         MUST uid )
+      #
+      nameForms: ( 1.3.6.1.4.1.56521.999.2.7.4
+         NAME 'groupForm'
+         OC groupOfNames
+         MUST cn )</screen>
+   <para>These name forms declare the following mandates:</para>
+   <itemizedlist>
+    <listitem>Entries bearing the <literal>domain</literal> STRUCTURAL class,
+    MUST utilize <literal>dc</literal> for their respective RDNs</listitem>
+    <listitem>Entries bearing the <literal>organizationalUnit</literal> STRUCTURAL
+    class, MUST utilize <literal>ou</literal> for their respective RDNs</listitem>
+    <listitem>Entries bearing the <literal>inetOrgPerson</literal> STRUCTURAL class,
+    MUST utilize <literal>uid</literal> for their respective RDNs</listitem>
+    <listitem>Entries bearing the <literal>groupOfNames</literal> STRUCTURAL class,
+    MUST utilize <literal>cn</literal> for their respective RDNs</listitem>
+   </itemizedlist>
+   <para>Next, we'll take a look at the new <literal>dITStructureRules</literal> instances,
+   which will bring the above name forms to life:</para>
+   <screen>
+      #
+      dITStructureRules: ( 20
+                NAME 'rootSuffixStructure'
+                FORM rootSuffixForm )
+      #
+      dITStructureRules: ( 21
+                NAME 'ouStructure'
+                FORM ouForm
+                SUP ( 20 21 ) )
+      #
+      dITStructureRules: ( 22
+                NAME 'accountStructure'
+                FORM accountForm
+                SUP 21 )
+      #
+      dITStructureRules: ( 23
+                NAME 'groupStructure'
+                FORM groupForm
+                SUP 21 )</screen>
+   <para>From these rules, one can begin to perceive an abstract DIT structure,
+   defined by the incrementing -- and hierarchically-significant -- integer
+   identifiers, each of which reflect the following respective conditions:</para>
+   <itemizedlist>
+    <listitem><para>Given the absence of other entries, the introduction of an entry
+    bearing the <literal>domain</literal> STRUCTURAL class and <literal>dc</literal> RDN
+    attribute signifies the start of the administrative area, or the start of the "chain
+    of enforced rules"</para>
+    <para>When added, this entry SHOULD bear a <literal>governingStructureRule</literal>
+    integer identifier of 20</para></listitem>
+    <listitem><para>Given the introduction of an entry, positioned directly subordinate to
+    the root suffix and bearing the <literal>organizationalUnit</literal> STRUCTURAL
+    class and <literal>ou</literal> RDN attribute, the entry is accepted</para>
+    <para>When added, this entry SHOULD bear a <literal>governingStructureRule</literal>
+    integer identifier of 21, the subordinate structure rule of its superior structure
+    rule, 20</para></listitem>
+    <listitem><para>Given the introduction of any additional <literal>organizationalUnit</literal>
+    entries, whether descending directly from the root suffix, OR if subordinate to other
+    <literal>organizationalUnit</literal> entries in "nested" fashion, the entry is accepted
+    by rite of structure rule recursion</para>
+    <para>When added, this entry SHOULD also bear a <literal>governingStructureRule</literal>
+    integer identifier of 21, as with the previous case</para></listitem>
+    <listitem><para>Given the introduction of an entry, positioned directly subordinate to any
+    <literal>organizationalUnit</literal> entry presently governed by DIT structure rule 21
+    and bearing the <literal>inetOrgPerson</literal> STRUCTURAL class and <literal>uid</literal>
+    RDN attribute, the entry is accepted</para>
+    <para>When added, this entry SHOULD bear a <literal>governingStructureRule</literal> integer
+    identifier of 22</para></listitem>
+    <listitem><para>Given the introduction of an entry, positioned directly subordinate to any
+    <literal>organizationalUnit</literal> entry presently governed by DIT structure rule 21
+    and bearing the <literal>groupOfNames</literal> STRUCTURAL class and <literal>cn</literal>
+    RDN attribute, the entry is accepted</para>
+    <para>When added, this entry SHOULD bear a <literal>governingStructureRule</literal> integer identifier
+    of 23</para></listitem>
+   </itemizedlist>
+   <para>Next, we'll be creating the initial portions of the governed DIT using <command>ldapmodify</command>,
+   and periodically checking the results with <command>ldapsearch</command> along the way.</para>
+   <note>In cases where changes are made in this section, the root DN user (<literal>cn=Directory Manager</literal>)
+   is purposely used. This is simply to demonstrate that no user, regardless of privilege, can "bypass" or
+   otherwise violate DIT structure rules in force.</note>
+   <screen>
+    $ ldapmodify -w password \ 
+      -D "cn=Directory Manager" \
+      -h opendj.example.com
+
+    dn: dc=example,dc=com
+    changetype: add
+    objectClass: domain
+
+    Processing ADD request for dc=example,dc=com
+    ADD operation successful for DN dc=example,dc=com
+    
+    dn: ou=Accounts,dc=example,dc=com
+    changetype: add
+    objectClass: organizationalUnit
+    
+    Processing ADD request for ou=Accounts,dc=example,dc=com
+    ADD operation successful for DN ou=Accounts,dc=example,dc=com
+    
+    dn: ou=Consultants,ou=Accounts,dc=example,dc=com
+    changetype: add
+    objectClass: organizationalUnit
+
+    Processing ADD request for ou=Consultants,dc=example,dc=com
+    ADD operation successful for DN ou=Consultants,dc=example,dc=com</screen>
+   <para>So far, so good. What we've just done is create the initial structure of
+   our DIT, and in doing so we've confirmed the DIT structure rules do not seem
+   to be interfering.</para>
+   <para>But, let's stop for now and check our work. We want to see the DIT structure
+   rules that are <emphasis>actively</emphasis> governing our entries. To do this, we
+   need only perform a simple anonymous LDAP search:</para>
+   <screen>
+    $ ldapsearch -h opendj.example.com \
+      -b dc=example,dc=com \
+      "(objectClass=*)" \
+      governingStructureRule
+
+    dn: dc=example,dc=com
+    governingStructureRule: 20
+    
+    dn: ou=Accounts,dc=example,dc=com
+    governingStructureRule: 21
+    
+    dn: ou=Consultants,ou=Accounts,dc=example,dc=com
+    governingStructureRule: 21</screen>
+   <para>This proves the following:</para>
+   <itemizedlist>
+    <listitem>Rule 20, the <literal>rootSuffixStructure</literal> definition,
+    represents the start of the structure chain</listitem>
+    <listitem>Rule 21, the <literal>ouStructure</literal> definition, represents
+    the permitted subordinate naming context below entries governed by the
+    <literal>rootSuffixStructure</literal> rule</listitem>
+    <listitem>Rule 21, as it supports recursion by nature, allows <literal>organizationalUnit</literal>
+    entries to reside <emphasis>within </emphasis> <literal>organizationalUnit</literal> entries, thus
+    allowing categorical organizational structures to exist</listitem>
+   </itemizedlist>
+   <para>Let's see what happens when we attempt to add an entry bearing an unauthorized RDN syntax.</para>
+   <screen>
+    $ ldapmodify -w password \
+      -D "cn=Directory Manager"\
+      -h opendj.example.com
+
+    dn: mail=user@example.com,ou=Consultants,ou=Accounts,dc=example,dc=com
+    changetype: add
+    objectClass: inetOrgPerson
+    cn: User Person
+    sn: Person
+
+    Processing ADD request for
+    mail=user@example.com,ou=Consultants,ou=Accounts,dc=example,dc=com
+    The LDAP modify request failed: 65 (Object Class Violation)
+    Additional Information:  Entry
+    mail=user@example.com,ou=Consultants,ou=Accounts,dc=example,dc=com violates
+    the Directory Server schema configuration because its RDN does not contain
+    attribute uid that is required by name form accountForm</screen>
+   <para>Good, the DIT structure rule in question seems to work in preventing bogus RDNs.
+   Now let's continue with entries that are expected to work.</para>
+   <screen>
+    $ ldapmodify -w password \
+      -D "cn=Directory Manager" \
+      -h opendj.example.com
+ 
+    dn: uid=userPerson,ou=Consultants,ou=Accounts,dc=example,dc=com
+    changetype: add
+    objectClass: inetOrgPerson
+    sn: Person
+    cn: User Person
+   
+    Processing ADD request for uid=userPerson,ou=Consultants,ou=Accounts,dc=example,dc=com
+    ADD operation successful for DN uid=userPerson,ou=Consultants,ou=Accounts,dc=example,dc=com
+    
+    dn: ou=Groups,dc=example,dc=com
+    changetype: add
+    objectClass: organizationalUnit
+    
+    Processing ADD request for ou=Groups,dc=example,dc=com
+    ADD operation successful for DN ou=Groups,dc=example,dc=com
+    
+    dn: ou=Corporate,ou=Groups,dc=example,dc=com
+    changetype: add
+    objectClass: organizationalUnit
+    
+    Processing ADD request for ou=Corporate,ou=Groups,dc=example,dc=com
+    ADD operation successful for DN ou=Corporate,ou=Groups,dc=example,dc=com
+    
+    dn: ou=Infrastructure,ou=Groups,dc=example,dc=com
+    changetype: add
+    objectClass: organizationalUnit
+    
+    Processing ADD request for ou=Infrastructure,ou=Groups,dc=example,dc=com
+    ADD operation successful for DN ou=Infrastructure,ou=Groups,dc=example,dc=com
+    
+    dn: cn=Abuse Mail,ou=Infrastructure,ou=Groups,dc=example,dc=com
+    changetype: add
+    objectClass: groupOfNames
+    
+    Processing ADD request for cn=Abuse Mail,ou=Infrastructure,ou=Groups,dc=example,dc=com
+    ADD operation successful for DN cn=Abuse Mail,ou=Infrastructure,ou=Groups,dc=example,dc=com</screen>
+   <para>Again, let's check our work (omitting the contents of the previous LDAP search):</para>
+   <screen>
+    $ ldapsearch -h opendj.example.com \
+      -b dc=example,dc=com \
+      "(objectClass=*)" \
+      governingStructureRule
+ 
+    dn: uid=userPerson,ou=Consultants,ou=Accounts,dc=example,dc=com
+    governingStructureRule: 22
+    
+    dn: ou=Groups,dc=example,dc=com
+    governingStructureRule: 21
+    
+    dn: ou=Corporate,ou=Groups,dc=example,dc=com
+    governingStructureRule: 21
+    
+    dn: ou=Infrastructure,ou=Groups,dc=example,dc=com
+    governingStructureRule: 21
+    
+    dn: cn=Abuse Mail,ou=Infrastructure,ou=Groups,dc=example,dc=com
+    governingStructureRule: 23</screen>
+   <para>So, what did we learn?</para>
+   <itemizedlist>
+    <listitem><literal>ouStructure</literal> rule 21 continues to allow recursive
+    <literal>organizationalUnit</literal> entries, so long as they ultimately extend
+    from the <literal>rootSuffixStructure</literal> superior structure (ancestor)
+    rule 20, <emphasis>or</emphasis> another such entry governed by rule 21</listitem>
+    <listitem><literal>accountStructure</literal> rule 22 is correctly governing
+    entries bearing the <literal>inetOrgPerson</literal> STRUCTURAL class found
+    within an <literal>organizationalUnit</literal> entry (superior structure rule
+    21)</listitem>
+    <listitem><literal>groupStructure</literal> rule 23 is correctly governing entries
+    bearing the <literal>groupOfNames</literal> STRUCTURAL class found within an
+    <literal>organizationalUnit</literal> entry (superior structure rule 21)</listitem>
+   </itemizedlist>
+   <para>DIT structure rules are extremely powerful. When properly planned and implemented,
+   they can greatly aid in the formation of clean and orderly directory structures without
+   the need for additional ACIs.</para>
+   </section>
+   <section id="dsr-impl-preexist-dit-schema">
+    <title>Considerations Relating To The Implementation Of DIT Structure Rules In
+    An Established DIT</title>
+    <para>Because DIT structure rules do not influence preexisting entries, even those
+    in violation of those rules, this presents a potential pain-point regarding the
+    restoration of content that (in some way) predates the incorporation of those DIT
+    structure rules. This situation may apply following a disaster-triggered reload of
+    data, or when using this data to "seed" a new DSA being built in the topology.</para>
+    <para>If DIT structure rules are already applied to the DSA in question, but data has
+    NOT yet been loaded, the DIT structure rules in question will consider ANY data to be
+    "new" regardless of its true chronological age.</para>
+    <para>If violations are perceived, this will result in errors during the incorporation
+    of that data. This can be confusing to administrators if that same data exists as
+    expected on other DSAs -- even those with effectively identical configurations.</para>
+    <para>When introducing DIT structure rules to an established (preexisting) DIT, it is
+    strongly recommended that separate load-tests be conducted on a disposable system or
+    virtual image that is under the governance of all planned DIT structure rules. This
+    will allow accurate simulation of new in-topology server builds, or rebuilds of
+    preexisting servers that have suffered a malfunction of some kind, or have been
+    rebuilt due to upgrade or other reasons.</para>
+   </section>
+   <section id="dsr-subentries-schema">
+    <title>Considerations For Collective Attribute Subentries</title>
+    <para>DIT structure rules apply not only to standard entries as demonstrated in the
+    previous section, but also to subentries -- entries that bear the <literal>subentry</literal>
+    STRUCTURAL class defined in <link xlink:href="http://tools.ietf.org/html/rfc3672#section-2.4" xlink:show="new">
+    <citetitle>Section 2.4 of RFC 3672</citetitle></link>.</para>
+    <para>In cases where a directory server employs DIT structure rules in addition
+    to collective attributes, it is necessary to implement a new <literal>dITStructureRules</literal>
+    definition: one that enforces a suitable RDN attribute type (such as <literal>cn</literal>)
+    for subentries, while taking into account the superior structure rule(s) involved.</para>
+    <para>To begin, as was done in the previous section, a nameForms definition is required first.</para>
+    <screen>
+      nameForms: ( 1.3.6.1.4.1.56521.999.2.7.5
+         NAME 'subentryForm'
+         OC subentry
+         MUST cn )</screen>
+    <para>Here, we are stating that any entry bearing the <literal>subentry</literal>
+    STRUCTURAL class MUST ONLY utilize the <literal>cn</literal> attribute type for
+    its RDN, as it represents the most common naming strategy for subentries.</para>
+    <para>Next, we need to create the DIT structure rule, but first we need to identify
+    the appropriate superior integer identifiers for the SUP clause.</para>
+    <para>Determining these identifiers is a simple matter. First off, subentries are never
+    created below entries that are not parents themselves (or expected to be parents). In
+    the spirit of the previous section, this allows us to strike two (2) candidates from
+    the list: <literal>inetOrgPerson</literal> entries (accounts), and <literal>groupOfNames</literal>
+    entries (groups).</para>
+    <para>This leaves <literal>domain</literal> (20) and <literal>organizationalUnit</literal>
+   (21) entries. Thus:</para>
+   <screen>
+      dITStructureRules: ( 24
+         NAME 'subentryStructure'
+         FORM subentryForm
+         SUP ( 20 21 ) )</screen>
+   <para>Because subentries themselves do not allow for subordinate entries, we need
+   not worry about rule recursion in this instance.</para>
+   <para>When implemented (and with respect to the parameters of the previous subsection),
+   the definitions defined in this subsection will correctly allow for the addition of
+   entries bearing the <literal>subentry</literal> STRUCTURAL class, thus allowing use
+   of dependent constructs, such as collective attributes, to be used unfettered.</para>
+  </section>
+  <section id="aci-vs-dsr-schema">
+   <title>ACIs Vs. DIT Structure Rules</title>
+   <para>Some LDAP implementations on the market today offer no support for DIT structure
+   rules. A common workaround for this is the use of ACIs to enforce specific naming
+   conventions for entries. While OpenDJ supports this technique just the same, there
+   are potential caveats.</para>
+   <para>Use of ACIs to enforce such rules can be bypassed by users with sufficient access
+   privileges. DIT structure rules, on the other hand, are defined in the schema, which
+   conceptually exists at a lower and more fundamental level than ACIs. As such, no user can
+   bypass a DIT structure rule using conventional means -- not even the root DN.</para>
+   <para>There is also the classic argument that use of ACIs to effect "behavioral changes"
+   in this manner is contrary to the very intent of ACIs. Because DIT structure rules are
+   essentially immutable and do not discriminate the origin of any request, they resemble
+   configuration directives in practice more so than an expression of privilege.</para>
+   <para>The argument against ACIs in this context gains additional momentum when one
+   considers the innate risk of altering ACIs for any reason, as even the slightest
+   misstep can deny critical functionality or, worse, expose data.</para>
+  </section>
+ </section>
 </chapter>
