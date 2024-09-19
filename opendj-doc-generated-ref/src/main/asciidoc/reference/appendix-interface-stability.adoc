@@ -1,0 +1,110 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[appendix]
+[#appendix-interface-stability]
+== Release Levels and Interface Stability
+
+This appendix includes Open Identity Platform definitions for product release levels and interface stability:
+In addition to the indications concerning interface stability in the documentation, review the following information about OpenDJ user and application programming interfaces.
+
+* Client tools—`ldap*`, `ldif*`, and `*rate` commands—are Evolving.
+
+* The following classes, interfaces, and methods in the link:../javadoc/index.html[OpenDJ APIs, window=\_blank] are Evolving:
++
+
+** `org.forgerock.opendj.ldap.Connections#newInternalConnection`
+
+** `org.forgerock.opendj.ldap.Connections#newInternalConnectionFactory`
+
+** `org.forgerock.opendj.ldap.Connections#newServerConnectionFactory`
+
+** `org.forgerock.opendj.ldap.FutureResult`
+
+** `org.forgerock.opendj.ldap.LDAPClientContext`
+
+** `org.forgerock.opendj.ldap.LDAPListener`
+
+** `org.forgerock.opendj.ldap.LDAPListenerOptions`
+
+** `org.forgerock.opendj.ldap.MemoryBackend`
+
+** `org.forgerock.opendj.ldap.RequestContext`
+
+** `org.forgerock.opendj.ldap.RequestHandler`
+
+** `org.forgerock.opendj.ldap.RequestHandlerFactory`
+
+** `org.forgerock.opendj.ldap.ServerConnection`
+
+** `org.forgerock.opendj.ldap.ServerConnectionFactory`
+
+
+* The following classes and interfaces in the OpenDJ LDAP SDK APIs are Evolving:
++
+
+** `org.forgerock.opendj.ldap.ConnectionSecurityLayer`
+
+** `org.forgerock.opendj.ldap.LDAPUrl`
+
+** `org.forgerock.opendj.ldap.requests.BindRequest`, including sub-types and especially SASL sub-types
+
+** `org.forgerock.opendj.ldap.schema.MatchingRuleImpl`
+
+** `org.forgerock.opendj.ldap.schema.SchemaValidationPolicy`
+
+** `org.forgerock.opendj.ldap.schema.SyntaxImpl`
+
+
+* The following methods are Deprecated:
++
+
+** `org.forgerock.opendj.ldap.Connections#newHeartBeatConnectionFactory`
+
+** `org.forgerock.opendj.ldap.LDAPListenerOptions#getTCPNIOTransport`
+
+** `org.forgerock.opendj.ldap.LDAPListenerOptions#setTCPNIOTransport`
+
+** `org.forgerock.opendj.ldap.LDAPOptions#getTCPNIOTransport`
+
+** `org.forgerock.opendj.ldap.LDAPOptions#setTCPNIOTransport`
+
+
+* The class `org.forgerock.opendj.ldap.CoreMessages` is Internal.
+
+* For all Java APIs, `com.*` packages are Internal.
+
+* The configuration, user, and application programming interfaces for RESTful access over HTTP to directory data are Evolving. This includes interfaces exposed for the HTTP connection handler, its access log, and also the REST to LDAP gateway.
+
+* Text in log messages should be considered Internal. Log message IDs are Evolving.
+
+* The default content of `cn=schema` (directory server LDAP schema) is Evolving.
+
+* The monitoring interface `cn=monitor` for LDAP and the monitoring interface exposed by the JMX connection handler are Evolving.
+
+* Interfaces that are not described in released product documentation should be considered Internal/Undocumented. For example, the LDIF representation of the server configuration, `config.ldif`, should be considered Internal.
+
+
+include::../partials/sec-release-levels.adoc[]
+
+include::../partials/sec-interface-stability.adoc[]
+

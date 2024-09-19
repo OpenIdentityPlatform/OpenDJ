@@ -1,0 +1,1409 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-rest-operations-3-0]
+== Performing RESTful Operations (3.0)
+
+OpenDJ lets you access directory data as link:http://json.org[JSON, window=\_blank] resources over HTTP. OpenDJ maps JSON resources onto LDAP entries. As a result, REST clients perform many of the same operations as LDAP clients with directory data.
+
+This chapter demonstrates RESTful client operations by using the default configuration and sample directory data imported into OpenDJ directory server as described in xref:../admin-guide/chap-import-export.adoc#import-ldif["To Import LDIF Data"] in the __Administration Guide__, from the LDIF file link:../resources/Example.ldif[Example.ldif, window=\_blank].
+
+[NOTE]
+====
+The default configuration has changed in OpenDJ 3.5.
+
+If you are using OpenDJ 3.5, see xref:chap-rest-operations.adoc#chap-rest-operations["Performing RESTful Operations"] and xref:../reference/appendix-rest2ldap.adoc#appendix-rest2ldap["REST to LDAP Configuration"] in the __Reference__.
+====
+In this chapter, you will learn how to use the OpenDJ REST API that provides access to directory data over HTTP. In particular, you will learn how to:
+
+* link:#create-rest-3-0[Create] a resource that does not yet exist
+
+* link:#read-rest-3-0[Read] a single resource
+
+* link:#update-rest-3-0[Update] an existing resource
+
+* link:#delete-rest-3-0[Delete] an existing resource
+
+* link:#patch-rest-3-0[Patch] part of an existing resource
+
+* Perform a predefined link:#action-rest-3-0[action]
+
+* link:#query-rest-3-0[Query] a set of resources
+
+Before trying the examples, enable HTTP access to OpenDJ directory server as described in xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap-3-0["RESTful Client Access (3.0)"] in the __Administration Guide__. The examples in this chapter use HTTP, but the procedure also shows how to set up HTTPS access to the server.
+
+Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__.)
+
+The OpenDJ REST API is built on a common ForgeRock HTTP-based REST API for interacting with JSON Resources. All APIs built on this common layer let you perform the following operations. For an overview of ForgeRock common REST APIs, see xref:chap-rest-operations.adoc#sec-about-crest["About ForgeRock Common REST"].
+
+[#authenticate-rest-3-0]
+=== Authenticating Over REST (3.0)
+
+When you first try to read a resource that can be read as an LDAP entry with an anonymous search, you learn that you must authenticate as shown in the following example:
+
+[source, console]
+----
+$ curl http://opendj.example.com:8080/users/bjensen
+{
+  "code" : 401,
+  "reason" : "Unauthorized",
+  "message" : "Unauthorized"
+}
+----
+HTTP status code 401 indicates that the request requires user authentication.
+
+To prevent OpenDJ directory server from requiring authentication, set the HTTP connection handler property `authentication-required` to `false`, as in the following example:
+
+[source, console]
+----
+$ dsconfig \
+ set-connection-handler-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "HTTP Connection Handler" \
+ --set authentication-required:false \
+ --no-prompt \
+ --trustAll
+----
+By default, both the HTTP connection handler and also the REST to LDAP gateway allow HTTP Basic authentication and HTTP header-based authentication in the style of OpenIDM. The authentication mechanisms translate HTTP authentication to LDAP authentication to the directory server.
+
+When you install OpenDJ either with generated sample user entries or with data from link:../resources/Example.ldif[Example.ldif, window=\_blank], the relative distinguished name (DN) attribute for sample user entries is the user ID (`uid`) attribute. For example, the DN and user ID for Babs Jensen are:
+
+[source, ldif]
+----
+dn: uid=bjensen,ou=People,dc=example,dc=com
+uid: bjensen
+----
+Given this pattern in the user entries, the default REST to LDAP configuration translates the HTTP user name to the LDAP user ID. User entries are found directly under `ou=People,dc=example,dc=com`.footnote:d0e3101[In general, REST to LDAP mappings require that LDAP entries mapped to JSON resources be immediate subordinates of the mapping's baseDN.] In other words, Babs Jensen authenticates as `bjensen` (password: `hifalutin`) over HTTP. The corresponding LDAP bind DN is `uid=bjensen,ou=People,dc=example,dc=com`.
+
+HTTP Basic authentication works as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --user bjensen:hifalutin \
+ http://opendj.example.com:8080/users/bjensen
+{
+  "_rev" : "0000000016cbb68c",
+  ...
+}
+----
+The alternative HTTP Basic __username__:__password__@ form in the URL works as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen
+{
+  "_rev" : "0000000016cbb68c",
+  ...
+}
+----
+HTTP header based authentication works as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --header "X-OpenIDM-Username: bjensen" \
+ --header "X-OpenIDM-Password: hifalutin" \
+ http://opendj.example.com:8080/users/bjensen
+{
+  "_rev" : "0000000016cbb68c",
+  ...
+}
+----
+If the directory data is laid out differently or if the user names are email addresses rather than user IDs, for example, then you must update the configuration in order for authentication to work.
+
+The REST to LDAP gateway can also translate HTTP user name and password authentication to LDAP PLAIN SASL authentication. Likewise, the gateway falls back to proxied authorization as necessary, using a root DN authenticated connection to LDAP servers. See xref:../reference/appendix-rest2ldap-3-0.adoc#appendix-rest2ldap-3-0["REST to LDAP Configuration (3.0)"] in the __Reference__ for details on all configuration choices.
+
+
+[#create-rest-3-0]
+=== Creating Resources (3.0)
+
+There are two alternative ways to create resources:
+
+* To create a resource using an ID that you specify, perform an HTTP PUT request with headers `Content-Type: application/json` and `If-None-Match: *`, and the JSON content of your resource.
++
+The following example shows you how to create a new user entry with ID `newuser`:
++
+
+[source, console]
+----
+$ curl \
+ --request PUT \
+ --user kvaughan:bribery \
+ --header "Content-Type: application/json" \
+ --header "If-None-Match: *" \
+ --data '{
+  "_id": "newuser",
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "name": {
+    "familyName": "New",
+    "givenName": "User"
+  },
+  "displayName": "New User",
+  "manager": [
+    {
+      "_id": "kvaughan",
+      "displayName": "Kirsten Vaughan"
+    }
+  ]
+ }' \
+ http://opendj.example.com:8080/users/newuser
+{
+  "_rev" : "000000005b337348",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
+  },
+  "_id" : "newuser",
+  "name" : {
+    "familyName" : "New",
+    "givenName" : "User"
+  },
+  "userName" : "newuser@example.com",
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-04-11T09:58:27Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
+}
+----
+
+* To create a resource and let the server choose the ID, perform an HTTP POST with `_action=create` as described in xref:#action-rest-3-0["Using Actions (3.0)"].
+
+
+
+[#read-rest-3-0]
+=== Reading a Resource (3.0)
+
+To read a resource, perform an HTTP GET as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --request GET \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/users/newuser
+{
+  "_rev" : "000000005b337348",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
+  },
+  "_id" : "newuser",
+  "name" : {
+    "familyName" : "New",
+    "givenName" : "User"
+  },
+  "userName" : "newuser@example.com",
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-04-11T09:58:27Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
+}
+----
+
+
+[#update-rest-3-0]
+=== Updating Resources (3.0)
+
+To update a resource, perform an HTTP PUT with the changes to the resource. Use an `If-Match` header to ensure the resource already exists. For read-only fields, either include unmodified versions, or omit them from your updated version.
+
+To update a resource regardless of the revision, use an `If-Match: *` header. The following example adds a manager for Sam Carter:
+
+[source, console]
+----
+$ curl \
+ --request PUT \
+ --user kvaughan:bribery \
+ --header "Content-Type: application/json" \
+ --header "If-Match: *" \
+ --data '{
+   "contactInformation": {
+     "telephoneNumber": "+1 408 555 4798",
+     "emailAddress": "scarter@example.com"
+   },
+   "name": {
+     "familyName": "Carter",
+     "givenName": "Sam"
+   },
+   "userName": "scarter@example.com",
+   "displayName": "Sam Carter",
+   "groups": [
+     {
+       "_id": "Accounting Managers"
+     }
+   ],
+   "manager": [
+     {
+       "_id": "trigden",
+       "displayName": "Torrey Rigden"
+     }
+   ]
+ }' \
+ http://opendj.example.com:8080/users/scarter
+{
+  "_rev" : "00000000a1923db2",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 4798",
+    "emailAddress" : "scarter@example.com"
+  },
+  "_id" : "scarter",
+  "name" : {
+    "familyName" : "Carter",
+    "givenName" : "Sam"
+  },
+  "userName" : "scarter@example.com",
+  "displayName" : "Sam Carter",
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ],
+  "meta" : {
+    "lastModified" : "2015-09-29T10:24:01Z"
+  },
+  "groups" : [ {
+    "_id" : "Accounting Managers"
+  } ]
+}
+----
+To update a resource only if the resource matches a particular version, use an `If-Match: revision` header as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/users/scarter?_fields=_rev
+{"_id":"scarter","_rev":"revision"}
+
+$ curl \
+ --request PUT \
+ --user kvaughan:bribery \
+ --header "If-Match: revision" \
+ --header "Content-Type: application/json" \
+ --data '{
+   "contactInformation": {
+     "telephoneNumber": "+1 408 555 1212",
+     "emailAddress": "scarter@example.com"
+   },
+   "name": {
+     "familyName": "Carter",
+     "givenName": "Sam"
+   },
+   "userName": "scarter@example.com",
+   "displayName": "Sam Carter",
+   "groups": [
+     {
+       "_id": "Accounting Managers"
+     }
+   ],
+   "manager": [
+     {
+       "_id": "trigden",
+       "displayName": "Torrey Rigden"
+     }
+   ]
+ }' \
+ http://opendj.example.com:8080/users/scarter
+{
+  "_rev" : "00000000a1ee3da3",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "scarter@example.com"
+  },
+  "_id" : "scarter",
+  "name" : {
+    "familyName" : "Carter",
+    "givenName" : "Sam"
+  },
+  "userName" : "scarter@example.com",
+  "displayName" : "Sam Carter",
+  "meta" : {
+    "lastModified" : "2015-09-29T10:23:27Z"
+  },
+  "groups" : [ {
+    "_id" : "Accounting Managers"
+  } ],
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
+}
+----
+
+
+[#delete-rest-3-0]
+=== Deleting Resources (3.0)
+
+To delete a resource, perform an HTTP DELETE on the resource URL. The operation returns the resource you deleted as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --request DELETE \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/users/newuser
+{
+  "_rev" : "000000003a5f3cb2",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
+  },
+  "_id" : "newuser",
+  "name" : {
+    "familyName" : "New",
+    "givenName" : "User"
+  },
+  "userName" : "newuser@example.com",
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-04-11T09:58:27Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
+}
+----
+To delete a resource only if the resource matches a particular version, use an `If-Match: revision` header as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/users/newuser?_fields=_rev
+{"_id":"newuser","_rev":"revision"}
+
+$ curl \
+ --request DELETE \
+ --user kvaughan:bribery \
+ --header "If-Match: revision" \
+ http://opendj.example.com:8080/users/newuser
+{
+  "_rev" : "00000000383f3cae",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
+  },
+  "_id" : "newuser",
+  "name" : {
+    "familyName" : "New",
+    "givenName" : "User"
+  },
+  "userName" : "newuser@example.com",
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-04-11T12:48:48Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
+}
+----
+To delete a resource and all of its children, you must change the configuration, get the REST to LDAP gateway or HTTP connection handler to reload its configuration, and perform the operation as a user who has the access rights required. The following steps show one way to do this with the HTTP connection handler.
+
+In this example, the LDAP view of the user to delete shows two child entries as seen in the following example:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN uid=nbohr,ou=people,dc=example,dc=com "(&)" dn
+dn: uid=nbohr,ou=People,dc=example,dc=com
+
+dn: cn=quantum dot,uid=nbohr,ou=People,dc=example,dc=com
+
+dn: cn=qubit generator,uid=nbohr,ou=People,dc=example,dc=com
+----
+
+. In the configuration file for the HTTP connection handler, by default `/path/to/opendj/config/http-config.json`, set `"useSubtreeDelete" : true`.
++
+
+[NOTE]
+====
+After this change, only users who have access to request a tree delete can delete resources.
+====
+
+. Force the HTTP connection handler to reread its configuration as shown in the following `dsconfig` commands:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-connection-handler-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "HTTP Connection Handler" \
+ --set enabled:false \
+ --no-prompt \
+ --trustAll
+
+$ dsconfig \
+ set-connection-handler-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "HTTP Connection Handler" \
+ --set enabled:true \
+ --no-prompt \
+ --trustAll
+----
+
+. Request the delete as a user who has rights to perform a subtree delete on the resource as shown in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --request DELETE \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/users/nbohr
+{
+  "_rev" : "000000003d912113",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "nbohr@example.com"
+  },
+  "_id" : "nbohr",
+  "name" : {
+    "familyName" : "Bohr",
+    "givenName" : "Niels"
+  },
+  "userName" : "nbohr@example.com",
+  "displayName" : "Niels Bohr"
+}
+----
+
+
+
+[#patch-rest-3-0]
+=== Patching Resources (3.0)
+
+OpenDJ lets you patch JSON resources, updating part of the resource rather than replacing it. For example, you could change Babs Jensen's email address by issuing an HTTP PATCH request as in the following example:
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "Content-Type: application/json" \
+ --data '[
+  {
+    "operation": "replace",
+    "field": "/contactInformation/emailAddress",
+    "value": "babs@example.com"
+  }
+ ]' \
+ http://opendj.example.com:8080/users/bjensen
+{
+  "_rev" : "00000000f3fdd370",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "babs@example.com"
+  },
+  "_id" : "bjensen",
+  "name" : {
+    "familyName" : "Jensen",
+    "givenName" : "Barbara"
+  },
+  "userName" : "babs@example.com",
+  "displayName" : "Barbara Jensen",
+  "meta" : {
+    "lastModified" : "2013-05-13T14:35:31Z"
+  },
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
+}
+----
+Notice in the example that the data sent specifies the type of patch operation, the field to change, and a value that depends on the field you change and on the operation. A single-valued field takes an object, boolean, string, or number depending on its type, whereas a multi-valued field takes an array of values. Getting the type wrong results in an error. Also notice that the patch data is itself an array. This makes it possible to patch more than one part of the resource by using a set of patch operations in the same request.
+--
+OpenDJ supports four types of patch operations:
+
+`add`::
+The add operation ensures that the target field contains the value provided, creating parent fields as necessary.
+
++
+If the target field is single-valued and a value already exists, then that value is replaced with the value you provide. __Note that you do not get an error when adding a value to a single-valued field that already has a value.__ A single-valued field is one whose value is not an array (an object, string, boolean, or number).
+
++
+If the target field is multi-valued, then the array of values you provide is merged with the set of values already in the resource. New values are added, and duplicate values are ignored. A multi-valued field takes an array value.
+
+`remove`::
+The remove operation ensures that the target field does not contain the value provided. If you do not provide a value, the entire field is removed if it already exists.
+
++
+If the target field is single-valued and a value is provided, then the provided value must match the existing value to remove, otherwise the field is left unchanged.
+
++
+If the target field is multi-valued, then values in the array you provide are removed from the existing set of values.
+
+`replace`::
+The replace operation removes existing values on the target field, and replaces them with the values you provide. It is equivalent to performing a remove on the field, then an add with the values you provide.
+
+`increment`::
+The increment operation increments or decrements the value or values in the target field by the amount you specify, which is positive to increment and negative to decrement. The target field must take a number or a set of numbers. The value you provide must be a single number.
+
+--
+One key nuance in how a patch works with OpenDJ concerns multi-valued fields. Although JSON resources represent multi-valued fields as __arrays__, OpenDJ treats those values as __sets__. In other words, values in the field are unique, and the ordering of an array of values is not meaningful in the context of patch operations. If you reference array values by index, OpenDJ returns an error.footnote:d0e3416[OpenDJ does allow use of a hyphen to add an element to a set. Include the hyphen as the last element of the`field`JSON pointer path. For example:`curl --user kvaughan:bribery --request PATCH --header "Content-Type: application/json" --data '[{ "operation" : "add", "field" : "/members/-", "value" : { "_id" : "bjensen" } }]' http://opendj.example.com:8080/groups/Directory%20Administrators`.]
+
+Perform patch operations as if arrays values were sets. The following example includes Barbara Jensen in a group by adding her to the set of members:
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "Content-Type: application/json" \
+ --data '[
+  {
+    "operation": "add",
+    "field": "/members",
+    "value": [
+      {
+        "_id": "bjensen"
+      }
+    ]
+  }
+ ]' \
+ http://opendj.example.com:8080/groups/Directory%20Administrators
+{
+  "_rev" : "00000000b70c881a",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "_id" : "Directory Administrators",
+  "displayName" : "Directory Administrators",
+  "meta" : {
+    "lastModified" : "2013-05-13T16:40:23Z"
+  },
+  "members" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  }, {
+    "_id" : "rdaugherty",
+    "displayName" : "Robert Daugherty"
+  }, {
+    "_id" : "bjensen",
+    "displayName" : "Barbara Jensen"
+  }, {
+    "_id" : "hmiller",
+    "displayName" : "Harry Miller"
+  } ]
+}
+----
+The following example removes Barbara Jensen from the group:
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "Content-Type: application/json" \
+ --data '[
+  {
+    "operation": "remove",
+    "field": "/members",
+    "value": [
+      {
+        "_id": "bjensen"
+      }
+    ]
+  }
+ ]' \
+ http://opendj.example.com:8080/groups/Directory%20Administrators
+{
+  "_rev" : "00000000e241797e",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "_id" : "Directory Administrators",
+  "displayName" : "Directory Administrators",
+  "meta" : {
+    "lastModified" : "2013-05-13T16:40:55Z"
+  },
+  "members" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  }, {
+    "_id" : "rdaugherty",
+    "displayName" : "Robert Daugherty"
+  }, {
+    "_id" : "hmiller",
+    "displayName" : "Harry Miller"
+  } ]
+}
+----
+To change the value of more than one attribute in a patch operation, include multiple operations in the body of the JSON patch, as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "Content-Type: application/json" \
+ --data '[
+  {
+    "operation": "replace",
+    "field": "/contactInformation/telephoneNumber",
+    "value": "+1 408 555 9999"
+  },
+  {
+    "operation": "add",
+    "field": "/contactInformation/emailAddress",
+    "value": "barbara.jensen@example.com"
+  }
+ ]' \
+ http://opendj.example.com:8080/users/bjensen
+{
+    "contactInformation": {
+        "emailAddress": "barbara.jensen@example.com",
+        "telephoneNumber": "+1 408 555 9999"
+    },
+    "displayName": "Barbara Jensen",
+    "manager": [
+        {
+            "displayName": "Torrey Rigden",
+            "_id": "trigden"
+        }
+    ],
+    "meta": {
+        "lastModified": "2015-04-07T10:19:41Z"
+    },
+    "schemas": [
+        "urn:scim:schemas:core:1.0"
+    ],
+    "_rev": "00000000e68ef438",
+    "name": {
+        "givenName": "Barbara",
+        "familyName": "Jensen"
+    },
+    "_id": "bjensen",
+    "userName": "barbara.jensen@example.com"
+}
+----
+Notice that for a multi-valued attribute, the `value` field takes an array, whereas the `value` field takes a single value for a single-valued field. Also notice that for single-valued fields, an `add` operation has the same effect as a `replace` operation.
+
+You can use resource revision numbers in `If-Match: revision` headers to patch the resource only if the resource matches a particular version, as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/users/bjensen?_fields=_rev
+{"_id":"bjensen","_rev" : "revision"}
+
+$ curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "If-Match: revision" \
+ --header "Content-Type: application/json" \
+ --data '[
+  {
+    "operation": "add",
+    "field": "/contactInformation/emailAddress",
+    "value": "babs@example.com"
+  }
+ ]' \
+ http://opendj.example.com:8080/users/bjensen
+{
+  "_rev" : "00000000f946d377",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "babs@example.com"
+  },
+  "_id" : "bjensen",
+  "name" : {
+    "familyName" : "Jensen",
+    "givenName" : "Barbara"
+  },
+  "userName" : "babs@example.com",
+  "displayName" : "Barbara Jensen",
+  "meta" : {
+    "lastModified" : "2013-05-13T16:56:33Z"
+  },
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
+}
+----
+The resource revision changes when the patch is successful.
+
+
+[#action-rest-3-0]
+=== Using Actions (3.0)
+
+OpenDJ REST to LDAP implements the actions described in this section.
+
+[#rest-action-create-3-0]
+==== Using the Create Resource Action (3.0)
+
+OpenDJ implements an action that lets the server set the resource ID on creation. To use this action, perform an HTTP POST with header `Content-Type: application/json`, `_action=create` in the query string, and the JSON content of the resource.
+
+The following example creates a new user entry:
+
+[source, console]
+----
+$ curl \
+ --request POST \
+ --user kvaughan:bribery \
+ --header "Content-Type: application/json" \
+ --data '{
+  "_id": "newuser",
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "name": {
+    "familyName": "New",
+    "givenName": "User"
+  },
+  "displayName": "New User",
+  "manager": [
+    {
+      "_id": "kvaughan",
+      "displayName": "Kirsten Vaughan"
+    }
+  ]
+ }' \
+ http://opendj.example.com:8080/users?_action=create
+{
+  "_rev" : "0000000034a23ca7",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1212",
+    "emailAddress" : "newuser@example.com"
+  },
+  "_id" : "newuser",
+  "name" : {
+    "familyName" : "New",
+    "givenName" : "User"
+  },
+  "userName" : "newuser@example.com",
+  "displayName" : "New User",
+  "meta" : {
+    "created" : "2013-04-11T11:19:08Z"
+  },
+  "manager" : [ {
+    "_id" : "kvaughan",
+    "displayName" : "Kirsten Vaughan"
+  } ]
+}
+----
+
+
+[#rest-action-password-modify-3-0]
+==== Using the Password Modify Action (3.0)
+
+OpenDJ implements an action for resetting and changing passwords.
+
+[NOTE]
+====
+This section describes the password modify action available in OpenDJ 3.0. In OpenDJ 3.5, this action was split into separate actions for modifying passwords and resetting passwords.
+====
+This action requires HTTPS to avoid sending passwords over insecure connections. Before trying the examples that follow, enable HTTPS on the HTTP connection handler as described in xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap-3-0["RESTful Client Access (3.0)"] in the __Administration Guide__. Notice that the following examples use the exported server certificate, `server-cert.pem`, generated in that procedure. If the connection handler uses a certificate signed by a well-known CA, then you can omit the `--cacert` option.
+
+To use this action, perform an HTTP POST with header `Content-Type: application/json`, `_action=passwordModify` in the query string, and the password reset information in JSON format as the POST data.
+--
+The JSON can include the following fields:
+
+`oldPassword`::
+The value of this field is the current password as a UTF-8 string.
+
++
+Users provide this value when changing their own passwords.
+
++
+Administrators can omit this field when resetting another user's password.
+
+`newPassword`::
+The value of this field is the new password as a UTF-8 string.
+
++
+If this field is omitted, OpenDJ returns a generated password on success.
+
+--
+The following example demonstrates a user changing their own password. On success, the HTTP status code is 200 OK, and the response body is an empty JSON resource:
+
+[source, console]
+----
+$ curl \
+ --request POST \
+ --cacert server-cert.pem \
+ --user bjensen:hifalutin \
+ --header "Content-Type: application/json" \
+ --data '{"oldPassword": "hifalutin", "newPassword": "password"}' \
+ https://opendj.example.com:8443/users/bjensen?_action=passwordModify
+{}
+----
+The following example demonstrates an administrator changing a user's password. Before trying this example, make sure the password administrator user has been given the `password-reset` privilege as shown in xref:../admin-guide/chap-privileges-acis.adoc#change-individual-privileges["To Add Privileges on an Individual Entry"] in the __Administration Guide__. Otherwise, the password administrator has insufficient access. On success, the HTTP status code is 200 OK, and the response body is a JSON resource with a `generatedPassword` containing the new password:
+
+[source, console]
+----
+$ curl \
+ --request POST \
+ --cacert server-cert.pem \
+ --user kvaughan:bribery \
+ --header "Content-Type: application/json" \
+ --data '{}' \
+ https://opendj.example.com:8443/users/bjensen?_action=passwordModify
+{"generatedPassword":"qno66vyz"}
+----
+The password administrator communicates the new, generated password to the user.
+
+
+
+[#query-rest-3-0]
+=== Querying Resource Collections (3.0)
+
+To query resource collections, perform an HTTP GET with a `_queryFilter=expression` parameter in the query string. For details about the query filter __expression__, see xref:chap-rest-operations.adoc#about-crest-query["Query"].
+
+The `_queryId`, `_sortKeys`, and `_totalPagedResultsPolicy` parameters described in xref:chap-rest-operations.adoc#about-crest-query["Query"] are not used in OpenDJ software at present.
+
+The following table shows some LDAP search filters with corresponding examples of query filter expressions.
+
+[#d0e3645]
+.LDAP Search and REST Query Filters
+[cols="50%,50%"]
+|===
+|LDAP Filter |REST Filter 
+
+a|(&)
+a|_queryFilter=true
+
+a|(uid=*)
+a|_queryFilter=_id+pr
+
+a|(uid=bjensen)
+a|_queryFilter=_id+eq+'bjensen'
+
+a|(uid=*jensen*)
+a|_queryFilter=_id+co+'jensen'
+
+a|(uid=jensen*)
+a|_queryFilter=_id+sw+'jensen'
+
+a|(&(uid=*jensen*)(cn=babs*))
+a|_queryFilter=(_id+co+'jensen'+and+displayName+sw+'babs')
+
+a|(\|(uid=*jensen*)(cn=sam*))
+a|_queryFilter=(_id+co+'jensen'+or+displayName+sw+'sam')
+
+a|(!(uid=*jensen*))
+a|_queryFilter=!(_id+co+'jensen')
+
+a|(uid<=jensen)
+a|_queryFilter=_id+le+'jensen'
+
+a|(uid>=jensen)
+a|_queryFilter=_id+ge+'jensen'
+|===
+--
+For query operations, the filter __expression__ is constructed from the following building blocks. Make sure you URL-encode the filter expressions, which are shown here without URL-encoding to make them easier to read.
+
+In filter expressions, the simplest __json-pointer__ is a field of the JSON resource, such as `userName` or `id`. A __json-pointer__ can also point to nested elements as described in the link:http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer[JSON Pointer, window=\_blank] Internet-Draft:
+
+Comparison expressions::
+[open]
+====
+Build filters using the following comparison expressions:
+
+`json-pointer eq json-value`::
+Matches when the pointer equals the value, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/users?_queryFilter=userName+eq+'bjensen@example.com'"
+{
+  "result" : [ {
+    "_id" : "bjensen",
+    "_rev" : "00000000cf71e05d",
+    "schemas" : [ "urn:scim:schemas:core:1.0" ],
+    "userName" : "bjensen@example.com",
+    "displayName" : "Barbara Jensen",
+    "name" : {
+      "givenName" : "Barbara",
+      "familyName" : "Jensen"
+    },
+    "contactInformation" : {
+      "telephoneNumber" : "+1 408 555 9999",
+      "emailAddress" : "bjensen@example.com"
+    },
+    "meta" : {
+      "lastModified" : "2015-09-23T14:09:13Z"
+    },
+    "manager" : [ {
+      "_id" : "trigden",
+      "displayName" : "Torrey Rigden"
+    } ]
+  } ],
+  "resultCount" : 1,
+  "pagedResultsCookie" : null,
+  "totalPagedResultsPolicy" : "NONE",
+  "totalPagedResults" : -1,
+  "remainingPagedResults" : -1
+}
+----
+
+`json-pointer co json-value`::
+Matches when the pointer contains the value, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/users?_queryFilter=userName+co+'jensen'&_fields=userName"
+{
+  "result" : [ {
+    "_id" : "ajensen",
+    "_rev" : "00000000c899a6da",
+    "userName" : "ajensen@example.com"
+  }, {
+    "_id" : "bjensen",
+    "_rev" : "000000001431e1ef",
+    "userName" : "bjensen@example.com"
+  }, {
+    "_id" : "gjensen",
+    "_rev" : "00000000cba2a3c3",
+    "userName" : "gjensen@example.com"
+  }, {
+    "_id" : "jjensen",
+    "_rev" : "0000000046f5a1a2",
+    "userName" : "jjensen@example.com"
+  }, {
+    "_id" : "kjensen",
+    "_rev" : "00000000a9e0a59d",
+    "userName" : "kjensen@example.com"
+  }, {
+    "_id" : "rjensen",
+    "_rev" : "00000000f54ea4d2",
+    "userName" : "rjensen@example.com"
+  }, {
+    "_id" : "tjensen",
+    "_rev" : "0000000095d1a096",
+    "userName" : "tjensen@example.com"
+  } ],
+  "resultCount" : 7,
+  "pagedResultsCookie" : null,
+  "totalPagedResultsPolicy" : "NONE",
+  "totalPagedResults" : -1,
+  "remainingPagedResults" : -1
+}
+----
+
+`json-pointer sw json-value`::
+Matches when the pointer starts with the value, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/users?_queryFilter=userName+sw+'ab'&_fields=userName"
+{
+  "result" : [ {
+    "_id" : "abarnes",
+    "_rev" : "00000000b84ba3b0",
+    "userName" : "abarnes@example.com"
+  }, {
+    "_id" : "abergin",
+    "_rev" : "0000000011db996e",
+    "userName" : "abergin@example.com"
+  } ],
+  "resultCount" : 2,
+  "pagedResultsCookie" : null,
+  "totalPagedResultsPolicy" : "NONE",
+  "totalPagedResults" : -1,
+  "remainingPagedResults" : -1
+}
+----
+
+`json-pointer lt json-value`::
+Matches when the pointer is less than the value, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/users?_queryFilter=userName+lt+'ac'&_fields=userName"
+{
+  "result" : [ {
+    "_id" : "abarnes",
+    "_rev" : "00000000b84ba3b0",
+    "userName" : "abarnes@example.com"
+  }, {
+    "_id" : "abergin",
+    "_rev" : "0000000011db996e",
+    "userName" : "abergin@example.com"
+  } ],
+  "resultCount" : 2,
+  "pagedResultsCookie" : null,
+  "totalPagedResultsPolicy" : "NONE",
+  "totalPagedResults" : -1,
+  "remainingPagedResults" : -1
+}
+----
+
+`json-pointer le json-value`::
+Matches when the pointer is less than or equal to the value, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/users?_queryFilter=userName+le+'ad'&_fields=userName"
+{
+  "result" : [ {
+    "_id" : "abarnes",
+    "_rev" : "00000000b84ba3b0",
+    "userName" : "abarnes@example.com"
+  }, {
+    "_id" : "abergin",
+    "_rev" : "0000000011db996e",
+    "userName" : "abergin@example.com"
+  }, {
+    "_id" : "achassin",
+    "_rev" : "00000000cddca3ec",
+    "userName" : "achassin@example.com"
+  } ],
+  "resultCount" : 3,
+  "pagedResultsCookie" : null,
+  "totalPagedResultsPolicy" : "NONE",
+  "totalPagedResults" : -1,
+  "remainingPagedResults" : -1
+}
+----
+
+`json-pointer gt json-value`::
+Matches when the pointer is greater than the value, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/users?_queryFilter=userName+gt+'tt'&_fields=userName"
+{
+  "result" : [ {
+    "_id" : "ttully",
+    "_rev" : "00000000d07da286",
+    "userName" : "ttully@example.com"
+  }, {
+    "_id" : "tward",
+    "_rev" : "0000000083419fa3",
+    "userName" : "tward@example.com"
+  }, {
+    "_id" : "wlutz",
+    "_rev" : "00000000a4f29dfa",
+    "userName" : "wlutz@example.com"
+  } ],
+  "resultCount" : 3,
+  "pagedResultsCookie" : null,
+  "totalPagedResultsPolicy" : "NONE",
+  "totalPagedResults" : -1,
+  "remainingPagedResults" : -1
+}
+----
+
+`json-pointer ge json-value`::
+Matches when the pointer is greater than or equal to the value, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/users?_queryFilter=userName+ge+'tw'&_fields=userName"
+{
+  "result" : [ {
+    "_id" : "tward",
+    "_rev" : "0000000083419fa3",
+    "userName" : "tward@example.com"
+  }, {
+    "_id" : "wlutz",
+    "_rev" : "00000000a4f29dfa",
+    "userName" : "wlutz@example.com"
+  } ],
+  "resultCount" : 2,
+  "pagedResultsCookie" : null,
+  "totalPagedResultsPolicy" : "NONE",
+  "totalPagedResults" : -1,
+  "remainingPagedResults" : -1
+}
+----
+
+====
+
+Presence expression::
+`json-pointer pr` matches any resource on which the __json-pointer__ is present, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/users?_queryFilter=userName+pr&_fields=userName"
+{
+  "result" : [ {
+    "_id" : "abarnes",
+    "_rev" : "00000000b84ba3b0",
+    "userName" : "abarnes@example.com"
+  }, ... {
+    "_id" : "newuser",
+    "_rev" : "00000000fca77472",
+    "userName" : "newuser@example.com"
+  } ],
+  "resultCount" : 152,
+  "pagedResultsCookie" : null,
+  "totalPagedResultsPolicy" : "NONE",
+  "totalPagedResults" : -1,
+  "remainingPagedResults" : -1
+}
+----
+
+Literal expressions::
+`true` matches any resource in the collection.
+
++
+`false` matches no resource in the collection.
+
++
+In other words, you can list all resources in a collection as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/groups?_queryFilter=true&_fields=displayName"
+{
+  "result" : [ {
+    "_id" : "Directory Administrators",
+    "_rev" : "0000000060b85b8b",
+    "displayName" : "Directory Administrators"
+  }, {
+    "_id" : "Accounting Managers",
+    "_rev" : "0000000053e97a0a",
+    "displayName" : "Accounting Managers"
+  }, {
+    "_id" : "HR Managers",
+    "_rev" : "000000005ff5730a",
+    "displayName" : "HR Managers"
+  }, {
+    "_id" : "PD Managers",
+    "_rev" : "000000001e1e75a0",
+    "displayName" : "PD Managers"
+  }, {
+    "_id" : "QA Managers",
+    "_rev" : "00000000e0747323",
+    "displayName" : "QA Managers"
+  } ],
+  "resultCount" : 5,
+  "pagedResultsCookie" : null,
+  "totalPagedResultsPolicy" : "NONE",
+  "totalPagedResults" : -1,
+  "remainingPagedResults" : -1
+}
+----
+
+Complex expressions::
+Combine expressions using boolean operators `and`, `or`, and `!` (not), and by using parentheses `(expression)` with group expressions. The following example queries resources with last name Jensen and manager name starting with `Bar`:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/users?_queryFilter=\
+(userName+co+'jensen'+and+manager/displayName+sw+'Sam')&_fields=displayName"
+{
+  "result" : [ {
+    "_id" : "jjensen",
+    "_rev" : "000000003ef3a150",
+    "displayName" : "Jody Jensen"
+  }, {
+    "_id" : "tjensen",
+    "_rev" : "000000009367a0b6",
+    "displayName" : "Ted Jensen"
+  } ],
+  "resultCount" : 2,
+  "pagedResultsCookie" : null,
+  "totalPagedResultsPolicy" : "NONE",
+  "totalPagedResults" : -1,
+  "remainingPagedResults" : -1
+}
+----
++
+Notice that the filters use the JSON pointers `name/familyName` and `manager/displayName` to identify the fields nested inside the `name` and `manager` objects.
+
+--
+You can page through search results using the following query string parameters that are further described in xref:chap-rest-operations.adoc#about-crest-query["Query"]:
+
+* `_pagedResultsCookie=string`
+
+* `_pagedResultsOffset=integer`
+
+* `_pageSize=integer`
+
+The following example demonstrates how paged results are used:
+
+[source, console]
+----
+# Request five results per page, and retrieve the first page.
+$ curl \
+ --user bjensen:hifalutin \
+ "http://opendj.example.com:8080/users?_queryFilter=true&_fields=userName&_pageSize=5"
+{
+  "result" : [ {
+    "_id" : "abarnes",
+    "_rev" : "00000000b589a3d4",
+    "userName" : "abarnes@example.com"
+  }, {
+    "_id" : "abergin",
+    "_rev" : "00000000131199bd",
+    "userName" : "abergin@example.com"
+  }, {
+    "_id" : "achassin",
+    "_rev" : "00000000aaf8a2ac",
+    "userName" : "achassin@example.com"
+  }, {
+    "_id" : "ahall",
+    "_rev" : "0000000023e19cdc",
+    "userName" : "ahall@example.com"
+  }, {
+    "_id" : "ahel",
+    "_rev" : "0000000033309a22",
+    "userName" : "ahel@example.com"
+  } ],
+  "resultCount" : 5,
+  "pagedResultsCookie" : "AAAAAAAAAA8=",
+  "totalPagedResultsPolicy" : "NONE",
+  "totalPagedResults" : -1,
+  "remainingPagedResults" : -1
+}
+
+# Provide the cookie to request the next five results.
+$ curl \
+ --user bjensen:hifalutin \
+ "http://opendj.example.com:8080/users?_queryFilter=true&_fields=userName&_pageSize=5\
+&_pagedResultsCookie=AAAAAAAAAA8="
+{
+  "result" : [ {
+    "_id" : "ahunter",
+    "_rev" : "00000000ec1aa3bb",
+    "userName" : "ahunter@example.com"
+  }, {
+    "_id" : "ajensen",
+    "_rev" : "00000000d4b9a728",
+    "userName" : "ajensen@example.com"
+  }, {
+    "_id" : "aknutson",
+    "_rev" : "000000002135ab65",
+    "userName" : "aknutson@example.com"
+  }, {
+    "_id" : "alangdon",
+    "_rev" : "000000009bc5a8e3",
+    "userName" : "alangdon@example.com"
+  }, {
+    "_id" : "alutz",
+    "_rev" : "0000000060b9a4bd",
+    "userName" : "alutz@example.com"
+  } ],
+  "resultCount" : 5,
+  "pagedResultsCookie" : "AAAAAAAAABQ=",
+  "totalPagedResultsPolicy" : "NONE",
+  "totalPagedResults" : -1,
+  "remainingPagedResults" : -1
+}
+
+# Request the tenth page of five results.
+$ curl \
+ --user bjensen:hifalutin \
+ "http://opendj.example.com:8080/users?_queryFilter=true&_fields=userName\
+&_pageSize=5&_pagedResultsOffset=10"
+{
+  "result" : [ {
+    "_id" : "ewalker",
+    "_rev" : "00000000848ea196",
+    "userName" : "ewalker@example.com"
+  }, {
+    "_id" : "eward",
+    "_rev" : "000000004ca19dc5",
+    "userName" : "eward@example.com"
+  }, {
+    "_id" : "falbers",
+    "_rev" : "0000000026d9a211",
+    "userName" : "falbers@example.com"
+  }, {
+    "_id" : "gfarmer",
+    "_rev" : "00000000e1bda2b1",
+    "userName" : "gfarmer@example.com"
+  }, {
+    "_id" : "gjensen",
+    "_rev" : "00000000ce6fa415",
+    "userName" : "gjensen@example.com"
+  } ],
+  "resultCount" : 5,
+  "pagedResultsCookie" : "AAAAAAAAAEE=",
+  "totalPagedResultsPolicy" : "NONE",
+  "totalPagedResults" : -1,
+  "remainingPagedResults" : -1
+}
+----
+Notice the following features of the responses:
+
+* `"remainingPagedResults" : -1` means that the number of remaining results is unknown.
+
+* `"totalPagedResults" : -1` means that the total number of paged results is unknown.
+
+* `"totalPagedResultsPolicy" : "NONE"` means that result counting is disabled.
+
+
+

@@ -1,0 +1,381 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-admin-tools]
+== Administration Interfaces and Tools
+
+This chapter covers OpenDJ administration tools. In this chapter you will learn to:
+
+* Find and run OpenDJ control panel
+
+* Find and run OpenDJ command-line tools
+
+OpenDJ server software installs with a cross-platform, Java Swing-based control panel for many day-to-day tasks. OpenDJ server software also installs command-line tools for configuration and management tasks.
+
+This chapter is one of the few to include screen shots of the control panel. Most examples make use of the command-line tools. Once you understand the concepts and how to use the command-line tools, you only need to know where to start in the control panel to accomplish what you set out to do.
+
+At a protocol level, administration tools and interfaces connect to servers through a different network port than that used to listen for traffic from other client applications.
+
+This chapter takes a quick look at the tools for managing directory services.
+
+[#control-panel]
+=== Control Panel
+
+OpenDJ control panel offers a GUI for managing both local and remote servers. You choose the server to manage when you start the control panel. The control panel connects to the administration server port, making a secure LDAPS connection.
+
+The version of OpenDJ control panel must be the same as the target version of OpenDJ directory server.
+Start OpenDJ control panel by running the `control-panel` command, described in xref:../reference/admin-tools-ref.adoc#control-panel-1[control-panel(1)] in the __Reference__:
+
+* (Linux, Solaris) Run `/path/to/opendj/bin/control-panel`.
+
+* (Windows) Double-click `C:\path\to\opendj\bat\control-panel.bat`.
+
+* (Mac OS X) Double-click `/path/to/opendj/bin/ControlPanel.app`.
+
+When you log in to OpenDJ control panel, you authenticate over LDAP. This means that if users can run the control panel, they can use it to manage a running server. Yet, to start and stop the server process through OpenDJ control panel, you must start the control panel on the system where OpenDJ runs, as the user who owns the OpenDJ server files (such as the user who installed OpenDJ). In other words, the OpenDJ control panel does not do remote process management.
+
+[#figure-opendj-control-panel]
+image::images/OpenDJ-Control-Panel.png[]
+--
+Down the left side of OpenDJ control panel, notice what you can configure:
+
+Directory Data::
+Directory data provisioning is typically not something you do by hand in most deployments. Usually entries are created, modified, and deleted through specific directory client applications. The Manage Entries window can be useful in the lab as you design and test directory data and if you modify individual ACIs or debug issues with particular entries.
++
+
+[#figure-manage-entries]
+image::images/Manage-Entries.png[]
++
+Additionally, the Directory Data list makes it easy to create a new base DN, and then import user data for the new base DN from LDAP Data Interchange Format (LDIF) files. You can also use the tools in the list to export user data to LDIF, and to backup and restore user data.
+
+Schema::
+The Manage Schema window lets you browse and modify the rules that define how data is stored in the directory. You can add new schema definitions such as new attribute types and new object classes while the server is running, and the changes you make take effect immediately.
+
+Indexes::
+The Manage Indexes window gives you a quick overview of all the indexes currently maintained for directory attributes. To protect your directory resources from being absorbed by costly searches on unindexed attributes, you may choose to keep the default behavior, preventing unindexed searches, instead adding indexes required by specific applications. (Notice that if the number of user data entries is smaller than the default resource limits, you can still perform what appear to be unindexed searches. That is because the `dn2id` index returns all user data entries without hitting a resource limit that would make the search unindexed.)
+
++
+OpenDJ control panel also allows you to verify and rebuild existing indexes, which you may have to do after an upgrade operation, or if you have reason to suspect index corruption.
+
+Monitoring::
+The Monitoring list gives you windows to observe information about the system, the Java Virtual Machine (JVM) used, and indications about how the cache is used, whether the work queue has been filling up, as well as details about the database. You can also view the numbers and types of requests arriving over the connection handlers, and the current tasks in progress as well.
+
+Runtime Options::
+If you did not set appropriate JVM runtime options during the installation process, this is the list that allows you to do so through the control panel.
+
+--
+
+
+[#cli-overview]
+=== Command-Line Tools
+
+Before you try the examples in this guide, set your PATH to include the OpenDJ directory server tools. The location of the tools depends on the operating environment and on the packages used to install OpenDJ. xref:#cli-path-locations["Paths To Administration Tools"] indicates where to find the tools.
+
+[#cli-path-locations]
+.Paths To Administration Tools
+[cols="33%,33%,34%"]
+|===
+|OpenDJ running on... |OpenDJ installed from... |Default path to tools... 
+
+a|Apple Mac OS X, Linux distributions, Oracle Solaris
+a|.zip
+a|`/path/to/opendj/bin`
+
+a|Linux distributions
+a|.deb, .rpm
+a|`/opt/opendj/bin`
+
+a|Microsoft Windows
+a|.zip
+a|`C:\path\to\opendj\bat`
+
+a|Oracle Solaris
+a|SVR4
+a|`/usr/opendj/bin`
+|===
+You find the installation and upgrade tools, `setup`, `upgrade`, and `uninstall`, in the parent directory of the other tools, as these tools are not used for everyday administration. For example, if the path to most tools is `/path/to/opendj/bin` you can find these tools in `/path/to/opendj`. For instructions on how to use the installation and upgrade tools, see the xref:../install-guide/index.adoc[Installation Guide].
+
+All OpenDJ command-line tools take the `--help` option.
+
+All commands call Java programs and therefore involve starting a JVM.
+
+xref:#cli-constraints["Tools and Server Constraints"] indicates the constraints, if any, that apply when using a command-line tool with a directory server.
+
+[#cli-constraints]
+.Tools and Server Constraints
+[cols="50%,50%"]
+|===
+|Commands |Constraints 
+
+a|[none]
+* `backendstat`
+* `create-rc-script`
+* `dsjavaproperties`
+* `encode-password`
+* `list-backends`
+* `setup`
+* `start-ds`
+* `upgrade`
+* `windows-service`
+a|These commands must be used with the local OpenDJ directory server in the same installation as the tools.
+
+ These commands are not useful with non-OpenDJ directory servers.
+
+a|[none]
+* `control-panel`
+* `dsconfig`
+* `export-ldif`
+* `import-ldif`
+* `manage-account`
+* `manage-tasks`
+* `rebuild-index`
+* `restore`
+* `status`
+* `stop-ds`
+* `uninstall`
+* `verify-index`
+a|These commands must be used with OpenDJ directory server having the same version as the command.
+
+ These commands are not useful with non-OpenDJ directory servers.
+
+a|[none]
+* `dsreplication`
+a|With one exception, this command can be used with current and previous OpenDJ directory server versions. The one exception is the `dsreplication reset-change-number` subcommand, which requires OpenDJ directory server version 3.0.0 or later.
+
+ This commands is not useful with other types of directory servers.
+
+a|[none]
+* `make-ldif`
+a|This command depends on template files. The template files can make use of configuration files installed with OpenDJ directory server under `config/MakeLDIF/`.
+
+ The LDIF output can be used with OpenDJ and other directory servers.
+
+a|[none]
+* `base64`
+* `ldapcompare`
+* `ldapdelete`
+* `ldapmodify`
+* `ldappasswordmodify`
+* `ldapsearch`
+* `ldif-diff`
+* `ldifmodify`
+* `ldifsearch`
+a|These commands can be used independently of OpenDJ directory server, and so are not tied to a specific version.
+|===
+--
+The following list uses the UNIX names for the commands. On Windows all command-line tools have the extension .bat:
+
+`backendstat`::
+Debug databases for pluggable backends.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#backendstat-1[backendstat(1)] in the __Reference__.
+
+`backup`::
+Back up or schedule backup of directory data.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#backup-1[backup(1)] in the __Reference__.
+
+`base64`::
+Encode and decode data in base64 format.
+
++
+Base64-encoding represents binary data in ASCII, and can be used to encode character strings in LDIF, for example.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#base64-1[base64(1)] in the __Reference__.
+
+`create-rc-script` (UNIX)::
+Generate a script you can use to start, stop, and restart the server either directly or at system boot and shutdown. Use `create-rc-script -f script-file`.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#create-rc-script-1[create-rc-script(1)] in the __Reference__.
+
+`dsconfig`::
+The `dsconfig` command is the primary command-line tool for viewing and editing an OpenDJ configuration. When started without arguments, `dsconfig` prompts you for administration connection information. Once connected it presents you with a menu-driven interface to the server configuration.
+
++
+When you pass connection information, subcommands, and additional options to `dsconfig`, the command runs in script mode and so is not interactive.
+
++
+You can prepare `dsconfig` batch scripts by running the command with the `--commandFilePath` option in interactive mode, then reading from the batch file with the `--batchFilePath` option in script mode. Batch files can be useful when you have many `dsconfig` commands to run and want to avoid starting the JVM for each command.
+
++
+Alternatively, you can read commands from standard input by using the `--batch` option.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#dsconfig-1[dsconfig(1)] in the __Reference__.
+
+`dsjavaproperties`::
+Apply changes you make to `opendj/config/java.properties`, which sets Java runtime options.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#dsjavaproperties-1[dsjavaproperties(1)] in the __Reference__.
+
+`dsreplication`::
+Configure data replication between directory servers to keep their contents in sync.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#dsreplication-1[dsreplication(1)] in the __Reference__.
+
+`encode-password`::
+Encode a cleartext password according to one of the available storage schemes.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#encode-password-1[encode-password(1)] in the __Reference__.
+
+`export-ldif`::
+Export directory data to LDIF, the standard, portable, text-based representation of directory content.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#export-ldif-1[export-ldif(1)] in the __Reference__.
+
+`import-ldif`::
+Load LDIF content into the directory, overwriting existing data. It cannot be used to append data to the backend database.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#import-ldif-1[import-ldif(1)] in the __Reference__.
+
+`ldapcompare`::
+Compare the attribute values you specify with those stored on entries in the directory.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldapcompare-1[ldapcompare(1)] in the __Reference__.
+
+`ldapdelete`::
+Delete one entry or an entire branch of subordinate entries in the directory.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldapdelete-1[ldapdelete(1)] in the __Reference__.
+
+`ldapmodify`::
+Modify the specified attribute values for the specified entries.
+
++
+Use the `ldapmodify` command with the `-a` option to add new entries.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldapmodify-1[ldapmodify(1)] in the __Reference__.
+
+`ldappasswordmodify`::
+Modify user passwords.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldappasswordmodify-1[ldappasswordmodify(1)] in the __Reference__.
+
+`ldapsearch`::
+Search a branch of directory data for entries that match the LDAP filter you specify.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldapsearch-1[ldapsearch(1)] in the __Reference__.
+
+`ldif-diff`::
+Display differences between two LDIF files, with the resulting output having LDIF format.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldif-diff-1[ldif-diff(1)] in the __Reference__.
+
+`ldifmodify`::
+Similar to the `ldapmodify` command, modify specified attribute values for specified entries in an LDIF file.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldifmodify-1[ldifmodify(1)] in the __Reference__.
+
+`ldifsearch`::
+Similar to the `ldapsearch` command, search a branch of data in LDIF for entries matching the LDAP filter you specify.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldifsearch-1[ldifsearch(1)] in the __Reference__.
+
+`list-backends`::
+List backends and base DNs served by OpenDJ directory server.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#list-backends-1[list-backends(1)] in the __Reference__.
+
+`make-ldif`::
+Generate directory data in LDIF based on templates that define how the data should appear.
+
++
+The `make-ldif` command is designed to help generate test data that mimics data expected in production, but without compromising real, potentially private information.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#make-ldif-1[make-ldif(1)] in the __Reference__.
+
+`manage-account`::
+Lock and unlock user accounts, and view and manipulate password policy state information.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#manage-account-1[manage-account(1)] in the __Reference__.
+
+`manage-tasks`::
+View information about tasks scheduled to run in the server, and cancel specified tasks.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#manage-tasks-1[manage-tasks(1)] in the __Reference__.
+
+`rebuild-index`::
+Rebuild an index stored in an indexed backend.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#rebuild-index-1[rebuild-index(1)] in the __Reference__.
+
+`restore`::
+Restore data from backup.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#restore-1[restore(1)] in the __Reference__.
+
+`start-ds`::
+Start OpenDJ directory server.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#start-ds-1[start-ds(1)] in the __Reference__.
+
+`status`::
+Display information about the server.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#status-1[status(1)] in the __Reference__.
+
+`stop-ds`::
+Stop OpenDJ directory server.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#stop-ds-1[stop-ds(1)] in the __Reference__.
+
+`verify-index`::
+Verify that an index stored in an indexed backend is not corrupt.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#verify-index-1[verify-index(1)] in the __Reference__.
+
+`windows-service` (Windows)::
+Register OpenDJ as a Windows Service.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#windows-service[windows-service(1)] in the __Reference__.
+
+--
+
+

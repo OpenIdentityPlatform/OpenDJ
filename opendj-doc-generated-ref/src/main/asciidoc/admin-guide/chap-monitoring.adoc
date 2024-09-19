@@ -1,0 +1,2141 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-monitoring]
+== Monitoring, Logging, and Alerts
+
+This chapter covers OpenDJ monitoring capabilities. In this chapter you will learn to:
+
+* Access monitoring information over LDAP, over SNMP, and though use of JMX.
+
+* Monitor directory server status, including the status of directory server tasks
+
+* Configure directory server logs and interpret the messages they contain
+
+* Configure email settings for administrative alert notifications
+
+OpenDJ control panel provides basic monitoring capabilities under Monitoring > General Information, Monitoring > Connection Handler, and Monitoring > Manage Tasks. This chapter covers the other options for monitoring OpenDJ.
+
+[#ldap-monitoring]
+=== LDAP-Based Monitoring
+
+OpenDJ exposes monitoring information over LDAP under the entry `cn=monitor`. Many different types of information are exposed. The following example shows monitoring information about the `userRoot` backend holding Example.com data:
+
+Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__)
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN cn=monitor "(cn=userRoot backend)"
+dn: cn=userRoot backend,cn=Disk Space Monitor,cn=monitor
+disk-state: normal
+objectClass: top
+objectClass: ds-monitor-entry
+objectClass: extensibleObject
+disk-dir: /path/to/opendj/db/userRoot
+disk-free: 343039315968
+cn: userRoot backend
+
+dn: cn=userRoot Backend,cn=monitor
+objectClass: top
+objectClass: ds-monitor-entry
+objectClass: ds-backend-monitor-entry
+cn: userRoot Backend
+ds-backend-id: userRoot
+ds-backend-base-dn: dc=example,dc=com
+ds-backend-is-private: FALSE
+ds-backend-entry-count: 176
+ds-base-dn-entry-count: 176 dc=example,dc=com
+ds-backend-writability-mode: enabled
+----
+You can set global ACIs on the Access Control Handler if you want to limit read access under `cn=monitor`.
+
+
+[#snmp-monitoring]
+=== SNMP-Based Monitoring
+
+OpenDJ lets you monitor the server over SNMP with support for the Management Information Base described in link:http://tools.ietf.org/html/rfc2605[RFC 2605: Directory Server Monitoring MIB, window=\_top].
+
+SNMP is not enabled by default. SNMP-based monitoring depends on OpenDMK, which you must link:https://github.com/OpenIdentityPlatform/OpenDJ/raw/master/opendj-server-legacy/opendmk/jdmkrt.jar[download separately, window=\_blank]. OpenDJ directory server that you download from GitHub is built with OpenDMK, but due to licensing OpenDMK is not part of OpenDJ. SNMP is therefore not enabled by default.
+
+To run the OpenDMK installer, use the self-extracting .jar:
+
+[source, console]
+----
+$ java -jar ~/Downloads/opendmk-1.0-b02-*.jar
+$ cd ~/Downloads/
+$ unzip DS-5.5.0.zip
+$ java -jar opendj/snmp/opendmk.jar
+----
+If you install under `/path/to`, then the runtime library needed for SNMP is `/path/to/OpenDMK-bin/lib/jdmkrt.jar`.
+
+Once you have installed OpenDMK, you can set up a connection handler for SNMP by enabling the connection handler, and pointing OpenDJ to your installation of the OpenDMK `jdmkrt.jar` library:
+
+[source, console]
+----
+$ dsconfig \
+ set-connection-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "SNMP Connection Handler" \
+ --set enabled:true \
+ --set opendmk-jarfile:/path/to/OpenDMK-bin/lib/jdmkrt.jar \
+ --trustAll \
+ --no-prompt
+----
+By default, the SNMP connection handler listens on port 161 and uses port 162 for traps. On UNIX and Linux systems, only root can normally open these ports. Therefore if you install as a normal user, you might want to change the listen and trap ports:
+
+[source, console]
+----
+$ dsconfig \
+ set-connection-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "SNMP Connection Handler" \
+ --set listen-port:11161 \
+ --set trap-port:11162 \
+ --trustAll \
+ --no-prompt
+----
+Restart the SNMP connection handler to take the port number changes into account.
+
+To restart the connection handler, you disable it, then enable it again:
+
+[source, console]
+----
+$ dsconfig \
+ set-connection-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "SNMP Connection Handler" \
+ --set enabled:false \
+ --trustAll \
+ --no-prompt
+
+$ dsconfig \
+ set-connection-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "SNMP Connection Handler" \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt
+----
+Use a command such as `snmpwalk` to check that the SNMP listen port works:
+
+[source, console]
+----
+$ snmpwalk -v 2c -c OpenDJ@OpenDJ localhost:11161
+SNMPv2-SMI::mib-2.66.1.1.1.1 = STRING: "OpenDJ 3.5.3..."
+SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/opendj"
+...
+----
+
+
+[#jmx-monitoring]
+=== JMX-Based Monitoring
+
+OpenDJ provides JMX-based monitoring. A number of tools support JMX, including `jconsole` and `jvisualvm`, which are bundled with the Sun/Oracle Java platform. JMX is not configured by default. Use the `dsconfig` command to configure the JMX connection handler:
+
+Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__)
+
+Configure the server to activate JMX access. The following example uses the reserved port number, 1689:
+
+[source, console]
+----
+$ dsconfig \
+ set-connection-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "JMX Connection Handler" \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt
+----
+Add appropriate privileges to access JMX monitoring information. By default, no users have privileges to access the JMX connection. The following commands create a user with JMX privileges, who can authenticate over an insecure connection:
+
+[source, console]
+----
+$ bin/dsconfig
+   create-password-policy
+   --policy-name "Allow insecure authentication"
+   --type password-policy
+   --set default-password-storage-scheme:PBKDF2-HMAC-SHA256
+   --set password-attribute:userPassword
+   --trustAll --no-prompt
+   --hostname opendj.example.com
+   --port 4444
+   --bindDN "cn=Directory Manager"
+   --bindPassword passwordt
+----
+
+[source, console]
+----
+$ bin/ldapmodify --port 1389 --bindDN "cn=Directory Manager" --bindPassword password
+   dn: uid=JMX Monitor,dc=example,dc=com
+   objectClass: top
+   objectClass: person
+   objectClass: organizationalPerson
+   objectClass: inetOrgPerson
+   cn: JMX Monitor
+   sn: User
+   uid: JMX Monitor
+   userPassword: password
+   ds-privilege-name: monitor-read
+   ds-privilege-name: jmx-notify
+   ds-privilege-name: jmx-read
+   ds-privilege-name: jmx-write
+   ds-pwp-password-policy-dn: cn=Allow insecure authentication,cn=Password Policies,cn=config
+
+   Processing ADD request for uid=JMX Monitor,dc=example,dc=com
+   ADD operation successful for DN uid=JMX Monitor,dc=example,dc=com
+   ^C
+----
+Connect remotely.
+
+[source, console]
+----
+$ jconsole &
+----
+
+Remote process::
+`service:jmx:rmi:///jndi/rmi://localhost:1689/org.opends.server.protocols.jmx.client-unknown`
+
+Username::
+`uid=JMX Monitor,dc=example,dc=com`
+
+Password::
+`password`
+
+Connect::
+Insecure connection
+
+
+
+[#monitoring-status-and-tasks]
+=== Server Operation and Tasks
+
+OpenDJ comes with two commands for monitoring server processes and tasks. The `status` command, described in xref:../reference/admin-tools-ref.adoc#status-1[status(1)] in the __Reference__, displays basic information about the local server, similar to what is seen in the default window of the control panel. The `manage-tasks` command, described in xref:../reference/admin-tools-ref.adoc#manage-tasks-1[manage-tasks(1)] in the __Reference__, lets you manage tasks scheduled on a server, such as nightly backup.
+
+The `status` command takes administrative credentials to read the configuration, as does the control panel:
+
+[source, console]
+----
+$ status --bindDN "cn=Directory Manager" --bindPassword password
+
+          --- Server Status ---
+Server Run Status:        Started
+Open Connections:         1
+
+          --- Server Details ---
+Host Name:                localhost
+Administrative Users:     cn=Directory Manager
+Installation Path:        /path/to/opendj
+Version:                  OpenDJ 3.5.3
+Java Version:             version
+Administration Connector: Port 4444 (LDAPS)
+
+          --- Connection Handlers ---
+Address:Port : Protocol : State
+-------------:----------:---------
+--           : LDIF     : Disabled
+0.0.0.0:636  : LDAPS    : Disabled
+0.0.0.0:1389 : LDAP     : Enabled
+0.0.0.0:1689 : JMX      : Disabled
+
+          --- Data Sources ---
+Base DN:     dc=example,dc=com
+Backend ID:  userRoot
+Entries:     163
+Replication: Disabled
+----
+The `manage-tasks` command connects over the administration port, and so can connect to both local and remote servers:
+
+[source, console]
+----
+$ manage-tasks \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --trustAll \
+ --no-prompt
+
+ID                         Type    Status
+--------------------------------------------------------
+example                    Backup  Recurring
+example-20110623030000000  Backup  Waiting on start time
+----
+
+
+[#logging]
+=== Server Logs
+
+By default OpenDJ stores access and errors logs, and a server process ID file under the `logs/` directory. For the replication service, OpenDJ also keeps a replication log there. You can also configure a debug log. You can also configure policies about how logs are rotated, and how they are retained. You configure logging using the `dsconfig` command.
+
+Each log depends on a __log publisher__, whose type corresponds to the type of log. OpenDJ provides a number of file-based log publishers out of the box, and supports the ForgeRock common audit event framework, sometimes referred to as Common Audit. The ForgeRock common audit event framework provides log handlers for publishing to CSV files, relational databases, and the UNIX system log (Syslog) as described in xref:#log-common-audit["Common ForgeRock Access Logs"]. The framework makes it possible to plug in additional handlers as well.
+
+[#log-access]
+==== Access Logs
+
+The __access log__ traces the operations the server processes including timestamps, connection information, and information about the operation itself. The access log can grow quickly, as each client request results in at least one new log message.
+
+The following access log excerpt shows a search operation from the local host, with the first three lines wrapped for readability:
+
+[source]
+----
+[21/Jun/2011:08:01:53 +0200] CONNECT conn=4 from=127.0.0.1:49708
+ to=127.0.0.1:1389 protocol=LDAP
+[21/Jun/2011:08:01:53 +0200] SEARCH REQ conn=4 op=0 msgID=1
+ base="dc=example,dc=com" scope=wholeSubtree filter="(uid=bjensen)" attrs="ALL"
+[21/Jun/2011:08:01:53 +0200] SEARCH RES conn=4 op=0 msgID=1
+ result=0 nentries=1 etime=3
+[21/Jun/2011:08:01:53 +0200] UNBIND REQ conn=4 op=1 msgID=2
+[21/Jun/2011:08:01:53 +0200] DISCONNECT conn=4 reason="Client Unbind"
+----
+Notice that by default OpenDJ directory server logs a message for the search request, and a message for the search response.footnote:d67723e14476[You can also configure the access logger to combine log messages by setting the property`log-format:combined`. The setting is useful when filtering messages based on response criteria. It causes the server to log one message per operation, rather than one message for the request and another for the response.] The server also logs request and response messages for other operations that have responses, such as bind and modify operations. The server does not log response messages for all operations, as some operations, such as persistent searches, abandon operations, unbind operations, and abandoned operations, do not have responses. In the preceding excerpt, notice that the log message for the unbind request is followed by a log message for the disconnection.
+
+
+[#log-common-audit]
+==== Common ForgeRock Access Logs
+
+In addition to the default file-based access log formats, OpenDJ directory server supports the ForgeRock common audit event framework. OpenDJ uses the framework to write access logs in formats that are compatible with all products using the framework. The framework uses transaction IDs that make it easy to correlate requests as they traverse the platform. This makes it easier to monitor activity and to enrich reports.
+
+Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__)
+
+The ForgeRock common audit event framework is built around audit event handlers. Audit event handlers can encapsulate their own configurations. Audit event handlers are the same in each product in the ForgeRock platform. As a result, you can plug in custom handlers that comply with the framework without having to upgrade OpenDJ directory server.
+The ForgeRock common audit event framework includes handlers for logging audit event messages to local files and facilities, as well as to remote systems. Handlers for the following are supported:
+
+* CSV files, with support for tamper-evident logs.
++
+OpenDJ supports LDAP and HTTP CSV access logs, which you must configure in order to use.
+
+* Elasticsearch server.
++
+You configure the Elasticsearch handler as an external log publisher that logs access messages to Elasticsearch.
+
+* Relational database using JDBC.
++
+You configure the JDBC handler as an external log publisher that logs access messages to a relational database.
+
+* The UNIX system log facility.
++
+Although it is rarely used for access events, you can configure the Syslog handler as an external log publisher that logs access messages to the UNIX Syslog facility.
+
+The ForgeRock common audit event framework supports a variety of audit event topics. OpenDJ currently supports handling for access events, which are system boundary events such as the initial request and final response to that request. In other words, the implementation in OpenDJ is focused only on access logging. Based on the connection handler for the request, OpenDJ divides access events into `ldap-access` events and `http-access` events.
+To enable common audit-based logging, follow one of these procedures:
+
+* xref:#log-common-audit-ldap-csv["To Enable LDAP CSV Access Logs"]
+
+* xref:#log-common-audit-http-csv["To Enable HTTP CSV Access Logs"]
+
+* xref:#log-common-audit-external["To Enable External LDAP or HTTP Access Logging"]
+
+
+[#log-common-audit-ldap-csv]
+.To Enable LDAP CSV Access Logs
+====
+After you complete the following steps, OpenDJ directory server records LDAP access event messages in files named like `logs/ldap-access.csv`:
+
+. (Optional)  If you trust transaction IDs sent by client applications, and want monitoring and reporting systems consuming the logs to allow correlation of requests as they traverse multiple servers, update the global server configuration as described in xref:#log-common-audit-trust-transaction-ids["To Trust Transaction IDs"].
+
+. Create an enabled CSV File Access Log Publisher with optional rotation and retention policies as in the following example:
++
+
+[source, console]
+----
+$ dsconfig \
+ create-log-publisher \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "Common Audit Csv File Access Logger" \
+ --type csv-file-access \
+ --set enabled:true \
+ --set "rotation-policy:24 Hours Time Limit Rotation Policy" \
+ --set "rotation-policy:Size Limit Rotation Policy" \
+ --set "retention-policy:File Count Retention Policy" \
+ --trustAll \
+ --no-prompt
+----
++
+You can view the log publisher properties to check your work as in the following example:
++
+
+[source, console]
+----
+$ dsconfig \
+ get-log-publisher-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "Common Audit Csv File Access Logger" \
+ --trustAll \
+ --no-prompt
+Property           : Value(s)
+-------------------:-----------------------------------------------------------
+csv-delimiter-char : ","
+enabled            : true
+filtering-policy   : no-filtering
+key-store-file     : -
+key-store-pin-file : -
+log-control-oids   : false
+log-directory      : logs
+retention-policy   : File Count Retention Policy
+rotation-policy    : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
+                   : Policy
+tamper-evident     : false
+----
++
+Notice that when setting the CSV File Access Log Publisher properties, you can set the log directory, but you cannot change the log file name, which contains `ldap-access`.
+
+. (Optional)  If you require tamper-evident logs, prepare a keystore as described in xref:#log-common-audit-keystore["To Prepare a Keystore for Tamper-Evident Logs"]. Then enable tamper-evident capability as in the following example:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-log-publisher-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+ --publisher-name "Common Audit Csv File Access Logger" \
+ --set tamper-evident:true \
+ --set key-store-file:config/audit-keystore \
+ --set key-store-pin-file:config/audit-keystore.pin \
+ --trustAll \
+ --no-prompt
+----
++
+Tamper-evident logging relies on digital signatures and regularly flushing messages to the log system. In high-volume directory deployments with heavy access patterns, signing log messages has a severe negative impact on server performance, reducing throughput by orders of magnitude.
++
+Make certain that you test the performance impact of tamper-evident logging with realistic access patterns for your deployment before enabling the feature in production.
+
+====
+
+[#log-common-audit-http-csv]
+.To Enable HTTP CSV Access Logs
+====
+If you have enabled the HTTP connection handler as described in xref:chap-connection-handlers.adoc#setup-rest2ldap-endpoint["To Set Up REST Access to User Data"], you might want to enable CSV-format HTTP access logs.
+
+After you complete the following steps, OpenDJ directory server records HTTP access event messages in files named like `logs/http-access.csv`:
+
+. (Optional)  If you trust transaction IDs sent by client applications, and want monitoring and reporting systems consuming the logs to allow correlation of requests as they traverse multiple servers, update the global server configuration as described in xref:#log-common-audit-trust-transaction-ids["To Trust Transaction IDs"].
+
+. Create an enabled CSV File HTTP Access Log Publisher with optional rotation and retention policies as in the following example:
++
+
+[source, console]
+----
+$ dsconfig \
+ create-log-publisher \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "Common Audit Csv File HTTP Access Logger" \
+ --type csv-file-http-access \
+ --set enabled:true \
+ --set "rotation-policy:24 Hours Time Limit Rotation Policy" \
+ --set "rotation-policy:Size Limit Rotation Policy" \
+ --set "retention-policy:File Count Retention Policy" \
+ --trustAll \
+ --no-prompt
+----
++
+You can view the log publisher properties to check your work as in the following example:
++
+
+[source, console]
+----
+$ dsconfig \
+ get-log-publisher-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "Common Audit Csv File HTTP Access Logger" \
+ --trustAll \
+ --no-prompt
+Property           : Value(s)
+-------------------:-----------------------------------------------------------
+csv-delimiter-char : ","
+enabled            : true
+key-store-file     : -
+key-store-pin-file : -
+log-directory      : logs
+retention-policy   : File Count Retention Policy
+rotation-policy    : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
+                   : Policy
+tamper-evident     : false
+----
++
+Notice that when setting the CSV File HTTP Access Log Publisher properties, you can set the log directory, but you cannot change the log file name, which contains `http-access`.
+
+. (Optional)  If you require tamper-evident logs, prepare a keystore as described in xref:#log-common-audit-keystore["To Prepare a Keystore for Tamper-Evident Logs"]. Then enable tamper-evident capability as in the following example:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-log-publisher-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+ --publisher-name "Common Audit Csv File HTTP Access Logger" \
+ --set tamper-evident:true \
+ --set key-store-file:config/audit-keystore \
+ --set key-store-pin-file:config/audit-keystore.pin \
+ --trustAll \
+ --no-prompt
+----
++
+Tamper-evident logging relies on digital signatures and regularly flushing messages to the log system. In high-volume directory deployments with heavy access patterns, signing log messages has a severe negative impact on server performance, reducing throughput by orders of magnitude.
++
+Make certain that you test the performance impact of tamper-evident logging with realistic access patterns for your deployment before enabling the feature in production.
+
+====
+
+[#log-common-audit-keystore]
+.To Prepare a Keystore for Tamper-Evident Logs
+====
+Tamper-evident logging depends on a public key/private key pair and on a secret key that are stored together in a JCEKS keystore. Follow these steps to prepare the keystore:
+
+. Create a password for the keystore.
++
+The following example uses the default file name. If you use a different filename, then you must edit `key-store-pin-file` property when configuring the log publisher:
++
+
+[source, console]
+----
+$ echo password > /path/to/opendj/config/audit-keystore.pin
+$ chmod 400 /path/to/opendj/config/audit-keystore.pin
+----
+
+. Generate a key pair in the keystore.
++
+The CSV event handler expects a JCEKS-type keystore with a key alias of `Signature` for the signing key, where the key is generated with the `RSA` key algorithm and the `SHA256withRSA` signature algorithm.
++
+The following example uses the default file name. If you use a different filename, then you must edit `key-store-file` property when configuring the log publisher:
++
+
+[source, console]
+----
+$ keytool \
+ -genkeypair \
+ -keyalg RSA \
+ -sigalg SHA256withRSA \
+ -alias "Signature" \
+ -dname "CN=opendj.example.com,O=Example Corp,C=FR" \
+ -keystore /path/to/opendj/config/audit-keystore \
+ -storetype JCEKS \
+ -storepass `cat /path/to/opendj/config/audit-keystore.pin` \
+ -keypass `cat /path/to/opendj/config/audit-keystore.pin`
+----
+
+. Generate a secret key in the keystore.
++
+The CSV event handler expects a JCEKS-type keystore with a key alias of `Password` for the symmetric key, where the key is generated with the `HmacSHA256` key algorithm and 256-bit key size.
++
+The following example uses the default file name. If you use a different filename, then you must edit `key-store-file` property when configuring the log publisher:
++
+
+[source, console]
+----
+$ keytool \
+ -genseckey \
+ -keyalg HmacSHA256 \
+ -keysize 256 \
+ -alias "Password" \
+ -keystore /path/to/opendj/config/audit-keystore \
+ -storetype JCEKS \
+ -storepass `cat /path/to/opendj/config/audit-keystore.pin` \
+ -keypass `cat /path/to/opendj/config/audit-keystore.pin`
+----
+
+. Verify the contents of the keystore:
++
+
+[source, console]
+----
+$ keytool \
+ -list \
+ -keystore /path/to/opendj/config/audit-keystore \
+ -storetype JCEKS \
+ -storepass `cat /path/to/opendj/config/audit-keystore.pin`
+
+Keystore type: JCEKS
+Keystore provider: SunJCE
+
+Your keystore contains 2 entries
+
+signature, Nov 27, 2015, PrivateKeyEntry,
+Certificate fingerprint (SHA1): 4D:CF:CC:29:...:8B:6E:68:D1
+password, Nov 27, 2015, SecretKeyEntry,
+----
+
+====
+
+[#log-common-audit-external]
+.To Enable External LDAP or HTTP Access Logging
+====
+External LDAP or HTTP access event logging lets you use an Elasticsearch handler to log to an Elasticsearch server, a JDBC handler to log to a relational database, a Syslog handler to log to the UNIX Syslog facility, or a custom handler to consume the events in some other way. The configuration depends on the handler, and is provided as a JSON file that corresponds to the handler.
+
+Follow these steps:
+
+. (Optional)  If you trust transaction IDs sent by client applications, and want monitoring and reporting systems consuming the logs to allow correlation of requests as they traverse multiple servers, update the global server configuration as described in xref:#log-common-audit-trust-transaction-ids["To Trust Transaction IDs"].
+
+. If necessary, prepare the data store:
++
+
+* For an Elasticsearch server, create a mapping in the index for the messages.
++
+See xref:#example-log-common-audit-elasticsearch["Using an Elasticsearch Audit Log Handler"].
+
+* For the relational database that the JDBC handler connects to, create the necessary schema and tables.
++
+See the examples in the `db` directory inside the `opendj/lib/forgerock-audit-handler-jdbc.jar` file.
+
++
+The columns and fields of the audit event messages correspond to the fields in the logs generated by the CSV audit handler.
+
+. Create the JSON configuration file for the external handler, and copy it to the `config` directory for the OpenDJ directory server.
++
+For details, see xref:#log-common-audit-jdbc["JDBC Audit Event Handler Configuration"] and xref:#log-common-audit-syslog["Syslog Audit Event Handler Configuration"].
+
+. (Optional)  For LDAP access logging, create an External Access Log Publisher
++
+The following example creates a JDBC LDAP access log publisher:
++
+
+[source, console]
+----
+$ dsconfig \
+ create-log-publisher \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "JDBC LDAP Access Log Publisher" \
+ --type external-access \
+ --set enabled:true \
+ --set config-file:config/jdbc-handler.json \
+ --trustAll \
+ --no-prompt
+----
+
+. (Optional)  For HTTP access logging, create an External HTTP Access Log Publisher
++
+The following example creates a JDBC HTTP access log publisher:
++
+
+[source, console]
+----
+$ dsconfig \
+ create-log-publisher \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "JDBC HTTP Access Log Publisher" \
+ --type external-http-access \
+ --set enabled:true \
+ --set config-file:config/jdbc-handler.json \
+ --trustAll \
+ --no-prompt
+----
+
+. (Optional)  For a custom access logger, follow these general steps:
++
+
+.. Copy the .jar file for the custom audit event handler to `/path/to/opendj/lib/extensions`.
+
+.. Prepare the JSON configuration file for the custom handler.
+
+.. Create an External Access Log Publisher or External HTTP Access Log Publisher configuration as appropriate for the custom access logger.
+
+
+====
+
+[#log-common-audit-trust-transaction-ids]
+.To Trust Transaction IDs
+====
+Client applications using the ForgeRock common audit event framework send transaction IDs with their requests. The transaction IDs are used to correlate audit events for monitoring and reporting that trace the request through multiple applications.
+
+Transaction IDs are sent over LDAP using an internal OpenDJ request control. They are sent over HTTP in an HTTP header.
+
+By default, OpenDJ directory server is configured not to trust transaction IDs sent with client application requests. The default transaction ID is used instead. The default transaction ID is zero: `0`.
+
+* Set the advanced global server property, `trust-transaction-ids`, to `true`:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-global-configuration-prop \
+ --advanced \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set trust-transaction-ids:true \
+ --trustAll \
+ --no-prompt
+----
++
+At this point transaction IDs are trusted, and can be written to the logs.
+
+====
+
+[#log-common-audit-elasticsearch]
+===== Elasticsearch Audit Event Handler Configuration
+
+An Elasticsearch audit event handler logs audit event messages to an Elasticsearch server. This section briefly describes the JSON configuration file for the handler.
+
+The JSON file has the following format:
+
+[source, javascript]
+----
+{
+  "class": "org.forgerock.audit.handlers.elasticsearch.ElasticsearchAuditEventHandler",
+  "config": {
+    "name": string,               // Handler name, such as "elasticsearch".
+    "topics": [ string, ...],     // LDAP: "ldap-access"; HTTP: "http-access".
+    "connection": {
+      "host": string,             // Elasticsearch host. Default: localhost
+      "port": number,             // Elasticsearch host. Default: 9200
+      "useSSL": boolean,          // Connect to Elasticsearch over HTTPS?
+      "username": string,         // (Optional) User name for HTTP Basic auth.
+      "password": string          // (Optional) Password for HTTP Basic auth.
+    },
+    "indexMapping": {
+      "indexName": string         // Name of the Elasticsearch index.
+    },
+    "buffering": {
+      "enabled": boolean,         // Buffer messages to be sent? Default: false.
+      "maxSize": number,          // Maximum number of buffered events.
+      "writeInterval": duration,  // Interval between sending batch of events.
+      "maxBatchedEvents": number  // Number of events to send per interval.
+    }
+  }
+}
+----
+
+[#example-log-common-audit-elasticsearch]
+.Using an Elasticsearch Audit Log Handler
+====
+This example demonstrates logging an HTTP audit event message to a local Elasticsearch server.
+To prepare the example, complete these steps:
+
+. Install and run an Elasticsearch server on localhost:9200.
+
+. Create an `audit` index in the Elasticsearch server for OpenDJ HTTP audit event messages:
++
+
+[source, console]
+----
+$ curl --request POST --header "Content-Type: application/json" --data '{
+  "settings": {},
+  "mappings": {
+    "ldap-access": {
+      "_source": {
+        "enabled": true
+      },
+      "properties": {
+        "timestamp": {
+          "type": "date"
+        },
+        "eventName": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "transactionId": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "userId": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "trackingIds": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "server": {
+          "properties": {
+            "ip": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "port": {
+              "type": "integer"
+            }
+          }
+        },
+        "client": {
+          "properties": {
+            "ip": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "port": {
+              "type": "integer"
+            }
+          }
+        },
+        "request": {
+          "properties": {
+            "protocol": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "operation": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "detail": {
+              "type": "nested"
+            }
+          }
+        },
+        "ldap": {
+          "properties": {
+            "connId": {
+              "type": "integer",
+              "index": "not_analyzed"
+            },
+            "msgId": {
+              "type": "integer"
+            },
+            "dn": {
+              "type": "string"
+            },
+            "scope": {
+              "type": "string"
+            },
+            "filter": {
+              "type": "string"
+            },
+            "attrs": {
+              "type": "string"
+            },
+            "nentries": {
+              "type": "string"
+            },
+            "authType": {
+              "type": "string"
+            },
+            "reqControls": {
+              "type": "string"
+            },
+            "respControls": {
+              "type": "string"
+            },
+            "additionalItems": {
+              "type": "string"
+            },
+            "items": {
+              "type": "string"
+            },
+            "attr": {
+              "type": "string"
+            },
+            "failureReason": {
+              "type": "string"
+            },
+            "idToAbandon": {
+              "type": "integer"
+            },
+            "maskedResult": {
+              "type": "integer"
+            },
+            "maskedMessage": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "newRDN": {
+              "type": "string"
+            },
+            "newSup": {
+              "type": "string"
+            },
+            "deleteOldRDN": {
+              "type": "boolean"
+            },
+            "oid": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "opType": {
+              "type": "string"
+            }
+          }
+        },
+        "response": {
+          "properties": {
+            "status": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "statusCode": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "detail": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "elapsedTime": {
+              "type": "integer"
+            },
+            "elapsedTimeUnits": {
+              "type": "string",
+              "index": "not_analyzed"
+            }
+          }
+        }
+      }
+    },
+    "http-access": {
+      "_source": {
+        "enabled": true
+      },
+      "properties": {
+        "timestamp": {
+          "type": "date"
+        },
+        "eventName": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "transactionId": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "userId": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "trackingIds": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "server": {
+          "properties": {
+            "ip": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "port": {
+              "type": "integer"
+            }
+          }
+        },
+        "client": {
+          "properties": {
+            "ip": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "port": {
+              "type": "integer"
+            }
+          }
+        },
+        "request": {
+          "properties": {
+            "protocol": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "operation": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "detail": {
+              "type": "nested"
+            }
+          }
+        },
+        "http": {
+          "properties": {
+            "request": {
+              "properties": {
+                "secure": {
+                  "type": "boolean"
+                },
+                "method": {
+                  "type": "string",
+                  "index": "not_analyzed"
+                },
+                "path": {
+                  "type": "string",
+                  "index": "not_analyzed"
+                },
+                "queryParameters": {
+                  "type": "nested"
+                },
+                "headers": {
+                  "type": "nested"
+                },
+                "cookies": {
+                  "type": "nested"
+                }
+              }
+            },
+            "response": {
+              "properties": {
+                "headers": {
+                  "type": "nested"
+                }
+              }
+            }
+          }
+        },
+        "response": {
+          "properties": {
+            "status": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "statusCode": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "detail": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "elapsedTime": {
+              "type": "integer"
+            },
+            "elapsedTimeUnits": {
+              "type": "string",
+              "index": "not_analyzed"
+            }
+          }
+        }
+      }
+    }
+  }
+}' http://localhost:9200/audit
+{"acknowledged":true}
+----
+
+. Configure OpenDJ directory server to enable HTTP access as described in xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap-endpoint["To Set Up REST Access to User Data"].
+
+. Add a JSON configuration file under for the handler:
++
+
+[source, console]
+----
+$ cat /path/to/opendj/config/elasticsearch-handler.json
+{
+  "class": "org.forgerock.audit.handlers.elasticsearch.ElasticsearchAuditEventHandler",
+  "config": {
+    "name": "elasticsearch",
+    "topics": ["http-access"],
+    "connection": {
+      "useSSL": false,
+      "host": "localhost",
+      "port": 9200
+    },
+    "indexMapping": {
+      "indexName": "audit"
+    },
+    "buffering": {
+      "enabled": true,
+      "maxSize": 10000,
+      "writeInterval": "100 ms",
+      "maxBatchedEvents": 500
+    }
+  }
+}
+----
+
+. Configure OpenDJ directory server to use the Elasticsearch audit handler:
++
+
+[source, console]
+----
+$ dsconfig \
+ create-log-publisher \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "Elasticsearch HTTP Access Log Publisher" \
+ --type external-http-access \
+ --set enabled:true \
+ --set config-file:config/elasticsearch-handler.json \
+ --trustAll \
+ --no-prompt
+----
+
+With Elasticsearch and OpenDJ diretory server running, audit event messages for HTTP requests to OpenDJ directory server are sent to Elasticsearch.
+
+The following example requests Babs Jensen's entry:
+
+[source, console]
+----
+$ curl --user bjensen:hifalutin http://opendj.example.com:8080/api/users/bjensen
+{
+  "_id": "bjensen",
+  "_rev": "00000000828dc352",
+  "schemas": ["urn:scim:schemas:core:1.0"],
+  "userName": "bjensen@example.com",
+  "displayName": "Barbara Jensen",
+  "name": {
+    "givenName": "Barbara",
+    "familyName": "Jensen"
+  },
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1862",
+    "emailAddress": "bjensen@example.com"
+  },
+  "meta": {},
+  "manager": [{
+    "_id": "trigden",
+    "displayName": "Torrey Rigden"
+  }]
+}
+----
+A search request to Elasticsearch shows the resulting audit event content:
+
+[source, console]
+----
+$ curl 'localhost:9200/audit/_search?q=*&pretty'
+{
+  "took" : 31,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 5,
+    "successful" : 5,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : 1,
+    "max_score" : 1.0,
+    "hits" : [ {
+      "_index" : "audit",
+      "_type" : "http-access",
+      "_id" : "a5c09e11-cc79-4a34-8dbe-b23cc1a79a8b-30",
+      "_score" : 1.0,
+      "_source" : {
+        "eventName" : "OpenDJ Server-HTTP-ACCESS",
+        "timestamp" : "2016-06-07T21:19:23.939Z",
+        "transactionId" : "a5c09e11-cc79-4a34-8dbe-b23cc1a79a8b-29",
+        "server" : {
+          "ip" : "0:0:0:0:0:0:0:1",
+          "port" : 8080
+        },
+        "client" : {
+          "ip" : "0:0:0:0:0:0:0:1",
+          "port" : 58907
+        },
+        "http" : {
+          "request" : {
+            "secure" : false,
+            "method" : "GET",
+            "path" : "http://opendj.example.com:8080/api/users/bjensen",
+            "queryParameters" : { },
+            "cookies" : { }
+          },
+          "response" : {
+            "headers" : {
+              "Cache-Control" : [ "no-cache" ],
+              "Content-Type" : [ "application/json; charset=UTF-8" ],
+              "ETag" : [ "\"00000000828dc352\"" ]
+            }
+          }
+        },
+        "response" : {
+          "status" : "SUCCESSFUL",
+          "statusCode" : "200",
+          "elapsedTime" : 6,
+          "elapsedTimeUnits" : "MILLISECONDS"
+        }
+      }
+    } ]
+  }
+}
+----
+See the Elasticsearch documentation for details on searching and search results.
+====
+
+
+[#log-common-audit-jdbc]
+===== JDBC Audit Event Handler Configuration
+
+The JDBC audit event handler that responds to events by logging messages to an appropriately configured relational database table. This section briefly describes the JSON configuration file for the handler.
+--
+The JSON file has the following format:
+
+[source, javascript]
+----
+{
+    "class": "org.forgerock.audit.handlers.jdbc.JdbcAuditEventHandler",
+    "config": {
+        "name": string,
+        "topics": array,
+        "databaseType": string,
+        "enabled": boolean,
+        "buffering": {
+            "enabled": boolean,
+            "writeInterval": duration,
+            "autoFlush": boolean,
+            "maxBatchedEvents": number,
+            "maxSize": number,
+            "writerThreads": number
+        },
+        "connectionPool": {
+            "dataSourceClassName": string,
+            "jdbcUrl": string,
+            "username": string,
+            "password": string,
+            "autoCommit": boolean,
+            "connectionTimeout": number,
+            "idleTimeout": number,
+            "maxLifetime": number,
+            "minIdle": number,
+            "maxPoolSize": number,
+            "poolName": string
+        },
+        "tableMappings": [
+            {
+                "event": string,
+                "table": string,
+                "fieldToColumn": {
+                    "event-field": "database-column"
+                }
+            }
+        ]
+    }
+}
+----
+The `class` field identifies the handler.
+
+The `"config"` object has the following properties:
+
+`"name"`: __string, required__::
+The name of the event handler.
+
+`"topics"`: __array of strings, required__::
+The topics that this event handler intercepts.
+
++
+OpenDJ supports handling access events that occur at the system boundary, such as arrival of the initial request and departure of the final response.
+
++
+Set this to `"topics": [ "http-access" ]` or `"topics": [ "ldap-access" ]`.
+
+`"databaseType"`: __string, required__::
+The database type name.
+
++
+Built-in support is provided for `oracle`, `mysql`, and `h2`. Unrecognized database types rely on a `GenericDatabaseStatementProvider`.
+
+`"enabled"`: __boolean, optional__::
+Whether this event handler is active.
+
++
+Default: true.
+
+`"buffering"`: __object, optional__::
+Buffering settings for sending messages to the database. The default is for messages to be written to the log file for each event.
++
+[open]
+====
+The buffering object has the following fields:
+
+`"enabled"`: __boolean, optional__::
+Whether log buffering is enabled.
+
++
+Default: false.
+
+`"writeInterval"`: __duration, required__::
+The interval at which to send buffered event messages to the database.
+
++
+This interval must be greater than 0 if buffering is enabled.
++
+A duration is a lapse of time expressed in English, such as `23 hours 59 minutes and 59 seconds`.
+
+Durations are not case sensitive.
+
+Negative durations are not supported.
+
+The following units can be used in durations:
+
+* `indefinite`, `infinity`, `undefined`, `unlimited`: unlimited duration
+
+* `zero`, `disabled`: zero-length duration
+
+* `days`, `day`, `d`: days
+
+* `hours`, `hour`, `h`: hours
+
+* `minutes`, `minute`, `min`, `m`: minutes
+
+* `seconds`, `second`, `sec`, `s`: seconds
+
+* `milliseconds`, `millisecond`, `millisec`, `millis`, `milli`, `ms`: milliseconds
+
+* `microseconds`, `microsecond`, `microsec`, `micros`, `micro`, `us`: microseconds
+
+* `nanoseconds`, `nanosecond`, `nanosec`, `nanos`, `nano`, `ns`: nanoseconds
+
+
+`"autoFlush"`: __boolean, optional__::
+Whether the events are automatically flushed after being written.
+
++
+Default: true.
+
+`"maxBatchedEvents"`: __number, optional__::
+The maximum number of event messages batched into a link:http://docs.oracle.com/javase/7/docs/api/java/sql/PreparedStatement.html[PreparedStatement, window=\_blank].
+
++
+Default: 100.
+
+`"maxSize"`: __number, optional__::
+The maximum size of the queue of buffered event messages.
+
++
+Default: 5000.
+
+`"writerThreads"`: __number, optional__::
+The number of threads to write buffered event messages to the database.
+
++
+Default: 1.
+
+====
+
+`"connectionPool"`: __object, required__::
+Connection pool settings for sending messages to the database.
++
+[open]
+====
+The connection pool object has the following fields:
+
+`"dataSourceClassName"`: __string, optional__::
+The class name of the data source for the database.
+
+`"jdbcUrl"`: __string, required__::
+The JDBC URL to connect to the database.
+
+`"username"`: __string, required__::
+The username identifier for the database user with access to write the messages.
+
+`"password"`: __number, optional__::
+The password for the database user with access to write the messages.
+
+`"autoCommit"`: __boolean, optional__::
+Whether to commit transactions automatically when writing messages.
+
++
+Default: true.
+
+`"connectionTimeout"`: __number, optional__::
+The number of milliseconds to wait for a connection from the pool before timing out.
+
++
+Default: 30000.
+
+`"idleTimeout"`: __number, optional__::
+The number of milliseconds to allow a database connection to remain idle before timing out.
+
++
+Default: 600000.
+
+`"maxLifetime"`: __number, optional__::
+The number of milliseconds to allow a database connection to remain in the pool.
+
++
+Default: 1800000.
+
+`"minIdle"`: __number, optional__::
+The minimum number of idle connections in the pool.
+
++
+Default: 10.
+
+`"maxPoolSize"`: __number, optional__::
+The maximum number of connections in the pool.
+
++
+Default: 10.
+
+`"poolName"`: __string, optional__::
+The name of the connection pool.
+
+====
+
+`"tableMappings"`: __array of objects, required__::
+Table mappings for directing event content to database table columns.
++
+[open]
+====
+A table mappings object has the following fields:
+
+`"event"`: __string, required__::
+The audit event that the table mapping is for.
+
++
+Set this to `access`.
+
+`"table"`: __string, required__::
+The name of the database table that corresponds to the mapping.
+
+`"fieldToColumn"`: __object, required__::
+This object maps the names of audit event fields to database columns, where the keys and values are both strings.
+
++
+Audit event fields use JSON pointer notation, and are taken from the JSON schema for the audit event content.
+
+====
+
+--
+
+
+[#log-common-audit-syslog]
+===== Syslog Audit Event Handler Configuration
+
+The Syslog audit event handler that responds to events by logging messages to the UNIX system log as governed by RFC 5424, link:https://tools.ietf.org/html/rfc5424[The Syslog Protocol, window=\_blank]. This section briefly describes the JSON configuration file for the handler.
+--
+The JSON file has the following format:
+
+[source, javascript]
+----
+{
+    "class": "org.forgerock.audit.handlers.syslog.SyslogAuditEventHandler",
+    "config": {
+        "name": string,
+        "topics": array,
+        "protocol": string,
+        "host": string,
+        "port": number,
+        "connectTimeout": number,
+        "facility": "string",
+        "buffering": {
+            "enabled": boolean,
+            "maxSize": number
+        },
+        "severityFieldMappings": [
+            {
+                "topic": string,
+                "field": string,
+                "valueMappings": {
+                    "field-value": "syslog-severity"
+                }
+            }
+        ]
+    }
+}
+----
+The `class` field identifies the handler.
+
+The `"config"` object has the following properties:
+
+`"name"`: __string, required__::
+The name of the event handler.
+
+`"topics"`: __array of strings, required__::
+The topics that this event handler intercepts.
+
++
+OpenDJ supports handling access events that occur at the system boundary, such as arrival of the initial request and departure of the final response.
+
++
+Set this to `"topics": [ "http-access" ]` or `"topics": [ "ldap-access" ]`.
+
+`"protocol"`: __string, required__::
+The transport protocol used to send event messages to the Syslog daemon.
+
++
+Set this to `TCP` for Transmission Control Protocol, or to `UDP` for User Datagram Protocol.
+
+`"host"`: __string, required__::
+The hostname of the Syslog daemon to which to send event messages. The hostname must resolve to an IP address.
+
+`"port"`: __number, required__::
+The port of the Syslog daemon to which to send event messages.
+
++
+The value must be between 0 and 65535.
+
+`"connectTimeout"`: __number, required when using TCP__::
+The number of milliseconds to wait for a connection before timing out.
+
+`"facility"`: __string, required__::
+The Syslog facility to use for event messages.
++
+[open]
+====
+Set this to one of the following values:
+
+`kern`::
+Kernel messages
+
+`user`::
+User-level messages
+
+`mail`::
+Mail system
+
+`daemon`::
+System daemons
+
+`auth`::
+Security/authorization messages
+
+`syslog`::
+Messages generated internally by `syslogd`
+
+`lpr`::
+Line printer subsystem
+
+`news`::
+Network news subsystem
+
+`uucp`::
+UUCP subsystem
+
+`cron`::
+Clock daemon
+
+`authpriv`::
+Security/authorization messages
+
+`ftp`::
+FTP daemon
+
+`ntp`::
+NTP subsystem
+
+`logaudit`::
+Log audit
+
+`logalert`::
+Log alert
+
+`clockd`::
+Clock daemon
+
+`local0`::
+Local use 0
+
+`local1`::
+Local use 1
+
+`local2`::
+Local use 2
+
+`local3`::
+Local use 3
+
+`local4`::
+Local use 4
+
+`local5`::
+Local use 5
+
+`local6`::
+Local use 6
+
+`local7`::
+Local use 7
+
+====
+
+`"buffering"`: __object, optional__::
+Buffering settings for writing to the system log facility. The default is for messages to be written to the log for each event.
++
+[open]
+====
+The buffering object has the following fields:
+
+`"enabled"`: __boolean, optional__::
+Whether log buffering is enabled.
+
++
+Default: false.
+
+`"maxSize"`: __number, optional__::
+The maximum number of buffered event messages.
+
++
+Default: 5000.
+
+====
+
+`"severityFieldMappings"`: __object, optional__::
+Severity field mappings set the correspondence between audit event fields and Syslog severity values.
++
+[open]
+====
+The severity field mappings object has the following fields:
+
+`"topic"`: __string, required__::
+The audit event topic to which the mapping applies.
+
++
+Set this to `access`.
+
+`"field"`: __string, required__::
+The audit event field to which the mapping applies.
+
++
+Audit event fields use JSON pointer notation, and are taken from the JSON schema for the audit event content.
+
+`"valueMappings"`: __object, required__::
+The map of audit event values to Syslog severities, where both the keys and the values are strings.
++
+[open]
+======
+Syslog severities are one of the following values:
+
+`emergency`::
+System is unusable.
+
+`alert`::
+Action must be taken immediately.
+
+`critical`::
+Critical conditions.
+
+`error`::
+Error conditions.
+
+`warning`::
+Warning conditions.
+
+`notice`::
+Normal but significant condition.
+
+`informational`::
+Informational messages.
+
+`debug`::
+Debug-level messages.
+
+======
+
+====
+
+--
+
+
+
+[#log-error]
+==== Error Logs
+
+The __errors log__ traces server events, error conditions, and warnings, categorized and identified by severity.
+
+The following `errors` log excerpt shows log entries for a backup task, with lines wrapped for readability:
+
+[source]
+----
+[06/Oct/2015:16:58:15 +0200] category=... severity=NOTICE msgID=...
+ msg=Backup task 20151006165815904 started execution
+[06/Oct/2015:16:58:15 +0200] category=TASK severity=NOTICE msgID=...
+ msg=Starting backup for backend userRoot
+[06/Oct/2015:16:58:16 +0200] category=UTIL severity=NOTICE msgID=...
+ msg=Archived backup file: dj
+...
+[06/Oct/2015:16:58:16 +0200] category=UTIL severity=NOTICE msgID=...
+ msg=Archived backup file: tasks.ldif
+[06/Oct/2015:16:58:16 +0200] category=TASK severity=NOTICE msgID=...
+ msg=The backup process completed successfully
+[06/Oct/2015:16:58:16 +0200] category=... severity=NOTICE msgID=...
+ msg=Backup task 20151006165815904 finished execution in the state
+     Completed successfully
+----
+
+
+[#log-http-access]
+==== HTTP Access Logs
+
+For the HTTP Connection Handler, OpenDJ maintains a separate access log in `logs/http-access`. This access log, by default configured as the File Based HTTP Access Log Publisher, uses a different format than the LDAP access log. This HTTP access log uses link:http://www.w3.org/TR/WD-logfile.html[Extended Log File Format, window=\_blank] with fields described in link:http://www.microsoft.com/technet/prodtechnol/WindowsServer2003/Library/IIS/676400bc-8969-4aa7-851a-9319490a9bbb.mspx?mfr=true[Microsoft's implementation, window=\_blank] as well.
+
+Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__)
+--
+The following default fields are shown here in the order they occur in the log file:
+
+`cs-host`::
+Client host name
+
+`c-ip`::
+Client IP address
+
+`cs-username`::
+Username used to authenticate
+
+`x-datetime`::
+Completion timestamp for the HTTP request, which you can configure using the `log-record-time-format` property
+
+`cs-method`::
+HTTP method requested by the client
+
+`cs-uri`::
+URI requested by the client
+
++
+This field is new in 3.5.
+
+`cs-uri-stem`::
+URL-encoded path requested by the client
+
++
+This field is new in 3.5.
+
+`cs-uri-query`::
+URL-encoded query parameter string requested by the client
+
+`cs-version`::
+HTTP version requested by the client
+
+`sc-status`::
+HTTP status code for the operation
+
+`cs(User-Agent)`::
+User-Agent identifier
+
+`x-connection-id`::
+Connection ID used for OpenDJ internal operations
+
++
+When using this field to match HTTP requests with internal operations in the LDAP access log, first set the access log advanced property, `suppress-internal-operations`, to `false`. By default, internal operations do not appear in the LDAP access log.
+
+`x-etime`::
+Execution time in milliseconds needed by OpenDJ to service the HTTP request
+
+`x-transaction-id`::
+ForgeRock common audit event framework transaction ID for the request
+
++
+This defaults to `0` unless you configure OpenDJ to trust transaction IDs as described in xref:#log-common-audit-trust-transaction-ids["To Trust Transaction IDs"].
+
+--
+Missing values are replaced with `-`. Tabs separate the fields, and if a field contains a tab character, then the field is surrounded with double quotes. OpenDJ then doubles double quotes in the field to escape them.
+
+The following example shows an excerpt of an HTTP access log with the default configuration. Lines are folded and space reformatted for the printed page:
+
+[source]
+----
+-  192.168.0.15  bjensen   22/May/2013:10:06:18 +0200
+  GET  /users/bjensen?_prettyPrint=true                      HTTP/1.1    200
+  curl/7.21.4  3    40
+-  192.168.0.15  bjensen   22/May/2013:10:06:52 +0200
+  GET  /groups/Directory%20Administrators?_prettyPrint=true  HTTP/1.1    200
+  curl/7.21.4  4    41
+-  192.168.0.12  bjensen   22/May/2013:10:07:07 +0200
+  GET  /users/missing?_prettyPrint=true                      HTTP/1.1    200
+  curl/7.21.4  5     9
+-  192.168.0.12  -         22/May/2013:10:07:46 +0200
+  GET  /users/missing?_prettyPrint=true                      HTTP/1.1    401
+  curl/7.21.4  6     0
+-  192.168.0.15  kvaughan  22/May/2013:10:09:10 +0200
+  POST /users?_action=create&_prettyPrint=true           HTTP/1.1    200
+  curl/7.21.4  7   120
+----
+You can configure the `log-format` for the access log using the `dsconfig` command.
+--
+In addition to the default fields, the following standard fields are supported:
+
+`c-port`::
+Client port number
+
+`s-computername`::
+Server name where the access log was written
+
+`s-ip`::
+Server IP address
+
+`s-port`::
+Server port number
+
+--
+
+
+[#log-replication]
+==== Replication Logs
+
+The __replication log__ traces replication events, with entries similar to the errors log. The following excerpt has lines wrapped for readability:
+
+[source]
+----
+[22/Jun/2011:14:37:34 +0200] category=SYNC severity=NOTICE msgID=15139026
+msg=Finished total update: exported domain "dc=example,dc=com" from this
+directory server DS(24065) to all remote directory servers.
+[22/Jun/2011:14:37:35 +0200] category=SYNC severity=MILD_WARNING msgID=14745663
+msg=Replication server RS(23947) at opendj.example.com/10.10.0.168:8989 has
+closed the connection to this directory server DS(24065). This directory
+server will now try to connect to another replication server in order to
+receive changes for the domain "dc=example,dc=com"
+[22/Jun/2011:14:37:35 +0200] category=SYNC severity=NOTICE msgID=15138894
+msg=The generation ID for domain "dc=example,dc=com" has been reset to 3679640
+----
+Notice that the replication log does not trace replication operations. Use the external change log instead to get notifications about changes to directory data over protocol. You can alternatively configure an audit log, which is a type of access log that dumps changes in LDIF.
+
+
+[#log-debug]
+==== Debug Logs
+
+A __debug log__ traces details needed to troubleshoot a problem in the server. Debug logs can grow large quickly, and therefore no debug logs are enabled by default.
+
+For debug logging, you must set a __debug target__ to control what gets logged.
+
+
+[#log-rotation]
+==== Log Rotation and Retention
+
+Each file-based log can be associated with a __log rotation policy__, and a __log retention policy__. The former can specify when, after how much time, or at what maximum size a log is rotated. The latter can specify a maximum number or size of logs to retain, or an amount of free disk space to maintain. The design allows for custom policies as well.
+
+By default the file-based logs are subject to rotation and retention policies that you can list with `dsconfig list-log-rotation-policies` and `dsconfig list-log-retention-policies`.
+
+For example, view the log rotation policies with the following command:
+
+[source, console]
+----
+$ dsconfig \
+ list-log-rotation-policies \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+
+
+Log Rotation Policy                 : Type       : file-size-limit : rotation-interval : time-of-day
+------------------------------------:------------:-----------------:-------------------:------------
+24 Hours Time Limit Rotation Policy : time-limit : -               : 1 d               : -
+7 Days Time Limit Rotation Policy   : time-limit : -               : 1 w               : -
+Fixed Time Rotation Policy          : fixed-time : -               : -                 : 2359
+Size Limit Rotation Policy          : size-limit : 100 mb          : -                 : -
+----
+View the log retention policies with the following command:
+
+[source, console]
+----
+$ dsconfig \
+ list-log-retention-policies \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+
+
+Log Retention Policy             : Type            : disk-space-used : free-disk-space : number-of-files
+---------------------------------:-----------------:-----------------:-----------------:----------------
+File Count Retention Policy      : file-count      : -               : -               : 10
+Free Disk Space Retention Policy : free-disk-space : -               : 500 mb          : -
+Size Limit Retention Policy      : size-limit      : 500 mb          : -               : -
+----
+Use the `dsconfig get-log-publisher-prop` command to examine the policies that apply to a particular logger:
+
+[source, console]
+----
+$ dsconfig \
+ get-log-publisher-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Access Logger" \
+ --property retention-policy \
+ --property rotation-policy
+Property         : Value(s)
+-----------------:-------------------------------------------------------------
+retention-policy : File Count Retention Policy
+rotation-policy  : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
+                 : Policy
+----
+In other words, by default OpenDJ keeps 10 access log files, rotating the access log each day, or when the log size reaches 100 MB.
+
+The `dsconfig` command offers a number of subcommands for creating and deleting log rotation and retention policies, and for setting policy properties. You can update which policies apply to a logger by using the `dsconfig set-log-publisher-prop` command.
+
+
+[#log-filtering]
+==== Log Filtering
+
+Each time a client application sends a request to OpenDJ, the server writes to its access log. As shown above, a simple search operation results in five messages written to the access log. This volume of logging gives you the information to analyze overall access patterns, or to audit access when you do not know in advance what you are looking for.
+
+When you do know what you are looking for, log filtering lets you limit what the server logs, and focus on what you want to see. You define the filter criteria, and also set the filtering policy.
+
+You can filter both access and also audit logs.
+Log filtering lets you define rules based these criteria:
+
+* Client IP address, bind DN, group membership
+
+* Port number
+
+* Protocol used (such as LDAP, LDAPS, JMX)
+
+* Response times
+
+* Result codes (only log error results, for example)
+
+* Search response criteria (number of entries returned, whether the search was indexed)
+
+* Target DN
+
+* Type of operation (connect, bind, add, delete, modify, rename, search, etc.)
+
+The filtering policy in the log publisher configuration specifies whether to include or exclude log messages that match the criteria you define. OpenDJ does not filter logs until you update the log publisher configuration.
+
+[#log-filtering-exclude-control-panel]
+.Example: Exclude Control Panel-Related Messages
+====
+A common development troubleshooting technique consists of sending client requests while tailing the access log:
+
+[source, console]
+----
+$ tail -f /path/to/opendj/logs/access
+----
+The trouble is, when OpenDJ control panel is running, or when you are also adapting your configuration using the `dsconfig` command, OpenDJ writes access log messages related to administration. These might prevent you from noticing the messages that interest you.
+
+This example demonstrates how to filter out access log messages due to administrative connections over LDAPS on ports 1636 and 4444.
+
+Create access log filtering criteria rules:
+
+[source, console]
+----
+$ dsconfig \
+ create-access-log-filtering-criteria \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Access Logger" \
+ --criteria-name "Exclude LDAPS on 1636 and 4444" \
+ --type generic \
+ --set connection-port-equal-to:1636 \
+ --set connection-port-equal-to:4444 \
+ --set connection-protocol-equal-to:ldaps \
+ --trustAll \
+ --no-prompt
+----
+Activate filtering to exclude messages from the default access log according to the criteria you specified:
+
+[source, console]
+----
+$ dsconfig \
+ set-log-publisher-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Access Logger" \
+ --set filtering-policy:exclusive \
+ --trustAll \
+ --no-prompt
+----
+At this point, OpenDJ filters out connections over LDAPS to ports 1636 and 4444. While performing operations in OpenDJ control panel, if you perform a simple `ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen cn`, then all you see in the access log is the effect of the `ldapsearch` command:
+
+[source, console]
+----
+$ tail -f /path/to/opendj/logs/access
+[19/Oct/2011:16:37:16 +0200] CONNECT conn=8 from=127.0.0.1:54165
+ to=127.0.0.1:1389 protocol=LDAP
+[19/Oct/2011:16:37:16 +0200] SEARCH REQ conn=8 op=0 msgID=1
+ base="dc=example,dc=com" scope=wholeSubtree filter="(uid=bjensen)" attrs="cn"
+[19/Oct/2011:16:37:16 +0200] SEARCH RES conn=8 op=0 msgID=1 result=0 nentries=1
+ etime=14
+[19/Oct/2011:16:37:16 +0200] UNBIND REQ conn=8 op=1 msgID=2
+[19/Oct/2011:16:37:16 +0200] DISCONNECT conn=8 reason="Client Unbind"
+----
+====
+In addition to the filtering policy, you can also adjust how OpenDJ writes log messages. By default, OpenDJ writes one log message for a request, and another for a response. You can set the log publisher property `log-format` to `combined` to have OpenDJ write a single message per operation. This can be helpful, for example, when evaluating response times. In addition, you can change the log message time stamps with `log-record-time-format`, and specify whether to log LDAP control OIDs for operations by setting `log-control-oids` to `true`.
+
+
+
+[#alert-notifications]
+=== Alert Notifications
+
+OpenDJ can send alerts to provide notifications of significant server events. Yet alert notifications are not enabled by default. You can use the `dsconfig` command to enable alert notifications:
+
+[source, console]
+----
+$ dsconfig \
+ set-alert-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "JMX Alert Handler" \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt
+----
+OpenDJ can also send mail over SMTP instead of JMX notifications. Before you set up the SMTP-based alert handler, you must identify an SMTP server to which OpenDJ sends messages:
+
+[source, console]
+----
+$ dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set smtp-server:smtp.example.com \
+ --trustAll \
+ --no-prompt
+
+$ dsconfig \
+ create-alert-handler \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "SMTP Alert Handler" \
+ --type smtp \
+ --set enabled:true \
+ --set message-subject:"OpenDJ Alert, Type: %%alert-type%%, ID: %%alert-id%%" \
+ --set message-body:"%%alert-message%%" \
+ --set recipient-address:kvaughan@example.com \
+ --set sender-address:opendj@example.com \
+ --trustAll \
+ --no-prompt
+----
+[#alert-types]
+.Alert Types
+--
+OpenDJ directory server uses the following types when sending alerts. For alert types that indicate server problems, check `OpenDJ/logs/errors` for details.
+
+`org.opends.server.AccessControlDisabled`::
+The access control handler has been disabled.
+
+`org.opends.server.AccessControlEnabled`::
+The access control handler has been enabled.
+
+`org.opends.server.authentiation.dseecompat.ACIParseFailed`::
+The dseecompat access control subsystem failed to correctly parse one or more ACI rules when the server first started.
+
+`org.opends.server.BackendRunRecovery`::
+The pluggable backend has thrown a `RunRecoveryException`. The directory server needs to be restarted.
+
+`org.opends.server.CannotCopySchemaFiles`::
+A problem has occurred while attempting to create copies of the existing schema configuration files before making a schema update, and the schema configuration has been left in a potentially inconsistent state.
+
+`org.opends.server.CannotRenameCurrentTaskFile`::
+The directory server is unable to rename the current tasks backing file in the process of trying to write an updated version.
+
+`org.opends.server.CannotRenameNewTaskFile`::
+The directory server is unable to rename the new tasks backing file into place.
+
+`org.opends.server.CannotScheduleRecurringIteration`::
+The directory server is unable to schedule an iteration of a recurring task.
+
+`org.opends.server.CannotWriteConfig`::
+The directory server is unable to write its updated configuration for some reason and therefore the server may not exhibit the new configuration if it is restarted.
+
+`org.opends.server.CannotWriteNewSchemaFiles`::
+A problem has occurred while attempting to write new versions of the server schema configuration files, and the schema configuration has been left in a potentially inconsistent state.
+
+`org.opends.server.CannotWriteTaskFile`::
+The directory server is unable to write an updated tasks backing file for some reason.
+
+`org.opends.server.DirectoryServerShutdown`::
+The directory server has begun the process of shutting down.
+
+`org.opends.server.DirectoryServerStarted`::
+The directory server has completed its startup process.
+
+`org.opends.server.DiskFull`::
+Free disk space has reached the full threshold.
+
++
+Default is 20 MB.
+
+`org.opends.server.DiskSpaceLow`::
+Free disk space has reached the low threshold.
+
++
+Default is 100 MB.
+
+`org.opends.server.EnteringLockdownMode`::
+The directory server is entering lockdown mode, wherein only root users are allowed to perform operations and only over the loopback address.
+
+`org.opends.server.LDAPHandlerDisabledByConsecutiveFailures`::
+Consecutive failures have occurred in the LDAP connection handler and have caused it to become disabled.
+
+`org.opends.server.LDAPHandlerUncaughtError`::
+Uncaught errors in the LDAP connection handler that have caused it to become disabled.
+
+`org.opends.server.LDIFBackendCannotWriteUpdate`::
+An LDIF backend was unable to store an updated copy of the LDIF file after processing a write operation.
+
+`org.opends.server.LDIFConnectionHandlerIOError`::
+The LDIF connection handler encountered an I/O error that prevented it from completing its processing.
+
+`org.opends.server.LDIFConnectionHandlerParseError`::
+The LDIF connection handler encountered an unrecoverable error while attempting to parse an LDIF file.
+
+`org.opends.server.LeavingLockdownMode`::
+The directory server is leaving lockdown mode.
+
+`org.opends.server.ManualConfigEditHandled`::
+The directory server detects that its configuration has been manually edited with the server online and those changes were overwritten by another change made through the server. The manually edited configuration will be copied to another location.
+
+`org.opends.server.ManualConfigEditLost`::
+The directory server detects that its configuration has been manually edited with the server online and those changes were overwritten by another change made through the server. The manually edited configuration could not be preserved due to an unexpected error.
+
+`org.opends.server.replication.UnresolvedConflict`::
+Multimaster replication cannot resolve a conflict automatically.
+
+`org.opends.server.UncaughtException`::
+A directory server thread has encountered an uncaught exception that caused that thread to terminate abnormally. The impact that this problem has on the server depends on which thread was impacted and the nature of the exception.
+
+`org.opends.server.UniqueAttributeSynchronizationConflict`::
+A unique attribute conflict has been detected during synchronization processing.
+
+`org.opends.server.UniqueAttributeSynchronizationError`::
+An error occurred while attempting to perform unique attribute conflict detection during synchronization processing.
+
+--
+
+

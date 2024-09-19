@@ -1,0 +1,439 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-schema]
+== Using LDAP Schema
+
+LDAP services are based on X.500 Directory Services, which are telecommunications standards. In telecommunications, interoperability is paramount. Competitors must cooperate to the extent that they use each others' systems. For directory services, the protocols for exchanging data and the descriptions of the data are standardized. LDAP defines __schema__ that describe both what attributes a given LDAP entry must have and may optionally have, and also what attribute values can contain and how they can be matched. Formal schema definitions protect interoperability when many applications read and write to the same directory service. Directory data are much easier to share as long as you understand how to use LDAP schema.
+
+xref:../admin-guide/chap-schema.adoc#chap-schema["Managing Schema"] in the __Administration Guide__ covers LDAP schema from the server administrator's perspective. Administrators can update LDAP directory schema. OpenDJ directory server includes a large number of standard schema definitions available by default. Administrators can also adjust how strictly OpenDJ directory server applies schema definitions.
+
+This chapter covers LDAP schema from the script developer's perspective. As a script developer, you use the available schema and accept the server's application of schema when updating directory entries.
+In this chapter you will learn how to:
+
+* Look up available schemas
+
+* Understand what the schemas allow
+
+* Understand and resolve errors that arise due to schema violations
+
+
+[#getting-schema-information]
+=== Getting Schema Information
+
+Directory servers publish information about services they provide as operational attributes of the __root DSE__. The root DSE is the entry with an empty string DN, `""`. DSE is an acronym for DSA-Specific Entry. DSA is an acronym for Directory System Agent. The DSE differs by server, but is generally nearly identical for replicas.
+
+OpenDJ directory server publishes the DN of the entry holding schema definitions as the value of the attribute `subschemaSubentry` as shown in xref:#example-finding-schema["Finding the Schema Entry"].
+
+[#example-finding-schema]
+.Finding the Schema Entry
+====
+Look up the schema DN:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN "" --searchScope base "(&)" subschemaSubentry
+dn:
+subschemaSubentry: cn=schema
+----
+By default, the DN for the schema entry is `cn=schema`.
+====
+--
+The schema entry has the following attributes whose values are schema definitions:
+
+`attributeTypes`::
+__Attribute type__ definitions describe attributes of directory entries, such as `givenName` or `mail`.
+
+`objectClasses`::
+__Object class__ definitions identify the attribute types that an entry must have, and may have. Examples of object classes include `person` and `organizationalUnit`. Object classes inherit from other object classes. For example, `inetOrgPerson` inherits from `person`.
+
++
+Object classes are specified as values of an entry's `objectClass` attribute.
++
+An object class can be one of the following:
+
+* __Structural__ object classes define the core structure of the entry, generally representing a real-world object.
++
+By default, OpenDJ directory entries have a single structural object class or at least a single line of structural object class inheritance.
++
+The `person` object class is structural, for example.
+
+* __Auxiliary__ object classes define additional characteristics of entries.
++
+The `posixAccount` object class is auxiliary, for example.
+
+* __Abstract__ object classes define base characteristics for other object classes to inherit, and cannot themselves inherit from other object classes.
++
+The `top` object class from which others inherit is abstract, for example.
+
+
+`ldapSyntaxes`::
+An __attribute syntax__ constrains what directory clients can store as attribute values.
+
+`matchingRules`::
+A `Matching rule` determines how the directory server compares attribute values to assertion values for LDAP search and LDAP compare operations.
+
++
+For example, in a search having the filter `(uid=bjensen)` the assertion value is `bjensen`.
+
+`nameForms`::
+A __name form__ specifies which attribute can be used as the relative DN (RDN) for a structural object class.
+
+`dITStructureRules`::
+A __DIT structure rule__ defines a relationship between directory entries by identifying the name form allowed for subordinate entries of a given superior entry.
+
+--
+
+[#example-reading-schema-definition]
+.Reading an Object Class Schema Definition
+====
+The schema entry in OpenDJ directory server is large because it contains all of the schema definitions. Filter the results when reading a specific schema definition. As schema definitions themselves are long strings, pass the `--dontWrap` option to the `ldapsearch` command when reading one.
+
+The example below reads the definition for the `person` object class:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN "cn=schema" \
+ --searchScope base \
+ --dontWrap \
+ "(&)" \
+ objectClasses \
+ | grep \'person\'
+ objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )
+  MAY ( userPassword $ telephoneNumber $ seeAlso $ description )
+  X-ORIGIN 'RFC 4519' )
+----
+Notice the use of the object class name in `grep \'person\'` to filter search results. The actual result would not be wrapped.
+====
+The object class defines which attributes an entry of that object class __must__ have and which attributes the entry __may__ optionally have. A `person` entry must have a `cn` and an `sn` attribute. A `person` entry may optionally have `userPassword`, `telephoneNumber`, `seeAlso`, and `description` attributes.
+
+To determine definitions of those attributes, read the LDAP schema as demonstrated in xref:#example-reading-attribute-definitions["Reading Schema Definitions for an Attribute"].
+
+[#example-reading-attribute-definitions]
+.Reading Schema Definitions for an Attribute
+====
+The following example shows you how to read the schema definition for the `cn` attribute:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN "cn=schema" \
+ --searchScope base \
+ --dontWrap \
+ "(&)" \
+ attributeTypes \
+ | grep \'cn\'
+ attributeTypes: ( 2.5.4.3 NAME ( 'cn' 'commonName' ) SUP name X-ORIGIN 'RFC 4519' )
+----
+The `cn` attribute inherits its definition from the `name` attribute. That attribute definition indicates attribute syntax and matching rules as shown in the following example:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN "cn=schema" \
+ --searchScope base \
+ --dontWrap \
+ "(&)" \
+ attributeTypes \
+ | grep \'name\'
+attributeTypes: ( 2.5.4.41 NAME 'name' EQUALITY caseIgnoreMatch
+  SUBSTR caseIgnoreSubstringsMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{32768} X-ORIGIN 'RFC 4519' )
+----
+This means that the server ignores case when matching a common name value. Use the OID to read the syntax as shown in the following example:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN "cn=schema" \
+ --searchScope base \
+ --dontWrap \
+ "(&)" \
+ ldapSyntaxes \
+ | grep 1.3.6.1.4.1.1466.115.121.1.15
+ldapSyntaxes: ( 1.3.6.1.4.1.1466.115.121.1.15 DESC 'Directory String' )
+----
+Taken together with the information for the `name` attribute, the common name attribute value is a Directory String of at most 32,768 characters. For details about syntaxes, read link:http://tools.ietf.org/html/rfc4517[RFC 4517, Lightweight Directory Access Protocol (LDAP): Syntaxes and Matching Rules, window=\_blank]. That document describes a Directory String as one or more UTF-8 characters.
+====
+
+
+[#respecting-schema]
+=== Respecting LDAP Schema
+
+For the sake of interoperability and to avoid polluting directory data, scripts and applications should respect LDAP schema. In the simplest case, scripts and applications can use the schemas already defined.
+
+OpenDJ directory server does accept updates to schema definitions over LDAP while the server is running. This means that when a new application calls for attributes that are not yet defined by existing directory schemas, the directory administrator can easily add them as described in xref:../admin-guide/chap-schema.adoc#update-schema["Updating Directory Schema"] in the __Administration Guide__ as long as the new definitions do not conflict with existing definitions.
+
+General purpose applications handle many different types of data. Such applications must manage schema compliance at run time. Software development kits such as the Java-based OpenDJ LDAP SDK provide mechanisms for reading schema definitions at run time and checking whether entry data is valid according to the schema definitions.
+--
+Many scripts do not require run time schema checking. In such cases it is enough properly to handle schema-related LDAP result codes when writing to the directory:
+
+LDAP result code: 17 (Undefined attribute type)::
+The requested operation failed because it referenced an attribute that is not defined in the server schema.
+
+LDAP result code: 18 (Inappropriate matching)::
+The requested operation failed because it attempted to perform an inappropriate type of matching against an attribute.
+
+LDAP result code: 20 (Attribute or value exists)::
+The requested operation failed because it would have resulted in a conflict with an existing attribute or attribute value in the target entry.
+
++
+For example, the request tried to add a second value to a single-valued attribute.
+
+LDAP result code: 21 (Invalid attribute syntax)::
+The requested operation failed because it violated the syntax for a specified attribute.
+
+LDAP result code: 34 (Invalid DN syntax)::
+The requested operation failed because it would have resulted in an entry with an invalid or malformed DN.
+
+LDAP result code: 64 (Naming violation)::
+The requested operation failed because it would have violated the server's naming configuration.
+
++
+For example, the request did not respect a name form definition.
+
+LDAP result code: 65 (Object class violation)::
+The requested operation failed because it would have resulted in an entry that violated the server schema.
+
++
+For example, the request tried to remove a required attribute, or tried to add an attribute that is not allowed.
+
+LDAP result code: 69 (Object class mods prohibited)::
+The requested operation failed because it would have modified] the object classes associated with an entry in an illegal manner.
+
+--
+When you encounter an error, take the time to read the additional information. The additional information from OpenDJ directory server often suffices to allow you to resolve the problem directly.
+
+xref:#example-object-class-violations["Object Class Violations"] and xref:#example-invalid-attribute-syntax["Invalid Attribute Syntax"] show some common problems that can result from schema violations.
+
+[#example-object-class-violations]
+.Object Class Violations
+====
+A number of schema violations show up as object class violations. The following request fails to add an `undefined` attribute:
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+add: undefined
+undefined: This attribute is not defined.
+
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation failed
+Result Code:  65 (Object Class Violation)
+Additional Information:  Entry uid=bjensen,ou=People,dc=example,dc=com cannot
+  be modified because the resulting entry would have violated the server schema:
+  Entry uid=bjensen,ou=People,dc=example,dc=com violates
+  the Directory Server schema configuration because
+  it includes attribute undefined which is not allowed
+  by any of the objectclasses defined in that entry
+----
+The solution in this case is to make sure that the `undefined` attribute is defined and that it is allowed by one of the object classes defined for the entry.
+
+The following request fails to add a second structural object class:
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+add: objectClass
+objectClass: organizationalUnit
+
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation failed
+Result Code:  65 (Object Class Violation)
+Additional Information:  Entry uid=bjensen,ou=People,dc=example,dc=com cannot
+  be modified because the resulting entry would have violated the server schema:
+  Entry uid=bjensen,ou=People,dc=example,dc=com violates
+  the Directory Server schema configuration because
+  it includes multiple conflicting structural objectclasses
+  inetOrgPerson and organizationalUnit.
+  Only a single structural objectclass is allowed in an entry
+----
+The solution in this case is to define only one structural object class for the entry. Either Babs Jensen is a person or an organizational unit, but not both.
+====
+
+[#example-invalid-attribute-syntax]
+.Invalid Attribute Syntax
+====
+The following request fails to add an empty string as a common name attribute value:
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+add: cn
+cn:
+
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation failed
+Result Code:  21 (Invalid Attribute Syntax)
+Additional Information:  When attempting to modify entry
+ uid=bjensen,ou=People,dc=example,dc=com to add one or more values
+ for attribute cn, value "" was found to be invalid
+ according to the associated syntax:
+ The operation attempted to assign a zero-length value to an attribute
+ with the directory string syntax
+----
+As mentioned in xref:#example-reading-attribute-definitions["Reading Schema Definitions for an Attribute"], a Directory String has one or more UTF-8 characters.
+====
+
+
+[#abusing-schema]
+=== Abusing LDAP Schema
+
+Follow the suggestions in xref:#respecting-schema["Respecting LDAP Schema"] as much as possible. In particular follow these rules of thumb:
+
+* Test with your own copy of OpenDJ directory server to resolve schema issues before going live.
+
+* Adapt your scripts and applications to avoid violating schema definitions.
+
+* When existing schemas are not sufficient, request schema updates to add definitions that do not conflict with any already in use.
+
+When it is not possible to respect the schema definitions, you can sometimes work around LDAP schema constraints without changing OpenDJ directory server configuration. The schema defines an `extensibleObject` object class. The `extensibleObject` object class is auxiliary. It effectively allows entries to hold any user attribute, even attributes that are not defined in the schema.
+
+[#example-extensible-object]
+.Working Around Restrictions With ExtensibleObject
+====
+The following example adds one attribute that is undefined and another that is not allowed:
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+add: objectClass
+objectClass: extensibleObject
+-
+add: undefined
+undefined: This attribute is not defined in the LDAP schema.
+-
+add: serialNumber
+serialNumber: This attribute is not allowed according to the object classes.
+
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com
+----
+Use of the `extensibleObject` object class opens the door to abuse and can prevent interoperability. Restrict its use to cases where no better alternative is available.
+====
+
+
+[#standard-schema]
+=== Standard Schema Included With OpenDJ Server
+
+--
+OpenDJ directory server provides many standard schema definitions in these LDIF files under `/path/to/opendj/config/schema`:
+
+`00-core.ldif`::
+This file contains a core set of attribute type and object class definitions from the following Internet-Drafts, RFCs, and standards:
++
+[none]
+* link:https://tools.ietf.org/html/draft-ietf-boreham-numsubordinates[draft-ietf-boreham-numsubordinates, window=\_blank]
+* link:https://tools.ietf.org/html/draft-findlay-ldap-groupofentries[draft-findlay-ldap-groupofentries, window=\_blank]
+* link:https://tools.ietf.org/html/draft-furuseth-ldap-untypedobject[draft-furuseth-ldap-untypedobject, window=\_blank]
+* link:https://tools.ietf.org/html/draft-good-ldap-changelog[draft-good-ldap-changelog, window=\_blank]
+* link:https://tools.ietf.org/html/draft-ietf-ldup-subentry[draft-ietf-ldup-subentry, window=\_blank]
+* link:https://tools.ietf.org/html/draft-wahl-ldap-adminaddr[draft-wahl-ldap-adminaddr, window=\_blank]
+* link:https://tools.ietf.org/html/rfc1274[RFC 1274, window=\_blank]
+* link:https://tools.ietf.org/html/rfc2079[RFC 2079, window=\_blank]
+* link:https://tools.ietf.org/html/rfc2256[RFC 2256, window=\_blank]
+* link:https://tools.ietf.org/html/rfc2798[RFC 2798, window=\_blank]
+* link:https://tools.ietf.org/html/rfc3045[RFC 3045, window=\_blank]
+* link:https://tools.ietf.org/html/rfc3296[RFC 3296, window=\_blank]
+* link:https://tools.ietf.org/html/rfc3671[RFC 3671, window=\_blank]
+* link:https://tools.ietf.org/html/rfc3672[RFC 3672, window=\_blank]
+* link:https://tools.ietf.org/html/rfc4512[RFC 4512, window=\_blank]
+* link:https://tools.ietf.org/html/rfc4519[RFC 4519, window=\_blank]
+* link:https://tools.ietf.org/html/rfc4523[RFC 4523, window=\_blank]
+* link:https://tools.ietf.org/html/rfc4524[RFC 4524, window=\_blank]
+* link:https://tools.ietf.org/html/rfc4530[RFC 4530, window=\_blank]
+* link:https://tools.ietf.org/html/rfc5020[RFC 5020, window=\_blank]
+* link:https://www.itu.int/rec/T-REC-X.501[X.501, window=\_blank]
+
+`01-pwpolicy.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/draft-behera-ldap-password-policy-09[draft-behera-ldap-password-policy, window=\_blank] (Draft 09), which defines a mechanism for storing password policy information in an LDAP directory server.
+
+`02-config.ldif`::
+This file contains the attribute type and objectclass definitions for use with the directory server configuration.
+
+`03-changelog.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/draft-good-ldap-changelog[draft-good-ldap-changelog, window=\_blank], which defines a mechanism for storing information about changes to directory server data.
+
+`03-rfc2713.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc2713[RFC 2713, window=\_blank], which defines a mechanism for storing serialized Java objects in the directory server.
+
+`03-rfc2714.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc2714[RFC 2714, window=\_blank], which defines a mechanism for storing CORBA objects in the directory server.
+
+`03-rfc2739.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc2739[RFC 2739, window=\_blank], which defines a mechanism for storing calendar and vCard objects in the directory server. Note that the definition in RFC 2739 contains a number of errors, and this schema file has been altered from the standard definition in order to fix a number of those problems.
+
+`03-rfc2926.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc2926[RFC 2926, window=\_blank], which defines a mechanism for mapping between Service Location Protocol (SLP) advertisements and LDAP.
+
+`03-rfc3112.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc3112[RFC 3112, window=\_blank], which defines the authentication password schema.
+
+`03-rfc3712.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc3712[RFC 3712, window=\_blank], which defines a mechanism for storing printer information in the directory server.
+
+`03-uddiv3.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc4403[RFC 4403, window=\_blank], which defines a mechanism for storing UDDIv3 information in the directory server.
+
+`04-rfc2307bis.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/draft-howard-rfc2307bis[draft-howard-rfc2307bis, window=\_blank], which defines a mechanism for storing naming service information in the directory server.
+
+`05-rfc4876.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc4876[RFC 4876, window=\_blank], which defines a schema for storing Directory User Agent (DUA) profiles and preferences in the directory server.
+
+`05-samba.ldif`::
+This file contains schema definitions required when storing Samba user accounts in the directory server.
+
+`05-solaris.ldif`::
+This file contains schema definitions required for Solaris and OpenSolaris LDAP naming services.
+
+`06-compat.ldif`::
+This file contains the attribute type and objectclass definitions for use with the directory server configuration.
+
+--
+
+

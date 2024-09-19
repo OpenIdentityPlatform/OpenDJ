@@ -1,0 +1,48 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[preface]
+[#preface]
+== Preface
+
+This guide shows you how to install, upgrade, and remove OpenDJ software.
+
+If you only want to try OpenDJ server software, and you do not plan to store any real or important data that you want to keep, then you need not read this entire guide. Instead read xref:chap-install.adoc#before-you-install["To Prepare For Installation"] and xref:chap-install.adoc#gui-install["To Install OpenDJ Directory Server With the GUI"].
+
+[#d67379e160]
+=== Who Should Read this Guide
+
+This guide is written for anyone installing OpenDJ who plans to maintain directory services for client applications. Basic OpenDJ installation can be simple and straightforward, particularly if you are already acquainted with directory services. Upgrading a running directory service without a single point of failure that can cause downtime requires at least a little thought and planning. If you are doing a basic installation, you might find yourself wanting more information about the process.
+
+This guide covers the install, upgrade, and removal (uninstall) procedures that you theoretically perform only once per version. This guide aims to provide you with an understand of what happens when you perform the steps.
+
+You do not need to be an LDAP wizard to learn something from this guide, though knowing how to manage directory services helps. You do need to know how to manage servers and services on your operating system of choice. You can nevertheless get started with this guide, and then learn more as you go along.
+
+
+include::../partials/sec-formatting-conventions.adoc[]
+
+include::../partials/sec-accessing-doc-online.adoc[]
+
+include::../partials/sec-joining-the-community.adoc[]
+
+include::../partials/sec-support-contact.adoc[]
+

@@ -1,0 +1,46 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+= Reference
+:doctype: book
+:toc:
+:authors: Mark Craig
+:copyright: Copyright 2015-2017 ForgeRock AS.
+:copyright: Portions Copyright 2024 3A Systems LLC.
+
+:imagesdir: ../
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+[abstract]
+Reference for OpenDJ directory server and bundled tools. The OpenDJ project offers open source LDAP directory services in Java.
+
+include::./preface.adoc[]
+include::./admin-tools-ref.adoc[]
+include::./dsconfig-subcommands-ref.adoc[]
+include::./glossary.adoc[]
+include::./appendix-rest2ldap.adoc[]
+include::./appendix-rest2ldap-3-0.adoc[]
+include::./appendix-ldap-result-codes.adoc[]
+include::./appendix-file-layout.adoc[]
+include::./appendix-ports-used.adoc[]
+include::./appendix-standards.adoc[]
+include::./appendix-controls.adoc[]
+include::./appendix-extended-ops.adoc[]
+include::./appendix-l10n.adoc[]
+include::./appendix-interface-stability.adoc[]
+include::./appendix-log-messages.adoc[]

@@ -1,0 +1,517 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-upgrade]
+== Upgrading to OpenDJ 3.5
+
+This chapter covers upgrade from previous versions.
+
+If the OpenDJ directory server version is older than 2.6.0, you must upgrade your deployment to use at least OpenDJ directory server 2.6.0 before following the procedures in this chapter. For details on upgrading to that version, see link:https://backstage.forgerock.com/docs/opendj/2.6/install-guide/#chap-upgrade[Upgrading to OpenDJ 2.6.0, window=\_blank].
+
+[TIP]
+====
+With the migration of OpenDJ project code from Subversion to Git, the upgrade code has changed to no longer rely on Subversion revision numbers.
+
+As a result, upgrade from a nightly build is not guaranteed to work. Upgrade from one release to another works fine, as does upgrade from a release to a nightly build.
+
+As a workaround, rather than upgrading from a nightly build, install a new server alongside the existing server and use replication to bring the new server up to date before retiring the older server.
+====
+This chapter includes the following procedures and examples:
+
+* xref:#before-you-upgrade["Before You Upgrade"]
+
+* xref:#upgrade-zip["To Upgrade to OpenDJ 3.5"]
+
+* xref:#upgrade-zip-example["Upgrading to OpenDJ 3.5"]
+
+* xref:#upgrade-je-pdb["To Upgrade to OpenDJ OEM Edition"]
+
+* xref:#upgrade-je-pdb-example["Upgrading To OpenDJ OEM Edition"]
+
+* xref:#upgrade-repl["To Upgrade Replicated Servers"]
+
+* xref:#new-repl-mixed-topology["To Add a New Replica to an Existing Topology"]
+
+* xref:#upgrade-rest2ldap["To Upgrade OpenDJ REST to LDAP Gateway"]
+
+* xref:#upgrade-dsml["To Upgrade OpenDJ DSML Gateway"]
+
+
+[#before-you-upgrade]
+.Before You Upgrade
+====
+
+. Prepare to perform the upgrade procedure as the user who owns the OpenDJ server files.
++
+Make sure you have the credentials to run commands as the user who owns the server.
+
+. (Optional)  If OpenDJ directory server runs with Java 6, move to a newer version before continuing the upgrade process.
++
+To move to a newer version, edit the `default.java-home` setting in the `opendj/config/java.properties` file, and then run the `dsjavaproperties` command.
+
+. (Optional)  If you are upgrading to OpenDJ OEM edition from OpenDJ 2.6, make sure there is enough disk space to export all of the data to LDIF files.
+
+. Download enterprise software releases through the ForgeRock link:https://backstage.forgerock.com/[BackStage, window=\_blank] site. ForgeRock enterprise releases are thoroughly validated builds for ForgeRock customers who run OpenDJ in production deployments, and for those who want to try or test with release builds.
+
+. (Optional)  If you are upgrading OpenDJ directory server on Windows, and OpenDJ is registered as a Windows service, disable OpenDJ as a Windows service before upgrade, as in the following example:
++
+
+[source, console]
+----
+C:\path\to\opendj\bat> windows-service.bat --disableService
+----
++
+After upgrade, you can enable OpenDJ as a Windows service again.
+
+. Make sure you perform a full backup of your current OpenDJ installation to revert if the upgrade fails.
++
+Due to changes to the backup archive format, make sure you stop OpenDJ directory server and back up the file system directory where the current OpenDJ directory server is installed rather than creating a backup archive with the `backup` command.
+
+====
+
+[#upgrade-zip]
+.To Upgrade to OpenDJ 3.5
+====
+If you are upgrading to the OEM edition from OpenDJ 2.6, then this procedure does not apply. Skip instead to xref:#upgrade-je-pdb["To Upgrade to OpenDJ OEM Edition"].
+
+Before starting this procedure, follow the steps in xref:#before-you-upgrade["Before You Upgrade"].
+
+To upgrade to OpenDJ directory server installed from native packages (.deb, .rpm), use the command-line package management tools provided by the system.
+
+[NOTE]
+======
+OpenDJ directory server backend storage options have changed since OpenDJ 2.6. The underlying implementation is based on an extensible architecture, allowing you to choose the backend storage type when you create a persistent backend for directory data.
+
+This procedure applies when you upgrade from OpenDJ 2.6, retaining the same underlying backend storage. The configuration changes from a Local DB backend to a JE Backend, and the upgrade procedure migrates the underlying backend database. There is no need to export data to LDIF when following this procedure.
+======
+The following steps describe how to upgrade OpenDJ directory server installed from the cross-platform (.zip) delivery:
+
+. Log in as the user who owns the current OpenDJ server.
+
+. Stop the current OpenDJ server.
+
+. (Optional) If you have not already backed up the current OpenDJ server, make a back up copy of the directory where OpenDJ is installed.
+
+. Unpack the new files from the .zip delivery over the current server files.
+
+. Run the `upgrade` command, described in xref:../reference/admin-tools-ref.adoc#upgrade-1[upgrade(1)] in the __Reference__, to bring OpenDJ configuration and application data up to date with the new binary and script files that you copied over the current server files.
++
+By default, the `upgrade` command requests confirmation before making important configuration changes. For some potentially long-duration tasks, such as rebuilding indexes, the default choice is to defer the tasks until after upgrade. Tasks that are not performed during upgrade must generally be performed after upgrade but before you restart the server.
++
+You can use the `--no-prompt` option to run the command non-interactively, with the `--acceptLicense` option to accept the license terms non-interactively.
++
+When using the `--no-prompt` option, if the `upgrade` command cannot complete because it requires confirmation for a potentially very long or critical task, then it exits with an error and a message about how to finish making the changes. You can add the `--force` option to force a non-interactive upgrade to continue in this case, also performing long running and critical tasks.
+
+. Start the upgraded OpenDJ server.
++
+At this point the upgrade process is complete. See the resulting `upgrade.log` file for a full list of operations performed.
++
+
+[NOTE]
+======
+When you upgrade to OpenDJ 3.5 from an OpenDJ 3 or earlier, the upgrade procedure leaves the HTTP connection handler disabled.
+The newer configuration supports inheritance and subsresources, but is not compatible with the previous configuration.
+You must rewrite your configuration to the version described in xref:../reference/appendix-rest2ldap.adoc#appendix-rest2ldap["REST to LDAP Configuration"] in the __Reference__, and then reconfigure the server to use the new configuration. For details, see xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap["RESTful Client Access Over HTTP"] in the __Administration Guide__.
+======
+
+. (Optional)  If you are upgrading OpenDJ directory server on Windows, and you disabled OpenDJ as a Windows service in order to upgrade, enable OpenDJ as a Windows service again as in the following example:
++
+
+[source, console]
+----
+C:\path\to\opendj\bat> windows-service.bat --enableService
+----
+
+====
+
+[#upgrade-zip-example]
+.Upgrading to OpenDJ 3.5
+====
+The following example upgrades an OpenDJ 2.6.3 directory server, backing up the current server directory in case the upgrade process fails. In this example, the server properties are updated to use Java 8, and the Local DB backend is migrated to a JE backend:
+
+[source, console]
+----
+$ cd /path/to/
+$ sed -e "s/default.java-home=.*/default.java-home=\/path\/to\/jdk1.8/" \
+ opendj/config/java.properties \
+ > opendj/config/java.properties.new ; \
+ mv opendj/config/java.properties.new opendj/config/java.properties
+$ /path/to/opendj/bin/dsjavaproperties
+$ /path/to/opendj/bin/stop-ds --quiet
+... msg=The Directory Server is now stopped
+$ zip -rq OpenDJ-backup.zip opendj/
+$ unzip -o ~/Downloads/opendj-3.5.3.zip
+$ /path/to/opendj/upgrade --acceptLicense
+
+>>>> OpenDJ Upgrade Utility
+
+ * OpenDJ will be upgraded from version 2.6.3.12667 to
+ 3.5.3.build-hash
+ * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
+
+>>>> Preparing to upgrade
+
+  OpenDJ 3.5.3 introduced changes to the JE backend configuration and database
+  format. The upgrade will update all JE backend configurations, but will only
+  migrate JE backend databases which are associated with *enabled* JE
+  backends. It is very strongly recommended that any existing data has been
+  backed up and that you have read the upgrade documentation before
+  proceeding. Do you want to proceed with the upgrade? (yes/no) [no]: yes
+
+  OpenDJ 3.5.3 changed the matching rule implementations. All indexes have to
+  be rebuilt. This could take a long time to proceed. Do you want to launch
+  this process automatically at the end of the upgrade? (yes/no) [no]: yes
+
+  OpenDJ 3.5.3 improved the replication changelog storage format. As a
+  consequence, the old changelog content of the current replication server
+  will be erased by the upgrade. The new changelog content will be
+  automatically reconstructed from the changelog of other replication servers
+  in the topology. After the upgrade, dsreplication reset-change-number can be
+  used to reset the changelog change-number of the current replication server
+  to match another replication server. Do you want to proceed with the
+  upgrade? (yes/no) [no]: yes
+
+  The upgrade is ready to proceed. Do you wish to continue? (yes/no) [yes]:
+
+
+>>>> Performing upgrade
+
+  Changing matching rule for 'userCertificate' and 'caCertificate' to
+  CertificateExactMatch...............................................   100%
+  Configuring 'CertificateExactMatch' matching rule...................   100%
+  Replacing schema file '03-pwpolicyextension.ldif'...................   100%
+  Removing 'dc=replicationchanges' backend............................   100%
+  Removing ACI for 'dc=replicationchanges'............................   100%
+  Adding default privilege 'changelog-read' to all root DNs...........   100%
+  Adding PKCS5S2 password storage scheme configuration................   100%
+  Rerunning dsjavaproperties..........................................   100%
+  Updating ds-cfg-java-class attribute in File-Based Debug Logger.....   100%
+  Deleting ds-cfg-default-debug-level attribute in File-Based Debug
+  Logger..............................................................   100%
+  Updating ds-cfg-default-severity attribute in File-Based Error
+  Logger..............................................................   100%
+  Updating ds-cfg-override-severity attribute in Replication Repair
+  Logger..............................................................   100%
+  Removing config for 'Network Groups'................................   100%
+  Removing config for 'Workflows'.....................................   100%
+  Removing config for 'Workflow Elements'.............................   100%
+  Removing config for 'Network Group Plugin'..........................   100%
+  Removing config for 'Extensions'....................................   100%
+  Removing config for 'File System Entry Cache'.......................   100%
+  Removing config for 'Entry Cache Preload'...........................   100%
+  Removing file '/path/to/opendj/bin/dsframework'.....................   100%
+  Removing file '/path/to/opendj/bat/dsframework.bat'.................   100%
+  Migrating JE backend 'userRoot'.....................................   100%
+  Convert local DB backends to JE backends............................   100%
+  Convert local DB indexes to backend indexes.........................   100%
+  Convert local DB VLV indexes to backend VLV indexes.................   100%
+  Removing file '/path/to/opendj/bin/dbtest'..........................   100%
+  Removing file '/path/to/opendj/bat/dbtest.bat'......................   100%
+  Removing content of changelog in '/path/to/opendj/./changelogDb'
+  directory...........................................................   100%
+  Enable log file based replication changelog storage.................   100%
+  Replacing schema file '02-config.ldif'..............................   100%
+  Archiving concatenated schema.......................................   100%
+
+>>>> OpenDJ was successfully upgraded from version 2.6.3.12667 to
+3.5.3.build-hash
+
+
+>>>> Performing post upgrade tasks
+
+...
+
+>>>> Post upgrade tasks complete
+
+ * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
+
+$ /path/to/opendj/bin/start-ds --quiet
+$
+----
+====
+
+[#upgrade-je-pdb]
+.To Upgrade to OpenDJ OEM Edition
+====
+If you are not upgrading to the OEM edition from OpenDJ 2.6, then this procedure does not apply. Skip instead to xref:#upgrade-zip["To Upgrade to OpenDJ 3.5"].
+
+Before starting this procedure, follow the steps in xref:#before-you-upgrade["Before You Upgrade"].
+
+[NOTE]
+======
+OpenDJ directory server backend storage options have changed since OpenDJ 2.6. The underlying implementation is based on an extensible architecture, allowing you to choose the backend storage type when you create a persistent backend for directory data.
+
+This procedure applies when you upgrade to the OEM edition from OpenDJ 2.6, changing the underlying backend storage. The configuration changes from a Local DB backend to a PDB Backend, but the `upgrade` command in this version __deletes the data from OpenDJ directory server__. Follow the instructions in this procedure to avoid data loss.
+======
+Follow these steps:
+
+. Login as the user who owns the current OpenDJ server.
+
+. Stop the current OpenDJ server.
+
+. Export all of the data to LDIF files.
++
+OpenDJ directory server OEM edition uses a new backend type, PDB. This edition does not support the older Local DB backend type. The upgrade process transforms the configuration to use the new backend type, but it does not export and import directory data. You must export the data, unpack the files of the new version over the old, run the upgrade, and then import the data.
++
+The following example exports Example.com data from the `userRoot` backend to an LDIF file:
++
+
+[source, console]
+----
+$ export-ldif --backendID userRoot --ldifFile ../ldif/Example.ldif
+----
+
+. If you have not already backed up the current OpenDJ server, make a back up copy of the directory where OpenDJ is installed.
+
+. Unpack the new files over the current server files:
++
+
+* When upgrading the .zip distribution, overwrite the current files.
++
+The following example overwrites the current files with the new files:
++
+
+[source, console]
+----
+$ cd /path/to ; unzip -o ~/Downloads/opendj-3.5.3.zip
+----
+
+* When upgrading native packaging, use the command-line package management tools provided by the system to remove the 2.6 package, and then install the new package.
++
+For details, see xref:chap-uninstall.adoc#uninstall-deb["To Uninstall the Debian Package"] or xref:chap-uninstall.adoc#uninstall-rpm["To Uninstall the RPM Package"], and xref:chap-install.adoc#install-deb["To Install From the Debian Package"] or xref:chap-install.adoc#install-rpm["To Install From the RPM Package"].
+
+
+. Run the `upgrade` command to bring OpenDJ configuration and schema data up to date with the new binary and script files that replaced existing server files.
++
+By default, the `upgrade` command requests confirmation before making important configuration changes. For some potentially long-duration tasks, such as rebuilding indexes, the default choice is to defer the tasks until after upgrade. Tasks that are not performed during upgrade must generally be performed after upgrade but before you restart the server.
++
+You can use the `--no-prompt` option to run the command non-interactively, with the `--acceptLicense` option to accept the license terms non-interactively.
++
+When using the `--no-prompt` option, if the `upgrade` command cannot complete because it requires confirmation for a potentially very long or critical task, then it exits with an error and a message about how to finish making the changes. You can add the `--force` option to force a non-interactive upgrade to continue in this case, also performing long running and critical tasks.
++
+Once this step is complete, OpenDJ directory server no longer has access to user data that was stored in Local DB backends.
+
+. (Optional)  If user data occupies significant disk space, and not enough disk space is available, then remove binary backups of the user data that you exported to LDIF.
++
+The upgrade process moves old user backend data to `opendj/db/*.bak` directories. This old user backend data is not accessible after upgrade. You can remove the old user backend data as shown in the following example:
++
+
+[source, console]
+----
+$ rm -rf /path/to/opendj/db/*.bak
+----
+
+. Import all of the data from LDIF files.
++
+The following example imports Example.com data from an LDIF file to the `userRoot` backend:
++
+
+[source, console]
+----
+$ cd opendj/bin ; import-ldif --backendID userRoot --ldifFile ../ldif/Example.ldif
+----
++
+Make sure you perform this step __for all user data backends__.
+
+. Start the upgraded OpenDJ server.
++
+Replication updates the upgraded server with changes that occurred during the upgrade process.
++
+At this point the upgrade process is complete. See the resulting `upgrade.log` file for a full list of operations performed.
+
+====
+
+[#upgrade-je-pdb-example]
+.Upgrading To OpenDJ OEM Edition
+====
+The following example upgrades an OpenDJ 2.6.3 directory server to OpenDJ OEM edition, where the backend type for data storage is PDB. With the OEM edition, Local DB and JE backends are not supported. In this example, the server properties are updated to use Java 8, and the Local DB backend configuration is converted to use PDB backend. The directory data is exported to LDIF before upgrade, and imported from LDIF after upgrade:
+
+[source, console]
+----
+$ cd /path/to/
+$ sed -e "s/default.java-home=.*/default.java-home=\/path\/to\/jdk1.8/" \
+ opendj/config/java.properties \
+ > opendj/config/java.properties.new ; \
+ mv opendj/config/java.properties.new opendj/config/java.properties
+$ /path/to/opendj/bin/dsjavaproperties
+$ /path/to/opendj/bin/stop-ds --quiet
+... msg=The Directory Server is now stopped
+$ /path/to/opendj/bin/export-ldif --backendID userRoot \
+ --ldifFile opendj/ldif/Example.ldif
+$ zip -rq opendj-backup.zip opendj/
+$ unzip -o ~/Downloads/opendj-oem-3.5.3.zip
+$ /path/to/opendj/upgrade --acceptLicense
+
+>>>> OpenDJ Upgrade Utility
+
+ * OpenDJ will be upgraded from version 2.6.3.12667 to
+ 3.5.3.build-hash
+ * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
+
+>>>> Preparing to upgrade
+
+  WARNING: OpenDJ 3.5.3 OEM Edition removes support for the Berkeley JE
+  backend.
+
+  The upgrade tool will reconfigure all JE backends as PDB backends.
+
+  After the upgrade the new PDB backend(s) will be empty. It is therefore very
+  strongly recommended that any data that was in the JE backends be exported
+  to LDIF so that it can be re-imported once the upgrade completes.
+
+  Do you want to make this configuration change? (yes/no) [no]: yes
+
+  OpenDJ 3.5.3 changed the matching rule implementations. All indexes have to
+  be rebuilt. This could take a long time to proceed. Do you want to launch
+  this process automatically at the end of the upgrade? (yes/no) [no]: yes
+
+  OpenDJ 3.5.3 improved the replication changelog storage format. As a
+  consequence, the old changelog content of the current replication server
+  will be erased by the upgrade. The new changelog content will be
+  automatically reconstructed from the changelog of other replication servers
+  in the topology. After the upgrade, dsreplication reset-change-number can be
+  used to reset the changelog change-number of the current replication server
+  to match another replication server. Do you want to proceed with the
+  upgrade? (yes/no) [no]: yes
+
+  The upgrade is ready to proceed. Do you wish to continue? (yes/no) [yes]:
+
+
+>>>> Performing upgrade
+
+  Changing matching rule for 'userCertificate' and 'caCertificate' to
+  CertificateExactMatch...............................................   100%
+  Configuring 'CertificateExactMatch' matching rule...................   100%
+  Replacing schema file '03-pwpolicyextension.ldif'...................   100%
+  Removing 'dc=replicationchanges' backend............................   100%
+  Removing ACI for 'dc=replicationchanges'............................   100%
+  Adding default privilege 'changelog-read' to all root DNs...........   100%
+  Adding PKCS5S2 password storage scheme configuration................   100%
+  Rerunning dsjavaproperties..........................................   100%
+  Updating ds-cfg-java-class attribute in File-Based Debug Logger.....   100%
+  Deleting ds-cfg-default-debug-level attribute in File-Based Debug
+  Logger..............................................................   100%
+  Updating ds-cfg-default-severity attribute in File-Based Error
+  Logger..............................................................   100%
+  Updating ds-cfg-override-severity attribute in Replication Repair
+  Logger..............................................................   100%
+  Removing config for 'Network Groups'................................   100%
+  Removing config for 'Workflows'.....................................   100%
+  Removing config for 'Workflow Elements'.............................   100%
+  Removing config for 'Network Group Plugin'..........................   100%
+  Removing config for 'Extensions'....................................   100%
+  Removing config for 'File System Entry Cache'.......................   100%
+  Removing config for 'Entry Cache Preload'...........................   100%
+  Removing file '/path/to/opendj/bin/dsframework'.....................   100%
+  Removing file '/path/to/opendj/bat/dsframework.bat'.................   100%
+  Removing file '/path/to/opendj/lib/je.jar'..........................   100%
+  Renaming local-db backend directory '/path/to/opendj/db/userRoot'
+  to '/path/to/opendj/db/userRoot.bak'................................   100%
+  Reconfiguring local-db backends to PDB backends.....................   100%
+  Reconfiguring local-db backend indexes to PDB backend indexes.......   100%
+  Reconfiguring local-db backend VLV indexes to PDB backend VLV
+  indexes.............................................................   100%
+  Removing file '/path/to/opendj/bin/dbtest'..........................   100%
+  Removing file '/path/to/opendj/bat/dbtest.bat'......................   100%
+  Removing content of changelog in '/path/to/opendj/./changelogDb'
+  directory...........................................................   100%
+  Enable log file based replication changelog storage.................   100%
+  Replacing schema file '02-config.ldif'..............................   100%
+  Archiving concatenated schema.......................................   100%
+
+>>>> OpenDJ was successfully upgraded from version 2.6.3.12667 to
+3.5.3.build-hash
+
+
+>>>> Performing post upgrade tasks
+
+  [!] You must reimport all your data into the PDB backends in order to have a
+  fully functional server
+  ...
+
+>>>> Post upgrade tasks complete
+
+ * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
+
+$ /path/to/opendj/bin/import-ldif --backendID userRoot \
+ --ldifFile opendj/ldif/Example.ldif
+$ /path/to/opendj/bin/start-ds --quiet
+# Optionally remove Local DB backup data:
+$ rm -rf /path/to/opendj/db/userRoot.bak/
+----
+====
+
+[#upgrade-repl]
+.To Upgrade Replicated Servers
+====
+
+[IMPORTANT]
+======
+The OpenDJ directory server upgrade process is designed to support a rolling (sequential) upgrade of replicated servers.
+
+Do not upgrade all replicated servers at once in parallel, as this removes all replication changelog data simultaneously, breaking replication.
+======
+For each server in the replication topology, follow these steps:
+
+. Direct client application traffic away from the server to upgrade.
+
+. Upgrade the server as described above.
+
+. Direct client application traffic back to the upgraded server.
+
+====
+
+[#new-repl-mixed-topology]
+.To Add a New Replica to an Existing Topology
+====
+Newer OpenDJ servers have updates to LDAP schema that enable support for some new features. The newer schemas are not all compatible with older servers.
+
+When adding a new server to a replication topology with older servers and following the instructions in xref:../admin-guide/chap-replication.adoc#enable-repl["Enabling Replication"] in the __Administration Guide__, also follow these recommendations:
+
+. Enable replication using the `dsreplication` command delivered with the new server.
+
+. Use the `--noSchemaReplication` or the `--useSecondServerAsSchemaSource` option to avoid copying the newer schema to the older server.
++
+It is acceptable to copy the older schema to the newer server, though it prevents use of new features that depend on newer schema.
+
+. If some applications depend on Internet-Draft change numbers, see xref:../admin-guide/chap-replication.adoc#ecl-legacy-format["To Align Draft Change Numbers"] in the __Administration Guide__.
+
+====
+
+[#upgrade-rest2ldap]
+.To Upgrade OpenDJ REST to LDAP Gateway
+====
+
+. Rewrite your configuration to work with the new formats described in xref:../reference/appendix-rest2ldap.adoc#appendix-rest2ldap["REST to LDAP Configuration"] in the __Reference__.
+
+. Replace the gateway web application with the newer version, as for a fresh installation.
+
+====
+
+[#upgrade-dsml]
+.To Upgrade OpenDJ DSML Gateway
+====
+
+* Replace the gateway web application with the newer version, as for a fresh installation.
+
+====
+

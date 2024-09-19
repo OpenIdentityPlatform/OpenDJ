@@ -1,0 +1,254 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-understanding-ldap]
+== Understanding Directory Services
+
+This chapter introduces directory concepts and directory server features. In this chapter you will learn:
+
+* Why directory services exist and what they do well
+
+* How data is arranged in directories that support Lightweight Directory Access Protocol (LDAP)
+
+* How clients and servers communicate in LDAP
+
+* What operations are standard according to LDAP and how standard extensions to the protocol work
+
+* Why directory servers index directory data
+
+* What LDAP schemas are for
+
+* What LDAP directories provide to control access to directory data
+
+* Why LDAP directory data is replicated and what replication does
+
+* What Directory Services Markup Language (DSML) is for
+
+* How HTTP applications can access directory data in the Representation State Transfer (REST) style
+
+A directory resembles a dictionary or a phone book. If you know a word, you can look it up its entry in the dictionary to learn its definition or its pronunciation. If you know a name, you can look it up its entry in the phone book to find the telephone number and street address associated with the name. If you are bored, curious, or have lots of time, you can also read through the dictionary, phone book, or directory, entry after entry.
+
+Where a directory differs from a paper dictionary or phone book is in how entries are indexed. Dictionaries typically have one index—words in alphabetical order. Phone books, too—names in alphabetical order. Directories' entries on the other hand are often indexed for multiple attributes, names, user identifiers, email addresses, and telephone numbers. This means you can look up a directory entry by the name of the user the entry belongs to, but also by their user identifier, their email address, or their telephone number, for example.
+
+OpenDJ directory services are based on the Lightweight Directory Access Protocol (LDAP). Much of this chapter serves therefore as an introduction to LDAP. OpenDJ directory services also provide RESTful access to directory data, yet, as directory administrator, you will find it useful to understand the underlying model even if most users are accessing the directory over HTTP rather than LDAP.
+
+[#ldap-directory-history]
+=== How Directories and LDAP Evolved
+
+Phone companies have been managing directories for many decades. The Internet itself has relied on distributed directory services like DNS since the mid 1980s.
+
+It was not until the late 1980s, however, that experts from what is now the International Telecommunications Union published the X.500 set of international standards, including Directory Access Protocol. The X.500 standards specify Open Systems Interconnect (OSI) protocols and data definitions for general purpose directory services. The X.500 standards were designed to meet the needs of systems built according to the X.400 standards, covering electronic mail services.
+
+Lightweight Directory Access Protocol has been around since the early 1990s. LDAP was originally developed as an alternative protocol that would allow directory access over Internet protocols rather than OSI protocols, and be lightweight enough for desktop implementations. By the mid-1990s, LDAP directory servers became generally available and widely used.
+
+Until the late 1990s, LDAP directory servers were designed primarily with quick lookups and high availability for lookups in mind. LDAP directory servers replicate data, so when an update is made, that update is applied to other peer directory servers. Thus, if one directory server goes down, lookups can continue on other servers. Furthermore, if a directory service needs to support more lookups, the administrator can simply add another directory server to replicate with its peers.
+
+As organizations rolled out larger and larger directories serving more and more applications, they discovered that they needed high availability not only for lookups, but also for updates. Around the year 2000, directories began to support multi-master replication; that is, replication with multiple read-write servers. Soon thereafter, the organizations with the very largest directories started to need higher update performance as well as availability.
+
+The OpenDJ code base began in the mid-2000s, when engineers solving the update performance issue decided the cost of adapting the existing C-based directory technology for high-performance updates would be higher than the cost of building a next generation, high performance directory using Java technology.
+
+
+[#directory-data]
+=== About Data In LDAP Directories
+
+LDAP directory data is organized into entries, similar to the entries for words in the dictionary, or for subscriber names in the phone book. A sample entry follows:
+
+[source, ldif]
+----
+dn: uid=bjensen,ou=People,dc=example,dc=com
+uid: bjensen
+cn: Babs Jensen
+cn: Barbara Jensen
+facsimileTelephoneNumber: +1 408 555 1992
+gidNumber: 1000
+givenName: Barbara
+homeDirectory: /home/bjensen
+l: San Francisco
+mail: bjensen@example.com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: posixAccount
+objectClass: top
+ou: People
+ou: Product Development
+roomNumber: 0209
+sn: Jensen
+telephoneNumber: +1 408 555 1862
+uidNumber: 1076
+----
+Barbara Jensen's entry has a number of attributes, such as `uid: bjensen`, `telephoneNumber: +1 408 555 1862`, and `objectClass: posixAccount`footnote:d67723e435[The`objectClass`attribute type indicates which types of attributes are allowed and optional for the entry. As the entries object classes can be updated online, and even the definitions of object classes and attributes are expressed as entries that can be updated online, directory data is extensible on the fly.]. When you look up her entry in the directory, you specify one or more attributes and values to match. The directory server then returns entries with attribute values that match what you specified.
+
+The attributes you search for are indexed in the directory, so the directory server can retrieve them more quickly.footnote:d67723e444[Attribute values do not have to be strings. Some attribute values are pure binary like certificates and photos.]
+
+The entry also has a unique identifier, shown at the top of the entry, `dn: uid=bjensen,ou=People,dc=example,dc=com`. DN is an acronym for distinguished name. No two entries in the directory have the same distinguished name. Yet, DNs are typically composed of case-insensitive attributes.
+
+Sometimes distinguished names include characters that you must escape. The following example shows an entry that includes escaped characters in the DN:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=escape)"
+dn: cn=\" # \+ \, \; \< = \> \\ DN Escape Characters,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+givenName: " # + , ; < = > \
+uid: escape
+cn: " # + , ; < = > \ DN Escape Characters
+sn: DN Escape Characters
+mail: escape@example.com
+----
+LDAP entries are arranged hierarchically in the directory. The hierarchical organization resembles a file system on a PC or a web server, often imagined as an upside-down tree structure, looking similar to a pyramid. footnote:d67723e465[Hence pyramid icons are associated with directory servers.] The distinguished name consists of components separated by commas, `uid=bjensen,ou=People,dc=example,dc=com`. The names are little-endian. The components reflect the hierarchy of directory entries.
+
+[#figure-data-organization]
+image::images/data-organization.png[]
+Barbara Jensen's entry is located under an entry with DN `ou=People,dc=example,dc=com`, an organization unit and parent entry for the people at Example.com. The `ou=People` entry is located under the entry with DN `dc=example,dc=com`, the base entry for Example.com. DC is an acronym for domain component. The directory has other base entries, such as `cn=config`, under which the configuration is accessible through LDAP. A directory can serve multiple organizations, too. You might find `dc=example,dc=com`, `dc=mycompany,dc=com`, and `o=myOrganization` in the same LDAP directory. Therefore, when you look up entries, you specify the base DN to look under in the same way you need to know whether to look in the New York, Paris, or Tokyo phone book to find a telephone number.footnote:d67723e506[The root entry for the directory, technically the entry with DN`""`(the empty string), is called the root DSE, and contains information about what the server supports, including the other base DNs it serves.]
+
+A directory server stores two kinds of attributes in a directory entry: __user attributes__ and __operational attributes__. User attributes hold the information for users of the directory. All of the attributes shown in the entry at the outset of this section are user attributes. Operational attributes hold information used by the directory itself. Examples of operational attributes include `entryUUID`, `modifyTimestamp`, and `subschemaSubentry`. When an LDAP search operation finds an entry in the directory, the directory server returns all the visible user attributes unless the search request restricts the list of attributes by specifying those attributes explicitly. The directory server does not, however, return any operational attributes unless the search request specifically asks for them. Generally speaking, applications should change only user attributes, and leave updates of operational attributes to the server, relying on public directory server interfaces to change server behavior. An exception is access control instruction (`aci`) attributes, which are operational attributes used to control access to directory data.
+
+
+[#ldap-client-server-communication]
+=== About LDAP Client and Server Communication
+
+In some client server communication, like web browsing, a connection is set up and then torn down for each client request to the server. LDAP has a different model. In LDAP the client application connects to the server and authenticates, then requests any number of operations, perhaps processing results in between requests, and finally disconnects when done.
+The standard operations are as follows:
+
+* Bind (authenticate). The first operation in an LDAP session usually involves the client binding to the LDAP server, with the server authenticating the client.footnote:d67723e543[If the client does not bind explicitly, the server treats the client as an anonymous client. An anonymous client is allowed to do anything that can be done anonymously. What can be done anonymously depends on access control and configuration settings. The client can also bind again on the same connection.] Authentication identifies the client's identity in LDAP terms, the identity which is later used by the server to authorize (or not) access to directory data that the client wants to lookup or change.
+
+* Search (lookup). After binding, the client can request that the server return entries based on an LDAP filter, which is an expression that the server uses to find entries that match the request, and a base DN under which to search. For example, to look up all entries for people with the email address `bjensen@example.com` in data for Example.com, you would specify a base DN such as `ou=People,dc=example,dc=com` and the filter `(mail=bjensen@example.com)`.
+
+* Compare. After binding, the client can request that the server compare an attribute value the client specifies with the value stored on an entry in the directory.
+
+* Modify. After binding, the client can request that the server change one or more attribute values on an entry. Often administrators do not allow clients to change directory data, so allow appropriate access for client application if they have the right to update data.
+
+* Add. After binding, the client can request to add one or more new LDAP entries to the server.
+
+* Delete. After binding, the client can request that the server delete one or more entries. To delete an entry with other entries underneath, first delete the children, then the parent.
+
+* Modify DN. After binding, the client can request that the server change the distinguished name of the entry. In other words, this renames the entry or moves it to another location. For example, if Barbara changes her unique identifier from `bjensen` to something else, her DN would have to change. For another example, if you decide to consolidate `ou=Customers` and `ou=Employees` under `ou=People` instead, all the entries underneath must change distinguished names. footnote:d67723e586[Renaming entire branches of entries can be a major operation for the directory, so avoid moving entire branches if you can.]
+
+* Unbind. When done making requests, the client can request an unbind operation to end the LDAP session.
+
+* Abandon. When a request seems to be taking too long to complete, or when a search request returns many more matches than desired, the client can send an abandon request to the server to drop the operation in progress.
+
+For practical examples showing how to perform the key operations using the command-line tools delivered with OpenDJ directory server, read xref:../server-dev-guide/chap-ldap-operations.adoc#chap-ldap-operations["Performing LDAP Operations"] in the __Directory Server Developer's Guide__.
+
+
+[#standard-ldap-controls-extensions]
+=== About LDAP Controls and Extensions
+
+LDAP has standardized two mechanisms for extending the operations directory servers can perform beyond the basic operations listed above. One mechanism involves using LDAP controls. The other mechanism involves using LDAP extended operations.
+LDAP controls are information added to an LDAP message to further specify how an LDAP operation should be processed. For example, the Server-Side Sort request control modifies a search to request that the directory server return entries to the client in sorted order. The Subtree Delete request control modifies a delete to request that the server also remove child entries of the entry targeted for deletion.
+
+One special search operation that OpenDJ supports is Persistent Search. The client application sets up a Persistent Search to continue receiving new results whenever changes are made to data that is in the scope of the search, thus using the search as a form of change notification. Persistent Searches are intended to remain connected permanently, though they can be idle for long periods of time.
+
+The directory server can also send response controls in some cases to indicate that the response contains special information. Examples include responses for entry change notification, password policy, and paged results.
+
+For the list of supported LDAP controls, see xref:../reference/appendix-controls.adoc#appendix-controls["LDAP Controls"] in the __Reference__.
+LDAP extended operations are additional LDAP operations not included in the original standard list. For example, the Cancel Extended Operation works like an abandon operation, but finishes with a response from the server after the cancel is complete. The StartTLS Extended Operation allows a client to connect to a server on an unsecure port, but then starts Transport Layer Security negotiations to protect communications.
+
+For the list of supported LDAP extended operations, see xref:../reference/appendix-extended-ops.adoc#appendix-extended-ops["LDAP Extended Operations"] in the __Reference__.
+
+
+[#about-directory-indexes]
+=== About Indexes
+
+As mentioned early in this chapter, directories have indexes for multiple attributes. In fact, by default OpenDJ does not let normal users perform searches that are not indexed, because such searches mean OpenDJ has to scan the entire directory looking for matches.
+
+As directory administrator, part of your responsibility is making sure directory data is properly indexed. OpenDJ provides tools for building and rebuilding indexes, for verifying indexes, and also for evaluating how well they are working.
+
+For help better understanding and managing indexes, read xref:chap-indexing.adoc#chap-indexing["Indexing Attribute Values"].
+
+
+[#schema-overview]
+=== About LDAP Schema
+
+Some databases are designed to hold huge amounts of data for a particular application. Although such databases might support multiple applications, how their data is organized depends a lot on the particular applications served.
+
+In contrast, directories are designed for shared, centralized services. Although the first guides to deploying directory services suggested taking inventory of all the applications that would access the directory, many current directory administrators do not even know how many applications use their services. The shared, centralized nature of directory services fosters interoperability in practice, and has helped directory services be successful in the long term.
+
+Part of what makes this possible is the shared model of directory user information, and in particular the LDAP schema. LDAP schema defines what the directory can contain. This means that directory entries are not arbitrary data, but instead tightly codified objects whose attributes are completely predictable from publicly readable definitions. Many schema definitions are in fact standard. They are the same not just across a directory service but across different directory services.
+
+At the same time, unlike some databases, LDAP schema and the data it defines can be extended on the fly while the service is running. LDAP schema is also accessible over LDAP. One attribute of every entry is its set of `objectClass` values. This gives you as administrator great flexibility in adapting your directory service to store new data without losing or changing the structure of existing data, and also without ever stopping your directory service.
+
+For a closer look, see xref:chap-schema.adoc#chap-schema["Managing Schema"].
+
+
+[#about-access-control]
+=== About Access Control
+
+In addition to directory schema, another feature of directory services that enables sharing is fine-grained access control.
+
+As directory administrator, you can control who has access to what data when, how, where and under what conditions by using access control instructions (ACI). You can allow some directory operations and not others. You can scope access control from the whole directory service down to individual attributes on directory entries. You can specify when, from what host or IP address, and what strength of encryption is needed in order to perform a particular operation.
+
+As ACIs are stored on entries in the directory, you can furthermore update access controls while the service is running, and even delegate that control to client applications. OpenDJ combines the strengths of ACIs with separate administrative privileges to help you secure access to directory data.
+
+For more information, read xref:chap-privileges-acis.adoc#chap-privileges-acis["Configuring Privileges and Access Control"].
+
+
+[#about-replication]
+=== About Replication
+
+Replication in OpenDJ consists of copying each update to the directory service to multiple directory servers. This brings both redundancy, in the case of network partitions or of crashes, and also scalability for read operations. Most directory deployments involve multiple servers replicating together.
+
+When you have replicated servers, all of which are writable, you can have replication conflicts. What if, for example, there is a network outage between two replicas, and meanwhile two different values are written to the same attribute on the same entry on the two replicas? In nearly all cases, OpenDJ replication can resolve these situations automatically without involving you, the directory administrator. This makes your directory service resilient and safe even in the unpredictable real world.
+
+One perhaps counterintuitive aspect of replication is that although you do add directory __read__ capacity by adding replicas to your deployment, you do not add directory __write__ capacity by adding replicas. As each write operation must be replayed everywhere, the result is that if you have N servers, you have N write operations to replay.
+
+Another aspect of replication to keep in mind is that it is "loosely consistent." Loosely consistent means that directory data will eventually converge to be the same everywhere, but it will not necessarily be the same everywhere right away. Client applications sometimes get this wrong when they write to a pool of load-balanced directory servers, immediately read back what they wrote, and are surprised that it is not the same. If your users are complaining about this, either make sure their application always gets sent to the same server, or else ask that they adapt their application to work in a more realistic manner.
+
+To get started with replication, see xref:chap-replication.adoc#chap-replication["Managing Data Replication"].
+
+
+[#directory-services-markup-language]
+=== About DSMLv2
+
+Directory Services Markup Language (DSMLv2) v2.0 became a standard in 2001. DSMLv2 describes directory data and basic directory operations in XML format, so they can be carried in Simple Object Access Protocol (SOAP) messages. DSMLv2 further allows clients to batch multiple operations together in a single request, to be processed either in sequential order or in parallel.
+
+OpenDJ provides support for DSMLv2 as a DSML gateway, which is a Servlet that connects to any standard LDAPv3 directory. DSMLv2 opens basic directory services to SOAP-based web services and service oriented architectures.
+
+To set up DSMLv2 access, see xref:chap-connection-handlers.adoc#setup-dsml["DSML Client Access"].
+
+
+[#rest-and-ldap]
+=== About RESTful Access to Directory Services
+
+OpenDJ can expose directory data as JSON resources over HTTP to REST clients, providing easy access to directory data for developers who are not familiar with LDAP. RESTful access depends on a configuration that describes how the JSON representation maps to LDAP entries.
+
+Although client applications have no need to understand LDAP, OpenDJ's underlying implementation still uses the LDAP model for its operations. The mapping adds some overhead. Furthermore, depending on the configuration, individual JSON resources can require multiple LDAP operations. For example, an LDAP user entry represents `manager` as a DN (of the manager's entry). The same manager might be represented in JSON as an object holding the manager's user ID and full name, in which case OpenDJ must look up the manager's entry to resolve the mapping for the manager portion of the JSON resource, in addition to looking up the user's entry. As another example, suppose a large group is represented in LDAP as a set of 100,000 DNs. If the JSON resource is configured so that a member is represented by its name, then listing that resource would involve 100,000 LDAP searches to translate DNs to names.
+
+A primary distinction between LDAP entries and JSON resources is that LDAP entries hold sets of attributes and their values, whereas JSON resources are documents containing arbitrarily nested objects. As LDAP data is governed by schema, almost no LDAP objects are arbitrary collections of data. footnote:d67723e728[LDAP has the object class`extensibleObject`, but its use should be the exception rather than the rule.] Furthermore, JSON resources can hold arrays, ordered collections that can contain duplicates, whereas LDAP attributes are sets, unordered collections without duplicates. For most directory and identity data, these distinctions do not matter. You are likely to run into them, however, if you try to turn your directory into a document store for arbitrary JSON resources.
+
+Despite some extra cost in terms of system resources, exposing directory data over HTTP can unlock your directory services for a new generation of applications. The configuration provides flexible mapping, so that you can configure views that correspond to how client applications need to see directory data. OpenDJ also gives you a deployment choice for HTTP access. You can deploy the REST to LDAP gateway, which is a Servlet that connects to any standard LDAPv3 directory, or you can activate the HTTP connection handler on OpenDJ itself to allow direct and more efficient HTTP and HTTPS access.
+
+For examples showing how to use RESTful access, see xref:../server-dev-guide/chap-rest-operations.adoc#chap-rest-operations["Performing RESTful Operations"] in the __Directory Server Developer's Guide__.
+
+
+[#about-building-directory-services]
+=== About Building Directory Services
+
+This chapter is meant to serve as an introduction, and so does not even cover everything in this guide, let alone everything you might want to know about directory services.
+
+When you have understood enough of the concepts to build the directory services that you want to deploy, you must still build a prototype and test it before you roll out shared, centralized services for your organization. Read xref:chap-tuning.adoc#chap-tuning["Tuning Servers For Performance"] for a look at how to meet the service levels that directory clients expect.
+
+

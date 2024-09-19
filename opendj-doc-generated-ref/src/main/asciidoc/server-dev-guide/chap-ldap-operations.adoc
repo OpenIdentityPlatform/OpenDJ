@@ -1,0 +1,2478 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-ldap-operations]
+== Performing LDAP Operations
+
+OpenDJ directory server includes the OpenDJ control panel browser and also command-line tools for performing LDAP operations. In this chapter, you will learn how to use the command-line tools to perform LDAP operations.
+
+[#cli-overview]
+=== Command-Line Tools
+
+Before you try the examples in this guide, set your PATH to include the OpenDJ directory server tools. The location of the tools depends on the operating environment and on the packages used to install OpenDJ. xref:#cli-path-locations["Paths To Administration Tools"] indicates where to find the tools.
+
+[#cli-path-locations]
+.Paths To Administration Tools
+[cols="33%,33%,34%"]
+|===
+|OpenDJ running on... |OpenDJ installed from... |Default path to tools... 
+
+a|Apple Mac OS X, Linux distributions, Oracle Solaris
+a|.zip
+a|`/path/to/opendj/bin`
+
+a|Linux distributions
+a|.deb, .rpm
+a|`/opt/opendj/bin`
+
+a|Microsoft Windows
+a|.zip
+a|`C:\path\to\opendj\bat`
+
+a|Oracle Solaris
+a|SVR4
+a|`/usr/opendj/bin`
+|===
+You find the installation and upgrade tools, `setup`, `upgrade`, and `uninstall`, in the parent directory of the other tools, as these tools are not used for everyday administration. For example, if the path to most tools is `/path/to/opendj/bin` you can find these tools in `/path/to/opendj`. For instructions on how to use the installation and upgrade tools, see the xref:../install-guide/index.adoc[Installation Guide].
+
+All OpenDJ command-line tools take the `--help` option.
+
+All commands call Java programs and therefore involve starting a JVM.
+
+xref:#cli-constraints["Tools and Server Constraints"] indicates the constraints, if any, that apply when using a command-line tool with a directory server.
+
+[#cli-constraints]
+.Tools and Server Constraints
+[cols="50%,50%"]
+|===
+|Commands |Constraints 
+
+a|[none]
+* `backendstat`
+* `create-rc-script`
+* `dsjavaproperties`
+* `encode-password`
+* `list-backends`
+* `setup`
+* `start-ds`
+* `upgrade`
+* `windows-service`
+a|These commands must be used with the local OpenDJ directory server in the same installation as the tools.
+
+ These commands are not useful with non-OpenDJ directory servers.
+
+a|[none]
+* `control-panel`
+* `dsconfig`
+* `export-ldif`
+* `import-ldif`
+* `manage-account`
+* `manage-tasks`
+* `rebuild-index`
+* `restore`
+* `status`
+* `stop-ds`
+* `uninstall`
+* `verify-index`
+a|These commands must be used with OpenDJ directory server having the same version as the command.
+
+ These commands are not useful with non-OpenDJ directory servers.
+
+a|[none]
+* `dsreplication`
+a|With one exception, this command can be used with current and previous OpenDJ directory server versions. The one exception is the `dsreplication reset-change-number` subcommand, which requires OpenDJ directory server version 3.0.0 or later.
+
+ This commands is not useful with other types of directory servers.
+
+a|[none]
+* `make-ldif`
+a|This command depends on template files. The template files can make use of configuration files installed with OpenDJ directory server under `config/MakeLDIF/`.
+
+ The LDIF output can be used with OpenDJ and other directory servers.
+
+a|[none]
+* `base64`
+* `ldapcompare`
+* `ldapdelete`
+* `ldapmodify`
+* `ldappasswordmodify`
+* `ldapsearch`
+* `ldif-diff`
+* `ldifmodify`
+* `ldifsearch`
+a|These commands can be used independently of OpenDJ directory server, and so are not tied to a specific version.
+|===
+--
+The following list uses the UNIX names for the commands. On Windows all command-line tools have the extension .bat:
+
+`backendstat`::
+Debug databases for pluggable backends.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#backendstat-1[backendstat(1)] in the __Reference__.
+
+`backup`::
+Back up or schedule backup of directory data.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#backup-1[backup(1)] in the __Reference__.
+
+`base64`::
+Encode and decode data in base64 format.
+
++
+Base64-encoding represents binary data in ASCII, and can be used to encode character strings in LDIF, for example.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#base64-1[base64(1)] in the __Reference__.
+
+`create-rc-script` (UNIX)::
+Generate a script you can use to start, stop, and restart the server either directly or at system boot and shutdown. Use `create-rc-script -f script-file`.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#create-rc-script-1[create-rc-script(1)] in the __Reference__.
+
+`dsconfig`::
+The `dsconfig` command is the primary command-line tool for viewing and editing an OpenDJ configuration. When started without arguments, `dsconfig` prompts you for administration connection information. Once connected it presents you with a menu-driven interface to the server configuration.
+
++
+When you pass connection information, subcommands, and additional options to `dsconfig`, the command runs in script mode and so is not interactive.
+
++
+You can prepare `dsconfig` batch scripts by running the command with the `--commandFilePath` option in interactive mode, then reading from the batch file with the `--batchFilePath` option in script mode. Batch files can be useful when you have many `dsconfig` commands to run and want to avoid starting the JVM for each command.
+
++
+Alternatively, you can read commands from standard input by using the `--batch` option.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#dsconfig-1[dsconfig(1)] in the __Reference__.
+
+`dsjavaproperties`::
+Apply changes you make to `opendj/config/java.properties`, which sets Java runtime options.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#dsjavaproperties-1[dsjavaproperties(1)] in the __Reference__.
+
+`dsreplication`::
+Configure data replication between directory servers to keep their contents in sync.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#dsreplication-1[dsreplication(1)] in the __Reference__.
+
+`encode-password`::
+Encode a cleartext password according to one of the available storage schemes.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#encode-password-1[encode-password(1)] in the __Reference__.
+
+`export-ldif`::
+Export directory data to LDIF, the standard, portable, text-based representation of directory content.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#export-ldif-1[export-ldif(1)] in the __Reference__.
+
+`import-ldif`::
+Load LDIF content into the directory, overwriting existing data. It cannot be used to append data to the backend database.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#import-ldif-1[import-ldif(1)] in the __Reference__.
+
+`ldapcompare`::
+Compare the attribute values you specify with those stored on entries in the directory.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldapcompare-1[ldapcompare(1)] in the __Reference__.
+
+`ldapdelete`::
+Delete one entry or an entire branch of subordinate entries in the directory.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldapdelete-1[ldapdelete(1)] in the __Reference__.
+
+`ldapmodify`::
+Modify the specified attribute values for the specified entries.
+
++
+Use the `ldapmodify` command with the `-a` option to add new entries.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldapmodify-1[ldapmodify(1)] in the __Reference__.
+
+`ldappasswordmodify`::
+Modify user passwords.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldappasswordmodify-1[ldappasswordmodify(1)] in the __Reference__.
+
+`ldapsearch`::
+Search a branch of directory data for entries that match the LDAP filter you specify.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldapsearch-1[ldapsearch(1)] in the __Reference__.
+
+`ldif-diff`::
+Display differences between two LDIF files, with the resulting output having LDIF format.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldif-diff-1[ldif-diff(1)] in the __Reference__.
+
+`ldifmodify`::
+Similar to the `ldapmodify` command, modify specified attribute values for specified entries in an LDIF file.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldifmodify-1[ldifmodify(1)] in the __Reference__.
+
+`ldifsearch`::
+Similar to the `ldapsearch` command, search a branch of data in LDIF for entries matching the LDAP filter you specify.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#ldifsearch-1[ldifsearch(1)] in the __Reference__.
+
+`list-backends`::
+List backends and base DNs served by OpenDJ directory server.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#list-backends-1[list-backends(1)] in the __Reference__.
+
+`make-ldif`::
+Generate directory data in LDIF based on templates that define how the data should appear.
+
++
+The `make-ldif` command is designed to help generate test data that mimics data expected in production, but without compromising real, potentially private information.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#make-ldif-1[make-ldif(1)] in the __Reference__.
+
+`manage-account`::
+Lock and unlock user accounts, and view and manipulate password policy state information.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#manage-account-1[manage-account(1)] in the __Reference__.
+
+`manage-tasks`::
+View information about tasks scheduled to run in the server, and cancel specified tasks.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#manage-tasks-1[manage-tasks(1)] in the __Reference__.
+
+`rebuild-index`::
+Rebuild an index stored in an indexed backend.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#rebuild-index-1[rebuild-index(1)] in the __Reference__.
+
+`restore`::
+Restore data from backup.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#restore-1[restore(1)] in the __Reference__.
+
+`start-ds`::
+Start OpenDJ directory server.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#start-ds-1[start-ds(1)] in the __Reference__.
+
+`status`::
+Display information about the server.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#status-1[status(1)] in the __Reference__.
+
+`stop-ds`::
+Stop OpenDJ directory server.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#stop-ds-1[stop-ds(1)] in the __Reference__.
+
+`verify-index`::
+Verify that an index stored in an indexed backend is not corrupt.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#verify-index-1[verify-index(1)] in the __Reference__.
+
+`windows-service` (Windows)::
+Register OpenDJ as a Windows Service.
+
++
+For details see xref:../reference/admin-tools-ref.adoc#windows-service[windows-service(1)] in the __Reference__.
+
+--
+
+
+[#search-ldap]
+=== Searching the Directory
+
+Searching the directory is akin to searching for a phone number in a paper phone book. You can look up a phone number because you know the last name of a subscriber's entry. In other words, you use the value of one attribute of the entry to find entries that have another attribute you want.
+
+Whereas a paper phone book has only one index (alphabetical order by name), the directory has many indexes. When performing a search, you always specify which index to use, by specifying which attribute(s) you are using to lookup entries.
+
+Your paper phone book might be divided into white pages for residential subscribers and yellow pages for businesses. If you are looking up an individual's phone number, you limit your search to the white pages. Directory services divide entries in various ways, often to separate organizations, and to separate groups from user entries from printers, for example, but potentially in other ways. When searching you therefore also specify where in the directory to search.
+
+The `ldapsearch` command, described in xref:../reference/admin-tools-ref.adoc#ldapsearch-1[ldapsearch(1)] in the __Reference__, thus takes at minimum a search base DN option and an LDAP filter. The search base DN identifies where in the directory to search for entries that match the filter. For example, if you are looking for printers, you might specify the base DN as `ou=Printers,dc=example,dc=com`. Perhaps you are visiting the `GNB00` office and are looking for a printer as shown in the following example:
+
+[source, console]
+----
+$ ldapsearch --baseDN ou=Printers,dc=example,dc=com "(printerLocation=GNB00)"
+----
+In the example, the LDAP filter indicates to the directory that you want to look up printer entries where the `printerLocation` attribute is equal to `GNB00`.
+
+You also specify the host and port to access directory services, and the type of protocol to use (for example, LDAP/SSL, or StartTLS to protect communication). If the directory service does not allow anonymous access to the data you want to search, you also identify who is performing the search and provide their credentials, such as a password or certificate. Finally, you can specify a list of attributes to return. If you do not specify attributes, then the search returns all user attributes for the entry.
+Review the following examples in this section to get a sense of how searches work:
+
+* xref:#simple-filter-search["Search: Using Simple Filters"]
+
+* xref:#complex-filter-search["Search: Using Complex Filters"]
+
+* xref:#operational-attrs-search["Search: Return Operational Attributes"]
+
+* xref:#attr-desc-list-search["Search: Returning Attributes for an Object Class"]
+
+* xref:#approximate-match-search["Search: Finding an Approximate Match"]
+
+* xref:#escape-characters-in-filter["Search: Escaping Search Filter Characters"]
+
+* xref:#extensible-match-search["Search: Listing Active Accounts"]
+
+* xref:#persistent-search["Search: Performing a Persistent Search"]
+
+* xref:#localized-search["Search: Using Language Subtypes"]
+
+
+[#simple-filter-search]
+.Search: Using Simple Filters
+====
+The following example searches for entries with user IDs (`uid`) containing `jensen`, returning only DNs and user ID values:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=*jensen*)" uid
+dn: uid=ajensen,ou=People,dc=example,dc=com
+uid: ajensen
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+uid: bjensen
+
+dn: uid=gjensen,ou=People,dc=example,dc=com
+uid: gjensen
+
+dn: uid=jjensen,ou=People,dc=example,dc=com
+uid: jjensen
+
+dn: uid=kjensen,ou=People,dc=example,dc=com
+uid: kjensen
+
+dn: uid=rjensen,ou=People,dc=example,dc=com
+uid: rjensen
+
+dn: uid=tjensen,ou=People,dc=example,dc=com
+uid: tjensen
+
+
+Result Code:  0 (Success)
+----
+====
+
+[#complex-filter-search]
+.Search: Using Complex Filters
+====
+The following example returns entries with `uid` containing `jensen` for users located in San Francisco:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN ou=people,dc=example,dc=com \
+ "(&(uid=*jensen*)(l=San Francisco))" \
+ @person
+dn: uid=bjensen,ou=People,dc=example,dc=com
+sn: Jensen
+cn: Barbara Jensen
+cn: Babs Jensen
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: organizationalPerson
+objectClass: person
+description: Original description
+telephoneNumber: +1 408 555 9999
+
+dn: uid=rjensen,ou=People,dc=example,dc=com
+sn: Jensen
+cn: Richard Jensen
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: organizationalPerson
+objectClass: person
+telephoneNumber: +1 408 555 5957
+----
+The command returns the attributes associated with the `person` object class.
+
+Complex filters can use both "and" syntax, `(&(filtercomp)(filtercomp))`, and "or" syntax, `(|(filtercomp)(filtercomp))`.
+====
+
+[#operational-attrs-search]
+.Search: Return Operational Attributes
+====
+Use `+` in the attribute list after the filter to return all operational attributes, as in the following example:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen +
+dn: uid=bjensen,ou=People,dc=example,dc=com
+modifyTimestamp: 20160608165444Z
+modifiersName: uid=kvaughan,ou=People,dc=example,dc=com
+entryUUID: 887732e8-3db2-31bb-b329-20cd6fcecc05
+subschemaSubentry: cn=schema
+hasSubordinates: false
+numSubordinates: 0
+etag: 0000000086c6e3b5
+structuralObjectClass: inetOrgPerson
+entryDN: uid=bjensen,ou=People,dc=example,dc=com
+----
+Alternatively, specify operational attributes by name.
+====
+
+[#attr-desc-list-search]
+.Search: Returning Attributes for an Object Class
+====
+Use `@objectClass` in the attribute list after the filter to return the attributes associated with a particular object class as in the following example:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen @person
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Barbara Jensen
+cn: Babs Jensen
+telephoneNumber: +1 408 555 1862
+sn: Jensen
+----
+====
+
+[#approximate-match-search]
+.Search: Finding an Approximate Match
+====
+OpenDJ directory server supports searches looking for an approximate match of the filter. Approximate match searches use the `~=` comparison operator, described in xref:#filter-operators["LDAP Filter Operators"]. They rely on `approximate` type indexes, which are configured as shown in xref:../admin-guide/chap-indexing.adoc#approx-index-example["Configure an Approximate Index"] in the __Administration Guide__.
+
+The following example configures an approximate match index for the surname (`sn`) attribute, and then rebuilds the index:
+
+[source, console]
+----
+$ dsconfig \
+ set-backend-index-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --index-name sn \
+ --set index-type:approximate \
+ --trustAll \
+ --no-prompt
+
+$ rebuild-index \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ --index sn \
+ --start 0 \
+ --trustAll
+----
+Once the index is built, it is ready for use in searches. The following example shows a search using the approximate comparison operator:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ "(sn~=jansen)" \
+ sn
+dn: uid=ajensen,ou=People,dc=example,dc=com
+sn: Jensen
+
+dn: uid=bjense2,ou=People,dc=example,dc=com
+sn: Jensen
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+sn: Jensen
+
+dn: uid=ejohnson,ou=People,dc=example,dc=com
+sn: Johnson
+
+dn: uid=gjensen,ou=People,dc=example,dc=com
+sn: Jensen
+
+dn: uid=jjensen,ou=People,dc=example,dc=com
+sn: Jensen
+
+dn: uid=kjensen,ou=People,dc=example,dc=com
+sn: Jensen
+
+dn: uid=rjense2,ou=People,dc=example,dc=com
+sn: Jensen
+
+dn: uid=rjensen,ou=People,dc=example,dc=com
+sn: Jensen
+
+dn: uid=tjensen,ou=People,dc=example,dc=com
+sn: Jensen
+----
+Notice that `jansen` matches `Jensen` and `Johnson`, for example.
+====
+
+[#escape-characters-in-filter]
+.Search: Escaping Search Filter Characters
+====
+link:http://tools.ietf.org/html/rfc4515[RFC 4515: Lightweight Directory Access Protocol (LDAP): String Representation of Search Filters, window=\_top] mentions a number of characters that you must handle with care when using them in search filters.
+For a filter like `(attr=value)`, the following list indicates characters that you must replace with a backslash ( `\` ) followed by two hexadecimal digits when using them as part of the __value__ string:
+
+* Replace `*` with `\2a`.
+
+* Replace `(` with `\28`.
+
+* Replace `)` with `\29`.
+
+* Replace `\` with `\5c`.
+
+* Replace NUL (0x00) with `\00`.
+
+The following example shows a filter with escaped characters matching an actual value:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com \
+ "(description=\28*\5c*\2a\29)" description
+dn: uid=bjensen,ou=People,dc=example,dc=com
+description: (A \great\ description*)
+----
+====
+
+[#extensible-match-search]
+.Search: Listing Active Accounts
+====
+OpenDJ directory server supports extensible matching rules, meaning you can pass in filters specifying a matching rule OID that extends your search beyond what you accomplish with standard LDAP.
+OpenDJ directory server supports three generalized time-based matching rules described in xref:../admin-guide/chap-indexing.adoc#extensible-match-index-example["Configure an Extensible Match Index"] in the __Administration Guide__:
+
+* A partial date and time matching rule
+
+* A greater-than relative time matching rule
+
+* A less-than relative time matching rule
+
+You can use these matching rules to list, for example, all users who have authenticated recently.
+
+First set up an attribute to store a last login timestamp. You can do this by adding a schema file for the attribute as in the following example:
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: ( lastLoginTime-oid
+  NAME 'lastLoginTime'
+  DESC 'Last time the user logged in'
+  EQUALITY generalizedTimeMatch
+  ORDERING generalizedTimeOrderingMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+  SINGLE-VALUE
+  NO-USER-MODIFICATION
+  USAGE directoryOperation
+  X-ORIGIN 'OpenDJ example documentation' )
+
+Processing MODIFY request for cn=schema
+MODIFY operation successful for DN cn=schema
+----
+Configure the applicable password policy to write the last login timestamp when a user authenticates. The following command configures the default password policy to write the timestamp in generalized time format to the `lastLoginTime` operational attribute on the user's entry:
+
+[source, console]
+----
+$ dsconfig \
+ set-password-policy-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --set last-login-time-attribute:lastLoginTime \
+ --set last-login-time-format:"yyyyMMddHH'Z'" \
+ --trustAll \
+ --no-prompt
+----
+Configure an extensible matching rule index for time-based searches on the `lastLoginTime` attribute:
+
+[source, console]
+----
+$ dsconfig \
+ create-backend-index \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --set index-type:extensible \
+ --set index-extensible-matching-rule:1.3.6.1.4.1.26027.1.4.5 \
+ --set index-extensible-matching-rule:1.3.6.1.4.1.26027.1.4.6 \
+ --set index-extensible-matching-rule:1.3.6.1.4.1.26027.1.4.7 \
+ --index-name lastLoginTime \
+ --trustAll \
+ --no-prompt
+----
+Make sure you have some users who have authenticated recently:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN uid=bjensen,ou=people,dc=example,dc=com \
+ --bindPassword hifalutin \
+ --baseDN dc=example,dc=com \
+ "(uid=bjensen)" \
+ sn
+dn: uid=bjensen,ou=People,dc=example,dc=com
+sn: Jensen
+
+$ ldapsearch \
+ --port 1389 \
+ --bindDN uid=kvaughan,ou=people,dc=example,dc=com \
+ --bindPassword bribery \
+ --baseDN dc=example,dc=com \
+ "(uid=bjensen)" \
+ sn
+dn: uid=bjensen,ou=People,dc=example,dc=com
+sn: Jensen
+----
+The following search returns users who have authenticated in the last three months (13 weeks) according to the last login timestamps:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ "(lastLoginTime:1.3.6.1.4.1.26027.1.4.6:=13w)" \
+ mail
+dn: uid=bjensen,ou=People,dc=example,dc=com
+mail: bjensen@example.com
+
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+mail: kvaughan@example.com
+----
+The following search returns users who have authenticated in May 2016 according to the last login timestamps:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ "(lastLoginTime:1.3.6.1.4.1.26027.1.4.7:=2016Y05M)" \
+ mail
+dn: uid=bjensen,ou=People,dc=example,dc=com
+mail: bjensen@example.com
+
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+mail: kvaughan@example.com
+----
+====
+
+[#persistent-search]
+.Search: Performing a Persistent Search
+====
+OpenDJ directory server and other LDAP servers support the Internet-Draft for link:http://tools.ietf.org/html/draft-ietf-ldapext-psearch[Persistent Search: A Simple LDAP Change Notification Mechanism, window=\_blank]. A persistent search is like a search that never stops. Every time there is a change to an entry matching the search criteria, the search returns an additional response. Applications can also get change notifications by using OpenDJ directory server's external change log as described in xref:../admin-guide/chap-replication.adoc#repl-change-notification["Change Notification For Your Applications"] in the __Administration Guide__.
+
+In order to use the persistent search control with OpenDJ directory server, the user performing the search must be given access to use the control. Persistent searches consume server resources, so directory administrators often limit permission to perform persistent searches to specific applications. If the user does not have access to use the control, the request to use the control causes the search operation to fail with a message such as the following:
+
+[source, console]
+----
+SEARCH operation failed
+Result Code:  12 (Unavailable Critical Extension)
+Additional Information:  The request control with Object Identifier (OID)
+  "2.16.840.1.113730.3.4.3" cannot be used due to insufficient access rights
+----
+An example of the ACI required is shown in xref:../admin-guide/chap-privileges-acis.adoc#aci-required["ACI Required For LDAP Operations"] in the __Administration Guide__. The following command adds the permission for `My App` to perform persistent searches under `dc=example,dc=com`:
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: dc=example,dc=com
+changetype: modify
+add: aci
+aci: (targetcontrol = "2.16.840.1.113730.3.4.3")(version 3.0;acl
+ "Request Persistent Search"; allow (read)(userdn =
+ "ldap:///cn=My App,ou=Apps,dc=example,dc=com");)
+
+Processing MODIFY request for dc=example,dc=com
+MODIFY operation successful for DN dc=example,dc=com
+----
+To perform a persistent search, use the persistent search control, and optionally specify the type of changes for which to receive notifications, whether the server should return existing entries as well as changes, and whether to return additional entry change information with each notification. The additional entry change information returned is that of the entry change notification response control defined in the Internet-Draft. The response control indicates what type of change led to the notification, what the previous DN was if the change was a modify DN operation, and the change number if the LDAP server supports change numbers. For details about the options, see the description for the `--persistentSearch` option in xref:../reference/admin-tools-ref.adoc#ldapsearch-1[ldapsearch(1)] in the __Reference__.
+
+The following example initiates a persistent search, indicating that notifications should be sent for all update operations, only notifications about changed entries should be returned, and no additional information should be returned:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "cn=My App,ou=Apps,dc=example,dc=com" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ --persistentSearch ps:all:true:false \
+ "(&)"
+----
+Notice the search filter, `(&)`, which is always true, meaning that it matches all entries.
+
+The following modification:
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=People,dc=example,dc=com" \
+ --bindPassword bribery
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+replace: description
+description: Updated description
+-
+add: description
+description: Additional description
+
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com
+----
+Results in the following response to the persistent search:
+
+[source, console]
+----
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: posixAccount
+objectClass: top
+objectClass: organizationalPerson
+objectClass: person
+objectClass: inetOrgPerson
+mail: bjensen@example.com
+roomNumber: 0209
+preferredLanguage: en, ko;q=0.8
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+givenName: Barbara
+telephoneNumber: +1 408 555 1862
+sn: Jensen
+cn: Barbara Jensen
+cn: Babs Jensen
+homeDirectory: /home/bjensen
+facsimileTelephoneNumber: +1 408 555 1992
+gidNumber: 1000
+userPassword: {SSHA}S5pMziC+j1j09EnWyhj0okSSSX6howVvu1OdwQ==
+uidNumber: 1076
+description: Updated description
+description: Additional description
+uid: bjensen
+l: San Francisco
+
+dn: dc=example,dc=com
+objectClass: top
+objectClass: domain
+dc: example
+----
+Although it is not visible in this output, the replication-related `ds-sync-*` operational attributes have been updated on the entry with DN `dc=example,dc=com`. The entry therefore shows up in the persistent search results.
+
+The following deletion:
+
+[source, console]
+----
+$ ldapdelete \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=People,dc=example,dc=com" \
+ --bindPassword bribery \
+ uid=tpierce,ou=People,dc=example,dc=com
+Processing DELETE request for uid=tpierce,ou=People,dc=example,dc=com
+DELETE operation successful for DN uid=tpierce,ou=People,dc=example,dc=com
+----
+Results in the following response to the persistent search:
+
+[source, console]
+----
+dn: uid=tpierce,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: organizationalPerson
+objectClass: person
+mail: tpierce@example.com
+roomNumber: 1383
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+givenName: Tobias
+telephoneNumber: +1 408 555 1531
+sn: Pierce
+cn: Tobias Pierce
+homeDirectory: /home/tpierce
+facsimileTelephoneNumber: +1 408 555 9332
+gidNumber: 1000
+userPassword: {SSHA}Ydw21vOP9GuYdt1nkkV8L+3sGDBa6TYL5JFC/A==
+uidNumber: 1042
+uid: tpierce
+l: Bristol
+departmentNumber: 1000
+preferredLanguage: en-gb
+street: 60 Queen Square
+
+dn: dc=example,dc=com
+objectClass: top
+objectClass: domain
+dc: example
+----
+To terminate the persistent search, interrupt the command with *CTRL+C*, for example.
+====
+
+[#localized-search]
+.Search: Using Language Subtypes
+====
+OpenDJ directory server supports many language subtypes. For a list see xref:../reference/appendix-l10n.adoc#appendix-l10n["Localization"] in the __Reference__.
+
+When you perform a search you can request the language subtype by OID or by language subtype string. For example, the following search gets the French version of a common name. The example uses the `base64` command provided with OpenDJ directory server to decode the attribute value:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ "(givenName:fr:=Fréderique)" cn\;lang-fr
+dn: uid=fdupont,ou=People,dc=example,dc=com
+cn;lang-fr:: RnJlZMOpcmlxdWUgRHVwb250
+
+$ base64 decode -d RnJlZMOpcmlxdWUgRHVwb250
+Fredérique Dupont
+----
+At the end of the OID or language subtype, further specify the matching rule as follows:
+
+* Add `.1` for less than
+
+* Add `.2` for less than or equal to
+
+* Add `.3` for equal to (default)
+
+* Add `.4` for greater than or equal to
+
+* Add `.5` for greater than
+
+* Add `.6` for substring
+
+====
+The following table describes the operators you can use in LDAP search filters.
+
+[#filter-operators]
+.LDAP Filter Operators
+[cols="14%,43%,43%"]
+|===
+|Operator |Definition |Example 
+
+a|`=`
+a|Equality comparison, as in `(sn=Jensen)`.
+
+ This can also be used with substring matches. For example, to match last names starting with `Jen`, use the filter `(sn=Jen*)`. Substrings are more expensive for the directory server to index. Substring searches therefore might not be permitted for many attributes.
+a|`"(cn=My App)"` matches entries with common name `My App`.
+
+ `"(sn=Jen*)"` matches entries with surname starting with `Jen`.
+
+a|`<=`
+a|Less than or equal to comparison, which works alphanumerically.
+a|`"(cn<=App)"` matches entries with `commonName` up to those starting with App (case-insensitive) in alphabetical order.
+
+a|`>=`
+a|Greater than or equal to comparison, which works alphanumerically.
+a|`"(uidNumber>=1151)"` matches entries with `uidNumber` greater than 1151.
+
+a|`=*`
+a|Presence comparison. For example, to match all entries having a `userPassword`, use the filter `(userPassword=*)`.
+a|`"(member=*)"` matches entries with a `member` attribute.
+
+a|`~=`
+a|Approximate comparison, matching attribute values similar to the value you specify.
+a|`"(sn~=jansen)"` matches entries with a surname that sounds similar to `Jansen` (Johnson, Jensen, and other surnames).
+
+a|`[:dn][:oid]:=`
+a|Extensible match comparison.
+ At the end of the OID or language subtype, you further specify the matching rule as follows:
+
+* Add `.1` for less than
+
+* Add `.2` for less than or equal to
+
+* Add `.3` for equal to (default)
+
+* Add `.4` for greater than or equal to
+
+* Add `.5` for greater than
+
+* Add `.6` for substring
+a|`(uid:dn:=bjensen)` matches entries where `uid` having the value `bjensen` is a component of the entry DN.
+
+ `(lastLoginTime: 1.3.6.1.4.1.26027.1.4.5:=-13w)` matches entries with a last login time more recent than 13 weeks.
+
+ You also use extensible match filters with localized values. Directory servers like OpenDJ support a variety of internationalized locales, each of which has an OID for collation order, such as `1.3.6.1.4.1.42.2.27.9.4.76.1` for French. OpenDJ also lets you use the language subtype, such as `fr`, instead of the OID.
+
+ `"(cn:dn:=My App)"` matches entries who have `My App` as the common name and also as the value of a DN component.
+
+a|`!`
+a|NOT operator, to find entries that do not match the specified filter component.
+
+ Take care to limit your search when using `!` to avoid matching so many entries that the server treats your search as unindexed.
+a|`'!(objectclass=person)'` matches non-person entries.
+
+a|`&`
+a|AND operator, to find entries that match all specified filter components.
+a|`'(&(l=San Francisco)(!(uid=bjensen)))'` matches entries for users in San Francisco other than the user with ID `bjensen`.
+
+a|`\|`
+a|OR operator, to find entries that match one of the specified filter components.
+a|`"\|(sn=Jensen)(sn=Johnson)"` matches entries with surname Jensen or surname Johnson.
+|===
+
+
+[#compare-ldap]
+=== Comparing Attribute Values
+
+The compare operation checks whether an attribute value you specify matches the attribute value stored on one or more directory entries.
+
+[#compare-example]
+.Compare: Checking authPassword
+====
+In this example, Kirsten Vaughan uses the `ldapcompare` command, described in xref:../reference/admin-tools-ref.adoc#ldapsearch-1[ldapsearch(1)] in the __Reference__, to check whether the hashed password value matches the stored value on `authPassword`:
+
+[source, console]
+----
+$ ldapcompare \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ 'authPassword:MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q==' \
+ uid=kvaughan,ou=people,dc=example,dc=com
+Comparing type authPassword with value
+ MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q== in entry
+ uid=kvaughan,ou=people,dc=example,dc=com
+Compare operation returned true for entry
+ uid=kvaughan,ou=people,dc=example,dc=com
+----
+====
+
+
+[#write-ldap]
+=== Updating the Directory
+
+Authorized users can change directory data using the LDAP add, modify, modify DN, and delete operations. You can use the `ldapmodify` command to make changes. For details see xref:../reference/admin-tools-ref.adoc#ldapmodify-1[ldapmodify(1)] in the __Reference__.
+
+[#add-ldap]
+==== Adding Entries
+
+With the `ldapmodify -a` command, authorized users can add entire entries from the same sort of LDIF file used to import and export data.
+
+[#add-two-users]
+.Adding Two New Users
+====
+The following example adds two new users:
+
+[source, console]
+----
+$ cat new-users.ldif
+dn: cn=Arsene Lupin,ou=Special Users,dc=example,dc=com
+objectClass: person
+objectClass: top
+cn: Arsene Lupin
+telephoneNumber: +33 1 23 45 67 89
+sn: Lupin
+
+dn: cn=Horace Velmont,ou=Special Users,dc=example,dc=com
+objectClass: person
+objectClass: top
+cn: Horace Velmont
+telephoneNumber: +33 1 12 23 34 45
+sn: Velmont
+
+$ ldapmodify \
+ --defaultAdd \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --filename new-users.ldif
+Processing ADD request for cn=Arsene Lupin,ou=Special Users,dc=example,dc=com
+ADD operation successful for DN
+ cn=Arsene Lupin,ou=Special Users,dc=example,dc=com
+Processing ADD request for cn=Horace Velmont,ou=Special Users,dc=example,dc=com
+ADD operation successful for DN
+ cn=Horace Velmont,ou=Special Users,dc=example,dc=com
+----
+====
+
+
+[#modify-ldap]
+==== Modifying Entry Attributes
+
+With the `ldapmodify` command, authorized users can change the values of attributes in the directory using LDIF as specified in link:http://tools.ietf.org/html/rfc2849[RFC 2849, window=\_top].
+
+[#modify-add-attribute]
+.Modify: Adding Attributes
+====
+The following example shows you how to add a description and JPEG photo to Sam Carter's entry:
+
+[source, console]
+----
+$ cat scarter-mods.ldif
+dn: uid=scarter,ou=people,dc=example,dc=com
+changetype: modify
+add: description
+description: Accounting Manager
+-
+add: jpegphoto
+jpegphoto:<file:///tmp/Samantha-Carter.jpg
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --filename scarter-mods.ldif
+Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
+MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com
+----
+====
+
+[#modify-replace-attribute]
+.Modify: Changing an Attribute Value
+====
+The following example replaces the description on Sam Carter's entry:
+
+[source, console]
+----
+$ cat scarter-newdesc.ldif
+dn: uid=scarter,ou=people,dc=example,dc=com
+changetype: modify
+replace: description
+description: Accounting Director
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --filename scarter-newdesc.ldif
+Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
+MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com
+----
+====
+
+[#modify-delete-attribute]
+.Modify: Deleting an Attribute Value
+====
+The following example deletes the JPEG photo on Sam Carter's entry:
+
+[source, console]
+----
+$ cat /path/to/scarter-deljpeg.ldif
+dn: uid=scarter,ou=people,dc=example,dc=com
+changetype: modify
+delete: jpegphoto
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --filename scarter-deljpeg.ldif
+Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
+MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com
+----
+====
+
+[#modify-optimistic-concurrency]
+.Modify: Using Optimistic Concurrency
+====
+Imagine you are writing an application that lets end users update user profiles through a browser. You store user profiles as OpenDJ entries. Your end users can look up user profiles and modify them. Your application assumes that the end users can tell the right information when they see it, and updates profiles exactly as users see them on their screens.
+
+Consider two users, Alice and Bob, both busy and often interrupted. Alice has Babs Jensen's new phone and room numbers. Bob has Babs's new location and description. Both assume that they have all the information that has changed. What can you do to make sure that your application applies the right changes when Alice and Bob simulaneously update Babs Jensen's profile?
+
+OpenDJ directory server includes two features to help you in this situation. One of the features is the LDAP Assertion Control, described in xref:../reference/appendix-controls.adoc#assertion-request-control[Assertion request control] in the __Reference__, used to tell the directory server to perform the modification only if an assertion you make stays true. The other feature is OpenDJ's support for link:http://tools.ietf.org/html/rfc2616#section-3.11[entity tag, window=\_blank] (ETag) attributes, making it easy to check whether the entry in the directory is the same as the entry you read.
+
+Alice and Bob both get Babs's entry. In LDIF, the relevant attributes from the entry look like this. Notice the ETag:
+
+[source, ldif]
+----
+dn: uid=bjensen,ou=People,dc=example,dc=com
+telephoneNumber: +1 408 555 1862
+roomNumber: 0209
+l: San Francisco
+ETag: 000000007a1999df
+----
+Bob prepares his changes in your application. Bob is almost ready to submit the new location and description when Carol stops by to ask Bob a few questions.
+
+Alice starts just after Bob, but manages to submit her changes without interruption. Now Babs's entry looks like this:
+
+[source, ldif]
+----
+dn: uid=bjensen,ou=People,dc=example,dc=com
+description: Updated by Alice
+telephoneNumber: +47 2108 1746
+roomNumber: 1389
+l: San Francisco
+ETag: 00000000aec2c1e9
+----
+In your application, you use the ETag attribute value with the assertion control to prevent Bob's update from succeeding although the ETag value has changed. Your application tries the equivalent of the following commands with Bob's updates:
+
+[source, console]
+----
+$ cat /path/to/bobs.ldif
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+replace: l
+l: Grenoble
+-
+add: description
+description: Employee of the Month
+
+$ ldapmodify \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --port 1389 \
+ --filename /path/to/bobs.ldif \
+ --assertionFilter "(ETag=000000007a1999df)"
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation failed
+Result Code:  122 (Assertion Failed)
+Additional Information:  Entry uid=bjensen,ou=People,dc=example,dc=com
+ cannot be modified because the request contained an LDAP assertion control
+ and the associated filter did not match the contents of the that entry
+----
+Your application reloads Babs's entry, gets the new ETag value `00000000aec2c1e9`, and lets Bob try again. This time Bob's changes do not collide with other changes. Babs's entry is successfully updated:
+
+[source, ldif]
+----
+dn: uid=bjensen,ou=People,dc=example,dc=com
+description: Employee of the Month
+telephoneNumber: +47 2108 1746
+roomNumber: 1389
+l: Grenoble
+ETag: 00000000e882c35e
+----
+====
+
+
+[#filter-adds-modifies]
+==== Filtering Add and Modify Operations
+
+Some client applications send updates including attributes with names that differ from the attribute names defined in OpenDJ. Other client applications might try to update attributes they should not update, such as the operational attributes `creatorsName`, `createTimestamp`, `modifiersName`, and `modifyTimestamp`. Ideally, you would fix the client application behavior, but that is not always feasible.
+
+You can configure the attribute cleanup plugin to filter add and modify requests, rename attributes in requests using incorrect names, and remove attributes that applications should not change.
+
+[#attr-cleanup-rename]
+.Renaming Incoming Attributes
+====
+The following example renames incoming `email` attributes to `mail` attributes. First, configure the attribute cleanup plugin to rename the inbound attribute:
+
+[source, console]
+----
+$ dsconfig \
+ create-plugin \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --type attribute-cleanup \
+ --plugin-name "Rename email to mail" \
+ --set enabled:true \
+ --set rename-inbound-attributes:email:mail \
+ --trustAll \
+ --no-prompt
+----
+Next, confirm that it worked as expected:
+
+[source, console]
+----
+$ cat email.ldif
+dn: uid=newuser,ou=People,dc=example,dc=com
+uid: newuser
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: New User
+sn: User
+ou: People
+email: newuser@example.com
+userPassword: changeme
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename email.ldif
+Processing ADD request for uid=newuser,ou=People,dc=example,dc=com
+ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com
+
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=newuser mail
+dn: uid=newuser,ou=People,dc=example,dc=com
+mail: newuser@example.com
+----
+====
+
+[#attr-cleanup-remove]
+.Removing Incoming Attributes
+====
+The following example prevents client applications from adding or modifying `creatorsName`, `createTimestamp`, `modifiersName`, and `modifyTimestamp` attributes. First, set up the attribute cleanup plugin:
+
+[source, console]
+----
+$ dsconfig \
+ create-plugin \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --type attribute-cleanup \
+ --plugin-name "Remove attrs" \
+ --set enabled:true \
+ --set remove-inbound-attributes:creatorsName \
+ --set remove-inbound-attributes:createTimestamp \
+ --set remove-inbound-attributes:modifiersName \
+ --set remove-inbound-attributes:modifyTimestamp \
+ --trustAll \
+ --no-prompt
+----
+Next, confirm that it worked as expected:
+
+[source, console]
+----
+$ cat badattrs.ldif
+dn: uid=badattr,ou=People,dc=example,dc=com
+uid: newuser
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: Bad Attr
+sn: Attr
+ou: People
+mail: badattr@example.com
+userPassword: changeme
+creatorsName: cn=Bad Attr
+createTimestamp: Never in a million years.
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+modifyTimestamp: 20110930164937Z
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename badattrs.ldif
+Processing ADD request for uid=badattr,ou=People,dc=example,dc=com
+ADD operation successful for DN uid=badattr,ou=People,dc=example,dc=com
+
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=badattr +
+dn: uid=badattr,ou=People,dc=example,dc=com
+numSubordinates: 0
+structuralObjectClass: inetOrgPerson
+pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config
+subschemaSubentry: cn=schema
+hasSubordinates: false
+entryDN: uid=badattr,ou=people,dc=example,dc=com
+entryUUID: 35e5cb0e-e929-49d8-a50f-2df036d60db9
+pwdChangedTime: 20110930165959.135Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+createTimestamp: 20110930165959Z
+----
+====
+
+
+[#rename-ldap]
+==== Renaming Entries
+
+The Relative Distinguished Name (RDN) refers to the part of an entry's DN that differentiates it from all other DNs at the same level in the directory tree. For example, `uid=bjensen` is the RDN of the entry with the DN `uid=bjensen,ou=People,dc=example,dc=com`.
+
+With the `ldapmodify` command, authorized users can rename entries in the directory.
+
+When you change the RDN of the entry, you are renaming the entry, modifying the value of the naming attribute, and the entry's DN.
+
+[#rename-modrdn]
+.Rename: Modifying the DN
+====
+Sam Carter is changing her last name to Jensen, and changing her login from `scarter` to `sjensen`. The following example shows you how to rename and change Sam Carter's entry. Notice the boolean field, `deleteoldrdn: 1`, which indicates that the previous RDN, `uid: scarter`, should be removed. (Setting `deleteoldrdn: 0` instead would preserve `uid: scarter` on the entry.)
+
+[source, console]
+----
+$ cat /path/to/scarter-sjensen.ldif
+dn: uid=scarter,ou=people,dc=example,dc=com
+changetype: modrdn
+newrdn: uid=sjensen
+deleteoldrdn: 1
+
+dn: uid=sjensen,ou=people,dc=example,dc=com
+changetype: modify
+replace: cn
+cn: Sam Jensen
+-
+replace: sn
+sn: Jensen
+-
+replace: homeDirectory
+homeDirectory: /home/sjensen
+-
+replace: mail
+mail: sjensen@example.com
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --filename /path/to/scarter-sjensen.ldif
+Processing MODIFY DN request for uid=scarter,ou=people,dc=example,dc=com
+MODIFY DN operation successful for DN uid=scarter,ou=people,dc=example,dc=com
+Processing MODIFY request for uid=sjensen,ou=people,dc=example,dc=com
+MODIFY operation successful for DN uid=sjensen,ou=people,dc=example,dc=com
+----
+====
+
+
+[#rename-moddn]
+==== Moving Entries
+
+When you rename an entry with child entries, the directory has to move all the entries underneath it.
+
+[NOTE]
+====
+The modify DN operation only works when moving entries in the same backend, under the same suffix. Also, depending on the number of entries you move, this can be a resource-intensive operation.
+====
+With the `ldapmodify` command, authorized users can move entries in the directory.
+
+[#move-entry-example]
+.Move: Merging Customer and Employees Under ou=People
+====
+The following example moves `ou=Customers,dc=example,dc=com` to `ou=People,dc=example,dc=com`, then moves each employee under `ou=Employees,dc=example,dc=com` under `ou=People,dc=example,dc=com` as well, and finally removes the empty `ou=Employees,dc=example,dc=com` container. Here, `deleteoldrdn: 1` indicates that the old RDN, `ou: Customers`, should be removed from the entry. For employees, `deleteoldrdn: 0` indicates that old RDNs, in this case, `uid` attribute values, should be preserved:
+
+[source, console]
+----
+$ cat move-customers.ldif
+dn: ou=Customers,dc=example,dc=com
+changetype: modrdn
+newrdn: ou=People
+deleteoldrdn: 1
+newsuperior: dc=example,dc=com
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename move-customers.ldif
+Processing MODIFY DN request for ou=Customers,dc=example,dc=com
+MODIFY DN operation successful for DN ou=Customers,dc=example,dc=com
+
+$ cat move-employees.pl
+#!/usr/bin/perl -w
+
+# For each employee, construct a spec to move under ou=People.
+while (<>)
+{
+    # Next line folded for readability only. Should not be split.
+    $_ =~ s/dn: (.*?)(,.*)/dn: $1$2\nchangetype: moddn\nnewrdn: $1\n
+     deleteoldrdn: 0\nnewsuperior: ou=People,dc=example,dc=com/;
+    print;
+}
+
+$ ldapsearch --port 1389 --baseDN ou=Employees,dc=example,dc=com uid=* - \
+ | move-employees.pl > /tmp/move-employees.ldif
+
+$ head -n 6 /tmp/move-employees.ldif
+dn: uid=abarnes,ou=Employees,dc=example,dc=com
+changetype: moddn
+newrdn: uid=abarnes
+deleteoldrdn: 0
+newsuperior: ou=People,dc=example,dc=com
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename /tmp/move-employees.ldif
+Processing MODIFY DN request for uid=abarnes,ou=Employees,dc=example,dc=com
+MODIFY DN operation successful for DN uid=abarnes,ou=Employees,dc=example,dc=com
+Processing MODIFY DN request for uid=abergin,ou=Employees,dc=example,dc=com
+MODIFY DN operation successful for DN uid=abergin,ou=Employees,dc=example,dc=com
+...
+Processing MODIFY DN request for uid=wlutz,ou=Employees,dc=example,dc=com
+MODIFY DN operation successful for DN uid=wlutz,ou=Employees,dc=example,dc=com
+
+$ ldapdelete \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ ou=Employees,dc=example,dc=com
+Processing DELETE request for ou=Employees,dc=example,dc=com
+DELETE operation successful for DN ou=Employees,dc=example,dc=com
+----
+====
+
+
+[#delete-ldap]
+==== Deleting Entries
+
+With the `ldapmodify` command, authorized users can delete entries from the directory.
+
+[#delete-subtree]
+.Delete: Removing a Subtree
+====
+The following example shows you how to use the subtree delete option to remove all special users from the directory:
+
+[source, console]
+----
+$ ldapdelete \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --deleteSubtree "ou=Special Users,dc=example,dc=com"
+Processing DELETE request for ou=Special Users,dc=example,dc=com
+DELETE operation successful for DN ou=Special Users,dc=example,dc=com
+----
+====
+
+
+
+[#change-password]
+=== Changing Passwords
+
+With the `ldappasswordmodify` command, described in xref:../reference/admin-tools-ref.adoc#ldappasswordmodify-1[ldappasswordmodify(1)] in the __Reference__, authorized users can change and reset user passwords.
+
+[#password-reset]
+.Resetting Passwords
+====
+The following example shows Kirsten Vaughan resetting Sam Carter's password. Kirsten has the appropriate privilege to reset Sam's password:
+
+[source, console]
+----
+$ ldappasswordmodify \
+ --useStartTLS \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --authzID "dn:uid=scarter,ou=people,dc=example,dc=com" \
+ --newPassword ChangeMe
+The LDAP password modify operation was successful
+----
+
+[TIP]
+======
+The `ldappasswordmodify` command uses the LDAP Password Modify extended operation. If this extended operation is performed on a connection that is already associated with a user (in other words, when a user first does a bind on the connection, then requests the LDAP Password Modify extended operation), then the operation is performed as the user associated with the connection. If the user associated with the connection is not the same user whose password is being changed, then OpenDJ considers it a password reset.
+
+Whenever one user changes another user's password, OpenDJ considers it a password reset. Often password policies specify that users must change their passwords again after a password reset.
+
+If you want your application to change a user's password, rather than reset a user's password, have your application request the password change as the user whose password is changing.
+
+To change the password as the user, bind as the user whose password should be changed, and use the link:http://tools.ietf.org/html/rfc3062[LDAP Password Modify extended operation, window=\_blank] with an authorization ID but without performing a bind, or use proxied authorization. For instructions on using proxied authorization, see xref:#proxied-authz["Configuring Proxied Authorization"].
+======
+You could also accomplish a password reset with the `manage-account` command, described in xref:../reference/admin-tools-ref.adoc#manage-account-1[manage-account(1)] in the __Reference__, although `set-password-is-reset` is a hidden option, supported only for testing:
+
+[source, console]
+----
+$ manage-account \
+ set-password-is-reset \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --targetDN uid=scarter,ou=people,dc=example,dc=com \
+ --operationValue true
+Password Is Reset:  true
+----
+====
+
+[#change-own-password]
+.Changing One's Own Password
+====
+You can use the `ldappasswordmodify` command to change your password, as long as you know your current password:
+
+[source, console]
+----
+$ ldappasswordmodify \
+ --port 1389 \
+ --authzID "dn:uid=bjensen,ou=people,dc=example,dc=com" \
+ --currentPassword hifalutin \
+ --newPassword secret12
+The LDAP password modify operation was successful
+----
+The same operation works for `cn=Directory Manager`:
+
+[source, console]
+----
+$ ldappasswordmodify \
+ --port 1389 \
+ --authzID "dn:cn=Directory Manager" \
+ --currentPassword password \
+ --newPassword secret12
+The LDAP password modify operation was successful
+----
+====
+
+[#non-ascii-password]
+.Changing Passwords With Special Characters
+====
+OpenDJ expects passwords to be UTF-8 encoded (base64-encoded when included in LDIF):
+
+[source, console]
+----
+$ echo $LANG
+en_US.utf8
+
+$ ldappasswordmodify \
+ --port 1389 \
+ --bindDN uid=bjensen,ou=People,dc=example,dc=com \
+ --bindPassword hifalutin \
+ --currentPassword hifalutin \
+ --newPassword pàsswȏrd
+The LDAP password modify operation was successful
+
+$ ldapsearch \
+ --port 1389 \
+ --bindDN uid=bjensen,ou=People,dc=example,dc=com \
+ --bindPassword pàsswȏrd \
+ --baseDN dc=example,dc=com \
+ "(uid=bjensen)" cn
+dn: uid=bjensen,ou=People,dc=example,dc=com
+userPassword: {SSHA}k0eEeCxj9YRXUp8yJn0Z/mwqe+wrcFb1N1gg2g==
+cn: Barbara Jensen
+cn: Babs Jensen
+----
+====
+
+
+[#tools-properties]
+=== Configuring Default Settings
+
+You can use `~/.opendj/tools.properties` to set the defaults for bind DN, host name, and port number as in the following example:
+
+[source, ini]
+----
+hostname=directory.example.com
+port=1389
+bindDN=uid=kvaughan,ou=People,dc=example,dc=com
+
+ldapcompare.port=1389
+ldapdelete.port=1389
+ldapmodify.port=1389
+ldappasswordmodify.port=1389
+ldapsearch.port=1389
+----
+The location on Windows is `%UserProfile%/.opendj/tools.properties`.
+
+
+[#client-auth]
+=== Authenticating To the Directory Server
+
+Authentication is the act of confirming the identity of a principal. Authorization is the act of determining whether to grant or to deny access to a principal. Authentication is performed to make authorization decisions.
+
+As explained in xref:../admin-guide/chap-privileges-acis.adoc#chap-privileges-acis["Configuring Privileges and Access Control"] in the __Administration Guide__, OpenDJ directory server implements fine-grained access control for authorization. Authorization for an operation depends on who is requesting the operation. In LDAP, directory servers must therefore authenticate a principal before they can authorize or deny access for particular operations. In LDAP, the bind operation authenticates the principal. The first LDAP operation in every LDAP session is generally a bind.
+
+Clients bind by providing both a means to find their principal's entry in the directory and also by providing some credentials that the directory server can check against their entry.
+
+In the simplest bind operation, the client provides a zero-length name and a zero-length password. This results in an anonymous bind, meaning the client is authenticated as an anonymous user of the directory. In the simplest examples in xref:#search-ldap["Searching the Directory"], notice that no authentication information is provided. The examples work because the client commands default to requesting anonymous binds when no credentials are provided, and because access controls for the sample data allow anonymous clients to read, search, and compare some directory data.
+
+In a simple bind operation, the client provides an LDAP name, such as the DN identifying its entry, and the corresponding password stored on the `userPassword` attribute of the entry. In xref:#write-ldap["Updating the Directory"], notice that to change directory data, the client provides the bind DN and bind password of a user who has permission to change directory data. The commands do not work with a bind DN and bind password because access controls for the sample data only let authorized users change directory data.
+
+Users rarely provide client applications with DNs, however. Instead, users might provide a client application with an identity string like a user ID or an email address. Depending on how the DNs are constructed, the client application can either build the DN directly from the user's identity string, or use a session where the bind has been performed with some other identity to search for the user entry based on the user's identity string. Given the DN constructed or found, the client application can then perform a simple bind.
+
+For example, suppose Babs Jensen enters her email address, `bjensen@example.com`, and her password in order to log in. The client application might search for the entry matching `(mail=bjensen@example.com)` under base DN `dc=example,dc=com`. Alternatively, the client application might know to extract the user ID `bjensen` from the address, then build the corresponding DN, `uid=bjensen,ou=people,dc=example,dc=com` in order to bind.
+When an identifier string provided by the user can be readily mapped to the user's entry DN, OpenDJ directory server can translate between the identifier string and the entry DN. This translation is the job of a component called an identity mapper. Identity mappers are used to perform PLAIN SASL authentication (with a user name and password), SASL GSSAPI authentication (Kerberos V5), SASL CRAM MD5, and DIGEST MD5 authentication. They also handle authorization IDs during password modify extended operations and proxied authorization.
+
+One use of PLAIN SASL is to translate user names from HTTP Basic authentication to LDAP authentication. The following example shows PLAIN SASL authentication using the default Exact Match identity mapper. In this (contrived) example, Babs Jensen reads the hashed value of her password. (According to the access controls in the example data, Babs must authenticate to read her password.) Notice the authentication ID is her user ID, `u:bjensen`, rather than the DN of her entry:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --useStartTLS \
+ --baseDN dc=example,dc=com \
+ --saslOption mech=PLAIN \
+ --saslOption authid=u:bjensen \
+ --bindPassword hifalutin \
+ "(cn=Babs Jensen)" cn userPassword
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==
+----
+The Exact Match identity mapper searches for a match between the string provided (here, `bjensen`) and the value of a specified attribute (by default the `uid` attribute). If you know users are entering their email addresses, you could create an exact match identity mapper for email addresses, then use that for PLAIN SASL authentication as in the following example:
+
+[source, console]
+----
+$ dsconfig \
+ create-identity-mapper \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --mapper-name "Email Mapper" \
+ --type exact-match \
+ --set match-attribute:mail \
+ --set enabled:true \
+ --no-prompt
+
+$ dsconfig \
+ set-sasl-mechanism-handler-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name PLAIN \
+ --set identity-mapper:"Email Mapper" \
+ --no-prompt
+
+$ ldapsearch \
+ --port 1389 \
+ --useStartTLS \
+ --baseDN dc=example,dc=com \
+ --saslOption mech=PLAIN \
+ --saslOption authid=u:bjensen@example.com \
+ --bindPassword hifalutin \
+ "(cn=Babs Jensen)" cn userPassword
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==
+----
+OpenDJ directory server's Regular Expression identity mapper uses a regular expression to extract a substring from the string provided, then searches for a match between the substring and the value of a specified attribute. In the case of example data where an email address is __user ID__ + @ + __domain__, you can use the default Regular Expression identity mapper in the same way as the email mapper from the previous example. The default regular expression pattern is `^([^@]+)@.+$`, and the part of the identity string matching `([^@]+)` is used to find the entry by user ID:
+
+[source, console]
+----
+$ dsconfig \
+ set-sasl-mechanism-handler-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name PLAIN \
+ --set identity-mapper:"Regular Expression" \
+ --no-prompt
+
+$ ldapsearch \
+ --port 1389 \
+ --useStartTLS \
+ --baseDN dc=example,dc=com \
+ --saslOption mech=PLAIN \
+ --saslOption authid=u:bjensen@example.com \
+ --bindPassword hifalutin \
+ "(cn=Babs Jensen)" cn userPassword
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==
+----
+Try the `dsconfig` command interactively to experiment with `match-pattern` and `replace-pattern` settings for the Regular Expression identity mapper. The `match-pattern` can be any regular expression supported by `javax.util.regex.Pattern`.
+
+
+[#proxied-authz]
+=== Configuring Proxied Authorization
+
+Proxied authorization provides a standard control as defined in link:http://tools.ietf.org/html/rfc4370[RFC 4370, window=\_top] (and an earlier Internet-Draft) for binding with the user credentials of a proxy, who carries out LDAP operations on behalf of other users. You might use proxied authorization, for example, to bind your application with its credentials, then carry out operations as the users who login to the application.
+
+Proxied authorization is similar to the UNIX `sudo` command. The proxied operation is performed as if it were requested not by the user who did the bind, but by the proxied user. xref:#proxy-authz-permissions["Whether Proxy Authorization Allows an Operation on the Target"] shows how this affects permissions.
+
+[#proxy-authz-permissions]
+.Whether Proxy Authorization Allows an Operation on the Target
+[cols="33%,33%,34%"]
+|===
+| |Bind DN no access |Bind DN has access 
+
+a|*Proxy ID no access*
+a|No
+a|No
+
+a|*Proxy ID has access*
+a|Yes
+a|Yes
+|===
+
+[NOTE]
+====
+When you configure resource limits as described in xref:../admin-guide/chap-resource-limits.adoc#chap-resource-limits["Setting Resource Limits"] in the __Administration Guide__, know that the resource limits do not change when the user proxies as another user. In other words, resource limits depend on the bind DN, not the proxy authorization identity.
+====
+Suppose you have an administrative directory client application that has an entry in the directory with DN `cn=My App,ou=Apps,dc=example,dc=com`. You can give that application the access rights and privileges to use proxied authorization. The default access control for OpenDJ lets authenticated users use the proxied authorization control.
+
+Suppose also that when directory administrator, Kirsten Vaughan, logs in to your application to change Babs Jensen's entry, your application looks up Kirsten's entry, and finds that she has DN `uid=kvaughan,ou=People,dc=example,dc=com`. For the example commands in xref:#setup-proxied-authz["To Configure Proxied Authorization"], My App uses proxied authorization to make a change to Babs's entry as Kirsten.
+
+[#setup-proxied-authz]
+.To Configure Proxied Authorization
+====
+In order to carry out LDAP operations on behalf of another user, the user binding to OpenDJ directory server needs:
+
+* Permission to use the LDAP Proxy Authorization Control.
++
+Permissions are granted using access control instructions (ACIs). This calls for an ACI with a `targetcontrol` list that includes the Proxy Authorization Control OID `2.16.840.1.113730.3.4.18` that grants `allow(read)` permission to the user binding to the directory.
+
+* Permission to proxy as the given authorization user.
++
+This calls for an ACI with a target scope that includes the entry of the authorization user that grants `allow(proxy)` permission to the user binding to the directory.
+
+* The privilege to use proxied authorization.
++
+Privileges are granted using the `ds-privilege-name` attribute.
+
+Follow these steps to configure proxied authorization for applications with DNs that match `cn=*,ou=Apps,dc=example,dc=com`:
+
+. (Optional)  If the global ACIs do not allow access to use the Proxy Authorization Control, grant access to applications to use the control.
++
+The control has OID `2.16.840.1.113730.3.4.18`:
++
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: dc=example,dc=com
+changetype: modify
+add: aci
+aci: (targetcontrol="2.16.840.1.113730.3.4.18") (version 3.0; acl
+  "Apps can use the Proxy Authorization Control"; allow(read)
+  userdn="ldap:///cn=*,ou=Apps,dc=example,dc=com";)
+
+  Processing MODIFY request for dc=example,dc=com
+  MODIFY operation successful for DN dc=example,dc=com
+----
+
+. Grant access to applications that can use proxied authorization:
++
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: dc=example,dc=com
+changetype: modify
+add: aci
+aci: (target="ldap:///dc=example,dc=com") (targetattr ="*
+ ")(version 3.0; acl "Allow apps proxied auth"; allow(proxy
+ )(userdn = "ldap:///cn=*,ou=Apps,dc=example,dc=com");)
+
+Processing MODIFY request for dc=example,dc=com
+MODIFY operation successful for DN dc=example,dc=com
+----
++
+This ACI allows any user whose DN matches `cn=*,ou=Apps,dc=example,dc=com` to proxy as any user under the ACI target of `dc=example,dc=com`.
++
+For example, `cn=My App,ou=Apps,dc=example,dc=com` can proxy as any user defined in the Example.com sample data, but cannot proxy as `cn=Directory Manager`. This is because all the users defined in the Example.com sample data have their accounts under `dc=example,dc=com`, and the target of the ACI includes `dc=example,dc=com`. `cn=Directory Manager` is defined in the configuration, however, under `cn=config`. The target of the ACI does not include `cn=config`.
+
+. Grant the privilege to use proxied authorization to My App:
++
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: cn=My App,ou=Apps,dc=example,dc=com
+changetype: modify
+add: ds-privilege-name
+ds-privilege-name: proxied-auth
+
+Processing MODIFY request for cn=My App,ou=Apps,dc=example,dc=com
+MODIFY operation successful for DN cn=My App,ou=Apps,dc=example,dc=com
+----
+
+. Test that My App can use proxied authorization:
++
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=My App,ou=Apps,dc=example,dc=com" \
+ --bindPassword password \
+ --proxyAs "dn:uid=kvaughan,ou=People,dc=example,dc=com"
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+replace: description
+description: Changed through proxied auth
+
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com
+----
+
+====
+If you need to map authorization identifiers using the `u:` form rather than using `dn:`, you can set the identity mapper with the global configuration setting, `proxied-authorization-identity-mapper`. For example, if you get user ID values from the client, such as `bjensen`, you can configure OpenDJ directory server to use the exact match identity mapper to match those to DNs based on an attribute of the entry. Use the `dsconfig` command interactively to determine the settings you need.
+
+
+[#client-cert-auth]
+=== Authenticating Using a Certificate
+
+One alternative to simple binds with user name/password combinations consists of storing a digital certificate on the user entry, then using the certificate as credentials during the bind. You can use this mechanism, for example, to let applications bind without using passwords.
+
+By setting up a secure connection with a certificate, the client is in effect authenticating to the server. The server must close the connection if it cannot trust the client certificate. However, the process of establishing a secure connection does not in itself identify the client to OpenDJ directory server.
+
+Instead, when binding with a certificate, the client must request the SASL External mechanism by which OpenDJ directory server maps the certificate to the client entry in the directory. When it finds a match, OpenDJ sets the authorization identity for the connection to that of the client, and the bind is successful.
+
+For the whole process of authenticating with a certificate to work smoothly, OpenDJ and the client must trust each others' certificates, the client certificate must be stored on the client entry in the directory, and OpenDJ must be configured to map the certificate to the client entry.
+This section includes the following procedures and examples:
+
+* xref:#add-client-cert["To Add Certificate Information to an Entry"]
+
+* xref:#use-pkcs12-trust-store["To Use a PKCS #12 Truststore"]
+
+* xref:#config-cert-mappers["To Configure Certificate Mappers"]
+
+* xref:#auth-with-client-cert["Authenticating With Client Certificates"]
+
+
+[#add-client-cert]
+.To Add Certificate Information to an Entry
+====
+Before you try to bind to OpenDJ directory server using a certificate, create a certificate, then add the certificate attributes to the entry.
+
+link:../resources/Example.ldif[Example.ldif, window=\_blank] includes an entry for `cn=My App,ou=Apps,dc=example,dc=com`. Examples in this section use that entry, and use the Java `keytool` command to manage the certificate:
+
+. Create a certificate using the DN of the client entry as the distinguished name string:
++
+
+[source, console]
+----
+$ keytool \
+ -genkey \
+ -alias myapp-cert \
+ -keyalg rsa \
+ -dname "cn=My App,ou=Apps,dc=example,dc=com" \
+ -keystore keystore \
+ -storepass changeit \
+ -keypass changeit
+----
+
+. Get the certificate signed.
++
+If you cannot get the certificate signed by a Certificate Authority, self-sign the certificate:
++
+
+[source, console]
+----
+$ keytool \
+ -selfcert \
+ -alias myapp-cert \
+ -validity 7300 \
+ -keystore keystore \
+ -storepass changeit \
+ -keypass changeit
+----
+
+. Make note of the certificate fingerprints.
++
+Later in this procedure you update the client application entry with the MD5 fingerprint, which in this example is `48:AC:F9:13:11:E0:AB:C4:65:A2:83:9E:DB:FE:0C:37`:
++
+
+[source, console]
+----
+$ keytool \
+ -list \
+ -v \
+ -alias myapp-cert \
+ -keystore keystore \
+ -storepass changeit
+Alias name: myapp-cert
+Creation date: Jan 18, 2013
+Entry type: PrivateKeyEntry
+Certificate chain length: 1
+Certificate[1]:
+Owner: CN=My App, OU=Apps, DC=example, DC=com
+Issuer: CN=My App, OU=Apps, DC=example, DC=com
+Serial number: 5ae2277
+Valid from: Fri Jan 18 18:27:09 CET 2013 until: Thu Jan 13 18:27:09 CET 2033
+Certificate fingerprints:
+  MD5:  48:AC:F9:13:11:E0:AB:C4:65:A2:83:9E:DB:FE:0C:37
+  SHA1: F9:61:54:37:AA:C1:BC:92:45:07:64:4B:23:6C:BC:C9:CD:1D:44:0F
+  SHA256: 2D:B1:58:CD:33:40:E9:...:FD:61:EA:C9:FF:6A:19:93:FE:E4:84:E3
+  Signature algorithm name: SHA256withRSA
+  Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 54 C0 C5 9C 73 37 85 4B   F2 3B D3 37 FD 45 0A AB  T...s7.K.;.7.E..
+0010: C9 6B 32 95                                        .k2.
+]
+]
+----
+
+. Export the certificate to a file in binary format:
++
+
+[source, console]
+----
+$ keytool \
+ -export \
+ -alias myapp-cert \
+ -keystore keystore \
+ -storepass changeit \
+ -keypass changeit \
+ -file myapp-cert.crt
+Certificate stored in file </path/to/myapp-cert.crt>
+----
+
+. Modify the entry to add attributes related to the certificate.
++
+By default, you need the `userCertificate` value.
++
+If you want OpenDJ to map the certificate to its fingerprint, use the `ds-certificate-fingerprint` attribute. This example uses the MD5 fingerprint, which corresponds to the default setting for the fingerprint certificate mapper.
++
+If you want to map the certificate subject DN to an attribute of the entry, use the `ds-certificate-subject-dn` attribute:
++
+
+[source, console]
+----
+$ cat addcert.ldif
+dn: cn=My App,ou=Apps,dc=example,dc=com
+changetype: modify
+add: objectclass
+objectclass: ds-certificate-user
+-
+add: ds-certificate-fingerprint
+ds-certificate-fingerprint: 48:AC:F9:13:11:E0:AB:C4:65:A2:83:9E:DB:FE:0C:37
+-
+add: ds-certificate-subject-dn
+ds-certificate-subject-dn: CN=My App, OU=Apps, DC=example, DC=com
+-
+add: userCertificate;binary
+userCertificate;binary:<file:///path/to/myapp-cert.crt
+
+$ ldapmodify \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename addcert.ldif
+Processing MODIFY request for cn=My App,ou=Apps,dc=example,dc=com
+MODIFY operation successful for DN cn=My App,ou=Apps,dc=example,dc=com
+----
+
+. Check your work:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --baseDN dc=example,dc=com \
+ "(cn=My App)"
+dn: cn=My App,ou=Apps,dc=example,dc=com
+ds-certificate-fingerprint: 4B:F5:CF:2C:2D:B3:86:14:FF:43:A8:37:17:DD:E7:55
+userCertificate;binary:: MIIDOzCCAiOgAwIBAgIESfC6IjANBgkqhkiG9w0BAQsFADBOMRMwEQY
+ KCZImiZPyLGQBGRYDY29tMRcwFQYKCZImiZPyLGQBGRYHZXhhbXBsZTENMAsGA1UECxMEQXBwczEPMA
+ 0GA1UEAxMGTXkgQXBwMB4XDTEzMDExNzE3MTEwM1oXDTEzMDQxNzE3MTEwM1owTjETMBEGCgmSJomT8
+ ixkARkWA2NvbTEXMBUGCgmSJomT8ixkARkWB2V4YW1wbGUxDTALBgNVBAsTBEFwcHMxDzANBgNVBAMT
+ Bk15IEFwcDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJQYq+jG4ZQdNkyBT4OQBZ0sFkl
+ X5o2yBViDMGl1sSWIRGLpFwu6iq1chndPBJYTC+FkT66yEEOwWOpSfcYdFHkMQP0qp5A8mgP6bYkeH1
+ ROvQ1nhLs0ILuksR10CVIQ5b1zv6bGEFhA9gSKmpHfQOSt9PXq8+kuz+4RgZk9Il28tgDNMm91wSJr7
+ kqi5g7a2a7Io5s9L2FeLhVSBYwinWQnASk8nENrhcE0hHkrpGsaxdhIQBQQvm+SRC0dI4E9iwBGI3Lw
+ lV3a4KTa5DlYD6cDREI6B8XlSdc1DaIhwC8CbsE0WJQoCERSURdjkuHrPck6f69HKUFRiC7JMT3dFbs
+ CAwEAAaMhMB8wHQYDVR0OBBYEFFTAxZxzN4VL8jvTN/1FCqvJazKVMA0GCSqGSIb3DQEBCwUAA4IBAQ
+ BXsAIEw7I5XUzLFHvXb2N0hmW/Vmhb/Vlv9LTT8JcCRJy4zaiyS9Q+Sp9zQUkrXauFnNAhJLwpAymjZ
+ MCOq1Th1bw9LnIzbccPQ/1+ZHLKDU5pgnc5BcvaV6Zl6COLLH2OOt0XMZ/OrODBV1M6STfhChqcowff
+ xp72pWMQe+kpZfzjeDBk4kK2hUNTZsimB9qRyrDAMCIXdmdmFv1o07orxjy8c/6S1329swiiVqFckBR
+ aXIa8wCcXjpQbZacDODeKk6wZIKxw4miLg1YByCMa7vkUfz+Jj+JHgbHjyoT/G82mtDbX02chLgXbDm
+ xJPFN3mwAC7NEkSPbqd35nJlf3
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: ds-certificate-user
+objectClass: top
+ds-certificate-subject-dn: CN=My App, OU=Apps, DC=example, DC=com
+cn: My App
+sn: App
+----
+
+. When using a self-signed certificate, import the client certificate into the truststore for OpenDJ.
++
+When the client presents its certificate to OpenDJ, by default OpenDJ must trust the client certificate before it can accept the connection. If OpenDJ cannot trust the client certificate, it cannot establish a secure connection:
++
+
+[source, console]
+----
+$ keytool \
+ -import \
+ -alias myapp-cert \
+ -file /path/to/myapp-cert.crt \
+ -keystore /path/to/opendj/config/truststore \
+ -storepass `cat /path/to/opendj/config/keystore.pin`
+Owner: CN=My App, OU=Apps, DC=example, DC=com
+Issuer: CN=My App, OU=Apps, DC=example, DC=com
+Serial number: 5ae2277
+Valid from: Fri Jan 18 18:27:09 CET 2013 until: Thu Jan 13 18:27:09 CET 2033
+Certificate fingerprints:
+  MD5:  48:AC:F9:13:11:E0:AB:C4:65:A2:83:9E:DB:FE:0C:37
+  SHA1: F9:61:54:37:AA:C1:BC:92:45:07:64:4B:23:6C:BC:C9:CD:1D:44:0F
+  SHA256: 2D:B1:58:CD:33:40:E9:...:FD:61:EA:C9:FF:6A:19:93:FE:E4:84:E3
+  Signature algorithm name: SHA256withRSA
+  Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 54 C0 C5 9C 73 37 85 4B   F2 3B D3 37 FD 45 0A AB  T...s7.K.;.7.E..
+0010: C9 6B 32 95                                        .k2.
+]
+]
+
+Trust this certificate? [no]:  yes
+Certificate was added to keystore
+----
+
+. When using a certificate signed by a CA whose certificate is not delivered with the Java runtime environmentfootnote:d0e6685[`$JAVA_HOME/jre/lib/security/cacerts`holds the certificates for many CAs. To get the full list, use the following command:], import the CA certificate either into the Java runtime environment truststore, or into the OpenDJ trust store as shown in the following example:
++
+
+[source, console]
+----
+$ keytool \
+ -import \
+ -alias ca-cert \
+ -file ca.crt \
+ -keystore /path/to/opendj/config/truststore \
+ -storepass `cat /path/to/opendj/config/keystore.pin`
+Owner: EMAILADDRESS=admin@example.com, CN=Example CA, O=Example Corp, C=FR
+Issuer: EMAILADDRESS=admin@example.com, CN=Example CA, O=Example Corp, C=FR
+Serial number: d4586ea05c878b0c
+Valid from: Tue Jan 29 09:30:31 CET 2013 until: Mon Jan 24 09:30:31 CET 2033
+Certificate fingerprints:
+  MD5:  8A:83:61:9B:E7:18:A2:21:CE:92:94:96:59:68:60:FA
+  SHA1: 01:99:18:38:3A:57:D7:92:7B:D6:03:8C:7B:E4:1D:37:45:0E:29:DA
+  SHA256: 5D:20:F1:86:CC:CD:64:50:1E:54:...:DF:15:43:07:69:44:00:FB:36:CF
+  Signature algorithm name: SHA1withRSA
+  Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.35 Criticality=false
+AuthorityKeyIdentifier [
+KeyIdentifier [
+0000: 30 07 67 7D 1F 09 B6 E6   90 85 95 58 94 37 FD 31  0.g........X.7.1
+0010: 03 D4 56 7B                                        ..V.
+]
+[EMAILADDRESS=admin@example.com, CN=Example CA, O=Example Corp, C=FR]
+SerialNumber: [    d4586ea0 5c878b0c]
+]
+
+#2: ObjectId: 2.5.29.19 Criticality=false
+BasicConstraints:[
+  CA:true
+  PathLen:2147483647
+]
+
+#3: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 30 07 67 7D 1F 09 B6 E6   90 85 95 58 94 37 FD 31  0.g........X.7.1
+0010: 03 D4 56 7B                                        ..V.
+]
+]
+
+Trust this certificate? [no]:  yes
+Certificate was added to keystore
+----
+
+. If you updated the OpenDJ truststore to add a certificate, restart OpenDJ to make sure it reads the updated truststore and recognizes the certificate:
++
+
+[source, console]
+----
+$ stop-ds --restart
+Stopping Server...
+...
+... The Directory Server has started successfully
+----
+
+====
+
+[#use-pkcs12-trust-store]
+.To Use a PKCS #12 Truststore
+====
+The Java `keytool` command does not support importing trusted certificates into a PKCS #12 format store. Yet, Java does support creating a PKCS #12 format keystore, and using an existing PKCS #12 format store as a truststore. You can use a PKCS #12 store as an OpenDJ truststore.
+
+. Add the PKCS #12 format store to OpenDJ's configuration.
++
+By default, OpenDJ expects the store to be `/path/to/opendj/config/truststore.p12`. The following example uses that default:
++
+
+[source, console]
+----
+$ cp /path/to/pkcs12-store /path/to/opendj/config/truststore.p12
+----
++
+Here, __pkcs12-store__ is the file name of the PKCS #12 format store.
+
+. Configure the OpenDJ PKCS12 trust manager provider to use the PKCS #12 store, and restart OpenDJ server to force it to read the store.
++
+In the following example, the store password is `changeit`:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-trust-manager-provider-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name PKCS12 \
+ --set enabled:true \
+ --set trust-store-pin:changeit \
+ --no-prompt \
+ --trustAll
+$ stop-ds --restart
+----
+
+. Configure a connection handler to use the PKCS12 trust manager provider.
++
+The following example configures the LDAPS connection handler:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-connection-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "LDAPS Connection Handler" \
+ --set trust-manager-provider:PKCS12 \
+ --no-prompt \
+ --trustAll
+----
+
+. Verify SSL mutual authentication to check your work.
++
+The following example assumes the client certificate for My App is present in the PKCS #12 store, and that the certificate has been added to the entry for My App as in xref:#add-client-cert["To Add Certificate Information to an Entry"]:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1636 \
+ --hostname opendj.example.com \
+ --baseDN dc=example,dc=com \
+ --useSSL \
+ --useSASLExternal \
+ --certNickName myapp-cert \
+ --keyStorePath keystore \
+ --keyStorePassword changeit \
+ --trustStorePath /path/to/opendj/config/keystore \
+ --trustStorePasswordFile /path/to/opendj/config/keystore.pin \
+ "(cn=My App)" userPassword
+dn: cn=My App,ou=Apps,dc=example,dc=com
+userPassword: {SSHA}9jjvsv9wlTW7Ikflzc2/wMNBjAN6G4CbbTKYIw==
+----
+
+====
+
+[#config-cert-mappers]
+.To Configure Certificate Mappers
+====
+--
+OpenDJ uses certificate mappers during binds to establish a mapping between a client certificate and the entry that corresponds to that certificate. The certificate mappers provided out of the box include the following:
+
+Fingerprint Certificate Mapper::
+Looks for the MD5 (default) or SHA1 certificate fingerprint in an attribute of the entry (default: `ds-certificate-fingerprint`).
+
+Subject Attribute To User Attribute Mapper::
+Looks for a match between an attribute of the certificate subject and an attribute of the entry (default: match `cn` in the certificate to `cn` on the entry, or match `emailAddress` in the certificate to `mail` on the entry).
+
+Subject DN to User Attribute Certificate Mapper::
+Looks for the certificate subject DN in an attribute of the entry (default: `ds-certificate-subject-dn`).
+
+Subject Equals DN Certificate Mapper::
+Looks for an entry whose DN matches the certificate subject DN.
+
+--
+If the default configurations for the certificate mappers are acceptable, you do not need to change them. They are enabled by default.
+
+The following steps demonstrate how to change the Fingerprint Mapper default algorithm of MD5 to SHA1:
+
+. List the certificate mappers to retrieve the correct name:
++
+
+[source, console]
+----
+$ dsconfig \
+ list-certificate-mappers \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+
+Certificate Mapper                  : Type                                : enabled
+------------------------------------:-------------------------------------:--------
+Fingerprint Mapper                  : fingerprint                         : true
+Subject Attribute to User Attribute : subject-attribute-to-user-attribute : true
+Subject DN to User Attribute        : subject-dn-to-user-attribute        : true
+Subject Equals DN                   : subject-equals-dn                   : true
+----
+
+. Examine the current configuration:
++
+
+[source, console]
+----
+$ dsconfig \
+ get-certificate-mapper-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --mapper-name "Fingerprint Mapper"
+
+Property              : Value(s)
+----------------------:---------------------------
+enabled               : true
+fingerprint-algorithm : md5
+fingerprint-attribute : ds-certificate-fingerprint
+user-base-dn          : -
+----
+
+. Change the configuration as necessary:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-certificate-mapper-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --mapper-name "Fingerprint Mapper" \
+ --set fingerprint-algorithm:sha1 \
+ --no-prompt
+----
+
+. Set the External SASL Mechanism Handler to use the appropriate certificate mapper (default: Subject Equals DN).
++
+Client applications use the SASL External mechanism during the bind to have OpenDJ set the authorization identifier based on the entry that matches the client certificate:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-sasl-mechanism-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name External \
+ --set certificate-mapper:"Fingerprint Mapper" \
+ --no-prompt
+----
+
+====
+
+[#auth-with-client-cert]
+.Authenticating With Client Certificates
+====
+Instead of providing a bind DN and password as for simple authentication, use the SASL EXTERNAL authentication mechanism, and provide the certificate. As a test with example data, you can try an anonymous search, then try with certificate-based authentication.
+
+Before you try this example, make sure OpenDJ is set up to accept StartTLS from clients, and that you have set up the client certificate as described above. Next, create a password .pin file for your client key store:
+
+[source, console]
+----
+$ echo changeit > keystore.pin
+$ chmod 400 keystore.pin
+----
+Also, if OpenDJ directory server uses a certificate for StartTLS that was not signed by a well-known CA, import the appropriate certificate into the client keystore, which can then double as a truststore. For example, if OpenDJ uses a self-signed certificate, import the server certificate into the keystore:
+
+[source, console]
+----
+$ keytool \
+ -export \
+ -alias server-cert \
+ -file server-cert.crt \
+ -keystore /path/to/opendj/config/keystore \
+ -storepass `cat /path/to/opendj/config/keystore.pin`
+
+$ keytool \
+ -import \
+ -trustcacerts \
+ -alias server-cert \
+ -file server-cert.crt \
+ -keystore keystore \
+ -storepass `cat keystore.pin`
+----
+If OpenDJ directory server uses a CA-signed certificate, but the CA is not well-known, import the CA certificate into your keystore:
+
+[source, console]
+----
+$ keytool \
+ -import \
+ -trustcacerts \
+ -alias ca-cert \
+ -file ca-cert.crt \
+ -keystore keystore \
+ -storepass `cat keystore.pin`
+----
+Now that you can try the example, notice that OpenDJ does not return the `userPassword` value for an anonymous search:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --baseDN dc=example,dc=com \
+ --useStartTLS \
+ --trustStorePath keystore \
+ --trustStorePasswordFile keystore.pin \
+ "(cn=My App)" userPassword
+dn: cn=My App,ou=Apps,dc=example,dc=com
+----
+OpenDJ does let users read the values of their own `userPassword` attributes after they bind successfully:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --baseDN dc=example,dc=com \
+ --useStartTLS \
+ --useSASLExternal \
+ --certNickName myapp-cert \
+ --keyStorePath keystore \
+ --keyStorePasswordFile keystore.pin \
+ --trustStorePath keystore \
+ --trustStorePasswordFile keystore.pin \
+ "(cn=My App)" userPassword
+dn: cn=My App,ou=Apps,dc=example,dc=com
+userPassword: {SSHA}vy/vTthOQoV/wH3MciTOBKKR4OX+0dSN/a09Ew==
+----
+You can also try the same test with other certificate mappers:
+
+[source, console]
+----
+# Fingerprint mapper
+$ dsconfig \
+ set-sasl-mechanism-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name External \
+ --set certificate-mapper:"Fingerprint Mapper" \
+ --no-prompt
+
+$ ldapsearch \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --baseDN dc=example,dc=com \
+ --useStartTLS \
+ --useSASLExternal \
+ --certNickName myapp-cert \
+ --keyStorePath keystore \
+ --keyStorePasswordFile keystore.pin \
+ --trustStorePath keystore \
+ --trustStorePasswordFile keystore.pin \
+ "(cn=My App)" userPassword
+dn: cn=My App,ou=Apps,dc=example,dc=com
+userPassword: {SSHA}vy/vTthOQoV/wH3MciTOBKKR4OX+0dSN/a09Ew==
+----
+
+[source, console]
+----
+# Subject Attribute to User Attribute mapper
+$ dsconfig \
+ set-sasl-mechanism-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name External \
+ --set certificate-mapper:"Subject Attribute to User Attribute" \
+ --no-prompt
+
+$ ldapsearch \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --baseDN dc=example,dc=com \
+ --useStartTLS \
+ --useSASLExternal \
+ --certNickName myapp-cert \
+ --keyStorePath keystore \
+ --keyStorePasswordFile keystore.pin \
+ --trustStorePath keystore \
+ --trustStorePasswordFile keystore.pin \
+ "(cn=My App)" userPassword
+dn: cn=My App,ou=Apps,dc=example,dc=com
+userPassword: {SSHA}vy/vTthOQoV/wH3MciTOBKKR4OX+0dSN/a09Ew==
+----
+
+[source, console]
+----
+# Subject DN to User Attribute mapper
+$ dsconfig \
+ set-sasl-mechanism-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name External \
+ --set certificate-mapper:"Subject DN to User Attribute" \
+ --no-prompt
+
+$ ldapsearch \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --baseDN dc=example,dc=com \
+ --useStartTLS \
+ --useSASLExternal \
+ --certNickName myapp-cert \
+ --keyStorePath keystore \
+ --keyStorePasswordFile keystore.pin \
+ --trustStorePath keystore \
+ --trustStorePasswordFile keystore.pin \
+ "(cn=My App)" userPassword
+dn: cn=My App,ou=Apps,dc=example,dc=com
+userPassword: {SSHA}vy/vTthOQoV/wH3MciTOBKKR4OX+0dSN/a09Ew==
+----
+====
+
+

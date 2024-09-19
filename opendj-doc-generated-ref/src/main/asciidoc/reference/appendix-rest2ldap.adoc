@@ -1,0 +1,1138 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[appendix]
+[#appendix-rest2ldap]
+== REST to LDAP Configuration
+
+OpenDJ offers two alternatives for access to directory data over HTTP:
+
+* OpenDJ directory server has an HTTP connection handler that exposes RESTful APIs to directory data over HTTP (or HTTPS). You configure an OpenDJ directory server HTTP connection handler, and the HTTP endpoints that it serves, by using the `dsconfig` command. For each HTTP endpoint served by an HTTP connection handler that exposes your directory data, you configure mappings between JSON resources and LDAP entries.
+
+* The OpenDJ REST to LDAP gateway runs in a Servlet container independent from the directory service. You configure the gateway to access the directory service by editing configuration files for the gateway web application.
+
+Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"])
+
+[NOTE]
+====
+The configuration changed significantly in OpenDJ 3.5.
+====
+--
+The files for configuring the gateway and the JSON resource to LDAP entry mappings are in JSON format.
+
+In an OpenDJ directory server installation, the default location for the configuration files is under `/path/to/opendj/config`.
+
+In a REST to LDAP gateway Servlet, the configuration files are under `WEB-INF/classes`.
+
+The format and relative locations of the mapping files are the same for OpenDJ directory server and OpenDJ REST to LDAP gateway. Only OpenDJ REST to LDAP gateway, however, has files for configuring how the gateway connects to LDAP servers, how user identities extracted from HTTP requests map to LDAP user identities, and what LDAP features the gateway uses. In OpenDJ directory server these capabilities are part of the server configuration.
+
+The following list describes the configuration files, indicated by relative location under the configuration directory:
+
+`config.json` (gateway only)::
+This file defines how the gateway connects to LDAP servers, and how user identities extracted from HTTP requests map to LDAP user identities.
+
++
+For details, see xref:#config-json["Gateway Configuration File"].
+
+`rest2ldap/rest2ldap.json` (gateway only)::
+This file defines which LDAP features the gateway uses.
+
++
+For details, see xref:#rest2ldap-json["Gateway REST2LDAP Configuration File"].
+
+`rest2ldap/endpoints/base-path/root-resource.json`::
+These files define JSON resource to LDAP entry mappings.
+
++
+For details about the configuration fields, see xref:#mappings-json["Mapping Configuration File"].
+
+--
+
+[#config-json]
+=== Gateway Configuration File
+
+The `config.json` file for the REST to LDAP gateway can hold the configuration objects described in this section.
+--
+The order of the settings in the JSON file is not meaningful. Here, the order shown is that of the default configuration file:
+
+`security`::
+[open]
+====
+Configures security parameters for establishing secure connections between the gateway (as a client) and the servers it contacts, such as LDAP directory servers and OAuth 2.0 authorization servers.
+
+This field has the following properties:
+
+`trustManager` (optional)::
+This setting configures how the servers are trusted. This setting is ignored for connections to LDAP servers if `connectionSecurity` is set to `none`:
++
+
+* `file` means trust server certificates signed by a CA that is trusted according to the file-based truststore configured with `fileBasedTrustManager*` settings described below.
+
+* `jvm` (default) means trust server certificates signed by a CA trusted by the Java environment.
+
+* `trustAll` means blindly trust all server certificates.
++
+
+[CAUTION]
+========
+This setting is not secure and makes man-in-the-middle attacks possible.
+========
+
+
+`fileBasedTrustManagerType` (optional)::
+If `trustManager` is set to `file`, then this setting configures the format for the data in the truststore file specified by the `fileBasedTrustManagerFile` setting. Formats include the following, though other implementations might be supported as well, depending on the Java environment:
++
+
+* `JKS` (default) specifies Java Keystore format.
+
+* `PKCS12` specifies Public-Key Cryptography Standards 12 format.
+
+
+`fileBasedTrustManagerFile`::
+If `trustManager` is set to `file`, then this setting must specify the location of the truststore file.
+
++
+Example: `/path/to/truststore`
+
+`fileBasedTrustManagerPasswordFile` (optional)::
+If `trustManager` is set to `file`, then this setting specifies the file containing the truststore password.
+
++
+Example: `/path/to/pinfile`
+
+`keyManager` (optional)::
+This setting configures how the keys are managed for the gateway when the gateway is acting as a client of an LDAP server or OAuth 2.0 authorization server. The client keys are used to establish a secure connection to a server when the server requires client authentication.
+
++
+This field can take the following values:
++
+
+* `jvm` (default) means look for client keys in the default keystore for the Java environment.
+
+* `file` means look for client keys in the specified keystore file, configured with the `fileBasedKeyManager*` settings.
+
+* `pkcs11` means look for client keys in a PKCS #11 cryptographic token, where the PIN file is configured with the `pkcs11KeyManagerPasswordFile` setting described below.
+
+
+`fileBasedKeyManagerFile`::
+If `keyManager` is set to `file`, then this setting must specify the keystore file.
+
++
+Example: `/path/to/keystore`
+
+`fileBasedKeyManagerPasswordFile` (optional)::
+If `keyManager` is set to `file`, then this setting specifies the file containing the keystore password.
+
++
+Example: `/path/to/pinfile`
+
+`fileBasedKeyManagerType` (optional)::
+If `keyManager` is set to `file`, then this setting specifies the format of the keystore specified by the `fileBasedKeyManagerFile` setting. Formats include the following, though other implementations might be supported as well, depending on the Java environment:
++
+
+* `JKS` (default) specifies Java Keystore format.
+
+* `PKCS12` specifies Public-Key Cryptography Standards 12 format.
+
+
+`pkcs11KeyManagerPasswordFile` (optional)::
+If `keyManager` is set to `pkcs11`, then this setting specifies the file containing the PKCS #11 token password.
+
++
+Example: `/path/to/pinfile`
+
+====
+
+`ldapConnectionFactories`::
+Configures how the gateway connects to LDAP servers. This entire configuration object applies only to the REST to LDAP gateway.
++
+[open]
+====
+Configures at least a connection factory for unauthenticated connections that are used for bind requests. By default, also configures a factory for authenticated connections that are used for searches during authentication and for proxied authorization operations.
+
+The default configuration is set to connect to a local directory server listening for LDAP connections on port 1389, authenticating as the root DN user `cn=Directory Manager`, with the password `password`:
+
+`bind`::
+Configures the unauthenticated connection factory for bind operations:
++
+[open]
+======
+
+`connectionSecurity` (optional)::
+Whether connections to LDAP servers should be secured by using SSL or StartTLS. The following values are supported:
++
+
+* `none` (default) means connections use plain LDAP and are not secured.
+
+* `ssl` means connections are secured using LDAPS.
+
+* `startTLS` means connections are secured using LDAP and StartTLS.
+
++
+If you set `connectionSecurity`, also review the `trustManager` and `fileBasedTrustManager*` settings in the `security` field.
+
+`sslCertAlias` (optional)::
+If secure connections to LDAP servers require client authentication, this identifies the alias of the certificate to use for client authentication when establishing a secure connection.
+
++
+If you uses this setting because client authentication is required, make sure the `keyManager` settings in the `security` field are properly configured.
+
++
+If this field is missing, then the certificate is chosen during the SSL handshake.
+
++
+Example: `client-cert`
+
+`connectionPoolSize` (optional)::
+The gateway creates connection pools to the primary and secondary LDAP servers. The connection pools maintain up to `connectionPoolSize` connections to the servers.
+
++
+Default: 24
+
+`heartBeatIntervalSeconds` (optional)::
+The gateway tests its connections every `heartBeatIntervalSeconds` to detect whether the connection is still alive. The first test is performed immediately when the gateway gets a connection. Subsequent tests follow every `heartBeatIntervalSeconds`.
+
++
+Default: 30 (seconds)
+
+`heartBeatTimeoutMilliSeconds` (optional)::
+When the gateway tests a connection, if the heartbeat does not come back after `heartBeatTimeoutMilliSeconds` the connection is marked as closed.
+
++
+Default: 500 (milliseconds)
+
+`primaryLdapServers` (required)::
+The gateway accesses this array of LDAP servers before failing over to the secondary LDAP servers. These might be LDAP servers in the same data center, for example:
++
+
+[source, javascript]
+----
+{
+    "primaryLdapServers": [
+        {
+            "hostname": "local1.example.com",
+            "port": 1389
+        },
+        {
+            "hostname": "local2.example.com",
+            "port": 1389
+        }
+    ]
+}
+----
++
+By default, the gateway connects to the directory server listening on port 1389 on the local host.
+
+`secondaryLdapServers` (optional)::
+The gateway accesses this array of LDAP servers if primary LDAP servers cannot be contacted. These might be LDAP servers in the same remote data center, for example:
++
+
+[source, javascript]
+----
+{
+    "secondaryLdapServers": [
+        {
+            "hostname": "remote1.example.com",
+            "port": 1389
+        },
+        {
+            "hostname": "remote2.example.com",
+            "port": 1389
+        }
+    ]
+}
+----
++
+No secondary LDAP servers are configured by default.
+
+======
+
+`root`::
+Configures the authenticated connection factory:
++
+[open]
+======
+
+`inheritFrom` (optional)::
+Identifies the unauthenticated connection factory to inherit the settings from. If this connection factory does not inherit from another configuration object, then you must specify the configuration here.
+
++
+Default: `bind`
+
+`authentication` (required)::
+The gateway authenticates by simple bind using the credentials specified:
++
+
+[source, javascript]
+----
+{
+    "authentication": {
+        "bindDn": "cn=Directory Manager",
+        "password": "password"
+    }
+}
+----
++
+If the OAuth 2.0 authorization policy is configured for the gateway, then the directory service must be configured to allow the user configured here to perform proxied authorization.
+
+======
+
+====
+
+`authorization`::
+Configures how authorization is performed for REST operations. This entire configuration object applies only to the REST to LDAP gateway.
+
++
+The default configuration handles authorization by mapping HTTP Basic authentication credentials to LDAP bind credentials. User entries are `inetOrgPerson` entries expected to have `uid=username`, and expected to be found under `ou=people,dc=example,dc=com`.
+
++
+The default configuration also allows alternative, HTTP header-based authentication in the style of OpenIDM.
+
++
+To protect passwords, configure HTTPS for the container where the REST to LDAP gateway runs.
++
+[open]
+====
+This object has the following configuration fields:
+
+`policies`::
+Which authorization policies are allowed, where the supported policies include:
++
+
+* `anonymous`
+
+* `basic` (HTTP Basic)
+
+* `oauth2`
+
++
+When more than one policy is specified, policies are applied in the following order:
+
+. If the client request has an `Authorization` header, and policies include `oauth2`, the server attempts to apply the OAuth 2.0 policy.
+
+. If the client request has an `Authorization` header, or has the custom credentials headers specified in the configuration, and policies includes `basic`, the server attempts to apply the Basic Auth policy.
+
+. Otherwise, if policies includes `anonymous`, and none of the previous policies apply, the server attempts to apply the policy for anonymous requests.
+
++
+Default: `[ "basic" ]`
+
+`anonymous`::
+Configuration for authorization when the HTTP connection to the gateway is not authenticated.
++
+[open]
+======
+Operations are performed using connections from the specified factory:
+
+`ldapConnectionFactory`::
+Factor providing LDAP connections to use for anonymous HTTP requests.
+
++
+In effect, you add `"anonymous"` to the array of policies allowed without otherwise changing the default configuration, anonymous HTTP requests result in LDAP requests performed by Directory Manager. Take care to adjust this setting appropriately when allowing anonymous requests.
+
++
+Default: `root`
+
+======
+
+`basic`::
+Configuration for authorization using HTTP Basic credentials.
+
++
+The HTTP Basic credentials are mapped to LDAP credentials. The LDAP credentials are then used to bind to the directory service.
++
+[open]
+======
+This object has the following configuration fields:
+
+`supportAltAuthentication`::
+Whether to allow alternative, HTTP header-based authentication. If this is set to `true`, then the headers containing credentials are specified as the values for `altAuthenticationUsernameHeader` and `altAuthenticationPasswordHeader`, and the bind DN is resolved using a template.
+
++
+Default: `true`
+
+`altAuthenticationUsernameHeader`::
+The HTTP header containing the username for authentication when alternative, HTTP header-based authentication is allowed.
+
++
+Default: `X-OpenIDM-Username`
+
+`altAuthenticationPasswordHeader`::
+The HTTP header containing the password for authentication when alternative, HTTP header-based authentication is allowed.
+
++
+Default: `X-OpenIDM-Password`
+
+`bind`::
+How HTTP Basic credentials are mapped to LDAP credentials used to bind to the directory service.
++
+The following values are supported:
+
+* `search` (default) means the gateway performs a search based on the HTTP Basic user name to obtain the bind DN.
+
+* `sasl-plain` means the gateway transforms the HTTP Basic user name to an authorization ID (authzid) using a template.
+
+* `simple` means the HTTP Basic user name is the LDAP bind DN.
+
+
+`simple`::
+How to reuse HTTP Basic credentials for an LDAP simple bind.
++
+[open]
+========
+This object has the following configuration fields:
+
+`ldapConnectionFactory`::
+The factory providing LDAP connections to the directory service.
+
++
+Default: `bind`
+
+`bindDnTemplate`::
+The template to produce the bind DN from the HTTP Basic user name.
+
++
+A single occurrence of the string `{username}` is replaced in the template with the HTTP Basic user name.
+
++
+For example, if the user name is also the UID of the LDAP entry, use `uid={username},ou=People,dc=example,dc=com`.
+
++
+Default: `{username}`
+
+========
+
+`sasl-plain`::
+How to reuse HTTP Basic credentials for an LDAP SASL plain bind.
++
+[open]
+========
+This object has the following configuration fields:
+
+`ldapConnectionFactory`::
+The factory providing LDAP connections to the directory service.
+
++
+Default: `bind`
+
+`authzIdTemplate`::
+The template to produce the authorization ID from the HTTP Basic user name.
+
++
+A single occurrence of the string `{username}` is replaced in the template with the HTTP Basic user name.
+
++
+If the user name is also the authorization ID, use `u:{username}`.
+
++
+If the user name is the LDAP bind DN, use `dn:{username}`.
+
+========
+
+`search`::
+How to reuse HTTP Basic credentials to find the bind DN for an LDAP simple bind.
++
+[open]
+========
+This object has the following configuration fields:
+
+`searchLdapConnectionFactory`::
+The factory providing LDAP connections to the directory service for the LDAP search operation.
+
++
+Default: `root`
+
+`bindLdapConnectionFactory`::
+The factory providing LDAP connections to the directory service for the LDAP bind operation that uses the bind DN returned by the search.
+
++
+Default: `bind`
+
+`baseDn`::
+The base DN for the LDAP search.
+
++
+Example: `ou=People,dc=example,dc=com`.
+
+`scope`::
+The scope for the LDAP search.
+
++
+Use `sub` for a subtree search, `one` for a one-level search.
+
+`filterTemplate`::
+The template for the filter of the LDAP search.
+
++
+A single occurrence of the string `{username}` is replaced in the template with the HTTP Basic user name.
+
++
+If the user name is also the UID, use `(&(uid={username})(objectClass=inetOrgPerson))`.
+
+========
+
+======
+
+`oauth2`::
+Configuration for authorization based on OAuth 2.0, where the gateway plays the role of resource server.
++
+[open]
+======
+This object has the following configuration fields:
+
+`realm`::
+Realm associated with access tokens presented to the gateway.
+
+`requiredScopes`::
+Array of OAuth 2.0 scopes that are required to allow access.
+
++
+This array must not be empty.
+
++
+Example: `[ "read", "write", "uid" ]`
+
+`resolver`::
+How to resolve OAuth 2.0 access tokens presented to the gateway.
++
+Supported values include the following:
+
+* `cts` to resolve tokens in a directory service acting as a Core Token Service (CTS) store for OpenAM
+
+* `openam` to send requests for token resolution to an OpenAM server
+
+* `rfc7662` to send requests for token resolution to an RFC 7622-compliant server
+
++
+Each access token resolution mechanism has its own configuration.
+
+`accessTokenCache`::
+How to cache OAuth 2.0 token information to avoid repeating calls for access token resolution.
++
+[open]
+========
+This object has the following configuration fields:
+
+`enabled`::
+Whether to cache access token information obtained from the resolver.
+
++
+Default: `false`
+
+`cacheExpiration`::
+How long to cache information for a particular token if caching is enabled.
+
++
+Default: `5 minutes`
+
+========
+
+`openam`::
+Configuration for resolving OAuth 2.0 tokens by a request to OpenAM.
++
+[open]
+========
+This object has the following configuration fields:
+
+`endpointUrl`::
+OpenAM URL for requests for token information, which depends on OpenAM's OAuth 2.0 authorization server configuration.
+
++
+Example: `\https://openam.example.com:8443/openam/oauth2/tokeninfo`
+
+`sslCertAlias` (optional)::
+If secure connections to the authorization server require client authentication, this identifies the alias of the certificate to use for client authentication when establishing a secure connection.
+
++
+If you uses this setting because client authentication is required, make sure the `keyManager` settings in the `security` field are properly configured.
+
++
+If this field is missing, then the certificate is chosen during the SSL handshake.
+
++
+Example: `client-cert`
+
+`authzIdTemplate`::
+The template to produce the authorization ID from OAuth 2.0 token information.
+
++
+A JSON pointer value in braces is replaced in the template with a field value from the JSON returned during token resolution.
+
++
+This template must start with `u:` or `dn:`.
+
++
+For example, if token resolution returns a JSON document where the value of the `uid` field is the UID of the user entry in the directory, you might use `u:{uid}` or `dn:{uid},ou=People,dc=example,dc=com`.
+
+========
+
+`rfc7662`::
+Configuration for resolving OAuth 2.0 tokens by a request to an RFC 7662-compliant authorization server.
+
++
+RFC 7662, link:https://tools.ietf.org/html/rfc7662[OAuth 2.0 Token Introspection, window=\_blank], defines a standard method for resolving access tokens.
++
+[open]
+========
+This object has the following configuration fields:
+
+`endpointUrl`::
+Authorization server URL for requests for token information with HTTP Basic authentication for OAuth 2.0 clients.
+
++
+Example: `\https://as.example.com/introspect`
+
+`sslCertAlias` (optional)::
+If secure connections to the authorization server require client authentication, this identifies the alias of the certificate to use for client authentication when establishing a secure connection.
+
++
+If you uses this setting because client authentication is required, make sure the `keyManager` settings in the `security` field are properly configured.
+
++
+If this field is missing, then the certificate is chosen during the SSL handshake.
+
++
+Example: `client-cert`
+
+`clientId`::
+OAuth 2.0 client identifier defined during registration with the authorization server.
+
+`clientSecret`::
+OAuth 2.0 client secret defined during registration with the authorization server.
+
+========
+
+`authzIdTemplate`::
+The template to produce the authorization ID from OAuth 2.0 token information.
+
++
+A JSON pointer value in braces is replaced in the template with a field value from the JSON returned during token resolution.
+
++
+This template must start with `u:` or `dn:`.
+
++
+For example, if token resolution returns a JSON document where the value of the `username` field is the UID of the user entry in the directory, you might use `u:{username}` or `dn:{username},ou=People,dc=example,dc=com`.
+
+`cts`::
+Configuration for resolving OAuth 2.0 tokens when the directory service acts as OpenAM's CTS store.
+
++
+OpenAM's CTS store is constrained to a specific layout. The `authzIdTemplate` must therefore use `{userName/0}` for the user identifier.
+
++
+This mechanism makes it possible to resolve access tokens by making a request to the CTS directory service, without making a request to OpenAM. __This mechanism does not, however, ensure that the token requested will have already been replicated to the directory server where the request is routed.__
++
+[open]
+========
+This object has the following configuration fields:
+
+`ldapConnectionFactory`::
+The factory providing LDAP connections used to obtain token information from the CTS directory service.
+
++
+Default: `root`
+
+`baseDn`::
+The base DN in the CTS directory service where tokens are found.
+
++
+If the base DN configured for CTS in OpenAM is `dc=cts,dc=example,dc=com`, then use `ou=famrecords,ou=openam-session,ou=tokens,dc=cts,dc=example,dc=com`.
+
+`authzIdTemplate`::
+The template to produce the authorization ID from OAuth 2.0 token information.
+
++
+A JSON pointer value in braces is replaced in the template with a field value from the JSON returned during token resolution.
+
++
+This template must start with `u:` or `dn:`.
+
++
+In OpenAM CTS, the user name field is an array. For example, if the user name is the UID of the user entry, the use `u:{userName/0}` or `dn:{userName/0},ou=People,dc=example,dc=com`.
+
+========
+
+======
+
+====
+
+--
+
+
+[#rest2ldap-json]
+=== Gateway REST2LDAP Configuration File
+
+The `rest2ldap/rest2ldap.json` for the REST to LDAP gateway can hold the configuration objects described in this section.
+--
+The order of the settings in the JSON file is not meaningful. Here, the order shown is that of the default configuration file:
+
+`useMvcc`::
+Whether the gateway supports multi-version concurrency control (MVCC). If true, also specify an `mvccAttribute` to use for MVCC.
+
++
+Default: `true`
+
+`mvccAttribute`::
+The LDAP attribute whose value is used for MVCC. Before performing a write operation, the client application can check, for example, whether it is modifying the correct version of a resource by matching the value of the header `If-Match: value`.
+
++
+Default: `etag`
+
+`readOnUpdatePolicy`::
+The policy used to read an entry before it is deleted, or to read an entry after it is added or modified. One of the following:
++
+
+* `controls`: (default) use RFC 4527 read-entry controls to reflect the state of the resource at the time the update was performed.
++
+The directory service must support RFC 4527.
+
+* `disabled`: do not read the entry or return the resource on update.
+
+* `search`: perform an LDAP search to retrieve the entry before deletion or after it is added or modified.
++
+The JSON resource returned might differ from the LDAP entry that was updated.
+
+
+`useSubtreeDelete`::
+Whether to use the LDAP Subtree Delete request control (OID: `1.2.840.113556.1.4.805`) for LDAP delete operations resulting from delete operations on resources. Clients applications that request deletes for resources with children must have access to use the control.
+
++
+If this setting is `true`, REST to LDAP attempts to use the control, but falls back to searching for and deleting children if the server rejects the request, because the control is not supported, for example.
+
++
+Default: `true`
+
++
+Set this to `false` if the directory server does not support the control.
+
+`usePermissiveModify`::
+Whether to use the LDAP Permissive Modify request control (OID: `1.2.840.113556.1.4.1413`) for LDAP modify operations resulting from patch and update operations on resources.
+
++
+Default: `true`
+
++
+Set this to `false` when using the gateway if the directory server does not support the control.
+
+--
+
+
+[#mappings-json]
+=== Mapping Configuration File
+
+The `rest2ldap/endpoints/base-path/root-resource.json` files define how JSON resources map to LDAP entries.
+
+For each base path exposing a REST API, a __base-path__ directory holds one or more __root-resource__.json files. In the OpenDJ directory server configuration, the Rest2ldap endpoint `base-path` must match the __base-path__ directory name.
+
+Each __root-resource__.json file defines mappings for a specific version of the API. The __root-resource__ in the file name must match the name of the root resource defined in the file.
+
+If there is more than one version of the API, then client applications must select the version by setting a version header:
+
+[source]
+----
+Accept-API-Version: resource=version
+----
+If more than one version of the API is available, and the client application does not select the version by setting a version header, then the latest version is returned.
+
+Here, __version__ is the value of the `version` field in the mapping configuration file.
+
+The file `rest2ldap/endpoints/api/example-v1.json` is delivered as an example mapping. This file has the following basic structure:
+
+[source, javascript]
+----
+{
+  "version": "1.0",         // Version for this API.
+  "resourceTypes": {        // Resources for this API.
+    "example-v1": {         // Root resource type. Name matches file basename.
+      "subResources": {     // The base resource, at /api, is not defined.
+        "users": {},        // The subresources at /api/users/ and
+        "groups": {}        // /api/groups are defined, however.
+      }
+    },
+
+    // In addition to the root resource type,
+    // the example defines a number of other resource type schemas.
+    // These are used to describe the resources exposed under the root resource.
+    // In the example file, you can see how these are used for inheritance.
+    "frapi:opendj:rest2ldap:object:1.0": {},    // Parent type of all objects.
+    "frapi:opendj:rest2ldap:user:1.0": {},      // Basic user type, parent of
+    "frapi:opendj:rest2ldap:posixUser:1.0": {}, // user with uid, gid, home dir.
+    "frapi:opendj:rest2ldap:group:1.0": {}      // Basic group type.
+  }
+}
+----
+The following list describes the individual fields in more detail.
+--
+The order of the settings in the JSON file is not meaningful. Here, the order shown is that of the default example configuration file:
+
+`version` (optional)::
+The version string for the root resource of this API.
+
++
+Valid values are `*`, __integer__, and `integer.integer`, where __integer__ is a positive decimal integer.
+
++
+If the version is set, and the client application sets the request header `Accept-API-Version: resource=version`, The mapping with the matching __version__ value is selected.
+
++
+If more than one version of the API is available, and the client application does not select the version by setting a version header, then the latest version is returned.
+
++
+Default: `*` (no version specified)
+
+`resourceTypes` (required)::
+The map of resource type names to resource type definitions for this API.
+
++
+One of the resource type name must match the basename of the mapping file. This resource is referred to as the __root resource__ for this version of the API.
+
++
+The value of a resource type is an object whose properties are described in xref:#rest-resource-type-properties["Resource Type Properties"].
+
+--
+
+[#rest-resource-type-properties]
+.Resource Type Properties
+[cols="33%,67%"]
+|===
+|Property |Description 
+
+a|`resourceTypeProperty` (string, required for inheritance)
+a|Name of the resource type property that specifies the type of this resource.
+
+ REST to LDAP uses this to determine the resource subtype when creating a resource.
+
+ This points the mapper to the type of the resource. The specified property must be of type `resourceType`.
+
+a|`properties` (map, optional)
+a|Map of property names to property definitions.
+
+ Unlike LDAP entries, JSON resources are not necessarily flat. You can define nested properties of type `object` that have their own properties.
+
+ For details on properties configuration, see xref:#rest-resource-type-properties-map["Properties of Resource Type Properties Objects"].
+
+a|`subResources` (map, optional)
+a|Map of subresource names to subresource definitions.
+
+The subresource names are URL templates. A URL template sets the relative URL template beneath which the subresources are located. If empty, the subresources are located directly beneath the parent resource.
+
+URL templates can set variables in braces `{}`. Any URL template variables will be substituted into the DN template.
+
+For example, suppose LDAP entries for devices are located under the following base DNs:
+ 
+* `ou=others,ou=devices,dc=example,dc=com`
+
+* `ou=pcs,ou=devices,dc=example,dc=com`
+
+* `ou=phones,ou=devices,dc=example,dc=com`
+
+* `ou=tablets,ou=devices,dc=example,dc=com`
+
+The subresource name `/{type}` would be substituted in actual paths with `/others`, `/pcs`, `/phones`, and `/tablets`. The DN template for the subresource would specify `ou={type},ou=devices,dc=example,dc=com` in order to locate the entries in the correct LDAP organizational unit. In the example, REST to LDAP substitutes `{type}` in the DN template with the type defined in the request URL path.
+
+For details on subresource configuration, see xref:#rest-subresource-properties["Sub-Resource Properties"].
+
+a|`isAbstract` (boolean, optional)
+a|Whether this is an abstract resource type used only for inheritance.
+
+ Default: `false`
+
+a|`superType` (string, optional)
+a|Name of the resource type that this resource type extends. Resource types that extend another type inherit properties of the extended type, and inherit subresource definitions.
+
+ Default: none. This resource type does not extend another type.
+
+a|`objectClasses` (array, optional)
+a|Names of the LDAP object classes that this type corresponds to. When an object of this type is created, these object class names are added to the list of object classes on the LDAP entry. The LDAP object classes are not shown in the JSON resource.
+
+ Default: none.
+
+a|`supportedActions` (array, optional)
+a|Names of the common REST actions that this resource type supports. The names must match actions allowed on the resource in the underlying implementation.
+
+ Default: none.
+
+a|`includeAllUserAttributesByDefault` (boolean, optional)
+a|Whether to include all LDAP user attributes as properties of the JSON resource. If `true`, the property names in the JSON resource match the attribute names in the LDAP entries.
+
+Default: `false`
+
+a|`excludedDefaultUserAttributes` (array, optional)
+a|Names of the LDAP user attributes to exclude from the JSON resource when `includeAllUserAttributesByDefault` is `true`.
+
+Default: none.
+|===
+
+[#rest-resource-type-properties-map]
+.Properties of Resource Type Properties Objects
+[cols="33%,67%"]
+|===
+|Property |Description 
+
+a|`type` (string, required)
+a|Determines the type of the mapping property, and therefore which other properties the object has.
+--
+The type must be one of the following:
+
+`constant`::
+The property maps the JSON resource property to a fixed value specified by the `value` property.
+
+`object`::
+The property value is a JSON object with its own type and mapping specified by the object's `properties`.
+
+`reference`::
+The property maps a JSON field to an LDAP entry found by reference.
+
++
+This is useful for LDAP attributes that reference other entries, such as `manager`, and (group) `member`.
++
+When the type is `reference`, the mapping must have the following required properties.
+
+* `baseDn`
+
+* `ldapAttribute`
+
+* `mapper`
+
+* `primaryKey`
+
++
+The mapping may have the following optional properties.
+
+* `isMultiValued`
+
+* `isRequired`
+
+* `searchFilter`
+
+* `writability`
+
+
+`resourceType`::
+The property value is the name of a resource type defined in this mapping file.
+
++
+The name of the property with this type should match the `resourceTypeProperty` name. For example, if `"resourceTypeProperty": "_schema"` then the following should be specified or inherited: `"_schema": { "type": "resourceType" }`.
+
+`simple`::
+The property maps a JSON property to an LDAP attribute.
+
++
+Use simple mappings where the correspondence between JSON properties and LDAP attributes is one-to-one.
+
++
+When the type is `simple`, the mapping must specify an `ldapAttribute` property.
++
+The mapping may have the following optional properties.
+
+* `defaultJsonValue`
+
+* `isBinary`
+
+* `isMultiValued`
+
+* `isRequired`
+
+* `writability`
+
+--
+
+a|`baseDn`
+a|Indicates the base LDAP DN under which to find entries referenced by the JSON resource.
+
+For example, a group could reference users and groups under `dc=example,dc=com`.
+
+a|`defaultJsonValue`
+a|Sets the JSON value if no corresponding LDAP attribute is present.
+
+ No default is set if this is omitted.
+
+a|`isBinary`
+a|Whether the underlying LDAP attribute holds a binary value, such as a JPEG photo or a digital certificate.
+
+If `true`, the JSON property takes the base64-encoded value. Binary values can also be handled directly as described in xref:../server-dev-guide/chap-rest-operations.adoc#mime-types-rest["Working With Alternative Content Types"] in the __Directory Server Developer's Guide__.
+
+Default: `false`.
+
+a|`isMultiValued`
+a|Whether the JSON resource property can take an array value.
+
+Most LDAP attributes can take multiple values. A literal-minded mapping from LDAP to JSON would therefore be full of array properties, many with only one value.
+
+To minimize inconvenience, REST to LDAP generally returns single value scalars, even when the underlying LDAP attribute is multi-valued.
+
+If this property is omitted or set to `false`, then the JSON resource contains the first value returned for multi-valued LDAP attributes with more than value.
+
+If this property is `true`, then if the LDAP attribute only has one value, it is returned as a scalar. If the LDAP attribute has more than one value, the values are returned in an array.
+
+Default: `false`
+
+a|`isRequired`
+a|`true` means the LDAP attribute is mandatory and must be provided to create the resource; `false` means it is optional.
+
+Default: `false`.
+
+a|`ldapAttribute`
+a|Specifies the LDAP attribute in the entry underlying the JSON resource whose value points to the referenced entry.
+
+For example, a `manager` attribute value is the DN of the manager's entry.
+
+Default: use the name of the JSON property. For example, the JSON property `description` maps to the LDAP attribute `description` by default.
+
+a|`mapper`
+a|Describes how the referenced entry content maps to the content of this JSON property.
+
+A mapper object is a properties object of its own.
+
+a|`primaryKey`
+a|Indicates which LDAP attribute in the mapper holds the primary key to the referenced entry.
+
+a|`searchFilter`
+a|Specifies the LDAP filter to use to search for the referenced entry.
+
+Default: `"(objectClass=*)"`
+
+a|`value`
+a|Use with `"type": "constant"` to specify the constant value.
+
+a|`writability`
+a|Indicates whether the mapping supports updates.
+The `writability` property takes one of the following values:
+
+* `createOnly`: This attribute can be set only when the entry is created. Attempts to update this attribute thereafter result in errors.
+
+* `createOnlyDiscardWrites`: This attribute can be set only when the entry is created. Attempts to update this attribute thereafter do not result in errors. Instead the update value is discarded.
+
+* `readOnly`: This attribute cannot be written. Attempts to write this attribute result in errors.
+
+* `readOnlyDiscardWrites`: This attribute cannot be written. Attempts to write this attribute do not result in errors. Instead the value to write is discarded.
+
+* `readWrite`: (default) This attribute can be set at creation and updated thereafter.
+|===
+
+[#rest-subresource-properties]
+.Sub-Resource Properties
+[cols="33%,67%"]
+|===
+|Property |Description 
+
+a|`type` (string, required)
+a|The type of this subresource, either `collection` or `singleton`.
+
+ A collection subresource is a container for other resources, which can be created, read, updated, deleted, patched, and queried.
+ A collection definition has the following required properties:
+
+* `namingStrategy`
+
+* `resource`
+
+A collection definition has the following optional properties:
+
+* `dnTemplate`
+* `glueObjectClasses`
+* `isReadOnly`
+
+A singleton subresource is a resource with no children.
+A singleton definition has the following required properties:
+
+* `resource`
+
+A singleton definition has the following optional properties:
+
+* `dnTemplate`
+
+* `isReadOnly`
+
+a|`dnTemplate` (string, optional)
+a|Sets the relative DN template beneath which the subresource LDAP entries are located.
+
+If this is an empty string, the LDAP entries are located directly beneath the parent LDAP entry.
+
+DN templates can use variables in braces `{}`. DN template variables are substituted using values extracted from the URL template.
+
+Default: empty string
+
+a|`glueObjectClasses` (array, required if the DN template contains one or more RDNs)
+a|Specifies one or more LDAP object class names associated with any intermediate "glue" entries forming the DN template.
+
+Default: no object classes are specified
+
+a|`isReadOnly` (boolean, optional)
+a|Whether this resource is read-only.
+
+Default: `false`
+
+a|`namingStrategy` (object, required)
+a|Specifies the approach used to map LDAP entry names to JSON resources.
+
+LDAP entries mapped to JSON resources must be immediate subordinates of the mapping's `baseDn`.
+The following naming strategies are supported:
+
+* RDN and resource ID are both derived from a single user attribute in the LDAP entry, as in the following example, where the `uid` attribute is the RDN and its value is the JSON resource ID:
++
+
+[source, javascript]
+----
+{
+    "namingStrategy": {
+        "type": "clientDnNaming",
+        "dnAttribute": "uid"
+    }
+}
+----
+
+* RDN and resource ID are derived from separate user attributes in the LDAP entry, as in the following example, where the RDN attribute is `uid`, but the JSON resource ID is the value of the `mail` attribute:
++
+
+[source, javascript]
+----
+{
+    "namingStrategy": {
+        "type": "clientNaming",
+        "dnAttribute": "uid",
+        "idAttribute": "mail"
+    }
+}
+----
+
+* RDN is derived from a user attribute and the resource ID from an operational attribute in the LDAP entry, as in the following example, where the RDN attribute is `uid`, but the JSON resource ID is the value of the `entryUUID` operational attribute:
++
+
+[source, javascript]
+----
+{
+    "namingStrategy": {
+        "type": "serverNaming",
+        "dnAttribute": "uid",
+        "idAttribute": "entryUUID"
+    }
+}
+----
+
+a|`resource` (string, required)
+a|Specifies the resource type name of the subresource.
+
+A collection can contain objects with different subresource types as long as all types inherit from the same super type. In that case, set `resource` to the super type name.
+|===
+
+

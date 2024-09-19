@@ -1,0 +1,303 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[appendix]
+[#appendix-ldap-result-codes]
+== LDAP Result Codes
+
+An operation result code as defined in RFC 4511 section 4.1.9 is used to indicate the final status of an operation. If a server detects multiple errors for an operation, only one result code is returned. The server should return the result code that best indicates the nature of the error encountered. Servers may return substituted result codes to prevent unauthorized disclosures.
+
+[#d1822e364604]
+.OpenDJ LDAP Result Codes
+[cols="16%,33%,51%"]
+|===
+|Result Code |Name |Description 
+
+a|-1
+a|Undefined
+a|The result code that should only be used if the actual result code has not yet been determined. Despite not being a standard result code, it is an implementation of the null object design pattern for this type.
+
+a|0
+a|Success
+a|The result code that indicates that the operation completed successfully.
+
+a|1
+a|Operations Error
+a|The result code that indicates that an internal error prevented the operation from being processed properly.
+
+a|2
+a|Protocol Error
+a|The result code that indicates that the client sent a malformed or illegal request to the server.
+
+a|3
+a|Time Limit Exceeded
+a|The result code that indicates that a time limit was exceeded while attempting to process the request.
+
+a|4
+a|Size Limit Exceeded
+a|The result code that indicates that a size limit was exceeded while attempting to process the request.
+
+a|5
+a|Compare False
+a|The result code that indicates that the attribute value assertion included in a compare request did not match the targeted entry.
+
+a|6
+a|Compare True
+a|The result code that indicates that the attribute value assertion included in a compare request did match the targeted entry.
+
+a|7
+a|Authentication Method Not Supported
+a|The result code that indicates that the requested authentication attempt failed because it referenced an invalid SASL mechanism.
+
+a|8
+a|Strong Authentication Required
+a|The result code that indicates that the requested operation could not be processed because it requires that the client has completed a strong form of authentication.
+
+a|10
+a|Referral
+a|The result code that indicates that a referral was encountered. Strictly speaking this result code should not be exceptional since it is considered as a "success" response. However, referrals should occur rarely in practice and, when they do occur, should not be ignored since the application may believe that a request has succeeded when, in fact, nothing was done.
+
+a|11
+a|Administrative Limit Exceeded
+a|The result code that indicates that processing on the requested operation could not continue because an administrative limit was exceeded.
+
+a|12
+a|Unavailable Critical Extension
+a|The result code that indicates that the requested operation failed because it included a critical extension that is unsupported or inappropriate for that request.
+
+a|13
+a|Confidentiality Required
+a|The result code that indicates that the requested operation could not be processed because it requires confidentiality for the communication between the client and the server.
+
+a|14
+a|SASL Bind in Progress
+a|The result code that should be used for intermediate responses in multi-stage SASL bind operations.
+
+a|16
+a|No Such Attribute
+a|The result code that indicates that the requested operation failed because it targeted an attribute or attribute value that did not exist in the specified entry.
+
+a|17
+a|Undefined Attribute Type
+a|The result code that indicates that the requested operation failed because it referenced an attribute that is not defined in the server schema.
+
+a|18
+a|Inappropriate Matching
+a|The result code that indicates that the requested operation failed because it attempted to perform an inappropriate type of matching against an attribute.
+
+a|19
+a|Constraint Violation
+a|The result code that indicates that the requested operation failed because it would have violated some constraint defined in the server.
+
+a|20
+a|Attribute or Value Exists
+a|The result code that indicates that the requested operation failed because it would have resulted in a conflict with an existing attribute or attribute value in the target entry.
+
+a|21
+a|Invalid Attribute Syntax
+a|The result code that indicates that the requested operation failed because it violated the syntax for a specified attribute.
+
+a|32
+a|No Such Entry
+a|The result code that indicates that the requested operation failed because it referenced an entry that does not exist.
+
+a|33
+a|Alias Problem
+a|The result code that indicates that the requested operation failed because it attempted to perform an illegal operation on an alias.
+
+a|34
+a|Invalid DN Syntax
+a|The result code that indicates that the requested operation failed because it would have resulted in an entry with an invalid or malformed DN.
+
+a|36
+a|Alias Dereferencing Problem
+a|The result code that indicates that a problem was encountered while attempting to dereference an alias for a search operation.
+
+a|48
+a|Inappropriate Authentication
+a|The result code that indicates that an authentication attempt failed because the requested type of authentication was not appropriate for the targeted entry.
+
+a|49
+a|Invalid Credentials
+a|The result code that indicates that an authentication attempt failed because the user did not provide a valid set of credentials.
+
+a|50
+a|Insufficient Access Rights
+a|The result code that indicates that the client does not have sufficient permission to perform the requested operation.
+
+a|51
+a|Busy
+a|The result code that indicates that the server is too busy to process the requested operation.
+
+a|52
+a|Unavailable
+a|The result code that indicates that either the entire server or one or more required resources were not available for use in processing the request.
+
+a|53
+a|Unwilling to Perform
+a|The result code that indicates that the server is unwilling to perform the requested operation.
+
+a|54
+a|Loop Detected
+a|The result code that indicates that a referral or chaining loop was detected while processing the request.
+
+a|60
+a|Sort Control Missing
+a|The result code that indicates that a search request included a VLV request control without a server-side sort control.
+
+a|61
+a|Offset Range Error
+a|The result code that indicates that a search request included a VLV request control with an invalid offset.
+
+a|64
+a|Naming Violation
+a|The result code that indicates that the requested operation failed because it would have violated the server's naming configuration.
+
+a|65
+a|Object Class Violation
+a|The result code that indicates that the requested operation failed because it would have resulted in an entry that violated the server schema.
+
+a|66
+a|Not Allowed on Non-Leaf
+a|The result code that indicates that the requested operation is not allowed for non-leaf entries.
+
+a|67
+a|Not Allowed on RDN
+a|The result code that indicates that the requested operation is not allowed on an RDN attribute.
+
+a|68
+a|Entry Already Exists
+a|The result code that indicates that the requested operation failed because it would have resulted in an entry that conflicts with an entry that already exists.
+
+a|69
+a|Object Class Modifications Prohibited
+a|The result code that indicates that the operation could not be processed because it would have modified the objectclasses associated with an entry in an illegal manner.
+
+a|71
+a|Affects Multiple DSAs
+a|The result code that indicates that the operation could not be processed because it would impact multiple DSAs or other repositories.
+
+a|76
+a|Virtual List View Error
+a|The result code that indicates that the operation could not be processed because there was an error while processing the virtual list view control.
+
+a|80
+a|Other
+a|The result code that should be used if no other result code is appropriate.
+
+a|81
+a|Server Connection Closed
+a|The client-side result code that indicates that a previously-established connection to the server was lost. This is for client-side use only and should never be transferred over protocol.
+
+a|82
+a|Local Error
+a|The client-side result code that indicates that a local error occurred that had nothing to do with interaction with the server. This is for client-side use only and should never be transferred over protocol.
+
+a|83
+a|Encoding Error
+a|The client-side result code that indicates that an error occurred while encoding a request to send to the server. This is for client-side use only and should never be transferred over protocol.
+
+a|84
+a|Decoding Error
+a|The client-side result code that indicates that an error occurred while decoding a response from the server. This is for client-side use only and should never be transferred over protocol.
+
+a|85
+a|Client-Side Timeout
+a|The client-side result code that indicates that the client did not receive an expected response in a timely manner. This is for client-side use only and should never be transferred over protocol.
+
+a|86
+a|Unknown Authentication Mechanism
+a|The client-side result code that indicates that the user requested an unknown or unsupported authentication mechanism. This is for client-side use only and should never be transferred over protocol.
+
+a|87
+a|Filter Error
+a|The client-side result code that indicates that the filter provided by the user was malformed and could not be parsed. This is for client-side use only and should never be transferred over protocol.
+
+a|88
+a|Cancelled by User
+a|The client-side result code that indicates that the user cancelled an operation. This is for client-side use only and should never be transferred over protocol.
+
+a|89
+a|Parameter Error
+a|The client-side result code that indicates that there was a problem with one or more of the parameters provided by the user. This is for client-side use only and should never be transferred over protocol.
+
+a|90
+a|Out of Memory
+a|The client-side result code that indicates that the client application was not able to allocate enough memory for the requested operation. This is for client-side use only and should never be transferred over protocol.
+
+a|91
+a|Connect Error
+a|The client-side result code that indicates that the client was not able to establish a connection to the server. This is for client-side use only and should never be transferred over protocol.
+
+a|92
+a|Operation Not Supported
+a|The client-side result code that indicates that the user requested an operation that is not supported. This is for client-side use only and should never be transferred over protocol.
+
+a|93
+a|Control Not Found
+a|The client-side result code that indicates that the client expected a control to be present in the response from the server but it was not included. This is for client-side use only and should never be transferred over protocol.
+
+a|94
+a|No Results Returned
+a|The client-side result code that indicates that the requested single entry search operation or read operation failed because the Directory Server did not return any matching entries. This is for client-side use only and should never be transferred over protocol.
+
+a|95
+a|Unexpected Results Returned
+a|The client-side result code that the requested single entry search operation or read operation failed because the Directory Server returned multiple matching entries (or search references) when only a single matching entry was expected. This is for client-side use only and should never be transferred over protocol.
+
+a|96
+a|Referral Loop Detected
+a|The client-side result code that indicates that the client detected a referral loop caused by servers referencing each other in a circular manner. This is for client-side use only and should never be transferred over protocol.
+
+a|97
+a|Referral Hop Limit Exceeded
+a|The client-side result code that indicates that the client reached the maximum number of hops allowed when attempting to follow a referral (i.e., following one referral resulted in another referral which resulted in another referral and so on). This is for client-side use only and should never be transferred over protocol.
+
+a|118
+a|Canceled
+a|The result code that indicates that a cancel request was successful, or that the specified operation was canceled.
+
+a|119
+a|No Such Operation
+a|The result code that indicates that a cancel request was unsuccessful because the targeted operation did not exist or had already completed.
+
+a|120
+a|Too Late
+a|The result code that indicates that a cancel request was unsuccessful because processing on the targeted operation had already reached a point at which it could not be canceled.
+
+a|121
+a|Cannot Cancel
+a|The result code that indicates that a cancel request was unsuccessful because the targeted operation was one that could not be canceled.
+
+a|122
+a|Assertion Failed
+a|The result code that indicates that the filter contained in an assertion control failed to match the target entry.
+
+a|123
+a|Authorization Denied
+a|The result code that should be used if the server will not allow the client to use the requested authorization.
+
+a|16,654
+a|No Operation
+a|The result code that should be used if the server did not actually complete processing on the associated operation because the request included the LDAP No-Op control.
+|===
+

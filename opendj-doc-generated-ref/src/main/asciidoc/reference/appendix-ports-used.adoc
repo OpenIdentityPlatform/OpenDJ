@@ -1,0 +1,67 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[appendix]
+[#appendix-ports-used]
+== Ports Used
+
+OpenDJ server software uses the following TCP/IP ports by default:
+--
+
+[#ldap-port]
+LDAP: 389 (1389)::
++
+OpenDJ directory server listens for LDAP requests from client applications on port 389 by default. OpenDJ directory server uses port 1389 by default for users who cannot use privileged ports. LDAP is enabled by default.
+
+[#ldaps-port]
+LDAPS: 636 (1636)::
++
+OpenDJ directory server listens for LDAPS requests from client applications on port 636 by default. OpenDJ directory server uses port 1636 by default for users who cannot use privileged ports. LDAPS is not enabled by default.
+
+[#admin-port]
+Administrative connections: 4444::
++
+OpenDJ directory server listens for administrative traffic on port 4444 by default. The administration connector is enabled by default.
+
+[#snmp-port]
+SNMP: 161, 162::
++
++
+OpenDJ directory server listens for SNMP traffic on port 161 by default, and uses port 162 for traps. SNMP is not enabled by default.
+
+[#jmx-port]
+JMX: 1689::
++
+OpenDJ directory server listens for Java Management eXtension traffic on port 1689 by default. JMX is not enabled by default.
+
+[#http-port]
+HTTP: 8080::
++
+OpenDJ directory server can listen for HTTP client requests to the RESTful API. The default port is 8080, but HTTP access is not enabled by default.
+
+[#repl-port]
+Replication: 8989::
++
+OpenDJ directory server listens for replication traffic on port 8989 by default. Replication is not enabled by default.
+
+--
+

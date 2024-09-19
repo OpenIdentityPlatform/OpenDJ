@@ -1,0 +1,269 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-server-process]
+== Managing Server Processes
+
+This chapter covers starting and stopping OpenDJ directory server. In this chapter you will learn to:
+
+* Start, restart, and stop OpenDJ directory server using OpenDJ command-line tools, OpenDJ control panel, or system service integration on Linux and Windows systems
+
+* Understand how to recognize that OpenDJ directory server is recovering from a crash or abrupt shutdown
+
+* Configure whether OpenDJ directory server loads data into cache at server startup before accepting client connections
+
+
+[#start-server]
+=== Starting a Server
+
+Use one of the following techniques:
+
+* Use the `start-ds` command, described in xref:../reference/admin-tools-ref.adoc#start-ds-1[start-ds(1)] in the __Reference__:
++
+
+[source, console]
+----
+$ start-ds
+----
++
+Alternatively, you can specify the `--no-detach` option to start the server in the foreground.
+
+* (Linux) If OpenDJ directory server was installed from a .deb or .rpm package, then service management scripts were created at setup time.
++
+Use the `service opendj start` command:
++
+
+[source, console]
+----
+centos# service opendj start
+Starting opendj (via systemctl):                           [  OK  ]
+----
++
+
+[source, console]
+----
+ubuntu$ sudo service opendj start
+$Starting opendj: > SUCCESS.
+----
+
+* (UNIX) Create an RC script by using the `create-rc-script` command, described in xref:../reference/admin-tools-ref.adoc#create-rc-script-1[create-rc-script(1)] in the __Reference__, and then use the script to start the server.
++
+Unless you run OpenDJ on Linux as root, use the `--userName userName` option to specify the user who installed OpenDJ:
++
+
+[source, console]
+----
+$ sudo create-rc-script \
+ --outputFile /etc/init.d/opendj \
+ --userName mark
+
+$ sudo /etc/init.d/opendj start
+----
++
+For example, if you run OpenDJ on Linux as root, you can use the RC script to start the server at system boot, and stop the server at system shutdown:
++
+
+[source, console]
+----
+$ sudo update-rc.d opendj defaults
+update-rc.d: warning: /etc/init.d/opendj missing LSB information
+update-rc.d: see <http://wiki.debian.org/LSBInitScripts>
+ Adding system startup for /etc/init.d/opendj ...
+   /etc/rc0.d/K20opendj -> ../init.d/opendj
+   /etc/rc1.d/K20opendj -> ../init.d/opendj
+   /etc/rc6.d/K20opendj -> ../init.d/opendj
+   /etc/rc2.d/S20opendj -> ../init.d/opendj
+   /etc/rc3.d/S20opendj -> ../init.d/opendj
+   /etc/rc4.d/S20opendj -> ../init.d/opendj
+   /etc/rc5.d/S20opendj -> ../init.d/opendj
+----
+
+* (Windows) Register OpenDJ as a Windows Service by using the `windows-service` command, described in xref:../reference/admin-tools-ref.adoc#windows-service[windows-service(1)] in the __Reference__, and then manage the service through Windows administration tools:
++
+
+[source, console]
+----
+C:\path\to\opendj\bat> windows-service.bat --enableService
+----
+
+By default OpenDJ saves a compressed version of the server configuration used on successful startup. This ensures that the server provides a last known good configuration, which can be used as a reference or copied into the active configuration if the server fails to start with the current active configuration. It is possible, though not usually recommended, to turn this behavior off by changing the global server setting `save-config-on-successful-startup` to `false`.
+
+
+[#stop-server]
+=== Stopping a Server
+
+Although OpenDJ directory server is designed to recover from failure and disorderly shutdown, it is safer to shut the server down cleanly, because a clean shutdown reduces startup delays during which OpenDJ server attempts to recover database backend state, and prevents situations where OpenDJ server cannot recover automatically.
+
+Follow these steps to shut down OpenDJ server cleanly:
+
+====
+
+. (Optional)  If you are stopping a replicated server __permanently__, for example, before decommissioning the underlying system or virtual machine, first remove the server from the replication topology:
++
+
+[source, console]
+----
+$ dsreplication \
+ disable \
+ --disableAll \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --adminUID admin \
+ --adminPassword password \
+ --trustAll \
+ --no-prompt
+----
++
+This step unregisters the server from the replication topology, effectively removing its replication configuration from other servers. This step must be performed before you decommission the system, because the server must connect to its peers in the replication topology.
+
+. Before shutting down the system where OpenDJ server is running, and before detaching any storage used for directory data, cleanly stop the server using one of the following techniques:
++
+
+* Use the `stop-ds` command, described in xref:../reference/admin-tools-ref.adoc#stop-ds-1[stop-ds(1)] in the __Reference__:
++
+
+[source, console]
+----
+$ stop-ds
+----
+
+* (Linux) If OpenDJ directory server was installed from a .deb or .rpm package, then service management scripts were created at setup time.
++
+Use the `service opendj stop` command:
++
+
+[source, console]
+----
+centos# service opendj stop
+Stopping opendj (via systemctl):                           [  OK  ]
+----
++
+
+[source, console]
+----
+ubuntu$ sudo service opendj stop
+$Stopping opendj: ... > SUCCESS.
+----
+
+* (UNIX) Create an RC script, and then use the script to stop the server:
++
+
+[source, console]
+----
+$ sudo create-rc-script \
+ --outputFile /etc/init.d/opendj \
+ --userName mark
+
+$ sudo /etc/init.d/opendj stop
+----
+
+* (Windows) Register OpenDJ as a Windows Service, and then manage the service through Windows administration tools:
++
+
+[source, console]
+----
+C:\path\to\opendj\bat> windows-service.bat --enableService
+----
+
++
+__Do not intentionally kill the OpenDJ server process__ unless the server is completely unresponsive.
++
+When stopping cleanly, the server writes state information to database backends, and releases locks that it holds on database files.
+
+====
+
+
+[#restart-server]
+=== Restarting a Server
+
+Use one of the following techniques:
+
+* Use the `stop-ds` command:
++
+
+[source, console]
+----
+$ stop-ds --restart
+----
+
+* (Linux) If OpenDJ directory server was installed from a .deb or .rpm package, then service management scripts were created at setup time.
++
+Use the `service opendj restart` command:
++
+
+[source, console]
+----
+centos# service opendj restart
+Restarting opendj (via systemctl):                         [  OK  ]
+----
++
+
+[source, console]
+----
+ubuntu$ sudo service opendj restart
+$Stopping opendj: ... > SUCCESS.
+
+$Starting opendj: > SUCCESS.
+----
+
+* (UNIX) Create an RC script, and then use the script to stop the server:
++
+
+[source, console]
+----
+$ sudo create-rc-script \
+ --outputFile /etc/init.d/opendj \
+ --userName mark
+
+$ /etc/init.d/opendj restart
+----
+
+* (Windows) Register OpenDJ as a Windows Service, and then manage the service through Windows administration tools:
++
+
+[source, console]
+----
+C:\path\to\opendj\bat> windows-service.bat --enableService
+----
+
+
+
+[#crash-recovery]
+=== Server Recovery
+
+OpenDJ tends to show resilience when restarting after a crash or after the server process is killed abruptly. OpenDJ might have to replay the last few entries in a transaction log. Generally, OpenDJ returns to service quickly.
+
+Database recovery messages are found in the database log file, such as `/path/to/opendj/db/userRoot/dj.log`.
+
+The following example shows two example messages from the recovery log. The first message is written at the beginning of the recovery process. The second message is written at the end of the process:
+
+[source]
+----
+111104 10:23:48:967 CONFIG [/path/to/opendj/db/userRoot]Recovery
+ underway, found end of log
+...
+111104 10:23:49:015 CONFIG [/path/to/opendj/db/userRoot]Recovery finished:
+ Recovery Info ...
+----
+What can take some time during server startup is preloading database content into memory when the server starts. Objects cached in memory do not survive a crash. By default, OpenDJ does not cache objects in memory before starting to accept client requests. You can, however, set the `preload-time-limit` property for the database cache of your backend if you do want to load objects into the database cache before OpenDJ begins accepting client connections.
+
+

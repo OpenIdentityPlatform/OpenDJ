@@ -1,0 +1,167 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-samba]
+== Samba Password Synchronization
+
+This chapter covers synchronization between directory passwords and Samba passwords. In this chapter you will learn to:
+
+* Configure Samba for use with OpenDJ directory server
+
+* Set up the OpenDJ directory sever Samba password plugin for synchronization
+
+link:http://www.samba.org/[Samba, window=\_blank], the Windows interoperability suite for Linux and UNIX, stores accounts because UNIX and Windows password storage management is not interoperable. The default account storage mechanism is designed to work well with relatively small numbers of accounts and configurations with one domain controller. For larger installations, you can configure Samba to use OpenDJ for storing Samba accounts. See the Samba documentation for your platform for instructions on how to configure an LDAP directory server such as OpenDJ as a Samba passdb backend.
+
+The rest of this chapter focuses on how you keep passwords in sync when using OpenDJ for Samba account storage.
+
+When you store Samba accounts in OpenDJ, Samba stores its own attributes as defined in the Samba schema. Samba does not use the LDAP standard `userPassword` attribute to store users' Samba passwords. You can configure Samba to apply changes to Samba passwords to LDAP passwords as well, too. Yet, if a user modifies their LDAP password directly without updating the Samba password, the LDAP and Samba passwords get out of sync.
+
+The OpenDJ Samba Password plugin resolves this problem for you. The plugin intercepts password changes to Samba user profiles, synchronizing Samba password and LDAP password values. For an incoming Password Modify Extended Request or modify request changing the user password, the OpenDJ Samba Password plugin detects whether the user's entry reflects a Samba user profile (entry has object class `sambaSAMAccount`), hashes the incoming password value, and applies the password change to the appropriate password attribute, keeping the password values in sync. The OpenDJ Samba Password plugin can perform synchronization as long as new passwords values are provided in cleartext in the modification request. If you configure Samba to synchronize LDAP passwords when it changes Samba passwords, then the plugin can ignore changes by the Samba user to avoid duplicate synchronization.
+
+[#setup-samba-administrator-account]
+.To Set Up a Samba Administrator Account
+====
+The Samba Administrator synchronizes LDAP passwords after changing Samba passwords by issuing a Password Modify Extended Request. In Samba's `smb.conf` configuration file, the value of `ldap admin dn` is set to the DN of this account. When the Samba Administrator changes a user password, the plugin ignores the changes, so choose a distinct account different from Directory Manager and other administrators.
+
+. Create or choose an account for the Samba Administrator:
++
+
+[source, console]
+----
+$ cat samba.ldif
+dn: uid=samba-admin,ou=Special Users,dc=example,dc=com
+cn: Samba Administrator
+givenName: Samba
+mail: samba@example.com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+sn: Administrator
+uid: samba-admin
+userPassword: password
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename samba.ldif
+Processing ADD request for uid=samba-admin,ou=Special Users,dc=example,dc=com
+ADD operation successful for DN uid=samba-admin,ou=Special Users,
+ dc=example,dc=com
+----
+
+. Ensure the Samba Administrator can reset user passwords:
++
+
+[source, console]
+----
+$ cat samba-rights.ldif
+dn: uid=samba-admin,ou=Special Users,dc=example,dc=com
+changetype: modify
+add: ds-privilege-name
+ds-privilege-name: password-reset
+
+dn: dc=example,dc=com
+changetype: modify
+add: aci
+aci: (target="ldap:///dc=example,dc=com") (targetattr ="*")(version 3.0; acl "
+ Samba Admin user rights"; allow(all) groupdn ="ldap:///uid=samba-user,ou=
+ Special Users,dc=example,dc=com";)
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename samba-rights.ldif
+Processing MODIFY request for uid=samba-admin,ou=Special Users,dc=example,dc=com
+MODIFY operation successful for DN
+ uid=samba-admin,ou=Special Users,dc=example,dc=com
+Processing MODIFY request for dc=example,dc=com
+MODIFY operation successful for DN dc=example,dc=com
+----
+
+====
+
+[#setup-samba-pwd-plugin]
+.To Set Up the Samba Password Plugin
+====
+
+. Determine whether the plugin must store passwords hashed like LanManager (`sync-lm-password`) or like Windows NT (`sync-nt-password`), based on how you set up Samba in your environment.
+
+. Enable the plugin:
++
+
+[source, console]
+----
+$ dsconfig \
+ create-plugin \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "Samba Password Synchronisation" \
+ --type samba-password \
+ --set enabled:true \
+ --set pwd-sync-policy:sync-nt-password \
+ --set \
+ samba-administrator-dn:"uid=samba-admin,ou=Special Users,dc=example,dc=com" \
+ --trustAll \
+ --no-prompt
+----
++
+At this point the Samba Password plugin is active.
+
+. (Optional) When troubleshooting Samba Password plugin issues, you can turn on debug logging as follows:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-log-publisher-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Debug Logger" \
+ --set enabled:true \
+ --no-prompt \
+ --trustAll
+
+$ dsconfig \
+ create-debug-target \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Debug Logger" \
+ --target-name org.opends.server.plugins.SambaPasswordPlugin \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt
+
+$ tail -f /path/to/opendj/logs/debug
+----
+
+====
+

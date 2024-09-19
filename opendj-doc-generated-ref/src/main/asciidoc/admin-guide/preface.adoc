@@ -1,0 +1,104 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[preface]
+[#preface]
+== Preface
+
+This guide shows you how to configure, maintain, and troubleshoot OpenDJ directory services. OpenDJ directory services allow applications to access directory data:
+
+* Over Lightweight Directory Access Protocol (LDAP)
+
+* Using Directory Services Markup Language (DSML)
+
+* Over Hypertext Transfer Protocol (HTTP) by using HTTP methods in the Representational State Transfer (REST) style
+
+In reading and following the instructions in this guide, you will learn how to:
+
+* Use OpenDJ administration tools
+
+* Manage OpenDJ server processes
+
+* Import, export, backup, and restore directory data
+
+* Configure OpenDJ server connection handlers for all supported protocols
+
+* Configure administrative privileges and fine-grained access control
+
+* Index directory data, manage schemas for directory data, and enforce uniqueness of directory data attribute values
+
+* Configure data replication between OpenDJ directory servers
+
+* Implement password policies, pass-through authentication to another directory, password synchronization with Samba, account lockout, and account status notification
+
+* Set resource limits to prevent unfair use of directory server resources
+
+* Monitor directory servers through logs and alerts and over JMX
+
+* Tune directory servers for best performance
+
+* Secure directory server deployments
+
+* Change directory server key pairs and public key certificates
+
+* Move a directory server to a different system
+
+* Troubleshoot directory server issues
+
+
+[#d67723e231]
+=== Using This Guide
+
+This guide is intended for system administrators who build, deploy, and maintain OpenDJ directory services for their organizations.
+This guide starts with an introduction to directory services. The rest of this guide is written with the assumption that you have basic familiarity with the following topics:
+
+* The client-server model of distributed computing
+
+* Lightweight Directory Access Protocol (LDAP), including how clients and servers exchange messages
+
+* Managing Java-based services on operating systems and application servers
+
+* Using command-line tools and reading command-line examples written for UNIX/Linux systems
+
+* Configuring network connections on operating systems
+
+* Managing Public Key Infrastructure (PKI) used to establish secure connections
+
+Depending on the features you use, you should also have basic familiarity with the following topics:
+
+* Directory Services Markup Language (DSML), including how clients and servers exchange messages
+
+* Hypertext Transfer Protocol (HTTP), including how clients and servers exchange messages
+
+* Java Management Extensions (JMX) for monitoring services
+
+* Simple Network Management Protocol (SNMP) for monitoring services
+
+
+
+include::../partials/sec-formatting-conventions.adoc[]
+
+include::../partials/sec-accessing-doc-online.adoc[]
+
+include::../partials/sec-joining-the-community.adoc[]
+
+include::../partials/sec-support-contact.adoc[]

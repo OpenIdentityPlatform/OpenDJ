@@ -369,7 +369,9 @@
                     <plugin>
                         <groupId>org.openidentityplatform.opendj</groupId>
                         <artifactId>opendj-doc-maven-plugin</artifactId>
-
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>generate-man-pages</id>
@@ -584,6 +586,7 @@
                     <plugin>
                         <groupId>org.openidentityplatform.commons</groupId>
                         <artifactId>doc-maven-plugin</artifactId>
+                        <version>2.2.1-SNAPSHOT</version>
                         <executions>
                             <execution>
                                 <id>build-man-pages</id>
@@ -593,6 +596,23 @@
                                     <goal>build</goal>
                                     <goal>release</goal>
                                 </goals>
+                            </execution>
+                            <execution>
+                                <id>build-man-pages-asciidoc</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>asciidoc-pre-process</goal>
+                                    <goal>antora</goal>
+                                    <goal>asciidoc-to-pdf</goal>
+                                </goals>
+                                <configuration>
+                                    <documents>
+                                        <document>install-guide</document>
+                                        <document>admin-guide</document>
+                                        <document>server-dev-guide</document>
+                                        <document>reference</document>
+                                    </documents>
+                                </configuration>
                             </execution>
                         </executions>
                         <configuration>

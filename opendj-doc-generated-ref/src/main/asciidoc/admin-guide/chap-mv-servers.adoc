@@ -1,0 +1,255 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-mv-servers]
+== Moving Servers
+
+This chapter explains how to move OpenDJ directory servers. In this chapter you will learn to:
+
+* Prepare for the move, especially when the server is replicated, and when the directory service remains available during the move
+
+* Perform the configuration needed to move the directory server
+
+When you change where OpenDJ is deployed, you must take host names, port numbers, and certificates into account. The changes can also affect your replication configuration.
+
+[#moving-servers-overview]
+=== Overview
+
+From time to time you might change server hardware, file system layout, or host names. At those times you move the services running on the system. You can move OpenDJ data between servers and operating systems. Most of the configuration is also portable.
+Two aspects of the configuration are not portable:
+
+. Server certificates contain the host name of the system. Even if you did not set up secure communications when you installed the server, the server still has a certificate used for secure communications on the administrative port.
++
+To resolve the issue with server certificates, you can change the server certificates during the move as described in this chapter.
+
+. Replication configuration includes the host name and administrative port numbers.
++
+You can work around the issue with replication configuration by disabling replication for the server before the move, and then enabling and initializing replication again after the move.
+
+
+
+[#before-moving-servers]
+=== Before You Move
+
+Take a moment to determine whether you find it quicker and easier to move your server, or to recreate a copy. To recreate a copy, install a new server, set up the new server configuration to match the old, and then copy only the data from the old server to the new server, initializing replication from existing data, or even from LDIF if your database is not too large.
+
+After you decide to move a server, start by taking it out of service. Taking it out of service means directing client applications elsewhere, and then preventing updates from client applications, and finally disabling replication. Directing client applications elsewhere depends on your network configuration and possibly on your client application configuration. The other two steps can be completed with the `dsconfig` and `dsreplication` commands.
+
+[#remove-server]
+.To Take the Server Out of Service
+====
+
+. Direct client applications to other servers.
++
+How you do this depends on your network and client application configurations.
+
+. Prevent the server from accepting updates from client applications:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj2.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set writability-mode:internal-only \
+ --trustAll \
+ --no-prompt
+----
+
+. Disable replication for the server:
++
+
+[source, console]
+----
+$ dsreplication \
+ disable \
+ --disableAll \
+ --port 4444 \
+ --hostname opendj2.example.com \
+ --adminUID admin \
+ --adminPassword password \
+ --trustAll \
+ --no-prompt
+Establishing connections ..... Done.
+Disabling replication on base DN dc=example,dc=com of server
+ opendj2.example.com:4444 ..... Done.
+Disabling replication on base DN cn=admin data of server
+ opendj2.example.com:4444 ..... Done.
+Disabling replication on base DN cn=schema of server
+ opendj2.example.com:4444 ..... Done.
+Disabling replication port 8989 of server opendj2.example.com:4444 ..... Done.
+Removing registration information ..... Done.
+Removing truststore information ..... Done.
+
+See
+/var/.../opends-replication-3173475478874782719.log
+for a detailed log of this operation.
+----
+
+. With the server no longer receiving traffic or accepting updates from clients, and no longer replicating to other servers, you can shut it down in preparation for the move:
++
+
+[source, console]
+----
+$ stop-ds
+Stopping Server...
+
+... msg=The Directory Server is now stopped
+----
+
+. (Optional) You might also choose to remove extra log files from the server `logs/` directory before moving the server.
+
+====
+
+
+[#moving-servers]
+=== Moving a Server
+
+Now that you have decided to move your server, and prepared for the move, you must not only move the files but also fix the configuration and the server certificates, and then enable replication.
+
+[#mv-one-server]
+.To Move the Server
+====
+
+. Move the contents of the server installation directory to the new location.
+
+. (Optional) If you must change port numbers, edit the port numbers in `config/config.ldif`, carefully avoiding changing any whitespace or other lines in the file.
+
+. Change server certificates as described in xref:chap-change-certs.adoc#chap-change-certs["Changing Server Certificates"].
+
+. Start the server:
++
+
+[source, console]
+----
+$ start-ds
+... The Directory Server has started successfully
+----
+
+. Enable and initialize replication:
++
+
+[source, console]
+----
+$ dsreplication \
+ enable \
+ --adminUID admin \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ --host1 opendj.example.com \
+ --port1 4444 \
+ --bindDN1 "cn=Directory Manager" \
+ --bindPassword1 password \
+ --replicationPort1 8989 \
+ --host2 opendj2.example.com \
+ --port2 4444 \
+ --bindDN2 "cn=Directory Manager" \
+ --bindPassword2 password \
+ --replicationPort2 8989 \
+ --trustAll \
+ --no-prompt
+
+Establishing connections ..... Done.
+Checking registration information ..... Done.
+Configuring Replication port on server opendj.example.com:4444 ..... Done.
+Updating remote references on server opendj2.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ opendj.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ opendj2.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj2.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema on server
+ opendj.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema on server
+ opendj2.example.com:4444 ..... Done.
+Initializing registration information on server opendj.example.com:4444 with
+ the contents of server opendj2.example.com:4444 ..... Done.
+Initializing schema on server opendj2.example.com:4444 with the contents of
+ server opendj.example.com:4444 ..... Done.
+
+Replication has been successfully enabled.  Note that for replication to work
+ you must initialize the contents of the base DN's that are being replicated
+ (use dsreplication initialize to do so).
+
+See /tmp/opends-replication-1476402020764482023.log for a detailed log of this
+operation.
+
+$ dsreplication \
+ pre-external-initialization \
+ --adminUID admin \
+ --bindPassword password \
+ --port 4444 \
+ --baseDN dc=example,dc=com \
+ --trustAll \
+ --no-prompt
+
+Preparing base DN dc=example,dc=com to be initialized externally ..... Done.
+
+Now you can proceed to the initialization of the contents of the base DN's on
+ all the replicated servers.  You can use the command import-ldif or the binary
+ copy to do so.  You must use the same LDIF file or binary copy on each server.
+
+When the initialization is completed you must use the subcommand
+ 'post-external-initialization' for replication to work with the new base DN's
+ contents.
+
+$ dsreplication \
+ post-external-initialization \
+ --adminUID admin \
+ --bindPassword password \
+ --port 4444 \
+ --baseDN dc=example,dc=com \
+ --trustAll \
+ --no-prompt
+
+Updating replication information on base DN dc=example,dc=com ..... Done.
+
+Post initialization procedure completed successfully.
+----
+
+. Accept updates from client applications:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set writability-mode:enabled \
+ --trustAll \
+ --no-prompt
+----
+
+. Direct client applications to the server.
+
+====
+
+

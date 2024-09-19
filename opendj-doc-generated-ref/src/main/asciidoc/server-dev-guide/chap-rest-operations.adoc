@@ -1,0 +1,2431 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-rest-operations]
+== Performing RESTful Operations
+
+OpenDJ lets you access directory data as link:http://json.org[JSON, window=\_blank] resources over HTTP. OpenDJ maps JSON resources onto LDAP entries. As a result, REST clients perform many of the same operations as LDAP clients with directory data.
+
+This chapter demonstrates RESTful client operations by using the default configuration and sample directory data imported into OpenDJ directory server as described in xref:../admin-guide/chap-import-export.adoc#import-ldif["To Import LDIF Data"] in the __Administration Guide__, from the LDIF file link:../resources/Example.ldif[Example.ldif, window=\_blank].
+
+[NOTE]
+====
+The default configuration has changed in OpenDJ 3.5.
+
+If you are using OpenDJ 3.0, see xref:chap-rest-operations-3-0.adoc#chap-rest-operations-3-0["Performing RESTful Operations (3.0)"] and xref:../reference/appendix-rest2ldap-3-0.adoc#appendix-rest2ldap-3-0["REST to LDAP Configuration (3.0)"] in the __Reference__.
+====
+In this chapter, you will learn how to use the OpenDJ REST API that provides access to directory data over HTTP. In particular, you will learn how to:
+
+* link:#create-rest[Create] a resource that does not yet exist
+
+* link:#read-rest[Read] a single resource
+
+* link:#update-rest[Update] an existing resource
+
+* link:#delete-rest[Delete] an existing resource
+
+* link:#patch-rest[Patch] part of an existing resource
+
+* Perform a predefined link:#action-rest[action]
+
+* link:#query-rest[Query] a set of resources
+
+* Work with other link:#mime-types-rest[MIME types] for resources like photos
+
+Before trying the examples, enable HTTP access to OpenDJ directory server as described in xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap-endpoint["To Set Up REST Access to User Data"] in the __Administration Guide__. (If you are using OpenDJ 3.0, see xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap-3-0["RESTful Client Access (3.0)"] in the __Administration Guide__ instead.) The examples in this chapter use HTTP, but the procedure also shows how to set up HTTPS access to the server.
+
+Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__.)
+
+The OpenDJ REST API is built on a common ForgeRock HTTP-based REST API for interacting with JSON Resources. All APIs built on this common layer let you perform the following operations.
+
+[#sec-about-crest]
+=== About ForgeRock Common REST
+
+For many REST APIs that are not defined by external standards, ForgeRock products provide common ways to access web resources and collections of resources. This section covers what is common across products. Adapt the examples to your types of resources and to your deployment.
+
+[#about-crest-resources]
+==== Common REST Resources
+
+Servers generally return JSON-format resources, though resource formats can depend on the implementation.
+
+Resources in collections can be found by their unique identifiers (IDs). IDs are exposed in the resource URIs. For example, if a server has a user collection under `/users`, then you can access a user at `/users/user-id`. The ID is also the value of the `_id` field of the resource.
+
+Resources are versioned using revision numbers. A revision is specified in the resource's `_rev` field. Revisions make it possible to figure out whether to apply changes without resource locking and without distributed transactions.
+
+
+[#about-crest-verbs]
+==== Common REST Verbs
+
+--
+The common REST APIs use the following verbs, sometimes referred to collectively as CRUDPAQ. For details and HTTP-based examples of each, follow the links to the sections for each verb.
+
+Create::
+Add a new resource.
+
++
+This verb maps to HTTP PUT or HTTP POST.
+
++
+For details, see xref:#about-crest-create["Create"].
+
+Read::
+Retrieve a single resource.
+
++
+This verb maps to HTTP GET.
+
++
+For details, see xref:#about-crest-read["Read"].
+
+Update::
+Replace an existing resource.
+
++
+This verb maps to HTTP PUT.
+
++
+For details, see xref:#about-crest-update["Update"].
+
+Delete::
+Remove an existing resource.
+
++
+This verb maps to HTTP DELETE.
+
++
+For details, see xref:#about-crest-delete["Delete"].
+
+Patch::
+Modify part of an existing resource.
+
++
+This verb maps to HTTP PATCH.
+
++
+For details, see xref:#about-crest-patch["Patch"].
+
+Action::
+Perform a predefined action.
+
++
+This verb maps to HTTP POST.
+
++
+For details, see xref:#about-crest-action["Action"].
+
+Query::
+Search a collection of resources.
+
++
+This verb maps to HTTP GET.
+
++
+For details, see xref:#about-crest-query["Query"].
+
+modifyPassword::
+Change your password.
+
++
+This verb maps to HTTP POST.
+
++
+For details, see xref:#about-crest-modify-password["Change Your Password"].
+
+resetPassword::
+Reset a password.
+
++
+This verb maps to HTTP POST.
+
++
+For details, see xref:#about-crest-reset-password["Reset a Password"].
+
+--
+
+
+[#about-crest-parameters]
+==== Common REST Parameters
+
+Common REST reserved query string parameter names start with an underscore, `_`.
+
+Reserved query string parameters include, but are not limited to, the following names:
+[none]
+* `_action`
+* `_fields`
+* `_mimeType`
+* `_pageSize`
+* `_pagedResultsCookie`
+* `_pagedResultsOffset`
+* `_prettyPrint`
+* `_queryExpression`
+* `_queryFilter`
+* `_queryId`
+* `_sortKeys`
+* `_totalPagedResultsPolicy`
+
+[NOTE]
+====
+Some parameter values are not safe for URLs, so URL-encode parameter values as necessary.
+====
+Continue reading for details about how to use each parameter.
+
+
+[#about-crest-extensions]
+==== Common REST Extension Points
+
+The __action__ verb is the main vehicle for extensions. For example, to create a new user with HTTP POST rather than HTTP PUT, you might use `/users?_action=create`. A server can define additional actions. For example, `/tasks/1?_action=cancel`.
+
+A server can define __stored queries__ to call by ID. For example, `/groups?_queryId=hasDeletedMembers`. Stored queries can call for additional parameters. The parameters are also passed in the query string. Which parameters are valid depends on the stored query.
+
+
+[#about-crest-create]
+==== Create
+
+There are two ways to create a resource, either with an HTTP POST or with an HTTP PUT.
+
+To create a resource using POST, perform an HTTP POST with the query string parameter `_action=create` and the JSON resource as a payload. Accept a JSON response. The server creates the identifier if not specified:
+
+[source, httprequest]
+----
+POST /users?_action=create HTTP/1.1
+Host: example.com
+Accept: application/json
+Content-Length: ...
+Content-Type: application/json
+{ JSON resource }
+----
+To create a resource using PUT, perform an HTTP PUT including the case-sensitive identifier for the resource in the URL path, and the JSON resource as a payload. Use the `If-None-Match: *` header. Accept a JSON response:
+
+[source, httprequest]
+----
+PUT /users/some-id HTTP/1.1
+Host: example.com
+Accept: application/json
+Content-Length: ...
+Content-Type: application/json
+If-None-Match: *
+{ JSON resource }
+----
+The `_id` and content of the resource depend on the server implementation. The server is not required to use the `_id` that the client provides. The server response to the create request indicates the resource location as the value of the `Location` header.
+
+If you include the `If-None-Match` header, its value must be `*`. In this case, the request creates the object if it does not exist, and fails if the object does exist. If you include the `If-None-Match` header with any value other than `*`, the server returns an HTTP 400 Bad Request error. For example, creating an object with `If-None-Match: revision` returns a bad request error. If you do not include `If-None-Match: *`, the request creates the object if it does not exist, and __updates__ the object if it does exist.
+.Parameters
+--
+You can use the following parameters:
+
+`_prettyPrint=true`::
+Format the body of the response.
+
+`_fields=field[,field...]`::
+Return only the specified fields in the body of the response.
+
++
+The `field` values are JSON pointers. For example if the resource is `{"parent":{"child":"value"}}`, `parent/child` refers to the `"child":"value"`.
+
+--
+
+
+[#about-crest-read]
+==== Read
+
+To retrieve a single resource, perform an HTTP GET on the resource by its case-sensitive identifier (`_id`) and accept a JSON response:
+
+[source, httprequest]
+----
+GET /users/some-id HTTP/1.1
+Host: example.com
+Accept: application/json
+----
+.Parameters
+--
+You can use the following parameters:
+
+`_prettyPrint=true`::
+Format the body of the response.
+
+`_fields=field[,field...]`::
+Return only the specified fields in the body of the response.
+
++
+The `field` values are JSON pointers. For example if the resource is `{"parent":{"child":"value"}}`, `parent/child` refers to the `"child":"value"`.
+
+`_mimeType=mime-type`::
+Some resources have fields whose values are multi-media resources such as a profile photo for example.
+
++
+By specifying both a single __field__ and also the __mime-type__ for the response content, you can read a single field value that is a multi-media resource.
+
++
+In this case, the content type of the field value returned matches the __mime-type__ that you specify, and the body of the response is the multi-media resource.
+
++
+The `Accept` header is not used in this case. For example, `Accept: image/png` does not work. Use the `_mimeType` query string parameter instead.
+
+--
+
+
+[#about-crest-update]
+==== Update
+
+To update a resource, perform an HTTP PUT including the case-sensitive identifier (`_id`) for the resource with the JSON resource as a payload. Use the `If-Match: _rev` header to check that you are actually updating the version you modified. Use `If-Match: *` if the version does not matter. Accept a JSON response:
+
+[source, httprequest]
+----
+PUT /users/some-id HTTP/1.1
+Host: example.com
+Accept: application/json
+Content-Length: ...
+Content-Type: application/json
+If-Match: _rev
+{ JSON resource }
+----
+When updating a resource, include all the attributes to be retained. Omitting an attribute in the resource amounts to deleting the attribute unless it is not under the control of your application. Attributes not under the control of your application include private and read-only attributes. In addition, virtual attributes and relationship references might not be under the control of your application.
+.Parameters
+--
+You can use the following parameters:
+
+`_prettyPrint=true`::
+Format the body of the response.
+
+`_fields=field[,field...]`::
+Return only the specified fields in the body of the response.
+
++
+The `field` values are JSON pointers. For example if the resource is `{"parent":{"child":"value"}}`, `parent/child` refers to the `"child":"value"`.
+
+--
+
+
+[#about-crest-delete]
+==== Delete
+
+To delete a single resource, perform an HTTP DELETE by its case-sensitive identifier (`_id`) and accept a JSON response:
+
+[source, httprequest]
+----
+DELETE /users/some-id HTTP/1.1
+Host: example.com
+Accept: application/json
+----
+.Parameters
+--
+You can use the following parameters:
+
+`_prettyPrint=true`::
+Format the body of the response.
+
+`_fields=field[,field...]`::
+Return only the specified fields in the body of the response.
+
++
+The `field` values are JSON pointers. For example if the resource is `{"parent":{"child":"value"}}`, `parent/child` refers to the `"child":"value"`.
+
+--
+
+
+[#about-crest-patch]
+==== Patch
+
+To patch a resource, send an HTTP PATCH request with the following parameters:
+
+* `operation`
+
+* `field`
+
+* `value`
+
+* `from` (optional with copy and move operations)
+
+You can include these parameters in the payload for a PATCH request, or in a JSON PATCH file. If successful, you'll see a JSON response similar to:
+
+[source, httprequest]
+----
+PATCH /users/some-id HTTP/1.1
+Host: example.com
+Accept: application/json
+Content-Length: ...
+Content-Type: application/json
+If-Match: _rev
+{ JSON array of patch operations }
+----
+PATCH operations apply to three types of targets:
+
+* *single-valued*, such as an object, string, boolean, or number.
+
+* *list semantics array*, where the elements are ordered, and duplicates are allowed.
+
+* *set semantics array*, where the elements are not ordered, and duplicates are not allowed.
+
+ForgeRock PATCH supports several different `operations`. The following sections show each of these operations, along with options for the `field` and `value`:
+
+[#crest-patch-add]
+===== Patch Operation: Add
+
+The `add` operation ensures that the target field contains the value provided, creating parent fields as necessary.
+
+If the target field is single-valued, then the value you include in the PATCH replaces the value of the target. Examples of a single-valued field include: object, string, boolean, or number.
+An `add` operation has different results on two standard types of arrays:
+
+* *List semantic arrays*: you can run any of these `add` operations on that type of array:
+
+** If you `add` an array of values, the PATCH operation appends it to the existing list of values.
+
+** If you `add` a single value, specify an ordinal element in the target array, or use the `{-}` special index to add that value to the end of the list.
+
+
+* *Set semantic arrays*: The list of values included in a patch are merged with the existing set of values. Any duplicates within the array are removed.
+
+As an example, start with the following list semantic array resource:
+
+[source, javascript]
+----
+{
+    "fruits" : [ "orange", "apple" ]
+}
+----
+The following add operation includes the pineapple to the end of the list of fruits, as indicated by the `-` at the end of the `fruits` array.
+
+[source, javascript]
+----
+{
+    "operation" : "add",
+    "field" : "/fruits/-",
+    "value" : "pineapple"
+}
+----
+The following is the resulting resource:
+
+[source, javascript]
+----
+{
+    "fruits" : [ "orange", "apple", "pineapple" ]
+}
+----
+
+
+[#crest-patch-copy]
+===== Patch Operation: Copy
+
+The copy operation takes one or more existing values from the source field. It then adds those same values on the target field. Once the values are known, it is equivalent to performing an `add` operation on the target.
+
+The following `copy` operation takes the value from the source named `/hot/potato`, and then runs a `replace` operation on the target value, `/hot/tamale`.
+
+[source, javascript]
+----
+[
+  {
+    "operation" : "copy",
+    "field" : "/hot/potato",
+    "value" : "/hot/tamale"
+  }
+]
+----
+If the source and value are configured as arrays, the result depends on whether the array has list semantics or set semantics, as described in xref:#crest-patch-add["Patch Operation: Add"].
+
+
+[#crest-patch-increment]
+===== Patch Operation: Increment
+
+The `increment` operation changes the value or values of the target field by the amount you specify. The value that you include must be one number, and may be positive or negative. The value of the target field must accept numbers. The following `increment` operation adds `1000` to the target value of `/user/payment`.
+
+[source, javascript]
+----
+[
+  {
+    "operation" : "increment",
+    "field" : "/user/payment",
+    "value" : "1000"
+  }
+]
+----
+Since the `value` of the `increment` is a single number, arrays do not apply.
+
+
+[#crest-patch-move]
+===== Patch Operation: Move
+
+The move operation removes existing values on the source field. It then adds those same values on the target field. It is equivalent to performing a `remove` operation on the source, followed by an `add` operation with the same values, on the target.
+
+The following `move` operation is equivalent to a `remove` operation on the source named `/hot/potato`, followed by a `replace` operation on the target value, `/hot/tamale`.
+
+[source, javascript]
+----
+[
+  {
+    "operation" : "move",
+    "field" : "/hot/potato",
+    "value" : "/hot/tamale"
+  }
+]
+----
+To apply a `move` operation on an array, you need a compatible single-value, list semantic array, or set semantic array on both the source and the target. For details, see the criteria described in xref:#crest-patch-add["Patch Operation: Add"].
+
+
+[#crest-patch-remove]
+===== Patch Operation: Remove
+
+The `remove` operation ensures that the target field no longer contains the value provided. If the remove operation does not include a value, the operation removes the field. The following `remove` deletes the value of the `phoneNumber`, along with the field.
+
+[source, javascript]
+----
+[
+  {
+    "operation" : "remove",
+    "field" : "phoneNumber"
+  }
+]
+----
+If the object has more than one `phoneNumber`, those values are stored as an array.
+A `remove` operation has different results on two standard types of arrays:
+
+* *List semantic arrays*: A `remove` operation deletes the specified element in the array. For example, the following operation removes the first phone number, based on its array index (zero-based):
++
+
+[source, javascript]
+----
+[
+   {
+      "operation" : "remove",
+      "field" : "/phoneNumber/0"
+   }
+]
+----
+
+* *Set semantic arrays*: The list of values included in a patch are removed from the existing array.
+
+
+
+[#crest-patch-replace]
+===== Patch Operation: Replace
+
+The `replace` operation removes any existing value(s) of the targeted field, and replaces them with the provided value(s). It is essentially equivalent to a `remove` followed by a `add` operation. If the arrays are used, the criteria is based on xref:#crest-patch-add["Patch Operation: Add"]. However, indexed updates are not allowed, even when the target is an array.
+
+The following `replace` operation removes the existing `telephoneNumber` value for the user, and then adds the new value of `+1 408 555 9999`.
+
+[source, javascript]
+----
+[
+  {
+    "operation" : "replace",
+    "field" : "/telephoneNumber",
+    "value" : "+1 408 555 9999"
+  }
+]
+----
+A PATCH replace operation on a list semantic array works in the same fashion as a PATCH remove operation. The following example demonstrates how the effect of both operations. Start with the following resource:
+
+[source, javascript]
+----
+{
+    "fruits" : [ "apple", "orange", "kiwi", "lime" ],
+}
+----
+Apply the following operations on that resource:
+
+[source, javascript]
+----
+[
+  {
+    "operation" : "remove",
+    "field" : "/fruits/0",
+    "value" : ""
+  },
+  {
+    "operation" : "replace",
+    "field" : "/fruits/1",
+    "value" : "pineapple"
+  }
+]
+----
+The PATCH operations are applied sequentially. The `remove` operation removes the first member of that resource, based on its array index, (`fruits/0`), with the following result:
+
+[source, javascript]
+----
+[
+  {
+    "fruits" : [ "orange", "kiwi", "lime" ],
+  }
+]
+----
+The second PATCH operation, a `replace`, is applied on the second member (`fruits/1`) of the intermediate resource, with the following result:
+
+[source]
+----
+[
+  {
+    "fruits" : [ "orange", "pineapple", "lime" ],
+  }
+]
+----
+
+
+[#crest-patch-transform]
+===== Patch Operation: Transform
+
+The `transform` operation changes the value of a field based on a script or some other data transformation command. The following `transform` operation takes the value from the field named `/objects`, and applies the `something.js` script as shown:
+
+[source, javascript]
+----
+[
+  {
+    "operation" : "transform",
+    "field" : "/objects",
+    "value" : {
+      "script" : {
+        "type" : "text/javascript",
+        "file" : "something.js"
+      }
+    }
+  },
+]
+----
+
+
+[#crest-patch-limitations]
+===== Patch Operation Limitations
+
+Some HTTP client libraries do not support the HTTP PATCH operation. Make sure that the library you use supports HTTP PATCH before using this REST operation.
+
+For example, the Java Development Kit HTTP client does not support PATCH as a valid HTTP method. Instead, the method `HttpURLConnection.setRequestMethod("PATCH")` throws `ProtocolException`.
+.Parameters
+--
+You can use the following parameters. Other parameters might depend on the specific action implementation:
+
+`_prettyPrint=true`::
+Format the body of the response.
+
+`_fields=field[,field...]`::
+Return only the specified fields in the body of the response.
+
++
+The `field` values are JSON pointers. For example if the resource is `{"parent":{"child":"value"}}`, `parent/child` refers to the `"child":"value"`.
+
+--
+
+
+
+[#about-crest-action]
+==== Action
+
+Actions are a means of extending common REST APIs and are defined by the resource provider, so the actions you can use depend on the implementation.
+
+The standard action indicated by `_action=create` is described in xref:#about-crest-create["Create"].
+.Parameters
+--
+You can use the following parameters. Other parameters might depend on the specific action implementation:
+
+`_prettyPrint=true`::
+Format the body of the response.
+
+`_fields=field[,field...]`::
+Return only the specified fields in the body of the response.
+
++
+The `field` values are JSON pointers. For example if the resource is `{"parent":{"child":"value"}}`, `parent/child` refers to the `"child":"value"`.
+
+--
+
+
+[#about-crest-query]
+==== Query
+
+To query a resource collection (or resource container if you prefer to think of it that way), perform an HTTP GET and accept a JSON response, including at least a `_queryExpression`, `_queryFilter`, or `_queryId` parameter. These parameters cannot be used together:
+
+[source, httprequest]
+----
+GET /users?_queryFilter=true HTTP/1.1
+Host: example.com
+Accept: application/json
+----
+The server returns the result as a JSON object including a "results" array and other fields related to the query string parameters that you specify.
+.Parameters
+--
+You can use the following parameters:
+
+`_queryFilter=filter-expression`::
+Query filters request that the server return entries that match the filter expression. You must URL-escape the filter expression.
+
++
+The string representation is summarized as follows. Continue reading for additional explanation:
++
+
+[source]
+----
+Expr           = OrExpr
+OrExpr         = AndExpr ( 'or' AndExpr ) *
+AndExpr        = NotExpr ( 'and' NotExpr ) *
+NotExpr        = '!' PrimaryExpr | PrimaryExpr
+PrimaryExpr    = '(' Expr ')' | ComparisonExpr | PresenceExpr | LiteralExpr
+ComparisonExpr = Pointer OpName JsonValue
+PresenceExpr   = Pointer 'pr'
+LiteralExpr    = 'true' | 'false'
+Pointer        = JSON pointer
+OpName         = 'eq' |  # equal to
+                 'co' |  # contains
+                 'sw' |  # starts with
+                 'lt' |  # less than
+                 'le' |  # less than or equal to
+                 'gt' |  # greater than
+                 'ge' |  # greater than or equal to
+                 STRING  # extended operator
+JsonValue      = NUMBER | BOOLEAN | '"' UTF8STRING '"'
+STRING         = ASCII string not containing white-space
+UTF8STRING     = UTF-8 string possibly containing white-space
+----
++
+Note that white space, double quotes (`"`), parentheses, and exclamation characters need URL encoding in HTTP query strings.
+
++
+A simple filter expression can represent a comparison, presence, or a literal value.
+
++
+For comparison expressions use __json-pointer comparator json-value__, where the __comparator__ is one of the following:
++
+[none]
+* `eq` (equals)
+* `co` (contains)
+* `sw` (starts with)
+* `lt` (less than)
+* `le` (less than or equal to)
+* `gt` (greater than)
+* `ge` (greater than or equal to)
++
+For presence, use __json-pointer pr__ to match resources where the JSON pointer is present.
+
++
+Literal values include true (match anything) and false (match nothing).
+
++
+Complex expressions employ `and`, `or`, and `!` (not), with parentheses, `(expression)`, to group expressions.
+
+`_queryId=identifier`::
+Specify a query by its identifier.
+
++
+Specific queries can take their own query string parameter arguments, which depend on the implementation.
+
+`_pagedResultsCookie=string`::
+The string is an opaque cookie used by the server to keep track of the position in the search results. The server returns the cookie in the JSON response as the value of `pagedResultsCookie`.
+
++
+In the request `_pageSize` must also be set and non-zero. You receive the cookie value from the provider on the first request, and then supply the cookie value in subsequent requests until the server returns a `null` cookie, meaning that the final page of results has been returned.
+
++
+The `_pagedResultsCookie` parameter is supported when used with the `_queryFilter` parameter. The `_pagedResultsCookie` parameter is not guaranteed to work when used with the `_queryExpression` and `_queryId` parameters.
+
++
+The `_pagedResultsCookie` and `_pagedResultsOffset` parameters are mutually exclusive, and not to be used together.
+
+`_pagedResultsOffset=integer`::
+When `_pageSize` is non-zero, use this as an index in the result set indicating the first page to return.
+
++
+The `_pagedResultsCookie` and `_pagedResultsOffset` parameters are mutually exclusive, and not to be used together.
+
+`_pageSize=integer`::
+Return query results in pages of this size. After the initial request, use `_pagedResultsCookie` or `_pageResultsOffset` to page through the results.
+
+`_totalPagedResultsPolicy=string`::
+When a `_pageSize` is specified, and non-zero, the server calculates the "totalPagedResults", in accordance with the `totalPagedResultsPolicy`, and provides the value as part of the response. The "totalPagedResults" is either an estimate of the total number of paged results (`_totalPagedResultsPolicy=ESTIMATE`), or the exact total result count (`_totalPagedResultsPolicy=EXACT`). If no count policy is specified in the query, or if `_totalPagedResultsPolicy=NONE`, result counting is disabled, and the server returns value of -1 for "totalPagedResults".
+
+`_sortKeys=[+-]field[,[+-]field...]`::
+Sort the resources returned based on the specified field(s), either in `+` (ascending, default) order, or in `-` (descending) order.
+
++
+The `_sortKeys` parameter is not supported for predefined queries (`_queryId`).
+
+`_prettyPrint=true`::
+Format the body of the response.
+
+`_fields=field[,field...]`::
+Return only the specified fields in each element of the "results" array in the response.
+
++
+The `field` values are JSON pointers. For example if the resource is `{"parent":{"child":"value"}}`, `parent/child` refers to the `"child":"value"`.
+
+--
+
+
+[#about-crest-modify-password]
+==== Change Your Password
+
+
+[NOTE]
+====
+This action requires HTTPS to avoid sending the password over an insecure connection.
+====
+Perform an HTTPS POST with the header Content-Type: application/json, _action=modifyPassword in the query string, and the old and new passwords in JSON format as the POST data.
+--
+
+oldPassword::
+The value of this field is the current password as a UTF-8 string.
+
+
+newPassword::
+The value of this field is the current password as a UTF-8 string.
+
+--
+On success, the HTTP status code is 200 OK, and the response body is an empty JSON resource:
+
+[source, console]
+----
+$ curl \
+--request POST \
+--cacert ca-cert.pem \
+--user bjensen:hifalutin \
+--header "Content-Type: application/json" \
+--data '{"oldPassword": "hifalutin", "newPassword": "chngthspwd"}' \
+--silent \
+https://localhost:8443/api/users/bjensen?_action=modifyPassword
+
+{}
+----
+
+
+[#about-crest-reset-password]
+==== Reset a Password
+
+Whenever one user changes another user’s password, DS servers consider it a password reset. Often, password policies specify that users must change their passwords again after a password reset.
+
+[NOTE]
+====
+This action requires HTTPS to avoid sending the password over an insecure connection.
+====
+Perform an HTTPS POST with the header Content-Type: application/json, _action=resetPassword in the query string, and an empty JSON document ({}) as the POST data.
+
+The JSON POST DATA must include the following fields:
+
+The following example demonstrates an administrator changing a user’s password. Before trying this example, make sure the password administrator has been given the password-reset privilege. Otherwise, the password administrator has insufficient access. On success, the HTTP status code is 200 OK, and the response body is a JSON resource with a generatedPassword containing the new password:
+
+[source, console]
+----
+$ curl \
+--request POST \
+--cacert ca-cert.pem \
+--user kvaughan:bribery \
+--header "Content-Type: application/json" \
+--data '{}' \
+--silent \
+https://localhost:8443/api/users/bjensen?_action=resetPassword
+{"generatedPassword":"new-password"}
+----
+As password administrator, provide the new, generated password to the user.
+
+
+[#about-crest-response-codes]
+==== HTTP Status Codes
+
+When working with a common REST API over HTTP, client applications should expect at least the following HTTP status codes. Not all servers necessarily return all status codes identified here:
+--
+
+200 OK::
+The request was successful and a resource returned, depending on the request.
+
+201 Created::
+The request succeeded and the resource was created.
+
+204 No Content::
+The action request succeeded, and there was no content to return.
+
+304 Not Modified::
+The read request included an `If-None-Match` header, and the value of the header matched the revision value of the resource.
+
+400 Bad Request::
+The request was malformed.
+
+401 Unauthorized::
+The request requires user authentication.
+
+403 Forbidden::
+Access was forbidden during an operation on a resource.
+
+404 Not Found::
+The specified resource could not be found, perhaps because it does not exist.
+
+405 Method Not Allowed::
+The HTTP method is not allowed for the requested resource.
+
+406 Not Acceptable::
+The request contains parameters that are not acceptable, such as a resource or protocol version that is not available.
+
+409 Conflict::
+The request would have resulted in a conflict with the current state of the resource.
+
+410 Gone::
+The requested resource is no longer available, and will not become available again. This can happen when resources expire for example.
+
+412 Precondition Failed::
+The resource's current version does not match the version provided.
+
+415 Unsupported Media Type::
+The request is in a format not supported by the requested resource for the requested method.
+
+428 Precondition Required::
+The resource requires a version, but no version was supplied in the request.
+
+500 Internal Server Error::
+The server encountered an unexpected condition that prevented it from fulfilling the request.
+
+501 Not Implemented::
+The resource does not support the functionality required to fulfill the request.
+
+503 Service Unavailable::
+The requested resource was temporarily unavailable. The service may have been disabled, for example.
+
+--
+
+
+
+[#versioning-rest]
+=== Selecting an API Version
+
+OpenDJ REST APIs can be versioned. If there is more than one version of the API, then you must select the version by setting a version header that specifies which version of the resource is requested:
+
+[source]
+----
+Accept-API-Version: resource=version
+----
+Here, __version__ is the value of the `version` field in the mapping configuration file for the API. For details, see xref:../reference/appendix-rest2ldap.adoc#mappings-json["Mapping Configuration File"] in the __Reference__.
+
+If you do not set a version header, then the latest version is returned.
+
+The default example configuration includes only one API, whose version is `1.0`. In this case, the header can be omitted. If used in the examples below, the appropriate header would be `Accept-API-Version: resource=1.0`.
+
+
+[#authenticate-rest]
+=== Authenticating Over REST
+
+When you first try to read a resource that can be read as an LDAP entry with an anonymous search, you learn that you must authenticate as shown in the following example:
+
+[source, console]
+----
+$ curl http://opendj.example.com:8080/api/users/bjensen
+{
+  "code" : 401,
+  "reason" : "Unauthorized",
+  "message" : "Unauthorized"
+}
+----
+HTTP status code 401 indicates that the request requires user authentication.
+
+To prevent OpenDJ directory server from requiring authentication, set the Rest2ldap endpoint `authorization-mechanism` to map anonymous HTTP requests to LDAP requests performed by an authorized user, as in the following example that uses Kirsten Vaughan's identity:
+
+[source, console]
+----
+$ dsconfig \
+ set-http-authorization-mechanism-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --mechanism-name "HTTP Anonymous" \
+ --set enabled:true \
+ --set user-dn:uid=kvaughan,ou=people,dc=example,dc=com \
+ --no-prompt \
+ --trustAll
+
+$ dsconfig \
+ set-http-endpoint-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --endpoint-name "/api" \
+ --set authorization-mechanism:"HTTP Anonymous" \
+ --no-prompt \
+ --trustAll
+----
+By default, both the Rest2ldap endpoint and also the REST to LDAP gateway allow HTTP Basic authentication and HTTP header-based authentication in the style of OpenIDM. The authentication mechanisms translate HTTP authentication to LDAP authentication to the directory server.
+
+When you install OpenDJ either with generated sample user entries or with data from link:../resources/Example.ldif[Example.ldif, window=\_blank], the relative distinguished name (DN) attribute for sample user entries is the user ID (`uid`) attribute. For example, the DN and user ID for Babs Jensen are:
+
+[source, ldif]
+----
+dn: uid=bjensen,ou=People,dc=example,dc=com
+uid: bjensen
+----
+Given this pattern in the user entries, the default REST to LDAP configuration translates the HTTP user name to the LDAP user ID. User entries are found directly under `ou=People,dc=example,dc=com`.footnote:d0e1832[In general, REST to LDAP mappings require that LDAP entries mapped to JSON resources be immediate subordinates of the mapping's baseDN.] In other words, Babs Jensen authenticates as `bjensen` (password: `hifalutin`) over HTTP. The corresponding LDAP bind DN is `uid=bjensen,ou=People,dc=example,dc=com`.
+
+HTTP Basic authentication works as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --user bjensen:hifalutin \
+ http://opendj.example.com:8080/api/users/bjensen
+{
+  "_rev" : "000000009ce6c3c3",
+  ...
+}
+----
+The alternative HTTP Basic __username__:__password__@ form in the URL works as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ http://bjensen:hifalutin@opendj.example.com:8080/api/users/bjensen
+{
+  "_rev" : "000000009ce6c3c3",
+  ...
+}
+----
+HTTP header based authentication works as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --header "X-OpenIDM-Username: bjensen" \
+ --header "X-OpenIDM-Password: hifalutin" \
+ http://opendj.example.com:8080/api/users/bjensen
+{
+  "_rev" : "000000009ce6c3c3",
+  ...
+}
+----
+If the directory data is laid out differently or if the user names are email addresses rather than user IDs, for example, then you must update the configuration in order for authentication to work.
+
+The REST to LDAP gateway can also translate HTTP user name and password authentication to LDAP PLAIN SASL authentication. Likewise, the gateway falls back to proxied authorization as necessary, using a root DN authenticated connection to LDAP servers. See xref:../reference/appendix-rest2ldap.adoc#appendix-rest2ldap["REST to LDAP Configuration"] in the __Reference__ for details on all configuration choices.
+
+
+[#create-rest]
+=== Creating Resources
+
+There are two alternative ways to create resources:
+
+* To create a resource using an ID that you specify, perform an HTTP PUT request with headers `Content-Type: application/json` and `If-None-Match: *`, and the JSON content of your resource.
++
+The following example shows you how to create a new user entry with ID `newuser`:
++
+
+[source, console]
+----
+$ curl \
+ --request PUT \
+ --user kvaughan:bribery \
+ --header "Content-Type: application/json" \
+ --header "If-None-Match: *" \
+ --data '{
+  "_id": "newuser",
+  "_schema":"frapi:opendj:rest2ldap:user:1.0",
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "name": {
+    "familyName": "New",
+    "givenName": "User"
+  },
+  "displayName": ["New User"],
+  "manager": {
+    "_id": "kvaughan",
+    "displayName": "Kirsten Vaughan"
+  }
+ }' \
+ http://opendj.example.com:8080/api/users/newuser
+{
+  "_id": "newuser",
+  "_rev": "0000000023257469",
+  "_schema": "frapi:opendj:rest2ldap:user:1.0",
+  "_meta": {
+    "created": "2016-06-24T12:20:45Z"
+  },
+  "userName": "newuser@example.com",
+  "displayName": ["New User"],
+  "name": {
+    "givenName": "User",
+    "familyName": "New"
+  },
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "manager": {
+    "_id": "kvaughan",
+    "displayName": "Kirsten Vaughan"
+  }
+}
+----
+
+* To create a resource and let the server choose the ID, perform an HTTP POST with `_action=create` as described in xref:#action-rest["Using Actions"].
+
+
+
+[#read-rest]
+=== Reading a Resource
+
+To read a resource, perform an HTTP GET as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --request GET \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/api/users/newuser
+{
+  "_id": "newuser",
+  "_rev": "0000000023257469",
+  "_schema": "frapi:opendj:rest2ldap:user:1.0",
+  "_meta": {
+    "created": "2016-06-24T12:20:45Z"
+  },
+  "userName": "newuser@example.com",
+  "displayName": ["New User"],
+  "name": {
+    "givenName": "User",
+    "familyName": "New"
+  },
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "manager": {
+    "_id": "kvaughan",
+    "displayName": "Kirsten Vaughan"
+  }
+}
+----
+
+
+[#update-rest]
+=== Updating Resources
+
+To update a resource, perform an HTTP PUT with the changes to the resource. Use an `If-Match` header to ensure the resource already exists. For read-only fields, either include unmodified versions, or omit them from your updated version.
+
+To update a resource regardless of the revision, use an `If-Match: *` header. The following example writes a new entry with an additional display name for Sam Carter:
+
+[source, console]
+----
+$ curl \
+ --request PUT \
+ --user kvaughan:bribery \
+ --header "Content-Type: application/json" \
+ --header "If-Match: *" \
+ --data '{
+   "contactInformation": {
+     "telephoneNumber": "+1 408 555 4798",
+     "emailAddress": "scarter@example.com"
+   },
+   "name": {
+     "familyName": "Carter",
+     "givenName": "Sam"
+   },
+   "userName": "scarter@example.com",
+   "displayName": ["Sam Carter", "Samantha Carter"],
+   "groups": [
+     {
+       "_id": "Accounting Managers"
+     }
+   ],
+   "manager": {
+     "_id": "trigden",
+     "displayName": "Torrey Rigden"
+   },
+  "uidNumber": 1002,
+  "gidNumber": 1000,
+  "homeDirectory": "/home/scarter"
+ }' \
+ http://opendj.example.com:8080/api/users/scarter
+{
+  "_id": "scarter",
+  "_rev": "00000000e77ccae6",
+  "_schema": "frapi:opendj:rest2ldap:posixUser:1.0",
+  "_meta": {
+    "lastModified": "2016-06-24T12:35:53Z"
+  },
+  "userName": "scarter@example.com",
+  "displayName": ["Sam Carter", "Samantha Carter"],
+  "name": {
+    "givenName": "Sam",
+    "familyName": "Carter"
+  },
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 4798",
+    "emailAddress": "scarter@example.com"
+  },
+  "uidNumber": 1002,
+  "gidNumber": 1000,
+  "homeDirectory": "/home/scarter",
+  "groups": [{
+    "_id": "Accounting Managers"
+  }],
+  "manager": {
+    "_id": "trigden",
+    "displayName": "Torrey Rigden"
+  }
+}
+----
+To update a resource only if the resource matches a particular version, use an `If-Match: revision` header as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/api/users/scarter?_fields=_rev
+{"_id":"scarter","_rev":"revision"}
+
+$ curl \
+ --request PUT \
+ --user kvaughan:bribery \
+ --header "If-Match: revision" \
+ --header "Content-Type: application/json" \
+ --data '{
+   "contactInformation": {
+     "telephoneNumber": "+1 408 555 4798",
+     "emailAddress": "scarter@example.com"
+   },
+   "name": {
+     "familyName": "Carter",
+     "givenName": "Sam"
+   },
+   "userName": "scarter@example.com",
+   "displayName": ["Sam Carter", "Samantha Carter"],
+   "groups": [
+     {
+       "_id": "Accounting Managers"
+     }
+   ],
+   "manager": {
+     "_id": "trigden",
+     "displayName": "Torrey Rigden"
+   },
+  "uidNumber": 1002,
+  "gidNumber": 1000,
+  "homeDirectory": "/home/scarter"
+ }' \
+ http://opendj.example.com:8080/api/users/scarter
+{
+  "_id": "scarter",
+  "_rev": "new-revision",
+  "_schema": "frapi:opendj:rest2ldap:posixUser:1.0",
+  "_meta": {
+    "lastModified": "2016-06-24T12:35:53Z"
+  },
+  "userName": "scarter@example.com",
+  "displayName": ["Sam Carter", "Samantha Carter"],
+  "name": {
+    "givenName": "Sam",
+    "familyName": "Carter"
+  },
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 4798",
+    "emailAddress": "scarter@example.com"
+  },
+  "uidNumber": 1002,
+  "gidNumber": 1000,
+  "homeDirectory": "/home/scarter",
+  "groups": [{
+    "_id": "Accounting Managers"
+  }],
+  "manager": {
+    "_id": "trigden",
+    "displayName": "Torrey Rigden"
+  }
+}
+----
+
+
+[#delete-rest]
+=== Deleting Resources
+
+To delete a resource, perform an HTTP DELETE on the resource URL. The operation returns the resource you deleted as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --request DELETE \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/api/users/newuser
+{
+  "_id": "newuser",
+  "_rev": "0000000023257469",
+  "_schema": "frapi:opendj:rest2ldap:user:1.0",
+  "_meta": {
+    "created": "2016-06-24T12:20:45Z"
+  },
+  "userName": "newuser@example.com",
+  "displayName": ["New User"],
+  "name": {
+    "givenName": "User",
+    "familyName": "New"
+  },
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "manager": {
+    "_id": "kvaughan",
+    "displayName": "Kirsten Vaughan"
+  }
+}
+----
+To delete a resource only if the resource matches a particular version, use an `If-Match: revision` header as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/api/users/newuser?_fields=_rev
+{"_id":"newuser","_rev":"revision"}
+
+$ curl \
+ --request DELETE \
+ --user kvaughan:bribery \
+ --header "If-Match: revision" \
+ http://opendj.example.com:8080/api/users/newuser
+{
+  "_id": "newuser",
+  "_rev": "revision",
+  "_schema": "frapi:opendj:rest2ldap:user:1.0",
+  "_meta": {
+    "created": "2016-06-24T12:20:45Z"
+  },
+  "userName": "newuser@example.com",
+  "displayName": ["New User"],
+  "name": {
+    "givenName": "User",
+    "familyName": "New"
+  },
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "manager": {
+    "_id": "kvaughan",
+    "displayName": "Kirsten Vaughan"
+  }
+}
+----
+To delete a resource and all of its children, you must change the configuration, get the REST to LDAP gateway or Rest2ldap endpoint to reload its configuration, and perform the operation as a user who has the access rights required. The following steps show one way to do this with the Rest2ldap endpoint.
+
+In this example, the LDAP view of the user to delete shows two child entries as seen in the following example:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN uid=nbohr,ou=people,dc=example,dc=com "(&)" dn
+dn: uid=nbohr,ou=People,dc=example,dc=com
+
+dn: cn=quantum dot,uid=nbohr,ou=People,dc=example,dc=com
+
+dn: cn=qubit generator,uid=nbohr,ou=People,dc=example,dc=com
+----
+
+. If you are using the gateway, this requires the default setting of true for `useSubtreeDelete` in `WEB-INF/classes/rest2ldap/endpoints/rest2ldap.json`.
++
+
+[NOTE]
+====
+Only users who have access to request a tree delete can delete resources with children.
+====
+
+. Force the Rest2ldap to reread its configuration as shown in the following `dsconfig` commands:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-http-endpoint-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --endpoint-name /api \
+ --set enabled:false \
+ --no-prompt \
+ --trustAll
+
+$ dsconfig \
+ set-http-endpoint-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --endpoint-name /api \
+ --set enabled:true \
+ --no-prompt \
+ --trustAll
+----
+
+. Request the delete as a user who has rights to perform a subtree delete on the resource as shown in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --request DELETE \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/api/users/nbohr
+{
+  "_id": "nbohr",
+  "_rev": "00000000bb5d8b25",
+  "_schema": "frapi:opendj:rest2ldap:posixUser:1.0",
+  "_meta": {},
+  "userName": "nbohr@example.com",
+  "displayName": ["Niels Bohr"],
+  "name": {
+    "givenName": "Niels",
+    "familyName": "Bohr"
+  },
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "nbohr@example.com"
+  },
+  "uidNumber": 1111,
+  "gidNumber": 1000,
+  "homeDirectory": "/home/nbohr"
+}
+----
+
+
+
+[#patch-rest]
+=== Patching Resources
+
+OpenDJ lets you patch JSON resources, updating part of the resource rather than replacing it. For example, you could change Babs Jensen's email address by issuing an HTTP PATCH request as in the following example:
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "Content-Type: application/json" \
+ --data '[
+  {
+    "operation": "replace",
+    "field": "/contactInformation/emailAddress",
+    "value": "babs@example.com"
+  }
+ ]' \
+ http://opendj.example.com:8080/api/users/bjensen
+{
+  "_id": "bjensen",
+  "_rev": "000000005253e02b",
+  "_schema": "frapi:opendj:rest2ldap:posixUser:1.0",
+  "_meta": {
+    "lastModified": "2016-06-24T12:41:59Z"
+  },
+  "userName": "babs@example.com",
+  "displayName": ["Barbara Jensen", "Babs Jensen"],
+  "name": {
+    "givenName": "Barbara",
+    "familyName": "Jensen"
+  },
+  "description": "Original description",
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1862",
+    "emailAddress": "babs@example.com"
+  },
+  "uidNumber": 1076,
+  "gidNumber": 1000,
+  "homeDirectory": "/home/bjensen",
+  "manager": {
+    "_id": "trigden",
+    "displayName": "Torrey Rigden"
+  }
+}
+----
+Notice in the example that the data sent specifies the type of patch operation, the field to change, and a value that depends on the field you change and on the operation. A single-valued field takes an object, boolean, string, or number depending on its type, whereas a multi-valued field takes an array of values. Getting the type wrong results in an error. Also notice that the patch data is itself an array. This makes it possible to patch more than one part of the resource by using a set of patch operations in the same request.
+--
+OpenDJ supports four types of patch operations:
+
+`add`::
+The add operation ensures that the target field contains the value provided, creating parent fields as necessary.
+
++
+If the target field is single-valued and a value already exists, then that value is replaced with the value you provide. __Note that you do not get an error when adding a value to a single-valued field that already has a value.__ A single-valued field is one whose value is not an array (an object, string, boolean, or number).
+
++
+If the target field is multi-valued, then the array of values you provide is merged with the set of values already in the resource. New values are added, and duplicate values are ignored. A multi-valued field takes an array value.
+
+`remove`::
+The remove operation ensures that the target field does not contain the value provided. If you do not provide a value, the entire field is removed if it already exists.
+
++
+If the target field is single-valued and a value is provided, then the provided value must match the existing value to remove, otherwise the field is left unchanged.
+
++
+If the target field is multi-valued, then values in the array you provide are removed from the existing set of values.
+
+`replace`::
+The replace operation removes existing values on the target field, and replaces them with the values you provide. It is equivalent to performing a remove on the field, then an add with the values you provide.
+
+`increment`::
+The increment operation increments or decrements the value or values in the target field by the amount you specify, which is positive to increment and negative to decrement. The target field must take a number or a set of numbers. The value you provide must be a single number.
+
+--
+One key nuance in how a patch works with OpenDJ concerns multi-valued fields. Although JSON resources represent multi-valued fields as __arrays__, OpenDJ treats those values as __sets__. In other words, values in the field are unique, and the ordering of an array of values is not meaningful in the context of patch operations. If you reference array values by index, OpenDJ returns an error.footnote:d0e2153[OpenDJ does allow use of a hyphen to add an element to a set. Include the hyphen as the last element of the`field`JSON pointer path. For example:`curl --user kvaughan:bribery --request PATCH --header "Content-Type: application/json" --data '[{ "operation" : "add", "field" : "/members/-", "value" : { "_id" : "bjensen" } }]' http://opendj.example.com:8080/api/groups/Directory%20Administrators`.]
+
+Perform patch operations as if arrays values were sets. The following example includes Barbara Jensen in a group by adding her to the set of members:
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "Content-Type: application/json" \
+ --data '[
+  {
+    "operation": "add",
+    "field": "/members",
+    "value": [
+      {
+        "_id": "bjensen"
+      }
+    ]
+  }
+ ]' \
+ http://opendj.example.com:8080/api/groups/Directory%20Administrators
+{
+  "_id": "Directory Administrators",
+  "_rev": "000000002d1087d8",
+  "_schema": "frapi:opendj:rest2ldap:group:1.0",
+  "_meta": {
+    "lastModified": "2016-06-24T12:43:30Z"
+  },
+  "displayName": "Directory Administrators",
+  "members": [{
+    "_id": "kvaughan",
+    "displayName": "Kirsten Vaughan"
+  }, {
+    "_id": "bjensen",
+    "displayName": ["Barbara Jensen", "Babs Jensen"]
+  }, {
+    "_id": "rdaugherty",
+    "displayName": "Robert Daugherty"
+  }, {
+    "_id": "hmiller",
+    "displayName": "Harry Miller"
+  }]
+}
+----
+The following example removes Barbara Jensen from the group:
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "Content-Type: application/json" \
+ --data '[
+  {
+    "operation": "remove",
+    "field": "/members",
+    "value": [
+      {
+        "_id": "bjensen"
+      }
+    ]
+  }
+ ]' \
+ http://opendj.example.com:8080/api/groups/Directory%20Administrators
+{
+  "_id": "Directory Administrators",
+  "_rev": "000000008977793d",
+  "_schema": "frapi:opendj:rest2ldap:group:1.0",
+  "_meta": {
+    "lastModified": "2016-06-24T12:44:35Z"
+  },
+  "displayName": "Directory Administrators",
+  "members": [{
+    "_id": "kvaughan",
+    "displayName": "Kirsten Vaughan"
+  }, {
+    "_id": "rdaugherty",
+    "displayName": "Robert Daugherty"
+  }, {
+    "_id": "hmiller",
+    "displayName": "Harry Miller"
+  }]
+}
+----
+To change the value of more than one attribute in a patch operation, include multiple operations in the body of the JSON patch, as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "Content-Type: application/json" \
+ --data '[
+  {
+    "operation": "replace",
+    "field": "/contactInformation/telephoneNumber",
+    "value": "+1 408 555 9999"
+  },
+  {
+    "operation": "add",
+    "field": "/contactInformation/emailAddress",
+    "value": "barbara.jensen@example.com"
+  }
+ ]' \
+ http://opendj.example.com:8080/api/users/bjensen
+{
+  "_id": "bjensen",
+  "_rev": "00000000c5a6e425",
+  "_schema": "frapi:opendj:rest2ldap:posixUser:1.0",
+  "_meta": {
+    "lastModified": "2016-06-24T12:45:58Z"
+  },
+  "userName": "barbara.jensen@example.com",
+  "displayName": ["Barbara Jensen", "Babs Jensen"],
+  "name": {
+    "givenName": "Barbara",
+    "familyName": "Jensen"
+  },
+  "description": "Original description",
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 9999",
+    "emailAddress": "barbara.jensen@example.com"
+  },
+  "uidNumber": 1076,
+  "gidNumber": 1000,
+  "homeDirectory": "/home/bjensen",
+  "manager": {
+    "_id": "trigden",
+    "displayName": "Torrey Rigden"
+  }
+}
+----
+Notice that for a multi-valued attribute, the `value` field takes an array, whereas the `value` field takes a single value for a single-valued field. Also notice that for single-valued fields, an `add` operation has the same effect as a `replace` operation.
+
+You can use resource revision numbers in `If-Match: revision` headers to patch the resource only if the resource matches a particular version, as shown in the following example:
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/api/users/bjensen?_fields=_rev
+{"_id":"bjensen","_rev" : "revision"}
+
+$ curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "If-Match: revision" \
+ --header "Content-Type: application/json" \
+ --data '[
+  {
+    "operation": "add",
+    "field": "/contactInformation/emailAddress",
+    "value": "babs@example.com"
+  }
+ ]' \
+ http://opendj.example.com:8080/api/users/bjensen
+{
+  "_id": "bjensen",
+  "_rev": "new-revision",
+  "_schema": "frapi:opendj:rest2ldap:posixUser:1.0",
+  "_meta": {
+    "lastModified": "2016-06-24T12:45:58Z"
+  },
+  "userName": "barbara.jensen@example.com",
+  "displayName": ["Barbara Jensen", "Babs Jensen"],
+  "name": {
+    "givenName": "Barbara",
+    "familyName": "Jensen"
+  },
+  "description": "Original description",
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 9999",
+    "emailAddress": "babs@example.com"
+  },
+  "uidNumber": 1076,
+  "gidNumber": 1000,
+  "homeDirectory": "/home/bjensen",
+  "manager": {
+    "_id": "trigden",
+    "displayName": "Torrey Rigden"
+  }
+}
+----
+The resource revision changes when the patch is successful.
+
+
+[#action-rest]
+=== Using Actions
+
+OpenDJ REST to LDAP implements the actions described in this section.
+
+[#rest-action-create]
+==== Using the Create Resource Action
+
+OpenDJ implements an action that lets the server set the resource ID on creation. To use this action, perform an HTTP POST with header `Content-Type: application/json`, and the JSON content of the resource.
+
+The `_action=create` in the query string is optional.
+
+The following example creates a new user entry:
+
+[source, console]
+----
+$ curl \
+ --request POST \
+ --user kvaughan:bribery \
+ --header "Content-Type: application/json" \
+ --data '{
+  "_id": "newuser",
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "name": {
+    "familyName": "New",
+    "givenName": "User"
+  },
+  "displayName": "New User",
+  "manager": [
+    {
+      "_id": "kvaughan",
+      "displayName": "Kirsten Vaughan"
+    }
+  ]
+ }' \
+ http://opendj.example.com:8080/api/users
+{
+  "_id": "newuser",
+  "_rev": "000000000ace733a",
+  "_schema": "frapi:opendj:rest2ldap:user:1.0",
+  "_meta": {
+    "created": "2016-06-24T12:51:25Z"
+  },
+  "userName": "newuser@example.com",
+  "displayName": ["New User"],
+  "name": {
+    "givenName": "User",
+    "familyName": "New"
+  },
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "manager": {
+    "_id": "kvaughan",
+    "displayName": "Kirsten Vaughan"
+  }
+}
+----
+
+
+[#rest-action-password-modify]
+==== Using the Modify Password and Reset Password Actions
+
+OpenDJ implements actions for resetting and changing passwords.
+
+These actions require HTTPS to avoid sending passwords over insecure connections. Before trying the examples that follow, enable HTTPS on the HTTP connection handler as described in xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap["RESTful Client Access Over HTTP"] in the __Administration Guide__. Notice that the following examples use the exported server certificate, `server-cert.pem`, generated in that procedure. If the connection handler uses a certificate signed by a well-known CA, then you can omit the `--cacert` option.
+
+[#rest-action-modify-password]
+===== Changing Passwords
+
+The `modifyPassword` action lets a user modify their password given the old password and a new password.
+
+To use this action, perform an HTTP POST over HTTPS with header `Content-Type: application/json`, `_action=modifyPassword` in the query string, and the old and new passwords in JSON format as the POST data.
+--
+The JSON must include the following fields:
+
+`oldPassword`::
+The value of this field is the current password as a UTF-8 string.
+
+`newPassword`::
+The value of this field is the new password as a UTF-8 string.
+
+--
+The following example demonstrates a user changing their own password. On success, the HTTP status code is 200 OK, and the response body is an empty JSON resource:
+
+[source, console]
+----
+$ curl \
+ --request POST \
+ --cacert server-cert.pem \
+ --user bjensen:hifalutin \
+ --header "Content-Type: application/json" \
+ --data '{"oldPassword": "hifalutin", "newPassword": "password"}' \
+ https://opendj.example.com:8443/users/bjensen?_action=modifyPassword
+{}
+----
+
+
+[#rest-action-reset-password]
+===== Resetting Passwords
+
+The `resetPassword` action lets a user or password administrator reset a password to a generated password value.
+
+To use this action, perform an HTTP POST over HTTPS with header `Content-Type: application/json`, `_action=resetPassword` in the query string, and an empty JSON document (`{}`) as the POST data.
+The following example demonstrates an administrator changing a user's password. Before trying this example, make sure the password administrator user has been given the `password-reset` privilege as shown in xref:../admin-guide/chap-privileges-acis.adoc#change-individual-privileges["To Add Privileges on an Individual Entry"] in the __Administration Guide__. Otherwise, the password administrator has insufficient access. On success, the HTTP status code is 200 OK, and the response body is a JSON resource with a `generatedPassword` containing the new password:
+
+[source, console]
+----
+$ curl \
+ --request POST \
+ --cacert server-cert.pem \
+ --user kvaughan:bribery \
+ --header "Content-Type: application/json" \
+ --data '{}' \
+ https://opendj.example.com:8443/users/bjensen?_action=passwordModify
+{"generatedPassword":"qno66vyz"}
+----
+The password administrator communicates the new, generated password to the user.
+
+This feature could be used in combination with a password policy that forces the user to change their password after a reset. For an example of such a policy, see xref:../admin-guide/chap-pwd-policy.adoc#example-require-password-change-on-add-or-reset["Require Password Change on Add or Reset"] in the __Administration Guide__.
+
+
+
+
+[#query-rest]
+=== Querying Resource Collections
+
+To query resource collections, perform an HTTP GET with a `_queryFilter=expression` parameter in the query string. For details about the query filter __expression__, see xref:#about-crest-query["Query"].
+
+The `_queryId`, `_sortKeys`, and `_totalPagedResultsPolicy` parameters described in xref:#about-crest-query["Query"] are not used in OpenDJ software at present.
+
+The following table shows some LDAP search filters with corresponding examples of query filter expressions.
+
+[#d0e2407]
+.LDAP Search and REST Query Filters
+[cols="50%,50%"]
+|===
+|LDAP Filter |REST Filter 
+
+a|(&)
+a|_queryFilter=true
+
+a|(uid=*)
+a|_queryFilter=_id+pr
+
+a|(uid=bjensen)
+a|_queryFilter=_id+eq+'bjensen'
+
+a|(uid=*jensen*)
+a|_queryFilter=_id+co+'jensen'
+
+a|(uid=jensen*)
+a|_queryFilter=_id+sw+'jensen'
+
+a|(&(uid=*jensen*)(cn=babs*))
+a|_queryFilter=(_id+co+'jensen'+and+displayName+sw+'babs')
+
+a|(\|(uid=*jensen*)(cn=sam*))
+a|_queryFilter=(_id+co+'jensen'+or+displayName+sw+'sam')
+
+a|(!(uid=*jensen*))
+a|_queryFilter=!(_id+co+'jensen')
+
+a|(uid<=jensen)
+a|_queryFilter=_id+le+'jensen'
+
+a|(uid>=jensen)
+a|_queryFilter=_id+ge+'jensen'
+|===
+--
+For query operations, the filter __expression__ is constructed from the following building blocks. Make sure you URL-encode the filter expressions, which are shown here without URL-encoding to make them easier to read.
+
+In filter expressions, the simplest __json-pointer__ is a field of the JSON resource, such as `userName` or `id`. A __json-pointer__ can also point to nested elements as described in the link:http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer[JSON Pointer, window=\_blank] Internet-Draft:
+
+Comparison expressions::
+[open]
+====
+Build filters using the following comparison expressions:
+
+`json-pointer eq json-value`::
+Matches when the pointer equals the value, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/api/users?_queryFilter=userName+eq+'bjensen@example.com'"
+{
+  "result": [{
+    "_id": "bjensen",
+    "_rev": "00000000620de18f",
+    "_schema": "frapi:opendj:rest2ldap:posixUser:1.0",
+    "_meta": {
+      "lastModified": "2016-06-24T12:55:49Z"
+    },
+    "userName": "bjensen@example.com",
+    "displayName": ["Barbara Jensen", "Babs Jensen"],
+    "name": {
+      "givenName": "Barbara",
+      "familyName": "Jensen"
+    },
+    "description": "Original description",
+    "contactInformation": {
+      "telephoneNumber": "+1 408 555 9999",
+      "emailAddress": "bjensen@example.com"
+    },
+    "uidNumber": 1076,
+    "gidNumber": 1000,
+    "homeDirectory": "/home/bjensen",
+    "manager": {
+      "_id": "trigden",
+      "displayName": "Torrey Rigden"
+    }
+  }],
+  "resultCount": 1,
+  "pagedResultsCookie": null,
+  "totalPagedResultsPolicy": "NONE",
+  "totalPagedResults": -1,
+  "remainingPagedResults": -1
+}
+----
+
+`json-pointer co json-value`::
+Matches when the pointer contains the value, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/api/users?_queryFilter=userName+co+'jensen'&_fields=userName"
+{
+  "result": [{
+    "_id": "ajensen",
+    "_rev": "000000004f02a83b",
+    "userName": "ajensen@example.com"
+  }, {
+    "_id": "bjensen",
+    "_rev": "00000000620de18f",
+    "userName": "bjensen@example.com"
+  }, {
+    "_id": "gjensen",
+    "_rev": "00000000d180a393",
+    "userName": "gjensen@example.com"
+  }, {
+    "_id": "jjensen",
+    "_rev": "000000003e0ba1b4",
+    "userName": "jjensen@example.com"
+  }, {
+    "_id": "kjensen",
+    "_rev": "000000001c6ba52e",
+    "userName": "kjensen@example.com"
+  }, {
+    "_id": "rjensen",
+    "_rev": "0000000019d8a547",
+    "userName": "rjensen@example.com"
+  }, {
+    "_id": "tjensen",
+    "_rev": "00000000b362a0b3",
+    "userName": "tjensen@example.com"
+  }],
+  "resultCount": 7,
+  "pagedResultsCookie": null,
+  "totalPagedResultsPolicy": "NONE",
+  "totalPagedResults": -1,
+  "remainingPagedResults": -1
+}
+----
+
+`json-pointer sw json-value`::
+Matches when the pointer starts with the value, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/api/users?_queryFilter=userName+sw+'ab'&_fields=userName"
+{
+  "result": [{
+    "_id": "abarnes",
+    "_rev": "000000002e13a516",
+    "userName": "abarnes@example.com"
+  }, {
+    "_id": "abergin",
+    "_rev": "00000000bf829aed",
+    "userName": "abergin@example.com"
+  }],
+  "resultCount": 2,
+  "pagedResultsCookie": null,
+  "totalPagedResultsPolicy": "NONE",
+  "totalPagedResults": -1,
+  "remainingPagedResults": -1
+}
+----
+
+`json-pointer lt json-value`::
+Matches when the pointer is less than the value, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/api/users?_queryFilter=userName+lt+'ac'&_fields=userName"
+{
+  "result": [{
+    "_id": "abarnes",
+    "_rev": "000000002e13a516",
+    "userName": "abarnes@example.com"
+  }, {
+    "_id": "abergin",
+    "_rev": "00000000bf829aed",
+    "userName": "abergin@example.com"
+  }],
+  "resultCount": 2,
+  "pagedResultsCookie": null,
+  "totalPagedResultsPolicy": "NONE",
+  "totalPagedResults": -1,
+  "remainingPagedResults": -1
+}
+----
+
+`json-pointer le json-value`::
+Matches when the pointer is less than or equal to the value, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/api/users?_queryFilter=userName+le+'ad'&_fields=userName"
+{
+  "result": [{
+    "_id": "abarnes",
+    "_rev": "000000002e13a516",
+    "userName": "abarnes@example.com"
+  }, {
+    "_id": "abergin",
+    "_rev": "00000000bf829aed",
+    "userName": "abergin@example.com"
+  }, {
+    "_id": "achassin",
+    "_rev": "00000000309da2e7",
+    "userName": "achassin@example.com"
+  }],
+  "resultCount": 3,
+  "pagedResultsCookie": null,
+  "totalPagedResultsPolicy": "NONE",
+  "totalPagedResults": -1,
+  "remainingPagedResults": -1
+}
+----
+
+`json-pointer gt json-value`::
+Matches when the pointer is greater than the value, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/api/users?_queryFilter=userName+gt+'tt'&_fields=userName"
+{
+  "result": [{
+    "_id": "ttully",
+    "_rev": "00000000542fa3e9",
+    "userName": "ttully@example.com"
+  }, {
+    "_id": "tward",
+    "_rev": "00000000da539fc9",
+    "userName": "tward@example.com"
+  }, {
+    "_id": "wlutz",
+    "_rev": "000000006ff69e74",
+    "userName": "wlutz@example.com"
+  }],
+  "resultCount": 3,
+  "pagedResultsCookie": null,
+  "totalPagedResultsPolicy": "NONE",
+  "totalPagedResults": -1,
+  "remainingPagedResults": -1
+}
+----
+
+`json-pointer ge json-value`::
+Matches when the pointer is greater than or equal to the value, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/api/users?_queryFilter=userName+ge+'tw'&_fields=userName"
+{
+  "result": [{
+    "_id": "tward",
+    "_rev": "00000000da539fc9",
+    "userName": "tward@example.com"
+  }, {
+    "_id": "wlutz",
+    "_rev": "000000006ff69e74",
+    "userName": "wlutz@example.com"
+  }],
+  "resultCount": 2,
+  "pagedResultsCookie": null,
+  "totalPagedResultsPolicy": "NONE",
+  "totalPagedResults": -1,
+  "remainingPagedResults": -1
+}
+----
+
+====
+
+Presence expression::
+`json-pointer pr` matches any resource on which the __json-pointer__ is present, as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/api/users?_queryFilter=userName+pr&_fields=userName"
+{
+  "result": [{
+    "_id": "abarnes",
+    "_rev": "000000002e13a516",
+    "userName": "abarnes@example.com"
+  }, ... {
+    "_id": "newuser",
+    "_rev": "000000000ace733a",
+    "userName": "newuser@example.com"
+  }],
+  "resultCount": 153,
+  "pagedResultsCookie": null,
+  "totalPagedResultsPolicy": "NONE",
+  "totalPagedResults": -1,
+  "remainingPagedResults": -1
+}
+----
+
+Literal expressions::
+`true` matches any resource in the collection.
+
++
+`false` matches no resource in the collection.
+
++
+In other words, you can list all resources in a collection as in the following example:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/api/groups?_queryFilter=true&_fields=displayName"
+{
+  "result": [{
+    "_id": "Accounting Managers",
+    "_rev": "00000000faf95c89",
+    "displayName": "Accounting Managers"
+  }, {
+    "_id": "Directory Administrators",
+    "_rev": "000000008977793d",
+    "displayName": "Directory Administrators"
+  }, {
+    "_id": "HR Managers",
+    "_rev": "00000000123d557d",
+    "displayName": "HR Managers"
+  }, {
+    "_id": "PD Managers",
+    "_rev": "000000002b415792",
+    "displayName": "PD Managers"
+  }, {
+    "_id": "QA Managers",
+    "_rev": "000000004ecc54fa",
+    "displayName": "QA Managers"
+  }],
+  "resultCount": 5,
+  "pagedResultsCookie": null,
+  "totalPagedResultsPolicy": "NONE",
+  "totalPagedResults": -1,
+  "remainingPagedResults": -1
+}
+----
+
+Complex expressions::
+Combine expressions using boolean operators `and`, `or`, and `!` (not), and by using parentheses `(expression)` with group expressions. The following example queries resources with last name Jensen and manager name starting with `Bar`:
++
+
+[source, console]
+----
+$ curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/api/users?_queryFilter=\
+(userName+co+'jensen'+and+manager/displayName+sw+'Sam')&_fields=displayName"
+{
+  "result": [{
+    "_id": "jjensen",
+    "_rev": "000000003e0ba1b4",
+    "displayName": ["Jody Jensen"]
+  }, {
+    "_id": "tjensen",
+    "_rev": "00000000b362a0b3",
+    "displayName": ["Ted Jensen"]
+  }],
+  "resultCount": 2,
+  "pagedResultsCookie": null,
+  "totalPagedResultsPolicy": "NONE",
+  "totalPagedResults": -1,
+  "remainingPagedResults": -1
+}
+----
++
+Notice that the filters use the JSON pointers `name/familyName` and `manager/displayName` to identify the fields nested inside the `name` and `manager` objects.
+
+--
+You can page through search results using the following query string parameters that are further described in xref:#about-crest-query["Query"]:
+
+* `_pagedResultsCookie=string`
+
+* `_pagedResultsOffset=integer`
+
+* `_pageSize=integer`
+
+The following example demonstrates how paged results are used:
+
+[source, console]
+----
+# Request five results per page, and retrieve the first page.
+$ curl \
+ --user bjensen:hifalutin \
+ "http://opendj.example.com:8080/api/users?_queryFilter=true&_fields=userName&_pageSize=5"
+{
+  "result": [{
+    "_id": "abarnes",
+    "_rev": "000000002e13a516",
+    "userName": "abarnes@example.com"
+  }, {
+    "_id": "abergin",
+    "_rev": "00000000bf829aed",
+    "userName": "abergin@example.com"
+  }, {
+    "_id": "achassin",
+    "_rev": "00000000309da2e7",
+    "userName": "achassin@example.com"
+  }, {
+    "_id": "ahall",
+    "_rev": "00000000f3b39d13",
+    "userName": "ahall@example.com"
+  }, {
+    "_id": "ahel",
+    "_rev": "0000000066f49b88",
+    "userName": "ahel@example.com"
+  }],
+  "resultCount": 5,
+  "pagedResultsCookie": "AAAAAAAAAA8=",
+  "totalPagedResultsPolicy": "NONE",
+  "totalPagedResults": -1,
+  "remainingPagedResults": -1
+}
+
+# Provide the cookie to request the next five results.
+$ curl \
+ --user bjensen:hifalutin \
+ "http://opendj.example.com:8080/api/users?_queryFilter=true&_fields=userName&_pageSize=5\
+&_pagedResultsCookie=AAAAAAAAAA8="
+{
+  "result": [{
+    "_id": "ahunter",
+    "_rev": "0000000097c4a2ec",
+    "userName": "ahunter@example.com"
+  }, {
+    "_id": "ajensen",
+    "_rev": "000000004f02a83b",
+    "userName": "ajensen@example.com"
+  }, {
+    "_id": "aknutson",
+    "_rev": "0000000008ababe4",
+    "userName": "aknutson@example.com"
+  }, {
+    "_id": "alangdon",
+    "_rev": "00000000fce1a809",
+    "userName": "alangdon@example.com"
+  }, {
+    "_id": "alutz",
+    "_rev": "000000003bbfa434",
+    "userName": "alutz@example.com"
+  }],
+  "resultCount": 5,
+  "pagedResultsCookie": "AAAAAAAAABQ=",
+  "totalPagedResultsPolicy": "NONE",
+  "totalPagedResults": -1,
+  "remainingPagedResults": -1
+}
+
+# Request the tenth page of five results.
+$ curl \
+ --user bjensen:hifalutin \
+ "http://opendj.example.com:8080/api/users?_queryFilter=true&_fields=userName\
+&_pageSize=5&_pagedResultsOffset=10"
+{
+  "result": [{
+    "_id": "ewalker",
+    "_rev": "000000007aaea177",
+    "userName": "ewalker@example.com"
+  }, {
+    "_id": "eward",
+    "_rev": "00000000bd8e9e65",
+    "userName": "eward@example.com"
+  }, {
+    "_id": "falbers",
+    "_rev": "000000004a35a1ee",
+    "userName": "falbers@example.com"
+  }, {
+    "_id": "gfarmer",
+    "_rev": "00000000535fa1cb",
+    "userName": "gfarmer@example.com"
+  }, {
+    "_id": "gjensen",
+    "_rev": "00000000d180a393",
+    "userName": "gjensen@example.com"
+  }],
+  "resultCount": 5,
+  "pagedResultsCookie": "AAAAAAAAAEE=",
+  "totalPagedResultsPolicy": "NONE",
+  "totalPagedResults": -1,
+  "remainingPagedResults": -1
+}
+----
+Notice the following features of the responses:
+
+* `"remainingPagedResults" : -1` means that the number of remaining results is unknown.
+
+* `"totalPagedResults" : -1` means that the total number of paged results is unknown.
+
+* `"totalPagedResultsPolicy" : "NONE"` means that result counting is disabled.
+
+
+
+[#mime-types-rest]
+=== Working With Alternative Content Types
+
+OpenDJ generally maps JSON resources to LDAP entries. Some resources such as profile photos, however, are best expressed with other MIME types. ForgeRock common REST lets your applications make HTTP multipart requests, so you can work with other MIME types differently from regular JSON resources. This is done using the `_mimeType` parameter described in xref:#about-crest-read["Read"].
+This section includes the following procedures:
+
+* xref:#mime-types-rest-mapping["To Map an Alternative Content Type"]
+
+* xref:#mime-types-rest-update["To Update a Non-JSON Resource"]
+
+* xref:#mime-types-rest-read["To Read a Non-JSON Resource"]
+
+
+[NOTE]
+====
+The default configuration described in xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap-endpoint["To Set Up REST Access to User Data"] in the __Administration Guide__ does not include any mappings that require alternative content types. You must therefore add a mapping to use an alternative content type and disable and then enable the Rest2ldap endpoint for the change to take effect.
+====
+
+[#mime-types-rest-mapping]
+.To Map an Alternative Content Type
+====
+To add a mapping to the configuration, follow these steps:
+
+. Edit the attributes section for a resource in the configuration file `/path/to/opendj/config/rest2ldap/endpoints/api/example-v1.json` to include a property that maps to a MIME type.
++
+The following line adds a simple mapping from the `photo` property to the `jpegPhoto` LDAP attribute:
++
+
+[source, javascript]
+----
+"photo" : { "type": "simple", "ldapAttribute" : "jpegPhoto" },
+----
+
+. Force the Rest2ldap endpoint to reread the updated configuration file.
++
+You can force the Rest2ldap endpoint to reread its configuration by disabling it and then enabling it:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-http-endpoint-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --endpoint-name /api \
+ --set enabled:false \
+ --no-prompt \
+ --trustAll
+$ dsconfig \
+ set-http-endpoint-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --endpoint-name /api \
+ --set enabled:true \
+ --no-prompt \
+ --trustAll
+----
+
+====
+
+[#mime-types-rest-update]
+.To Update a Non-JSON Resource
+====
+With a mapping configured as described in xref:#mime-types-rest-mapping["To Map an Alternative Content Type"], REST client applications can update MIME resources with form-based content as described in the following steps:
+
+. Ensure that the application has a resource to upload.
++
+For example, copy a JPEG photo `picture.jpg` to the current directory.
+
+. Upload the non-JSON resource with its metadata as a multipart form.
++
+The following example patches Babs Jensen’s resource to add a profile photo:
++
+
+[source, console]
+----
+$ curl \
+ --request PATCH \
+ --form 'json=[{"operation": "add", "field": "/photo",
+         "value": {"$ref":"cid:picture#content"}}];type=application/json' \
+ --form 'picture=@picture.jpg;type=image/jpeg' \
+ 'http://bjensen:hifalutin@opendj.example.com:8080/api/users/bjensen'
+{
+  "_id": "bjensen",
+  ...
+  "photo": "_9j_4RZJRXhpZg...AA",
+  ...
+}
+----
++
+Notice the `curl` command form data. When you specify the reference to the content ID, the reference takes the form:
++
+
+[source]
+----
+{"$ref":"cid:identifier#(content|filename|mimetype)"}
+----
++
+If you want other attributes to hold the filename (`picture.jpg`) and MIME type (`image/jpeg`) of the file you upload, you can reference those as well. In the example above, `{"$ref":"cid:picture#filename"}` is `picture.jpg` and `{"$ref":"cid:picture#mimetype"}` is `image/jpeg`.
+
+====
+
+[#mime-types-rest-read]
+.To Read a Non-JSON Resource
+====
+With a mapping configured as described in xref:#mime-types-rest-mapping["To Map an Alternative Content Type"], REST client applications can read MIME resources as described in the following step:
+
+* Read the non-JSON resource using a single value for each of the `_fields` and `_mimeType` parameters.
++
+The following example reads Babs Jensen’s profile photo:
++
+
+[source, console]
+----
+$ curl "http://bjensen:hifalutin@opendj.example.com:8080/api/users/bjensen\
+?_fields=photo&_mimeType=image/jpeg"
+... binary data ...
+----
+
+====
+
+

@@ -1,0 +1,388 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-writing-plugins]
+== Writing an OpenDJ Server Plugin
+
+OpenDJ directory server has many features that are implemented as server __plugins__. A server plugin is a library that can be plugged in to an installed server and immediately configured for use.
+In this chapter you will learn:
+
+* Enough about the OpenDJ plugin architecture to begin writing plugins
+
+* How to build and use the example plugin delivered with the directory server
+
+* How the parts of the example plugin project fit together
+
+
+[IMPORTANT]
+====
+ForgeRock supports customers using standard plugins delivered as part of OpenDJ directory server.
+
+If you deploy with custom plugins and need support in production, contact link:mailto:info\@forgerock.com[info@forgerock.com, window=\_top] in advance to determine how your deployment can be supported.
+====
+
+[#about-server-plugins]
+=== About OpenDJ Directory Server Plugins
+
+OpenDJ directory server plugins are Java libraries compiled against the OpenDJ link:../javadoc/index.html[Java API, window=\_blank]. Plugins are built to be configured as part of the server and to be invoked at specific points in the lifecycle of a client request, or in the server process lifecycle.
+
+[NOTE]
+====
+The OpenDJ server Java API has interface stability: Evolving, as described in xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__.
+
+This means that a server plugin built with one version of OpenDJ directory server will not necessarily work or even compile with a different version of the server.
+====
+
+[#about-server-plugins-types]
+==== Plugin Types
+
+Plugin types correspond to the points where the server invokes the plugin.
+For the full list of plugin invocation points, see the Javadoc for link:../javadoc/index.html?org/opends/server/api/plugin/PluginType.html[PluginType, window=\_blank]. The following list summarizes the plugin invocation points:
+
+* At server startup and shutdown
+
+* Before and after data export and import
+
+* Immediately after a client connection is established or is closed
+
+* Before processing begins on an LDAP operation (to change an incoming request before it is decoded)
+
+* Before core processing for LDAP operations (to change the way the server handles the operation)
+
+* After core processing for LDAP operations (where the plugin can access all information about the operation including the impact it has on the targeted entry)
+
+* When a subordinate entry is deleted as part of a subtree delete or moved or renamed as part of a modify DN operation
+
+* Before sending intermediate and search responses
+
+* After sending a result
+
+A plugin's types are specified in its configuration, and can therefore be modified at runtime.
+
+
+[#about-server-plugins-configuration]
+==== Plugin Configuration
+
+Server plugin configuration is managed with the same configuration framework that is used for OpenDJ directory server configuration.
+The OpenDJ configuration framework has these characteristics:
+
+* LDAP schemas govern what attributes can be used in plugin configuration entries.
++
+For all configuration attributes that are specific to a plugin, the plugin should have its own object class and attributes defined in the server LDAP schema. Having configuration entries governed by schemas makes it possible for the server to identify and prevent configuration errors.
++
+For plugins, having schema for configuration attributes means that an important part of plugin installation is making the schema definitions available to OpenDJ directory server.
+
+* The plugin configuration is declared in XML files.
++
+The XML specifies configuration properties and their documentation, and also inheritance relationships.
++
+The XML Schema Definition files (.xsd files) for the namespaces used in these documents are part of the OpenDJ Maven Plugin. They are published as part of the source code of that module, not in the locations corresponding to their namespace identifiers.
++
+In other words, you can find `admin.xsd`, for example, in the OpenDJ source code. Its XML namespace identifier (`\http://opendj.forgerock.org/admin`) is not a URL that you can browse to.
++
+For details, see also xref:#example-plugin-configuration["Configuration"].
+
+* Compilation generates the server-side and client-side APIs to access the plugin configuration from the XML.
++
+To use the server-side APIs in a plugin project, first generate and compile them, and include the classes on the project classpath. You can see how the `opendj-maven-plugin` is used to generate sources from the XML in the example plugin project sources. The process is described in xref:#example-plugin-maven["Maven Project"].
++
+When a plugin is loaded in OpenDJ directory server, the client-side APIs are available to configuration tools like the `dsconfig` command. Directory administrators can configure a custom plugin in the same way they configure other directory server components.
+
+* The framework supports internationalization.
+
+A complete plugin project, such as the example plugin, therefore includes LDAP schema definitions, XML configuration definitions, Java plugin code, and Java resource bundles.
+
+
+
+[#try-example-plugin]
+=== Trying the Example Server Plugin
+
+The example plugin is bundled with OpenDJ directory server as `example-plugin.zip`, which holds a Maven-based project. The example plugin is a startup plugin that displays a "Hello World" message when the directory server starts. For general information about OpenDJ directory server plugins, read xref:#about-server-plugins["About OpenDJ Directory Server Plugins"]. For more specific information, read xref:#about-example-plugin["About the Example Plugin Project Files"].
+
+[NOTE]
+====
+This version of the example plugin is new in OpenDJ directory server 3.5.
+====
+
+====
+Follow these steps to try the example plugin:
+
+. Install OpenDJ directory server as described in xref:../install-guide/chap-install.adoc#chap-install["Installing OpenDJ Servers"] in the __Installation Guide__.
+
+. Install Apache Maven 3.0.5 or later.
++
+When you finish, make sure `mvn` is on your PATH:
++
+
+[source, console]
+----
+$ mvn -version
+Apache Maven version
+Maven home: /path/to/maven
+Java version: ...
+----
+
+. Unpack the example plugin project sources:
++
+
+[source, console]
+----
+$ unzip /path/to/opendj/example-plugin.zip
+Archive:  /path/to/opendj/example-plugin.zip
+   creating: opendj-server-example-plugin/
+...
+----
+
+. Build the example plugin:
++
+
+[source, console]
+----
+$ cd opendj-server-example-plugin/
+$ mvn install
+...
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+...
+----
+
+. Install the example plugin in OpenDJ directory server:
++
+
+[source, console]
+----
+$ cd /path/to/opendj
+
+# Stop the server before installing the example plugin:
+$ bin/stop-ds
+
+# Unpack the plugin files into the proper locations of the server layout,
+# skipping the base directory.
+# The following example works with bsdtar,
+# which might require installing a bsdtar package.
+$ bsdtar -xvf \
+ /path/to/opendj-server-example-plugin/target/opendj-server-example-plugin-3.5.3.zip \
+ -s'|[^/]*/||'
+x README.example.plugin
+x config/
+x config/schema/
+x config/example-plugin.ldif
+x config/schema/99-example-plugin.ldif
+x lib/
+x lib/extensions/
+x lib/extensions/opendj-server-example-plugin-3.5.3.jar
+x lib/extensions/...
+
+# Start the server and create the plugin configuration:
+$ bin/start-ds
+$ bin/dsconfig \
+ create-plugin \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "Example Plugin" \
+ --type example \
+ --set enabled:true \
+ --set plugin-type:startup \
+ --trustAll \
+ --no-prompt
+...
+INFO: Loaded extension from file
+ '/path/to/opendj/lib/extensions/opendj-server-example-plugin-3.5.3.jar'
+ (build <unknown>, revision <unknown>)
+----
++
+Notice the locations where the example plugin files are unpacked. The locations must follow the server conventions in order for OpenDJ directory server to recognize the plugin.
++
+For the example plugin, you see that:
+
+* Schema definitions are unpacked into `config/schema/`.
+
+* Plugin .jar files and the .jar files they depend on are unpacked into `lib/extensions/`.
+
++
+Also notice that after the plugin configuration is created OpenDJ directory server has loaded the plugin as an extension.
+
+. Restart OpenDJ directory server to see the startup message from the plugin:
++
+
+[source, console]
+----
+$ bin/stop-ds --restart
+...
+... msg=Example plugin message 'HELLO WORLD'.
+...
+----
+
+. Now that you have seen the example plugin display its message, see xref:#about-example-plugin["About the Example Plugin Project Files"] to understand the key parts of the example plugin project.
+
+====
+
+
+[#about-example-plugin]
+=== About the Example Plugin Project Files
+
+The example plugin project builds a server plugin that displays a "Hello World" message when OpenDJ directory server starts, as shown in xref:#try-example-plugin["Trying the Example Server Plugin"]. This section describes the example plugin project. For general information about OpenDJ directory server plugins, read xref:#about-server-plugins["About OpenDJ Directory Server Plugins"] instead.
+
+[NOTE]
+====
+This version of the example plugin project is new in OpenDJ directory server 3.5.
+====
+
+[#example-plugin-maven]
+==== Maven Project
+
+The OpenDJ example server plugin is an Apache Maven project.
+
+As you can see in the `pom.xml` file for the project, the plugin depends on the OpenDJ directory server module.
+The plugin project uses these ForgeRock Maven plugins:
+
+* The `i18n-maven-plugin` generates message source files from properties files in the resource bundle.
++
+This plugin must run in order to resolve static imports from `com.example.opendj.ExamplePluginMessages`.
+
+* The `opendj-maven-plugin` generates source files, manifest files, and resource bundles from the configuration declarations in the XML configuration files.
++
+This plugin must run in order to resolve imports from `com.example.opendj.server.ExamplePluginCfg`.
+
+
+
+[#example-plugin-configuration]
+==== Configuration
+
+--
+The example plugin has the following configuration files:
+
+`src/main/assembly/descriptor.xml`::
+This defines how to bundle the different components of the plugin in a layout appropriate for installation into OpenDJ directory server.
+
+`src/main/assembly/config/example-plugin.ldif`::
+This shows an example configuration entry for the plugin.
+
+`src/main/assembly/config/schema/99-example-plugin.ldif`::
+This defines all object classes and attribute types that are specific to the example plugin configuration. The XML file that defines the configuration also specifies how configuration properties map to the object class and attribute type defined here for the LDAP representation of the configuration, using the definitions from this addition to the LDAP schema.
+
++
+If your plugin has no configuration attributes of its own, then there is no need to extend the LDAP schema.
+
++
+For more information on defining your own LDAP schemas, see xref:../admin-guide/chap-schema.adoc#chap-schema["Managing Schema"] in the __Administration Guide__.
+
+`src/main/java/com/example/opendj/ExamplePluginConfiguration.xml`::
+This defines the configuration interface to the example plugin, and an LDAP profile that maps the plugin configuration to an LDAP entry.
+
++
+Notice that the name ends in `Configuration.xml`, which is the expected suffix for configuration files.
++
+The configuration definition has these characteristics:
+
+* The attributes of the `<managed-object>` element define XML namespaces, a (singular) name and plural name for the plugin, and the Java-related inheritance of the implementation to generate. A __managed object__ is a configurable component of OpenDJ directory server.
++
+A managed object definition covers the object's structure and inheritance, and is like a class in Java. The actual managed object is like an instance of an object in Java. Its configuration maps to a single LDAP entry in the configuration backend `cn=config`.
++
+Notice that the `<profile>` element defines how the whole object maps to an LDAP entry in the configuration. The `<profile>` element is mandatory, and should include an LDAP profile.
++
+The `name` and `plural-name` properties are used to identify the managed object definition. They are also used when generating Java class names. Names must be a lowercase sequence of words separated by hyphens.
++
+The `package` property specifies the Java package name for generated code.
++
+The `extends` property identifies a parent definition that the current definition inherits.
+
+* The mandatory `<synopsis>` element provides a brief description of the managed object.
++
+If a longer description is required, add a `<description>`, which can include XHTML markup. The `<description>` is used in addition to the synopsis, so there is no need to duplicate the synopsis in the description.
+
+* The `<property>` element defines a property specific to this example plugin, including its purpose, its the default value, its type, and how the property maps to an LDAP attribute in the configuration entry.
++
+The `name` attribute is used to identify the property in the configuration.
+
+* The `<property-override>` element sets the pre-defined property `java-class` to a specific value, namely that of the fully qualified implementation class.
+
++
+The XML-based configuration files are more powerful than this short explanation suggests. See the documentation in the XML schema definitions for more details about the elements and attributes.
+
++
+When the example plugin project is built, generated Java properties files are written in `target/generated-resources/`, and generated Java source files are written in `target/generated-sources/`.
+
+`src/main/java/com/example/opendj/Package.xml`::
+This defines the package-level short description used in generated `package-info.java` source files.
+
+--
+
+
+[#example-plugin-implementation]
+==== Implementation Code
+
+The plugin implementation is found in `src/main/java/com/example/opendj/ExamplePlugin.java`. It relies on the OpenDJ directory server Java API.
+
+[NOTE]
+====
+The OpenDJ server Java API has interface stability: Evolving, as described in xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__.
+
+This means that a server plugin built with one version of OpenDJ directory server will not necessarily work or even compile with a different version of the server.
+====
+`ExamplePlugin` statically imports everything from the generated message implementation sources. Resolution of `ExamplePluginMessages.*` fails until the implementation is generated by the `i18n-maven-plugin`.
+
+`ExamplePlugin` extends link:../javadoc/index.html?org/opends/server/api/plugin/DirectoryServerPlugin.html[DirectoryServerPlugin, window=\_blank] with its own type of configuration, `ExamplePluginCfg`. The implementation for `ExamplePluginCfg` is generated from the configuration declared in XML. Therefore, resolution of `ExamplePluginCfg` fails until the sources are generated by the `opendj-maven-plugin`.
+
+`ExamplePlugin` implements `ConfigurationChangeListener` so the plugin can be notified of changes to its configuration. The plugin can then potentially update its configuration without the need to restart the plugin or OpenDJ directory server.
+
+The example plugin stores a reference to its configuration in the private `config` object. Your plugins should follow this example.
+
+When the server first configures the plugin, it does so by calling the `initializePlugin` method. This method must do the following things:
+
+* Perform checks that the configuration framework cannot do for the plugin, such as checking dependencies between properties or checking system state (whether some file is writable, or if there is sufficient disk space, for example).
++
+The example plugin checks that its type is `startup`.
+
+* Initialize the plugin, if necessary.
++
+The example plugin has nothing to initialize.
+
+* Register to receive configuration change notifications by using the `addExampleChangeListener()` method.
+
+* Cache the current state of the configuration.
++
+The example plugin assigns the configuration to its private `config` object.
+
+On subsequent configuration changes, the server calls the `isConfigurationChangeAcceptable()` method. If the method returns true because the configuration is valid, the server calls `applyConfigurationChange()` method.
+
+Although the example plugin's `isConfigurationChangeAcceptable()` method always returns true, other plugins might need to perform checks that the framework cannot, in the same way they perform checks during initialization.
+
+In the `applyConfigurationChange()` method the plugin must modify its configuration as necessary. The example plugin can handle configuration changes without further intervention by the administrator. Other plugins might require administrative intervention because changes can be made that can only be taken into account at plugin initialization.
+
+In the example plugin, the method that extends the server's behavior is the `doStartup()` method. Which method is implemented depends on what class the plugin extends. For example, a password validator extending link:../javadoc/index.html?org/opends/server/api/PasswordValidator.html[PasswordValidator, window=\_blank] would implement a `passwordIsAcceptable()` method.
+
+
+[#example-plugin-i18n]
+==== Internationalization
+
+In the example plugin, localized messages are found in the resource bundle under `src/main/resources/com/example/opendj/`.
+
+The `LocalizedLogger` in the plugin implementation is capable of selecting the right messages from the resource bundle based on the locale for the server.
+
+If the server runs in a French locale, then the plugin can log messages in French when a translation exists. Otherwise, it falls back to English messages, as those are the messages defined for the default locale.
+
+
+

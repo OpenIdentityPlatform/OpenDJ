@@ -1,0 +1,1132 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-install]
+== Installing OpenDJ Servers
+
+This chapter covers installation of OpenDJ server software and includes the following procedures:
+
+* xref:#before-you-install["To Prepare For Installation"]
+
+* xref:#gui-install["To Install OpenDJ Directory Server With the GUI"]
+
+* xref:#install-launch-control-panel["To Start OpenDJ Control Panel"]
+
+* xref:#install-separate-tools-data["To Separate OpenDJ Directory Server Tools From Data"]
+
+* xref:#command-line-install["To Install OpenDJ Directory Server From the Command-Line"]
+
+* xref:#install-deb["To Install From the Debian Package"]
+
+* xref:#install-rpm["To Install From the RPM Package"]
+
+* xref:#install-properties-file["To Install OpenDJ Directory Server With a Properties File"]
+
+* xref:#pdb-to-je["To Move Data from a PDB Backend to a JE Backend"]
+
+* xref:#install-rest2ldap-servlet["To Install OpenDJ REST to LDAP Gateway"]
+
+* xref:#install-rest2ldap-servlet-3-0["To Install OpenDJ REST to LDAP Gateway (3.0)"]
+
+* xref:#install-dsml-gateway["To Install OpenDJ DSML gateway"]
+
+
+[#before-you-install]
+.To Prepare For Installation
+====
+
+. Make sure you have a required Java environment installed.
++
+If your default Java environment is not appropriate, set `OPENDJ_JAVA_HOME` to the path to the correct Java environment, or set `OPENDJ_JAVA_BIN` to the absolute path of the `java` command. The `OPENDJ_JAVA_BIN` environment variable is useful if you have both 32-bit and 64-bit versions of the Java environment installed, and want to make sure you use the 64-bit version.
+
+. Prevent antivirus and intrusion detection systems from interfering with OpenDJ directory server.
++
+Antivirus and intrusion detection systems that do a deep inspection of database files are not compatible with OpenDJ directory server. Disable antivirus and intrusion detection systems, or at least prevent them from operating on OpenDJ directory server files.
+
+. Download enterprise software releases through the ForgeRock link:https://backstage.forgerock.com/[BackStage, window=\_blank] site. ForgeRock enterprise releases are thoroughly validated builds for ForgeRock customers who run OpenDJ in production deployments, and for those who want to try or test with release builds.
++
+--
+The following OpenDJ 3.5.3 server software is available:
+
+opendj-3.5.3.zip,opendj-oem-3.5.3.zip (OEM Edition)::
+Cross-platform OpenDJ directory server installation files.
+
+opendj_3.5.3-1_all.deb,opendj-oem_3.5.3-1_all.deb (OEM Edition)::
+OpenDJ directory server native package for Debian and related Linux distributions.
+
+opendj-3.5.3-1.noarch.rpm,opendj-oem-3.5.3-1.noarch.rpm (OEM Edition)::
+OpenDJ directory server native package for Red Hat and related Linux distributions.
+
+opendj-dsml-servlet-3.5.3.war::
+Cross-platform OpenDJ DSML gateway web archive
+
+opendj-rest2ldap-servlet-3.5.3.war::
+Cross-platform OpenDJ REST to LDAP gateway web archive
+
+--
++
+
+[NOTE]
+======
+The OEM distribution of OpenDJ directory server does not include Berkeley DB Java Edition, and so does not support JE backends.
+======
++
+
+. If you plan to install OpenDJ DSML gateway or OpenDJ REST to LDAP gateway, make sure you have an appropriate application server installed.
++
+
+. If you plan to configure SSL or TLS to secure network communications between the server and client applications, get a properly signed digital certificate that your client applications recognize, such as one that fits with your organization's PKI or one provided by a recognized certificate authority.
++
+To use the certificate during installation, the certificate must be located in a keystore provided with Java (JKS, JCEKS, PKCS#12), or on a PKCS#11 token. To import a signed certificate into a keystore, use the Java `keytool` command.
++
+For details see xref:../admin-guide/chap-connection-handlers.adoc#setup-server-cert["Preparing For Secure Communications"] in the __Administration Guide__.
+
+====
+
+[#gui-install]
+.To Install OpenDJ Directory Server With the GUI
+====
+The OpenDJ `setup` command launches a wizard that lets you install OpenDJ directory server through a GUI.
+
+[NOTE]
+======
+If your environment picks up an old installation of Java, installation can fail. You might see an application error due to an old Java version.
+======
+After completing the steps in xref:#before-you-install["To Prepare For Installation"], follow these steps:
+
+. Unzip opendj-3.5.3.zip, and then run the `setup` command, described in xref:../reference/admin-tools-ref.adoc#setup-1[setup(1)] in the __Reference__.
++
+When you unzip `opendj-3.5.3.zip`, a top-level `opendj` directory is created in the directory where you unzipped the file. On Windows systems if you unzip `opendj-3.5.3.zip`, with Right-Click > Extract All, be sure to remove the trailing `opendj-3.5.3` directory from the folder you specify.
++
+Find the `setup` command in the following locations:
+
+* (UNIX|Linux) `opendj/setup`
+
+* (Windows) `opendj\setup.bat`
+
+
+. Follow the instructions in the wizard.
++
+The wizard presents the following screens:
+
+* __Welcome__: summarizes the setup process and indicates the minimum required Java version.
+
+* __License__: presents the license agreement to accept before installing OpenDJ software.
+
+* __Server Settings__: prompts for basic server settings including installation path, host name, port numbers, secure connections, and credentials for the directory superuser (default bind DN: `cn=Directory Manager`).
+
+* __Topology Options__: prompts for data replication options including whether this server is part of a replication topology, and if so, the port number and security settings for this server, as well as the connection settings for a remote replica, if available.
+
+* __Directory Data__: allows you to import or to generate LDAP directory data as part of the setup process.
++
+This screen also allows you to select the backend type for data storage.
+
+* __Runtime Options__: allows you to adjust JVM settings as part of the setup process, for example, to allow OpenDJ to use more memory if necessary.
+
+* __Review__: presents current selections so that you can check everything is correct before running setup, with the option to start OpenDJ directory server after setup completes.
+
+* __Finished__: summarizes how setup completed, with the option to launch the OpenDJ control panel.
+
++
+xref:#figure-quicksetup-control-panel["OpenDJ Control Panel"] shows the top-level window with status information. OpenDJ control panel manages directory data, LDAP schema, indexes, monitoring, and JVM runtime options through a GUI.
+
+
+[#figure-quicksetup-control-panel]
+image::images/OpenDJ-Control-Panel.png[]
+
+
+====
+
+[#install-launch-control-panel]
+.To Start OpenDJ Control Panel
+====
+You might close OpenDJ control panel, or decide to start it later after closing the setup wizard:
+
+* To launch OpenDJ control panel, run the `control-panel` command, described in xref:../reference/admin-tools-ref.adoc#control-panel-1[control-panel(1)] in the __Reference__.
+Depending on your host system, this command is one of the following:
+
+** (Linux|UNIX) `/path/to/opendj/bin/control-panel`
+
+** (Windows) `C:\path\to\opendj\bat\control-panel.bat`
+
+
+====
+
+[#install-separate-tools-data]
+.To Separate OpenDJ Directory Server Tools From Data
+====
+The OpenDJ directory server `setup` command starts with OpenDJ tools and libraries distributed with the software, and generates the configuration files, log files, and data files required to run the server and to hold directory data. By default, all the files are co-located. Optionally, you can choose to put the data files in a different location from the tools and server libraries. After OpenDJ server tools and libraries are installed, but before the `setup` command is run, an `instance.loc` file can be used to set a different location for the configuration, logs, and data files.
+
+[IMPORTANT]
+======
+You cannot use a single set of server tools for multiple servers.
+
+Tools for starting and stopping the server process, for example, work with a single configured server. They do not have a mechanism to specify an alternate server location.
+
+If you want to set up another server after running the `setup` command, install another set of tools and libraries.
+======
+Follow these steps to put the configuration, logs, and data files in a different location:
+
+. Before running the `setup` command, create an `instance.loc` file to identify the location.
++
+The `setup` command tries to read `instance.loc` in the same directory as the `setup` command, such as `/path/to/opendj/`.
++
+The `instance.loc` file contains a single line identifying either the absolute location, such as `/path/to/server`, or the location relative to the `instance.loc` file.
+
+. Run the `setup` command to complete OpenDJ directory server installation.
++
+The directories for the server configuration, logs, and data files are located in the directory identified in the `instance.loc` file.
+
+====
+
+[#command-line-install]
+.To Install OpenDJ Directory Server From the Command-Line
+====
+The OpenDJ `setup --cli` command launches a command-line installation that is interactive by default. After completing the steps in xref:#before-you-install["To Prepare For Installation"], follow these steps:
+
+. Unzip `opendj-3.5.3.zip` in the file system directory where you want to install the server.
++
+The `setup` command, described in xref:../reference/admin-tools-ref.adoc#setup-1[setup(1)] in the __Reference__, uses the directory where you unzipped the files as the installation directory, and does not ask you where to install OpenDJ directory server. Therefore, if you want to install elsewhere on the file system, unzip the files in that location.
++
+When you unzip `opendj-3.5.3.zip`, a top-level `opendj` directory is created in the directory where you unzipped the file. On Windows systems if you unzip `opendj-3.5.3.zip`, with Right-Click > Extract All, be sure to remove the trailing `opendj-3.5.3` directory from the folder you specify.
+
+. Run the `setup --cli` command found in the `/path/to/opendj` directory.
++
+This command starts the setup program in interactive mode on the command-line, prompting you for each option. Alternatively, use additional `setup` options to specify values for the options you choose during interactive mode, thus scripting the installation process. See `setup --help` and the notes below.
++
+To perform a non-interactive, silent installation, provide all the options to configure OpenDJ, and then also use the `-n` or `--no-prompt` option.
++
+The `setup` command without the `--cli` option runs the GUI installer.
++
+The following example shows interactive installation of OpenDJ directory server:
++
+
+[source, console]
+----
+$ /path/to/opendj/setup --cli
+READ THIS SOFTWARE LICENSE AGREEMENT CAREFULLY. BY DOWNLOADING OR INSTALLING
+THE FORGEROCK SOFTWARE, YOU, ON BEHALF OF YOURSELF AND YOUR COMPANY, AGREE TO
+BE BOUND BY THIS SOFTWARE LICENSE AGREEMENT. IF YOU DO NOT AGREE TO THESE
+TERMS, DO NOT DOWNLOAD OR INSTALL THE FORGEROCK SOFTWARE.
+
+...
+
+Please read the License Agreement above.
+You must accept the terms of the agreement before continuing with the
+installation.
+Accept the license (Yes/No) [No]:Yes
+
+What would you like to use as the initial root user DN for the Directory
+Server? [cn=Directory Manager]:
+Please provide the password to use for the initial root user:
+Please re-enter the password for confirmation:
+
+Provide the fully-qualified directory server host name that will be used when
+generating self-signed certificates for LDAP SSL/StartTLS, the administration
+connector, and replication [opendj.example.com]:
+
+On which port would you like the Directory Server to accept connections from
+LDAP clients? [1389]:
+
+On which port would you like the Administration Connector to accept
+connections? [4444]:
+
+Do you want to create base DNs in the server? (yes / no) [yes]:
+
+Provide the backend type:
+
+    1)  JE Backend
+    2)  PDB Backend
+
+Enter choice [1]: 2
+
+Provide the base DN for the directory data: [dc=example,dc=com]:
+
+Options for populating the database:
+
+    1)  Only create the base entry
+    2)  Leave the database empty
+    3)  Import data from an LDIF file
+    4)  Load automatically-generated sample data
+
+Enter choice [1]: 3
+
+Please specify the path to the LDIF file containing the data to import:
+/path/to/Example.ldif
+
+Do you want to enable SSL? (yes / no) [no]:
+
+Do you want to enable Start TLS? (yes / no) [no]:
+
+Do you want to start the server when the configuration is completed? (yes /
+no) [yes]:
+
+
+Setup Summary
+=============
+LDAP Listener Port:            1389
+Administration Connector Port: 4444
+JMX Listener Port:
+LDAP Secure Access:            disabled
+Root User DN:                  cn=Directory Manager
+Directory Data:                Create New Base DN dc=example,dc=com.
+Base DN Data: Import Data from LDIF File (/path/to/Example.ldif)
+
+Start Server when the configuration is completed
+
+
+What would you like to do?
+
+    1)  Set up the server with the parameters above
+    2)  Provide the setup parameters again
+    3)  Print equivalent non-interactive command-line
+    4)  Cancel and exit
+
+Enter choice [1]:
+
+See /var/.../opendj-setup...log for a detailed log of this operation.
+
+Configuring Directory Server ..... Done.
+Importing LDIF file /path/to/Example.ldif ........... Done.
+Starting Directory Server ........... Done.
+
+To see basic server configuration status and configuration you can launch \
+/path/to/opendj/bin/status
+----
++
+--
+Notes on the options follow:
+
+Initial root user DN::
+The root user Distinguished Name (DN) identifies a user who can perform all operations allowed for the server, called root user due to the similarity to the UNIX root user.
++
+The default, `cn=Directory Manager`, is a well-known name. For additional protection, use a different name.
+
+Initial root user password::
+The root user will use simple, password-based authentication. Later you can limit cleartext access to avoid snooping, but for now use a strong password here unless this is a throwaway server.
+
+Fully qualified directory server host name::
+OpenDJ uses fully qualified host name in self-signed certificates and for identification when you use replication.
++
+If you are installing a single server temporarily for evaluation, and are not concerned about replication and whether self-signed certificates can be trusted, then you can use an FQDN such as `localhost.localdomain`.
++
+Otherwise, use an FQDN that other hosts can resolve to reach your server.
+
+LDAP port::
+The default for LDAP is 389.
++
+If you are working as a user who cannot open port 389, setup suggests 1389 by default.
+
+Administration port::
+The default is 4444.
++
+This is the service port used to configure the server and to run tasks.
+
+Create base DNs::
+You need a base DN, such as `dc=example,dc=com`, to add directory data. If you already have LDIF, the base DN you want is the DN suffix common to all entries in your LDIF.
++
+When you choose to create a base DN, the `setup` command also prompts you for a backend type, which identifies the implementation of the repository that holds your data.
++
+Later you can add more base DNs if your data belongs in more than one suffix.
+
+Import LDIF::
+LDAP data interchange format (LDIF) is the standard text format for expressing LDAP data.
++
+If you have LDIF already, one reason you might not want to import the data right away is because your data uses attributes not defined in the default schema. Add schema definitions after installation, and then import from LDIF.
++
+If you have a large data set to import, also increase the import cache size, which you can do by passing a Java properties file. You might also prefer to perform data import offline.
+
+Enable SSL and TLS::
+Enabling SSL or TLS lets you protect the network traffic between directory clients and your server:
++
+[open]
+======
+
+SSL::
+SSL requires its own, separate port for LDAPS traffic.
++
+The default port for LDAPS is 636.
++
+If you are working as a user who cannot open port 636, setup suggests 1636 by default.
+
+TLS::
+TLS lets you use StartTLS to negotiate a secure connection between a client and server, starting from the same server port you configured for LDAP.
+
+X.509 certificates::
+The digital certificate you need for SSL and TLS can be self-signed and created while you are working. Remember that client applications view self-signed certificates like fake IDs, and so do not trust them.
++
+Self-signed certificates for externally facing ports facilitate testing, but are not intended for production use.
+
+======
+
+Start the server::
+If you do not start the server during installation, you can use the `/path/to/opendj/bin/start-ds` command later.
+
+--
+
+. Run the `status` command, described in xref:../reference/admin-tools-ref.adoc#status-1[status(1)] in the __Reference__, to make sure your OpenDJ server is working as expected as shown in the following example:
++
+
+[source, console]
+----
+$ /path/to/opendj/bin/status
+
+>>>> Specify OpenDJ LDAP connection parameters
+
+Administrator user bind DN [cn=Directory Manager]:
+
+Password for user 'cn=Directory Manager':
+
+          --- Server Status ---
+Server Run Status:        Started
+Open Connections:         1
+
+          --- Server Details ---
+Host Name:                opendj.example.com
+Administrative Users:     cn=Directory Manager
+Installation Path:        /path/to/opendj
+Version:                  OpenDJ 3.5.3
+Java Version:             version
+Administration Connector: Port 4444 (LDAPS)
+
+          --- Connection Handlers ---
+Address:Port : Protocol : State
+-------------:----------:---------
+--           : LDIF     : Disabled
+0.0.0.0:161  : SNMP     : Disabled
+0.0.0.0:636  : LDAPS    : Disabled
+0.0.0.0:1389 : LDAP     : Enabled
+0.0.0.0:1689 : JMX      : Disabled
+
+          --- Data Sources ---
+Base DN:     dc=example,dc=com
+Backend ID:  userRoot
+Entries:     160
+Replication: Disabled
+----
++
+
+[NOTE]
+======
+You can install OpenDJ in unattended and silent fashion, too. See the procedure, xref:#install-properties-file["To Install OpenDJ Directory Server With a Properties File"].
+======
+
+====
+
+[#install-deb]
+.To Install From the Debian Package
+====
+On Debian and related Linux distributions such as Ubuntu, you can install OpenDJ directory server from the Debian package:
+
+. (Optional)  Before you install OpenDJ, install a Java runtime environment if none is installed yet:
++
+
+[source, console]
+----
+$ sudo apt-get install default-jre
+----
+
+. Install the OpenDJ directory server package:
++
+
+[source, console]
+----
+$ sudo dpkg -i opendj_3.5.3-1_all.deb
+Selecting previously unselected package opendj.
+(Reading database ... 185569 files and directories currently installed.)
+Unpacking opendj (from opendj_3.5.3-1_all.deb) ...
+
+Setting up opendj (3.5.3) ...
+ Adding system startup for /etc/init.d/opendj ...
+   /etc/rc0.d/K20opendj -> ../init.d/opendj
+   /etc/rc1.d/K20opendj -> ../init.d/opendj
+   /etc/rc6.d/K20opendj -> ../init.d/opendj
+   /etc/rc2.d/S20opendj -> ../init.d/opendj
+   /etc/rc3.d/S20opendj -> ../init.d/opendj
+   /etc/rc4.d/S20opendj -> ../init.d/opendj
+   /etc/rc5.d/S20opendj -> ../init.d/opendj
+
+Processing triggers for ureadahead ...
+ureadahead will be reprofiled on next reboot
+----
++
+The Debian package installs OpenDJ directory server in the `/opt/opendj` directory, generates service management scripts, adds documentation files under `/usr/share/doc/opendj`, and adds man pages under `/opt/opendj/share/man`.
++
+The files are owned by root by default, making it easier to have OpenDJ listen on ports 389 and 636.
+
+. Configure OpenDJ directory server by using the command `sudo /opt/opendj/setup`:
++
+
+[source, console]
+----
+$ sudo /opt/opendj/setup --cli
+...
+To see basic server configuration status and configuration you can launch
+ /opt/opendj/bin/status
+----
+
+. (Optional)  Check OpenDJ directory server status:
++
+
+[source, console]
+----
+$ service opendj status
+$opendj status: > Running.
+$ sudo /opt/opendj/bin/status
+
+
+>>>> Specify OpenDJ LDAP connection parameters
+
+Administrator user bind DN [cn=Directory Manager]:
+
+Password for user 'cn=Directory Manager':
+
+          --- Server Status ---
+Server Run Status:        Started
+Open Connections:         1
+
+          --- Server Details ---
+Host Name:                ubuntu.example.com
+Administrative Users:     cn=Directory Manager
+Installation Path:        /opt/opendj
+Version:                  OpenDJ 3.5.3
+Java Version:             version
+Administration Connector: Port 4444 (LDAPS)
+
+          --- Connection Handlers ---
+Address:Port : Protocol               : State
+-------------:------------------------:---------
+--           : LDIF                   : Disabled
+0.0.0.0:161  : SNMP                   : Disabled
+0.0.0.0:389  : LDAP (allows StartTLS) : Enabled
+0.0.0.0:636  : LDAPS                  : Enabled
+0.0.0.0:1689 : JMX                    : Disabled
+0.0.0.0:8080 : HTTP                   : Disabled
+
+          --- Data Sources ---
+Base DN:     dc=example,dc=com
+Backend ID:  userRoot
+Entries:     2002
+Replication:
+----
+
+====
+
+[#install-rpm]
+.To Install From the RPM Package
+====
+On Red Hat and related Linux distributions such as Fedora and CentOS, you can install OpenDJ directory server from the RPM package:
+
+. Log in as superuser to install the software:
++
+
+[source, console]
+----
+$ su
+Password:
+#
+----
+
+. Before you install OpenDJ, install a Java runtime environment if none is installed yet.
++
+You might need to download an RPM to install the Java runtime environment, and then install the RPM by using the `rpm` command:
++
+
+[source, console]
+----
+# rpm -ivh jre-*.rpm
+----
+
+. Install the OpenDJ directory server package:
++
+
+[source, console]
+----
+# rpm -i opendj-3.5.3-1.noarch.rpm
+Pre Install - initial install
+Post Install - initial install
+
+#
+----
++
+The RPM package installs OpenDJ directory server in the `/opt/opendj` directory, generates service management scripts, and adds man pages under `/opt/opendj/share/man`.
++
+The files are owned by root by default, making it easier to have OpenDJ listen on ports 389 and 636.
+
+. Configure OpenDJ directory server by using the command `/opt/opendj/setup`:
++
+
+[source, console]
+----
+# /opt/opendj/setup --cli
+...
+To see basic server configuration status and configuration you can launch
+ /opt/opendj/bin/status
+----
+
+. (Optional)  Check OpenDJ directory server status:
++
+
+[source, console]
+----
+# service opendj status
+opendj status: > Running.
+# /opt/opendj/bin/status
+
+
+>>>> Specify OpenDJ LDAP connection parameters
+
+Administrator user bind DN [cn=Directory Manager]:
+
+Password for user 'cn=Directory Manager':
+
+          --- Server Status ---
+Server Run Status:        Started
+Open Connections:         1
+
+          --- Server Details ---
+Host Name:                fedora.example.com
+Administrative Users:     cn=Directory Manager
+Installation Path:        /opt/opendj
+Version:                  OpenDJ 3.5.3
+Java Version:             version
+Administration Connector: Port 4444 (LDAPS)
+
+          --- Connection Handlers ---
+Address:Port : Protocol               : State
+-------------:------------------------:---------
+--           : LDIF                   : Disabled
+0.0.0.0:161  : SNMP                   : Disabled
+0.0.0.0:389  : LDAP (allows StartTLS) : Enabled
+0.0.0.0:636  : LDAPS                  : Enabled
+0.0.0.0:1689 : JMX                    : Disabled
+0.0.0.0:8080 : HTTP                   : Disabled
+
+          --- Data Sources ---
+Base DN:     dc=example,dc=com
+Backend ID:  userRoot
+Entries:     2002
+Replication:
+----
++
+By default OpenDJ starts in run levels 2, 3, 4, and 5:
++
+
+[source, console]
+----
+# chkconfig --list | grep opendj
+...
+opendj         0:off    1:off    2:on    3:on    4:on    5:on    6:off
+----
+
+====
+
+[#install-properties-file]
+.To Install OpenDJ Directory Server With a Properties File
+====
+You can install OpenDJ directory server by using the `setup` command with a properties file.
+
+Property names correspond to the option names, but without leading dashes. Options that take no arguments become boolean properties as in the following example:
+
+[source, ini]
+----
+enableStartTLS=true
+----
+If you use a properties file with multiple tools, prefix the property name with the tool name followed by a dot (`.`), in the following example:
+
+[source, ini]
+----
+setup.rootUserPasswordFile=/tmp/pwd.txt
+----
+The following steps demonstrate use of a properties file as part of a scripted installation process:
+
+. Prepare your properties file.
++
+This procedure uses the following example properties file:
++
+
+[source, ini]
+----
+#
+# Sample properties file to set up OpenDJ directory server
+#
+hostname                        =opendj.example.com
+ldapPort                        =1389
+generateSelfSignedCertificate   =true
+enableStartTLS                  =true
+ldapsPort                       =1636
+jmxPort                         =1689
+adminConnectorPort              =4444
+rootUserDN                      =cn=Directory Manager
+rootUserPassword                =password
+baseDN                          =dc=example,dc=com
+ldifFile                        =/net/install/dj/Example.ldif
+#sampleData                     =2000
+----
++
+If you have multiple servers to install, consider scripting creation of the properties files.
+
+. Prepare an installation script:
++
+
+[source, console]
+----
+$ cat /net/install/dj/1/setup.sh
+#!/bin/sh
+
+unzip -d /path/to /net/install/dj/opendj-3.5.3.zip && cd /path/to/opendj
+./setup --cli --propertiesFilePath /net/install/dj/1/setup.props \
+  --acceptLicense --no-prompt
+----
++
+The properties file contains only installation options, and does not fully configure OpenDJ directory server.
++
+If you also want your script to configure OpenDJ directory server, follow a successful run of the `setup` command with `dsconfig` commands to configure the server. To run a series of configuration commands as a batch using the `dsconfig` command, use either the `--batchFilePath file` option, where __file__ contains the configuration commands, or the `--batch` option to read from standard input as in the following example that creates a backend and sets up indexes:
++
+
+[source, console]
+----
+/path/to/opendj/bin/dsconfig \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --no-prompt \
+ --trustAll \
+ --batch <<END_OF_COMMAND_INPUT
+ create-backend        --backend-name newBackend \
+                       --type pdb \
+                       --set base-dn:"dc=example,dc=org" \
+                       --set db-cache-percent:20 \
+                       --set enabled:true
+ create-backend-index  --backend-name newBackend \
+                       --type generic \
+                       --set index-type:equality \
+                       --set index-type:substring \
+                       --index-name cn
+ create-backend-index  --backend-name newBackend \
+                       --type generic \
+                       --set index-type:equality \
+                       --set index-type:substring \
+                       --index-name sn
+ create-backend-index  --backend-name newBackend \
+                       --type generic \
+                       --set index-type:equality \
+                       --index-name uid
+ create-backend-index  --backend-name newBackend \
+                       --type generic \
+                       --set index-type:equality \
+                       --set index-type:substring \
+                       --index-name mail
+END_OF_COMMAND_INPUT
+----
+
+. Run your installation script:
++
+
+[source, console]
+----
+$ /net/install/dj/1/setup.sh
+Archive:  /net/install/dj/opendj-3.5.3.zip
+   creating: /path/to/opendj
+...
+  inflating: /path/to/opendj/setup
+  inflating: /path/to/opendj/uninstall
+  inflating: /path/to/opendj/upgrade
+
+READ THIS SOFTWARE LICENSE AGREEMENT CAREFULLY. BY DOWNLOADING OR INSTALLING
+THE FORGEROCK SOFTWARE, YOU, ON BEHALF OF YOURSELF AND YOUR COMPANY, AGREE TO
+BE BOUND BY THIS SOFTWARE LICENSE AGREEMENT. IF YOU DO NOT AGREE TO THESE
+TERMS, DO NOT DOWNLOAD OR INSTALL THE FORGEROCK SOFTWARE.
+
+...
+
+Do you accept the License Agreement?yes
+See /var/folders/.../opendj-setup-....log for a detailed log of this operation.
+
+Configuring Directory Server ..... Done.
+Configuring Certificates ..... Done.
+Importing LDIF file /net/install/dj/Example.ldif ....... Done.
+Starting Directory Server ....... Done.
+
+To see basic server configuration status and configuration you can launch
+ /path/to/opendj/bin/status
+----
++
+At this point you can use OpenDJ directory server, or you can perform additional configuration.
+
+====
+
+[#pdb-to-je]
+.To Move Data from a PDB Backend to a JE Backend
+====
+Although the `dsconfig` command does not provide a way to change a database backend type, you can move data from a PDB Backend to a JE Backend as demonstrated by the script shown in xref:#example-pdb-to-je["Example Script for Changing a PDB Backend to a JE Backend"]. Alternatively, follow these steps:
+
+. List the indexes configured for the PDB backend.
++
+The following example shows indexes for a `userRoot` PDB backend:
++
+
+[source, console]
+----
+$ dsconfig \
+ list-backend-indexes \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --no-prompt \
+ --trustAll
+Backend Index    : index-type          : index-entry-limit : index-extensible-matching-rule : confidentiality-enabled
+-----------------:---------------------:-------------------:--------------------------------:------------------------
+aci              : presence            : 4000              : -                              : false
+cn               : equality, substring : 4000              : -                              : false
+ds-sync-conflict : equality            : 4000              : -                              : false
+ds-sync-hist     : ordering            : 4000              : -                              : false
+entryUUID        : equality            : 4000              : -                              : false
+givenName        : equality, substring : 4000              : -                              : false
+mail             : equality, substring : 4000              : -                              : false
+member           : equality            : 4000              : -                              : false
+objectClass      : equality            : 4000              : -                              : false
+sn               : equality, substring : 4000              : -                              : false
+telephoneNumber  : equality, substring : 4000              : -                              : false
+uid              : equality            : 4000              : -                              : false
+uniqueMember     : equality            : 4000              : -                              : false
+----
+
+. Export the data in the PDB backend to LDIF.
++
+For instructions, see xref:../admin-guide/chap-import-export.adoc#importing-exporting-ldif["Importing and Exporting Data"] in the __Administration Guide__.
+
+. Delete the PDB backend.
++
+For instructions, see xref:../admin-guide/chap-import-export.adoc#delete-database-backend["Deleting a Database Backend"] in the __Administration Guide__.
+
+. Create a JE backend.
++
+For instructions, see xref:../admin-guide/chap-import-export.adoc#create-database-backend["Creating a New Database Backend"] in the __Administration Guide__.
+
+. Create the same indexes for the JE backend that were present in the PDB backend.
++
+For instructions, see xref:../admin-guide/chap-indexing.adoc#configure-indexes["Configuring and Rebuilding Indexes"] in the __Administration Guide__.
+
+. Import the data from LDIF into the JE backend.
+
+====
+
+[#example-pdb-to-je]
+.Example Script for Changing a PDB Backend to a JE Backend
+====
+The following Bash script demonstrates how to change a PDB backend to a JE Backend:
+
+[source, bash]
+----
+#!/usr/bin/env bash
+#
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal-notices/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal-notices/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions Copyright [year] [name of copyright owner]".
+#
+# Copyright 2017-2018 ForgeRock AS.
+#
+
+if test $# -ne 1
+then
+  echo "Usage: $0 backendID"
+  echo "Migrate a PDB backend to a JE backend with all the data."
+  echo "Run this script from the server base directory, such as /path/to/opendj."
+  exit 1
+fi
+
+# Check that the server is stopped.
+echo "Verifying that the server is stopped..."
+./bin/status -n -s > /dev/null
+if test $? -ne 0
+then
+  echo "The Directory Server must be stopped to migrate a backend."
+  echo "Please stop the server and relaunch the script."
+  exit 1
+fi
+echo ""
+
+# Check for instance.loc.
+LOC=.
+if [ -f ./instance.loc ]
+then
+  LOC=`cat ./instance.loc`
+elif [ -f /etc/opendj/instance.loc ]
+then
+  LOC=`cat /etc/opendj/instance.loc`
+fi
+
+# Check the backendID.
+echo "Verifying the backend $1"
+DN=`./bin/ldifsearch --ldifFile "$LOC"/config/config.ldif "(&(objectclass=ds-cfg-pdb-backend)(ds-cfg-backend-id=$1))" dn | grep "^dn:"`
+if [ -z "$DN" ]
+then
+  echo "Could not find a PDB backend with this name. Exiting."
+  exit 2
+fi
+
+echo "Exporting data to /tmp/data_$$"
+# Export data from the PDB backend.
+./bin/export-ldif -n "$1" -l /tmp/data_$$
+if test $? -ne 0
+then
+  echo "Export from PDB failed."
+  exit 3
+fi
+
+echo "Updating configuration"
+# Change the PDB backend configuration to a JE backend configuration.
+cat > /tmp/changes_$$ << EOF
+$DN
+changetype: modify
+delete: objectClass
+objectClass: ds-cfg-pdb-backend
+-
+add: objectClass
+objectClass: ds-cfg-je-backend
+-
+replace: ds-cfg-java-class
+ds-cfg-java-class: org.opends.server.backends.jeb.JEBackend
+EOF
+
+./bin/ldifmodify --targetLDIF "$LOC"/config/config.ldif.$$ --sourceLDIF "$LOC"/config/config.ldif --changesLDIF /tmp/changes_$$
+if test $? -ne 0
+then
+  echo "Modifications failed. Restoring the original configuration"
+  rm /tmp/changes_$$
+  exit 4
+fi
+
+cp "$LOC"/config/config.ldif.$$ "$LOC"/config/config.ldif
+echo "Configuration updates done."
+echo "Importing data..."
+# Import the data into the JE backend.
+./bin/import-ldif -n $1 -l /tmp/data_$$
+if test $? -ne 0
+then
+  echo "Importing data failed."
+  echo "The exported data file is /tmp/data_$$"
+  exit 5
+fi
+echo "Backend $1 converted successfully from PDB to JE."
+rm /tmp/data_$$
+rm /tmp/changes_$$
+rm "$LOC"/config/config.ldif.$$
+----
+====
+
+[#install-rest2ldap-servlet]
+.To Install OpenDJ REST to LDAP Gateway
+====
+The OpenDJ REST to LDAP gateway functions as a web application in a web application container, running independently of OpenDJ. Alternatively, you can use the HTTP connection handler in OpenDJ directory server. For instructions see xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap-endpoint["To Set Up REST Access to User Data"] in the __Administration Guide__.
+--
+You configure the gateway to access your directory service by editing configuration files in the deployed web application:
+
+`WEB-INF/classes/config.json`::
+This file defines how the gateway connects to LDAP directory servers, and how user identities extracted from HTTP requests map to LDAP user identities.
+
++
+For details, see xref:../reference/appendix-rest2ldap.adoc#config-json["Gateway Configuration File"] in the __Reference__.
+
+`WEB-INF/classes/logging.properties`::
+This file defines logging properties, and can be used when the gateway runs in Apache Tomcat.
+
+`WEB-INF/classes/rest2ldap/rest2ldap.json`::
+This file defines which LDAP features the gateway uses.
+
++
+For details, see xref:../reference/appendix-rest2ldap.adoc#rest2ldap-json["Gateway REST2LDAP Configuration File"] in the __Reference__.
+
+`WEB-INF/classes/rest2ldap/endpoints/api/example-v1.json`::
+This file defines JSON resource to LDAP entry mappings.
+
++
+You can edit this file, and define additional files for alternative APIs and versions of APIs. For details, see xref:../reference/appendix-rest2ldap.adoc#mappings-json["Mapping Configuration File"] in the __Reference__.
+
+--
+Follow these steps to install the OpenDJ REST to LDAP gateway:
+
+. Deploy `opendj-rest2ldap-servlet-3.5.3.war` according to the instructions for your application server.
+
+. Edit the configuration files in the deployed gateway web application.
++
+At minimum adjust the following configuration settings in `WEB-INF/classes/config.json`:
+
+* `primaryLDAPServers`: Set to the correct directory server host names and port numbers.
+
+* `authentication`: Set to the correct simple bind credentials.
++
+The LDAP account used to authenticate needs to perform proxied authorization as described in xref:../server-dev-guide/chap-ldap-operations.adoc#proxied-authz["Configuring Proxied Authorization"] in the __Directory Server Developer's Guide__.
+
++
+The default sample configuration configuration is built to work with generated example data and also the sample content in link:../resources/Example.ldif[Example.ldif, window=\_blank]. If your data is different, then you must also change the JSON resource to LDAP entry mapping settings, described in xref:../reference/appendix-rest2ldap.adoc#mappings-json["Mapping Configuration File"] in the __Reference__.
++
+For details regarding the configuration, see xref:../reference/appendix-rest2ldap.adoc#appendix-rest2ldap["REST to LDAP Configuration"] in the __Reference__.
++
+When connecting to directory servers over LDAPS or LDAP and StartTLS, you can configure the trust manager to use a file-based truststore for server certificates that the gateway should trust. This allows the gateway to validate server certificates signed, for example, by a Certificate Authority not recognized by the Java environment when setting up LDAPS or StartTLS connections. See xref:../admin-guide/chap-connection-handlers.adoc#setup-server-cert["Preparing For Secure Communications"] in the __Administration Guide__ for an example of how to use the Java `keytool` command to import a server certificate into a truststore file.
+
+. (Optional)  If necessary, adjust the log level.
++
+Log levels are defined in link:https://docs.oracle.com/javase/7/docs/api/java/util/logging/Level.html[java.util.logging.Level, window=\_blank].
++
+By default, the log level is set to `INFO`, and the gateway logs HTTP request-related messages. To have the gateway log LDAP request-related messages, set the log level to `FINEST` in one of the following ways:
++
+
+* If the REST to LDAP gateway runs in Apache Tomcat, edit `WEB-INF/classes/logging.properties` to set `org.forgerock.opendj.rest2ldap.level = FINEST`. For details on Tomcat's implementation of the logging API, see link:https://tomcat.apache.org/tomcat-8.0-doc/logging.html#Java_logging_API_%E2%80%94_java.util.logging[Logging in Tomcat, window=\_blank].
++
+Messages are written to `CATALINA_BASE/logs/rest2ldap.yyyy-MM-dd.log`.
+
+* If the REST to LDAP gateway runs in Jetty, make sure you set the log level system property when starting Jetty: `-Dorg.forgerock.opendj.rest2ldap.level=FINEST`.
++
+Messages are written to the Jetty log.
+
+
+. Restart the REST to LDAP gateway or the application server to make sure the configuration changes are taken into account.
+
+. Make sure that your directory server is running, and then check that the gateway is connecting correctly.
++
+The following command reads Babs Jensen's entry through the gateway to a directory server holding data from `Example.ldif`. In this example, the gateway is deployed under `/rest2ldap`:
++
+
+[source, console]
+----
+$ curl http://bjensen:hifalutin@opendj.example.com:8080/rest2ldap/api/users/bjensen
+{
+  "_id" : "bjensen",
+  "_rev" : "0000000084ebc394",
+  "_schema" : "frapi:opendj:rest2ldap:posixUser:1.0",
+  "_meta" : { },
+  "userName" : "bjensen@example.com",
+  "displayName" : [ "Barbara Jensen", "Babs Jensen" ],
+  "name" : {
+    "givenName" : "Barbara",
+    "familyName" : "Jensen"
+  },
+  "description" : "Original description",
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "bjensen@example.com"
+  },
+  "uidNumber" : "1076",
+  "gidNumber" : "1000",
+  "homeDirectory" : "/home/bjensen",
+  "manager" : {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  }
+}
+----
++
+If you generated example data, Babs Jensen's entry is not included. Instead, try a URL such as `\http://user.0:password@opendj.example.com:8080/rest2ldap/api/users/user.0`.
+
+====
+
+[#install-rest2ldap-servlet-3-0]
+.To Install OpenDJ REST to LDAP Gateway (3.0)
+====
+The OpenDJ REST to LDAP gateway functions as a web application in a web application container, running independently of OpenDJ. Alternatively, you can use the HTTP connection handler in OpenDJ directory server. For instructions see xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap-connection-handler["To Set Up REST Access to OpenDJ Directory Server"] in the __Administration Guide__.
+
+[NOTE]
+======
+This procedure applies to OpenDJ REST to LDAP gateway 3.0. If you are using OpenDJ REST to LDAP gateway 3.5, see xref:#install-rest2ldap-servlet["To Install OpenDJ REST to LDAP Gateway"].
+======
+You configure the gateway to access your directory service by editing the configuration file `opendj-rest2ldap-servlet.json` in the deployed OpenDJ REST to LDAP gateway web application:
+
+. Deploy `opendj-rest2ldap-servlet-3.5.3-servlet.war` according to the instructions for your application server.
+
+. Edit `opendj-rest2ldap-servlet.json` where you deployed the gateway web application.
++
+The default JSON resource for the configuration includes both connection and authentication information, and also `mappings`. The `mappings` describe how the gateway translates between JSON and LDAP representations of directory data. The default `mappings` are built to work with generated example data and also the sample content in link:../resources/Example.ldif[Example.ldif, window=\_blank].
++
+At minimum adjust the following gateway configuration settings:
+
+* `primaryLDAPServers`: Set to the correct directory server host names and port numbers
+
+* `authentication`: Set to the correct simple bind credentials
+
+* `mappings`: Make sure these match the directory data
+
++
+For details on the configuration see xref:../reference/appendix-rest2ldap.adoc#appendix-rest2ldap["REST to LDAP Configuration"] in the __Reference__.
++
+When connecting to directory servers over LDAPS or LDAP and StartTLS, you can configure the trust manager to use a file-based truststore for server certificates that the gateway should trust. This allows the gateway to validate server certificates signed, for example, by a Certificate Authority not recognized by the Java environment when setting up LDAPS or StartTLS connections. See xref:../admin-guide/chap-connection-handlers.adoc#setup-server-cert["Preparing For Secure Communications"] in the __Administration Guide__ for an example of how to use the Java `keytool` command to import a server certificate into a truststore file.
+
+. Restart the REST to LDAP gateway or the application server to make sure the configuration changes are taken into account.
+
+. Make sure that your directory server is running, and then check that the gateway is connecting correctly.
++
+The following command reads Babs Jensen's entry through the gateway to a directory server holding data from `Example.ldif`:
++
+
+[source, console]
+----
+$ curl http://bjensen:hifalutin@opendj.example.com:8080/rest2ldap/users/bjensen
+{
+  "_rev" : "000000002ee3b764",
+  "schemas" : [ "urn:scim:schemas:core:1.0" ],
+  "contactInformation" : {
+    "telephoneNumber" : "+1 408 555 1862",
+    "emailAddress" : "bjensen@example.com"
+  },
+  "_id" : "bjensen",
+  "name" : {
+    "familyName" : "Jensen",
+    "givenName" : "Barbara"
+  },
+  "userName" : "bjensen@example.com",
+  "displayName" : "Barbara Jensen",
+  "manager" : [ {
+    "_id" : "trigden",
+    "displayName" : "Torrey Rigden"
+  } ]
+}
+----
++
+If you generated example data, Babs Jensen's entry is not included. Instead, try a URL such as `\http://user.0:password@opendj.example.com:8080/rest2ldap/users/user.0`.
+
+====
+
+[#install-dsml-gateway]
+.To Install OpenDJ DSML gateway
+====
+The OpenDJ DSML gateway functions as a web application in a web application container. The DSML gateway runs independently of OpenDJ directory server. You configure the gateway to access your directory service by editing the `ldap.host` and `ldap.port` parameters in the gateway `WEB-INF/web.xml` configuration file:
+
+. Deploy `opendj-dsml-servlet-3.5.3.war` according to the instructions for your application server.
+
+. Edit `WEB-INF/web.xml` to ensure the values for `ldap.host` and `ldap.port` are correct.
+
+. Restart the web application container according to the instructions for your application server.
+
+====
+
