@@ -369,9 +369,6 @@
                     <plugin>
                         <groupId>org.openidentityplatform.opendj</groupId>
                         <artifactId>opendj-doc-maven-plugin</artifactId>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
                         <executions>
                             <execution>
                                 <id>generate-man-pages</id>
@@ -586,7 +583,7 @@
                     <plugin>
                         <groupId>org.openidentityplatform.commons</groupId>
                         <artifactId>doc-maven-plugin</artifactId>
- d                        <executions>
+                        <executions>
                             <execution>
                                 <id>build-man-pages</id>
                                 <phase>package</phase>
