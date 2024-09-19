@@ -160,14 +160,33 @@ This target cannot be restricted to a specific subtree by combining it with anot
 
 `(extop [!]= "OID")`::
 Replace __OID__ with the object identifier for the extended operation to target. Separate multiple OIDs with ||.
-
 +
 To use an LDAP extended operation, the bind DN user must have `allow(read)` permissions.
-
 +
 This target cannot be restricted to a specific subtree by combining it with another target.
-
 --
+
+[NOTE]
+====
+Different LDAP server implementations that support Netscape's ACI syntax
+may support different multi-valued quotation styles or policies. Specifically,
+this can relate to `attr-list` and `OID`
+values.
+
+OpenDJ ONLY offers support for the so-called "All-Encompassing" quotation
+style, as is demonstrated throughout this guide. For instance:
+
+`(targetattr = "attr1 || attr2 || attr3")`
+
+Other implementations may also support the so-called "Individual" quotation
+style, which is expressed as:
+`(targetattr = "attr1" || "attr2" || "attr3")`
+
+Users migrating to OpenDJ from an implementation that not only supports the
+"Individual" quotation style, but is actively using it, will need to take care to
+sanitize any inbound ACIs bearing this style of quotation, else errors will occur
+during integration.
+====
 
 
 [#aci-permissions]
@@ -650,7 +669,11 @@ The LDAP password modify operation was successful
 ====
 For deployments with more than one administrator, you no doubt use a group to define adminstrative rights. You can use a collective attribute subentry to specify privileges for the administrator group.
 
-Collective attributes provide a standard mechanism for defining attributes that appear on all the entries in a particular subtree. OpenDJ extends collective attributes to give you fine-grained control over which entries in the subtree are targeted. Also, OpenDJ lets you use virtual attributes, such as `isMemberOf` to construct the filter for targeting entries to which the collective attributes apply. This allows you, for example, to define administrative privileges that apply to all users who belong to an administrator group:
+Collective attributes provide a standard mechanism for defining attributes that appear on all the entries in a particular subtree. OpenDJ extends collective attributes to give you fine-grained control over the which entries in the subtree are targeted.
+
+Also, by also extending the RFC 3672 `SpecificationFilter` component, users may leverage virtual attributes, such as `isMemberOf`, to construct a search filter for targeting entries to which the collective attributes apply. This allows you, for example, to define administrative privileges that apply to all users who belong to an administrator group.
+
+In addition to this feature, the traditional `Refinement` `ASN.1 CHOICE component` -- also defined within RFC 3672 -- is supported for use as a `SpecificationFilter` statement as well.
 
 . Create an LDAP subentry that specifies the collective attributes:
 +
