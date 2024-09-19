@@ -586,8 +586,7 @@
                     <plugin>
                         <groupId>org.openidentityplatform.commons</groupId>
                         <artifactId>doc-maven-plugin</artifactId>
-                        <version>2.2.1-SNAPSHOT</version>
-                        <executions>
+ d                        <executions>
                             <execution>
                                 <id>build-man-pages</id>
                                 <phase>package</phase>
