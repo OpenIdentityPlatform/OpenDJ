@@ -412,7 +412,11 @@ public class SubCommandArgumentParser extends ArgumentParser {
                 // If this is a usage argument, then immediately stop and print
                 // usage information.
                 if (usageGroupArguments.containsKey(a)) {
-                		writeToUsageOutputStream(getUsage());//getUsage(a);
+                    if ((System.getProperty("org.forgerock.opendj.gendoc") != null)) {
+                        writeToUsageOutputStream(getUsage());
+                    }else {
+                        getUsage(a);
+                    }
                     return;
                 }
 
