@@ -1,0 +1,207 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-resource-limits]
+== Setting Resource Limits
+
+This chapter shows you how to set resource limits that prevent directory clients from using an unfair share of system resources. In this chapter you will learn to:
+
+* Limit the resources used when a user searches the directory
+
+* Limit how long connections can remain idle before they are dropped
+
+* Limit the size of directory server requests
+
+
+[#limit-search-resources]
+=== Limiting Search Resources
+
+Well-written directory client applications limit the scope of their searches with filters that narrow the number of results returned. By default, OpenDJ only allows users with appropriate privileges to perform unindexed searches.
+You can further adjust additional limits on search operations, such as the following:
+
+* The __lookthrough limit__ defines the maximum number of candidate entries OpenDJ considers when processing a search.
++
+The default lookthrough limit, which is set by using the global server property `lookthrough-limit`, is 5000.
++
+You can override the limit for a particular user by changing the operational attribute, `ds-rlim-lookthrough-limit`, on the user's entry.
+
+* The __size limit__ sets the maximum number of entries returned for a search.
++
+The default size limit, which is set by using the global server property `size-limit`, is 1000.
++
+You can override the limit for a particular user by changing the operational attribute, `ds-rlim-size-limit`, on the user's entry.
+
+* The __time limit__ defines the maximum processing time OpenDJ devotes to a search operation.
++
+The default time limit, which is set by using the global server property `time-limit`, is 1 minute.
++
+You can override the limit for a particular user by changing the operational attribute, `ds-rlim-time-limit`, on the user's entry. Times for `ds-rlim-time-limit` are expressed in seconds.
+
+* The __idle time limit__ defines how long OpenDJ allows idle connections to remain open.
++
+No default idle time limit is set. You can set an idle time limit by using the global server property `idle-time-limit`.
++
+You can override the limit for a particular user by changing the operational attribute, `ds-rlim-idle-time-limit`, on the user's entry. Times for `ds-rlim-idle-time-limit` are expressed in seconds.
+
+* The maximum number of persistent searches can be set by using the global server property `max-psearches`.
+
+
+[#set-search-limits-per-user]
+.To Set Search Limits For a User
+====
+
+* Change the user entry to set the limits to override:
++
+
+[source, console]
+----
+$ cat limit.ldif
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+add: ds-rlim-size-limit
+ds-rlim-size-limit: 10
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename limit.ldif
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com
+----
++
+Now when Babs Jensen performs a search returning more than 10 entries, she sees the following message:
++
+
+[source]
+----
+Result Code:  4 (Size Limit Exceeded)
+Additional Information:  This search operation has sent the maximum of
+ 10 entries to the client
+----
+
+====
+
+[#set-search-limits-per-group]
+.To Set Search Limits For a Group
+====
+
+. Create an LDAP subentry to specify the limits using collective attributes:
++
+
+[source, console]
+----
+$ cat grouplim.ldif
+dn: cn=Remove Administrator Search Limits,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Remove Administrator Search Limits
+ds-rlim-lookthrough-limit;collective: 0
+ds-rlim-size-limit;collective: 0
+ds-rlim-time-limit;collective: 0
+subtreeSpecification: {base "ou=people", specificationFilter "
+ (isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename grouplim.ldif
+Processing ADD request for
+ cn=Remove Administrator Search Limits,dc=example,dc=com
+ADD operation successful for DN
+ cn=Remove Administrator Search Limits,dc=example,dc=com
+----
+
+. Check the results:
++
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=kvaughan +|grep ds-rlim
+ds-rlim-lookthrough-limit: 0
+ds-rlim-time-limit: 0
+ds-rlim-size-limit: 0
+----
+
+====
+
+
+[#limit-idle-time]
+=== Limiting Idle Time
+
+If you have applications that leave connections open for long periods, OpenDJ can end up devoting resources to maintaining connections that are no longer used. If your network does not drop such connections eventually, you can configure OpenDJ to drop them by setting the global configuration property, `idle-time-limit`. By default, no idle time limit is set.
+
+If your network load balancer is configured to drop connections that have been idle for some time, make sure you set the OpenDJ idle time limit to a lower value than the idle time limit for the load balancer. This helps to ensure that idle connections are shut down in orderly fashion. Setting the OpenDJ limit lower than the load balancer limit is particularly useful with load balancers that drop idle connections without cleanly closing the connection and notifying the client and server.
+
+[NOTE]
+====
+OpenDJ does not enforce idle timeout for persistent searches:
+====
+
+[source, console]
+----
+$ dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set idle-time-limit:24h \
+ --trustAll \
+ --no-prompt
+----
+The example shown sets the idle time limit to 24 hours.
+
+
+[#limit-max-request-size]
+=== Limiting Maximum Request Size
+
+The default maximum request size of 5 MB, set using the advanced connection handler property `max-request-size`, is sufficient to satisfy most client requests. Yet, there are some cases where you might need to raise the request size limit. For example, if clients add groups with large numbers of members, those add requests can go beyond the 5 MB limit:
+
+[source, console]
+----
+$ dsconfig \
+ set-connection-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "LDAP Connection Handler" \
+ --set max-request-size:20mb \
+ --trustAll \
+ --no-prompt
+----
+The example shown sets the maximum request size on the LDAP connection handler to 20 MB.
+
+
+[#limits-and-proxied-authz]
+=== Resource Limits and Proxied Authorization
+
+Proxied authorization uses a standard LDAP control to permit an application to bind as one user and then carry out LDAP operations on behalf of other users.
+
+When using proxied authorization as described in xref:../server-dev-guide/chap-ldap-operations.adoc#proxied-authz["Configuring Proxied Authorization"] in the __Directory Server Developer's Guide__ know that the resource limits do not change when the user proxies as another user. In other words, resource limits depend on the bind DN, not the proxy authorization identity.
+
+

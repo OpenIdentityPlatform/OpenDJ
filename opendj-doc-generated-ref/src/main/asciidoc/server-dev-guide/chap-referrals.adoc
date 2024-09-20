@@ -1,0 +1,135 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-referrals]
+== Working With Referrals
+
+__Referrals__ point directory clients to another directory container, which can be another directory server running elsewhere, or another container on the same server. The client receiving a referral must then connect to the other container to complete the request.
+
+[NOTE]
+====
+Some clients follow referrals on your behalf by default. The OpenDJ `ldapsearch` command does not follow referrals.
+====
+Referrals are used, for example, when some directory data are temporarily unavailable due to maintenance. Referrals can also be used when a container holds only some of the directory data for a suffix and points to other containers for branches whose data is not available locally.
+In this chapter you will learn how to:
+
+* Add referrals with the `ldapmodify` command
+
+* Remove referrals with the `ldapmodify` command
+
+You can also use the Manage Entries window of the control panel to handle referrals.
+
+[#referrals-overview]
+=== About Referrals
+
+Referrals are implemented as entries with link:http://tools.ietf.org/html/rfc4516[LDAP URL, window=\_top] `ref` attribute values that point elsewhere. The `ref` attribute type is required by the `referral` object class. The `referral` object class is structural, however, and therefore cannot by default be added to an entry that already has a structural object class defined. When adding a `ref` attribute type to an existing entry, you can use the `extensibleObject` auxiliary object class.
+
+When a referral is set, OpenDJ returns the referral to client applications requesting the affected entry or child entries. Client applications must be capable of following the referral returned. When the directory server responds, for example, to your search with referrals to one or more LDAP URLs, your client then constructs new searches from the LDAP URLs returned, and tries again.
+
+
+[#managing-referrals]
+=== Managing Referrals
+
+To create an LDAP referral, either create a referral entry, or add the `extensibleObject` object class and the `ref` attribute with an LDAP URL to an existing entry. This section demonstrates use of the latter approach:
+
+[source, console]
+----
+$ cat referral.ldif
+dn: ou=People,dc=example,dc=com
+changetype: modify
+add: objectClass
+objectClass: extensibleObject
+-
+add: ref
+ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename referral.ldif
+Processing MODIFY request for ou=People,dc=example,dc=com
+MODIFY operation successful for DN ou=People,dc=example,dc=com
+----
+The example above adds a referral to `ou=People,dc=example,dc=com`. OpenDJ can now return a referral for operations under the People organizational unit:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen description
+
+SearchReference(referralURLs=
+ {ldap://opendj.example.com:2389/ou=People,dc=example,dc=com??sub?})
+
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com ou=people
+
+SearchReference(referralURLs=
+ {ldap://opendj.example.com:2389/ou=People,dc=example,dc=com??sub?})
+----
+To access the entry instead of the referral, use the Manage DSAIT control:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ --control ManageDSAIT:true \
+ ou=people \
+ ref
+dn: ou=People,dc=example,dc=com
+ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com
+
+$ cat people.ldif
+dn: ou=People,dc=example,dc=com
+changetype: modify
+delete: ref
+ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename people.ldif
+Processing MODIFY request for ou=People,dc=example,dc=com
+MODIFY operation successful for DN ou=People,dc=example,dc=com
+A referral entry ou=People,dc=example,dc=com indicates that the operation must
+ be processed at a different server
+[ldap://opendj.example.com:2389/ou=People,dc=example,dc=com]
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --control ManageDSAIT \
+ --filename people.ldif
+Processing MODIFY request for ou=People,dc=example,dc=com
+MODIFY operation successful for DN ou=People,dc=example,dc=com
+
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com ou=people
+dn: ou=People,dc=example,dc=com
+ou: People
+objectClass: organizationalunit
+objectClass: extensibleObject
+objectClass: top
+----
+The example above shows how to remove the referral using the Manage DSAIT control with the `ldapmodify` command.
+
+

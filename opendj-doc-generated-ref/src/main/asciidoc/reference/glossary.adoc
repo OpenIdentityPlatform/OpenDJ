@@ -1,0 +1,384 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[glossary]
+[#glossary]
+== OpenDJ Glossary
+
+
+Abandon operation::
+LDAP operation to stop processing of a request in progress, after which the directory server drops the connection without a reply to the client application.
+
+Access control::
+Control to grant or to deny access to a resource.
+
+[#access-control-instruction]
+Access control instruction (ACI)::
+Instruction added as a directory entry attribute for fine-grained control over what a given user or group member is authorized to do in terms of LDAP operations and access to user data.
+
++
+ACIs are implemented independently from privileges, which apply to administrative operations.
+
++
+See also xref:#privilege[Privilege].
+
+Access control list (ACL)::
+An access control list connects a user or group of users to one or more security entitlements. For example, users in group sales are granted the entitlement read-only to some financial data.
+
+access log::
+Directory server log tracing the operations the server processes including timestamps, connection information, and information about the operation itself.
+
+Account lockout::
+The act of making an account temporarily or permanently inactive after successive authentication failures.
+
+Active user::
+A user that has the ability to authenticate and use the services, having valid credentials.
+
+Add operation::
+LDAP operation to add a new entry or entries to the directory.
+
+Anonymous::
+A user that does not need to authenticate, and is unknown to the system.
+
+Anonymous bind::
+A bind operation using simple authentication with an empty DN and an empty password, allowing anonymous access such as reading public information.
+
+[#approximate-index]
+Approximate index::
+Index is used to match values that "sound like" those provided in the filter.
+
+Attribute::
+Properties of a directory entry, stored as one or more key-value pairs. Typical examples include the common name (`cn`) to store the user's full name and variations of the name, user ID (`uid`) to store a unique identifier for the entry, and `mail` to store email addresses.
+
+audit log::
+Type of access log that dumps changes in LDIF.
+
+Authentication::
+The process of verifying who is requesting access to a resource; the act of confirming the identity of a principal.
+
+Authorization::
+The process of determining whether access should be granted to an individual based on information about that individual; the act of determining whether to grant or to deny a principal access to a resource.
+
+Backend::
+Repository that a directory server can access to store data. Different implementations with different capabilities exist.
+
+Binary copy::
+Binary backup archive of one directory server that can be restored on another directory server.
+
+Bind operation::
+LDAP authentication operation to determine the client's identity in LDAP terms, the identity which is later used by the server to authorize (or not) access to directory data that the client wants to lookup or change.
+
+Branch::
+The distinguished name (DN) of a non-leaf entry in the Directory Information Tree (DIT), and also that entry and all its subordinates taken together.
+
++
+Some administrative operations allow you to include or exclude branches by specifying the DN of the branch.
+
++
+See also xref:#suffix[Suffix].
+
+Collective attribute::
+A standard mechanism for defining attributes that appear on all the entries in a particular subtree.
+
+Compare operation::
+LDAP operation to compare a specified attribute value with the value stored on an entry in the directory.
+
+Control::
+Information added to an LDAP message to further specify how an LDAP operation should be processed. OpenDJ supports many LDAP controls.
+
+Database cache::
+Memory space set aside to hold database content.
+
+debug log::
+Directory server log tracing details needed to troubleshoot a problem in the server.
+
+Delete operation::
+LDAP operation to remove an existing entry or entries from the directory.
+
+[#directory]
+Directory::
+A directory is a network service which lists participants in the network such as users, computers, printers, and groups. The directory provides a convenient, centralized, and robust mechanism for publishing and consuming information about network participants.
+
+Directory hierarchy::
+A directory can be organized into a hierarchy in order to make it easier to browse or manage. Directory hierarchies normally represent something in the physical world, such as organizational hierarchies or physical locations. For example, the top level of a directory may represent a company, the next level down divisions, the next level down departments, and down the hierarchy. Alternately, the top level may represent the world, the next level down countries, next states or provinces, and next cities.
+
+Directory Information Tree (DIT)::
+A set of directory entries organized hierarchically in a tree structure, where the vertices are the entries and the arcs between vertices define relationships between entries
+
+[#directory-manager]
+Directory manager::
+Default Root DN who has privileges to do full administration of the OpenDJ server, including bypassing access control evaluation, changing access controls, and changing administrative privileges.
+
++
+See also xref:#root-dn[Root DN].
+
+Directory object::
+A directory object is an item in a directory. Example objects include users, user groups, computers, and more. Objects may be organized into a hierarchy and contain identifying attributes.
+
++
+See also xref:#entry[Entry].
+
+Directory server::
+Server application for centralizing information about network participants. A highly available directory service consists of multiple directory servers configured to replicate directory data.
+
++
+See also xref:#directory[Directory], xref:#replication[Replication].
+
+Directory Services Markup Language (DSML)::
+Standard language to access directory services using XML. DMSL v1 defined an XML mapping of LDAP objects, while DSMLv2 maps the LDAP Protocol and data model to XML.
+
+Distinguished name (DN)::
+Fully qualified name for a directory entry, such as `uid=bjensen,ou=People,dc=example,dc=com`, built by concatenating the entry RDN (`uid=bjensen`) with the DN of the parent entry (`ou=People,dc=example,dc=com`).
+
+Dynamic group::
+Group that specifies members using LDAP URLs.
+
+[#entry]
+Entry::
+As generic and hierarchical data stores, directories always contain different kinds of entries, either nodes (or containers) or leaf entries. An entry is an object in the directory, defined by one of more object classes and their related attributes. At startup, OpenDJ reports the number of entries contained in each suffix.
+
+Entry cache::
+Memory space set aside to hold frequently accessed, large entries, such as static groups.
+
+[#equality-index]
+Equality index::
+Index used to match values that correspond exactly (though generally without case sensitivity) to the value provided in the search filter.
+
+errors log::
+Directory server log tracing server events, error conditions, and warnings, categorized and identified by severity.
+
+Export::
+Save directory data in an LDIF file.
+
+Extended operation::
+Additional LDAP operation not included in the original standards. OpenDJ supports several standard LDAP extended operations.
+
+[#extensible-match-index]
+Extensible match index::
+Index for a matching rule other than approximate, equality, ordering, presence, substring or VLV, such as an index for generalized time.
+
+External user::
+An individual that accesses company resources or services but is not working for the company. Typically a customer or partner.
+
+[#filter]
+Filter::
+An LDAP search filter is an expression that the server uses to find entries that match a search request, such as `(mail=*@example.com)` to match all entries having an email address in the example.com domain.
+
+Group::
+Entry identifying a set of members whose entries are also in the directory.
+
+Idle time limit::
+Defines how long OpenDJ allows idle connections to remain open.
+
+Import::
+Read in and index directory data from an LDIF file.
+
+Inactive user::
+An entry in the directory that once represented a user but which is now no longer able to be authenticated.
+
+Index::
+Directory server backend feature to allow quick lookup of entries based on their attribute values.
+
++
+See also xref:#approximate-index[Approximate index], xref:#equality-index[Equality index], xref:#extensible-match-index[Extensible match index], xref:#ordering-index[Ordering index], xref:#presence-index[Presence index], xref:#substring-index[Substring index], xref:#vlv-index[Virtual list view (VLV) index], xref:#index-entry-limit[Index entry limit].
+
+[#index-entry-limit]
+Index entry limit::
+When the number of entries that an index key points to exceeds the index entry limit, OpenDJ stops maintaining the list of entries for that index key.
+
+Internal user::
+An individual who works within the company either as an employee or as a contractor.
+
+LDAP Data Interchange Format (LDIF)::
+Standard, portable, text-based representation of directory content. See link:http://tools.ietf.org/html/rfc2849[RFC 2849, window=\_blank].
+
+LDAP URL::
+LDAP Uniform Resource Locator such as `ldap://directory.example.com:389/dc=example,dc=com??sub?(uid=bjensen)`. See link:http://tools.ietf.org/html/rfc2255[RFC 2255, window=\_blank].
+
+LDAPS::
+LDAP over SSL.
+
+Lightweight Directory Access Protocol (LDAP)::
+A simple and standardized network protocol used by applications to connect to a directory, search for objects and add, edit or remove objects. See link:http://tools.ietf.org/html/rfc4510[RFC 4510, window=\_blank].
+
+Lookthrough limit::
+Defines the maximum number of candidate entries OpenDJ considers when processing a search.
+
+Matching rule::
+Defines rules for performing matching operations against assertion values. Matching rules are frequently associated with an attribute syntax and are used to compare values according to that syntax. For example, the `distinguishedNameEqualityMatch` matching rule can be used to determine whether two DNs are equal and can ignore unnecessary spaces around commas and equal signs, differences in capitalization in attribute names, and other discrepancies.
+
+Modify DN operation::
+LDAP modification operation to request that the server change the distinguished name of an entry.
+
+Modify operation::
+LDAP modification operation to request that the server change one or more attributes of an entry.
+
+Naming context::
+Base DN under which client applications can look for user data.
+
+Object class::
+Identifies entries that share certain characteristics. Most commonly, an entry's object classes define the attributes that must and may be present on the entry. Object classes are stored on entries as values of the `objectClass` attribute. Object classes are defined in the directory schema, and can be abstract (defining characteristics for other object classes to inherit), structural (defining the basic structure of an entry, one structural inheritance per entry), or auxiliary (for decorating entries already having a structural object class with other required and optional attributes).
+
+Object identifier (OID)::
+String that uniquely identifies an object, such as `0.9.2342.19200300.100.1.1` for the user ID attribute or `1.3.6.1.4.1.1466.115.121.1.15` for `DirectoryString` syntax.
+
+Operational attribute::
+An attribute that has a special (operational) meaning for the directory server, such as `pwdPolicySubentry` or `modifyTimestamp`.
+
+[#ordering-index]
+Ordering index::
+Index used to match values for a filter that specifies a range.
+
+Password policy::
+A set of rules regarding what sequence of characters constitutes an acceptable password. Acceptable passwords are generally those that would be too difficult for another user or an automated program to guess and thereby defeat the password mechanism. Password policies may require a minimum length, a mixture of different types of characters (lowercase, uppercase, digits, punctuation marks, and other characters), avoiding dictionary words or passwords based on the user's name, and other attributes. Password policies may also require that users not reuse old passwords and that users change their passwords regularly.
+
+Password reset::
+Password change performed by a user other than the user who owns the entry.
+
+Password storage scheme::
+Mechanism for encoding user passwords stored on directory entries. OpenDJ implements a number of password storage schemes.
+
+Password validator::
+Mechanism for determining whether a proposed password is acceptable for use. OpenDJ implements a number of password validators.
+
+Plugin::
+Java library with accompanying configuration that implements a feature through processing that is not essential to the core operation of OpenDJ directory server.
+
++
+As the name indicates, plugins can be plugged in to an installed server for immediate configuration and use without recompiling the server.
+
++
+OpenDJ directory server invokes plugins at specific points in the lifecycle of a client request. The OpenDJ configuration framework lets directory administrators manage plugins with the same tools used to manage the server.
+
+[#presence-index]
+Presence index::
+Index used to match the fact that an attribute is present on the entry, regardless of the value.
+
+Principal::
+Entity that can be authenticated, such as a user, a device, or an application.
+
+[#privilege]
+Privilege::
+Server configuration settings controlling access to administrative operations such as exporting and importing data, restarting the server, performing password reset, and changing the server configuration.
+
++
+Privileges are implemented independently from access control instructions (ACI), which apply to LDAP operations and user data.
+
++
+See also xref:#access-control-instruction[Access control instruction (ACI)].
+
+Referential integrity::
+Ensuring that group membership remains consistent following changes to member entries.
+
+referint log::
+Directory server log tracing referential integrity events, with entries similar to the errors log.
+
+Referral::
+Reference to another directory location, which can be another directory server running elsewhere or another container on the same server, where the current operation can be processed.
+
+Relative distinguished name (RDN)::
+Initial portion of a DN that distinguishes the entry from all other entries at the same level, such as `uid=bjensen` in `uid=bjensen,ou=People,dc=example,dc=com`.
+
+[#replication]
+Replication::
+Data synchronization that ensures all directory servers participating eventually share a consistent set of directory data.
+
+replication log::
+Directory server log tracing replication events, with entries similar to the errors log.
+
+[#root-dn]
+Root DN::
+A directory superuser, whose account is specific to a directory server under `cn=Root DNs,cn=config`.
+
++
+The default Root DN is Directory Manager. You can create additional Root DN accounts, each with different administrative privileges.
+
++
+See also xref:#directory-manager[Directory manager], xref:#privilege[Privilege].
+
+Root DSE::
+The directory entry with distinguished name "" (empty string), where DSE is an acronym for DSA-Specific Entry. DSA is an acronym for Directory Server Agent, a single directory server. The root DSE serves to expose information over LDAP about what the directory server supports in terms of LDAP controls, auth password schemes, SASL mechanisms, LDAP protocol versions, naming contexts, features, LDAP extended operations, and other information.
+
+Schema::
+LDAP schema defines the object classes, attributes types, attribute value syntaxes, matching rules and other constrains on entries held by the directory server.
+
+Search filter::
+See xref:#filter[Filter].
+
+Search operation::
+LDAP lookup operation where a client requests that the server return entries based on an LDAP filter and a base DN under which to search.
+
+Simple authentication::
+Bind operation performed with a user's entry DN and user's password. Use simple authentication only if the network connection is secure.
+
+Size limit::
+Sets the maximum number of entries returned for a search.
+
+Static group::
+Group that enumerates member entries.
+
+Subentry::
+An entry, such as a password policy entry, that resides with the user data but holds operational data, and is not visible in search results unless explicitly requested.
+
+[#substring-index]
+Substring index::
+Index used to match values specified with wildcards in the filter.
+
+[#suffix]
+Suffix::
+The distinguished name (DN) of a root entry in the Directory Information Tree (DIT), and also that entry and all its subordinates taken together as a single object of administrative tasks such as export, import, indexing, and replication.
+
+Task::
+Mechanism to provide remote access to directory server administrative functions. OpenDJ supports tasks to back up and restore backends, to import and export LDIF files, and to stop and restart the server.
+
+Time limit::
+Defines the maximum processing time OpenDJ devotes to a search operation.
+
+Unbind operation::
+LDAP operation to release resources at the end of a session.
+
+Unindexed search::
+Search operation for which no matching index is available. If no indexes are applicable, then the directory server potentially has to go through all entries to look for candidate matches. For this reason, the `unindexed-search` privilege, which allows users to request searches for which no applicable index exists, is reserved for the directory manager by default.
+
+User::
+An entry that represents an individual that can be authenticated through credentials contained or referenced by its attributes. A user may represent an internal user or an external user, and may be an active user or an inactive user.
+
+User attribute::
+An attribute for storing user data on a directory entry such as `mail` or `givenname`.
+
+Virtual attribute::
+An attribute with dynamically generated values that appear in entries but are not persistently stored in the backend.
+
+Virtual directory::
+An application that exposes a consolidated view of multiple physical directories over an LDAP interface. Consumers of the directory information connect to the virtual directory's LDAP service. Behind the scenes, requests for information and updates to the directory are sent to one or more physical directories where the actual information resides. Virtual directories enable organizations to create a consolidated view of information that for legal or technical reasons cannot be consolidated into a single physical copy.
+
+[#vlv-index]
+Virtual list view (VLV) index::
+Browsing index designed to help the directory server respond to client applications that need, for example, to browse through a long list of results a page at a time in a GUI.
+
+Virtual static group::
+OpenDJ group that lets applications see dynamic groups as what appear to be static groups.
+
+X.500::
+A family of standardized protocols for accessing, browsing and maintaining a directory. X.500 is functionally similar to LDAP, but is generally considered to be more complex, and has consequently not been widely adopted.
+
+

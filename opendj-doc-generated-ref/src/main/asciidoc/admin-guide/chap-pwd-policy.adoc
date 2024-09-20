@@ -1,0 +1,1233 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-pwd-policy]
+== Configuring Password Policy
+
+This chapter covers password policy including examples for common use cases. In this chapter you will learn to:
+
+* Decide what type of password policy is needed
+
+* Discover which password policy applies for a given user
+
+* Configure server-based and subentry-based password policies
+
+* Assign password policies to users and to groups
+
+* Configure automated password generation, password storage schemes, and validation of new passwords to reject invalid passwords before they are set
+
+If you want to synchronize password policy across your organization and your applications go to the directory for authentication, then the directory can be a good place to enforce your password policy uniformly. Even if you do not depend on the directory for all your password policy, you no doubt still want to consider directory password policy if only to choose the appropriate password storage scheme.
+
+[#pwp-overview]
+=== About OpenDJ Password Policies
+
+OpenDJ password policies govern not only passwords, but also account lockout, and how OpenDJ provides notification about account status.
+
+OpenDJ supports password policies as part of the server configuration, and also subentry password policies as part of the (replicated) user data.
+
+[#pwp-per-server]
+==== Server-Based Password Policies
+
+You manage server-based password policies in the OpenDJ configuration by using the `dsconfig` command. As they are part of the server configuration, such password policies are not replicated. You must instead apply password policy configuration updates to each replica in your deployment.
+
+By default, OpenDJ includes two password policy configurations, one default for all users, and another for directory root DN users, such as `cn=Directory Manager`. You can see all the default password policy settings using the `dsconfig` command as follows:
+
+[source, console]
+----
+$ dsconfig \
+ get-password-policy-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --advanced
+Property                                  : Value(s)
+------------------------------------------:--------------------------
+account-status-notification-handler       : -
+allow-expired-password-changes            : false
+allow-multiple-password-values            : false
+allow-pre-encoded-passwords               : false
+allow-user-password-changes               : true
+default-password-storage-scheme           : Salted SHA-1
+deprecated-password-storage-scheme        : -
+expire-passwords-without-warning          : false
+force-change-on-add                       : false
+force-change-on-reset                     : false
+grace-login-count                         : 0
+idle-lockout-interval                     : 0 s
+last-login-time-attribute                 : -
+last-login-time-format                    : -
+lockout-duration                          : 0 s
+lockout-failure-count                     : 0
+lockout-failure-expiration-interval       : 0 s
+max-password-age                          : 0 s
+max-password-reset-age                    : 0 s
+min-password-age                          : 0 s
+password-attribute                        : userpassword
+password-change-requires-current-password : false
+password-expiration-warning-interval      : 5 d
+password-generator                        : Random Password Generator
+password-history-count                    : 0
+password-history-duration                 : 0 s
+password-validator                        : -
+previous-last-login-time-format           : -
+require-change-by-time                    : -
+require-secure-authentication             : false
+require-secure-password-changes           : false
+skip-validation-for-administrators        : false
+state-update-failure-policy               : reactive
+----
+For detailed descriptions of each property, see xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-create-password-policy-password-policy["Password Policy"] in the __Reference__.
+
+Notice that many capabilities are not set by default: no lockout, no password expiration, no multiple passwords, no password validator to check that passwords contain the appropriate mix of characters. This means that if you decide to use the directory to enforce password policy, you must configure at least the default password policy to meet your needs.
+
+Yet a few basic protections are configured by default. When you import LDIF with `userPassword` values, OpenDJ hashes the values before storing them. When a user provides a password value during a bind for example, the server hashes the value provided to compared it with the stored value. Even the directory manager cannot see the plain text value of a user's password:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ userpassword
+dn: uid=bjensen,ou=People,dc=example,dc=com
+userpassword: {SSHA}QWAtw8ch/9850HNFRRqLNMIQc1YhxCnOoGmk1g==
+----
+In addition, users can change their passwords provided you have granted them access to do so. OpenDJ uses the `userPassword` attribute to store passwords by default, rather than the `authPassword` attribute, which is designed to store passwords hashed by the client application.
+
+
+[#pwp-replicated]
+==== Subentry-Based Password Policies
+
+You manage subentry password policies by adding the subentries alongside the user data. Thus, OpenDJ can replicate subentry password policies across servers.
+Subentry password policies support the Internet-Draft link:http://tools.ietf.org/html/draft-behera-ldap-password-policy-09[Password Policy for LDAP Directories, window=\_top] (version 09). A subentry password policy effectively overrides settings in the default password policy defined in the OpenDJ configuration. Settings not supported or not included in the subentry password policy are thus inherited from the default password policy.
+
+As a result, the following Internet-Draft password policy attributes override the default password policy when you set them in the subentry:
+
+* `pwdAllowUserChange`, corresponding to the OpenDJ password policy property `allow-user-password-changes`
+
+* `pwdMustChange`, corresponding to the OpenDJ password policy property `force-change-on-reset`
+
+* `pwdGraceAuthNLimit`, corresponding to the OpenDJ password policy property `grace-login-count`
+
+* `pwdLockoutDuration`, corresponding to the OpenDJ password policy property `lockout-duration`
+
+* `pwdMaxFailure`, corresponding to the OpenDJ password policy property `lockout-failure-count`
+
+* `pwdFailureCountInterval`, corresponding to the OpenDJ password policy property `lockout-failure-expiration-interval`
+
+* `pwdMaxAge`, corresponding to the OpenDJ password policy property `max-password-age`
+
+* `pwdMinAge`, corresponding to the OpenDJ password policy property `min-password-age`
+
+* `pwdAttribute`, corresponding to the OpenDJ password policy property `password-attribute`
+
+* `pwdSafeModify`, corresponding to the OpenDJ password policy property `password-change-requires-current-password`
+
+* `pwdExpireWarning`, corresponding to the OpenDJ password policy property `password-expiration-warning-interval`
+
+* `pwdInHistory`, corresponding to the OpenDJ password policy property `password-history-count`
+
+The following Internet-Draft password policy attributes are not taken into account by OpenDJ:
+
+* `pwdCheckQuality`, as OpenDJ has password validators. You can set password validators to use in the default password policy.
+
+* `pwdMinLength`, as this is handled by the length-based password validator. You can configure this as part of the default password policy.
+
+* `pwdLockout`, as OpenDJ can deduce whether lockout is configured based on the values of other lockout-related password policy attributes.
+
+Values of the following properties are inherited from the default password policy for Internet-Draft based password policies:
+
+* `account-status-notification-handlers`
+
+* `allow-expired-password-changes`
+
+* `allow-multiple-password-values`
+
+* `allow-pre-encoded-passwords`
+
+* `default-password-storage-schemes`
+
+* `deprecated-password-storage-schemes`
+
+* `expire-passwords-without-warning`
+
+* `force-change-on-add`
+
+* `idle-lockout-interval`
+
+* `last-login-time-attribute`
+
+* `last-login-time-format`
+
+* `max-password-reset-age`
+
+* `password-generator`
+
+* `password-history-duration`
+
+* `password-validators`
+
+* `previous-last-login-time-formats`
+
+* `require-change-by-time`
+
+* `require-secure-authentication`
+
+* `require-secure-password-changes`
+
+* `skip-validation-for-administrators`
+
+* `state-update-failure-policy`
+
+If you would rather specify password validators for your policy, you can configure password validators for a subentry password policy by adding the auxiliary object class `pwdValidatorPolicy` and setting the multi-valued attribute, `ds-cfg-password-validator`, to the DNs of the password validator configuration entries.
+
+The following example shows a subentry password policy that references two password validator configuration entries. The Character Set password validator determines whether a proposed password is acceptable by checking whether it contains a sufficient number of characters from one or more user-defined character sets and ranges. The length-based password validator determines whether a proposed password is acceptable based on whether the number of characters it contains falls within an acceptable range of values. Both are enabled in the default OpenDJ directory server configuration:
+
+[source, ldif]
+----
+dn: cn=Subentry Password Policy with Validators,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: pwdPolicy
+objectClass: pwdValidatorPolicy
+cn: Subentry Password Policy with Validators
+pwdAttribute: userPassword
+pwdLockout: TRUE
+pwdMaxFailure: 3
+pwdFailureCountInterval: 300
+pwdLockoutDuration: 300
+pwdAllowUserChange: TRUE
+pwdSafeModify: TRUE
+ds-cfg-password-validator: cn=Character Set,cn=Password Validators,cn=config
+ds-cfg-password-validator: cn=Length-Based Password Validator,
+ cn=Password Validators,cn=config
+subtreeSpecification: {base "ou=people", specificationFilter
+  "(isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }
+----
+If a referenced password validator cannot be found, then OpenDJ directory server logs an error message when the password policy is invoked. This can occur, for example, when a subentry password policy is replicated to a directory server where the password validator is not (yet) configured. In that case when a user attempts to change their password, the server fails to find the referenced password validator.
+
+See also xref:#create-repl-pwp["To Create a Subentry-Based Password Policy"].
+
+
+[#pwp-application]
+==== Which Password Policy Applies
+
+The password policy that applies to a user is identified by the operational attribute, `pwdPolicySubentry`:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com uid=bjensen \
+ pwdPolicySubentry
+dn: uid=bjensen,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config
+----
+The default global access control instructions prevent this operational attribute from being visible to normal users, so examples show it being accessed by the Directory Manager user.
+
+
+
+[#configure-pwp]
+=== Configuring Password Policies
+
+You configure server-based password policies by using the `dsconfig` command. Notice that server-based password policies are part of the server configuration, and therefore not replicated. Alternatively, you can configure a subset of password policy features by using subentry-based password policies that are stored with the replicated server data. This section covers both server-based and subentry-based password policies.
+
+[#default-pwp]
+.To Adjust the Default Password Policy
+====
+You can reconfigure the default password policy, for example, to enforce password expiration, check that passwords do not match dictionary words, and prevent password reuse. This default policy is a server-based password policy.
+
+. Enable the appropriate password validator:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-password-validator-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --validator-name Dictionary \
+ --set enabled:true \
+ --set check-substrings:true \
+ --set min-substring-length:4 \
+ --trustAll \
+ --no-prompt
+----
+
+. Apply the changes to the default password policy:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-password-policy-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --set max-password-age:90d \
+ --set min-password-age:4w \
+ --set password-history-count:7 \
+ --set password-validator:Dictionary \
+ --trustAll \
+ --no-prompt
+----
+
+. Check your work:
++
+
+[source, console]
+----
+$ dsconfig \
+ get-password-policy-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy"
+Property                                  : Value(s)
+------------------------------------------:--------------------------
+account-status-notification-handler       : -
+allow-expired-password-changes            : false
+allow-user-password-changes               : true
+default-password-storage-scheme           : Salted SHA-1
+deprecated-password-storage-scheme        : -
+expire-passwords-without-warning          : false
+force-change-on-add                       : false
+force-change-on-reset                     : false
+grace-login-count                         : 0
+idle-lockout-interval                     : 0 s
+last-login-time-attribute                 : -
+last-login-time-format                    : -
+lockout-duration                          : 0 s
+lockout-failure-count                     : 0
+lockout-failure-expiration-interval       : 0 s
+max-password-age                          : 12 w 6 d
+max-password-reset-age                    : 0 s
+min-password-age                          : 4 w
+password-attribute                        : userpassword
+password-change-requires-current-password : false
+password-expiration-warning-interval      : 5 d
+password-generator                        : Random Password Generator
+password-history-count                    : 7
+password-history-duration                 : 0 s
+password-validator                        : Dictionary
+previous-last-login-time-format           : -
+require-change-by-time                    : -
+require-secure-authentication             : false
+require-secure-password-changes           : false
+----
+
+====
+
+[#create-per-server-pwp]
+.To Create a Server-Based Password Policy
+====
+You can add a password policy, for example, for new users who have not yet used their credentials to bind.
+
+. Create the new password policy:
++
+
+[source, console]
+----
+$ dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "New Account Password Policy" \
+ --set default-password-storage-scheme:"Salted SHA-1" \
+ --set force-change-on-add:true \
+ --set password-attribute:userPassword \
+ --type password-policy \
+ --trustAll \
+ --no-prompt
+----
+
+. Check your work:
++
+
+[source, console]
+----
+$ dsconfig \
+ get-password-policy-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "New Account Password Policy"
+Property                                  : Value(s)
+------------------------------------------:-------------
+account-status-notification-handler       : -
+allow-expired-password-changes            : false
+allow-user-password-changes               : true
+default-password-storage-scheme           : Salted SHA-1
+deprecated-password-storage-scheme        : -
+expire-passwords-without-warning          : false
+force-change-on-add                       : true
+force-change-on-reset                     : false
+grace-login-count                         : 0
+idle-lockout-interval                     : 0 s
+last-login-time-attribute                 : -
+last-login-time-format                    : -
+lockout-duration                          : 0 s
+lockout-failure-count                     : 0
+lockout-failure-expiration-interval       : 0 s
+max-password-age                          : 0 s
+max-password-reset-age                    : 0 s
+min-password-age                          : 0 s
+password-attribute                        : userpassword
+password-change-requires-current-password : false
+password-expiration-warning-interval      : 5 d
+password-generator                        : -
+password-history-count                    : 0
+password-history-duration                 : 0 s
+password-validator                        : -
+previous-last-login-time-format           : -
+require-change-by-time                    : -
+require-secure-authentication             : false
+require-secure-password-changes           : false
+----
++
+If you use a password policy like this, you might want to change the user's policy again when the new user successfully updates the password.
+
+====
+
+[#create-repl-pwp]
+.To Create a Subentry-Based Password Policy
+====
+You can add a subentry to configure a password policy that applies to Directory Administrators.
+
+. Create the entry that specifies the password policy:
++
+
+[source, console]
+----
+$ cat /path/to/subentry-pwp.ldif
+dn: cn=Subentry Password Policy,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: pwdPolicy
+cn: Subentry Password Policy
+pwdAttribute: userPassword
+pwdLockout: TRUE
+pwdMaxFailure: 3
+pwdFailureCountInterval: 300
+pwdLockoutDuration: 300
+pwdAllowUserChange: TRUE
+pwdSafeModify: TRUE
+subtreeSpecification: {base "ou=people", specificationFilter
+  "(isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }
+----
+
+. Add the policy to the directory:
++
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename /path/to/subentry-pwp.ldif
+Processing ADD request for cn=Subentry Password Policy,dc=example,dc=com
+ADD operation successful for DN cn=Subentry Password Policy,dc=example,dc=com
+----
+
+. Check that the policy applies as specified.
++
+In the example, the policy should apply to a Directory Administrator, while a normal user has the default password policy. Here, Kirsten Vaughan is a member of the Directory Administrators group, and Babs Jensen is not a member:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ uid=kvaughan \
+ pwdPolicySubentry
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=Subentry Password Policy,dc=example,dc=com
+
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ pwdPolicySubentry
+dn: uid=bjensen,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config
+----
+
+====
+
+
+[#assign-pwp]
+=== Assigning Password Policies
+
+You assign subentry-based password policies for a subtree of the DIT by adding the policy to an LDAP subentry whose immediate superior is the root of the subtree. In other words you can add the subtree based password policy under `ou=People,dc=example,dc=com`, to have it apply to all entries under `ou=People,dc=example,dc=com`. You can further use the capabilities of LDAP link:http://tools.ietf.org/html/rfc3672[subentries, window=\_top] to refine the scope of application.
+
+You assign server-based password policies by using the `ds-pwp-password-policy-dn` attribute.
+
+[#assign-pwp-to-individual]
+.To Assign a Password Policy to a User
+====
+
+. Prevent users from selecting their own password policy:
++
+
+[source, console]
+----
+$ cat protectpwp.ldif
+dn: ou=People,dc=example,dc=com
+changetype: modify
+add: aci
+aci: (target ="ldap:///uid=*,ou=People,dc=example,dc=com")(targetattr =
+ "ds-pwp-password-policy-dn")(version 3.0;acl "Cannot choose own pass
+ word policy";deny (write)(userdn = "ldap:///self");)
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename protectpwp.ldif
+Processing MODIFY request for ou=People,dc=example,dc=com
+MODIFY operation successful for DN ou=People,dc=example,dc=com
+----
+
+. Update the user's `ds-pwp-password-policy-dn` attribute:
++
+
+[source, console]
+----
+$ cat newuser.ldif
+dn: uid=newuser,ou=People,dc=example,dc=com
+uid: newuser
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: New User
+sn: User
+ou: People
+mail: newuser@example.com
+userPassword: changeme
+ds-pwp-password-policy-dn: cn=New Account Password Policy,cn=Password Policies,
+ cn=config
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename newuser.ldif
+Processing ADD request for uid=newuser,ou=People,dc=example,dc=com
+ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com
+----
+
+. Check your work:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ uid=newuser \
+ pwdPolicySubentry
+dn: uid=newuser,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=New Account Password Policy,cn=Password Policies,cn=config
+----
+
+====
+
+[#assign-pwp-to-group]
+.To Assign a Password Policy to a Group
+====
+
+. Create a subentry defining the collective attribute that sets the `ds-pwp-password-policy-dn` attribute for group members' entries:
++
+
+[source, console]
+----
+$ cat pwp-coll.ldif
+dn: cn=Password Policy for Dir Admins,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Password Policy for Dir Admins
+ds-pwp-password-policy-dn;collective: cn=Root Password Policy,cn=Pass
+ word Policies,cn=config
+subtreeSpecification: { base "ou=People", specificationFilter "(isMemberOf=
+ cn=Directory Administrators,ou=Groups,dc=example,dc=com)"}
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename pwp-coll.ldif
+Processing ADD request for cn=Password Policy for Dir Admins,dc=example,dc=com
+ADD operation successful for DN cn=Password Policy for Dir
+ Admins,dc=example,dc=com
+----
+
+. Check your work:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ uid=kvaughan \
+ pwdPolicySubentry
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=Root Password Policy,cn=Password Policies,cn=config
+----
+
+====
+
+[#assign-pwp-for-branch]
+.To Assign Password Policy for an Entire Branch
+====
+You can use a collective attribute to assign a password policy to the entries under a base DN.
+
+. Create a password policy with a `subtreeSpecification` to assign the policy to all entries under a base DN.
++
+The following example creates a password policy for entries under `ou=People,dc=example,dc=com`:
++
+
+[source, console]
+----
+$ cat people-pwp.ldif
+dn: cn=People Password Policy,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: pwdPolicy
+cn: People Password Policy
+pwdAttribute: userPassword
+pwdLockout: TRUE
+pwdMaxFailure: 3
+pwdFailureCountInterval: 300
+pwdLockoutDuration: 300
+pwdAllowUserChange: TRUE
+pwdSafeModify: TRUE
+subtreeSpecification: { base "ou=people" }
+
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename people-pwp.ldif
+Processing ADD request for cn=People Password Policy,dc=example,dc=com
+ADD operation successful for DN cn=People Password Policy,dc=example,dc=com
+----
++
+Notice the subtree specification used to assign the policy, `{ base "ou=people" }`. You can relax the subtree specification value to `{}` to apply the password policy to all sibling entries (all entries under `dc=example,dc=com`), or further restrict the subtree specification by adding a `specificationFilter`. See xref:../server-dev-guide/chap-virtual-attrs-collective-attrs.adoc#collective-attributes["Collective Attributes"] in the __Directory Server Developer's Guide__ for more information.
+
+. Check your work:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ "(uid=alutz)" \
+ pwdPolicySubentry
+dn: uid=alutz,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=People Password Policy,dc=example,dc=com
+----
++
+If everything is correctly configured, then the password policy should be assigned to users whose entries are under `ou=People,dc=example,dc=com`.
+
+====
+
+
+[#configure-pwd-generation]
+=== Configuring Password Generation
+
+Password generators are used by OpenDJ during the link:http://tools.ietf.org/html/rfc3062[LDAP Password Modify extended operation, window=\_blank] to construct a new password for the user. In other words, a directory administrator resetting a user's password can have OpenDJ directory server generate the new password by using the `ldappasswordmodify` command, described in xref:../reference/admin-tools-ref.adoc#ldappasswordmodify-1[ldappasswordmodify(1)] in the __Reference__:
+
+[source, console]
+----
+$ ldappasswordmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --authzID "u:bjensen"
+The LDAP password modify operation was successful
+Generated Password:  eak77qdi
+----
+The default password policy shown in xref:#default-pwp["To Adjust the Default Password Policy"] uses the Random Password Generator, described in xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-create-password-generator-random-password-generator["Random Password Generator"] in the __Reference__:
+
+[source, console]
+----
+$ dsconfig \
+ get-password-policy-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --property password-generator
+Property           : Value(s)
+-------------------:--------------------------
+password-generator : Random Password Generator
+
+$ dsconfig \
+ get-password-generator-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --generator-name "Random Password Generator" \
+ --property password-generator
+ Property               : Value(s)
+-----------------------:-----------------------------------------------------
+enabled                : true
+password-character-set : alpha:abcdefghijklmnopqrstuvwxyz, numeric:0123456789
+password-format        : "alpha:3,numeric:2,alpha:3"
+----
+Notice that the default configuration for the Random Password Generator defines two `password-character-set` values, and then uses those definitions in the `password-format` so that generated passwords have eight characters: three from the `alpha` set, followed by two from the `numeric` set, followed by three from the `alpha` set. The `password-character-set` name must be ASCII.
+
+To set the password generator that OpenDJ employs when constructing a new password for a user, set the `password-generator` property for the password policy that applies to the user.
+
+The following example does not change the password policy, but instead changes the Random Password Generator configuration, and then demonstrates a password being generated upon reset:
+
+[source, console]
+----
+$ dsconfig \
+ set-password-generator-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --generator-name "Random Password Generator" \
+ --remove password-character-set:alpha:abcdefghijklmnopqrstuvwxyz \
+ --add \
+  password-character-set:alpha:ABCDEFGHIJKLMNOPQRSTUVWabcdefghijklmnopqrstuvwxyz \
+ --add password-character-set:punct:,./\`!@#\$%^&*:\;[]\"\'\(\)+=-_~\\ \
+ --set \
+  password-format:alpha:3,punct:1,numeric:2,punct:2,numeric:3,alpha:3,punct:2 \
+ --no-prompt
+
+$ ldappasswordmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --authzID "u:bjensen"
+The LDAP password modify operation was successful
+Generated Password:  pld^06:)529HTq$'
+----
+If you also set up a password validator in the password policy as shown in xref:#default-pwp["To Adjust the Default Password Policy"] and further described in xref:#configure-pwd-validation["Configuring Password Validation"], make sure the generated passwords are acceptable to the validator.
+
+
+[#configure-pwd-storage]
+=== Configuring Password Storage
+
+Password storage schemes, described in xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-create-password-storage-scheme[dsconfig create-password-storage-scheme(1)] in the __Reference__, encode new passwords provided by users so that they are stored in an encoded manner. This makes it difficult or impossible to determine the cleartext passwords from the encoded values. Password storage schemes also determine whether a cleartext password provided by a client matches the encoded value stored by the server.
+
+OpenDJ offers a variety of both reversible and one-way password storage schemes. Some schemes make it easy to recover the cleartext password, whereas others aim to make it computationally hard to do so:
+
+[source, console]
+----
+$ dsconfig \
+ list-password-storage-schemes \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+
+Password Storage Scheme : Type          : enabled
+------------------------:---------------:--------
+3DES                    : triple-des    : true
+AES                     : aes           : true
+Base64                  : base64        : true
+Bcrypt                  : bcrypt        : true
+Blowfish                : blowfish      : true
+Clear                   : clear         : true
+CRYPT                   : crypt         : true
+MD5                     : md5           : true
+PBKDF2                  : pbkdf2        : true
+PKCS5S2                 : pkcs5s2       : true
+RC4                     : rc4           : true
+Salted MD5              : salted-md5    : true
+Salted SHA-1            : salted-sha1   : true
+Salted SHA-256          : salted-sha256 : true
+Salted SHA-384          : salted-sha384 : true
+Salted SHA-512          : salted-sha512 : true
+SHA-1                   : sha1          : true
+----
+As shown in xref:#default-pwp["To Adjust the Default Password Policy"], the default password storage scheme for users in Salted SHA-1. When you add users or import user entries with `userPassword` values in cleartext, OpenDJ hashes them with the default password storage scheme. Root DN users have a different password policy by default, shown in xref:#assign-pwp-to-group["To Assign a Password Policy to a Group"]. The Root Password Policy uses Salted SHA-512 by default.
+
+The password storage schemes listed in xref:#pwd-storage-settings["Additional Password Storage Scheme Settings"] have additional configuration settings.
+
+[#pwd-storage-settings]
+.Additional Password Storage Scheme Settings
+[cols="16%,33%,51%"]
+|===
+|Scheme |Setting |Description 
+
+a|Bcrypt
+a|`bcrypt-cost`
+a|The cost parameter specifies a key expansion iteration count as a power of two.
+
+ A default value of 12 (2^12^  iterations) is considered in 2016 as a reasonable balance between responsiveness and security for regular users.
+
+a|Crypt
+a|`crypt-password-storage-encryption-algorithm`
+a|Specifies the crypt algorithm to use to encrypt new passwords.
+ --
+The following values are supported:
+
+`unix`::
+The password is encrypted with the weak Unix crypt algorithm.
+
++
+This is the default setting.
+
+`md5`::
+The password is encrypted with the BSD MD5 algorithm and has a `$1$` prefix.
+
+`sha256`::
+The password is encrypted with the SHA256 algorithm and has a `$5$` prefix.
+
+`sha512`::
+The password is encrypted with the SHA512 algorithm and has a `$6$` prefix.
+
+--
+
+a|PBKDF2
+a|`pbkdf2-iterations`
+a|The number of algorithm iterations. NIST recommends at least 1000.
+
+ The default is 10000.
+|===
+You change the default password policy storage scheme for users by changing the applicable password policy, as shown in the following example:
+
+[source, console]
+----
+$ dsconfig \
+ set-password-policy-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --set default-password-storage-scheme:pbkdf2 \
+ --no-prompt
+----
+Notice that the change in default password storage scheme does not cause OpenDJ to update any stored password values. By default, OpenDJ only stores a password with the new storage scheme the next time that the password is changed.
+
+OpenDJ prefixes passwords with the scheme used to encode them, which means it is straightforward to see which password storage scheme is in use. After the default password storage scheme is changed to PBKDF2, old user passwords remain encoded with Salted SHA-1:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN uid=bjensen,ou=people,dc=example,dc=com \
+ --bindPassword hifalutin \
+ --baseDN dc=example,dc=com \
+ "(uid=bjensen)" userPassword
+dn: uid=bjensen,ou=People,dc=example,dc=com
+userPassword: {SSHA}Rc3tkAj1qP5zGiRkwDIWDFxrxpGgO8Fwh3aibg==
+----
+When the password is changed, the new default password storage scheme takes effect, as shown in the following example:
+
+[source, console]
+----
+$ ldappasswordmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --authzID "u:bjensen" \
+ --newPassword changeit
+The LDAP password modify operation was successful
+
+$ ldapsearch \
+ --port 1389 \
+ --bindDN uid=bjensen,ou=people,dc=example,dc=com \
+ --bindPassword changeit \
+ --baseDN dc=example,dc=com \
+ "(uid=bjensen)" userPassword
+dn: uid=bjensen,ou=People,dc=example,dc=com
+userPassword: {PBKDF2}10000:O3V6G7y7n7AefOkRGNKQ5ukrMuO5uf+iEQ9ZLg==
+----
+When you change the password storage scheme for users, realize that the user passwords must change in order for OpenDJ to encode them with the chosen storage scheme. If you are changing the storage scheme because the old scheme was too weak, then you no doubt want users to change their passwords anyway.
+
+If, however, the storage scheme change is not related to vulnerability, you can use the `deprecated-password-storage-scheme` property of the password policy to have OpenDJ store the password in the new format after successful authentication. This makes it possible to do password migration for active users without forcing users to change their passwords:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN uid=kvaughan,ou=people,dc=example,dc=com \
+ --bindPassword bribery \
+ --baseDN dc=example,dc=com \
+ "(uid=kvaughan)" userPassword
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+userPassword: {SSHA}hDgK44F2GhIIZj913b+29Ak7phb9oU3Lz4ogkg==
+
+$ dsconfig \
+ set-password-policy-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --set deprecated-password-storage-scheme:"Salted SHA-1" \
+ --no-prompt
+
+$ ldapsearch \
+ --port 1389 \
+ --bindDN uid=kvaughan,ou=people,dc=example,dc=com \
+ --bindPassword bribery \
+ --baseDN dc=example,dc=com \
+ "(uid=kvaughan)" userPassword
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+userPassword: {PBKDF2}10000:L4dCYqSsNnf47YZ3a6aC8K2E3DChhHHhpcoUzg==
+----
+Notice that with `deprecated-password-storage-scheme` set appropriately, Kirsten Vaughan's password was hashed again after she authenticated successfully.
+
+
+[#configure-pwd-validation]
+=== Configuring Password Validation
+
+Password validators, described in xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-create-password-validator[dsconfig create-password-validator(1)] in the __Reference__, are responsible for determining whether a proposed password is acceptable for use. Validators can run checks like ensuring that the password meets minimum length requirements, that it has an appropriate range of characters, or that it is not in the history of recently used passwords. OpenDJ directory server provides a variety of password validators:
+
+[source, console]
+----
+$ dsconfig \
+ list-password-validators \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+
+
+Password Validator                  : Type                : enabled
+------------------------------------:---------------------:--------
+Attribute Value                     : attribute-value     : true
+Character Set                       : character-set       : true
+Dictionary                          : dictionary          : false
+Length-Based Password Validator     : length-based        : true
+Repeated Characters                 : repeated-characters : true
+Similarity-Based Password Validator : similarity-based    : true
+Unique Characters                   : unique-characters   : true
+----
+The password policy for a user specifies the set of password validators that should be used whenever that user provides a new password. By default no password validators are configured. You can see an example setting the Default Password Policy to use the Dictionary validator in xref:#default-pwp["To Adjust the Default Password Policy"]. The following example shows how to set up a custom password validator and assign it to the default password policy.
+The custom password validator ensures passwords meet at least three of the following four criteria. Passwords are composed of:
+
+* English lowercase characters (a through z)
+
+* English uppercase characters (A through Z)
+
+* Base 10 digits (0 through 9)
+
+* Non-alphabetic characters (for example, !, $, #, %)
+
+Notice how the `character-set` values are constructed. The initial `0:` means the set is optional, whereas `1:` would mean the set is required:
+
+[source, console]
+----
+$ dsconfig \
+ create-password-validator \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --validator-name "Custom Character Set Password Validator" \
+ --set allow-unclassified-characters:true \
+ --set enabled:true \
+ --set character-set:0:abcdefghijklmnopqrstuvwxyz \
+ --set character-set:0:ABCDEFGHIJKLMNOPQRSTUVWXYZ \
+ --set character-set:0:0123456789 \
+ --set character-set:0:!\"#\$%&\'\(\)*+,-./:\;\\<=\>?@[\\]^_\`{\|}~ \
+ --set min-character-sets:3 \
+ --type character-set \
+ --no-prompt
+
+$ dsconfig \
+ set-password-policy-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --set password-validator:"Custom Character Set Password Validator" \
+ --no-prompt
+
+$ ldappasswordmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --authzID "u:bjensen" \
+ --newPassword '!ABcd$%^'
+----
+In the preceding example, the character set of ASCII punctuation, `!\"#\$%&\'\(\)*+,-./:\;\\<=\>?@[\\]^_\`{\|}~`, is hard to read because of all the escape characters. In practice it can be easier to enter sequences like that by using `dsconfig` in interactive mode, and letting it do the escaping for you. You can also use the `--commandFilePath {path}` option to save the result of your interactive session to a file for use in scripts later.
+
+An attempt to set an invalid password fails as shown in the following example:
+
+[source, console]
+----
+$ ldappasswordmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --authzID "u:bjensen" \
+ --newPassword hifalutin
+The LDAP password modify operation failed with result code 19
+Error Message:  The provided new password failed the validation checks defined
+in the server:  The provided password did not contain characters from at least
+3 of the following character sets or ranges: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+'!"#$%&'()*+,-./:;<=\>?@[\]^_`{|}~', '0123456789', 'abcdefghijklmnopqrstuvwxyz'
+----
+Validation does not affect existing passwords, but only takes effect when the password is updated.
+
+You can reference password validators from subentry password policies. See xref:#pwp-replicated["Subentry-Based Password Policies"] for an example.
+
+
+[#sample-password-policies]
+=== Sample Password Policies
+
+The sample password policies in this section demonstrate OpenDJ server-based password policies for several common cases:
+
+* xref:#example-enforce-regular-password-changes["Enforce Regular Password Changes"]
+
+* xref:#example-track-last-login["Track Last Login Time"]
+
+* xref:#example-deprecate-storage-scheme["Deprecate a Password Storage Scheme"]
+
+* xref:#example-lock-idle-accounts["Lock Idle Accounts"]
+
+* xref:#example-allow-grace-login["Allow Grace Log In to Change Expired Password"]
+
+* xref:#example-require-password-change-on-add-or-reset["Require Password Change on Add or Reset"]
+
+
+[#example-enforce-regular-password-changes]
+.Enforce Regular Password Changes
+====
+The following commands configure an OpenDJ server-based password policy that sets age limits on passwords, requiring that they change periodically. It also sets the number of passwords to keep in the password history of the entry, thereby preventing users from reusing the same password on consecutive changes:
+
+[source, console]
+----
+$ dsconfig  \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Enforce Regular Password Changes" \
+ --type password-policy \
+ --set default-password-storage-scheme:"Salted SHA-1" \
+ --set password-attribute:userPassword \
+ --set max-password-age:13w \
+ --set min-password-age:4w \
+ --set password-history-count:7 \
+ --trustAll \
+ --no-prompt
+----
+See also xref:#assign-pwp["Assigning Password Policies"] for instructions on using the policy.
+====
+
+[#example-track-last-login]
+.Track Last Login Time
+====
+The following commands configure an OpenDJ server-based password policy that keeps track of the last successful login.
+
+First, set up an attribute to which OpenDJ directory server can write a timestamp value on successful login. For additional information also see xref:../server-dev-guide/chap-ldap-operations.adoc#extensible-match-search["Search: Listing Active Accounts"] in the __Directory Server Developer's Guide__:
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: ( lastLoginTime-oid
+  NAME 'lastLoginTime'
+  DESC 'Last time the user logged in'
+  EQUALITY generalizedTimeMatch
+  ORDERING generalizedTimeOrderingMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+  SINGLE-VALUE
+  NO-USER-MODIFICATION
+  USAGE directoryOperation
+  X-ORIGIN 'OpenDJ example documentation' )
+
+Processing MODIFY request for cn=schema
+MODIFY operation successful for DN cn=schema
+----
+Next, create the password policy that causes OpenDJ directory server to write the timestamp to the attribute on successful login:
+
+[source, console]
+----
+$ dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Track Last Login Time" \
+ --type password-policy \
+ --set default-password-storage-scheme:"Salted SHA-1" \
+ --set password-attribute:userPassword \
+ --set last-login-time-attribute:lastLoginTime \
+ --set last-login-time-format:"yyyyMMddHH'Z'" \
+ --trustAll \
+ --no-prompt
+----
+See also xref:#assign-pwp["Assigning Password Policies"] for instructions on using the policy.
+====
+
+[#example-deprecate-storage-scheme]
+.Deprecate a Password Storage Scheme
+====
+The following commands configure an OpenDJ server-based password policy that you can use when deprecating a password storage scheme. This policy uses elements from xref:#example-enforce-regular-password-changes["Enforce Regular Password Changes"], as OpenDJ directory server only employs the new password storage scheme to hash or to encrypt passwords when a password changes:
+
+[source, console]
+----
+$ dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Deprecate a Password Storage Scheme" \
+ --type password-policy \
+ --set deprecated-password-storage-scheme:Crypt \
+ --set default-password-storage-scheme:"Salted SHA-1" \
+ --set password-attribute:userPassword \
+ --set max-password-age:13w \
+ --set min-password-age:4w \
+ --set password-history-count:7 \
+ --trustAll \
+ --no-prompt
+----
+See also xref:#assign-pwp["Assigning Password Policies"] for instructions on using the policy.
+====
+
+[#example-lock-idle-accounts]
+.Lock Idle Accounts
+====
+The following commands configure an OpenDJ server-based password policy that locks idle accounts. This policy extends the example from xref:#example-track-last-login["Track Last Login Time"] as OpenDJ directory server must track last successful login time in order to calculate how long the account has been idle. You must first add the `lastLoginTime` attribute type in order for OpenDJ directory server to accept this new password policy:
+
+[source, console]
+----
+$ dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Lock Idle Accounts" \
+ --type password-policy \
+ --set default-password-storage-scheme:"Salted SHA-1" \
+ --set password-attribute:userPassword \
+ --set last-login-time-attribute:lastLoginTime \
+ --set last-login-time-format:"yyyyMMddHH'Z'" \
+ --set idle-lockout-interval:13w \
+ --trustAll \
+ --no-prompt
+----
+See also xref:#assign-pwp["Assigning Password Policies"], and xref:chap-account-lockout.adoc#configure-account-lockout["Configuring Account Lockout"].
+====
+
+[#example-allow-grace-login]
+.Allow Grace Log In to Change Expired Password
+====
+The following commands configure an OpenDJ server-based password policy that allows users to log in after their password has expired in order to choose a new password:
+
+[source, console]
+----
+$ dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Allow Grace Login" \
+ --type password-policy \
+ --set default-password-storage-scheme:"Salted SHA-1" \
+ --set password-attribute:userPassword \
+ --set grace-login-count:2 \
+ --trustAll \
+ --no-prompt
+----
+See also xref:#assign-pwp["Assigning Password Policies"] for instructions on using the policy.
+====
+
+[#example-require-password-change-on-add-or-reset]
+.Require Password Change on Add or Reset
+====
+The following commands configure an OpenDJ server-based password policy that requires new users to change their password after logging in for the first time, and also requires users to change their password after their password is reset:
+
+[source, console]
+----
+$ dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Require Password Change on Add or Reset" \
+ --type password-policy \
+ --set default-password-storage-scheme:"Salted SHA-1" \
+ --set password-attribute:userPassword \
+ --set force-change-on-add:true \
+ --set force-change-on-reset:true \
+ --trustAll \
+ --no-prompt
+----
+See also xref:#assign-pwp["Assigning Password Policies"] for instructions on using the policy.
+====
+
+

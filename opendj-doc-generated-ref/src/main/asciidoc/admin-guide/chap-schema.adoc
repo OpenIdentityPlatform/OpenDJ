@@ -1,0 +1,808 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-schema]
+== Managing Schema
+
+This chapter describes how to manage Lightweight Directory Access Protocol (LDAP) schema definitions for directory data. In this chapter you will learn to:
+
+* Understand LDAP schemas including the schema definitions delivered with OpenDJ directory server
+
+* Change and extend OpenDJ LDAP schemas
+
+* Relax schema checking when troubleshooting data that does not conform to schema definitions
+
+Schema definitions describe the data, and especially the object classes and attribute types that can be stored in the directory. By default OpenDJ conforms strictly to LDAPv3 standards pertaining to schema definitions and attribute syntax checking, ensuring that data stored is valid and properly formed. Unless your data uses only standard schema present in OpenDJ when you install, then you must add additional schema definitions to account for the data your applications stored.
+
+OpenDJ comes with many standard schema definitions out of the box. In addition you can update and extend schema definitions while OpenDJ is online. As a result you can add new applications requiring additional data without stopping your directory service.
+
+[#about-schema]
+=== About Directory Schema
+
+Directory schema, described in link:http://tools.ietf.org/html/rfc4512[RFC 4512, window=\_top], defines the kinds of information you find in the directory, and can define how the information are related. This chapter focuses primarily on the following types of directory schema definitions:
+
+* __Attribute type__ definitions describe attributes of directory entries, such as `givenName` or `mail`.
++
+Here is an example of an attribute type definition:
++
+
+[source, ldif]
+----
+# Attribute type definition
+attributeTypes: ( 0.9.2342.19200300.100.1.3 NAME ( 'mail' 'rfc822Mailbox' )
+  EQUALITY caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} X-ORIGIN 'RFC 4524' )
+----
++
+Attribute type definitions start with an OID, and generally a short name or names that are easier to remember than the OID. The attribute type definition can specify how attribute values should be collated for sorting, and what syntax they use. The X-ORIGIN is an extension to identify where the definition originated. When you define your own schema, you likely want to provide an X-ORIGIN to help you to track versions of definitions, and where the definitions came from.
+
+* __Object class__ definitions identify the attribute types that an entry must have, and may have. Examples of object classes include `person` and `organizationalUnit`.
++
+Here is an example of an object class definition:
++
+
+[source, ldif]
+----
+# Object class definition
+objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )
+  MAY ( userPassword $ telephoneNumber $ seeAlso $ description )
+  X-ORIGIN 'RFC 4519' )
+----
++
+Entries all have an attribute identifying their object classes, called `objectClass`.
++
+Object class definitions start with an object identifier (OID), and generally a short name that is easier to remember than the OID. The definition here says that the person object class inherits from the top object class, which is the top-level parent of all object classes. An entry's `objectclass` attribute lists the entry's object classes. An entry can have one STRUCTURAL object class inheritance branch, such as `top` - `person` - `organizationalPerson` - `inetOrgPerson`. Yet entries can have multiple AUXILIARY object classes. The object class then defines the attribute types that must be included, and the attribute types that may be included on entries having the object class.
+
+* An __attribute syntax__ constrains what directory clients can store as attribute values.
++
+An attribute syntax is identified in an attribute type definition by its OID. String-based syntax OIDs are optionally followed by a number set between braces that represents a minimum upper bound on the number of characters in the attribute value. For example, in the attribute type definition shown above, the syntax is `+1.3.6.1.4.1.1466.115.121.1.26{256}+`. The syntax is an IA5 string (composed of characters from the international version of the ASCII character set) that can contain at least 256 characters.
++
+You can find a table matching attribute syntax OIDs with their human-readable names in RFC 4517, link:http://tools.ietf.org/html/rfc4517#appendix-A[Appendix A. Summary of Syntax Object Identifiers, window=\_blank]. The RFC describes attribute syntaxes in detail. Alternatively, you can see the attribute syntaxes that OpenDJ supports by opening the OpenDJ control panel and browsing to Schema > Manage Schema > Attribute Syntaxes. You can also list them by using the `dsconfig` command.
++
+Although attribute syntaxes are often specified in attribute type definitions, directory servers do not always check that attribute values comply with attribute syntaxes. OpenDJ directory server does tend to enforce compliance by default, in particular for certificates, country strings, directory strings, JPEG photos, and telephone numbers. The aim is to avoid accumulating garbage in your directory data.
++
+If you are trying unsuccessfully to import non-compliant data from a more lenient directory server, you can either clean the data before importing it, or if cleaning the data is not an option, read xref:#schema-legacy-support["Relaxing Schema Checking to Import Legacy Data"].
++
+When creating your own attribute type definitions, use existing attribute syntaxes where possible. If you must create your own attribute syntax, then consider the extensions in xref:#attr-syntax-schema-definition-extensions[Extensions for Attribute Syntax Descriptions].
+
+* Matching rules determine how the directory server compares attribute values to assertion values for LDAP search and LDAP compare operations.
++
+For example, suppose you search with the filter `(uid=bjensen)`. The assertion value in this case is `bjensen`.
++
+OpenDJ has the following schema definition for the user ID attribute:
++
+
+[source, ldif]
+----
+attributeTypes: ( 0.9.2342.19200300.100.1.1 NAME ( 'uid' 'userid' )
+ EQUALITY caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch
+ SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256} X-ORIGIN 'RFC 4519' )
+----
++
+When finding an equality match for your search, OpenDJ uses the `caseIgnoreMatch` matching rule to check for user ID attribute values that equal `bjensen` without regard to case.
++
+You can see the matching rules that OpenDJ supports by opening the OpenDJ control panel and browsing to Schema > Manage Schema > Matching Rules. Notice that many matching rules support string collation in languages other than English. You can also list matching rules by using the `dsconfig` command.
++
+As you can read in examples such as xref:../server-dev-guide/chap-ldap-operations.adoc#extensible-match-search["Search: Listing Active Accounts"] in the __Directory Server Developer's Guide__, OpenDJ matching rules enable directory clients to compare other values besides strings, for example.
+
+OpenDJ exposes schema over protocol through the `cn=schema` entry. OpenDJ stores the schema definitions corresponding to the entry in LDIF under the `config/schema/` directory. Many standard definitions and definitions pertaining to the server configuration are included at installation time.
+
+
+[#update-schema]
+=== Updating Directory Schema
+
+OpenDJ directory server is designed to permit updating the list of directory schema definitions while the server is running. As a result you can add support for new applications that require new attributes or new kinds of entries without interrupting the directory service. OpenDJ also replicates schema definitions, so the schema you add on one replica is propagated to other replicas without the need for manual intervention.
+
+As it is easy to introduce typos into schema definitions, the best way to start defining your own schema is with the OpenDJ Control Panel. Open the control panel > Schema > Manage Schema window to get started creating your custom object classes and attribute types.
+
+[#figure-manage-schema]
+image::images/Manage-Schema.png[]
+As object classes reference attribute types, you first create custom attribute types, and then create the object class that references the attribute types.
+
+Create a custom attribute type through the New Attribute window.
+
+[#figure-custom-attrtype]
+image::images/custom-attrtype.png[]
+Using the New Object Class window, create an auxiliary object class that allows your new custom attribute type. You set the type to Auxiliary under Extra Options.
+
+[#figure-custom-objclass]
+image::images/custom-objclass.png[]
+When you finish, the schema changes show up by default in the file `config/schema/99-user.ldif`. Notice that the file name starts with a number, 99. This number is larger than the numbers prefixing other schema file names. In fact, OpenDJ reads the schema files in sorted order, reading schema definitions as they occur. If OpenDJ reads a schema definition for an object class before it has read the definitions of the attribute types mentioned in the object class definition, then it displays an error. Therefore, when naming your schema file, make sure the name appears in the sorted list of file names __after__ all the schema files containing definitions that your schema definitions depends on. The default file name for your schema, `99-user.ldif`, ensures that your definitions load only after all of the schema files installed by default.
+
+You can create this file in the lab using the control panel, and then apply the definitions in production by adapting the content for use with the `ldapmodify` command, for example:
+
+[source, console]
+----
+$ cat config/schema/99-user.ldif
+dn: cn=schema
+objectClass: top
+objectClass: ldapSubentry
+objectClass: subschema
+cn: schema
+attributeTypes: ( temporary-fake-attr-id NAME 'myCustomAttribute' EQUALITY case
+ IgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstrings
+ Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+objectClasses: ( temporary-fake-oc-id NAME 'myCustomObjClass
+ ' SUP top AUXILIARY MAY myCustomAttribute )
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+modifyTimestamp: 20110620095948Z
+----
+To test your schema definition, add the object class and attribute to an entry:
+
+[source, console]
+----
+$ cat custom-attr.ldif
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+add: objectClass
+objectClass: myCustomObjClass
+-
+add: myCustomAttribute
+myCustomAttribute: Testing 1, 2, 3...
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename custom-attr.ldif
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com
+
+$ ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ myCustomAttribute
+dn: uid=bjensen,ou=People,dc=example,dc=com
+myCustomAttribute: Testing 1, 2, 3...
+----
+In addition to supporting the standard schema definitions that are described in link:http://tools.ietf.org/html/rfc4512#section-4.1[RFC 4512, section 4.1, window=\_top], OpenDJ also supports the following extensions that you can use when adding your own definitions:
+[#general-schema-definition-extensions]
+.Extensions for All Schema Definitions
+--
+
+`X-ORIGIN`::
+Used to specify the origin of a schema element. Examples include `X-ORIGIN 'RFC 4519'`, `X-ORIGIN 'draft-ietf-ldup-subentry'`, and `X-ORIGIN 'OpenDJ Directory Server'`.
+
+`X-SCHEMA-FILE`::
+Used to specify the relative path to the schema file containing the schema element such as `X-SCHEMA-FILE '00-core.ldif'`. Schema definitions are located by default in `/path/to/opendj/config/schema/*.ldif` files.
+
+--
+[#attr-syntax-schema-definition-extensions]
+.Extensions for Attribute Syntax Descriptions
+--
+
+`X-ENUM`::
+Used to define a syntax that is an enumeration of values. The following attribute syntax description defines a syntax allowing four possible attribute values, for example:
++
+
+[source, ldif]
+----
+ldapSyntaxes: ( security-label-syntax-oid DESC 'Security Label'
+ X-ENUM ( 'top-secret' 'secret' 'confidential' 'unclassified' ) )
+----
+
+`X-PATTERN`::
+Used to define a syntax based on a regular expression pattern, where valid regular expressions are those defined for link:http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html[java.util.regex.Pattern, window=\_blank]. The following attribute syntax description defines a simple, lenient SIP phone URI syntax check:
++
+
+[source, ldif]
+----
+ldapSyntaxes: ( simple-sip-uri-syntax-oid DESC 'Lenient SIP URI Syntax'
+ X-PATTERN '^sip:[a-zA-Z0-9.]+@[a-zA-Z0-9.]+(:[0-9]+)?$' )
+----
+
+`X-SUBST`::
+Used as a fallback to substitute a defined syntax for one that OpenDJ does not implement. The following example substitutes Directory String syntax, which has OID 1.3.6.1.4.1.1466.115.121.1.15, for a syntax that OpenDJ does not implement:
++
+
+[source, ldif]
+----
+ldapSyntaxes: ( non-implemented-syntax-oid DESC 'Not Implemented in OpenDJ'
+ X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )
+----
+
+--
+[#attr-type-schema-definition-extensions]
+.Extension for Attribute Type Descriptions
+--
+
+`X-APPROX`::
+`X-APPROX` is used to specify the approximate matching rule to use for a given attribute type when not using the default, which is the link:http://aspell.net/metaphone/[double metaphone approximate match, window=\_blank].
+
+--
+
+
+[#schema-legacy-support]
+=== Relaxing Schema Checking to Import Legacy Data
+
+By default, OpenDJ accepts data that follows the schema for allowable and rejected data. You might have legacy data from a directory service that is more lenient, allowing non-standard constructions such as multiple structural object classes per entry, not checking attribute value syntax, or even not respecting schema definitions.
+
+For example, when importing data with multiple structural object classes defined per entry, you can relax schema checking to warn rather than reject entries having this issue:
+
+[source, console]
+----
+$ dsconfig \
+ set-global-configuration-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set single-structural-objectclass-behavior:warn \
+ --trustAll \
+ --no-prompt
+----
+You can allow attribute values that do not respect the defined syntax with the `dsconfig` command as well:
+
+[source, console]
+----
+$ dsconfig \
+ set-global-configuration-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set invalid-attribute-syntax-behavior:warn \
+ --trustAll \
+ --no-prompt
+----
+You can even turn off schema checking altogether, although turning off schema checking only really makes sense when you are absolutely sure that the entries and attribute values respect the schema definitions, and you simply want to turn off schema checking temporarily to speed up import processing:
+
+[source, console]
+----
+$ dsconfig \
+ set-global-configuration-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set check-schema:false \
+ --trustAll \
+ --no-prompt
+----
+
+
+[#standard-schema]
+=== Standard Schema Included With OpenDJ Server
+
+--
+OpenDJ directory server provides many standard schema definitions in these LDIF files under `/path/to/opendj/config/schema`:
+
+`00-core.ldif`::
+This file contains a core set of attribute type and object class definitions from the following Internet-Drafts, RFCs, and standards:
++
+[none]
+* link:https://tools.ietf.org/html/draft-ietf-boreham-numsubordinates[draft-ietf-boreham-numsubordinates, window=\_blank]
+* link:https://tools.ietf.org/html/draft-findlay-ldap-groupofentries[draft-findlay-ldap-groupofentries, window=\_blank]
+* link:https://tools.ietf.org/html/draft-furuseth-ldap-untypedobject[draft-furuseth-ldap-untypedobject, window=\_blank]
+* link:https://tools.ietf.org/html/draft-good-ldap-changelog[draft-good-ldap-changelog, window=\_blank]
+* link:https://tools.ietf.org/html/draft-ietf-ldup-subentry[draft-ietf-ldup-subentry, window=\_blank]
+* link:https://tools.ietf.org/html/draft-wahl-ldap-adminaddr[draft-wahl-ldap-adminaddr, window=\_blank]
+* link:https://tools.ietf.org/html/rfc1274[RFC 1274, window=\_blank]
+* link:https://tools.ietf.org/html/rfc2079[RFC 2079, window=\_blank]
+* link:https://tools.ietf.org/html/rfc2256[RFC 2256, window=\_blank]
+* link:https://tools.ietf.org/html/rfc2798[RFC 2798, window=\_blank]
+* link:https://tools.ietf.org/html/rfc3045[RFC 3045, window=\_blank]
+* link:https://tools.ietf.org/html/rfc3296[RFC 3296, window=\_blank]
+* link:https://tools.ietf.org/html/rfc3671[RFC 3671, window=\_blank]
+* link:https://tools.ietf.org/html/rfc3672[RFC 3672, window=\_blank]
+* link:https://tools.ietf.org/html/rfc4512[RFC 4512, window=\_blank]
+* link:https://tools.ietf.org/html/rfc4519[RFC 4519, window=\_blank]
+* link:https://tools.ietf.org/html/rfc4523[RFC 4523, window=\_blank]
+* link:https://tools.ietf.org/html/rfc4524[RFC 4524, window=\_blank]
+* link:https://tools.ietf.org/html/rfc4530[RFC 4530, window=\_blank]
+* link:https://tools.ietf.org/html/rfc5020[RFC 5020, window=\_blank]
+* link:https://www.itu.int/rec/T-REC-X.501[X.501, window=\_blank]
+
+`01-pwpolicy.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/draft-behera-ldap-password-policy-09[draft-behera-ldap-password-policy, window=\_blank] (Draft 09), which defines a mechanism for storing password policy information in an LDAP directory server.
+
+`02-config.ldif`::
+This file contains the attribute type and objectclass definitions for use with the directory server configuration.
+
+`03-changelog.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/draft-good-ldap-changelog[draft-good-ldap-changelog, window=\_blank], which defines a mechanism for storing information about changes to directory server data.
+
+`03-rfc2713.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc2713[RFC 2713, window=\_blank], which defines a mechanism for storing serialized Java objects in the directory server.
+
+`03-rfc2714.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc2714[RFC 2714, window=\_blank], which defines a mechanism for storing CORBA objects in the directory server.
+
+`03-rfc2739.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc2739[RFC 2739, window=\_blank], which defines a mechanism for storing calendar and vCard objects in the directory server. Note that the definition in RFC 2739 contains a number of errors, and this schema file has been altered from the standard definition in order to fix a number of those problems.
+
+`03-rfc2926.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc2926[RFC 2926, window=\_blank], which defines a mechanism for mapping between Service Location Protocol (SLP) advertisements and LDAP.
+
+`03-rfc3112.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc3112[RFC 3112, window=\_blank], which defines the authentication password schema.
+
+`03-rfc3712.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc3712[RFC 3712, window=\_blank], which defines a mechanism for storing printer information in the directory server.
+
+`03-uddiv3.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc4403[RFC 4403, window=\_blank], which defines a mechanism for storing UDDIv3 information in the directory server.
+
+`04-rfc2307bis.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/draft-howard-rfc2307bis[draft-howard-rfc2307bis, window=\_blank], which defines a mechanism for storing naming service information in the directory server.
+
+`05-rfc4876.ldif`::
+This file contains schema definitions from link:https://tools.ietf.org/html/rfc4876[RFC 4876, window=\_blank], which defines a schema for storing Directory User Agent (DUA) profiles and preferences in the directory server.
+
+`05-samba.ldif`::
+This file contains schema definitions required when storing Samba user accounts in the directory server.
+
+`05-solaris.ldif`::
+This file contains schema definitions required for Solaris and OpenSolaris LDAP naming services.
+
+`06-compat.ldif`::
+This file contains the attribute type and objectclass definitions for use with the directory server configuration.
+
+--
+
+[#nf-dsr-schema]
+=== Working With DIT Structure Rules & Name Forms
+
+This section contains useful information regarding name forms and DIT structure rules.
+
+[NOTE]
+====
+At this time, the OpenDJ Control Panel does not support the management of name forms and DIT structure rules. These schema definition types can only be implemented and managed by way of direct schema file edits (which will necessitate a restart of OpenDJ), _or_ through a use of *ldapmodify* against the server's `cn=schema` context.
+====
+
+[#nf-schema]
+==== Name Forms
+
+From clause 13.1.8 of https://www.itu.int/rec/T-REC-X.501[ITU-T Rec. X.501, window=_blank] and http://tools.ietf.org/html/rfc4512#section-4.1.7.2[Section 4.1.7.2 of RFC 4512, window=_blank"]
+
+_name form_::
+__A name form specifies a permissible RDN for entries of a particular structural object class. A name form identifies a named object class and one or more attribute types to be used for naming (i.e., for the RDN). Name forms are primitive pieces of specification used in the definition of DIT structure rules.__
+
+In simplest terms, a name form is a particular schema definition which requires specific RDN syntaxes for use upon entries bearing a specific STRUCTURAL class.
+
+To offer an example of this, consider the following UDDIv3 name form, per the `03-uddiv3.ldif` file included with OpenDJ:
+
+[source]
+----
+      nameForms: ( 1.3.6.1.1.10.15.1
+         NAME 'uddiBusinessEntityNameForm'
+         OC uddiBusinessEntity
+         MUST ( uddiBusinessKey )
+         X-ORIGIN 'RFC 4403' )
+----
+
+This name form states that any entry bearing the STRUCTURAL class `uddiBusinessEntity` MUST ONLY be designated using the `uddiBusinessKey` as the principal RDN attribute type, for example, " `uddiBusinessKey=ABC123` ".
+
+Alternatively, when devising custom name forms, it is possible to enforce the use of specific attribute types within multi-valued RDNs. Consider the following hypothetical name form:
+
+[source]
+----
+      nameForms: ( 1.3.6.1.4.1.56521.999.98.15
+         NAME 'cnOrgForm'
+         OC groupOfUniqueNames
+         MUST ( cn $ o ) )
+----
+
+This name form states that any entry bearing the STRUCTURAL object class `groupOfUniqueNames` MUST be designated using attribute types `cn` _and_ `o` for a qualifying entry bearing a multi-valued RDN, such as
+" `cn=Auditors+o=Acme Audit Co` ".
+
+Name forms also allow use of MAY clauses. Consider the following hypothetical name form, similar to the above:
+
+[source]
+----
+      nameForms: ( 1.3.6.1.4.1.56521.999.98.16
+         NAME 'cnOrgAltForm'
+         OC groupOfUniqueNames
+         MUST cn
+         MAY o )
+----
+
+This rule enforces use of the `cn` RDN attribute type the same as before, but while it no longer requires use of `o`, it will not reject it when present. As such, either of the following RDNs are acceptable:
+
+* `cn=Corporate Auditors`
+* `cn=Third Party Auditors+o=Acme Audit Co`
+
+But, regardless of the permutations, a name form does little good in practice -- unless it is referenced by a DIT structure rule.
+
+[#dsr-schema]
+==== DIT Structure Rules
+
+From clause 13.1.6 of https://www.itu.int/rec/T-REC-X.501[ITU-T Rec. X.501, window=_blank] and http://tools.ietf.org/html/rfc4512#section-4.1.7.1[Section 4.1.7.1 of RFC 4512, window="_blank"]
+
+_DIT structure rule_::
+__A rule governing the structure of the DIT by specifying a permitted superior to subordinate entry relationship. A structure rule relates a name form, and therefore a structural object class, to superior structure rules. This permits entries of the structural object class identified by the name form to exist in the DIT as subordinates to entries governed by the indicated superior structure rules.__
+
+In short, a DIT structure rule enforces the terms of its prescribed name form. To offer a simple analogy, if a name form presents a law, the DIT structure rule is the public official upholding that law.
+
+Consider this structure rule, per the included `03-uddiv3.ldif` file:
+
+[source]
+----
+     dITStructureRules: ( 1
+        NAME 'uddiBusinessEntityStructureRule'
+        FORM uddiBusinessEntityNameForm
+        X-ORIGIN 'RFC 4403' )
+----
+
+This rule employs the `uddiBusinessEntityNameForm` definition, and constrains entries bearing the STRUCTURAL object class of the name form -- also known as the `namedObjectClass` -- to the RDN attribute type (in this case, `uddiBusinessKey`).
+
+When a DIT structure rule is introduced to the directory schema, it will not be evaluated until an entry is added to the DIT it enforces.
+
+DIT structure rules shall not influence preexisting entries, even if based upon now-illegal STRUCTURAL class and RDN combinations.
+
+Once structure rules have been established, when a new entry is added to, or renamed within the DIT in violation of a structure rule, OpenDJ will return "Object class violation (65)" along with additional contextual information for debugging purposes.
+
+[NOTE]
+====
+As of version 4.8.0, OpenDJ is currently using the result code of "Object class violation (65)" for certain name form related errors, where it should be using "Naming violation (64)".
+
+This issue will be resolved in a future release of the package to avoid introducing breaking changes. Users are advised to update any external scripts or applications which may match the incorrect result code, and take steps to allow recognition of the correct result code in parallel for maximum compatibility.
+====
+
+But when a new entry is successfully added to or renamed within the DIT, a new operational attribute type appears on the entry: governingStructureRule.
+
+From clause https://www.itu.int/rec/T-REC-X.501[13.1.7 of ITU-T Rec. X.501, window=_blank]:
+
+{sp}::
+__Governing structure rule (of an entry): With respect to a particular entry, the single DIT structure rule that applies to the entry. This rule is indicated by the governingStructureRule operational attribute.__
+
+See also http://tools.ietf.org/html/rfc4512#section-3.4.6[Section 3.4.6 of RFC 4512, window=_blank].
+
+In simplest terms, the `governingStructureRule` contains the integer identifier of the DIT structure rule which governs the entry. In the case of the above DIT structure rule, it would appear in LDAP search results as follows:
+
+`governingStructureRule: 1`:: {sp}
+
+Instances of this attribute type may be used for diagnostic reasons, or by client applications designed to determine the appropriate RDN syntax to be applied for a new entry, or for an entry being renamed and/or moved, in advance of the request.
+
+DIT structure rules can be configured in such a way that a particular rule extends from, or is subordinate to, another DIT structure rule using the SUP clause.
+
+[TIP]
+====
+A superior DIT structure rule is often referred to as a superior structure rule, per clause 13.1.9 of https://www.itu.int/rec/T-REC-X.501[ITU-T Rec. X.501, window=_blank].
+====
+The purpose of the SUP clause is to allow an entry with a particular RDN syntax to reside beneath one of multiple possible choices. For example:
+
+[source]
+----
+    SUP ( 20 21 )
+----
+In this example, the integer identifiers 20 and 21 indicate that the bearer of this clause will allow entries to reside as subordinates to either of the entries governed by those rules.
+
+Also note that rules can be _recursive_ or "self-referencing". This manifests as an instance where a DIT structure rule possesses a SUP clause member that matches its own integer identifier. This is a particularly useful feature because it allows nesting of compliant entries -- for example, those bearing the `organizationalUnit` STRUCTURAL class -- to exist within superior entries of like-design.
+
+For an example of recursive rules in action, see the `ouStructure` rule (21) in the next section.
+
+[#dsr-dit-design-schema]
+==== DIT Design Under Governance - A Practical Overview
+
+This section will cover the highlights of creating initial DIT content while under the control of easily-understood DIT structure rules enforcing the use of common attribute types within entry RDNs.
+
+The following basic assumptions apply:
+
+* A new `userRoot` backend exists and is identified by the `base-dn` of `dc=example,dc=com`, containing no entries whatsoever, and ...
+* The eight (8) definitions described have already been saved to `/opt/opendj/config/schema/99-user.ldif` or a similar file, or otherwise added via *ldapmodify*
+
+To begin, let's take a look at the following `nameForms` definitions:
+
+[source]
+----
+    #
+      nameForms: ( 1.3.6.1.4.1.56521.999.2.7.1
+         NAME 'rootSuffixForm'
+         OC domain
+         MUST dc )
+      #
+      nameForms: ( 1.3.6.1.4.1.56521.999.2.7.2
+         NAME 'ouForm'
+         OC organizationalUnit
+         MUST ou )
+      #
+      nameForms: ( 1.3.6.1.4.1.56521.999.2.7.3
+         NAME 'accountForm'
+         OC inetOrgPerson
+         MUST uid )
+      #
+      nameForms: ( 1.3.6.1.4.1.56521.999.2.7.4
+         NAME 'groupForm'
+         OC groupOfNames
+         MUST cn )
+----
+
+These name forms declare the following mandates:
+
+* Entries bearing the `domain` STRUCTURAL class, MUST utilize `dc` for their respective RDNs
+* Entries bearing the `organizationalUnit` STRUCTURAL class, MUST utilize `ou` for their respective RDNs
+* Entries bearing the `inetOrgPerson` STRUCTURAL class, MUST utilize `uid` for their respective RDNs
+* Entries bearing the `groupOfNames` STRUCTURAL class, MUST utilize `cn` for their respective RDNs
+
+Next, we'll take a look at the new `dITStructureRules` instances, which will bring the above name forms to life:
+
+[source]
+----
+   #
+      dITStructureRules: ( 20
+                NAME 'rootSuffixStructure'
+                FORM rootSuffixForm )
+      #
+      dITStructureRules: ( 21
+                NAME 'ouStructure'
+                FORM ouForm
+                SUP ( 20 21 ) )
+      #
+      dITStructureRules: ( 22
+                NAME 'accountStructure'
+                FORM accountForm
+                SUP 21 )
+      #
+      dITStructureRules: ( 23
+                NAME 'groupStructure'
+                FORM groupForm
+                SUP 21 )
+----
+
+From these rules, one can begin to perceive an abstract DIT structure, defined by the incrementing -- and hierarchically-significant -- integer identifiers, each of which reflect the following respective conditions:
+
+* Given the absence of other entries, the introduction of an entry bearing the `domain` STRUCTURAL class and `dc` RDN attribute signifies the start of the administrative area, or the start of the "chain of enforced rules"
++
+When added, this entry SHOULD bear a `governingStructureRule` integer identifier of 20
+
+* Given the introduction of an entry, positioned directly subordinate to the root suffix and bearing the `organizationalUnit` STRUCTURAL class and `ou` RDN attribute, the entry is accepted
++
+When added, this entry SHOULD bear a `governingStructureRule` integer identifier of 21, the subordinate structure rule of its superior structure rule, 20
+
+* Given the introduction of any additional `organizationalUnit` entries, whether descending directly from the root suffix, OR if subordinate to other `organizationalUnit` entries in "nested" fashion, the entry is accepted by rite of structure rule recursion
++
+When added, this entry SHOULD also bear a `governingStructureRule` integer identifier of 21, as with the previous case
+
+* Given the introduction of an entry, positioned directly subordinate to any `organizationalUnit` entry presently governed by DIT structure rule 21 and bearing the `inetOrgPerson` STRUCTURAL class and `uid` RDN attribute, the entry is accepted
++
+When added, this entry SHOULD bear a `governingStructureRule` integer identifier of 22
+
+* Given the introduction of an entry, positioned directly subordinate to any `organizationalUnit` entry presently governed by DIT structure rule 21 and bearing the `groupOfNames` STRUCTURAL class and `cn` RDN attribute, the entry is accepted
++
+When added, this entry SHOULD bear a `governingStructureRule` integer identifier of 23
+
+Next, we'll be creating the initial portions of the governed DIT using *ldapmodify*, and periodically checking the results with *ldapsearch* along the way.
+
+[NOTE]
+====
+In cases where changes are made in this section, the root DN user (`cn=Directory Manager`) is purposely used. This is simply to demonstrate that no user, regardless of privilege, can "bypass" or otherwise violate DIT structure rules in force.
+====
+
+[source, console]
+----
+$ ldapmodify -w password \
+      -D "cn=Directory Manager" \
+      -h opendj.example.com
+
+    dn: dc=example,dc=com
+    changetype: add
+    objectClass: domain
+
+    Processing ADD request for dc=example,dc=com
+    ADD operation successful for DN dc=example,dc=com
+
+    dn: ou=Accounts,dc=example,dc=com
+    changetype: add
+    objectClass: organizationalUnit
+
+    Processing ADD request for ou=Accounts,dc=example,dc=com
+    ADD operation successful for DN ou=Accounts,dc=example,dc=com
+
+    dn: ou=Consultants,ou=Accounts,dc=example,dc=com
+    changetype: add
+    objectClass: organizationalUnit
+
+    Processing ADD request for ou=Consultants,dc=example,dc=com
+    ADD operation successful for DN ou=Consultants,dc=example,dc=com
+----
+
+So far, so good. What we've just done is create the initial structure of our DIT, and in doing so we've confirmed the DIT structure rules do not seem to be interfering.
+
+But, let's stop for now and check our work. We want to see the DIT structure rules that are actively governing our entries. To do this, we need only perform a simple anonymous LDAP search:
+
+[source, console]
+----
+$ ldapsearch -h opendj.example.com \
+      -b dc=example,dc=com \
+      "(objectClass=*)" \
+      governingStructureRule
+
+    dn: dc=example,dc=com
+    governingStructureRule: 20
+
+    dn: ou=Accounts,dc=example,dc=com
+    governingStructureRule: 21
+
+    dn: ou=Consultants,ou=Accounts,dc=example,dc=com
+    governingStructureRule: 21
+----
+
+This proves the following:
+
+* Rule 20, the `rootSuffixStructure` definition, represents the start of the structure chain
+* Rule 21, the `ouStructure` definition, represents the permitted subordinate naming context below entries governed by the `rootSuffixStructure` rule
+* Rule 21, as it supports recursion by nature, allows `organizationalUnit` entries to reside _within_ `organizationalUnit` entries, thus allowing categorical organizational structures to exist
+
+Let's see what happens when we attempt to add an entry bearing an unauthorized RDN syntax.
+
+[source, console]
+----
+$ ldapmodify -w password \
+      -D "cn=Directory Manager"\
+      -h opendj.example.com
+
+    dn: mail=user@example.com,ou=Consultants,ou=Accounts,dc=example,dc=com
+    changetype: add
+    objectClass: inetOrgPerson
+    cn: User Person
+    sn: Person
+
+    Processing ADD request for
+    mail=user@example.com,ou=Consultants,ou=Accounts,dc=example,dc=com
+    The LDAP modify request failed: 65 (Object Class Violation)
+    Additional Information:  Entry
+    mail=user@example.com,ou=Consultants,ou=Accounts,dc=example,dc=com violates
+    the Directory Server schema configuration because its RDN does not contain
+    attribute uid that is required by name form accountForm
+----
+
+Good, the DIT structure rule in question seems to work in preventing bogus RDNs. Now let's continue with entries that are expected to work.
+
+[source, console]
+----
+$ ldapmodify -w password \
+      -D "cn=Directory Manager" \
+      -h opendj.example.com
+
+    dn: uid=userPerson,ou=Consultants,ou=Accounts,dc=example,dc=com
+    changetype: add
+    objectClass: inetOrgPerson
+    sn: Person
+    cn: User Person
+
+    Processing ADD request for uid=userPerson,ou=Consultants,ou=Accounts,dc=example,dc=com
+    ADD operation successful for DN uid=userPerson,ou=Consultants,ou=Accounts,dc=example,dc=com
+
+    dn: ou=Groups,dc=example,dc=com
+    changetype: add
+    objectClass: organizationalUnit
+
+    Processing ADD request for ou=Groups,dc=example,dc=com
+    ADD operation successful for DN ou=Groups,dc=example,dc=com
+
+    dn: ou=Corporate,ou=Groups,dc=example,dc=com
+    changetype: add
+    objectClass: organizationalUnit
+
+    Processing ADD request for ou=Corporate,ou=Groups,dc=example,dc=com
+    ADD operation successful for DN ou=Corporate,ou=Groups,dc=example,dc=com
+
+    dn: ou=Infrastructure,ou=Groups,dc=example,dc=com
+    changetype: add
+    objectClass: organizationalUnit
+
+    Processing ADD request for ou=Infrastructure,ou=Groups,dc=example,dc=com
+    ADD operation successful for DN ou=Infrastructure,ou=Groups,dc=example,dc=com
+
+    dn: cn=Abuse Mail,ou=Infrastructure,ou=Groups,dc=example,dc=com
+    changetype: add
+    objectClass: groupOfNames
+
+    Processing ADD request for cn=Abuse Mail,ou=Infrastructure,ou=Groups,dc=example,dc=com
+    ADD operation successful for DN cn=Abuse Mail,ou=Infrastructure,ou=Groups,dc=example,dc=com
+----
+
+Again, let's check our work (omitting the contents of the previous LDAP search):
+
+[source, console]
+----
+$ ldapsearch -h opendj.example.com \
+      -b dc=example,dc=com \
+      "(objectClass=*)" \
+      governingStructureRule
+
+    dn: uid=userPerson,ou=Consultants,ou=Accounts,dc=example,dc=com
+    governingStructureRule: 22
+
+    dn: ou=Groups,dc=example,dc=com
+    governingStructureRule: 21
+
+    dn: ou=Corporate,ou=Groups,dc=example,dc=com
+    governingStructureRule: 21
+
+    dn: ou=Infrastructure,ou=Groups,dc=example,dc=com
+    governingStructureRule: 21
+
+    dn: cn=Abuse Mail,ou=Infrastructure,ou=Groups,dc=example,dc=com
+    governingStructureRule: 23
+----
+
+So, what did we learn?
+
+* `ouStructure` rule 21 continues to allow recursive `organizationalUnit` entries, so long as they ultimately extend from the `rootSuffixStructure` superior structure (ancestor) rule 20, _or_ another such entry governed by rule 21
+* `accountStructure` rule 22 is correctly governing entries bearing the `inetOrgPerson` STRUCTURAL class found within an `organizationalUnit` entry (superior structure rule 21)
+* `groupStructure` rule 23 is correctly governing entries bearing the `groupOfNames` STRUCTURAL class found within an `organizationalUnit` entry (superior structure rule 21)
+
+DIT structure rules are extremely powerful. When properly planned and implemented, they can greatly aid in the formation of clean and orderly directory structures without the need for additional ACIs.
+
+[#dsr-impl-preexist-dit-schema]
+==== Considerations Relating To The Implementation Of DIT Structure Rules In An Established DIT
+
+Because DIT structure rules do not influence preexisting entries, even those in violation of those rules, this presents a potential pain-point regarding the restoration of content that (in some way) predates the incorporation of those DIT structure rules. This situation may apply following a disaster-triggered reload of data, or when using this data to "seed" a new DSA being built in the topology.
+
+If DIT structure rules are already applied to the DSA in question, but data has NOT yet been loaded, the DIT structure rules in question will consider ANY data to be "new" regardless of its true chronological age.
+
+If violations are perceived, this will result in errors during the incorporation of that data. This can be confusing to administrators if that same data exists as expected on other DSAs -- even those with effectively identical configurations.
+
+When introducing DIT structure rules to an established (preexisting) DIT, it is strongly recommended that separate load-tests be conducted on a disposable system or virtual image that is under the governance of all planned DIT structure rules. This will allow accurate simulation of new in-topology server builds, or rebuilds of preexisting servers that have suffered a malfunction of some kind, or have been rebuilt due to upgrade or other reasons.
+
+[#dsr-subentries-schema]
+
+==== Considerations For Collective Attribute Subentries
+DIT structure rules apply not only to standard entries as demonstrated in the previous section, but also to subentries -- entries that bear the `subentry` STRUCTURAL class defined in http://tools.ietf.org/html/rfc3672#section-2.4[Section 2.4 of RFC 3672, window=_blank].
+
+In cases where a directory server employs DIT structure rules in addition to collective attributes, it is necessary to implement a new `dITStructureRules` definition: one that enforces a suitable RDN attribute type (such as `cn`) for subentries, while taking into account the superior structure rule(s) involved.
+
+To begin, as was done in the previous section, a nameForms definition is required first.
+
+[source]
+----
+      nameForms: ( 1.3.6.1.4.1.56521.999.2.7.5
+         NAME 'subentryForm'
+         OC subentry
+         MUST cn )
+----
+
+Here, we are stating that any entry bearing the `subentry` STRUCTURAL class MUST ONLY utilize the `cn` attribute type for its RDN, as it represents the most common naming strategy for subentries.
+
+Next, we need to create the DIT structure rule, but first we need to identify the appropriate superior integer identifiers for the SUP clause.
+
+Determining these identifiers is a simple matter. First off, subentries are never created below entries that are not parents themselves (or expected to be parents). In the spirit of the previous section, this allows us to strike two (2) candidates from the list: `inetOrgPerson` entries (accounts), and `groupOfNames` entries (groups).
+
+This leaves `domain` (20) and `organizationalUnit` (21) entries. Thus:
+
+[source]
+----
+      dITStructureRules: ( 24
+         NAME 'subentryStructure'
+         FORM subentryForm
+         SUP ( 20 21 ) )
+----
+
+Because subentries themselves do not allow for subordinate entries, we need not worry about rule recursion in this instance.
+
+When implemented (and with respect to the parameters of the previous subsection), the definitions defined in this subsection will correctly allow for the addition of entries bearing the `subentry` STRUCTURAL class, thus allowing use of dependent constructs, such as collective attributes, to be used unfettered.
+
+[#aci-vs-dsr-schema]
+
+==== ACIs Vs. DIT Structure Rules
+
+Some LDAP implementations on the market today offer no support for DIT structure rules. A common workaround for this is the use of ACIs to enforce specific naming conventions for entries. While OpenDJ supports this technique just the same, there are potential caveats.
+
+Use of ACIs to enforce such rules can be bypassed by users with sufficient access privileges. DIT structure rules, on the other hand, are defined in the schema, which conceptually exists at a lower and more fundamental level than ACIs. As such, no user can bypass a DIT structure rule using conventional means -- not even the root DN.
+
+There is also the classic argument that use of ACIs to effect "behavioral changes" in this manner is contrary to the very intent of ACIs. Because DIT structure rules are essentially immutable and do not discriminate the origin of any request, they resemble configuration directives in practice more so than an expression of privilege.
+
+The argument against ACIs in this context gains additional momentum when one considers the innate risk of altering ACIs for any reason, as even the slightest misstep can deny critical functionality or, worse, expose data.
+

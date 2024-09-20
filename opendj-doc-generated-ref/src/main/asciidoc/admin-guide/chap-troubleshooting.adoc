@@ -1,0 +1,809 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-troubleshooting]
+== Troubleshooting Server Problems
+
+This chapter describes how to troubleshoot common server problems, and how to collect information necessary when seeking support help. In this chapter you will learn to:
+
+* Identify directory server problems systematically as a first troubleshooting step
+
+* Troubleshoot problems with installation and upgrade procedures, directory data import, data replication, and secure connections
+
+* Reset lost administrator passwords
+
+* Enable debug logging judiciously when solving problems
+
+* Prevent applications from accessing the directory server when solving problems
+
+* Troubleshoot problems with the way client applications access the directory
+
+* Prepare evidence when asking a directory expert for help
+
+
+[#troubleshoot-identify-problem]
+=== Identifying the Problem
+
+In order to solve your problem methodically, save time by defining the problem clearly up front. In a replicated environment with multiple directory servers and many client applications, it can be particularly important to pin down not only the problem (difference in observed behavior compared to expected behavior), but also the circumstances and steps that lead to the problem occurring.
+Answer the following questions:
+
+* How do you reproduce the problem?
+
+* What exactly is the problem? In other words, what is the behavior you expected? What is the behavior you observed?
+
+* When did the problem start occurring? Under similar circumstances, when does the problem not occur?
+
+* Is the problem permanent? Intermittent? Is it getting worse? Getting better? Staying the same?
+
+Pinpointing the problem can sometimes indicate where you should start looking for solutions.
+
+
+[#troubleshoot-installation]
+=== Troubleshooting Installation and Upgrade
+
+Installation and upgrade procedures result in a log file tracing the operation. The log location differs by operating system, but look for lines in the command output of the following form:
+
+[source]
+----
+See /var/....log for a detailed log of this operation.
+----
+Prevent antivirus and intrusion detection systems from interfering with OpenDJ directory server.
+
+Antivirus and intrusion detection systems that do a deep inspection of database files are not compatible with OpenDJ directory server. Disable antivirus and intrusion detection systems, or at least prevent them from operating on OpenDJ directory server files.
+
+
+[#troubleshoot-reset-admin-passwords]
+=== Resetting Administrator Passwords
+
+This section describes what to do if you forgot the password for Directory Manager or for the global (replication) administrator.
+
+[#reset-directory-manager-password]
+.Resetting the Directory Manager's Password
+====
+OpenDJ directory server stores the entry for Directory Manager in the LDIF representation of its configuration. You must be able to edit directory server files in order to reset Directory Manager's password.
+
+. Generate the encoded version of the new password using the OpenDJ `encode-password` command:
++
+
+[source, console]
+----
+$ encode-password --storageScheme SSHA512 --clearPassword password
+Encoded Password:  "{SSHA512}yWqHnYV4a5llPvE7WHLe5jzK27oZQWLIlVcs9gySu4TyZJMg
+ NQNRtnR/Xx2xces1wu1dVLI9jVVtl1W4BVsmOKjyjr0rWrHt"
+----
+
+. Stop OpenDJ directory server while you edit the configuration:
++
+
+[source, console]
+----
+$ stop-ds
+----
+
+. Find Directory Manager's entry, which has DN `cn=Directory Manager,cn=Root DNs,cn=config`, in `/path/to/opendj/config/config.ldif`, and carefully replace the `userpassword` attribute value with the encoded version of the new password, taking care not to leave any whitespace at the end of the line:
++
+
+[source, ldif]
+----
+dn: cn=Directory Manager,cn=Root DNs,cn=config
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: ds-cfg-root-dn-user
+objectClass: top
+userpassword: {SSHA512}yWqHnYV4a5llPvE7WHLe5jzK27oZQWLIlVcs9gySu4TyZJMg
+ NQNRtnR/Xx2xces1wu1dVLI9jVVtl1W4BVsmOKjyjr0rWrHt
+givenName: Directory
+cn: Directory Manager
+ds-cfg-alternate-bind-dn: cn=Directory Manager
+sn: Manager
+ds-pwp-password-policy-dn: cn=Root Password Policy,cn=Password Policies
+ ,cn=config
+ds-rlim-time-limit: 0
+ds-rlim-lookthrough-limit: 0
+ds-rlim-idle-time-limit: 0
+ds-rlim-size-limit: 0
+----
+
+. Start OpenDJ directory server again:
++
+
+[source, console]
+----
+$ start-ds
+----
+
+. Verify that you can administer the server as Directory Manager using the new password:
++
+
+[source, console]
+----
+$ dsconfig -p 4444 -h opendj.example.com -D "cn=Directory Manager" -w password
+
+
+>>>> OpenDJ configuration console main menu
+
+What do you want to configure?
+
+...
+
+Enter choice: q
+----
+
+====
+
+[#reset-repl-admin-password]
+.To Reset the Global Administrator's Password
+====
+When you enable replication, part of the process involves creating a global administrator and setting that user's password. This user is present on all replicas. If you chose default values, this user has DN `cn=admin,cn=Administrators,cn=admin data`. You reset the password as you would for any other user, though you do so as Directory Manager.
+
+. Use the `ldappasswordmodify` command to reset the global administrator's password:
++
+
+[source, console]
+----
+$ ldappasswordmodify \
+ --useStartTLS \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --authzID "cn=admin,cn=Administrators,cn=admin data" \
+ --newPassword password
+The LDAP password modify operation was successful
+----
+
+. Let replication copy the password change to other replicas.
+
+====
+
+
+[#troubleshoot-enable-debug-logging]
+=== Enabling Debug Logging
+
+OpenDJ can write debug information and stack traces to the server debug log. What is logged depends both on debug targets that you create, and on the debug level that you choose.
+
+[#configure-debug-logging]
+.To Configure Debug Logging
+====
+
+. Enable the debug log, `opendj/logs/debug`, which is not enabled by default:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-log-publisher-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Debug Logger" \
+ --set enabled:true \
+ --no-prompt \
+ --trustAll
+----
+
+. Create a debug target or targets.
++
+No debug targets are enabled by default:
++
+
+[source, console]
+----
+$ dsconfig \
+ list-debug-targets \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Debug Logger" \
+ --no-prompt \
+ --trustAll
+
+Debug Target : enabled : debug-exceptions-only
+-------------:---------:----------------------
+
+$
+----
++
+A debug target specifies a fully qualified OpenDJ Java package, class, or method for which to log debug messages at the level you specify:
++
+
+[source, console]
+----
+$ dsconfig \
+ create-debug-target \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Debug Logger" \
+ --type generic \
+ --target-name org.opends.server.api \
+ --set enabled:true \
+ --no-prompt \
+ --trustAll
+----
+
+. Restart OpenDJ to see debug messages in the log:
++
+
+[source, console]
+----
+$ stop-ds --restart
+...
+$ dsconfig \
+ list-debug-targets \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Debug Logger" \
+ --no-prompt \
+ --trustAll
+
+Debug Target          : enabled : debug-exceptions-only
+----------------------:---------:----------------------
+org.opends.server.api : true    : false
+
+$ tail -f /path/to/opendj/logs/debug
+...
+----
++
+
+[CAUTION]
+======
+OpenDJ directory server can generate a high volume of debug output. Use debug logging very sparingly on production systems.
+======
+
+====
+
+
+[#troubleshoot-use-lockdown-mode]
+=== Preventing Access While You Fix Issues
+
+Misconfiguration can potentially put OpenDJ in a state where you must intervene, and where you need to prevent users and applications from accessing the directory until you are done fixing the problem.
+
+OpenDJ provides a __lockdown mode__ that allows connections only on the loopback address, and allows only operations requested by root users, such as `cn=Directory Manager`. You can use lockdown mode to prevent all but administrative access to OpenDJ in order to repair the server.
+
+To put OpenDJ into lockdown mode, the server must be running. You cause the server to enter lockdown mode by using a task. Notice that the modify operation is performed over the loopback address (accessing OpenDJ on the local host):
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd
+dn: ds-task-id=Enter Lockdown Mode,cn=Scheduled Tasks,cn=tasks
+objectClass: top
+objectClass: ds-task
+ds-task-id: Enter Lockdown Mode
+ds-task-class-name: org.opends.server.tasks.EnterLockdownModeTask
+
+Processing ADD request for
+ ds-task-id=Enter Lockdown Mode,cn=Scheduled Tasks,cn=tasks
+ADD operation successful for DN
+ ds-task-id=Enter Lockdown Mode,cn=Scheduled Tasks,cn=tasks
+----
+OpenDJ logs a notice message in `logs/errors` when lockdown mode takes effect:
+
+[source]
+----
+[30/Jan/2012:17:04:32 +0100] category=BACKEND severity=NOTICE msgID=9896350
+ msg=Lockdown task Enter Lockdown Mode finished execution
+----
+Client applications that request operations get a message concerning lockdown mode:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN "" --searchScope base "(objectclass=*)" +
+SEARCH operation failed
+Result Code:  53 (Unwilling to Perform)
+Additional Information:  Rejecting the requested operation because the server
+ is in lockdown mode and will only accept requests from root users over
+ loopback connections
+----
+You also leave lockdown mode by using a task:
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd
+dn: ds-task-id=Leave Lockdown Mode,cn=Scheduled Tasks,cn=tasks
+objectClass: top
+objectClass: ds-task
+ds-task-id: Leave Lockdown Mode
+ds-task-class-name: org.opends.server.tasks.LeaveLockdownModeTask
+
+Processing ADD request for
+ ds-task-id=Leave Lockdown Mode,cn=Scheduled Tasks,cn=tasks
+ADD operation successful for DN
+ ds-task-id=Leave Lockdown Mode,cn=Scheduled Tasks,cn=tasks
+----
+OpenDJ also logs a notice message when leaving lockdown:
+
+[source]
+----
+[30/Jan/2012:17:13:05 +0100] category=BACKEND severity=NOTICE msgID=9896350
+ msg=Leave Lockdown task Leave Lockdown Mode finished execution
+----
+
+
+[#troubleshoot-import]
+=== Troubleshooting LDIF Import
+
+By default OpenDJ requires that LDIF data you import respect standards. In particular, OpenDJ is set to check that entries to import match the schema defined for the server. You can temporarily bypass this check by using the `--skipSchemaValidation` with the `import-ldif` command.
+
+OpenDJ also ensures by default that entries have only one structural object class. You can relax this behavior by using the advanced global configuration property, `single-structural-objectclass-behavior`. This can be useful when importing data exported from Sun Directory Server. For example, to warn when entries have more than one structural object class instead of reject such entries being added, set `single-structural-objectclass-behavior:warn` as follows:
+
+[source, console]
+----
+$ dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set single-structural-objectclass-behavior:warn \
+ --trustAll \
+ --no-prompt
+----
+By default, OpenDJ also checks syntax for a number of attribute types. Relax this behavior by using the `dsconfig set-attribute-syntax-prop` command. Use the `--help` option for further information.
+
+When running `import-ldif`, you can use the `-R rejectFile` option to capture entries that could not be imported, and the `--countRejects` option to return the number of rejected entries as the `import-ldif` exit code.
+
+Once you work through the issues with your LDIF data, reinstate the default behavior to ensure automated checking.
+
+
+[#troubleshoot-secure-connections]
+=== Troubleshooting TLS/SSL Connections
+
+In order to trust the server certificate, client applications usually compare the signature on certificates with those of the Certificate Authorities (CAs) whose certificates are distributed with the client software. For example, the Java environment is distributed with a keystore holding many CA certificates:
+
+[source, console]
+----
+$ keytool \
+ -list \
+ -keystore $JAVA_HOME/jre/lib/security/cacerts \
+ -storepass changeit \
+ | wc -l
+ 208
+----
+The self-signed server certificates that can be configured during OpenDJ setup are not recognized as being signed by any CAs. Your software therefore is configured not to trust the self-signed certificates by default. You must either configure the client applications to accept the self-signed certificates, or else use certificates signed by recognized CAs.
+
+You can further debug the network traffic by collecting debug traces. To see the traffic going over TLS/SSL in debug mode, configure OpenDJ to dump debug traces from `javax.net.debug` into the `logs/server.out` file:
+
+[source, console]
+----
+$ OPENDJ_JAVA_ARGS="-Djavax.net.debug=all" start-ds
+----
+
+[#troubleshoot-certificate-authentication]
+==== Troubleshooting Certificates and SSL Authentication
+
+Replication uses SSL to protect directory data on the network. In some configurations, replica can fail to connect to each other due to SSL handshake errors. This leads to error log messages such as the following:
+
+[source]
+----
+[21/Nov/2011:13:03:20 -0600] category=SYNC severity=NOTICE
+ msgID=15138921 msg=SSL connection attempt from myserver (123.456.789.012)
+ failed: Remote host closed connection during handshake
+----
+Notice these problem characteristics in the message above:
+
+* The host name, `myserver`, is not fully qualified.
++
+You should not see non-fully qualified host names in the error logs. Non-fully qualified host names are a sign that an OpenDJ server has not been configured properly.
++
+Always install and configure OpenDJ using fully qualified host names. The OpenDJ administration connector, which is used by the `dsconfig` command, and also replication depend upon SSL and, more specifically, self-signed certificates for establishing SSL connections. If the host name used for connection establishment does not correspond to the host name stored in the SSL certificate then the SSL handshake can fail. For the purposes of establishing the SSL connection, a host name like `myserver` does not match `myserver.example.com`, and vice versa.
+
+* The connection succeeded, but the SSL handshake failed, suggesting a problem with authentication or with the cipher or protocol negotiation. As most deployments use the same Java Virtual Machine (JVM), and the same JVM configuration for each replica, the problem is likely not related to SSL cipher or protocol negotiation, but instead lies with authentication.
+
+Follow these steps on each OpenDJ server to check whether the problem lies with the host name configuration:
+
+. Make sure each OpenDJ server uses only fully qualified host names in the replication configuration. You can obtain a quick summary by running the following command against each server's configuration:
++
+
+[source, console]
+----
+$ grep ds-cfg-replication-server: config/config.ldif | sort | uniq
+----
+
+. Make sure that the host names in OpenDJ certificates also contain fully qualified host names, and correspond to the host names found in the previous step:
++
+
+[source, console]
+----
+# Examine the certificates used for the administration connector.
+$ keytool -list -v -keystore config/admin-truststore \
+ -storepass `cat config/admin-keystore.pin` |grep "^Owner:"
+
+# Examine the certificates used for replication.
+$ keytool -list -v -keystore config/ads-truststore \
+ -storepass `cat config/ads-truststore.pin`| grep "^Owner:"
+----
+
+Sample output for a server on host `opendj.example.com` follows:
+
+[source, console]
+----
+$ grep ds-cfg-replication-server: config/config.ldif |sort | uniq
+ds-cfg-replication-server: opendj.example.com:8989
+ds-cfg-replication-server: opendj.example.com:9989
+
+$ keytool -list -v -keystore config/admin-truststore
+-storepass `cat config/admin-keystore.pin` | grep "^Owner:"
+Owner: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate
+
+$ keytool -list -v -keystore config/ads-truststore \
+ -storepass `cat config/ads-truststore.pin`| grep "^Owner:"
+Owner: CN=opendj.example.com, O=OpenDJ Certificate
+Owner: CN=opendj.example.com, O=OpenDJ Certificate
+Owner: CN=opendj.example.com, O=OpenDJ Certificate
+----
+Unfortunately there is no easy solution to badly configured host names. It is often easier and quicker simply to reinstall your OpenDJ servers remembering to use fully qualified host names everywhere. Consider the following:
+
+* When using the `setup` tool to install and configure a server ensure that the `-h` option is included, and that it specifies the fully qualified host name. Make sure you include this option even if you are not enabling SSL/StartTLS LDAP connections.
++
+If you are using the GUI installer, then make sure you specify the fully qualified host name on the first page of the wizard.
+
+* When using the `dsreplication` tool to enable replication make sure that any `--host` options include the fully qualified host name.
+
+If you cannot reinstall the server, follow these steps:
+
+. Disable replication in each replica:
++
+
+[source, console]
+----
+$ dsreplication \
+ disable \
+ --disableAll \
+ --port adminPort \
+ --hostname hostName \
+ --adminUID admin \
+ --adminPassword password \
+ --trustAll \
+ --no-prompt
+----
+
+. Stop and restart each server in order to clear the in-memory ADS truststore backend.
+
+. Enable replication making certain that fully qualified host names are used throughout:
++
+
+[source, console]
+----
+$ dsreplication \
+ enable \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN dc=example,dc=com \
+ --host1 hostName1 \
+ --port1 adminPort1 \
+ --bindDN1 "cn=Directory Manager" \
+ --bindPassword1 password \
+ --replicationPort1 replPort1 \
+ --host2 hostName2 \
+ --port2 adminPort2 \
+ --bindDN2 "cn=Directory Manager" \
+ --bindPassword2 password \
+ --replicationPort2 replPort2 \
+ --trustAll \
+ --no-prompt
+----
+
+. Repeat the previous step for each remaining replica. In other words, host1 with host2, host1 with host3, host1 with host4, ..., host1 with hostN.
+
+. Initialize all remaining replica with the data from host1:
++
+
+[source, console]
+----
+$ dsreplication \
+ initialize-all \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN dc=example,dc=com \
+ --hostname hostName1 \
+ --port 4444 \
+ --trustAll \
+ --no-prompt
+----
+
+. Check that the host names are correct in the configuration and in the keystores by following the steps you used to check for host name problems. The only broken host name remaining should be in the key and truststores for the administration connector:
++
+
+[source, console]
+----
+$ keytool -list -v -keystore config/admin-truststore \
+ -storepass `cat config/admin-keystore.pin` |grep "^Owner:"
+----
+
+. Stop each server, and then fix the remaining admin connector certificate as described in xref:chap-change-certs.adoc#replace-key-pair["To Replace a Server Key Pair"].
+
+
+
+[#troubleshoot-compromised-key]
+==== Handling Compromised Keys
+
+As explained in xref:chap-change-certs.adoc#chap-change-certs["Changing Server Certificates"], OpenDJ directory server has different keys and keystores for different purposes. The public keys used for replication are also used to encrypt shared secret symmetric keys, for example, to encrypt and to sign backups. This section looks at what to do if either a key pair or secret key is compromised.
+How you handle the problem depends on which key was compromised:
+
+* For a key pair used for a client connection handler and with a certificate signed by a certificate authority (CA), contact the CA for help. The CA might choose to publish a certificate revocation list (CRL) that identifies the certificate of the compromised key pair.
++
+Also make sure you replace the key pair. See xref:chap-change-certs.adoc#replace-key-pair["To Replace a Server Key Pair"] for specific steps.
+
+* For a key pair used for a client connection handler and that has a self-signed certificate, follow the steps in xref:chap-change-certs.adoc#replace-key-pair["To Replace a Server Key Pair"], and make sure the clients remove the compromised certificate from their truststores, updating those truststores with the new certificate.
+
+* For a key pair that is used for replication, mark the key as compromised as described below, and replace the key pair. See xref:chap-change-certs.adoc#replace-ads-cert["To Replace the Key Pair Used for Replication"] for specific steps.
++
+To mark the key pair as compromised, follow these steps:
+
+. Identify the key entry by searching administrative data on the server whose key was compromised.
++
+The server in this example is installed on `opendj.example.com` with administration port `4444`:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --baseDN "cn=admin data" \
+ "(cn=opendj.example.com:4444)" ds-cfg-key-id
+dn: cn=opendj.example.com:4444,cn=Servers,cn=admin data
+ds-cfg-key-id: 4F2F97979A7C05162CF64C9F73AF66ED
+----
++
+The key ID, `4F2F97979A7C05162CF64C9F73AF66ED`, is the RDN of the key entry.
+
+. Mark the key as compromised by adding the attribute, `ds-cfg-key-compromised-time`, to the key entry.
++
+The attribute has generalized time syntax, and so takes as its value the time at which the key was compromised expressed in generalized time. In the following example, the key pair was compromised at 8:34 AM UTC on March 21, 2013:
++
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED,cn=instance keys,cn=admin data
+changetype: modify
+add: ds-cfg-key-compromised-time
+ds-cfg-key-compromised-time: 201303210834Z
+
+Processing MODIFY request for ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED,
+ cn=instance keys,cn=admin data
+MODIFY operation successful for DN ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED
+ ,cn=instance keys,cn=admin data
+----
+
+. If the server uses encrypted or signed data, then the shared secret keys used for encryption or signing and associated with the compromised key pair should also be considered compromised. Therefore, mark all shared secret keys encrypted with the instance key as compromised.
++
+To identify the shared secret keys, find the list of secret keys in the administrative data whose `ds-cfg-symmetric-key` starts with the key ID of the compromised key:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN "cn=secret keys,cn=admin data" \
+ "(ds-cfg-symmetric-key=4F2F97979A7C05162CF64C9F73AF66ED*)" dn
+dn: ds-cfg-key-id=fba16e59-2ce1-4619-96e7-8caf33f916c8,cn=secret keys,cn=admin d
+ ata
+
+dn: ds-cfg-key-id=57bd8b8b-9cc6-4a29-b42f-fb7a9e48d713,cn=secret keys,cn=admin d
+ ata
+
+dn: ds-cfg-key-id=f05e2e6a-5c4b-44d0-b2e8-67a36d304f3a,cn=secret keys,cn=admin d
+ ata
+----
++
+For each such key, mark the entry with `ds-cfg-key-compromised-time` as shown above for the instance key.
+
++
+Changes to administration data are replicated to other OpenDJ servers in the replication topology.
+
+* For a shared secret key used for data encryption that has been compromised, mark the key entry with `ds-cfg-key-compromised-time` as shown in the example above that demonstrates marking the instance key as compromised.
++
+Again, changes to administration data are replicated to other OpenDJ servers in the replication topology.
+
+
+
+
+[#troubleshoot-connections]
+=== Troubleshooting Client Operations
+
+By default OpenDJ logs information about all LDAP client operations in `logs/access`, and all HTTP client operations in `logs/http-access`. The following lines are wrapped for readability, showing a search for the entry with `uid=bjensen` as traced in the LDAP access log. In the access log itself, each line starts with a time stamp:
+
+[source]
+----
+[27/Jun/2011:17:23:00 +0200] CONNECT conn=19 from=127.0.0.1:56641
+ to=127.0.0.1:1389 protocol=LDAP
+[27/Jun/2011:17:23:00 +0200] SEARCH REQ conn=19 op=0 msgID=1
+ base="dc=example,dc=com" scope=wholeSubtree filter="(uid=bjensen)" attrs="ALL"
+[27/Jun/2011:17:23:00 +0200] SEARCH RES conn=19 op=0 msgID=1
+ result=0 nentries=1 etime=3
+[27/Jun/2011:17:23:00 +0200] UNBIND REQ conn=19 op=1 msgID=2
+[27/Jun/2011:17:23:00 +0200] DISCONNECT conn=19 reason="Client Unbind"
+----
+As you see, each client connection and set of LDAP operations are traced, starting with a time stamp and information about the operation performed, then including information about the connection, the operation number for the sequence of operations performed by the client, a message identification number, and additional information about the operation.
+
+To match HTTP client operations with related internal server operations, first prevent OpenDJ from suppressing internal operations from the LDAP access log by using the `dsconfig` command to set the LDAP access log publisher `suppress-internal-operations` advanced property to `false`. Then match the values of the `x-connection-id` field in the HTTP access log with `conn=id` values in the LDAP access log.
+
+For example, consider an HTTP GET request for the `_id` field of the user `newuser`, which is handled by connection 4 as shown in `logs/http-access`:
+
+[source]
+----
+-  192.168.0.12  bjensen  22/May/2013:16:27:52 +0200
+  GET  /users/newuser?_fields=_id  HTTP/1.1  200
+  curl/7.21.4  4  12
+----
+With internal operations logged in `logs/access`, log lines for the related operations have `conn=4`:
+
+[source]
+----
+[22/May/2013:16:27:52 +0200] CONNECT conn=4
+  from=192.168.0.12:63593 to=192.168.0.12:8080 protocol=HTTP/1.1
+[22/May/2013:16:27:52 +0200] SEARCH REQ conn=4
+  op=0 msgID=0 base="ou=people,dc=example,dc=com" scope=wholeSubtree
+   filter="(&(objectClass=inetOrgPerson)(uid=bjensen))" attrs="1.1"
+[22/May/2013:16:27:52 +0200] SEARCH RES conn=4
+  op=0 msgID=0 result=0 nentries=1 etime=5
+[22/May/2013:16:27:52 +0200] BIND REQ conn=4
+  op=1 msgID=1 version=3 type=SIMPLE
+   dn="uid=bjensen,ou=People,dc=example,dc=com"
+[22/May/2013:16:27:52 +0200] BIND RES conn=4
+  op=1 msgID=1 result=0 authDN="uid=bjensen,ou=People,dc=example,dc=com"
+   etime=3
+[22/May/2013:16:27:52 +0200] SEARCH REQ conn=4
+  op=2 msgID=2 base="uid=newuser,ou=people,dc=example,dc=com" scope=baseObject
+   filter="(objectClass=*)" attrs="uid,etag"
+[22/May/2013:16:27:52 +0200] SEARCH RES conn=4
+   op=2 msgID=2 result=0 nentries=1 etime=4
+[22/May/2013:16:27:52 +0200] UNBIND REQ conn=4
+   op=3 msgID=3
+[22/May/2013:16:27:52 +0200] DISCONNECT conn=4
+   reason="Client Unbind"
+----
+To help diagnose errors due to access permissions, OpenDJ supports the get effective rights control. The control OID, `1.3.6.1.4.1.42.2.27.9.5.2`, is not allowed by the default global ACIs. You must therefore add access to use the get effective rights control when not using it as Directory Manager.
+
+[#troubleshoot-simple-paged-results]
+==== Clients Need Simple Paged Results Control
+
+For Solaris and some versions of Linux you might see a message in the OpenDJ access logs such as the following:
+
+[source]
+----
+The request control with Object Identifier (OID) "1.2.840.113556.1.4.319"
+cannot be used due to insufficient access rights
+----
+This message means clients are trying to use the link:http://tools.ietf.org/html/rfc2696[simple paged results control, window=\_blank] without authenticating. By default, OpenDJ includes a global ACI to allow only authenticated users to use the control:
+
+[source, console]
+----
+$ dsconfig \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword "password" \
+ get-access-control-handler-prop
+
+Property   : Value(s)
+-----------:-------------------------------------------------------------------
+enabled    : true
+global-aci : (extop="1.3.6.1.4.1.26027.1.6.1 || 1.3.6.1.4.1.26027.1.6.3 ||
+...
+           : (targetcontrol="1.3.6.1.1.12 || 1.3.6.1.1.13.1 || 1.3.6.1.1.13.2
+           : || 1.2.840.113556.1.4.319 || 1.2.826.0.1.3344810.2.3 ||
+           : 2.16.840.1.113730.3.4.18 || 2.16.840.1.113730.3.4.9 ||
+           : 1.2.840.113556.1.4.473 || 1.3.6.1.4.1.42.2.27.9.5.9") (version
+           : 3.0; acl "Authenticated users control access"; allow(read)
+           : userdn="ldap:///all";), (targetcontrol="2.16.840.1.113730.3.4.2 ||
+           : 2.16.840.1.113730.3.4.17 || 2.16.840.1.113730.3.4.19 ||
+           : 1.3.6.1.4.1.4203.1.10.2 || 1.3.6.1.4.1.42.2.27.8.5.1 ||
+           : 2.16.840.1.113730.3.4.16") (version 3.0; acl "Anonymous control
+           : access"; allow(read) userdn="ldap:///anyone";)
+----
+To grant anonymous (unauthenticated) user access to the control, add the OID for the simple paged results control to the list of those in the `Anonymous control access` global ACI:
+
+[source, console]
+----
+$ dsconfig \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword "password" \
+ set-access-control-handler-prop \
+ --remove global-aci:"(targetcontrol=\"2.16.840.1.113730.3.4.2 || \
+ 2.16.840.1.113730.3.4.17 || 2.16.840.1.113730.3.4.19 || \
+ 1.3.6.1.4.1.4203.1.10.2 || 1.3.6.1.4.1.42.2.27.8.5.1 || \
+ 2.16.840.1.113730.3.4.16\") (version 3.0; acl \"Anonymous control access\"; \
+ allow(read) userdn=\"ldap:///anyone\";)" \
+ --add global-aci:"(targetcontrol=\"2.16.840.1.113730.3.4.2 || \
+ 2.16.840.1.113730.3.4.17 || 2.16.840.1.113730.3.4.19 || \
+ 1.3.6.1.4.1.4203.1.10.2 || 1.3.6.1.4.1.42.2.27.8.5.1 || \
+ 2.16.840.1.113730.3.4.16 || 1.2.840.113556.1.4.319\") \
+ (version 3.0; acl \"Anonymous control access\"; allow(read) \
+ userdn=\"ldap:///anyone\";)" \
+ --no-prompt
+----
+Alternatively, stop OpenDJ, edit the corresponding ACI carefully in `/path/to/opendj/config/config.ldif`, and restart OpenDJ. footnote:d67723e18754[Unlike the`dsconfig`command, the`config.ldif`file is not a public interface, so this alternative should not be used in production.]
+
+
+
+[#troubleshoot-repl]
+=== Troubleshooting Replication
+
+Replication can generally recover from conflicts and transient issues. Replication does, however, require that update operations be copied from server to server. It is therefore possible to experience temporary delays while replicas converge, especially when the write operation load is heavy. OpenDJ's tolerance for temporary divergence between replicas is what allows OpenDJ to remain available to serve client applications even when networks linking the replicas go down.
+
+In other words, the fact that directory services are loosely convergent rather than transactional is a feature, not a bug.
+
+That said, you may encounter errors. Replication uses its own error log file, `logs/replication`. Error messages in the log file have `category=SYNC`. The messages have the following form. Here the line is folded for readability:
+
+[source]
+----
+[27/Jun/2011:14:37:48 +0200] category=SYNC severity=INFORMATION msgID=14680169
+ msg=Replication server accepted a connection from 10.10.0.10/10.10.0.10:52859
+ to local address 0.0.0.0/0.0.0.0:8989 but the SSL handshake failed. This is
+ probably benign, but may indicate a transient network outage or a
+ misconfigured client application connecting to this replication server.
+ The error was: Remote host closed connection during handshake
+----
+OpenDJ maintains historical information about changes in order to bring replicas up to date, and to resolve replication conflicts. To prevent historical information from growing without limit, OpenDJ purges historical information after a configurable delay (`replication-purge-delay`, default: 3 days). A replica can become irrevocably out of sync if you restore it from a backup archive older than the purge delay, or if you stop it for longer than the purge delay. If this happens to you, disable the replica, and then reinitialize it from a recent backup or from a server that is up to date.
+
+
+[#troubleshoot-get-help]
+=== Asking For Help
+
+When you cannot resolve a problem yourself, and want to ask for help, clearly identify the problem and how you reproduce it, and also the version of OpenDJ you use to reproduce the problem. The version includes both a version number and also a build time stamp:
+
+[source, console]
+----
+$ dsconfig --version
+OpenDJ 3.5.3
+Build yyyymmddhhmmssZ
+----
+Be ready to provide the following additional information:
+
+* The output from the `java -version` command.
+
+* `access` and `errors` logs showing what the server was doing when the problem started occurring
+
+* A copy of the server configuration file, `config/config.ldif`, in use when the problem started occurring
+
+* Other relevant logs or output, such as those from client applications experiencing the problem
+
+* A description of the environment where OpenDJ is running, including system characteristics, host names, IP addresses, Java versions, storage characteristics, and network characteristics. This helps to understand the logs, and other information.
+
+
+

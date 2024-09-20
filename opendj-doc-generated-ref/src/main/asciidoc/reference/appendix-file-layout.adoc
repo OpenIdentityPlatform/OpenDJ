@@ -1,0 +1,142 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[appendix]
+[#appendix-file-layout]
+== File Layout
+
+OpenDJ software installs and creates the following files and directories. The following list is not meant to be exhaustive:
+--
+
+`legal-notices`::
+License information
+
+`QuickSetup.app`::
+Mac OS X GUI for installing OpenDJ
+
+`README`::
+Brief instructions on installing OpenDJ directory server
+
+`Uninstall.app`::
+Mac OS X GUI for removing OpenDJ
+
+`bak`::
+Directory for saving backup files
+
+`bat`::
+Windows command-line tools and control panel
+
+`bin`::
+UNIX/Linux/Mac OS X command-line tools and control panel
+
+`changelogDb`::
+Backend data for the external change log when using replication
+
+`classes`::
+Directory added to the `CLASSPATH` for OpenDJ, permitting individual classes to be patched
+
+`config`::
+OpenDJ server configuration and schema, PKI stores, LDIF generation templates, resources for upgrade
+
+`config/MakeLDIF`::
+Templates for use with the `make-ldif` LDIF generation tool
+
+`config/config.ldif`::
+LDIF representation of current OpenDJ server config
+
++
+Use the `dsconfig` command to edit OpenDJ server configuration.
+
+`config/java.properties`::
+JVM settings for OpenDJ server and tools
+
+`config/schema`::
+OpenDJ directory server LDAP schema definition files
+
+`config/tasks.ldif`::
+Data used by task scheduler backend so that scheduled tasks and recurring tasks persist after server restart
+
+`config/tools.properties`::
+Default settings for command-line tools
+
++
+Use as a template when creating an `~/.opendj/tools.properties` file.
+
+`config/upgrade`::
+Resources used by the upgrade command to move to the next version of OpenDJ
+
+`config/wordlist.txt`::
+List of words used to check password strength
+
+`db`::
+Backend database files for persistent, indexed backends that hold user data
+
+`example-plugin.zip`::
+Sample OpenDJ plugin code. Custom plugins are meant to be installed in `lib/extensions`.
+
+`import-tmp`::
+Used when importing data into OpenDJ
+
+`instance.loc`::
+Pointer to OpenDJ on the file system, provided for package installations where the program files are separate from the server instance files
+
+`ldif`::
+Directory for saving LDIF export files
+
+`lib`::
+Scripts and libraries needed by OpenDJ and added to the `CLASSPATH` for OpenDJ
+
+`lib/extensions`::
+File system directory to hold your custom plugins
+
+`locks`::
+Directory to hold lock files used when OpenDJ is running to prevent backends from accidentally being used by more than one server process
+
+`logs`::
+Access, errors, audit, and replication logs
+
+`logs/server.pid`::
+Contains the process ID for the server when OpenDJ is running
+
+`setup`::
+UNIX setup utility
+
+`setup.bat`::
+Windows setup utility
+
+`template`::
+Template files for a directory server instance
+
+`uninstall`::
+UNIX utility for removing OpenDJ
+
+`uninstall.bat`::
+Windows utility for removing OpenDJ
+
+`upgrade`::
+UNIX utility for upgrading OpenDJ by pointing to the new .zip
+
+`upgrade.bat`::
+Windows utility for upgrading OpenDJ by pointing to the new .zip
+
+--
+

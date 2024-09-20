@@ -1,0 +1,54 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+= Administration Guide
+:doctype: book
+:toc:
+:authors: Mark Craig, Nemanja Lukić, Ludovic Poitou, Chris Ridd, Valery Kharseko
+:copyright: Copyright 2011-2017 ForgeRock AS.
+:copyright: Portions Copyright 2024 3A Systems LLC.
+
+:imagesdir: ../
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+[abstract]
+Hands-on guide to configuring and using OpenDJ features. The OpenDJ project offers open source LDAP directory services in Java.
+
+include::./preface.adoc[]
+include::./chap-understanding-ldap.adoc[]
+include::./chap-admin-tools.adoc[]
+include::./chap-server-process.adoc[]
+include::./chap-import-export.adoc[]
+include::./chap-connection-handlers.adoc[]
+include::./chap-privileges-acis.adoc[]
+include::./chap-indexing.adoc[]
+include::./chap-replication.adoc[]
+include::./chap-backup-restore.adoc[]
+include::./chap-pwd-policy.adoc[]
+include::./chap-account-lockout.adoc[]
+include::./chap-resource-limits.adoc[]
+include::./chap-attribute-uniqueness.adoc[]
+include::./chap-schema.adoc[]
+include::./chap-pta.adoc[]
+include::./chap-samba.adoc[]
+include::./chap-monitoring.adoc[]
+include::./chap-tuning.adoc[]
+include::./chap-production.adoc[]
+include::./chap-change-certs.adoc[]
+include::./chap-mv-servers.adoc[]
+include::./chap-troubleshooting.adoc[]

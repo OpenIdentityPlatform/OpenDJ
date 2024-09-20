@@ -1,0 +1,424 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[appendix]
+[#appendix-standards]
+== Standards, RFCs, & Internet-Drafts
+
+OpenDJ 3.5 software implements the following RFCs, Internet-Drafts, and standards:
+--
+
+[#rfc1274]
+link:http://tools.ietf.org/html/rfc1274[RFC 1274: The COSINE and Internet X.500 Schema, window=\_top]::
++
+X.500 Directory Schema, or Naming Architecture, for use in the COSINE and Internet X.500 pilots.
+
+[#rfc1321]
+link:http://tools.ietf.org/html/rfc1321[RFC 1321: The MD5 Message-Digest Algorithm, window=\_top]::
++
+MD5 message-digest algorithm that takes as input a message of arbitrary length and produces as output a 128-bit "fingerprint" or "message digest" of the input.
+
+[#rfc1777]
+link:http://tools.ietf.org/html/rfc1777[RFC 1777: Lightweight Directory Access Protocol (LDAPv2), window=\_top]::
++
+Provide access to the X.500 Directory while not incurring the resource requirements of the Directory Access Protocol.
+
++
+Classified as an Historic document.
+
+[#rfc1778]
+link:http://tools.ietf.org/html/rfc1778[RFC 1778: The String Representation of Standard Attribute Syntaxes, window=\_top]::
++
+Defines the requirements that must be satisfied by encoding rules used to render X.500 Directory attribute syntaxes into a form suitable for use in the LDAP, then defines the encoding rules for the standard set of attribute syntaxes.
+
++
+Classified as an Historic document.
+
+[#rfc1779]
+link:http://tools.ietf.org/html/rfc1779[RFC 1779: A String Representation of Distinguished Names, window=\_top]::
++
+Defines a string format for representing names, which is designed to give a clean representation of commonly used names, whilst being able to represent any distinguished name.
+
++
+Classified as an Historic document.
+
+[#rfc2079]
+link:http://tools.ietf.org/html/rfc2079[RFC 2079: Definition of an X.500 Attribute Type and an Object Class to Hold Uniform Resource Identifiers (URIs), window=\_top]::
++
+Defines a new attribute type and an auxiliary object class to allow URIs, including URLs, to be stored in directory entries in a standard way.
+
+[#rfc2222]
+link:http://tools.ietf.org/html/rfc2222[RFC 2222: Simple Authentication and Security Layer (SASL), window=\_top]::
++
+Describes a method for adding authentication support to connection-based protocols.
+
+[#rfc2246]
+link:http://tools.ietf.org/html/rfc2246[RFC 2246: The TLS Protocol Version 1.0, window=\_top]::
++
+Specifies Version 1.0 of the Transport Layer Security protocol.
+
+[#rfc2247]
+link:http://tools.ietf.org/html/rfc2247[RFC 2247: Using Domains in LDAP/X.500 Distinguished Names, window=\_top]::
++
+Defines an algorithm by which a name registered with the Internet Domain Name Service can be represented as an LDAP distinguished name.
+
+[#rfc2251]
+link:http://tools.ietf.org/html/rfc2251[RFC 2251: Lightweight Directory Access Protocol (v3), window=\_top]::
++
+Describes a directory access protocol designed to provide access to directories supporting the X.500 models, while not incurring the resource requirements of the X.500 Directory Access Protocol.
+
+[#rfc2252]
+link:http://tools.ietf.org/html/rfc2252[RFC 2252: Lightweight Directory Access Protocol (v3): Attribute Syntax Definitions, window=\_top]::
++
+Defines a set of syntaxes for LDAPv3, and the rules by which attribute values of these syntaxes are represented as octet strings for transmission in the LDAP protocol.
+
+[#rfc2253]
+link:http://tools.ietf.org/html/rfc2253[RFC 2253: Lightweight Directory Access Protocol (v3): UTF-8 String Representation of Distinguished Names, window=\_top]::
++
+Defines a common UTF-8 format to represent distinguished names unambiguously.
+
+[#rfc2254]
+link:http://tools.ietf.org/html/rfc2254[RFC 2254: The String Representation of LDAP Search Filters, window=\_top]::
++
+Defines the string format for representing names, which is designed to give a clean representation of commonly used distinguished names, while being able to represent any distinguished name.
+
+[#rfc2255]
+link:http://tools.ietf.org/html/rfc2255[RFC 2255: The LDAP URL Format, window=\_top]::
++
+Describes a format for an LDAP Uniform Resource Locator.
+
+[#rfc2256]
+link:http://tools.ietf.org/html/rfc2256[RFC 2256: A Summary of the X.500(96) User Schema for use with LDAPv3, window=\_top]::
++
+Provides an overview of the attribute types and object classes defined by the ISO and ITU-T committees in the X.500 documents, in particular those intended for use by directory clients.
+
+[#rfc2307]
+link:http://tools.ietf.org/html/rfc2307[RFC 2307: An Approach for Using LDAP as a Network Information Service, window=\_top]::
++
+Describes an experimental mechanism for mapping entities related to TCP/IP and the UNIX system into X.500 entries so that they may be resolved with the Lightweight Directory Access Protocol.
+
+[#rfc2377]
+link:http://tools.ietf.org/html/rfc2377[RFC 2377: Naming Plan for Internet Directory-Enabled Applications, window=\_top]::
++
+Proposes a new directory naming plan that leverages the strengths of the most popular and successful Internet naming schemes for naming objects in a hierarchical directory.
+
+[#rfc2696]
+link:http://tools.ietf.org/html/rfc2696[RFC 2696: LDAP Control Extension for Simple Paged Results Manipulation, window=\_top]::
++
+Allows a client to control the rate at which an LDAP server returns the results of an LDAP search operation.
+
+[#rfc2713]
+link:http://tools.ietf.org/html/rfc2713[RFC 2713: Schema for Representing Java(tm) Objects in an LDAP Directory, window=\_top]::
++
+Defines a common way for applications to store and retrieve Java objects from the directory.
+
+[#rfc2714]
+link:http://tools.ietf.org/html/rfc2714[RFC 2714: Schema for Representing CORBA Object References in an LDAP Directory, window=\_top]::
++
+Define a common way for applications to store and retrieve CORBA object references from the directory.
+
+[#rfc2739]
+link:http://tools.ietf.org/html/rfc2739[RFC 2739: Calendar Attributes for vCard and LDAP, window=\_top]::
++
+Defines a mechanism to locate a user calendar and free/busy time using the LDAP protocol.
+
+[#rfc2798]
+link:http://tools.ietf.org/html/rfc2798[RFC 2798: Definition of the inetOrgPerson LDAP Object Class, window=\_top]::
++
+Define an object class called inetOrgPerson for use in LDAP and X.500 directory services that extends the X.521 standard organizationalPerson class.
+
+[#rfc2829]
+link:http://tools.ietf.org/html/rfc2829[RFC 2829: Authentication Methods for LDAP, window=\_top]::
++
+Specifies particular combinations of security mechanisms which are required and recommended in LDAP implementations.
+
+[#rfc2830]
+link:http://tools.ietf.org/html/rfc2830[RFC 2830: Lightweight Directory Access Protocol (v3): Extension for Transport Layer Security, window=\_top]::
++
+Defines the "Start Transport Layer Security (TLS) Operation" for LDAP.
+
+[#rfc2849]
+link:http://tools.ietf.org/html/rfc2849[RFC 2849: The LDAP Data Interchange Format (LDIF) - Technical Specification, window=\_top]::
++
++
+Describes a file format suitable for describing directory information or modifications made to directory information.
+
+[#rfc2891]
+link:http://tools.ietf.org/html/rfc2891[RFC 2891: LDAP Control Extension for Server Side Sorting of Search Results, window=\_top]::
++
+Describes two LDAPv3 control extensions for server-side sorting of search results.
+
+[#rfc2926]
+link:http://tools.ietf.org/html/rfc2926[RFC 2926: Conversion of LDAP Schemas to and from SLP Templates, window=\_top]::
++
+Describes a procedure for mapping between Service Location Protocol service advertisements and lightweight directory access protocol descriptions of services.
+
+[#rfc3045]
+link:http://tools.ietf.org/html/rfc3045[RFC 3045: Storing Vendor Information in the LDAP root DSE, window=\_top]::
++
+Specifies two Lightweight Directory Access Protocol attributes, vendorName and vendorVersion that MAY be included in the root DSA-specific Entry (DSE) to advertise vendor-specific information.
+
+[#rfc3062]
+link:http://tools.ietf.org/html/rfc3062[RFC 3062: LDAP Password Modify Extended Operation, window=\_top]::
++
+Describes an LDAP extended operation to allow modification of user passwords which is not dependent upon the form of the authentication identity nor the password storage mechanism used.
+
+[#rfc3112]
+link:http://tools.ietf.org/html/rfc3112[RFC 3112: LDAP Authentication Password Schema, window=\_top]::
++
+Describes schema in support of user/password authentication in a LDAP directory including the authPassword attribute type. This attribute type holds values derived from the user's password(s) (commonly using cryptographic strength one-way hash).
+
+[#rfc3296]
+link:http://tools.ietf.org/html/rfc3296[RFC 3296: Named Subordinate References in Lightweight Directory Access Protocol (LDAP) Directories, window=\_top]::
++
+Details schema and protocol elements for representing and managing named subordinate references in Lightweight Directory Access Protocol (LDAP) Directories.
+
+[#rfc3377]
+link:http://tools.ietf.org/html/rfc3377[RFC 3377: Lightweight Directory Access Protocol (v3): Technical Specification, window=\_top]::
++
+Specifies the set of RFCs comprising the Lightweight Directory Access Protocol Version 3 (LDAPv3), and addresses the "IESG Note" attached to RFCs 2251 through 2256.
+
+[#rfc3383]
+link:http://tools.ietf.org/html/rfc3383[RFC 3383: Internet Assigned Numbers Authority (IANA) Considerations for the Lightweight Directory Access Protocol (LDAP), window=\_top]::
++
+Provides procedures for registering extensible elements of the Lightweight Directory Access Protocol (LDAP).
+
+[#rfc3546]
+link:http://tools.ietf.org/html/rfc3546[RFC 3546: Transport Layer Security (TLS) Extensions, window=\_top]::
++
+Describes extensions that may be used to add functionality to Transport Layer Security.
+
+[#rfc3671]
+link:http://tools.ietf.org/html/rfc3671[RFC 3671: Collective Attributes in the Lightweight Directory Access Protocol (LDAP), window=\_top]::
++
+Summarizes the X.500 information model for collective attributes and describes use of collective attributes in LDAP.
+
+[#rfc3672]
+link:http://tools.ietf.org/html/rfc3672[RFC 3672: Subentries in the Lightweight Directory Access Protocol (LDAP), window=\_top]::
++
+Adapts X.500 subentries mechanisms for use with the Lightweight Directory Access Protocol (LDAP).
+
+[#rfc3673]
+link:http://tools.ietf.org/html/rfc3673[RFC 3673: Lightweight Directory Access Protocol version 3 (LDAPv3): All Operational Attributes, window=\_top]::
++
+Describes an LDAP extension which clients may use to request the return of all operational attributes.
+
+[#rfc3674]
+link:http://tools.ietf.org/html/rfc3674[RFC 3674: Feature Discovery in Lightweight Directory Access Protocol (LDAP), window=\_top]::
++
+Introduces a general mechanism for discovery of elective features and extensions which cannot be discovered using existing mechanisms.
+
+[#rfc3712]
+link:http://tools.ietf.org/html/rfc3712[RFC 3712: Lightweight Directory Access Protocol (LDAP): Schema for Printer Services, window=\_top]::
++
+Defines a schema, object classes and attributes, for printers and printer services, for use with directories that support Lightweight Directory Access Protocol v3 (LDAP).
+
+[#rfc3771]
+link:http://tools.ietf.org/html/rfc3771[RFC 3771: Lightweight Directory Access Protocol (LDAP) Intermediate Response Message, window=\_top]::
++
+Defines and describes the IntermediateResponse message, a general mechanism for defining single-request/multiple-response operations in Lightweight Directory Access Protocol.
+
+[#rfc3829]
+link:http://tools.ietf.org/html/rfc3829[RFC 3829: Lightweight Directory Access Protocol (LDAP) Authorization Identity Request and Response Controls, window=\_top]::
++
+Extends the Lightweight Directory Access Protocol bind operation with a mechanism for requesting and returning the authorization identity it establishes.
+
+[#rfc3876]
+link:http://tools.ietf.org/html/rfc3876[RFC 3876: Returning Matched Values with the Lightweight Directory Access Protocol version 3 (LDAPv3), window=\_top]::
++
+Describes a control for the Lightweight Directory Access Protocol version 3 that is used to return a subset of attribute values from an entry.
+
+[#rfc3909]
+link:http://tools.ietf.org/html/rfc3909[RFC 3909: Lightweight Directory Access Protocol (LDAP) Cancel Operation, window=\_top]::
++
+Describes a Lightweight Directory Access Protocol extended operation to cancel (or abandon) an outstanding operation, with a response to indicate the outcome of the operation.
+
+[#rfc4346]
+link:http://tools.ietf.org/html/rfc4346[RFC 4346: The Transport Layer Security (TLS) Protocol Version 1.1, window=\_top]::
++
+Specifies Version 1.1 of the Transport Layer Security protocol.
+
+[#rfc4370]
+link:http://tools.ietf.org/html/rfc4370[RFC 4370: Lightweight Directory Access Protocol (LDAP) Proxied Authorization Control, window=\_top]::
++
+Defines the Proxy Authorization Control, that allows a client to request that an operation be processed under a provided authorization identity instead of under the current authorization identity associated with the connection.
+
+[#rfc4403]
+link:http://tools.ietf.org/html/rfc4403[RFC 4403: Lightweight Directory Access Protocol (LDAP) Schema for Universal Description, Discovery, and Integration version 3 (UDDIv3), window=\_top]::
++
+Defines the Lightweight Directory Access Protocol schema for representing Universal Description, Discovery, and Integration data types in an LDAP directory.
+
+[#rfc4422]
+link:http://tools.ietf.org/html/rfc4422[RFC 4422: Simple Authentication and Security Layer (SASL), window=\_top]::
++
+Describes a framework for providing authentication and data security services in connection-oriented protocols via replaceable mechanisms.
+
+[#rfc4505]
+link:http://tools.ietf.org/html/rfc4505[RFC 4505: Anonymous Simple Authentication and Security Layer (SASL) Mechanism, window=\_top]::
++
+Describes a new way to provide anonymous login is needed within the context of the Simple Authentication and Security Layer framework.
+
+[#rfc4510]
+link:http://tools.ietf.org/html/rfc4510[RFC 4510: Lightweight Directory Access Protocol (LDAP): Technical Specification Road Map, window=\_top]::
++
+Provides a road map of the LDAP Technical Specification.
+
+[#rfc4511]
+link:http://tools.ietf.org/html/rfc4511[RFC 4511: Lightweight Directory Access Protocol (LDAP): The Protocol, window=\_top]::
++
+Describes the protocol elements, along with their semantics and encodings, of the Lightweight Directory Access Protocol.
+
+[#rfc4512]
+link:http://tools.ietf.org/html/rfc4512[RFC 4512: Lightweight Directory Access Protocol (LDAP): Directory Information Models, window=\_top]::
++
+Describes the X.500 Directory Information Models as used in LDAP.
+
+[#rfc4513]
+link:http://tools.ietf.org/html/rfc4513[RFC 4513: Lightweight Directory Access Protocol (LDAP): Authentication Methods and Security Mechanisms, window=\_top]::
++
+Describes authentication methods and security mechanisms of the Lightweight Directory Access Protocol.
+
+[#rfc4514]
+link:http://tools.ietf.org/html/rfc4514[RFC 4514: Lightweight Directory Access Protocol (LDAP): String Representation of Distinguished Names, window=\_top]::
++
+Defines the string representation used in the Lightweight Directory Access Protocol to transfer distinguished names.
+
+[#rfc4515]
+link:http://tools.ietf.org/html/rfc4515[RFC 4515: Lightweight Directory Access Protocol (LDAP): String Representation of Search Filters, window=\_top]::
++
+Defines a human-readable string representation of LDAP search filters that is appropriate for use in LDAP URLs and in other applications.
+
+[#rfc4516]
+link:http://tools.ietf.org/html/rfc4516[RFC 4516: Lightweight Directory Access Protocol (LDAP): Uniform Resource Locator, window=\_top]::
++
+Describes a format for a Lightweight Directory Access Protocol Uniform Resource Locator.
+
+[#rfc4517]
+link:http://tools.ietf.org/html/rfc4517[RFC 4517: Lightweight Directory Access Protocol (LDAP): Syntaxes and Matching Rules, window=\_top]::
++
+Defines a base set of syntaxes and matching rules for use in defining attributes for LDAP directories.
+
+[#rfc4518]
+link:http://tools.ietf.org/html/rfc4518[RFC 4518: Lightweight Directory Access Protocol (LDAP): Internationalized String Preparation, window=\_top]::
++
+Defines string preparation algorithms for character-based matching rules defined for use in LDAP.
+
+[#rfc4519]
+link:http://tools.ietf.org/html/rfc4519[RFC 4519: Lightweight Directory Access Protocol (LDAP): Schema for User Applications, window=\_top]::
++
+Provides a technical specification of attribute types and object classes intended for use by LDAP directory clients for many directory services, such as White Pages.
+
+[#rfc4523]
+link:http://tools.ietf.org/html/rfc4523[RFC 4523: Lightweight Directory Access Protocol (LDAP) Schema Definitions for X.509 Certificates, window=\_top]::
++
+Describes schema for representing X.509 certificates, X.521 security information, and related elements in directories accessible using the Lightweight Directory Access Protocol (LDAP).
+
+[#rfc4524]
+link:http://tools.ietf.org/html/rfc4524[RFC 4524: COSINE LDAP/X.500 Schema, window=\_top]::
++
+Provides a collection of schema elements for use with the Lightweight Directory Access Protocol from the COSINE and Internet X.500 pilot projects.
+
+[#rfc4525]
+link:http://tools.ietf.org/html/rfc4525[RFC 4525: Lightweight Directory Access Protocol (LDAP) Modify-Increment Extension, window=\_top]::
++
+Describes an extension to the Lightweight Directory Access Protocol Modify operation to support an increment capability.
+
+[#rfc4526]
+link:http://tools.ietf.org/html/rfc4526[RFC 4526: Lightweight Directory Access Protocol (LDAP) Absolute True and False Filters, window=\_top]::
++
+Extends the Lightweight Directory Access Protocol to support absolute True and False filters based upon similar capabilities found in X.500 directory systems.
+
+[#rfc4527]
+link:http://tools.ietf.org/html/rfc4527[RFC 4527: Lightweight Directory Access Protocol (LDAP) Read Entry Controls, window=\_top]::
++
+Specifies an extension to the Lightweight Directory Access Protocol to allow the client to read the target entry of an update operation.
+
+[#rfc4528]
+link:http://tools.ietf.org/html/rfc4528[RFC 4528: Lightweight Directory Access Protocol (LDAP) Assertion Control, window=\_top]::
++
+Defines the Lightweight Directory Access Protocol Assertion Control, which allows a client to specify that a directory operation should only be processed if an assertion applied to the target entry of the operation is true.
+
+[#rfc4529]
+link:http://tools.ietf.org/html/rfc4529[RFC 4529: Requesting Attributes by Object Class in the Lightweight Directory Access Protocol (LDAP), window=\_top]::
++
+Extends LDAP to support a mechanism that LDAP clients may use to request the return of all attributes of an object class.
+
+[#rfc4530]
+link:http://tools.ietf.org/html/rfc4530[RFC 4530: Lightweight Directory Access Protocol (LDAP) entryUUID Operational Attribute, window=\_top]::
++
+Describes the LDAP/X.500 'entryUUID' operational attribute and associated matching rules and syntax.
+
+[#rfc4532]
+link:http://tools.ietf.org/html/rfc4532[RFC 4532: Lightweight Directory Access Protocol (LDAP) "Who am I?" Operation, window=\_top]::
++
+Provides a mechanism for Lightweight Directory Access Protocol clients to obtain the authorization identity the server has associated with the user or application entity.
+
+[#rfc4616]
+link:http://tools.ietf.org/html/rfc4616[RFC 4616: The PLAIN Simple Authentication and Security Layer (SASL) Mechanism, window=\_top]::
++
+Defines a simple cleartext user/password Simple Authentication and Security Layer mechanism called the PLAIN mechanism.
+
+[#rfc4634]
+link:http://tools.ietf.org/html/rfc4634[RFC 4634: US Secure Hash Algorithms (SHA and HMAC-SHA), window=\_top]::
++
+Specifies Secure Hash Algorithms, SHA-256, SHA-384, and SHA-512, for computing a condensed representation of a message or a data file.
+
+[#rfc4752]
+link:http://tools.ietf.org/html/rfc4752[RFC 4752: The Kerberos V5 ("GSSAPI") Simple Authentication and Security Layer (SASL) Mechanism, window=\_top]::
++
+Describes the method for using the Generic Security Service Application Program Interface (GSS-API) Kerberos V5 in the Simple Authentication and Security Layer, called the GSSAPI mechanism.
+
+[#rfc4876]
+link:http://tools.ietf.org/html/rfc4876[RFC 4876: A Configuration Profile Schema for Lightweight Directory Access Protocol (LDAP)-Based Agents, window=\_top]::
++
+Defines a schema for storing a profile for agents that make use of the Lightweight Directory Access protocol (LDAP).
+
+[#rfc5020]
+link:http://tools.ietf.org/html/rfc5020[RFC 5020: The Lightweight Directory Access Protocol (LDAP) entryDN Operational Attribute, window=\_top]::
++
+Describes the Lightweight Directory Access Protocol (LDAP) / X.500 'entryDN' operational attribute, that provides a copy of the entry's distinguished name for use in attribute value assertions.
+
+[#fips180-1]
+link:http://www.itl.nist.gov/fipspubs/fip180-1.htm[FIPS 180-1: Secure Hash Standard (SHA-1), window=\_top]::
++
+Specifies a Secure Hash Algorithm, SHA-1, for computing a condensed representation of a message or a data file.
+
+[#fips180-2]
+link:http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf[FIPS 180-2: Secure Hash Standard (SHA-1, SHA-256, SHA-384, SHA-512), window=\_top]::
++
+Specifies four Secure Hash Algorithms for computing a condensed representation of electronic data.
+
+[#dsmlv2]
+link:http://www.oasis-open.org/committees/dsml/docs/DSMLv2.xsd[DSMLv2: Directory Service Markup Language, window=\_top]::
++
+Provides a method for expressing directory queries and updates as XML documents.
+
+link:http://www.json.org[JavaScript Object Notation, window=\_blank]::
++
+A data-interchange format that aims to be both "easy for humans to read and write," and also "easy for machines to parse and generate."
+
+link:http://www.simplecloud.info/specs/draft-scim-core-schema-00.html[Simple Cloud Identity Management: Core Schema 1.0, window=\_blank]::
++
+Platform neutral schema and extension model for representing users and groups in JSON and XML formats. OpenDJ supports the JSON formats.
+
+--
+

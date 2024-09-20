@@ -1,0 +1,1141 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[appendix]
+[#appendix-l10n]
+== Localization
+
+OpenDJ software stores data in UTF-8 format. It enables you to store and to search for attribute values according to a variety of language specific locales. OpenDJ software is also itself localized for a smaller variety of languages.
+
+[#supported-languages]
+=== OpenDJ Languages
+
+OpenDJ 3.5 software is localized in the following languages:
+
+* French
+
+* German
+
+* Japanese
+
+* Simplified Chinese
+
+* Spanish
+
+
+[NOTE]
+====
+Certain messages have also been translated into Catalan, Korean, Polish, and Traditional Chinese. Some error messages including messages labeled ERROR are provided only in English.
+====
+
+
+[#sec-locales-subtypes]
+=== Directory Support For Locales and Language Subtypes
+
+OpenDJ software supports the following locales with their associated language and country codes and their collation order object identifiers. Locale support depends on the Java Virtual Machine used at run time. The following list reflects all supported locales.
+[#supported-locales]
+.Supported Locales
+--
+
+Afrikaans::
+Code tag: af
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.1.1
+
+Albanian::
+Code tag: sq
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.127.1
+
+Amharic::
+Code tag: am
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.2.1
+
+Arabic::
+Code tag: ar
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.3.1
+
+Arabic (Algeria)::
+Code tag: ar-DZ
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.6.1
+
+Arabic (Bahrain)::
+Code tag: ar-BH
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.5.1
+
+Arabic (Egypt)::
+Code tag: ar-EG
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.7.1
+
+Arabic (India)::
+Code tag: ar-IN
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.8.1
+
+Arabic (Iraq)::
+Code tag: ar-IQ
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.9.1
+
+Arabic (Jordan)::
+Code tag: ar-JO
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.10.1
+
+Arabic (Kuwait)::
+Code tag: ar-KW
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.11.1
+
+Arabic (Lebanon)::
+Code tag: ar-LB
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.12.1
+
+Arabic (Libya)::
+Code tag: ar-LY
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.13.1
+
+Arabic (Morocco)::
+Code tag: ar-MA
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.14.1
+
+Arabic (Oman)::
+Code tag: ar-OM
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.15.1
+
+Arabic (Qatar)::
+Code tag: ar-QA
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.16.1
+
+Arabic (Saudi Arabia)::
+Code tag: ar-SA
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.17.1
+
+Arabic (Sudan)::
+Code tag: ar-SD
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.18.1
+
+Arabic (Syria)::
+Code tag: ar-SY
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.19.1
+
+Arabic (Tunisia)::
+Code tag: ar-TN
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.20.1
+
+Arabic (United Arab Emirates)::
+Code tag: ar-AE
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.4.1
+
+Arabic (Yemen)::
+Code tag: ar-YE
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.21.1
+
+Armenian::
+Code tag: hy
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.89.1
+
+Basque::
+Code tag: eu
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.70.1
+
+Belarusian::
+Code tag: be
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.22.1
+
+Bengali::
+Code tag: bn
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.24.1
+
+Bulgarian::
+Code tag: bg
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.23.1
+
+Catalan::
+Code tag: ca
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.25.1
+
+Chinese::
+Code tag: zh
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.143.1
+
+Chinese (China)::
+Code tag: zh-CN
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.144.1
+
+Chinese (Hong Kong)::
+Code tag: zh-HK
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.145.1
+
+Chinese (Macao)::
+Code tag: zh-MO
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.146.1
+
+Chinese (Singapore)::
+Code tag: zh-SG
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.147.1
+
+Chinese (Taiwan)::
+Code tag: zh-TW
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.148.1
+
+Cornish::
+Code tag: kw
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.99.1
+
+Croatian::
+Code tag: hr
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.87.1
+
+Czech::
+Code tag: cs
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.26.1
+
+Danish::
+Code tag: da
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.27.1
+
+Dutch::
+Code tag: nl
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.105.1
+
+Dutch (Belgium)::
+Code tag: nl-BE
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.106.1
+
+Dutch (Netherlands)::
+Code tag: nl-NL
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.105.1
+
+English::
+Code tag: en
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.34.1
+
+English (Australia)::
+Code tag: en-AU
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.35.1
+
+English (Canada)::
+Code tag: en-CA
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.36.1
+
+English (Hong Kong)::
+Code tag: en-HK
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.38.1
+
+English (India)::
+Code tag: en-IN
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.40.1
+
+English (Ireland)::
+Code tag: en-IE
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.39.1
+
+English (Malta)::
+Code tag: en-MT
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.41.1
+
+English (New Zealand)::
+Code tag: en-NZ
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.42.1
+
+English (Philippines)::
+Code tag: en-PH
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.43.1
+
+English (Singapore)::
+Code tag: en-SG
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.44.1
+
+English (South Africa)::
+Code tag: en-ZA
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.46.1
+
+English (U.S. Virgin Islands)::
+Code tag: en-VI
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.45.1
+
+English (United Kingdom)::
+Code tag: en-GB
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.37.1
+
+English (United States)::
+Code tag: en-US
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.34.1
+
+English (Zimbabwe)::
+Code tag: en-ZW
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.47.1
+
+Esperanto::
+Code tag: eo
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.48.1
+
+Estonian::
+Code tag: et
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.69.1
+
+Faroese::
+Code tag: fo
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.75.1
+
+Finnish::
+Code tag: fi
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.74.1
+
+French::
+Code tag: fr
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.76.1
+
+French (Belgium)::
+Code tag: fr-BE
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.77.1
+
+French (Canada)::
+Code tag: fr-CA
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.78.1
+
+French (France)::
+Code tag: fr-FR
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.76.1
+
+French (Luxembourg)::
+Code tag: fr-LU
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.80.1
+
+French (Switzerland)::
+Code tag: fr-CH
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.79.1
+
+Gallegan::
+Code tag: gl
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.82.1
+
+German::
+Code tag: de
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.28.1
+
+German (Austria)::
+Code tag: de-AT
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.29.1
+
+German (Belgium)::
+Code tag: de-BE
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.30.1
+
+German (Germany)::
+Code tag: de-DE
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.28.1
+
+German (Luxembourg)::
+Code tag: de-LU
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.32.1
+
+German (Switzerland)::
+Code tag: de-CH
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.31.1
+
+Greek::
+Code tag: el
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.33.1
+
+Greenlandic::
+Code tag: kl
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.95.1
+
+Gujarati::
+Code tag: gu
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.83.1
+
+Hebrew::
+Code tag: iw
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.85.1
+
+Hindi::
+Code tag: hi
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.86.1
+
+Hungarian::
+Code tag: hu
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.88.1
+
+Icelandic::
+Code tag: is
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.91.1
+
+Indonesian::
+Code tag: in
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.90.1
+
+Irish::
+Code tag: ga
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.81.1
+
+Italian::
+Code tag: it
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.92.1
+
+Italian (Switzerland)::
+Code tag: it-CH
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.93.1
+
+Japanese::
+Code tag: ja
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.94.1
+
+Kannada::
+Code tag: kn
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.96.1
+
+Konkani::
+Code tag: kok
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.98.1
+
+Korean::
+Code tag: ko
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.97.1
+
+Latvian::
+Code tag: lv
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.101.1
+
+Lithuanian::
+Code tag: lt
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.100.1
+
+Macedonian::
+Code tag: mk
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.102.1
+
+Maltese::
+Code tag: mt
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.104.1
+
+Manx::
+Code tag: gv
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.84.1
+
+Marathi::
+Code tag: mr
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.103.1
+
+Norwegian::
+Code tag: no
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.107.1
+
+Norwegian (Norway)::
+Code tag: no-NO-B
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.110.1
+
+Norwegian Bokmål::
+Code tag: nb
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.110.1
+
+Norwegian Nynorsk::
+Code tag: nn
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.109.1
+
+Oromo::
+Code tag: om
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.111.1
+
+Oromo (Ethiopia)::
+Code tag: om-ET
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.112.1
+
+Oromo (Kenya)::
+Code tag: om-KE
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.113.1
+
+Persian::
+Code tag: fa
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.71.1
+
+Persian (India)::
+Code tag: fa-IN
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.72.1
+
+Persian (Iran)::
+Code tag: fa-IR
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.73.1
+
+Polish::
+Code tag: pl
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.114.1
+
+Portuguese::
+Code tag: pt
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.115.1
+
+Portuguese (Brazil)::
+Code tag: pt-BR
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.116.1
+
+Portuguese (Portugal)::
+Code tag: pt-PT
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.115.1
+
+Romanian::
+Code tag: ro
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.117.1
+
+Russian::
+Code tag: ru
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.118.1
+
+Russian (Russia)::
+Code tag: ru-RU
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.118.1
+
+Russian (Ukraine)::
+Code tag: ru-UA
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.119.1
+
+Serbian::
+Code tag: sr
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.128.1
+
+Serbo-Croatian::
+Code tag: sh
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.120.1
+
+Slovak::
+Code tag: sk
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.121.1
+
+Slovenian::
+Code tag: sl
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.122.1
+
+Somali::
+Code tag: so
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.123.1
+
+Somali (Djibouti)::
+Code tag: so-DJ
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.124.1
+
+Somali (Ethiopia)::
+Code tag: so-ET
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.125.1
+
+Somali (Kenya)::
+Code tag: so-KE
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.126.1
+
+Somali (Somalia)::
+Code tag: so-SO
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.123.1
+
+Spanish::
+Code tag: es
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.49.1
+
+Spanish (Argentina)::
+Code tag: es-AR
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.50.1
+
+Spanish (Bolivia)::
+Code tag: es-BO
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.51.1
+
+Spanish (Chile)::
+Code tag: es-CL
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.52.1
+
+Spanish (Colombia)::
+Code tag: es-CO
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.53.1
+
+Spanish (Costa Rica)::
+Code tag: es-CR
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.54.1
+
+Spanish (Dominican Republic)::
+Code tag: es-DO
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.55.1
+
+Spanish (Ecuador)::
+Code tag: es-EC
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.56.1
+
+Spanish (El Salvador)::
+Code tag: es-SV
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.65.1
+
+Spanish (Guatemala)::
+Code tag: es-GT
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.57.1
+
+Spanish (Honduras)::
+Code tag: es-HN
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.58.1
+
+Spanish (Mexico)::
+Code tag: es-MX
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.59.1
+
+Spanish (Nicaragua)::
+Code tag: es-NI
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.60.1
+
+Spanish (Panama)::
+Code tag: es-PA
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.61.1
+
+Spanish (Paraguay)::
+Code tag: es-PY
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.64.1
+
+Spanish (Peru)::
+Code tag: es-PE
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.62.1
+
+Spanish (Puerto Rico)::
+Code tag: es-PR
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.63.1
+
+Spanish (Spain)::
+Code tag: es-ES
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.49.1
+
+Spanish (United States)::
+Code tag: es-US
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.66.1
+
+Spanish (Uruguay)::
+Code tag: es-UY
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.67.1
+
+Spanish (Venezuela)::
+Code tag: es-VE
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.68.1
+
+Swahili::
+Code tag: sw
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.131.1
+
+Swahili (Kenya)::
+Code tag: sw-KE
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.132.1
+
+Swahili (Tanzania)::
+Code tag: sw-TZ
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.133.1
+
+Swedish::
+Code tag: sv
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.129.1
+
+Swedish (Finland)::
+Code tag: sv-FI
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.130.1
+
+Swedish (Sweden)::
+Code tag: sv-SE
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.129.1
+
+Tamil::
+Code tag: ta
+
++
+Collation order object identifier: 1 3 1.3.6.1.4.1.42.2.27.9.4.134.1
+
+Telugu::
+Code tag: te
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.135.1
+
+Thai::
+Code tag: th
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.136.1
+
+Tigrinya::
+Code tag: ti
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.137.1
+
+Tigrinya (Eritrea)::
+Code tag: ti-ER
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.138.1
+
+Tigrinya (Ethiopia)::
+Code tag: ti-ET
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.139.1
+
+Turkish::
+Code tag: tr
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.140.1
+
+Ukrainian::
+Code tag: uk
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.141.1
+
+Vietnamese::
+Code tag: vi
+
++
+Collation order object identifier: 1.3.6.1.4.1.42.2.27.9.4.142.1
+
+--
+.Supported Language Subtypes
+
+* Afrikaans, af
+
+* Albanian, sq
+
+* Amharic, am
+
+* Arabic, ar
+
+* Armenian, hy
+
+* Basque, eu
+
+* Belarusian, be
+
+* Bengali, bn
+
+* Bulgarian, bg
+
+* Catalan, ca
+
+* Chinese, zh
+
+* Cornish, kw
+
+* Croatian, hr
+
+* Czech, cs
+
+* Danish, da
+
+* Dutch, nl
+
+* English, en
+
+* Esperanto, eo
+
+* Estonian, et
+
+* Faroese, fo
+
+* Finnish, fi
+
+* French, fr
+
+* Gallegan, gl
+
+* German, de
+
+* Greek, el
+
+* Greenlandic, kl
+
+* Gujarati, gu
+
+* Hebrew, iw
+
+* Hindi, hi
+
+* Hungarian, hu
+
+* Icelandic, is
+
+* Indonesian, in
+
+* Irish, ga
+
+* Italian, it
+
+* Japanese, ja
+
+* Kannada, kn
+
+* Konkani, kok
+
+* Korean, ko
+
+* Latvian, lv
+
+* Lithuanian, lt
+
+* Macedonian, mk
+
+* Maltese, mt
+
+* Manx, gv
+
+* Marathi, mr
+
+* Norwegian, no
+
+* Norwegian Bokmål, nb
+
+* Norwegian Nynorsk, nn
+
+* Oromo, om
+
+* Persian, fa
+
+* Polish, pl
+
+* Portuguese, pt
+
+* Romanian, ro
+
+* Russian, ru
+
+* Serbian, sr
+
+* Serbo-Croatian, sh
+
+* Slovak, sk
+
+* Slovenian, sl
+
+* Somali, so
+
+* Spanish, es
+
+* Swahili, sw
+
+* Swedish, sv
+
+* Tamil, ta
+
+* Telugu, te
+
+* Thai, th
+
+* Tigrinya, ti
+
+* Turkish, tr
+
+* Ukrainian, uk
+
+* Vietnamese, vi
+
+
+

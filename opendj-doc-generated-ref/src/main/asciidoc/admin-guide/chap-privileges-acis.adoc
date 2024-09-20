@@ -1,0 +1,1242 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-privileges-acis]
+== Configuring Privileges and Access Control
+
+OpenDJ supports two mechanisms to protect access to the directory, __access control instructions__ and administrative __privileges__. Access control instructions apply to directory data, providing fine-grained control over what a user or group member is authorized to do in terms of LDAP operations. Most access control instructions specify scopes (targets) to which they apply such that an administrative user who has all access to `dc=example,dc=com` need not have any access to `dc=example,dc=org`. Privileges control the administrative tasks that users can perform, such as bypassing the access control mechanism, performing backup and restore operations, making changes to the configuration, and other tasks.
+
+Privileges are implemented independently from access control. By default, privileges restrict administrative access to directory root users, though any user can be assigned a privilege. Privileges apply to a directory server, and do not have a scope. This chapter covers both access control and privileges. In this chapter you will learn to:
+
+* Configure privileges for directory administration
+
+* Read and write access control instructions
+
+* Configure access rights by setting access control instructions
+
+* Evaluate effective access rights for a particular user
+
+Some operations require both privileges and also access control instructions. For example, in order to reset user's passwords, an administrator needs both the `password-reset` privilege and also access control to write `userPassword` values on the user entries. By combining an access control instruction with a privilege, you can effectively restrict the scope of that privilege to a particular branch of the Directory Information Tree.
+
+[#about-acis]
+=== About Access Control Instructions
+
+OpenDJ directory server access control instructions (ACIs) exist as operational `aci` attribute values on directory entries, and as global ACIs stored in the configuration. ACIs apply to a scope defined in the instruction, and set permissions that depend on what operation is requested, who requested the operation, and how the client connected to the server.
+
+For example, the ACIs on the following entry allow anonymous read access to all attributes except passwords, and allow read-write access for directory administrators under `dc=example,dc=com`:
+
+[source, ldif]
+----
+dn: dc=example,dc=com
+objectClass: domain
+objectClass: top
+dc: example
+aci: (target ="ldap:///dc=example,dc=com")(targetattr !=
+ "userPassword")(version 3.0;acl "Anonymous read-search access";
+ allow (read, search, compare)(userdn = "ldap:///anyone");)
+aci: (target="ldap:///dc=example,dc=com") (targetattr =
+ "*")(version 3.0; acl "allow all Admin group"; allow(all) groupdn =
+ "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+----
+OpenDJ directory server's default behavior is that no access is allowed unless it is specifically granted by an access control instruction. In addition privileges assigned to certain users such as `cn=Directory Manager` allow them to bypass access control checks.
+
+OpenDJ directory server provides several global ACIs out of the box to facilitate evaluation while maintaining a reasonable security policy. By default users are allow to read the root DSE, to read the schema, to use certain controls and extended operations, to modify their own entries, to bind, and other operations. Global ACIs are defined on the access control handler, and apply to the entire directory server. You must adjust the default global ACIs to match the security policies for your organization, for example, to restrict anonymous access.
+
+ACI attribute values use a specific language described in this section. Although ACI attribute values can become difficult to read in LDIF, the basic syntax is simple:
+
+[source]
+----
+targets(version 3.0;acl "name";permissions subjects;)
+----
+The following list briefly explains the variables in the syntax above:
+--
+
+__targets__::
+The __targets__ specifies entries, attributes, controls, and extended operations to which the ACI applies.
+
++
+To include multiple __targets__, enclose each individual target in parentheses, (). When you specify multiple targets, all targets must match for the ACI to apply (`AND`).
+
+__name__::
+Supplies a human-readable description of what the ACI does.
+
+__permissions__::
+Defines which actions to allow, and which to deny. Paired with __subjects__.
+
+__subjects__::
+Identify clients to which the ACI applies depending on who connected, and when, where, and how they connected. Paired with __permissions__.
+
+--
+Separate multiple pairs of __permissions__ __subjects__ definitions with semicolons, ;. When you specify multiple permissions-subjects pairs, at least one must match (`OR`).
+
+[#aci-targets]
+==== ACI Targets
+
+The seven types of ACI targets identify the objects to which the ACI applies. Most expressions allow you to use either `=` to specify that the target should match the value or `!=` to specify that the target should not match the value:
+--
+
+`(target [!]= "ldap:///DN")`::
+Sets the scope to the entry with distinguished name __DN__, and to child entries.
+
++
+You can use asterisks, *, to replace attribute types, attribute values, and entire DN components. In other words, the following specification targets both `uid=bjensen,ou=People,dc=example,dc=com` and also `cn=Frank Zappa,ou=Musicians,dc=example,dc=com`:
++
+
+[source]
+----
+(target = "ldap:///*=*,*,dc=example,dc=com")
+----
++
+The __DN__ must be in the subtree of the entry on which the ACI is defined.
+
++
+If you do not specify `target`, then the entry holding this ACI will be affected. If `targetscope` is also omitted, then this entry and all subordinates will be affected.
+
+`(targetattr [!]= "attr-list")`::
+Replace __attr-list__ with a list of attribute type names, such as `userPassword`, separating multiple attribute type names with ||.
+
++
+This specification affects the entry where the ACI is located, or the entries specified by other targets in the ACI.
+
++
+You can use an asterisk, *, to specify all user attributes, although you will see better performance when explicitly including or excluding attribute types needed. You can use a plus sign, +, to specify all operational attributes.
+
++
+Note that a negated __attr-list__ of operational attributes will only match other operational attributes and never any user attributes, and vice-versa.
+
++
+If you do not include this target specification, then by default no attributes are affected by the ACI.
+
+`(targetfilter [!]= "ldap-filter")`::
+Sets the scope to match the __ldap-filter__ dynamically, as in an LDAP search. The __ldap-filter__ can be any valid LDAP filter.
+
+`(targattrfilters [!]= "expression")`::
+Use this target specification when managing changes made to particular attributes.
+
++
+Here __expression__ takes one of the following forms. Separate expressions with semicolons (;):
++
+
+[source]
+----
+op=attr1:filter1[&& attr2:filter2 …][;op=attr3:filter3[&& attr4:filter4 …] …]
+----
++
+Here __op__ can be either `add` for operations creating attributes, or `del` for operations removing them. Replace __attr__ with an attribute type. Replace __filter__ with an LDAP filter that corresponds to the __attr__ attribute type.
+
+`(targetscope = "base|onelevel|subtree|subordinate")`::
+Here `base` refers to the entry where the ACI is defined, `onelevel` to immediate children, `subtree` to the base entry and all children, and `subordinate` to all children only.
+
++
+If you do not specify `targetscope`, then the default is `subtree`.
+
+`(targetcontrol [!]= "OID")`::
+Replace __OID__ with the object identifier for the LDAP control to target. Separate multiple OIDs with ||.
+
++
+To use an LDAP control, the bind DN user must have `allow(read)` permissions.
+
++
+This target cannot be restricted to a specific subtree by combining it with another target.
+
+`(extop [!]= "OID")`::
+Replace __OID__ with the object identifier for the extended operation to target. Separate multiple OIDs with ||.
++
+To use an LDAP extended operation, the bind DN user must have `allow(read)` permissions.
++
+This target cannot be restricted to a specific subtree by combining it with another target.
+--
+
+[NOTE]
+====
+Different LDAP server implementations that support Netscape's ACI syntax
+may support different multi-valued quotation styles or policies. Specifically,
+this can relate to `attr-list` and `OID`
+values.
+
+OpenDJ ONLY offers support for the so-called "All-Encompassing" quotation
+style, as is demonstrated throughout this guide. For instance:
+
+`(targetattr = "attr1 || attr2 || attr3")`
+
+Other implementations may also support the so-called "Individual" quotation
+style, which is expressed as:
+`(targetattr = "attr1" || "attr2" || "attr3")`
+
+Users migrating to OpenDJ from an implementation that not only supports the
+"Individual" quotation style, but is actively using it, will need to take care to
+sanitize any inbound ACIs bearing this style of quotation, else errors will occur
+during integration.
+====
+
+
+[#aci-permissions]
+==== ACI Permissions
+
+ACI permission definitions take one of the following forms:
+
+[source]
+----
+allow(action[, action …])
+----
+
+[source]
+----
+deny(action[, action …])
+----
+
+[TIP]
+====
+Although `deny` is supported, avoid restricting permissions by using `deny`. Instead, explicitly `allow` access only where needed. What looks harmless and simple in your lab examples can grow difficult to maintain in a real-world deployment with nested ACIs.
+====
+Replace __action__ with one of the following:
+--
+
+`add`::
+Entry creation, as for an LDAP add operation.
+
+`all`::
+All permissions, except `export`, `import`, `proxy`.
+
+`compare`::
+Attribute value comparison, as for an LDAP compare operation.
+
+`delete`::
+Entry deletion, as for an LDAP delete operation.
+
+`export`::
+Entry export during a modify DN operation.
+
++
+Despite the name, this action is unrelated to LDIF export operations.
+
+`import`::
+Entry import during a modify DN operation.
+
++
+Despite the name, this action is unrelated to LDIF import operations.
+
+`proxy`::
+Access the ACI target using the rights of another user.
+
+`read`::
+Read entries and attributes, or use an LDAP control or extended operation.
+
+`search`::
+Search the ACI targets. Needs to be combine with `read` in order to read the search results.
+
+`selfwrite`::
+Add or delete own DN from a group.
+
+`write`::
+Modify attributes on ACI target entries.
+
+--
+
+
+[#aci-subjects]
+==== ACI Subjects
+
+ACI subjects match characteristics of the client connection to the server. Use subjects to restrict whether the ACI applies depending on who connected, and when, where, and how they connected. Most expressions allow you to use either `=` to specify that the subject condition should match the value or `!=` to specify that the subject condition should not match the value:
+--
+
+`authmethod [!]= "none|simple|ssl|sasl mech"`::
+Here you use `none` to mean do not check, `simple` for simple authentication, `ssl` for certificate-based authentication over LDAPS, `sasl mech` for SASL where __mech__ is DIGEST-MD5, EXTERNAL, or GSSAPI.
+
+`dayofweek [!]= "day[, day …]"`::
+Replace __day__ with one of `sun`, `mon`, `tue`, `wed`, `thu`, `fri`, `sat`.
+
+`dns [!]= "hostname"`::
+You can use asterisks, *, to replace name components, such as `dns = "*.myCompany.com"`.
+
+`groupdn [!]= "ldap:///DN[|| ldap:///DN …]"`::
+Replace __DN__ with the distinguished name of a group to permit or restrict access for members.
+
+`ip [!]= "addresses"`::
+Here __addresses__ can be specified for IPv4 or IPv6. IPv6 addresses are specified in brackets as `ldap://[address]/subnet-prefix` where /__subnet-prefix__ is optional. You can specify individual IPv4 addresses, addresses with asterisks (*) to replace subnets and host numbers, CIDR notation, and forms such as `192.168.0.*+255.255.255.0` to specify subnet masks.
+
+`ssf = "strength"`,`ssf != "strength"`,`ssf > "strength"`,`ssf >= "strength"`,`ssf < "strength"`,`ssf <= "strength"`::
+Here the security strength factor pertains to the cipher key strength for connections using DIGEST-MD5, GSSAPI, SSL, or TLS. For example, to require that the connection must have at least 128 bits of encryption, specify `ssf >= "128"`.
+
+`timeofday = "hhmm"`,`timeofday != "hhmm"`,`timeofday > "hhmm"`,`timeofday >= "hhmm"`,`timeofday < "hhmm"`,`timeofday <= "hhmm"`::
+Here __hhmm__ is expressed as on a 24-hour clock. For example, 1:15 PM is written `1315`.
+
+`userattr [!]= "attr#value"`,`userattr [!]= ldap-url#LDAPURL"`,`userattr [!]= "[parent[child-level]. ]attr#GROUPDN|USERDN"`::
+The `userattr` subject specifies an attribute that must match on both the bind entry and the target of the ACI.
+
++
+To match when the user attribute on the bind DN entry corresponds directly to the attribute on the target entry, replace __attr__ with the user attribute type, and __value__ with the attribute value. To get the attributes of the bind entry, OpenDJ performs an internal search for the user attributes. This ACI subject therefore does not work with operational attributes.
+
++
+To match when the target entry is identified by an LDAP URL, and the bind DN is in the subtree of the DN of the LDAP URL, use __ldap-url__#LDAPURL.
+
++
+To match when the bind DN corresponds to a member of the group identified by the __attr__ value on the target entry, use __attr__#GROUPDN.
+
++
+To match when the bind DN corresponds to the __attr__ value on the target entry, use __attr__#USERDN.
+
++
+The optional inheritance specification, `parent[child-level].`, lets you specify how many levels below the target entry inherit the ACI. Here __child-level__ is a number from 0 to 9, with 0 indicating the target entry only. Separate multiple __child-level__ digits with commas (,).
+
+`userdn [!]= "ldap-url++[|| ldap-url++ …]"`::
+To match the bind DN, replace __ldap-url++__ with either a valid LDAP URL such as `ldap:///uid=bjensen,ou=People,dc=example,dc=com`, `ldap:///dc=example,dc=com??sub?(uid=bjensen)`, or a special LDAP URL-like keyword from the following list:
++
+[open]
+====
+
+`ldap:///all`::
+Match authenticated users.
+
+`ldap:///anyone`::
+Match anonymous and authenticated users.
+
+`ldap:///parent`::
+Match when the bind DN is a parent of the ACI target.
+
+`ldap:///self`::
+Match when the bind DN entry corresponds to ACI target.
+
+====
+
+--
+
+
+[#aci-evaluation]
+==== How ACI is Evaluated
+
+Understanding how OpenDJ evaluates the `aci` values is critical when implementing an access control policy. The rules the server follows are simple:
+
+. To determine if an operation is allowed or denied, the OpenDJ server looks in the directory for the target of the operation. It collects any aci values from that entry, and then walks up the directory tree to the suffix, collecting all aci values en route. Global aci values are then collected.
+
+. It then separates the aci values into two lists; one list contains all the aci values that matches the target and denies the required access, and the other list contains all the aci values that matches the target and allows the required access.
+
+. If the deny list contains any aci values after this procedure, access will be immediately denied.
+
+. If the deny list is empty, then the allow list is processed. If the allow list contains any aci values, access will be allowed.
+
+. If both lists are empty, access will be denied.
+
+
+[NOTE]
+====
+Some operations require multiple permissions and involve multiple targets. Evaluation will therefore take place multiple times. For example, a search operation requires the `search` permission for each attribute in the search filter. If all those are allowed, the `read` permission is used to decide what attributes and values can be returned.
+====
+
+
+[#aci-required]
+==== ACI Required For LDAP Operations
+
+The minimal access control information required for specific LDAP operations is described here:
+--
+
+Add::
+The ACI must allow the `add` permission to entries in the target. This implicitly allows the attributes and values to be set. Use `targattrfilters` to explicitly deny access to any values if required.
+
++
+For example, the ACI required to allow `uid=bjensen,ou=People,dc=example,dc=com` to add an entry is:
++
+
+[source, ldif]
+----
+aci: (version 3.0;acl "Add entry"; allow (add)(userdn =
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
+----
+
+Bind::
+Because this is used to establish the user's identity and derived authorizations, ACI is irrelevant for this operation and is not checked. To prevent authentication, disable the account instead. For details see xref:chap-account-lockout.adoc#manage-accounts["Managing Accounts Manually"].
+
+Compare::
+The ACI must allow the `compare` permission to the attribute in the target entry.
+
++
+For example, the ACI required to allow `uid=bjensen,ou=People,dc=example,dc=com` to compare values against the `sn` attribute is:
++
+
+[source, ldif]
+----
+aci: (targetattr = "sn")(version 3.0;acl "Compare surname";
+ allow (compare)(userdn =
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
+----
+
+Delete::
+The ACI must allow the `delete` permission to the target entry. This implicitly allows the attributes and values in the target to be deleted. Use `targattrfilters` to explicitly deny access to the values if required.
+
++
+For example, the ACI required to allow `uid=bjensen,ou=People,dc=example,dc=com` to delete an entry is:
++
+
+[source, ldif]
+----
+aci: (version 3.0;acl "Delete entry"; allow (delete)
+ (userdn = "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
+----
+
+Modify::
+The ACI must allow the `write` permission to attributes in the target entries. This implicitly allows all values in the target attribute to be modified. Use `targattrfilters` to explicitly deny access to specific values if required.
+
++
+For example, the ACI required to allow `uid=bjensen,ou=People,dc=example,dc=com` to modify the `description` attribute in an entry is:
++
+
+[source, ldif]
+----
+aci: (targetattr = "description")(version 3.0;
+ acl "Modify description"; allow (write)(userdn =
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
+----
+
+ModifyDN::
+If the entry is being moved to a `newSuperior`, the `export` permission must be allowed on the target, and the `import` permission must be allowed on the `newSuperior` entry.
+
++
+The ACI must allow `write` permission to the attributes in the old RDN and the new RDN. All values of the old RDN and new RDN can be written implicitly; use `targattrfilters` to explicitly deny access to values used if required.
+
++
+For example, the ACI required to allow `uid=bjensen,ou=People,dc=example,dc=com` to rename entries named with the `uid` attribute to new locations:
++
+
+[source, ldif]
+----
+aci: (targetattr = "uid")(version 3.0;acl "Rename uid= entries";
+ allow (write, import, export)(userdn =
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
+----
+
+Search::
+ACI is required to process the search filter, and to determine what attributes and values may be returned in the results. The `search` permission is used to allow particular attributes in the search filter. The `read` permission is used to allow particular attributes to be returned. If `read` permission is allowed to any attribute, the server will automatically allow the `objectClass` attribute to also be read.
+
++
+For example, the ACI required to allow `uid=bjensen,ou=People,dc=example,dc=com` to search for `uid` attributes, and also to read that attribute in matching entries is:
++
+
+[source, ldif]
+----
+aci: (targetattr = "uid")(version 3.0;acl "Search and read uid";
+ allow (search, read)(userdn =
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
+----
+
+Use Control or Extended Operation::
+The ACI must allow the `read` permission to the `targetcontrol` or `extop` OIDs.
+
++
+For example, the ACI required to allow `uid=bjensen,ou=People,dc=example,dc=com` to use the Persistent Search request control with OID `2.16.840.1.113730.3.4.3` is:
++
+
+[source, ldif]
+----
+aci: (targetcontrol = "2.16.840.1.113730.3.4.3")(version 3.0;acl
+ "Request Persistent Search"; allow (read)(userdn =
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
+----
+
+--
+
+
+
+[#about-privileges]
+=== About Privileges
+
+Privileges provide access control for server administration independently from access control instructions.
+
+Directory root users, such as `cn=Directory Manager`, are granted privileges in the following list and marked with an asterisk (*) by default. Other administrator users can be assigned privileges, too:
+--
+
+`backend-backup`*::
+Request a task to back up data
+
+`backend-restore`*::
+Request a task to restore data from backup
+
+`bypass-acl`*::
+Perform operations without regard to ACIs
+
+`bypass-lockdown`*::
+Perform operations without regard to lockdown mode
+
+`cancel-request`*::
+Cancel any client request
+
+`changelog-read`*::
+Read the changelog (under `cn=changelog`)
+
+`config-read`*::
+Read the server configuration
+
+`config-write`*::
+Change the server configuration
+
+`data-sync`::
+Perform data synchronization
+
+`disconnect-client`*::
+Close any client connection
+
+`jmx-notify`::
+Subscribe to JMX notifications
+
+`jmx-read`::
+Read JMX attribute values
+
+`jmx-write`::
+Write JMX attribute values
+
+`ldif-export`*::
+Export data to LDIF
+
+`ldif-import`*::
+Import data from LDIF
+
+`modify-acl`*::
+Change ACIs
+
+`password-reset`*::
+Reset other users' passwords
+
+`privilege-change`*::
+Change the privileges assigned to users
+
+`proxied-auth`::
+Use the Proxied Authorization control
+
+`server-lockdown`*::
+Put OpenDJ into and take OpenDJ out of lockdown mode
+
+`server-restart`*::
+Request a task to restart the server
+
+`server-shutdown`*::
+Request a task to stop the server
+
+`subentry-write`*::
+Perform LDAP subentry write operations
+
+`unindexed-search`*::
+Search using a filter with no correponding index
+
+`update-schema`*::
+Change OpenDJ schema definitions
+
+--
+* = default directory root user privileges
+
+
+[#configure-privileges]
+=== Configuring Privileges
+
+For root directory administrators, by default `cn=Directory Manager`, you configure privileges using the `dsconfig` command.
+
+For non-root directory administrators, you add privileges with the `ldapmodify` command.
+
+[#change-root-dn-privileges]
+.To Change Root DN Privileges
+====
+
+. Start `dsconfig` in interactive mode:
++
+
+[source, console]
+----
+$ dsconfig \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+----
+
+. Select the Root DN menu.
+
+. Select View and edit the Root DN.
+
+. Edit the `default-root-privilege-name`.
+
+. Make sure you apply the changes when finished.
+
+====
+
+[#change-individual-privileges]
+.To Add Privileges on an Individual Entry
+====
+Privileges are specified using the `ds-privilege-name` operational attribute, which you can change on the command-line using `ldapmodify`.
+
+. Determine the privileges to add:
++
+
+[source, console]
+----
+$ cat privilege.ldif
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+changetype: modify
+add: ds-privilege-name
+ds-privilege-name: config-read
+ds-privilege-name: password-reset
+----
++
+This example lets the user read the server configuration, and reset user passwords. In order for the user to be able to change a user password, you must also allow the modification using ACIs. For this example, Kirsten Vaughan is a member of the Directory Administrators group for Example.com, and already has access to modify user entries.
++
+Prior to having the privileges, Kirsten gets messages about insufficient access when trying to read the server configuration, or reset a user password:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --baseDN cn=config \
+ "(objectclass=*)"
+SEARCH operation failed
+Result Code:  50 (Insufficient Access Rights)
+Additional Information:  You do not have sufficient privileges to perform
+ search operations in the Directory Server configuration
+
+$ ldappasswordmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --authzID "dn:uid=scarter,ou=People,dc=example,dc=com" \
+ --newPassword changeit
+The LDAP password modify operation failed with result code 50
+Error Message:  You do not have sufficient privileges to perform password
+reset operations
+----
+
+. Apply the change as a user with the `privilege-change` privilege:
++
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename privilege.ldif
+Processing MODIFY request for uid=kvaughan,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=kvaughan,ou=People,dc=example,dc=com
+----
++
+At this point, Kirsten can perform the operations requiring privileges:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --baseDN cn=config \
+ "(objectclass=*)"
+dn: cn=config
+ds-cfg-return-bind-error-messages: false
+ds-cfg-default-password-policy: cn=Default Password Policy,cn=Password Policies,
+ cn=config
+…
+
+$ ldappasswordmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --authzID "dn:uid=scarter,ou=People,dc=example,dc=com" \
+ --newPassword changeit
+The LDAP password modify operation was successful
+----
+
+====
+
+[#change-group-privileges]
+.To Add Privileges For a Group of Administrators
+====
+For deployments with more than one administrator, you no doubt use a group to define adminstrative rights. You can use a collective attribute subentry to specify privileges for the administrator group.
+
+Collective attributes provide a standard mechanism for defining attributes that appear on all the entries in a particular subtree. OpenDJ extends collective attributes to give you fine-grained control over the which entries in the subtree are targeted.
+
+Also, by also extending the RFC 3672 `SpecificationFilter` component, users may leverage virtual attributes, such as `isMemberOf`, to construct a search filter for targeting entries to which the collective attributes apply. This allows you, for example, to define administrative privileges that apply to all users who belong to an administrator group.
+
+In addition to this feature, the traditional `Refinement` `ASN.1 CHOICE component` -- also defined within RFC 3672 -- is supported for use as a `SpecificationFilter` statement as well.
+
+. Create an LDAP subentry that specifies the collective attributes:
++
+
+[source, console]
+----
+$ cat collective.ldif
+dn: cn=Administrator Privileges,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Administrator Privileges
+ds-privilege-name;collective: config-read
+ds-privilege-name;collective: config-write
+ds-privilege-name;collective: ldif-export
+ds-privilege-name;collective: modify-acl
+ds-privilege-name;collective: password-reset
+ds-privilege-name;collective: proxied-auth
+subtreeSpecification: {base "ou=people", specificationFilter
+  "(isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename collective.ldif
+Processing ADD request for cn=Administrator Privileges,dc=example,dc=com
+ADD operation successful for DN cn=Administrator Privileges,dc=example,dc=com
+----
++
+The Directory Administrators group for Example.com includes members like Kirsten Vaughan.
+
+. Observe that the change takes effect immediately:
++
+
+[source, console]
+----
+$ ldappasswordmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --authzID "dn:uid=scarter,ou=People,dc=example,dc=com" \
+ --newPassword changeit
+The LDAP password modify operation was successful
+----
+
+====
+
+[#limit-privileges]
+.To Limit Inherited Privileges
+====
+When privileges are set as described in xref:#change-group-privileges["To Add Privileges For a Group of Administrators"], the same list of privileges is applied to every target account. OpenDJ also assigns default directory root user privileges. In some cases the list of inherited privileges can be too broad. OpenDJ has a mechanism to limit the privileges assigned by preceding the privilege attribute value with a `-`.
+
+The following steps show how to prevent Kirsten Vaughan from resetting passwords when the privilege is assigned as in xref:#change-group-privileges["To Add Privileges For a Group of Administrators"]:
+
+. Check the privilege settings for the account:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ "(uid=kvaughan)" \
+ ds-privilege-name
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+ds-privilege-name: config-read
+ds-privilege-name: config-write
+ds-privilege-name: ldif-export
+ds-privilege-name: modify-acl
+ds-privilege-name: password-reset
+ds-privilege-name: proxied-auth
+----
+
+. Set the privilege attribute for the account to deny the privilege:
++
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: uid=kvaughan,ou=people,dc=example,dc=com
+changetype: modify
+add: ds-privilege-name
+ds-privilege-name: -password-reset
+
+Processing MODIFY request for uid=kvaughan,ou=people,dc=example,dc=com
+MODIFY operation successful for DN uid=kvaughan,ou=people,dc=example,dc=com
+----
+
+. Observe that the privilege is no longer in effect:
++
+
+[source, console]
+----
+$ ldappasswordmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --authzID "dn:uid=scarter,ou=People,dc=example,dc=com" \
+ --newPassword changeit
+The LDAP password modify operation failed with result code 50
+Error Message:  You do not have sufficient privileges to perform password
+reset operations
+----
+
+====
+
+
+[#configure-acis]
+=== Configuring Access Control
+
+Access control instructions are defined in the data as values for `aci` attributes. They can be imported in LDIF and modified over LDAP. Yet in order to make changes to ACIs users first need the `modify-acl` privilege described previously. By default, only the root DN user has the `modify-acl` privilege.
+
+Global ACIs on `cn=Access Control Handler,cn=config` can be set using the `dsconfig` command. Global ACIs have attribute type `ds-cfg-global-aci`. For a list, see xref:#table-global-acis["Default Global ACIs"].
+You can modify global ACIs from the Access Control Handler menu in `dsconfig`. Modifying and removing global ACIs can have deleterious effects. Generally the impact depends on your deployment requirements.
+
+Modifications to global ACIs fall into the following categories:
+
+* Modification or removal is permitted.
++
+You must test client applications when deleting the specified ACI.
+
+* Modification or removal may affect applications.
++
+You must test client applications when modifying or deleting the specified ACI.
+
+* Modification or removal may affect applications, but is not recommended.
++
+You must test client applications when modifying or deleting the specified ACI.
+
+* Do not modify or delete.
+
+
+[#table-global-acis]
+.Default Global ACIs
+[cols="20%,40%,40%"]
+|===
+|Name |Description |ACI Definition 
+
+a|Anonymous control access
+a|Anonymous and authenticated users can use the LDAP controls that are specified by OID. Modification or removal may affect applications.
+a|`(targetcontrol="2.16.840.1.113730.3.4.2 \|\| 2.16.840.1.113730.3.4.17 \|\| 2.16.840.1.113730.3.4.19 \|\| 1.3.6.1.4.1.4203.1.10.2 \|\| 1.3.6.1.4.1.42.2.27.8.5.1 \|\| 2.16.840.1.113730.3.4.16 \|\| 1.2.840.113556.1.4.1413 \|\| 1.3.6.1.4.1.36733.2.1.5.1") (version 3.0; acl "Anonymous control access"; allow(read) userdn="ldap:///anyone";)`
+
+a|Anonymous control access
+a|Anonymous and authenticated users can use the LDAP controls that are specified by OID. Modification or removal may affect applications.
+a|`(targetcontrol="2.16.840.1.113730.3.4.2 \|\| 2.16.840.1.113730.3.4.17 \|\| 2.16.840.1.113730.3.4.19 \|\| 1.3.6.1.4.1.4203.1.10.2 \|\| 1.3.6.1.4.1.42.2.27.8.5.1 \|\| 2.16.840.1.113730.3.4.16 \|\| 1.2.840.113556.1.4.1413 \|\| 1.3.6.1.4.1.36733.2.1.5.1") (version 3.0; acl "Anonymous control access"; allow(read) userdn="ldap:///anyone";)`
+
+a|Anonymous control access
+a|Anonymous and authenticated users can use the LDAP controls that are specified by OID. Modification or removal may affect applications.
+a|`(targetcontrol="2.16.840.1.113730.3.4.2 \|\| 2.16.840.1.113730.3.4.17 \|\| 2.16.840.1.113730.3.4.19 \|\| 1.3.6.1.4.1.4203.1.10.2 \|\| 1.3.6.1.4.1.42.2.27.8.5.1 \|\| 2.16.840.1.113730.3.4.16 \|\| 1.2.840.113556.1.4.1413 \|\| 1.3.6.1.4.1.36733.2.1.5.1") (version 3.0; acl "Anonymous control access"; allow(read) userdn="ldap:///anyone";)`
+
+a|Anonymous extended operation access
+a|Anonymous and authenticated users can request the LDAP extended operations that are specified by OID. Modification or removal may affect applications.
+a|`(extop="1.3.6.1.4.1.26027.1.6.1 \|\| 1.3.6.1.4.1.26027.1.6.3 \|\| 1.3.6.1.4.1.4203.1.11.1 \|\| 1.3.6.1.4.1.1466.20037 \|\| 1.3.6.1.4.1.4203.1.11.3") (version 3.0; acl "Anonymous extended operation access"; allow(read) userdn="ldap:///anyone";)`
+
+a|Anonymous extended operation access
+a|Anonymous and authenticated users can request the LDAP extended operations that are specified by OID. Modification or removal may affect applications.
+a|`(extop="1.3.6.1.4.1.26027.1.6.1 \|\| 1.3.6.1.4.1.26027.1.6.3 \|\| 1.3.6.1.4.1.4203.1.11.1 \|\| 1.3.6.1.4.1.1466.20037 \|\| 1.3.6.1.4.1.4203.1.11.3") (version 3.0; acl "Anonymous extended operation access"; allow(read) userdn="ldap:///anyone";)`
+
+a|Anonymous extended operation access
+a|Anonymous and authenticated users can request the LDAP extended operations that are specified by OID. Modification or removal may affect applications.
+a|`(extop="1.3.6.1.4.1.26027.1.6.1 \|\| 1.3.6.1.4.1.26027.1.6.3 \|\| 1.3.6.1.4.1.4203.1.11.1 \|\| 1.3.6.1.4.1.1466.20037 \|\| 1.3.6.1.4.1.4203.1.11.3") (version 3.0; acl "Anonymous extended operation access"; allow(read) userdn="ldap:///anyone";)`
+
+a|Anonymous read access
+a|Anonymous and authenticated users can read the user data attributes that are specified by their names. Modification or removal is permitted.
+a|`(targetattr!="userPassword\|\|authPassword\|\|debugsearchindex\|\|changes\|\|changeNumber\|\|changeType\|\|changeTime\|\|targetDN\|\|newRDN\|\|newSuperior\|\|deleteOldRDN")(version 3.0; acl "Anonymous read access"; allow (read,search,compare) userdn="ldap:///anyone";)`
+
+a|Anonymous read access
+a|Anonymous and authenticated users can read the user data attributes that are specified by their names. Modification or removal is permitted.
+a|`(targetattr!="userPassword\|\|authPassword\|\|debugsearchindex\|\|changes\|\|changeNumber\|\|changeType\|\|changeTime\|\|targetDN\|\|newRDN\|\|newSuperior\|\|deleteOldRDN")(version 3.0; acl "Anonymous read access"; allow (read,search,compare) userdn="ldap:///anyone";)`
+
+a|Anonymous read access
+a|Anonymous and authenticated users can read the user data attributes that are specified by their names. Modification or removal is permitted.
+a|`(targetattr!="userPassword\|\|authPassword\|\|debugsearchindex\|\|changes\|\|changeNumber\|\|changeType\|\|changeTime\|\|targetDN\|\|newRDN\|\|newSuperior\|\|deleteOldRDN")(version 3.0; acl "Anonymous read access"; allow (read,search,compare) userdn="ldap:///anyone";)`
+
+a|Authenticated users control access
+a|Authenticated users can use the LDAP controls that are specified by OID. Modification or removal may affect applications.
+a|`(targetcontrol="1.3.6.1.1.12 \|\| 1.3.6.1.1.13.1 \|\| 1.3.6.1.1.13.2 \|\| 1.2.840.113556.1.4.319 \|\| 1.2.826.0.1.3344810.2.3 \|\| 2.16.840.1.113730.3.4.18 \|\| 2.16.840.1.113730.3.4.9 \|\| 1.2.840.113556.1.4.473 \|\| 1.3.6.1.4.1.42.2.27.9.5.9") (version 3.0; acl "Authenticated users control access"; allow(read) userdn="ldap:///all";)`
+
+a|Authenticated users control access
+a|Authenticated users can use the LDAP controls that are specified by OID. Modification or removal may affect applications.
+a|`(targetcontrol="1.3.6.1.1.12 \|\| 1.3.6.1.1.13.1 \|\| 1.3.6.1.1.13.2 \|\| 1.2.840.113556.1.4.319 \|\| 1.2.826.0.1.3344810.2.3 \|\| 2.16.840.1.113730.3.4.18 \|\| 2.16.840.1.113730.3.4.9 \|\| 1.2.840.113556.1.4.473 \|\| 1.3.6.1.4.1.42.2.27.9.5.9") (version 3.0; acl "Authenticated users control access"; allow(read) userdn="ldap:///all";)`
+
+a|Authenticated users control access
+a|Authenticated users can use the LDAP controls that are specified by OID. Modification or removal may affect applications.
+a|`(targetcontrol="1.3.6.1.1.12 \|\| 1.3.6.1.1.13.1 \|\| 1.3.6.1.1.13.2 \|\| 1.2.840.113556.1.4.319 \|\| 1.2.826.0.1.3344810.2.3 \|\| 2.16.840.1.113730.3.4.18 \|\| 2.16.840.1.113730.3.4.9 \|\| 1.2.840.113556.1.4.473 \|\| 1.3.6.1.4.1.42.2.27.9.5.9") (version 3.0; acl "Authenticated users control access"; allow(read) userdn="ldap:///all";)`
+
+a|Self entry modification
+a|Authenticated users can modify the specified attributes on their own entries. Modification or removal is permitted.
+a|`(targetattr="audio\|\|authPassword\|\|description\|\|displayName\|\|givenName\|\|homePhone\|\|homePostalAddress\|\|initials\|\|jpegPhoto\|\|labeledURI\|\|mobile\|\|pager\|\|postalAddress\|\|postalCode\|\|preferredLanguage\|\|telephoneNumber\|\|userPassword")(version 3.0; acl "Self entry modification"; allow (write) userdn="ldap:///self";)`
+
+a|Self entry modification
+a|Authenticated users can modify the specified attributes on their own entries. Modification or removal is permitted.
+a|`(targetattr="audio\|\|authPassword\|\|description\|\|displayName\|\|givenName\|\|homePhone\|\|homePostalAddress\|\|initials\|\|jpegPhoto\|\|labeledURI\|\|mobile\|\|pager\|\|postalAddress\|\|postalCode\|\|preferredLanguage\|\|telephoneNumber\|\|userPassword")(version 3.0; acl "Self entry modification"; allow (write) userdn="ldap:///self";)`
+
+a|Self entry modification
+a|Authenticated users can modify the specified attributes on their own entries. Modification or removal is permitted.
+a|`(targetattr="audio\|\|authPassword\|\|description\|\|displayName\|\|givenName\|\|homePhone\|\|homePostalAddress\|\|initials\|\|jpegPhoto\|\|labeledURI\|\|mobile\|\|pager\|\|postalAddress\|\|postalCode\|\|preferredLanguage\|\|telephoneNumber\|\|userPassword")(version 3.0; acl "Self entry modification"; allow (write) userdn="ldap:///self";)`
+
+a|Self entry read
+a|Authenticated users can read the password values on their own entries. By default, the server applies a one-way hash algorithm to the password value before writing it to the entry, so it is computationally difficult to recover the cleartext version of the password from the stored value. Modification or removal is permitted.
+a|`(targetattr="userPassword\|\|authPassword")(version 3.0; acl "Self entry read"; allow (read,search,compare) userdn="ldap:///self";)`
+
+a|Self entry read
+a|Authenticated users can read the password values on their own entries. By default, the server applies a one-way hash algorithm to the password value before writing it to the entry, so it is computationally difficult to recover the cleartext version of the password from the stored value. Modification or removal is permitted.
+a|`(targetattr="userPassword\|\|authPassword")(version 3.0; acl "Self entry read"; allow (read,search,compare) userdn="ldap:///self";)`
+
+a|Self entry read
+a|Authenticated users can read the password values on their own entries. By default, the server applies a one-way hash algorithm to the password value before writing it to the entry, so it is computationally difficult to recover the cleartext version of the password from the stored value. Modification or removal is permitted.
+a|`(targetattr="userPassword\|\|authPassword")(version 3.0; acl "Self entry read"; allow (read,search,compare) userdn="ldap:///self";)`
+
+a|User-Visible Operational Attributes
+a|Anonymous and authenticated users can read attributes that identify entries and that contain information about modifications to entries. Modification or removal may affect applications.
+a|`(targetattr="createTimestamp\|\|creatorsName\|\|modifiersName\|\|modifyTimestamp\|\|entryDN\|\|entryUUID\|\|subschemaSubentry\|\|etag\|\|governingStructureRule\|\|structuralObjectClass\|\|hasSubordinates\|\|numSubordinates\|\|isMemberOf")(version 3.0; acl "User-Visible Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)`
+
+a|User-Visible Operational Attributes
+a|Anonymous and authenticated users can read attributes that identify entries and that contain information about modifications to entries. Modification or removal may affect applications.
+a|`(targetattr="createTimestamp\|\|creatorsName\|\|modifiersName\|\|modifyTimestamp\|\|entryDN\|\|entryUUID\|\|subschemaSubentry\|\|etag\|\|governingStructureRule\|\|structuralObjectClass\|\|hasSubordinates\|\|numSubordinates\|\|isMemberOf")(version 3.0; acl "User-Visible Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)`
+
+a|User-Visible Operational Attributes
+a|Anonymous and authenticated users can read attributes that identify entries and that contain information about modifications to entries. Modification or removal may affect applications.
+a|`(targetattr="createTimestamp\|\|creatorsName\|\|modifiersName\|\|modifyTimestamp\|\|entryDN\|\|entryUUID\|\|subschemaSubentry\|\|etag\|\|governingStructureRule\|\|structuralObjectClass\|\|hasSubordinates\|\|numSubordinates\|\|isMemberOf")(version 3.0; acl "User-Visible Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)`
+
+a|User-Visible Root DSE Operational Attributes
+a|Anonymous and authenticated users can read attributes that describe what the server supports. Modification or removal may affect applications.
+a|`(target="ldap:///")(targetscope="base")(targetattr="objectClass\|\|namingContexts\|\|supportedAuthPasswordSchemes\|\|supportedControl\|\|supportedExtension\|\|supportedFeatures\|\|supportedLDAPVersion\|\|supportedSASLMechanisms\|\|supportedTLSCiphers\|\|supportedTLSProtocols\|\|vendorName\|\|vendorVersion")(version 3.0; acl "User-Visible Root DSE Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)`
+
+a|User-Visible Root DSE Operational Attributes
+a|Anonymous and authenticated users can read attributes that describe what the server supports. Modification or removal may affect applications.
+a|`(target="ldap:///")(targetscope="base")(targetattr="objectClass\|\|namingContexts\|\|supportedAuthPasswordSchemes\|\|supportedControl\|\|supportedExtension\|\|supportedFeatures\|\|supportedLDAPVersion\|\|supportedSASLMechanisms\|\|supportedTLSCiphers\|\|supportedTLSProtocols\|\|vendorName\|\|vendorVersion")(version 3.0; acl "User-Visible Root DSE Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)`
+
+a|User-Visible Root DSE Operational Attributes
+a|Anonymous and authenticated users can read attributes that describe what the server supports. Modification or removal may affect applications.
+a|`(target="ldap:///")(targetscope="base")(targetattr="objectClass\|\|namingContexts\|\|supportedAuthPasswordSchemes\|\|supportedControl\|\|supportedExtension\|\|supportedFeatures\|\|supportedLDAPVersion\|\|supportedSASLMechanisms\|\|supportedTLSCiphers\|\|supportedTLSProtocols\|\|vendorName\|\|vendorVersion")(version 3.0; acl "User-Visible Root DSE Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)`
+
+a|User-Visible Schema Operational Attributes
+a|Anonymous and authenticated users can read LDAP schema definitions. Modification or removal may affect applications.
+a|`(target="ldap:///cn=schema")(targetscope="base")(targetattr="objectClass\|\|attributeTypes\|\|dITContentRules\|\|dITStructureRules\|\|ldapSyntaxes\|\|matchingRules\|\|matchingRuleUse\|\|nameForms\|\|objectClasses")(version 3.0; acl "User-Visible Schema Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)`
+
+a|User-Visible Schema Operational Attributes
+a|Anonymous and authenticated users can read LDAP schema definitions. Modification or removal may affect applications.
+a|`(target="ldap:///cn=schema")(targetscope="base")(targetattr="objectClass\|\|attributeTypes\|\|dITContentRules\|\|dITStructureRules\|\|ldapSyntaxes\|\|matchingRules\|\|matchingRuleUse\|\|nameForms\|\|objectClasses")(version 3.0; acl "User-Visible Schema Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)`
+
+a|User-Visible Schema Operational Attributes
+a|Anonymous and authenticated users can read LDAP schema definitions. Modification or removal may affect applications.
+a|`(target="ldap:///cn=schema")(targetscope="base")(targetattr="objectClass\|\|attributeTypes\|\|dITContentRules\|\|dITStructureRules\|\|ldapSyntaxes\|\|matchingRules\|\|matchingRuleUse\|\|nameForms\|\|objectClasses")(version 3.0; acl "User-Visible Schema Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)`
+|===
+Users with write access to add ACIs and with the `modify-acl` privilege can use the `ldapmodify` command to change ACIs located in user data.
+
+This section therefore focuses on ACI examples, rather than demonstrating how to update the directory for each example. To update ACIs, either change them using the `ldapmodify` command, or using OpenDJ control panel.
+
+If you use OpenDJ control panel, find the entry to modify in the Manage Entries window. Then try View > LDIF View to edit the entry. The control panel checks your syntax and lets you know if you made an error before it saves any changes.
+
+For hints on updating directory entries with the `ldapmodify` command, see xref:../server-dev-guide/chap-ldap-operations.adoc#modify-ldap["Modifying Entry Attributes"] in the __Directory Server Developer's Guide__, keeping in mind that the name of the ACI attribute is `aci` as shown in the examples that follow.
+
+[#access-control-anonymous-reads]
+.ACI: Anonymous Reads and Searches
+====
+This works when the only attributes you do not want world-readable are password attributes:
+
+[source, ldif]
+----
+aci: (target ="ldap:///dc=example,dc=com")(targetattr !=
+ "authPassword || userPassword")(version 3.0;acl "Anonymous read-search access";
+ allow (read, search, compare)(userdn = "ldap:///anyone");)
+----
+====
+
+[#access-control-disable-anonymous]
+.ACI: Disable Anonymous Access
+====
+By default OpenDJ denies access unless an access control explicitly allows access.footnote:d67723e6927[This does not apply to the directory root user, such as`cn=Directory Manager`, who bypasses ACIs.] However, OpenDJ also allows anonymous access by default to use some controls, to perform certain extended operations, to view root DSE operational attributes, to view directory schema definitions, to view some other operational attributes, and to perform compare and search operations.
+
+These default capabilities are defined on the `global-aci` property of the access control handler, which you can read by using the `dsconfig get-access-control-handler-prop` command:
+
+[source, console]
+----
+$ dsconfig \
+ get-access-control-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --property global-aci
+----
+You can disable anonymous access either by editing relevant `global-aci` properties, or by using the global server configuration property, `reject-unauthenticated-requests`. Editing relevant `global-aci` properties lets you take a fine-grained approach to limit anonymous access. Setting `reject-unauthenticated-requests:true` causes OpenDJ directory server to reject all requests from clients who are not authenticated except bind requests and StartTLS requests.
+
+To take a fine-grained approach, use the `dsconfig` command to edit `global-aci` properties. One of the most expedient ways to do this is to use the command interactively on one OpenDJ directory server, capturing the output to a script with the `--commandFilePath script` option, and then editing the script for use on other servers. With this approach, you can allow anonymous read access to the root DSE and to directory schemas so that clients do not have to authenticate to discover server capabilities, and also allow anonymous users access to some controls and extended operations:
+
+[source, console]
+----
+$ dsconfig \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --commandFilePath /tmp/captured-global-aci-edits.sh
+
+# The dsconfig command runs interactively.
+
+# Edit Access Control Handler, global-aci attributes replacing
+# userdn="ldap:///anyone" (anonymous) with userdn="ldap:///all" (authenticated)
+# in "Anonymous read access" and "User-Visible Operational Attributes" ACIs.
+
+# To make this change, you first remove the existing values,
+# then add the edited values, and finally apply the changes.
+----
+Make sure that you also set appropriate ACIs on any data that you import.
+
+At this point, clients must authenticate to view search results, for example:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=bjensen)"
+$ ldapsearch  \
+ --bindDN uid=bjensen,ou=people,dc=example,dc=com \
+ --bindPassword hifalutin  \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ "(uid=bjensen)" cn uid
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+uid: bjensen
+----
+An example of the captured command is the shell script, link:../resources/captured-global-aci-edits.sh[captured-global-aci-edits.sh, window=\_blank].
+
+To reject anonymous access except bind and StartTLS requests, set `reject-unauthenticated-requests:true`:
+
+[source, console]
+----
+$ dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --trustAll \
+ --no-prompt \
+ --set reject-unauthenticated-requests:true
+----
+Once you set the property, anonymous clients trying to search, for example, get an `Unwilling to Perform` response from OpenDJ directory server:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=bjensen)"
+SEARCH operation failed
+Result Code:  53 (Unwilling to Perform)
+Additional Information:  Rejecting the requested operation
+ because the connection has not been authenticated
+----
+In both cases, notice that the changes apply to a single OpenDJ directory server configuration, and so are not replicated to other servers. You must instead apply the changes separately to each server.
+====
+
+[#access-control-full-access]
+.ACI: Full Access for Administrators
+====
+Directory Administrators need privileges as well for full access to administrative operations:
+
+[source, ldif]
+----
+aci: (target="ldap:///dc=example,dc=com") (targetattr =
+ "* || +")(version 3.0;acl "Admins can run amok"; allow(
+ all, proxy, import, export) groupdn =
+ "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+----
+`targetattr = "* || +"` permits access to all user attributes and all operational attributes. `allow(all, proxy, import, export)` permits all user operations, proxy authorization, and data import and export operations.
+====
+
+[#access-control-selfwrite-password]
+.ACI: Change Your Password
+====
+By default this capability is set in a global ACI:
+
+[source, ldif]
+----
+aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr =
+ "authPassword || userPassword")(version 3.0;acl "Allow users to change pass
+ words"; allow (write)(userdn = "ldap:///self");)
+----
+====
+
+[#access-control-selfwrite-group]
+.ACI: Manage Your Group Membership
+====
+For some static groups such as carpoolers and social club members, you might choose to let users manage their own memberships:
+
+[source, ldif]
+----
+aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(
+ targetattr = "member")(version 3.0;acl "Self registration"; allow(selfwrite)(
+ userdn = "ldap:///uid=*,ou=People,dc=example,dc=com");)
+----
+====
+
+[#access-control-self-service-group]
+.ACI: Manage Self-Service Groups
+====
+Let users create and delete self-managed groups:
+
+[source, ldif]
+----
+aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(
+ targattrfilters="add=objectClass:(objectClass=groupOfNames)")(version 3.0;
+ acl "All can create self service groups"; allow (add)(userdn= "
+ ldap:///uid=*,ou=People,dc=example,dc=com");)
+aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(version 3
+ .0; acl "Owner can delete self service groups"; allow (delete)(userattr= "
+ owner#USERDN");)
+----
+====
+
+[#access-control-loopback-only]
+.ACI: Permit Cleartext Access Over Loopback Only
+====
+This ACI uses IP address and Security Strength Factor subjects:
+
+[source, ldif]
+----
+aci: (target = "ldap:///dc=example,dc=com")(targetattr =
+ "*")(version 3.0;acl "Use loopback only for LDAP in the clear"; deny (all)(
+ ip != "127.0.0.1" and ssf <= "1");)
+----
+When you use TLS but have not configured a cipher, `ssf` is one. Packets are checksummed for integrity checking, but all content is sent in cleartext.
+====
+
+
+[#get-effective-rights]
+=== Viewing Effective Rights
+
+Once you set up a number of ACIs, you might find it difficult to understand by inspection what rights a user actually has to a given entry. The Get Effective Rights control can help.
+
+[NOTE]
+====
+The control OID, `1.3.6.1.4.1.42.2.27.9.5.2`, is not allowed by the default global ACIs.
+====
+In this example, Babs Jensen is the owner of a small group of people who are willing to carpool:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword hifalutin \
+ --baseDN "ou=Self Service,ou=Groups,dc=example,dc=com" \
+ "cn=*"
+dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+member: uid=bjensen,ou=People,dc=example,dc=com
+description: People who are willing to carpool
+owner: uid=bjensen,ou=People,dc=example,dc=com
+cn: Carpoolers
+----
+Performing the same search with the get effective rights control, and asking for the `aclRights` attribute, shows what rights Babs has on the entry:
+
+[source, console]
+----
+$ ldapsearch \
+ --control effectiverights \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword hifalutin \
+ --baseDN "ou=Self Service,ou=Groups,dc=example,dc=com" \
+ "cn=*" \
+ aclRights
+dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+aclRights;entryLevel: add:0,delete:1,read:1,write:0,proxy:0
+----
+When you request the `aclRightsInfo` attribute, the server responds with information about the ACIs applied:
+
+[source, console]
+----
+$ ldapsearch \
+ --control effectiverights \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword hifalutin \
+ --baseDN "ou=Self Service,ou=Groups,dc=example,dc=com" \
+ "cn=*" \
+ aclRights \
+ aclRightsInfo
+dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+aclRightsInfo;logs;entryLevel;read: acl_summary(main): access allowed(read) on e
+ ntry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, objectClas
+ s) to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: evaluat
+ ed allow , deciding_aci: Anonymous read-search access)
+aclRightsInfo;logs;entryLevel;write: acl_summary(main): access not allowed(write
+ ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
+ ) to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: no acis
+ matched the subject )
+aclRightsInfo;logs;entryLevel;add: acl_summary(main): access not allowed(add) on
+  entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL) to
+  (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: no acis matc
+ hed the subject )
+aclRightsInfo;logs;entryLevel;delete: acl_summary(main): access allowed(delete)
+ on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL)
+ to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: evaluated
+ allow , deciding_aci: Owner can delete self service groups)
+aclRights;entryLevel: add:0,delete:1,read:1,write:0,proxy:0
+aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(proxy
+ ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
+ ) to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: no acis
+ matched the subject )
+----
+You can also request the effective rights for another user by using the `--getEffectiveRightsAuthzid` (short form: `-g`) option, which takes the authorization identity of the other user as an argument. The following example shows Directory Manager checking anonymous user rights to the same entry. Notice that the authorization identity for an anonymous user is expressed as `dn:`:
+
+[source, console]
+----
+$ ldapsearch \
+ --getEffectiveRightsAuthzid "dn:" \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN "ou=Self Service,ou=groups,dc=example,dc=com" \
+ "cn=*" aclRightsInfo
+dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+aclRightsInfo;logs;entryLevel;read: acl_summary(main): access allowed(read) on e
+ ntry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, objectClas
+ s) to (anonymous) (not proxied) ( reason: evaluated allow , deciding_aci: Anony
+ mous read-search access)
+aclRightsInfo;logs;entryLevel;write: acl_summary(main): access not allowed(write
+ ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
+ ) to (anonymous) (not proxied) ( reason: no acis matched the subject )
+aclRightsInfo;logs;entryLevel;add: acl_summary(main): access not allowed(add) on
+  entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL) to
+  (anonymous) (not proxied) ( reason: no acis matched the subject )
+aclRightsInfo;logs;entryLevel;delete: acl_summary(main): access not allowed(dele
+ te) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NU
+ LL) to (anonymous) (not proxied) ( reason: no acis matched the subject )
+aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(proxy
+ ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
+ ) to (anonymous) (not proxied) ( reason: no acis matched the subject )
+----
+When you need to check access to an attribute that might not yet exist on the entry, use the `--getEffectiveRightsAttribute` (short form: `-e`) option, which takes an attribute list as an argument. The following example shows Directory Manager checking anonymous user access to the description attribute for the Self Service groups organizational unit entry. The description attribute is not yet in the entry:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN "ou=Self Service,ou=groups,dc=example,dc=com" \
+ "ou=Self Service" description
+dn: ou=Self Service,ou=Groups,dc=example,dc=com
+
+$ ldapsearch \
+ --getEffectiveRightsAuthzid "dn:" \
+ --getEffectiveRightsAttribute description \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN "ou=Self Service,ou=groups,dc=example,dc=com" \
+ "ou=Self Service" aclRights
+dn: ou=Self Service,ou=Groups,dc=example,dc=com
+aclRights;attributeLevel;description: search:1,read:1,compare:1,write:0,selfwrit
+ e_add:0,selfwrite_delete:0,proxy:0
+aclRights;entryLevel: add:0,delete:0,read:1,write:0,proxy:0
+----
+
+

@@ -1,0 +1,359 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-attribute-uniqueness]
+== Implementing Attribute Value Uniqueness
+
+This chapter shows you how to enforce that specified attributes do not have repeated values in different directory entries. You can use attribute uniqueness, for example, to prevent two user entries sharing the same email address. In this chapter you will learn to:
+
+* Enforce uniqueness for user IDs and other attributes
+
+* Limit the scope of attribute value uniqueness
+
+* Manage attribute value uniqueness across replicated directory servers
+
+Some attribute values ought to remain unique. If you are using `uid` values as RDNs to distinguish between millions of user entries stored under `ou=People`, then you do not want your directory to contain two or more identical `uid` values. If your credit card or mobile number is stored as an attribute value on your directory entry, you certainly do not want to share that credit card or mobile number with another customer. The same is true for your email address.
+The difficulty for you as directory administrator lies in implementing attribute value uniqueness without sacrificing the high availability that comes from using OpenDJ's loosely consistent, multi-master data replication. Indeed OpenDJ's replication model lets you maintain write access during network outages for directory applications. Yet, write access during a network outage can result in the same, theoretically unique attribute value getting assigned to two different entries at once. You do not notice the duplicate assignment until the network outage ends and replication resumes.
+This chapter shows you how to set up attribute value uniqueness in your directory environment with the following procedures:
+
+* xref:#enable-unique-uids["To Enable Unique UIDs"]
+
+* xref:#enable-unique-attributes["To Enable Unique Values For Other Attributes"]
+
+* xref:#unique-attributes-scoped["To Limit The Scope of Uniqueness"]
+
+* xref:#unique-attributes-repl["To Ensure Unique Attribute Values With Replication"]
+
+OpenDJ directory server uses the unique attribute plugin to handle attribute value uniqueness. As shown in the examples in this chapter, you can configure the unique attribute plugin to handle one or more attributes and to handle entries under one or more base DNs. You can also configure multiple instances of the plugin for the same OpenDJ directory server.
+
+[#enable-unique-uids]
+.To Enable Unique UIDs
+====
+OpenDJ provides a unique attribute plugin that you configure by using the `dsconfig` command. By default, the plugin is prepared to ensure attribute values are unique for `uid` attributes.
+
+. Set the base DN where `uid` should have unique values, and enable the plugin:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-plugin-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "UID Unique Attribute" \
+ --set base-dn:ou=people,dc=example,dc=com \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt
+----
++
+Alternatively, you can specify multiple base DNs for unique values across multiple suffixes:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-plugin-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDn "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "UID Unique Attribute" \
+ --set enabled:true \
+ --add base-dn:ou=people,dc=example,dc=com \
+ --add base-dn:ou=people,dc=example,dc=org \
+ --trustAll \
+ --no-prompt
+----
+
+. Check that the plugin is working correctly:
++
+
+[source, console]
+----
+$ cat bjensen.ldif
+dn: uid=ajensen,ou=People,dc=example,dc=com
+changetype: modify
+add: uid
+uid: bjensen
+
+$ ldapmodify \
+ --defaultAdd \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename bjensen.ldif
+Processing MODIFY request for uid=ajensen,ou=People,dc=example,dc=com
+MODIFY operation failed
+Result Code:  19 (Constraint Violation)
+Additional Information:  A unique attribute conflict was detected for
+ attribute uid:  value bjensen already exists in entry
+ uid=bjensen,ou=People,dc=example,dc=com
+----
++
+If you have set up multiple suffixes, you might try something like this:
++
+
+[source, console]
+----
+$ cat bjensen.ldif
+dn: uid=bjensen,ou=People,dc=example,dc=org
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: Babs
+sn: Jensen
+uid: bjensen
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename bjensen.ldif
+Processing ADD request for uid=bjensen,ou=People,dc=example,dc=org
+ADD operation failed
+Result Code:  19 (Constraint Violation)
+Additional Information:  A unique attribute conflict was detected for attribute
+ uid:  value bjensen already exists in entry
+ uid=bjensen,ou=People,dc=example,dc=com
+----
+
+====
+
+[#enable-unique-attributes]
+.To Enable Unique Values For Other Attributes
+====
+You can also configure the unique attribute plugin for use with other attributes, such as `mail`, `mobile`, or attributes you define, for example `cardNumber`.
+
+. Before you set up the plugin, index the attribute for equality.
++
+See xref:chap-indexing.adoc#configure-indexes["Configuring and Rebuilding Indexes"] for instructions.
+
+. Set up the plugin configuration for your attribute.
++
+You can either add the attribute to an existing plugin configuration, or create a new plugin configuration including the attribute.
++
+When choosing between these alternatives, keep in mind that values must be unique across the attributes and base DNs specified in each plugin configuration. Therefore only group attributes together in the same configuration if you want each value to be unique for all attributes. For example, you might create a single plugin configuration for telephone, fax, mobile, and pager numbers. As an alternative example, suppose user IDs are numeric, that user entries also specify `uidNumber`, and that user IDs are normally the same as their `uidNumber`s. In that case you create separate unique attribute configurations for `uid` and `uidNumber`:
++
+
+* If you want to add the attribute to an existing plugin configuration, do so as shown in the following example which uses the plugin configuration from xref:#enable-unique-uids["To Enable Unique UIDs"]:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-plugin-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "UID Unique Attribute" \
+ --add type:mobile \
+ --trustAll \
+ --no-prompt
+----
+
+* If you want to create a new plugin configuration, do so as shown in the following example:
++
+
+[source, console]
+----
+$ dsconfig \
+ create-plugin \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "Unique mobile numbers" \
+ --type unique-attribute \
+ --set enabled:true \
+ --set base-dn:ou=people,dc=example,dc=com \
+ --set type:mobile \
+ --trustAll \
+ --no-prompt
+----
+
+
+. Check that the plugin is working correctly:
++
+
+[source, console]
+----
+$ cat mobile.ldif
+dn: uid=ajensen,ou=People,dc=example,dc=com
+changetype: modify
+add: mobile
+mobile: +1 828 555 1212
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+add: mobile
+mobile: +1 828 555 1212
+
+$ ldapmodify \
+ --defaultAdd \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename mobile.ldif
+Processing MODIFY request for uid=ajensen,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=ajensen,ou=People,dc=example,dc=com
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation failed
+Result Code:  19 (Constraint Violation)
+Additional Information:  A unique attribute conflict was detected for
+ attribute mobile:  value +1 828 555 1212 already exists in entry
+ uid=ajensen,ou=People,dc=example,dc=com
+----
+
+====
+
+[#unique-attributes-scoped]
+.To Limit The Scope of Uniqueness
+====
+In some cases you need attribute uniqueness separately for different base DNs in your directory. For example, you need all `uid` values to remain unique both for users in `dc=example,dc=com` and `dc=example,dc=org`, but it is not a problem to have one entry under each base DN with the same user ID as the organizations are separate. The following steps demonstrate how to limit the scope of uniqueness by creating separate configuration entries for the unique attribute plugin.
+
+. If the attribute you target is not indexed for equality by default, index the attribute for equality.
++
+See xref:chap-indexing.adoc#configure-indexes["Configuring and Rebuilding Indexes"] for instructions.
++
+The examples in this procedure target the user ID attribute, `uid`, which is indexed for equality by default.
+
+. For each base DN, set up a configuration entry that ensures the target attribute values are unique:
++
+
+[source, console]
+----
+$ dsconfig \
+ create-plugin \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "Unique Example.com UIDs" \
+ --type unique-attribute \
+ --set enabled:true \
+ --set base-dn:dc=example,dc=com \
+ --set type:uid \
+ --trustAll \
+ --no-prompt
+
+$ dsconfig \
+ create-plugin \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "Unique Example.org UIDs" \
+ --type unique-attribute \
+ --set enabled:true \
+ --set base-dn:dc=example,dc=org \
+ --set type:uid \
+ --trustAll \
+ --no-prompt
+----
+
+. Check that the plugin is working correctly:
++
+
+[source, console]
+----
+$ cat uniq-ids.ldif
+dn: uid=unique,ou=People,dc=example,dc=com
+uid: unique
+givenName: Unique
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: Unique Person
+sn: Person
+userPassword: 1Mun1qu3
+
+dn: uid=unique,ou=People,dc=example,dc=org
+uid: unique
+givenName: Unique
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: Unique Person
+sn: Person
+userPassword: 1Mun1qu3
+
+dn: uid=copycat,ou=People,dc=example,dc=com
+uid: unique
+uid: copycat
+givenName: Copycat
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: Copycat Person
+sn: Person
+userPassword: copycopy
+
+$ ldapmodify \
+ --defaultAdd \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename uniq-ids.ldif
+Processing ADD request for uid=unique,ou=People,dc=example,dc=com
+ADD operation successful for DN uid=unique,ou=People,dc=example,dc=com
+Processing ADD request for uid=unique,ou=People,dc=example,dc=org
+ADD operation successful for DN uid=unique,ou=People,dc=example,dc=org
+Processing ADD request for uid=copycat,ou=People,dc=example,dc=com
+ADD operation failed
+Result Code:  19 (Constraint Violation)
+Additional Information:  A unique attribute conflict was detected for
+ attribute uid:  value unique already exists in entry
+ uid=unique,ou=People,dc=example,dc=com
+----
+
+====
+
+[#unique-attributes-repl]
+.To Ensure Unique Attribute Values With Replication
+====
+The unique attribute plugin ensures unique attribute values on the directory server where the attribute value is updated. If client applications write the same attribute value separately at the same time on different directory replicas, it is possible that both servers consider the duplicate value unique, especially if the network is down between the replicas.
+
+. Enable the plugin identically on all replicas.
+
+. To avoid duplicate values where possible, try one of the following solutions:
++
+
+* Use a load balancer or proxy technology to direct all updates to the unique attribute to the same directory server.
++
+The drawback here is the need for an additional component to direct the updates to the same server, and to manage failover should that server go down.
+
+* Configure safe read mode assured replication between replicas storing the unique attribute.
++
+The drawbacks here are the cost of safe read assured replication, and the likelihood that assured replication can enter degraded mode during a network outage, thus continuing to allow updates during the outage.
+
+
+====
+

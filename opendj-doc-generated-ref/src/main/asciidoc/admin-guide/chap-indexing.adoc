@@ -1,0 +1,1113 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-indexing]
+== Indexing Attribute Values
+
+This chapter covers OpenDJ indexing features used to speed up searches, and to limit the impact of searches on directory server resources. In this chapter you will learn to:
+
+* Define indexes and explain why they are useful
+
+* Determine what to index and what types of indexes to use
+
+* Configure, build, and rebuild indexes
+
+* Check that indexes are valid
+
+
+[#about-indexes]
+=== About Indexes
+
+A basic, standard directory feature is the ability to respond quickly to searches.
+An LDAP search specifies the following information that directly affects how long the directory might take to respond:
+
+* The base DN for the search.
++
+The more specific the base DN, the less information to check during the search. For example, a request with base DN `dc=example,dc=com` potentially involves checking many more entries than a request with base DN `uid=bjensen,ou=people,dc=example,dc=com`.
+
+* The scope of the search.
++
+A subtree or one-level scope targets many entries, whereas a base search is limited to one entry.
+
+* The search filter to match.
++
+A search filter, such as `(cn=Babs Jensen)`, asserts that an attribute on the entry to search for, in this case `cn`, corresponds to some value. In this case, the attribute must have a value that equals `Babs Jensen`, ignoring case sensitivity.
++
+It would generally be a waste of resources to have the directory server check all entries to see whether they have a CN of Babs Jensen. Instead, directory servers maintain indexes to expedite checking whether a search filter matches.
+
+Directories like OpenDJ directory server even go so far as to disallow searches that cannot be handled expediently using indexes. Maintaining appropriate indexes is a key aspect of directory administration.
+
+The role of an index is to answer the question, "Which entries have an attribute with this corresponding value?" Each index is therefore specific to an attribute. Each index is also specific to the comparison implied in the search filter. For example, OpenDJ directory server maintains distinct indexes for exact (equality) matching and for substring matching. The types of indexes are explained in xref:#indexes-overview["Index Types and Their Functions"]. Furthermore, indexes are configured in specific directory backends.
+
+An OpenDJ index is implemented as a tree of key-value pairs. The key is a form of the value to match, such as `babs jensen`. The value is a list of IDs for entries that match the key. xref:#figure-equality-index["An OpenDJ Equality Index"] shows an equality (case ignore exact match) index with five keys from a total of four entries. If the data set were large, there could be more than one entry ID per key.
+
+[#figure-equality-index]
+image::images/equality-index.png[]
+This is how OpenDJ directory server uses indexes. When the search filter is `(cn=Babs Jensen)`, OpenDJ directory server retrieves the IDs for entries with a CN matching `Babs Jensen` from the equality index of the CN attribute. (For a complex filter, OpenDJ directory server might optimize the search by changing the order in which it uses the indexes.) A successful result is zero or more entry IDs. These are the candidate result entries.
+
+For each candidate, OpenDJ directory server retrieves the entry by ID from a special system index called `id2entry`, which, as its name suggests, returns an entry for an entry ID. If there is a match, and the client application has the right to access to the data, OpenDJ directory server returns the search result. It continues this process until no candidates are left.
+
+If there are no indexes that correspond to a search request, then OpenDJ directory server must potentially check for a match against every entry in the scope of the search. Evaluating every entry for a match is referred to as an __unindexed__ search. An unindexed search is an expensive operation, particularly for large directories. For this reason, OpenDJ directory server refuses unindexed searches unless the user making the request has specific permission to make such requests. Permission to perform an unindexed search is granted with the `unindexed-search` privilege. This privilege is reserved for the directory root user by default, and should not be granted lightly.
+
+
+[#what-to-index]
+=== What To Index
+
+OpenDJ search performance depends on indexes as described in xref:#about-indexes["About Indexes"].
+
+OpenDJ directory server maintains generally useful indexes for data imported into the default `userRoot` backend. When you create a new backend, OpenDJ directory server only maintains the necessary system indexes unless you configure additional indexes. For details, see xref:#default-indexes["Default Indexes"].
+
+The default settings are fine for evaluating OpenDJ directory server, and they work well with sample data. The default settings might not, however, fit your directory data and the searches performed on your directory service.
+
+You can view and edit what is indexed through OpenDJ control panel, Indexes > Manage Indexes. Alternatively, you can manage indexes using the command-line tools demonstrated in xref:#configure-indexes["Configuring and Rebuilding Indexes"].
+
+[#necessary-indexes]
+==== Determining Which Indexes Are Needed
+
+Index maintenance has its costs. Every time an indexed attribute is updated, OpenDJ directory server must update each affected index to reflect the change, which is wasteful if the index is hardly used. Indexes, especially substring indexes, can take up more memory and disk space than the corresponding data.
+
+Aim to maintain only those indexes that speed up appropriate searches, and that allow OpenDJ directory server to operate properly. The latter indexes include non-configurable internal indexes, and generally are handled by OpenDJ directory server without intervention. The former, indexes for appropriate searches, require thought and investigation. Whether a search is appropriate depends on the circumstances.
+
+Begin by reviewing the attributes of your directory data. Which attributes would you expect to see in a search filter? If an attribute is going to show up frequently in reasonable search filters, then it ought to be indexed.
+
+Compare your guesses with what you see actually happening in the directory. One way of doing this is to review the access log for search results that are marked `unindexed`:
+
+[source, console]
+----
+$ grep -B 1 unindexed /path/to/opendj/logs/access
+SEARCH REQ conn=5 op=0 msgID=1 base="ou=people,dc=example,dc=com" scope=sub
+ filter="(&(mail=*.net)(objectclass=person))" attrs="ALL"
+SEARCH RES conn=5 op=0 msgID=1 result=50 message="You do not have sufficient
+ privileges to perform an unindexed search" nentries=0 unindexed etime=9
+--
+SEARCH REQ conn=9 op=0 msgID=1 base="ou=people,dc=example,dc=com" scope=sub
+ filter="(&(employeenumber=86182)(mail=*@maildomain.net))" attrs="ALL"
+SEARCH RES conn=9 op=0 msgID=1 result=50 message="You do not have sufficient
+ privileges to perform an unindexed search" nentries=0 unindexed etime=3
+--
+SEARCH REQ conn=11 op=0 msgID=1 base="ou=people,dc=example,dc=com" scope=sub
+ filter="(objectclass=person)" attrs="ALL"
+SEARCH RES conn=11 op=0 msgID=1 result=50 message="You do not have sufficient
+ privileges to perform an unindexed search" nentries=0 unindexed etime=3
+----
+Understand the search filter that led to each unindexed search. If the filter is appropriate and frequently used, add an index to facilitate the search. You can either consume the access logs to determine how often a search filter is used, or monitor what is happening in the directory by using the index analysis feature.
+
+OpenDJ directory server provides this feature to collect information about filters in search requests. You can activate the index analysis mechanism using the `dsconfig set-backend-prop` command:
+
+[source, console]
+----
+$ dsconfig \
+ set-backend-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --set index-filter-analyzer-enabled:true \
+ --no-prompt \
+ --trustAll
+----
+The command causes OpenDJ directory server to analyze filters used, and to keep the results in memory, so that you can read them through the `cn=monitor` interface:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN "cn=userRoot Storage,cn=monitor" \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ "(objectclass=*)" \
+ filter-use
+dn: cn=userRoot Storage,cn=monitor
+filter-use: (objectClass=ldapSubentry) hits:1 maxmatches:0 message:
+filter-use: (aci=*) hits:1 maxmatches:0 message:
+filter-use: (employeenumber=86182) hits:6 maxmatches:-1 message:equality index t
+ ype is disabled for the employeeNumber attribute
+filter-use: (mail=*@maildomain.net) hits:6 maxmatches:-1 message:The filter valu
+ e exceeded the index entry limit for the /dc=com,dc=example/mail.caseIgnoreIA5S
+ ubstringsMatch:6 index...
+filter-use: (objectClass=subentry) hits:1 maxmatches:0 message:
+filter-use: (cn=aa*) hits:2 maxmatches:50 message:
+filter-use: (objectClass=ds-virtual-static-group) hits:1 maxmatches:0 message:
+filter-use: (objectClass=groupOfNames) hits:1 maxmatches:0 message:
+filter-use: (uid=user.86182) hits:2 maxmatches:1 message:
+filter-use: (mail=*.net) hits:1 maxmatches:-1 message:The filter value exceeded
+ the index entry limit for the /dc=com,dc=example/mail.caseIgnoreIA5SubstringsMa
+ tch:6 index
+filter-use: (objectclass=person) hits:3 maxmatches:-1 message:The filter value e
+ xceeded the index entry limit for the /dc=com,dc=example/objectClass.objectIden
+ tifierMatch index
+filter-use: (objectClass=groupOfEntries) hits:1 maxmatches:0 message:
+filter-use: (objectClass=groupOfUniqueNames) hits:1 maxmatches:0 message:
+filter-use: (objectClass=groupOfURLs) hits:1 maxmatches:0 message:
+----
+The `filter-use` values are the filter, the `hits` (number of times the filter was used), the `maxmatches` (number of matches found), and an optional message.
+
+Notice in the example output above that you see filters for internal use, such as `(aci=*)`. You also see filters for searches that are not indexed.
+
+One appropriate search filter that led to an unindexed search, `(employeenumber=86182)`, had no matches because, "equality index type is disabled for the employeeNumber attribute." Some client application is trying to find specific users by employee number, but no index exists for that purpose. If this appears regularly as a frequent search, add an employee number index as described in xref:#configure-standard-index["Configuring a Standard Index"].
+
+One inappropriate search filter that led to an unindexed search, `(mail=*.net)`, had no matches because, "The filter value exceeded the index entry limit for the /dc=com,dc=example/mail.caseIgnoreIA5SubstringsMatch:6 index." It appears that some client application is trying to list all entries with an email address ending in `.net`. There are so many such entries that although an index exists for the `mail` attribute, OpenDJ directory server has given up maintaining the list of entries with email addresses ending in `.net`. In a large directory, there might be many thousands of matching entries. If you take action to allow this expensive search, the requests could consume a large share of directory resources, or even cause a denial of service to other requests.
+
+To avoid impacting OpenDJ directory server performance, turn off index analysis after you collect the information you need. You turn off index analysis with the `dsconfig set-backend-prop` command:
+
+[source, console]
+----
+$ dsconfig \
+ set-backend-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --set index-filter-analyzer-enabled:false \
+ --no-prompt \
+ --trustAll
+----
+Directory users might complain to you that their searches are refused because they are unindexed. Ask for the result code, additional information, and search filter. OpenDJ directory server responds to an LDAP client application that attempts an unindexed search with a result code of 50 and additional information about an unindexed search. The following example attempts, anonymously, to get the entries for all users whose email address ends in `.net`:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN ou=people,dc=example,dc=com \
+ "(&(mail=*.net)(objectclass=person))"
+SEARCH operation failed
+Result Code:  50 (Insufficient Access Rights)
+Additional Information:
+ You do not have sufficient privileges to perform an unindexed search
+----
+Rather than adjusting settings to permit the search, try to understand why the user wants to perform an unindexed search.
+
+Perhaps they are unintentionally requesting an unindexed search. If so, you can help them find a less expensive search, by using an approach that limits the number of candidate result entries. For example, if a GUI application lets a user browse a group of entries, the application could use a browsing index to retrieve a block of entries for each screen, rather than retrieving all the entries at once.
+
+Perhaps they do have a legitimate reason to get the full list of all entries in one operation, such as regularly rebuilding some database that depends on the directory. If so, their application can perform the search as a user who has the `unindexed-search` privilege. To assign the `unindexed-search` privilege, see xref:chap-privileges-acis.adoc#configure-privileges["Configuring Privileges"].
+
+
+[#debug-search]
+==== Clarifying Which Indexes Are Used by a Search
+
+Sometimes it is not obvious by inspection how OpenDJ directory server handles a given search request internally. The directory root user can inspect how OpenDJ directory server resolves the search request by performing the same search with the `debugsearchindex` attribute. The following example demonstrates this feature for an exact match search:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ "(uid=user.1000)" \
+ debugsearchindex
+dn: cn=debugsearch
+debugsearchindex: filter=(uid=user.1000)[INDEX:uid.equality][COUNT:1] final=[COU
+ NT:1]
+----
+When you request the `debugsearchindex` attribute, instead of performing the search, OpenDJ directory server returns debug information indicating how it would process the search operation. In the example above, notice that OpenDJ directory server uses the equality index for the `uid` attribute.
+
+A search with a less exact filter requires more work. In the following example OpenDJ directory server would have to evaluate over 10,000 entries:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ "(uid=*)" \
+ debugsearchindex
+dn: cn=debugsearch
+debugsearchindex: filter=(uid=*)[NOT-INDEXED] scope=sub[LIMIT-EXCEEDED:10002]
+ final=[NOT-INDEXED]
+----
+Although an index exists, the set of results is so large that OpenDJ directory server has stopped maintaining the list of entry IDs, and so the search is considered unindexed.
+
+If an index already exists, but you suspect it is not working properly, see xref:#verify-index["Verifying Indexes"].
+[#about-debugsearchindex]
+.About debugsearchindex Values
+--
+The values of the `debugsearchindex` attribute show you how OpenDJ directory server uses search filters and scope to determine the results of the search. In general, the `debugsearchindex` attribute has the form: `(filter|vlv)=filter-with-info( scope=scope-idscope-info) final=final-info`.
+
+If a normal filter applies, the value starts with `filter=`. If the search operation parameters have an associated VLV index, the value starts with `vlv=`. A `scope` component provides information about how the scope affected the results. The `final` component provides information about the overall result.
+
+__filter-with-info__::
+This field looks like a string representation of the LDAP filter with extra information after the closing parenthesis of each simple filter component.
+
++
+For a VLV index, only the extra information is shown:
++
+The extra information takes the form: `([INDEX:index-id])([COUNT:entry-count]|[LIMIT-EXCEEDED]|[NOT-INDEXED])`, where:
+
+* `[INDEX:index-id]` identifies the index that could be used to find matches for this filter.
+
+* `[COUNT:entry-count]` specifies the number of entries found to match the filter.
+
+* `[LIMIT-EXCEEDED]` indicates the server maintains a matching index, but the index entry limit was exceeded for the value specified.
+
+* `[NOT-INDEXED]` indicates no matching index value or index key was found.
+
++
+For example, the `debugsearchindex` attribute value excerpt `filter=(&(objectClass=person)[INDEX:objectClass.equality] [LIMIT-EXCEEDED](cn=*a*)[INDEX:cn.substring][NOT-INDEXED])[NOT-INDEXED]` provides information about how OpenDJ evaluates the complex filter `(&(objectClass=person)(cn=*a*))`. The filter component `(objectClass=person)` does correspond to the equality index for `objectClass`, but there are so many entries matching `objectClass=person` that the server has stopped maintaining index entries for that value. The filter component `cn=*a*` did not match an index, as might be expected for such a short substring. No matching index was found for the whole complex filter.
+
+__scope-id__::
+The scope can be one of `base`, `one`, `sub`, or `subordinate`.
+
+__scope-info__::
+This field is similar to the extra information for filter components:
+
+* `[COUNT:entry-count]` specifies the number of entries found in the scope.
+
+* `[LIMIT-EXCEEDED:entry-count]` indicates the scope did not prevent the search from exceeding the resource limit that caps the number of entries a search can return.
+
++
+For example, the `debugsearchindex` attribute value excerpt `scope=sub[LIMIT-EXCEEDED:10002]` indicates that the number of matches in the subtree scope that exceeded the resource limit capping how many entries a search can return.
+
+__final-info__::
+This field shows at a glance whether the search was indexed:
+
+* `[COUNT:entry-count]` specifies the number of entries found, and indicates that the search was indexed.
+
+* `[NOT-INDEXED]` indicates that the search was unindexed.
+
+
+--
+
+
+
+[#indexes-overview]
+=== Index Types and Their Functions
+
+OpenDJ directory server supports multiple index types, each corresponding to a different type of search. This section describes the index types and what they are used for.
+
+View what is indexed through OpenDJ control panel, Indexes > Manage Indexes. Alternatively, use the `backendstat list-indexes` command. For details about a particular index, you can use the `backendstat dump-index` command.
+
+[#indexes-presence]
+==== Presence Index
+
+A presence index is used to match an attribute that is present on the entry, regardless of the value. The `aci` attribute is indexed for presence by default to allow quick retrieval of entries with ACIs:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ "(aci=*)" -
+dn: dc=example,dc=com
+
+dn: ou=People,dc=example,dc=com
+----
+Due to its implementation, a presence index takes up less space than other indexes. In a presence index, there is just one key with a list of IDs.
+
+As described in xref:#about-indexes["About Indexes"], an OpenDJ directory server index is implemented as a tree of key-value pairs. The following command examines the ACI presence index for Example.ldif data:
+
+[source, console]
+----
+$ backendstat \
+ dump-index \
+ --backendID userRoot \
+ --baseDN dc=example,dc=com \
+ --indexName aci.presence
+Key (len 1): PRESENCE
+Value (len 5): [COUNT:2] 100003 100011
+
+Total Records: 1
+Total / Average Key Size: 1 bytes / 1 bytes
+Total / Average Data Size: 5 bytes / 5 bytes
+----
+In this case, there are two entries that have ACI attributes. Their IDs are `100003` and `100011`.
+
+
+[#indexes-equality]
+==== Equality Index
+
+An equality index is used to match values that correspond exactly (though generally without case sensitivity) to the value provided in the search filter. An equality index requires clients to match values without wildcards or misspellings:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=bjensen)" mail
+dn: uid=bjensen,ou=People,dc=example,dc=com
+mail: bjensen@example.com
+----
+An equality index has one list of entry IDs for each attribute value. Depending on the backend implementation, the keys in a case-insensitive index might not be strings. For example, a key of `6A656E73656E` could represent `jensen`.
+
+As described in xref:#about-indexes["About Indexes"], an OpenDJ directory server index is implemented as a tree of key-value pairs. The following command examines the SN equality index for Example.ldif data:
+
+[source, console]
+----
+$ backendstat \
+ dump-index \
+ --backendID userRoot \
+ --baseDN dc=example,dc=com \
+ --indexName sn.caseIgnoreMatch
+...
+Key (len 6): jensen
+Value (len 12): [COUNT:9] 100018 100031 100032 100066 100079 100094 100133
+ 100134 100150
+...
+
+Total Records: 87
+Total / Average Key Size: 528 bytes / 6 bytes
+Total / Average Data Size: 414 bytes / 4 bytes
+----
+In this case, there are nine entries that have an SN of Jensen.
+
+As long as the keys of the equality index are not encrypted, OpenDJ directory server can reuse an equality index for some other searches, such as ordering and initial substring searches.
+
+
+[#indexes-approximate]
+==== Approximate Index
+
+An approximate index is used to match values that "sound like" those provided in the filter. An approximate index on `cn` lets client applications find people even when they misspell names, as in the following example:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn~=Babs Jansen)" cn
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+----
+An approximate index squashes attribute values into a normalized form.
+
+As described in xref:#about-indexes["About Indexes"], an OpenDJ directory server index is implemented as a tree of key-value pairs. The following command examines an SN approximate index for Example.ldif data:
+
+[source, console]
+----
+$ backendstat \
+ dump-index \
+ --backendID userRoot \
+ --baseDN dc=example,dc=com \
+ --indexName sn.ds-mr-double-metaphone-approx
+...
+Key (len 4): JNSN
+Value (len 13): [COUNT:10] 100018 100031 100032 100059 100066 100079 100094
+ 100133 100134 100150
+...
+
+Total Records: 84
+Total / Average Key Size: 276 bytes / 3 bytes
+Total / Average Data Size: 405 bytes / 4 bytes
+----
+In this case, there are ten entries that have an SN that sounds like Jensen.
+
+
+[#indexes-substring]
+==== Substring Index
+
+A substring index is used to match values that are specified with wildcards in the filter. Substring indexes can be expensive to maintain, especially for large attribute values:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn=Barb*)" cn
+dn: uid=bfrancis,ou=People,dc=example,dc=com
+cn: Barbara Francis
+
+dn: uid=bhal2,ou=People,dc=example,dc=com
+cn: Barbara Hall
+
+dn: uid=bjablons,ou=People,dc=example,dc=com
+cn: Barbara Jablonski
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+
+dn: uid=bmaddox,ou=People,dc=example,dc=com
+cn: Barbara Maddox
+----
+In a substring index, there are enough keys to allow OpenDJ directory server to match any substring in the attribute values. Each key is associated with a list of IDs. The default maximum size of a substring key is 6 bytes.
+
+As described in xref:#about-indexes["About Indexes"], an OpenDJ directory server index is implemented as a tree of key-value pairs. The following command examines an SN substring index for Example.ldif data:
+
+[source, console]
+----
+$ backendstat \
+ dump-index \
+ --backendID userRoot \
+ --baseDN dc=example,dc=com \
+ --indexName sn.caseIgnoreSubstringsMatch:6
+...
+Key (len 1): e
+Value (len 25): [COUNT:22] 100024 100027 100035 100046 100048 100052 100058
+ 100070 100073 100074 100075 100080 100091 100093 100100 100115 100117 100123
+ 100142 100148 100152 100155
+...
+Key (len 2): en
+Value (len 15): [COUNT:12] 100018 100031 100032 100037 100066 100079 100094
+ 100122 100133 100134 100150 100156
+...
+Key (len 3): ens
+Value (len 4): [COUNT:1] 100147
+Key (len 5): ensen
+Value (len 12): [COUNT:9] 100018 100031 100032 100066 100079 100094 100133
+ 100134 100150
+...
+Key (len 6): jensen
+Value (len 12): [COUNT:9] 100018 100031 100032 100066 100079 100094 100133
+ 100134 100150
+...
+Key (len 1): n
+Value (len 35): [COUNT:32] 100013 100014 100018 100019 100020 100022 100031
+ 100032 100037 100049 100054 100059 100066 100071 100077 100079 100088 100094
+ 100097 100102 100106 100113 100116 100122 100124 100133 100134 100143 100144
+ 100150 100153 100156
+...
+Key (len 2): ns
+Value (len 4): [COUNT:1] 100147
+Key (len 4): nsen
+Value (len 12): [COUNT:9] 100018 100031 100032 100066 100079 100094 100133
+ 100134 100150
+...
+Key (len 1): s
+Value (len 15): [COUNT:12] 100012 100026 100047 100064 100095 100098 100108
+ 100131 100135 100147 100149 100154
+...
+Key (len 2): se
+Value (len 9): [COUNT:6] 100052 100058 100075 100117 100123 100148
+Key (len 3): sen
+Value (len 12): [COUNT:9] 100018 100031 100032 100066 100079 100094 100133
+ 100134 100150
+...
+
+Total Records: 391
+Total / Average Key Size: 1653 bytes / 4 bytes
+Total / Average Data Size: 2095 bytes / 5 bytes
+----
+In this case, the SN value Jensen shares substrings with many other entries. Given the size of the lists and number of keys in a substring index, it is much more expensive to maintain than other indexes. This is particularly true for longer attribute values.
+
+
+[#indexes-ordering]
+==== Ordering Index
+
+An ordering index is used to match values for a filter that specifies a range. For example, the `ds-sync-hist` attribute, which is for OpenDJ directory server's internal use, has an ordering index by default. Searches on that attribute often seek entries with changes more recent than the last time a search was performed.
+
+The following example shows a search that specifies a range on the SN attribute value:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com  "(sn>=winter)" sn
+dn: uid=aworrell,ou=People,dc=example,dc=com
+sn: Worrell
+
+dn: uid=kwinters,ou=People,dc=example,dc=com
+sn: Winters
+
+dn: uid=pworrell,ou=People,dc=example,dc=com
+sn: Worrell
+----
+In this case, OpenDJ directory server only requires an ordering index if it cannot reuse the (ordered) equality index instead. For example, if the equality index is encrypted, the ordering index would need to be maintained separately.
+
+
+[#indexes-vlv]
+==== Virtual List View (Browsing) Index
+
+A virtual list view (VLV) or browsing index is designed to help the server respond to client applications that need virtual list view results, for example, to browse through a long list in a GUI. They also help the server respond to clients that request server-side sorting of the search results.
+
+VLV indexes correspond to particular searches. Configure your VLV indexes using the control panel, and copy the command-line equivalent from the Details pane for the operation, if necessary.
+
+
+[#indexes-extensible]
+==== Extensible Matching Rule Index
+
+In some cases you need an index for a matching rule other than those described above. For example, OpenDJ supports generalized time-based matching so that applications can search for all times later than, or earlier than a specified time.
+
+
+
+[#configure-indexes]
+=== Configuring and Rebuilding Indexes
+
+You modify index configurations by using the `dsconfig` command. The subcommands to use depend on the backend type, as shown in the examples that follow. The configuration changes then take effect after you rebuild the index according to the new configuration, using the `rebuild-index` command. The `dsconfig --help-database` command lists subcommands for creating, reading, updating, and deleting index configuration.
+
+[TIP]
+====
+Indexes are per directory backend rather than per suffix. To maintain separate indexes for different suffixes on the same directory server, put the suffixes in different backends.
+====
+This section includes the following procedures:
+
+* xref:#configure-standard-index["Configuring a Standard Index"]
+
+* xref:#configure-vlv["Configuring a Virtual List View Index"]
+
+* xref:#rebuild-index["Rebuilding Indexes"]
+
+* xref:#index-entry-limits["Understanding Index Entry Limits"]
+
+
+[#configure-standard-index]
+==== Configuring a Standard Index
+
+You can configure standard indexes from the control panel, and also on the command-line using the `dsconfig` command. After you finish configuring the index, you must rebuild the index for the changes to take effect.
+
+To prevent indexed values from appearing in cleartext in a backend, you can enable confidentiality by backend index. For details, see xref:chap-import-export.adoc#encrypt-directory-data["Encrypting Directory Data"].
+
+[#create-index-example]
+.Create a New Index
+====
+The following example creates a new equality index for the `cn` (common name) attribute in a backend of type `pdb` named `myData`:
+
+[source, console]
+----
+$ dsconfig \
+ create-backend-index \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name myData \
+ --index-name cn \
+ --set index-type:equality \
+ --trustAll \
+ --no-prompt
+----
+====
+
+[#approx-index-example]
+.Configure an Approximate Index
+====
+The following example configures an approximate index for the `cn` (common name) attribute in a backend of type `pdb` named `myData`:
+
+[source, console]
+----
+$ dsconfig \
+ set-backend-index-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name myData \
+ --index-name cn \
+ --set index-type:approximate \
+ --trustAll \
+ --no-prompt
+----
+Approximate indexes depend on the Double Metaphone matching rule, described in xref:#extensible-match-index-example["Configure an Extensible Match Index"].
+====
+
+[#extensible-match-index-example]
+.Configure an Extensible Match Index
+====
+OpenDJ directory server supports matching rules defined in LDAP RFCs. It also defines OpenDJ-specific extensible matching rules.
+--
+The following are OpenDJ-specific extensible matching rules:
+
+Name: `ds-mr-double-metaphone-approx`,OID: `1.3.6.1.4.1.26027.1.4.1`::
+Double Metaphone Approximate Match described at link:http://aspell.net/metaphone/[http://aspell.net/metaphone/, window=\_blank]. The OpenDJ implementation always produces a single value rather than one or possibly two values.
+
++
+Configure approximate indexes as described in xref:#approx-index-example["Configure an Approximate Index"].
+
++
+For an example using this matching rule, see xref:../server-dev-guide/chap-ldap-operations.adoc#approximate-match-search["Search: Finding an Approximate Match"] in the __Directory Server Developer's Guide__.
+
+Name: `ds-mr-user-password-exact`,OID: `1.3.6.1.4.1.26027.1.4.2`::
+User password exact matching rule used to compare encoded bytes of two hashed password values for exact equality.
+
+Name: `ds-mr-user-password-equality`,OID: `1.3.6.1.4.1.26027.1.4.3`::
+User password matching rule implemented as the user password exact matching rule.
+
+Name: `partialDateAndTimeMatchingRule`,OID: `1.3.6.1.4.1.26027.1.4.7`::
+Partial date and time matching rule for matching parts of dates in time-based searches.
+
++
+For an example using this matching rule, see xref:../server-dev-guide/chap-ldap-operations.adoc#extensible-match-search["Search: Listing Active Accounts"] in the __Directory Server Developer's Guide__.
+
+Name: `relativeTimeOrderingMatch.gt`,OID: `1.3.6.1.4.1.26027.1.4.5`::
+Greater-than relative time matching rule for time-based searches.
+
++
+For an example that configures an index with this matching rule, see xref:../server-dev-guide/chap-ldap-operations.adoc#extensible-match-search["Search: Listing Active Accounts"] in the __Directory Server Developer's Guide__.
+
+Name: `relativeTimeOrderingMatch.lt`,OID: `1.3.6.1.4.1.26027.1.4.6`::
+Less-than relative time matching rule for time-based searches.
+
++
+For an example using this matching rule, see xref:../server-dev-guide/chap-ldap-operations.adoc#extensible-match-search["Search: Listing Active Accounts"] in the __Directory Server Developer's Guide__.
+
+--
+The OpenDJ control panel New Index window does not help you set up extensible matching rule indexes. Use the `dsconfig` command instead.
+
+The following example configures an extensible matching rule index for "later than" and "earlier than" generalized time matching on a `lastLoginTime` attribute in a backend of type `pdb` named `myData`:
+
+[source, console]
+----
+$ dsconfig \
+ create-backend-index \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name myData \
+ --set index-type:extensible \
+ --set index-extensible-matching-rule:1.3.6.1.4.1.26027.1.4.5 \
+ --set index-extensible-matching-rule:1.3.6.1.4.1.26027.1.4.6 \
+ --index-name lastLoginTime \
+ --trustAll \
+ --no-prompt
+----
+====
+
+
+[#configure-vlv]
+==== Configuring a Virtual List View Index
+
+In the OpenDJ control panel, select Manage Indexes > New VLV Index, and then set up your VLV index using the New VLV Index window as shown in xref:#figure-create-vlv-index["New VLV Index Window"].
+
+[#figure-create-vlv-index]
+image::images/create-vlv-index.png[]
+After you finish configuring your index and click OK, the Control Panel prompts you to make the additional changes necessary to complete the VLV index configuration, and then to build the index.
+
+You can also create the equivalent index configuration by using the `dsconfig` command.
+
+The following example shows how to create the VLV index for a backend of type `pdb` named `myData`:
+
+[source, console]
+----
+$ dsconfig \
+ create-backend-vlv-index \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDn "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name myData \
+ --index-name people-by-last-name \
+ --set base-dn:ou=People,dc=example,dc=com \
+ --set filter:"(|(givenName=*)(sn=*))" \
+ --set scope:single-level \
+ --set sort-order:"+sn +givenName" \
+ --trustAll \
+ --no-prompt
+----
+
+[NOTE]
+====
+When referring to a VLV index after creation, you must add `vlv.` as a prefix. In other words, if you named the VLV index `people-by-last-name`, you refer to it as `vlv.people-by-last-name` when rebuilding indexes, changing index properties such as the index entry limit, or verifying indexes.
+====
+
+
+[#rebuild-index]
+==== Rebuilding Indexes
+
+After you change an index configuration, or when you find that an index is corrupt, you can rebuild the index. When you rebuild indexes, you specify the base DN of the data to index, and either the list of indexes to rebuild or `--rebuildAll`. You can rebuild indexes while the server is offline, or while the server is online. If you rebuild the index while the server is online, then you must schedule the rebuild process as a task.
+This section includes the following examples:
+
+* xref:#rebuild-index-example["Rebuild Index"]
+
+* xref:#rebuild-degraded-indexes-example["Rebuild Degraded Indexes"]
+
+* xref:#clear-degraded-indexes-example["Clear New, Unused, Degraded Indexes"]
+
+
+[#rebuild-index-example]
+.Rebuild Index
+====
+The following example rebuilds the `cn` index immediately with the server online:
+
+[source, console]
+----
+$ rebuild-index \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ --index cn \
+ --start 0 \
+ --trustAll
+Rebuild Index task 20150219181540575 scheduled to start Feb 19, 2015 6:15:40
+----
+====
+
+[#rebuild-degraded-indexes-example]
+.Rebuild Degraded Indexes
+====
+The following example rebuilds degraded indexes immediately with the server online:
+
+[source, console]
+----
+$ rebuild-index \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ --rebuildDegraded
+...
+...message="Due to changes in the configuration,
+ index dc=com,dc=example_description is currently operating in a degraded state
+ and must be rebuilt before it can be used"
+...message="Rebuild of all degraded indexes started
+ with 177 total entries to process"
+..."Rebuild complete. Processed 177 entries in 0 seconds
+ (average rate 3160.7/sec)"
+...
+Rebuild Index task 20151031164835613 has been successfully completed
+----
+====
+
+[#clear-degraded-indexes-example]
+.Clear New, Unused, Degraded Indexes
+====
+When you add a new attribute as described in xref:chap-schema.adoc#update-schema["Updating Directory Schema"], and then create indexes for the new attribute, the new indexes appear as degraded, even though the attribute has not yet been used, and so indexes are sure to be empty, rather than degraded.
+
+In this special case, you can safely use the `rebuild-index --clearDegradedState` command to avoid having to scan the entire directory backend before rebuilding the new, unused index. In this example, an index has just been created for `newUnusedAttribute`.
+
+Before using the `rebuild-index` command, test the index status to make sure that the index has not yet been used: by using the `backendstat` command, described in xref:../reference/admin-tools-ref.adoc#backendstat-1[backendstat(1)] in the __Reference__.
+
+OpenDJ directory server must be stopped before you use the `backendstat` command:
+
+[source, console]
+----
+$ stop-ds
+----
+The third column of the output is the `Index Valid` column, which is `false` before the rebuild, `true` after:
+
+[source, console]
+----
+$ backendstat show-index-status --backendID userRoot --baseDN dc=example,dc=com \
+ | grep newunusedattribute
+newunusedattribute.presence                       ...                false ...
+newunusedattribute.caseIgnoreMatch                ...                false ...
+newunusedattribute.caseIgnoreSubstringsMatch:6    ...                false ...
+----
+Update the index information to fix the value of the unused index:
+
+[source, console]
+----
+$ rebuild-index --baseDN dc=example,dc=com --clearDegradedState \
+ --index newUnusedAttribute
+----
+Check that the `Index Valid` column for the index status is now set to `true`:
+
+[source, console]
+----
+$ backendstat show-index-status --backendID userRoot --baseDN dc=example,dc=com \
+ | grep newunusedattribute
+newunusedattribute.presence                       ...                true ...
+newunusedattribute.caseIgnoreMatch                ...                true ...
+newunusedattribute.caseIgnoreSubstringsMatch:6    ...                true ...
+----
+Start OpenDJ directory server:
+
+[source, console]
+----
+$ start-ds
+----
+If the newly indexed attribute has already been used, rebuild the index instead of clearing the degraded state.
+====
+
+
+[#index-entry-limits]
+==== Understanding Index Entry Limits
+
+As described in xref:#about-indexes["About Indexes"], an OpenDJ directory server index is implemented as a tree of key-value pairs. The key is what the search is trying to match. The value is a list of entry IDs.
+
+As the number of entries in the directory grows, the list of entry IDs for some keys can become very large. For example, every entry in the directory has the value `top` for the `objectClass` attribute. If the directory maintains a substring index for `mail`, the number of entries ending in `.com` could be huge.
+
+OpenDJ directory server therefore defines an __index entry limit__. When the number of entry IDs for a key exceeds the limit, OpenDJ directory server stops maintaining a list of IDs for that key. The limit effectively makes a search using that key unindexed. Searches using other keys in the same index are not affected.
+
+xref:#figure-index-entry-limit["Index Entry Limit Exceeded For a Single Key"] shows a fragment from a substring index for the `mail` attribute. The number of email addresses ending in `.com` has exceeded the index entry limit. For the other substring keys, the entry ID lists are still maintained, but to save space the entry IDs are not shown in the diagram.
+
+[#figure-index-entry-limit]
+image::images/index-entry-limit.png[]
+Ideally, the limit is set at the point where it becomes more expensive to maintain the entry ID list for a key and to perform an indexed search than to perform an unindexed search. In practice, the limit is a trade off, with a default index entry limit value of 4000.
+
+====
+The following steps show how to get information about indexes where the index entry limit is exceeded for some keys. In this case, the directory server holds 10,000 user entries. The settings for this directory server are reasonable.
+
+Use the `backendstat show-index-status` command, described in xref:../reference/admin-tools-ref.adoc#backendstat-1[backendstat(1)] in the __Reference__.
+
+. Stop OpenDJ directory server before you use the `backendstat` command:
++
+
+[source, console]
+----
+$ stop-ds
+----
+
+. Non-zero values in the Over Entry Limit column of the output table indicate the number of keys for which the limit has been reached. The keys that are over the limit are then listed below the table:
++
+
+[source, console]
+----
+$ backendstat show-index-status --backendID userRoot --baseDN dc=example,dc=com
+Index Name                            ... Index Valid  Record Count  Over Entry Limit  95%  90%  85%
+--------------------------------------...-----------------------------------------------------------
+uniqueMember.uniqueMemberMatch        ... true         0             0                 0    0    0
+mail.caseIgnoreIA5Match               ... true         10000         0                 0    0    0
+mail.caseIgnoreIA5SubstringsMatch:6   ... true         31235         15                0    0    0
+telephoneNumber....                   ... true         73235         0                 0    0    0
+telephoneNumber.telephoneNumberMatch  ... true         10000         0                 0    0    0
+aci.presence                          ... true         0             0                 0    0    0
+ds-sync-hist....                      ... true         0             0                 0    0    0
+cn.caseIgnoreMatch                    ... true         10000         0                 0    0    0
+cn.caseIgnoreSubstringsMatch:6        ... true         86040         0                 0    0    0
+objectClass.objectIdentifierMatch     ... true         6             4                 0    0    0
+entryUUID.uuidMatch                   ... true         10002         0                 0    0    0
+uid.caseIgnoreMatch                   ... true         10000         0                 0    0    0
+givenName.caseIgnoreMatch             ... true         8605          0                 0    0    0
+givenName.caseIgnoreSubstringsMatch:6 ... true         19629         0                 0    0    0
+member.distinguishedNameMatch         ... true         0             0                 0    0    0
+sn.caseIgnoreMatch                    ... true         10000         0                 0    0    0
+sn.caseIgnoreSubstringsMatch:6        ... true         32217         0                 0    0    0
+ds-sync-conflict....                  ... true         0             0                 0    0    0
+
+Total: 18
+
+Index: /dc=com,dc=example/objectClass.objectIdentifierMatch
+Over index-entry-limit keys: [2.5.6.0] [2.5.6.6] [2.5.6.7] [inetorgperson]
+
+Index: /dc=com,dc=example/mail.caseIgnoreIA5SubstringsMatch:6
+Over index-entry-limit keys: [.net] [@maild] [aildom] [ain.ne] [domain] [et] [ildoma]
+ [in.net] [ldomai] [maildo] [main.n] [n.net] [net] [omain.] [t]
+----
++
+Every user entry has the object classes listed, and every user entry has an email address ending in `@maildomain.net`, so those values are not specific enough to be used in search filters.
+
+. Start OpenDJ directory server:
++
+
+[source, console]
+----
+$ start-ds
+----
+
+====
+
+[#change-index-entry-limit]
+.Index Entry Limit Changes
+====
+In rare cases, the index entry limit might be too low for a certain key. This could manifest itself as a frequent, useful search becoming unindexed, with no reasonable way to narrow the search.
+
+You can change the index entry limit on a per-index basis. Do not do this in production unless you can explain and show why the benefits outweigh the costs.
+
+[IMPORTANT]
+======
+Changing the index entry limit significantly can result in serious performance degradation. Be prepared to test performance thoroughly before you roll out an index entry limit change in production.
+======
+Consider a directory with more than 4000 groups in a backend. When the backend is brought online, OpenDJ directory server searches for the groups with a search filter of `(|(objectClass=groupOfNames)(objectClass=groupOfEntries)(objectClass=groupOfUniqueNames))`, which is an unindexed search due to the default index entry limit setting. The following example raises the index entry limit for the `objectClass` index to `10000`, and then rebuilds the index for the configuration change to take effect. The steps are the same for any other index:
+
+[source, console]
+----
+$ dsconfig \
+ set-backend-index-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --index-name objectClass \
+ --set index-entry-limit:10000 \
+ --trustAll \
+ --no-prompt
+
+$ rebuild-index \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ --index objectClass \
+ --start 0
+Rebuild Index task 20160729123736723 scheduled to start ...
+----
+====
+It is also possible, but not recommended, to configure the global `index-entry-limit` for a backend. This changes the default for all indexes in the backend. Use the `dsconfig set-backend-prop` command as shown in the following example:
+
+[source, console]
+----
+# Not recommended
+$ dsconfig \
+ set-backend-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --set index-entry-limit:10000 \
+ --trustAll \
+ --no-prompt
+----
+
+
+
+[#verify-index]
+=== Verifying Indexes
+
+You can verify that indexes correspond to current directory data, and that indexes do not contain errors by using the `verify-index` command, described in xref:../reference/admin-tools-ref.adoc#verify-index-1[verify-index(1)] in the __Reference__.
+
+[#verify-index-example]
+.Verify Index
+====
+The following example verifies the `cn` (common name) index for completeness and for errors:
+
+[source, console]
+----
+$ verify-index \
+ --baseDN dc=example,dc=com \
+ --index cn \
+ --clean \
+ --countErrors
+...msg=Checked 1316 records and found 0 error(s) in 0 seconds
+ (average rate 2506.7/sec)
+...msg=Number of records referencing more than one entry: 315
+...msg=Number of records that exceed the entry limit: 0
+...msg=Average number of entries referenced is 1.58/record
+...msg=Maximum number of entries referenced by any record is 32
+----
+Ignore the messages regarding lock tables and cleaner threads. The important information is whether any errors are found in the indexes.
+====
+
+
+[#default-indexes]
+=== Default Indexes
+
+When you first install OpenDJ directory server and import your data from LDIF, the following indexes are configured.
+
+[#d67723e8528]
+.Default Indexes
+[cols="14%,14%,14%,15%,14%,14%,15%"]
+|===
+|Index |Approx. |Equality |Ordering |Presence |Substring |Entry Limit 
+
+a|`aci`
+a|-
+a|-
+a|-
+a|Yes
+a|-
+a|4000
+
+a|`cn`
+a|-
+a|Yes
+a|-
+a|-
+a|Yes
+a|4000
+
+a|`dn2id`
+6+a|Non-configurable internal index
+
+a|`ds-sync-conflict`
+a|-
+a|Yes
+a|-
+a|-
+a|-
+a|4000
+
+a|`ds-sync-hist`
+a|-
+a|-
+a|Yes
+a|-
+a|-
+a|4000
+
+a|`entryUUID`
+a|-
+a|Yes
+a|-
+a|-
+a|-
+a|4000
+
+a|`givenName`
+a|-
+a|Yes
+a|-
+a|-
+a|Yes
+a|4000
+
+a|`id2children`
+6+a|Non-configurable internal index
+
+a|`id2subtree`
+6+a|Non-configurable internal index
+
+a|`mail`
+a|-
+a|Yes
+a|-
+a|-
+a|Yes
+a|4000
+
+a|`member`
+a|-
+a|Yes
+a|-
+a|-
+a|-
+a|4000
+
+a|`objectClass`
+a|-
+a|Yes
+a|-
+a|-
+a|-
+a|4000
+
+a|`sn`
+a|-
+a|Yes
+a|-
+a|-
+a|Yes
+a|4000
+
+a|`telephoneNumber`
+a|-
+a|Yes
+a|-
+a|-
+a|Yes
+a|4000
+
+a|`uid`
+a|-
+a|Yes
+a|-
+a|-
+a|-
+a|4000
+
+a|`uniqueMember`
+a|-
+a|Yes
+a|-
+a|-
+a|-
+a|4000
+|===
+When you create a new backend using the `dsconfig` command, OpenDJ directory server creates the following indexes automatically:
+[none]
+* `aci` presence
+* `ds-sync-conflict` equality
+* `ds-sync-hist` ordering
+* `entryUUID` equality
+* `objectClass` equality
+You can create additional indexes as described in xref:../admin-guide/chap-indexing.adoc#configure-indexes["Configuring and Rebuilding Indexes"].
+
+

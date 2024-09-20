@@ -362,14 +362,16 @@
         <profile>
             <id>man-pages</id>
             <activation>
-            		<os><family>unix</family></os>
+            		<os>
+                        <family>unix</family>
+                        <name>Linux</name>
+                    </os>
             	</activation>
             <build><finalName>${project.groupId}.${project.artifactId}</finalName>
                 <plugins>
                     <plugin>
                         <groupId>org.openidentityplatform.opendj</groupId>
                         <artifactId>opendj-doc-maven-plugin</artifactId>
-
                         <executions>
                             <execution>
                                 <id>generate-man-pages</id>
@@ -593,6 +595,23 @@
                                     <goal>build</goal>
                                     <goal>release</goal>
                                 </goals>
+                            </execution>
+                            <execution>
+                                <id>build-man-pages-asciidoc</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>asciidoc-pre-process</goal>
+                                    <goal>antora</goal>
+                                    <goal>asciidoc-to-pdf</goal>
+                                </goals>
+                                <configuration>
+                                    <documents>
+                                        <document>install-guide</document>
+                                        <document>admin-guide</document>
+                                        <document>server-dev-guide</document>
+                                        <document>reference</document>
+                                    </documents>
+                                </configuration>
                             </execution>
                         </executions>
                         <configuration>

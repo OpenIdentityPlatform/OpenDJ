@@ -1,0 +1,72 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[preface]
+[#preface]
+== Preface
+
+This guide shows you how to develop scripts that use OpenDJ tools.
+
+If you are building a Java-based LDAP client application, refer to the __OpenDJ LDAP SDK Developer's Guide__ instead.
+In reading and following the instructions in this guide, you will learn how to:
+
+* Access OpenDJ directory server by using REST APIs over HTTP
+
+* Access OpenDJ directory server using the LDAP tools delivered with the server
+
+* Use LDAP schema
+
+* Work with standard LDAP groups and OpenDJ-specific groups
+
+* Work with LDAP collective attributes and OpenDJ virtual attributes
+
+* Work with LDAP referrals in search results
+
+
+[#using-this-guide]
+=== Using This Guide
+
+This guide is intended for directory administrators who write scripts that use OpenDJ directory services.
+This guide is written with the expectation that you already have basic familiarity with the following topics:
+
+* Installing OpenDJ directory server, if the server is not yet installed
++
+If you are not yet familiar with OpenDJ directory server installation, read the xref:../install-guide/index.adoc[Installation Guide] first.
+
+* Using command-line tools
+
+* LDAP and directory services
+
+* Basic OpenDJ server configuration
++
+Some examples in this guide require OpenDJ configuration steps.
+
+* HTTP, JavaScript Object Notation (JSON), and web applications
+
+include::../partials/sec-formatting-conventions.adoc[]
+
+include::../partials/sec-accessing-doc-online.adoc[]
+
+include::../partials/sec-joining-the-community.adoc[]
+
+include::../partials/sec-support-contact.adoc[]
+

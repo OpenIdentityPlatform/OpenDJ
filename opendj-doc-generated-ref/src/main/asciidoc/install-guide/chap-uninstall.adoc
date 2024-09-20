@@ -1,0 +1,159 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-uninstall]
+== Removing OpenDJ Servers
+
+This chapter includes the following procedures:
+
+* xref:#uninstall-gui["To Remove OpenDJ With the GUI Uninstaller"]
+
+* xref:#uninstall-cli["To Uninstall OpenDJ From the Command-Line"]
+
+* xref:#uninstall-deb["To Uninstall the Debian Package"]
+
+* xref:#uninstall-rpm["To Uninstall the RPM Package"]
+
+
+[#uninstall-gui]
+.To Remove OpenDJ With the GUI Uninstaller
+====
+
+. Run the `uninstall` command, described in xref:../reference/admin-tools-ref.adoc#uninstall-1[uninstall(1)] in the __Reference__.
++
+(UNIX) Run `/path/to/opendj/uninstall`.
++
+(Windows) Double-click `/path/to/opendj\uninstall.bat`.
++
+(Mac OS X) Double-click `/path/to/opendj/Uninstall.app`.
++
+The Uninstall Options screen appears.
+
+. Select the components to remove in the Uninstall Options screen, and then click Uninstall to proceed.
+
+. To complete the process, manually remove any remaining components indicated in the Finished screen.
+
+====
+
+[#uninstall-cli]
+.To Uninstall OpenDJ From the Command-Line
+====
+
+. Login as the user who installed and runs the server.
+
+. Run the `/path/to/opendj/uninstall --cli` command.
++
+This command starts the removal program in interactive mode on the command-line, prompting you for each option. Alternatively, use additional `uninstall` options to specify choices for the options. See `uninstall --help` for more information:
++
+
+[source, console]
+----
+$ /path/to/opendj/uninstall --cli
+Do you want to remove all components of the server or select the components to
+remove?
+
+    1)  Remove all components
+    2)  Select the components to be removed
+
+    q)  quit
+
+Enter choice [1]:
+
+The server is currently running and must be stopped before uninstallation can
+continue.
+Stop the Server and permanently delete the files? (yes / no) [yes]:
+
+Stopping Directory Server ..... Done.
+Deleting Files under the Installation Path ..... Done.
+
+The Uninstall Completed Successfully.
+To complete the uninstallation, you must delete manually the following files
+and directories:
+/path/to/opendj/lib
+See /var/....log for a detailed log of this operation.
+----
+
+. If the command output tells you to delete files manually, then remove those remaining files to complete the process:
++
+
+[source, console]
+----
+$ rm -rf /path/to/opendj
+----
+
+====
+
+[#uninstall-deb]
+.To Uninstall the Debian Package
+====
+When you uninstall the Debian package from the command-line, OpenDJ directory server is stopped if it is running:
+
+* Remove the package from your system:
++
+
+[source, console]
+----
+$ sudo dpkg -r opendj
+(Reading database ... 185725 files and directories currently installed.)
+Removing opendj ...
+*Stopping OpenDJ server...
+Stopping Server...
+[03/Jun/2013:10:00:49 +0200] category=BACKEND severity=NOTICE
+ msgID=9896306 msg=The backend userRoot is now taken offline
+[03/Jun/2013:10:00:49 +0200] category=CORE severity=NOTICE
+ msgID=458955 msg=The Directory Server is now stopped
+
+*OpenDJ successfully removed
+
+$
+----
++
+Removing the package does not remove your data or configuration. You must remove `/opt/opendj` manually to get rid of all files.
+
+====
+
+[#uninstall-rpm]
+.To Uninstall the RPM Package
+====
+When you uninstall the RPM package from the command-line, OpenDJ directory server is stopped if it is running.
+
+* Remove the package from your system:
++
+
+[source, console]
+----
+# rpm -e opendj
+Pre Uninstall - uninstall
+Stopping Server...
+[03/Jun/2013:10:42:46 +0200] category=BACKEND severity=NOTICE
+ msgID=9896306 msg=The backend userRoot is now taken offline
+[03/Jun/2013:10:42:46 +0200] category=CORE severity=NOTICE
+ msgID=458955 msg=The Directory Server is now stopped
+Post Uninstall - uninstall
+OpenDJ successfully removed.
+#
+----
++
+Removing the package does not remove your data or configuration. You must remove `/opt/opendj` manually to get rid of all files.
+
+====
+

@@ -1,0 +1,544 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-groups]
+== Working With Groups of Entries
+
+OpenDJ supports several methods of grouping entries in the directory. Static groups list their members, whereas dynamic groups look up their membership based on an LDAP filter. OpenDJ also supports virtual static groups, which uses a dynamic group-style definition, but allows applications to list group members as if the group were static.
+
+When listing entries in static groups, you must also have a mechanism for removing entries from the list when they are deleted or modified in ways that end their membership. OpenDJ makes that possible with __referential integrity__ functionality.
+In this chapter you will learn how to:
+
+* Create static (enumerated) groups
+
+* Create dynamic groups based on LDAP URLs
+
+* Create virtual static groups that make dynamic groups look like static groups
+
+* Look up group membership efficiently
+
+* Work with nested groups
+
+* Make sure that when an entry is deleted or modified, OpenDJ also updates affected groups appropriately
+
+
+[TIP]
+====
+The examples in this chapter are written with the assumption that an `ou=Groups,dc=example,dc=com` entry already exists. If you imported data from link:../resources/Example.ldif[Example.ldif, window=\_blank], then you already have the entry. If you generated data during setup and did not create an organizational unit for groups yet, create the entry before you try the examples:
+
+[source, console]
+----
+$ ldapmodify \
+ --defaultAdd \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: ou=Groups,dc=example,dc=com
+objectClass: organizationalunit
+objectClass: top
+ou: Groups
+
+Processing ADD request for ou=Groups,dc=example,dc=com
+ADD operation successful for DN ou=Groups,dc=example,dc=com
+----
+====
+
+[#static-groups]
+=== Creating Static Groups
+
+A __static group__ is expressed as an entry that enumerates all the entries that belong to the group. Static group entries grow as their membership increases.
+
+[TIP]
+====
+Large static groups can be a performance bottleneck. The recommended way to avoid the issue is to use dynamic groups instead as described in xref:#dynamic-groups["Creating Dynamic Groups"]. If using dynamic groups is not an option for a deployment with large static groups that are updated regularly, use an entry cache. For details, see xref:../admin-guide/chap-tuning.adoc#perf-entry-cache["Caching Large, Frequently Used Entries"] in the __Administration Guide__.
+====
+Static group entries can take the standard object class `groupOfNames` where each `member` attribute value is a distinguished name of an entry, or `groupOfUniqueNames` where each `uniqueMember` attribute value has Name and Optional UID syntax.footnote:d0e7817[Name and Optional UID syntax values are a DN optionally followed by`#BitString`. The__BitString__, such as`'0101111101'B`, serves to distinguish the entry from another entry having the same DN, which can occur when the original entry was deleted and a new entry created with the same DN.] Like other LDAP attributes, `member` and `uniqueMember` attributes take sets of unique values.
+
+Static group entries can also have the object class `groupOfEntries`, which is like `groupOfNames` except that it is designed to allow groups not to have members.
+
+When creating a group entry, use `groupOfNames` or `groupOfEntries` where possible.
+
+To create a static group, add a group entry such as the following to the directory:
+
+[source, console]
+----
+$ cat static.ldif
+dn: cn=My Static Group,ou=Groups,dc=example,dc=com
+cn: My Static Group
+objectClass: groupOfNames
+objectClass: top
+ou: Groups
+member: uid=ahunter,ou=People,dc=example,dc=com
+member: uid=bjensen,ou=People,dc=example,dc=com
+member: uid=tmorris,ou=People,dc=example,dc=com
+
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename static.ldif
+Processing ADD request for cn=My Static Group,ou=Groups,dc=example,dc=com
+ADD operation successful for DN cn=My Static Group,ou=Groups,dc=example,dc=com
+----
+To change group membership, modify the values of the membership attribute:
+
+[source, console]
+----
+$ cat add2grp.ldif
+dn: cn=My Static Group,ou=Groups,dc=example,dc=com
+changetype: modify
+add: member
+member: uid=scarter,ou=People,dc=example,dc=com
+
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename add2grp.ldif
+Processing MODIFY request for cn=My Static Group,ou=Groups,dc=example,dc=com
+MODIFY operation successful for DN
+ cn=My Static Group,ou=Groups,dc=example,dc=com
+
+$ ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ "(cn=My Static Group)"
+dn: cn=My Static Group,ou=Groups,dc=example,dc=com
+ou: Groups
+objectClass: groupOfNames
+objectClass: top
+member: uid=ahunter,ou=People,dc=example,dc=com
+member: uid=bjensen,ou=People,dc=example,dc=com
+member: uid=tmorris,ou=People,dc=example,dc=com
+member: uid=scarter,ou=People,dc=example,dc=com
+cn: My Static Group
+----
+RFC 4519 says a `groupOfNames` entry must have at least one member. Although OpenDJ allows you to create a `groupOfNames` without members, strictly speaking, that behavior is not standard. Alternatively, you can use the `groupOfEntries` object class as shown in the following example:
+
+[source, console]
+----
+$ cat group-of-entries.ldif
+dn: cn=Initially Empty Static Group,ou=Groups,dc=example,dc=com
+cn: Initially Empty Static Group
+objectClass: groupOfEntries
+objectClass: top
+ou: Groups
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename group-of-entries.ldif
+Processing ADD request for
+ cn=Initially Empty Static Group,ou=Groups,dc=example,dc=com
+ADD operation successful for DN
+ cn=Initially Empty Static Group,ou=Groups,dc=example,dc=com
+
+$ cat add-members.ldif
+# Now add some members to the group.
+dn: cn=Initially Empty Static Group,ou=Groups,dc=example,dc=com
+changetype: modify
+add: member
+member: uid=ahunter,ou=People,dc=example,dc=com
+member: uid=bjensen,ou=People,dc=example,dc=com
+member: uid=tmorris,ou=People,dc=example,dc=com
+member: uid=scarter,ou=People,dc=example,dc=com
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename add-members.ldif
+Processing MODIFY request for
+ cn=Initially Empty Static Group,ou=Groups,dc=example,dc=com
+MODIFY operation successful for DN
+ cn=Initially Empty Static Group,ou=Groups,dc=example,dc=com
+----
+
+
+[#dynamic-groups]
+=== Creating Dynamic Groups
+
+A __dynamic group__ specifies members using LDAP URLs. Dynamic groups entries can stay small even as their membership increases.
+
+Dynamic group entries take the `groupOfURLs` object class, with one or more `memberURL` values specifying LDAP URLs to identify group members.
+
+To create a dynamic group, add a group entry such as the following to the directory.
+
+The following example builds a dynamic group of entries, effectively matching the filter `"(l=San Francisco)"` (users whose location is San Francisco). Change the filter if your data is different, and so no entries have `l: San Francisco`:
+
+[source, console]
+----
+$ cat dynamic.ldif
+dn: cn=My Dynamic Group,ou=Groups,dc=example,dc=com
+cn: My Dynamic Group
+objectClass: top
+objectClass: groupOfURLs
+ou: Groups
+memberURL: ldap:///ou=People,dc=example,dc=com??sub?l=San Francisco
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename dynamic.ldif
+Processing ADD request for cn=My Dynamic Group,ou=Groups,dc=example,dc=com
+ADD operation successful for DN cn=My Dynamic Group,ou=Groups,dc=example,dc=com
+----
+Group membership changes dynamically as entries change to match the `memberURL` values:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ "(&(uid=*jensen)(isMemberOf=cn=My Dynamic Group,ou=Groups,dc=example,dc=com))" \
+ mail
+dn: uid=bjensen,ou=People,dc=example,dc=com
+mail: bjensen@example.com
+
+dn: uid=rjensen,ou=People,dc=example,dc=com
+mail: rjensen@example.com
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: uid=ajensen,ou=People,dc=example,dc=com
+changetype: modify
+replace: l
+l: San Francisco
+
+Processing MODIFY request for uid=ajensen,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=ajensen,ou=People,dc=example,dc=com
+^D
+$ ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ "(&(uid=*jensen)(isMemberOf=cn=My Dynamic Group,ou=Groups,dc=example,dc=com))" \
+ mail
+dn: uid=ajensen,ou=People,dc=example,dc=com
+mail: ajensen@example.com
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+mail: bjensen@example.com
+
+dn: uid=rjensen,ou=People,dc=example,dc=com
+mail: rjensen@example.com
+----
+
+
+[#virtual-static-groups]
+=== Creating Virtual Static Groups
+
+OpenDJ lets you create __virtual static groups__, which let applications see dynamic groups as what appear to be static groups.
+
+The virtual static group takes auxiliary object class `ds-virtual-static-group`. Virtual static groups also take either the object class `groupOfNames`, or `groupOfUniqueNames`, but instead of having `member` or `uniqueMember` attributes, have `ds-target-group-dn` attributes pointing to other groups.
+
+Generating the list of members can be resource-intensive for large groups, so by default, you cannot retrieve the list of members. You can change this with the `dsconfig` command by setting the `Virtual Static member` or `Virtual Static uniqueMember` property:
+
+[source, console]
+----
+$ dsconfig \
+ set-virtual-attribute-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --name "Virtual Static member" \
+ --set allow-retrieving-membership:true \
+ --trustAll \
+ --no-prompt
+----
+The following example creates a virtual static group, and reads the group entry with all members:
+
+[source, console]
+----
+$ cat virtual.ldif
+dn: cn=Virtual Static,ou=Groups,dc=example,dc=com
+cn: Virtual Static
+objectclass: top
+objectclass: groupOfNames
+objectclass: ds-virtual-static-group
+ds-target-group-dn: cn=My Dynamic Group,ou=Groups,dc=example,dc=com
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename virtual.ldif
+Processing ADD request for cn=Virtual Static,ou=Groups,dc=example,dc=com
+ADD operation successful for DN cn=Virtual Static,ou=Groups,dc=example,dc=com
+
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn=Virtual Static)"
+dn: cn=Virtual Static,ou=Groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: ds-virtual-static-group
+objectClass: top
+member: uid=jwalker,ou=People,dc=example,dc=com
+member: uid=jmuffly,ou=People,dc=example,dc=com
+member: uid=tlabonte,ou=People,dc=example,dc=com
+member: uid=dakers,ou=People,dc=example,dc=com
+member: uid=jreuter,ou=People,dc=example,dc=com
+member: uid=rfisher,ou=People,dc=example,dc=com
+member: uid=pshelton,ou=People,dc=example,dc=com
+member: uid=rjensen,ou=People,dc=example,dc=com
+member: uid=jcampaig,ou=People,dc=example,dc=com
+member: uid=mjablons,ou=People,dc=example,dc=com
+member: uid=mlangdon,ou=People,dc=example,dc=com
+member: uid=aknutson,ou=People,dc=example,dc=com
+member: uid=bplante,ou=People,dc=example,dc=com
+member: uid=awalker,ou=People,dc=example,dc=com
+member: uid=smason,ou=People,dc=example,dc=com
+member: uid=ewalker,ou=People,dc=example,dc=com
+member: uid=dthorud,ou=People,dc=example,dc=com
+member: uid=btalbot,ou=People,dc=example,dc=com
+member: uid=tcruse,ou=People,dc=example,dc=com
+member: uid=kcarter,ou=People,dc=example,dc=com
+member: uid=aworrell,ou=People,dc=example,dc=com
+member: uid=bjensen,ou=People,dc=example,dc=com
+member: uid=ajensen,ou=People,dc=example,dc=com
+member: uid=cwallace,ou=People,dc=example,dc=com
+member: uid=mwhite,ou=People,dc=example,dc=com
+member: uid=kschmith,ou=People,dc=example,dc=com
+member: uid=mtalbot,ou=People,dc=example,dc=com
+member: uid=tschmith,ou=People,dc=example,dc=com
+member: uid=gfarmer,ou=People,dc=example,dc=com
+member: uid=speterso,ou=People,dc=example,dc=com
+member: uid=prose,ou=People,dc=example,dc=com
+member: uid=jbourke,ou=People,dc=example,dc=com
+member: uid=mtyler,ou=People,dc=example,dc=com
+member: uid=abergin,ou=People,dc=example,dc=com
+member: uid=mschneid,ou=People,dc=example,dc=com
+cn: Virtual Static
+ds-target-group-dn: cn=My Dynamic Group,ou=Groups,dc=example,dc=com
+----
+
+
+[#group-membership]
+=== Looking Up Group Membership
+
+OpenDJ lets you look up which groups a user belongs to by using the `isMemberOf` attribute:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ isMemberOf
+dn: uid=bjensen,ou=People,dc=example,dc=com
+isMemberOf: cn=My Static Group,ou=Groups,dc=example,dc=com
+isMemberOf: cn=Virtual Static,ou=Groups,dc=example,dc=com
+isMemberOf: cn=My Dynamic Group,ou=Groups,dc=example,dc=com
+----
+You must request `isMemberOf` explicitly.
+
+
+[#nested-groups]
+=== Nesting Groups Within Groups
+
+OpenDJ directory server lets you nest groups. The following example shows a group of groups of managers and administrators:
+
+[source, console]
+----
+$ cat /path/to/the-big-shots.ldif
+dn: cn=The Big Shots,ou=Groups,dc=example,dc=com
+cn: The Big Shots
+objectClass: groupOfNames
+objectClass: top
+ou: Groups
+member: cn=Accounting Managers,ou=groups,dc=example,dc=com
+member: cn=Directory Administrators,ou=Groups,dc=example,dc=com
+member: cn=HR Managers,ou=groups,dc=example,dc=com
+member: cn=PD Managers,ou=groups,dc=example,dc=com
+member: cn=QA Managers,ou=groups,dc=example,dc=com
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename /path/to/the-big-shots.ldif
+Processing ADD request for cn=The Big Shots,ou=Groups,dc=example,dc=com
+ADD operation successful for DN cn=The Big Shots,ou=Groups,dc=example,dc=com
+----
+Although not shown in the example above, OpenDJ lets you nest groups within nested groups, too.
+
+OpenDJ lets you create dynamic groups of groups. The following example shows a group of other groups. The members of this group are themselves groups, not users:
+
+[source, console]
+----
+$ cat /path/to/group-of-groups.ldif
+dn: cn=Group of Groups,ou=Groups,dc=example,dc=com
+cn: Group of Groups
+objectClass: top
+objectClass: groupOfURLs
+ou: Groups
+memberURL: ldap:///ou=Groups,dc=example,dc=com??sub?ou=Groups
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename /path/to/group-of-groups.ldif
+Processing ADD request for cn=Group of Groups,ou=Groups,dc=example,dc=com
+ADD operation successful for DN cn=Group of Groups,ou=Groups,dc=example,dc=com
+----
+Use the `isMemberOf` attribute to determine what groups a member belongs to, as described in xref:#group-membership["Looking Up Group Membership"]. The following example requests groups that Kirsten Vaughan belongs to:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ uid=kvaughan \
+ isMemberOf
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+isMemberOf: cn=Directory Administrators,ou=Groups,dc=example,dc=com
+isMemberOf: cn=HR Managers,ou=groups,dc=example,dc=com
+isMemberOf: cn=The Big Shots,ou=Groups,dc=example,dc=com
+----
+Notice that Kirsten is a member of the group of groups of managers and administrators.
+
+Notice also that Kirsten does not belong to the group of groups. The members of that group are groups, not users. The following example requests the groups that the directory administrators group belongs to:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ "(cn=Directory Administrators)" \
+ isMemberOf
+dn: cn=Directory Administrators,ou=Groups,dc=example,dc=com
+isMemberOf: cn=Group of Groups,ou=Groups,dc=example,dc=com
+isMemberOf: cn=The Big Shots,ou=Groups,dc=example,dc=com
+----
+The following example shows which groups each group belong to:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ ou=Groups \
+ isMemberOf
+dn: ou=Groups,dc=example,dc=com
+
+dn: cn=Accounting Managers,ou=groups,dc=example,dc=com
+isMemberOf: cn=Group of Groups,ou=Groups,dc=example,dc=com
+isMemberOf: cn=The Big Shots,ou=Groups,dc=example,dc=com
+
+dn: cn=Directory Administrators,ou=Groups,dc=example,dc=com
+isMemberOf: cn=Group of Groups,ou=Groups,dc=example,dc=com
+isMemberOf: cn=The Big Shots,ou=Groups,dc=example,dc=com
+
+dn: cn=HR Managers,ou=groups,dc=example,dc=com
+isMemberOf: cn=Group of Groups,ou=Groups,dc=example,dc=com
+isMemberOf: cn=The Big Shots,ou=Groups,dc=example,dc=com
+
+dn: cn=PD Managers,ou=groups,dc=example,dc=com
+isMemberOf: cn=Group of Groups,ou=Groups,dc=example,dc=com
+isMemberOf: cn=The Big Shots,ou=Groups,dc=example,dc=com
+
+dn: cn=QA Managers,ou=groups,dc=example,dc=com
+isMemberOf: cn=Group of Groups,ou=Groups,dc=example,dc=com
+isMemberOf: cn=The Big Shots,ou=Groups,dc=example,dc=com
+
+dn: cn=My Static Group,ou=Groups,dc=example,dc=com
+isMemberOf: cn=Group of Groups,ou=Groups,dc=example,dc=com
+
+dn: cn=My Dynamic Group,ou=Groups,dc=example,dc=com
+
+dn: cn=The Big Shots,ou=Groups,dc=example,dc=com
+isMemberOf: cn=Group of Groups,ou=Groups,dc=example,dc=com
+
+dn: cn=Group of Groups,ou=Groups,dc=example,dc=com
+----
+Notice that the group of groups is not a member of itself.
+
+
+[#referential-integrity]
+=== Configuring Referential Integrity
+
+When you delete or rename an entry that belongs to static groups, that entry's DN must be removed or changed in the list of each group to which it belongs. You can configure OpenDJ to resolve membership on your behalf after the change operation succeeds by enabling referential integrity.
+
+Referential integrity functionality is implemented as a plugin. The referential integrity plugin is disabled by default. To enable the plugin, use the `dsconfig` command:
+
+[source, console]
+----
+$ dsconfig \
+ set-plugin-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "Referential Integrity" \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt
+----
+With the plugin enabled, you can see OpenDJ referential integrity resolving group membership automatically:
+
+[source, console]
+----
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn=My Static Group)"
+dn: cn=My Static Group,ou=Groups,dc=example,dc=com
+ou: Groups
+objectClass: groupOfNames
+objectClass: top
+member: uid=ahunter,ou=People,dc=example,dc=com
+member: uid=bjensen,ou=People,dc=example,dc=com
+member: uid=tmorris,ou=People,dc=example,dc=com
+member: uid=scarter,ou=People,dc=example,dc=com
+cn: My Static Group
+
+$ ldapdelete \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ uid=scarter,ou=People,dc=example,dc=com
+Processing DELETE request for uid=scarter,ou=People,dc=example,dc=com
+DELETE operation successful for DN uid=scarter,ou=People,dc=example,dc=com
+
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn=My Static Group)"
+dn: cn=My Static Group,ou=Groups,dc=example,dc=com
+ou: Groups
+objectClass: groupOfNames
+objectClass: top
+cn: My Static Group
+member: uid=ahunter,ou=People,dc=example,dc=com
+member: uid=bjensen,ou=People,dc=example,dc=com
+member: uid=tmorris,ou=People,dc=example,dc=com
+----
+By default, the referential integrity plugin is configured to manage `member` and `uniqueMember` attributes. These attributes take values that are DNs, and are indexed for equality by default for the default backend. Before you add an additional attribute to manage, make sure that it has DN syntax and that it is indexed for equality. OpenDJ directory server requires that the attribute be indexed because an unindexed search for integrity would potentially consume too many of the server's resources. Attribute syntax is explained in xref:../admin-guide/chap-schema.adoc#chap-schema["Managing Schema"] in the __Administration Guide__. For instructions on indexing attributes, see xref:../admin-guide/chap-indexing.adoc#configure-indexes["Configuring and Rebuilding Indexes"] in the __Administration Guide__.
+
+You can also configure the referential integrity plugin to check that new entries added to groups actually exist in the directory by setting the `check-references` property to `true`. You can specify additional criteria once you have activated the check. To ensure that entries added must match a filter, set the `check-references-filter-criteria` to identify the attribute and the filter. For example, you can specify that group members must be person entries by setting `check-references-filter-criteria` to `member:(objectclass=person)`. To ensure that entries must be located in the same naming context, set `check-references-scope-criteria` to `naming-context`.
+
+

@@ -1,0 +1,544 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-pta]
+== Configuring Pass-Through Authentication
+
+This chapter focuses on pass-through authentication (PTA), whereby you configure another server to determine the response to an authentication request. A typical use case for PTA involves passing authentication through to Active Directory for users coming from Microsoft Windows systems. In this chapter you will learn to:
+
+* Configure password policies to use PTA
+
+* Assign PTA policies to users and to groups
+
+
+[#about-pta]
+=== About Pass-through Authentication
+
+You use __pass-through authentication__ (PTA) when the credentials for authenticating are stored in a remote directory service instead of OpenDJ. In effect OpenDJ redirects the bind operation against a remote LDAP server.
+The method OpenDJ uses to redirect the bind depends on the mapping from the user entry in OpenDJ to the corresponding user entry in the remote directory. OpenDJ provides you several choices to set up the mapping:
+
+* When both the local entry in OpenDJ and the remote entry in the other server have the same DN, you do not have to set up the mapping. By default, OpenDJ redirects the bind with the original DN and password from the client application.
+
+* When the local entry in OpenDJ has been provisioned with an attribute holding the DN of the remote entry, you can specify which attribute holds the DN, and OpenDJ redirects the bind on the remote server using the DN value.
+
+* When you cannot get the remote bind DN directly, you need an attribute and value on the OpenDJ entry that corresponds to an identical attribute and value on the remote server. In this case you also need the bind credentials for a user who can search for the entry on the remote server. OpenDJ performs a search for the entry using the matching attribute and value, and then redirects the bind with the DN from the remote entry.
+
+You configure PTA as an authentication policy that you associate with a user's entry in the same way that you associate a password policy with a user's entry. Either a user has an authentication policy for PTA, or the user has a local password policy.
+
+
+[#configure-pta]
+=== Setting Up Pass-Through Authentication
+
+When setting up pass-through authentication, you need to know to which remote server or servers to redirect binds, and you need to know how you map user entries in OpenDJ to user entries in the remote directory.
+
+[#configure-ssl-to-test-pta]
+.To Set Up SSL Communication For Testing
+====
+When performing PTA, you protect communications between OpenDJ and the server providing authentication. If you test using SSL with self-signed certificates, and you do not want the client to blindly trust the server, follow these steps to import the authentication server's certificate into the OpenDJ keystore.
+
+. Export the server certificate from the authentication server.
++
+How you perform this step depends on the authentication directory server. With OpenDJ, you can export the certificate as shown here:
++
+
+[source, console]
+----
+$ cd /path/to/PTA-Server/config
+$ keytool \
+ -exportcert \
+ -rfc \
+ -alias server-cert \
+ -keystore keystore \
+ -storepass `cat keystore.pin` \
+ > /tmp/pta-srv-cert.pem
+----
+
+. Make note of the host name used in the certificate.
++
+You use the host name when configuring the SSL connection. With OpenDJ, you can view the certificate details as shown here:
++
+
+[source, console]
+----
+$ keytool \
+ -list \
+ -v \
+ -alias server-cert \
+ -keystore keystore \
+ -storepass `cat keystore.pin`
+Alias name: server-cert
+Creation date: Sep 12, 2011
+Entry type: PrivateKeyEntry
+Certificate chain length: 1
+Certificate[1]:
+Owner: CN=pta-server.example.com, O=OpenDJ Self-Signed Certificate
+Issuer: CN=pta-server.example.com, O=OpenDJ Self-Signed Certificate
+Serial number: 4e6dc429
+Valid from: Mon Sep 12 10:34:49 CEST 2011 until: Wed Sep 11 10:34:49 CEST 2013
+Certificate fingerprints:
+  MD5:  B6:EE:1C:A0:71:12:EF:6F:21:24:B9:50:EF:8B:4E:6A
+  SHA1: 7E:A1:C9:07:D2:86:56:31:24:14:F7:07:A8:6B:3E:A1:39:63:F4:0E
+  Signature algorithm name: SHA1withRSA
+  Version: 3
+----
+
+. Import the authentication server certificate into OpenDJ's keystore:
++
+
+[source, console]
+----
+$ cd /path/to/opendj/config
+$ keytool \
+ -importcert \
+ -alias pta-cert \
+ -keystore truststore \
+ -storepass `cat keystore.pin` \
+ -file /tmp/pta-srv-cert.pem
+Owner: CN=pta-server.example.com, O=OpenDJ Self-Signed Certificate
+Issuer: CN=pta-server.example.com, O=OpenDJ Self-Signed Certificate
+Serial number: 4e6dc429
+Valid from: Mon Sep 12 10:34:49 CEST 2011 until: Wed Sep 11 10:34:49 CEST 2013
+Certificate fingerprints:
+  MD5:  B6:EE:1C:A0:71:12:EF:6F:21:24:B9:50:EF:8B:4E:6A
+  SHA1: 7E:A1:C9:07:D2:86:56:31:24:14:F7:07:A8:6B:3E:A1:39:63:F4:0E
+  Signature algorithm name: SHA1withRSA
+  Version: 3
+Trust this certificate? [no]:  yes
+Certificate was added to keystore
+----
+
+====
+
+[#configure-pta-policy]
+.To Configure an LDAP Pass-Through Authentication Policy
+====
+You configure authentication policies with the `dsconfig` command. Notice that authentication policies are part of the server configuration, and therefore not replicated.
+
+. Set up an authentication policy for pass-through authentication to the authentication server:
++
+
+[source, console]
+----
+$ dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --type ldap-pass-through \
+ --policy-name "PTA Policy" \
+ --set primary-remote-ldap-server:pta-server.example.com:636 \
+ --set mapped-attribute:uid \
+ --set mapped-search-base-dn:"dc=PTA Server,dc=com" \
+ --set mapping-policy:mapped-search \
+ --set use-ssl:true \
+ --set trust-manager-provider:JKS \
+ --trustAll \
+ --no-prompt
+----
++
+The policy shown here maps identities with this this password policy to identities under `dc=PTA Server,dc=com`. Users must have the same `uid` values on both servers. The policy here also uses SSL between OpenDJ and the authentication server.
+
+. Check that your policy has been added to the list:
++
+
+[source, console]
+----
+$ dsconfig \
+ list-password-policies \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --property use-ssl
+
+Password Policy         : Type              : use-ssl
+------------------------:-------------------:--------
+Default Password Policy : password-policy   : -
+PTA Policy              : ldap-pass-through : true
+Root Password Policy    : password-policy   : -
+----
+
+====
+
+[#configure-pta-to-ad]
+.To Configure Pass-Through Authentication To Active Directory
+====
+The steps below demonstrate how to set up PTA to Active Directory. Here is some information to help you make sense of the steps.
+
+Entries on the OpenDJ side use `uid` as the naming attribute, and entries also have `cn` attributes. Active Directory entries use `cn` as the naming attribute. User entries on both sides share the same `cn` values. The mapping between entries therefore uses `cn`.
+
+Consider the example where an OpenDJ account with `cn=LDAP PTA User` and DN `uid=ldapptauser,ou=People,dc=example,dc=com` corresponds to an Active Directory account with DN `CN=LDAP PTA User,CN=Users,DC=internal,DC=forgerock,DC=com`. The steps below enable the user with `cn=LDAP PTA User` on OpenDJ authenticate through to Active Directory:
+
+[source, console]
+----
+$ ldapsearch \
+ --hostname opendj.example.com \
+ --baseDN dc=example,dc=com \
+ uid=ldapptauser \
+ cn
+dn: uid=ldapptauser,ou=People,dc=example,dc=com
+cn: LDAP PTA User
+
+$ ldapsearch \
+ --hostname ad.example.com \
+ --baseDN "CN=Users,DC=internal,DC=forgerock,DC=com" \
+ --bindDN "cn=administrator,cn=Users,DC=internal,DC=forgerock,DC=com" \
+ --bindPassword password \
+ "(cn=LDAP PTA User)" \
+ cn
+dn: CN=LDAP PTA User,CN=Users,DC=internal,DC=forgerock,DC=com
+cn: LDAP PTA User
+----
+OpenDJ must map its `uid=ldapptauser,ou=People,dc=example,dc=com` entry to the Active Directory entry, `CN=LDAP PTA User,CN=Users,DC=internal,DC=forgerock,DC=com`. In order to do the mapping, OpenDJ has to perform a search for the user in Active Directory using the `cn` value it recovers from its own entry for the user. Active Directory does not allow anonymous searches, so part of the authentication policy configuration consists of the administrator DN and password OpenDJ uses to bind to Active Directory to be able to search.
+
+Finally, before setting up the PTA policy, make sure OpenDJ can connect to Active Directory over a secure connection to avoid sending passwords in the clear.
+
+. Export the certificate from the Windows server.
++
+
+.. Click start > All Programs > Administrative Tools > Certification Authority, then right-click the CA and select Properties.
+
+.. In the General tab, select the certificate and click View Certificate.
+
+.. In the Certificate dialog, click the Details tab, then click Copy to File...
+
+.. Use the Certificate Export Wizard to export the certificate into a file, such as `windows.cer`.
+
+
+. Copy the exported certificate to the system running OpenDJ.
+
+. Import the server certificate into OpenDJ's keystore:
++
+
+[source, console]
+----
+$ cd /path/to/opendj/config
+$ keytool \
+ -importcert \
+ -alias ad-cert \
+ -keystore truststore \
+ -storepass `cat keystore.pin` \
+ -file ~/Downloads/windows.cer
+Owner: CN=internal-ACTIVEDIRECTORY-CA, DC=internal, DC=forgerock, DC=com
+Issuer: CN=internal-ACTIVEDIRECTORY-CA, DC=internal, DC=forgerock, DC=com
+Serial number: 587465257200a7b14a6976cb47916b32
+Valid from: Tue Sep 20 11:14:24 CEST 2011 until: Tue Sep 20 11:24:23 CEST 2016
+Certificate fingerprints:
+  MD5:  A3:D6:F1:8D:0D:F9:9C:76:00:BC:84:8A:14:55:28:38
+  SHA1: 0F:BD:45:E6:21:DF:BD:6A:CA:8A:7C:1D:F9:DA:A1:8E:8A:0D:A4:BF
+  Signature algorithm name: SHA1withRSA
+  Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.19 Criticality=true
+BasicConstraints:[
+  CA:true
+  PathLen:2147483647
+]
+
+#2: ObjectId: 2.5.29.15 Criticality=false
+KeyUsage [
+  DigitalSignature
+  Key_CertSign
+  Crl_Sign
+]
+
+#3: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: A3 3E C0 E3 B2 76 15 DC   97 D0 B3 C0 2E 77 8A 11  .>...v.......w..
+0010: 24 62 70 0A                                        $bp.
+]
+]
+
+#4: ObjectId: 1.3.6.1.4.1.311.21.1 Criticality=false
+
+Trust this certificate? [no]:  yes
+Certificate was added to keystore
+----
++
+At this point OpenDJ can connect to Active Directory over SSL.
+
+. Set up an authentication policy for OpenDJ users to authenticate to Active Directory:
++
+
+[source, console]
+----
+$ dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --type ldap-pass-through \
+ --policy-name "AD PTA Policy" \
+ --set primary-remote-ldap-server:ad.example.com:636 \
+ --set mapped-attribute:cn \
+ --set mapped-search-base-dn:"CN=Users,DC=internal,DC=forgerock,DC=com" \
+ --set mapped-search-bind-dn:"cn=administrator,cn=Users,DC=internal, \
+  DC=forgerock,DC=com" \
+ --set mapped-search-bind-password:password \
+ --set mapping-policy:mapped-search \
+ --set trust-manager-provider:JKS \
+ --set use-ssl:true \
+ --trustAll \
+ --no-prompt
+----
+
+. Assign the authentication policy to a test user:
++
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: uid=ldapptauser,ou=People,dc=example,dc=com
+changetype: modify
+add: ds-pwp-password-policy-dn
+ds-pwp-password-policy-dn: cn=AD PTA Policy,cn=Password Policies,cn=config
+
+Processing MODIFY request for uid=ldapptauser,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=ldapptauser,ou=People,dc=example,dc=com
+----
+
+. Check that the user can bind using PTA to Active Directory:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --hostname opendj.example.com \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ --bindDN uid=ldapptauser,ou=People,dc=example,dc=com \
+ --bindPassword password \
+ "(cn=LDAP PTA User)" \
+ userpassword cn
+dn: uid=ldapptauser,ou=People,dc=example,dc=com
+cn: LDAP PTA User
+----
++
+Notice that to complete the search, the user authenticated with a password to Active Directory, though no `userpassword` value is present on the entry on the OpenDJ side.
+
+====
+
+
+[#assigning-pta]
+=== Assigning Pass-Through Authentication Policies
+
+You assign authentication policies in the same way as you assign password policies, by using the `ds-pwp-password-policy-dn` attribute.
+
+[NOTE]
+====
+Although you assign the pass-through authentication policy using the same attribute as for password policy, the authentication policy is not in fact a password policy. Therefore, the user with a pass-through authentication policy does not have a value for the operational attribute `pwdPolicySubentry`:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ uid=user.0 \
+ pwdPolicySubentry
+dn: uid=user.0,ou=People,dc=example,dc=com
+----
+====
+
+[#assign-pta-to-user]
+.To Assign a Pass-Through Authentication Policy To a User
+====
+Users depending on PTA no longer need a local password policy, as they no longer authenticate locally.
+
+Examples in the following procedure work for this user, whose entry on OpenDJ is as shown. Notice that the user has no password set. The user's password on the authentication server is `password`:
+
+[source, ldif]
+----
+dn: uid=user.0,ou=People,dc=example,dc=com
+cn: Aaccf Amar
+description: This is the description for Aaccf Amar.
+employeeNumber: 0
+givenName: Aaccf
+homePhone: +1 225 216 5900
+initials: ASA
+l: Panama City
+mail: user.0@maildomain.net
+mobile: +1 010 154 3228
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+pager: +1 779 041 6341
+postalAddress: Aaccf Amar$01251 Chestnut Street$Panama City, DE  50369
+postalCode: 50369
+sn: Amar
+st: DE
+street: 01251 Chestnut Street
+telephoneNumber: +1 685 622 6202
+uid: user.0
+----
+This user's entry on the authentication server also has `uid=user.0`, and the pass-through authentication policy performs the mapping to find the user entry in the authentication server.
+
+. Prevent users from changing their own password policies:
++
+
+[source, console]
+----
+$ cat protect-pta.ldif
+dn: ou=People,dc=example,dc=com
+changetype: modify
+add: aci
+aci: (target ="ldap:///uid=*,ou=People,dc=example,dc=com")(targetattr =
+ "ds-pwp-password-policy-dn")(version 3.0;acl "Cannot choose own pass
+ word policy";deny (write)(userdn = "ldap:///self");)
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename protect-pta.ldif
+Processing MODIFY request for ou=People,dc=example,dc=com
+MODIFY operation successful for DN ou=People,dc=example,dc=com
+----
+
+. Update the user's `ds-pwp-password-policy-dn` attribute:
++
+
+[source, console]
+----
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: uid=user.0,ou=People,dc=example,dc=com
+changetype: modify
+add: ds-pwp-password-policy-dn
+ds-pwp-password-policy-dn: cn=PTA Policy,cn=Password Policies,cn=config
+
+Processing MODIFY request for uid=user.0,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=user.0,ou=People,dc=example,dc=com
+----
+
+. Check that the user can authenticate through to the authentication server:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ --bindDN uid=user.0,ou=People,dc=example,dc=com \
+ --bindPassword password \
+ uid=user.0 \
+ cn sn
+dn: uid=user.0,ou=People,dc=example,dc=com
+cn: Aaccf Amar
+sn: Amar
+----
+
+====
+
+[#assign-pta-to-group]
+.To Assign a Pass-Through Authentication Policy To a Group
+====
+Examples in the following steps use the PTA policy as defined above. Kirsten Vaughan's entry has been reproduced on the authentication server under `dc=PTA Server,dc=com`.
+
+. Create a subentry to assign a collective attribute that sets the `ds-pwp-password-policy-dn` attribute for group members' entries:
++
+
+[source, console]
+----
+$ cat pta-coll.ldif
+dn: cn=PTA Policy for Dir Admins,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: PTA Policy for Dir Admins
+ds-pwp-password-policy-dn;collective: cn=PTA Policy,cn=Password Policies,
+ cn=config
+subtreeSpecification: { base "ou=People", specificationFilter "(isMemberOf=
+ cn=Directory Administrators,ou=Groups,dc=example,dc=com)"}
+
+$ ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename pta-coll.ldif
+Processing ADD request for cn=PTA Policy for Dir Admins,dc=example,dc=com
+ADD operation successful for DN cn=PTA Policy for Dir Admins,dc=example,dc=com
+----
+
+. Check that OpenDJ has applied the policy.
++
+
+.. Make sure you can bind as the user on the authentication server:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --port 2389 \
+ --bindDN "uid=kvaughan,ou=People,dc=PTA Server,dc=com" \
+ --bindPassword password \
+ --baseDN "dc=PTA Server,dc=com" \
+ uid=kvaughan
+dn: uid=kvaughan,ou=People,dc=PTA Server,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+givenName: Kirsten
+uid: kvaughan
+cn: Kirsten Vaughan
+sn: Vaughan
+userPassword: {SSHA}x1BdtrJyRTw63kBSJFDvgvd4guzk66CV8L+t8w==
+ou: People
+mail: jvaughan@example.com
+----
+
+.. Check that the user can authenticate through to the authentication server from OpenDJ directory server:
++
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ uid=kvaughan \
+ cn sn
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+cn: Kirsten Vaughan
+sn: Vaughan
+----
+
+
+====
+
+

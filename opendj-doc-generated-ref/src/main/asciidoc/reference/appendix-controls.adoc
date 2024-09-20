@@ -1,0 +1,270 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[appendix]
+[#appendix-controls]
+== LDAP Controls
+
+Controls provide a mechanism whereby the semantics and arguments of existing LDAP operations may be extended. One or more controls may be attached to a single LDAP message. A control only affects the semantics of the message it is attached to. Controls sent by clients are termed __request controls__, and those sent by servers are termed __response controls__.
+
+OpenDJ software supports the following LDAP controls:
+--
+
+[#account-usability-control]
+Account Usability Control::
++
+Object Identifier: 1.3.6.1.4.1.42.2.27.9.5.8
+
++
+Control originally provided by Sun Microsystems, used to determine whether a user account can be used to authenticate to the directory.
+
+[#assertion-request-control]
+Assertion request control::
++
+Object Identifier: 1.3.6.1.1.12
+
++
+RFC: link:http://tools.ietf.org/html/rfc4528[RFC 4528 - Lightweight Directory Access Protocol (LDAP) Assertion Control, window=\_top]
+
+[#authorization-identity-request-control]
+Authorization Identity request control::
++
+Object Identifier: 2.16.840.1.113730.3.4.16
+
++
+RFC: link:http://tools.ietf.org/html/rfc3829[RFC 3829 - Lightweight Directory Access Protocol (LDAP) Authorization Identity Request and Response Controls, window=\_top]
+
+[#authorization-identity-response-control]
+Authorization Identity response control::
++
+Object Identifier: 2.16.840.1.113730.3.4.15
+
++
+RFC: link:http://tools.ietf.org/html/rfc3829[RFC 3829 - Lightweight Directory Access Protocol (LDAP) Authorization Identity Request and Response Controls, window=\_top]
+
+[#entry-change-notification-response-control]
+Entry Change Notification response control::
++
+Object Identifier: 2.16.840.1.113730.3.4.7
+
++
+Internet-Draft: link:http://tools.ietf.org/html/draft-ietf-ldapext-psearch[draft-ietf-ldapext-psearch - Persistent Search: A Simple LDAP Change Notification Mechanism, window=\_top]
+
+[#get-effective-rights-request-control]
+Get Effective Rights request control::
++
+Object Identifier: 1.3.6.1.4.1.42.2.27.9.5.2
+
++
+Internet-Draft: link:http://tools.ietf.org/html/draft-ietf-ldapext-acl-model[draft-ietf-ldapext-acl-model - Access Control Model for LDAPv3, window=\_top]
+
+[#manage-dsait-request-control]
+Manage DSAIT request control::
++
+Object Identifier: 2.16.840.1.113730.3.4.2
+
++
+RFC: link:http://tools.ietf.org/html/rfc3296[RFC 3296 - Named Subordinate References in Lightweight Directory Access Protocol (LDAP) Directories, window=\_top]
+
+[#matched-values-request-control]
+Matched Values request control::
++
+Object Identifier: 1.2.826.0.1.3344810.2.3
+
++
+RFC: link:http://tools.ietf.org/html/rfc3876[RFC 3876 - Returning Matched Values with the Lightweight Directory Access Protocol version 3 (LDAPv3), window=\_top]
+
+[#noop-control]
+No-Op Control::
++
+Object Identifier: 1.3.6.1.4.1.4203.1.10.2
+
++
+Internet-Draft: link:http://tools.ietf.org/html/draft-zeilenga-ldap-noop-01[draft-zeilenga-ldap-noop - LDAP No-Op Control, window=\_top]
+
+[#password-expired-response-control]
+Password Expired response control::
++
+Object Identifier: 2.16.840.1.113730.3.4.4
+
++
+Internet-Draft: link:http://tools.ietf.org/html/draft-vchu-ldap-pwd-policy[draft-vchu-ldap-pwd-policy - Password Policy for LDAP Directories, window=\_top]
+
+[#password-expiring-response-control]
+Password Expiring response control::
++
+Object Identifier: 2.16.840.1.113730.3.4.5
+
++
+Internet-Draft: link:http://tools.ietf.org/html/draft-vchu-ldap-pwd-policy[draft-vchu-ldap-pwd-policy - Password Policy for LDAP Directories, window=\_top]
+
+[#password-policy-response-control]
+Password Policy response control::
++
+Object Identifier: 1.3.6.1.4.1.42.2.27.8.5.1
+
++
+Internet-Draft: link:http://tools.ietf.org/html/draft-behera-ldap-password-policy[draft-behera-ldap-password-policy - Password Policy for LDAP Directories, window=\_top]
+
+[#permissive-modify-request-control]
+Permissive Modify request control::
++
+Object Identifier: 1.2.840.113556.1.4.1413
+
++
+Microsoft defined this control that, "Allows an LDAP modify to work under less restrictive conditions. Without it, a delete will fail if an attribute done not exist, and an add will fail if an attribute already exists. No data is needed in this control." (link:http://www.alvestrand.no/objectid/1.2.840.113556.1.4.1413.html[source of quote, window=\_top])
+
+[#persistent-search-request-control]
+Persistent Search request control::
++
+Object Identifier: 2.16.840.1.113730.3.4.3
+
++
+Internet-Draft: link:http://tools.ietf.org/html/draft-ietf-ldapext-psearch[draft-ietf-ldapext-psearch - Persistent Search: A Simple LDAP Change Notification Mechanism, window=\_top]
+
+[#post-read-request-control]
+Post-Read request control::
++
+Object Identifier: 1.3.6.1.1.13.2
+
++
+RFC: link:http://tools.ietf.org/html/rfc4527[RFC 4527 - Lightweight Directory Access Protocol (LDAP) Read Entry Controls, window=\_top]
+
+[#post-read-response-control]
+Post-Read response control::
++
+Object Identifier: 1.3.6.1.1.13.2
+
++
+RFC: link:http://tools.ietf.org/html/rfc4527[RFC 4527 - Lightweight Directory Access Protocol (LDAP) Read Entry Controls, window=\_top]
+
+[#pre-read-request-control]
+Pre-Read request control::
++
+Object Identifier: 1.3.6.1.1.13.1
+
++
+RFC: link:http://tools.ietf.org/html/rfc4527[RFC 4527 - Lightweight Directory Access Protocol (LDAP) Read Entry Controls, window=\_top]
+
+[#pre-read-response-control]
+Pre-Read response control::
++
+Object Identifier: 1.3.6.1.1.13.1
+
++
+RFC: link:http://tools.ietf.org/html/rfc4527[RFC 4527 - Lightweight Directory Access Protocol (LDAP) Read Entry Controls, window=\_top]
+
+[#proxied-authorization-v1-request-control]
+Proxied Authorization v1 request control::
++
+Object Identifier: 2.16.840.1.113730.3.4.12
+
++
+Internet-Draft: link:http://tools.ietf.org/html/draft-weltman-ldapv3-proxy-04[draft-weltman-ldapv3-proxy-04 - LDAP Proxied Authorization Control, window=\_top]
+
+[#proxied-autorization-v2-request-control]
+Proxied Authorization v2 request control::
++
+Object Identifier: 2.16.840.1.113730.3.4.18
+
++
+RFC: link:http://tools.ietf.org/html/rfc4370[RFC 4370 - Lightweight Directory Access Protocol (LDAP) Proxied Authorization Control, window=\_top]
+
+[#public-changelog-exchange-control]
+Public Changelog Exchange Control::
++
+Object Identifier: 1.3.6.1.4.1.26027.1.5.4
+
++
+OpenDJ specific, for using the bookmark cookie when reading the external change log.
+
+[#server-side-sort-request-control]
+Server-Side Sort request control::
++
+Object Identifier: 1.2.840.113556.1.4.473
+
++
+RFC: link:http://tools.ietf.org/html/rfc2891[RFC 2891 - LDAP Control Extension for Server Side Sorting of Search Results, window=\_top]
+
+[#server-side-sort-response-control]
+Server-Side Sort response control::
++
+Object Identifier: 1.2.840.113556.1.4.474
+
++
+RFC: link:http://tools.ietf.org/html/rfc2891[RFC 2891 - LDAP Control Extension for Server Side Sorting of Search Results, window=\_top]
+
+[#simple-paged-results-control]
+Simple Paged Results Control::
++
+Object Identifier: 1.2.840.113556.1.4.319
+
++
+RFC: link:http://tools.ietf.org/html/rfc2696[RFC 2696 - LDAP Control Extension for Simple Paged Results Manipulation, window=\_top]
+
+[#subentries-request-controls]
+Subentries request controls::
++
+Object Identifier: 1.3.6.1.4.1.4203.1.10.1
+
++
+RFC: link:http://tools.ietf.org/html/rfc3672[Subentries in the Lightweight Directory Access Protocol (LDAP), window=\_top]
+
++
+Object Identifier: 1.3.6.1.4.1.7628.5.101.1
+
++
+Internet-Draft: link:http://tools.ietf.org/html/draft-ietf-ldup-subentry[draft-ietf-ldup-subentry - LDAP Subentry Schema, window=\_top]
+
+[#subtree-delete-request-control]
+Subtree Delete request control::
++
+Object Identifier: 1.2.840.113556.1.4.805
+
++
+Internet-Draft: link:http://tools.ietf.org/html/draft-armijo-ldap-treedelete[draft-armijo-ldap-treedelete - Tree Delete Control, window=\_top]
+
+[#virtual-list-view-request-control]
+Virtual List View request control::
++
+Object Identifier: 2.16.840.1.113730.3.4.9
+
++
+Internet-Draft: link:http://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv[draft-ietf-ldapext-ldapv3-vlv - LDAP Extensions for Scrolling View Browsing of Search Results, window=\_top]
+
+[#virtual-list-view-response-control]
+Virtual List View response control::
++
+Object Identifier: 2.16.840.1.113730.3.4.10
+
++
+Internet-Draft: link:http://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv[draft-ietf-ldapext-ldapv3-vlv - LDAP Extensions for Scrolling View Browsing of Search Results, window=\_top]
+
+[#relax-rules-control]
+The LDAP Relax Rules Control::
+Object Identifier: 1.3.6.1.4.1.4203.666.5.12
+
++
+Internet-Draft: link:https://tools.ietf.org/html/draft-zeilenga-ldap-relax-03[ddraft-zeilenga-ldap-relax-03 - The LDAP Relax Rules Control, window=\_top]
+
+--
+

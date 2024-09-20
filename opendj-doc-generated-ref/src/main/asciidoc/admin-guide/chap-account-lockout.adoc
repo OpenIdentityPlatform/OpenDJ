@@ -1,0 +1,314 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions copyright [year] [name of copyright owner]".
+ 
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+
+[#chap-account-lockout]
+== Implementing Account Lockout and Notification
+
+This chapter covers configuration of account lockout and account status notification. In this chapter you will learn to:
+
+* Configure password policies to manage account lockout automatically
+
+* Manage lockout with the `manage-account` command
+
+* Set up email notification of account status
+
+OpenDJ directory server supports automatic account lockout. The aim of account lockout is not to punish users who mistype their passwords, but instead to protect the directory against attacks in which the attacker attempts to guess a user password, repeatedly attempting to bind until success is achieved.
+
+Account lockout disables a user account after a specified number of successive authentication failures. When you implement account lockout, you can opt to have OpenDJ directory server unlock the account after a specified interval, or you can leave the account locked until the password is reset.
+
+[NOTE]
+====
+You configure account lockout as part of password policy. OpenDJ locks an account after the specified number of consecutive authentication failures. Account lockout is not transactional across a replication topology. Under normal circumstances, replication propagates lockout quickly. If replication is ever delayed, an attacker with direct access to multiple replicas could try to authenticate up to the specified number of times on each replica before being locked out on all replicas.
+====
+This chapter shows you how to set up account lockout policies by using the `dsconfig` command, described in xref:../reference/admin-tools-ref.adoc#dsconfig-1[dsconfig(1)] in the __Reference__, and how to intervene manually to lock and unlock accounts by using the `manage-account` command, described in xref:../reference/admin-tools-ref.adoc#manage-account-1[manage-account(1)] in the __Reference__.
+
+[#configure-account-lockout]
+=== Configuring Account Lockout
+
+Account lockout is configured as part of password policy. This section demonstrates configuring account lockout as part of the default password policy. Users are allowed three consecutive failures before being locked out for five minutes. Failures themselves also expire after five minutes.
+
+Change the default password policy to activate lockout using the `dsconfig` command. As the password policy is part of the server configuration, you must manually apply the changes to each replica in a replication topology:
+
+[source, console]
+----
+$ dsconfig \
+ set-password-policy-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --set lockout-failure-count:3 \
+ --set lockout-duration:5m \
+ --set lockout-failure-expiration-interval:5m \
+ --trustAll \
+ --no-prompt
+----
+Users having the default password policy are then locked out after three failed attempts in succession:
+
+[source, console]
+----
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword hifalutin \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ mail
+dn: uid=bjensen,ou=People,dc=example,dc=com
+mail: bjensen@example.com
+
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword fatfngrs \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ mail
+The simple bind attempt failed
+Result Code:  49 (Invalid Credentials)
+
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword fatfngrs \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ mail
+The simple bind attempt failed
+Result Code:  49 (Invalid Credentials)
+
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword fatfngrs \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ mail
+The simple bind attempt failed
+Result Code:  49 (Invalid Credentials)
+
+$ ldapsearch \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword hifalutin \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ mail
+The simple bind attempt failed
+Result Code:  49 (Invalid Credentials)
+----
+
+
+[#manage-accounts]
+=== Managing Accounts Manually
+
+This section covers disabling and enabling accounts by using the `manage-account` command. Password reset is covered in the chapter on performing LDAP operations.
+
+For the following examples, the directory admin user, Kirsten Vaughan, has `ds-privilege-name: password-reset`, and the following ACI on `ou=People,dc=example,dc=com`:
+
+[source]
+----
+(target="ldap:///ou=People,dc=example,dc=com") (targetattr ="*||+")(
+ version 3.0;acl "Admins can run amok"; allow(all) groupdn =
+ "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+----
+
+[#disable-account]
+.To Disable an Account
+====
+
+* Set the account status to disabled with the `manage-account` command:
++
+
+[source, console]
+----
+$ manage-account \
+ set-account-is-disabled \
+ --port 4444 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --operationValue true \
+ --targetDN uid=bjensen,ou=people,dc=example,dc=com \
+ --trustAll
+Account Is Disabled:  true
+----
+
+====
+
+[#reactivate-account]
+.To Activate a Disabled Account
+====
+
+* Clear the disabled status using the `manage-account` command:
++
+
+[source, console]
+----
+$ manage-account \
+ clear-account-is-disabled \
+ --port 4444 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --targetDN uid=bjensen,ou=people,dc=example,dc=com \
+ --trustAll
+Account Is Disabled:  false
+----
+
+====
+
+
+[#account-status-notification]
+=== Managing Account Status Notification
+
+OpenDJ can send mail about account status changes. OpenDJ needs an SMTP server to send messages, and needs templates for the mail it sends. By default, message templates are in English, under `/path/to/opendj/config/messages/`.
+
+OpenDJ generates notifications only when OpenDJ writes to an entry or evaluates a user entry for authentication. OpenDJ generates account enabled and account disabled notifications when the user account is enabled or disabled with the `manage-account` command, which writes to the entry. OpenDJ generates password expiration notifications when a user tries to bind.
+
+For example, if you set up OpenDJ directory server to send a notification about password expiration, that notification gets triggered when the user authenticates during the password expiration warning interval. OpenDJ directory server does not automatically scan entries to send password expiry notifications. OpenDJ directory server does implement controls that you can pass in an LDAP search to determine whether a user's password is about to expire. See xref:../reference/appendix-controls.adoc#appendix-controls["LDAP Controls"] in the __Reference__ for a list. You can send notifications based on the results of your search.
+
+[#mail-account-status-notifications]
+.To Mail Users About Account Status
+====
+The following steps demonstrate how to set up notifications. Whether OpenDJ sends notifications depends on the settings in the password policy, and on account activity as described above.
+
+. Identify the SMTP server to which OpenDJ sends messages:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set smtp-server:smtp.example.com:25 \
+ --trustAll \
+ --no-prompt
+----
+
+. Set up OpenDJ to be able to mail users about account status.
++
+The following example configures OpenDJ to send text-format mail messages:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-account-status-notification-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "SMTP Handler" \
+ --set enabled:true \
+ --set email-address-attribute-type:mail \
+ --trustAll \
+ --no-prompt
+----
++
+Notice that OpenDJ finds the user's mail address on the attribute on the user's entry, specified by `email-address-attribute-type`.
++
+You can also configure the `message-subject` and `message-template-file` properties. Try interactive mode if you plan to do so.
++
+You find templates for messages by default under the `config/messages` directory. You can edit the templates to suit your purposes.
++
+If you edit the templates to send HTML rather than text messages, then set the advanced property, `send-email-as-html`, as shown in the following example:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-account-status-notification-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "SMTP Handler" \
+ --set enabled:true \
+ --set send-email-as-html:true \
+ --trustAll \
+ --no-prompt
+----
+
+. Adjust applicable password policies to use the account status notification handler you configured:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-password-policy-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --set account-status-notification-handler:"SMTP Handler" \
+ --trustAll \
+ --no-prompt
+----
+
+====
+[#about-message-templates]
+.About Notification Message Templates
+--
+When editing the `config/messages` templates to suit your purposes, you can use the following tokens to have OpenDJ update the message text dynamically.
+
+`%%notification-type%%`::
+This token is replaced with the name of the account status notification type for the notification.
+
+`%%notification-message%%`::
+This token is replaced with the message for the account status notification.
+
+`%%notification-user-dn%%`::
+This token is replaced with the string representation of the DN for the user who is the target of the account status notification.
+
+`%%notification-user-attr:attrname%%`::
+This token is replaced with the value of the attribute specified by __attrname__ from the user's entry. If the specified attribute has multiple values, then OpenDJ uses the first value encountered. If the specified attribute does not have any values, then OpenDJ replaces it with an emtpy string.
+
+`%%notification-property:propname%%`::
+This token is replaced with the value of the specified notification property from the account status notification. If the specified property has multiple values, then OpenDJ uses the first value encountered. If the specified property does not have any values, then OpenDJ replaces it with an empty string. Valid __propname__ values include the following:
++
+
+* `account-unlock-time`
+
+* `new-password`
+
+* `old-password`
+
+* `password-expiration-time`
+
+* `password-policy-dn`
+
+* `seconds-until-expiration`
+
+* `seconds-until-unlock`
+
+* `time-until-expiration`
+
+* `time-until-unlock`
+
+
+--
+
+
