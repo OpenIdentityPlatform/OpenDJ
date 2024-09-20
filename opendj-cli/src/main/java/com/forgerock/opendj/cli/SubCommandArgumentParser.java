@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2018-2024 ForgeRock AS.
+ * Portions Copyright 2018-2024 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
