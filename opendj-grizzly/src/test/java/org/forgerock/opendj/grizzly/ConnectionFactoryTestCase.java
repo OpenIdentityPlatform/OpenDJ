@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2019-2024 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.grizzly;
@@ -565,11 +566,11 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                     assertThat(context.isClosed()).isFalse();
                     if (config.sendDisconnectNotification) {
                         context.disconnect(ResultCode.BUSY, "busy");
-                        for(int i=1;i<10 && !context.isClosed() ;i++) {
-                        	Thread.sleep(100);
-                        }
                     } else {
                         context.disconnect();
+                    }
+                    for(int i=1;i<100 && !context.isClosed() ;i++) {
+                        Thread.sleep(100);
                     }
                     assertThat(context.isClosed()).isTrue();
                 }
