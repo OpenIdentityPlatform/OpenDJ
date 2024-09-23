@@ -469,7 +469,7 @@ public class LocalBackendModifyOperation
         LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         if (!modifiedEntry.conformsToSchema(null, false, false, false, invalidReason))
         {
-          setResultCode(ResultCode.OBJECTCLASS_VIOLATION);
+          setResultCode(modifiedEntry.typeErrorconformsToSchema);
           appendErrorMessage(ERR_MODIFY_VIOLATES_SCHEMA.get(entryDN, invalidReason));
           return;
         }

@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions copyright 2024 3A Systems,LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -670,7 +671,7 @@ public class LocalBackendModifyDNOperation
       if (! newEntry.conformsToSchema(null, false, true, true,
                                       invalidReason))
       {
-        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
+        throw new DirectoryException(newEntry.typeErrorconformsToSchema,
             ERR_MODDN_VIOLATES_SCHEMA.get(entryDN, invalidReason));
       }
 
@@ -742,7 +743,7 @@ public class LocalBackendModifyDNOperation
       if (! newEntry.conformsToSchema(null, false, true, true,
                                       invalidReason))
       {
-        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
+        throw new DirectoryException(newEntry.typeErrorconformsToSchema,
             ERR_MODDN_PREOP_VIOLATES_SCHEMA.get(entryDN, invalidReason));
       }
     }

@@ -1507,7 +1507,7 @@ public class Entry
   }
 
 
-
+  public ResultCode typeErrorconformsToSchema=null;
   /**
    * Indicates whether this entry conforms to the server's schema
    * requirements.  The checks performed by this method include:
@@ -1564,6 +1564,7 @@ public class Entry
                                   boolean validateStructureRules,
                                   LocalizableMessageBuilder invalidReason)
   {
+    typeErrorconformsToSchema= OBJECTCLASS_VIOLATION;
     // Get the structural objectclass for the entry.  If there isn't
     // one, or if there's more than one, then see if that's OK.
     AcceptRejectWarn structuralPolicy =
@@ -1640,6 +1641,7 @@ public class Entry
 
       if (validateNameForms)
       {
+        typeErrorconformsToSchema= NAMING_VIOLATION;
         /**
          * There may be multiple nameforms registered with this
          * structural objectclass.However, we need to select only one
