@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2017-2024 3A Systems, LLC.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -399,7 +400,7 @@ public final class LDAPServerFilter extends BaseFilter {
                 }
                 
                 SSLFilter sslFilter = new SSLFilter();
-                sslFilter.setHandshakeTimeout(getLongProperty("org.forgerock.opendj.grizzly.handshakeTimeout", sslFilter.getHandshakeTimeout(TimeUnit.MILLISECONDS)), TimeUnit.MILLISECONDS);
+                sslFilter.setHandshakeTimeout(getLongProperty("org.forgerock.opendj.grizzly.handshakeTimeout", 10000), TimeUnit.MILLISECONDS);
                 installFilter(startTls ? new StartTLSFilter(sslFilter) : sslFilter);
                 return true;
             }

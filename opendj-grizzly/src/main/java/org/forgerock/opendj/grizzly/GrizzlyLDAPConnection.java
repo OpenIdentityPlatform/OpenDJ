@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2019-2024 3A Systems, LLC.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -830,7 +831,7 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
             
             SSLEngineConfigurator serverSslEngineConfigurator = buildServerSSLEngineConfigurator(sslContext);
             final SSLFilter sslFilter = new SSLFilter(serverSslEngineConfigurator, sslEngineConfigurator);
-            sslFilter.setHandshakeTimeout(getLongProperty("org.forgerock.opendj.grizzly.handshakeTimeout", sslFilter.getHandshakeTimeout(TimeUnit.MILLISECONDS)), TimeUnit.MILLISECONDS);
+            sslFilter.setHandshakeTimeout(getLongProperty("org.forgerock.opendj.grizzly.handshakeTimeout", 10000), TimeUnit.MILLISECONDS);
             installFilter(sslFilter);
             sslFilter.handshake(connection, completionHandler);
         }
