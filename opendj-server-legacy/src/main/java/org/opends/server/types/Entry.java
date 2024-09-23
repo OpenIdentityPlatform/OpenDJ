@@ -1513,7 +1513,7 @@ public class Entry
    * Returns a error when entry type does not conform to a schema 
    * requirements.  Otherwise returns {@code null}
    **/
-  public ResutCode getTypeConformsToSchemaError() {
+  public ResultCode getTypeConformsToSchemaError() {
     return typeConformsToSchemaError;
   }
   /**
