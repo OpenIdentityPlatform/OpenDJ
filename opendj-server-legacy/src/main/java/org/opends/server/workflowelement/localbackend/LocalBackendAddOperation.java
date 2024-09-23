@@ -803,7 +803,7 @@ public class LocalBackendAddOperation
     LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     if (! entry.conformsToSchema(parentEntry, true, true, true, invalidReason))
     {
-      throw new DirectoryException(entry.typeErrorconformsToSchema,
+      throw new DirectoryException(entry.getTypeConformsToSchemaError(),
                                    invalidReason.toMessage());
     }
 

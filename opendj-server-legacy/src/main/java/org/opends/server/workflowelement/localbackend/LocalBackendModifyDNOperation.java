@@ -671,7 +671,7 @@ public class LocalBackendModifyDNOperation
       if (! newEntry.conformsToSchema(null, false, true, true,
                                       invalidReason))
       {
-        throw new DirectoryException(newEntry.typeErrorconformsToSchema,
+        throw new DirectoryException(newEntry.getTypeConformsToSchemaError(),
             ERR_MODDN_VIOLATES_SCHEMA.get(entryDN, invalidReason));
       }
 
@@ -743,7 +743,7 @@ public class LocalBackendModifyDNOperation
       if (! newEntry.conformsToSchema(null, false, true, true,
                                       invalidReason))
       {
-        throw new DirectoryException(newEntry.typeErrorconformsToSchema,
+        throw new DirectoryException(newEntry.getTypeConformsToSchemaError(),
             ERR_MODDN_PREOP_VIOLATES_SCHEMA.get(entryDN, invalidReason));
       }
     }

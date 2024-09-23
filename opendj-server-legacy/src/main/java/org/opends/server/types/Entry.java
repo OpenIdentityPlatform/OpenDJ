@@ -1507,7 +1507,15 @@ public class Entry
   }
 
 
-  public ResultCode typeErrorconformsToSchema=null;
+  private ResultCode typeConformsToSchemaError = null;
+  
+   /**
+   * Returns a error when entry type does not conform to a schema 
+   * requirements.  Otherwise returns {@code null}
+   **/
+  public ResutCode getTypeConformsToSchemaError() {
+    return typeConformsToSchemaError;
+  }
   /**
    * Indicates whether this entry conforms to the server's schema
    * requirements.  The checks performed by this method include:
