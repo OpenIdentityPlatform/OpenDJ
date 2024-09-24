@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2018-2024 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -412,7 +413,11 @@ public class SubCommandArgumentParser extends ArgumentParser {
                 // If this is a usage argument, then immediately stop and print
                 // usage information.
                 if (usageGroupArguments.containsKey(a)) {
-                		writeToUsageOutputStream(getUsage());//getUsage(a);
+                    if ((System.getProperty("org.forgerock.opendj.gendoc") != null)) {
+                        writeToUsageOutputStream(getUsage());
+                    }else {
+                        getUsage(a);
+                    }
                     return;
                 }
 
