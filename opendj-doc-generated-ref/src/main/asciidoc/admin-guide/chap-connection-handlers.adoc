@@ -1049,7 +1049,7 @@ The way directory data appears to client applications is configurable. You can c
 ======
 The HTTP endpoint configuration is new in OpenDJ 3.5.
 ======
-The default Rest2ldap endpoint exposes the RESTful API demonstrated in xref:../server-dev-guide/chap-rest-operations.adoc#chap-rest-operations["Performing RESTful Operations"] in the __Directory Server Developer's Guide__. The default mapping works out of the box with Example.com data generated as part of the setup process and with example data imported from link:../resources/Example.ldif[Example.ldif, window=\_blank]:
+The default Rest2ldap endpoint exposes the RESTful API demonstrated in xref:../server-dev-guide/chap-rest-operations.adoc#chap-rest-operations["Performing RESTful Operations"] in the __Directory Server Developer's Guide__. The default mapping works out of the box with Example.com data generated as part of the setup process and with example data imported from link:../attachments/Example.ldif[Example.ldif, window=\_blank]:
 
 . (Optional)  If necessary, change the properties of the default Rest2ldap endpoint, or create a new endpoint.
 +
@@ -1537,7 +1537,7 @@ With this approach, you must install the gateway separately.
 ====
 OpenDJ directory server has a handler for HTTP connections where it exposes the RESTful API demonstrated in xref:../server-dev-guide/chap-rest-operations.adoc#chap-rest-operations["Performing RESTful Operations"] in the __Directory Server Developer's Guide__. The HTTP connection handler is not enabled by default.
 
-You configure the mapping between JSON resources and LDAP entries by editing the configuration file for the HTTP connection handler, by default `/path/to/opendj/config/http-config.json`. The configuration is described in xref:../reference/appendix-rest2ldap-3-0.adoc#appendix-rest2ldap-3-0["REST to LDAP Configuration (3.0)"] in the __Reference__. The default mapping works out of the box with Example.com data generated as part of the setup process and with link:../resources/Example.ldif[Example.ldif, window=\_blank]:
+You configure the mapping between JSON resources and LDAP entries by editing the configuration file for the HTTP connection handler, by default `/path/to/opendj/config/http-config.json`. The configuration is described in xref:../reference/appendix-rest2ldap-3-0.adoc#appendix-rest2ldap-3-0["REST to LDAP Configuration (3.0)"] in the __Reference__. The default mapping works out of the box with Example.com data generated as part of the setup process and with link:../attachments/Example.ldif[Example.ldif, window=\_blank]:
 
 . Enable the connection handler:
 +

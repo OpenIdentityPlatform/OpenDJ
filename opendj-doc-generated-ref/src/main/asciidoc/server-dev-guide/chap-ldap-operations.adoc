@@ -1863,7 +1863,7 @@ This section includes the following procedures and examples:
 ====
 Before you try to bind to OpenDJ directory server using a certificate, create a certificate, then add the certificate attributes to the entry.
 
-link:../resources/Example.ldif[Example.ldif, window=\_blank] includes an entry for `cn=My App,ou=Apps,dc=example,dc=com`. Examples in this section use that entry, and use the Java `keytool` command to manage the certificate:
+link:../attachments/Example.ldif[Example.ldif, window=\_blank] includes an entry for `cn=My App,ou=Apps,dc=example,dc=com`. Examples in this section use that entry, and use the Java `keytool` command to manage the certificate:
 
 . Create a certificate using the DN of the client entry as the distinguished name string:
 +
