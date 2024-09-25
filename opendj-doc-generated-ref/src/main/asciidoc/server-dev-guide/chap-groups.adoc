@@ -43,7 +43,7 @@ In this chapter you will learn how to:
 
 [TIP]
 ====
-The examples in this chapter are written with the assumption that an `ou=Groups,dc=example,dc=com` entry already exists. If you imported data from link:../resources/Example.ldif[Example.ldif, window=\_blank], then you already have the entry. If you generated data during setup and did not create an organizational unit for groups yet, create the entry before you try the examples:
+The examples in this chapter are written with the assumption that an `ou=Groups,dc=example,dc=com` entry already exists. If you imported data from link:../attachments/Example.ldif[Example.ldif, window=\_blank], then you already have the entry. If you generated data during setup and did not create an organizational unit for groups yet, create the entry before you try the examples:
 
 [source, console]
 ----

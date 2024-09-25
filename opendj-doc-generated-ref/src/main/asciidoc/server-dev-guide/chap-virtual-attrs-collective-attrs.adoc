@@ -191,7 +191,7 @@ This example defines attributes that specify services available to a user depend
 
 [NOTE]
 ======
-The following example depends on the `cos` object class, and the `classOfService` attribute type defined but commented out in the link:../resources/Example.ldif[Example.ldif, window=\_blank] file imported as sample data. To try this example for yourself, add the attribute type and object class definitions in comments near the top of the file, and then uncomment the `objectClass: cos` and `classOfService` attribute lines in `Example.ldif` before importing the data into OpenDJ.
+The following example depends on the `cos` object class, and the `classOfService` attribute type defined but commented out in the link:../attachments/Example.ldif[Example.ldif, window=\_blank] file imported as sample data. To try this example for yourself, add the attribute type and object class definitions in comments near the top of the file, and then uncomment the `objectClass: cos` and `classOfService` attribute lines in `Example.ldif` before importing the data into OpenDJ.
 ======
 This example positions collective attributes that depend on the `classOfService` attribute values:
 
@@ -333,7 +333,7 @@ diskQuota: 100 GB
 [#example-dept-from-manager]
 .Inheriting an Attribute From the Manager's Entry
 ====
-This example demonstrates how to instruct OpenDJ to set an employee's department number using the manager's department number. To try the example, first import link:../resources/Example.ldif[Example.ldif, window=\_blank] into OpenDJ in order to load the appropriate sample data.
+This example demonstrates how to instruct OpenDJ to set an employee's department number using the manager's department number. To try the example, first import link:../attachments/Example.ldif[Example.ldif, window=\_blank] into OpenDJ in order to load the appropriate sample data.
 
 For this example, the relationship between employee entries and manager entries is based on the manager attributes on employee entries. Each `manager` attribute on an employee's entry specifies the DN of the manager's entry. OpenDJ retrieves the department number from the manager's entry to populate the attribute on the employee's entry.
 
@@ -380,7 +380,7 @@ departmentNumber: 3001
 [#example-inherit-from-locality]
 .Inheriting Attributes From the Locality
 ====
-This example demonstrates how to instruct OpenDJ to set a user's language preferences and street address based on locality. To try the example, first import link:../resources/Example.ldif[Example.ldif, window=\_blank] into OpenDJ in order to load the appropriate sample data.
+This example demonstrates how to instruct OpenDJ to set a user's language preferences and street address based on locality. To try the example, first import link:../attachments/Example.ldif[Example.ldif, window=\_blank] into OpenDJ in order to load the appropriate sample data.
 
 For this example, the relationship between entries is based on locality. The collective attribute subentry specifies how to construct the RDN of the object holding the attribute values to inherit:
 

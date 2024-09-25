@@ -1006,7 +1006,7 @@ cn: Barbara Jensen
 cn: Babs Jensen
 uid: bjensen
 ----
-An example of the captured command is the shell script, link:../resources/captured-global-aci-edits.sh[captured-global-aci-edits.sh, window=\_blank].
+An example of the captured command is the shell script, link:../attachments/captured-global-aci-edits.sh[captured-global-aci-edits.sh, window=\_blank].
 
 To reject anonymous access except bind and StartTLS requests, set `reject-unauthenticated-requests:true`:
 

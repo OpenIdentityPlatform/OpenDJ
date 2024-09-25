@@ -25,7 +25,7 @@
 
 OpenDJ lets you access directory data as link:http://json.org[JSON, window=\_blank] resources over HTTP. OpenDJ maps JSON resources onto LDAP entries. As a result, REST clients perform many of the same operations as LDAP clients with directory data.
 
-This chapter demonstrates RESTful client operations by using the default configuration and sample directory data imported into OpenDJ directory server as described in xref:../admin-guide/chap-import-export.adoc#import-ldif["To Import LDIF Data"] in the __Administration Guide__, from the LDIF file link:../resources/Example.ldif[Example.ldif, window=\_blank].
+This chapter demonstrates RESTful client operations by using the default configuration and sample directory data imported into OpenDJ directory server as described in xref:../admin-guide/chap-import-export.adoc#import-ldif["To Import LDIF Data"] in the __Administration Guide__, from the LDIF file link:../attachments/Example.ldif[Example.ldif, window=\_blank].
 
 [NOTE]
 ====
@@ -956,7 +956,7 @@ $ dsconfig \
 ----
 By default, both the Rest2ldap endpoint and also the REST to LDAP gateway allow HTTP Basic authentication and HTTP header-based authentication in the style of OpenIDM. The authentication mechanisms translate HTTP authentication to LDAP authentication to the directory server.
 
-When you install OpenDJ either with generated sample user entries or with data from link:../resources/Example.ldif[Example.ldif, window=\_blank], the relative distinguished name (DN) attribute for sample user entries is the user ID (`uid`) attribute. For example, the DN and user ID for Babs Jensen are:
+When you install OpenDJ either with generated sample user entries or with data from link:../attachments/Example.ldif[Example.ldif, window=\_blank], the relative distinguished name (DN) attribute for sample user entries is the user ID (`uid`) attribute. For example, the DN and user ID for Babs Jensen are:
 
 [source, ldif]
 ----
