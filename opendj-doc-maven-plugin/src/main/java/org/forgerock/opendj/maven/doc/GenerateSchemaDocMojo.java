@@ -47,7 +47,7 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
     private String locale;
 
     /** Output directory for source files. */
-    @Parameter(defaultValue = "${project.build.directory}/docbkx-sources/shared")
+    @Parameter(defaultValue = "${project.build.directory}/asciidoc/source/partials")
     private File outputDirectory;
 
     /**
@@ -59,7 +59,7 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         final Locale currentLocale = Locale.forLanguageTag(locale);
         final String localeReference = getLocalesAndSubTypesDocumentation(currentLocale);
-        final File localeReferenceFile = new File(outputDirectory, "sec-locales-subtypes.xml");
+        final File localeReferenceFile = new File(outputDirectory, "sec-locales-subtypes.adoc");
         try {
             writeStringToFile(localeReference, localeReferenceFile);
         } catch (IOException e) {

@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+////
   The contents of this file are subject to the terms of the Common Development and
   Distribution License (the License). You may not use this file except in compliance with the
   License.
@@ -12,49 +11,20 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright ${year} ForgeRock AS.
--->
-<table xml:id="table-global-acis"
-       xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="${lang}"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://docbook.org/ns/docbook
-                           http://docbook.org/xml/5.0/xsd/docbook.xsd"
-       pgwide="1">
- <title>${title}</title>
+  Copyright 2017 ForgeRock AS.
+  Portions Copyright ${year} 3A Systems LLC.
+////
 
- <textobject>
-  <para>
-   ${summary}
-  </para>
- </textobject>
+[#table-global-acis]
+.${title}
+[cols="20%,40%,40%"]
+|===
+|${nameTitle} |${descTitle} |${defTitle}
 
- <tgroup cols="3">
-  <colspec colnum="1" colwidth="1*"/>
-  <colspec colnum="2" colwidth="2*" />
-  <colspec colnum="3" colwidth="2*" />
+<#list acis?sort_by("name") as aci>
+a|${aci.name}
+a|${aci.description}
+a|`${aci.definition}`
+</#list>
 
-  <thead>
-   <row>
-    <entry>${nameTitle}</entry>
-    <entry>${descTitle}</entry>
-    <entry>${defTitle}</entry>
-   </row>
-  </thead>
-
-  <tbody>
-   <#list acis?sort_by("name") as aci>
-   <row valign="top">
-    <entry>
-     <para>${aci.name}</para>        <!-- In English in config.ldif by default -->
-    </entry>
-    <entry>
-     <para>${aci.description}</para> <!-- In English in config.ldif by default -->
-    </entry>
-    <entry>
-     <para><literal>${aci.definition}</literal></para>
-    </entry>
-   </row>
-   </#list>
-  </tbody>
- </tgroup>
-</table>
+|===
