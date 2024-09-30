@@ -25,6 +25,8 @@
 
 You can find bundle tools under the folder where you installed OpenDJ directory server as listed in xref:../admin-guide/chap-admin-tools.adoc#cli-overview["Command-Line Tools"] in the __Administration Guide__.
 
+:leveloffset: 1"
+
 include::../partials/man-backendstat.adoc[]
 
 '''

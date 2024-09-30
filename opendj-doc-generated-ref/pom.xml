@@ -181,15 +181,15 @@
                             <extendedClasspath>
                                 ${project.build.directory}/dependency/freemarker-${freemarker.version}.jar
                             </extendedClasspath>
-                            <outputDir>${project.build.directory}/asciidoc/source/partials</outputDir>
+                            <outputDir>${project.build.directory}/asciidoc/source/man-pages</outputDir>
                             <tools>
 
                                 <tool>
                                     <name>base64</name>
                                     <application>com.forgerock.opendj.ldap.tools.Base64</application>
                                     <trailingSectionPaths>
-                                        <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                        <trailingSectionPath>base64-examples.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_base64-examples.adoc</trailingSectionPath>
                                     </trailingSectionPaths>
                                 </tool>
 
@@ -197,9 +197,9 @@
                                     <name>ldapcompare</name>
                                     <application>com.forgerock.opendj.ldap.tools.LDAPCompare</application>
                                     <trailingSectionPaths>
-                                        <trailingSectionPath>ldapcompare-exit-codes.adoc</trailingSectionPath>
-                                        <trailingSectionPath>files.adoc</trailingSectionPath>
-                                        <trailingSectionPath>ldapcompare-examples.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_ldapcompare-exit-codes.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_files.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_ldapcompare-examples.adoc</trailingSectionPath>
                                     </trailingSectionPaths>
                                 </tool>
 
@@ -207,9 +207,9 @@
                                     <name>ldapdelete</name>
                                     <application>com.forgerock.opendj.ldap.tools.LDAPDelete</application>
                                     <trailingSectionPaths>
-                                        <trailingSectionPath>exit-codes-0-ldap-89.adoc</trailingSectionPath>
-                                        <trailingSectionPath>files.adoc</trailingSectionPath>
-                                        <trailingSectionPath>ldapdelete-examples.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_exit-codes-0-ldap-89.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_files.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_ldapdelete-examples.adoc</trailingSectionPath>
                                     </trailingSectionPaths>
                                 </tool>
 
@@ -217,9 +217,9 @@
                                     <name>ldapmodify</name>
                                     <application>com.forgerock.opendj.ldap.tools.LDAPModify</application>
                                     <trailingSectionPaths>
-                                        <trailingSectionPath>exit-codes-0-ldap-89.adoc</trailingSectionPath>
-                                        <trailingSectionPath>files.adoc</trailingSectionPath>
-                                        <trailingSectionPath>ldapmodify-examples.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_exit-codes-0-ldap-89.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_files.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_ldapmodify-examples.adoc</trailingSectionPath>
                                     </trailingSectionPaths>
                                 </tool>
 
@@ -228,9 +228,9 @@
                                     <application>com.forgerock.opendj.ldap.tools.LDAPPasswordModify
                                     </application>
                                     <trailingSectionPaths>
-                                        <trailingSectionPath>exit-codes-0-ldap-89.adoc</trailingSectionPath>
-                                        <trailingSectionPath>files.adoc</trailingSectionPath>
-                                        <trailingSectionPath>ldappasswordmodify-examples.adoc
+                                        <trailingSectionPath>_exit-codes-0-ldap-89.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_files.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_ldappasswordmodify-examples.adoc
                                         </trailingSectionPath>
                                     </trailingSectionPaths>
                                 </tool>
@@ -239,11 +239,11 @@
                                     <name>ldapsearch</name>
                                     <application>com.forgerock.opendj.ldap.tools.LDAPSearch</application>
                                     <trailingSectionPaths>
-                                        <trailingSectionPath>filters.adoc</trailingSectionPath>
-                                        <trailingSectionPath>attributes.adoc</trailingSectionPath>
-                                        <trailingSectionPath>exit-codes-0-ldap-89.adoc</trailingSectionPath>
-                                        <trailingSectionPath>files.adoc</trailingSectionPath>
-                                        <trailingSectionPath>ldapsearch-examples.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_filters.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_attributes.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_exit-codes-0-ldap-89.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_files.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_ldapsearch-examples.adoc</trailingSectionPath>
                                     </trailingSectionPaths>
                                 </tool>
 
@@ -251,8 +251,8 @@
                                     <name>ldifdiff</name>
                                     <application>com.forgerock.opendj.ldap.tools.LDIFDiff</application>
                                     <trailingSectionPaths>
-                                        <trailingSectionPath>ldifdiff-exit-codes.adoc</trailingSectionPath>
-                                        <trailingSectionPath>ldifdiff-examples.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_ldifdiff-exit-codes.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_ldifdiff-examples.adoc</trailingSectionPath>
                                     </trailingSectionPaths>
                                 </tool>
 
@@ -260,8 +260,8 @@
                                     <name>ldifmodify</name>
                                     <application>com.forgerock.opendj.ldap.tools.LDIFModify</application>
                                     <trailingSectionPaths>
-                                        <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                        <trailingSectionPath>ldifmodify-examples.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_ldifmodify-examples.adoc</trailingSectionPath>
                                     </trailingSectionPaths>
                                 </tool>
 
@@ -269,8 +269,8 @@
                                     <name>ldifsearch</name>
                                     <application>com.forgerock.opendj.ldap.tools.LDIFSearch</application>
                                     <trailingSectionPaths>
-                                        <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                        <trailingSectionPath>ldifsearch-examples.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_ldifsearch-examples.adoc</trailingSectionPath>
                                     </trailingSectionPaths>
                                 </tool>
 
@@ -278,9 +278,9 @@
                                     <name>makeldif</name>
                                     <application>com.forgerock.opendj.ldap.tools.MakeLDIF</application>
                                     <trailingSectionPaths>
-                                        <trailingSectionPath>exit-codes-0-1.adoc</trailingSectionPath>
-                                        <trailingSectionPath>makeldif-examples.adoc</trailingSectionPath>
-                                        <trailingSectionPath>makeldif-see-also.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_exit-codes-0-1.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_makeldif-examples.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_makeldif-see-also.adoc</trailingSectionPath>
                                     </trailingSectionPaths>
                                 </tool>
                             </tools>
@@ -305,7 +305,6 @@
                             </descriptors>
                         </configuration>
                     </execution>
-
                     <execution>
                         <id>generated-doc-sources</id>
                         <goals>
@@ -350,14 +349,14 @@
                                     <extendedClasspath>
                                         ${project.build.directory}/dependency/freemarker-${freemarker.version}.jar
                                     </extendedClasspath>
-                                    <outputDir>${project.build.directory}/asciidoc/source/partials</outputDir>
+                                    <outputDir>${project.build.directory}/asciidoc/source/man-pages</outputDir>
                                     <tools>
                                         <tool>
                                             <name>backendstat</name>
                                             <application>org.opends.server.backends.pluggable.BackendStat</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>backendstat-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_backendstat-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -365,8 +364,8 @@
                                             <name>backup</name>
                                             <application>org.opends.server.tools.BackUpDB</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-1.adoc</trailingSectionPath>
-                                                <trailingSectionPath>backup-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-1.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_backup-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -375,8 +374,8 @@
                                             <application>org.opends.guitools.controlpanel.ControlPanelLauncher
                                             </application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>control-panel-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_control-panel-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -384,8 +383,8 @@
                                             <name>create-rc-script</name>
                                             <application>org.opends.server.tools.CreateRCScript</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>create-rc-script-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_create-rc-script-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -393,8 +392,8 @@
                                             <name>dsconfig</name>
                                             <application>org.forgerock.opendj.config.dsconfig.DSConfig</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>dsconfig-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_dsconfig-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -403,8 +402,8 @@
                                             <application>org.opends.server.tools.dsreplication.ReplicationCliMain
                                             </application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>dsreplication-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_dsreplication-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -412,8 +411,8 @@
                                             <name>encode-password</name>
                                             <application>org.opends.server.tools.EncodePassword</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-5-6-other.adoc</trailingSectionPath>
-                                                <trailingSectionPath>encode-password-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-5-6-other.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_encode-password-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -421,8 +420,8 @@
                                             <name>export-ldif</name>
                                             <application>org.opends.server.tools.ExportLDIF</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>export-ldif-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_export-ldif-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -430,8 +429,8 @@
                                             <name>import-ldif</name>
                                             <application>org.opends.server.tools.ImportLDIF</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>import-ldif-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_import-ldif-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -439,8 +438,8 @@
                                             <name>list-backends</name>
                                             <application>org.opends.server.tools.ListBackends</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>list-backends-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_list-backends-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -448,8 +447,8 @@
                                             <name>manage-account</name>
                                             <application>org.opends.server.tools.ManageAccount</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-89.adoc</trailingSectionPath>
-                                                <trailingSectionPath>manage-account-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-89.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_manage-account-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -457,8 +456,8 @@
                                             <name>manage-tasks</name>
                                             <application>org.opends.server.tools.ManageTasks</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>manage-tasks-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_manage-tasks-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -466,8 +465,8 @@
                                             <name>rebuild-index</name>
                                             <application>org.opends.server.tools.RebuildIndex</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>rebuild-index-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_rebuild-index-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -475,8 +474,8 @@
                                             <name>restore</name>
                                             <application>org.opends.server.tools.RestoreDB</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>restore-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_restore-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -484,8 +483,8 @@
                                             <name>setup</name>
                                             <application>org.opends.quicksetup.installer.SetupLauncher</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>setup-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_setup-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -493,8 +492,8 @@
                                             <name>start-ds</name>
                                             <application>org.opends.server.core.DirectoryServer</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>start-ds-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_start-ds-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -502,8 +501,8 @@
                                             <name>status</name>
                                             <application>org.opends.server.tools.status.StatusCli</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>status-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_status-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -511,8 +510,8 @@
                                             <name>stop-ds</name>
                                             <application>org.opends.server.tools.StopDS</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>stop-ds-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_stop-ds-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -520,8 +519,8 @@
                                             <name>uninstall</name>
                                             <application>org.opends.guitools.uninstaller.UninstallLauncher</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.adoc</trailingSectionPath>
-                                                <trailingSectionPath>uninstall-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_exit-codes-0-gt0.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_uninstall-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -529,7 +528,7 @@
                                             <name>upgrade</name>
                                             <application>org.opends.server.tools.upgrade.UpgradeCli</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>upgrade-exit-codes.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_upgrade-exit-codes.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
@@ -537,11 +536,57 @@
                                             <name>verify-index</name>
                                             <application>org.opends.server.tools.VerifyIndex</application>
                                             <trailingSectionPaths>
-                                                <trailingSectionPath>verify-index-exit-codes.adoc</trailingSectionPath>
-                                                <trailingSectionPath>verify-index-examples.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_verify-index-exit-codes.adoc</trailingSectionPath>
+                                                <trailingSectionPath>_verify-index-examples.adoc</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
                                     </tools>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-man-pages</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <tasks>
+                                        <copy todir="${project.build.directory}/asciidoc/source/man-pages">
+                                            <fileset dir="${basedir}/src/main/asciidoc/man-pages" includes="**/*" />
+                                        </copy>
+                                        <copy todir="${project.build.directory}/asciidoc/source/partials">
+                                            <fileset dir="${basedir}/src/main/asciidoc/man-pages" includes="**/*" />
+                                            <fileset dir="${project.build.directory}/asciidoc/source/man-pages" includes="**/*" />
+                                        </copy>
+                                    </tasks>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.asciidoctor</groupId>
+                        <artifactId>asciidoctor-maven-plugin</artifactId>
+                        <version>2.2.6</version>
+                        <executions>
+                            <execution>
+                                <id>generate-manpage-doc</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>process-asciidoc</goal>
+                                </goals>
+                                <configuration>
+                                    <requires>
+                                        <require>${project.basedir}/src/main/resources/asciidoc/extensions/nested-open-block.rb</require>
+                                    </requires>
+                                    <backend>manpage</backend>
+                                    <sourceDirectory>${project.build.directory}/asciidoc/source/man-pages</sourceDirectory>
+                                    <outputDirectory>${project.build.directory}/asciidoc/man-pages</outputDirectory>
                                 </configuration>
                             </execution>
                         </executions>
@@ -553,15 +598,15 @@
                         <artifactId>doc-maven-plugin</artifactId>
                         <version>2.2.2-SNAPSHOT</version>
                         <executions>
-                            <execution>
-                                <id>build-man-pages</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>process</goal>
-                                    <goal>build</goal>
-                                    <goal>release</goal>
-                                </goals>
-                            </execution>
+<!--                            <execution>-->
+<!--                                <id>build-man-pages</id>-->
+<!--                                <phase>package</phase>-->
+<!--                                <goals>-->
+<!--                                    <goal>process</goal>-->
+<!--                                    <goal>build</goal>-->
+<!--                                    <goal>release</goal>-->
+<!--                                </goals>-->
+<!--                            </execution>-->
                             <execution>
                                 <id>build-man-pages-asciidoc</id>
                                 <phase>package</phase>
@@ -599,40 +644,40 @@
                             </formats>
                         </configuration>
                     </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>zip-docs</id>
-                                <phase>package</phase>
-                                <configuration>
-                                    <target>
-                                        <property name="compress_formats" value="webhelp,xhtml,html" />
-                                        <ant antfile="${basedir}/src/main/ant/zip.xml">
-                                            <target name="docs" />
-                                        </ant>&gt;
-                                    </target>
-                                </configuration>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <dependencies>
-                            <dependency>
-                                <groupId>ant-contrib</groupId>
-                                <artifactId>ant-contrib</artifactId>
-                                <version>${ant.contrib.version}</version>
-                                <exclusions>
-                                    <exclusion>
-                                        <groupId>ant</groupId>
-                                        <artifactId>ant</artifactId>
-                                    </exclusion>
-                                </exclusions>
-                            </dependency>
-                        </dependencies>
-                    </plugin>
+<!--                    <plugin>-->
+<!--                        <groupId>org.apache.maven.plugins</groupId>-->
+<!--                        <artifactId>maven-antrun-plugin</artifactId>-->
+<!--                        <executions>-->
+<!--                            <execution>-->
+<!--                                <id>zip-docs</id>-->
+<!--                                <phase>package</phase>-->
+<!--                                <configuration>-->
+<!--                                    <target>-->
+<!--                                        <property name="compress_formats" value="webhelp,xhtml,html" />-->
+<!--                                        <ant antfile="${basedir}/src/main/ant/zip.xml">-->
+<!--                                            <target name="docs" />-->
+<!--                                        </ant>-->
+<!--                                    </target>-->
+<!--                                </configuration>-->
+<!--                                <goals>-->
+<!--                                    <goal>run</goal>-->
+<!--                                </goals>-->
+<!--                            </execution>-->
+<!--                        </executions>-->
+<!--                        <dependencies>-->
+<!--                            <dependency>-->
+<!--                                <groupId>ant-contrib</groupId>-->
+<!--                                <artifactId>ant-contrib</artifactId>-->
+<!--                                <version>${ant.contrib.version}</version>-->
+<!--                                <exclusions>-->
+<!--                                    <exclusion>-->
+<!--                                        <groupId>ant</groupId>-->
+<!--                                        <artifactId>ant</artifactId>-->
+<!--                                    </exclusion>-->
+<!--                                </exclusions>-->
+<!--                            </dependency>-->
+<!--                        </dependencies>-->
+<!--                    </plugin>-->
 
                     <!-- Generate Artifacts -->
                     <plugin>

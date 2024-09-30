@@ -16,7 +16,7 @@
  #-->
 
 [#${name}-subcommands]
-==== Subcommands
+== Subcommands
 
 <#if info??>
 ${info}
@@ -27,4 +27,3 @@ ${intro}
 <#list subcommands as subcommand>
 ${subcommand}
 </#list>
-

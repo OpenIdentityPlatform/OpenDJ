@@ -1,0 +1,71 @@
+////
+
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+
+////
+
+== Examples
+The following example enables and then initializes replication for a new replica
+on `opendj2.example.com` from an existing replica on `opendj.example.com`.
+
+[source, console]
+----
+$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com \
+ --host1 opendj.example.com --port1 4444 --bindDN1 "cn=Directory Manager" \
+ --bindPassword1 password --replicationPort1 8989 \
+ --host2 opendj2.example.com --port2 4444 --bindDN2 "cn=Directory Manager" \
+ --bindPassword2 password --replicationPort2 8989
+
+Establishing connections ..... Done.
+Checking registration information ..... Done.
+Updating remote references on server opendj.example.com:4444 ..... Done.
+Configuring Replication port on server opendj2.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ opendj.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ opendj2.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj2.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema on server
+ opendj.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema on server
+ opendj2.example.com:4444 ..... Done.
+Initializing registration information on server opendj2.example.com:4444 with
+ the contents of server opendj.example.com:4444 ..... Done.
+Initializing schema on server opendj2.example.com:4444 with the contents of
+ server opendj.example.com:4444 ..... Done.
+
+Replication has been successfully enabled.  Note that for replication to
+ work you must initialize the contents of the base DN's that are being
+  replicated (use dsreplication initialize to do so).
+
+See
+/var/.../opends-replication-7958637258600693490.log
+for a detailed log of this operation.
+
+$ dsreplication initialize-all -I admin -w password -X -n -b dc=example,dc=com \
+ -h opendj.example.com -p 4444
+
+Initializing base DN dc=example,dc=com with the contents from
+ opendj.example.com:4444: 160 entries processed (100 % complete).
+Base DN initialized successfully.
+
+See
+/var/.../opends-replication-5020375834904394170.log
+for a detailed log of this operation.
+----

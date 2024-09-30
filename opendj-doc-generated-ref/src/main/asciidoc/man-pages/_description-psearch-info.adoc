@@ -1,0 +1,67 @@
+////
+
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+
+////
+A persistent search allows the client to continue receiving new results whenever changes are made to data that is in the scope of the search, thus using the search as a form of change notification.
+[open]
+====
+The optional `changetype` setting defines the kinds of updates that result in notification. If you do not set the `changetype`, the default behavior is to send notifications for all updates.
+
+`add`::
+Send notifications for LDAP add operations.
+
+`del`,`delete`::
+Send notifications for LDAP delete operations.
+
+`mod`,`modify`::
+Send notifications for LDAP modify operations.
+
+`moddn`,`modrdn`,`modifydn`::
+Send notifications for LDAP modify DN (rename and move) operations.
+
+`all`,`any`::
+Send notifications for all LDAP update operations.
+
+====
+[open]
+====
+The optional `changesonly` setting defines whether the server returns existing entries as well as changes.
+
+`true`::
+Do not return existing entries, but instead only notifications about changes.
+
++
+This is the default setting.
+
+`false`::
+Also return existing entries.
+
+====
+[open]
+====
+The optional `entrychgcontrols` setting defines whether the server returns an Entry Change Notification control with each entry notification. The Entry Change Notification control provides additional information about the change that caused the entry to be returned by the search. In particular, it indicates the change type, the change number if available, and the previous DN if the change type was a modify DN operation.
+
+`true`::
+Do request the Entry Change Notification control.
+
++
+This is the default setting.
+
+`false`::
+Do not request the Entry Change Notification control.
+
+====

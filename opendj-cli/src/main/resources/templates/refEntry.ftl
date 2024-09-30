@@ -17,13 +17,20 @@
 ////
 
 [#${name}-1]
-=== ${name} - ${shortDesc}
+= ${name}(1)
 
-==== Synopsis
+:doctype: manpage
+:manmanual: Directory Server Tools
+:mansource: OpenDJ
+
+== Name
+${name} - ${shortDesc}
+
+== Synopsis
 `${name}` <#if args??>`${args}`</#if>
 
 [#${name}-description]
-==== ${descTitle}
+== ${descTitle}
 
 ${description?ensure_ends_with(".")}
 
@@ -40,5 +47,3 @@ ${subcommands}
 <#if trailingSectionString??>
 ${trailingSectionString}
 </#if>
-
-

@@ -1,0 +1,98 @@
+////
+
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+
+////
+
+[#dsjavaproperties-1]
+= dsjavaproperties(1)
+
+:doctype: manpage
+:manmanual: Directory Server Tools
+:mansource: OpenDJ
+
+== Name
+dsjavaproperties — apply OpenDJ Java home and JVM settings
+
+== Synopsis
+`dsjavaproperties`
+
+[#dsjavaproperties-description]
+== Description
+This utility can be used to change the java arguments and java home that are used by the different server commands.
+
+Before launching the command, edit the properties file located in /path/to/opendj/config/java.properties to specify the java arguments and java home. When you have edited the properties file, run this command for the changes to be taken into account.
+
+Note that the changes will only apply to this server installation. No modifications will be made to your environment variables.
+
+[#dsjavaproperties-options]
+== Options
+The `dsjavaproperties` command takes the following options:
+--
+Utility input/output options:
+
+`-Q | --quiet`::
+Use quiet mode.
+
++
+Default: false
+
+--
+--
+General options:
+
+`-V | --version`::
+Display Directory Server version information.
+
++
+Default: false
+
+--
+--
+
+`-H | --help`::
+Display this usage information.
+
++
+Default: false
+
+--
+
+== Files
+This command depends on the content of the `config/java.properties` file.
+
+[#d1822e3730]
+== Exit Codes
+--
+
+0::
+The command completed successfully.
+
+> 0::
+An error occurred.
+
+--
+
+== Examples
+The following example demonstrates a successful run.
+
+[source, console]
+----
+$ dsjavaproperties
+The operation was successful.  The server commands will use the java arguments
+ and java home specified in the properties file located in
+ /path/to/opendj/config/java.properties
+----

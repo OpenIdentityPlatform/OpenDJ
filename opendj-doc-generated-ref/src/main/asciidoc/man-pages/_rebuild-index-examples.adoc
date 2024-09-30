@@ -1,4 +1,5 @@
-<!--
+////
+
   The contents of this file are subject to the terms of the Common Development and
   Distribution License (the License). You may not use this file except in compliance with the
   License.
@@ -11,24 +12,17 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2015 ForgeRock AS.
--->
-<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2
-                              http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-  <id>server-man-pages</id>
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
 
-  <formats>
-    <format>jar</format>
-  </formats>
+////
 
-  <includeBaseDirectory>false</includeBaseDirectory>
+== Examples
+The following example schedules a task to start immediately that rebuilds the `cn` (common name) index.
 
-  <fileSets>
-    <fileSet>
-      <directory>${project.build.directory}/asciidoc/man-pages</directory>
-      <outputDirectory />
-    </fileSet>
-  </fileSets>
-</assembly>
+[source, console]
+----
+$ rebuild-index -p 4444 -h opendj.example.com -D "cn=Directory Manager" \
+ -w password -b dc=example,dc=com -i cn -t 0
+Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM
+----

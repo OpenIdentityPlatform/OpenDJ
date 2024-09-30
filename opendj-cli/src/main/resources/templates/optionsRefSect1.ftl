@@ -16,7 +16,7 @@
 #-->
 
 [#${name}-options]
-==== ${title}
+== ${title}
 
 ${intro}
 
@@ -41,4 +41,3 @@ ${option.info}
 
 --
 </#list>
-

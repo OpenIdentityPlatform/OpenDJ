@@ -17,15 +17,20 @@ ${marker}
 ////
 
 [#${id}]
+= ${name}(1)
+:doctype: manpage
+:manmanual: Directory Server Tools
+:mansource: OpenDJ
 
-=== ${name} - ${purpose}
+== Name
+${name} - ${purpose}
 
-==== Synopsis
+== Synopsis
 
 `${name}` ${args}
 
 [#${id}-description]
-==== ${descTitle}
+== ${descTitle}
 
 ${description?ensure_ends_with(".")}
 
@@ -33,7 +38,7 @@ ${description?ensure_ends_with(".")}
 
 <#if options??>
 [#${id}-options]
-==== ${optionsTitle}
+== ${optionsTitle}
 
 ${optionsIntro}
 
@@ -62,4 +67,3 @@ ${option.info.doc}
 <#if propertiesInfo??>
 ${propertiesInfo}
 </#if>
-

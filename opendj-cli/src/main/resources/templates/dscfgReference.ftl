@@ -18,11 +18,10 @@ ${marker}
 
 [#${name}-subcommands-ref]
 == ${title}
+:leveloffset: 1
 
 ${partintro}
 
 <#list subcommands as subcommand>
 include::./man-${subcommand.id}.adoc[]
 </#list>
-
-

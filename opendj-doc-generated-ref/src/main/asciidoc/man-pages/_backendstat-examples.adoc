@@ -1,4 +1,5 @@
-<!--
+////
+
   The contents of this file are subject to the terms of the Common Development and
   Distribution License (the License). You may not use this file except in compliance with the
   License.
@@ -11,24 +12,26 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2015 ForgeRock AS.
--->
-<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2
-                              http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-  <id>server-man-pages</id>
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
 
-  <formats>
-    <format>jar</format>
-  </formats>
+////
 
-  <includeBaseDirectory>false</includeBaseDirectory>
+== Examples
+The following example displays index information.
 
-  <fileSets>
-    <fileSet>
-      <directory>${project.build.directory}/asciidoc/man-pages</directory>
-      <outputDirectory />
-    </fileSet>
-  </fileSets>
-</assembly>
+[source, console]
+----
+$ bin/backendstat dump-index  -n userRoot -b dc=example,dc=com -i id2childrencount 
+
+    Key (len 2): 1#52
+    Value (len 8): 1
+    Key (len 2): 2#52
+    Value (len 8): 500000
+    Key (len 9): Total Children Count
+    Value (len 8): 500001
+
+    Total Records: 3
+    Total / Average Key Size: 13 bytes / 4 bytes
+    Total / Average Data Size: 24 bytes / 8 bytes
+----

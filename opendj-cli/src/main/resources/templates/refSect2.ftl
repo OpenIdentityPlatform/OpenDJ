@@ -16,7 +16,7 @@
  #-->
 
 [#${id}]
-===== ${name}
+=== ${name}
 
 ${description?ensure_ends_with(".")}
 
@@ -24,7 +24,7 @@ ${description?ensure_ends_with(".")}
 
 <#if options??>
 [#${id}-options]
-====== ${optionsTitle}
+==== ${optionsTitle}
 
 --
 
@@ -52,4 +52,3 @@ ${option.info.doc}
 <#if propertiesInfo??>
 ${propertiesInfo}
 </#if>
-

@@ -1,4 +1,5 @@
-<!--
+////
+
   The contents of this file are subject to the terms of the Common Development and
   Distribution License (the License). You may not use this file except in compliance with the
   License.
@@ -12,23 +13,27 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015 ForgeRock AS.
--->
-<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2
-                              http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-  <id>server-man-pages</id>
+  Portions Copyright 2024 3A Systems LLC.
 
-  <formats>
-    <format>jar</format>
-  </formats>
+////
 
-  <includeBaseDirectory>false</includeBaseDirectory>
+== Attributes
+The optional attribute list specifies the attributes to return in the entries found
+by the search. In addition to identifying attributes by name such as `cn sn mail`
+and so forth, you can use the following notations, too.
+--
 
-  <fileSets>
-    <fileSet>
-      <directory>${project.build.directory}/asciidoc/man-pages</directory>
-      <outputDirectory />
-    </fileSet>
-  </fileSets>
-</assembly>
+`*`::
+Return all user attributes such as `cn`, `sn`, and `mail`.
+
+`+`::
+Return all operational attributes such as `etag` and `pwdPolicySubentry`.
+
+`@objectclass`::
+Return all attributes of the specified object class, where __objectclass__ is one of the object classes on the entries returned by the search.
+
+`1.1`::
+Return no attributes, only the DNs of matching entries.
+
+--
+

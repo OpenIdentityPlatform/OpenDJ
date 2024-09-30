@@ -14,4 +14,4 @@
  # Copyright 2015 ForgeRock AS.
  # Portions Copyright 2024 3A Systems LLC.
  #-->
-* xref:dsconfig-subcommands-ref.adoc${id}[${name}, window=_blank]: ${description}
+* xref:dsconfig-subcommands-ref.adoc#${id}[${name}, window=_blank]: ${description}
