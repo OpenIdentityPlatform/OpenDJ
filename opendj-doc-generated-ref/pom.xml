@@ -13,6 +13,7 @@
   ~ information: "Portions Copyright [year] [name of copyright owner]".
   ~
   ~ Copyright 2016 ForgeRock AS.
+  ~ Portions Copyright 2024 3A Systems LLC.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -598,22 +599,13 @@
                         <artifactId>doc-maven-plugin</artifactId>
                         <version>2.2.2-SNAPSHOT</version>
                         <executions>
-<!--                            <execution>-->
-<!--                                <id>build-man-pages</id>-->
-<!--                                <phase>package</phase>-->
-<!--                                <goals>-->
-<!--                                    <goal>process</goal>-->
-<!--                                    <goal>build</goal>-->
-<!--                                    <goal>release</goal>-->
-<!--                                </goals>-->
-<!--                            </execution>-->
                             <execution>
                                 <id>build-man-pages-asciidoc</id>
                                 <phase>package</phase>
                                 <goals>
                                     <goal>asciidoc-pre-process</goal>
                                     <goal>antora</goal>
-<!--                                    <goal>asciidoc-to-pdf</goal>-->
+                                    <goal>asciidoc-to-pdf</goal>
                                 </goals>
                                 <configuration>
                                     <documents>
@@ -629,55 +621,8 @@
                             <projectName>OpenDJ</projectName>
                             <projectVersion>${project.version}</projectVersion>
                             <releaseVersion>${project.version}</releaseVersion>
-                            <buildReleaseZip>true</buildReleaseZip>
-                            <googleAnalyticsId />
-                            <isDraftMode>no</isDraftMode>
-<!--                             <localeTag>en</localeTag> -->
-                            <formats combine.self="override">
-                                <format>man</format>
-                                <format>epub</format>
-                                <format>html</format>
-                                <format>pdf</format>
-                                <format>webhelp</format>
-                                <format>xhtml5</format>
-                                <format>bootstrap</format>
-                            </formats>
                         </configuration>
                     </plugin>
-<!--                    <plugin>-->
-<!--                        <groupId>org.apache.maven.plugins</groupId>-->
-<!--                        <artifactId>maven-antrun-plugin</artifactId>-->
-<!--                        <executions>-->
-<!--                            <execution>-->
-<!--                                <id>zip-docs</id>-->
-<!--                                <phase>package</phase>-->
-<!--                                <configuration>-->
-<!--                                    <target>-->
-<!--                                        <property name="compress_formats" value="webhelp,xhtml,html" />-->
-<!--                                        <ant antfile="${basedir}/src/main/ant/zip.xml">-->
-<!--                                            <target name="docs" />-->
-<!--                                        </ant>-->
-<!--                                    </target>-->
-<!--                                </configuration>-->
-<!--                                <goals>-->
-<!--                                    <goal>run</goal>-->
-<!--                                </goals>-->
-<!--                            </execution>-->
-<!--                        </executions>-->
-<!--                        <dependencies>-->
-<!--                            <dependency>-->
-<!--                                <groupId>ant-contrib</groupId>-->
-<!--                                <artifactId>ant-contrib</artifactId>-->
-<!--                                <version>${ant.contrib.version}</version>-->
-<!--                                <exclusions>-->
-<!--                                    <exclusion>-->
-<!--                                        <groupId>ant</groupId>-->
-<!--                                        <artifactId>ant</artifactId>-->
-<!--                                    </exclusion>-->
-<!--                                </exclusions>-->
-<!--                            </dependency>-->
-<!--                        </dependencies>-->
-<!--                    </plugin>-->
 
                     <!-- Generate Artifacts -->
                     <plugin>
