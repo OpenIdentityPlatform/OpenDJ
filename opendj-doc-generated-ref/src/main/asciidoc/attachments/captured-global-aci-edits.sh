@@ -11,6 +11,7 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Portions Copyright 2015 ForgeRock AS.
+# Portions Copyright 2024 3A Systems LLC.
 
 # Captured dsconfig command to replace anonymous read access with authenticated access.
 # Edit this script to match your deployment.
@@ -24,15 +25,23 @@
 # If the global-aci settings are different on your OpenDJ server,
 # generate this script for that server as described in the documentation.
 #
+#  The following command sequence utilizes single quote encapsulation
+#  of the `global-aci` value. This is simply to avoid
+#  the need for extensive character escapes.  If the quotes are removed,
+#  the user will need to manually escape certain characters, such as pipe
+#  (`|`) or exclamation points (`!`) to
+#  avoid shell errors.
+
 dsconfig set-access-control-handler-prop \
-          --remove global-aci:\(targetattr!=\"userPassword\|\|authPassword\|\|debugsearchindex\|\|changes\|\|changeNumber\|\|changeType\|\|changeTime\|\|targetDN\|\|newRDN\|\|newSuperior\|\|deleteOldRDN\"\)\(version\ 3.0\;\ acl\ \"Anonymous\ read\ access\"\;\ allow\ \(read,search,compare\)\ userdn=\"ldap:///anyone\"\;\) \
-          --remove global-aci:\(targetattr=\"createTimestamp\|\|creatorsName\|\|modifiersName\|\|modifyTimestamp\|\|entryDN\|\|entryUUID\|\|subschemaSubentry\|\|etag\|\|governingStructureRule\|\|structuralObjectClass\|\|hasSubordinates\|\|numSubordinates\"\)\(version\ 3.0\;\ acl\ \"User-Visible\ Operational\ Attributes\"\;\ allow\ \(read,search,compare\)\ userdn=\"ldap:///anyone\"\;\) \
-          --add global-aci:\(targetattr!=\"userPassword\|\|authPassword\|\|debugsearchindex\|\|changes\|\|changeNumber\|\|changeType\|\|changeTime\|\|targetDN\|\|newRDN\|\|newSuperior\|\|deleteOldRDN\"\)\(version\ 3.0\;\ acl\ \"Authenticated\ read\ access\"\;\ allow\(read,search,compare\)\ userdn=\"ldap:///all\"\;\) \
-          --add global-aci:\(targetattr=\"createTimestamp\|\|creatorsName\|\|modifiersName\|\|modifyTimestamp\|\|entryDN\|\|entryUUID\|\|subschemaSubentry\|\|etag\|\|governingStructureRule\|\|structuralObjectClass\|\|hasSubordinates\|\|numSubordinates\"\)\(version\ 3.0\;\ acl\ \"User-Visible\ Operational\ Attributes\"\;\ allow\(read,search,compare\)\ userdn=\"ldap:///all\"\;\) \
-          --hostname opendj.example.com \
-          --port 4444 \
-          --trustStorePath /path/to/opendj/config/admin-truststore \
-          --bindDN cn=Directory\ Manager \
-          --bindPassword ****** \
-          --no-prompt
+         --remove=global-aci:'(targetattr!="userPassword||authPassword||changes||
+         changeNumber||changeType||changeTime||targetDN||newRDN||
+         newSuperior||deleteOldRDN||targetEntryUUID||changeInitiatorsName||
+         changeLogCookie||includedAttributes")(version 3.0; acl "Anonymous
+          read access"; allow (read,search,compare) userdn="ldap:///anyone";)' \
+         --hostname=opendj.example.com \
+         --port=4444 \
+         --bindDN=cn=Directory\ Manager \
+         --bindPassword=password \
+         --trustAll \
+         --no-prompt
 
