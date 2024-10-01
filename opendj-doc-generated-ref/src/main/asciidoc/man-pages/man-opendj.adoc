@@ -1,0 +1,76 @@
+////
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2011-2015 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+////
+
+[#opendj-5]
+= opendj(5)
+
+:doctype: manpage
+:manmanual: OpenDJ
+:mansource: OpenDJ
+
+== Name
+OpenDJ - a high-performance, highly-extensible, LDAPv3 compliant directory server
+
+== Description
+
+OpenDJ is a high-performance, highly-extensible, pure Java directory server.
+The server is fully compliant with the LDAPv3 standard,
+and passes all of the compliance, interoperability and security tests suites.
+The directory server implements most of the standard
+and experimental LDAP extensions defined in the IETF as RFCs or Internet-Drafts,
+ensuring maximum interoperability with LDAP client applications.
+
+OpenDJ software includes a rich set of APIs making the directory server easy to extend.
+The directory server supports a loosely consistent multi-master replication model
+that guarantees high availability of data for all operations, searches or updates.
+While theoretically unlimited with regard to the number of masters,
+the directory server has been stressed under heavy and durable load with four masters.
+
+OpenDJ software includes:
+
+* A graphical installation tool (`QuickSetup`) that enables you
+to have a server configured, and up and running in less than 3 minutes
+
+* A graphical control panel (`bin/control-panel`)
+that displays server status information
+and enables you to perform basic directory server administration
+
+* A rich set of command-line utilities to perform
+all online administrative tasks both interactively and with scripts
+
+* Advanced security and password policies
+
+* Advanced backup and restore capabilities
+
+* Extensive user documentation
+
+== Usage
+
+See the `Installation Guide` for instructions
+on getting started with OpenDJ directory server.
+
+To install the directory server from IPS packages perform the following steps:
+
+* As the root user, run the `configure` command
+to create an instance of the directory server in a specific location,
+running as a specific user.
+
+* Run the `setup` command as this user
+to install and configure the directory server instance.
+
+* For additional configuration of the directory server,
+use the `control-panel` and `dsconfig` commands.

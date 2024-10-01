@@ -12,54 +12,43 @@
  # information: "Portions Copyright [year] [name of copyright owner]".
  #
  # Copyright 2015 ForgeRock AS.
+ # Portions Copyright 2024 3A Systems LLC.
  #-->
-<refsect2 xml:id="${id}">
-  <title>${name}</title>
 
-  <para>
-   ${description?ensure_ends_with(".")}
-  </para>
+[#${id}]
+=== ${name}
 
-  <#if info??>${info}</#if>
+${description?ensure_ends_with(".")}
 
-  <#if options??>
-    <refsect3 xml:id="${id}-options">
-      <title>${optionsTitle}</title>
+<#if info??>${info}</#if>
 
-      <variablelist>
-        <para>
-         ${optionsIntro}
-        </para>
+<#if options??>
+[#${id}-options]
+==== ${optionsTitle}
 
-        <#list options as option>
+--
 
-          <varlistentry>
-            <term><option>${option.synopsis?xml}</option></term>
-            <listitem>
-             <para>
-               ${option.description?ensure_ends_with(".")}
-             </para>
+<#list options as option>
+`${option.synopsis?xml}`::
+${option.description?ensure_ends_with(".")}
+<#if option.info??>
++
+<#if option.info.usage??>${option.info.usage}</#if>
+<#if option.info.default??>
++
+${option.info.default}
+</#if>
+<#if option.info.doc??>
++
+${option.info.doc}
+</#if>
+</#if>
+</#list>
 
-             <#if option.info??>
-               <#if option.info.usage??>${option.info.usage}</#if>
+--
 
-               <#if option.info.default??>
-                  <para>
-                    ${option.info.default}
-                  </para>
-               </#if>
+</#if>
 
-               <#if option.info.doc??>${option.info.doc}</#if>
-             </#if>
-            </listitem>
-          </varlistentry>
-
-        </#list>
-      </variablelist>
-    </refsect3>
-  </#if>
-
-  <#if propertiesInfo??>
-    ${propertiesInfo}
-  </#if>
-</refsect2>
+<#if propertiesInfo??>
+${propertiesInfo}
+</#if>

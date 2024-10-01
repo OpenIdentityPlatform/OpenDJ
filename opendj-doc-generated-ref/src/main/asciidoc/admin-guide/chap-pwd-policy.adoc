@@ -821,7 +821,8 @@ a|The cost parameter specifies a key expansion iteration count as a power of two
 a|Crypt
 a|`crypt-password-storage-encryption-algorithm`
 a|Specifies the crypt algorithm to use to encrypt new passwords.
- --
+
+--
 The following values are supported:
 
 `unix`::
@@ -1008,7 +1009,7 @@ $ ldappasswordmodify \
  --authzID "u:bjensen" \
  --newPassword '!ABcd$%^'
 ----
-In the preceding example, the character set of ASCII punctuation, `!\"#\$%&\'\(\)*+,-./:\;\\<=\>?@[\\]^_\`{\|}~`, is hard to read because of all the escape characters. In practice it can be easier to enter sequences like that by using `dsconfig` in interactive mode, and letting it do the escaping for you. You can also use the `--commandFilePath {path}` option to save the result of your interactive session to a file for use in scripts later.
+In the preceding example, the character set of ASCII punctuation, ``!\"#\$%&\'\(\)*+,-./:\;\\<=\>?@[\\]^_\`{\|}~``, is hard to read because of all the escape characters. In practice it can be easier to enter sequences like that by using `dsconfig` in interactive mode, and letting it do the escaping for you. You can also use the `--commandFilePath {path}` option to save the result of your interactive session to a file for use in scripts later.
 
 An attempt to set an invalid password fails as shown in the following example:
 

@@ -1,0 +1,73 @@
+////
+
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+
+////
+
+== Examples
+The following example demonstrates use of the command.
+
+
+[source]
+----
+$ ldifsearch -b dc=example,dc=com Example.ldif uid=bjensen
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+uid: bjensen
+userpassword: hifalutin
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Barbara
+cn: Barbara Jensen
+cn: Babs Jensen
+telephonenumber: +1 408 555 1862
+sn: Jensen
+roomnumber: 0209
+homeDirectory: /home/bjensen
+mail: bjensen@example.com
+l: San Francisco
+ou: Product Development
+ou: People
+uidNumber: 1076
+gidNumber: 1000
+----
+You can also use `@__objectclass__`
+  notation in the attribute list to return the attributes
+  of a particular object class.
+  The following example shows how to return attributes
+  of the `posixAccount` object class.
+
+
+[source]
+----
+$ ldifsearch -b dc=example,dc=com Example.ldif "(uid=bjensen)" @posixaccount
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+uid: bjensen
+userpassword: hifalutin
+cn: Barbara Jensen
+cn: Babs Jensen
+homeDirectory: /home/bjensen
+uidNumber: 1076
+gidNumber: 1000
+----

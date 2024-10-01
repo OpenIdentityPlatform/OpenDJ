@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -114,7 +115,7 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
      */
     private void generateManPageForTool(final CommandLineTool tool)
             throws MojoExecutionException, MojoFailureException {
-        final File   manPage    = new File(outputDir, "man-" + tool.getName() + ".xml");
+        final File   manPage    = new File(outputDir, "man-" + tool.getName() + ".adoc");
         final String toolScript = tool.getName();
         final String toolSects  = pathsToXIncludes(tool.getTrailingSectionPaths());
         final String toolClass  = tool.getApplication();
@@ -216,10 +217,11 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
 
         // Assume xmlns:xinclude="http://www.w3.org/2001/XInclude",
         // as in the declaration of resources/templates/refEntry.ftl.
-        final String nameSpace = "xinclude";
         final StringBuilder result = new StringBuilder();
         for (String path : paths) {
-            result.append("<").append(nameSpace).append(":include href='").append(path).append("' />");
+            result.append("include::./").append(path).append("[]")
+                    .append(System.lineSeparator())
+                    .append(System.lineSeparator());
         }
         return result.toString();
     }
@@ -268,7 +270,7 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
                 if (matcher.find()) {
                     writeToFile(builder.toString(), output);
                     builder.setLength(0);
-                    output = new File(page.getParentFile(), "man-" + matcher.group(1) + ".xml");
+                    output = new File(page.getParentFile(), "man-" + matcher.group(1) + ".adoc");
                     getLog().info("Writing man page: " + output.getPath());
                 } else {
                     builder.append(line).append(System.getProperty("line.separator"));
@@ -289,7 +291,7 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
      * @throws IOException  Failed to write the content of the input.
      */
     private void writeToFile(final String input, final File output) throws IOException {
-        InputStream is = new ByteArrayInputStream(input.getBytes(Charset.forName("UTF-8")));
+        InputStream is = new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8));
         if (getLog().isDebugEnabled())
         		getLog().debug(input);
         writeToFile(is, output);

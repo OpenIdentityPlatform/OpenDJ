@@ -1,0 +1,28 @@
+////
+
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+
+////
+
+== Examples
+The following example schedules a task to start immediately that rebuilds the `cn` (common name) index.
+
+[source, console]
+----
+$ rebuild-index -p 4444 -h opendj.example.com -D "cn=Directory Manager" \
+ -w password -b dc=example,dc=com -i cn -t 0
+Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM
+----

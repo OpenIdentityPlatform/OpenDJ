@@ -1,0 +1,47 @@
+////
+
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+
+////
+
+== Examples
+For the following examples the directory admin user, Kirsten Vaughan,
+has `ds-privilege-name: password-reset` and the following ACI on `ou=People,dc=example,dc=com`.
+
+[source]
+----
+(target="ldap:///ou=People,dc=example,dc=com") (targetattr ="*||+")(
+ version 3.0;acl "Admins can run amok"; allow(all) groupdn =
+ "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+----
+The following command locks a user account.
+
+[source, console]
+----
+$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+ -w bribery set-account-is-disabled -O true \
+ -b uid=bjensen,ou=people,dc=example,dc=com -X
+Account Is Disabled:  true
+----
+The following command unlocks a user account.
+
+[source, console]
+----
+$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+ -w bribery clear-account-is-disabled \
+ -b uid=bjensen,ou=people,dc=example,dc=com -X
+Account Is Disabled:  false
+----

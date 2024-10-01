@@ -12,14 +12,6 @@
  # information: "Portions Copyright [year] [name of copyright owner]".
  #
  # Copyright 2015 ForgeRock AS.
+ # Portions Copyright 2024 3A Systems LLC.
  #-->
-<listitem>
- <para>
-  <link
-   <#-- Link to the Reference. Change this if the pages move to another document. -->
-   xlink:href="reference#${id}"
-   xlink:role="http://docbook.org/xlink/role/olink"
-   xlink:show="new"
-  ><command>${name}</command></link>: ${description}
- </para>
-</listitem>
+* xref:dsconfig-subcommands-ref.adoc#${id}[${name}, window=_blank]: ${description}

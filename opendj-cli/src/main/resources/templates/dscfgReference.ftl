@@ -12,24 +12,16 @@
  # information: "Portions Copyright [year] [name of copyright owner]".
  #
  # Copyright 2015 ForgeRock AS.
+ # Portions Copyright 2024 3A Systems LLC.
  #-->
 ${marker}
-<reference xml:id="${name}-subcommands-ref"
-           xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="${locale}"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://docbook.org/ns/docbook
-                               http://docbook.org/xml/5.0/xsd/docbook.xsd"
-           xmlns:xinclude="http://www.w3.org/2001/XInclude">
 
- <title>${title}</title>
+[#${name}-subcommands-ref]
+== ${title}
+:leveloffset: 1
 
- <partintro>
-  <para>
-   ${partintro}
-  </para>
- </partintro>
+${partintro}
 
- <#list subcommands as subcommand>
- <xinclude:include href="man-${subcommand.id}.xml" />
- </#list>
-</reference>
+<#list subcommands as subcommand>
+include::./man-${subcommand.id}.adoc[]
+</#list>

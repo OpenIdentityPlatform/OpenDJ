@@ -26,6 +26,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
+import org.openidentityplatform.opendj.maven.doc.AsciidocConverterUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -55,7 +56,7 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
     private File configDotLdif;
 
     /** Output directory for source files. */
-    @Parameter(defaultValue = "${project.build.directory}/docbkx-sources/shared")
+    @Parameter(defaultValue = "${project.build.directory}/asciidoc/source/partials")
     private File outputDirectory;
 
     /** Holds documentation for an ACI. */
@@ -81,7 +82,7 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
             throw new MojoFailureException(e.getMessage(), e);
         }
 
-        File table = new File(outputDirectory, "table-global-acis.xml");
+        File table = new File(outputDirectory, "table-global-acis.adoc");
         try {
             writeStringToFile(getGlobalAcisTable(), table);
         } catch (IOException e) {
@@ -130,7 +131,7 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
                 if (descriptions != null) {
                     aci.description = descriptions.get(aci.name);
                 }
-                aci.definition = attribute;
+                aci.definition = AsciidocConverterUtils.escapeVerticalLine(attribute);
                 allGlobalAcis.add(aci);
             }
         }

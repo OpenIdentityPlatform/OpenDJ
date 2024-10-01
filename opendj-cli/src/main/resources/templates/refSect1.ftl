@@ -12,21 +12,18 @@
  # information: "Portions Copyright [year] [name of copyright owner]".
  #
  # Copyright 2015 ForgeRock AS.
+ # Portions Copyright 2024 3A Systems LLC.
  #-->
-<refsect1 xml:id="${name}-subcommands">
-  <title>${title}</title>
 
-  <#if info??>
-    ${info}
-  </#if>
+[#${name}-subcommands]
+== Subcommands
 
-  <para>
-   ${intro}
-  </para>
+<#if info??>
+${info}
+</#if>
 
-  <#if isItemizedList??><itemizedlist></#if>
-  <#list subcommands as subcommand>
-   ${subcommand}
-  </#list>
-  <#if isItemizedList??></itemizedlist></#if>
-</refsect1>
+${intro}
+
+<#list subcommands as subcommand>
+${subcommand}
+</#list>

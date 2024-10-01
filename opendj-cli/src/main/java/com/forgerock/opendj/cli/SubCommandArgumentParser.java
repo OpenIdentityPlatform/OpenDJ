@@ -1132,7 +1132,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                 Map<String, Object> info = new HashMap<>();
                 if (subCommandUsageHandler != null) {
                     if (!doesHandleProperties(a)) {
-                        nameOption = "<option>" + optionSynopsis + "</option>";
+                        nameOption = "`" + optionSynopsis + "`";
                     }
 
                     // Let this build its own arbitrarily formatted additional info.

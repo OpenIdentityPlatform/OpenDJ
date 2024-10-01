@@ -1,0 +1,55 @@
+////
+
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+
+////
+
+== Examples
+
+The following example backs up all user data while the server is online.
+
+[source, console]
+----
+$ backup -p 4444 -D "cn=Directory Manager" -w password \
+ -a -d /path/to/opendj/bak -t 0
+Backup task 20110613143801866 scheduled to start ...
+----
+The following example schedules back up of all user data every night at 2 AM when the server is online, and
+notifies \diradmin@example.com when finished, or on error.
+
+[source, console]
+----
+$ backup -p 4444 -D "cn=Directory Manager" -w password -a \
+ -d /path/to/opendj/bak --recurringTask "00 02 * * *" \
+ --completionNotify diradmin@example.com --errorNotify diradmin@example.com
+Recurring Backup task BackupTask-988d6adf-4d65-44bf-8546-6ea74a2480b0
+scheduled successfully
+----
+The following example backs up all user data while the server is offline.
+
+[source, console]
+----
+$ stop-ds
+Stopping Server...
+...
+
+$ backup --backupAll --backupDirectory /path/to/opendj/bak
+... msg=The backup process completed successfully
+
+$ start-ds
+... The Directory Server has started successfully
+----
+

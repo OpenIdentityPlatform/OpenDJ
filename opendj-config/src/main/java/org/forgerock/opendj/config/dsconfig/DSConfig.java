@@ -128,9 +128,9 @@ public final class DSConfig extends ConsoleApplication {
      */
     private final class DSConfigSubCommandUsageHandler implements SubCommandUsageHandler {
         /** Marker to open a DocBook XML paragraph. */
-        private String op = "<para>";
+        private String op = "";
         /** Marker to close a DocBook XML paragraph. */
-        private String cp = "</para>";
+        private String cp = "";
 
         @Override
         public String getArgumentAdditionalInfo(SubCommand sc, Argument a, String nameOption) {
@@ -496,14 +496,14 @@ public final class DSConfig extends ConsoleApplication {
 
                 @Override
                 public String visitEnum(EnumPropertyDefinition prop, Void p) {
-                    b.append("<variablelist>").append(EOL);
+                    b.append(EOL);
                     final Class<?> en = prop.getEnumClass();
                     final Object[] constants = en.getEnumConstants();
                     for (Object enumConstant : constants) {
                         final LocalizableMessage valueSynopsis = prop.getValueSynopsis((Enum) enumConstant);
                         appendVarListEntry(b, enumConstant.toString(), op + valueSynopsis + cp);
                     }
-                    b.append("</variablelist>").append(EOL);
+                    b.append(EOL);
                     return null;
                 }
 
@@ -576,7 +576,7 @@ public final class DSConfig extends ConsoleApplication {
         }
 
         private String getLink(String target) {
-            return " <xref linkend=\"" + target + "\" />";
+            return " <<" + target + ">>";
         }
     }
 

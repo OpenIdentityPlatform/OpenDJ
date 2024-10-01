@@ -1,0 +1,124 @@
+////
+
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+
+////
+
+The `dsconfig` command provides many subcommands.
+
+Subcommands let you create, list, and delete entire configuration components, and also let you get and set component properties. Subcommands therefore have names that reflect these five actions.
+
+* create-__component__
+
+* list-__component__s
+
+* delete-__component__
+
+* get-__component__-prop
+
+* set-__component__-prop
+
+Here, __component__ names are names of managed object types. Subcommand __component__ names are lower-case, hyphenated versions of the friendly names. When you act on an actual configuration component, you provide the name of the component as an option argument.
+For example, the Log Publisher component has these corresponding subcommands.
+
+* `create-log-publisher`
+
+* `list-log-publishers`
+
+* `delete-log-publisher`
+
+* `get-log-publisher-prop`
+
+* `set-log-publisher-prop`
+
+When you create or delete Log Publisher components and when you get and set their configuration properties, you provide the name of the actual log publisher, which you can find by using the `list-log-publishers` subcommand.
+
+[source, console]
+----
+$ dsconfig \
+ list-log-publishers \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --trustAll
+
+Log Publisher                 : Type                   : enabled
+------------------------------:------------------------:--------
+File-Based Access Logger      : file-based-access      : true
+File-Based Audit Logger       : file-based-audit       : false
+File-Based Debug Logger       : file-based-debug       : false
+File-Based Error Logger       : file-based-error       : true
+File-Based HTTP Access Logger : file-based-http-access : false
+Replication Repair Logger     : file-based-error       : true
+
+$ dsconfig \
+ get-log-publisher-prop \
+ --publisher-name "File-Based Access Logger" \
+ --property rotation-policy \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --trustAll
+Property        : Value(s)
+----------------:--------------------------------------------------------------
+rotation-policy : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
+                : Policy
+----
+Many subcommands let you set property values. Notice in the reference for the subcommands below that specific options are available for handling multi-valued properties. Whereas you can assign a single property value by using the `--set` option, you assign multiple values to a multi-valued property by using the `--add` option. You can reset the values of the multi-valued property by using the `--reset` option.
+Some property values take a time duration. Durations are expressed as numbers followed by units. For example `1 s` means one second, and `2 w` means two weeks. Some durations have minimum granularity or maximum units, so you cannot necessary specify every duration in milliseconds or weeks for example. Some durations allow you to use a special value to mean unlimited. Units are specified as follows.
+
+* `ms`: milliseconds
+
+* `s`: seconds
+
+* `m`: minutes
+
+* `h`: hours
+
+* `d`: days
+
+* `w`: weeks
+
+Use the following options to view help for subcommands.
+--
+
+`dsconfig --help-all`::
+Display all subcommands
+
+`dsconfig --help-core-server`::
+Display subcommands relating to core server
+
+`dsconfig --help-database`::
+Display subcommands relating to caching and back-ends
+
+`dsconfig --help-logging`::
+Display subcommands relating to logging
+
+`dsconfig --help-replication`::
+Display subcommands relating to replication
+
+`dsconfig --help-security`::
+Display subcommands relating to authentication and authorization
+
+`dsconfig --help-user-management`::
+Display subcommands relating to user management
+
+--
+For help with individual subcommands, either use `dsconfig subcommand --help`, or start `dsconfig` in interactive mode, without specifying a subcommand.
+
+To view all component properties, use the `dsconfig list-properties` command.
