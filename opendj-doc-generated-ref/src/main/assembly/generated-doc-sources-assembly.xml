@@ -27,7 +27,7 @@
 
   <fileSets>
     <fileSet>
-      <directory>${project.build.directory}/docbkx-sources/shared</directory>
+      <directory>${project.build.directory}/asciidoc/source/man-pages</directory>
       <outputDirectory />
     </fileSet>
   </fileSets>

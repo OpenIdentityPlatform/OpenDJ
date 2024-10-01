@@ -12,13 +12,16 @@
  # information: "Portions Copyright [year] [name of copyright owner]".
  #
  # Copyright 2015 ForgeRock AS.
+ # Portions Copyright 2024 3A Systems LLC.
  #-->
-<refsect1 xml:id="${id}">
-  <title>${title}</title>
 
-  <para>
-   ${intro}
-  </para>
+[#${id}]
+== ${title}
 
-  ${list}
-</refsect1>
+${intro}
+
+--
+
+${list}
+
+--

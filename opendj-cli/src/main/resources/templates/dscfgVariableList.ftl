@@ -12,29 +12,18 @@
  # information: "Portions Copyright [year] [name of copyright owner]".
  #
  # Copyright 2015-2016 ForgeRock AS.
+ # Portions Copyright 2024 3A Systems LLC.
  #-->
-<variablelist>
 
 <#list properties as property>
+${property.term}::
+[open]
+====
+${property.descTitle}::
+${property.description?xml}
 
-  <varlistentry>
-    <term>${property.term}</term>
-    <listitem>
-      <variablelist>
+${property.list}
 
-        <varlistentry>
-          <term>${property.descTitle}</term>
-          <listitem>
-            <para>
-              ${property.description?xml}
-            </para>
-          </listitem>
-        </varlistentry>
+====
 
-        ${property.list}
-      </variablelist>
-    </listitem>
-  </varlistentry>
 </#list>
-
-</variablelist>

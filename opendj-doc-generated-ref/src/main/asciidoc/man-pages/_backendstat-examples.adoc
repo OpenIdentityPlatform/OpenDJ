@@ -1,0 +1,37 @@
+////
+
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+
+////
+
+== Examples
+The following example displays index information.
+
+[source, console]
+----
+$ bin/backendstat dump-index  -n userRoot -b dc=example,dc=com -i id2childrencount 
+
+    Key (len 2): 1#52
+    Value (len 8): 1
+    Key (len 2): 2#52
+    Value (len 8): 500000
+    Key (len 9): Total Children Count
+    Value (len 8): 500001
+
+    Total Records: 3
+    Total / Average Key Size: 13 bytes / 4 bytes
+    Total / Average Data Size: 24 bytes / 8 bytes
+----

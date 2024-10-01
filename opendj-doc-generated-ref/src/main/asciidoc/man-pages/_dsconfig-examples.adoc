@@ -1,0 +1,124 @@
+////
+
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+
+////
+
+== Examples
+Much of the __OpenDJ Administration Guide__ consists of `dsconfig` examples with text in between.
+This section therefore remains short.
+
+The following example starts `dsconfig` in interactive, menu-driven mode on the default port of the current host.
+
+[source, console]
+----
+$ dsconfig -h opendj.example.com -p 4444 -D "cn=Directory Manager" -w password
+
+>>>> OpenDJ configuration console main menu
+
+What do you want to configure?
+
+    1)   Access Control Handler               23)  Log Publisher
+    2)   Access Log Filtering Criteria        24)  Log Retention Policy
+    3)   Account Status Notification Handler  25)  Log Rotation Policy
+    4)   Administration Connector             26)  Matching Rule
+    5)   Alert Handler                        27)  Monitor Provider
+    6)   Attribute Syntax                     28)  Password Generator
+    7)   Backend                              29)  Password Policy
+    8)   Backend Index                        30)  Password Storage Scheme
+    9)   Backend VLV Index                    31)  Password Validator
+    10)  Certificate Mapper                   32)  Plugin
+    11)  Connection Handler                   33)  Plugin Root
+    12)  Crypto Manager                       34)  Replication Domain
+    13)  Debug Target                         35)  Replication Server
+    14)  Entry Cache                          36)  Root DN
+    15)  Extended Operation Handler           37)  Root DSE Backend
+    16)  External Changelog Domain            38)  SASL Mechanism Handler
+    17)  Global Configuration                 39)  Schema Provider
+    18)  Group Implementation                 40)  Synchronization Provider
+    19)  HTTP Authorization Mechanism         41)  Trust Manager Provider
+    20)  HTTP Endpoint                        42)  Virtual Attribute
+    21)  Identity Mapper                      43)  Work Queue
+    22)  Key Manager Provider
+
+    q)   quit
+
+Enter choice:
+----
+The following example demonstrates generating a batch file that corresponds to an interactive session enabling
+the debug log. The example then demonstrates using a modified batch file to disable the debug log.
+
+[source, console]
+----
+$ dsconfig \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --commandFilePath ~/enable-debug-log.batch
+ ...
+$ cat ~/enable-debug-log.batch
+# dsconfig session start date: 19/Oct/2011:08:52:22 +0000
+
+# Session operation number: 1
+# Operation date: 19/Oct/2011:08:55:06 +0000
+dsconfig set-log-publisher-prop \
+          --publisher-name File-Based\ Debug\ Logger \
+          --set enabled:true \
+          --hostname opendj.example.com \
+          --port 4444 \
+          --trustStorePath /path/to/opendj/config/admin-truststore \
+          --bindDN cn=Directory\ Manager \
+          --bindPassword ****** \
+          --no-prompt
+
+$ cp ~/enable-debug-log.batch ~/disable-debug-log.batch
+$ vi ~/disable-debug-log.batch
+$ cat ~/disable-debug-log.batch
+set-log-publisher-prop \
+          --publisher-name File-Based\ Debug\ Logger \
+          --set enabled:false \
+          --hostname opendj.example.com \
+          --port 4444 \
+          --trustStorePath /path/to/opendj/config/admin-truststore \
+          --bindDN cn=Directory\ Manager \
+          --bindPassword password \
+          --no-prompt
+
+$ dsconfig --batchFilePath ~/disable-debug-log.batch --no-prompt
+set-log-publisher-prop
+--publisher-name
+File-Based Debug Logger
+--set
+enabled:false
+--hostname
+opendj.example.com
+--port
+4444
+--trustStorePath
+/path/to/opendj/config/admin-truststore
+--bindDN
+cn=Directory Manager
+--bindPassword
+password
+--no-prompt
+
+$
+----
+Notice that the original command file looks like a shell script with the bind password
+value replaced by asterisks. To pass the content as a batch file to `dsconfig`, strip `dsconfig` itself, and include t
+he bind password for the administrative user or replace that option with an alternative, such as reading the password from a file.
+

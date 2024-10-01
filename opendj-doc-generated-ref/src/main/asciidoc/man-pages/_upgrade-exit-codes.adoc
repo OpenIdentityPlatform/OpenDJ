@@ -1,0 +1,46 @@
+////
+
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+
+////
+
+== Exit Codes
+
+--
+0::
+The command completed successfully.
+
+2::
+The command was run in non-interactive mode, but could not complete
+     because confirmation was required to run a long or critical task.
++
+See the error message or the log for details.
+
+other::
+An error occurred.
+
+--
+
+See the OpenDJ Installation Guide
+  for an example upgrade process for OpenDJ directory server
+  installed from the cross-platform (.zip) delivery.
+
+Native packages (.deb, .rpm) perform more of the upgrade process,
+  stopping OpenDJ if it is running,
+  overwriting older files with newer files,
+  running this utility,
+  and starting OpenDJ if it was running when you upgraded the package(s).
+

@@ -12,10 +12,8 @@
  # information: "Portions Copyright [year] [name of copyright owner]".
  #
  # Copyright 2015 ForgeRock AS.
+ # Portions Copyright 2024 3A Systems LLC.
  #-->
-<varlistentry>
-  <term>${term}</term>
-  <listitem>
-    ${definition}
-  </listitem>
-</varlistentry>
+
+${term}::
+${definition}

@@ -659,7 +659,7 @@ public class ArgumentParser implements ToolRefDocContainer {
      * @return A String with line separators replaced by {@code &lt;/para>&lt;para>}.
      */
     String eolToNewPara(final LocalizableMessage input) {
-        return input.toString().replaceAll(EOL, "</para><para>");
+        return input.toString().replaceAll(EOL, "\n");
     }
 
     /**

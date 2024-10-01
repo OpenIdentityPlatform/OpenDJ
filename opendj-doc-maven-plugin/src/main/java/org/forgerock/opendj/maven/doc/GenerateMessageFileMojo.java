@@ -317,7 +317,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
             }
         }
         map.put("categories", categories);
-        File file = new File(outputDirectory, "log-message-reference.xml");
+        File file = new File(outputDirectory, "log-message-reference.adoc");
         try {
             createOutputDirectory();
             writeLogRef(file, "log-message-reference.ftl", map);

@@ -1,0 +1,83 @@
+////
+
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2024 3A Systems LLC.
+
+////
+
+[#windows-service]
+= windows-service(1)
+
+:doctype: manpage
+:manmanual: Directory Server Tools
+:mansource: OpenDJ
+
+== Name
+windows-service — register OpenDJ as a Windows Service
+
+== Synopsis
+`windows-service` {options}
+
+== Description
+This utility can be used to run OpenDJ directory server as a Windows Service.
+
+== Service Options
+--
+
+`-c, --cleanupService serviceName`::
+Disable the service and clean up the windows registry information associated with the provided service name
+
+`-d, --disableService`::
+Disable the server as a Windows service and stop the server
+
+`-e, --enableService`::
+Enable the server as a Windows service
+
+`-s, --serviceState`::
+Provide information about the state of the server as a Windows service
+
+--
+
+== General Options
+--
+
+`-V, --version`::
+Display version information
+
+`-?, -H, --help`::
+Display usage information
+
+--
+
+
+== Exit Codes
+--
+
+0::
+The command completed successfully.
+
+> 0::
+An error occurred.
+
+--
+
+== Example
+The following command registers OpenDJ directory server as a Windows Service.
+
+[source, console]
+----
+C:\path\to\opendj\bat> windows-service.bat --enableService
+----
+After running this command, you can manage the service using Windows administration tools.

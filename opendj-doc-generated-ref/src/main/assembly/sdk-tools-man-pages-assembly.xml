@@ -24,237 +24,183 @@
 
   <!--
     Using <files> instead of <fileset> to avoid getting the full path.
-    The .jar to has this file at /man-pages/man-addrate.xml for example.
+    The .jar to has this file at /man-pages/man-addrate.adoc for example.
   -->
   <files>
+
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-addrate.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/man-base64.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-authrate.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/man-ldapcompare.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-base64.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/man-ldapdelete.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldapcompare.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/man-ldapmodify.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldapdelete.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/man-ldappasswordmodify.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldapmodify.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/man-ldapsearch.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldappasswordmodify.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/man-ldifdiff.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldapsearch.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/man-ldifmodify.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldifdiff.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/man-ldifsearch.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldifmodify.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/man-makeldif.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldifsearch.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_attributes.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-makeldif.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_base64-examples.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-modrate.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_description-psearch-info.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-searchrate.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_exit-codes-0-1.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/addrate-examples.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_exit-codes-0-5-6-other.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/attributes.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_exit-codes-0-80-89.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/authrate-examples.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_exit-codes-0-89.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/base64-examples.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_exit-codes-0-gt0.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/description-makeldif.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_exit-codes-0-ldap-89.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/description-psearch-info.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_files.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/description-rate-tools.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_filters.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/description-resource-path.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_ldapcompare-examples.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/exit-codes-0-1.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_ldapcompare-exit-codes.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/exit-codes-0-5-6-other.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_ldapdelete-examples.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/exit-codes-0-80-89.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_ldapmodify-examples.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/exit-codes-0-89.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_ldappasswordmodify-examples.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/exit-codes-0-gt0.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_ldapsearch-examples.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/exit-codes-0-ldap-89.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_ldifdiff-examples.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/files.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_ldifdiff-exit-codes.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/filters.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_ldifmodify-examples.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/ldapcompare-examples.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_ldifsearch-examples.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/ldapcompare-exit-codes.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_makeldif-examples.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/ldapdelete-examples.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_makeldif-see-also.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/ldapmodify-examples.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/man-makeldif-template.adoc</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/ldappasswordmodify-examples.xml</source>
-    </file>
-
-    <file>
-      <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/ldapsearch-examples.xml</source>
-    </file>
-
-    <file>
-      <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/ldifdiff-examples.xml</source>
-    </file>
-
-    <file>
-      <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/ldifdiff-exit-codes.xml</source>
-    </file>
-
-    <file>
-      <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/ldifmodify-examples.xml</source>
-    </file>
-
-    <file>
-      <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/ldifsearch-examples.xml</source>
-    </file>
-
-    <file>
-      <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/makeldif-examples.xml</source>
-    </file>
-
-    <file>
-      <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/makeldif-see-also.xml</source>
-    </file>
-
-    <file>
-      <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/man-makeldif-template.xml</source>
-    </file>
-
-    <file>
-      <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/modrate-examples.xml</source>
-    </file>
-
-    <file>
-      <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/searchrate-examples.xml</source>
-    </file>
-
-    <file>
-      <outputDirectory>man-pages</outputDirectory>
-      <source>${project.build.directory}/docbkx-sources/man-pages/variablelist-ldap-controls.xml</source>
+      <source>${project.build.directory}/asciidoc/source/man-pages/_variablelist-ldap-controls.adoc</source>
     </file>
   </files>
 
