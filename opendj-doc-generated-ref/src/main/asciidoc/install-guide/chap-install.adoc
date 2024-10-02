@@ -988,7 +988,6 @@ At minimum adjust the following configuration settings in `WEB-INF/classes/confi
 * `authentication`: Set to the correct simple bind credentials.
 +
 The LDAP account used to authenticate needs to perform proxied authorization as described in xref:../server-dev-guide/chap-ldap-operations.adoc#proxied-authz["Configuring Proxied Authorization"] in the __Directory Server Developer's Guide__.
-
 +
 The default sample configuration configuration is built to work with generated example data and also the sample content in link:../attachments/Example.ldif[Example.ldif, window=\_blank]. If your data is different, then you must also change the JSON resource to LDAP entry mapping settings, described in xref:../reference/appendix-rest2ldap.adoc#mappings-json["Mapping Configuration File"] in the __Reference__.
 +

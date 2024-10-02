@@ -159,7 +159,6 @@ Defines the "Start Transport Layer Security (TLS) Operation" for LDAP.
 [#rfc2849]
 link:http://tools.ietf.org/html/rfc2849[RFC 2849: The LDAP Data Interchange Format (LDIF) - Technical Specification, window=\_top]::
 +
-+
 Describes a file format suitable for describing directory information or modifications made to directory information.
 
 [#rfc2891]

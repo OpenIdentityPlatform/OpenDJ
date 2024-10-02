@@ -298,7 +298,7 @@ To match when the bind DN corresponds to the __attr__ value on the target entry,
 +
 The optional inheritance specification, `parent[child-level].`, lets you specify how many levels below the target entry inherit the ACI. Here __child-level__ is a number from 0 to 9, with 0 indicating the target entry only. Separate multiple __child-level__ digits with commas (,).
 
-`userdn [!]= "ldap-url++[|| ldap-url++ …]"`::
+`userdn [!]= "ldap-url{plus}{plus}[|| ldap-url{plus}{plus} …]"`::
 To match the bind DN, replace __ldap-url++__ with either a valid LDAP URL such as `ldap:///uid=bjensen,ou=People,dc=example,dc=com`, `ldap:///dc=example,dc=com??sub?(uid=bjensen)`, or a special LDAP URL-like keyword from the following list:
 +
 [open]
