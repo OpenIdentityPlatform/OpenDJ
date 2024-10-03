@@ -1069,11 +1069,12 @@ While you carry out this procedure, do not allow any client traffic to the serve
 . Make sure you have already set up at least a couple of OpenDJ servers that replicate user data.
 +
 This example starts with the following multi-role servers:
-
++
+--
 * `/path/to/dsrs1` (ports: 1389, 1636, 4444, 8989; replicating user data for `dc=example,dc=com`)
 
 * `/path/to/dsrs2` (ports: 2389, 2636, 5444, 9989; replicating user data for `dc=example,dc=com`)
-
+--
 +
 `/path/to/dsrs1` is the target server to be broken into standalone components.
 +

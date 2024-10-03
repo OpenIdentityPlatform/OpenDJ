@@ -45,7 +45,6 @@ OpenDJ directory server listens for administrative traffic on port 4444 by defau
 [#snmp-port]
 SNMP: 161, 162::
 +
-+
 OpenDJ directory server listens for SNMP traffic on port 161 by default, and uses port 162 for traps. SNMP is not enabled by default.
 
 [#jmx-port]

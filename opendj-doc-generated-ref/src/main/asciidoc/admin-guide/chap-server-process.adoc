@@ -185,10 +185,11 @@ C:\path\to\opendj\bat> windows-service.bat --enableService
 ----
 
 +
+--
 __Do not intentionally kill the OpenDJ server process__ unless the server is completely unresponsive.
-+
-When stopping cleanly, the server writes state information to database backends, and releases locks that it holds on database files.
 
+When stopping cleanly, the server writes state information to database backends, and releases locks that it holds on database files.
+--
 ====
 
 
