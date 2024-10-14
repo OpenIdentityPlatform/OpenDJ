@@ -40,7 +40,7 @@ LDIF provides a mechanism for representing directory data in text format. LDIF d
 [#generating-ldif]
 === Generating Test Data
 
-When you install OpenDJ, you have the option of importing sample data that is generated during the installation. This procedure demonstrates how to generate LDIF by using the `make-ldif` command, described in xref:../reference/admin-tools-ref.adoc#make-ldif-1[make-ldif(1)] in the __Reference__.
+When you install OpenDJ, you have the option of importing sample data that is generated during the installation. This procedure demonstrates how to generate LDIF by using the `make-ldif` command, described in xref:../reference/admin-tools-ref.adoc#makeldif-1[makeldif(1)] in the __Reference__.
 
 [#generate-ldif]
 .To Generate Test LDIF Data

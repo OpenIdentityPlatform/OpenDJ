@@ -565,6 +565,9 @@
                                             <fileset dir="${basedir}/src/main/asciidoc/man-pages" includes="**/*" />
                                             <fileset dir="${project.build.directory}/asciidoc/source/man-pages" includes="**/*" />
                                         </copy>
+                                        <delete>
+                                            <fileset dir="${project.build.directory}/asciidoc/source/man-pages" includes="man-*-subcommands-ref*" />
+                                        </delete>
                                     </tasks>
                                 </configuration>
                             </execution>

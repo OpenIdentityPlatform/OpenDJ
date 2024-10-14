@@ -25,7 +25,7 @@
 :mansource: OpenDJ
 
 == Name
-dsjavaproperties — apply OpenDJ Java home and JVM settings
+dsjavaproperties - apply OpenDJ Java home and JVM settings
 
 == Synopsis
 `dsjavaproperties`

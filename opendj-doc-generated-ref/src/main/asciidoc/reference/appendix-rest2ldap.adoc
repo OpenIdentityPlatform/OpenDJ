@@ -820,16 +820,16 @@ The value of a resource type is an object whose properties are described in xref
 a|`resourceTypeProperty` (string, required for inheritance)
 a|Name of the resource type property that specifies the type of this resource.
 
- REST to LDAP uses this to determine the resource subtype when creating a resource.
+REST to LDAP uses this to determine the resource subtype when creating a resource.
 
- This points the mapper to the type of the resource. The specified property must be of type `resourceType`.
+This points the mapper to the type of the resource. The specified property must be of type `resourceType`.
 
 a|`properties` (map, optional)
 a|Map of property names to property definitions.
 
- Unlike LDAP entries, JSON resources are not necessarily flat. You can define nested properties of type `object` that have their own properties.
+Unlike LDAP entries, JSON resources are not necessarily flat. You can define nested properties of type `object` that have their own properties.
 
- For details on properties configuration, see xref:#rest-resource-type-properties-map["Properties of Resource Type Properties Objects"].
+For details on properties configuration, see xref:#rest-resource-type-properties-map["Properties of Resource Type Properties Objects"].
 
 a|`subResources` (map, optional)
 a|Map of subresource names to subresource definitions.
@@ -855,12 +855,12 @@ For details on subresource configuration, see xref:#rest-subresource-properties[
 a|`isAbstract` (boolean, optional)
 a|Whether this is an abstract resource type used only for inheritance.
 
- Default: `false`
+Default: `false`
 
 a|`superType` (string, optional)
 a|Name of the resource type that this resource type extends. Resource types that extend another type inherit properties of the extended type, and inherit subresource definitions.
 
- Default: none. This resource type does not extend another type.
+Default: none. This resource type does not extend another type.
 
 a|`objectClasses` (array, optional)
 a|Names of the LDAP object classes that this type corresponds to. When an object of this type is created, these object class names are added to the list of object classes on the LDAP entry. The LDAP object classes are not shown in the JSON resource.
@@ -870,7 +870,7 @@ a|Names of the LDAP object classes that this type corresponds to. When an object
 a|`supportedActions` (array, optional)
 a|Names of the common REST actions that this resource type supports. The names must match actions allowed on the resource in the underlying implementation.
 
- Default: none.
+Default: none.
 
 a|`includeAllUserAttributesByDefault` (boolean, optional)
 a|Whether to include all LDAP user attributes as properties of the JSON resource. If `true`, the property names in the JSON resource match the attribute names in the LDAP entries.
@@ -965,7 +965,7 @@ For example, a group could reference users and groups under `dc=example,dc=com`.
 a|`defaultJsonValue`
 a|Sets the JSON value if no corresponding LDAP attribute is present.
 
- No default is set if this is omitted.
+No default is set if this is omitted.
 
 a|`isBinary`
 a|Whether the underlying LDAP attribute holds a binary value, such as a JPEG photo or a digital certificate.
