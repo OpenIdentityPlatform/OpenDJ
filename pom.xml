@@ -718,6 +718,15 @@
                 <module>opendj-packages</module>
             </modules>
         </profile>
+        <profile>
+            <id>set-compiler-release</id>
+            <activation>
+                <jdk>[9,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.release>8</maven.compiler.release>
+            </properties>
+        </profile>
 		<profile>		
 	      <id>jdk16.options</id>
 	      <activation>
