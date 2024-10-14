@@ -25,7 +25,7 @@
 :mansource: OpenDJ
 
 == Name
-windows-service — register OpenDJ as a Windows Service
+windows-service - register OpenDJ as a Windows Service
 
 == Synopsis
 `windows-service` {options}

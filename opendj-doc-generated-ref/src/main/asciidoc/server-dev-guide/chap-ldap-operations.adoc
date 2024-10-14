@@ -260,7 +260,7 @@ Generate directory data in LDIF based on templates that define how the data shou
 The `make-ldif` command is designed to help generate test data that mimics data expected in production, but without compromising real, potentially private information.
 
 +
-For details see xref:../reference/admin-tools-ref.adoc#make-ldif-1[make-ldif(1)] in the __Reference__.
+For details see xref:../reference/admin-tools-ref.adoc#makeldif-1[makeldif(1)] in the __Reference__.
 
 `manage-account`::
 Lock and unlock user accounts, and view and manipulate password policy state information.

@@ -23,7 +23,7 @@
 :mansource: OpenDJ
 
 == Name
-makeldif-template — template file for the make-ldif command
+makeldif-template - template file for the make-ldif command
 
 == Synopsis
 
@@ -267,4 +267,4 @@ description: This is the description for {cn}.
 
 == See Also
 
-xref:#make-ldif-1[make-ldif(1)], the OpenDJ directory server template file `/path/to/opendj/config/MakeLDIF/example.template`
+xref:#makeldif-1[makeldif(1)], the OpenDJ directory server template file `/path/to/opendj/config/MakeLDIF/example.template`

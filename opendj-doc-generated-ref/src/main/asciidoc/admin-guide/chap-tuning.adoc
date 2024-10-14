@@ -112,7 +112,7 @@ Even if you do not need high availability, you still need two of everything, bec
 
 In your test environment, you set up OpenDJ as you will later in production, and then conduct experiments to determine how best to meet the requirements defined in the SLA.
 
-Use the `make-ldif` command, described in xref:../reference/admin-tools-ref.adoc#make-ldif-1[make-ldif(1)] in the __Reference__, to generate sample data that match what you expect to find in production.
+Use the `make-ldif` command, described in xref:../reference/admin-tools-ref.adoc#makeldif-1[makeldif(1)] in the __Reference__, to generate sample data that match what you expect to find in production.
 
 The OpenDJ LDAP Toolkit provides command-line tools to help with basic performance testing:
 
