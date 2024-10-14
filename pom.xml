@@ -723,7 +723,6 @@
             </activation>
             <properties>
                 <maven.compiler.release>8</maven.compiler.release>
-                <maven.compiler.testRelease></maven.compiler.testRelease>
             </properties>
         </profile>
 		<profile>

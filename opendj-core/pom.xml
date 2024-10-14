@@ -216,6 +216,21 @@
 
     <profiles>
         <profile>
+            <id>set-compiler-release</id>
+            <activation>
+                <jdk>[9,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.release>8</maven.compiler.release>
+                <!--
+                -release 8 dont allow hidden packages
+                package sun.security.tools.keytool does not exist
+                package sun.security.x509 does not exist
+                -->
+                <maven.compiler.testRelease></maven.compiler.testRelease>
+            </properties>
+        </profile>
+        <profile>
             <!-- This profile provides API/ABI compatiblity checks and reports via Clirr -->
             <id>clirr</id>
             <activation>
