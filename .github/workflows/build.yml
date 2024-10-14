@@ -65,7 +65,11 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 5000
         opendj-server-legacy/target/package/opendj/bin/stop-ds
-    - name: Test LDAP in Cassandra 
+        opendj-server-legacy/target/package/opendj/bin/makeldif -o /tmp/test.ldif  opendj-server-legacy/target/package/opendj/config/MakeLDIF/example.template
+        opendj-server-legacy/target/package/opendj/bin/import-ldif --offline --ldifFile /tmp/test.ldif --backendID=userRoot
+        opendj-server-legacy/target/package/opendj/bin/start-ds
+        opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
+    - name: Test LDAP in Cassandra
       if: runner.os == 'Linux'
       run:   |
         rm -rf opendj-server-legacy/target/package/opendj/config opendj-server-legacy/target/package/opendj/db opendj-server-legacy/target/package/opendj/changelogDb opendj-server-legacy/target/package/opendj/logs
@@ -83,6 +87,11 @@ jobs:
         opendj-server-legacy\target\package\opendj\bat\status.bat --bindDN "cn=Directory Manager" --bindPassword password
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "5000"
+        opendj-server-legacy\target\package\opendj\bat\stop-ds.bat
+        opendj-server-legacy\target\package\opendj\bin\makeldif.bat -o test.ldif  opendj-server-legacy\target\package\opendj\config\MakeLDIF\example.template
+        opendj-server-legacy\target\package\opendj\bin\import-ldif.bat --offline --ldifFile test.ldif --backendID=userRoot
+        opendj-server-legacy\target\package\opendj\bin\start-ds.bat
+        opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "10000"
         opendj-server-legacy\target\package\opendj\bat\stop-ds.bat
     - name: Upload artifacts OpenDJ Server
       uses: actions/upload-artifact@v4
