@@ -39,8 +39,8 @@
         <freemarker.version>2.3.31</freemarker.version>
         <grizzly-framework.version>2.3.35</grizzly-framework.version>
         <metrics-core.version>3.1.2</metrics-core.version>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>8</maven.compiler.source>
         <!-- OSGi bundles properties -->
         <opendj.osgi.import.additional />
         <!--
@@ -432,9 +432,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.8.0</version>
-                    <configuration>
-                    </configuration>
+                    <version>3.10.1</version>
                 </plugin>
 
                 <plugin>
@@ -718,7 +716,16 @@
                 <module>opendj-packages</module>
             </modules>
         </profile>
-		<profile>		
+        <profile>
+            <id>set-compiler-release</id>
+            <activation>
+                <jdk>[9,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.release>8</maven.compiler.release>
+            </properties>
+        </profile>
+		<profile>
 	      <id>jdk16.options</id>
 	      <activation>
 	        <jdk>[16,)</jdk>
