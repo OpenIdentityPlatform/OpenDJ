@@ -1,6 +1,0 @@
-[submodule "forgerock-parent"]
-	path = forgerock-parent
-	url = https://github.com/OpenIdentityPlatform/forgerock-parent.git
-[submodule "commons"]
-	path = commons
-	url = https://github.com/OpenIdentityPlatform/commons.git
