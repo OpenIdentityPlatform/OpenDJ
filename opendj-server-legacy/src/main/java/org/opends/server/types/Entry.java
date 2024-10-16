@@ -2206,7 +2206,7 @@ public class Entry
             logger.error(message);
           }
         }
-        else if (!structuralClass.equals(parentStructuralClass))
+        else if (!structuralClass.equals(parentStructuralClass) && !structuralClass.hasNameOrOID("subentry"))
         {
           Collection<NameForm> allNFs = getSchema().getNameForms(parentStructuralClass);
           if(allNFs != null)
