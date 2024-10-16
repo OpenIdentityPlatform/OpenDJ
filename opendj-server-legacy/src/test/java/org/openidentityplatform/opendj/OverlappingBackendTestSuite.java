@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.Assert.assertEquals;
 
 @Test(sequential = true)
 public class OverlappingBackendTestSuite extends DirectoryServerTestCase {
@@ -125,5 +126,26 @@ public class OverlappingBackendTestSuite extends DirectoryServerTestCase {
         hasUserRoot(search("o=test"));
         hasUserRoot2(search("o=test"));
         hasUserRoot2(search("ou=eus,o=test"));
+
+        int resultCode = TestCaseUtils.applyModifications(true,
+                "dn: uid=user.1,o=test,ou=es,o=test",
+                "changetype: modify",
+                "add: description",
+                "description: user.1");
+        assertEquals(resultCode, 0);
+
+        resultCode = TestCaseUtils.applyModifications(true,
+                "dn: uid=user.2,o=test,ou=eus,o=test",
+                "changetype: modify",
+                "add: description",
+                "description: user.2");
+        assertEquals(resultCode, 0);
+
+        hasUserRoot(search("o=test"));
+        hasUserRoot2(search("o=test"));
+        hasUserRoot2(search("ou=eus,o=test"));
+
+        TestCaseUtils.deleteEntry(DN.valueOf("uid=user.1,o=test,ou=es,o=test"));
+        TestCaseUtils.deleteEntry(DN.valueOf("uid=user.2,o=test,ou=eus,o=test"));
       }
 }
