@@ -759,11 +759,11 @@ When introducing DIT structure rules to an established (preexisting) DIT, it is 
 
 [#dsr-subentries-schema]
 
-==== Considerations For Collective Attribute Subentries
+==== Considerations For Collective Attribute Subentries In Older Versions
 
-Currently, as of version 4.8.0, DIT structure rules are wrongly applied not only to standard entries as demonstrated in the previous section, but also to subentries -- entries that bear the `subentry` STRUCTURAL class defined in http://tools.ietf.org/html/rfc3672#section-2.4[Section 2.4 of RFC 3672, window=_blank]. This is in violation of https://www.itu.int/rec/T-REC-X.501[ITU-T Rec. X.501, window=_blank] and https://datatracker.ietf.org/doc/html/rfc3672[RFC 3672, window=_blank]. At the time of this writing, is not known whether this issue will be resolved.
+In versions prior to 4.8.1, DIT structure rules were wrongly applied to subentries -- entries that bear the `subentry` STRUCTURAL class defined in http://tools.ietf.org/html/rfc3672#section-2.4[Section 2.4 of RFC 3672, window=_blank]. This was in violation of https://www.itu.int/rec/T-REC-X.501[ITU-T Rec. X.501, window=_blank] and https://datatracker.ietf.org/doc/html/rfc3672[RFC 3672, window=_blank].
 
-In the interim, in cases where a directory server employs DIT structure rules in addition to collective attributes, it is necessary to implement a new `dITStructureRules` definition: one that enforces a suitable RDN attribute type (such as `cn`) for subentries, while taking into account the superior structure rule(s) involved.
+To mitigate this issue on older OpenDJ releases involving a directory server which employs DIT structure rules in addition to collective attributes, it is necessary to implement a new `dITStructureRules` definition: one that enforces a suitable RDN attribute type (such as `cn`) for subentries, while taking into account the superior structure rule(s) involved.
 
 To begin, as was done in the previous section, a name form definition is required. For this, we'll extract the appropriate definition directly from https://www.itu.int/rec/T-REC-X.501[clause 14.2.2 of ITU-T Rec. X.501, window=_blank], as this represents the ONLY valid name form for such use cases.
 
@@ -796,7 +796,7 @@ Because subentries themselves do not allow for subordinate entries, we need not 
 
 When implemented (and with respect to the parameters of the previous subsection), the definitions defined in this subsection will correctly allow for the addition of entries bearing the `subentry` STRUCTURAL class, thus allowing use of dependent constructs, such as collective attributes, to be used unfettered.
 
-If and when this issue is resolved, the above schema DIT structure rule and name form definitions will become unnecessary and should be removed.
+Again, this practice is only necessary when using releases prior to OpenDJ 4.8.1.
 
 [#aci-vs-dsr-schema]
 
