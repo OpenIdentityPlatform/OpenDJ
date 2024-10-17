@@ -760,39 +760,61 @@ When introducing DIT structure rules to an established (preexisting) DIT, it is 
 [#dsr-subentries-schema]
 
 ==== Considerations For Collective Attribute Subentries
-DIT structure rules apply not only to standard entries as demonstrated in the previous section, but also to subentries -- entries that bear the `subentry` STRUCTURAL class defined in http://tools.ietf.org/html/rfc3672#section-2.4[Section 2.4 of RFC 3672, window=_blank].
 
-In cases where a directory server employs DIT structure rules in addition to collective attributes, it is necessary to implement a new `dITStructureRules` definition: one that enforces a suitable RDN attribute type (such as `cn`) for subentries, while taking into account the superior structure rule(s) involved.
+Directories which utilize both DIT structure rules as well as collective attribute subentries, per https://www.rfc-editor.org/rfc/rfc3672.html[RFC 3672], will require specific adjustments to allow these two features to cooperate.
 
-To begin, as was done in the previous section, a nameForms definition is required first.
+https://www.itu.int/rec/T-REC-X.501[Clause 14.2.2 of ITU-T Rec. X.501, window=_blank] defines the `subentryNameForm` ASN.1 definition, which is intended solely to enforce a singular naming convention for subentries:
 
 [source]
 ----
-      nameForms: ( 1.3.6.1.4.1.56521.999.2.7.5
-         NAME 'subentryForm'
+      subentryNameForm NAME-FORM ::= {
+        NAMES subentry
+        WITH ATTRIBUTES {commonName}
+        ID id-nf-subentryNameForm }
+----
+
+The same subsection also states that "No other name form shall be used for subentries". In other words, according to this standard, this is the ONLY permitted name form for subentries.
+
+As such, the OpenDJ package conveniently includes the equivalent LDAP name form definition within the subschema subentry for users to leverage:
+
+[source]
+----
+      nameForms: ( 2.5.15.16
+         NAME 'subentryNameForm'
+         DESC 'X.501, cl. 14.2.2: the Subentry name form'
          OC subentry
          MUST cn )
 ----
 
-Here, we are stating that any entry bearing the `subentry` STRUCTURAL class MUST ONLY utilize the `cn` attribute type for its RDN, as it represents the most common naming strategy for subentries.
+As a result, users are only expected to implement the DIT structure rule meant to reference this name form.
 
-Next, we need to create the DIT structure rule, but first we need to identify the appropriate superior integer identifiers for the SUP clause.
-
-Determining these identifiers is a simple matter. First off, subentries are never created below entries that are not parents themselves (or expected to be parents). In the spirit of the previous section, this allows us to strike two (2) candidates from the list: `inetOrgPerson` entries (accounts), and `groupOfNames` entries (groups).
-
-This leaves `domain` (20) and `organizationalUnit` (21) entries. Thus:
+Consider the following fictional structure rule definition, which contains two distinct "placeholders" the user needs to populate:
 
 [source]
 ----
-      dITStructureRules: ( 24
+      dITStructureRules: ( <structure rule ID>
          NAME 'subentryStructure'
-         FORM subentryForm
-         SUP ( 20 21 ) )
+         FORM subentryNameForm
+         SUP ( <superior structure rule ID(s)> ) )
+----
+
+As with any new structure rule, the user will need to first assign a unique integer identifier to replace the `<structure rule ID>` placeholder. For the purposes of this example, let's assume "88" is chosen.
+
+Next, all superior structure rule integer identifiers under which a `subentry` __COULD__ be created MUST be referenced. For the purposes of this example, let's assume the superior structure rule identifiers chosen are "15" and "16", meaning that `subentry` instances are permitted as subordinate entries to those parent entries which currently bear a matching `governingStructureRule` integer identifier.
+
+As such, the final structure rule would appear as:
+
+[source]
+----
+      dITStructureRules: ( 88
+         NAME 'subentryStructure'
+         FORM subentryNameForm
+         SUP ( 15 16 ) )
 ----
 
 Because subentries themselves do not allow for subordinate entries, we need not worry about rule recursion in this instance.
 
-When implemented (and with respect to the parameters of the previous subsection), the definitions defined in this subsection will correctly allow for the addition of entries bearing the `subentry` STRUCTURAL class, thus allowing use of dependent constructs, such as collective attributes, to be used unfettered.
+Again, this procedure is only necessary in directories which utilize DIT structure rules __and__ collective attribute subentries.
 
 [#aci-vs-dsr-schema]
 
