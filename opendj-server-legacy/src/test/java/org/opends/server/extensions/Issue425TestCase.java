@@ -88,21 +88,31 @@ public class Issue425TestCase
               "subtreeSpecification: {}",
               "cn: test-subentry"
       );
+      //add OC subentry without DSR (warning level)
+      TestCaseUtils.addEntry(
+              "dn: o=test-subentry2,ou=Accounts,dc=example,dc=com",
+              "objectClass: top",
+              "objectClass: extensibleObject",
+              "objectClass: subentry",
+              "objectClass: collectiveAttributeSubentry",
+              "subtreeSpecification: {}",
+              "cn: test-subentry2"
+      );
 
       int resultCode = TestCaseUtils.applyModifications(true,
               "dn: cn=schema",
               "changetype: modify",
               "add: nameForms",
-              "nameForms: ( 2.5.15.16\n" +
-                      "          NAME 'subentryNameForm'\n" +
-                      "          DESC 'X.501, cl. 14.2.2: the Subentry name form'\n" +
-                      "          OC subentry\n" +
+              "nameForms: ( 2.5.15.16\n"+
+                      "          NAME 'subentryNameForm'\n"+
+                      "          DESC 'X.501, cl. 14.2.2: the Subentry name form'\n"+
+                      "          OC subentry\n"+
                       "          MUST cn )",
               "-",
               "add: ditStructureRules",
-              "dITStructureRules: ( 177                                              \n" +
-                      "          NAME 'subentryStructure'                                    \n" +
-                      "          FORM subentryNameForm                                       \n" +
+              "dITStructureRules: ( 177\n"+
+                      "          NAME 'subentryStructure'\n"+
+                      "          FORM subentryNameForm\n"+
                       "          SUP ( 20 21 ) )"
       );
       assertEquals(resultCode, 0);
