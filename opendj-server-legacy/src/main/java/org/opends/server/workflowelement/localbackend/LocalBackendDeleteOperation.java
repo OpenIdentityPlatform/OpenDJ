@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2022-2024 3A Systems, LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -281,8 +282,8 @@ public class LocalBackendDeleteOperation
       {
     	  if (dn.isInScopeOf(entryDN, SearchScope.WHOLE_SUBTREE)) {
     		  setResultCodeAndMessageNoInfoDisclosure(entry,ResultCode.NOT_ALLOWED_ON_NONLEAF, ERR_DELETE_HAS_SUB_BACKEND.get(entryDN, dn));
-    	  }
-        return;
+              return;
+  	      }
       }
 
       // Actually perform the delete.
