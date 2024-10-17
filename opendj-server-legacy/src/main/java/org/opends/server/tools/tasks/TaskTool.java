@@ -157,13 +157,18 @@ public abstract class TaskTool implements TaskScheduleInformation {
       }
 
       runOfflineArg = BooleanArgument.builder("offline")
-                                     .description(INFO_DESCRIPTION_RUN_OFFLINE.get())
-                                     .buildAndAddToParser(argParser);
+              .description(getOfflineDescriptionMessage())
+              .buildAndAddToParser(argParser);
+
     } catch (ArgumentException e) {
       // should never happen
     }
 
     return argParser;
+  }
+
+  protected LocalizableMessage getOfflineDescriptionMessage() {
+    return INFO_DESCRIPTION_RUN_OFFLINE.get();
   }
 
   /**

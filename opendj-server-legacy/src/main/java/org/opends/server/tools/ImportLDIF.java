@@ -243,6 +243,11 @@ public class ImportLDIF extends TaskTool {
     return process(argParser, initializeServer, out, err);
   }
 
+  @Override
+  protected LocalizableMessage getOfflineDescriptionMessage() {
+    return INFO_LDIFIMPORT_DESCRIPTION_RUN_OFFLINE.get();
+  }
+
   private void createArguments(LDAPConnectionArgumentParser argParser) throws ArgumentException
   {
       configFile =
