@@ -1439,7 +1439,7 @@ public class EntrySchemaCheckingTestCase
          "cn: not below valid parent");
     failOnlyForStrictEvaluation(e);
 
-
+    System.setProperty("org.openidentityplatform.opendj.ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR","yes");
     e = TestCaseUtils.makeEntry(
          "dn: cn=invalid entry below parent covered by DSR,ou=parent,o=test",
          "objectClass: top",

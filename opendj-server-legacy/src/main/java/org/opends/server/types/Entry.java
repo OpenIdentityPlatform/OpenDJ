@@ -2206,7 +2206,7 @@ public class Entry
             logger.error(message);
           }
         }
-        else if (!structuralClass.equals(parentStructuralClass) && !structuralClass.hasNameOrOID("subentry"))
+        else if (!structuralClass.equals(parentStructuralClass))
         {
           Collection<NameForm> allNFs = getSchema().getNameForms(parentStructuralClass);
           if(allNFs != null)
@@ -2220,13 +2220,14 @@ public class Entry
                   if (!parentDSR.isObsolete())
                   {
                     LocalizableMessage message = ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR.get(dn, parentEntry.getName());
-                    if (structuralPolicy == AcceptRejectWarn.REJECT)
-                    {
-                      invalidReason.append(message);
-                      return false;
-                    }
-                    else if (structuralPolicy == AcceptRejectWarn.WARN)
-                    {
+                    if (System.getProperty("org.openidentityplatform.opendj.ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR")!=null) {
+                      if (structuralPolicy == AcceptRejectWarn.REJECT) {
+                        invalidReason.append(message);
+                        return false;
+                      } else if (structuralPolicy == AcceptRejectWarn.WARN) {
+                        logger.error(message);
+                      }
+                    }else{
                       logger.error(message);
                     }
                   }

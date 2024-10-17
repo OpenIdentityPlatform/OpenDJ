@@ -71,21 +71,68 @@ public class Issue425TestCase
 
     @Test
     public void test()
-            throws Exception
-    {
+            throws Exception {
       TestCaseUtils.addEntry(
               "dn: ou=Accounts,dc=example,dc=com",
               "objectClass: organizationalunit",
               "objectClass: top",
               "ou: People"
       );
+      //add OC subentry without DSR (warning level)
       TestCaseUtils.addEntry(
               "dn: cn=test-subentry,ou=Accounts,dc=example,dc=com",
               "objectClass: top",
               "objectClass: extensibleObject",
               "objectClass: subentry",
               "objectClass: collectiveAttributeSubentry",
-              "subtreeSpecification: {}"
+              "subtreeSpecification: {}",
+              "cn: test-subentry"
+      );
+
+      int resultCode = TestCaseUtils.applyModifications(true,
+              "dn: cn=schema",
+              "changetype: modify",
+              "add: nameForms",
+              "nameForms: ( 2.5.15.16\n" +
+                      "          NAME 'subentryNameForm'\n" +
+                      "          DESC 'X.501, cl. 14.2.2: the Subentry name form'\n" +
+                      "          OC subentry\n" +
+                      "          MUST cn )",
+              "-",
+              "add: ditStructureRules",
+              "dITStructureRules: ( 177                                              \n" +
+                      "          NAME 'subentryStructure'                                    \n" +
+                      "          FORM subentryNameForm                                       \n" +
+                      "          SUP ( 20 21 ) )"
+      );
+      assertEquals(resultCode, 0);
+
+      //add OC subentry with DSR: RDN OC subentry MUST cn
+      TestCaseUtils.addEntry(
+              "dn: cn=test-subentry-ok,ou=Accounts,dc=example,dc=com",
+              "objectClass: top",
+              "objectClass: extensibleObject",
+              "objectClass: subentry",
+              "objectClass: collectiveAttributeSubentry",
+              "subtreeSpecification: {}",
+              "cn: test-subentry-ok"
+      );
+
+      //add OC subentry with DSR violation: RDN OC subentry MUST cn
+      assertThrows(new ThrowingRunnable() {
+                     @Override
+                     public void run() throws Throwable {
+                       TestCaseUtils.addEntry(
+                               "dn: o=test-subentry-error,ou=Accounts,dc=example,dc=com",
+                               "objectClass: top",
+                               "objectClass: extensibleObject",
+                               "objectClass: subentry",
+                               "objectClass: collectiveAttributeSubentry",
+                               "subtreeSpecification: {}",
+                               "cn: test-subentry-error"
+                       );
+                     }
+                   }
       );
     }
 }
