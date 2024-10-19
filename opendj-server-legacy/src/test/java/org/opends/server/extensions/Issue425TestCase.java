@@ -129,20 +129,17 @@ public class Issue425TestCase
       );
 
       //add OC subentry with DSR violation: RDN OC subentry MUST cn
-      assertThrows(new ThrowingRunnable() {
-                     @Override
-                     public void run() throws Throwable {
-                       TestCaseUtils.addEntry(
-                               "dn: o=test-subentry-error,ou=Accounts,dc=example,dc=com",
-                               "objectClass: top",
-                               "objectClass: extensibleObject",
-                               "objectClass: subentry",
-                               "objectClass: collectiveAttributeSubentry",
-                               "subtreeSpecification: {}",
-                               "cn: test-subentry-error"
-                       );
-                     }
-                   }
+      resultCode = TestCaseUtils.applyModifications(true,
+              "dn: o=test-subentry-bad,ou=Accounts,dc=example,dc=com",
+              "changetype: add",
+              "objectClass: top",
+              "objectClass: extensibleObject",
+              "objectClass: subentry",
+              "objectClass: collectiveAttributeSubentry",
+              "subtreeSpecification: {}",
+              "o: test-subentry-bad",
+              "cn: test-subentry-bad"
       );
+      assertEquals(resultCode, 64);
     }
 }
