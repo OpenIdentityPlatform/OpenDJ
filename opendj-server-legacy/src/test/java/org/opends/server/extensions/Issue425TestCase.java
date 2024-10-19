@@ -128,6 +128,10 @@ public class Issue425TestCase
               "cn: test-subentry-ok"
       );
 
+      // For this next test, an error of 64 (naming
+      // violation) is DESIRED.
+      assertEquals(resultCode, 64);
+
       //add OC subentry with DSR violation: RDN OC subentry MUST cn
       assertThrows(new ThrowingRunnable() {
                      @Override
