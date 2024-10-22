@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2024 3A Systems, LLC
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -269,11 +270,11 @@ public final class MakeLDIF extends ToolConsoleApplication {
                                                        final ConsoleApplication app) {
         for (final String constant : constants.getValues()) {
             final String[] chunks = constant.split("=");
-            if (chunks.length != 2) {
+            if (chunks.length < 1) {
                 app.errPrintln(ERR_CONSTANT_ARG_CANNOT_DECODE.get(constant));
                 return false;
             }
-            generator.setConstant(chunks[0], chunks[1]);
+            generator.setConstant(chunks[0], constant.replaceFirst(chunks[0]+"=",""));
         }
         return true;
     }
