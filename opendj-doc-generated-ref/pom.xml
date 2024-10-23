@@ -329,6 +329,7 @@
             <activation>
             		<os>
                         <family>unix</family>
+                        <name>Linux</name>
                     </os>
             	</activation>
             <build><finalName>${project.groupId}.${project.artifactId}</finalName>
