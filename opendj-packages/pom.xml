@@ -45,7 +45,10 @@
         <profile>
             <id>distribution-unix</id>
             <activation>
-                <os><family>unix</family></os>
+                <os>
+                    <family>unix</family>
+                    <name>Linux</name>
+                </os>
             </activation>
             <modules>
             	<module>../opendj-doc-generated-ref</module>
@@ -54,6 +57,20 @@
                 <module>opendj-svr4</module>
                 <module>opendj-msi</module>
     		 	<module>opendj-docker</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>distribution-mac</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>Mac OS X</name>
+                </os>
+            </activation>
+            <modules>
+                <module>opendj-svr4</module>
+                <module>opendj-msi</module>
+                <module>opendj-docker</module>
             </modules>
         </profile>
         <profile>
