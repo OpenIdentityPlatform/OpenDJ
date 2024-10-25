@@ -775,16 +775,29 @@ https://www.itu.int/rec/T-REC-X.501[Clause 14.2.2 of ITU-T Rec. X.501, window=_b
 
 The same subsection also states that "No other name form shall be used for subentries". In other words, according to this standard, this is the ONLY permitted name form for subentries.
 
-As such, the OpenDJ package conveniently includes the equivalent LDAP name form definition within the subschema subentry for users to leverage:
+As such, users can add to the schema files the equivalent LDAP name form definition within the subschema subentry for users to leverage:
 
 [source]
 ----
-      nameForms: ( 2.5.15.16
-         NAME 'subentryNameForm'
-         DESC 'X.501, cl. 14.2.2: the Subentry name form'
-         OC subentry
-         MUST cn )
+  dn: cn=schema,
+  changetype: modify,
+  add: nameForms,
+  nameForms: ( 2.5.15.16
+     NAME 'subentryNameForm'
+     DESC 'X.501, cl. 14.2.2: the Subentry name form'
+     OC subentry
+     MUST cn )
 ----
+
+[WARNING]
+====
+After schema modification, users can only add subentries that match the name form. Overwise, they will get a schema violation error, such as:
+
+----
+Entry o=test-subentry2,ou=Accounts,dc=example,dc=com violates the Directory Server schema configuration because its RDN does not contain attribute cn that is required by name form subentryNameForm
+----
+
+====
 
 As a result, users are only expected to implement the DIT structure rule meant to reference this name form.
 
