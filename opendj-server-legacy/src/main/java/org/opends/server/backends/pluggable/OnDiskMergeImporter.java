@@ -2505,7 +2505,7 @@ final class OnDiskMergeImporter
         i--;
       }
       // First DN must represent the base-dn which is encoded as an empty ByteString.
-      return parentDns.isEmpty() &&  childDn.isEmpty();
+      return parentDns.isEmpty() && childDn.isEmpty();
     }
   }
 
