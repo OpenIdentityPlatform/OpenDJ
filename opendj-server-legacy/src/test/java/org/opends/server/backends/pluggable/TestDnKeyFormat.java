@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2024 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -506,7 +507,9 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
       {           "dc=example,dc=com\\,org", // parentDn
         "ou=people,dc=example,dc=com\\,org", // childDn
         true },                              // Is childDn a child of parentDn ?
-
+      {           "dc=example,dc=com",
+              "n=0,dc=example,dc=com",
+              true },
       { "dc=example,dc=com",
                    "dc=com",
         false },

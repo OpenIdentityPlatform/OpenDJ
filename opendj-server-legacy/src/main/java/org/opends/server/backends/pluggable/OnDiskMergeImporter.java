@@ -2486,7 +2486,6 @@ final class OnDiskMergeImporter
       }
     }
 
-    boolean first=true;
     private boolean parentExists(ByteString childDn)
     {
       final Iterator<ByteString> it = parentDns.descendingIterator();
@@ -2506,11 +2505,7 @@ final class OnDiskMergeImporter
         i--;
       }
       // First DN must represent the base-dn which is encoded as an empty ByteString.
-      try {
-        return parentDns.isEmpty() && first;
-      }finally {
-        first=false;
-      }
+      return parentDns.isEmpty() &&  childDn.isEmpty();
     }
   }
 
