@@ -124,19 +124,13 @@ public class DnKeyFormat
     {
       return false;
     }
-    // Immediate children should only have one RDN separator past the parent length
-    boolean childSeparatorDetected = false;
     for (int i = parent.length() ; i < child.length(); i++)
     {
       if (child.byteAt(i) == NORMALIZED_RDN_SEPARATOR)
       {
-        if (childSeparatorDetected)
-        {
-          return false;
-        }
-        childSeparatorDetected = true;
+        return true;
       }
     }
-    return childSeparatorDetected;
+    return false;
   }
 }
