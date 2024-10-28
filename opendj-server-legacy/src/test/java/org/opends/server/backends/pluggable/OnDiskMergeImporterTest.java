@@ -12,7 +12,6 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
- * Portions Copyright 2024 3A Systems, LLC
  */
 package org.opends.server.backends.pluggable;
 
@@ -263,7 +262,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     // Given
     final SequentialCursor<ByteString, ByteString> source =
         cursorOf(
-                       of(dnKey("ou=not-people"), entryId(1)),
+                       of(dnKey("ou=people"), entryId(1)),
             of(dnKey("uid=user.0,ou=people"), entryId(2)));
 
     // When
@@ -272,7 +271,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     // Then
     assertDirectoryExceptionThrown(exception, NO_SUCH_OBJECT);
     assertThat(exception.getMessage()).contains("ou=people")
-                                      .contains("user.0");
+                                      .doesNotContain("user.0");
   }
 
   private ByteString dnKey(String dn)
