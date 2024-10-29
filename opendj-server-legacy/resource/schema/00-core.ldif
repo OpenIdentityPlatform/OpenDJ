@@ -13,6 +13,7 @@
 # Copyright 2006-2010 Sun Microsystems, Inc.
 # Portions Copyright 2011-2016 ForgeRock AS.
 # Portions Copyright 2013-2014 Manuel Gaupp
+# Portions Copyright 2024 3A Systems, LLC
 
 # This file contains a core set of attribute type and objectlass definitions
 # from several standard LDAP documents (primarily RFCs and IETF Internet
