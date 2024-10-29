@@ -13,6 +13,7 @@
 # Copyright 2006-2010 Sun Microsystems, Inc.
 # Portions Copyright 2011-2016 ForgeRock AS.
 # Portions Copyright 2013-2014 Manuel Gaupp
+# Portions Copyright 2024 3A Systems, LLC
 
 # This file contains a core set of attribute type and objectlass definitions
 # from several standard LDAP documents (primarily RFCs and IETF Internet
@@ -739,4 +740,8 @@ objectClasses: ( 0.9.2342.19200300.100.4.22 NAME 'qualityLabelledData' SUP top
 objectClasses: ( 1.2.826.0.1.3458854.2.1.1 NAME 'groupOfEntries' SUP top
   STRUCTURAL MUST cn MAY ( member $ businessCategory $ seeAlso $ owner $ ou $
   o $ description ) X-ORIGIN 'draft-findlay-ldap-groupofentries' )
-
+nameForms: ( 2.5.15.16
+   NAME 'subentryNameForm'
+   DESC 'X.501, cl. 14.2.2: the Subentry name form'
+   OC subentry
+   MUST cn )
