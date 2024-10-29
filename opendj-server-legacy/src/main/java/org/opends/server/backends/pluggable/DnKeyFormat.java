@@ -120,18 +120,27 @@ public class DnKeyFormat
   static boolean isChild(ByteSequence parent, ByteSequence child)
   {
     if (child.length() <= parent.length()
-        || child.byteAt(parent.length()) != NORMALIZED_RDN_SEPARATOR
-        || !child.startsWith(parent))
+            || child.byteAt(parent.length()) != NORMALIZED_RDN_SEPARATOR
+            || !child.startsWith(parent))
     {
       return false;
     }
+    // Immediate children should only have one RDN separator past the parent length
+    boolean childSeparatorDetected = false;
     for (int i = parent.length() ; i < child.length(); i++)
     {
       if (child.byteAt(i) == NORMALIZED_RDN_SEPARATOR)
       {
-        return true;
+        if (childSeparatorDetected)
+        {
+          if (child.byteAt(i-1)==NORMALIZED_ESC_BYTE) {
+            continue;
+          }
+          return false;
+        }
+        childSeparatorDetected = true;
       }
     }
-    return false;
+    return childSeparatorDetected;
   }
 }
