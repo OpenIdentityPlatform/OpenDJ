@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2024 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -119,8 +120,8 @@ public class DnKeyFormat
   static boolean isChild(ByteSequence parent, ByteSequence child)
   {
     if (child.length() <= parent.length()
-        || child.byteAt(parent.length()) != NORMALIZED_RDN_SEPARATOR
-        || !child.startsWith(parent))
+            || child.byteAt(parent.length()) != NORMALIZED_RDN_SEPARATOR
+            || !child.startsWith(parent))
     {
       return false;
     }
@@ -132,6 +133,9 @@ public class DnKeyFormat
       {
         if (childSeparatorDetected)
         {
+          if (child.byteAt(i-1)==NORMALIZED_ESC_BYTE) {
+            continue;
+          }
           return false;
         }
         childSeparatorDetected = true;
