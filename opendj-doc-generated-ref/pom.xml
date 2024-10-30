@@ -548,32 +548,6 @@
                     </plugin>
 
                     <plugin>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy-man-pages</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                                <configuration>
-                                    <tasks>
-                                        <copy todir="${project.build.directory}/asciidoc/source/man-pages">
-                                            <fileset dir="${basedir}/src/main/asciidoc/man-pages" includes="**/*" />
-                                        </copy>
-                                        <copy todir="${project.build.directory}/asciidoc/source/partials">
-                                            <fileset dir="${basedir}/src/main/asciidoc/man-pages" includes="**/*" />
-                                            <fileset dir="${project.build.directory}/asciidoc/source/man-pages" includes="**/*" />
-                                        </copy>
-                                        <delete>
-                                            <fileset dir="${project.build.directory}/asciidoc/source/man-pages" includes="man-*-subcommands-ref*" />
-                                        </delete>
-                                    </tasks>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
                         <groupId>org.asciidoctor</groupId>
                         <artifactId>asciidoctor-maven-plugin</artifactId>
                         <version>2.2.6</version>
@@ -670,6 +644,62 @@
                                 </configuration>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-man-pages</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <tasks>
+                                        <copy todir="${project.build.directory}/asciidoc/source/man-pages">
+                                            <fileset dir="${basedir}/src/main/asciidoc/man-pages" includes="**/*" />
+                                        </copy>
+                                        <copy todir="${project.build.directory}/asciidoc/source/partials">
+                                            <fileset dir="${basedir}/src/main/asciidoc/man-pages" includes="**/*" />
+                                            <fileset dir="${project.build.directory}/asciidoc/source/man-pages" includes="**/*" />
+                                        </copy>
+                                        <delete>
+                                            <fileset dir="${project.build.directory}/asciidoc/source/man-pages" includes="man-*-subcommands-ref*" />
+                                        </delete>
+                                    </tasks>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>zip-docs</id>
+                                <phase>package</phase>
+                                <configuration>
+                                    <target>
+                                        <property name="compress_formats" value="pdf" />
+                                        <property name="project_name" value="${project.name}" />
+                                        <ant antfile="${basedir}/src/main/ant/zip.xml">
+                                            <target name="docs" />
+                                        </ant>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>ant-contrib</groupId>
+                                <artifactId>ant-contrib</artifactId>
+                                <version>${ant.contrib.version}</version>
+                                <exclusions>
+                                    <exclusion>
+                                        <groupId>ant</groupId>
+                                        <artifactId>ant</artifactId>
+                                    </exclusion>
+                                </exclusions>
+                            </dependency>
+                        </dependencies>
                     </plugin>
                 </plugins>
             </build>
