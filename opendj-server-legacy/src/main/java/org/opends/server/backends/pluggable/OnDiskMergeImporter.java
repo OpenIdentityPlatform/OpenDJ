@@ -34,6 +34,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.lang.reflect.Method;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -1510,7 +1511,7 @@ final class OnDiskMergeImporter
             mmapPosition = region.offset;
             mmap = channel.map(MapMode.READ_ONLY, mmapPosition, Math.min(size.get() - mmapPosition, Integer.MAX_VALUE));
           }
-          final ByteBuffer regionBuffer = mmap.duplicate();
+          final ByteBuffer regionBuffer = ((ByteBuffer)mmap).duplicate();
           final int relativeRegionOffset = (int) (region.offset - mmapPosition);
           regionBuffer.position(relativeRegionOffset).limit(regionBuffer.position() + region.size);
           cursors.add(new FileRegion.Cursor(name, regionBuffer.slice()));
