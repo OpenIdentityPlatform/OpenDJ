@@ -23,7 +23,7 @@ jobs:
           sudo mkdir -pm755 /etc/apt/keyrings && sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
           sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/$(lsb_release -c -s)/winehq-$(lsb_release -c -s).sources
           sudo apt-get update
-          sudo apt install --install-recommends wine-stable
+          sudo apt install --install-recommends winehq-stable || sudo apt install --install-recommends winehq-staging
           sudo mkdir -p /opt/wine/mono && sudo wget "https://dl.winehq.org/wine/wine-mono/8.0.0/wine-mono-8.0.0-x86.tar.xz" -P /opt/wine/mono && sudo tar -xf /opt/wine/mono/wine-mono-8.0.0-x86.tar.xz -C /opt/wine/mono && sudo rm /opt/wine/mono/wine-mono-8.0.0-x86.tar.xz
           wine --version
       - uses: actions/checkout@v4
