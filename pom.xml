@@ -286,22 +286,6 @@
     	<finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
              <plugin>
-                <groupId>org.openidentityplatform.maven.plugins</groupId>
-                <artifactId>javadoc-updater-maven-plugin</artifactId>
-                <version>1.0.0</version>
-                <executions>
-                    <execution>
-                        <phase>site</phase>
-                        <goals>
-                            <goal>fixjavadoc</goal>
-                        </goals>
-                        <configuration>
-                            <directory>${project.reporting.outputDirectory}</directory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <executions>

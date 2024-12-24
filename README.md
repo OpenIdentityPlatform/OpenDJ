@@ -13,7 +13,7 @@
 OpenDJ is an [LDAPv3](http://tools.ietf.org/html/rfc4510) compliant directory service, which has been developed 
 for the Java platform, providing a high performance, highly available, and secure store for the identities managed 
 by your organization. Its easy installation process, combined with the power of the Java platform makes OpenDJ
-the simplest, fastest directory to deploy and manage and allow [store LDAPv3 database in Cassandra/Scylla cluster](https://github.com/OpenIdentityPlatform/OpenDJ/wiki/How-To#store-ldap-catalog-data-in-cassandra-nosql-cluster).
+the simplest, fastest directory to deploy and manage and allow store LDAPv3 database in [SQL JDBC database](https://github.com/OpenIdentityPlatform/OpenDJ/wiki/How-To#store-ldap-catalog-data-in-jdbc-databse) or [NoSQL Cassandra/Scylla cluster](https://github.com/OpenIdentityPlatform/OpenDJ/wiki/How-To#store-ldap-catalog-data-in-cassandra-nosql-cluster).
 
 An open source, lightweight, embeddable directory that can easily share real-time customer, device, and user identity data across enterprise, cloud, social, and mobile environments.
 * Massive data scale and high availability provide developers with ultra-lightweight ways to access identity data
