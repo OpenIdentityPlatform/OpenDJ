@@ -519,7 +519,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	//backup
 	@Override
 	public boolean supportsBackupAndRestore() {
-		return false;
+		return true;
 	}
 
 	@Override
