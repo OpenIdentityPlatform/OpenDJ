@@ -24,8 +24,9 @@ jobs:
         sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/$(lsb_release -c -s)/winehq-$(lsb_release -c -s).sources
         sudo apt-get update
         sudo apt install --install-recommends winehq-stable || sudo apt install --install-recommends winehq-staging
-        sudo mkdir -p /opt/wine/mono && sudo wget "https://dl.winehq.org/wine/wine-mono/8.0.0/wine-mono-8.0.0-x86.tar.xz" -P /opt/wine/mono && sudo tar -xf /opt/wine/mono/wine-mono-8.0.0-x86.tar.xz -C /opt/wine/mono && sudo rm /opt/wine/mono/wine-mono-8.0.0-x86.tar.xz
         wine --version
+        version="9.4.0"; sudo wget "https://dl.winehq.org/wine/wine-mono/$version/wine-mono-$version-x86.msi" -O /tmp/wine-mono.msi
+        wine msiexec /i /tmp/wine-mono.msi
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
@@ -41,12 +42,7 @@ jobs:
          path: ~/.m2/repository
          key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
          restore-keys: ${{ runner.os }}-m2-repository
-    - name: Run docker cassandra
-      if: runner.os == 'Linux'
-      run:   |
-        docker run --rm -it -d -p 9042:9042 --name cassandra cassandra
-        timeout 5m bash -c 'until docker logs cassandra | grep -q "Created default superuser role"; do sleep 5; done'
-    - name: Set Integration Test Environment 
+    - name: Set Integration Test Environment
       id: failsafe
       if: runner.os != 'Windows'
       run:   |
@@ -71,17 +67,37 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/start-ds
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
         opendj-server-legacy/target/package/opendj/bin/stop-ds
-        rm -rf opendj-server-legacy/target/package/opendj/config opendj-server-legacy/target/package/opendj/db opendj-server-legacy/target/package/opendj/changelogDb opendj-server-legacy/target/package/opendj/logs
+        rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs}
     - name: Test LDAP in Cassandra
       if: runner.os == 'Linux'
       run:   |
+        docker run --rm -it -d -p 9042:9042 --name cassandra cassandra
+        timeout 5m bash -c 'until docker logs cassandra | grep -q "Created default superuser role"; do sleep 5; done'
         export OPENDJ_JAVA_ARGS="-server -Xmx512m -Ddatastax-java-driver.basic.contact-points.0=localhost:9042 -Ddatastax-java-driver.basic.load-balancing-policy.local-datacenter=datacenter1"
-        opendj-server-legacy/target/package/opendj/setup --backendType cas -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --sampleData 5000 --cli --acceptLicense --no-prompt
+        opendj-server-legacy/target/package/opendj/setup -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --cli --acceptLicense --no-prompt
+        opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend -h localhost -p 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=userRoot --type cas --set base-dn:dc=example,dc=com --set db-directory:keyspace_name --set enabled:true --no-prompt --trustAll
+        opendj-server-legacy/target/package/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example,dc=com opendj-server-legacy/target/package/opendj/config/MakeLDIF/example.template
+        opendj-server-legacy/target/package/opendj/bin/import-ldif --ldifFile /tmp/test.ldif --backendID=userRoot -h localhost -p 4444 --bindDN "cn=Directory Manager" --bindPassword password --trustAll
         opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
-        opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 5000
+        opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
         opendj-server-legacy/target/package/opendj/bin/stop-ds
-        rm -rf opendj-server-legacy/target/package/opendj/config opendj-server-legacy/target/package/opendj/db opendj-server-legacy/target/package/opendj/changelogDb opendj-server-legacy/target/package/opendj/logs
+        rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs}
+    - name: Test LDAP in Postgres
+      if: runner.os == 'Linux'
+      run:   |
+        docker run --rm -it -d -p 5432:5432 -e POSTGRES_DB=database_name -e POSTGRES_PASSWORD=password --name postgres postgres
+        timeout 5m bash -c 'until docker logs postgres | grep -q "database system is ready to accept connections"; do sleep 5; done'
+        export OPENDJ_JAVA_ARGS="-server -Xmx512m"
+        opendj-server-legacy/target/package/opendj/setup -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --cli --acceptLicense --no-prompt
+        opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend -h localhost -p 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=userRoot --type jdbc --set base-dn:dc=example,dc=com --set db-directory:jdbc:postgresql://localhost:5432/database_name?user=postgres\&password=password --set enabled:true --no-prompt --trustAll
+        opendj-server-legacy/target/package/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example,dc=com opendj-server-legacy/target/package/opendj/config/MakeLDIF/example.template
+        opendj-server-legacy/target/package/opendj/bin/import-ldif --ldifFile /tmp/test.ldif --backendID=userRoot -h localhost -p 4444 --bindDN "cn=Directory Manager" --bindPassword password --trustAll
+        opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password
+        opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
+        opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
+        opendj-server-legacy/target/package/opendj/bin/stop-ds
+        rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs}
     - name: Test on Windows
       if: runner.os == 'Windows'
       run:   |
