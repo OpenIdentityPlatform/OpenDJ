@@ -22,7 +22,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.Arrays;
 
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.testng.Assert;

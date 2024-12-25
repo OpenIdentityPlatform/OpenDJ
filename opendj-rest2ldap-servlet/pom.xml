@@ -121,7 +121,7 @@
 			</executions>
             <configuration>
                 <container>
-                    <containerId>tomcat9x</containerId>
+                    <containerId>tomcat10x</containerId>
                     <type>embedded</type>
                     <systemProperties>
                         <file.encoding>UTF-8</file.encoding>

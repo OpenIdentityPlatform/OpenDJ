@@ -35,12 +35,12 @@
         <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <localized.jars.classifier>i18n</localized.jars.classifier>
-        <commons.version>2.2.3</commons.version>
+        <commons.version>2.2.4-SNAPSHOT</commons.version>
         <freemarker.version>2.3.31</freemarker.version>
         <grizzly-framework.version>2.3.35</grizzly-framework.version>
         <metrics-core.version>3.1.2</metrics-core.version>
-        <maven.compiler.target>8</maven.compiler.target>
-        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
         <!-- OSGi bundles properties -->
         <opendj.osgi.import.additional />
         <!--
@@ -368,6 +368,10 @@
                         <fork>true</fork>
                         <compilerArgs>
                         	<arg>-XDignore.symbol.file</arg>
+                            <arg>--add-exports</arg>
+                            <arg>java.base/sun.security.x509=ALL-UNNAMED</arg>
+                            <arg>--add-exports</arg>
+                            <arg>java.base/sun.security.tools.keytool=ALL-UNNAMED</arg>
                         </compilerArgs>
                     </configuration>
                 </plugin>
@@ -475,7 +479,7 @@
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>2.3.7</version>
+                    <version>5.1.9</version>
                     <extensions>true</extensions>
                     <configuration>
                         <instructions>
@@ -717,15 +721,6 @@
             </modules>
         </profile>
         <profile>
-            <id>set-compiler-release</id>
-            <activation>
-                <jdk>[9,)</jdk>
-            </activation>
-            <properties>
-                <maven.compiler.release>8</maven.compiler.release>
-            </properties>
-        </profile>
-		<profile>
 	      <id>jdk16.options</id>
 	      <activation>
 	        <jdk>[16,)</jdk>

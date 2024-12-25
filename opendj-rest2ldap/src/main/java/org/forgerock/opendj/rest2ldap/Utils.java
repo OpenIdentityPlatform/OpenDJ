@@ -15,8 +15,8 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
-import static javax.xml.bind.DatatypeConverter.parseDateTime;
-import static javax.xml.bind.DatatypeConverter.printDateTime;
+import static jakarta.xml.bind.DatatypeConverter.parseDateTime;
+import static jakarta.xml.bind.DatatypeConverter.printDateTime;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Functions.byteStringToBoolean;
 import static org.forgerock.opendj.ldap.Functions.byteStringToGeneralizedTime;

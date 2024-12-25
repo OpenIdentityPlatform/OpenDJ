@@ -19,7 +19,7 @@ package org.forgerock.opendj.ldap;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;

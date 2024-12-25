@@ -43,7 +43,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static javax.xml.bind.DatatypeConverter.printDateTime;
+import static jakarta.xml.bind.DatatypeConverter.printDateTime;
 import static org.forgerock.opendj.ldap.Functions.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.protocols.internal.Requests.newSearchRequest;
@@ -51,7 +51,6 @@ import static org.opends.server.util.CollectionUtils.newArrayList;
 import static org.opends.server.util.ServerConstants.MBEAN_BASE_DOMAIN;
 import static org.opends.server.util.StaticUtils.isAlpha;
 import static org.opends.server.util.StaticUtils.isDigit;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_OID;
 
 /**
  * This class defines a JMX MBean that can be registered with the Directory
