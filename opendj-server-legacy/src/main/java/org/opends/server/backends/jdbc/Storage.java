@@ -15,6 +15,7 @@
  */
 package org.opends.server.backends.jdbc;
 
+import com.google.common.cache.*;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -82,13 +83,22 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		return statement.execute();
 	}
 
-	Connection con;
-	@Override
-	public void open(AccessMode accessMode) throws Exception {
-		con=DriverManager.getConnection(config.getDBDirectory());
+
+	Connection getConnection() throws SQLException {
+		final Connection con=DriverManager.getConnection(config.getDBDirectory());
 		con.setAutoCommit(false);
 		con.setReadOnly(!AccessMode.READ_WRITE.equals(accessMode));
-		storageStatus = StorageStatus.working();
+		return con;
+	}
+
+
+	AccessMode accessMode=AccessMode.READ_ONLY;
+	@Override
+	public void open(AccessMode accessMode) throws Exception {
+		try (final Connection con=getConnection()) {
+			this.accessMode = accessMode;
+			storageStatus = StorageStatus.working();
+		}
 	}
 
 	private StorageStatus storageStatus = StorageStatus.lockedDown(LocalizableMessage.raw("closed"));
@@ -100,14 +110,6 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	@Override
 	public void close() {
 		storageStatus = StorageStatus.lockedDown(LocalizableMessage.raw("closed"));
-		try {
-			if (con != null && !con.isClosed()) {
-				con.close();
-			}
-		} catch (SQLException e) {
-			logger.error(LocalizableMessage.raw("close(): %s",e),e);
-		}
-		con=null;
 	}
 
 	String getTableName(TreeName treeName) {
@@ -124,10 +126,11 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				throw new StorageRuntimeException(e);
 			}
 		}
-		try {
-			for (TreeName treeName : listTrees()) {
-				final PreparedStatement statement=con.prepareStatement("drop table "+getTableName(treeName));
-				execute(statement);
+		try (final Connection con=getConnection()) {
+			for (final TreeName treeName : listTrees()) {
+				try(final PreparedStatement statement=con.prepareStatement("drop table "+getTableName(treeName))) {
+					execute(statement);
+				}
 			}
 		}catch (Throwable e) {
 			throw new StorageRuntimeException(e);
@@ -140,27 +143,36 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	//operation
 	@Override
 	public <T> T read(ReadOperation<T> readOperation) throws Exception {
-		return readOperation.run(new ReadableTransactionImpl());
+		try(final Connection con=getConnection()) {
+			return readOperation.run(new ReadableTransactionImpl(con));
+		}
 	}
 
 	@Override
 	public void write(WriteOperation writeOperation) throws Exception {
-		try {
-			writeOperation.run(new WriteableTransactionTransactionImpl());
-			con.commit();
-		} catch (Exception e) {
+		try (final Connection con=getConnection()) {
 			try {
-				con.rollback();
-			} catch (SQLException ex) {}
-			throw e;
+				writeOperation.run(new WriteableTransactionTransactionImpl(con));
+				con.commit();
+			} catch (Exception e) {
+				try {
+					con.rollback();
+				} catch (SQLException ex) {}
+				throw e;
+			}
 		}
 	}
 
 	private class ReadableTransactionImpl implements ReadableTransaction {
+		final Connection con;
+
+		public ReadableTransactionImpl(Connection con) {
+			this.con=con;
+		}
+
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
-			try {
-				final PreparedStatement statement=con.prepareStatement("select v from "+getTableName(treeName)+" where k=?");
+			try (final PreparedStatement statement=con.prepareStatement("select v from "+getTableName(treeName)+" where k=?")){
 				statement.setBytes(1,key.toByteArray());
 				try(ResultSet rc=executeResultSet(statement)) {
 					return rc.next() ? ByteString.wrap(rc.getBytes("v")) : null;
@@ -172,16 +184,14 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public Cursor<ByteString, ByteString> openCursor(TreeName treeName) {
-			return new CursorImpl(treeName);
+			return new CursorImpl(con,treeName);
 		}
 
 		@Override
 		public long getRecordCount(TreeName treeName) {
-			try {
-				final PreparedStatement statement=con.prepareStatement("select count(*) from "+getTableName(treeName));
-				try(ResultSet rc=executeResultSet(statement)) {
-					return rc.next() ? rc.getLong(1) : 0;
-				}
+			try (final PreparedStatement statement=con.prepareStatement("select count(*) from "+getTableName(treeName));
+				 final ResultSet rc=executeResultSet(statement)){
+				return rc.next() ? rc.getLong(1) : 0;
 			}catch (SQLException e) {
 				throw new RuntimeException(e);
 			}
@@ -189,8 +199,8 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	}
 	private final class WriteableTransactionTransactionImpl extends ReadableTransactionImpl implements WriteableTransaction {
 		
-		public WriteableTransactionTransactionImpl() {
-			super();
+		public WriteableTransactionTransactionImpl(Connection con) {
+			super(con);
 			try {
 				if (con.isReadOnly()) {
 					throw new ReadOnlyStorageException();
@@ -203,8 +213,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		@Override
 		public void openTree(TreeName treeName, boolean createOnDemand) {
 			if (createOnDemand) {
-				try {
-					final PreparedStatement statement=con.prepareStatement("create table if not exists "+getTableName(treeName)+" (k bytea primary key,v bytea)");
+				try (final PreparedStatement statement=con.prepareStatement("create table if not exists "+getTableName(treeName)+" (k bytea primary key,v bytea)")){
 					execute(statement);
 				}catch (SQLException e) {
 					throw new RuntimeException(e);
@@ -213,8 +222,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		}
 		
 		public void clearTree(TreeName treeName) {
-			try {
-				final PreparedStatement statement=con.prepareStatement("truncate table "+getTableName(treeName));
+			try (final PreparedStatement statement=con.prepareStatement("truncate table "+getTableName(treeName))){
 				execute(statement);
 			}catch (SQLException e) {
 				throw new RuntimeException(e);
@@ -223,8 +231,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public void deleteTree(TreeName treeName) {
-			try {
-				final PreparedStatement statement=con.prepareStatement("drop table "+getTableName(treeName));
+			try (final PreparedStatement statement=con.prepareStatement("drop table "+getTableName(treeName))){
 				execute(statement);
 			}catch (SQLException e) {
 				throw new RuntimeException(e);
@@ -233,9 +240,8 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
-			try {
-				delete(treeName,key);
-				final PreparedStatement statement=con.prepareStatement("insert into "+getTableName(treeName)+" (k,v) values(?,?) ");
+			delete(treeName,key);
+			try (final PreparedStatement statement=con.prepareStatement("insert into "+getTableName(treeName)+" (k,v) values(?,?) ")){
 				statement.setBytes(1,key.toByteArray());
 				statement.setBytes(2,value.toByteArray());
 				execute(statement);
@@ -263,8 +269,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public boolean delete(TreeName treeName, ByteSequence key) {
-			try {
-				final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName)+" where k=?");
+			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName)+" where k=?")){
 				statement.setBytes(1,key.toByteArray());
 				execute(statement);
 			}catch (SQLException e) {
@@ -276,15 +281,14 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	
 	private final class CursorImpl implements Cursor<ByteString, ByteString> {
 		final TreeName treeName;
-		//final WriteableTransactionTransactionImpl tx;
 
-		ResultSet rc;
+		final PreparedStatement statement;
+		final ResultSet rc;
 
-		public CursorImpl(TreeName treeName) {
+		public CursorImpl(Connection con, TreeName treeName) {
 			this.treeName=treeName;
-			//this.tx=tx;
 			try {
-				final PreparedStatement statement=con.prepareStatement("select k,v from "+getTableName(treeName)+" order by k",
+				statement=con.prepareStatement("select k,v from "+getTableName(treeName)+" order by k",
 						ResultSet.TYPE_SCROLL_SENSITIVE,
 						ResultSet.CONCUR_UPDATABLE);
 				rc=executeResultSet(statement);
@@ -349,13 +353,11 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public void close() {
-			if (rc!=null) {
-				try{
-					rc.close();
-				}catch (SQLException e) {
-					throw new RuntimeException(e);
-				}
-				rc = null;
+			try{
+				statement.close();
+				rc.close();
+			}catch (SQLException e) {
+				throw new RuntimeException(e);
 			}
 		}
 
@@ -449,7 +451,8 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	@Override
 	public Set<TreeName> listTrees() {
 		final Set<TreeName> res=new HashSet<>();
-		try(ResultSet rs = con.getMetaData().getTables(null, null, "OpenDJ%", new String[]{"TABLE"})) {
+		try(final Connection con=getConnection();
+			final ResultSet rs = con.getMetaData().getTables(null, null, "OpenDJ%", new String[]{"TABLE"})) {
 			while (rs.next()) {
 				res.add(TreeName.valueOf(rs.getString("TABLE_NAME").substring(6)));
 			}
@@ -461,6 +464,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	
 
 	private final class ImporterImpl implements Importer {
+		final Connection con;
 		final WriteableTransactionTransactionImpl tx;
 		
 		final Boolean isOpen;
@@ -474,13 +478,19 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 					throw new StorageRuntimeException(e);
 				}
 			}
-			tx=new WriteableTransactionTransactionImpl();
+			try {
+				con = getConnection();
+			}catch (SQLException e){
+				throw new RuntimeException(e);
+			}
+			tx=new WriteableTransactionTransactionImpl(con);
 		}
 		
 		@Override
 		public void close() {
 			try {
 				con.commit();
+				con.close();
 			} catch (SQLException e) {
 				throw new RuntimeException(e);
 			}
