@@ -15,7 +15,6 @@
  */
 package org.opends.server.backends.jdbc;
 
-import com.google.common.cache.*;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -83,11 +82,8 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		return statement.execute();
 	}
 
-
-	Connection getConnection() throws SQLException {
-		final Connection con=DriverManager.getConnection(config.getDBDirectory());
-		con.setAutoCommit(false);
-		con.setReadOnly(!AccessMode.READ_WRITE.equals(accessMode));
+    Connection getConnection() throws Exception {
+		final Connection con=CachedConnection.getConnection(config.getDBDirectory());
 		return con;
 	}
 
@@ -126,14 +122,25 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				throw new StorageRuntimeException(e);
 			}
 		}
-		try (final Connection con=getConnection()) {
-			for (final TreeName treeName : listTrees()) {
-				try(final PreparedStatement statement=con.prepareStatement("drop table "+getTableName(treeName))) {
-					execute(statement);
+		final Set<TreeName> trees=listTrees();
+		if (!trees.isEmpty()) {
+			try (final Connection con = getConnection()) {
+				try {
+					for (final TreeName treeName : trees) {
+						try (final PreparedStatement statement = con.prepareStatement("drop table " + getTableName(treeName))) {
+							execute(statement);
+						}
+					}
+					con.commit();
+				} catch (SQLException e) {
+					try {
+						con.rollback();
+					} catch (SQLException e2) {}
+					throw new StorageRuntimeException(e);
 				}
+			} catch (Exception e) {
+				throw new StorageRuntimeException(e);
 			}
-		}catch (Throwable e) {
-			throw new StorageRuntimeException(e);
 		}
 		if (!isOpen) {
 			close();
@@ -165,6 +172,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 	private class ReadableTransactionImpl implements ReadableTransaction {
 		final Connection con;
+		boolean isReadOnly=true;
 
 		public ReadableTransactionImpl(Connection con) {
 			this.con=con;
@@ -184,7 +192,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public Cursor<ByteString, ByteString> openCursor(TreeName treeName) {
-			return new CursorImpl(con,treeName);
+			return new CursorImpl(isReadOnly,con,treeName);
 		}
 
 		@Override
@@ -201,13 +209,10 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		
 		public WriteableTransactionTransactionImpl(Connection con) {
 			super(con);
-			try {
-				if (con.isReadOnly()) {
-					throw new ReadOnlyStorageException();
-				}
-			} catch (SQLException e) {
-				throw new RuntimeException(e);
+			if (!accessMode.isWriteable()) {
+				throw new ReadOnlyStorageException();
 			}
+			isReadOnly=false;
 		}
 
 		@Override
@@ -215,6 +220,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			if (createOnDemand) {
 				try (final PreparedStatement statement=con.prepareStatement("create table if not exists "+getTableName(treeName)+" (k bytea primary key,v bytea)")){
 					execute(statement);
+					con.commit();
 				}catch (SQLException e) {
 					throw new RuntimeException(e);
 				}
@@ -222,8 +228,9 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		}
 		
 		public void clearTree(TreeName treeName) {
-			try (final PreparedStatement statement=con.prepareStatement("truncate table "+getTableName(treeName))){
+			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName))){
 				execute(statement);
+				con.commit();
 			}catch (SQLException e) {
 				throw new RuntimeException(e);
 			}
@@ -233,6 +240,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		public void deleteTree(TreeName treeName) {
 			try (final PreparedStatement statement=con.prepareStatement("drop table "+getTableName(treeName))){
 				execute(statement);
+				con.commit();
 			}catch (SQLException e) {
 				throw new RuntimeException(e);
 			}
@@ -284,13 +292,14 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		final PreparedStatement statement;
 		final ResultSet rc;
-
-		public CursorImpl(Connection con, TreeName treeName) {
+		final boolean isReadOnly;
+		public CursorImpl(boolean isReadOnly, Connection con, TreeName treeName) {
 			this.treeName=treeName;
+			this.isReadOnly=isReadOnly;
 			try {
 				statement=con.prepareStatement("select k,v from "+getTableName(treeName)+" order by k",
-						ResultSet.TYPE_SCROLL_SENSITIVE,
-						ResultSet.CONCUR_UPDATABLE);
+						isReadOnly?ResultSet.TYPE_SCROLL_INSENSITIVE:ResultSet.TYPE_SCROLL_SENSITIVE,
+						isReadOnly?ResultSet.CONCUR_READ_ONLY:ResultSet.CONCUR_UPDATABLE);
 				rc=executeResultSet(statement);
 			}catch (SQLException e) {
 				throw new RuntimeException(e);
@@ -354,8 +363,8 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		@Override
 		public void close() {
 			try{
-				statement.close();
 				rc.close();
+				statement.close();
 			}catch (SQLException e) {
 				throw new RuntimeException(e);
 			}
@@ -456,7 +465,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			while (rs.next()) {
 				res.add(TreeName.valueOf(rs.getString("TABLE_NAME").substring(6)));
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 		return res;
@@ -465,8 +474,9 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 	private final class ImporterImpl implements Importer {
 		final Connection con;
-		final WriteableTransactionTransactionImpl tx;
-		
+		final ReadableTransactionImpl txr;
+		final WriteableTransactionTransactionImpl txw;
+
 		final Boolean isOpen;
 		
 		public ImporterImpl() {
@@ -480,10 +490,11 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			}
 			try {
 				con = getConnection();
-			}catch (SQLException e){
+			}catch (Exception e){
 				throw new RuntimeException(e);
 			}
-			tx=new WriteableTransactionTransactionImpl(con);
+			txr =new ReadableTransactionImpl(con);
+			txw =new WriteableTransactionTransactionImpl(con);
 		}
 		
 		@Override
@@ -501,22 +512,22 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		
 		@Override
 		public void clearTree(TreeName name) {
-			tx.clearTree(name);
+			txw.clearTree(name);
 		}
 		
 		@Override
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
-			tx.put(treeName, key, value);
+			txw.put(treeName, key, value);
 		}
 		
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
-			return tx.read(treeName, key);
+			return txr.read(treeName, key);
 		}
 		
 		@Override
 		public SequentialCursor<ByteString, ByteString> openCursor(TreeName treeName) {
-			return tx.openCursor(treeName);
+			return txr.openCursor(treeName);
 		}
 	}
 	
