@@ -186,7 +186,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 					return rc.next() ? ByteString.wrap(rc.getBytes("v")) : null;
 				}
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 		}
 
@@ -201,7 +201,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				 final ResultSet rc=executeResultSet(statement)){
 				return rc.next() ? rc.getLong(1) : 0;
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 		}
 	}
@@ -222,7 +222,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 					execute(statement);
 					con.commit();
 				}catch (SQLException e) {
-					throw new RuntimeException(e);
+					throw new StorageRuntimeException(e);
 				}
 			}
 		}
@@ -232,7 +232,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				execute(statement);
 				con.commit();
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 		}
 
@@ -242,7 +242,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				execute(statement);
 				con.commit();
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 		}
 
@@ -254,7 +254,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				statement.setBytes(2,value.toByteArray());
 				execute(statement);
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 		}
 
@@ -281,7 +281,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				statement.setBytes(1,key.toByteArray());
 				execute(statement);
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 			return true;
 		}
@@ -302,7 +302,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 						isReadOnly?ResultSet.CONCUR_READ_ONLY:ResultSet.CONCUR_UPDATABLE);
 				rc=executeResultSet(statement);
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 		}
 
@@ -311,7 +311,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			try {
 				return rc.next();
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 		}
 
@@ -320,7 +320,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			try{
 				return rc.getRow()>0;
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 		}
 
@@ -332,7 +332,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			try{
 				return ByteString.wrap(rc.getBytes("k"));
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 		}
 
@@ -344,7 +344,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			try{
 				return ByteString.wrap(rc.getBytes("v"));
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 		}
 
@@ -356,7 +356,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			try{
 				rc.deleteRow();
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 		}
 
@@ -366,7 +366,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				rc.close();
 				statement.close();
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 		}
 
@@ -377,7 +377,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				try{
 					rc.first();
 				}catch (SQLException e) {
-					throw new RuntimeException(e);
+					throw new StorageRuntimeException(e);
 				}
 			}
 			try{
@@ -390,7 +390,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 					}
 				}while(rc.next());
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 			return false;
 		}
@@ -401,7 +401,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				try{
 					rc.first();
 				}catch (SQLException e) {
-					throw new RuntimeException(e);
+					throw new StorageRuntimeException(e);
 				}
 			}
 			if (!isDefined()){
@@ -417,7 +417,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 					}
 				}while(rc.next());
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 			return false;
 		}
@@ -428,7 +428,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			try{
 				return rc.last();
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 		}
 
@@ -437,7 +437,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			try{
 				rc.first();
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 			if (!isDefined()){
 				return false;
@@ -451,7 +451,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 					ct++;
 				}while(rc.next());
 			}catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 			return false;
 		}
@@ -466,7 +466,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				res.add(TreeName.valueOf(rs.getString("TABLE_NAME").substring(6)));
 			}
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new StorageRuntimeException(e);
 		}
 		return res;
 	}
@@ -491,7 +491,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			try {
 				con = getConnection();
 			}catch (Exception e){
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 			txr =new ReadableTransactionImpl(con);
 			txw =new WriteableTransactionTransactionImpl(con);
@@ -503,7 +503,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				con.commit();
 				con.close();
 			} catch (SQLException e) {
-				throw new RuntimeException(e);
+				throw new StorageRuntimeException(e);
 			}
 			if (!isOpen) {
 				Storage.this.close();
