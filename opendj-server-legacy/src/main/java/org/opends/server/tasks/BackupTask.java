@@ -387,6 +387,8 @@ public class BackupTask extends Task
       DirectoryServer.notifyBackupEnded(b, backupConfig, false);
       logger.error(ERR_BACKUPDB_ERROR_DURING_BACKUP, b.getBackendID(), getExceptionMessage(e));
       return false;
+    }finally {
+      backupConfig=null;
     }
 
     return true;
@@ -456,6 +458,7 @@ public class BackupTask extends Task
       interruptReason));
       setTaskInterruptState(interruptState);
       backupConfig.cancel();
+      backupConfig=null;
     }
   }
 
