@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems, LLC.
  */
 package org.opends.server.tasks;
 
@@ -387,6 +388,8 @@ public class BackupTask extends Task
       DirectoryServer.notifyBackupEnded(b, backupConfig, false);
       logger.error(ERR_BACKUPDB_ERROR_DURING_BACKUP, b.getBackendID(), getExceptionMessage(e));
       return false;
+    }finally {
+      backupConfig=null;
     }
 
     return true;
@@ -456,6 +459,7 @@ public class BackupTask extends Task
       interruptReason));
       setTaskInterruptState(interruptState);
       backupConfig.cancel();
+      backupConfig=null;
     }
   }
 
