@@ -13,7 +13,7 @@ ${marker}
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2011-2017 ForgeRock AS.
-  Portions Copyright ${year} 3A Systems LLC.
+  Portions Copyright 2024-${year} 3A Systems LLC.
 ////
 
 [#${id}]
