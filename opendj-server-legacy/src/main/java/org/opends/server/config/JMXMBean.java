@@ -13,7 +13,7 @@
  *
  * Portions Copyright 2006-2007-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
- * Portions Copyright 2023-2024 3A Systems LLC.
+ * Portions Copyright 2023-2025 3A Systems LLC.
  */
 package org.opends.server.config;
 
@@ -43,7 +43,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static jakarta.xml.bind.DatatypeConverter.printDateTime;
+import static javax.xml.bind.DatatypeConverter.printDateTime;
 import static org.forgerock.opendj.ldap.Functions.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.protocols.internal.Requests.newSearchRequest;

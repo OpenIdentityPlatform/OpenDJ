@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
+ * Portions copyright 2025 3A Systems LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -29,7 +30,7 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
  * sets of three bytes with eight significant bits each to sets of four bytes
  * with six significant bits each.
  * <p>
- * <b>NOTE:</b> the JDK class {@link jakarta.xml.bind.DatatypeConverter} provides
+ * <b>NOTE:</b> the JDK class {@link javax.xml.bind.DatatypeConverter} provides
  * similar functionality, however the methods are better suited to the LDAP SDK.
  * For example, the JDK encoder does not handle array/offset/len parameters, and
  * the decoder ignores invalid Base64 data.

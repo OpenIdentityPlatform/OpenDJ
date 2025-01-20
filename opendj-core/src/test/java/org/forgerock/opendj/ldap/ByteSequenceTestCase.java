@@ -13,13 +13,14 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2014 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems LLC.
  */
 package org.forgerock.opendj.ldap;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
-import jakarta.xml.bind.DatatypeConverter;
+import javax.xml.bind.DatatypeConverter;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
