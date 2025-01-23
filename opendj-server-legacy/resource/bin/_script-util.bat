@@ -13,7 +13,7 @@ rem information: "Portions Copyright [year] [name of copyright owner]".
 rem
 rem Copyright 2008-2010 Sun Microsystems, Inc.
 rem Portions Copyright 2011-2016 ForgeRock AS.
-rem Portions Copyright 2020-2024 3A Systems, LLC.
+rem Portions Copyright 2020-2025 3A Systems, LLC.
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
@@ -70,11 +70,8 @@ rem get the absolute paths before building the classpath
 rem it also helps comparing the two paths
 FOR /F "delims=" %%i IN ("%INSTALL_ROOT%")  DO set INSTALL_ROOT=%%~dpnxi
 FOR /F "delims=" %%i IN ("%INSTANCE_ROOT%") DO set INSTANCE_ROOT=%%~dpnxi
-call "%INSTALL_ROOT%\lib\setcp.bat" %INSTALL_ROOT%\lib\bootstrap.jar
+call "%INSTALL_ROOT%\lib\setcp.bat" %INSTALL_ROOT%\lib\*
 set CLASSPATH=%INSTANCE_ROOT%\classes;%CLASSPATH%
-if "%INSTALL_ROOT%" == "%INSTANCE_ROOT%" goto setClassPathWithOpenDJLoggerDone
-FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
-:setClassPathWithOpenDJLoggerDone
 set SET_CLASSPATH_DONE=true
 goto scriptBegin
 
