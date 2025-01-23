@@ -16,7 +16,6 @@
  */
 package org.forgerock.opendj.grizzly;
 
-import java.io.IOException;
 import java.util.concurrent.CancellationException;
 
 import io.reactivex.exceptions.UndeliverableException;
