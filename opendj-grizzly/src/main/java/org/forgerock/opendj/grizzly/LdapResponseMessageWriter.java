@@ -12,11 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems,LLC
  */
 package org.forgerock.opendj.grizzly;
 
 import java.util.concurrent.CancellationException;
 
+import io.reactivex.exceptions.UndeliverableException;
 import org.forgerock.opendj.ldap.spi.LdapMessages.LdapResponseMessage;
 import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.Connection;
@@ -76,7 +78,9 @@ final class LdapResponseMessageWriter implements Subscriber<LdapResponseMessage>
     @Override
     public void onError(final Throwable error) {
         upstream.cancel();
-        downstream.onError(error);
+        try {
+            downstream.onError(error);
+        } catch (UndeliverableException e) {}
     }
 
     @Override
