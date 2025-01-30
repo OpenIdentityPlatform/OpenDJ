@@ -24,7 +24,7 @@
 [#appendix-standards]
 == Standards, RFCs, & Internet-Drafts
 
-OpenDJ 3.5 software implements the following RFCs, Internet-Drafts, and standards:
+OpenDJ software implements the following RFCs, Internet-Drafts, and standards:
 --
 
 [#rfc1274]
@@ -395,6 +395,13 @@ Defines a schema for storing a profile for agents that make use of the Lightweig
 link:http://tools.ietf.org/html/rfc5020[RFC 5020: The Lightweight Directory Access Protocol (LDAP) entryDN Operational Attribute, window=\_top]::
 +
 Describes the Lightweight Directory Access Protocol (LDAP) / X.500 'entryDN' operational attribute, that provides a copy of the entry's distinguished name for use in attribute value assertions.
+
+[#rfc5805]
+link:http://tools.ietf.org/html/rfc5805[RFC 5805: Lightweight Directory Access Protocol (LDAP) Transactions, window=\_top]::
++
+Lightweight Directory Access Protocol (LDAP) update operations, such as Add, Delete, and Modify operations, have atomic, consistency,
+isolation, durability (ACID) properties.  Each of these update operations act upon an entry.  It is often desirable to update two or
+more entries in a single unit of interaction, a transaction.
 
 [#fips180-1]
 link:http://www.itl.nist.gov/fipspubs/fip180-1.htm[FIPS 180-1: Secure Hash Standard (SHA-1), window=\_top]::
