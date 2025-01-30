@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2025 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -62,7 +62,7 @@ If your default Java environment is not appropriate, set `OPENDJ_JAVA_HOME` to t
 +
 Antivirus and intrusion detection systems that do a deep inspection of database files are not compatible with OpenDJ directory server. Disable antivirus and intrusion detection systems, or at least prevent them from operating on OpenDJ directory server files.
 
-. Download enterprise software releases through the ForgeRock link:https://backstage.forgerock.com/[BackStage, window=\_blank] site. ForgeRock enterprise releases are thoroughly validated builds for ForgeRock customers who run OpenDJ in production deployments, and for those who want to try or test with release builds.
+. Download software releases from the link:https://github.com/OpenIdentityPlatform/OpenDJ/releases[GitHub, window=\_blank].
 +
 --
 The following OpenDJ 3.5.3 server software is available:

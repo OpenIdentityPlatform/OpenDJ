@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2025 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -30,7 +30,7 @@ OpenDJ offers two alternatives for access to directory data over HTTP:
 
 * The OpenDJ REST to LDAP gateway runs in a Servlet container independent from the directory service. You configure the gateway to access the directory service by editing configuration files for the gateway web application.
 
-Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"])
+Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["Product Interface Stability"])
 
 [NOTE]
 ====
@@ -246,7 +246,7 @@ By default, the gateway connects to the directory server listening on port 1389 
 The gateway accesses this array of LDAP servers if primary LDAP servers cannot be contacted. These might be LDAP servers in the same remote data center, for example:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "secondaryLdapServers": [
@@ -282,7 +282,7 @@ Default: `bind`
 The gateway authenticates by simple bind using the credentials specified:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "authentication": {
@@ -411,13 +411,13 @@ Default: `bind`
 The template to produce the bind DN from the HTTP Basic user name.
 
 +
-A single occurrence of the string `{username}` is replaced in the template with the HTTP Basic user name.
+A single occurrence of the string `\{username\}` is replaced in the template with the HTTP Basic user name.
 
 +
-For example, if the user name is also the UID of the LDAP entry, use `uid={username},ou=People,dc=example,dc=com`.
+For example, if the user name is also the UID of the LDAP entry, use `uid=\{username\},ou=People,dc=example,dc=com`.
 
 +
-Default: `{username}`
+Default: `\{username\}`
 
 ========
 
@@ -438,13 +438,13 @@ Default: `bind`
 The template to produce the authorization ID from the HTTP Basic user name.
 
 +
-A single occurrence of the string `{username}` is replaced in the template with the HTTP Basic user name.
+A single occurrence of the string `\{username\}` is replaced in the template with the HTTP Basic user name.
 
 +
-If the user name is also the authorization ID, use `u:{username}`.
+If the user name is also the authorization ID, use `u:\{username\}`.
 
 +
-If the user name is the LDAP bind DN, use `dn:{username}`.
+If the user name is the LDAP bind DN, use `dn:\{username\}`.
 
 ========
 
@@ -483,10 +483,10 @@ Use `sub` for a subtree search, `one` for a one-level search.
 The template for the filter of the LDAP search.
 
 +
-A single occurrence of the string `{username}` is replaced in the template with the HTTP Basic user name.
+A single occurrence of the string `\{username\}` is replaced in the template with the HTTP Basic user name.
 
 +
-If the user name is also the UID, use `(&(uid={username})(objectClass=inetOrgPerson))`.
+If the user name is also the UID, use `(&(uid=\{username\})(objectClass=inetOrgPerson))`.
 
 ========
 
@@ -581,7 +581,7 @@ A JSON pointer value in braces is replaced in the template with a field value fr
 This template must start with `u:` or `dn:`.
 
 +
-For example, if token resolution returns a JSON document where the value of the `uid` field is the UID of the user entry in the directory, you might use `u:{uid}` or `dn:{uid},ou=People,dc=example,dc=com`.
+For example, if token resolution returns a JSON document where the value of the `uid` field is the UID of the user entry in the directory, you might use `u:\{uid\}` or `dn:\{uid\},ou=People,dc=example,dc=com`.
 
 ========
 
@@ -631,13 +631,13 @@ A JSON pointer value in braces is replaced in the template with a field value fr
 This template must start with `u:` or `dn:`.
 
 +
-For example, if token resolution returns a JSON document where the value of the `username` field is the UID of the user entry in the directory, you might use `u:{username}` or `dn:{username},ou=People,dc=example,dc=com`.
+For example, if token resolution returns a JSON document where the value of the `username` field is the UID of the user entry in the directory, you might use `u:\{username\}` or `dn:\{username\},ou=People,dc=example,dc=com`.
 
 `cts`::
 Configuration for resolving OAuth 2.0 tokens when the directory service acts as OpenAM's CTS store.
 
 +
-OpenAM's CTS store is constrained to a specific layout. The `authzIdTemplate` must therefore use `{userName/0}` for the user identifier.
+OpenAM's CTS store is constrained to a specific layout. The `authzIdTemplate` must therefore use `\{userName/0}` for the user identifier.
 
 +
 This mechanism makes it possible to resolve access tokens by making a request to the CTS directory service, without making a request to OpenAM. __This mechanism does not, however, ensure that the token requested will have already been replicated to the directory server where the request is routed.__
@@ -848,7 +848,7 @@ For example, suppose LDAP entries for devices are located under the following ba
 
 * `ou=tablets,ou=devices,dc=example,dc=com`
 
-The subresource name `/{type}` would be substituted in actual paths with `/others`, `/pcs`, `/phones`, and `/tablets`. The DN template for the subresource would specify `ou={type},ou=devices,dc=example,dc=com` in order to locate the entries in the correct LDAP organizational unit. In the example, REST to LDAP substitutes `{type}` in the DN template with the type defined in the request URL path.
+The subresource name `/\{type\}` would be substituted in actual paths with `/others`, `/pcs`, `/phones`, and `/tablets`. The DN template for the subresource would specify `ou=\{type\},ou=devices,dc=example,dc=com` in order to locate the entries in the correct LDAP organizational unit. In the example, REST to LDAP substitutes `\{type\}` in the DN template with the type defined in the request URL path.
 
 For details on subresource configuration, see xref:#rest-subresource-properties["Sub-Resource Properties"].
 
@@ -1091,7 +1091,7 @@ The following naming strategies are supported:
 * RDN and resource ID are both derived from a single user attribute in the LDAP entry, as in the following example, where the `uid` attribute is the RDN and its value is the JSON resource ID:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "namingStrategy": {
@@ -1104,7 +1104,7 @@ The following naming strategies are supported:
 * RDN and resource ID are derived from separate user attributes in the LDAP entry, as in the following example, where the RDN attribute is `uid`, but the JSON resource ID is the value of the `mail` attribute:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "namingStrategy": {
@@ -1118,7 +1118,7 @@ The following naming strategies are supported:
 * RDN is derived from a user attribute and the resource ID from an operational attribute in the LDAP entry, as in the following example, where the RDN attribute is `uid`, but the JSON resource ID is the value of the `entryUUID` operational attribute:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "namingStrategy": {

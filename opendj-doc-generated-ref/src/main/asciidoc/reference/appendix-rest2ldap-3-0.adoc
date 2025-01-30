@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2025 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -38,7 +38,7 @@ OpenDJ offers two alternatives for RESTful access to directory data:
 --
 The JSON format configuration can hold the following configuration objects. Some of the configuration settings are available only in the REST LDAP gateway configuration. The order here is the order shown in the default configuration file:
 
-Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"])
+Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["Product Interface Stability"])
 
 "ldapConnectionFactories" (required, gateway only)::
 Configures how the gateway connects to LDAP servers. This entire configuration object applies only to the REST to LDAP gateway.
@@ -198,7 +198,7 @@ Default: "default"
 The gateway authenticates by simple bind using the credentials specified:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "authentication": {
@@ -334,10 +334,10 @@ Specifies how to handle LDAP authorization. The following values are supported:
 
 
 "proxyAuthzIdTemplate" (gateway only)::
-Specifies the template to derive the authorization ID from the security context created during authentication. Use `{dn}` to indicate the user's bind DN or `{id}` to indicate the user name provided for authentication.
+Specifies the template to derive the authorization ID from the security context created during authentication. Use `\{dn\}` to indicate the user's bind DN or `\{id\}` to indicate the user name provided for authentication.
 
 +
-Default: "dn:{dn}"
+Default: "dn:\{dn\}"
 
 "mappings"::
 For each collection URI such as `/users` and `/groups`, you configure a mapping between the JSON resource returned over HTTP, and the LDAP entry returned by the directory service.
@@ -401,7 +401,7 @@ The following naming strategies are supported:
 * RDN and resource ID are both derived from a single user attribute in the LDAP entry, as in the following example, where the `uid` attribute is the RDN and its value is the JSON resource ID:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "namingStrategy": {
@@ -414,7 +414,7 @@ The following naming strategies are supported:
 * RDN and resource ID are derived from separate user attributes in the LDAP entry, as in the following example where the RDN attribute is `uid` but the JSON resource ID is the value of the `mail` attribute:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "namingStrategy": {
@@ -428,7 +428,7 @@ The following naming strategies are supported:
 * RDN is derived from a user attribute and the resource ID from an operational attribute in the LDAP entry, as in the following example, where the RDN attribute is `uid` but the JSON resource ID is the value of the `entryUUID` operational attribute:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "namingStrategy": {
@@ -444,7 +444,7 @@ The following naming strategies are supported:
 LDAP attributes to include during LDAP add operations as an array of type-value lists, such as the following example:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "additionalLDAPAttributes": [
@@ -476,7 +476,7 @@ Maps a single JSON attribute to a fixed value.
 This can be useful as in the default case where each JSON resource "schemas" takes the SCIM URN, and so the value is not related to the underlying LDAP entries:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "schemas": {
@@ -494,7 +494,7 @@ Maps a JSON field to an LDAP attribute.
 Simple mappings are used where the correspondence between JSON fields and LDAP attributes is one-to-one:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "userName": {
@@ -555,7 +555,7 @@ Maps a JSON field to an LDAP entry found by reference.
 This mapping works for LDAP attributes whose values reference other entries. This is shown in the following example from the default configuration. The LDAP `manager` attribute values are user entry DNs. Here, the JSON `manager` field takes the user ID and name from the entry referenced by the LDAP attribute. On updates, changes to the JSON manager `_id` affect which manager entry is referenced, yet any changes to the manager's name are discarded, because changing managers only affects which user entry to point to, not the referenced user's name:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "manager": {
@@ -589,7 +589,7 @@ This mapping works for LDAP attributes whose values reference other entries. Thi
 Babs Jensen's manager in the sample LDAP data is Torrey Rigden, who has user ID `trigden`. Babs's entry has `manager: uid=trigden,ou=People,dc=example,dc=com`. With this mapping, the resulting JSON field is the following:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "manager": [
@@ -631,7 +631,7 @@ Default: `false`
 The default mappings expose a SCIM view of user and group data:
 +
 
-[source, javascript]
+[source, json]
 ----
 {
     "/users": {
