@@ -312,7 +312,6 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	        	return true;
 	        }
 	        put(treeName,key,newValue);
-	        put(treeName,key,newValue);
 			return true;
 		}
 
