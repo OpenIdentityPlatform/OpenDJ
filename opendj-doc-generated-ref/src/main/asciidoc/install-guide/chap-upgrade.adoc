@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2025 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -25,7 +25,7 @@
 
 This chapter covers upgrade from previous versions.
 
-If the OpenDJ directory server version is older than 2.6.0, you must upgrade your deployment to use at least OpenDJ directory server 2.6.0 before following the procedures in this chapter. For details on upgrading to that version, see link:https://backstage.forgerock.com/docs/opendj/2.6/install-guide/#chap-upgrade[Upgrading to OpenDJ 2.6.0, window=\_blank].
+If the OpenDJ directory server version is older than 2.6.0, you must upgrade your deployment to use at least OpenDJ directory server 2.6.0 before following the procedures in this chapter.
 
 [TIP]
 ====
@@ -70,7 +70,7 @@ To move to a newer version, edit the `default.java-home` setting in the `opendj/
 
 . (Optional)  If you are upgrading to OpenDJ OEM edition from OpenDJ 2.6, make sure there is enough disk space to export all of the data to LDIF files.
 
-. Download enterprise software releases through the ForgeRock link:https://backstage.forgerock.com/[BackStage, window=\_blank] site. ForgeRock enterprise releases are thoroughly validated builds for ForgeRock customers who run OpenDJ in production deployments, and for those who want to try or test with release builds.
+. Download enterprise releases from the link:https://github.com/OpenIdentityPlatform/OpenDJ/releases[GitHub, window=\_blank] site.
 
 . (Optional)  If you are upgrading OpenDJ directory server on Windows, and OpenDJ is registered as a Windows service, disable OpenDJ as a Windows service before upgrade, as in the following example:
 +

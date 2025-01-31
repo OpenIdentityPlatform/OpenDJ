@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2025 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -51,9 +51,9 @@ In this chapter, you will learn how to use the OpenDJ REST API that provides acc
 
 Before trying the examples, enable HTTP access to OpenDJ directory server as described in xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap-3-0["RESTful Client Access (3.0)"] in the __Administration Guide__. The examples in this chapter use HTTP, but the procedure also shows how to set up HTTPS access to the server.
 
-Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__.)
+Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["Product Interface Stability"] in the __Reference__.)
 
-The OpenDJ REST API is built on a common ForgeRock HTTP-based REST API for interacting with JSON Resources. All APIs built on this common layer let you perform the following operations. For an overview of ForgeRock common REST APIs, see xref:chap-rest-operations.adoc#sec-about-crest["About ForgeRock Common REST"].
+The OpenDJ REST API is built on a common Open Identity Platform HTTP-based REST API for interacting with JSON Resources. All APIs built on this common layer let you perform the following operations. For an overview of Open Identity Platform common REST APIs, see xref:chap-rest-operations.adoc#sec-about-crest["About Common REST"].
 
 [#authenticate-rest-3-0]
 === Authenticating Over REST (3.0)
