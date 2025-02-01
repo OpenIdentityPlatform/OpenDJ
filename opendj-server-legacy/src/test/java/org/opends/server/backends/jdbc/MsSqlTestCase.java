@@ -26,7 +26,7 @@ public class MsSqlTestCase extends TestCase {
 
     @Override
     protected JdbcDatabaseContainer<?> getContainer() {
-        return new MSSQLServerContainer<>("mcr.microsoft.com/mssql/server:2019-CU14-ubuntu-20.04")
+        return new MSSQLServerContainer<>("mcr.microsoft.com/mssql/server:2019-CU30-ubuntu-20.04")
                 .withExposedPorts(1433)
                 .acceptLicense()
                 .withPassword("Passw0rd");
