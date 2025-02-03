@@ -289,6 +289,19 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			return "h char(128),k bytea,v bytea,primary key(h,k)";
 		}
 
+		boolean isExistsTable(TreeName treeName) {
+			try(final ResultSet rs = con.getMetaData().getTables(null, null, tree2table.get(treeName), new String[]{"TABLE"})) {
+				while (rs.next()) {
+					if (tree2table.get(treeName).equals(rs.getString("TABLE_NAME"))){
+						return true;
+					}
+				}
+			} catch (Exception e) {
+				throw new StorageRuntimeException(e);
+			}
+			return false;
+		}
+
 		@Override
 		public void openTree(TreeName treeName, boolean createOnDemand) {
 			if (createOnDemand && !isExistsTable(treeName)) {
