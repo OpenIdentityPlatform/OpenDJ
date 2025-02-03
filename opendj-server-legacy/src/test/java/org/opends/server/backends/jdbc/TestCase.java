@@ -11,18 +11,17 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2024 3A Systems, LLC.
+ * Copyright 2024-2025 3A Systems, LLC.
  */
 package org.opends.server.backends.jdbc;
 
 import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
 import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
 import org.testcontainers.DockerClientFactory;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testng.SkipException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -30,27 +29,23 @@ import java.sql.DriverManager;
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.mockito.Mockito.when;
 
-//docker run --rm -it -p 5432:5432 -e POSTGRES_PASSWORD=password --name postgres postgres
 
-@Test
-public class TestCase extends PluggableBackendImplTestCase<JDBCBackendCfg> {
 
-	PostgreSQLContainer container;
+public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendCfg> {
+
+	JdbcDatabaseContainer container;
 
 	@BeforeClass
 	@Override
 	public void setUp() throws Exception {
 		if(DockerClientFactory.instance().isDockerAvailable()) {
-			container = new PostgreSQLContainer<>("postgres:latest")
-					.withExposedPorts(5432)
-					.withUsername("postgres")
-					.withPassword("password")
-					.withDatabaseName("database_name");
+			container = getContainer();
 			container.start();
 		}
-		try(Connection con= DriverManager.getConnection(createBackendCfg().getDBDirectory())){
+		try(Connection ignored = DriverManager.getConnection(createBackendCfg().getDBDirectory())){
+
 		} catch (Exception e) {
-			throw new SkipException("run before test: docker run --rm -it -p 5432:5432 -e POSTGRES_DB=database_name -e POSTGRES_PASSWORD=password --name postgres postgres");
+			throw new SkipException(getContainerDockerCommand());
 		}
 		super.setUp();
 	}
@@ -63,8 +58,8 @@ public class TestCase extends PluggableBackendImplTestCase<JDBCBackendCfg> {
 	@Override
 	protected JDBCBackendCfg createBackendCfg() {
 		JDBCBackendCfg backendCfg = mockCfg(JDBCBackendCfg.class);
-		when(backendCfg.getBackendId()).thenReturn("PsqlTestCase");
-		when(backendCfg.getDBDirectory()).thenReturn("jdbc:postgresql://localhost:"+ ((container==null)?"5432":container.getMappedPort(5432))+"/database_name?user=postgres&password=password");
+		when(backendCfg.getBackendId()).thenReturn(getBackendId());
+		when(backendCfg.getDBDirectory()).thenReturn(getJdbcUrl());
 		return backendCfg;
 	}
 
@@ -76,4 +71,12 @@ public class TestCase extends PluggableBackendImplTestCase<JDBCBackendCfg> {
 			container.close();
 		}
 	}
+
+	protected abstract JdbcDatabaseContainer<?> getContainer();
+
+	protected abstract String getContainerDockerCommand();
+
+	protected abstract String getBackendId();
+
+	protected abstract String getJdbcUrl();
 }
