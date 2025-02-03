@@ -3036,7 +3036,7 @@ final class OnDiskMergeImporter
 
       void writeByteSequence(int position, ByteSequence data)
       {
-        buffer.position(position);
+        ((ByteBuffer)buffer).position(position);
         data.copyTo(buffer);
       }
 
