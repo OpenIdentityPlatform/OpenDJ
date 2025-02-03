@@ -11,10 +11,13 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2024 3A Systems, LLC.
+ * Copyright 2024-2025 3A Systems, LLC.
  */
 package org.opends.server.backends.jdbc;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -31,8 +34,11 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.BackupManager;
 
+import java.math.BigInteger;
+import java.security.MessageDigest;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 import static org.opends.server.backends.pluggable.spi.StorageUtils.addErrorMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -108,9 +114,28 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		storageStatus = StorageStatus.lockedDown(LocalizableMessage.raw("closed"));
 	}
 
+	LoadingCache<TreeName,String> tree2table= CacheBuilder.newBuilder()
+			.build(new CacheLoader<TreeName, String>() {
+				@Override
+				public String load(TreeName treeName) throws Exception {
+					final MessageDigest md = MessageDigest.getInstance("SHA-224");
+					final byte[] messageDigest = md.digest(treeName.toString().getBytes());
+					final BigInteger no = new BigInteger(1, messageDigest);
+					String hashtext = no.toString(16);
+					while (hashtext.length() < 32) {
+						hashtext = "0" + hashtext;
+					}
+					return "opendj_"+hashtext;
+				}
+			});
+
 	String getTableName(TreeName treeName) {
-		return "\"OpenDJ"+treeName.toString()+"\"";
-	}
+        try {
+            return tree2table.get(treeName);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 	@Override
 	public void removeStorageFiles() throws StorageRuntimeException {
@@ -215,10 +240,23 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			isReadOnly=false;
 		}
 
+		boolean isExistsTable(TreeName treeName) {
+			try(final ResultSet rs = con.getMetaData().getTables(null, null, tree2table.get(treeName), new String[]{"TABLE"})) {
+				while (rs.next()) {
+					if (tree2table.get(treeName).equals(rs.getString("TABLE_NAME"))){
+						return true;
+					}
+				}
+			} catch (Exception e) {
+				throw new StorageRuntimeException(e);
+			}
+			return false;
+		}
+
 		@Override
 		public void openTree(TreeName treeName, boolean createOnDemand) {
-			if (createOnDemand) {
-				try (final PreparedStatement statement=con.prepareStatement("create table if not exists "+getTableName(treeName)+" (k bytea primary key,v bytea)")){
+			if (createOnDemand && !isExistsTable(treeName)) {
+				try (final PreparedStatement statement=con.prepareStatement("create table "+getTableName(treeName)+" (k bytea primary key,v bytea)")){
 					execute(statement);
 					con.commit();
 				}catch (SQLException e) {
@@ -238,11 +276,13 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public void deleteTree(TreeName treeName) {
-			try (final PreparedStatement statement=con.prepareStatement("drop table "+getTableName(treeName))){
-				execute(statement);
-				con.commit();
-			}catch (SQLException e) {
-				throw new StorageRuntimeException(e);
+			if (isExistsTable(treeName)) {
+				try (final PreparedStatement statement = con.prepareStatement("drop table " + getTableName(treeName))) {
+					execute(statement);
+					con.commit();
+				} catch (SQLException e) {
+					throw new StorageRuntimeException(e);
+				}
 			}
 		}
 
@@ -459,18 +499,8 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	
 	@Override
 	public Set<TreeName> listTrees() {
-		final Set<TreeName> res=new HashSet<>();
-		try(final Connection con=getConnection();
-			final ResultSet rs = con.getMetaData().getTables(null, null, "OpenDJ%", new String[]{"TABLE"})) {
-			while (rs.next()) {
-				res.add(TreeName.valueOf(rs.getString("TABLE_NAME").substring(6)));
-			}
-		} catch (Exception e) {
-			throw new StorageRuntimeException(e);
-		}
-		return res;
+		return tree2table.asMap().keySet();
 	}
-	
 
 	private final class ImporterImpl implements Importer {
 		final Connection con;
