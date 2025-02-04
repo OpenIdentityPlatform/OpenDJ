@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
- * Copyright 2023 	   3A Systems, LLC.
+ * Portions Copyright 2023-2025 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
