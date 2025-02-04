@@ -464,7 +464,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
                 "initials: AZA",
                 "employeeNumber: 10",
                 "uid: user.10",
-                "mail: user.10@example.com",
+                "mail: user.9@example.com",
                 "userPassword: password",
                 "telephoneNumber: 457-819-0832",
                 "homePhone: 931-305-5452",
