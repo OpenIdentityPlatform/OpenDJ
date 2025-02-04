@@ -30,7 +30,8 @@ public class OracleTestCase extends TestCase {
                 .withExposedPorts(1521)
                 .withUsername("opendj")
                 .withPassword("password")
-                .withDatabaseName("database_name");
+                .withDatabaseName("database_name")
+                .withStartupAttempts(10);
     }
 
     @Override

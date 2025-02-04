@@ -34,7 +34,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.BackupManager;
 
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.sql.*;
 import java.util.*;
@@ -89,8 +88,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	}
 
     Connection getConnection() throws Exception {
-		final Connection con=CachedConnection.getConnection(config.getDBDirectory());
-		return con;
+		return CachedConnection.getConnection(config.getDBDirectory());
 	}
 
 
@@ -114,16 +112,17 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		storageStatus = StorageStatus.lockedDown(LocalizableMessage.raw("closed"));
 	}
 
-	LoadingCache<TreeName,String> tree2table= CacheBuilder.newBuilder()
+	final LoadingCache<TreeName,String> tree2table= CacheBuilder.newBuilder()
 			.build(new CacheLoader<TreeName, String>() {
 				@Override
 				public String load(TreeName treeName) throws Exception {
 					final MessageDigest md = MessageDigest.getInstance("SHA-224");
 					final byte[] messageDigest = md.digest(treeName.toString().getBytes());
-					final BigInteger no = new BigInteger(1, messageDigest);
-					String hashtext = no.toString(16);
-					while (hashtext.length() < 32) {
-						hashtext = "0" + hashtext;
+					final StringBuilder hashtext = new StringBuilder();
+					for (byte b : messageDigest) {
+						String hex = Integer.toHexString(0xff & b);
+						if (hex.length() == 1) hashtext.append('0');
+						hashtext.append(hex);
 					}
 					return "opendj_"+hashtext;
 				}
@@ -195,6 +194,31 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		}
 	}
 
+	final static byte[] NULL=new byte[]{(byte)0};
+
+	static byte[] real2db(byte[] real) {
+		return real.length==0?NULL:real;
+	}
+	static byte[] db2real(byte[] db) {
+		return Arrays.equals(NULL,db)?new byte[0]:db;
+	}
+
+	final LoadingCache<byte[],String> key2hash= CacheBuilder.newBuilder()
+			.maximumSize(32000)
+			.build(new CacheLoader<byte[], String>() {
+				@Override
+				public String load(byte[] key) throws Exception {
+					final MessageDigest md = MessageDigest.getInstance("SHA-512");
+					final byte[] messageDigest = md.digest(key);
+					final StringBuilder hashtext = new StringBuilder();
+					for (byte b : messageDigest) {
+						String hex = Integer.toHexString(0xff & b);
+						if (hex.length() == 1) hashtext.append('0');
+						hashtext.append(hex);
+					}
+					return hashtext.toString();
+				}
+			});
 	private class ReadableTransactionImpl implements ReadableTransaction {
 		final Connection con;
 		boolean isReadOnly=true;
@@ -205,12 +229,13 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
-			try (final PreparedStatement statement=con.prepareStatement("select v from "+getTableName(treeName)+" where k=?")){
-				statement.setBytes(1,key.toByteArray());
+			try (final PreparedStatement statement=con.prepareStatement("select v from "+getTableName(treeName)+" where h=? and k=?")){
+				statement.setString(1,key2hash.get(key.toByteArray()));
+				statement.setBytes(2,real2db(key.toByteArray()));
 				try(ResultSet rc=executeResultSet(statement)) {
 					return rc.next() ? ByteString.wrap(rc.getBytes("v")) : null;
 				}
-			}catch (SQLException e) {
+			}catch (SQLException|ExecutionException e) {
 				throw new StorageRuntimeException(e);
 			}
 		}
@@ -231,19 +256,19 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		}
 	}
 	private final class WriteableTransactionTransactionImpl extends ReadableTransactionImpl implements WriteableTransaction {
-		
+
 		public WriteableTransactionTransactionImpl(Connection con) {
 			super(con);
 			if (!accessMode.isWriteable()) {
 				throw new ReadOnlyStorageException();
 			}
-			isReadOnly=false;
+			isReadOnly = false;
 		}
 
 		boolean isExistsTable(TreeName treeName) {
-			try(final ResultSet rs = con.getMetaData().getTables(null, null, tree2table.get(treeName), new String[]{"TABLE"})) {
+			try (final ResultSet rs = con.getMetaData().getTables(null, null, null, new String[]{"TABLE"})) {
 				while (rs.next()) {
-					if (tree2table.get(treeName).equals(rs.getString("TABLE_NAME"))){
+					if (tree2table.get(treeName).equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
 						return true;
 					}
 				}
@@ -253,10 +278,21 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			return false;
 		}
 
+		String getTableDialect() {
+			if (((CachedConnection) con).parent.getClass().getName().contains("oracle")) {
+				return "h char(128),k raw(2000),v blob,primary key(h,k)";
+			}else if (((CachedConnection) con).parent.getClass().getName().contains("mysql")) {
+				return "h char(128),k tinyblob,v longblob,primary key(h,k(255))";
+			}else if (((CachedConnection) con).parent.getClass().getName().contains("microsoft")) {
+				return "h char(128),k varbinary(max),v image,primary key(h)";
+			}
+			return "h char(128),k bytea,v bytea,primary key(h,k)";
+		}
+
 		@Override
 		public void openTree(TreeName treeName, boolean createOnDemand) {
 			if (createOnDemand && !isExistsTable(treeName)) {
-				try (final PreparedStatement statement=con.prepareStatement("create table "+getTableName(treeName)+" (k bytea primary key,v bytea)")){
+				try (final PreparedStatement statement=con.prepareStatement("create table "+getTableName(treeName)+" ("+getTableDialect()+")")){
 					execute(statement);
 					con.commit();
 				}catch (SQLException e) {
@@ -289,11 +325,12 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		@Override
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
 			delete(treeName,key);
-			try (final PreparedStatement statement=con.prepareStatement("insert into "+getTableName(treeName)+" (k,v) values(?,?) ")){
-				statement.setBytes(1,key.toByteArray());
-				statement.setBytes(2,value.toByteArray());
+			try (final PreparedStatement statement=con.prepareStatement("insert into "+getTableName(treeName)+" (h,k,v) values(?,?,?) ")){
+				statement.setString(1,key2hash.get(key.toByteArray()));
+				statement.setBytes(2,real2db(key.toByteArray()));
+				statement.setBytes(3,value.toByteArray());
 				execute(statement);
-			}catch (SQLException e) {
+			}catch (SQLException|ExecutionException e) {
 				throw new StorageRuntimeException(e);
 			}
 		}
@@ -317,10 +354,11 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public boolean delete(TreeName treeName, ByteSequence key) {
-			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName)+" where k=?")){
-				statement.setBytes(1,key.toByteArray());
+			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName)+" where h=? and k=?")){
+				statement.setString(1,key2hash.get(key.toByteArray()));
+				statement.setBytes(2,real2db(key.toByteArray()));
 				execute(statement);
-			}catch (SQLException e) {
+			}catch (SQLException|ExecutionException e) {
 				throw new StorageRuntimeException(e);
 			}
 			return true;
@@ -337,7 +375,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			this.treeName=treeName;
 			this.isReadOnly=isReadOnly;
 			try {
-				statement=con.prepareStatement("select k,v from "+getTableName(treeName)+" order by k",
+				statement=con.prepareStatement("select h,k,v from "+getTableName(treeName)+" order by k",
 						isReadOnly?ResultSet.TYPE_SCROLL_INSENSITIVE:ResultSet.TYPE_SCROLL_SENSITIVE,
 						isReadOnly?ResultSet.CONCUR_READ_ONLY:ResultSet.CONCUR_UPDATABLE);
 				rc=executeResultSet(statement);
@@ -370,7 +408,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				throw new NoSuchElementException();
 			}
 			try{
-				return ByteString.wrap(rc.getBytes("k"));
+				return ByteString.wrap(db2real(rc.getBytes("k")));
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
