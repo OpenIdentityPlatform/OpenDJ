@@ -785,7 +785,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
           } catch (IOException e) {
             logger.traceException(e);
             logger.warn(ERR_STARTOK_CANNOT_WRITE, configFile, tempFilePath, getExceptionMessage(e));
-          }
+          } catch (UnsupportedOperationException e){}
         }
         catch (IOException e)
         {
