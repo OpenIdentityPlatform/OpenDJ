@@ -18,6 +18,7 @@
 :figure-caption!:
 :example-caption!:
 :table-caption!:
+:opendj-version: 4.9.2
 
 
 [#chap-writing-plugins]
@@ -169,7 +170,7 @@ $ mvn install
 . Install the example plugin in OpenDJ directory server:
 +
 
-[source, console]
+[source, console, subs="attributes"]
 ----
 $ cd /path/to/opendj
 
@@ -181,7 +182,7 @@ $ bin/stop-ds
 # The following example works with bsdtar,
 # which might require installing a bsdtar package.
 $ bsdtar -xvf \
- /path/to/opendj-server-example-plugin/target/opendj-server-example-plugin-3.5.3.zip \
+ /path/to/opendj-server-example-plugin/target/opendj-server-example-plugin-{opendj-version}.zip \
  -s'|[^/]*/||'
 x README.example.plugin
 x config/
@@ -190,7 +191,7 @@ x config/example-plugin.ldif
 x config/schema/99-example-plugin.ldif
 x lib/
 x lib/extensions/
-x lib/extensions/opendj-server-example-plugin-3.5.3.jar
+x lib/extensions/opendj-server-example-plugin-{opendj-version}.jar
 x lib/extensions/...
 
 # Start the server and create the plugin configuration:
@@ -209,7 +210,7 @@ $ bin/dsconfig \
  --no-prompt
 ...
 INFO: Loaded extension from file
- '/path/to/opendj/lib/extensions/opendj-server-example-plugin-3.5.3.jar'
+ '/path/to/opendj/lib/extensions/opendj-server-example-plugin-{opendj-version}.jar'
  (build <unknown>, revision <unknown>)
 ----
 +
