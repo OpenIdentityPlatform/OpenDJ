@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems,LLC
  */
 package org.opends.server.config;
 
@@ -30,6 +31,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -758,6 +761,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
 
     // Copy the current config file to a temporary file.
     File tempFile = new File(tempFilePath);
+
     try (FileInputStream inputStream = new FileInputStream(configFile))
     {
       try (FileOutputStream outputStream = new FileOutputStream(tempFilePath, false))
@@ -775,6 +779,13 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
 
             outputStream.write(buffer, 0, bytesRead);
           }
+          outputStream.close();
+          try {
+            Files.setPosixFilePermissions(tempFile.toPath(), PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")).value());
+          } catch (IOException e) {
+            logger.traceException(e);
+            logger.warn(ERR_STARTOK_CANNOT_WRITE, configFile, tempFilePath, getExceptionMessage(e));
+          } catch (UnsupportedOperationException e){}
         }
         catch (IOException e)
         {
