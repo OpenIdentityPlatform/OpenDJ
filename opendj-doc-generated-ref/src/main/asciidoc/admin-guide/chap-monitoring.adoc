@@ -18,6 +18,7 @@
 :figure-caption!:
 :example-caption!:
 :table-caption!:
+:opendj-version: 4.9.2
 
 
 [#chap-monitoring]
@@ -149,10 +150,10 @@ $ dsconfig \
 ----
 Use a command such as `snmpwalk` to check that the SNMP listen port works:
 
-[source, console]
+[source, console, subs="attributes"]
 ----
 $ snmpwalk -v 2c -c OpenDJ@OpenDJ localhost:11161
-SNMPv2-SMI::mib-2.66.1.1.1.1 = STRING: "OpenDJ 3.5.3..."
+SNMPv2-SMI::mib-2.66.1.1.1.1 = STRING: "OpenDJ {opendj-version}..."
 SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/opendj"
 ...
 ----
@@ -247,7 +248,7 @@ OpenDJ comes with two commands for monitoring server processes and tasks. The `s
 
 The `status` command takes administrative credentials to read the configuration, as does the control panel:
 
-[source, console]
+[source, console, subs="attributes"]
 ----
 $ status --bindDN "cn=Directory Manager" --bindPassword password
 
@@ -259,7 +260,7 @@ Open Connections:         1
 Host Name:                localhost
 Administrative Users:     cn=Directory Manager
 Installation Path:        /path/to/opendj
-Version:                  OpenDJ 3.5.3
+Version:                  OpenDJ {opendj-version}
 Java Version:             version
 Administration Connector: Port 4444 (LDAPS)
 

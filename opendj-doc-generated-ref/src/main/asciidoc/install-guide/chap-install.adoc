@@ -18,6 +18,7 @@
 :figure-caption!:
 :example-caption!:
 :table-caption!:
+:opendj-version: 4.9.2
 
 
 [#chap-install]
@@ -65,30 +66,24 @@ Antivirus and intrusion detection systems that do a deep inspection of database 
 . Download software releases from the link:https://github.com/OpenIdentityPlatform/OpenDJ/releases[GitHub, window=\_blank].
 +
 --
-The following OpenDJ 3.5.3 server software is available:
+The following OpenDJ {opendj-version} server software is available:
 
-opendj-3.5.3.zip,opendj-oem-3.5.3.zip (OEM Edition)::
+opendj-{opendj-version}.zip::
 Cross-platform OpenDJ directory server installation files.
 
-opendj_3.5.3-1_all.deb,opendj-oem_3.5.3-1_all.deb (OEM Edition)::
+opendj_{opendj-version}-1_all.deb::
 OpenDJ directory server native package for Debian and related Linux distributions.
 
-opendj-3.5.3-1.noarch.rpm,opendj-oem-3.5.3-1.noarch.rpm (OEM Edition)::
+opendj-{opendj-version}-1.noarch.rpm::
 OpenDJ directory server native package for Red Hat and related Linux distributions.
 
-opendj-dsml-servlet-3.5.3.war::
+org.openidentityplatform.opendj.opendj-dsml-servlet.war::
 Cross-platform OpenDJ DSML gateway web archive
 
-opendj-rest2ldap-servlet-3.5.3.war::
+org.openidentityplatform.opendj.opendj-rest2ldap-servlet.war::
 Cross-platform OpenDJ REST to LDAP gateway web archive
 
 --
-+
-
-[NOTE]
-======
-The OEM distribution of OpenDJ directory server does not include Berkeley DB Java Edition, and so does not support JE backends.
-======
 +
 
 . If you plan to install OpenDJ DSML gateway or OpenDJ REST to LDAP gateway, make sure you have an appropriate application server installed.
@@ -113,9 +108,9 @@ If your environment picks up an old installation of Java, installation can fail.
 ======
 After completing the steps in xref:#before-you-install["To Prepare For Installation"], follow these steps:
 
-. Unzip opendj-3.5.3.zip, and then run the `setup` command, described in xref:../reference/admin-tools-ref.adoc#setup-1[setup(1)] in the __Reference__.
+. Unzip opendj-{opendj-version}.zip, and then run the `setup` command, described in xref:../reference/admin-tools-ref.adoc#setup-1[setup(1)] in the __Reference__.
 +
-When you unzip `opendj-3.5.3.zip`, a top-level `opendj` directory is created in the directory where you unzipped the file. On Windows systems if you unzip `opendj-3.5.3.zip`, with Right-Click > Extract All, be sure to remove the trailing `opendj-3.5.3` directory from the folder you specify.
+When you unzip `opendj-{opendj-version}.zip`, a top-level `opendj` directory is created in the directory where you unzipped the file. On Windows systems if you unzip `opendj-{opendj-version}.zip`, with Right-Click > Extract All, be sure to remove the trailing `opendj-{opendj-version}` directory from the folder you specify.
 +
 Find the `setup` command in the following locations:
 
@@ -203,11 +198,11 @@ The directories for the server configuration, logs, and data files are located i
 ====
 The OpenDJ `setup --cli` command launches a command-line installation that is interactive by default. After completing the steps in xref:#before-you-install["To Prepare For Installation"], follow these steps:
 
-. Unzip `opendj-3.5.3.zip` in the file system directory where you want to install the server.
+. Unzip `opendj-{opendj-version}.zip` in the file system directory where you want to install the server.
 +
 The `setup` command, described in xref:../reference/admin-tools-ref.adoc#setup-1[setup(1)] in the __Reference__, uses the directory where you unzipped the files as the installation directory, and does not ask you where to install OpenDJ directory server. Therefore, if you want to install elsewhere on the file system, unzip the files in that location.
 +
-When you unzip `opendj-3.5.3.zip`, a top-level `opendj` directory is created in the directory where you unzipped the file. On Windows systems if you unzip `opendj-3.5.3.zip`, with Right-Click > Extract All, be sure to remove the trailing `opendj-3.5.3` directory from the folder you specify.
+When you unzip `opendj-{opendj-version}.zip`, a top-level `opendj` directory is created in the directory where you unzipped the file. On Windows systems if you unzip `opendj-{opendj-version}.zip`, with Right-Click > Extract All, be sure to remove the trailing `opendj-{opendj-version}` directory from the folder you specify.
 
 . Run the `setup --cli` command found in the `/path/to/opendj` directory.
 +
@@ -386,7 +381,7 @@ If you do not start the server during installation, you can use the `/path/to/op
 . Run the `status` command, described in xref:../reference/admin-tools-ref.adoc#status-1[status(1)] in the __Reference__, to make sure your OpenDJ server is working as expected as shown in the following example:
 +
 
-[source, console]
+[source, console, subs="attributes"]
 ----
 $ /path/to/opendj/bin/status
 
@@ -404,7 +399,7 @@ Open Connections:         1
 Host Name:                opendj.example.com
 Administrative Users:     cn=Directory Manager
 Installation Path:        /path/to/opendj
-Version:                  OpenDJ 3.5.3
+Version:                  OpenDJ {opendj-version}
 Java Version:             version
 Administration Connector: Port 4444 (LDAPS)
 
@@ -448,14 +443,14 @@ $ sudo apt-get install default-jre
 . Install the OpenDJ directory server package:
 +
 
-[source, console]
+[source, console, subs="attributes"]
 ----
-$ sudo dpkg -i opendj_3.5.3-1_all.deb
+$ sudo dpkg -i opendj_{opendj-version}-1_all.deb
 Selecting previously unselected package opendj.
 (Reading database ... 185569 files and directories currently installed.)
-Unpacking opendj (from opendj_3.5.3-1_all.deb) ...
+Unpacking opendj (from opendj_{opendj-version}-1_all.deb) ...
 
-Setting up opendj (3.5.3) ...
+Setting up opendj ({opendj-version}) ...
  Adding system startup for /etc/init.d/opendj ...
    /etc/rc0.d/K20opendj -> ../init.d/opendj
    /etc/rc1.d/K20opendj -> ../init.d/opendj
@@ -487,10 +482,10 @@ To see basic server configuration status and configuration you can launch
 . (Optional)  Check OpenDJ directory server status:
 +
 
-[source, console]
+[source, console, subs="attributes"]
 ----
 $ service opendj status
-$opendj status: > Running.
+opendj status: > Running.
 $ sudo /opt/opendj/bin/status
 
 
@@ -508,7 +503,7 @@ Open Connections:         1
 Host Name:                ubuntu.example.com
 Administrative Users:     cn=Directory Manager
 Installation Path:        /opt/opendj
-Version:                  OpenDJ 3.5.3
+Version:                  OpenDJ {opendj-version}
 Java Version:             version
 Administration Connector: Port 4444 (LDAPS)
 
@@ -559,9 +554,9 @@ You might need to download an RPM to install the Java runtime environment, and t
 . Install the OpenDJ directory server package:
 +
 
-[source, console]
+[source, console, subs="attributes"]
 ----
-# rpm -i opendj-3.5.3-1.noarch.rpm
+# rpm -i opendj-{opendj-version}-1.noarch.rpm
 Pre Install - initial install
 Post Install - initial install
 
@@ -586,7 +581,7 @@ To see basic server configuration status and configuration you can launch
 . (Optional)  Check OpenDJ directory server status:
 +
 
-[source, console]
+[source, console, subs="attributes"]
 ----
 # service opendj status
 opendj status: > Running.
@@ -607,7 +602,7 @@ Open Connections:         1
 Host Name:                fedora.example.com
 Administrative Users:     cn=Directory Manager
 Installation Path:        /opt/opendj
-Version:                  OpenDJ 3.5.3
+Version:                  OpenDJ {opendj-version}
 Java Version:             version
 Administration Connector: Port 4444 (LDAPS)
 
@@ -688,12 +683,12 @@ If you have multiple servers to install, consider scripting creation of the prop
 . Prepare an installation script:
 +
 
-[source, console]
+[source, console, subs="attributes"]
 ----
 $ cat /net/install/dj/1/setup.sh
 #!/bin/sh
 
-unzip -d /path/to /net/install/dj/opendj-3.5.3.zip && cd /path/to/opendj
+unzip -d /path/to /net/install/dj/opendj-{opendj-version}.zip && cd /path/to/opendj
 ./setup --cli --propertiesFilePath /net/install/dj/1/setup.props \
   --acceptLicense --no-prompt
 ----
@@ -743,10 +738,10 @@ END_OF_COMMAND_INPUT
 . Run your installation script:
 +
 
-[source, console]
+[source, console, subs="attributes"]
 ----
 $ /net/install/dj/1/setup.sh
-Archive:  /net/install/dj/opendj-3.5.3.zip
+Archive:  /net/install/dj/opendj-{opendj-version}.zip
    creating: /path/to/opendj
 ...
   inflating: /path/to/opendj/setup
@@ -977,7 +972,7 @@ You can edit this file, and define additional files for alternative APIs and ver
 --
 Follow these steps to install the OpenDJ REST to LDAP gateway:
 
-. Deploy `opendj-rest2ldap-servlet-3.5.3.war` according to the instructions for your application server.
+. Deploy `org.openidentityplatform.opendj.opendj-rest2ldap-servlet.war` according to the instructions for your application server.
 
 . Edit the configuration files in the deployed gateway web application.
 +
@@ -1062,7 +1057,7 @@ This procedure applies to OpenDJ REST to LDAP gateway 3.0. If you are using Open
 ======
 You configure the gateway to access your directory service by editing the configuration file `opendj-rest2ldap-servlet.json` in the deployed OpenDJ REST to LDAP gateway web application:
 
-. Deploy `opendj-rest2ldap-servlet-3.5.3-servlet.war` according to the instructions for your application server.
+. Deploy `org.openidentityplatform.opendj.opendj-rest2ldap-servlet.war` according to the instructions for your application server.
 
 . Edit `opendj-rest2ldap-servlet.json` where you deployed the gateway web application.
 +
@@ -1121,7 +1116,7 @@ If you generated example data, Babs Jensen's entry is not included. Instead, try
 ====
 The OpenDJ DSML gateway functions as a web application in a web application container. The DSML gateway runs independently of OpenDJ directory server. You configure the gateway to access your directory service by editing the `ldap.host` and `ldap.port` parameters in the gateway `WEB-INF/web.xml` configuration file:
 
-. Deploy `opendj-dsml-servlet-3.5.3.war` according to the instructions for your application server.
+. Deploy `org.openidentityplatform.opendj.opendj-dsml-servlet.war` according to the instructions for your application server.
 
 . Edit `WEB-INF/web.xml` to ensure the values for `ldap.host` and `ldap.port` are correct.
 
