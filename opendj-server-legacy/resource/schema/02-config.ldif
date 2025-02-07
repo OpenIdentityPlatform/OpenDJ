@@ -15,7 +15,7 @@
 # Portions Copyright 2011 profiq, s.r.o.
 # Portions Copyright 2012 Manuel Gaupp
 # Portions copyright 2015 Edan Idzerda
-# Portions copyright 2023-2024 3A Systems LLC
+# Portions copyright 2023-2025 3A Systems LLC
 
 # This file contains the attribute type and objectclass definitions for use
 # with the Directory Server configuration.
@@ -6257,4 +6257,13 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.105
   STRUCTURAL
   MAY ds-cfg-pbkdf2-iterations
   X-ORIGIN 'OpenDJ Directory Server' )
-  
+objectClasses: ( 1.3.6.1.4.1.60142.1.2.1
+  NAME 'ds-cfg-start-transaction-extended-operation-handler'
+  SUP ds-cfg-extended-operation-handler
+  STRUCTURAL
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.60142.1.2.2
+  NAME 'ds-cfg-end-transaction-extended-operation-handler'
+  SUP ds-cfg-extended-operation-handler
+  STRUCTURAL
+  X-ORIGIN 'OpenDS Directory Server' )
