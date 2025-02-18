@@ -311,6 +311,7 @@
 			  </executions>
 			  <configuration>
 			  	<doclint>none</doclint>
+                <notimestamp>true</notimestamp>
 			  </configuration>
 			</plugin>
 			<plugin>
