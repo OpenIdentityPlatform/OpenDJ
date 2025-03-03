@@ -13,10 +13,12 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2024 3A Systems, LLC.
+ * Portions Copyright 2024-2025 3A Systems, LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -66,6 +68,9 @@ public class LocalBackendSearchOperation
 
   /** The filter for the search. */
   private SearchFilter filter;
+
+  /** Service object to detect dereferencing recursion */
+  private final Set<DN> dereferencingDNs = new HashSet<>();
 
   /**
    * Creates a new operation that may be used to search for entries in a local
@@ -207,9 +212,18 @@ public class LocalBackendSearchOperation
       ) {
         final Entry baseEntry=DirectoryServer.getEntry(baseDN);
         if (baseEntry!=null && baseEntry.isAlias()) {
-          setBaseDN(baseEntry.getAliasedDN());
-          processSearch(executePostOpPlugins);
-          return;
+          final DN aliasedDn = baseEntry.getAliasedDN();
+          if(!dereferencingDNs.contains(aliasedDn)) { //detect recursive search
+            dereferencingDNs.add(aliasedDn);
+            setBaseDN(aliasedDn);
+            try {
+              processSearch(executePostOpPlugins);
+            } catch (StackOverflowError error) {
+              throw new Exception(error);
+            }
+            dereferencingDNs.remove(aliasedDn);
+            return;
+          }
         }
       }
 
