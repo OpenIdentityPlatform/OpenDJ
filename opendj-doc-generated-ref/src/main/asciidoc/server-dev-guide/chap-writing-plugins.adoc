@@ -18,7 +18,7 @@
 :figure-caption!:
 :example-caption!:
 :table-caption!:
-:opendj-version: 4.9.2
+:opendj-version: 4.9.3
 
 
 [#chap-writing-plugins]
