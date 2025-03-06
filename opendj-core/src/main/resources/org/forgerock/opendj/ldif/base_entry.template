@@ -1,6 +1,0 @@
-define suffix=dc=example,dc=com
-
-branch: [suffix]
-objectClass: top
-objectClass: domain
-
