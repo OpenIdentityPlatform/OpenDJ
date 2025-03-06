@@ -21,7 +21,6 @@ fi
 /opt/opendj/setup \
   --cli \
   -h localhost \
-  --baseDN $BASE_DN \
   --ldapPort $PORT \
   --ldapsPort $LDAPS_PORT \
   --enableStartTLS $OPENDJ_SSL_OPTIONS \
@@ -31,10 +30,22 @@ fi
   --acceptLicense \
   --no-prompt \
   --noPropertiesFile \
-  --doNotStart \
-  $ADD_BASE_ENTRY #--sampleData 1
+  $SETUP_ARGS
 
-/opt/opendj/bin/start-ds
+BACKEND_TYPE=${BACKEND_TYPE:-je}
+BACKEND_DB_DIRECTORY=${BACKEND_DB_DIRECTORY:-db}
+echo "creating backend: $BACKEND_TYPE db-directory: ${BACKEND_DB_DIRECTORY}"
+
+/opt/opendj/bin/dsconfig create-backend -h localhost -p $ADMIN_PORT --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD" \
+  --backend-name=userRoot --type $BACKEND_TYPE --set base-dn:$BASE_DN --set "db-directory:$BACKEND_DB_DIRECTORY" \
+  --set enabled:true --no-prompt --trustAll
+
+if [ "$ADD_BASE_ENTRY" = "--addBaseEntry" ]; then
+  /opt/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=$BASE_DN /opt/opendj/template/config/MakeLDIF/base_entry.template
+  /opt/opendj/bin/ldapmodify --hostname localhost --port 1636 --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD" --useSsl --trustAll -f /tmp/test.ldif -a
+  rm /tmp/test.ldif
+fi
+
 
 # There are multiple types of ldif files.
 # The steps below import ldifs via `ldapmodify`.
