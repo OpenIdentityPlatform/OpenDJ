@@ -42,16 +42,17 @@ echo "creating backend: $BACKEND_TYPE db-directory: ${BACKEND_DB_DIRECTORY}"
 
 if [ "$ADD_BASE_ENTRY" = "--addBaseEntry" ]; then
 
-  cat <<EOL > /tmp/base_entry.template
-define suffix=dc=example,dc=com
-branch: [suffix]
-objectClass: top
-objectClass: domain
-EOL
+  DC=$(echo "$BASE_DN" | awk -F',|=' '{print $2}')
 
-  /opt/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=$BASE_DN /tmp/base_entry.template
-  /opt/opendj/bin/ldapmodify --hostname localhost --port 1636 --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD" --useSsl --trustAll -f /tmp/test.ldif -a
-  rm /tmp/test.ldif /tmp/base_entry.template
+  /opt/opendj/bin/ldapmodify --hostname localhost \
+    --port 1636 --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD" \
+    --useSsl --trustAll <<EOF
+dn: $BASE_DN
+dc: $DC
+objectClass: domain
+objectClass: top
+EOF
+
 fi
 
 
