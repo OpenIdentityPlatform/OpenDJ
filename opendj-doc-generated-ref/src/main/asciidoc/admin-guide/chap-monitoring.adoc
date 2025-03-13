@@ -18,7 +18,7 @@
 :figure-caption!:
 :example-caption!:
 :table-caption!:
-:opendj-version: 4.9.2
+:opendj-version: 4.9.3
 
 
 [#chap-monitoring]
@@ -83,7 +83,7 @@ To run the OpenDMK installer, use the self-extracting .jar:
 ----
 $ java -jar ~/Downloads/opendmk-1.0-b02-*.jar
 $ cd ~/Downloads/
-$ unzip DS-5.5.0.zip
+$ unzip opendj-{opendj-version}.zip
 $ java -jar opendj/snmp/opendmk.jar
 ----
 If you install under `/path/to`, then the runtime library needed for SNMP is `/path/to/OpenDMK-bin/lib/jdmkrt.jar`.
