@@ -64,7 +64,9 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example2,dc=com opendj-server-legacy/target/package/opendj/config/MakeLDIF/example.template
         opendj-server-legacy/target/package/opendj/bin/stop-ds
         opendj-server-legacy/target/package/opendj/bin/import-ldif --offline --ldifFile /tmp/test.ldif --backendID=example2
+        opendj-server-legacy/target/package/opendj/bin/rebuild-index --offline --bindDN "cn=Directory Manager" --bindPassword password  --baseDN "dc=example2,dc=com" --rebuildAll
         opendj-server-legacy/target/package/opendj/bin/start-ds
+        opendj-server-legacy/target/package/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
         opendj-server-legacy/target/package/opendj/bin/stop-ds
         rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs}
@@ -110,7 +112,9 @@ jobs:
         opendj-server-legacy\target\package\opendj\bat\makeldif.bat -o test.ldif -c suffix=dc=example2,dc=com opendj-server-legacy\target\package\opendj\config\MakeLDIF\example.template
         opendj-server-legacy\target\package\opendj\bat\stop-ds.bat
         opendj-server-legacy\target\package\opendj\bat\import-ldif.bat --offline --ldifFile test.ldif --backendID=example2
+        opendj-server-legacy\target\package\opendj\bat\rebuild-index.bat --offline --bindDN "cn=Directory Manager" --bindPassword password  --baseDN "dc=example2,dc=com" --rebuildAll
         opendj-server-legacy\target\package\opendj\bat\start-ds.bat
+        opendj-server-legacy\target\package\opendj\bat\rebuild-index.bat --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "10000"
         opendj-server-legacy\target\package\opendj\bat\stop-ds.bat
     - name: Upload artifacts OpenDJ Server
@@ -175,8 +179,17 @@ jobs:
       - name: Docker test
         shell: bash
         run: |
-          docker run --rm -it -d --memory="1g" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
+          docker run --rm -it -d --memory="512m" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test | grep -q \"healthy\"; do sleep 10; done'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example2,dc=com /opt/opendj/data/config/MakeLDIF/example.template'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/stop-ds'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/import-ldif --offline --ldifFile /tmp/test.ldif --backendID=example2'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --offline --bindDN "cn=Directory Manager" --bindPassword password  --baseDN "dc=example2,dc=com" --rebuildAll'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/start-ds'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000'
+
   build-docker-alpine:
     runs-on: 'ubuntu-latest'
     services:
@@ -226,3 +239,12 @@ jobs:
         run: |
           docker run --rm -it -d --memory="1g" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test | grep -q \"healthy\"; do sleep 10; done'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example2,dc=com /opt/opendj/data/config/MakeLDIF/example.template'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/stop-ds'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/import-ldif --offline --ldifFile /tmp/test.ldif --backendID=example2'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --offline --bindDN "cn=Directory Manager" --bindPassword password  --baseDN "dc=example2,dc=com" --rebuildAll'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/start-ds'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000'
+
