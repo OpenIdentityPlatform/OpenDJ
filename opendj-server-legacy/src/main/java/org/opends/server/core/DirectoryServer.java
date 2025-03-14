@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2010-2016 ForgeRock AS.
+ * Portions Copyright 2022-2025 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -1530,8 +1531,6 @@ public final class DirectoryServer
         configurationHandler.writeSuccessfulStartupConfig();
       }
 
-      isRunning = true;
-
       LocalizableMessage message = NOTE_DIRECTORY_SERVER_STARTED.get();
       logger.info(message);
       sendAlertNotification(this, ALERT_TYPE_SERVER_STARTED, message);
@@ -1549,6 +1548,8 @@ public final class DirectoryServer
       httpEndpointConfigManager.registerTo(serverContext.getServerManagementContext().getRootConfiguration());
 
       deleteUnnecessaryFiles();
+
+      isRunning = true;
     }
   }
 
