@@ -44,7 +44,7 @@ ORIGIN_SCRIPT_NAME=${SCRIPT_NAME}
 SCRIPT_NAME=${ORIGIN_SCRIPT_NAME}.online
 for opt in `echo $*`
 do
-  `echo ${opt}|grep -iq "\-\-offline"`
+  `echo ${opt}|grep -iq -- --offline`
   ret_code=$?
   if test ${ret_code} -eq 0
   then
