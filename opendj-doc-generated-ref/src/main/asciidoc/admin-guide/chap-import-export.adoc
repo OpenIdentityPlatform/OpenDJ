@@ -352,10 +352,19 @@ Alternatively, you can create a new backend in OpenDJ control panel (Directory D
 When you create a new backend using the `dsconfig` command, OpenDJ directory server creates the following indexes automatically:
 [none]
 * `aci` presence
+* `cn` equality, substring
 * `ds-sync-conflict` equality
 * `ds-sync-hist` ordering
 * `entryUUID` equality
 * `objectClass` equality
+* `givenName` equality, substring
+* `mail`  equality, substring
+* `member` equality
+* `sn` equality, substring
+* `telephoneNumber` equality, substring
+* `uid` equality
+* `uniqueMember` equality
+
 You can create additional indexes as described in xref:../admin-guide/chap-indexing.adoc#configure-indexes["Configuring and Rebuilding Indexes"].
 
 

@@ -71,6 +71,77 @@
           <adm:value>ds-sync-conflict</adm:value>
         </adm:property>
       </adm:default-managed-object>
+
+      <adm:default-managed-object name="cn">
+        <adm:property name="index-type">
+          <adm:value>equality</adm:value>
+          <adm:value>substring</adm:value>
+        </adm:property>
+        <adm:property name="attribute">
+          <adm:value>cn</adm:value>
+        </adm:property>
+      </adm:default-managed-object>
+      <adm:default-managed-object name="givenName">
+        <adm:property name="index-type">
+          <adm:value>equality</adm:value>
+          <adm:value>substring</adm:value>
+        </adm:property>
+        <adm:property name="attribute">
+          <adm:value>givenName</adm:value>
+        </adm:property>
+      </adm:default-managed-object>
+      <adm:default-managed-object name="mail">
+        <adm:property name="index-type">
+          <adm:value>equality</adm:value>
+          <adm:value>substring</adm:value>
+        </adm:property>
+        <adm:property name="attribute">
+          <adm:value>mail</adm:value>
+        </adm:property>
+      </adm:default-managed-object>
+      <adm:default-managed-object name="sn">
+        <adm:property name="index-type">
+          <adm:value>equality</adm:value>
+          <adm:value>substring</adm:value>
+        </adm:property>
+        <adm:property name="attribute">
+          <adm:value>sn</adm:value>
+        </adm:property>
+      </adm:default-managed-object>
+      <adm:default-managed-object name="telephoneNumber">
+        <adm:property name="index-type">
+          <adm:value>equality</adm:value>
+          <adm:value>substring</adm:value>
+        </adm:property>
+        <adm:property name="attribute">
+          <adm:value>telephoneNumber</adm:value>
+        </adm:property>
+      </adm:default-managed-object>
+      <adm:default-managed-object name="member">
+        <adm:property name="index-type">
+          <adm:value>equality</adm:value>
+        </adm:property>
+        <adm:property name="attribute">
+          <adm:value>member</adm:value>
+        </adm:property>
+      </adm:default-managed-object>
+      <adm:default-managed-object name="uid">
+        <adm:property name="index-type">
+          <adm:value>equality</adm:value>
+        </adm:property>
+        <adm:property name="attribute">
+          <adm:value>uid</adm:value>
+        </adm:property>
+      </adm:default-managed-object>
+      <adm:default-managed-object name="uniqueMember">
+        <adm:property name="index-type">
+          <adm:value>equality</adm:value>
+        </adm:property>
+        <adm:property name="attribute">
+          <adm:value>uniqueMember</adm:value>
+        </adm:property>
+      </adm:default-managed-object>
+
     </adm:one-to-many>
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=Index</ldap:rdn-sequence>
