@@ -880,6 +880,7 @@ public class UserData
     for (String serverScript : getServerScripts())
     {
       JavaArguments javaArgument = new JavaArguments();
+      javaArgument.setAdditionalArguments(new String[] {"-server"});
       hmJavaArguments.put(serverScript, javaArgument);
     }
 
