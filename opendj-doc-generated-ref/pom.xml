@@ -21,7 +21,8 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.openidentityplatform.opendj</groupId>
-        <version>4.9.4-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>opendj-doc-generated-ref</artifactId>

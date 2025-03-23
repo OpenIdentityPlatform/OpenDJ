@@ -27,7 +27,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-@Test(groups = { "precommit", "pluggablebackend", "unit" }, sequential=true)
+@Test(groups = { "precommit", "pluggablebackend", "unit" }, singleThreaded = true)
 public class EntryIDSetTest extends DirectoryServerTestCase
 {
   private final static ByteString KEY = ByteString.valueOfUtf8("test");

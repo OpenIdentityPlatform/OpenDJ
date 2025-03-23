@@ -26,7 +26,7 @@ final class Utils
 {
   public static void assertIdsEquals(Iterator<EntryID> actual, long... expected)
   {
-    assertThat(actual).containsAll(asList(expected));
+    assertThat(actual).toIterable().containsAll(asList(expected));
   }
 
   public static void assertIsEmpty(EntryIDSet actual)

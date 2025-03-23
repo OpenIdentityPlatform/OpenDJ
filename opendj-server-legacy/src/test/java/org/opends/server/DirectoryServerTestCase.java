@@ -39,7 +39,7 @@ import java.lang.reflect.Modifier;
  * This class adds the ability to print error messages and automatically
  * have them include the class name.
  */
-@Test(sequential=true)
+@Test(singleThreaded = true)
 @SuppressWarnings("javadoc")
 public abstract class DirectoryServerTestCase extends ForgeRockTestCase {
 

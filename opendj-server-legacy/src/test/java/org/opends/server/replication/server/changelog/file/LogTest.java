@@ -39,7 +39,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-@Test(sequential=true)
+@Test(singleThreaded = true)
 public class LogTest extends DirectoryServerTestCase
 {
   /** Use a directory dedicated to this test class. */

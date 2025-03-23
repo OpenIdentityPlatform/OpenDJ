@@ -48,7 +48,7 @@ import org.testng.annotations.Test;
 /**
  * Tests for an embedded directory server.
  */
-@Test(groups = "slow", sequential=true)
+@Test(groups = "slow", singleThreaded = true)
 @SuppressWarnings("javadoc")
 public class EmbeddedDirectoryServerTestCase extends UtilTestCase
 {

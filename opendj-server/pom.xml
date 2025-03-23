@@ -19,8 +19,10 @@
   <parent>
     <groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>4.9.4-SNAPSHOT</version>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
+
   <artifactId>opendj-server</artifactId>
   <name>OpenDJ Server NG</name>
   <description>
@@ -128,10 +130,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
       </plugin>
     </plugins>
   </build>

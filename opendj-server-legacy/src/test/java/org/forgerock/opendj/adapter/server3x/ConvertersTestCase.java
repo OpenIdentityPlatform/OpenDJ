@@ -88,7 +88,7 @@ import org.testng.annotations.Test;
  * </pre>
  */
 @SuppressWarnings("javadoc")
-@Test(sequential=true)
+@Test(singleThreaded = true)
 public class ConvertersTestCase extends DirectoryServerTestCase {
 
     /**

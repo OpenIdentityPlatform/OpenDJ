@@ -35,7 +35,7 @@ import static org.testng.Assert.*;
 /**
  * A set of test cases for FIFO entry cache implementation.
  */
-@Test(groups = "entrycache", sequential=true)
+@Test(groups = "entrycache", singleThreaded = true)
 public class FIFOEntryCacheTestCase
        extends CommonEntryCache<FIFOEntryCacheCfg>
 {

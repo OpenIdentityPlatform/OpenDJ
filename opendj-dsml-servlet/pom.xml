@@ -20,7 +20,8 @@
     <parent>
         <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-parent</artifactId>
-        <version>4.9.4-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>opendj-dsml-servlet</artifactId>
@@ -39,9 +40,9 @@
     <dependencies>
     	<!-- Servlet API -->
         <dependency>
-      		<groupId>javax.servlet</groupId>
-      		<artifactId>javax.servlet-api</artifactId>
-      		<version>3.1.0</version>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.1.0</version>
             <scope>provided</scope>
     	</dependency>
 
@@ -79,20 +80,20 @@
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
-        
+
         <dependency>
         	<groupId>com.sun.xml.ws</groupId>
 		    <artifactId>jaxws-ri</artifactId>
 		    <version>2.3.2</version>
 		    <type>pom</type>
         </dependency>
-        
+
         <dependency>
 		    <groupId>jakarta.xml.bind</groupId>
 		    <artifactId>jakarta.xml.bind-api</artifactId>
 		    <version>3.0.1</version>
 		</dependency>
-		
+
 		<dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>

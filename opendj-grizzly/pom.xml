@@ -20,7 +20,8 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.openidentityplatform.opendj</groupId>
-        <version>4.9.4-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>opendj-grizzly</artifactId>
@@ -78,6 +79,7 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
+            <version>6.14.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -138,10 +140,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
         </plugins>
     </build>
 

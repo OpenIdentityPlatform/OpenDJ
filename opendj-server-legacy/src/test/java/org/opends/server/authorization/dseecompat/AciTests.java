@@ -75,7 +75,7 @@ import org.testng.annotations.Test;
  * the syntax.
  */
 @SuppressWarnings("javadoc")
-@Test(sequential=true, groups="slow")
+@Test(singleThreaded = true, groups="slow")
 public class AciTests extends AciTestCase {
 // TODO: test modify use cases
 // TODO: test searches where we expect a subset of attributes and entries

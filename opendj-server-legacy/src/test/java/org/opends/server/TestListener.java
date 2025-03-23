@@ -155,11 +155,11 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   @Override
   public void onStart(ITestContext testContext) {
     super.onStart(testContext);
-    
+
     if (testContext.getAllTestMethods().length>0) {
     	TestCaseUtils.setTestName(testContext.getAllTestMethods()[0].getInstance().getClass().getName());
     }
-    
+
     // Delete the previous report if it's there.
     new File(testContext.getOutputDirectory(), REPORT_FILE_NAME).delete();
   }
@@ -167,7 +167,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   @Override
   public void onFinish(ITestContext testContext) {
 	super.onFinish(testContext);
-	
+
 	if (testContext.getAllTestMethods().length>0) {
 		if (testContext.getFailedConfigurations().size()==0 && testContext.getFailedTests().size()==0) {
 		    try {
@@ -326,7 +326,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     if (!_classesWithTestsRunInterleaved.isEmpty()) {
       System.err.println("WARNING:  Some of the test methods for multiple classes " +
               "were run out of order (i.e. interleaved with other classes).  Either "  +
-              "a class doesn't have the sequential=true annotation, which should " +
+              "a class doesn't have the singleThreaded = true annotation, which should " +
               "have been reported already or there has been a regression with TestNG.");
     }
   }
@@ -539,7 +539,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
     // Read the comments in DirectoryServerTestCase to understand what's
     // going on here.
-    Object[] testInstances = result.getMethod().getInstances();
+    Object[] testInstances = (Object[]) result.getMethod().getInstance();
     for (Object testInstance : testInstances)
     {
       if (testInstance instanceof DirectoryServerTestCase) {
@@ -602,7 +602,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       String errorMessage =
               "The test class " + testClass.getName() + " does not have a @Test annotation.  " +
               "All test classes must have a @Test annotation, and this annotation must have " +
-              "sequential=true set to ensure that tests for a single class are run together.";
+              "singleThreaded = true set to ensure that tests for a single class are run together.";
       TestCaseUtils.originalSystemErr.println("\n\nERROR: " + errorMessage + "\n\n");
       throw new RuntimeException(errorMessage);
     }
@@ -614,7 +614,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       String errorMessage =
               "The @Test annotation for class " + testClass.getName() +
               (isTestClass ? " " : (", which is declared by class " + annotatedClass.getName() + ", ")) +
-              "must include sequential=true to ensure that tests for a single class are run together.";
+              "must include singleThreaded = true to ensure that tests for a single class are run together.";
       TestCaseUtils.originalSystemErr.println("\n\nERROR: " + errorMessage + "\n\n");
       throw new RuntimeException(errorMessage);
     }
@@ -624,7 +624,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private Object _lastTestObject;
   private final IdentityHashMap<Object,Object> _previousTestObjects = new IdentityHashMap<>();
   private void checkForInterleavedBetweenClasses(ITestResult tr) {
-    Object[] testInstances = tr.getMethod().getInstances();
+    Object[] testInstances = (Object[]) tr.getMethod().getInstance();
     // This will almost always have a single element.  If it doesn't, just skip it.
     if (testInstances.length != 1) {
       return;

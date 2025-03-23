@@ -72,7 +72,7 @@ import org.testng.annotations.Test;
 
 /** This class defines a set of tests for the Adapters.class. */
 @SuppressWarnings("javadoc")
-@Test(sequential=true)
+@Test(singleThreaded = true)
 public class AdaptersTestCase extends DirectoryServerTestCase {
     private static final String USER_0_DN_STRING = "uid=user.0,o=test";
 

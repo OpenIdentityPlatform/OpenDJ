@@ -134,7 +134,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
       try
       {
         PersistentSearchChangeType.valueOf(i);
-        fail();
+        org.assertj.core.api.Assertions.fail();
       }
       catch (LDAPException e)
       {
@@ -178,7 +178,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
     try
     {
       PersistentSearchChangeType.intToTypes(0);
-      fail();
+      org.assertj.core.api.Assertions.fail();
     }
     catch (LDAPException expected)
     {
@@ -191,7 +191,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
     try
     {
       PersistentSearchChangeType.intToTypes(i);
-      fail();
+      org.assertj.core.api.Assertions.fail();
     }
     catch (LDAPException expected)
     {
@@ -316,7 +316,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
       {
         control = new LDAPControl(OID_PERSISTENT_SEARCH, isCritical);
         psc = PersistentSearchControl.DECODER.decode(control.isCritical(), control.getValue());
-        fail();
+        org.assertj.core.api.Assertions.fail();
       }
       catch (DirectoryException expected)
       {
@@ -330,7 +330,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
         control = new LDAPControl(OID_PERSISTENT_SEARCH, isCritical,
             ByteString.valueOfUtf8("invalid value"));
         psc = PersistentSearchControl.DECODER.decode(control.isCritical(), control.getValue());
-        fail();
+        org.assertj.core.api.Assertions.fail();
       }
       catch (DirectoryException expected)
       {
@@ -396,7 +396,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
       }
       catch (DirectoryException e)
       {
-        fail();
+        org.assertj.core.api.Assertions.fail();
       }
     }
 
@@ -479,7 +479,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
       LDAPControl control =
           new LDAPControl(OID_ENTRY_CHANGE_NOTIFICATION, isCritical);
       newEcnc = EntryChangeNotificationControl.DECODER.decode(control.isCritical(), control.getValue());
-      fail();
+      org.assertj.core.api.Assertions.fail();
     }
     catch (DirectoryException expected)
     {

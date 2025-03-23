@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-deb</artifactId>
-        <version>4.9.4-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>opendj-deb-standard</artifactId>
@@ -62,7 +62,7 @@
                 	<skipPOMs>false</skipPOMs>
                 </configuration>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>

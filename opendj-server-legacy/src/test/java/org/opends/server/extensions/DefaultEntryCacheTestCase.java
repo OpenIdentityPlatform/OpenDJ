@@ -41,7 +41,7 @@ import org.testng.annotations.Test;
 /**
  * A set of test cases for default entry cache implementation.
  */
-@Test(groups = "entrycache", sequential=true)
+@Test(groups = "entrycache", singleThreaded = true)
 public class DefaultEntryCacheTestCase
        extends CommonEntryCache<EntryCacheCfg>
 {

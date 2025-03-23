@@ -42,7 +42,7 @@ import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMat
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 
 @SuppressWarnings("javadoc")
-@Test(sequential=true)
+@Test(singleThreaded = true)
 public class LogFileTest extends DirectoryServerTestCase
 {
   private static final File TEST_DIRECTORY = new File(TestCaseUtils.getUnitTestRootPath(), "changelog-unit");

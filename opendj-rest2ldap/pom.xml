@@ -20,9 +20,10 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.openidentityplatform.opendj</groupId>
-        <version>4.9.4-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
-	
+
     <artifactId>opendj-rest2ldap</artifactId>
     <name>OpenDJ Commons REST Adapter</name>
     <description>This module includes APIs for accessing LDAP repositories using commons REST.</description>

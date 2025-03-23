@@ -23,7 +23,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /** Utils Tester. */
-@Test(sequential=true)
+@Test(singleThreaded = true)
 @SuppressWarnings("javadoc")
 public class UtilsTest extends DirectoryServerTestCase {
 

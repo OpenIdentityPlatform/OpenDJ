@@ -39,12 +39,12 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.Action;
+import org.mockito.Matchers;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -615,7 +615,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
                 eq(1L),
                 eq(Arrays.asList("dn: dc=example,dc=com", "changetype: add", "objectClass: top",
                         "objectClass: domainComponent", "dc: example", "xxx: unknown attribute")),
-                anyListOf(LocalizableMessage.class));
+            Matchers.<LocalizableMessage>anyList());
         reader.close();
     }
 
@@ -649,7 +649,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
                 eq(1L),
                 eq(Arrays.asList("dn: dc=example,dc=com", "changetype: add", "objectClass: top",
                         "objectClass: domainComponent", "dc: example", "xxx: unknown attribute")),
-                anyListOf(LocalizableMessage.class));
+                Matchers.<LocalizableMessage>anyList());
         reader.close();
     }
 

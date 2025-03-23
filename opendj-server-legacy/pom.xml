@@ -21,8 +21,10 @@
   <parent>
     <groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>4.9.4-SNAPSHOT</version>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
+
   <artifactId>opendj-server-legacy</artifactId>
   <packaging>jar</packaging>
   <name>OpenDJ Server</name>
@@ -65,7 +67,7 @@
     <product.archive.name>${product.name.lowercase}-${project.version}</product.archive.name>
 
     <juel.version>2.2.7</juel.version>
-    
+
     <doclint>none</doclint>
     <opendmk.lib.dir>${basedir}/opendmk</opendmk.lib.dir>
   </properties>
@@ -86,12 +88,12 @@
       <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-config</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-cli</artifactId>
     </dependency>
-    
+
      <dependency>
       <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-legacy</artifactId>
@@ -204,11 +206,12 @@
       <artifactId>jul-to-slf4j</artifactId>
     </dependency>
 
-       
+
     <!-- mail -->
     <dependency>
       <groupId>com.sun.mail</groupId>
-      <artifactId>javax.mail</artifactId>
+      <artifactId>jakarta.mail</artifactId>
+      <version>2.0.1</version>
     </dependency>
 
     <dependency>
@@ -229,7 +232,7 @@
       <groupId>org.openidentityplatform.commons.persistit</groupId>
       <artifactId>core</artifactId>
     </dependency>
-	
+
     <dependency>
       <groupId>com.github.stephenc.jcip</groupId>
       <artifactId>jcip-annotations</artifactId>
@@ -246,57 +249,58 @@
       <artifactId>juel-api</artifactId>
       <version>${juel.version}</version>
     </dependency>
-    
+
     <dependency>
-	    <groupId>com.datastax.oss</groupId>
-	    <artifactId>java-driver-core</artifactId>
-	    <version>4.17.0</version>
-	    <exclusions>
-	    	<exclusion>
-	    		<groupId>org.reactivestreams</groupId>
-	    		<artifactId>reactive-streams</artifactId>
-	    	</exclusion>
-	    </exclusions>
+      <groupId>org.apache.cassandra</groupId>
+      <artifactId>java-driver-core</artifactId>
+      <version>4.19.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.reactivestreams</groupId>
+          <artifactId>reactive-streams</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.7.4</version>
+      <version>42.7.5</version>
     </dependency>
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
+      <version>6.14.3</version>
       <scope>test</scope>
     </dependency>
     <!-- TestContainers-->
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>cassandra</artifactId>
-      <version>1.20.4</version>
+      <version>1.20.6</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
-      <version>1.20.4</version>
+      <version>1.20.6</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>oracle-free</artifactId>
-      <version>1.20.4</version>
+      <version>1.20.6</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>mysql</artifactId>
-      <version>1.20.4</version>
+      <version>1.20.6</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>mssqlserver</artifactId>
-      <version>1.20.4</version>
+      <version>1.20.6</version>
       <scope>test</scope>
     </dependency>
 
@@ -309,12 +313,12 @@
     <dependency>
       <groupId>com.oracle.database.jdbc</groupId>
       <artifactId>ojdbc8</artifactId>
-      <version>23.6.0.24.10</version>
+      <version>23.7.0.25.01</version>
     </dependency>
     <dependency>
       <groupId>com.microsoft.sqlserver</groupId>
       <artifactId>mssql-jdbc</artifactId>
-      <version>12.8.1.jre8</version>
+      <version>12.10.0.jre8</version>
     </dependency>
   </dependencies>
 
@@ -1343,7 +1347,7 @@
                   </sources>
                 </configuration>
               </execution>
-             
+
             </executions>
           </plugin>
 

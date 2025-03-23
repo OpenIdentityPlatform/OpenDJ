@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
  * FileManager Tester.
  */
 @SuppressWarnings("javadoc")
-@Test(groups = {"slow"}, sequential=true)
+@Test(groups = {"slow"}, singleThreaded = true)
 public class FileManagerTest extends QuickSetupTestCase {
 
   private File fmWorkspace;
