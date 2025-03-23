@@ -22,9 +22,9 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.Arrays;
 
-import javax.xml.bind.DatatypeConverter;
-
+import org.bouncycastle.util.encoders.Hex;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -248,7 +248,7 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
 
     @Test(dataProvider = "validBase64Data")
     public void testValueOfBase64(final String hexData, final String encodedData) throws Exception {
-        final byte[] data = DatatypeConverter.parseHexBinary(hexData);
+        final byte[] data = Hex.decode(hexData);
         final byte[] decodedData = ByteString.valueOfBase64(encodedData).toByteArray();
         Assert.assertEquals(decodedData, data);
     }

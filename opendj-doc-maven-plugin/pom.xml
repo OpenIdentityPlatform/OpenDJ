@@ -61,13 +61,13 @@
         <dependency>
             <groupId>com.thoughtworks.qdox</groupId>
             <artifactId>qdox</artifactId>
-            <version>2.0-M3</version>
+            <version>2.2.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
-            <version>3.6.0</version>
+            <version>3.15.1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

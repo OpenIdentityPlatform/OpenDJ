@@ -80,16 +80,19 @@
 
         <!--         java.xml.bind (JAXB) - REMOVED -->
 	    <dependency>
-		  <groupId>javax.xml.bind</groupId>
-		  <artifactId>jaxb-api</artifactId>
+          <groupId>jakarta.xml.bind</groupId>
+          <artifactId>jakarta.xml.bind-api</artifactId>
+          <version>4.0.2</version>
 		</dependency>
 		<dependency>
 		  <groupId>com.sun.xml.bind</groupId>
 		  <artifactId>jaxb-core</artifactId>
+          <version>4.0.5</version>
 		</dependency>
 		<dependency>
 		  <groupId>com.sun.xml.bind</groupId>
 		  <artifactId>jaxb-impl</artifactId>
+          <version>4.0.5</version>
 		</dependency>
 
 	    <!-- BC FIPS Provider libs -->
@@ -106,8 +109,9 @@
 	    </dependency>
 
 	     <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
+             <groupId>com.fasterxml.jackson.core</groupId>
+             <artifactId>jackson-databind</artifactId>
+             <version>2.18.3</version>
         </dependency>
     </dependencies>
 

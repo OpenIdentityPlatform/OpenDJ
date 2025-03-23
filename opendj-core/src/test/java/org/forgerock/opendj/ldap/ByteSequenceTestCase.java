@@ -18,8 +18,7 @@ package org.forgerock.opendj.ldap;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
-
-import javax.xml.bind.DatatypeConverter;
+import java.util.Base64;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -155,6 +154,6 @@ public abstract class ByteSequenceTestCase extends SdkTestCase {
     @Test(dataProvider = "byteSequenceProvider")
     public void testToBase64String(final ByteSequence bs, final byte[] ba) throws Exception {
         final String base64 = bs.toBase64String();
-        Assert.assertEquals(base64, DatatypeConverter.printBase64Binary(ba));
+        Assert.assertEquals(base64, Base64.getEncoder().encodeToString(ba));
     }
 }
