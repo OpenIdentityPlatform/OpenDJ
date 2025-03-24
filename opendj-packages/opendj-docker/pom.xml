@@ -15,83 +15,83 @@
   Copyright 2018-2019 Open Identity Platform Community.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <packaging>pom</packaging>
+  <packaging>pom</packaging>
 
-    <parent>
-        <groupId>org.openidentityplatform.opendj</groupId>
-        <artifactId>opendj-packages</artifactId>
-        <version>${revision}</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
+  <parent>
+    <groupId>org.openidentityplatform.opendj</groupId>
+    <artifactId>opendj-packages</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
 
-    <profiles>
-        <profile>
-            <id>packages</id>
-            <activation><activeByDefault>true</activeByDefault></activation>
-        </profile>
-    </profiles>
+  <profiles>
+    <profile>
+      <id>packages</id>
+      <activation><activeByDefault>true</activeByDefault></activation>
+    </profile>
+  </profiles>
 
-    <artifactId>opendj-docker</artifactId>
-    <name>OpenDJ Docker Packages Parent</name>
+  <artifactId>opendj-docker</artifactId>
+  <name>OpenDJ Docker Packages Parent</name>
 
-    <description>
-        This module contains configuration and generic plugin calls to generate Docker file for OpenDJ.
-    </description>
+  <description>
+    This module contains configuration and generic plugin calls to generate Docker file for OpenDJ.
+  </description>
 
-    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
-      <plugins>
-	      <plugin>
-	        <groupId>org.apache.maven.plugins</groupId>
-	        <artifactId>maven-dependency-plugin</artifactId>
-	        <executions>
-	          <execution>
-	            <id>copy</id>
-	            <phase>prepare-package</phase>
-	            <goals>
-	              <goal>copy</goal>
-	            </goals>
-	          </execution>
-	        </executions>
-	        <configuration>
-	          <artifactItems>
-	            <artifactItem>
-	              <groupId>org.openidentityplatform.opendj</groupId>
-	              <artifactId>opendj-server-legacy</artifactId>
-	              <version>${project.version}</version>
-	              <type>zip</type>
-	              <overWrite>true</overWrite>
-	            </artifactItem>
-	          </artifactItems>
-	          <outputDirectory>${project.build.directory}/</outputDirectory>
-	          <overWriteReleases>true</overWriteReleases>
-	          <overWriteSnapshots>true</overWriteSnapshots>
-	        </configuration>
-	      </plugin>
-        <plugin>
-		    <artifactId>maven-antrun-plugin</artifactId>
-		    <executions>
-		      <execution>
-		        <phase>prepare-package</phase>
-		        <configuration>
-		          <target>
-			          <zip basedir="${project.build.directory}" destfile="${project.build.directory}/Dockerfile.zip" includes="opendj-docker/**">
-	                  	<fileset dir="${basedir}">
-	      					<include name="Dockerfile*" />
-	      					<include name="../opendj-openshift-template/*.yaml" />
-	                      	<include name="bootstrap/**" />
-	                      	<include name="run.sh" />
-	  					</fileset>
-	                  </zip>
-		          </target>
-		        </configuration>
-		        <goals>
-		          <goal>run</goal>
-		        </goals>
-		      </execution>
-		    </executions>
-		  </plugin>
-      </plugins>
-    </build>
+  <build><finalName>${project.groupId}.${project.artifactId}</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <artifactItems>
+            <artifactItem>
+              <groupId>org.openidentityplatform.opendj</groupId>
+              <artifactId>opendj-server-legacy</artifactId>
+              <version>${project.version}</version>
+              <type>zip</type>
+              <overWrite>true</overWrite>
+            </artifactItem>
+          </artifactItems>
+          <outputDirectory>${project.build.directory}/</outputDirectory>
+          <overWriteReleases>true</overWriteReleases>
+          <overWriteSnapshots>true</overWriteSnapshots>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>prepare-package</phase>
+            <configuration>
+              <target>
+                <zip basedir="${project.build.directory}" destfile="${project.build.directory}/Dockerfile.zip" includes="opendj-docker/**">
+                  <fileset dir="${basedir}">
+                    <include name="Dockerfile*" />
+                    <include name="../opendj-openshift-template/*.yaml" />
+                    <include name="bootstrap/**" />
+                    <include name="run.sh" />
+                  </fileset>
+                </zip>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

@@ -15,81 +15,79 @@
   Copyright 2015-2016 ForgeRock AS.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.openidentityplatform.opendj</groupId>
-        <artifactId>opendj-packages</artifactId>
-        <version>${revision}</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
+  <parent>
+    <groupId>org.openidentityplatform.opendj</groupId>
+    <artifactId>opendj-packages</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
 
-    <artifactId>opendj-msi</artifactId>
-    <name>OpenDJ MSI Packages Parent</name>
+  <artifactId>opendj-msi</artifactId>
+  <name>OpenDJ MSI Packages Parent</name>
+  <packaging>pom</packaging>
+  <description>
+      This module contains configuration and generic plugin call to build OpenDJ MSI packages.
+  </description>
 
-    <packaging>pom</packaging>
-
-    <description>
-        This module contains configuration and generic plugin call to build OpenDJ MSI packages.
-    </description>
-
-    <profiles>
-        <profile>
-            <id>/usr/bin/wine</id>
-            <activation>
-            		<os><family>unix</family></os>
-            		<file><exists>/usr/bin/wine</exists></file>
-            	</activation>
-            <modules>
-                <module>opendj-msi-standard</module>
-            </modules>
-            <properties>
-            		<exec.heat>/usr/bin/wine</exec.heat><param.heat>${project.build.directory}/wix/heat.exe</param.heat>
-		        <exec.candle>/usr/bin/wine</exec.candle><param.candle>${project.build.directory}/wix/candle.exe</param.candle>
-		        <exec.light>/usr/bin/wine</exec.light><param.light>${project.build.directory}/wix/light.exe</param.light>
-            </properties>
-        </profile>
-        <profile>
-            <id>/usr/local/bin/wine</id>
-            <activation>
-            		<os><family>unix</family></os>
-            		<file><exists>/usr/local/bin/wine</exists></file>
-            	</activation>
-            <modules>
-                <module>opendj-msi-standard</module>
-            </modules>
-            <properties>
-            		<exec.heat>/usr/local/bin/wine</exec.heat><param.heat>${project.build.directory}/wix/heat.exe</param.heat>
-		        <exec.candle>/usr/local/bin/wine</exec.candle><param.candle>${project.build.directory}/wix/candle.exe</param.candle>
-		        <exec.light>/usr/local/bin/wine</exec.light><param.light>${project.build.directory}/wix/light.exe</param.light>
-            </properties>
-        </profile>
-        <profile>
-            <id>/opt/local/bin/wine</id>
-            <activation>
-            		<os><family>unix</family></os>
-            		<file><exists>/opt/local/bin/wine</exists></file>
-            	</activation>
-            <modules>
-                <module>opendj-msi-standard</module>
-            </modules>
-            <properties>
-            		<exec.heat>/opt/local/bin/wine</exec.heat><param.heat>${project.build.directory}/wix/heat.exe</param.heat>
-		        <exec.candle>/opt/local/bin/wine</exec.candle><param.candle>${project.build.directory}/wix/candle.exe</param.candle>
-		        <exec.light>/opt/local/bin/wine</exec.light><param.light>${project.build.directory}/wix/light.exe</param.light>
-            </properties>
-        </profile>
-         <profile>
-            <id>windows</id>
-            <activation><os><family>windows</family></os></activation>
-            <modules>
-                <module>opendj-msi-standard</module>
-            </modules>
-            <properties>
-                <exec.heat>${project.build.directory}\wix\heat.exe</exec.heat><param.heat />
-		        <exec.candle>${project.build.directory}\wix\candle.exe</exec.candle><param.candle />
-		        <exec.light>${project.build.directory}\wix\light.exe</exec.light><param.light />
-            </properties>
-        </profile>
-    </profiles>
+  <profiles>
+    <profile>
+      <id>/usr/bin/wine</id>
+      <activation>
+        <os><family>unix</family></os>
+        <file><exists>/usr/bin/wine</exists></file>
+      </activation>
+      <modules>
+        <module>opendj-msi-standard</module>
+      </modules>
+      <properties>
+        <exec.heat>/usr/bin/wine</exec.heat><param.heat>${project.build.directory}/wix/heat.exe</param.heat>
+        <exec.candle>/usr/bin/wine</exec.candle><param.candle>${project.build.directory}/wix/candle.exe</param.candle>
+        <exec.light>/usr/bin/wine</exec.light><param.light>${project.build.directory}/wix/light.exe</param.light>
+      </properties>
+    </profile>
+      <profile>
+        <id>/usr/local/bin/wine</id>
+        <activation>
+          <os><family>unix</family></os>
+          <file><exists>/usr/local/bin/wine</exists></file>
+        </activation>
+        <modules>
+          <module>opendj-msi-standard</module>
+        </modules>
+        <properties>
+          <exec.heat>/usr/local/bin/wine</exec.heat><param.heat>${project.build.directory}/wix/heat.exe</param.heat>
+          <exec.candle>/usr/local/bin/wine</exec.candle><param.candle>${project.build.directory}/wix/candle.exe</param.candle>
+          <exec.light>/usr/local/bin/wine</exec.light><param.light>${project.build.directory}/wix/light.exe</param.light>
+        </properties>
+      </profile>
+      <profile>
+        <id>/opt/local/bin/wine</id>
+        <activation>
+          <os><family>unix</family></os>
+          <file><exists>/opt/local/bin/wine</exists></file>
+        </activation>
+        <modules>
+          <module>opendj-msi-standard</module>
+        </modules>
+        <properties>
+          <exec.heat>/opt/local/bin/wine</exec.heat><param.heat>${project.build.directory}/wix/heat.exe</param.heat>
+          <exec.candle>/opt/local/bin/wine</exec.candle><param.candle>${project.build.directory}/wix/candle.exe</param.candle>
+          <exec.light>/opt/local/bin/wine</exec.light><param.light>${project.build.directory}/wix/light.exe</param.light>
+        </properties>
+      </profile>
+      <profile>
+        <id>windows</id>
+        <activation><os><family>windows</family></os></activation>
+        <modules>
+          <module>opendj-msi-standard</module>
+        </modules>
+        <properties>
+          <exec.heat>${project.build.directory}\wix\heat.exe</exec.heat><param.heat />
+          <exec.candle>${project.build.directory}\wix\candle.exe</exec.candle><param.candle />
+          <exec.light>${project.build.directory}\wix\light.exe</exec.light><param.light />
+        </properties>
+      </profile>
+  </profiles>
 </project>

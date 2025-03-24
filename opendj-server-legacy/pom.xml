@@ -261,7 +261,6 @@
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>6.14.3</version>
       <scope>test</scope>
     </dependency>
     <!-- TestContainers-->
@@ -396,18 +395,18 @@
                   </action>
                 </pluginExecution>
                 <pluginExecution>
-                	<pluginExecutionFilter>
-                		<groupId>org.openidentityplatform.opendj</groupId>
-                		<artifactId>opendj-maven-plugin</artifactId>
-                		<versionRange>[4.0.0-SNAPSHOT,)</versionRange>
-                		<goals>
-                			<goal>generate-manifest</goal>
-                			<goal>concat</goal>
-                		</goals>
-                	</pluginExecutionFilter>
-                	<action>
-                		<ignore />
-                	</action>
+                    <pluginExecutionFilter>
+                        <groupId>org.openidentityplatform.opendj</groupId>
+                        <artifactId>opendj-maven-plugin</artifactId>
+                        <versionRange>[4.0.0-SNAPSHOT,)</versionRange>
+                        <goals>
+                            <goal>generate-manifest</goal>
+                            <goal>concat</goal>
+                        </goals>
+                    </pluginExecutionFilter>
+                    <action>
+                        <ignore />
+                    </action>
                 </pluginExecution>
               </pluginExecutions>
             </lifecycleMappingMetadata>
@@ -567,7 +566,7 @@
             </goals>
             <configuration>
               <additionalJars>
-              	<additionalJar>opendj-slf4j-adapter.jar</additionalJar>
+                <additionalJar>opendj-slf4j-adapter.jar</additionalJar>
                  <additionalJar>opendj-je-backend.jar</additionalJar>
               </additionalJars>
             </configuration>
@@ -1218,12 +1217,12 @@
                   <goal>verify</goal>
                 </goals>
                 <configuration>
-				  <additionalClasspathElements>
-		            <additionalClasspathElement>${project.build.directory}/jars/opendj-slf4j-adapter.jar</additionalClasspathElement>
-		          </additionalClasspathElements>
-				  <testSourceDirectory>src/test/java</testSourceDirectory>
+                  <additionalClasspathElements>
+                    <additionalClasspathElement>${project.build.directory}/jars/opendj-slf4j-adapter.jar</additionalClasspathElement>
+                  </additionalClasspathElements>
+                  <testSourceDirectory>src/test/java</testSourceDirectory>
 <!--				  <enableProcessChecker>all</enableProcessChecker>-->
-				  <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
+                  <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
                   <forkedProcessExitTimeoutInSeconds>120</forkedProcessExitTimeoutInSeconds>
                   <excludes>
                     <exclude>org/opends/server/snmp/**</exclude>
@@ -1266,11 +1265,11 @@
                     <org.opends.test.copyClassesToTestPackage>false</org.opends.test.copyClassesToTestPackage>
                   </systemPropertyVariables>
                   <argLine>@{argLine}</argLine>
-	          	  <reuseForks>false</reuseForks>
-	          	  <forkCount>1</forkCount>
-	          	  <parallel>none</parallel>
-	          	  <runOrder>alphabetical</runOrder>
-	          	  <rerunFailingTestsCount>3</rerunFailingTestsCount>
+                  <reuseForks>false</reuseForks>
+                  <forkCount>1</forkCount>
+                  <parallel>none</parallel>
+                  <runOrder>alphabetical</runOrder>
+                  <rerunFailingTestsCount>3</rerunFailingTestsCount>
                 </configuration>
               </execution>
             </executions>
@@ -1289,9 +1288,9 @@
     <profile>
       <id>snmp</id>
       <activation>
-       	<file>
-       		<exists>${opendmk.lib.dir}/jdmkrt.jar</exists>
-       	</file>
+        <file>
+            <exists>${opendmk.lib.dir}/jdmkrt.jar</exists>
+        </file>
       </activation>
 
       <properties>

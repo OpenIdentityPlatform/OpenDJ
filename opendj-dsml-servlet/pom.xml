@@ -15,373 +15,373 @@
   Copyright 2015-2016 ForgeRock AS.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.openidentityplatform.opendj</groupId>
-        <artifactId>opendj-parent</artifactId>
-        <version>${revision}</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
+  <parent>
+    <groupId>org.openidentityplatform.opendj</groupId>
+    <artifactId>opendj-parent</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
 
-    <artifactId>opendj-dsml-servlet</artifactId>
-    <name>OpenDJ DSML Gateway</name>
-    <description>OpenDJ DSML Gateway</description>
-    <packaging>war</packaging>
+  <artifactId>opendj-dsml-servlet</artifactId>
+  <name>OpenDJ DSML Gateway</name>
+  <description>OpenDJ DSML Gateway</description>
+  <packaging>war</packaging>
 
-    <properties>
-        <!-- If the binary-licensing profile is activated, we need the ForgeRock license there -->
-        <license.output.dir>${project.build.directory}/${project.build.finalName}/WEB-INF/legal-notices</license.output.dir>
-        <opendj.server.module.name>opendj-server-legacy</opendj.server.module.name>
-        <opendj.jars.folder>opendj-jars</opendj.jars.folder>
-        <doclint>none</doclint>
-    </properties>
+  <properties>
+    <!-- If the binary-licensing profile is activated, we need the ForgeRock license there -->
+    <license.output.dir>${project.build.directory}/${project.build.finalName}/WEB-INF/legal-notices</license.output.dir>
+    <opendj.server.module.name>opendj-server-legacy</opendj.server.module.name>
+    <opendj.jars.folder>opendj-jars</opendj.jars.folder>
+    <doclint>none</doclint>
+  </properties>
 
-    <dependencies>
-    	<!-- Servlet API -->
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
-            <scope>provided</scope>
-    	</dependency>
+  <dependencies>
+    <!-- Servlet API -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1.0</version>
+      <scope>provided</scope>
+    </dependency>
 
-        <!-- ForgeRock libraries -->
-        <dependency>
-            <groupId>org.openidentityplatform.commons</groupId>
-            <artifactId>util</artifactId>
-        </dependency>
+    <!-- ForgeRock libraries -->
+    <dependency>
+      <groupId>org.openidentityplatform.commons</groupId>
+      <artifactId>util</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
-            <artifactId>core</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+      <artifactId>core</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
-            <artifactId>slf4j</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+      <artifactId>slf4j</artifactId>
+    </dependency>
 
-        <!-- OpenDJ SDK dependency -->
-        <dependency>
-            <groupId>org.openidentityplatform.opendj</groupId>
-            <artifactId>opendj-core</artifactId>
-        </dependency>
+    <!-- OpenDJ SDK dependency -->
+    <dependency>
+      <groupId>org.openidentityplatform.opendj</groupId>
+      <artifactId>opendj-core</artifactId>
+    </dependency>
 
-        <!-- OpenDJ Server dependencies -->
-        <dependency>
-            <groupId>org.openidentityplatform.opendj</groupId>
-            <artifactId>opendj-config</artifactId>
-        </dependency>
+    <!-- OpenDJ Server dependencies -->
+    <dependency>
+      <groupId>org.openidentityplatform.opendj</groupId>
+      <artifactId>opendj-config</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.openidentityplatform.opendj</groupId>
-            <artifactId>${opendj.server.module.name}</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
+    <dependency>
+      <groupId>org.openidentityplatform.opendj</groupId>
+      <artifactId>${opendj.server.module.name}</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
 
-        <dependency>
-        	<groupId>com.sun.xml.ws</groupId>
-		    <artifactId>jaxws-ri</artifactId>
-		    <version>2.3.7</version>
-		    <type>pom</type>
-        </dependency>
+    <dependency>
+      <groupId>com.sun.xml.ws</groupId>
+      <artifactId>jaxws-ri</artifactId>
+      <version>2.3.7</version>
+      <type>pom</type>
+    </dependency>
 
-        <dependency>
-		    <groupId>jakarta.xml.bind</groupId>
-		    <artifactId>jakarta.xml.bind-api</artifactId>
-		    <version>3.0.1</version>
-		</dependency>
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+      <version>3.0.1</version>
+    </dependency>
 
-		<dependency>
-            <groupId>org.glassfish.jaxb</groupId>
-            <artifactId>jaxb-runtime</artifactId>
-            <version>4.0.5</version>
-            <scope>runtime</scope>
-        </dependency>
-    </dependencies>
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <version>4.0.5</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
 
-    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
+  <build><finalName>${project.groupId}.${project.artifactId}</finalName>
+    <plugins>
+      <!-- Parse version to generate properties (major.version, minor.version, ...) -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-and-rename-opendj-server-legacy-jars</id>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <!-- Copy and rename opendj main jar -->
+                <artifactItem>
+                  <groupId>org.openidentityplatform.opendj</groupId>
+                  <artifactId>${opendj.server.module.name}</artifactId>
+                  <version>${project.version}</version>
+                  <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                  <destFileName>${product.name.lowercase}.jar</destFileName>
+                </artifactItem>
+
+                <!-- Copy and rename opendj localized jars -->
+                <artifactItem>
+                  <groupId>org.openidentityplatform.opendj</groupId>
+                  <artifactId>${opendj.server.module.name}</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>${localized.jars.classifier}-ca_ES</classifier>
+                  <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                  <destFileName>${product.name.lowercase}_ca_ES.jar</destFileName>
+                </artifactItem>
+
+                <artifactItem>
+                  <groupId>org.openidentityplatform.opendj</groupId>
+                  <artifactId>${opendj.server.module.name}</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>${localized.jars.classifier}-de</classifier>
+                  <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                  <destFileName>${product.name.lowercase}_de.jar</destFileName>
+                </artifactItem>
+
+                <artifactItem>
+                  <groupId>org.openidentityplatform.opendj</groupId>
+                  <artifactId>${opendj.server.module.name}</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>${localized.jars.classifier}-es</classifier>
+                  <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                  <destFileName>${product.name.lowercase}_es.jar</destFileName>
+                </artifactItem>
+
+                <artifactItem>
+                  <groupId>org.openidentityplatform.opendj</groupId>
+                  <artifactId>${opendj.server.module.name}</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>${localized.jars.classifier}-fr</classifier>
+                  <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                  <destFileName>${product.name.lowercase}_fr.jar</destFileName>
+                </artifactItem>
+
+                <artifactItem>
+                  <groupId>org.openidentityplatform.opendj</groupId>
+                  <artifactId>${opendj.server.module.name}</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>${localized.jars.classifier}-ja</classifier>
+                  <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                  <destFileName>${product.name.lowercase}_ja.jar</destFileName>
+                </artifactItem>
+
+                <artifactItem>
+                  <groupId>org.openidentityplatform.opendj</groupId>
+                  <artifactId>${opendj.server.module.name}</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>${localized.jars.classifier}-ko</classifier>
+                  <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                  <destFileName>${product.name.lowercase}_ko.jar</destFileName>
+                </artifactItem>
+
+                <artifactItem>
+                  <groupId>org.openidentityplatform.opendj</groupId>
+                  <artifactId>${opendj.server.module.name}</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>${localized.jars.classifier}-pl</classifier>
+                  <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                  <destFileName>${product.name.lowercase}_pl.jar</destFileName>
+                </artifactItem>
+
+                <artifactItem>
+                  <groupId>org.openidentityplatform.opendj</groupId>
+                  <artifactId>${opendj.server.module.name}</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>${localized.jars.classifier}-zh_CN</classifier>
+                  <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                  <destFileName>${product.name.lowercase}_zh_CN.jar</destFileName>
+                </artifactItem>
+
+                <artifactItem>
+                  <groupId>org.openidentityplatform.opendj</groupId>
+                  <artifactId>${opendj.server.module.name}</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>${localized.jars.classifier}-zh_TW</classifier>
+                  <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                  <destFileName>${product.name.lowercase}_zh_TW.jar</destFileName>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <!-- Ensure that our usage of the jaxb2-maven-plugin is JDK 8 compatible -->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>1.0-alpha-2</version>
+        <executions>
+          <execution>
+            <id>set-additional-system-properties</id>
+            <goals>
+              <goal>set-system-properties</goal>
+            </goals>
+            <configuration>
+              <properties>
+                <property>
+                  <name>javax.xml.accessExternalSchema</name>
+                  <value>all</value>
+                </property>
+              </properties>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Generate DSML code from XML files -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jaxb2-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>prepare-dsml-library</id>
+            <goals>
+              <goal>xjc</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/gen</outputDirectory>
+              <sources>
+                <source>resources/schema/DSMLv2.xsd</source>
+              </sources>
+              <packageName>org.opends.dsml.protocol</packageName>
+              <xjbSources>
+                <xjbSource>resources/schema/bindings.xjb</xjbSource>
+              </xjbSources>
+              <target>3.0</target>
+              <extension>true</extension>
+              <noPackageLevelAnnotations>true</noPackageLevelAnnotations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- WAR artefact is build by the assembly plugin -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <configuration>
+          <webResources>
+            <!-- Include OpenDJ jars -->
+            <resource>
+              <targetPath>WEB-INF/lib</targetPath>
+              <directory>${project.build.directory}/opendj-jars</directory>
+            </resource>
+
+            <!-- Include CDDLv1_0.txt -->
+            <resource>
+              <targetPath>WEB-INF/legal-notices</targetPath>
+              <directory>${basedir}/../</directory>
+              <includes>
+                <include>LICENSE.md</include>
+              </includes>
+            </resource>
+
+            <!-- Include THIRDPARTYREADME.txt -->
+            <resource>
+              <targetPath>WEB-INF/legal-notices</targetPath>
+              <directory>legal-notices</directory>
+            </resource>
+
+            <!-- Add web and sun-web.xml -->
+            <resource>
+              <targetPath>WEB-INF</targetPath>
+              <directory>resources/webapp</directory>
+            </resource>
+
+            <!-- Add schema file -->
+            <resource>
+              <targetPath>WEB-INF/classes/resources</targetPath>
+              <directory>${basedir}/resources/schema</directory>
+              <includes>
+                <include>DSMLv2.xsd</include>
+              </includes>
+            </resource>
+          </webResources>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.cargo</groupId>
+        <artifactId>cargo-maven3-plugin</artifactId>
+        <version>1.10.9</version>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <id>start</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>start</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>stop</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>stop</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <container>
+            <containerId>tomcat9x</containerId>
+            <type>embedded</type>
+            <systemProperties>
+              <file.encoding>UTF-8</file.encoding>
+            </systemProperties>
+            <timeout>350000</timeout>
+          </container>
+          <deployables>
+            <deployable>
+              <type>war</type>
+              <properties>
+                <context>dsml</context>
+              </properties>
+              <!--	                        <pingURL>http://localhost:8080/dsml/</pingURL> only POST-->
+            </deployable>
+          </deployables>
+          <configuration>
+            <properties>
+              <cargo.rmi.port>8206</cargo.rmi.port>
+              <cargo.jvmargs>-XX:+UseG1GC -server</cargo.jvmargs>
+            </properties>
+          </configuration>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>precommit</id>
+      <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
-            <!-- Parse version to generate properties (major.version, minor.version, ...) -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-and-rename-opendj-server-legacy-jars</id>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <!-- Copy and rename opendj main jar -->
-                                <artifactItem>
-                                    <groupId>org.openidentityplatform.opendj</groupId>
-                                    <artifactId>${opendj.server.module.name}</artifactId>
-                                    <version>${project.version}</version>
-                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}.jar</destFileName>
-                                </artifactItem>
-
-                                <!-- Copy and rename opendj localized jars -->
-                                <artifactItem>
-                                    <groupId>org.openidentityplatform.opendj</groupId>
-                                    <artifactId>${opendj.server.module.name}</artifactId>
-                                    <version>${project.version}</version>
-                                    <classifier>${localized.jars.classifier}-ca_ES</classifier>
-                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}_ca_ES.jar</destFileName>
-                                </artifactItem>
-
-                                <artifactItem>
-                                    <groupId>org.openidentityplatform.opendj</groupId>
-                                    <artifactId>${opendj.server.module.name}</artifactId>
-                                    <version>${project.version}</version>
-                                    <classifier>${localized.jars.classifier}-de</classifier>
-                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}_de.jar</destFileName>
-                                </artifactItem>
-
-                                <artifactItem>
-                                    <groupId>org.openidentityplatform.opendj</groupId>
-                                    <artifactId>${opendj.server.module.name}</artifactId>
-                                    <version>${project.version}</version>
-                                    <classifier>${localized.jars.classifier}-es</classifier>
-                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}_es.jar</destFileName>
-                                </artifactItem>
-
-                                <artifactItem>
-                                    <groupId>org.openidentityplatform.opendj</groupId>
-                                    <artifactId>${opendj.server.module.name}</artifactId>
-                                    <version>${project.version}</version>
-                                    <classifier>${localized.jars.classifier}-fr</classifier>
-                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}_fr.jar</destFileName>
-                                </artifactItem>
-
-                                <artifactItem>
-                                    <groupId>org.openidentityplatform.opendj</groupId>
-                                    <artifactId>${opendj.server.module.name}</artifactId>
-                                    <version>${project.version}</version>
-                                    <classifier>${localized.jars.classifier}-ja</classifier>
-                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}_ja.jar</destFileName>
-                                </artifactItem>
-
-                                <artifactItem>
-                                    <groupId>org.openidentityplatform.opendj</groupId>
-                                    <artifactId>${opendj.server.module.name}</artifactId>
-                                    <version>${project.version}</version>
-                                    <classifier>${localized.jars.classifier}-ko</classifier>
-                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}_ko.jar</destFileName>
-                                </artifactItem>
-
-                                <artifactItem>
-                                    <groupId>org.openidentityplatform.opendj</groupId>
-                                    <artifactId>${opendj.server.module.name}</artifactId>
-                                    <version>${project.version}</version>
-                                    <classifier>${localized.jars.classifier}-pl</classifier>
-                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}_pl.jar</destFileName>
-                                </artifactItem>
-
-                                <artifactItem>
-                                    <groupId>org.openidentityplatform.opendj</groupId>
-                                    <artifactId>${opendj.server.module.name}</artifactId>
-                                    <version>${project.version}</version>
-                                    <classifier>${localized.jars.classifier}-zh_CN</classifier>
-                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}_zh_CN.jar</destFileName>
-                                </artifactItem>
-
-                                <artifactItem>
-                                    <groupId>org.openidentityplatform.opendj</groupId>
-                                    <artifactId>${opendj.server.module.name}</artifactId>
-                                    <version>${project.version}</version>
-                                    <classifier>${localized.jars.classifier}-zh_TW</classifier>
-                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}_zh_TW.jar</destFileName>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <!-- Ensure that our usage of the jaxb2-maven-plugin is JDK 8 compatible -->
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>properties-maven-plugin</artifactId>
-                <version>1.0-alpha-2</version>
-                <executions>
-                    <execution>
-                        <id>set-additional-system-properties</id>
-                        <goals>
-                            <goal>set-system-properties</goal>
-                        </goals>
-                        <configuration>
-                            <properties>
-                                <property>
-                                    <name>javax.xml.accessExternalSchema</name>
-                                    <value>all</value>
-                                </property>
-                            </properties>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- Generate DSML code from XML files -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>jaxb2-maven-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <id>prepare-dsml-library</id>
-                        <goals>
-                            <goal>xjc</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/gen</outputDirectory>
-                            <sources>
-                            	<source>resources/schema/DSMLv2.xsd</source>
-                            </sources>
-                            <packageName>org.opends.dsml.protocol</packageName>
-                            <xjbSources>
-                            	<xjbSource>resources/schema/bindings.xjb</xjbSource>
-                            </xjbSources>
-                            <target>3.0</target>
-                            <extension>true</extension>
-                            <noPackageLevelAnnotations>true</noPackageLevelAnnotations>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- WAR artefact is build by the assembly plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <webResources>
-                        <!-- Include OpenDJ jars -->
-                        <resource>
-                            <targetPath>WEB-INF/lib</targetPath>
-                            <directory>${project.build.directory}/opendj-jars</directory>
-                        </resource>
-
-                        <!-- Include CDDLv1_0.txt -->
-                        <resource>
-                            <targetPath>WEB-INF/legal-notices</targetPath>
-                            <directory>${basedir}/../</directory>
-                            <includes>
-                            		<include>LICENSE.md</include>
-                            </includes>
-                        </resource>
-
-                        <!-- Include THIRDPARTYREADME.txt -->
-                        <resource>
-                            <targetPath>WEB-INF/legal-notices</targetPath>
-                            <directory>legal-notices</directory>
-                        </resource>
-
-                        <!-- Add web and sun-web.xml -->
-                        <resource>
-                            <targetPath>WEB-INF</targetPath>
-                            <directory>resources/webapp</directory>
-                        </resource>
-
-                        <!-- Add schema file -->
-                        <resource>
-                            <targetPath>WEB-INF/classes/resources</targetPath>
-                            <directory>${basedir}/resources/schema</directory>
-                            <includes>
-                                <include>DSMLv2.xsd</include>
-                            </includes>
-                        </resource>
-                    </webResources>
-                </configuration>
-            </plugin>
-            <plugin>
-		      <groupId>org.codehaus.cargo</groupId>
-	          <artifactId>cargo-maven3-plugin</artifactId>
-	          <version>1.10.9</version>
-	          <extensions>true</extensions>
-			  <executions>
-				    <execution>
-				      <id>start</id>
-				      <phase>pre-integration-test</phase>
-				      <goals>
-				        <goal>start</goal>
-				      </goals>
-				    </execution>
-				    <execution>
-				      <id>stop</id>
-				      <phase>post-integration-test</phase>
-				      <goals>
-				        <goal>stop</goal>
-				      </goals>
-				    </execution>
-				</executions>
-	            <configuration>
-	                <container>
-	                    <containerId>tomcat9x</containerId>
-	                    <type>embedded</type>
-	                    <systemProperties>
-	                        <file.encoding>UTF-8</file.encoding>
-	                    </systemProperties>
-	                    <timeout>350000</timeout>
-	                </container>
-	                <deployables>
-	                    <deployable>
-	                    	<type>war</type>
-	                        <properties>
-	                            <context>dsml</context>
-	                        </properties>
-<!--	                        <pingURL>http://localhost:8080/dsml/</pingURL> only POST-->
-	                    </deployable>
-	                </deployables>
-					<configuration>
-				    	<properties>
-				        	<cargo.rmi.port>8206</cargo.rmi.port>
-				        	<cargo.jvmargs>-XX:+UseG1GC -server</cargo.jvmargs>
-				        </properties>
-				    </configuration>
-	            </configuration>
-	        </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <executions>
+              <!-- Disable default from parent -->
+              <execution>
+                <id>check-src-and-tests</id>
+                <phase>none</phase>
+                <goals>
+                  <goal>checkstyle</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
-    </build>
-
-    <profiles>
-        <profile>
-            <id>precommit</id>
-            <build><finalName>${project.groupId}.${project.artifactId}</finalName>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-checkstyle-plugin</artifactId>
-                        <executions>
-                            <!-- Disable default from parent -->
-                            <execution>
-                                <id>check-src-and-tests</id>
-                                <phase>none</phase>
-                                <goals>
-                                    <goal>checkstyle</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+      </build>
+    </profile>
+  </profiles>
 </project>

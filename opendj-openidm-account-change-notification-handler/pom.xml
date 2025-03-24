@@ -30,7 +30,7 @@
     </description>
   <packaging>jar</packaging>
   <properties>
-  	<doclint>none</doclint>
+    <doclint>none</doclint>
   </properties>
   <dependencies>
     <dependency>

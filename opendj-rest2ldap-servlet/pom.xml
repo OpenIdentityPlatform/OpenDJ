@@ -100,26 +100,26 @@
         </configuration>
       </plugin>
       <plugin>
-	      <groupId>org.codehaus.cargo</groupId>
+        <groupId>org.codehaus.cargo</groupId>
           <artifactId>cargo-maven3-plugin</artifactId>
           <version>1.10.9</version>
           <extensions>true</extensions>
-		  <executions>
-			    <execution>
-			      <id>start</id>
-			      <phase>pre-integration-test</phase>
-			      <goals>
-			        <goal>start</goal>
-			      </goals>
-			    </execution>
-			    <execution>
-			      <id>stop</id>
-			      <phase>post-integration-test</phase>
-			      <goals>
-			        <goal>stop</goal>
-			      </goals>
-			    </execution>
-			</executions>
+      <executions>
+          <execution>
+            <id>start</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>start</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>stop</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>stop</goal>
+            </goals>
+          </execution>
+      </executions>
             <configuration>
                 <container>
                     <containerId>tomcat9x</containerId>
@@ -131,19 +131,19 @@
                 </container>
                 <deployables>
                     <deployable>
-                    	<type>war</type>
+                      <type>war</type>
                         <properties>
                             <context>rest2ldap</context>
                         </properties>
                         <pingURL>http://localhost:8080/rest2ldap/</pingURL>
                     </deployable>
                 </deployables>
-				<configuration>
-			    	<properties>
-			        	<cargo.rmi.port>8206</cargo.rmi.port>
-			        	<cargo.jvmargs>-XX:+UseG1GC -server</cargo.jvmargs>
-			        </properties>
-			    </configuration>
+        <configuration>
+            <properties>
+                <cargo.rmi.port>8206</cargo.rmi.port>
+                <cargo.jvmargs>-XX:+UseG1GC -server</cargo.jvmargs>
+              </properties>
+          </configuration>
             </configuration>
         </plugin>
     </plugins>

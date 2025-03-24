@@ -15,31 +15,31 @@
   Copyright 2015 ForgeRock AS.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.openidentityplatform.opendj</groupId>
-        <artifactId>opendj-packages</artifactId>
-        <version>${revision}</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
+  <parent>
+    <groupId>org.openidentityplatform.opendj</groupId>
+    <artifactId>opendj-packages</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
 
-    <artifactId>opendj-svr4</artifactId>
-    <name>OpenDJ SVR4 Packages Parent</name>
+  <artifactId>opendj-svr4</artifactId>
+  <name>OpenDJ SVR4 Packages Parent</name>
 
-    <packaging>pom</packaging>
+  <packaging>pom</packaging>
 
-    <description>
-        This module contains configuration and generic plugin call to build OpenDJ SVR4 packages.
-    </description>
+  <description>
+    This module contains configuration and generic plugin call to build OpenDJ SVR4 packages.
+  </description>
 
-    <profiles>
-        <profile>
-            <id>packages</id>
-            <modules>
-                <module>opendj-svr4-standard</module>
-            </modules>
-        </profile>
-    </profiles>
+  <profiles>
+    <profile>
+      <id>packages</id>
+      <modules>
+        <module>opendj-svr4-standard</module>
+      </modules>
+    </profile>
+  </profiles>
 
 </project>
