@@ -20,7 +20,7 @@
   <parent>
     <artifactId>opendj-parent</artifactId>
     <groupId>org.openidentityplatform.opendj</groupId>
-    <version>${revision}</version>
+    <version>4.9.4-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 

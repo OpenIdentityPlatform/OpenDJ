@@ -19,7 +19,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.openidentityplatform.opendj</groupId>
   <artifactId>opendj-parent</artifactId>
-  <version>${revision}</version>
+  <version>4.9.4-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>OpenDJ Directory Services Project</name>
@@ -30,7 +30,6 @@
   </description>
 
   <properties>
-    <revision>4.9.4-SNAPSHOT</revision>
     <product.name>OpenDJ</product.name>
     <product.name.lowercase>opendj</product.name.lowercase>
     <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
@@ -371,6 +370,7 @@
           <configuration>
             <signTag>true</signTag>
             <tagNameFormat>@{project.version}</tagNameFormat>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
             <allowTimestampedSnapshots>false</allowTimestampedSnapshots>
           </configuration>
         </plugin>

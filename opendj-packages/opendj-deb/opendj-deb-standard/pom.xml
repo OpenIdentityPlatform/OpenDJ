@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-deb</artifactId>
-        <version>${revision}</version>
+        <version>4.9.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>opendj-deb-standard</artifactId>
