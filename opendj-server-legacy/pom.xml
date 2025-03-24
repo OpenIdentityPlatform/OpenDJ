@@ -195,23 +195,15 @@
       <artifactId>handler-jdbc</artifactId>
     </dependency>
 
-    <!-- slf4j libraries -->
-<!--     <dependency> -->
-<!--       <groupId>org.slf4j</groupId> -->
-<!--       <artifactId>slf4j-jdk14</artifactId> -->
-<!--     </dependency> -->
-
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>jul-to-slf4j</artifactId>
     </dependency>
 
-
     <!-- mail -->
     <dependency>
       <groupId>com.sun.mail</groupId>
-      <artifactId>jakarta.mail</artifactId>
-      <version>2.0.1</version>
+      <artifactId>javax.mail</artifactId>
     </dependency>
 
     <dependency>

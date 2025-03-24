@@ -18,7 +18,6 @@ package org.opends.server.controls;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.controls.PersistentSearchChangeType.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
@@ -134,7 +133,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
       try
       {
         PersistentSearchChangeType.valueOf(i);
-        org.assertj.core.api.Assertions.fail();
+        fail();
       }
       catch (LDAPException e)
       {
@@ -178,7 +177,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
     try
     {
       PersistentSearchChangeType.intToTypes(0);
-      org.assertj.core.api.Assertions.fail();
+      fail();
     }
     catch (LDAPException expected)
     {
@@ -191,7 +190,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
     try
     {
       PersistentSearchChangeType.intToTypes(i);
-      org.assertj.core.api.Assertions.fail();
+      fail();
     }
     catch (LDAPException expected)
     {
@@ -316,7 +315,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
       {
         control = new LDAPControl(OID_PERSISTENT_SEARCH, isCritical);
         psc = PersistentSearchControl.DECODER.decode(control.isCritical(), control.getValue());
-        org.assertj.core.api.Assertions.fail();
+        fail();
       }
       catch (DirectoryException expected)
       {
@@ -330,7 +329,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
         control = new LDAPControl(OID_PERSISTENT_SEARCH, isCritical,
             ByteString.valueOfUtf8("invalid value"));
         psc = PersistentSearchControl.DECODER.decode(control.isCritical(), control.getValue());
-        org.assertj.core.api.Assertions.fail();
+        fail();
       }
       catch (DirectoryException expected)
       {
@@ -396,7 +395,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
       }
       catch (DirectoryException e)
       {
-        org.assertj.core.api.Assertions.fail();
+        fail();
       }
     }
 
@@ -479,7 +478,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
       LDAPControl control =
           new LDAPControl(OID_ENTRY_CHANGE_NOTIFICATION, isCritical);
       newEcnc = EntryChangeNotificationControl.DECODER.decode(control.isCritical(), control.getValue());
-      org.assertj.core.api.Assertions.fail();
+      fail();
     }
     catch (DirectoryException expected)
     {
