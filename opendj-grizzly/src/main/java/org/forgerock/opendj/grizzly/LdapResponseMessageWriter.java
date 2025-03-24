@@ -18,7 +18,7 @@ package org.forgerock.opendj.grizzly;
 
 import java.util.concurrent.CancellationException;
 
-import io.reactivex.exceptions.UndeliverableException;
+import io.reactivex.rxjava3.exceptions.UndeliverableException;
 import org.forgerock.opendj.ldap.spi.LdapMessages.LdapResponseMessage;
 import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.Connection;

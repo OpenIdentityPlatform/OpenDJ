@@ -57,22 +57,21 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRequestEnvelope;
 import org.forgerock.opendj.ldap.spi.TransportProvider;
 import org.forgerock.util.Function;
-import org.forgerock.util.promise.RuntimeExceptionHandler;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableEmitter;
-import io.reactivex.FlowableOnSubscribe;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.FlowableEmitter;
+import io.reactivex.rxjava3.core.FlowableOnSubscribe;
 
 /**
  * Adapt a {@link ServerConnectionFactory} to a {@link Function} compatible with
  * {@link TransportProvider#getLDAPListener(java.util.Set, Function, org.forgerock.util.Options)}.
  */
 @Deprecated
-public final class ServerConnectionFactoryAdapter implements
-        Function<LDAPClientContext,
-                 ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
-                 LdapException> {
+public final class ServerConnectionFactoryAdapter
+    implements Function<LDAPClientContext,
+    ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
+    LdapException> {
 
     private final ServerConnectionFactory<LDAPClientContext, Integer> adaptee;
     private final DecodeOptions decodeOptions;
@@ -86,14 +85,14 @@ public final class ServerConnectionFactoryAdapter implements
      *            the {@link ServerConnectionFactory} to adapt
      */
     public ServerConnectionFactoryAdapter(final DecodeOptions decodeOptions,
-            final ServerConnectionFactory<LDAPClientContext, Integer> serverConnectionFactory) {
+                                          final ServerConnectionFactory<LDAPClientContext, Integer> serverConnectionFactory) {
         this.decodeOptions = checkNotNull(decodeOptions, "decodeOptions must not be null");
         this.adaptee = checkNotNull(serverConnectionFactory, "serverConnectionFactory must not be null");
     }
 
     @Override
     public ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>> apply(
-            final LDAPClientContext clientContext) throws LdapException {
+        final LDAPClientContext clientContext) throws LdapException {
         return new ServerConnectionAdapter(clientContext, decodeOptions, adaptee.handleAccept(clientContext));
     }
 
@@ -102,7 +101,7 @@ public final class ServerConnectionFactoryAdapter implements
      * {@link TransportProvider#getLDAPListener(java.util.Set, Function, org.forgerock.util.Options)}.
      */
     public static final class ServerConnectionAdapter
-            implements ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>> {
+        implements ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>> {
 
         private final ServerConnection<Integer> adaptee;
         private final DecodeOptions decodeOptions;
@@ -117,8 +116,9 @@ public final class ServerConnectionFactoryAdapter implements
          * @param serverConnection
          *            the {@link ServerConnection} to adapt
          */
-        public ServerConnectionAdapter(final LDAPClientContext clientContext, final DecodeOptions decodeOptions,
-                final ServerConnection<Integer> serverConnection) {
+        public ServerConnectionAdapter(final LDAPClientContext clientContext,
+                                       final DecodeOptions decodeOptions,
+                                       final ServerConnection<Integer> serverConnection) {
             this.decodeOptions = checkNotNull(decodeOptions, "decodeOptions must not be null");
             this.adaptee = checkNotNull(serverConnection, "serverConnection must not be null");
             clientContext.addListener(new LDAPClientContextEventListener() {
@@ -137,8 +137,9 @@ public final class ServerConnectionFactoryAdapter implements
                 }
 
                 @Override
-                public void handleConnectionDisconnected(final LDAPClientContext context, final ResultCode resultCode,
-                        final String diagnosticMessage) {
+                public void handleConnectionDisconnected(final LDAPClientContext context,
+                                                         final ResultCode resultCode,
+                                                         final String diagnosticMessage) {
                     adaptee.handleConnectionDisconnected(resultCode, diagnosticMessage);
                 }
             });
@@ -146,7 +147,7 @@ public final class ServerConnectionFactoryAdapter implements
 
         @Override
         public Stream<Response> handle(final LDAPClientContext context, final LdapRequestEnvelope request)
-                throws Exception {
+            throws Exception {
             final LDAPReader<ASN1Reader> reader = LDAP.getReader(request.getContent(), decodeOptions);
             return streamFromPublisher(Flowable.create(new FlowableOnSubscribe<Response>() {
                 @Override
@@ -154,121 +155,136 @@ public final class ServerConnectionFactoryAdapter implements
                     reader.readMessage(new AbstractLDAPMessageHandler() {
                         @Override
                         public void abandonRequest(int messageID, AbandonRequest request)
-                                throws DecodeException, IOException {
+                            throws DecodeException, IOException {
                             handleAbandon(messageID, request, emitter);
                         }
 
                         @Override
-                        public void addRequest(int messageID, AddRequest request) throws DecodeException, IOException {
+                        public void addRequest(int messageID, AddRequest request)
+                            throws DecodeException, IOException {
                             handleAdd(messageID, request, emitter);
                         }
 
                         @Override
                         public void deleteRequest(final int messageID, final DeleteRequest request)
-                                throws DecodeException, IOException {
+                            throws DecodeException, IOException {
                             handleDelete(messageID, request, emitter);
                         }
 
                         @Override
                         public void bindRequest(int messageID, int version, GenericBindRequest request)
-                                throws DecodeException, IOException {
+                            throws DecodeException, IOException {
                             handleBind(messageID, version, request, emitter);
                         }
 
                         @Override
                         public void compareRequest(int messageID, CompareRequest request)
-                                throws DecodeException, IOException {
+                            throws DecodeException, IOException {
                             handleCompare(messageID, request, emitter);
                         }
 
                         @Override
-                        public <R extends ExtendedResult> void extendedRequest(int messageID,
-                                ExtendedRequest<R> request) throws DecodeException, IOException {
+                        public <R extends ExtendedResult> void extendedRequest(int messageID, ExtendedRequest<R> request)
+                            throws DecodeException, IOException {
                             handleExtendedRequest(messageID, request, emitter);
                         }
 
                         @Override
                         public void modifyDNRequest(int messageID, ModifyDNRequest request)
-                                throws DecodeException, IOException {
+                            throws DecodeException, IOException {
                             handleModifyDN(messageID, request, emitter);
                         }
 
                         @Override
                         public void modifyRequest(int messageID, ModifyRequest request)
-                                throws DecodeException, IOException {
+                            throws DecodeException, IOException {
                             handleModify(messageID, request, emitter);
                         }
 
                         @Override
                         public void searchRequest(int messageID, SearchRequest request)
-                                throws DecodeException, IOException {
+                            throws DecodeException, IOException {
                             handleSearch(messageID, request, emitter);
                         }
 
                         @Override
                         public void unbindRequest(int messageID, UnbindRequest request)
-                                throws DecodeException, IOException {
-                            // Unbind request are received through ConnectionEventListener only
+                            throws DecodeException, IOException {
+                            // Unbind requests are handled by ConnectionEventListener only
                         }
                     });
                 }
             }, BackpressureStrategy.ERROR));
         }
 
-        void handleAdd(final int requestId, final AddRequest request, final FlowableEmitter<Response> responseEmitter) {
+        private void handleAdd(final int requestId,
+                               final AddRequest request,
+                               final FlowableEmitter<Response> responseEmitter) {
             final ResultHandlerAdapter<Result> resultAdapter = new ResultHandlerAdapter<>(responseEmitter);
             adaptee.handleAdd(requestId, request, resultAdapter, resultAdapter);
         }
 
-        void handleBind(final int requestId, final int version, final BindRequest request,
-                final FlowableEmitter<Response> responseEmitter) {
+        private void handleBind(final int requestId,
+                                final int version,
+                                final BindRequest request,
+                                final FlowableEmitter<Response> responseEmitter) {
             final ResultHandlerAdapter<BindResult> resultAdapter = new ResultHandlerAdapter<>(responseEmitter);
             adaptee.handleBind(requestId, version, request, resultAdapter, resultAdapter);
         }
 
-        void handleCompare(final int requestId, final CompareRequest request,
-                final FlowableEmitter<Response> responseEmitter) {
+        private void handleCompare(final int requestId,
+                                   final CompareRequest request,
+                                   final FlowableEmitter<Response> responseEmitter) {
             final ResultHandlerAdapter<CompareResult> resultAdapter = new ResultHandlerAdapter<>(responseEmitter);
             adaptee.handleCompare(requestId, request, resultAdapter, resultAdapter);
         }
 
-        void handleDelete(final int requestId, final DeleteRequest request,
-                final FlowableEmitter<Response> responseEmitter) {
+        private void handleDelete(final int requestId,
+                                  final DeleteRequest request,
+                                  final FlowableEmitter<Response> responseEmitter) {
             final ResultHandlerAdapter<Result> resultAdapter = new ResultHandlerAdapter<>(responseEmitter);
             adaptee.handleDelete(requestId, request, resultAdapter, resultAdapter);
         }
 
-        <R extends ExtendedResult> void handleExtendedRequest(final int requestId, final ExtendedRequest<R> request,
-                final FlowableEmitter<Response> responseEmitter) {
+        private <R extends ExtendedResult> void handleExtendedRequest(final int requestId,
+                                                                      final ExtendedRequest<R> request,
+                                                                      final FlowableEmitter<Response> responseEmitter) {
             final ResultHandlerAdapter<R> resultAdapter = new ResultHandlerAdapter<>(responseEmitter);
             adaptee.handleExtendedRequest(requestId, request, resultAdapter, resultAdapter);
         }
 
-        void handleModify(final int requestId, final ModifyRequest request,
-                final FlowableEmitter<Response> responseEmitter) {
+        private void handleModify(final int requestId,
+                                  final ModifyRequest request,
+                                  final FlowableEmitter<Response> responseEmitter) {
             final ResultHandlerAdapter<Result> resultAdapter = new ResultHandlerAdapter<>(responseEmitter);
             adaptee.handleModify(requestId, request, resultAdapter, resultAdapter);
         }
 
-        void handleModifyDN(final int requestId, final ModifyDNRequest request,
-                final FlowableEmitter<Response> responseEmitter) {
+        private void handleModifyDN(final int requestId,
+                                    final ModifyDNRequest request,
+                                    final FlowableEmitter<Response> responseEmitter) {
             final ResultHandlerAdapter<Result> resultAdapter = new ResultHandlerAdapter<>(responseEmitter);
             adaptee.handleModifyDN(requestId, request, resultAdapter, resultAdapter);
         }
 
-        void handleSearch(final int requestId, final SearchRequest request,
-                final FlowableEmitter<Response> responseEmitter) {
+        private void handleSearch(final int requestId,
+                                  final SearchRequest request,
+                                  final FlowableEmitter<Response> responseEmitter) {
             final ResultHandlerAdapter<Result> resultAdapter = new ResultHandlerAdapter<>(responseEmitter);
             adaptee.handleSearch(requestId, request, resultAdapter, resultAdapter, resultAdapter);
         }
 
-        void handleAbandon(int requestId, final AbandonRequest request, final FlowableEmitter<Response> emitter) {
+        private void handleAbandon(int requestId,
+                                   final AbandonRequest request,
+                                   final FlowableEmitter<Response> emitter) {
             adaptee.handleAbandon(requestId, request);
         }
 
-        /** Forward all responses received from handler to a {@link LdapResponse}. */
-        private static final class ResultHandlerAdapter<R extends Response> implements IntermediateResponseHandler,
-                SearchResultHandler, LdapResultHandler<R>, RuntimeExceptionHandler {
+        /**
+         * Forward all responses received from the handler to a {@link Response}.
+         */
+        private static final class ResultHandlerAdapter<R extends Response>
+            implements IntermediateResponseHandler, SearchResultHandler, LdapResultHandler<R> {
 
             private final FlowableEmitter<Response> adaptee;
 
@@ -300,11 +316,6 @@ public final class ServerConnectionFactoryAdapter implements
                     adaptee.onNext(result);
                 }
                 adaptee.onComplete();
-            }
-
-            @Override
-            public void handleRuntimeException(RuntimeException exception) {
-                adaptee.onError(exception);
             }
 
             @Override
