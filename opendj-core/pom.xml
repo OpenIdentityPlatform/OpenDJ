@@ -79,33 +79,33 @@
         </dependency>
 
         <!--         java.xml.bind (JAXB) - REMOVED -->
-	    <dependency>
+        <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
-		</dependency>
-		<dependency>
+        </dependency>
+        <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-core</artifactId>
-		</dependency>
-		<dependency>
+        </dependency>
+        <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-impl</artifactId>
-		</dependency>
+        </dependency>
 
-	    <!-- BC FIPS Provider libs -->
-	    <dependency>
+        <!-- BC FIPS Provider libs -->
+        <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bc-fips</artifactId>
             <version>${bc.fips.version}</version>
-	    </dependency>
+        </dependency>
 
-	    <dependency>
+        <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bctls-fips</artifactId>
             <version>${bctls.fips.version}</version>
-	    </dependency>
+        </dependency>
 
-	     <dependency>
+         <dependency>
              <groupId>com.fasterxml.jackson.core</groupId>
              <artifactId>jackson-databind</artifactId>
         </dependency>
@@ -143,23 +143,23 @@
                     </execution>
                 </executions>
             </plugin>
-		      <plugin>
-		        <groupId>org.codehaus.mojo</groupId>
-		        <artifactId>build-helper-maven-plugin</artifactId>
-		        <executions>
-		          <execution>
-		            <phase>process-sources</phase>
-		            <goals>
-		              <goal>add-source</goal>
-		            </goals>
-		            <configuration>
-		              <sources>
-		                <source>target/generated-sources/messages</source>
-		              </sources>
-		            </configuration>
-		          </execution>
-		         </executions>
-		      </plugin>
+              <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                  <execution>
+                    <phase>process-sources</phase>
+                    <goals>
+                      <goal>add-source</goal>
+                    </goals>
+                    <configuration>
+                      <sources>
+                        <source>target/generated-sources/messages</source>
+                      </sources>
+                    </configuration>
+                  </execution>
+                 </executions>
+              </plugin>
             <!-- Retrieve the SCM revision number and store it into the ${buildRevision} property -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
