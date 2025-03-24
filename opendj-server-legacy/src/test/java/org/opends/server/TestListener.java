@@ -539,7 +539,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
     // Read the comments in DirectoryServerTestCase to understand what's
     // going on here.
-    Object[] testInstances = (Object[]) result.getMethod().getInstance();
+    Object[] testInstances = result.getMethod().getInstances();
     for (Object testInstance : testInstances)
     {
       if (testInstance instanceof DirectoryServerTestCase) {
@@ -624,7 +624,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private Object _lastTestObject;
   private final IdentityHashMap<Object,Object> _previousTestObjects = new IdentityHashMap<>();
   private void checkForInterleavedBetweenClasses(ITestResult tr) {
-    Object[] testInstances = (Object[]) tr.getMethod().getInstance();
+    Object[] testInstances = tr.getMethod().getInstances();
     // This will almost always have a single element.  If it doesn't, just skip it.
     if (testInstances.length != 1) {
       return;
