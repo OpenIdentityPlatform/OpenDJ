@@ -151,7 +151,7 @@ public class EntryIDSetTest extends DirectoryServerTestCase
     assertIdsEquals(newDefinedSet(4, 6, 8, 10, 12).iterator(), 4, 6, 8, 10, 12);
   }
 
-  @Test(dataProvider = "codecs")
+  @Test(dataProvider = "codecs", singleThreaded = true)
   public void testCodecs(EntryIDSetCodec codec)
   {
     ByteString string = codec.encode(newDefinedSet(4, 6, 8, 10, 12));

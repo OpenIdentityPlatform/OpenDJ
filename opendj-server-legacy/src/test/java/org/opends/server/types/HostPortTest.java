@@ -23,7 +23,7 @@ import java.util.Set;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@Test(groups = { "precommit", "types" }, sequential = true)
+@Test(groups = { "precommit", "types" }, singleThreaded = true)
 @SuppressWarnings("javadoc")
 public class HostPortTest extends TypesTestCase
 {

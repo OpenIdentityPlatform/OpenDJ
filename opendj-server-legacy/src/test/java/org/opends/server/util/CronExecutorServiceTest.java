@@ -28,7 +28,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-@Test(groups = "precommit", sequential = true)
+@Test(groups = "precommit", singleThreaded = true)
 public class CronExecutorServiceTest extends DirectoryServerTestCase
 {
   @BeforeClass

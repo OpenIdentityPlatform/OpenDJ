@@ -139,7 +139,7 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
 
 
 
-  @Test(dataProvider = "isLoggableData")
+  @Test(dataProvider = "isLoggableData", singleThreaded = true)
   public void rootFilterIsLoggable(final boolean suppressSynchronization,
       final boolean isSynchronizationOp, final boolean suppressInternal,
       final boolean isInternalOp, final boolean expectedTestResult)

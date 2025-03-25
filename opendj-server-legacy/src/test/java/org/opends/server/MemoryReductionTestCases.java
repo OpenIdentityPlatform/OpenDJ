@@ -45,7 +45,7 @@ public class MemoryReductionTestCases extends DirectoryServerTestCase {
   }
 
 
-  @Test
+  @Test(singleThreaded = true)
   public void testClearedTestParameters() {
     String[] successfulOnly = {"", ""};
     String[] successfulAndFailed = {"", ""};

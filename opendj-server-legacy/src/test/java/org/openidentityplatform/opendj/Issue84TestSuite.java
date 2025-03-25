@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Test(sequential = true)
+@Test(singleThreaded = true)
 public class Issue84TestSuite extends DirectoryServerTestCase {
 
     @BeforeClass

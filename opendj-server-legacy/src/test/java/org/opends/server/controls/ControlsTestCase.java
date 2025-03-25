@@ -25,7 +25,7 @@ import org.testng.annotations.BeforeClass;
 /**
  * An abstract class that all control unit test should extend.
  */
-@Test(groups = { "precommit", "controls" }, sequential = true)
+@Test(groups = { "precommit", "controls" }, singleThreaded = true)
 public abstract class ControlsTestCase extends DirectoryServerTestCase
 {
 

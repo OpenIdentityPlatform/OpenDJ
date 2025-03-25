@@ -301,7 +301,7 @@ public class FIFOEntryCacheTestCase
   /**
    * Tests cache rotation on specific number of entries.
    */
-  @Test
+  @Test(singleThreaded = true)
   public void testCacheRotation()
          throws Exception
   {

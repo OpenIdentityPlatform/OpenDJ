@@ -340,7 +340,7 @@ public class LDIFConnectionHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test
+  @Test(singleThreaded = true)
   public void testGenericConnectionHandlerMethods()
          throws Exception
   {

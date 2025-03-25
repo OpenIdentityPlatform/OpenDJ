@@ -163,7 +163,7 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
     assertEquals(dsconfigMain(args), SUCCESS.get());
   }
 
-  @Test
+  @Test(singleThreaded = true)
   public void testGenerateDoc() throws Exception
   {
     System.setProperty("org.forgerock.opendj.gendoc", "true");

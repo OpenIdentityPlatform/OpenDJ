@@ -22,6 +22,6 @@ import org.testng.annotations.Test;
  * An abstract class that all types unit tests should extend.
  */
 
-@Test(groups = { "precommit", "types" }, sequential = true)
+@Test(groups = { "precommit", "types" }, singleThreaded = true)
 public abstract class TypesTestCase extends DirectoryServerTestCase
 {}

@@ -280,7 +280,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      *
      * @throws Exception
      */
-    @Test
+    @Test(singleThreaded = true)
     public void testAdapterAddRequest() throws Exception {
         final Connection connection = Adapters.newRootConnectionFactory().getConnection();
         // @formatter:off

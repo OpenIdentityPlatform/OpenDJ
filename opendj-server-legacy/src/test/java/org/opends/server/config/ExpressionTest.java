@@ -25,7 +25,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-@Test(groups = { "precommit" }, sequential = true)
+@Test(groups = { "precommit" }, singleThreaded = true)
 public class ExpressionTest extends DirectoryServerTestCase {
     @DataProvider
     public static Object[][] expressions() {

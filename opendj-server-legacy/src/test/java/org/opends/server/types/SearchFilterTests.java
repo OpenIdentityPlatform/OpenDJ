@@ -280,7 +280,8 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
   @Test(dataProvider = "invalidFilters",
-        expectedExceptions = DirectoryException.class)
+        expectedExceptions = DirectoryException.class,
+        singleThreaded = true)
   public void testCreateFilterFromStringInvalidFilters(String invalidFilter)
           throws DirectoryException {
     SearchFilter.createFilterFromString(invalidFilter).toString();

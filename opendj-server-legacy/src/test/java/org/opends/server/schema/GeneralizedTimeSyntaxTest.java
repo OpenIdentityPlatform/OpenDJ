@@ -144,7 +144,7 @@ public class GeneralizedTimeSyntaxTest extends DirectoryServerTestCase
    * @throws Exception
    *           If an unexpected error occurred.
    */
-  @Test(dataProvider="createFormatData")
+  @Test(dataProvider="createFormatData", singleThreaded = true)
   public void testFormatDate(int yyyy, int MM, int dd, int HH, int mm,
       int ss, int SSS, String expected) throws Exception
   {

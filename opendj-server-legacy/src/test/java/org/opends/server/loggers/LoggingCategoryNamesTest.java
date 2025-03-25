@@ -49,7 +49,7 @@ public class LoggingCategoryNamesTest extends DirectoryServerTestCase
     };
   }
 
-  @Test(dataProvider = "matchingNames")
+  @Test(dataProvider = "matchingNames", singleThreaded = true)
   public void testMatching(String classname, String category) throws Exception
   {
     assertEquals(LoggingCategoryNames.getCategoryName(classname), category);

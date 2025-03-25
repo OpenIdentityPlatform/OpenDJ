@@ -39,7 +39,7 @@ import org.opends.server.util.LDIFReader;
 import org.testng.annotations.Test;
 
 /** An abstract base class for all JE backend test cases. */
-@Test(groups = { "precommit", "jeb" }, sequential = true)
+@Test(groups = { "precommit", "jeb" }, singleThreaded = true)
 public abstract class JebTestCase extends DirectoryServerTestCase {
     private TreeMap<DN,Entry> entryTreeMap = new TreeMap<>();
     private int numEntries;

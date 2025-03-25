@@ -201,7 +201,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "testEntryDNs")
+  @Test(dataProvider = "testEntryDNs", singleThreaded = true)
   public void testGetEntry(DN entryDN, int count)
       throws Exception
   {

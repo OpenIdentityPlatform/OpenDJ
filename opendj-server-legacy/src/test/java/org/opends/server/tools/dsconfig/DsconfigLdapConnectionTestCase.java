@@ -125,7 +125,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
    *  --bindPassword and the --bindPasswordFile arguments can not be provided
    *  together.
    */
-  @Test
+  @Test(singleThreaded = true)
   public void testConflictualArgumentsPasswordAndFilePassword()
   {
     String[] args =

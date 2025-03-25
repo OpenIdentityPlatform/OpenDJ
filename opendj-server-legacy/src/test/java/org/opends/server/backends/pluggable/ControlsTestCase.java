@@ -288,7 +288,7 @@ public class ControlsTestCase extends DirectoryServerTestCase
     // @formatter:on
   }
 
-  @Test(dataProvider = "indexedVlvByAssertionDataProvider")
+  @Test(dataProvider = "indexedVlvByAssertionDataProvider", singleThreaded = true)
   public void indexedVlvByAssertionShouldReturnPageOfResultsInCorrectOrder(final String sortOrder,
       final int beforeCount, final int afterCount, final String assertion, final List<Integer> expectedOrder,
       final int expectedPosition) throws Exception

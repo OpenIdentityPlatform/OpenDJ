@@ -41,7 +41,7 @@ import org.testng.annotations.Test;
 
 /** An abstract class that all JMX unit test should extend. */
 @SuppressWarnings("javadoc")
-@Test(groups = { "precommit", "jmx" }, sequential = true)
+@Test(groups = { "precommit", "jmx" }, singleThreaded = true)
 public abstract class JmxTestCase extends DirectoryServerTestCase
 {
   /**

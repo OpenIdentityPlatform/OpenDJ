@@ -54,7 +54,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-@Test(groups = { "precommit", "pluggablebackend" }, sequential = true)
+@Test(groups = { "precommit", "pluggablebackend" }, singleThreaded = true)
 public class DN2IDTest extends DirectoryServerTestCase
 {
   private final TreeName dn2IDTreeName = new TreeName("base-dn", "index-id");

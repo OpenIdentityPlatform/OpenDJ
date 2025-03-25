@@ -263,7 +263,7 @@ public class LogFileTest extends DirectoryServerTestCase
   }
 
   /** Test that changes are properly ordered. */
-  @Test
+  @Test(singleThreaded = true)
   public void testAppendingChangesAreOrdered() throws Exception
   {
     try (LogFile<String, String> writeLog = getLogFile(RECORD_PARSER))

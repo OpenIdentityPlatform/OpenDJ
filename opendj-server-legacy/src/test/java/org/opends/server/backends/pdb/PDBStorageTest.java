@@ -67,7 +67,7 @@ public class PDBStorageTest extends DirectoryServerTestCase
     storage.close();
   }
 
-  @Test
+  @Test(singleThreaded = true)
   public void testCanAddLargeValues() throws Exception
   {
     storage.write(new WriteOperation()

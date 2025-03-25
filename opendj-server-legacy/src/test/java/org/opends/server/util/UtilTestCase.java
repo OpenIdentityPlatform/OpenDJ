@@ -21,7 +21,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract class that all util unit tests should extend.
  */
-@Test(groups = { "precommit", "util" }, sequential = true)
+@Test(groups = { "precommit", "util" }, singleThreaded = true)
 public abstract class UtilTestCase extends DirectoryServerTestCase {
   // No implementation required.
 }

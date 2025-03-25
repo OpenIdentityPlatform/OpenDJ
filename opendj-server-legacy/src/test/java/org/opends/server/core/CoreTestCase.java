@@ -21,7 +21,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract base class for all core test cases.
  */
-@Test(groups = { "precommit", "core" }, sequential = true)
+@Test(groups = { "precommit", "core" }, singleThreaded = true)
 public abstract class CoreTestCase extends DirectoryServerTestCase {
   // No implementation required.
 }

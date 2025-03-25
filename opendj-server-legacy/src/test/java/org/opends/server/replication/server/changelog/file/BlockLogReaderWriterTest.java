@@ -251,7 +251,7 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
     }
   }
 
-  @Test
+  @Test(singleThreaded = true)
   public void testGetClosestBlockStartBeforeOrAtPosition() throws Exception
   {
     final int blockSize = 10;

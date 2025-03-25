@@ -205,7 +205,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "testEntryDNs")
+  @Test(dataProvider = "testEntryDNs", singleThreaded = true)
   public void testGetEntry(DN entryDN, boolean hasSubs)
       throws Exception
   {

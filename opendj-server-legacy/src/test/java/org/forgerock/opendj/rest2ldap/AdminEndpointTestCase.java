@@ -58,7 +58,7 @@ public class AdminEndpointTestCase extends DirectoryServerTestCase
     TestCaseUtils.startServer();
   }
 
-  @Test
+  @Test(singleThreaded = true)
   public void testApiDescriptionGeneration() throws Exception
   {
     FilterChain endpointHandler = configureEndpoint();

@@ -52,7 +52,7 @@ import org.testng.annotations.Test;
 @Test(enabled = true, groups =
 {
     "precommit", "snmp"
-}, sequential = true)
+}, singleThreaded = true)
 public abstract class SNMPConnectionManager extends DirectoryServerTestCase
 {
 

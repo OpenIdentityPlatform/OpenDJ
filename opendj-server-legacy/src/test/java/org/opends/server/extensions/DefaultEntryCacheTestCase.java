@@ -328,7 +328,7 @@ public class DefaultEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test
+  @Test(singleThreaded = true)
   public void testCacheLevels()
          throws Exception
   {

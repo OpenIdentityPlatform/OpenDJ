@@ -65,7 +65,7 @@ public class AuthPasswordSyntaxTest extends DirectoryServerTestCase
     };
   }
 
-  @Test(dataProvider = "invalidEncodedPasswords")
+  @Test(dataProvider = "invalidEncodedPasswords", singleThreaded = true)
   public void decodeInvalidPassword(String encodedPassword  , String errorMsg  ) throws Exception
   {
     try

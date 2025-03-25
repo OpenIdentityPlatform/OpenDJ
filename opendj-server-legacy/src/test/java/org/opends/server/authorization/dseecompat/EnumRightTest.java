@@ -55,7 +55,7 @@ public class EnumRightTest extends DirectoryServerTestCase
     };
   }
 
-  @Test
+  @Test(singleThreaded = true)
   public void aciAllValue() throws Exception
   {
     assertEquals(ALL_RIGHTS_MASK, ACI_ALL);

@@ -64,7 +64,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-@Test(groups = {"precommit", "dseecompat"}, sequential = true)
+@Test(groups = {"precommit", "dseecompat"}, singleThreaded = true)
 public abstract class  AciTestCase extends DirectoryServerTestCase {
 
   private Attribute globalACIAttribute;

@@ -83,7 +83,7 @@ import org.testng.annotations.Test;
 
 /** An abstract class that all Replication unit test should extend. */
 @SuppressWarnings("javadoc")
-@Test(groups = { "precommit", "replication" }, sequential = true)
+@Test(groups = { "precommit", "replication" }, singleThreaded = true)
 public abstract class ReplicationTestCase extends DirectoryServerTestCase
 {
 

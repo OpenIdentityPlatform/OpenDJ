@@ -259,7 +259,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
     }
   }
 
-  @Test
+  @Test(singleThreaded = true)
   public void testCreateThenReadChangelogStateWithReplicaOffline() throws Exception
   {
     Log<Long,ChangeNumberIndexRecord> cnDB = null;

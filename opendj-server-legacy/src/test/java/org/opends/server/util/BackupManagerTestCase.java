@@ -42,7 +42,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-@Test(groups = "precommit", sequential = true)
+@Test(groups = "precommit", singleThreaded = true)
 public class BackupManagerTestCase extends DirectoryServerTestCase
 {
   private static final String ENTRY_DN = "dc=example,dc=com";

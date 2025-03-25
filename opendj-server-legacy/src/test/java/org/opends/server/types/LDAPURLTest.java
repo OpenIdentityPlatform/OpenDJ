@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
-@Test(groups = { "precommit", "types" }, sequential = true)
+@Test(groups = { "precommit", "types" }, singleThreaded = true)
 public class LDAPURLTest extends TypesTestCase
 {
 

@@ -41,7 +41,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
 /** Tests for {@link TLSByteChannel} class. */
-@Test(groups = "slow", sequential = true)
+@Test(groups = "slow", singleThreaded = true)
 public class TLSByteChannelTestCase extends DirectoryServerTestCase
 {
   /** Cipher suite hardcoded from the IANA registry on internet. */

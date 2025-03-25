@@ -32,7 +32,7 @@ import static org.testng.Assert.*;
 /**
  * An abstract base class for all ASN1Reader test cases.
  */
-@Test(groups = { "precommit", "asn1" }, sequential = true)
+@Test(groups = { "precommit", "asn1" }, singleThreaded = true)
 public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
 {
 

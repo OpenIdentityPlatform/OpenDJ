@@ -37,7 +37,7 @@ import org.testng.annotations.Test;
  * Test if the replication domain is able to switch of replication server
  * if there is some replication server failure.
  */
-@Test(sequential = true)
+@Test(singleThreaded = true)
 public class ReplicationServerFailoverTest extends ReplicationTestCase
 {
   private static final int DS1_ID = 1;

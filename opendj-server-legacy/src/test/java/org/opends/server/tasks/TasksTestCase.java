@@ -42,7 +42,7 @@ import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /** A base class for all tasks test cases. */
-@Test(groups = { "precommit", "tasks" }, sequential = true)
+@Test(groups = { "precommit", "tasks" }, singleThreaded = true)
 public class TasksTestCase extends DirectoryServerTestCase {
 
   /**

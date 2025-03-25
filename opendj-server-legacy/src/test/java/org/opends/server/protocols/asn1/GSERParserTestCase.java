@@ -206,7 +206,7 @@ public class GSERParserTestCase extends DirectoryServerTestCase
   }
 
   /** Test the parsing of BigInteger values. */
-  @Test(dataProvider="bigIntegerValues")
+  @Test(dataProvider="bigIntegerValues", singleThreaded = true)
   public void testBigInteger(String value, boolean expectedResult) throws Exception
   {
     GSERParser parser = new GSERParser(value);

@@ -23,7 +23,7 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class TraceSettingsTest extends DirectoryServerTestCase
 {
-  @Test
+  @Test(singleThreaded = true)
   public void testParseTraceSettingsDisabled() throws Exception
   {
     TraceSettings settings = TraceSettings.parseTraceSettings("stack=2,noargs,cause,noretval");

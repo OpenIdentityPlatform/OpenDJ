@@ -60,7 +60,7 @@ public class LocalBackendWorkflowElementTest extends DirectoryServerTestCase
    * be removed; subsequently, any request targeting the removed suffix should
    * be rejected and a no such entry status code be returned.
    */
-  @Test
+  @Test(singleThreaded = true)
   public void testBackendBaseDNModification() throws Exception
   {
     String suffix = "dc=example,dc=com";

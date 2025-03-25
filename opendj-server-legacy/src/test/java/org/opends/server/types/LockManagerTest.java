@@ -33,7 +33,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-@Test(timeOut = 20000, sequential = true)
+@Test(timeOut = 20000, singleThreaded = true)
 @SuppressWarnings("javadoc")
 public class LockManagerTest extends TypesTestCase
 {

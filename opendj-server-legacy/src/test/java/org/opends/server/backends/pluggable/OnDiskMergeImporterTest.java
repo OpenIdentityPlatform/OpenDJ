@@ -200,7 +200,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     };
   }
 
-  @Test(dataProvider = "expandIndexData")
+  @Test(dataProvider = "expandIndexData", singleThreaded = true)
   public void testCanExpandIndexNames(final String[] indexNames, final String[] expectedExpandedIndexNames)
       throws InitializationException
   {

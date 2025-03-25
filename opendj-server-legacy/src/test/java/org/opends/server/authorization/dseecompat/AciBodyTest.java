@@ -54,7 +54,7 @@ public class AciBodyTest extends DirectoryServerTestCase
       { "(version 3.0; acl \"Authenticated users control access\"; allow(read) userdn=\"ldap:///all\";)" }, };
   }
 
-  @Test(dataProvider = "validAcis")
+  @Test(dataProvider = "validAcis", singleThreaded = true)
   public void decodeValidAci(String aci) throws Exception
   {
     AciBody aciBody = AciBody.decode(aci);

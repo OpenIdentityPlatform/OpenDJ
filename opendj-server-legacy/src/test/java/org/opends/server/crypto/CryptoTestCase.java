@@ -22,5 +22,5 @@ import org.opends.server.DirectoryServerTestCase;
  * An abstract class that all crypto unit tests should extend.
  */
 
-@Test(groups = { "precommit", "crypto" }, sequential = true)
+@Test(groups = { "precommit", "crypto" }, singleThreaded = true)
 public abstract class CryptoTestCase extends DirectoryServerTestCase {}

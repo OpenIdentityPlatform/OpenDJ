@@ -63,7 +63,7 @@ public class ByteArrayTest extends DirectoryServerTestCase
 
   private final byte[] byteArray = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, };
 
-  @Test
+  @Test(singleThreaded = true)
   public void testBuilderAppendMethodsAndScannerNextMethods() throws Exception
   {
     final boolean boFalse = false;

@@ -608,7 +608,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     }
 
     Test testAnnotation = annotatedClass.getAnnotation(Test.class);
-    if (!testAnnotation.sequential()) {
+    if (!testAnnotation.singleThreaded()) {
       // Give an error message that is as specific as possible.
       boolean isTestClass = annotatedClass.equals(testClass);
       String errorMessage =

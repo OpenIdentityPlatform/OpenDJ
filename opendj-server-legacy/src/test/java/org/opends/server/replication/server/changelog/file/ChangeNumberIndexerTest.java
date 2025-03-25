@@ -167,7 +167,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
 
   private static final String NO_DS = "noDS";
 
-  @Test
+  @Test(singleThreaded = true)
   public void noDS() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);

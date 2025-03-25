@@ -26,7 +26,7 @@ import org.opends.server.DirectoryServerTestCase;
 /**
  * An abstract base class for all monitor test cases.
  */
-@Test(groups = { "precommit", "monitor" }, sequential = true)
+@Test(groups = { "precommit", "monitor" }, singleThreaded = true)
 public abstract class MonitorTestCase
        extends DirectoryServerTestCase
 {

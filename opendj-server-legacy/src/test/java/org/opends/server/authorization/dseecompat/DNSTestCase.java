@@ -89,7 +89,7 @@ public class DNSTestCase extends DirectoryServerTestCase {
      * @param hostString The string representing a host name.
      * @param patString The pattern to evaluate with.
      */
-    @Test(dataProvider = "invalidMatch")
+    @Test(dataProvider = "invalidMatch", singleThreaded = true)
     public void testInvalidMatch(String hostString, String patString) {
         String[] patArray = patString.split("\\.", -1);
         String[] hostArray = hostString.split("\\.", -1);

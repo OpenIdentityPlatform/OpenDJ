@@ -86,7 +86,7 @@ public class CompactDnTestCase extends DirectoryServerTestCase {
       assertThat(new CompactDn(DN.valueOf(dn))).isEqualTo(new CompactDn(DN.valueOf(otherDn)));
     }
 
-    @Test(dataProvider = "equivalentDnRepresentations")
+    @Test(dataProvider = "equivalentDnRepresentations", singleThreaded = true)
     public void testCompareTo(String dn, String otherDn) throws Exception {
         assertThat(new CompactDn(DN.valueOf(dn)).compareTo(new CompactDn(DN.valueOf(otherDn)))).isEqualTo(0);
     }

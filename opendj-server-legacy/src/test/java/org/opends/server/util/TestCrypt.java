@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
  * In the "slow" group, since they are unlikely to break and since there are 4K+ they can take a
  * while
  */
-@Test(groups = { "slow" }, sequential = true)
+@Test(groups = { "slow" }, singleThreaded = true)
 public final class TestCrypt extends UtilTestCase {
   private Crypt crypt = new Crypt();
 

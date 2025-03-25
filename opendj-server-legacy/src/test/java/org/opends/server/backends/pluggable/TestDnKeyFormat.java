@@ -320,7 +320,7 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test
+  @Test(singleThreaded = true)
   public void testEntryToAndFromDatabase() throws Exception {
     ensureServerIsUpAndRunning();
 

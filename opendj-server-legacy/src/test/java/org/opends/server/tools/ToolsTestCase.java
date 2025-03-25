@@ -26,7 +26,7 @@ import org.opends.server.DirectoryServerTestCase;
 /**
  * An abstract base class for all tools test cases.
  */
-@Test(groups = { "precommit", "tools" }, sequential = true)
+@Test(groups = { "precommit", "tools" }, singleThreaded = true)
 public abstract class ToolsTestCase
        extends DirectoryServerTestCase
 {

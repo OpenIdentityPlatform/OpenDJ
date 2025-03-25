@@ -150,7 +150,7 @@ public class ReplicationBrokerTest extends DirectoryServerTestCase
       { TopologyCtorToUse.BUILD_WITH_DS_RS_LISTS } };
   }
 
-  @Test(dataProvider = "topologyCtorProvider")
+  @Test(dataProvider = "topologyCtorProvider", singleThreaded = true)
   @SuppressWarnings("unchecked")
   public void topologyShouldContainNothing(TopologyCtorToUse toUse)
       throws Exception

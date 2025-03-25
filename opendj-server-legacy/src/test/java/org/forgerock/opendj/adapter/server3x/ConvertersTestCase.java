@@ -404,7 +404,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
     /**
      * Converts an LDAP attribute to an SDK attribute.
      */
-    @Test(groups = { "needRunningServer" })
+    @Test(groups = { "needRunningServer" }, singleThreaded = true)
     public final void testFromAttribute() throws DirectoryException {
         final org.opends.server.types.Attribute srvAttribute = Attributes.create("CN", "JOHN DOE");
         final org.forgerock.opendj.ldap.Attribute sdkAttribute = from(srvAttribute);

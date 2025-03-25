@@ -75,7 +75,7 @@ public class BoundedWorkQueueStrategyTest extends DirectoryServerTestCase
     return operation;
   }
 
-  @Test
+  @Test(singleThreaded = true)
   public void doNotEnqueueOperationWithInvalidConnection() throws Exception
   {
     final BoundedWorkQueueStrategy strategy =

@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
 /**
  * SNMP trap test.
  */
-@Test(enabled=true, groups = {"precommit", "snmp"}, sequential = true)
+@Test(enabled=true, groups = {"precommit", "snmp"}, singleThreaded = true)
 public class SNMPTrapManagerTest extends SNMPConnectionManager {
 
     @BeforeClass

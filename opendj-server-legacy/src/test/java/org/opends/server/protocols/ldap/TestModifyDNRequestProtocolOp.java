@@ -272,7 +272,7 @@ public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
    *
    * @throws Exception If the test fails unexpectedly.
    */
-  @Test
+  @Test(singleThreaded = true)
   public void TestToStringMultiLine() throws Exception
   {
     ModifyDNRequestProtocolOp modifyRequest;

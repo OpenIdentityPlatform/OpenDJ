@@ -98,7 +98,7 @@ import org.testng.annotations.Test;
  * Unit tests for pluggable backend implementations. The test methods have side-effects and must be run in-order.
  */
 @SuppressWarnings("javadoc")
-@Test(groups = { "precommit", "pluggablebackend" }, sequential = true)
+@Test(groups = { "precommit", "pluggablebackend" }, singleThreaded = true)
 public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg> extends DirectoryServerTestCase
 {
   private BackendImpl<C> backend;
@@ -193,7 +193,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     	when(op.getRequestControl(SubtreeDeleteControl.DECODER)).thenReturn(new SubtreeDeleteControl(true));
         backend.deleteEntry(testBaseDN, op);
     }
-    
+
     topEntries = TestCaseUtils.makeEntries(
                 "dn: " + testBaseDN,
                 "objectclass: top",
@@ -558,7 +558,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     searchDN = entries.get(1).getName();
     badEntryDN = testBaseDN.child(DN.valueOf("ou=bogus")).child(DN.valueOf("ou=dummy"));
     backupID = "backupID1";
-    
+
     addEntriesToBackend(topEntries);
     addEntriesToBackend(entries);
     addEntriesToBackend(workEntries);

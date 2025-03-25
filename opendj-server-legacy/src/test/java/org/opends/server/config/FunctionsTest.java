@@ -25,7 +25,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-@Test(groups = { "precommit" }, sequential = true)
+@Test(groups = { "precommit" }, singleThreaded = true)
 public class FunctionsTest extends DirectoryServerTestCase {
     private static final File CONFIG_PROPERTIES = getTestResource("el-config.properties");
     private static final File PASSWORD_PIN = getTestResource("el-password.pin");

@@ -57,7 +57,7 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
     msg6 = new FakeUpdateMsg(6);
   }
 
-  @Test
+  @Test(singleThreaded = true)
   public void emptyCursor() throws Exception
   {
     final CompositeDBCursor<String> compCursor =

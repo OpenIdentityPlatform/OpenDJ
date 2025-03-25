@@ -79,7 +79,7 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
     assertEmpty();
   }
 
-  @Test
+  @Test(singleThreaded = true)
   public void testECLDisabledDomainWithCursor() throws Exception
   {
     final DN baseDN = DN.valueOf("dc=example,dc=com");

@@ -34,7 +34,7 @@ import static org.testng.Assert.*;
 /**
  * SNMP tests.
  */
-@Test(enabled=false, groups = {"precommit", "snmp"}, sequential = true)
+@Test(enabled=false, groups = {"precommit", "snmp"}, singleThreaded = true)
 public class SNMPSyncManagerV2AccessTest extends SNMPConnectionManager {
 
     @BeforeClass

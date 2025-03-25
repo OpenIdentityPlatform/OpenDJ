@@ -31,7 +31,7 @@ import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Test(sequential = true)
+@Test(singleThreaded = true)
 public class AliasTestCase extends DirectoryServerTestCase {
     Connection connection;
 
@@ -241,7 +241,7 @@ public class AliasTestCase extends DirectoryServerTestCase {
         assertThat(res.containsKey("cn=President,o=MyCompany,o=test")).isTrue();
         assertThat(res.containsKey("cn=John Doe,o=MyCompany,o=test")).isTrue();
     }
-    
+
     //            One-Level Search with the Dereferencing Flag -a search
     //
     //    This example shows a one-level search of "ou=Area1,o=test" with a filter of "objectclass=*" with the dereferencing flag set to -a search.

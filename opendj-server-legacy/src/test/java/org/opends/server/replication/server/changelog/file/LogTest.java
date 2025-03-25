@@ -336,7 +336,7 @@ public class LogTest extends DirectoryServerTestCase
     }
   }
 
-  @Test
+  @Test(singleThreaded = true)
   public void testClear() throws Exception
   {
     try (Log<String, String> log = openLog(LogFileTest.RECORD_PARSER))

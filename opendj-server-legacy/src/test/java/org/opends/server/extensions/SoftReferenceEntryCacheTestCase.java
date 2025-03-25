@@ -206,7 +206,7 @@ public class SoftReferenceEntryCacheTestCase
 
 
   /** {@inheritDoc} */
-  @Test
+  @Test(singleThreaded = true)
   @Override
   public void testClear()
          throws Exception
