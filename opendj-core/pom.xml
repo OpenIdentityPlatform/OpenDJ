@@ -56,9 +56,9 @@
         </dependency>
 
         <dependency>
-            <groupId>io.reactivex.rxjava2</groupId>
+            <groupId>io.reactivex.rxjava3</groupId>
             <artifactId>rxjava</artifactId>
-            <version>2.2.21</version>
+            <version>3.1.10</version>
         </dependency>
 
         <dependency>
@@ -76,7 +76,7 @@
             <artifactId>build-tools</artifactId>
             <scope>test</scope>
         </dependency>
-        
+
         <!--         java.xml.bind (JAXB) - REMOVED -->
 	    <dependency>
 		  <groupId>javax.xml.bind</groupId>
@@ -97,13 +97,13 @@
 	      <artifactId>bc-fips</artifactId>
 	      <version>${bc.fips.version}</version>
 	    </dependency>
-	
+
 	    <dependency>
 	      <groupId>org.bouncycastle</groupId>
 	      <artifactId>bctls-fips</artifactId>
 	      <version>${bctls.fips.version}</version>
 	    </dependency>
-	    
+
 	     <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -112,8 +112,8 @@
 
 
     <properties>
-        <bc.fips.version>1.0.2.5</bc.fips.version>
-        <bctls.fips.version>1.0.19</bctls.fips.version>
+        <bc.fips.version>2.1.0</bc.fips.version>
+        <bctls.fips.version>2.1.20</bctls.fips.version>
 
         <opendj.osgi.import.additional>
             com.sun.security.auth*;resolution:=optional
