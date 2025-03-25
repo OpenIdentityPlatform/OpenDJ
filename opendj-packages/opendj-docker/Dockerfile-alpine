@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine
+FROM alpine:latest
 
 LABEL org.opencontainers.image.authors="Open Identity Platform Community"
 
@@ -14,7 +14,7 @@ ENV OPENDJ_SSL_OPTIONS="--generateSelfSignedCertificate"
 #ENV MASTER_SERVER
 #ENV OPENDJ_REPLICATION_TYPE
 ENV OPENDJ_USER="opendj"
-ENV OPENDJ_JAVA_ARGS="-server -XX:+UseG1GC -XX:+UseContainerSupport"
+#ENV OPENDJ_JAVA_ARGS=""
 ENV BACKEND_TYPE="je"
 ENV BACKEND_DB_DIRECTORY="db"
 #ENV SETUP_ARGS
@@ -25,7 +25,7 @@ WORKDIR /opt
 
 RUN apk add --update --no-cache --virtual builddeps curl unzip \
  && apk upgrade --update --no-cache \
- && apk add bash \
+ && apk add bash openjdk8 \
  && if [ -z "$VERSION" ] ; then VERSION="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)"; fi \
  && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output opendj-$VERSION.zip \
  && unzip opendj-$VERSION.zip \
