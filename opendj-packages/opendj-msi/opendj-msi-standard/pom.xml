@@ -36,7 +36,7 @@
         <msi.resources>${basedir}/resources/msi</msi.resources>
         <package.dir>${project.build.directory}/${product.name.lowercase}</package.dir>
     </properties>
-	
+
 	<dependencies>
 
 	</dependencies>
@@ -225,14 +225,14 @@
 									<arg value="wineboot" />
 									<arg value="--init" />
 								</exec>
-								
+
 								<exec osfamily="unix" executable="sh" resultproperty="WineTricksExitStatusCode" failifexecutionfails="false">
 									<arg value="${project.build.directory}/winetricks/winetricks-LAST.sh" />
 									<arg value="--unattended" />
 									<arg value="dotnet40" />
 									<arg value="dotnet_verifier" />
 								</exec>
-								
+
 								<property name="exec.heat" value="wine" /><property name="param.heat" value="${project.build.directory}/wix/heat.exe" />
 								<property name="exec.candle" value="wine" /><property name="param.candle" value="${project.build.directory}/wix/candle.exe" />
 								<property name="exec.light" value="wine" /><property name="param.light" value="${project.build.directory}/wix/light.exe" />

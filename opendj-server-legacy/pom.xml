@@ -23,6 +23,7 @@
     <artifactId>opendj-parent</artifactId>
     <version>4.9.4-SNAPSHOT</version>
   </parent>
+
   <artifactId>opendj-server-legacy</artifactId>
   <packaging>jar</packaging>
   <name>OpenDJ Server</name>
@@ -65,7 +66,7 @@
     <product.archive.name>${product.name.lowercase}-${project.version}</product.archive.name>
 
     <juel.version>2.2.7</juel.version>
-    
+
     <doclint>none</doclint>
     <opendmk.lib.dir>${basedir}/opendmk</opendmk.lib.dir>
   </properties>
@@ -86,12 +87,12 @@
       <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-config</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-cli</artifactId>
     </dependency>
-    
+
      <dependency>
       <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-legacy</artifactId>
@@ -204,7 +205,7 @@
       <artifactId>jul-to-slf4j</artifactId>
     </dependency>
 
-       
+
     <!-- mail -->
     <dependency>
       <groupId>com.sun.mail</groupId>
@@ -229,7 +230,7 @@
       <groupId>org.openidentityplatform.commons.persistit</groupId>
       <artifactId>core</artifactId>
     </dependency>
-	
+
     <dependency>
       <groupId>com.github.stephenc.jcip</groupId>
       <artifactId>jcip-annotations</artifactId>
@@ -246,7 +247,7 @@
       <artifactId>juel-api</artifactId>
       <version>${juel.version}</version>
     </dependency>
-    
+
     <dependency>
 	    <groupId>com.datastax.oss</groupId>
 	    <artifactId>java-driver-core</artifactId>
@@ -1343,7 +1344,7 @@
                   </sources>
                 </configuration>
               </execution>
-             
+
             </executions>
           </plugin>
 

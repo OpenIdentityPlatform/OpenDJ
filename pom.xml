@@ -15,785 +15,778 @@
   Copyright 2011-2016 ForgeRock AS.
   Portions  Copyright 2017-2024 3A Systems, LLC.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-	<groupId>org.openidentityplatform.opendj</groupId>
-    <artifactId>opendj-parent</artifactId>
-	<version>4.9.4-SNAPSHOT</version>
-    <packaging>pom</packaging>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.openidentityplatform.opendj</groupId>
+  <artifactId>opendj-parent</artifactId>
+  <version>4.9.4-SNAPSHOT</version>
+  <packaging>pom</packaging>
 
-    <name>OpenDJ Directory Services Project</name>
-    <description>
-        OpenDJ is a new LDAPv3 compliant directory service, developed for the Java
-        platform, providing a high performance, highly available and secure store
-        for the identities managed by enterprises.
-    </description>
+  <name>OpenDJ Directory Services Project</name>
+  <description>
+    OpenDJ is a new LDAPv3 compliant directory service, developed for the Java
+    platform, providing a high performance, highly available and secure store
+    for the identities managed by enterprises.
+  </description>
 
-    <properties>
-        <product.name>OpenDJ</product.name>
-        <product.name.lowercase>opendj</product.name.lowercase>
-        <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <localized.jars.classifier>i18n</localized.jars.classifier>
-        <commons.version>2.2.4</commons.version>
-        <freemarker.version>2.3.31</freemarker.version>
-        <grizzly-framework.version>2.3.35</grizzly-framework.version>
-        <metrics-core.version>3.1.2</metrics-core.version>
-        <maven.compiler.target>8</maven.compiler.target>
-        <maven.compiler.source>8</maven.compiler.source>
-        <!-- OSGi bundles properties -->
-        <opendj.osgi.import.additional />
-        <!--
-         | Use provide:=true to disallow mixing OpenDJ and ForgeRock resource versions.
-         | it change the version policy from == + to == =+  [2.0,3) [2.0,2.1)
-        -->
-        <opendj.osgi.import>
-            ${opendj.osgi.import.additional},
-            *
-        </opendj.osgi.import>
-<!--         <opendj-copyright-maven-plugin.version>1.0.1</opendj-copyright-maven-plugin.version> -->
+  <properties>
+    <product.name>OpenDJ</product.name>
+    <product.name.lowercase>opendj</product.name.lowercase>
+    <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <localized.jars.classifier>i18n</localized.jars.classifier>
+    <commons.version>2.2.4</commons.version>
+    <freemarker.version>2.3.34</freemarker.version>
+    <grizzly-framework.version>2.4.1</grizzly-framework.version>
+    <metrics-core.version>4.2.30</metrics-core.version>
+    <maven.compiler.target>8</maven.compiler.target>
+    <maven.compiler.source>8</maven.compiler.source>
+    <!-- OSGi bundles properties -->
+    <opendj.osgi.import.additional/>
+    <!--
+     | Use provide:=true to disallow mixing OpenDJ and ForgeRock resource versions.
+     | it change the version policy from == + to == =+  [2.0,3) [2.0,2.1)
+    -->
+    <opendj.osgi.import>
+      ${opendj.osgi.import.additional},
+      *
+    </opendj.osgi.import>
+    <!--         <opendj-copyright-maven-plugin.version>1.0.1</opendj-copyright-maven-plugin.version> -->
 
-        <!--  ForgeRock build tools and Checkstyle versions (to avoid many checkstyle errors with ForgeRock Parent 2.0.10) -->
-        <checkstylePluginVersion>2.9.1</checkstylePluginVersion>
-        <checkstyleVersion>5.5</checkstyleVersion>
-        <ant.contrib.version>1.0b3</ant.contrib.version>
-        <argLine>-Xmx512m</argLine>
+    <!--  ForgeRock build tools and Checkstyle versions (to avoid many checkstyle errors with ForgeRock Parent 2.0.10) -->
+    <checkstylePluginVersion>2.9.1</checkstylePluginVersion>
+    <checkstyleVersion>5.5</checkstyleVersion>
+    <ant.contrib.version>1.0b3</ant.contrib.version>
+    <argLine>-Xmx512m</argLine>
 
-        <docHomepageUrl>https://doc.openidentityplatform.org/opendj/</docHomepageUrl>
-        <docWikiUrl>https://github.com/OpenIdentityPlatform/OpenDJ/wiki</docWikiUrl>
-        <docGuideRefUrl>https://doc.openidentityplatform.org/opendj/man-pages/</docGuideRefUrl>
-        <docGuideAdminUrl>https://doc.openidentityplatform.org/opendj/admin-guide/</docGuideAdminUrl>
+    <docHomepageUrl>https://doc.openidentityplatform.org/opendj/</docHomepageUrl>
+    <docWikiUrl>https://github.com/OpenIdentityPlatform/OpenDJ/wiki</docWikiUrl>
+    <docGuideRefUrl>https://doc.openidentityplatform.org/opendj/man-pages/</docGuideRefUrl>
+    <docGuideAdminUrl>https://doc.openidentityplatform.org/opendj/admin-guide/</docGuideAdminUrl>
 
-      </properties>
+  </properties>
 
-    <inceptionYear>2011</inceptionYear>
+  <inceptionYear>2011</inceptionYear>
+  <url>https://github.com/OpenIdentityPlatform/OpenDJ</url>
+
+  <mailingLists>
+    <mailingList>
+      <name>OpenDJ Users List</name>
+      <subscribe>https://groups.google.com/d/forum/open-identity-platform-opendj</subscribe>
+      <unsubscribe>https://groups.google.com/d/forum/open-identity-platform-opendj</unsubscribe>
+      <post>open-identity-platform-opendj@googlegroups.com</post>
+      <archive>https://groups.google.com/d/forum/open-identity-platform-opendj</archive>
+    </mailingList>
+    <mailingList>
+      <name>OpenDJ Developers List</name>
+      <subscribe>https://groups.google.com/d/forum/open-identity-platform-opendj</subscribe>
+      <unsubscribe>https://groups.google.com/d/forum/open-identity-platform-opendj</unsubscribe>
+      <post>open-identity-platform-opendj@googlegroups.com</post>
+      <archive>https://groups.google.com/d/forum/open-identity-platform-opendj</archive>
+    </mailingList>
+  </mailingLists>
+
+  <licenses>
+    <license>
+      <name>CDDL-1.1</name>
+      <url>https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/LICENSE.md</url>
+      <comments>Common Development and Distribution License (CDDL) 1.1.
+        This license applies to OpenDJ source code as indicated in the
+        source files.
+      </comments>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>Open Identity Platform Community</id>
+      <name>Open Identity Platform Community</name>
+      <email>open-identity-platform@googlegroups.com</email>
+      <organization>Open Identity Platform Community</organization>
+      <organizationUrl>https://www.openidentityplatform.org/</organizationUrl>
+      <url>https://github.com/OpenIdentityPlatform/commons</url>
+    </developer>
+  </developers>
+  <issueManagement>
+    <system>github.com</system>
+    <url>https://github.com/OpenIdentityPlatform/OpenDJ/issues</url>
+  </issueManagement>
+
+  <scm>
+    <connection>scm:git:https://github.com/OpenIdentityPlatform/OpenDJ.git</connection>
+    <developerConnection>scm:git:https://github.com/OpenIdentityPlatform/OpenDJ.git</developerConnection>
     <url>https://github.com/OpenIdentityPlatform/OpenDJ</url>
+    <tag>HEAD</tag>
+  </scm>
+  <repositories>
+    <repository>
+      <id>ossrh-snapshots</id>
+      <name>Sonatype OSS Repository</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>ossrh-snapshots</id>
+      <name>Sonatype OSS Repository</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+  <distributionManagement>
+    <repository>
+      <id>ossrh</id>
+      <name>Sonatype OSS Repository</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+    </repository>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <name>Sonatype OSS Repository</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
 
-    <mailingLists>
-         <mailingList>
-            <name>OpenDJ Users List</name>
-            <subscribe>https://groups.google.com/d/forum/open-identity-platform-opendj</subscribe>
-            <unsubscribe>https://groups.google.com/d/forum/open-identity-platform-opendj</unsubscribe>
-            <post>open-identity-platform-opendj@googlegroups.com</post>
-            <archive>https://groups.google.com/d/forum/open-identity-platform-opendj</archive>
-        </mailingList>
-        <mailingList>
-            <name>OpenDJ Developers List</name>
-            <subscribe>https://groups.google.com/d/forum/open-identity-platform-opendj</subscribe>
-            <unsubscribe>https://groups.google.com/d/forum/open-identity-platform-opendj</unsubscribe>
-            <post>open-identity-platform-opendj@googlegroups.com</post>
-            <archive>https://groups.google.com/d/forum/open-identity-platform-opendj</archive>
-        </mailingList>
-    </mailingLists>
-
-    <licenses>
-        <license>
-            <name>CDDL-1.1</name>
-            <url>https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/LICENSE.md</url>
-            <comments>Common Development and Distribution License (CDDL) 1.1.
-                This license applies to OpenDJ source code as indicated in the
-                source files.
-            </comments>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    <developers>
-    	<developer>
-    		<id>Open Identity Platform Community</id>
-    		<name>Open Identity Platform Community</name>
-    		<email>open-identity-platform@googlegroups.com</email>
-    		<organization>Open Identity Platform Community</organization>
-    		<organizationUrl>https://www.openidentityplatform.org/</organizationUrl>
-    		<url>https://github.com/OpenIdentityPlatform/commons</url>
-    	</developer>
-    </developers>
-     <issueManagement>
-        <system>github.com</system>
-        <url>https://github.com/OpenIdentityPlatform/OpenDJ/issues</url>
-    </issueManagement>
-
-    <scm>
-        <connection>scm:git:https://github.com/OpenIdentityPlatform/OpenDJ.git</connection>
-        <developerConnection>scm:git:https://github.com/OpenIdentityPlatform/OpenDJ.git</developerConnection>
-        <url>https://github.com/OpenIdentityPlatform/OpenDJ</url>
-      	<tag>HEAD</tag>
-  	</scm>
-	<repositories>
-		<repository>
-			<id>ossrh-snapshots</id>
-			<name>Sonatype OSS Repository</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-			<snapshots><enabled>true</enabled></snapshots>
-		</repository>
-	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>ossrh-snapshots</id>
-			<name>Sonatype OSS Repository</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</pluginRepository>
-	</pluginRepositories>
-	<distributionManagement>
-		<repository>
-			<id>ossrh</id>
-			<name>Sonatype OSS Repository</name>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-		</repository>
-		<snapshotRepository>
-			<id>ossrh</id>
-			<name>Sonatype OSS Repository</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
-
-    <dependencyManagement>
-        <dependencies>
-        	<dependency>
-        		<groupId>org.openidentityplatform.commons</groupId>
-        		<artifactId>parent</artifactId>
-        		<version>${commons.version}</version>
-        		<type>pom</type>
-        		<scope>import</scope>
-        	</dependency>
-            <dependency>
-                <groupId>com.github.stephenc.jcip</groupId>
-                <artifactId>jcip-annotations</artifactId>
-                <version>1.0-1</version>
-            </dependency>
-
-            <!-- OpenDJ SDK -->
-            <dependency>
-                <groupId>org.openidentityplatform.opendj</groupId>
-                <artifactId>opendj-core</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.openidentityplatform.opendj</groupId>
-                <artifactId>opendj-cli</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.openidentityplatform.opendj</groupId>
-                <artifactId>opendj-grizzly</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.openidentityplatform.opendj</groupId>
-                <artifactId>opendj-rest2ldap</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-          <!-- Dropwizard metrics-core -->
-            <dependency>
-                <groupId>io.dropwizard.metrics</groupId>
-                <artifactId>metrics-core</artifactId>
-                <version>${metrics-core.version}</version>
-            </dependency>
-
-            <!-- OpenDJ SDK -->
-            <dependency>
-                <groupId>org.openidentityplatform.opendj</groupId>
-                <artifactId>opendj-core</artifactId>
-                <type>test-jar</type>
-                <version>${project.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.openidentityplatform.opendj</groupId>
-                <artifactId>opendj-config</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.openidentityplatform.opendj</groupId>
-                <artifactId>opendj-legacy</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.openidentityplatform.opendj</groupId>
-                <artifactId>opendj-server</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-             <dependency>
-                <groupId>org.openidentityplatform.opendj</groupId>
-                <artifactId>opendj-server-legacy</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
+  <dependencyManagement>
     <dependencies>
-        <dependency>
-            <groupId>org.easytesting</groupId>
-            <artifactId>fest-assert</artifactId>
-            <version>1.4</version>
-            <scope>test</scope>
-        </dependency>
+      <dependency>
+        <groupId>org.openidentityplatform.commons</groupId>
+        <artifactId>parent</artifactId>
+        <version>${commons.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.github.stephenc.jcip</groupId>
+        <artifactId>jcip-annotations</artifactId>
+        <version>1.0-1</version>
+      </dependency>
 
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <scope>test</scope>
-        </dependency>
+      <!-- OpenDJ SDK -->
+      <dependency>
+        <groupId>org.openidentityplatform.opendj</groupId>
+        <artifactId>opendj-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.10.19</version>
-            <scope>test</scope>
-        </dependency>
+      <dependency>
+        <groupId>org.openidentityplatform.opendj</groupId>
+        <artifactId>opendj-cli</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
+      <dependency>
+        <groupId>org.openidentityplatform.opendj</groupId>
+        <artifactId>opendj-grizzly</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
+      <dependency>
+        <groupId>org.openidentityplatform.opendj</groupId>
+        <artifactId>opendj-rest2ldap</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <!-- Dropwizard metrics-core -->
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-core</artifactId>
+        <version>${metrics-core.version}</version>
+      </dependency>
+
+      <!-- OpenDJ SDK -->
+      <dependency>
+        <groupId>org.openidentityplatform.opendj</groupId>
+        <artifactId>opendj-core</artifactId>
+        <type>test-jar</type>
+        <version>${project.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.openidentityplatform.opendj</groupId>
+        <artifactId>opendj-config</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.openidentityplatform.opendj</groupId>
+        <artifactId>opendj-legacy</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.openidentityplatform.opendj</groupId>
+        <artifactId>opendj-server</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.openidentityplatform.opendj</groupId>
+        <artifactId>opendj-server-legacy</artifactId>
+        <version>${project.version}</version>
+      </dependency>
     </dependencies>
+  </dependencyManagement>
 
-    <modules>
-        <module>opendj-core</module>
-        <module>opendj-doc-maven-plugin</module>
-        <module>opendj-grizzly</module>
-        <module>opendj-cli</module>
-        <module>opendj-ldap-toolkit</module>
-        <module>opendj-ldap-sdk-examples</module>
-        <module>opendj-rest2ldap</module>
+  <dependencies>
+    <dependency>
+      <groupId>org.easytesting</groupId>
+      <artifactId>fest-assert</artifactId>
+      <version>1.4</version>
+      <scope>test</scope>
+    </dependency>
 
-        <module>opendj-maven-plugin</module>
-        <module>opendj-config</module>
-        <module>opendj-rest2ldap-servlet</module>
-        <module>opendj-server</module>
-        <module>opendj-server-example-plugin</module>
-        <module>opendj-server-msad-plugin</module>
-        <module>opendj-legacy</module>
-        <module>opendj-server-legacy</module>
-        <module>opendj-dsml-servlet</module>
-        <module>opendj-embedded-server-examples</module>
-        <module>opendj-openidm-account-change-notification-handler</module>
-        <module>opendj-packages</module>
-        <module>opendj-embedded</module>
-    </modules>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-    <build>
-    	<finalName>${project.groupId}.${project.artifactId}</finalName>
-        <plugins>
-             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <executions>
-		          <execution>
-		            <id>attach-sources</id>
-		            <phase>verify</phase>
-		            <goals>
-		              <goal>jar-no-fork</goal>
-		            </goals>
-		          </execution>
-		        </executions>
-            </plugin>
-            <plugin>
-			  <groupId>org.apache.maven.plugins</groupId>
-			  <artifactId>maven-javadoc-plugin</artifactId>
-			  <executions>
-			    <execution>
-			      <id>attach-javadocs</id>
-			      <goals>
-			        <goal>jar</goal>
-			      </goals>
-			    </execution>
-			  </executions>
-			  <configuration>
-			  	<doclint>none</doclint>
-                <notimestamp>true</notimestamp>
-			  </configuration>
-			</plugin>
-			<plugin>
-		      <groupId>org.sonatype.plugins</groupId>
-		      <artifactId>nexus-staging-maven-plugin</artifactId>
-		      <version>1.6.13</version>
-		      <extensions>true</extensions>
-		      <configuration>
-		        <serverId>ossrh</serverId>
-		        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-		        <autoReleaseAfterClose>false</autoReleaseAfterClose>
-		        <stagingProgressTimeoutMinutes>15</stagingProgressTimeoutMinutes>
-		        <keepStagingRepositoryOnFailure>true</keepStagingRepositoryOnFailure>
-		        <keepStagingRepositoryOnCloseRuleFailure>true</keepStagingRepositoryOnCloseRuleFailure>
-		      </configuration>
-		      <dependencies>
-		      	<dependency>
-			        <groupId>com.google.guava</groupId>
-			        <artifactId>guava</artifactId>
-			        <version>15.0</version>
-			     </dependency>
-		      </dependencies>
-		    </plugin>
-        </plugins>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.10.19</version>
+      <scope>test</scope>
+    </dependency>
 
-        <pluginManagement>
-            <plugins>
-            	<plugin>
-			     <groupId>org.apache.maven.plugins</groupId>
-			     <artifactId>maven-antrun-plugin</artifactId>
-			     <version>1.8</version>
-			    </plugin>
-                <plugin>
-                    <inherited>true</inherited>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.13.0</version>
-                    <configuration>
-                        <fork>true</fork>
-                        <compilerArgs>
-                        	<arg>-XDignore.symbol.file</arg>
-                        </compilerArgs>
-                    </configuration>
-                </plugin>
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-				<plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.6.0</version>
-                </plugin>
-                
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-			        <artifactId>maven-release-plugin</artifactId>
-			        <version>3.0.0-M7</version>
-			        <configuration>
- 			        	<signTag>true</signTag>
- 			        	<tagNameFormat>@{project.version}</tagNameFormat>
- 			        	<allowTimestampedSnapshots>false</allowTimestampedSnapshots>
- 			        </configuration>
-                </plugin>
-                
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.3.0</version>
-                </plugin>
-                
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-war-plugin</artifactId>
-                    <version>3.2.3</version>
-                </plugin>
-                
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-shade-plugin</artifactId>
-                    <version>3.2.1</version>
-                </plugin>
-                
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.2.5</version>
-                </plugin>
-                
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.3.1</version>
-                </plugin>
-                
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-clean-plugin</artifactId>
-                    <version>3.1.0</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.6.0</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.10.1</version>
-                </plugin>
+  </dependencies>
 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>3.2.0</version>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>jar</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
+  <modules>
+    <module>opendj-core</module>
+    <module>opendj-doc-maven-plugin</module>
+    <module>opendj-grizzly</module>
+    <module>opendj-cli</module>
+    <module>opendj-ldap-toolkit</module>
+    <module>opendj-ldap-sdk-examples</module>
+    <module>opendj-rest2ldap</module>
 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.2.5</version> <!-- M6 DecodeException but got java.nio.BufferOverflowException -->
-                    <configuration>
-						<properties>
-                            <property>
-                                <name>usedefaultlisteners</name>
-                                <value>false</value>
-                            </property>
-                            <property>
-                                <name>listener</name>
-                                <value>org.forgerock.testng.ForgeRockTestListener</value>
-                            </property>
-                        </properties>
-                    </configuration>
-                </plugin>
+    <module>opendj-maven-plugin</module>
+    <module>opendj-config</module>
+    <module>opendj-rest2ldap-servlet</module>
+    <module>opendj-server</module>
+    <module>opendj-server-example-plugin</module>
+    <module>opendj-server-msad-plugin</module>
+    <module>opendj-legacy</module>
+    <module>opendj-server-legacy</module>
+    <module>opendj-dsml-servlet</module>
+    <module>opendj-embedded-server-examples</module>
+    <module>opendj-openidm-account-change-notification-handler</module>
+    <module>opendj-packages</module>
+    <module>opendj-embedded</module>
+  </modules>
 
-                <plugin>
-                    <groupId>org.openidentityplatform.opendj</groupId>
-                    <artifactId>opendj-doc-maven-plugin</artifactId>
-                    <version>${project.version}</version>
-                </plugin>
+  <build>
+    <finalName>${project.groupId}.${project.artifactId}</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <doclint>none</doclint>
+          <notimestamp>true</notimestamp>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.7.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>false</autoReleaseAfterClose>
+          <stagingProgressTimeoutMinutes>15</stagingProgressTimeoutMinutes>
+          <keepStagingRepositoryOnFailure>true</keepStagingRepositoryOnFailure>
+          <keepStagingRepositoryOnCloseRuleFailure>true</keepStagingRepositoryOnCloseRuleFailure>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>33.4.5-jre</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
 
-                <plugin>
-                    <groupId>org.apache.felix</groupId>
-                    <artifactId>maven-bundle-plugin</artifactId>
-                    <version>2.3.7</version>
-                    <extensions>true</extensions>
-                    <configuration>
-                        <instructions>
-                            <!--
-                            | Remove the by default removed headers plus some other to make cleaner the generated MANIFEST.MF
-                            -->
-                            <_removeheaders>
-                                Bnd-LastModified,Built-By,Private-Package,Tool,Created-By,Build-Jdk,Include-Resource,
-                                Ignore-Package,Private-Package,Bundle-DocURL
-                            </_removeheaders>
-                            <Import-Package>${opendj.osgi.import}</Import-Package>
-                        </instructions>
-                        <archive>
-                            <addMavenDescriptor>false</addMavenDescriptor>
-                            <index>true</index>
-                            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-                        </archive>
-                    </configuration>
-                </plugin>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>3.1.0</version>
+        </plugin>
+        <plugin>
+          <inherited>true</inherited>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.14.0</version>
+          <configuration>
+            <fork>true</fork>
+            <compilerArgs>
+              <arg>-XDignore.symbol.file</arg>
+            </compilerArgs>
+          </configuration>
+        </plugin>
 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-site-plugin</artifactId>
-                    <configuration>
-                        <locales>en</locales>
-                    </configuration>
-                </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>3.7.1</version>
+        </plugin>
 
-                <plugin>
-                    <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
-                    <artifactId>maven-plugin</artifactId>
-                </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>3.1.1</version>
+          <configuration>
+            <signTag>true</signTag>
+            <tagNameFormat>@{project.version}</tagNameFormat>
+            <allowTimestampedSnapshots>false</allowTimestampedSnapshots>
+          </configuration>
+        </plugin>
 
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>cobertura-maven-plugin</artifactId>
-                    <configuration>
-                        <instrumentation>
-                            <excludes>
-                                <exclude>**/*Messages.class</exclude>
-                            </excludes>
-                        </instrumentation>
-                    </configuration>
-                </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.4.2</version>
+        </plugin>
 
-                <!-- This is needed to use annotations in maven plugins with maven 3.0.x -->
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.6.0</version>
-                    <configuration>
-                        <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>mojo-descriptor</id>
-                            <phase>process-classes</phase>
-                            <goals>
-                                <goal>descriptor</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>3.4.0</version>
+        </plugin>
 
-                <plugin>
-                    <groupId>org.openidentityplatform.opendj</groupId>
-                    <artifactId>opendj-copyright-maven-plugin</artifactId>
-                    <version>${opendj-copyright-maven-plugin.version}</version>
-                    <configuration>
-                        <!-- Disable copyright on README and legal files -->
-                        <disabledFiles>
-                            <disabledFile>README</disabledFile>
-                            <disabledFile>**/README</disabledFile>
-                            <disabledFile>README.txt</disabledFile>
-                            <disabledFile>**/README.txt</disabledFile>
-                            <disabledFile>**/THIRD-PARTY.properties</disabledFile>
-                            <disabledFile>**/THIRDPARTYREADME.txt</disabledFile>
-                            <disabledFile>legal-notices/CDDLv1_0.txt</disabledFile>
-                            <disabledFile>**/tests/unit-tests-testng/resource/config-changes.ldif</disabledFile>
-                            <disabledFile>opendj-rest2ldap-servlet/src/main/webapp/WEB-INF/classes/logging.properties</disabledFile>
-                            <disabledFile>opendj-ldap-toolkit/src/test/resources/*.ldif</disabledFile>
-                            <disabledFile>opendj-ldap-toolkit/src/test/resources/**/*.ldif</disabledFile>
-                        </disabledFiles>
-                    </configuration>
-                </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.6.0</version>
+        </plugin>
 
-                <!-- Provides build capabilities for docs in DocBook XML format. -->
-                <plugin>
-                    <groupId>org.openidentityplatform.commons</groupId>
-                    <artifactId>doc-maven-plugin</artifactId>
-                    <version>${commons.version}</version>
-                    <configuration>
-                        <projectName>${product.name}</projectName>
-                        <projectVersion>${project.version}</projectVersion>
-                        <releaseVersion>${project.version}</releaseVersion>
-                        <googleAnalyticsId />
-                    </configuration>
-                </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>3.5.2</version>
+        </plugin>
 
-                <plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>3.3.1</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>3.4.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.8.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.11.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.5.2</version> <!-- M6 DecodeException but got java.nio.BufferOverflowException -->
+          <configuration>
+            <properties>
+              <property>
+                <name>usedefaultlisteners</name>
+                <value>false</value>
+              </property>
+              <property>
+                <name>listener</name>
+                <value>org.forgerock.testng.ForgeRockTestListener</value>
+              </property>
+            </properties>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.openidentityplatform.opendj</groupId>
+          <artifactId>opendj-doc-maven-plugin</artifactId>
+          <version>${project.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <version>5.1.9</version>
+          <extensions>true</extensions>
+          <configuration>
+            <instructions>
+              <!--
+              | Remove the by default removed headers plus some other to make cleaner the generated MANIFEST.MF
+              -->
+              <_removeheaders>
+                Bnd-LastModified,Built-By,Private-Package,Tool,Created-By,Build-Jdk,Include-Resource,
+                Ignore-Package,Private-Package,Bundle-DocURL
+              </_removeheaders>
+              <Import-Package>${opendj.osgi.import}</Import-Package>
+            </instructions>
+            <archive>
+              <addMavenDescriptor>false</addMavenDescriptor>
+              <index>true</index>
+              <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+            </archive>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>3.12.1</version>
+          <configuration>
+            <locales>en</locales>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+          <artifactId>maven-plugin</artifactId>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>cobertura-maven-plugin</artifactId>
+          <configuration>
+            <instrumentation>
+              <excludes>
+                <exclude>**/*Messages.class</exclude>
+              </excludes>
+            </instrumentation>
+          </configuration>
+        </plugin>
+
+        <!-- This is needed to use annotations in maven plugins with maven 3.0.x -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-plugin-plugin</artifactId>
+          <version>3.15.1</version>
+          <configuration>
+            <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+          </configuration>
+          <executions>
+            <execution>
+              <id>mojo-descriptor</id>
+              <phase>process-classes</phase>
+              <goals>
+                <goal>descriptor</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.openidentityplatform.opendj</groupId>
+          <artifactId>opendj-copyright-maven-plugin</artifactId>
+          <version>${opendj-copyright-maven-plugin.version}</version>
+          <configuration>
+            <!-- Disable copyright on README and legal files -->
+            <disabledFiles>
+              <disabledFile>README</disabledFile>
+              <disabledFile>**/README</disabledFile>
+              <disabledFile>README.txt</disabledFile>
+              <disabledFile>**/README.txt</disabledFile>
+              <disabledFile>**/THIRD-PARTY.properties</disabledFile>
+              <disabledFile>**/THIRDPARTYREADME.txt</disabledFile>
+              <disabledFile>legal-notices/CDDLv1_0.txt</disabledFile>
+              <disabledFile>**/tests/unit-tests-testng/resource/config-changes.ldif</disabledFile>
+              <disabledFile>opendj-rest2ldap-servlet/src/main/webapp/WEB-INF/classes/logging.properties</disabledFile>
+              <disabledFile>opendj-ldap-toolkit/src/test/resources/*.ldif</disabledFile>
+              <disabledFile>opendj-ldap-toolkit/src/test/resources/**/*.ldif</disabledFile>
+            </disabledFiles>
+          </configuration>
+        </plugin>
+
+        <!-- Provides build capabilities for docs in DocBook XML format. -->
+        <plugin>
+          <groupId>org.openidentityplatform.commons</groupId>
+          <artifactId>doc-maven-plugin</artifactId>
+          <version>${commons.version}</version>
+          <configuration>
+            <projectName>${product.name}</projectName>
+            <projectVersion>${project.version}</projectVersion>
+            <releaseVersion>${project.version}</releaseVersion>
+            <googleAnalyticsId/>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.openidentityplatform.opendj</groupId>
+          <artifactId>opendj-maven-plugin</artifactId>
+          <version>${project.version}</version>
+          <!-- bootstrap and bootstrap-client MANIFEST.MF files generation. -->
+          <configuration>
+            <productJarName>${product.name.lowercase}</productJarName>
+            <supportedLocales>${product.locales}</supportedLocales>
+          </configuration>
+
+          <executions>
+            <execution>
+              <id>generate-bootstrap-manifest</id>
+              <goals>
+                <goal>generate-manifest</goal>
+              </goals>
+              <configuration>
+                <classPathProperty>classpath.bootstrap</classPathProperty>
+                <excludes>
+                  <exclude>org.slf4j:slf4j-jdk14</exclude>
+                  <exclude>org.openidentityplatform.opendj:opendj-server-legacy</exclude>
+                </excludes>
+                <additionalJars>
+                  <additionalJar>opendj-slf4j-adapter.jar</additionalJar>
+                </additionalJars>
+              </configuration>
+            </execution>
+
+            <execution>
+              <id>generate-bootstrap-client-manifest</id>
+              <goals>
+                <goal>generate-manifest</goal>
+              </goals>
+              <configuration>
+                <classPathProperty>classpath.bootstrap-client</classPathProperty>
+                <excludes>
+                  <exclude>org.slf4j:jul-to-slf4j</exclude>
+                  <exclude>org.openidentityplatform.opendj:opendj-server-legacy</exclude>
+                </excludes>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>3.6.0</version>
+          <executions>
+            <!-- Parse version to generate properties (major.version, minor.version, ...) -->
+            <execution>
+              <id>parse-version</id>
+              <goals>
+                <goal>parse-version</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <!-- Retrieve the build timestamp and SCM revision number -->
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>buildnumber-maven-plugin</artifactId>
+          <version>3.2.1</version>
+          <executions>
+            <execution>
+              <id>generate-buildnumber</id>
+              <goals>
+                <goal>create</goal>
+              </goals>
+              <configuration>
+                <buildNumberPropertyName>buildRevision</buildNumberPropertyName>
+                <revisionOnScmFailure>-1</revisionOnScmFailure>
+              </configuration>
+            </execution>
+
+            <execution>
+              <id>generate-timestamp</id>
+              <goals>
+                <goal>create</goal>
+              </goals>
+              <configuration>
+                <format>{0,date,yyyyMMddHHmmss}</format>
+                <items>
+                  <item>timestamp</item>
+                </items>
+                <buildNumberPropertyName>buildDateTime</buildNumberPropertyName>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+
+        <!--
+        | This plugin's configuration is used to store Eclipse m2e settings only.
+        | It has no influence on the Maven build itself.
+        -->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
                     <groupId>org.openidentityplatform.opendj</groupId>
                     <artifactId>opendj-maven-plugin</artifactId>
-                    <version>${project.version}</version>
-                    <!-- bootstrap and bootstrap-client MANIFEST.MF files generation. -->
-                    <configuration>
-                        <productJarName>${product.name.lowercase}</productJarName>
-                        <supportedLocales>${product.locales}</supportedLocales>
-                    </configuration>
+                    <versionRange>[1.0.0,)</versionRange>
+                    <goals>
+                      <goal>generate-config</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute>
+                      <!-- <runOnIncremental>true</runOnIncremental> -->
+                      <runOnConfiguration>true</runOnConfiguration>
+                    </execute>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 
-                    <executions>
-                        <execution>
-                            <id>generate-bootstrap-manifest</id>
-                            <goals>
-                                <goal>generate-manifest</goal>
-                            </goals>
-                            <configuration>
-                                <classPathProperty>classpath.bootstrap</classPathProperty>
-                                <excludes>
-                                    <exclude>org.slf4j:slf4j-jdk14</exclude>
-                                    <exclude>org.openidentityplatform.opendj:opendj-server-legacy</exclude>
-                                </excludes>
-                                <additionalJars>
-                                    <additionalJar>opendj-slf4j-adapter.jar</additionalJar>
-                                </additionalJars>
-                            </configuration>
-                        </execution>
+  <profiles>
+    <profile>
+      <id>packages</id>
+      <modules>
+        <module>opendj-packages</module>
+      </modules>
+    </profile>
 
-                        <execution>
-                            <id>generate-bootstrap-client-manifest</id>
-                            <goals>
-                                <goal>generate-manifest</goal>
-                            </goals>
-                            <configuration>
-                                <classPathProperty>classpath.bootstrap-client</classPathProperty>
-                                <excludes>
-                                    <exclude>org.slf4j:jul-to-slf4j</exclude>
-                                    <exclude>org.openidentityplatform.opendj:opendj-server-legacy</exclude>
-                                </excludes>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>3.3.0</version>
-                    <executions>
-                        <!-- Parse version to generate properties (major.version, minor.version, ...) -->
-                        <execution>
-                            <id>parse-version</id>
-                            <goals>
-                                <goal>parse-version</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-
-                <!-- Retrieve the build timestamp and SCM revision number -->
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>buildnumber-maven-plugin</artifactId>
-                    <version>1.4</version>
-                    <executions>
-                        <execution>
-                            <id>generate-buildnumber</id>
-                            <goals>
-                                <goal>create</goal>
-                            </goals>
-                            <configuration>
-                                <buildNumberPropertyName>buildRevision</buildNumberPropertyName>
-                                <revisionOnScmFailure>-1</revisionOnScmFailure>
-                            </configuration>
-                        </execution>
-
-                        <execution>
-                            <id>generate-timestamp</id>
-                            <goals>
-                                <goal>create</goal>
-                            </goals>
-                            <configuration>
-                                <format>{0,date,yyyyMMddHHmmss}</format>
-                                <items>
-                                    <item>timestamp</item>
-                                </items>
-                                <buildNumberPropertyName>buildDateTime</buildNumberPropertyName>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-
-                <!--
-                | This plugin's configuration is used to store Eclipse m2e settings only.
-                | It has no influence on the Maven build itself.
-                -->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.openidentityplatform.opendj</groupId>
-                                        <artifactId>opendj-maven-plugin</artifactId>
-                                        <versionRange>[1.0.0,)</versionRange>
-                                        <goals>
-                                            <goal>generate-config</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <execute>
-                                            <!-- <runOnIncremental>true</runOnIncremental> -->
-                                            <runOnConfiguration>true</runOnConfiguration>
-                                        </execute>
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
-
-    <profiles>
-        <profile>
-            <id>packages</id>
-            <modules>
-                <module>opendj-packages</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>packages-oem</id>
-            <modules>
-                <module>opendj-packages</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>set-compiler-release</id>
-            <activation>
-                <jdk>[9,)</jdk>
-            </activation>
-            <properties>
-                <maven.compiler.release>8</maven.compiler.release>
-            </properties>
-        </profile>
-		<profile>
-	      <id>jdk16.options</id>
-	      <activation>
-	        <jdk>[16,)</jdk>
-	      </activation>
-	      <properties>
-	        <argLine>-Xmx512m --add-exports java.base/sun.security.x509=ALL-UNNAMED --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED  --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util.regex=ALL-UNNAMED --add-opens java.base/java.security=ALL-UNNAMED --add-opens java.naming/javax.naming.spi=ALL-UNNAMED</argLine>
-	      </properties>
-	    </profile>
-		<profile>
-	        <id>release-sign-artifacts</id>
-	        <activation>
-	            <property>
-			        <name>gpg.passphrase</name>
-			    </property>
-	        </activation>
-	        <build>
-	            <plugins>
-	                <plugin>
-				      <groupId>org.apache.maven.plugins</groupId>
-				      <artifactId>maven-gpg-plugin</artifactId>
-				      <version>1.6</version>
-				      <configuration>
-                      	<passphrase>${gpg.passphrase}</passphrase>
-                        <useAgent>true</useAgent>
-                      </configuration>
-				      <executions>
-				        <execution>
-				          <id>sign-artifacts</id>
-				          <phase>verify</phase>
-				          <goals>
-				            <goal>sign</goal>
-				          </goals>
-				          <configuration>
-				                <gpgArguments>
-				                    <arg>--pinentry-mode</arg>
-				                    <arg>loopback</arg>
-				                </gpgArguments>
-				            </configuration>
-				        </execution>
-				      </executions>
-				    </plugin>
-	            </plugins>
-	        </build>
-	    </profile>
-
-        <profile>
-            <id>disable-doclint-for-java-8</id>
-            <activation>
-                <jdk>[1.8,)</jdk>
-            </activation>
-            <build><finalName>${project.groupId}.${project.artifactId}</finalName>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <configuration>
-                            <!--additionalparam>-Xdoclint:none</additionalparam-->
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
-    <reporting>
+    <profile>
+      <id>packages-oem</id>
+      <modules>
+        <module>opendj-packages</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>set-compiler-release</id>
+      <activation>
+        <jdk>[9,)</jdk>
+      </activation>
+      <properties>
+        <maven.compiler.release>8</maven.compiler.release>
+      </properties>
+    </profile>
+    <profile>
+      <id>jdk16.options</id>
+      <activation>
+        <jdk>[16,)</jdk>
+      </activation>
+      <properties>
+        <argLine>
+          -Xmx512m --add-exports java.base/sun.security.x509=ALL-UNNAMED --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util.regex=ALL-UNNAMED --add-opens java.base/java.security=ALL-UNNAMED --add-opens java.naming/javax.naming.spi=ALL-UNNAMED
+        </argLine>
+      </properties>
+    </profile>
+    <profile>
+      <id>release-sign-artifacts</id>
+      <activation>
+        <property>
+          <name>gpg.passphrase</name>
+        </property>
+      </activation>
+      <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>2.4</version>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>index</report>
-                            <report>mailing-list</report>
-                            <report>issue-tracking</report>
-                            <report>license</report>
-                            <report>scm</report>
-                            <report>cim</report>
-                            <report>distribution-management</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.2.7</version>
+            <configuration>
+              <passphrase>${gpg.passphrase}</passphrase>
+              <useAgent>true</useAgent>
+            </configuration>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
-    </reporting>
+      </build>
+    </profile>
+
+    <profile>
+      <id>disable-doclint-for-java-8</id>
+      <activation>
+        <jdk>[1.8,)</jdk>
+      </activation>
+      <build>
+        <finalName>${project.groupId}.${project.artifactId}</finalName>
+        <plugins>
+          <plugin>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <!--additionalparam>-Xdoclint:none</additionalparam-->
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>3.9.0</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>index</report>
+              <report>mailing-list</report>
+              <report>issue-tracking</report>
+              <report>license</report>
+              <report>scm</report>
+              <report>cim</report>
+              <report>distribution-management</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
 </project>

@@ -21,12 +21,14 @@
     <artifactId>opendj-parent</artifactId>
     <version>4.9.4-SNAPSHOT</version>
   </parent>
+
   <artifactId>opendj-server</artifactId>
   <name>OpenDJ Server NG</name>
   <description>
     OpenDJ LDAP embedded directory server.
   </description>
   <packaging>jar</packaging>
+
   <properties>
     <!-- Product information properties -->
     <patchFixIds />
@@ -128,10 +130,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
