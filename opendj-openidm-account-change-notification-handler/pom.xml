@@ -71,7 +71,7 @@
       <artifactId>client-apache-async</artifactId>
     </dependency>
   </dependencies>
-
+  
   <build><finalName>${project.groupId}.${project.artifactId}</finalName>
     <plugins>
       <plugin>
@@ -109,8 +109,8 @@
           </execution>
         </executions>
       </plugin>
-      <!-- Retrieve the SCM revision number and store it into the ${buildRevision}
-        property and retrieve the build timestamp and store it into the ${buildDateTime}
+      <!-- Retrieve the SCM revision number and store it into the ${buildRevision} 
+        property and retrieve the build timestamp and store it into the ${buildDateTime} 
         property -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -161,7 +161,7 @@
       </plugin>
     </plugins>
   </build>
-
+  
   <reporting>
     <plugins>
       <plugin>
@@ -181,5 +181,5 @@
       </plugin>
     </plugins>
   </reporting>
-
+  
 </project>

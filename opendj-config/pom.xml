@@ -21,7 +21,6 @@
     <artifactId>opendj-parent</artifactId>
     <version>4.9.4-SNAPSHOT</version>
   </parent>
-
   <artifactId>opendj-config</artifactId>
   <name>OpenDJ Configuration API</name>
   <description>

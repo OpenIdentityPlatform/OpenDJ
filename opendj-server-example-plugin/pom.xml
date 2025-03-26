@@ -21,7 +21,6 @@
     <artifactId>opendj-parent</artifactId>
     <version>4.9.4-SNAPSHOT</version>
   </parent>
-
   <artifactId>opendj-server-example-plugin</artifactId>
   <name>OpenDJ Server Example Plugin</name>
   <description>
@@ -39,7 +38,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.17.0</version>
+      <version>3.3.2</version>
     </dependency>
   </dependencies>
   <build><finalName>${project.groupId}.${project.artifactId}</finalName>
@@ -79,7 +78,10 @@
           </execution>
         </executions>
       </plugin>
-
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
