@@ -28,6 +28,7 @@ import static org.testng.Assert.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.io.Resources;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DN;
@@ -1198,5 +1200,24 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       readOnlyContainer.close();
       backend.openBackend();
     }
+  }
+
+  @Test
+  public void test_issue_496() throws Exception {
+    int resultCode = TestCaseUtils.applyModifications(true,
+      "dn: cn=schema",
+              "changetype: modify",
+              "add: attributeTypes",
+              "attributeTypes: ( 16.32.256.1.1.1.12.4.6.1 NAME 'exampleIdentifier' DESC 'Identifier' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE USAGE userApplications X-SCHEMA-FILE '999-user.ldif' )",
+              "attributeTypes: ( 16.32.256.1.1.1.12.4.6.11 NAME 'exampleEmails' DESC 'e-mail address' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications X-SCHEMA-FILE '999-user.ldif' )",
+              "-",
+              "add: objectClasses",
+              "objectClasses: ( 16.32.256.1.1.1.12.4.6 NAME 'examplePerson' DESC 'Extension to person' SUP inetOrgPerson STRUCTURAL MUST ( exampleIdentifier ) MAY ( exampleEmails $ userAccountControl ) X-SCHEMA-FILE '999-user.ldif' )",
+              ""
+            );
+    assertEquals(resultCode, 0);
+    TestCaseUtils.addEntries(
+            Resources.readLines(Resources.getResource("issue496.ldif"), StandardCharsets.UTF_8).toArray(new String[]{})
+    );
   }
 }

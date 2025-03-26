@@ -14,6 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2013 Manuel Gaupp
+ * Portions Copyright 2018-2025 3A Systems, LLC
  */
 package org.opends.server;
 
@@ -1335,7 +1336,7 @@ public final class TestCaseUtils {
   public static void addEntry(Entry entry) throws Exception
   {
     AddOperation addOperation = getRootConnection().processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS,entry.toString());
   }
 
   /**
