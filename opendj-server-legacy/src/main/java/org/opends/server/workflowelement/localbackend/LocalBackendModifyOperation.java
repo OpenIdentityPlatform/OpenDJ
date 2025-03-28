@@ -13,7 +13,7 @@
  *
  * Copyright 2008-2011 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions copyright 2024 3A Systems,LLC.
+ * Portions Copyright 2024-2025 3A Systems,LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -35,6 +35,7 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.RelaxRulesControl;
+import org.forgerock.opendj.ldap.controls.TransactionSpecificationRequestControl;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
@@ -60,6 +61,7 @@ import org.opends.server.core.ModifyOperationWrapper;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.core.PersistentSearch;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.AcceptRejectWarn;
@@ -77,10 +79,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SynchronizationProviderResult;
-import org.opends.server.types.operation.PostOperationModifyOperation;
-import org.opends.server.types.operation.PostResponseModifyOperation;
-import org.opends.server.types.operation.PostSynchronizationModifyOperation;
-import org.opends.server.types.operation.PreOperationModifyOperation;
+import org.opends.server.types.operation.*;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -96,7 +95,7 @@ public class LocalBackendModifyOperation
        extends ModifyOperationWrapper
        implements PreOperationModifyOperation, PostOperationModifyOperation,
                   PostResponseModifyOperation,
-                  PostSynchronizationModifyOperation
+                  PostSynchronizationModifyOperation, RollbackOperation
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -500,6 +499,9 @@ public class LocalBackendModifyOperation
         }
 
         backend.replaceEntry(currentEntry, modifiedEntry, this);
+        if (trx!=null) {
+          trx.success(this);
+        }
 
         if (isAuthnManagedLocally())
         {
@@ -697,6 +699,10 @@ public class LocalBackendModifyOperation
       {
         RelaxRulesControlRequested = true;
       }
+      else if (TransactionSpecificationRequestControl.OID.equals(oid))
+      {
+        trx=getClientConnection().getTransaction(((LDAPControl)c).getValue().toString());
+      }
       else if (c.isCritical() && !backend.supportsControl(oid))
       {
         throw newDirectoryException(currentEntry, ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
@@ -704,6 +710,7 @@ public class LocalBackendModifyOperation
       }
     }
   }
+  ClientConnection.Transaction trx=null;
 
   private void processNonPasswordModifications() throws DirectoryException
   {
@@ -1657,5 +1664,10 @@ public class LocalBackendModifyOperation
               return;
           }
       }
+  }
+
+  @Override
+  public void rollback() throws CanceledOperationException, DirectoryException {
+      backend.replaceEntry(modifiedEntry,currentEntry, this);
   }
 }
