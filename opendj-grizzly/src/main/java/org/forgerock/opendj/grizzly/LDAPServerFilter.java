@@ -85,8 +85,8 @@ import com.forgerock.reactive.Completable;
 import com.forgerock.reactive.ReactiveHandler;
 import com.forgerock.reactive.Stream;
 
-import io.reactivex.exceptions.OnErrorNotImplementedException;
-import io.reactivex.internal.util.BackpressureHelper;
+import io.reactivex.rxjava3.exceptions.OnErrorNotImplementedException;
+import io.reactivex.rxjava3.internal.util.BackpressureHelper;
 
 /**
  * Grizzly filter implementation for decoding LDAP requests and handling server side logic for SSL and SASL operations
@@ -390,7 +390,7 @@ public final class LDAPServerFilter extends BaseFilter {
                     return false;
                 }
                 SSLUtils.setSSLEngine(connection, sslEngine);
-                
+
                 Properties props = System.getProperties();
 
                 // Workaround for PKCS11
@@ -398,7 +398,7 @@ public final class LDAPServerFilter extends BaseFilter {
                 if ("none".equalsIgnoreCase(keyStoreFile)) {
                 	System.setProperty(SSLContextConfigurator.TRUST_STORE_FILE, "NONE");
                 }
-                
+
                 SSLFilter sslFilter = new SSLFilter();
                 sslFilter.setHandshakeTimeout(getLongProperty("org.forgerock.opendj.grizzly.handshakeTimeout", 10000), TimeUnit.MILLISECONDS);
                 installFilter(startTls ? new StartTLSFilter(sslFilter) : sslFilter);
@@ -661,7 +661,7 @@ public final class LDAPServerFilter extends BaseFilter {
                     });
                 }
             });
-            
+
         }
     }
 }
