@@ -76,7 +76,7 @@
             <artifactId>build-tools</artifactId>
             <scope>test</scope>
         </dependency>
-        
+
         <!--         java.xml.bind (JAXB) - REMOVED -->
 	    <dependency>
 		  <groupId>javax.xml.bind</groupId>
@@ -97,13 +97,13 @@
 	      <artifactId>bc-fips</artifactId>
 	      <version>${bc.fips.version}</version>
 	    </dependency>
-	
+
 	    <dependency>
 	      <groupId>org.bouncycastle</groupId>
 	      <artifactId>bctls-fips</artifactId>
 	      <version>${bctls.fips.version}</version>
 	    </dependency>
-	    
+
 	     <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -192,11 +192,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
             </plugin>
 
             <plugin>
