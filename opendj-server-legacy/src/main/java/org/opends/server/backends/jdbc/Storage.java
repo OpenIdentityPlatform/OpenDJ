@@ -282,7 +282,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			if (((CachedConnection) con).parent.getClass().getName().contains("oracle")) {
 				return "h char(128),k raw(2000),v blob,primary key(h,k)";
 			}else if (((CachedConnection) con).parent.getClass().getName().contains("mysql")) {
-				return "h char(128),k tinyblob,v longblob,primary key(h,k(255))";
+				return "h char(128),k tinyblob,v longblob,primary key(h(128),k(255))";
 			}else if (((CachedConnection) con).parent.getClass().getName().contains("microsoft")) {
 				return "h char(128),k varbinary(max),v image,primary key(h)";
 			}
