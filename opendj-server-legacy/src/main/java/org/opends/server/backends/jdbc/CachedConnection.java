@@ -42,7 +42,10 @@ public class CachedConnection implements Connection {
             .build(new CacheLoader<String, Connection>() {
                 @Override
                 public Connection load(String connectionString) throws Exception {
-                    return DriverManager.getConnection(connectionString);
+                    final Connection con= DriverManager.getConnection(connectionString);
+                    con.setAutoCommit(false);
+                    con.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
+                    return con;
                 }
             });
 
@@ -52,16 +55,15 @@ public class CachedConnection implements Connection {
 
     static CachedConnection getConnection(String connectionString) throws Exception {
         Connection con=cached.get(connectionString);
-        try {
-            if (con != null && !con.isValid(0)) {
-                cached.invalidate(connectionString);
+        if (!con.isValid(0)) {
+            cached.invalidate(connectionString);
+            try {
                 con.close();
-                con = cached.get(connectionString);
+            } catch (SQLException e) {
+                con=null;
             }
-        } catch (SQLException e) {
-            con = null;
+            con = cached.get(connectionString);
         }
-        con.setAutoCommit(false);
         return new CachedConnection(con);
     }
 

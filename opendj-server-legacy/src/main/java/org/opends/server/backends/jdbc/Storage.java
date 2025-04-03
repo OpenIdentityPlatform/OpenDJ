@@ -80,11 +80,11 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		return statement.executeQuery();
 	}
 
-	boolean execute(PreparedStatement statement) throws SQLException {
+	int execute(PreparedStatement statement) throws SQLException {
 		if (logger.isTraceEnabled()) {
 			logger.trace(LocalizableMessage.raw("jdbc: %s",statement));
 		}
-		return statement.execute();
+		return statement.executeUpdate();
 	}
 
     Connection getConnection() throws Exception {
@@ -324,14 +324,26 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
-			delete(treeName,key);
-			try (final PreparedStatement statement=con.prepareStatement("insert into "+getTableName(treeName)+" (h,k,v) values(?,?,?) ")){
-				statement.setString(1,key2hash.get(key.toByteArray()));
-				statement.setBytes(2,real2db(key.toByteArray()));
-				statement.setBytes(3,value.toByteArray());
-				execute(statement);
+			int resUpdate=0;
+			try (final PreparedStatement statement=con.prepareStatement("update "+getTableName(treeName)+" set v=? where h=? and k=?")){
+				statement.setBytes(1,value.toByteArray());
+				statement.setString(2,key2hash.get(key.toByteArray()));
+				statement.setBytes(3,real2db(key.toByteArray()));
+				if (execute(statement)==1) {
+					resUpdate=statement.getUpdateCount();
+				}
 			}catch (SQLException|ExecutionException e) {
 				throw new StorageRuntimeException(e);
+			}
+			if (resUpdate<1) {
+				try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) values(?,?,?) ")) {
+					statement.setString(1, key2hash.get(key.toByteArray()));
+					statement.setBytes(2, real2db(key.toByteArray()));
+					statement.setBytes(3, value.toByteArray());
+					execute(statement);
+				} catch (SQLException | ExecutionException e) {
+					throw new StorageRuntimeException(e);
+				}
 			}
 		}
 
