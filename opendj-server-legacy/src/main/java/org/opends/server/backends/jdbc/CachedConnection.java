@@ -15,43 +15,38 @@
  */
 package org.opends.server.backends.jdbc;
 
-import com.google.common.cache.*;
-
 import java.sql.*;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.RemovalCause;
+
 public class CachedConnection implements Connection {
     final Connection parent;
 
-    static LoadingCache<String,Connection> cached= CacheBuilder.newBuilder()
-            .expireAfterAccess(Long.parseLong(System.getProperty("org.openidentityplatform.opendj.jdbc.ttl","15000")), TimeUnit.MILLISECONDS)
-            .removalListener(new RemovalListener<String, Connection>() {
-                @Override
-                public void onRemoval(RemovalNotification<String, Connection> notification) {
-                    try {
-                        if (!notification.getValue().isClosed()) {
-                            notification.getValue().close();
-                        }
-                    } catch (SQLException e) {
+    static LoadingCache<String, Connection> cached = Caffeine.newBuilder()
+            .expireAfterAccess(Long.parseLong(System.getProperty("org.openidentityplatform.opendj.jdbc.ttl", "15000")), TimeUnit.MILLISECONDS)
+            .removalListener((String key, Connection value, RemovalCause cause) -> {
+                try {
+                    if ((value != null) && !value.isClosed()) {
+                        value.close();
                     }
+                } catch (SQLException e) {
+                    // Ignored
                 }
             })
-            .build(new CacheLoader<String, Connection>() {
-                @Override
-                public Connection load(String connectionString) throws Exception {
-                    return DriverManager.getConnection(connectionString);
-                }
-            });
+            .build(DriverManager::getConnection);
 
     public CachedConnection(Connection parent) {
         this.parent = parent;
     }
 
     static CachedConnection getConnection(String connectionString) throws Exception {
-        Connection con=cached.get(connectionString);
+        Connection con = cached.get(connectionString);
         try {
             if (con != null && !con.isValid(0)) {
                 cached.invalidate(connectionString);
@@ -172,7 +167,7 @@ public class CachedConnection implements Connection {
 
     @Override
     public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-        return parent.prepareCall(sql, resultSetType, resultSetConcurrency) ;
+        return parent.prepareCall(sql, resultSetType, resultSetConcurrency);
     }
 
     @Override

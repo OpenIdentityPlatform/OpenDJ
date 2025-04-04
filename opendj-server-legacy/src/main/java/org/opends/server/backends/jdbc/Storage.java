@@ -15,9 +15,9 @@
  */
 package org.opends.server.backends.jdbc;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -37,17 +37,16 @@ import org.opends.server.util.BackupManager;
 import java.security.MessageDigest;
 import java.sql.*;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 import static org.opends.server.backends.pluggable.spi.StorageUtils.addErrorMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 public class Storage implements org.opends.server.backends.pluggable.spi.Storage, ConfigurationChangeListener<JDBCBackendCfg>{
-	
+
 	private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     private JDBCBackendCfg config;
-	  
+
 	public Storage(JDBCBackendCfg cfg, ServerContext serverContext) {
         this.config = cfg;
 	    cfg.addJDBCChangeListener(this);
@@ -106,34 +105,29 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	public StorageStatus getStorageStatus() {
 		return storageStatus;
 	}
-	
+
 	@Override
 	public void close() {
 		storageStatus = StorageStatus.lockedDown(LocalizableMessage.raw("closed"));
 	}
 
-	final LoadingCache<TreeName,String> tree2table= CacheBuilder.newBuilder()
-			.build(new CacheLoader<TreeName, String>() {
-				@Override
-				public String load(TreeName treeName) throws Exception {
-					final MessageDigest md = MessageDigest.getInstance("SHA-224");
-					final byte[] messageDigest = md.digest(treeName.toString().getBytes());
-					final StringBuilder hashtext = new StringBuilder();
-					for (byte b : messageDigest) {
-						String hex = Integer.toHexString(0xff & b);
-						if (hex.length() == 1) hashtext.append('0');
-						hashtext.append(hex);
+	final LoadingCache<TreeName, String> tree2table = Caffeine.newBuilder()
+			.build(treeName -> {
+				final MessageDigest md = MessageDigest.getInstance("SHA-224");
+				final byte[] messageDigest = md.digest(treeName.toString().getBytes());
+				final StringBuilder hashtext = new StringBuilder();
+				for (byte b : messageDigest) {
+					String hex = Integer.toHexString(0xff & b);
+					if (hex.length() == 1) {
+						hashtext.append('0');
 					}
-					return "opendj_"+hashtext;
+					hashtext.append(hex);
 				}
+				return "opendj_" + hashtext;
 			});
 
 	String getTableName(TreeName treeName) {
-        try {
-            return tree2table.get(treeName);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        }
+		return tree2table.get(treeName);
     }
 
 	@Override
@@ -170,7 +164,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			close();
 		}
 	}
-	
+
 	//operation
 	@Override
 	public <T> T read(ReadOperation<T> readOperation) throws Exception {
@@ -203,21 +197,20 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		return Arrays.equals(NULL,db)?new byte[0]:db;
 	}
 
-	final LoadingCache<byte[],String> key2hash= CacheBuilder.newBuilder()
+	final LoadingCache<byte[], String> key2hash = Caffeine.newBuilder()
 			.maximumSize(32000)
-			.build(new CacheLoader<byte[], String>() {
-				@Override
-				public String load(byte[] key) throws Exception {
-					final MessageDigest md = MessageDigest.getInstance("SHA-512");
-					final byte[] messageDigest = md.digest(key);
-					final StringBuilder hashtext = new StringBuilder();
-					for (byte b : messageDigest) {
-						String hex = Integer.toHexString(0xff & b);
-						if (hex.length() == 1) hashtext.append('0');
-						hashtext.append(hex);
+			.build(key -> {
+				final MessageDigest md = MessageDigest.getInstance("SHA-512");
+				final byte[] messageDigest = md.digest(key);
+				final StringBuilder hashtext = new StringBuilder();
+				for (byte b : messageDigest) {
+					String hex = Integer.toHexString(0xff & b);
+					if (hex.length() == 1) {
+						hashtext.append('0');
 					}
-					return hashtext.toString();
+					hashtext.append(hex);
 				}
+				return hashtext.toString();
 			});
 	private class ReadableTransactionImpl implements ReadableTransaction {
 		final Connection con;
@@ -235,7 +228,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				try(ResultSet rc=executeResultSet(statement)) {
 					return rc.next() ? ByteString.wrap(rc.getBytes("v")) : null;
 				}
-			}catch (SQLException|ExecutionException e) {
+			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
 		}
@@ -300,7 +293,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				}
 			}
 		}
-		
+
 		public void clearTree(TreeName treeName) {
 			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName))){
 				execute(statement);
@@ -330,7 +323,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				statement.setBytes(2,real2db(key.toByteArray()));
 				statement.setBytes(3,value.toByteArray());
 				execute(statement);
-			}catch (SQLException|ExecutionException e) {
+			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
 		}
@@ -358,13 +351,13 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				statement.setString(1,key2hash.get(key.toByteArray()));
 				statement.setBytes(2,real2db(key.toByteArray()));
 				execute(statement);
-			}catch (SQLException|ExecutionException e) {
+			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
 			return true;
 		}
 	}
-	
+
 	private final class CursorImpl implements Cursor<ByteString, ByteString> {
 		final TreeName treeName;
 
@@ -472,7 +465,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			}
 			return false;
 		}
-		
+
 		@Override
 		public boolean positionToKey(ByteSequence key) {
 			if (!isDefined() || key.compareTo(getKey())<0) {  //restart iterator
@@ -500,7 +493,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			return false;
 		}
 
-		
+
 		@Override
 		public boolean positionToLastKey() {
 			try{
@@ -534,7 +527,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			return false;
 		}
 	}
-	
+
 	@Override
 	public Set<TreeName> listTrees() {
 		return tree2table.asMap().keySet();
@@ -545,8 +538,8 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		final ReadableTransactionImpl txr;
 		final WriteableTransactionTransactionImpl txw;
 
-		final Boolean isOpen;
-		
+		final boolean isOpen;
+
 		public ImporterImpl() {
 			isOpen=getStorageStatus().isWorking();
 			if (!isOpen) {
@@ -564,7 +557,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			txr =new ReadableTransactionImpl(con);
 			txw =new WriteableTransactionTransactionImpl(con);
 		}
-		
+
 		@Override
 		public void close() {
 			try {
@@ -577,34 +570,34 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				Storage.this.close();
 			}
 		}
-		
+
 		@Override
 		public void clearTree(TreeName name) {
 			txw.clearTree(name);
 		}
-		
+
 		@Override
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
 			txw.put(treeName, key, value);
 		}
-		
+
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
 			return txr.read(treeName, key);
 		}
-		
+
 		@Override
 		public SequentialCursor<ByteString, ByteString> openCursor(TreeName treeName) {
 			return txr.openCursor(treeName);
 		}
 	}
-	
+
 	//import
 	@Override
 	public Importer startImport() throws ConfigException, StorageRuntimeException {
 		return new ImporterImpl();
 	}
-	
+
 	//backup
 	@Override
 	public boolean supportsBackupAndRestore() {
