@@ -18,53 +18,64 @@ package org.opends.server.backends.jdbc;
 import com.google.common.cache.*;
 
 import java.sql.*;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Queue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 public class CachedConnection implements Connection {
     final Connection parent;
 
-    static LoadingCache<String,Connection> cached= CacheBuilder.newBuilder()
+    static LoadingCache<String, Queue<Connection>> cached= CacheBuilder.newBuilder()
             .expireAfterAccess(Long.parseLong(System.getProperty("org.openidentityplatform.opendj.jdbc.ttl","15000")), TimeUnit.MILLISECONDS)
-            .removalListener(new RemovalListener<String, Connection>() {
+            .removalListener(new RemovalListener<String, Queue<Connection>>() {
                 @Override
-                public void onRemoval(RemovalNotification<String, Connection> notification) {
-                    try {
-                        if (!notification.getValue().isClosed()) {
-                            notification.getValue().close();
+                public void onRemoval(RemovalNotification<String, Queue<Connection>> notification) {
+                    assert notification.getValue() != null;
+                    for (Connection con: notification.getValue()) {
+                            try {
+                                if (!con.isClosed()) {
+                                    con.close();
+                                }
+                            } catch (SQLException e) {
+                            }
                         }
-                    } catch (SQLException e) {
-                    }
                 }
             })
-            .build(new CacheLoader<String, Connection>() {
+            .build(new CacheLoader<String, Queue<Connection>>() {
                 @Override
-                public Connection load(String connectionString) throws Exception {
-                    final Connection con= DriverManager.getConnection(connectionString);
-                    con.setAutoCommit(false);
-                    con.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
-                    return con;
+                public Queue<Connection> load(String connectionString) throws Exception {
+                    return new LinkedList<Connection>();
                 }
             });
 
-    public CachedConnection(Connection parent) {
+    final String connectionString;
+    public CachedConnection(String connectionString,Connection parent) {
+        this.connectionString=connectionString;
         this.parent = parent;
     }
 
-    static CachedConnection getConnection(String connectionString) throws Exception {
-        Connection con=cached.get(connectionString);
-        if (!con.isValid(0)) {
-            cached.invalidate(connectionString);
-            try {
-                con.close();
-            } catch (SQLException e) {
-                con=null;
+    static Connection getConnection(String connectionString) throws Exception {
+        Connection con=cached.get(connectionString).poll();
+        while(con!=null) {
+            if (!con.isValid(0)) {
+                try {
+                    con.close();
+                } catch (SQLException e) {
+                    con=null;
+                }
+                con=cached.get(connectionString).poll();
+            }else{
+                return con;
             }
-            con = cached.get(connectionString);
         }
-        return new CachedConnection(con);
+        con = DriverManager.getConnection(connectionString);
+        con.setAutoCommit(false);
+        con.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
+        return new CachedConnection(connectionString,con);
     }
 
     @Override
@@ -109,7 +120,12 @@ public class CachedConnection implements Connection {
 
     @Override
     public void close() throws SQLException {
-        //rollback();
+        rollback();
+        try {
+            cached.get(connectionString).add(this);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

@@ -29,21 +29,14 @@ import static org.testng.Assert.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import com.google.common.io.Resources;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
@@ -61,14 +54,7 @@ import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.backends.VerifyConfig;
-import org.opends.server.backends.pluggable.spi.AccessMode;
-import org.opends.server.backends.pluggable.spi.ReadOnlyStorageException;
-import org.opends.server.backends.pluggable.spi.ReadOperation;
-import org.opends.server.backends.pluggable.spi.ReadableTransaction;
-import org.opends.server.backends.pluggable.spi.Storage;
-import org.opends.server.backends.pluggable.spi.TreeName;
-import org.opends.server.backends.pluggable.spi.WriteOperation;
-import org.opends.server.backends.pluggable.spi.WriteableTransaction;
+import org.opends.server.backends.pluggable.spi.*;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -1219,5 +1205,69 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     TestCaseUtils.addEntries(
             Resources.readLines(Resources.getResource("issue496.ldif"), StandardCharsets.UTF_8).toArray(new String[]{})
     );
+  }
+
+  @Test
+  public void test_issue_496_2() throws Exception
+  {
+    C backendCfg = createBackendCfg();
+    when(backendCfg.dn()).thenReturn(testBaseDN);
+    when(backendCfg.getBaseDN()).thenReturn(newTreeSet(testBaseDN));
+    when(backendCfg.listBackendIndexes()).thenReturn(new String[0]);
+    when(backendCfg.listBackendVLVIndexes()).thenReturn(new String[0]);
+
+    ServerContext serverContext = TestCaseUtils.getServerContext();
+    final Storage storage = backend.configureStorage(backendCfg, serverContext);
+    final RootContainer container =
+            new RootContainer(backend.getBackendID(), serverContext, storage, backendCfg);
+
+    // Put backend offline so that export LDIF open read-only container
+    backend.finalizeBackend();
+    try
+    {
+      container.open(AccessMode.READ_WRITE); //init storage before reading
+      container.getStorage().write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          txn.openTree(new TreeName("dc=test,dc=com", "testKey"),true);
+        }
+      });
+      ArrayList<Callable<Void>> test=new ArrayList<>();
+      for(int i=0;i<32;i++) {
+        test.add(new Callable<Void>() {
+          @Override
+          public Void call() throws Exception {
+            for(int i=1;i<1024;i++) {
+              container.getStorage().write(new WriteOperation() {
+                @Override
+                public void run(WriteableTransaction txn) throws Exception {
+                  txn.update(new TreeName("dc=test,dc=com", "testKey"),
+                          ByteString.valueOfUtf8("key"),
+                          new UpdateFunction() {
+                            @Override
+                            public ByteSequence computeNewValue(ByteSequence oldValue) {
+                              return ByteString.valueOfUtf8(UUID.randomUUID().toString());
+                            }
+                          }
+                    );
+                }
+              });
+            }
+            return null;
+          }
+        });
+      }
+      ExecutorService executorService = Executors.newFixedThreadPool(32);
+      for (Future<Void> voidFuture : executorService.invokeAll(test)) {
+        voidFuture.get();
+      }
+    }
+    finally
+    {
+      container.close();
+      backend.openBackend();
+    }
   }
 }

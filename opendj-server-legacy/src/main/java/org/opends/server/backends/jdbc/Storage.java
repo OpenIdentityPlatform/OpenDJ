@@ -34,6 +34,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.BackupManager;
 
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.sql.*;
 import java.util.*;
@@ -203,13 +204,13 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		return Arrays.equals(NULL,db)?new byte[0]:db;
 	}
 
-	final LoadingCache<byte[],String> key2hash= CacheBuilder.newBuilder()
-			.maximumSize(32000)
-			.build(new CacheLoader<byte[], String>() {
+	final LoadingCache<ByteBuffer,String> key2hash= CacheBuilder.newBuilder()
+			.maximumSize(64000)
+			.build(new CacheLoader<ByteBuffer, String>() {
 				@Override
-				public String load(byte[] key) throws Exception {
+				public String load(ByteBuffer key) throws Exception {
 					final MessageDigest md = MessageDigest.getInstance("SHA-512");
-					final byte[] messageDigest = md.digest(key);
+					final byte[] messageDigest = md.digest(key.array());
 					final StringBuilder hashtext = new StringBuilder();
 					for (byte b : messageDigest) {
 						String hex = Integer.toHexString(0xff & b);
@@ -230,7 +231,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
 			try (final PreparedStatement statement=con.prepareStatement("select v from "+getTableName(treeName)+" where h=? and k=?")){
-				statement.setString(1,key2hash.get(key.toByteArray()));
+				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
 				try(ResultSet rc=executeResultSet(statement)) {
 					return rc.next() ? ByteString.wrap(rc.getBytes("v")) : null;
@@ -324,30 +325,29 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
-			int resUpdate=0;
-			final String hash;
-			//try update
-			try (final PreparedStatement statement=con.prepareStatement("update "+getTableName(treeName)+" set v=? where h=? and k=?")){
-				hash=key2hash.get(key.toByteArray());
-				statement.setBytes(1,value.toByteArray());
-				statement.setString(2,hash);
-				statement.setBytes(3,real2db(key.toByteArray()));
-				if (execute(statement)==1) {
-					resUpdate=statement.getUpdateCount();
+			try {
+				if (!update(treeName, key, value)) {
+					insert(treeName, key, value);
 				}
-			}catch (SQLException|ExecutionException e) {
-				throw new StorageRuntimeException(e);
+			} catch (SQLException|ExecutionException e) {
+				throw new RuntimeException(e);
 			}
-			if (resUpdate<1) { //update failed: try delete -> insert
-				delete(treeName,key);
-				try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) values(?,?,?)")) {
-					statement.setString(1, hash);
-					statement.setBytes(2, real2db(key.toByteArray()));
-					statement.setBytes(3, value.toByteArray());
-					execute(statement);
-				} catch (SQLException e) {
-					throw new StorageRuntimeException(e);
-				}
+		}
+
+		boolean update(TreeName treeName, ByteSequence key, ByteSequence value) throws SQLException, ExecutionException {
+			try (final PreparedStatement statement=con.prepareStatement("update "+getTableName(treeName)+" set v=? where h=? and k=?")){
+				statement.setBytes(1,value.toByteArray());
+				statement.setString(2,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
+				statement.setBytes(3,real2db(key.toByteArray()));
+				return (execute(statement)==1 && statement.getUpdateCount()>0);
+			}
+		}
+		boolean insert(TreeName treeName, ByteSequence key, ByteSequence value) throws SQLException, ExecutionException {
+			try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) values(?,?,?)")) {
+				statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
+				statement.setBytes(2, real2db(key.toByteArray()));
+				statement.setBytes(3, value.toByteArray());
+				return (execute(statement)==1 && statement.getUpdateCount()>0);
 			}
 		}
 
@@ -371,7 +371,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		@Override
 		public boolean delete(TreeName treeName, ByteSequence key) {
 			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName)+" where h=? and k=?")){
-				statement.setString(1,key2hash.get(key.toByteArray()));
+				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
 				execute(statement);
 			}catch (SQLException|ExecutionException e) {
