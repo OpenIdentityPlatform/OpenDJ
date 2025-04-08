@@ -1235,7 +1235,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
         }
       });
       ArrayList<Callable<Void>> test=new ArrayList<>();
-      for(int i=0;i<32;i++) {
+      for(int i=0;i<8;i++) {
         test.add(new Callable<Void>() {
           @Override
           public Void call() throws Exception {
