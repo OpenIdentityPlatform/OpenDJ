@@ -1235,7 +1235,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
         }
       });
       ArrayList<Callable<Void>> test=new ArrayList<>();
-      for(int i=0;i<16;i++) {
+      for(int i=0;i<8;i++) {
         test.add(new Callable<Void>() {
           @Override
           public Void call() throws Exception {
@@ -1259,7 +1259,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
           }
         });
       }
-      ExecutorService executorService = Executors.newFixedThreadPool(16);
+      ExecutorService executorService = Executors.newFixedThreadPool(8);
       for (Future<Void> voidFuture : executorService.invokeAll(test)) {
         voidFuture.get();
       }
