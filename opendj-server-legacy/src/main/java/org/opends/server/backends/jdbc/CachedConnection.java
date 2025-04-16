@@ -22,18 +22,16 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class CachedConnection implements Connection {
     final Connection parent;
 
-    static LoadingCache<String, Queue<Connection>> cached= CacheBuilder.newBuilder()
+    static LoadingCache<String, BlockingQueue<Connection>> cached= CacheBuilder.newBuilder()
             .expireAfterAccess(Long.parseLong(System.getProperty("org.openidentityplatform.opendj.jdbc.ttl","15000")), TimeUnit.MILLISECONDS)
-            .removalListener(new RemovalListener<String, Queue<Connection>>() {
+            .removalListener(new RemovalListener<String, BlockingQueue<Connection>>() {
                 @Override
-                public void onRemoval(RemovalNotification<String, Queue<Connection>> notification) {
+                public void onRemoval(RemovalNotification<String, BlockingQueue<Connection>> notification) {
                     assert notification.getValue() != null;
                     for (Connection con: notification.getValue()) {
                             try {
@@ -45,10 +43,10 @@ public class CachedConnection implements Connection {
                         }
                 }
             })
-            .build(new CacheLoader<String, Queue<Connection>>() {
+            .build(new CacheLoader<String, BlockingQueue<Connection>>() {
                 @Override
-                public Queue<Connection> load(String connectionString) throws Exception {
-                    return new LinkedList<Connection>();
+                public BlockingQueue<Connection> load(String connectionString) throws Exception {
+                    return new LinkedBlockingQueue<>();
                 }
             });
 
@@ -59,7 +57,11 @@ public class CachedConnection implements Connection {
     }
 
     static Connection getConnection(String connectionString) throws Exception {
-        Connection con=cached.get(connectionString).poll();
+        return getConnection(connectionString,1);
+    }
+
+    static Connection getConnection(String connectionString, final int waitTime) throws Exception {
+        Connection con=cached.get(connectionString).poll(waitTime,TimeUnit.MILLISECONDS);
         while(con!=null) {
             if (!con.isValid(0)) {
                 try {
@@ -72,10 +74,14 @@ public class CachedConnection implements Connection {
                 return con;
             }
         }
-        con = DriverManager.getConnection(connectionString);
-        con.setAutoCommit(false);
-        con.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
-        return new CachedConnection(connectionString,con);
+        try {
+            con = DriverManager.getConnection(connectionString);
+            con.setAutoCommit(false);
+            con.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
+            return new CachedConnection(connectionString, con);
+        }catch (SQLException e) { //max_connection server error: try recursion for reuse connection
+            return getConnection(connectionString,waitTime*2);
+        }
     }
 
     @Override
