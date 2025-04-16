@@ -327,6 +327,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
 			try {
 				if (!update(treeName, key, value)) {
+					delete(treeName, key);
 					insert(treeName, key, value);
 				}
 			} catch (SQLException|ExecutionException e) {
@@ -373,11 +374,10 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName)+" where h=? and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
-				execute(statement);
+				return (execute(statement)==1 && statement.getUpdateCount()>0);
 			}catch (SQLException|ExecutionException e) {
 				throw new StorageRuntimeException(e);
 			}
-			return true;
 		}
 	}
 	

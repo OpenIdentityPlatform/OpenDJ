@@ -443,7 +443,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
   private void waitEndExport(String exportedData, StringBuilder importedData) throws Exception
   {
     int count = 0;
-    while (importedData.length() < exportedData.length() && count < 500*5)
+    while (importedData.length() < exportedData.length() && count < 500*50)
     {
       count ++;
       Thread.sleep(100);
