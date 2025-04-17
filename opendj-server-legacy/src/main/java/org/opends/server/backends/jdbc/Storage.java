@@ -327,11 +327,21 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
 			try {
 				if (!update(treeName, key, value)) {
-					delete(treeName, key);
-					insert(treeName, key, value);
+					upsert(treeName, key, value);
 				}
 			} catch (SQLException|ExecutionException e) {
 				throw new RuntimeException(e);
+			}
+		}
+
+		boolean upsert(TreeName treeName, ByteSequence key, ByteSequence value) throws SQLException, ExecutionException {
+			try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) select ?,?,? where not exists (select 1 from "+getTableName(treeName)+" where  h=? and k=? )")) {
+				statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
+				statement.setBytes(2, real2db(key.toByteArray()));
+				statement.setBytes(3, value.toByteArray());
+				statement.setString(4, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
+				statement.setBytes(5, real2db(key.toByteArray()));
+				return (execute(statement)==1 && statement.getUpdateCount()>0);
 			}
 		}
 
@@ -340,14 +350,6 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				statement.setBytes(1,value.toByteArray());
 				statement.setString(2,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(3,real2db(key.toByteArray()));
-				return (execute(statement)==1 && statement.getUpdateCount()>0);
-			}
-		}
-		boolean insert(TreeName treeName, ByteSequence key, ByteSequence value) throws SQLException, ExecutionException {
-			try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) values(?,?,?)")) {
-				statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
-				statement.setBytes(2, real2db(key.toByteArray()));
-				statement.setBytes(3, value.toByteArray());
 				return (execute(statement)==1 && statement.getUpdateCount()>0);
 			}
 		}
@@ -362,8 +364,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	        }
 	        if (newValue == null)
 	        {
-	        	delete(treeName, key);
-	        	return true;
+				return delete(treeName, key);
 	        }
 	        put(treeName,key,newValue);
 			return true;
