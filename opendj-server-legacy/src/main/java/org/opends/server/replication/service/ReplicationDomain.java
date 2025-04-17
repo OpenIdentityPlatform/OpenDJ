@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2023-2025 3A Systems, LLC.
  */
 package org.opends.server.replication.service;
 
@@ -2282,7 +2283,11 @@ public abstract class ReplicationDomain
       initFromTask = (InitializeTask) ieCtx.initializeTask;
 
       // Launch the import
-      importBackend(new ReplInputStream(this));
+      try (final InputStream stream=new ReplInputStream(this)){
+          importBackend(stream);
+      } catch (IOException e) {
+          throw new RuntimeException(e);
+      }
     }
     catch (DirectoryException e)
     {

@@ -57,7 +57,7 @@ public class CachedConnection implements Connection {
     }
 
     static Connection getConnection(String connectionString) throws Exception {
-        return getConnection(connectionString,1);
+        return getConnection(connectionString,0);
     }
 
     static Connection getConnection(String connectionString, final int waitTime) throws Exception {
@@ -80,7 +80,7 @@ public class CachedConnection implements Connection {
             con.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
             return new CachedConnection(connectionString, con);
         }catch (SQLException e) { //max_connection server error: try recursion for reuse connection
-            return getConnection(connectionString,waitTime*2);
+            return getConnection(connectionString,(waitTime==0)?1:waitTime*2);
         }
     }
 
