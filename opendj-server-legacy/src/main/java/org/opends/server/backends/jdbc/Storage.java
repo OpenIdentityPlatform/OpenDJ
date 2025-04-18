@@ -119,7 +119,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				public String load(TreeName treeName) throws Exception {
 					final MessageDigest md = MessageDigest.getInstance("SHA-224");
 					final byte[] messageDigest = md.digest(treeName.toString().getBytes());
-					final StringBuilder hashtext = new StringBuilder();
+					final StringBuilder hashtext = new StringBuilder(56);
 					for (byte b : messageDigest) {
 						String hex = Integer.toHexString(0xff & b);
 						if (hex.length() == 1) hashtext.append('0');
@@ -205,13 +205,13 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	}
 
 	final LoadingCache<ByteBuffer,String> key2hash= CacheBuilder.newBuilder()
-			.maximumSize(64000)
+			.softValues()
 			.build(new CacheLoader<ByteBuffer, String>() {
 				@Override
 				public String load(ByteBuffer key) throws Exception {
 					final MessageDigest md = MessageDigest.getInstance("SHA-512");
 					final byte[] messageDigest = md.digest(key.array());
-					final StringBuilder hashtext = new StringBuilder();
+					final StringBuilder hashtext = new StringBuilder(128);
 					for (byte b : messageDigest) {
 						String hex = Integer.toHexString(0xff & b);
 						if (hex.length() == 1) hashtext.append('0');
@@ -326,11 +326,37 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		@Override
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
 			try {
-				if (!update(treeName, key, value)) {
-					insert(treeName, key, value);
-				}
+				upsert(treeName, key, value);
 			} catch (SQLException|ExecutionException e) {
 				throw new RuntimeException(e);
+			}
+		}
+
+		boolean upsert(TreeName treeName, ByteSequence key, ByteSequence value) throws SQLException, ExecutionException {
+			final String driverName=((CachedConnection) con).parent.getClass().getName();
+			if (driverName.contains("postgres")) { //postgres upsert
+				try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) values (?,?,?) ON CONFLICT (h, k) DO UPDATE set v=excluded.v")) {
+					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
+					statement.setBytes(2, real2db(key.toByteArray()));
+					statement.setBytes(3, value.toByteArray());
+					return (execute(statement) == 1 && statement.getUpdateCount() > 0);
+				}
+			}else if (driverName.contains("mysql")) { //mysql upsert
+				try (final PreparedStatement statement = con.prepareStatement("replace into " + getTableName(treeName) + " (h,k,v) values (?,?,?)")) {
+					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
+					statement.setBytes(2, real2db(key.toByteArray()));
+					statement.setBytes(3, value.toByteArray());
+					return (execute(statement) == 1 && statement.getUpdateCount() > 0);
+				}
+			}else if (driverName.contains("oracle") || driverName.contains("microsoft")) { //ANSI MERGE
+				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " old using (select ? h,? k,? v) new on (new.h=old.h and new.k=old.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v);")) {
+					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
+					statement.setBytes(2, real2db(key.toByteArray()));
+					statement.setBytes(3, value.toByteArray());
+					return (execute(statement) == 1 && statement.getUpdateCount() > 0);
+				}
+			}else { //ANSI SQL: try update before insert with not exists
+				return update(treeName,key,value) || insert(treeName,key,value);
 			}
 		}
 
