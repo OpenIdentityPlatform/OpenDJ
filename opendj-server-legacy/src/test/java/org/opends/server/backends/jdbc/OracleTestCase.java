@@ -23,7 +23,7 @@ import java.time.Duration;
 
 //docker run --rm --name oracle-db -p 1521:1521 -e APP_USER=opendj -e ORACLE_DATABASE=database_name -e APP_USER_PASSWORD=password gvenzl/oracle-free:23.4-slim-faststart
 
-@Test
+@Test(sequential = true)
 public class OracleTestCase extends TestCase {
 
     @Override
