@@ -342,7 +342,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 					return (execute(statement) == 1 && statement.getUpdateCount() > 0);
 				}
 			}else if (driverName.contains("mysql")) { //mysql upsert
-				try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) values (?,?,?) ON DUPLICATE KEY UPDATE v=v")) {
+				try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) values (?,?,?) ON DUPLICATE KEY UPDATE v=VALUES(v)")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
