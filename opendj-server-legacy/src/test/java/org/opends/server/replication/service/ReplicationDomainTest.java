@@ -346,17 +346,18 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
       String exportedData = buildExportedData(ENTRYCOUNT);
       domain1 = new FakeReplicationDomain(
-          testService, serverId1, servers, 0, exportedData, null, ENTRYCOUNT);
+          testService, serverId1, servers, 10, exportedData, null, ENTRYCOUNT);
 
       StringBuilder importedData = new StringBuilder();
       domain2 = new FakeReplicationDomain(
-          testService, serverId2, servers, 0, null, importedData, 0);
+          testService, serverId2, servers, 10, null, importedData, 0);
 
       /*
        * Trigger a total update from domain1 to domain2.
        * Check that the exported data is correctly received on domain2.
        */
       assertTrue(initializeFromRemote(domain2));
+      Thread.sleep(1000);
       waitEndExport(exportedData, importedData);
       assertExportSucessful(domain1, domain2, exportedData, importedData);
     }

@@ -1513,10 +1513,13 @@ public abstract class ReplicationDomain
               ResultCode.OTHER,
               ERR_INIT_NO_SUCCESS_START_FROM_SERVERS.get(getBaseDN(), ieCtx.failureList));
         }
-
-        exportBackend(new BufferedOutputStream(new ReplOutputStream(this)));
-
-        // Notify the peer of the success
+        try(final ReplOutputStream replStream=new ReplOutputStream(this);
+            final BufferedOutputStream buffStream=new BufferedOutputStream(replStream)) {
+          exportBackend(buffStream);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+          // Notify the peer of the success
         broker.publish(
             new DoneMsg(getServerId(), initTargetMsg.getDestination()));
       }
