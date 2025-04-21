@@ -13,7 +13,6 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2014 ForgeRock AS.
- * Portions Copyright 2025 3A Systems, LLC.
  */
 package org.opends.server.replication.service;
 
@@ -51,9 +50,9 @@ class ReplInputStream extends InputStream
    * Closes this input stream so that no more data may be read from it.
    */
   @Override
-  public void close() throws IOException {
+  public void close()
+  {
     closed      = true;
-    super.close();
   }
 
   /**

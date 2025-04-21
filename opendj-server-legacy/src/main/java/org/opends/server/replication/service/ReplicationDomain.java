@@ -13,7 +13,6 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2023-2025 3A Systems, LLC.
  */
 package org.opends.server.replication.service;
 
@@ -1513,13 +1512,10 @@ public abstract class ReplicationDomain
               ResultCode.OTHER,
               ERR_INIT_NO_SUCCESS_START_FROM_SERVERS.get(getBaseDN(), ieCtx.failureList));
         }
-        try(final ReplOutputStream replStream=new ReplOutputStream(this);
-            final BufferedOutputStream buffStream=new BufferedOutputStream(replStream)) {
-          exportBackend(buffStream);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-          // Notify the peer of the success
+
+        exportBackend(new BufferedOutputStream(new ReplOutputStream(this)));
+
+        // Notify the peer of the success
         broker.publish(
             new DoneMsg(getServerId(), initTargetMsg.getDestination()));
       }
@@ -2286,11 +2282,7 @@ public abstract class ReplicationDomain
       initFromTask = (InitializeTask) ieCtx.initializeTask;
 
       // Launch the import
-      try (final InputStream stream=new ReplInputStream(this)){
-          importBackend(stream);
-      } catch (IOException e) {
-          throw new RuntimeException(e);
-      }
+      importBackend(new ReplInputStream(this));
     }
     catch (DirectoryException e)
     {

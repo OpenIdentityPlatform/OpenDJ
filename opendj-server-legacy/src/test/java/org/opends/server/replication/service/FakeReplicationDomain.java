@@ -13,7 +13,6 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
- * Portions Copyright 2025 3A Systems, LLC.
  */
 package org.opends.server.replication.service;
 
@@ -140,9 +139,6 @@ public class FakeReplicationDomain extends ReplicationDomain
       }
     }
     while (ret >= 0);
-    if (importString.length()==0) {
-      throw new DirectoryException(OPERATIONS_ERROR,raw("importString empty"));
-    }
   }
 
   @Override
