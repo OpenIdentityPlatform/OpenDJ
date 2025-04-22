@@ -26,7 +26,7 @@ public class MySqlTestCase extends TestCase {
 
     @Override
     protected JdbcDatabaseContainer<?> getContainer() {
-        return new MySQLContainer<>("mysql")
+        return new MySQLContainer<>("mysql:9.2")
                 .withExposedPorts(3306)
                 .withUsername("root")
                 .withPassword("password")

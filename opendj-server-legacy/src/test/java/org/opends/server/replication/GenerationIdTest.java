@@ -334,7 +334,7 @@ public class GenerationIdTest extends ReplicationTestCase
     String rsDir = "generationIdTest" + replServerId + testCase + "Db";
     ReplicationServer replicationServer = new ReplicationServer(
         new ReplServerFakeConfiguration(rsPort, rsDir, 0, replServerId, 0, 1000, servers));
-    Thread.sleep(2000);
+    Thread.sleep(3000);
     return replicationServer;
   }
 
