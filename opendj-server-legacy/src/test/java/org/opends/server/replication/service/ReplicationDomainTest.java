@@ -369,6 +369,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
   private boolean initializeFromRemote(ReplicationDomain domain) throws DirectoryException
   {
+    try {
+      Thread.sleep(2000);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
     for (DSInfo remoteDS : domain.getReplicaInfos().values())
     {
       if (remoteDS.getDsId() != domain.getServerId())
