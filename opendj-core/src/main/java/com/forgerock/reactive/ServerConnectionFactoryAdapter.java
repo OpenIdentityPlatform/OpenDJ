@@ -59,10 +59,10 @@ import org.forgerock.opendj.ldap.spi.TransportProvider;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.RuntimeExceptionHandler;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableEmitter;
-import io.reactivex.FlowableOnSubscribe;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.FlowableEmitter;
+import io.reactivex.rxjava3.core.FlowableOnSubscribe;
 
 /**
  * Adapt a {@link ServerConnectionFactory} to a {@link Function} compatible with
