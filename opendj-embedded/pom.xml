@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-parent</artifactId>
-        <version>4.9.4</version>
+        <version>4.9.5-SNAPSHOT</version>
     </parent>
     <name>OpenDJ Embedded Server</name>
     <artifactId>opendj-embedded</artifactId>
