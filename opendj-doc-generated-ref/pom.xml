@@ -656,7 +656,7 @@
                                     <goal>run</goal>
                                 </goals>
                                 <configuration>
-                                    <tasks>
+                                    <target>
                                         <copy todir="${project.build.directory}/asciidoc/source/man-pages">
                                             <fileset dir="${basedir}/src/main/asciidoc/man-pages" includes="**/*" />
                                         </copy>
@@ -667,7 +667,7 @@
                                         <delete>
                                             <fileset dir="${project.build.directory}/asciidoc/source/man-pages" includes="man-*-subcommands-ref*" />
                                         </delete>
-                                    </tasks>
+                                    </target>
                                 </configuration>
                             </execution>
                             <execution>
