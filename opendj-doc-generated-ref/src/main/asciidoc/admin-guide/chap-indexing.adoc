@@ -1101,13 +1101,9 @@ a|-
 a|-
 a|4000
 |===
-When you create a new backend using the `dsconfig` command, OpenDJ directory server creates the following indexes automatically:
-[none]
-* `aci` presence
-* `ds-sync-conflict` equality
-* `ds-sync-hist` ordering
-* `entryUUID` equality
-* `objectClass` equality
+
+When you create a new backend using the `dsconfig` command, the OpenDJ Directory Server also automatically creates these indexes.
+
 You can create additional indexes as described in xref:../admin-guide/chap-indexing.adoc#configure-indexes["Configuring and Rebuilding Indexes"].
 
 

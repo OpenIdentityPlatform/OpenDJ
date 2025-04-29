@@ -12,12 +12,13 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2025 3A Systems LLC.
 ////
 
 :figure-caption!:
 :example-caption!:
 :table-caption!:
+:opendj-version: 4.9.3
 
 
 [#chap-monitoring]
@@ -40,7 +41,7 @@ OpenDJ control panel provides basic monitoring capabilities under Monitoring > G
 
 OpenDJ exposes monitoring information over LDAP under the entry `cn=monitor`. Many different types of information are exposed. The following example shows monitoring information about the `userRoot` backend holding Example.com data:
 
-Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__)
+Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["Product Interface Stability"] in the __Reference__)
 
 [source, console]
 ----
@@ -82,7 +83,7 @@ To run the OpenDMK installer, use the self-extracting .jar:
 ----
 $ java -jar ~/Downloads/opendmk-1.0-b02-*.jar
 $ cd ~/Downloads/
-$ unzip DS-5.5.0.zip
+$ unzip opendj-{opendj-version}.zip
 $ java -jar opendj/snmp/opendmk.jar
 ----
 If you install under `/path/to`, then the runtime library needed for SNMP is `/path/to/OpenDMK-bin/lib/jdmkrt.jar`.
@@ -149,10 +150,10 @@ $ dsconfig \
 ----
 Use a command such as `snmpwalk` to check that the SNMP listen port works:
 
-[source, console]
+[source, console, subs="attributes"]
 ----
 $ snmpwalk -v 2c -c OpenDJ@OpenDJ localhost:11161
-SNMPv2-SMI::mib-2.66.1.1.1.1 = STRING: "OpenDJ 3.5.3..."
+SNMPv2-SMI::mib-2.66.1.1.1.1 = STRING: "OpenDJ {opendj-version}..."
 SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/opendj"
 ...
 ----
@@ -163,7 +164,7 @@ SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/opendj"
 
 OpenDJ provides JMX-based monitoring. A number of tools support JMX, including `jconsole` and `jvisualvm`, which are bundled with the Sun/Oracle Java platform. JMX is not configured by default. Use the `dsconfig` command to configure the JMX connection handler:
 
-Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__)
+Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["Product Interface Stability"] in the __Reference__)
 
 Configure the server to activate JMX access. The following example uses the reserved port number, 1689:
 
@@ -247,7 +248,7 @@ OpenDJ comes with two commands for monitoring server processes and tasks. The `s
 
 The `status` command takes administrative credentials to read the configuration, as does the control panel:
 
-[source, console]
+[source, console, subs="attributes"]
 ----
 $ status --bindDN "cn=Directory Manager" --bindPassword password
 
@@ -259,7 +260,7 @@ Open Connections:         1
 Host Name:                localhost
 Administrative Users:     cn=Directory Manager
 Installation Path:        /path/to/opendj
-Version:                  OpenDJ 3.5.3
+Version:                  OpenDJ {opendj-version}
 Java Version:             version
 Administration Connector: Port 4444 (LDAPS)
 
@@ -301,7 +302,7 @@ example-20110623030000000  Backup  Waiting on start time
 
 By default OpenDJ stores access and errors logs, and a server process ID file under the `logs/` directory. For the replication service, OpenDJ also keeps a replication log there. You can also configure a debug log. You can also configure policies about how logs are rotated, and how they are retained. You configure logging using the `dsconfig` command.
 
-Each log depends on a __log publisher__, whose type corresponds to the type of log. OpenDJ provides a number of file-based log publishers out of the box, and supports the ForgeRock common audit event framework, sometimes referred to as Common Audit. The ForgeRock common audit event framework provides log handlers for publishing to CSV files, relational databases, and the UNIX system log (Syslog) as described in xref:#log-common-audit["Common ForgeRock Access Logs"]. The framework makes it possible to plug in additional handlers as well.
+Each log depends on a __log publisher__, whose type corresponds to the type of log. OpenDJ provides a number of file-based log publishers out of the box, and supports the Open Identity Platform common audit event framework, sometimes referred to as Common Audit. The ForgeRock common audit event framework provides log handlers for publishing to CSV files, relational databases, and the UNIX system log (Syslog) as described in xref:#log-common-audit["Common ForgeRock Access Logs"]. The framework makes it possible to plug in additional handlers as well.
 
 [#log-access]
 ==== Access Logs
@@ -325,14 +326,14 @@ Notice that by default OpenDJ directory server logs a message for the search req
 
 
 [#log-common-audit]
-==== Common ForgeRock Access Logs
+==== Common Open Identity Platform Access Logs
 
-In addition to the default file-based access log formats, OpenDJ directory server supports the ForgeRock common audit event framework. OpenDJ uses the framework to write access logs in formats that are compatible with all products using the framework. The framework uses transaction IDs that make it easy to correlate requests as they traverse the platform. This makes it easier to monitor activity and to enrich reports.
+In addition to the default file-based access log formats, OpenDJ directory server supports the Open Identity Platform common audit event framework. OpenDJ uses the framework to write access logs in formats that are compatible with all products using the framework. The framework uses transaction IDs that make it easy to correlate requests as they traverse the platform. This makes it easier to monitor activity and to enrich reports.
 
-Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__)
+Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["Product Interface Stability"] in the __Reference__)
 
-The ForgeRock common audit event framework is built around audit event handlers. Audit event handlers can encapsulate their own configurations. Audit event handlers are the same in each product in the ForgeRock platform. As a result, you can plug in custom handlers that comply with the framework without having to upgrade OpenDJ directory server.
-The ForgeRock common audit event framework includes handlers for logging audit event messages to local files and facilities, as well as to remote systems. Handlers for the following are supported:
+The Open Identity Platform common audit event framework is built around audit event handlers. Audit event handlers can encapsulate their own configurations. Audit event handlers are the same in each product in the Open Identity Platform. As a result, you can plug in custom handlers that comply with the framework without having to upgrade OpenDJ directory server.
+The Open Identity Platform common audit event framework includes handlers for logging audit event messages to local files and facilities, as well as to remote systems. Handlers for the following are supported:
 
 * CSV files, with support for tamper-evident logs.
 +
@@ -350,7 +351,7 @@ You configure the JDBC handler as an external log publisher that logs access mes
 +
 Although it is rarely used for access events, you can configure the Syslog handler as an external log publisher that logs access messages to the UNIX Syslog facility.
 
-The ForgeRock common audit event framework supports a variety of audit event topics. OpenDJ currently supports handling for access events, which are system boundary events such as the initial request and final response to that request. In other words, the implementation in OpenDJ is focused only on access logging. Based on the connection handler for the request, OpenDJ divides access events into `ldap-access` events and `http-access` events.
+The Open Identity Platform common audit event framework supports a variety of audit event topics. OpenDJ currently supports handling for access events, which are system boundary events such as the initial request and final response to that request. In other words, the implementation in OpenDJ is focused only on access logging. Based on the connection handler for the request, OpenDJ divides access events into `ldap-access` events and `http-access` events.
 To enable common audit-based logging, follow one of these procedures:
 
 * xref:#log-common-audit-ldap-csv["To Enable LDAP CSV Access Logs"]
@@ -692,7 +693,7 @@ $ dsconfig \
 [#log-common-audit-trust-transaction-ids]
 .To Trust Transaction IDs
 ====
-Client applications using the ForgeRock common audit event framework send transaction IDs with their requests. The transaction IDs are used to correlate audit events for monitoring and reporting that trace the request through multiple applications.
+Client applications using the Open Identity Platform common audit event framework send transaction IDs with their requests. The transaction IDs are used to correlate audit events for monitoring and reporting that trace the request through multiple applications.
 
 Transaction IDs are sent over LDAP using an internal OpenDJ request control. They are sent over HTTP in an HTTP header.
 
@@ -1702,7 +1703,7 @@ The following `errors` log excerpt shows log entries for a backup task, with lin
 
 For the HTTP Connection Handler, OpenDJ maintains a separate access log in `logs/http-access`. This access log, by default configured as the File Based HTTP Access Log Publisher, uses a different format than the LDAP access log. This HTTP access log uses link:http://www.w3.org/TR/WD-logfile.html[Extended Log File Format, window=\_blank] with fields described in link:http://www.microsoft.com/technet/prodtechnol/WindowsServer2003/Library/IIS/676400bc-8969-4aa7-851a-9319490a9bbb.mspx?mfr=true[Microsoft's implementation, window=\_blank] as well.
 
-Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__)
+Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["Product Interface Stability"] in the __Reference__)
 --
 The following default fields are shown here in the order they occur in the log file:
 
@@ -1755,7 +1756,7 @@ When using this field to match HTTP requests with internal operations in the LDA
 Execution time in milliseconds needed by OpenDJ to service the HTTP request
 
 `x-transaction-id`::
-ForgeRock common audit event framework transaction ID for the request
+Open Identity Platform common audit event framework transaction ID for the request
 
 +
 This defaults to `0` unless you configure OpenDJ to trust transaction IDs as described in xref:#log-common-audit-trust-transaction-ids["To Trust Transaction IDs"].

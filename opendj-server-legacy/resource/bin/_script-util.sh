@@ -14,7 +14,7 @@
 #
 # Copyright 2008-2010 Sun Microsystems, Inc.
 # Portions Copyright 2010-2016 ForgeRock AS.
-# Portions Copyright 2019-2024 3A Systems, LLC.
+# Portions Copyright 2019-2025 3A Systems, LLC.
 #
 # Display an error message
 #
@@ -195,14 +195,7 @@ set_environment_vars() {
 # Configure the appropriate CLASSPATH for server, using Opend DJ logger.
 set_opendj_logger_classpath() {
   CLASSPATH="${INSTANCE_ROOT}/classes"
-  CLASSPATH="${CLASSPATH}:${INSTALL_ROOT}/lib/bootstrap.jar"
-  if [ "${INSTALL_ROOT}" != "${INSTANCE_ROOT}" ]
-  then
-    for JAR in "${INSTANCE_ROOT}/lib/"*.jar
-    do
-      CLASSPATH=${CLASSPATH}:${JAR}
-    done
-  fi
+  CLASSPATH="${CLASSPATH}:${INSTALL_ROOT}/lib/*"
   export CLASSPATH
 }
 

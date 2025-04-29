@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2025 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -1251,7 +1251,8 @@ When more than one authentication mechanism is specified, mechanisms are applied
 
 There are many possibilities when configuring HTTP authorization mechanisms. __This procedure shows only one OAuth 2.0 example.__
 
-The example that follows demonstrates an OpenDJ directory server configured for tests (insecure connections) to request OAuth 2.0 token information from OpenAM. Download ForgeRock Access Management or OpenAM software from link:https://backstage.forgerock.com/downloads/[https://backstage.forgerock.com/downloads/, window=\_top].
+The example that follows demonstrates an OpenDJ directory server configured for tests (insecure connections) to request OAuth 2.0 token information from OpenAM.
+Download OpenAM software from link:https://github.com/OpenIdentityPlatform/OpenAM/releases[https://github.com/OpenIdentityPlatform/OpenAM/releases, window=\_top].
 
 [#d67723e3953]
 .Settings for OAuth 2.0 Example With OpenAM

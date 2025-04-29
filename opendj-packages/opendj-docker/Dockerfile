@@ -1,27 +1,31 @@
 FROM eclipse-temurin:21-jre-jammy
 
-MAINTAINER Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>
+LABEL org.opencontainers.image.authors="Open Identity Platform Community"
 
-ENV ADD_BASE_ENTRY="--addBaseEntry" \
-    PORT=1389 \
-    LDAPS_PORT=1636 \
-    ADMIN_PORT=4444 \
-    BASE_DN=${BASE_DN:-"dc=example,dc=com"} \
-    ROOT_USER_DN=${ROOT_USER_DN:-"cn=Directory Manager"} \
-    ROOT_PASSWORD=${ROOT_PASSWORD:-"password"} \
-    SECRET_VOLUME=${SECRET_VOLUME} \
-    OPENDJ_SSL_OPTIONS=${SSL_OPTIONS:-"--generateSelfSignedCertificate"} \
-    MASTER_SERVER=${MASTER_SERVER} \
-    OPENDJ_REPLICATION_TYPE=${OPENDJ_REPLICATION_TYPE} \
-    OPENDJ_USER="opendj" \
-    OPENDJ_JAVA_ARGS="-server -XX:+UseContainerSupport"
+ENV ADD_BASE_ENTRY="--addBaseEntry"
+ENV PORT=1389
+ENV LDAPS_PORT=1636
+ENV ADMIN_PORT=4444
+ENV BASE_DN="dc=example,dc=com"
+ENV ROOT_USER_DN="cn=Directory Manager"
+ENV ROOT_PASSWORD="password"
+#ENV SECRET_VOLUME
+ENV OPENDJ_SSL_OPTIONS="--generateSelfSignedCertificate"
+#ENV MASTER_SERVER
+#ENV OPENDJ_REPLICATION_TYPE
+ENV OPENDJ_USER="opendj"
+#ENV OPENDJ_JAVA_ARGS=""
+ENV BACKEND_TYPE="je"
+ENV BACKEND_DB_DIRECTORY="db"
+#ENV SETUP_ARGS
 
-ARG VERSION=@project_version@
+ARG VERSION
 
 WORKDIR /opt
 
 RUN  apt-get update \
  && apt-get install -y --no-install-recommends curl unzip \
+ && if [ -z "$VERSION" ] ; then VERSION="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)"; fi \
  && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output opendj-$VERSION.zip \
  && unzip opendj-$VERSION.zip \
  && apt-get remove -y --purge curl unzip \
@@ -38,7 +42,7 @@ COPY --chown=$OPENDJ_USER:$OPENDJ_USER run.sh /opt/opendj/run.sh
 
 RUN chmod +x /opt/opendj/run.sh /opt/opendj/bootstrap/setup.sh /opt/opendj/bootstrap/replicate.sh
 
-EXPOSE $PORT $LDAPS_PORT $ADMIN_PORT
+EXPOSE $PORT/tcp $LDAPS_PORT/tcp $ADMIN_PORT/tcp
 
 USER $OPENDJ_USER
 

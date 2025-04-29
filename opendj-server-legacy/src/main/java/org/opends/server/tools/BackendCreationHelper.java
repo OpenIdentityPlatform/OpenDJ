@@ -98,14 +98,16 @@ public class BackendCreationHelper
 
   /** Default indexes to add in a new backend. */
   public static final CreateIndex[] DEFAULT_INDEXES = {
-    CreateIndex.withEqualityAndSubstring("cn"),
-    CreateIndex.withEqualityAndSubstring("givenName"),
-    CreateIndex.withEqualityAndSubstring("mail"),
-    CreateIndex.withEqualityAndSubstring("sn"),
-    CreateIndex.withEqualityAndSubstring("telephoneNumber"),
-    CreateIndex.withEquality("member"),
-    CreateIndex.withEquality("uid"),
-    CreateIndex.withEquality("uniqueMember")
+// Default indexes moved to the PluggableBackendConfiguration.xml file,
+// see https://github.com/OpenIdentityPlatform/OpenDJ/issues/497
+//    CreateIndex.withEqualityAndSubstring("cn"),
+//    CreateIndex.withEqualityAndSubstring("givenName"),
+//    CreateIndex.withEqualityAndSubstring("mail"),
+//    CreateIndex.withEqualityAndSubstring("sn"),
+//    CreateIndex.withEqualityAndSubstring("telephoneNumber"),
+//    CreateIndex.withEquality("member"),
+//    CreateIndex.withEquality("uid"),
+//    CreateIndex.withEquality("uniqueMember")
   };
 
   /**

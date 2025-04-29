@@ -12,12 +12,13 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2025 3A Systems LLC.
 ////
 
 :figure-caption!:
 :example-caption!:
 :table-caption!:
+:opendj-version: 4.9.3
 
 
 [#chap-writing-plugins]
@@ -35,9 +36,9 @@ In this chapter you will learn:
 
 [IMPORTANT]
 ====
-ForgeRock supports customers using standard plugins delivered as part of OpenDJ directory server.
+Open Identity Platform Approved Vendors support customers using standard plugins delivered as part of OpenDJ directory server.
 
-If you deploy with custom plugins and need support in production, contact link:mailto:info\@forgerock.com[info@forgerock.com, window=\_top] in advance to determine how your deployment can be supported.
+If you deploy with custom plugins and need support in production, see link:https://github.com/OpenIdentityPlatform/.github/wiki/Approved-Vendor-List[Approved Vendors List, window=\_top] in advance to determine how your deployment can be supported.
 ====
 
 [#about-server-plugins]
@@ -47,7 +48,7 @@ OpenDJ directory server plugins are Java libraries compiled against the OpenDJ l
 
 [NOTE]
 ====
-The OpenDJ server Java API has interface stability: Evolving, as described in xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__.
+The OpenDJ server Java API has interface stability: Evolving, as described in xref:../reference/appendix-interface-stability.adoc#interface-stability["Product Interface Stability"] in the __Reference__.
 
 This means that a server plugin built with one version of OpenDJ directory server will not necessarily work or even compile with a different version of the server.
 ====
@@ -169,7 +170,7 @@ $ mvn install
 . Install the example plugin in OpenDJ directory server:
 +
 
-[source, console]
+[source, console, subs="attributes"]
 ----
 $ cd /path/to/opendj
 
@@ -181,7 +182,7 @@ $ bin/stop-ds
 # The following example works with bsdtar,
 # which might require installing a bsdtar package.
 $ bsdtar -xvf \
- /path/to/opendj-server-example-plugin/target/opendj-server-example-plugin-3.5.3.zip \
+ /path/to/opendj-server-example-plugin/target/opendj-server-example-plugin-{opendj-version}.zip \
  -s'|[^/]*/||'
 x README.example.plugin
 x config/
@@ -190,7 +191,7 @@ x config/example-plugin.ldif
 x config/schema/99-example-plugin.ldif
 x lib/
 x lib/extensions/
-x lib/extensions/opendj-server-example-plugin-3.5.3.jar
+x lib/extensions/opendj-server-example-plugin-{opendj-version}.jar
 x lib/extensions/...
 
 # Start the server and create the plugin configuration:
@@ -209,7 +210,7 @@ $ bin/dsconfig \
  --no-prompt
 ...
 INFO: Loaded extension from file
- '/path/to/opendj/lib/extensions/opendj-server-example-plugin-3.5.3.jar'
+ '/path/to/opendj/lib/extensions/opendj-server-example-plugin-{opendj-version}.jar'
  (build <unknown>, revision <unknown>)
 ----
 +
@@ -256,7 +257,7 @@ This version of the example plugin project is new in OpenDJ directory server 3.5
 The OpenDJ example server plugin is an Apache Maven project.
 
 As you can see in the `pom.xml` file for the project, the plugin depends on the OpenDJ directory server module.
-The plugin project uses these ForgeRock Maven plugins:
+The plugin project uses these Open Identity Platform Maven plugins:
 
 * The `i18n-maven-plugin` generates message source files from properties files in the resource bundle.
 +
@@ -338,7 +339,7 @@ The plugin implementation is found in `src/main/java/com/example/opendj/ExampleP
 
 [NOTE]
 ====
-The OpenDJ server Java API has interface stability: Evolving, as described in xref:../reference/appendix-interface-stability.adoc#interface-stability["ForgeRock Product Interface Stability"] in the __Reference__.
+The OpenDJ server Java API has interface stability: Evolving, as described in xref:../reference/appendix-interface-stability.adoc#interface-stability["Product Interface Stability"] in the __Reference__.
 
 This means that a server plugin built with one version of OpenDJ directory server will not necessarily work or even compile with a different version of the server.
 ====

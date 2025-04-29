@@ -24,8 +24,9 @@ jobs:
           sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/$(lsb_release -c -s)/winehq-$(lsb_release -c -s).sources
           sudo apt-get update
           sudo apt install --install-recommends winehq-stable || sudo apt install --install-recommends winehq-staging
-          sudo mkdir -p /opt/wine/mono && sudo wget "https://dl.winehq.org/wine/wine-mono/8.0.0/wine-mono-8.0.0-x86.tar.xz" -P /opt/wine/mono && sudo tar -xf /opt/wine/mono/wine-mono-8.0.0-x86.tar.xz -C /opt/wine/mono && sudo rm /opt/wine/mono/wine-mono-8.0.0-x86.tar.xz
           wine --version
+          version="9.4.0"; sudo wget "https://dl.winehq.org/wine/wine-mono/$version/wine-mono-$version-x86.msi" -O /tmp/wine-mono.msi
+          wine msiexec /i /tmp/wine-mono.msi
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -65,6 +66,9 @@ jobs:
           MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
         if: ${{ github.event.workflow_run.event=='push' && env.MAVEN_USERNAME!='' && env.MAVEN_PASSWORD!=''}}
         run: mvn --batch-mode --errors --update-snapshots -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} deploy --file pom.xml
+      - name: Build Javadoc
+        continue-on-error: true
+        run: mvn javadoc:aggregate
       - name: Upload artifacts OpenDJ Server
         uses: actions/upload-artifact@v4
         with:
@@ -156,6 +160,8 @@ jobs:
           cd doc.openidentityplatform.org
           rm -rf ${REPO_NAME_LC}/modules
           cp -R ../${SITE_DOC_FOLDER}/target/asciidoc/antora/modules ../doc.openidentityplatform.org/${REPO_NAME_LC}
+          rm -rf ${REPO_NAME_LC}/apidocs
+          cp -R ../target/reports/apidocs ../doc.openidentityplatform.org/${REPO_NAME_LC}
           git add -A
           if ! git diff-index --quiet HEAD; then
             echo "committing changes to the docs repository"

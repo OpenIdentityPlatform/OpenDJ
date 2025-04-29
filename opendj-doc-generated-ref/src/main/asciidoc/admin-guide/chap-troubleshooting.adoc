@@ -12,12 +12,13 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2025 3A Systems LLC.
 ////
 
 :figure-caption!:
 :example-caption!:
 :table-caption!:
+:opendj-version: 4.9.3
 
 
 [#chap-troubleshooting]
@@ -787,10 +788,10 @@ OpenDJ maintains historical information about changes in order to bring replicas
 
 When you cannot resolve a problem yourself, and want to ask for help, clearly identify the problem and how you reproduce it, and also the version of OpenDJ you use to reproduce the problem. The version includes both a version number and also a build time stamp:
 
-[source, console]
+[source, console, subs="attributes"]
 ----
 $ dsconfig --version
-OpenDJ 3.5.3
+OpenDJ {opendj-version}
 Build yyyymmddhhmmssZ
 ----
 Be ready to provide the following additional information:

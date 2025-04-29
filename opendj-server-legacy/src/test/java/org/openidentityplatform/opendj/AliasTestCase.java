@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2024 3A Systems, LLC.
+ * Copyright 2024-2025 3A Systems, LLC.
  */
 package org.openidentityplatform.opendj;
 
@@ -23,6 +23,7 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 
+import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -60,6 +61,61 @@ public class AliasTestCase extends DirectoryServerTestCase {
                         "objectclass: extensibleobject",
                         "cn: President",
                         "aliasedobjectname: cn=John Doe, o=MyCompany, o=test",
+                        "",
+
+                        "dn: ou=employees,o=test",
+                        "objectClass: top",
+                        "objectClass: organizationalUnit",
+                        "ou: employees",
+                        "description: All employees",
+                        "",
+                        "dn: uid=jdoe,ou=employees,o=test",
+                        "objectClass: alias",
+                        "objectClass: top",
+                        "objectClass: extensibleObject",
+                        "aliasedObjectName: uid=jdoe,ou=researchers,o=test",
+                        "uid: jdoe",
+                        "",
+                        "dn: ou=researchers,o=test",
+                        "objectClass: top",
+                        "objectClass: organizationalUnit",
+                        "ou: researchers",
+                        "description: All reasearchers",
+                        "",
+                        "dn: uid=jdoe,ou=researchers,o=test",
+                        "objectClass: alias",
+                        "objectClass: top",
+                        "objectClass: extensibleObject",
+                        "aliasedObjectName: uid=jdoe,ou=employees,o=test",
+                        "uid: jdoe",
+
+                        "",
+                        "dn: ou=students,o=test",
+                        "objectClass: top",
+                        "objectClass: organizationalUnit",
+                        "ou: students",
+                        "description: All students",
+                        "",
+                        "dn: uid=janedoe,ou=students,o=test",
+                        "objectClass: alias",
+                        "objectClass: top",
+                        "objectClass: extensibleObject",
+                        "aliasedObjectName: uid=janedoe,ou=researchers,o=test",
+                        "uid: janedoe",
+                        "",
+                        "dn: uid=janedoe,ou=researchers,o=test",
+                        "objectClass: alias",
+                        "objectClass: top",
+                        "objectClass: extensibleObject",
+                        "aliasedObjectName: uid=janedoe,ou=employees,o=test",
+                        "uid: janedoe",
+                        "",
+                        "dn: uid=janedoe,ou=employees,o=test",
+                        "objectClass: alias",
+                        "objectClass: top",
+                        "objectClass: extensibleObject",
+                        "aliasedObjectName: uid=janedoe,ou=students,o=test",
+                        "uid: janedoe",
                         ""
         );
 
@@ -70,7 +126,11 @@ public class AliasTestCase extends DirectoryServerTestCase {
     }
 
     public HashMap<String,SearchResultEntry> search(SearchScope scope,DereferenceAliasesPolicy policy) throws SearchResultReferenceIOException, LdapException {
-        final SearchRequest request =Requests.newSearchRequest("ou=Area1,o=test", scope,"(objectclass=*)")
+        return search("ou=Area1,o=test", scope, policy);
+    }
+
+    public HashMap<String,SearchResultEntry> search(String dn, SearchScope scope,DereferenceAliasesPolicy policy) throws SearchResultReferenceIOException, LdapException {
+        final SearchRequest request =Requests.newSearchRequest(dn, scope,"(objectclass=*)")
                 .setDereferenceAliasesPolicy(policy);
         System.out.println("---------------------------------------------------------------------------------------");
         System.out.println(request);
@@ -125,7 +185,7 @@ public class AliasTestCase extends DirectoryServerTestCase {
     //    It returns ou=Area1,o=test.
     @Test
     public void test_base_search() throws SearchResultReferenceIOException, LdapException  {
-        HashMap<String,SearchResultEntry> res=search(SearchScope.BASE_OBJECT,DereferenceAliasesPolicy.IN_SEARCHING);
+        HashMap<String,SearchResultEntry> res=search(SearchScope.BASE_OBJECT, DereferenceAliasesPolicy.IN_SEARCHING);
 
         assertThat(res.containsKey("ou=Area1,o=test")).isTrue();
         assertThat(res.containsKey("o=MyCompany,o=test")).isFalse();
@@ -308,4 +368,39 @@ public class AliasTestCase extends DirectoryServerTestCase {
         assertThat(res.containsKey("cn=John Doe,o=MyCompany,o=test")).isTrue();
     }
 
+    // Dereferencing recursion avoidance test.
+    @Test
+    public void test_alias_recursive() throws LdapException, SearchResultReferenceIOException {
+        HashMap<String, SearchResultEntry> res = search("uid=jdoe,ou=employees,o=test", SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.ALWAYS);
+
+        assertThat(res.containsKey("uid=jdoe,ou=employees,o=test")).isTrue();
+        assertThat(res.containsKey("uid=jdoe,ou=researchers,o=test")).isFalse();
+    }
+
+    @Test
+    public void test_alias_recursive_loop() throws LdapException, SearchResultReferenceIOException {
+        HashMap<String, SearchResultEntry> res = search("uid=janedoe,ou=students,o=test", SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.ALWAYS);
+
+        assertThat(res.containsKey("uid=janedoe,ou=students,o=test")).isTrue();
+        assertThat(res.containsKey("uid=janedoe,ou=researches,o=test")).isFalse();
+        assertThat(res.containsKey("uid=janedoe,ou=employees,o=test")).isFalse();
+    }
+
+    @Test(expectedExceptions = LdapException.class)
+    public void test_stackoverflow() throws Exception {
+
+        String entryTemplate = "dn: uid={uid},ou=employees,o=test\n" +
+                "objectClass: alias\n" +
+                "objectClass: top\n" +
+                "objectClass: extensibleObject\n" +
+                "aliasedObjectName: uid={alias},ou=employees,o=test \n" +
+                "uid: {uid}\n";
+        final String firstDn = "uid=jdoe0,ou=employees,o=test";
+        for(int i = 0; i < 10000; i++) {
+            String entryStr = entryTemplate.replace("{uid}", "jdoe" + i).replace("{alias}", "jdoe" + (i + 1));
+            Entry entry = TestCaseUtils.makeEntry(entryStr);
+            TestCaseUtils.addEntry(entry);
+        }
+        search(firstDn, SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.ALWAYS);
+    }
 }

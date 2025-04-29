@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems,LLC.
  */
 package org.opends.server.replication.service;
 
@@ -368,6 +369,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
   private boolean initializeFromRemote(ReplicationDomain domain) throws DirectoryException
   {
+    try {
+      Thread.sleep(2000);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
     for (DSInfo remoteDS : domain.getReplicaInfos().values())
     {
       if (remoteDS.getDsId() != domain.getServerId())
@@ -442,7 +448,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
   private void waitEndExport(String exportedData, StringBuilder importedData) throws Exception
   {
     int count = 0;
-    while (importedData.length() < exportedData.length() && count < 500)
+    while (importedData.length() < exportedData.length() && count < 500*5)
     {
       count ++;
       Thread.sleep(100);

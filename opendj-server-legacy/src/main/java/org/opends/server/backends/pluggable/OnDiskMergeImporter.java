@@ -1510,7 +1510,7 @@ final class OnDiskMergeImporter
             mmapPosition = region.offset;
             mmap = channel.map(MapMode.READ_ONLY, mmapPosition, Math.min(size.get() - mmapPosition, Integer.MAX_VALUE));
           }
-          final ByteBuffer regionBuffer = mmap.duplicate();
+          final ByteBuffer regionBuffer = ((ByteBuffer)mmap).duplicate();
           final int relativeRegionOffset = (int) (region.offset - mmapPosition);
           regionBuffer.position(relativeRegionOffset).limit(regionBuffer.position() + region.size);
           cursors.add(new FileRegion.Cursor(name, regionBuffer.slice()));
@@ -3036,7 +3036,7 @@ final class OnDiskMergeImporter
 
       void writeByteSequence(int position, ByteSequence data)
       {
-        buffer.position(position);
+        ((ByteBuffer)buffer).position(position);
         data.copyTo(buffer);
       }
 

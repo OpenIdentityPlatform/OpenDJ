@@ -14,6 +14,7 @@
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions copyright 2013-2016 ForgeRock AS.
  * Portions copyright 2014 Manuel Gaupp
+ * Portions copyright 2025 3A Systems, LLC
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -1582,6 +1583,14 @@ final class CoreSchemaImpl {
                .extraProperties(RFC4512_ORIGIN)
                .implementation(new BooleanSyntaxImpl())
                .addToSchema();
+        //Expression syntax for Boolean
+        //
+        //Values of this syntax hold either a Boolean value, or a configuration expression that evaluates to a Boolean value.
+        builder.buildSyntax("1.3.6.1.4.1.36733.2.1.3.3.7")
+                .description(SYNTAX_BOOLEAN_DESCRIPTION)
+                .extraProperties(RFC4512_ORIGIN)
+                .implementation(new BooleanSyntaxImpl())
+                .addToSchema();
 
         builder.buildSyntax(SYNTAX_COUNTRY_STRING_OID)
                .description(SYNTAX_COUNTRY_STRING_DESCRIPTION)
@@ -1600,7 +1609,14 @@ final class CoreSchemaImpl {
                .extraProperties(RFC4512_ORIGIN)
                .implementation(new DirectoryStringSyntaxImpl())
                .addToSchema();
-
+        //Expression syntax for Directory String
+        //
+        //Values of this syntax hold either an LDAP directory string value, or a configuration expression that evaluates to an LDAP directory string value.
+        builder.buildSyntax("1.3.6.1.4.1.36733.2.1.3.3.15")
+                .description(SYNTAX_DIRECTORY_STRING_DESCRIPTION)
+                .extraProperties(RFC4512_ORIGIN)
+                .implementation(new DirectoryStringSyntaxImpl())
+                .addToSchema();
         builder.buildSyntax(SYNTAX_DIT_CONTENT_RULE_OID)
                .description(SYNTAX_DIT_CONTENT_RULE_DESCRIPTION)
                .extraProperties(RFC4512_ORIGIN)
@@ -1618,6 +1634,14 @@ final class CoreSchemaImpl {
                .extraProperties(RFC4512_ORIGIN)
                .implementation(new DistinguishedNameSyntaxImpl())
                .addToSchema();
+        //Expression syntax for DN
+        //
+        //Values of this syntax hold either a DN value, or a configuration expression that evaluates to a DN value.
+        builder.buildSyntax("1.3.6.1.4.1.36733.2.1.3.3.12")
+                .description(SYNTAX_DN_DESCRIPTION)
+                .extraProperties(RFC4512_ORIGIN)
+                .implementation(new DistinguishedNameSyntaxImpl())
+                .addToSchema();
 
         builder.buildSyntax(SYNTAX_ENHANCED_GUIDE_OID)
                .description(SYNTAX_ENHANCED_GUIDE_DESCRIPTION)
@@ -1660,7 +1684,14 @@ final class CoreSchemaImpl {
                .extraProperties(RFC4512_ORIGIN)
                .implementation(new IntegerSyntaxImpl())
                .addToSchema();
-
+        //Expression syntax for Integer
+        //
+        //Values of this syntax hold either an integer value, or a configuration expression that evaluates to an integer value.
+        builder.buildSyntax("1.3.6.1.4.1.36733.2.1.3.3.27")
+                .description(SYNTAX_INTEGER_DESCRIPTION)
+                .extraProperties(RFC4512_ORIGIN)
+                .implementation(new IntegerSyntaxImpl())
+                .addToSchema();
         builder.buildSyntax(SYNTAX_JPEG_OID)
                .description(SYNTAX_JPEG_DESCRIPTION)
                .extraProperties(RFC4512_ORIGIN)
