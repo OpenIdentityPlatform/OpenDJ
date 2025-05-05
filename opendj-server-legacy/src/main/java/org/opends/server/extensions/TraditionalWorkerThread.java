@@ -13,15 +13,19 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
 import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Operation;
@@ -145,8 +149,29 @@ public class TraditionalWorkerThread
         {
           // The operation is not null, so process it.  Make sure that when
           // processing is complete.
-          operation.run();
-          operation.operationCompleted();
+
+          //check has transactionId control
+          ClientConnection.Transaction transaction=null;
+          if (operation instanceof AbstractOperation) {
+            String transactionId = ((AbstractOperation) operation).getTransactionId();
+            if (transactionId!=null){
+              transaction=operation.getClientConnection().getTransaction(transactionId);
+              if (transaction==null){ //unknown transactionId
+                operation.setResultCode(ResultCode.CANCELLED);
+                operation.appendErrorMessage(LocalizableMessage.raw("unknown transactionId="+transactionId));
+                operation.getClientConnection().sendResponse(operation);
+                continue;
+              }
+            }
+          }
+          if (transaction==null) {  //run
+            operation.run();
+            operation.operationCompleted();
+          }else { //suspend for commit
+            transaction.add(operation);
+            operation.setResultCode(ResultCode.SUCCESS);
+            operation.getClientConnection().sendResponse(operation);
+          }
         }
       }
       catch (Throwable t)

@@ -14,6 +14,7 @@
 # Portions Copyright 2012-2014 Manuel Gaupp
 # Portions Copyright 2010-2016 ForgeRock AS.
 # Portions copyright 2015 Edan Idzerda
+# Portions Copyright 2025 3A Systems, LLC.
 
 # This file contains the primary Directory Server configuration.  It must not
 # be directly edited while the server is online.  The server configuration
@@ -601,6 +602,22 @@ objectClass: ds-cfg-extended-operation-handler
 objectClass: ds-cfg-who-am-i-extended-operation-handler
 cn: Who Am I
 ds-cfg-java-class: org.opends.server.extensions.WhoAmIExtendedOperation
+ds-cfg-enabled: true
+
+dn: cn=Start Transaction,cn=Extended Operations,cn=config
+objectClass: top
+objectClass: ds-cfg-extended-operation-handler
+objectClass: ds-cfg-start-transaction-extended-operation-handler
+cn: Start Transaction
+ds-cfg-java-class: org.opends.server.extensions.StartTransactionExtendedOperation
+ds-cfg-enabled: true
+
+dn: cn=End Transaction,cn=Extended Operations,cn=config
+objectClass: top
+objectClass: ds-cfg-extended-operation-handler
+objectClass: ds-cfg-end-transaction-extended-operation-handler
+cn: End Transaction
+ds-cfg-java-class: org.opends.server.extensions.EndTransactionExtendedOperation
 ds-cfg-enabled: true
 
 dn: cn=Group Implementations,cn=config
