@@ -20,7 +20,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.openidentityplatform.opendj</groupId>
-        <version>4.9.4-SNAPSHOT</version>
+        <version>4.9.5-SNAPSHOT</version>
     </parent>
 
     <artifactId>opendj-grizzly</artifactId>
@@ -49,6 +49,10 @@
             <exclusions>
 	            	<exclusion>
 	            		<groupId>io.reactivex.rxjava2</groupId>
+	            		<artifactId>rxjava</artifactId>
+	            	</exclusion>
+	            	<exclusion>
+	            		<groupId>io.reactivex.rxjava3</groupId>
 	            		<artifactId>rxjava</artifactId>
 	            	</exclusion>
             </exclusions>

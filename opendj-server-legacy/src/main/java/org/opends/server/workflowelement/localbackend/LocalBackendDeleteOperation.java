@@ -13,7 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2022-2024 3A Systems, LLC.
+ * Portions Copyright 2022-2025 3A Systems, LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -23,6 +23,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.controls.TransactionSpecificationRequestControl;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.ClientConnection;
@@ -35,6 +36,7 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DeleteOperationWrapper;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
 import org.forgerock.opendj.ldap.DN;
@@ -43,10 +45,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SynchronizationProviderResult;
-import org.opends.server.types.operation.PostOperationDeleteOperation;
-import org.opends.server.types.operation.PostResponseDeleteOperation;
-import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
-import org.opends.server.types.operation.PreOperationDeleteOperation;
+import org.opends.server.types.operation.*;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
@@ -63,7 +62,7 @@ public class LocalBackendDeleteOperation
        extends DeleteOperationWrapper
        implements PreOperationDeleteOperation, PostOperationDeleteOperation,
                   PostResponseDeleteOperation,
-                  PostSynchronizationDeleteOperation
+                  PostSynchronizationDeleteOperation, RollbackOperation
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -299,6 +298,9 @@ public class LocalBackendDeleteOperation
           return;
         }
         backend.deleteEntry(entryDN, this);
+        if (trx!=null) {
+          trx.success(this);
+        }
       }
 
       LocalBackendWorkflowElement.addPreReadResponse(this, preReadRequest, entry);
@@ -416,6 +418,10 @@ public class LocalBackendDeleteOperation
       {
         continue;
       }
+      else if (TransactionSpecificationRequestControl.OID.equals(oid))
+      {
+        trx=getClientConnection().getTransaction(((LDAPControl)c).getValue().toString());
+      }
       else if (c.isCritical() && !backend.supportsControl(oid))
       {
         throw newDirectoryException(entry, ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
@@ -423,6 +429,7 @@ public class LocalBackendDeleteOperation
       }
     }
   }
+  ClientConnection.Transaction trx=null;
 
   /**
    * Handle conflict resolution.
@@ -487,5 +494,10 @@ public class LocalBackendDeleteOperation
           }
       }
       return true;
+  }
+
+  @Override
+  public void rollback() throws CanceledOperationException, DirectoryException {
+    backend.addEntry(entry,null);
   }
 }

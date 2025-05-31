@@ -13,7 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions copyright 2024 3A Systems,LLC.
+ * Portions copyright 2024-2025 3A Systems,LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -29,6 +29,7 @@ import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.controls.TransactionSpecificationRequestControl;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.LocalBackend;
@@ -43,6 +44,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationWrapper;
 import org.opends.server.core.PersistentSearch;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.CanceledOperationException;
@@ -54,10 +56,7 @@ import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.Modification;
 import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.operation.PostOperationModifyDNOperation;
-import org.opends.server.types.operation.PostResponseModifyDNOperation;
-import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
-import org.opends.server.types.operation.PreOperationModifyDNOperation;
+import org.opends.server.types.operation.*;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
@@ -75,7 +74,7 @@ public class LocalBackendModifyDNOperation
   implements PreOperationModifyDNOperation,
              PostOperationModifyDNOperation,
              PostResponseModifyDNOperation,
-             PostSynchronizationModifyDNOperation
+             PostSynchronizationModifyDNOperation, RollbackOperation
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -439,6 +438,9 @@ public class LocalBackendModifyDNOperation
           return;
         }
         currentBackend.renameEntry(entryDN, newEntry, this);
+        if (trx!=null) {
+          trx.success(this);
+        }
       }
 
       // Attach the pre-read and/or post-read controls to the response if
@@ -576,6 +578,10 @@ public class LocalBackendModifyDNOperation
       {
         continue;
       }
+      else if (TransactionSpecificationRequestControl.OID.equals(oid))
+      {
+        trx=getClientConnection().getTransaction(((LDAPControl)c).getValue().toString());
+      }
       else if (c.isCritical() && !backend.supportsControl(oid))
       {
         throw new DirectoryException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
@@ -583,6 +589,7 @@ public class LocalBackendModifyDNOperation
       }
     }
   }
+  ClientConnection.Transaction trx=null;
 
   private AccessControlHandler<?> getAccessControlHandler()
   {
@@ -815,5 +822,10 @@ public class LocalBackendModifyDNOperation
               return;
           }
       }
+  }
+
+  @Override
+  public void rollback() throws CanceledOperationException, DirectoryException {
+     backend.renameEntry(newEntry.getName(), currentEntry, this);
   }
 }

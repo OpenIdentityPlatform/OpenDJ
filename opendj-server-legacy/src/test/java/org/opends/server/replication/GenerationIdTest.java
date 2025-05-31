@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2023-2024 3A Systems, LLC.
+ * Portions Copyright 2023-2025 3A Systems, LLC.
  */
 package org.opends.server.replication;
 
@@ -334,7 +334,7 @@ public class GenerationIdTest extends ReplicationTestCase
     String rsDir = "generationIdTest" + replServerId + testCase + "Db";
     ReplicationServer replicationServer = new ReplicationServer(
         new ReplServerFakeConfiguration(rsPort, rsDir, 0, replServerId, 0, 1000, servers));
-    Thread.sleep(2000);
+    Thread.sleep(3000);
     return replicationServer;
   }
 

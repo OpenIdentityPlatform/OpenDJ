@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
 	<groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-	<version>4.9.4-SNAPSHOT</version>
+	  <version>4.9.5-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OpenDJ Directory Services Project</name>
@@ -331,7 +331,7 @@
 		      	<dependency>
 			        <groupId>com.google.guava</groupId>
 			        <artifactId>guava</artifactId>
-			        <version>33.4.6-jre</version>
+			        <version>33.4.8-jre</version>
 			     </dependency>
 		      </dependencies>
 		    </plugin>
@@ -395,7 +395,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.5.2</version>
+                    <version>3.5.3</version>
                 </plugin>
 
                 <plugin>
@@ -422,7 +422,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.5.2</version> <!-- M6 DecodeException but got java.nio.BufferOverflowException -->
+                    <version>3.5.3</version> <!-- M6 DecodeException but got java.nio.BufferOverflowException -->
                     <configuration>
 						<properties>
                             <property>
