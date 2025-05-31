@@ -37,7 +37,7 @@
         <localized.jars.classifier>i18n</localized.jars.classifier>
         <commons.version>2.2.5-SNAPSHOT</commons.version>
         <freemarker.version>2.3.34</freemarker.version>
-        <grizzly-framework.version>2.4.1</grizzly-framework.version>
+        <grizzly-framework.version>2.4.4</grizzly-framework.version>
         <metrics-core.version>4.2.30</metrics-core.version>
         <maven.compiler.target>8</maven.compiler.target>
         <maven.compiler.source>8</maven.compiler.source>
