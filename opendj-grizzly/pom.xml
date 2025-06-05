@@ -66,7 +66,6 @@
         <dependency>
             <groupId>org.glassfish.grizzly</groupId>
             <artifactId>grizzly-framework</artifactId>
-            <version>${grizzly-framework.version}</version>
         </dependency>
 
         <dependency>
