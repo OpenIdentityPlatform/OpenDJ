@@ -86,7 +86,7 @@ import com.forgerock.reactive.ReactiveHandler;
 import com.forgerock.reactive.Stream;
 
 import io.reactivex.rxjava3.exceptions.OnErrorNotImplementedException;
-import io.reactivex.rxjava3.internal.util.BackpressureHelper;
+import org.openidentityplatform.rxjava3.internal.util.BackpressureHelper;
 
 /**
  * Grizzly filter implementation for decoding LDAP requests and handling server side logic for SSL and SASL operations
