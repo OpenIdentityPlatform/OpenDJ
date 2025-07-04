@@ -180,6 +180,7 @@
                             org.forgerock.opendj.ldif,
                             com.forgerock.reactive
                         </Export-Package>
+                        <Import-Package>!org.bouncycastle.jcajce.provider</Import-Package>
                         <Build-Maven>Apache Maven ${maven.version}</Build-Maven>
                         <SCM-Revision>${buildRevision}</SCM-Revision>
                         <SCM-Branch>${scmBranch}</SCM-Branch>
