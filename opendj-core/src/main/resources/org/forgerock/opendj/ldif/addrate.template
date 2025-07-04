@@ -2,6 +2,8 @@ define suffix=dc=example,dc=com
 define maildomain=example.com
 
 branch: [suffix]
+objectClass: top
+objectClass: domain
 
 branch: ou=People,[suffix]
 subordinateTemplate: person
