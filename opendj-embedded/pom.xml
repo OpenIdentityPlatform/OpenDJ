@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-parent</artifactId>
-        <version>4.9.5-SNAPSHOT</version>
+        <version>4.10.1-SNAPSHOT</version>
     </parent>
     <name>OpenDJ Embedded Server</name>
     <artifactId>opendj-embedded</artifactId>
@@ -38,7 +38,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>1.5.13</version>
+            <version>1.5.18</version>
             <exclusions>
                 <exclusion>
                     <artifactId>slf4j-api</artifactId>
@@ -49,7 +49,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.5.13</version>
+            <version>1.5.18</version>
             <exclusions>
                 <exclusion>
                     <artifactId>slf4j-api</artifactId>

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems, LLC.
  */
 package org.opends.server.api;
 
@@ -20,11 +21,8 @@ import java.net.InetAddress;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -53,6 +51,7 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.operation.RollbackOperation;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.CoreMessages.*;
@@ -1575,5 +1574,48 @@ public abstract class ClientConnection
   public boolean isInnerConnection()
   {
     return getConnectionID() < 0;
+  }
+
+  public class Transaction {
+      final String transactionId=UUID.randomUUID().toString().toLowerCase();
+
+      public Transaction() {
+          transactions.put(getTransactionId(),this);
+      }
+
+      public String getTransactionId() {
+          return transactionId;
+      }
+
+      final Queue<Operation> waiting=new LinkedList<>();
+      public void add(Operation operation) {
+          waiting.add(operation);
+      }
+
+      public Queue<Operation> getWaiting() {
+          return waiting;
+      }
+
+      public void clear() {
+          transactions.remove(getTransactionId());
+      }
+      final Deque<RollbackOperation> completed =new ArrayDeque<>();
+      public void success(RollbackOperation operation) {
+          completed.add(operation);
+      }
+
+      public Deque<RollbackOperation> getCompleted() {
+          return completed;
+      }
+  }
+
+  Map<String,Transaction> transactions=new ConcurrentHashMap<>();
+
+  public Transaction startTransaction() {
+      return new Transaction();
+  }
+
+  public Transaction getTransaction(String id) {
+      return transactions.get(id);
   }
 }

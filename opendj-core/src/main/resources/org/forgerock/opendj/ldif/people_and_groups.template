@@ -5,6 +5,8 @@ define numous=10
 define numgroup=5
 
 branch: [suffix]
+objectClass: top
+objectClass: domain
 subordinateTemplate: ous:[numous]
 
 template: ous

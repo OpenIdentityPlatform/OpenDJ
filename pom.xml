@@ -13,13 +13,13 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2011-2016 ForgeRock AS.
-  Portions  Copyright 2017-2024 3A Systems, LLC.
+  Portions  Copyright 2017-2025 3A Systems, LLC.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 	<groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-	<version>4.9.5-SNAPSHOT</version>
+	  <version>4.10.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OpenDJ Directory Services Project</name>
@@ -35,10 +35,9 @@
         <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <localized.jars.classifier>i18n</localized.jars.classifier>
-        <commons.version>2.2.5-SNAPSHOT</commons.version>
-        <freemarker.version>2.3.31</freemarker.version>
-        <grizzly-framework.version>2.3.35</grizzly-framework.version>
-        <metrics-core.version>3.1.2</metrics-core.version>
+        <commons.version>2.4.0</commons.version>
+        <freemarker.version>2.3.34</freemarker.version>
+        <metrics-core.version>4.2.30</metrics-core.version>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <!-- OSGi bundles properties -->
@@ -119,36 +118,28 @@
       	<tag>HEAD</tag>
   	</scm>
 	<repositories>
-		<repository>
-			<id>ossrh-snapshots</id>
-			<name>Sonatype OSS Repository</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-			<snapshots><enabled>true</enabled></snapshots>
-		</repository>
-	</repositories>
+	        <repository>
+	            <name>Central Portal Snapshots</name>
+	            <id>central-portal-snapshots</id>
+	            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+	            <releases>
+	                <enabled>false</enabled>
+	            </releases>
+	            <snapshots>
+	                <enabled>true</enabled>
+	            </snapshots>
+	        </repository>
+	    </repositories>
 	<pluginRepositories>
 		<pluginRepository>
-			<id>ossrh-snapshots</id>
-			<name>Sonatype OSS Repository</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+			<name>Central Portal Snapshots</name>
+	            <id>central-portal-snapshots</id>
+	            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
-	<distributionManagement>
-		<repository>
-			<id>ossrh</id>
-			<name>Sonatype OSS Repository</name>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-		</repository>
-		<snapshotRepository>
-			<id>ossrh</id>
-			<name>Sonatype OSS Repository</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
-
     <dependencyManagement>
         <dependencies>
         	<dependency>
@@ -315,26 +306,16 @@
 			  </configuration>
 			</plugin>
 			<plugin>
-		      <groupId>org.sonatype.plugins</groupId>
-		      <artifactId>nexus-staging-maven-plugin</artifactId>
-		      <version>1.6.13</version>
-		      <extensions>true</extensions>
-		      <configuration>
-		        <serverId>ossrh</serverId>
-		        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-		        <autoReleaseAfterClose>false</autoReleaseAfterClose>
-		        <stagingProgressTimeoutMinutes>15</stagingProgressTimeoutMinutes>
-		        <keepStagingRepositoryOnFailure>true</keepStagingRepositoryOnFailure>
-		        <keepStagingRepositoryOnCloseRuleFailure>true</keepStagingRepositoryOnCloseRuleFailure>
-		      </configuration>
-		      <dependencies>
-		      	<dependency>
-			        <groupId>com.google.guava</groupId>
-			        <artifactId>guava</artifactId>
-			        <version>15.0</version>
-			     </dependency>
-		      </dependencies>
-		    </plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<version>0.8.0</version>
+				<extensions>true</extensions>
+				<configuration>
+				    <publishingServerId>ossrh</publishingServerId>
+				    <autoPublish>true</autoPublish>
+				    <waitMaxTime>5400</waitMaxTime>
+				</configuration>
+			    </plugin>
         </plugins>
 
         <pluginManagement>
@@ -348,7 +329,7 @@
                     <inherited>true</inherited>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.13.0</version>
+                    <version>3.14.0</version>
                     <configuration>
                         <fork>true</fork>
                         <compilerArgs>
@@ -364,83 +345,69 @@
 				<plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.6.0</version>
+                    <version>3.7.1</version>
                 </plugin>
-                
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
 			        <artifactId>maven-release-plugin</artifactId>
-			        <version>3.0.0-M7</version>
+			        <version>3.1.1</version>
 			        <configuration>
  			        	<signTag>true</signTag>
  			        	<tagNameFormat>@{project.version}</tagNameFormat>
  			        	<allowTimestampedSnapshots>false</allowTimestampedSnapshots>
  			        </configuration>
                 </plugin>
-                
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.4.2</version>
                 </plugin>
-                
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-war-plugin</artifactId>
-                    <version>3.2.3</version>
+                    <version>3.4.0</version>
                 </plugin>
-                
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <version>3.2.1</version>
+                    <version>3.6.0</version>
                 </plugin>
-                
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.2.5</version>
+                    <version>3.5.3</version>
                 </plugin>
-                
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
                     <version>3.3.1</version>
                 </plugin>
-                
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.4.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.6.0</version>
+                    <version>3.8.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.10.1</version>
+                    <version>3.11.2</version>
                 </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>3.2.0</version>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>jar</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.2.5</version> <!-- M6 DecodeException but got java.nio.BufferOverflowException -->
+                    <version>3.5.3</version> <!-- M6 DecodeException but got java.nio.BufferOverflowException -->
                     <configuration>
 						<properties>
                             <property>
@@ -464,7 +431,7 @@
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>5.1.1</version>
+                    <version>5.1.9</version>
                     <extensions>true</extensions>
                     <configuration>
                         <instructions>
@@ -488,6 +455,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
+                    <version>3.21.0</version>
                     <configuration>
                         <locales>en</locales>
                     </configuration>
@@ -514,7 +482,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.6.0</version>
+                    <version>3.15.1</version>
                     <configuration>
                         <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
                     </configuration>
@@ -611,7 +579,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.6.0</version>
                     <executions>
                         <!-- Parse version to generate properties (major.version, minor.version, ...) -->
                         <execution>
@@ -627,7 +595,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>buildnumber-maven-plugin</artifactId>
-                    <version>1.4</version>
+                    <version>3.2.1</version>
                     <executions>
                         <execution>
                             <id>generate-buildnumber</id>
@@ -735,7 +703,7 @@
 	                <plugin>
 				      <groupId>org.apache.maven.plugins</groupId>
 				      <artifactId>maven-gpg-plugin</artifactId>
-				      <version>1.6</version>
+				      <version>3.2.7</version>
 				      <configuration>
                       	<passphrase>${gpg.passphrase}</passphrase>
                         <useAgent>true</useAgent>
@@ -783,7 +751,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>2.4</version>
+                <version>3.9.0</version>
                 <reportSets>
                     <reportSet>
                         <reports>
