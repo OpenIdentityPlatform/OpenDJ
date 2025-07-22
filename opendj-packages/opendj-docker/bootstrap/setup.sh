@@ -41,18 +41,12 @@ echo "creating backend: $BACKEND_TYPE db-directory: ${BACKEND_DB_DIRECTORY}"
   --set enabled:true --no-prompt --trustAll
 
 if [ "$ADD_BASE_ENTRY" = "--addBaseEntry" ]; then
-
-  DC=$(echo "$BASE_DN" | awk -F',|=' '{print $2}')
-
-  /opt/opendj/bin/ldapmodify --hostname localhost \
-    --port 1636 --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD" \
-    --useSsl --trustAll <<EOF
-dn: $BASE_DN
-dc: $DC
-objectClass: domain
-objectClass: top
-EOF
-
+  echo "creating base entry..."
+  BASE_TEMPLATE=$(mktemp)
+  echo "branch: $BASE_DN" > $BASE_TEMPLATE
+  /opt/opendj/bin/import-ldif --templateFile $BASE_TEMPLATE \
+    --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD"
+  rm $BASE_TEMPLATE
 fi
 
 
