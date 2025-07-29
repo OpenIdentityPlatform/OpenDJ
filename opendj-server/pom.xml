@@ -26,7 +26,7 @@
   <description>
     OpenDJ LDAP embedded directory server.
   </description>
-  <packaging>jar</packaging>
+  <packaging>bundle</packaging>
   <properties>
     <!-- Product information properties -->
     <patchFixIds />
@@ -124,6 +124,10 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
