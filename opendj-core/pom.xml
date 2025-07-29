@@ -68,8 +68,8 @@
         </dependency>
 
         <dependency>
-          <groupId>com.github.stephenc.jcip</groupId>
-          <artifactId>jcip-annotations</artifactId>
+            <groupId>com.io7m.jcip</groupId>
+            <artifactId>com.io7m.jcip.annotations</artifactId>
         </dependency>
 
         <dependency>
