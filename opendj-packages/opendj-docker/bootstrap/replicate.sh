@@ -40,12 +40,12 @@ if [ "$OPENDJ_REPLICATION_TYPE" == "simple" ]; then
     --host2 $MYHOSTNAME --port2 4444 --bindDN2 "$ROOT_USER_DN" \
     --bindPassword2 "$ROOT_PASSWORD" --replicationPort2 8989 \
     --adminUID admin --adminPassword "$ROOT_PASSWORD" \
-    --baseDN $BASE_DN -X -n
+    --baseDN "$BASE_DN" -X -n
 
   echo "initializing replication"
 
   # replicating data in MASTER_SERVER to MYHOSTNAME:
-  /opt/opendj/bin/dsreplication initialize --baseDN $BASE_DN \
+  /opt/opendj/bin/dsreplication initialize --baseDN "$BASE_DN" \
     --adminUID admin --adminPassword "$ROOT_PASSWORD" \
     --hostSource $MASTER_SERVER --portSource 4444 \
     --hostDestination $MYHOSTNAME --portDestination 4444 -X -n
@@ -55,7 +55,7 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "srs" ]; then
   dsreplication enable \
     --adminUID admin \
     --adminPassword "$ROOT_PASSWORD" \
-    --baseDN $BASE_DN \
+    --baseDN "$BASE_DN" \
     --host1 $MYHOSTNAME \
     --port1 4444 \
     --bindDN1 "$ROOT_USER_DN" \
@@ -76,7 +76,7 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "srs" ]; then
     initialize-all \
     --adminUID admin \
     --adminPassword "$ROOT_PASSWORD" \
-    --baseDN $BASE_DN \
+    --baseDN "$BASE_DN" \
     --hostname $MYHOSTNAME \
     --port 4444 \
     --trustAll \
@@ -88,7 +88,7 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "sdsr" ]; then
     enable \
     --adminUID admin \
     --adminPassword "$ROOT_PASSWORD" \
-    --baseDN $BASE_DN \
+    --baseDN "$BASE_DN" \
     --host1 $MASTER_SERVER \
     --port1 4444 \
     --bindDN1 "$ROOT_USER_DN" \
@@ -107,7 +107,7 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "sdsr" ]; then
     initialize \
     --adminUID admin \
     --adminPassword "$ROOT_PASSWORD" \
-    --baseDN $BASE_DN \
+    --baseDN "$BASE_DN" \
     --hostSource $MASTER_SERVER \
     --portSource 4444 \
     --hostDestination $MYHOSTNAME \
@@ -125,7 +125,7 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "rg" ]; then
     --bindDN "$ROOT_USER_DN" \
     --bindPassword "$ROOT_PASSWORD" \
     --provider-name "Multimaster Synchronization" \
-    --domain-name $BASE_DN \
+    --domain-name "$BASE_DN" \
     --set group-id:$OPENDJ_REPLICATION_GROUP_ID \
     --trustAll \
     --no-prompt
