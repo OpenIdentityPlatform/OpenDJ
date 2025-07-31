@@ -27,8 +27,6 @@
     <packaging>pom</packaging>
     <name>OpenDJ SVR4 Standard Package</name>
 
-    <packaging>pom</packaging>
-
     <description>
         This module generates a standard SVR4 OpenDJ version.
     </description>
