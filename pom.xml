@@ -57,6 +57,7 @@
         <checkstyleVersion>5.5</checkstyleVersion>
         <ant.contrib.version>1.0b3</ant.contrib.version>
         <argLine>-Xmx512m</argLine>
+        <maven.cargo.containerId>tomcat10x</maven.cargo.containerId>
 
         <docHomepageUrl>https://doc.openidentityplatform.org/opendj/</docHomepageUrl>
         <docWikiUrl>https://github.com/OpenIdentityPlatform/OpenDJ/wiki</docWikiUrl>
@@ -656,6 +657,12 @@
                         </lifecycleMappingMetadata>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.codehaus.cargo</groupId>
+                    <artifactId>cargo-maven3-plugin</artifactId>
+                    <version>1.10.20</version>
+                    <extensions>true</extensions>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
@@ -675,12 +682,13 @@
             </modules>
         </profile>
 		<profile>
-	      <id>jdk16.options</id>
+	      <id>jdk17.options</id>
 	      <activation>
-	        <jdk>[16,)</jdk>
+	        <jdk>[17,)</jdk>
 	      </activation>
 	      <properties>
-	        <argLine>-Xmx512m --add-exports java.base/sun.security.x509=ALL-UNNAMED --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED  --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util.regex=ALL-UNNAMED --add-opens java.base/java.security=ALL-UNNAMED --add-opens java.naming/javax.naming.spi=ALL-UNNAMED</argLine>
+              <argLine>-Xmx512m --add-exports java.base/sun.security.x509=ALL-UNNAMED --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED  --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util.regex=ALL-UNNAMED --add-opens java.base/java.security=ALL-UNNAMED --add-opens java.naming/javax.naming.spi=ALL-UNNAMED</argLine>
+              <maven.cargo.containerId>tomcat11x</maven.cargo.containerId>
 	      </properties>
 	    </profile>
 		<profile>

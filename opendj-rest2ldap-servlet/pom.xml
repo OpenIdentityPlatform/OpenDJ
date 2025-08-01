@@ -101,7 +101,6 @@
       <plugin>
 	      <groupId>org.codehaus.cargo</groupId>
           <artifactId>cargo-maven3-plugin</artifactId>
-          <version>1.10.9</version>
           <extensions>true</extensions>
 		  <executions>
 			    <execution>
@@ -121,7 +120,7 @@
 			</executions>
             <configuration>
                 <container>
-                    <containerId>tomcat10x</containerId>
+                    <containerId>${maven.cargo.containerId}</containerId>
                     <type>embedded</type>
                     <systemProperties>
                         <file.encoding>UTF-8</file.encoding>
