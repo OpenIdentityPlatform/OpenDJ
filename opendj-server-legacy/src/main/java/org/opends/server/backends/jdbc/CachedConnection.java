@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2024 3A Systems, LLC.
+ * Copyright 2024-2025 3A Systems, LLC.
  */
 package org.opends.server.backends.jdbc;
 
@@ -27,25 +27,25 @@ import java.util.concurrent.*;
 public class CachedConnection implements Connection {
     final Connection parent;
 
-    static LoadingCache<String, BlockingQueue<Connection>> cached= CacheBuilder.newBuilder()
+    static LoadingCache<String, BlockingQueue<CachedConnection>> cached= CacheBuilder.newBuilder()
             .expireAfterAccess(Long.parseLong(System.getProperty("org.openidentityplatform.opendj.jdbc.ttl","15000")), TimeUnit.MILLISECONDS)
-            .removalListener(new RemovalListener<String, BlockingQueue<Connection>>() {
+            .removalListener(new RemovalListener<String, BlockingQueue<CachedConnection>>() {
                 @Override
-                public void onRemoval(RemovalNotification<String, BlockingQueue<Connection>> notification) {
+                public void onRemoval(RemovalNotification<String, BlockingQueue<CachedConnection>> notification) {
                     assert notification.getValue() != null;
-                    for (Connection con: notification.getValue()) {
+                    for (CachedConnection con: notification.getValue()) {
                             try {
                                 if (!con.isClosed()) {
-                                    con.close();
+                                    con.parent.close();
                                 }
                             } catch (SQLException e) {
                             }
                         }
                 }
             })
-            .build(new CacheLoader<String, BlockingQueue<Connection>>() {
+            .build(new CacheLoader<String, BlockingQueue<CachedConnection>>() {
                 @Override
-                public BlockingQueue<Connection> load(String connectionString) throws Exception {
+                public BlockingQueue<CachedConnection> load(String connectionString) throws Exception {
                     return new LinkedBlockingQueue<>();
                 }
             });
@@ -61,11 +61,11 @@ public class CachedConnection implements Connection {
     }
 
     static Connection getConnection(String connectionString, final int waitTime) throws Exception {
-        Connection con=cached.get(connectionString).poll(waitTime,TimeUnit.MILLISECONDS);
+        CachedConnection con=cached.get(connectionString).poll(waitTime,TimeUnit.MILLISECONDS);
         while(con!=null) {
             if (!con.isValid(0)) {
                 try {
-                    con.close();
+                    con.parent.close();
                 } catch (SQLException e) {
                     con=null;
                 }
@@ -75,10 +75,10 @@ public class CachedConnection implements Connection {
             }
         }
         try {
-            con = DriverManager.getConnection(connectionString);
-            con.setAutoCommit(false);
-            con.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
-            return new CachedConnection(connectionString, con);
+            final Connection conNew= DriverManager.getConnection(connectionString);
+            conNew.setAutoCommit(false);
+            conNew.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
+            return new CachedConnection(connectionString, conNew);
         }catch (SQLException e) { //max_connection server error: try recursion for reuse connection
             return getConnection(connectionString,(waitTime==0)?1:waitTime*2);
         }
