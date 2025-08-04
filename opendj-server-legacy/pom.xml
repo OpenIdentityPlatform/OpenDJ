@@ -828,6 +828,7 @@
               <includes>
                 <include>**/org/slf4j/**</include>
                 <include>**/org/opends/server/loggers/slf4j/**</include>
+                <include>**/META-INF/services/org.slf4j.spi.SLF4JServiceProvider</include>
               </includes>
               <archive>
                 <index>false</index>
