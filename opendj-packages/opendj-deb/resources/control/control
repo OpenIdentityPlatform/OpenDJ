@@ -3,7 +3,7 @@ Version: [[parsedVersion.majorVersion]].[[parsedVersion.minorVersion]].[[parsedV
 Section: misc
 Priority: optional
 Architecture: all
-Depends: default-jre-headless | default-jre | java6-runtime | java7-runtime
+Depends: default-jre-headless | default-jre | java11-runtime | java17-runtime | java21-runtime
 Homepage: [[deb.doc.homepage.url]]
 Maintainer: [[deb.maintainer]]
 Description: [[deb.product.name]]
