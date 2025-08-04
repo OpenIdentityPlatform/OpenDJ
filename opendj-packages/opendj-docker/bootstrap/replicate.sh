@@ -36,17 +36,17 @@ if [ "$OPENDJ_REPLICATION_TYPE" == "simple" ]; then
     --host1 $MASTER_SERVER \
     --port1 4444 \
     --bindDN1 "$ROOT_USER_DN" \
-    --bindPassword1 $ROOT_PASSWORD --replicationPort1 8989 \
+    --bindPassword1 "$ROOT_PASSWORD" --replicationPort1 8989 \
     --host2 $MYHOSTNAME --port2 4444 --bindDN2 "$ROOT_USER_DN" \
-    --bindPassword2 $ROOT_PASSWORD --replicationPort2 8989 \
-    --adminUID admin --adminPassword $ROOT_PASSWORD \
-    --baseDN $BASE_DN -X -n
+    --bindPassword2 "$ROOT_PASSWORD" --replicationPort2 8989 \
+    --adminUID admin --adminPassword "$ROOT_PASSWORD" \
+    --baseDN "$BASE_DN" -X -n
 
   echo "initializing replication"
 
   # replicating data in MASTER_SERVER to MYHOSTNAME:
-  /opt/opendj/bin/dsreplication initialize --baseDN $BASE_DN \
-    --adminUID admin --adminPassword $ROOT_PASSWORD \
+  /opt/opendj/bin/dsreplication initialize --baseDN "$BASE_DN" \
+    --adminUID admin --adminPassword "$ROOT_PASSWORD" \
     --hostSource $MASTER_SERVER --portSource 4444 \
     --hostDestination $MYHOSTNAME --portDestination 4444 -X -n
 
@@ -54,17 +54,17 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "srs" ]; then
   echo "Enabling Standalone Replication Servers..."
   dsreplication enable \
     --adminUID admin \
-    --adminPassword $ROOT_PASSWORD \
-    --baseDN $BASE_DN \
+    --adminPassword "$ROOT_PASSWORD" \
+    --baseDN "$BASE_DN" \
     --host1 $MYHOSTNAME \
     --port1 4444 \
     --bindDN1 "$ROOT_USER_DN" \
-    --bindPassword1 $ROOT_PASSWORD \
+    --bindPassword1 "$ROOT_PASSWORD" \
     --noReplicationServer1 \
     --host2 $MASTER_SERVER \
     --port2 4444 \
     --bindDN2 "$ROOT_USER_DN" \
-    --bindPassword2 $ROOT_PASSWORD \
+    --bindPassword2 "$ROOT_PASSWORD" \
     --replicationPort2 8989 \
     --onlyReplicationServer2 \
     --trustAll \
@@ -75,8 +75,8 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "srs" ]; then
   dsreplication \
     initialize-all \
     --adminUID admin \
-    --adminPassword $ROOT_PASSWORD \
-    --baseDN $BASE_DN \
+    --adminPassword "$ROOT_PASSWORD" \
+    --baseDN "$BASE_DN" \
     --hostname $MYHOSTNAME \
     --port 4444 \
     --trustAll \
@@ -87,16 +87,16 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "sdsr" ]; then
   dsreplication \
     enable \
     --adminUID admin \
-    --adminPassword $ROOT_PASSWORD \
-    --baseDN $BASE_DN \
+    --adminPassword "$ROOT_PASSWORD" \
+    --baseDN "$BASE_DN" \
     --host1 $MASTER_SERVER \
     --port1 4444 \
     --bindDN1 "$ROOT_USER_DN" \
-    --bindPassword1 $ROOT_PASSWORD \
+    --bindPassword1 "$ROOT_PASSWORD" \
     --host2 $MYHOSTNAME \
     --port2 4444 \
     --bindDN2 "$ROOT_USER_DN" \
-    --bindPassword2 $ROOT_PASSWORD \
+    --bindPassword2 "$ROOT_PASSWORD" \
     --noReplicationServer2 \
     --trustAll \
     --no-prompt
@@ -106,8 +106,8 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "sdsr" ]; then
   dsreplication \
     initialize \
     --adminUID admin \
-    --adminPassword $ROOT_PASSWORD \
-    --baseDN $BASE_DN \
+    --adminPassword "$ROOT_PASSWORD" \
+    --baseDN "$BASE_DN" \
     --hostSource $MASTER_SERVER \
     --portSource 4444 \
     --hostDestination $MYHOSTNAME \
@@ -123,9 +123,9 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "rg" ]; then
     --port 4444 \
     --hostname $MYHOSTNAME \
     --bindDN "$ROOT_USER_DN" \
-    --bindPassword $ROOT_PASSWORD \
+    --bindPassword "$ROOT_PASSWORD" \
     --provider-name "Multimaster Synchronization" \
-    --domain-name $BASE_DN \
+    --domain-name "$BASE_DN" \
     --set group-id:$OPENDJ_REPLICATION_GROUP_ID \
     --trustAll \
     --no-prompt
@@ -135,7 +135,7 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "rg" ]; then
     --port 4444 \
     --hostname $MASTER_SERVER \
     --bindDN "$ROOT_USER_DN" \
-    --bindPassword $ROOT_PASSWORD \
+    --bindPassword "$ROOT_PASSWORD" \
     --provider-name "Multimaster Synchronization" \
     --set group-id:$OPENDJ_REPLICATION_GROUP_ID \
     --trustAll \

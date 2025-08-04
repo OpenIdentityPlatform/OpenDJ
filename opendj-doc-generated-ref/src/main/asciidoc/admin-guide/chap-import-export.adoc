@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2025 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -348,6 +348,26 @@ enabled           : true
 index-entry-limit : 4000
 writability-mode  : enabled
 ----
+
+If you want to add a base entry, create a template file with the base DN, for example `base.template`:
+[source]
+----
+branch: dc=example,dc=com
+----
+
+And then use the `import-ldif` tool to import a template file as shown in the following example:
+
+[source, console]
+----
+$ /opt/opendj/bin/import-ldif \
+ --templateFile base.template \
+ --backendID myData \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+----
+
+For details see xref:../reference/admin-tools-ref.adoc#import-ldif-1[import-ldif(1)] in the __Reference__.
+
 Alternatively, you can create a new backend in OpenDJ control panel (Directory Data > New Base DN > Backend > New Backend: __backend-name__).
 When you create a new backend using the `dsconfig` command, OpenDJ directory server creates the following indexes automatically:
 [none]

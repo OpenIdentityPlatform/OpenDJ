@@ -2,12 +2,12 @@ name: Package/Deploy
 
 on:
   workflow_run:
-    branches: [ master ]
-    workflows: ["Build"]
+    branches: [ 'master','release/5.0.0-SNAPSHOT' ]
+    workflows: ["Build","Release"]
     types: [completed]
 jobs:
   package-deploy-maven:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event=='push'}}
     runs-on: 'ubuntu-latest'
     steps:
       - name: Print github context
@@ -31,6 +31,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
+          ref: ${{ github.event.workflow_run.head_branch }}
       - name: Set up Java for publishing to Maven Central Repository OSS
         uses: actions/setup-java@v4
         with:
