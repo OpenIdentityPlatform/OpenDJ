@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems, LLC
  */
 package org.opends.server.backends.pluggable;
 
@@ -953,7 +954,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
           .getCoreConfigManager().getServerErrorResultCode(), ((LocalizableException) e).getMessageObject());
     }
     return new DirectoryException(serverContext
-        .getCoreConfigManager().getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()), e);
+        .getCoreConfigManager().getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()==null?e.toString():e.getMessage()), e);
   }
 
   private RootContainer newRootContainer(AccessMode accessMode)

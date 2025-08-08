@@ -13,7 +13,7 @@
  *
  * Portions Copyright 2014 The Apache Software Foundation
  * Copyright 2015-2016 ForgeRock AS.
- * Portions Copyright 2023-2024 3A Systems, LLC
+ * Portions Copyright 2023-2025 3A Systems, LLC
  */
 package org.opends.server.backends.pluggable;
 
@@ -1353,7 +1353,8 @@ final class OnDiskMergeImporter
     @Override
     public boolean update(TreeName treeName, ByteSequence key, UpdateFunction f)
     {
-      throw new UnsupportedOperationException();
+        put(treeName,key,f.computeNewValue(null));
+        return true;
     }
 
     @Override
