@@ -10,4 +10,4 @@
 
 ## Reporting a Vulnerability
 
-Please create issue  https://github.com/OpenIdentityPlatform/OpenDJ/issues/new?template=Bug_report.md
+Please draft [security advisory](https://github.com/OpenIdentityPlatform/OpenDJ/security/advisories/new)
