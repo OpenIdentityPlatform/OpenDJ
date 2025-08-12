@@ -31,7 +31,7 @@ both this file, and should also be included in all files in the project.
 * [OpenDJ Docker](https://hub.docker.com/r/openidentityplatform/opendj/) (All OS) 
   * [OpenDJ OpenShift](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-packages/opendj-openshift-template)
 
-Java 1.8+ required
+Java 11 or later required
 
 ## How-to build
 For windows use:

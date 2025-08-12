@@ -997,7 +997,7 @@ Log levels are defined in link:https://docs.oracle.com/javase/7/docs/api/java/ut
 By default, the log level is set to `INFO`, and the gateway logs HTTP request-related messages. To have the gateway log LDAP request-related messages, set the log level to `FINEST` in one of the following ways:
 +
 
-* If the REST to LDAP gateway runs in Apache Tomcat, edit `WEB-INF/classes/logging.properties` to set `org.forgerock.opendj.rest2ldap.level = FINEST`. For details on Tomcat's implementation of the logging API, see link:https://tomcat.apache.org/tomcat-8.0-doc/logging.html#Java_logging_API_%E2%80%94_java.util.logging[Logging in Tomcat, window=\_blank].
+* If the REST to LDAP gateway runs in Apache Tomcat, edit `WEB-INF/classes/logging.properties` to set `org.forgerock.opendj.rest2ldap.level = FINEST`. For details on Tomcat's implementation of the logging API, see link:https://tomcat.apache.org/tomcat-10.1-doc/logging.html#Java_logging_API_%E2%80%94_java.util.logging[Logging in Tomcat, window=\_blank].
 +
 Messages are written to `CATALINA_BASE/logs/rest2ldap.yyyy-MM-dd.log`.
 
