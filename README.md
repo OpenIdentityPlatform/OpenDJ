@@ -83,7 +83,4 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 <a href="https://opencollective.com/OpenDJ/sponsor/0/website" target="_blank">
  <img src="https://opencollective.com/OpenDJ/sponsor/0/avatar.svg">
-</a> 
-<a href="https://opencollective.com/OpenDJ/sponsor/1/website" target="_blank">
-  <img src="https://opencollective.com/OpenDJ/sponsor/1/avatar.svg">
 </a>
