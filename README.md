@@ -67,5 +67,23 @@ bin/stop-ds
 Please, make [Pull request](https://github.com/OpenIdentityPlatform/OpenDJ/pulls)
 
 <a href="https://github.com/OpenIdentityPlatform/OpenDJ/graphs/contributors">
-  <img src="https://contributors-img.web.app/image?repo=OpenIdentityPlatform/OpenDJ" />
+  <!--img src="https://contributors-img.web.app/image?repo=OpenIdentityPlatform/OpenDJ" /-->
+  <img src="https://opencollective.com/OpenDJ/contributors.svg?width=890&button=false" />
+</a>
+
+## Backers
+Thank you to all our backers! 🙏 [Become a backer](https://opencollective.com/OpenDJ#backer)
+
+<a href="https://opencollective.com/OpenDJ#backers" target="_blank">
+ <img src="https://opencollective.com/OpenDJ/backers.svg?width=890">
+</a>
+
+## Sponsors
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [Become a sponsor](https://opencollective.com/OpenDJ#sponsor)
+
+<a href="https://opencollective.com/OpenDJ/sponsor/0/website" target="_blank">
+ <img src="https://opencollective.com/OpenDJ/sponsor/0/avatar.svg">
+</a> 
+<a href="https://opencollective.com/OpenDJ/sponsor/1/website" target="_blank">
+  <img src="https://opencollective.com/OpenDJ/sponsor/1/avatar.svg">
 </a>
