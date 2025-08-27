@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2011-2016 ForgeRock AS.
+  Portions Copyright 2025 3A Systems LLC.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -112,7 +113,7 @@
 
 
     <properties>
-        <bc.fips.version>2.1.0</bc.fips.version>
+        <bc.fips.version>2.1.1</bc.fips.version>
         <bctls.fips.version>2.1.20</bctls.fips.version>
 
         <opendj.osgi.import.additional>
