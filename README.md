@@ -66,21 +66,21 @@ bin/stop-ds
 ## Contributing
 Please, make [Pull request](https://github.com/OpenIdentityPlatform/OpenDJ/pulls)
 
-<a href="https://github.com/OpenIdentityPlatform/OpenDJ/graphs/contributors">
+<a href="https://opencollective.com/OpenDJ/tiers" target="_blank">
   <!--img src="https://contributors-img.web.app/image?repo=OpenIdentityPlatform/OpenDJ" /-->
-  <img src="https://opencollective.com/OpenDJ/contributors.svg?width=890&button=false" />
+  <img src="https://opencollective.com/OpenDJ/contributors.svg?width=890&button=true" />
 </a>
 
 ## Backers
-Thank you to all our backers! 🙏 [Become a backer](https://opencollective.com/OpenDJ#backer)
+Thank you to all our backers! [Become a backer 🙏](https://opencollective.com/OpenDJ/tiers)
 
-<a href="https://opencollective.com/OpenDJ#backers" target="_blank">
+<a href="https://opencollective.com/OpenDJ/tiers" target="_blank">
  <img src="https://opencollective.com/OpenDJ/backers.svg?width=890">
 </a>
 
 ## Sponsors
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [Become a sponsor](https://opencollective.com/OpenDJ#sponsor)
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [Become a sponsor ❤️](https://opencollective.com/OpenDJ/tiers)
 
-<a href="https://opencollective.com/OpenDJ/sponsor/0/website" target="_blank">
- <img src="https://opencollective.com/OpenDJ/sponsor/0/avatar.svg">
+<a href="https://opencollective.com/OpenDJ/tiers" target="_blank">
+ <img src="https://opencollective.com/OpenDJ/sponsors.svg?width=890">
 </a>
