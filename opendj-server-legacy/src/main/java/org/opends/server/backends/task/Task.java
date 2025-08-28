@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
