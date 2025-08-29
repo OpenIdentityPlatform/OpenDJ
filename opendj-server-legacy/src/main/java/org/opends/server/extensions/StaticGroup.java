@@ -549,44 +549,58 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     Reject.ifNull(nestedGroups);
 
     reloadIfNeeded();
-    lock.writeLock().lock();
-    try
+    for (Modification mod : modifications)
     {
-      for (Modification mod : modifications)
+      Attribute attribute = mod.getAttribute();
+      if (attribute.getAttributeDescription().getAttributeType().equals(memberAttributeType))
       {
-        Attribute attribute = mod.getAttribute();
-        if (attribute.getAttributeDescription().getAttributeType().equals(memberAttributeType))
+        switch (mod.getModificationType().asEnum())
         {
-          switch (mod.getModificationType().asEnum())
-          {
-            case ADD:
-              for (ByteString v : attribute)
-              {
-                DN member = DN.valueOf(v);
+          case ADD:
+            for (ByteString v : attribute)
+            {
+              DN member = DN.valueOf(v);
+              lock.writeLock().lock();
+              try {
                 memberDNs.add(new CompactDn(member));
                 if (DirectoryServer.getGroupManager().getGroupInstance(member) != null)
                 {
                   nestedGroups.add(member);
                 }
+              } finally {
+                lock.writeLock().unlock();
               }
-              break;
-            case DELETE:
-              if (attribute.isEmpty())
-              {
+            }
+            break;
+          case DELETE:
+            if (attribute.isEmpty())
+            {
+              lock.writeLock().lock();
+              try {
                 memberDNs.clear();
                 nestedGroups.clear();
+              } finally {
+                lock.writeLock().unlock();
               }
-              else
+            }
+            else
+            {
+              for (ByteString v : attribute)
               {
-                for (ByteString v : attribute)
-                {
-                  DN member = DN.valueOf(v);
+                DN member = DN.valueOf(v);
+                lock.writeLock().lock();
+                try {
                   memberDNs.remove(new CompactDn(member));
                   nestedGroups.remove(member);
+                } finally {
+                  lock.writeLock().unlock();
                 }
               }
-              break;
-            case REPLACE:
+            }
+            break;
+          case REPLACE:
+            lock.writeLock().lock();
+            try {
               memberDNs.clear();
               nestedGroups.clear();
               for (ByteString v : attribute)
@@ -598,13 +612,12 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
                   nestedGroups.add(member);
                 }
               }
-              break;
-          }
+            } finally {
+              lock.writeLock().unlock();
+            }
+            break;
         }
       }
-    }
-    finally {
-      lock.writeLock().unlock();
     }
   }
 
