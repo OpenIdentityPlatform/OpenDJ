@@ -86,6 +86,11 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class StaticGroup extends Group<StaticGroupImplementationCfg>
 {
+  // Геттеры для тестов
+  HashSet<CompactDn> getMemberDNs() { return memberDNs; }
+  LinkedList<DN> getNestedGroups() { return nestedGroups; }
+  DN getGroupEntryDN() { return groupEntryDN; }
+  AttributeType getMemberAttributeType() { return memberAttributeType; }
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The attribute type used to hold the membership list for this group. */
