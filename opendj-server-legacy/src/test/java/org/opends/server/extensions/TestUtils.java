@@ -13,12 +13,12 @@ public class TestUtils {
     public static final DN LEVEL2_DN = DN.valueOf("cn=Level2,ou=Groups,dc=com,dc=example");
 
     public static StaticGroup createNestedTestGroup() {
-        // Минимальная реализация для теста
+        // Minimal implementation for test
         StaticGroup group = new StaticGroup();
-    group.getMemberDNs().clear();
-    group.getNestedGroups().clear();
-    // Устанавливаем значения через рефлексию, если нужно, либо через конструктор/методы
-    // Для теста достаточно очистить коллекции и использовать LEVEL2_DN
+        group.getMemberDNs().clear();
+        group.getNestedGroups().clear();
+        // Set values via reflection if needed, or via constructor/methods
+        // For the test, it's enough to clear collections and use LEVEL2_DN
         return group;
     }
 

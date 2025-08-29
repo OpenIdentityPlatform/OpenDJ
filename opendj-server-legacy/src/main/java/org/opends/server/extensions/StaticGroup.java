@@ -86,7 +86,7 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class StaticGroup extends Group<StaticGroupImplementationCfg>
 {
-  // Геттеры для тестов
+  // Getters for tests
   HashSet<CompactDn> getMemberDNs() { return memberDNs; }
   LinkedList<DN> getNestedGroups() { return nestedGroups; }
   DN getGroupEntryDN() { return groupEntryDN; }
