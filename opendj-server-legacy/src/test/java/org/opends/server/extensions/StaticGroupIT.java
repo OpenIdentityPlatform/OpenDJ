@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Portions Copyright 2025 3A Systems, LLC.
+ *  Copyright 2025 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -41,7 +41,6 @@ public class StaticGroupIT {
                     throw new RuntimeException(e);
                 }
             }));
-        }
         for (Future<?> f : futures) {
             f.get(10, TimeUnit.SECONDS);
         }
@@ -50,4 +49,5 @@ public class StaticGroupIT {
     // Проверяем, что группа содержит пользователя
     assertTrue(group.isMember(TestUtils.TEST_USER_DN, null));
     }
+}
 }
