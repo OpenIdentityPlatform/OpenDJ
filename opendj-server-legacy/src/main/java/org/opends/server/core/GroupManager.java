@@ -726,48 +726,35 @@ public class GroupManager extends InternalDirectoryServerPlugin
       return;
     }
 
+    Group<?> group =null;
     lock.readLock().lock();
     try
     {
-      if (!groupInstances.containsKey(oldEntry.getName()))
-      {
-        // If the modified entry is not in any group instance, it's probably
-        // not a group, exit fast
-        return;
-      }
+        group = groupInstances.get(oldEntry.getName());
+        if (group!=null) {
+            try {
+                if (!oldEntry.getName().equals(newEntry.getName())
+                        || !group.mayAlterMemberList()
+                        || updatesObjectClass(modifications)) {
+                    lock.writeLock().lock();
+                    try {
+                        groupInstances.remove(oldEntry.getName());
+                        // This updates the refreshToken
+                        createAndRegisterGroup(newEntry);
+                    } finally {
+                        lock.writeLock().unlock();
+                    }
+                } else {
+                    group.updateMembers(modifications);
+                }
+            } catch (UnsupportedOperationException | DirectoryException e) {
+                logger.traceException(e);
+            }
+        }
     }
     finally
     {
       lock.readLock().unlock();
-    }
-
-    lock.writeLock().lock();
-    try
-    {
-      Group<?> group = groupInstances.get(oldEntry.getName());
-      if (group != null)
-      {
-        if (!oldEntry.getName().equals(newEntry.getName())
-            || !group.mayAlterMemberList()
-            || updatesObjectClass(modifications))
-        {
-          groupInstances.remove(oldEntry.getName());
-          // This updates the refreshToken
-          createAndRegisterGroup(newEntry);
-        }
-        else
-        {
-          group.updateMembers(modifications);
-        }
-      }
-    }
-    catch (UnsupportedOperationException | DirectoryException e)
-    {
-      logger.traceException(e);
-    }
-    finally
-    {
-      lock.writeLock().unlock();
     }
   }
 
