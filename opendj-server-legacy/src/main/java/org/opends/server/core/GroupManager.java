@@ -728,33 +728,32 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
     Group<?> group =null;
     lock.readLock().lock();
-    try
-    {
+    try{
         group = groupInstances.get(oldEntry.getName());
-        if (group!=null) {
-            try {
-                if (!oldEntry.getName().equals(newEntry.getName())
-                        || !group.mayAlterMemberList()
-                        || updatesObjectClass(modifications)) {
-                    lock.writeLock().lock();
-                    try {
-                        groupInstances.remove(oldEntry.getName());
-                        // This updates the refreshToken
-                        createAndRegisterGroup(newEntry);
-                    } finally {
-                        lock.writeLock().unlock();
-                    }
-                } else {
-                    group.updateMembers(modifications);
-                }
-            } catch (UnsupportedOperationException | DirectoryException e) {
-                logger.traceException(e);
-            }
-        }
     }
     finally
     {
-      lock.readLock().unlock();
+        lock.readLock().unlock();
+    }
+    if (group!=null) {
+        try {
+            if (!oldEntry.getName().equals(newEntry.getName())
+                    || !group.mayAlterMemberList()
+                    || updatesObjectClass(modifications)) {
+                lock.writeLock().lock();
+                try {
+                    groupInstances.remove(oldEntry.getName());
+                    // This updates the refreshToken
+                    createAndRegisterGroup(newEntry);
+                } finally {
+                    lock.writeLock().unlock();
+                }
+            } else {
+                group.updateMembers(modifications);
+            }
+        } catch (UnsupportedOperationException | DirectoryException e) {
+            logger.traceException(e);
+        }
     }
   }
 
