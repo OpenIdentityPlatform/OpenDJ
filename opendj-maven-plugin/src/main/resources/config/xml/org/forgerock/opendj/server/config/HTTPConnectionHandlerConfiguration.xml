@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Portions copyright 2013-2016 ForgeRock AS.
+  Portions copyright 2025 3A Systems, LLC
   ! -->
 <adm:managed-object name="http-connection-handler"
   plural-name="http-connection-handlers"
@@ -225,7 +226,10 @@
       they send extremely large requests to the server causing it to
       attempt to allocate large amounts of memory.
     </adm:description>
-    <adm:default-behavior>
+      <adm:requires-admin-action>
+          <adm:component-restart />
+      </adm:requires-admin-action>
+      <adm:default-behavior>
       <adm:defined>
         <adm:value>5 megabytes</adm:value>
       </adm:defined>
