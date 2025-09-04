@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems, LLC.
  */
 package org.opends.server.protocols.ldap;
 
@@ -85,7 +86,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
         "ds-cfg-use-tcp-no-delay: true",
         "ds-cfg-allow-tcp-reuse-address: true",
         "ds-cfg-send-rejection-notice: true",
-        "ds-cfg-max-request-size: 5 megabytes",
+        "ds-cfg-max-request-size: 10 megabytes",
         "ds-cfg-num-request-handlers: 2",
         "ds-cfg-allow-start-tls: false",
         "ds-cfg-use-ssl: false",
@@ -105,6 +106,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     Collection<String> cips = LDAPConnHandler.getEnabledSSLCipherSuites();
     Collection<String> protos = LDAPConnHandler.getEnabledSSLProtocols();
     int maxReqSize = LDAPConnHandler.getMaxRequestSize();
+    assertEquals(maxReqSize,10*1000*1000);
     String shutListName=LDAPConnHandler.getShutdownListenerName();
     SSLClientAuthPolicy policy = LDAPConnHandler.getSSLClientAuthPolicy();
     Collection<ClientConnection> cons=LDAPConnHandler.getClientConnections();

@@ -14,6 +14,7 @@
 
   Copyright 2007-2009 Sun Microsystems, Inc.
   Portions copyright 2011-2016 ForgeRock AS.
+  Portions copyright 2025 3A Systems, LLC
   ! -->
 <adm:managed-object name="ldap-connection-handler"
   plural-name="ldap-connection-handlers"
@@ -311,6 +312,9 @@
       send extremely large requests to the server causing it to
       attempt to allocate large amounts of memory.
     </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>5 megabytes</adm:value>
