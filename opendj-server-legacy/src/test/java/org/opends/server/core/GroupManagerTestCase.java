@@ -13,12 +13,17 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems, LLC
  */
 package org.opends.server.core;
 
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -2292,6 +2297,55 @@ public class GroupManagerTestCase
     TestCaseUtils.clearBackend("userRoot");
   }
 
+  @Test
+  public void test_issue_535() throws Exception {
+      TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
+      TestCaseUtils.addEntries(
+              "dn: ou=Users,dc=example,dc=com",
+              "objectClass: organizationalUnit",
+              "objectClass: top",
+              "ou: Users",
+              "",
+              "dn: ou=Groups,dc=example,dc=com",
+              "objectClass: organizationalUnit",
+              "objectClass: top",
+              "ou: Groups",
+              "",
+              "dn: cn=Test User,ou=Users,dc=example,dc=com",
+              "objectClass: inetOrgPerson",
+              "objectClass: organizationalPerson",
+              "objectClass: person",
+              "objectClass: top",
+              "uid: testuser",
+              "cn: Test User",
+              "sn: User",
+              "userPassword: password123",
+              "",
+              "dn: cn=Level1,ou=Groups,dc=example,dc=com",
+              "objectClass: groupOfNames",
+              "objectClass: top",
+              "cn: Level1",
+              "member: cn=Test User,ou=Users,dc=example,dc=com",
+              "",
+              "dn: cn=Level2,ou=Groups,dc=example,dc=com",
+              "objectClass: groupOfNames",
+              "objectClass: top",
+              "cn: Level2",
+              "member: cn=Level1,ou=Groups,dc=example,dc=com",
+              ""
+      );
+      ExecutorService executor = Executors.newFixedThreadPool(100);
+      for (int i = 0; i < 10000; i++) {
+          executor.submit(() -> {
+              final ModifyRequest modifyRequest = newModifyRequest(DN.valueOf("cn=Level2,ou=Groups,dc=example,dc=com"));
+              modifyRequest.addModification(REPLACE, "member", "cn=Test User,ou=Users,dc=example,dc=com");
+              ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
+              assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+          });
+      }
+      executor.shutdown();
+      assertTrue(executor.awaitTermination(1, TimeUnit.MINUTES));
+  }
   /**
    * Adds nested group entries.
    *
