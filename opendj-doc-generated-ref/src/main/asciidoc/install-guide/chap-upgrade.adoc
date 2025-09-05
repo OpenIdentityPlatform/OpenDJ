@@ -121,7 +121,7 @@ At this point the upgrade process is complete. See the resulting `upgrade.log` f
 
 [NOTE]
 ======
-When you upgrade to OpenDJ 4.9 from an OpenDJ 3 or earlier, the upgrade procedure leaves the HTTP connection handler disabled.
+When you upgrade to OpenDJ 5.0 from an OpenDJ 3 or earlier, the upgrade procedure leaves the HTTP connection handler disabled.
 The newer configuration supports inheritance and subsresources, but is not compatible with the previous configuration.
 You must rewrite your configuration to the version described in xref:../reference/appendix-rest2ldap.adoc#appendix-rest2ldap["REST to LDAP Configuration"] in the __Reference__, and then reconfigure the server to use the new configuration. For details, see xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap["RESTful Client Access Over HTTP"] in the __Administration Guide__.
 ======
@@ -137,14 +137,14 @@ C:\path\to\opendj\bat> windows-service.bat --enableService
 ====
 
 [#upgrade-zip-example]
-.Upgrading to OpenDJ 4.9
+.Upgrading to OpenDJ 5.0
 ====
-The following example upgrades an OpenDJ 2.6.3 directory server, backing up the current server directory in case the upgrade process fails. In this example, the server properties are updated to use Java 8, and the Local DB backend is migrated to a JE backend:
+The following example upgrades an OpenDJ 2.6.3 directory server, backing up the current server directory in case the upgrade process fails. In this example, the server properties are updated to use Java 11, and the Local DB backend is migrated to a JE backend:
 
 [source, console, subs="attributes"]
 ----
 $ cd /path/to/
-$ sed -e "s/default.java-home=.*/default.java-home=\/path\/to\/jdk1.8/" \
+$ sed -e "s/default.java-home=.*/default.java-home=\/path\/to\/jdk11/" \
  opendj/config/java.properties \
  > opendj/config/java.properties.new ; \
  mv opendj/config/java.properties.new opendj/config/java.properties
@@ -226,7 +226,7 @@ $ /path/to/opendj/upgrade --acceptLicense
   Archiving concatenated schema.......................................   100%
 
 >>>> OpenDJ was successfully upgraded from version 2.6.3.12667 to
-4.9.1.build-hash
+5.0.0.build-hash
 
 
 >>>> Performing post upgrade tasks

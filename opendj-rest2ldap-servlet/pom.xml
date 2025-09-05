@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>4.10.3-SNAPSHOT</version>
+    <version>5.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>opendj-rest2ldap-servlet</artifactId>
@@ -101,7 +101,6 @@
       <plugin>
 	      <groupId>org.codehaus.cargo</groupId>
           <artifactId>cargo-maven3-plugin</artifactId>
-          <version>1.10.9</version>
           <extensions>true</extensions>
 		  <executions>
 			    <execution>
@@ -121,7 +120,7 @@
 			</executions>
             <configuration>
                 <container>
-                    <containerId>tomcat9x</containerId>
+                    <containerId>${maven.cargo.containerId}</containerId>
                     <type>embedded</type>
                     <systemProperties>
                         <file.encoding>UTF-8</file.encoding>

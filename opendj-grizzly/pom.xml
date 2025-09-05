@@ -20,7 +20,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.openidentityplatform.opendj</groupId>
-        <version>4.10.3-SNAPSHOT</version>
+        <version>5.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>opendj-grizzly</artifactId>
@@ -33,6 +33,7 @@
         <opendj.osgi.import.additional>
             org.forgerock.opendj.*;provide:=true
         </opendj.osgi.import.additional>
+        <osgi.grizzly.import.version>[3.0,5)</osgi.grizzly.import.version>
     </properties>
 
     <dependencies>
@@ -127,6 +128,17 @@
                 <artifactId>maven-bundle-plugin</artifactId>
                 <configuration>
                     <instructions>
+                        <Import-Package>
+                            org.glassfish.grizzly;version="${osgi.grizzly.import.version}",
+                            org.glassfish.grizzly.attributes;version="${osgi.grizzly.import.version}",
+                            org.glassfish.grizzly.filterchain;version="${osgi.grizzly.import.version}",
+                            org.glassfish.grizzly.memory;version="${osgi.grizzly.import.version}",
+                            org.glassfish.grizzly.nio.transport;version="${osgi.grizzly.import.version}",
+                            org.glassfish.grizzly.ssl;version="${osgi.grizzly.import.version}",
+                            org.glassfish.grizzly.strategies;version="${osgi.grizzly.import.version}",
+                            org.glassfish.grizzly.threadpool;version="${osgi.grizzly.import.version}",
+                            *
+                        </Import-Package>
                         <!-- Export only public APIs of this module-->
                         <Export-Package>
                             com.forgerock.opendj.grizzly*,

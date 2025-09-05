@@ -13,7 +13,7 @@
  *
  * Portions Copyright 2006-2007-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
- * Portions Copyright 2023-2024 3A Systems LLC.
+ * Portions Copyright 2023-2025 3A Systems LLC.
  */
 package org.opends.server.config;
 
@@ -51,7 +51,6 @@ import static org.opends.server.util.CollectionUtils.newArrayList;
 import static org.opends.server.util.ServerConstants.MBEAN_BASE_DOMAIN;
 import static org.opends.server.util.StaticUtils.isAlpha;
 import static org.opends.server.util.StaticUtils.isDigit;
-import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_OID;
 
 /**
  * This class defines a JMX MBean that can be registered with the Directory
