@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        java: [ '8','11','17','21','25']
+        java: [ '11','17','21','25']
         os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
       fail-fast: false
     steps:
@@ -230,7 +230,7 @@ jobs:
           file: ./opendj-packages/opendj-docker/Dockerfile-alpine
           build-args: |
             VERSION=${{ env.release_version }}
-          platforms: linux/amd64,linux/arm64/8, linux/s390x, linux/386, linux/arm/v7, linux/arm/v6, linux/ppc64le
+          platforms: linux/amd64, linux/arm64/8, linux/s390x, linux/ppc64le
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

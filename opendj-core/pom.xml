@@ -21,7 +21,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.openidentityplatform.opendj</groupId>
-        <version>4.10.3-SNAPSHOT</version>
+        <version>5.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>opendj-core</artifactId>
@@ -68,8 +68,8 @@
         </dependency>
 
         <dependency>
-          <groupId>com.github.stephenc.jcip</groupId>
-          <artifactId>jcip-annotations</artifactId>
+            <groupId>com.io7m.jcip</groupId>
+            <artifactId>com.io7m.jcip.annotations</artifactId>
         </dependency>
 
         <dependency>
@@ -212,21 +212,6 @@
 
 
     <profiles>
-        <profile>
-            <id>set-compiler-release</id>
-            <activation>
-                <jdk>[9,)</jdk>
-            </activation>
-            <properties>
-                <maven.compiler.release>8</maven.compiler.release>
-                <!--
-                -release 8 dont allow hidden packages
-                package sun.security.tools.keytool does not exist
-                package sun.security.x509 does not exist
-                -->
-                <maven.compiler.testRelease />
-            </properties>
-        </profile>
         <profile>
             <!-- This profile provides API/ABI compatiblity checks and reports via Clirr -->
             <id>clirr</id>

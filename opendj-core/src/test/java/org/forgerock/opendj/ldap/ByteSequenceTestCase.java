@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2014 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems LLC.
  */
 package org.forgerock.opendj.ldap;
 

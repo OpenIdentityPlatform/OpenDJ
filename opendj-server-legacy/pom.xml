@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>4.10.3-SNAPSHOT</version>
+    <version>5.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-server-legacy</artifactId>
   <packaging>jar</packaging>
@@ -208,7 +208,7 @@
     <!-- mail -->
     <dependency>
       <groupId>com.sun.mail</groupId>
-      <artifactId>javax.mail</artifactId>
+      <artifactId>jakarta.mail</artifactId>
     </dependency>
 
     <dependency>
@@ -231,8 +231,8 @@
     </dependency>
 
     <dependency>
-      <groupId>com.github.stephenc.jcip</groupId>
-      <artifactId>jcip-annotations</artifactId>
+      <groupId>com.io7m.jcip</groupId>
+      <artifactId>com.io7m.jcip.annotations</artifactId>
     </dependency>
 
     <dependency>
@@ -712,7 +712,7 @@
                 <Embed-Dependency>
                   org.openidentityplatform.commons.persistit:core,
                   <!--je,-->
-                  jcip-annotations
+                  com.io7m.jcip.annotations
                 </Embed-Dependency>
               </instructions>
             </configuration>
@@ -828,6 +828,7 @@
               <includes>
                 <include>**/org/slf4j/**</include>
                 <include>**/org/opends/server/loggers/slf4j/**</include>
+                <include>**/META-INF/services/org.slf4j.spi.SLF4JServiceProvider</include>
               </includes>
               <archive>
                 <index>false</index>

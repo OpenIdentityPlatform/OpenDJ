@@ -15,7 +15,7 @@
  */
 package org.opends.server.replication.server.changelog.api;
 
-import javax.annotation.Generated;
+import jakarta.annotation.Generated;
 
 import org.forgerock.i18n.LocalizableMessage;
 
