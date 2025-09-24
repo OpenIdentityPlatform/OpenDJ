@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
+ * Portions copyright 2025 3A Systems, LLC.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -118,16 +120,15 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
     @Override
     public void close() {
         if (isClosed.compareAndSet(false, true)) {
-            try {
-                for (TCPNIOConnection serverConnection : serverConnections) {
-                    serverConnection.closeSilently();
+            for (TCPNIOConnection serverConnection : serverConnections) {
+                try {
+                    serverConnection.close().get(5, TimeUnit.SECONDS);
+                } catch (final Exception e) {
+                    // TODO: I18N
+                    logger.warn(LocalizableMessage.raw("Exception occurred while closing listener", e));
                 }
-            } catch (final Exception e) {
-                // TODO: I18N
-                logger.warn(LocalizableMessage.raw("Exception occurred while closing listener", e));
-            } finally {
-                transport.release();
             }
+            transport.release();
         }
     }
 
