@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems LLC.
  */
 
 package org.forgerock.opendj.ldap;
@@ -22,10 +23,18 @@ import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.TestCaseUtils.loopbackWithDynamicPort;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.KeyStore;
+import java.security.SecureRandom;
+import java.security.Security;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -41,12 +50,20 @@ import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
+import javax.security.auth.x500.X500Principal;
 import javax.security.sasl.AuthorizeCallback;
 import javax.security.sasl.RealmCallback;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.util.BigIntegers;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.LDAP;
@@ -76,9 +93,6 @@ import org.forgerock.util.Options;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
 import com.forgerock.reactive.ServerConnectionFactoryAdapter;
-
-import sun.security.tools.keytool.CertAndKeyGen;
-import sun.security.x509.X500Name;
 
 /**
  * A simple ldap server that manages 1000 entries and used for running
@@ -520,14 +534,40 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
     static {
         final String password="keypassword";
         try {
-	        CertAndKeyGen keyGen=new CertAndKeyGen("RSA","SHA256WithRSA",null);
-	        keyGen.generate(2048);
-	        X509Certificate[] chain=new X509Certificate[1];
-	        chain[0]=keyGen.getSelfCertificate(new X500Name("CN=localhost"), (long)1*3600);
+            if (Security.getProvider(BouncyCastleFipsProvider.PROVIDER_NAME) == null) {
+                Security.addProvider(new BouncyCastleFipsProvider());
+            }
+
+            String keyType = "RSA";
+            String signatureAlgorithm = "SHA256WithRSA";
+            int keySize = 2048;
+            KeyPairGenerator generator = KeyPairGenerator.getInstance(keyType, BouncyCastleFipsProvider.PROVIDER_NAME);
+            generator.initialize(keySize);
+            KeyPair keyPair = generator.generateKeyPair();
+
+	        X509Certificate[] chain = new X509Certificate[1];
+
+            BigInteger serial = BigIntegers.createRandomBigInteger(64, new SecureRandom());
+            Instant now = Instant.now();
+            Date notBeforeDate = Date.from(now);
+            Date notAfterDate = Date.from(now.plus(1, ChronoUnit.DAYS));
+
+            X500Principal subject = new X500Principal("CN=localhost");
+            JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(
+                    subject, serial, notBeforeDate, notAfterDate, subject, keyPair.getPublic()
+            );
+            ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm)
+                    .setProvider(BouncyCastleFipsProvider.PROVIDER_NAME)
+                    .build(keyPair.getPrivate());
+            X509CertificateHolder holder = builder.build(signer);
+            JcaX509CertificateConverter converter = new JcaX509CertificateConverter()
+                    .setProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
+
+	        chain[0] = converter.getCertificate(holder);
 	        
 	        KeyStore ks = KeyStore.getInstance("JKS");
 	        ks.load(null, null);
-	        ks.setKeyEntry("localhost", keyGen.getPrivateKey(),password.toCharArray(), chain);
+	        ks.setKeyEntry("localhost", keyPair.getPrivate(), password.toCharArray(), chain);
 	        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 	        kmf.init(ks, password.toCharArray());
 	        sslContext = new SSLContextBuilder().setKeyManager(kmf.getKeyManagers()[0]).getSSLContext();
