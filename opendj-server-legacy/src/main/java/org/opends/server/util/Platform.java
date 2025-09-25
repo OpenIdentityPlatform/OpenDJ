@@ -201,7 +201,7 @@ public final class Platform
       boolean isFips = StaticUtils.isFips();
       try
       {
-        if(isFips)
+        if(!isFips)
         {
           Security.addProvider(new BouncyCastleFipsProvider());
         }
