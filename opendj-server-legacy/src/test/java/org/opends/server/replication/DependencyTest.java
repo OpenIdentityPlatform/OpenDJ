@@ -447,7 +447,7 @@ public class DependencyTest extends ReplicationTestCase
     int brokerId = 2;
     int serverId = 1;
     int replServerId = 84;
-    int addSequenceLength = 51; //exceed late queue threshold in org.opends.server.replication.server.MessageHandler
+    int addSequenceLength = 51 * 10; //exceed late queue threshold in org.opends.server.replication.server.MessageHandler
 
     cleanDB();
 
