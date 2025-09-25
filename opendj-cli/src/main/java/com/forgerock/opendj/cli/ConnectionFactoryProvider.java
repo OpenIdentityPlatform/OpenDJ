@@ -724,8 +724,12 @@ public final class ConnectionFactoryProvider {
         boolean isFips = StaticUtils.isFips();
         final String keyStoreType = KeyStore.getDefaultType();
         final KeyStore keystore = KeyStore.getInstance(keyStoreType);
-        try (final FileInputStream fos = new FileInputStream(keyStoreFile)) {
-            keystore.load(fos, keyStorePIN);
+        if (isFips) {
+            keystore.load(null, keyStorePIN);
+        } else {
+            try (final FileInputStream fos = new FileInputStream(keyStoreFile)) {
+                keystore.load(fos, keyStorePIN);
+            }
         }
 
         if (isFips) {

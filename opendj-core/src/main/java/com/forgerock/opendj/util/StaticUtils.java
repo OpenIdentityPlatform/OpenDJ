@@ -783,9 +783,6 @@ public final class StaticUtils {
     }
 
     public static boolean isFips() {
-        if(!"true".equals(System.getProperty("org.openidentityplatform.opendj.fips.enabled"))) {
-            return false;
-        }
     	java.security.Provider[] providers = java.security.Security.getProviders();
 		for (int i = 0; i < providers.length; i++) {
 			if (providers[i].getName().toLowerCase().contains("fips"))

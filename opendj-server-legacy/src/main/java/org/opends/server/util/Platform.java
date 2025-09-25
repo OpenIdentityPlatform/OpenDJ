@@ -36,6 +36,8 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+
+import com.forgerock.opendj.util.StaticUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -72,7 +74,7 @@ public final class Platform
   {
     if (Security.getProvider(BouncyCastleFipsProvider.PROVIDER_NAME) == null)
     {
-      Security.addProvider(new BouncyCastleFipsProvider());
+
     }
 
     IMPL = new DefaultPlatformIMPL();
@@ -196,8 +198,13 @@ public final class Platform
                                                                 String ksType, String ksPath, KeyType keyType, String alias, char[] pwd, String dn,
                                                                 int validity) throws KeyStoreException
     {
+      boolean isFips = StaticUtils.isFips();
       try
       {
+        if(isFips)
+        {
+          Security.addProvider(new BouncyCastleFipsProvider());
+        }
         if (ks == null)
         {
           ks = KeyStore.getInstance(ksType);
@@ -225,6 +232,13 @@ public final class Platform
       {
         throw new KeyStoreException(ERR_CERTMGR_GEN_SELF_SIGNED_CERT.get(alias, e.getMessage()).toString(), e);
       }
+      finally
+      {
+        if(!isFips)
+        {
+          Security.removeProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
+        }
+      }
     }
 
     private static KeyPair newKeyPair(KeyType keyType) throws Exception
@@ -250,6 +264,7 @@ public final class Platform
       X509CertificateHolder holder = builder.build(signer);
       JcaX509CertificateConverter converter = new JcaX509CertificateConverter()
               .setProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
+
 
       return converter.getCertificate(holder);
     }
