@@ -68,15 +68,10 @@ public final class Platform
   private static final PlatformIMPL IMPL;
 
   /** The minimum java supported version. */
-  public static final String JAVA_MINIMUM_VERSION_NUMBER = "8";
+  public static final String JAVA_MINIMUM_VERSION_NUMBER = "11";
 
   static
   {
-    if (Security.getProvider(BouncyCastleFipsProvider.PROVIDER_NAME) == null)
-    {
-
-    }
-
     IMPL = new DefaultPlatformIMPL();
   }
 
