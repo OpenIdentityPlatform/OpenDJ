@@ -92,19 +92,18 @@
 		  <artifactId>jaxb-impl</artifactId>
 		</dependency>
 
-	    <!-- BC FIPS Provider libs -->
-	    <dependency>
-	      <groupId>org.bouncycastle</groupId>
-	      <artifactId>bc-fips</artifactId>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.bouncycastle</groupId>
-	      <artifactId>bctls-fips</artifactId>
-	    </dependency>
+        <!-- BC FIPS Provider libs -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bc-fips</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bctls-fips</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-fips</artifactId>
-            <scope>test</scope> <!--need for test certificate generation -->
         </dependency>
 
 	     <dependency>
