@@ -723,7 +723,7 @@ public final class TestCaseUtils {
 	ServerSocket serverLdapSocket;
     serverLdapSocket = new ServerSocket();
     serverLdapSocket.setReuseAddress(true);
-    serverLdapSocket.bind(new InetSocketAddress("127.0.0.1",port));
+    serverLdapSocket.bind(new InetSocketAddress(port));
     return serverLdapSocket;
   }
 
