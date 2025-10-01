@@ -92,18 +92,19 @@
 		  <artifactId>jaxb-impl</artifactId>
 		</dependency>
 
-	    <!-- BC FIPS Provider libs -->
-	    <dependency>
-	      <groupId>org.bouncycastle</groupId>
-	      <artifactId>bc-fips</artifactId>
-	      <version>${bc.fips.version}</version>
-	    </dependency>
-
-	    <dependency>
-	      <groupId>org.bouncycastle</groupId>
-	      <artifactId>bctls-fips</artifactId>
-	      <version>${bctls.fips.version}</version>
-	    </dependency>
+        <!-- BC FIPS Provider libs -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bc-fips</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bctls-fips</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-fips</artifactId>
+        </dependency>
 
 	     <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -113,8 +114,7 @@
 
 
     <properties>
-        <bc.fips.version>2.1.1</bc.fips.version>
-        <bctls.fips.version>2.1.20</bctls.fips.version>
+
 
         <opendj.osgi.import.additional>
             com.sun.security.auth*;resolution:=optional

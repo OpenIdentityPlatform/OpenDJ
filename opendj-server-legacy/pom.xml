@@ -321,6 +321,10 @@
       <artifactId>mssql-jdbc</artifactId>
       <version>12.10.0.jre8</version>
     </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpkix-fips</artifactId>
+    </dependency>
   </dependencies>
 
   <build><finalName>${project.groupId}.${project.artifactId}</finalName>

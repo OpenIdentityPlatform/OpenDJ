@@ -727,9 +727,9 @@ public final class ConnectionFactoryProvider {
         if (isFips) {
             keystore.load(null, keyStorePIN);
         } else {
-	        try (final FileInputStream fos = new FileInputStream(keyStoreFile)) {
-	            keystore.load(fos, keyStorePIN);
-	        }
+            try (final FileInputStream fos = new FileInputStream(keyStoreFile)) {
+                keystore.load(fos, keyStorePIN);
+            }
         }
 
         if (isFips) {

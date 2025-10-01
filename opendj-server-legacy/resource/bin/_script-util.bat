@@ -168,9 +168,9 @@ if %SET_ENVIRONMENT_VARS_DONE% == "true" goto end
 set PATH=%SystemRoot%;%PATH%
 set SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=%SCRIPT_NAME%
 set SET_ENVIRONMENT_VARS_DONE=true
-"%OPENDJ_JAVA_BIN%" --add-exports java.base/sun.security.x509=ALL-UNNAMED --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED --add-opens java.base/jdk.internal.loader=ALL-UNNAMED --version > NUL 2>&1
+"%OPENDJ_JAVA_BIN%" --add-opens java.base/jdk.internal.loader=ALL-UNNAMED --version > NUL 2>&1
 set RESULT_CODE=%errorlevel%
-if %RESULT_CODE% == 0 set OPENDJ_JAVA_ARGS=%OPENDJ_JAVA_ARGS% --add-exports java.base/sun.security.x509=ALL-UNNAMED --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED --add-opens java.base/jdk.internal.loader=ALL-UNNAMED
+if %RESULT_CODE% == 0 set OPENDJ_JAVA_ARGS=%OPENDJ_JAVA_ARGS% --add-opens java.base/jdk.internal.loader=ALL-UNNAMED
 goto scriptBegin
 
 :testJava

@@ -13,30 +13,50 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2025 Wren Security.
+ * Portions Copyright 2025 3A Systems LLC.
  */
 
 package org.opends.server.util;
 
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.KeyPairGenerator;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
+import com.forgerock.opendj.util.StaticUtils;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.util.BigIntegers;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.util.Reject;
 
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.util.ServerConstants.CERTANDKEYGEN_PROVIDER;
+import static org.opends.messages.UtilityMessages.ERR_CERTMGR_ADD_CERT;
+import static org.opends.messages.UtilityMessages.ERR_CERTMGR_ALIAS_ALREADY_EXISTS;
+import static org.opends.messages.UtilityMessages.ERR_CERTMGR_ALIAS_INVALID;
+import static org.opends.messages.UtilityMessages.ERR_CERTMGR_CERT_REPLIES_INVALID;
+import static org.opends.messages.UtilityMessages.ERR_CERTMGR_DELETE_ALIAS;
+import static org.opends.messages.UtilityMessages.ERR_CERTMGR_GEN_SELF_SIGNED_CERT;
+import static org.opends.messages.UtilityMessages.ERR_CERTMGR_KEYSTORE_NONEXISTANT;
+import static org.opends.messages.UtilityMessages.ERR_CERTMGR_TRUSTED_CERT;
 
 /**
  * Provides a wrapper class that collects all of the JVM vendor and JDK version
@@ -45,21 +65,6 @@ import static org.opends.server.util.ServerConstants.CERTANDKEYGEN_PROVIDER;
 public final class Platform
 {
 
-  /** Prefix that determines which security package to use. */
-  private static final String pkgPrefix;
-
-  /** The two security package prefixes (IBM and SUN). */
-  private static final String IBM_SEC = "com.ibm.security";
-  private static final String SUN_SEC = "sun.security";
-
-  /** The CertAndKeyGen class is located in different packages depending on JVM environment. */
-  private static final String[] CERTANDKEYGEN_PATHS = new String[] {
-      "sun.security.x509.CertAndKeyGen",          // Oracle/Sun/OpenJDK 6,7
-      "sun.security.tools.keytool.CertAndKeyGen", // Oracle/Sun/OpenJDK 8
-      "com.ibm.security.x509.CertAndKeyGen",      // IBM SDK 7
-      "com.ibm.security.tools.CertAndKeyGen"      // IBM SDK 8
-    };
-
   private static final PlatformIMPL IMPL;
 
   /** The minimum java supported version. */
@@ -67,16 +72,6 @@ public final class Platform
 
   static
   {
-    String vendor = System.getProperty("java.vendor");
-
-    if (vendor.startsWith("IBM"))
-    {
-      pkgPrefix = IBM_SEC;
-    }
-    else
-    {
-      pkgPrefix = SUN_SEC;
-    }
     IMPL = new DefaultPlatformIMPL();
   }
 
@@ -84,10 +79,10 @@ public final class Platform
   public static enum KeyType
   {
     /** RSA key algorithm with 2048 bits size and SHA256withRSA signing algorithm. */
-    RSA("rsa", 2048, "SHA256WithRSA"),
+    RSA("RSA", 2048, "SHA256withRSA"),
 
-    /** Elliptic Curve key algorithm with 233 bits size and SHA256withECDSA signing algorithm. */
-    EC("ec", 256, "SHA256withECDSA");
+    /** Elliptic Curve key algorithm with 256 bits size and SHA256withECDSA signing algorithm. */
+    EC("EC", 256, "SHA256withECDSA");
 
     /** Default key type used when none can be determined. */
     public final static KeyType DEFAULT = RSA;
@@ -101,22 +96,6 @@ public final class Platform
       this.keySize = keySize;
       this.keyAlgorithm = keyAlgorithm;
       this.signatureAlgorithm = signatureAlgorithm;
-    }
-
-    /**
-     * Check whether this key type is supported by the current JVM.
-     * @return true if this key type is supported, false otherwise.
-     */
-    public boolean isSupported()
-    {
-      try
-      {
-        return KeyPairGenerator.getInstance(keyAlgorithm.toUpperCase()) != null;
-      }
-      catch (NoSuchAlgorithmException e)
-      {
-        return false;
-      }
     }
 
     /**
@@ -144,106 +123,13 @@ public final class Platform
    */
   private static abstract class PlatformIMPL
   {
-    /** Time values used in validity calculations. */
-    private static final int SEC_IN_DAY = 24 * 60 * 60;
-
-    /** Methods pulled from the classes. */
-    private static final String GENERATE_METHOD = "generate";
-    private static final String GET_PRIVATE_KEY_METHOD = "getPrivateKey";
-    private static final String GET_SELFSIGNED_CERT_METHOD =
-      "getSelfCertificate";
-
-    /** Classes needed to manage certificates. */
-    private static final Class<?> certKeyGenClass, X500NameClass;
-
-    /** Constructors for each of the above classes. */
-    private static Constructor<?> certKeyGenCons, X500NameCons;
-
-    /** Filesystem APIs */
-
-    static
-    {
-
-      String certAndKeyGen = getCertAndKeyGenClassName();
-      if(certAndKeyGen == null)
-      {
-        LocalizableMessage msg = ERR_CERTMGR_CERTGEN_NOT_FOUND.get(CERTANDKEYGEN_PROVIDER);
-        throw new ExceptionInInitializerError(msg.toString());
-      }
-
-      String X500Name = pkgPrefix + ".x509.X500Name";
-      try
-      {
-        certKeyGenClass = Class.forName(certAndKeyGen);
-        X500NameClass = Class.forName(X500Name);
-        certKeyGenCons = certKeyGenClass.getConstructor(String.class,
-            String.class);
-        X500NameCons = X500NameClass.getConstructor(String.class);
-      }
-      catch (ClassNotFoundException e)
-      {
-        LocalizableMessage msg = ERR_CERTMGR_CLASS_NOT_FOUND.get(e.getMessage());
-        throw new ExceptionInInitializerError(msg.toString());
-      }
-      catch (SecurityException e)
-      {
-        LocalizableMessage msg = ERR_CERTMGR_SECURITY.get(e.getMessage());
-        throw new ExceptionInInitializerError(msg.toString());
-      }
-      catch (NoSuchMethodException e)
-      {
-        LocalizableMessage msg = ERR_CERTMGR_NO_METHOD.get(e.getMessage());
-        throw new ExceptionInInitializerError(msg.toString());
-      }
-    }
-
-    /**
-     * Try to decide which CertAndKeyGen class to use.
-     *
-     * @return a fully qualified class name or null
-     */
-    private static String getCertAndKeyGenClassName() {
-      String certAndKeyGen = System.getProperty(CERTANDKEYGEN_PROVIDER);
-      if (certAndKeyGen != null)
-      {
-        return certAndKeyGen;
-      }
-
-      for (String className : CERTANDKEYGEN_PATHS)
-      {
-        if (classExists(className))
-        {
-          return className;
-        }
-      }
-      return null;
-    }
-
-    /**
-     * A quick check to see if a class can be loaded. Doesn't check if
-     * it can be instantiated.
-     *
-     * @param className full class name to check
-     * @return true if the class is found
-     */
-    private static boolean classExists(final String className)
-    {
-      try {
-        Class.forName(className);
-        return true;
-      } catch (ClassNotFoundException | ClassCastException e) {
-        return false;
-      }
-    }
 
     protected PlatformIMPL()
     {
     }
 
-
-
     private final void deleteAlias(KeyStore ks, String ksPath, String alias,
-        char[] pwd) throws KeyStoreException
+                                   char[] pwd) throws KeyStoreException
     {
       try
       {
@@ -264,10 +150,8 @@ public final class Platform
       }
     }
 
-
-
     private final void addCertificate(KeyStore ks, String ksType, String ksPath,
-        String alias, char[] pwd, String certPath) throws KeyStoreException
+                                      String alias, char[] pwd, String certPath) throws KeyStoreException
     {
       try
       {
@@ -284,7 +168,7 @@ public final class Platform
           throw new KeyStoreException(msg.toString());
         }
         else if (!ks.containsAlias(alias)
-            || ks.entryInstanceOf(alias, KeyStore.TrustedCertificateEntry.class))
+                || ks.entryInstanceOf(alias, KeyStore.TrustedCertificateEntry.class))
         {
           try (InputStream inStream = new FileInputStream(certPath)) {
             trustedCert(alias, cf, ks, inStream);
@@ -305,14 +189,17 @@ public final class Platform
       }
     }
 
-
-
     private static final KeyStore generateSelfSignedCertificate(KeyStore ks,
-        String ksType, String ksPath, KeyType keyType, String alias, char[] pwd, String dn,
-        int validity) throws KeyStoreException
+                                                                String ksType, String ksPath, KeyType keyType, String alias, char[] pwd, String dn,
+                                                                int validity) throws KeyStoreException
     {
+      boolean isFips = StaticUtils.isFips();
       try
       {
+        if(!isFips)
+        {
+          Security.addProvider(new BouncyCastleFipsProvider());
+        }
         if (ks == null)
         {
           ks = KeyStore.getInstance(ksType);
@@ -324,12 +211,11 @@ public final class Platform
           throw new KeyStoreException(msg.toString());
         }
 
-        final Object keypair = newKeyPair(keyType);
-        final Object subject = newX500Name(dn);
-        generate(keypair, keyType.keySize);
-        final PrivateKey privateKey = getPrivateKey(keypair);
-        final Certificate[] certificateChain = new Certificate[] {
-          getSelfCertificate(keypair, subject, validity * SEC_IN_DAY)
+        KeyPair keyPair = newKeyPair(keyType);
+        PrivateKey privateKey = keyPair.getPrivate();
+        X500Name subject = new X500Name(dn);
+        Certificate[] certificateChain = new Certificate[] {
+                generateSelfCertificate(keyPair, keyType, subject, validity)
         };
         ks.setKeyEntry(alias, privateKey, pwd, certificateChain);
         try (FileOutputStream fileOutStream = new FileOutputStream(ksPath)) {
@@ -341,34 +227,41 @@ public final class Platform
       {
         throw new KeyStoreException(ERR_CERTMGR_GEN_SELF_SIGNED_CERT.get(alias, e.getMessage()).toString(), e);
       }
+      finally
+      {
+        if(!isFips)
+        {
+          Security.removeProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
+        }
+      }
     }
 
-    private static Object newKeyPair(KeyType keyType) throws Exception
+    private static KeyPair newKeyPair(KeyType keyType) throws Exception
     {
-      return certKeyGenCons.newInstance(keyType.keyAlgorithm, keyType.signatureAlgorithm);
+      KeyPairGenerator generator = KeyPairGenerator.getInstance(keyType.keyAlgorithm, BouncyCastleFipsProvider.PROVIDER_NAME);
+      generator.initialize(keyType.keySize);
+      return generator.generateKeyPair();
     }
 
-    private static Object newX500Name(String dn) throws Exception
+    private static Certificate generateSelfCertificate(KeyPair keyPair, KeyType keyType, X500Name subject, int days) throws Exception
     {
-      return X500NameCons.newInstance(dn);
-    }
+      BigInteger serial = BigIntegers.createRandomBigInteger(64, new SecureRandom());
+      Instant now = Instant.now();
+      Date notBeforeDate = Date.from(now);
+      Date notAfterDate = Date.from(now.plus(days, ChronoUnit.DAYS));
 
-    private static void generate(Object keypair, int keySize) throws Exception
-    {
-      Method certAndKeyGenGenerate = certKeyGenClass.getMethod(GENERATE_METHOD, int.class);
-      certAndKeyGenGenerate.invoke(keypair, keySize);
-    }
+      JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(
+              subject, serial, notBeforeDate, notAfterDate, subject, keyPair.getPublic()
+      );
+      ContentSigner signer = new JcaContentSignerBuilder(keyType.signatureAlgorithm)
+              .setProvider(BouncyCastleFipsProvider.PROVIDER_NAME)
+              .build(keyPair.getPrivate());
+      X509CertificateHolder holder = builder.build(signer);
+      JcaX509CertificateConverter converter = new JcaX509CertificateConverter()
+              .setProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
 
-    private static PrivateKey getPrivateKey(Object keypair) throws Exception
-    {
-      Method certAndKeyGetPrivateKey = certKeyGenClass.getMethod(GET_PRIVATE_KEY_METHOD);
-      return (PrivateKey) certAndKeyGetPrivateKey.invoke(keypair);
-    }
 
-    private static Certificate getSelfCertificate(Object keypair, Object subject, int days) throws Exception
-    {
-      Method getSelfCertificate = certKeyGenClass.getMethod(GET_SELFSIGNED_CERT_METHOD, X500NameClass, long.class);
-      return (Certificate) getSelfCertificate.invoke(keypair, subject, days);
+      return converter.getCertificate(holder);
     }
 
     /**
@@ -376,7 +269,7 @@ public final class Platform
      * only if it is self-signed.
      */
     private void trustedCert(String alias, CertificateFactory cf, KeyStore ks,
-        InputStream in) throws KeyStoreException
+                             InputStream in) throws KeyStoreException
     {
       try
       {
@@ -398,8 +291,6 @@ public final class Platform
       }
     }
 
-
-
     /**
      * Check that the issuer and subject DNs match.
      */
@@ -409,14 +300,10 @@ public final class Platform
     }
   }
 
-
-
   /** Prevent instantiation. */
   private Platform()
   {
   }
-
-
 
   /**
    * Add the certificate in the specified path to the provided keystore;
@@ -439,12 +326,10 @@ public final class Platform
    *           If an error occurred adding the certificate to the keystore.
    */
   public static void addCertificate(KeyStore ks, String ksType, String ksPath,
-      String alias, char[] pwd, String certPath) throws KeyStoreException
+                                    String alias, char[] pwd, String certPath) throws KeyStoreException
   {
     IMPL.addCertificate(ks, ksType, ksPath, alias, pwd, certPath);
   }
-
-
 
   /**
    * Delete the specified alias from the provided keystore.
@@ -461,12 +346,10 @@ public final class Platform
    *           If an error occurred deleting the alias.
    */
   public static void deleteAlias(KeyStore ks, String ksPath, String alias,
-      char[] pwd) throws KeyStoreException
+                                 char[] pwd) throws KeyStoreException
   {
     IMPL.deleteAlias(ks, ksPath, alias, pwd);
   }
-
-
 
   /**
    * Generate a self-signed certificate using the specified alias, dn string and
@@ -494,8 +377,8 @@ public final class Platform
    *           If the self-signed certificate cannot be generated.
    */
   public static void generateSelfSignedCertificate(KeyStore ks, String ksType,
-      String ksPath, KeyType keyType, String alias, char[] pwd, String dn, int validity)
-      throws KeyStoreException
+                                                   String ksPath, KeyType keyType, String alias, char[] pwd, String dn, int validity)
+          throws KeyStoreException
   {
     PlatformIMPL.generateSelfSignedCertificate(ks, ksType, ksPath, keyType, alias, pwd, dn, validity);
   }
@@ -506,8 +389,6 @@ public final class Platform
   private static class DefaultPlatformIMPL extends PlatformIMPL
   {
   }
-
-
 
   /**
    * Test if a platform java vendor property starts with the specified vendor
