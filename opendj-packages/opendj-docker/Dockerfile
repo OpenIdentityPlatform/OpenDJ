@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 
 LABEL org.opencontainers.image.authors="Open Identity Platform Community"
 
