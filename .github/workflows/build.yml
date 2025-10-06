@@ -70,6 +70,62 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
         opendj-server-legacy/target/package/opendj/bin/stop-ds
         rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs}
+
+    - name: Test on Unix FIPS
+      if: runner.os != 'Windows'
+      run: |
+        export OPENDJ_JAVA_ARGS="-server -Xmx512m -Dorg.openidentityplatform.opendj.fips.enabled=true" 
+        echo password > /tmp/opendj.keystore.pin
+        
+        keytool -genkey -alias server-cert -keyalg rsa \
+          -dname "CN=example.com,O=OpenDJ RSA Self-Signed Certificate" \
+          -keystore /tmp/opendj.bcfks -storetype BCFKS -validity 3650 -providername BCFIPS \
+          -provider org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider \
+          -providerpath ./opendj-server-legacy/target/package/opendj/lib/org.bouncycastle.bc-fips.jar:./opendj-server-legacy/target/package/opendj/lib/org.bouncycastle.bcpkix-fips.jar \
+          -keypass:file /tmp/opendj.keystore.pin -storepass:file /tmp/opendj.keystore.pin -keysize 2048 -sigalg SHA256WITHRSA
+  
+        keytool -selfcert -alias server-cert -keystore /tmp/opendj.bcfks \
+          -storetype BCFKS -validity 3650 -providername BCFIPS \
+          -provider org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider \
+          -providerpath ./opendj-server-legacy/target/package/opendj/lib/org.bouncycastle.bc-fips.jar:./opendj-server-legacy/target/package/opendj/lib/org.bouncycastle.bcpkix-fips.jar \
+          -storepass:file /tmp/opendj.keystore.pin
+        
+        keytool -genkey -alias admin-cert -keyalg rsa \
+          -dname "CN=example.com,O=Administration Connector RSA Self-Signed Certificate" \
+          -keystore /tmp/opendj.bcfks -storetype BCFKS -validity 3650 -providername BCFIPS \
+          -provider org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider \
+          -providerpath ./opendj-server-legacy/target/package/opendj/lib/org.bouncycastle.bc-fips.jar:./opendj-server-legacy/target/package/opendj/lib/org.bouncycastle.bcpkix-fips.jar \
+          -keypass:file /tmp/opendj.keystore.pin -storepass:file /tmp/opendj.keystore.pin -keysize 2048 -sigalg SHA256WITHRSA
+        
+        keytool -selfcert -alias admin-cert -keystore /tmp/opendj.bcfks \
+          -storetype BCFKS -validity 3650 -providername BCFIPS \
+          -provider org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider \
+          -providerpath ./opendj-server-legacy/target/package/opendj/lib/org.bouncycastle.bc-fips.jar:./opendj-server-legacy/target/package/opendj/lib/org.bouncycastle.bcpkix-fips.jar \
+          -storepass:file /tmp/opendj.keystore.pin
+        
+        echo "useBcfksKeystore=/tmp/opendj.bcfks
+        keyStorePasswordFile=/tmp/opendj.keystore.pin" > /tmp/opendj-setup.properties.bcfks
+        
+        opendj-server-legacy/target/package/opendj/setup -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 \
+          --enableStartTLS --certNickname admin-cert --rootUserDN "cn=Directory Manager" --rootUserPassword password \
+          --baseDN dc=example,dc=com --sampleData 5000 --cli --acceptLicense --no-prompt \
+          --propertiesFilePath /tmp/opendj-setup.properties.bcfks --doNotStart
+        
+        opendj-server-legacy/target/package/opendj/bin/start-ds
+        
+        opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password --trustAll
+        opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
+        opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 5000
+        opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
+        opendj-server-legacy/target/package/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example2,dc=com opendj-server-legacy/target/package/opendj/config/MakeLDIF/example.template
+        opendj-server-legacy/target/package/opendj/bin/stop-ds
+        opendj-server-legacy/target/package/opendj/bin/import-ldif --offline --ldifFile /tmp/test.ldif --backendID=example2
+        opendj-server-legacy/target/package/opendj/bin/rebuild-index --offline --bindDN "cn=Directory Manager" --bindPassword password  --baseDN "dc=example2,dc=com" --rebuildAll
+        opendj-server-legacy/target/package/opendj/bin/start-ds
+        opendj-server-legacy/target/package/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll
+        opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
+        opendj-server-legacy/target/package/opendj/bin/stop-ds
+        rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs}
     - name: Test LDAP in Cassandra
       if: runner.os == 'Linux'
       run:   |
