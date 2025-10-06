@@ -310,7 +310,6 @@ public class ReplicationDomainTest extends ReplicationTestCase
         domain.disableService();
       }
     }
-    Thread.sleep(2000); //wait for replication domain to shut down
   }
 
   @DataProvider(name = "exportAndImportData")

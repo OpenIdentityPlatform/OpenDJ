@@ -165,7 +165,7 @@ public class ReplicationBroker
   }
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-  private volatile boolean shutdown;
+  private AtomicBoolean shutdown = new AtomicBoolean();
   private final Object startStopLock = new Object();
   private volatile ReplicationDomainCfg config;
   /** String reported under CSN=monitor when there is no connected RS. */
@@ -264,7 +264,7 @@ public class ReplicationBroker
     this.replSessionSecurity = replSessionSecurity;
     this.rcvWindow = getMaxRcvWindow();
     this.halfRcvWindow = rcvWindow / 2;
-    this.shutdown = true;
+    this.shutdown.set(true);
 
     /*
      * Only create a monitor if there is a replication domain (this is not the
@@ -280,11 +280,11 @@ public class ReplicationBroker
   {
     synchronized (startStopLock)
     {
-      if (!shutdown)
+      if (!shutdown.get())
       {
         return;
       }
-      shutdown = false;
+      shutdown.set(false);
       this.rcvWindow = getMaxRcvWindow();
       connectAsDataServer();
     }
@@ -2159,7 +2159,7 @@ public class ReplicationBroker
       // Synchronize inside the loop in order to allow shutdown.
       synchronized (startStopLock)
       {
-        if (rs.isConnected() || shutdown)
+        if (rs.isConnected() || shutdown.get())
         {
           break;
         }
@@ -2238,7 +2238,7 @@ public class ReplicationBroker
   {
     boolean done = false;
 
-    while (!done && !shutdown)
+    while (!done && !shutdown.get())
     {
       if (connectionError)
       {
@@ -2420,7 +2420,7 @@ public class ReplicationBroker
       boolean reconnectOnFailure, boolean returnOnTopoChange)
     throws SocketTimeoutException
   {
-    while (!shutdown)
+    while (!shutdown.get())
     {
       ConnectedRS rs = connectedRS.get();
       if (!rs.isConnected())
@@ -2576,7 +2576,7 @@ public class ReplicationBroker
       {
         logger.traceException(e);
 
-        if (!shutdown)
+        if (!shutdown.get())
         {
           if (rs.session == null || !rs.session.closeInitiated())
           {
@@ -2660,19 +2660,19 @@ public class ReplicationBroker
   /** Stop the server. */
   public void stop()
   {
-    if (logger.isTraceEnabled() && !shutdown)
+    if (logger.isTraceEnabled() && !shutdown.get())
     {
       debugInfo("is stopping and will close the connection to RS(" + getRsServerId() + ")");
     }
 
     synchronized (startStopLock)
     {
-      if (shutdown)
+      if (shutdown.get())
       {
         return;
       }
       domain.publishReplicaOfflineMsg();
-      shutdown = true;
+      shutdown.set(true);
       setConnectedRS(ConnectedRS.stopped());
       stopRSHeartBeatMonitoring();
       stopChangeTimeHeartBeatPublishing();
@@ -3225,7 +3225,7 @@ public class ReplicationBroker
    */
   boolean shuttingDown()
   {
-    return shutdown;
+    return shutdown.get();
   }
 
   /**
