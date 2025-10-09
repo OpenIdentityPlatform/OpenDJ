@@ -1274,6 +1274,7 @@
                     <org.opends.test.suppressOutput>true</org.opends.test.suppressOutput>
                     <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>
                     <org.opends.test.copyClassesToTestPackage>false</org.opends.test.copyClassesToTestPackage>
+                    <org.opends.test.timeout>600000</org.opends.test.timeout><!--15 mins-->
                   </systemPropertyVariables>
                   <argLine>@{argLine}</argLine>
 	          	  <reuseForks>false</reuseForks>

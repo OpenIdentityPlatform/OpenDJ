@@ -13,7 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
- * Portions Copyright 2023 3A Systems, LLC.
+ * Portions Copyright 2023-2025 3A Systems, LLC.
  */
 package org.opends.server;
 
@@ -23,9 +23,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.annotation.Annotation;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -155,9 +159,17 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   @Override
   public void onStart(ITestContext testContext) {
     super.onStart(testContext);
-    
+
     if (testContext.getAllTestMethods().length>0) {
     	TestCaseUtils.setTestName(testContext.getAllTestMethods()[0].getInstance().getClass().getName());
+    }
+    long testTimeout = 0;
+    try {
+      testTimeout = Long.parseLong(System.getProperty("org.opends.test.timeout", "0"));
+    } catch (NumberFormatException ignored) {}
+
+    for (int i = 0; i < testContext.getAllTestMethods().length; i++) {
+      testContext.getAllTestMethods()[i].setTimeOut(testTimeout);
     }
     
     // Delete the previous report if it's there.
@@ -335,6 +347,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   @Override
   public void onTestStart(ITestResult tr) {
     super.onTestStart(tr);
+    originalSystemOut.println("-- Executing test: " +  tr.getMethod());
 
     enforceTestClassTypeAndAnnotations(tr);
     checkForInterleavedBetweenClasses(tr);
@@ -358,6 +371,21 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   public void onTestFailure(ITestResult tr) {
     super.onTestFailure(tr);
     reportTestFailed(tr);
+    printThreadDump();
+  }
+
+  private void printThreadDump() {
+    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    ThreadInfo[] threadInfos = threadMXBean.dumpAllThreads(true, true);
+
+    originalSystemErr.println("--- Java Thread Dump ---");
+    originalSystemErr.println("Timestamp: " + LocalDateTime.now());
+    originalSystemErr.println("------------------------");
+
+    for (ThreadInfo threadInfo : threadInfos) {
+      originalSystemErr.println(threadInfo.toString());
+    }
+    originalSystemErr.println("------------------------");
   }
 
   private void reportTestFailed(ITestResult tr)
