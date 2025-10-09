@@ -23,13 +23,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.annotation.Annotation;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
-import java.lang.management.ThreadMXBean;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -375,17 +371,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
   private void printThreadDump() {
-    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-    ThreadInfo[] threadInfos = threadMXBean.dumpAllThreads(true, true);
-
-    originalSystemErr.println("--- Java Thread Dump ---");
-    originalSystemErr.println("Timestamp: " + LocalDateTime.now());
-    originalSystemErr.println("------------------------");
-
-    for (ThreadInfo threadInfo : threadInfos) {
-      originalSystemErr.println(threadInfo.toString());
-    }
-    originalSystemErr.println("------------------------");
+    originalSystemErr.println(TestCaseUtils.generateThreadDump());
   }
 
   private void reportTestFailed(ITestResult tr)

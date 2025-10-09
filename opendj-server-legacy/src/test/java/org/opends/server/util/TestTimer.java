@@ -18,7 +18,10 @@ package org.opends.server.util;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Reject;
+import org.opends.server.TestCaseUtils;
 
 /**
  * Timer useful for testing: it helps to write loops that repeatedly runs code until some condition
@@ -153,6 +156,7 @@ public interface TestTimer
   /** A {@link TestTimer} that sleeps in steps and sleeps at maximum {@code nbSteps * sleepTimes}. */
   public static class SteppingTimer implements TestTimer
   {
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     private final long sleepTime;
     private final long totalNbSteps;
     private long nbStepsRemaining;
@@ -204,6 +208,7 @@ public interface TestTimer
         {
           if (hasTimedOutNoSleep())
           {
+            logger.info(LocalizableMessage.raw("failed to wait for" + callable + "\n" + TestCaseUtils.generateThreadDump()));
             throw e;
           }
         }
