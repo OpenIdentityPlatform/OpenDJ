@@ -22,7 +22,7 @@ public class FipsStaticUtils {
 
     public static void registerBcProvider() {
 
-        if(!"true".equals(System.getProperty("org.openidentityplatform.opendj.fips.enabled"))) {
+        if(!"true".equals(System.getProperty("org.openidentityplatform.opendj.fips.register"))) {
             return;
         }
 

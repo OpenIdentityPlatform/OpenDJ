@@ -74,7 +74,7 @@ jobs:
     - name: Test on Unix FIPS
       if: runner.os != 'Windows'
       run: |
-        export OPENDJ_JAVA_ARGS="-server -Xmx512m -Dorg.openidentityplatform.opendj.fips.enabled=true" 
+        export OPENDJ_JAVA_ARGS="-server -Xmx512m -Dorg.openidentityplatform.opendj.fips.register=true" 
         echo password > /tmp/opendj.keystore.pin
         
         keytool -genkey -alias server-cert -keyalg rsa \
