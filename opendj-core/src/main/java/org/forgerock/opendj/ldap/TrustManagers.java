@@ -522,8 +522,8 @@ public final class TrustManagers {
         throw new NoSuchAlgorithmException();
     }
 
-    public static X509TrustManager checkUsingPkcs11TrustStore() throws GeneralSecurityException, IOException {
-        final KeyStore keyStore = KeyStore.getInstance("PKCS11");
+    public static X509TrustManager checkUsingPkcs12TrustStore() throws GeneralSecurityException, IOException {
+        final KeyStore keyStore = KeyStore.getInstance("PKCS12");
         keyStore.load(null, null);
 
         final TrustManagerFactory tmf =

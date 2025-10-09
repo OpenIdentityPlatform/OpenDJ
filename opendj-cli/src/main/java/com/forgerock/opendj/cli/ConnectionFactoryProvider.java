@@ -852,7 +852,7 @@ public final class ConnectionFactoryProvider {
         }
 
         if (isFips) {
-        	return TrustManagers.checkUsingPkcs11TrustStore();
+            return TrustManagers.checkUsingPkcs12TrustStore();
         }
 
         return tm;
