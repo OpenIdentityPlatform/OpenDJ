@@ -38,6 +38,9 @@
         <commons.version>3.0.0-SNAPSHOT</commons.version>
         <freemarker.version>2.3.34</freemarker.version>
         <metrics-core.version>4.2.30</metrics-core.version>
+        <bc.fips.version>2.1.1</bc.fips.version>
+        <bctls.fips.version>2.1.20</bctls.fips.version>
+        <bcpkix.fips.version>2.1.9</bcpkix.fips.version>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <!-- OSGi bundles properties -->
@@ -218,6 +221,22 @@
                 <groupId>org.openidentityplatform.opendj</groupId>
                 <artifactId>opendj-server-legacy</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bc-fips</artifactId>
+                <version>${bc.fips.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bctls-fips</artifactId>
+                <version>${bctls.fips.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-fips</artifactId>
+                <version>${bcpkix.fips.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -687,7 +706,7 @@
 	        <jdk>[17,)</jdk>
 	      </activation>
 	      <properties>
-              <argLine>-Xmx512m --add-exports java.base/sun.security.x509=ALL-UNNAMED --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED  --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util.regex=ALL-UNNAMED --add-opens java.base/java.security=ALL-UNNAMED --add-opens java.naming/javax.naming.spi=ALL-UNNAMED</argLine>
+              <argLine>-Xmx512m --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED  --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util.regex=ALL-UNNAMED --add-opens java.base/java.security=ALL-UNNAMED --add-opens java.naming/javax.naming.spi=ALL-UNNAMED</argLine>
               <maven.cargo.containerId>tomcat11x</maven.cargo.containerId>
 	      </properties>
 	    </profile>

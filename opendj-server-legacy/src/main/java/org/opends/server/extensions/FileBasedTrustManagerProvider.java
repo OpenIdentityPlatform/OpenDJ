@@ -16,6 +16,7 @@
  */
 package org.opends.server.extensions;
 
+import com.forgerock.opendj.util.FipsStaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -204,6 +205,9 @@ public class FileBasedTrustManagerProvider
     final String trustStoreType = cfg.getTrustStoreType();
     if (trustStoreType != null)
     {
+      if(trustStoreType.equals("BCFKS")) {
+        FipsStaticUtils.registerBcProvider(true);
+      }
       try
       {
         KeyStore.getInstance(trustStoreType);
