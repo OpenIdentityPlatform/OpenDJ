@@ -302,8 +302,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
         new ReplServerFakeConfiguration(replicationPort, dirName, 0, serverId, 0, windowSize, replServers));
   }
 
-  private void disable(ReplicationDomain... domains)
-  {
+  private void disable(ReplicationDomain... domains) throws InterruptedException {
     for (ReplicationDomain domain : domains)
     {
       if (domain != null)
