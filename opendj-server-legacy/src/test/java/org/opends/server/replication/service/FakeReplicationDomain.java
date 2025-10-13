@@ -42,8 +42,8 @@ public class FakeReplicationDomain extends ReplicationDomain
   private BlockingQueue<UpdateMsg> queue;
   /** A string that will be exported should exportBackend be called. */
   private String exportString;
-  /** A StringBuilder that will be used to build a new String should the import be called. */
-  private StringBuilder importString;
+  /** A StringBuffer that will be used to build a new String should the import be called. */
+  private StringBuffer importString;
   private int exportedEntryCount;
 
   private FakeReplicationDomain(DN baseDN, int serverID,
@@ -82,7 +82,7 @@ public class FakeReplicationDomain extends ReplicationDomain
 
   FakeReplicationDomain(DN baseDN, int serverID,
       SortedSet<String> replicationServers, long heartbeatInterval,
-      String exportString, StringBuilder importString, int exportedEntryCount)
+      String exportString, StringBuffer importString, int exportedEntryCount)
       throws ConfigException
   {
     this(baseDN, serverID, replicationServers, 100, heartbeatInterval, 1);

@@ -18,6 +18,7 @@
 package org.opends.server.replication.service;
 
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.TestCaseUtils.generateThreadDump;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
@@ -28,6 +29,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.Task;
@@ -347,7 +349,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       domain1 = new FakeReplicationDomain(
           testService, serverId1, servers, 0, exportedData, null, ENTRYCOUNT);
 
-      StringBuilder importedData = new StringBuilder();
+      StringBuffer importedData = new StringBuffer();
       domain2 = new FakeReplicationDomain(
           testService, serverId2, servers, 0, null, importedData, 0);
 
@@ -418,7 +420,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       domain1 = new FakeReplicationDomain(
           testService, 1, servers1, 0, exportedData, null, ENTRYCOUNT);
 
-      StringBuilder importedData = new StringBuilder();
+      StringBuffer importedData = new StringBuffer();
       domain2 = new FakeReplicationDomain(
           testService, 2, servers2, 0, null, importedData, 0);
 
@@ -444,18 +446,22 @@ public class ReplicationDomainTest extends ReplicationTestCase
     return sb.toString();
   }
 
-  private void waitEndExport(String exportedData, StringBuilder importedData) throws Exception
+  private void waitEndExport(String exportedData, StringBuffer importedData) throws Exception
   {
     int count = 0;
     while (importedData.length() < exportedData.length() && count < 500*5)
     {
+      if(count % 50 == 0) { //capture thread dump on start and every 5 seconds
+        logger.info(LocalizableMessage.raw("waitEndExport: thread dump on count=" + count));
+        logger.info(LocalizableMessage.raw(generateThreadDump()));
+      }
       count ++;
       Thread.sleep(100);
     }
   }
 
   private void assertExportSucessful(ReplicationDomain domain1,
-      ReplicationDomain domain2, String exportedData, StringBuilder importedData)
+      ReplicationDomain domain2, String exportedData, StringBuffer importedData)
   {
     assertEquals(getLeftEntryCount(domain2), 0, "Wrong LeftEntryCount for export");
     assertEquals(getLeftEntryCount(domain1), 0, "Wrong LeftEntryCount for import");
