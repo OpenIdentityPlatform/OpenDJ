@@ -234,6 +234,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
         @Override
         public void call() throws Exception
         {
+          assertTrue(schemaFile.exists());
           String fileStr = readAsString(schemaFile);
           assertTrue(fileStr.contains(stateStr), "The Schema persistentState (CSN:" + stateStr
               + ") has not been saved to " + schemaFile + " : " + fileStr);
