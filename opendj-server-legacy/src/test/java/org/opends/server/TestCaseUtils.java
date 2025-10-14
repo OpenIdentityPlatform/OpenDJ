@@ -743,11 +743,20 @@ public final class TestCaseUtils {
   {
 	  for (; port > 1024;)
 	  {
+         ServerSocket res=null;
 	     try
 	     {
-	       return bindPort(port--);
+           res=bindPort(port--);
+	       return res;
 	     }
-	     catch (BindException e){}		
+	     catch (BindException e){
+             if (res!=null) {
+                 try {
+                     res.close();
+                 } catch (IOException ex) {}
+             }
+             res=null;
+         }
 	  }
 	  throw new BindException("Unable to bind to a free port");
   }
