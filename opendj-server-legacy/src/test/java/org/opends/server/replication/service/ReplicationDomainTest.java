@@ -451,7 +451,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
     int count = 0;
     while (importedData.length() < exportedData.length() && count < 500*5)
     {
-      if(count % 50 == 0) { //capture thread dump on start and every 5 seconds
+      if(count % 100 == 0) { //capture thread dump on start and every 10 seconds
         logger.info(LocalizableMessage.raw("waitEndExport: thread dump on count=" + count));
         logger.info(LocalizableMessage.raw(generateThreadDump()));
       }
