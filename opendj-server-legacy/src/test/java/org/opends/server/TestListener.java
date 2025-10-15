@@ -167,7 +167,13 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     for (int i = 0; i < testContext.getAllTestMethods().length; i++) {
       testContext.getAllTestMethods()[i].setTimeOut(testTimeout);
     }
-    
+    if(System.getProperty("org.opends.test.trace.pattern") != null) {
+      String tracePattern = System.getProperty("org.opends.test.trace.pattern");
+      if(testContext.getAllTestMethods()[0].getInstance().getClass().getName().matches(tracePattern)) {
+        System.setProperty("org.opends.server.debug.target.1", "_global:enabled");
+      }
+    }
+
     // Delete the previous report if it's there.
     new File(testContext.getOutputDirectory(), REPORT_FILE_NAME).delete();
   }
@@ -187,6 +193,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 			originalSystemErr.println("check state: "+paths.unitRoot);
 		}
 	}
+    System.clearProperty("org.opends.server.debug.target.1");
   }
 
   @Override
