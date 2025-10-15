@@ -167,7 +167,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     for (int i = 0; i < testContext.getAllTestMethods().length; i++) {
       testContext.getAllTestMethods()[i].setTimeOut(testTimeout);
     }
-    if(System.getProperty("org.opends.test.trace.pattern") != null) {
+    if(System.getProperty("org.opends.test.trace.pattern") != null && testContext.getAllTestMethods().length > 0) {
       String tracePattern = System.getProperty("org.opends.test.trace.pattern");
       if(testContext.getAllTestMethods()[0].getInstance().getClass().getName().matches(tracePattern)) {
         System.setProperty("org.opends.server.debug.target.1", "_global:enabled");
