@@ -48,7 +48,7 @@ public abstract class DirectoryServerTestCase extends ForgeRockTestCase {
     TestCaseUtils.suppressOutput();
   }
 
-  @AfterSuite
+  @AfterSuite(alwaysRun = true)
   public final void shutdownServer() {
     TestCaseUtils.shutdownServer(LocalizableMessage.raw("The current test suite has finished."));
     TestCaseUtils.unsupressOutput();
