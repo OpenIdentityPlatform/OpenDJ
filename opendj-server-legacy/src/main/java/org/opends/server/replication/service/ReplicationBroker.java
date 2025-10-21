@@ -2664,14 +2664,16 @@ public class ReplicationBroker
     {
       debugInfo("is stopping and will close the connection to RS(" + getRsServerId() + ")");
     }
+    synchronized (startStopLock) {
+      if (shutdown) {
+        return;
+      }
+    }
+
+    domain.publishReplicaOfflineMsg();
 
     synchronized (startStopLock)
     {
-      if (shutdown)
-      {
-        return;
-      }
-      domain.publishReplicaOfflineMsg();
       shutdown = true;
       setConnectedRS(ConnectedRS.stopped());
       stopRSHeartBeatMonitoring();
