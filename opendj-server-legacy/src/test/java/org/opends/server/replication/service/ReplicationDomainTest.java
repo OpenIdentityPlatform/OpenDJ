@@ -17,6 +17,8 @@
  */
 package org.opends.server.replication.service;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.generateThreadDump;
 import static org.opends.server.util.CollectionUtils.*;
@@ -44,6 +46,7 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationDomain.ImportExportContext;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.util.TestTimer;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -423,6 +426,17 @@ public class ReplicationDomainTest extends ReplicationTestCase
       StringBuffer importedData = new StringBuffer();
       domain2 = new FakeReplicationDomain(
           testService, 2, servers2, 0, null, importedData, 0);
+
+
+      //wait for domain2 topology initialization
+      {
+        TestTimer timer = new TestTimer.Builder()
+                .maxSleep(30, SECONDS)
+                .sleepTimes(100, MILLISECONDS)
+                .toTimer();
+        final FakeReplicationDomain finalDomain = domain2;
+        timer.repeatUntilSuccess(() -> assertFalse(finalDomain.getReplicaInfos().isEmpty()));
+      }
 
       domain2.initializeFromRemote(1, NO_INIT_TASK);
 
