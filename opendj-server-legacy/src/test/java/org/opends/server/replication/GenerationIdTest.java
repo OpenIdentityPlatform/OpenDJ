@@ -921,6 +921,8 @@ public class GenerationIdTest extends ReplicationTestCase
       replServer3 = createReplicationServer(replServerId3, true, testCase);
 
       connectServer1ToReplServer(replServer1);
+      Thread.sleep(2000); //wait for all RS handshakes to complete
+
       debugInfo("Expect genId are set in all replServers.");
       waitForStableGenerationId(EMPTY_DN_GENID);
       disconnectFromReplServer(replServer1);
