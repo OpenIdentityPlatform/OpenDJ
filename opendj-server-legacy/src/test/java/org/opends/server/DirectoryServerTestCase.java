@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems LLC.
  */
 package org.opends.server;
 
