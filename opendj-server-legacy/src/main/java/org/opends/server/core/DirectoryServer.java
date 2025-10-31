@@ -14,6 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2010-2016 ForgeRock AS.
  * Portions Copyright 2022-2025 3A Systems, LLC.
+ * Portions Copyright 2025 Wren Security.
  */
 package org.opends.server.core;
 
@@ -2725,6 +2726,11 @@ public final class DirectoryServer
         if (mBean != null)
         {
           mBean.removeMonitorProvider(provider);
+          if (mBean.getMonitorProviders().isEmpty() && mBean.getAlertGenerators().isEmpty())
+          {
+            directoryServer.mBeans.remove(monitorDN);
+            directoryServer.mBeanServer.unregisterMBean(mBean.getObjectName());
+          }
         }
       }
       catch (Exception e)

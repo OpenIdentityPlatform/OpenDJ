@@ -45,11 +45,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
+import java.lang.management.LockInfo;
 import java.lang.management.ManagementFactory;
+import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.net.BindException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -721,30 +722,13 @@ public final class TestCaseUtils {
           throws IOException
   {
 	ServerSocket serverLdapSocket;
-	
-	serverLdapSocket = new ServerSocket();
+    serverLdapSocket = new ServerSocket();
     serverLdapSocket.setReuseAddress(true);
     serverLdapSocket.bind(new InetSocketAddress(port));
-    serverLdapSocket.close();
-    
-    serverLdapSocket = new ServerSocket();
-    serverLdapSocket.setReuseAddress(true);
-    serverLdapSocket.bind(new InetSocketAddress("localhost",port));
-    serverLdapSocket.close();
-    
-    
-    serverLdapSocket = new ServerSocket();
-    serverLdapSocket.setReuseAddress(true);
-    serverLdapSocket.bind(new InetSocketAddress(InetAddress.getLocalHost(),port));
-    serverLdapSocket.close();
-    
-    serverLdapSocket = new ServerSocket();
-    serverLdapSocket.setReuseAddress(true);
-    serverLdapSocket.bind(new InetSocketAddress("127.0.0.1",port));
     return serverLdapSocket;
   }
 
-  static int port = 30000;
+  static int port = 65535;
   /**
    * Find and binds to a free server socket port on the local host. Avoid allocating ephemeral ports since these may
    * be used by client applications such as dsconfig. Instead scan through ports starting from a reasonably high number
@@ -757,13 +741,22 @@ public final class TestCaseUtils {
    */
   public synchronized static ServerSocket bindFreePort() throws IOException
   {
-	  for (; port > 15000;)
+	  for (; port > 1024;)
 	  {
+         ServerSocket res=null;
 	     try
 	     {
-	       return bindPort(port--);
+           res=bindPort(port--);
+	       return res;
 	     }
-	     catch (BindException e){}		
+	     catch (BindException e){
+             if (res!=null) {
+                 try {
+                     res.close();
+                 } catch (IOException ex) {}
+             }
+             res=null;
+         }
 	  }
 	  throw new BindException("Unable to bind to a free port");
   }
@@ -1944,20 +1937,71 @@ public final class TestCaseUtils {
   public static String generateThreadDump() {
     final StringBuilder dump = new StringBuilder();
     final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-    final ThreadInfo[] threadInfos = threadMXBean.getThreadInfo(threadMXBean.getAllThreadIds(), 100);
+    ThreadInfo[] threadInfos = threadMXBean.dumpAllThreads(true, true);
     for (ThreadInfo threadInfo : threadInfos) {
-        dump.append('"');
-        dump.append(threadInfo.getThreadName());
-        dump.append("\" ");
-        final Thread.State state = threadInfo.getThreadState();
-        dump.append("\n   java.lang.Thread.State: ");
-        dump.append(state);
-        final StackTraceElement[] stackTraceElements = threadInfo.getStackTrace();
-        for (final StackTraceElement stackTraceElement : stackTraceElements) {
-            dump.append("\n        at ");
-            dump.append(stackTraceElement);
+      dump.append("\"" + threadInfo.getThreadName() + "\"" +
+              (threadInfo.isDaemon() ? " daemon" : "") +
+              " prio=" + threadInfo.getPriority() +
+              " Id=" + threadInfo.getThreadId() + " " +
+              threadInfo.getThreadState());
+      if (threadInfo.getLockName() != null) {
+        dump.append(" on " + threadInfo.getLockName());
+      }
+      if (threadInfo.getLockOwnerName() != null) {
+        dump.append(" owned by \"" + threadInfo.getLockOwnerName() +
+                "\" Id=" + threadInfo.getLockOwnerId());
+      }
+      if (threadInfo.isSuspended()) {
+        dump.append(" (suspended)");
+      }
+      if (threadInfo.isInNative()) {
+        dump.append(" (in native)");
+      }
+      dump.append('\n');
+      StackTraceElement[] stackTrace = threadInfo.getStackTrace();
+      int i = 0;
+      for (; i < stackTrace.length; i++) {
+        StackTraceElement ste = stackTrace[i];
+        dump.append("\tat " + ste.toString());
+        dump.append('\n');
+        if (i == 0 && threadInfo.getLockInfo() != null) {
+          Thread.State ts = threadInfo.getThreadState();
+          switch (ts) {
+            case BLOCKED:
+              dump.append("\t-  blocked on " + threadInfo.getLockInfo());
+              dump.append('\n');
+              break;
+            case WAITING:
+            case TIMED_WAITING:
+              dump.append("\t-  waiting on " + threadInfo.getLockInfo());
+              dump.append('\n');
+              break;
+            default:
+          }
         }
-        dump.append("\n\n");
+
+        for (MonitorInfo mi : threadInfo.getLockedMonitors()) {
+          if (mi.getLockedStackDepth() == i) {
+            dump.append("\t-  locked " + mi);
+            dump.append('\n');
+          }
+        }
+      }
+      if (i < stackTrace.length) {
+        dump.append("\t...");
+        dump.append('\n');
+      }
+
+      LockInfo[] locks = threadInfo.getLockedSynchronizers();
+      if (locks.length > 0) {
+        dump.append("\n\tNumber of locked synchronizers = " + locks.length);
+        dump.append('\n');
+        for (LockInfo li : locks) {
+          dump.append("\t- " + li);
+          dump.append('\n');
+        }
+      }
+      dump.append('\n');
     }
     return dump.toString();
   }

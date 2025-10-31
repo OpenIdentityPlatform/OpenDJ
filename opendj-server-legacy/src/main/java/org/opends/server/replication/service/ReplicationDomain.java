@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems LLC.
  */
 package org.opends.server.replication.service;
 
@@ -39,6 +40,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -371,6 +375,11 @@ public abstract class ReplicationDomain
    * 1000 first entries for this domain.
    */
   protected volatile long generationId;
+
+  /**
+   * Thread pool for export thread tasks
+   */
+  private final ExecutorService exportThreadPool = Executors.newCachedThreadPool();
 
   /**
    * Returns the {@link CSNGenerator} that will be used to
@@ -879,7 +888,10 @@ public abstract class ReplicationDomain
         // Do this work in a thread to allow replay thread continue working
         ExportThread exportThread = new ExportThread(
             initReqMsg.getSenderID(), initReqMsg.getInitWindow());
-        exportThread.start();
+        exportThreadPool.execute(() -> {
+          Thread.currentThread().setName(exportThread.getName());
+          exportThread.run();
+        });
       }
     }
 
@@ -1075,6 +1087,9 @@ public abstract class ReplicationDomain
         This server is not the initiator of the export so there is
         nothing more to do locally.
         */
+        if (logger.isTraceEnabled()) {
+          logger.trace(LocalizableMessage.raw("[IE] got exception" + getName()), de);
+        }
       }
 
       if (logger.isTraceEnabled())
@@ -3015,6 +3030,13 @@ public abstract class ReplicationDomain
       if (broker != null)
       {
         broker.stop();
+      }
+      try {
+        exportThreadPool.shutdown();
+        boolean timedOut = exportThreadPool.awaitTermination(100, TimeUnit.SECONDS);
+        logger.info(LocalizableMessage.raw("export pool termination timed out: " + timedOut));
+      } catch (InterruptedException e) {
+        // Give up waiting.
       }
 
       // Stop the listener thread

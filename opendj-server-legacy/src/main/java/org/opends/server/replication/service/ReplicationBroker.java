@@ -13,6 +13,8 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2023-2025 3A Systems LLC.
+ * Portions Copyright 2025 Wren Security.
  */
 package org.opends.server.replication.service;
 
@@ -2664,14 +2666,16 @@ public class ReplicationBroker
     {
       debugInfo("is stopping and will close the connection to RS(" + getRsServerId() + ")");
     }
+    synchronized (startStopLock) {
+      if (shutdown) {
+        return;
+      }
+    }
+
+    domain.publishReplicaOfflineMsg();
 
     synchronized (startStopLock)
     {
-      if (shutdown)
-      {
-        return;
-      }
-      domain.publishReplicaOfflineMsg();
       shutdown = true;
       setConnectedRS(ConnectedRS.stopped());
       stopRSHeartBeatMonitoring();
@@ -3251,14 +3255,30 @@ public class ReplicationBroker
     return monitor.getMonitorInstanceName();
   }
 
+  /**
+   * Updates the currently connected replication server reference.
+   * <p>
+   * If the new replication server differs from the previous one, this method will:
+   * <ul>
+   * <li>deregister the replication monitor associated with the old server,
+   * <li>close the old replication session,
+   * <li>and register a replication monitor for the new server.
+   *
+   * @param newRS The new {@link ConnectedRS} instance to set as the currently connected replication server.
+   * @return The newly set {@link ConnectedRS} instance.
+   */
   private ConnectedRS setConnectedRS(final ConnectedRS newRS)
   {
-    final ConnectedRS oldRS = connectedRS.getAndSet(newRS);
-    if (!oldRS.equals(newRS) && oldRS.isConnected())
+    ConnectedRS oldRS = connectedRS.get();
+    if (!oldRS.equals(newRS))
     {
       // monitor name is changing, deregister before registering again
       deregisterReplicationMonitor();
-      oldRS.session.close();
+      if (oldRS.isConnected())
+      {
+        oldRS.session.close();
+      }
+      connectedRS.set(newRS);
       registerReplicationMonitor();
     }
     return newRS;

@@ -17,7 +17,10 @@
  */
 package org.opends.server.replication.service;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.TestCaseUtils.generateThreadDump;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
@@ -28,6 +31,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.Task;
@@ -42,6 +46,7 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationDomain.ImportExportContext;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.util.TestTimer;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -302,8 +307,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
         new ReplServerFakeConfiguration(replicationPort, dirName, 0, serverId, 0, windowSize, replServers));
   }
 
-  private void disable(ReplicationDomain... domains)
-  {
+  private void disable(ReplicationDomain... domains) throws InterruptedException {
     for (ReplicationDomain domain : domains)
     {
       if (domain != null)
@@ -348,7 +352,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       domain1 = new FakeReplicationDomain(
           testService, serverId1, servers, 0, exportedData, null, ENTRYCOUNT);
 
-      StringBuilder importedData = new StringBuilder();
+      StringBuffer importedData = new StringBuffer();
       domain2 = new FakeReplicationDomain(
           testService, serverId2, servers, 0, null, importedData, 0);
 
@@ -419,9 +423,20 @@ public class ReplicationDomainTest extends ReplicationTestCase
       domain1 = new FakeReplicationDomain(
           testService, 1, servers1, 0, exportedData, null, ENTRYCOUNT);
 
-      StringBuilder importedData = new StringBuilder();
+      StringBuffer importedData = new StringBuffer();
       domain2 = new FakeReplicationDomain(
           testService, 2, servers2, 0, null, importedData, 0);
+
+
+      //wait for domain2 topology initialization
+      {
+        TestTimer timer = new TestTimer.Builder()
+                .maxSleep(30, SECONDS)
+                .sleepTimes(100, MILLISECONDS)
+                .toTimer();
+        final FakeReplicationDomain finalDomain = domain2;
+        timer.repeatUntilSuccess(() -> assertFalse(finalDomain.getReplicaInfos().isEmpty()));
+      }
 
       domain2.initializeFromRemote(1, NO_INIT_TASK);
 
@@ -445,18 +460,22 @@ public class ReplicationDomainTest extends ReplicationTestCase
     return sb.toString();
   }
 
-  private void waitEndExport(String exportedData, StringBuilder importedData) throws Exception
+  private void waitEndExport(String exportedData, StringBuffer importedData) throws Exception
   {
     int count = 0;
     while (importedData.length() < exportedData.length() && count < 500*5)
     {
+      if(count % 100 == 0) { //capture thread dump on start and every 10 seconds
+        logger.debug(LocalizableMessage.raw("waitEndExport: thread dump on count=" + count));
+        logger.debug(LocalizableMessage.raw(generateThreadDump()));
+      }
       count ++;
       Thread.sleep(100);
     }
   }
 
   private void assertExportSucessful(ReplicationDomain domain1,
-      ReplicationDomain domain2, String exportedData, StringBuilder importedData)
+      ReplicationDomain domain2, String exportedData, StringBuffer importedData)
   {
     assertEquals(getLeftEntryCount(domain2), 0, "Wrong LeftEntryCount for export");
     assertEquals(getLeftEntryCount(domain1), 0, "Wrong LeftEntryCount for import");
