@@ -171,6 +171,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       String tracePattern = System.getProperty("org.opends.test.trace.pattern");
       if(testContext.getAllTestMethods()[0].getInstance().getClass().getName().matches(tracePattern)) {
         System.setProperty("org.opends.server.debug.target.1", "_global:enabled");
+        TestCaseUtils.setupTrace();
       }
     }
 
