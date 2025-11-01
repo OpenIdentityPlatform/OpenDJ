@@ -428,14 +428,20 @@ public class ReplicationDomainTest extends ReplicationTestCase
           testService, 2, servers2, 0, null, importedData, 0);
 
 
-      //wait for domain2 topology initialization
+      //wait for domains topology initialization
       {
         TestTimer timer = new TestTimer.Builder()
                 .maxSleep(30, SECONDS)
                 .sleepTimes(100, MILLISECONDS)
                 .toTimer();
-        final FakeReplicationDomain finalDomain = domain2;
-        timer.repeatUntilSuccess(() -> assertFalse(finalDomain.getReplicaInfos().isEmpty()));
+        final FakeReplicationDomain finalDomain1 = domain1;
+        final FakeReplicationDomain finalDomain2 = domain2;
+        timer.repeatUntilSuccess(() -> {
+          assertFalse(finalDomain1.getReplicaInfos().isEmpty());
+          assertEquals(2, finalDomain1.getRsInfos().size());
+          assertFalse(finalDomain2.getReplicaInfos().isEmpty());
+          assertEquals(2, finalDomain2.getRsInfos().size());
+        });
       }
 
       domain2.initializeFromRemote(1, NO_INIT_TASK);
