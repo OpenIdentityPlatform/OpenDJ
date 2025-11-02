@@ -543,6 +543,9 @@ public final class TestCaseUtils {
     ErrorLogger.getInstance().addLogPublisher(
             (ErrorLogPublisher) getServerStartupTextErrorPublisher(ERROR_TEXT_WRITER));
 
+  }
+
+  public static void setupTrace() {
     DebugLogger.getInstance().addPublisherIfRequired(DEBUG_TEXT_WRITER);
   }
 
