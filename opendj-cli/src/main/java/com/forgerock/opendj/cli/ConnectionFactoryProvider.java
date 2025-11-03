@@ -727,9 +727,9 @@ public final class ConnectionFactoryProvider {
         if (isFips) {
             keystore.load(null, keyStorePIN);
         } else {
-	        try (final FileInputStream fos = new FileInputStream(keyStoreFile)) {
-	            keystore.load(fos, keyStorePIN);
-	        }
+            try (final FileInputStream fos = new FileInputStream(keyStoreFile)) {
+                keystore.load(fos, keyStorePIN);
+            }
         }
 
         if (isFips) {
@@ -852,7 +852,7 @@ public final class ConnectionFactoryProvider {
         }
 
         if (isFips) {
-        	return TrustManagers.checkUsingPkcs11TrustStore();
+            return TrustManagers.checkUsingPkcs12TrustStore();
         }
 
         return tm;

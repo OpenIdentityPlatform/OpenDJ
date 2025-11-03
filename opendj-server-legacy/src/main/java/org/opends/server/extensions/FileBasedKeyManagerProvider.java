@@ -32,6 +32,7 @@ import java.util.List;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 
+import com.forgerock.opendj.util.FipsStaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg3;
@@ -259,6 +260,9 @@ public class FileBasedKeyManagerProvider
     {
       try
       {
+        if(cfg.getKeyStoreType().equals("BCFKS")) {
+          FipsStaticUtils.registerBcProvider(true);
+        }
         KeyStore.getInstance(cfg.getKeyStoreType());
         return cfg.getKeyStoreType();
       }

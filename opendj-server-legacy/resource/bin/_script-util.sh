@@ -184,7 +184,7 @@ set_environment_vars() {
   SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=${SCRIPT_NAME}
 	export SCRIPT_NAME_ARG
 	
-  "${OPENDJ_JAVA_BIN}" --add-exports java.base/sun.security.x509=ALL-UNNAMED --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED --add-opens java.base/jdk.internal.loader=ALL-UNNAMED --version > /dev/null 2>&1
+  "${OPENDJ_JAVA_BIN}" --add-opens java.base/jdk.internal.loader=ALL-UNNAMED --version > /dev/null 2>&1
   RESULT_CODE=${?}
   if test ${RESULT_CODE} -eq 0
   then

@@ -13,6 +13,8 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2017-2025 3A Systems, LLC.
+ *
  */
 package com.forgerock.opendj.util;
 

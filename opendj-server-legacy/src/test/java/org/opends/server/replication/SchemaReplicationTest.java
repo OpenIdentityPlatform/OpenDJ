@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems LLC.
  */
 package org.opends.server.replication;
 
@@ -234,6 +235,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
         @Override
         public void call() throws Exception
         {
+          assertTrue(schemaFile.exists());
           String fileStr = readAsString(schemaFile);
           assertTrue(fileStr.contains(stateStr), "The Schema persistentState (CSN:" + stateStr
               + ") has not been saved to " + schemaFile + " : " + fileStr);

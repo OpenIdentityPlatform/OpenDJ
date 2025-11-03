@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.forgerock.opendj.util.FipsStaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
@@ -324,6 +325,10 @@ public class InstallDS extends ConsoleApplication
     if (!checkLicense())
     {
       return InstallReturnCode.ERROR_LICENSE_NOT_ACCEPTED.getReturnCode();
+    }
+
+    if(argParser.useBcfksArg.isPresent()) {
+      FipsStaticUtils.registerBcProvider(true);
     }
 
     final UserData uData = new UserData();

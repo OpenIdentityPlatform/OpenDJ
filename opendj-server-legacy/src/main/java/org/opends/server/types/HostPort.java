@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems LLC.
  */
 package org.opends.server.types;
 
@@ -459,6 +460,9 @@ public final class HostPort implements Comparable<HostPort>
       // Get and compare ports of RS1 and RS2
       if (getPort() != other.getPort())
       {
+        if(logger.isTraceEnabled()) {
+          logger.trace("port and host does not match " + this + "; " + other);
+        }
         return false;
       }
 
@@ -475,6 +479,9 @@ public final class HostPort implements Comparable<HostPort>
       }
       else if (thisAddresses == null || otherAddresses == null)
       {
+        if(logger.isTraceEnabled()) {
+          logger.trace("port and host does not match: " + this + "=" + thisAddresses + "; " + other + "=" + otherAddresses);
+        }
         // One local address and one non-local.
         return false;
       }
@@ -490,10 +497,17 @@ public final class HostPort implements Comparable<HostPort>
           }
         }
       }
+      if(logger.isTraceEnabled()) {
+        logger.trace("port and host does not match: " + this + "=" + thisAddresses + "; " + other + "=" + otherAddresses);
+      }
+
       return false;
     }
     catch (UnknownHostException ex)
     {
+      if(logger.isTraceEnabled()) {
+        logger.traceException(ex, "got exception when resolving hosts: " + this + " and " + other );
+      }
       // Unknown RS: should not happen
       return false;
     }

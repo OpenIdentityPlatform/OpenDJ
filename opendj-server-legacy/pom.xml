@@ -321,6 +321,10 @@
       <artifactId>mssql-jdbc</artifactId>
       <version>12.10.0.jre8</version>
     </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpkix-fips</artifactId>
+    </dependency>
   </dependencies>
 
   <build><finalName>${project.groupId}.${project.artifactId}</finalName>
@@ -1274,6 +1278,8 @@
                     <org.opends.test.suppressOutput>true</org.opends.test.suppressOutput>
                     <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>
                     <org.opends.test.copyClassesToTestPackage>false</org.opends.test.copyClassesToTestPackage>
+                    <org.opends.test.timeout>600000</org.opends.test.timeout><!--15 mins-->
+                    <org.opends.test.trace.pattern>(org\.opends\.server\.replication\.service\..*)|(org\.opends\.server\.replication\.GenerationIdTest)|(org\.opends\.server\.types.\HostPortTest)</org.opends.test.trace.pattern>
                   </systemPropertyVariables>
                   <argLine>@{argLine}</argLine>
 	          	  <reuseForks>false</reuseForks>

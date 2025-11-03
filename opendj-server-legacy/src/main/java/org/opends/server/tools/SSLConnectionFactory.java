@@ -122,7 +122,7 @@ public class SSLConnectionFactory
         trustManagers = blindTrustProvider.getTrustManagers();
       } else if (trustStorePath == null) {
 			if (isFips()) {
-				TrustManager tm = TrustManagers.checkUsingPkcs11TrustStore();
+				TrustManager tm = TrustManagers.checkUsingPkcs12TrustStore();
 				trustManagers = new TrustManager[] { tm };
 			} else {
 				trustManagers = PromptTrustManager.getTrustManagers();

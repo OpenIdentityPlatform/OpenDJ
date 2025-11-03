@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2023-2025 3A Systems LLC.
  * Portions Copyright 2025 Wren Security.
  */
 package org.opends.server.replication.service;
@@ -2665,14 +2666,16 @@ public class ReplicationBroker
     {
       debugInfo("is stopping and will close the connection to RS(" + getRsServerId() + ")");
     }
+    synchronized (startStopLock) {
+      if (shutdown) {
+        return;
+      }
+    }
+
+    domain.publishReplicaOfflineMsg();
 
     synchronized (startStopLock)
     {
-      if (shutdown)
-      {
-        return;
-      }
-      domain.publishReplicaOfflineMsg();
       shutdown = true;
       setConnectedRS(ConnectedRS.stopped());
       stopRSHeartBeatMonitoring();

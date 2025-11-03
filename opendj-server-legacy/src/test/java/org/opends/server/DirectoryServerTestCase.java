@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2025 3A Systems LLC.
  */
 package org.opends.server;
 
@@ -48,7 +49,7 @@ public abstract class DirectoryServerTestCase extends ForgeRockTestCase {
     TestCaseUtils.suppressOutput();
   }
 
-  @AfterSuite
+  @AfterSuite(alwaysRun = true)
   public final void shutdownServer() {
     TestCaseUtils.shutdownServer(LocalizableMessage.raw("The current test suite has finished."));
     TestCaseUtils.unsupressOutput();
