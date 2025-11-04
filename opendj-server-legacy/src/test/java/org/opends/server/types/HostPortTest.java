@@ -256,7 +256,7 @@ public class HostPortTest extends TypesTestCase
     HostPort hpNull = new HostPort(null, 0);
     assertThat(hp1.isEquivalentTo(hpNull)).isFalse();
 
-    HostPort nonLocalHp = HostPort.valueOf("example.org:389");
+    HostPort nonLocalHp = HostPort.valueOf("www.openidentityplatform.org:389");
     assertThat(nonLocalHp.isEquivalentTo(nonLocalHp)).isTrue();
     assertThat(hp1.isEquivalentTo(nonLocalHp)).isFalse();
     assertThat(nonLocalHp.isEquivalentTo(hp1)).isFalse();
