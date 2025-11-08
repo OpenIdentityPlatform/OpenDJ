@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>5.0.1</version>
+    <version>5.0.2-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-server</artifactId>
   <name>OpenDJ Server NG</name>
