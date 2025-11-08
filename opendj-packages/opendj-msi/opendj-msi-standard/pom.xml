@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-msi</artifactId>
-        <version>5.0.0-SNAPSHOT</version>
+        <version>5.0.1</version>
     </parent>
 
     <artifactId>opendj-msi-standard</artifactId>
