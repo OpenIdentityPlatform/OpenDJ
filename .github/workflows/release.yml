@@ -80,16 +80,16 @@ jobs:
           fail_on_unmatched_files: false
           generate_release_notes: true
           files: |
-            opendj-server-legacy/target/package/*.zip
-            opendj-ldap-toolkit/target/*.zip
-            opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb
-            opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
-            opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
-            opendj-packages/opendj-docker/target/Dockerfile.zip
-            opendj-packages/opendj-openshift-template/*.yaml
-            opendj-doc-generated-ref/target/*.zip
-            opendj-dsml-servlet/target/*.war
-            opendj-rest2ldap-servlet/target/*.war
+            target/checkout/opendj-server-legacy/target/package/*.zip
+            target/checkout/opendj-ldap-toolkit/target/*.zip
+            target/checkout/opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb
+            target/checkout/opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
+            target/checkout/opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
+            target/checkout/opendj-packages/opendj-docker/target/Dockerfile.zip
+            target/checkout/opendj-packages/opendj-openshift-template/*.yaml
+            target/checkout/opendj-doc-generated-ref/target/*.zip
+            target/checkout/opendj-dsml-servlet/target/*.war
+            target/checkout/opendj-rest2ldap-servlet/target/*.war
       - uses: actions/checkout@v4
         continue-on-error: true
         with:
@@ -106,7 +106,7 @@ jobs:
            cd ${{ github.event.repository.name }}.wiki
            rm -rf asciidoc
            mkdir asciidoc
-           cp -R ../opendj-doc-generated-ref/target/asciidoc/pdf ../${{ github.event.repository.name }}.wiki/asciidoc
+           cp -R ../target/checkout/opendj-doc-generated-ref/target/asciidoc/pdf ../${{ github.event.repository.name }}.wiki/asciidoc
            git add -A
            git commit -a -m "upload docs after release ${{ github.event.inputs.releaseVersion }}"
            git tag -f ${{ github.event.inputs.releaseVersion }}
