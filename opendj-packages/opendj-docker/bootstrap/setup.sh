@@ -40,12 +40,20 @@ echo "creating backend: $BACKEND_TYPE db-directory: ${BACKEND_DB_DIRECTORY}"
   --backend-name=userRoot --type $BACKEND_TYPE --set base-dn:$BASE_DN --set "db-directory:$BACKEND_DB_DIRECTORY" \
   --set enabled:true --no-prompt --trustAll
 
-if [ "$ADD_BASE_ENTRY" = "--addBaseEntry" ]; then
-  echo "creating base entry..."
+if [ "$ADD_BASE_ENTRY" = "--addBaseEntry"  ]; then
   BASE_TEMPLATE=$(mktemp)
-  echo "branch: $BASE_DN" > $BASE_TEMPLATE
-  /opt/opendj/bin/import-ldif --templateFile $BASE_TEMPLATE \
-    --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD"
+  if [ ! -z ${SAMPLE_DATA} ]; then
+    echo "generating sample data..."
+    /opt/opendj/bin/makeldif -o $BASE_TEMPLATE -c suffix="$BASE_DN" -c numusers=$SAMPLE_DATA /opt/opendj/template/config/MakeLDIF/example.template
+    /opt/opendj/bin/import-ldif --ldifFile $BASE_TEMPLATE \
+        --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD"
+  else
+    echo "creating base entry..."
+    BASE_TEMPLATE=$(mktemp)
+    echo "branch: $BASE_DN" > $BASE_TEMPLATE
+    /opt/opendj/bin/import-ldif --templateFile $BASE_TEMPLATE \
+        --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD"
+  fi
   rm $BASE_TEMPLATE
 fi
 
