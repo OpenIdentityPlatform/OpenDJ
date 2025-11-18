@@ -37,6 +37,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
+import com.forgerock.opendj.util.FipsStaticUtils;
 import com.forgerock.opendj.util.StaticUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -198,7 +199,7 @@ public final class Platform
       {
         if(!isFips)
         {
-          Security.addProvider(new BouncyCastleFipsProvider());
+          FipsStaticUtils.registerBcProvider(true);
         }
         if (ks == null)
         {
