@@ -14,6 +14,7 @@
 #
 # Copyright 2006-2009 Sun Microsystems, Inc.
 # Portions Copyright 2011-2014 ForgeRock AS.
+# Portions Copyright 2025 3A Systems LLC.
 
 
 # Capture the current working directory so that we can change to it later.
@@ -72,6 +73,11 @@ PID_FILE=${INSTANCE_ROOT}/logs/server.pid
 LOG_FILE=${INSTANCE_ROOT}/logs/server.out
 STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
 
+# Cleanup the tmp directory
+OPENDJ_TMP_DIR="${INSTANCE_ROOT}/tmp"
+if [ -d "${OPENDJ_TMP_DIR}" ]; then
+   rm -r ${OPENDJ_TMP_DIR}/*
+fi
 
 # See if the provided set of arguments were sufficient for us to be able to
 # start the server or perform the requested operation.  An exit code of 99
