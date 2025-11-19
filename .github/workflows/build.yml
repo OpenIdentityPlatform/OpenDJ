@@ -69,7 +69,7 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
         opendj-server-legacy/target/package/opendj/bin/stop-ds
-        rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs}
+        rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs,tmp}
 
     - name: Test on Unix FIPS
       if: runner.os != 'Windows'
@@ -125,7 +125,7 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
         opendj-server-legacy/target/package/opendj/bin/stop-ds
-        rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs}
+        rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs,tmp}
     - name: Test LDAP in Cassandra
       if: runner.os == 'Linux'
       run:   |
@@ -140,7 +140,7 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
         opendj-server-legacy/target/package/opendj/bin/stop-ds
-        rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs}
+        rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs,tmp}
     - name: Test LDAP in Postgres
       if: runner.os == 'Linux'
       run:   |
@@ -155,7 +155,7 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
         opendj-server-legacy/target/package/opendj/bin/stop-ds
-        rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs}
+        rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs,tmp}
     - name: Test on Windows
       if: runner.os == 'Windows'
       run:   |

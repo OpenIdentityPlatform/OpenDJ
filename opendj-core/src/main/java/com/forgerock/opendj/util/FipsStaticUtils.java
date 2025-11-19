@@ -29,10 +29,6 @@ public class FipsStaticUtils {
             return;
         }
 
-        if(System.getProperty("org.bouncycastle.native.loader.install_dir") == null) {
-            System.setProperty("org.bouncycastle.native.loader.install_dir", System.getProperty("java.io.tmpdir"));
-        }
-
         String providerName = BC_PROVIDER_NAME;
         String className = BC_GENERIC_PROVIDER_CLASS_NAME;
 
