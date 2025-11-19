@@ -76,7 +76,7 @@ STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
 # Cleanup the tmp directory
 OPENDJ_TMP_DIR="${INSTANCE_ROOT}/tmp"
 if [ -d "${OPENDJ_TMP_DIR}" ]; then
-   rm -r ${OPENDJ_TMP_DIR}/*
+   rm -rf ${OPENDJ_TMP_DIR}/*
 fi
 
 # See if the provided set of arguments were sufficient for us to be able to
