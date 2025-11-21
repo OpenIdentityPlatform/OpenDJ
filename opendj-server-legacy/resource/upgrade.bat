@@ -36,7 +36,7 @@ cd /d %CUR_DIR%
 set DIR_CLASSES="%INSTANCE_ROOT%\classes"
 rem The upgrade is not compatible with patches. If the folder is not empty
 rem we renamed it as "classes.disabled", and the upgrade process should be launched properly.
-IF EXIST "%DIR_CLASSES%" (
+IF EXIST %DIR_CLASSES% (
   for /F %%i in ('dir /b %DIR_CLASSES%\*.*') do goto renamePatchesFolder
 )
 goto end

@@ -63,6 +63,8 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
         opendj-server-legacy/target/package/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example2,dc=com opendj-server-legacy/target/package/opendj/config/MakeLDIF/example.template
         opendj-server-legacy/target/package/opendj/bin/stop-ds
+        echo "4.9.9.0" > opendj-server-legacy/target/package/opendj/config/buildinfo
+        opendj-server-legacy/target/package/opendj/upgrade -n
         opendj-server-legacy/target/package/opendj/bin/import-ldif --offline --ldifFile /tmp/test.ldif --backendID=example2
         opendj-server-legacy/target/package/opendj/bin/rebuild-index --offline --bindDN "cn=Directory Manager" --bindPassword password  --baseDN "dc=example2,dc=com" --rebuildAll
         opendj-server-legacy/target/package/opendj/bin/start-ds
@@ -119,6 +121,8 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
         opendj-server-legacy/target/package/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example2,dc=com opendj-server-legacy/target/package/opendj/config/MakeLDIF/example.template
         opendj-server-legacy/target/package/opendj/bin/stop-ds
+        echo "4.9.9.0" > opendj-server-legacy/target/package/opendj/config/buildinfo
+        opendj-server-legacy/target/package/opendj/upgrade -n
         opendj-server-legacy/target/package/opendj/bin/import-ldif --offline --ldifFile /tmp/test.ldif --backendID=example2
         opendj-server-legacy/target/package/opendj/bin/rebuild-index --offline --bindDN "cn=Directory Manager" --bindPassword password  --baseDN "dc=example2,dc=com" --rebuildAll
         opendj-server-legacy/target/package/opendj/bin/start-ds
@@ -167,6 +171,8 @@ jobs:
         opendj-server-legacy\target\package\opendj\bat\dsconfig.bat create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
         opendj-server-legacy\target\package\opendj\bat\makeldif.bat -o test.ldif -c suffix=dc=example2,dc=com opendj-server-legacy\target\package\opendj\config\MakeLDIF\example.template
         opendj-server-legacy\target\package\opendj\bat\stop-ds.bat
+        echo "4.9.9.0" > opendj-server-legacy\target\package\opendj\config\buildinfo
+        opendj-server-legacy\target\package\opendj\upgrade.bat
         opendj-server-legacy\target\package\opendj\bat\import-ldif.bat --offline --ldifFile test.ldif --backendID=example2
         opendj-server-legacy\target\package\opendj\bat\rebuild-index.bat --offline --bindDN "cn=Directory Manager" --bindPassword password  --baseDN "dc=example2,dc=com" --rebuildAll
         opendj-server-legacy\target\package\opendj\bat\start-ds.bat
