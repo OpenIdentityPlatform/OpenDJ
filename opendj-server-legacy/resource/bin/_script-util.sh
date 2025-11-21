@@ -83,6 +83,14 @@ set_opendj_java_bin() {
   export OPENDJ_JAVA_BIN
 }
 
+set_temp_dir() {
+  OPENDJ_TMP_DIR="${INSTANCE_ROOT}/tmp"
+  if [ ! -d "${OPENDJ_TMP_DIR}" ]; then
+    mkdir ${OPENDJ_TMP_DIR}
+  fi
+  OPENDJ_JAVA_ARGS="${OPENDJ_JAVA_ARGS} -Djava.io.tmpdir=${OPENDJ_TMP_DIR}"
+}
+
 #
 # function that sets the java home
 #
@@ -101,6 +109,7 @@ set_java_home_and_args() {
       OPENDJ_JAVA_ARGS="${PROPERTY_VALUE}"
     fi
   fi
+  set_temp_dir
   set_opendj_java_bin
 }
 

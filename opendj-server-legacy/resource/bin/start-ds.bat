@@ -14,6 +14,7 @@ rem information: "Portions Copyright [year] [name of copyright owner]".
 rem
 rem Copyright 2006-2010 Sun Microsystems, Inc.
 rem Portions Copyright 2011-2014 ForgeRock AS.
+rem Portions Copyright 2025 3A Systems LLC.
 
 setlocal
 set DIR_HOME=%~dp0..
@@ -56,6 +57,15 @@ if NOT %ERROR_CODE% == 0 goto exitErrorCode
 echo %SCRIPT%: CLASSPATH=%CLASSPATH% >> %LOG%
 
 echo %SCRIPT%: PATH=%PATH% >> %LOG%
+
+rem cleanup the tmp directory
+set CUR_DIR=%CD%
+set OPENDJ_TMP_DIR=%INSTANCE_ROOT%\tmp
+dir /b /s /a %OPENDJ_TMP_DIR% | findstr .>nul && (
+    cd /d %OPENDJ_TMP_DIR%
+    for /F "delims=" %%i in ('dir /b') do (rmdir "%%i" /s/q>NUL 2>&1 || del "%%i" /s/q>NUL 2>&1)
+    cd /d %CUR_DIR%
+)
 
 "%OPENDJ_JAVA_BIN%" -client %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configFile "%INSTANCE_ROOT%\config\config.ldif" --checkStartability %*
 
