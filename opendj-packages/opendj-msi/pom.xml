@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-packages</artifactId>
-        <version>5.0.2-SNAPSHOT</version>
+        <version>5.0.2</version>
     </parent>
 
     <artifactId>opendj-msi</artifactId>

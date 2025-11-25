@@ -21,7 +21,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.openidentityplatform.opendj</groupId>
-        <version>5.0.2-SNAPSHOT</version>
+        <version>5.0.2</version>
     </parent>
 
     <artifactId>opendj-core</artifactId>
