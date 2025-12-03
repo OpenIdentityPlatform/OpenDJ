@@ -172,7 +172,7 @@ The Random tag lets you generate a variety of random numbers and strings. The Ra
 
 * `numeric:minvalue:maxvalue`
 
-* `numeric:minvalue:maxvalue:format`, where __format__ is a link:http://docs.oracle.com/javase/7/docs/api/java/text/DecimalFormat.html[java.text.DecimalFormat, window=\_blank] pattern
+* `numeric:minvalue:maxvalue:format`, where __format__ is a link:https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/text/DecimalFormat.html[java.text.DecimalFormat, window=\_blank] pattern
 
 * `alphanumeric:length`
 

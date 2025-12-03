@@ -202,7 +202,7 @@ ldapSyntaxes: ( security-label-syntax-oid DESC 'Security Label'
 ----
 
 `X-PATTERN`::
-Used to define a syntax based on a regular expression pattern, where valid regular expressions are those defined for link:http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html[java.util.regex.Pattern, window=\_blank]. The following attribute syntax description defines a simple, lenient SIP phone URI syntax check:
+Used to define a syntax based on a regular expression pattern, where valid regular expressions are those defined for link:https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/regex/Pattern.html[java.util.regex.Pattern, window=\_blank]. The following attribute syntax description defines a simple, lenient SIP phone URI syntax check:
 +
 
 [source, ldif]

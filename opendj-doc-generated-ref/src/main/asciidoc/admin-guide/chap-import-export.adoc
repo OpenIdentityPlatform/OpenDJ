@@ -484,7 +484,7 @@ $ dsconfig \
  --trustAll
 ----
 After confidentiality is enabled, entries are encrypted when next written. That is, OpenDJ directory server does not automatically rewrite all entries in encrypted form. Instead, it encrypts each entry on update, for example, when a user updates their entry or when you import data.
-The settings for data confidentiality depend on the encryption capabilities of the JVM. For example, for details about the Sun/Oracle Java implementation, see the explanations in link:https://docs.oracle.com/javase/7/docs/api/index.html?javax/crypto/Cipher.html[javax.crypto.Cipher, window=\_blank]. You can accept the default settings, or choose to specify the following:
+The settings for data confidentiality depend on the encryption capabilities of the JVM. For example, for details about the Oracle Java implementation, see the explanations in link:https://docs.oracle.com/en/java/javase/11/docs/api/index.html?javax/crypto/Cipher.html[javax.crypto.Cipher, window=\_blank]. You can accept the default settings, or choose to specify the following:
 
 * The cipher algorithm defining how the cleartext is encrypted and decrypted.
 
