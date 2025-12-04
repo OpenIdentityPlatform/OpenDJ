@@ -61,7 +61,7 @@ This chapter includes the following procedures and examples:
 +
 Make sure you have the credentials to run commands as the user who owns the server.
 
-. (Optional) If OpenDJ directory server runs with Java 6, move to a newer version, at least Java 8, before continuing the upgrade process.
+. (Optional) If OpenDJ directory server runs with Java 7, move to a newer version, at least Java 11, before continuing the upgrade process.
 +
 To move to a newer version, edit the `default.java-home` setting in the `opendj/config/java.properties` file, and then run the `dsjavaproperties` command.
 

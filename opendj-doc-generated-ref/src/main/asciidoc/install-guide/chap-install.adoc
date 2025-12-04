@@ -992,7 +992,7 @@ When connecting to directory servers over LDAPS or LDAP and StartTLS, you can co
 
 . (Optional)  If necessary, adjust the log level.
 +
-Log levels are defined in link:https://docs.oracle.com/javase/7/docs/api/java/util/logging/Level.html[java.util.logging.Level, window=\_blank].
+Log levels are defined in link:https://docs.oracle.com/en/java/javase/11/docs/api/java.logging/java/util/logging/Level.html[java.util.logging.Level, window=\_blank].
 +
 By default, the log level is set to `INFO`, and the gateway logs HTTP request-related messages. To have the gateway log LDAP request-related messages, set the log level to `FINEST` in one of the following ways:
 +
