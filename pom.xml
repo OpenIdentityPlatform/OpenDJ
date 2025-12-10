@@ -35,7 +35,7 @@
         <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <localized.jars.classifier>i18n</localized.jars.classifier>
-        <commons.version>3.0.1</commons.version>
+        <commons.version>3.0.2-SNAPSHOT</commons.version>
         <freemarker.version>2.3.34</freemarker.version>
         <metrics-core.version>4.2.30</metrics-core.version>
         <bc.fips.version>2.1.2</bc.fips.version>
