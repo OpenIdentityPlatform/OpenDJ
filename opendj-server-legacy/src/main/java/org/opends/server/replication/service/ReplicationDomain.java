@@ -42,7 +42,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -3030,13 +3029,6 @@ public abstract class ReplicationDomain
       if (broker != null)
       {
         broker.stop();
-      }
-      try {
-        exportThreadPool.shutdown();
-        boolean timedOut = exportThreadPool.awaitTermination(100, TimeUnit.SECONDS);
-        logger.info(LocalizableMessage.raw("export pool termination timed out: " + timedOut));
-      } catch (InterruptedException e) {
-        // Give up waiting.
       }
 
       // Stop the listener thread
