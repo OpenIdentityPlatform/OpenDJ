@@ -229,12 +229,12 @@ jobs:
           driver-opts: network=host
       - name: Prepare Dockerfile
         shell: bash
-        run: sed -i -E '/^#COPY opendj-server-legacy\//s/^#//' ./opendj-packages/opendj-docker/Dockerfile
+        run: sed -i -E '/^#COPY target\//s/^#//' ./opendj-packages/opendj-docker/Dockerfile
       - name: Build image (default)
         uses: docker/build-push-action@v5
         continue-on-error: true
         with:
-          context: .
+          context: ./opendj-packages/opendj-docker
           file: ./opendj-packages/opendj-docker/Dockerfile
           build-args: |
             VERSION=${{ env.release_version }}
@@ -323,12 +323,12 @@ jobs:
           driver-opts: network=host
       - name: Prepare Dockerfile
         shell: bash
-        run: sed -i -E '/^#COPY opendj-server-legacy\//s/^#//' ./openam-distribution/openam-distribution-docker/Dockerfile-alpine
+        run: sed -i -E '/^#COPY target\//s/^#//' ./opendj-packages/opendj-docker/Dockerfile-alpine
       - name: Build image
         continue-on-error: true
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./opendj-packages/opendj-docker
           file: ./opendj-packages/opendj-docker/Dockerfile-alpine
           build-args: |
             VERSION=${{ env.release_version }}

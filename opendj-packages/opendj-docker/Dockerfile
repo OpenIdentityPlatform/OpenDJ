@@ -23,7 +23,7 @@ ARG VERSION
 
 WORKDIR /opt
 
-#COPY opendj-server-legacy/target/package/opendj-*.zip .
+#COPY target/opendj-*.zip .
 
 RUN  apt-get update \
  && apt-get install -y --no-install-recommends curl unzip \
