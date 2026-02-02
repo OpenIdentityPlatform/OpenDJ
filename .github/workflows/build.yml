@@ -204,10 +204,10 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
-          fetch-depth: 0
-          submodules: recursive
+          name: ubuntu-latest-11
       - name: Get latest release version
         shell: bash
         run:   |
@@ -229,7 +229,9 @@ jobs:
           driver-opts: network=host
       - name: Prepare Dockerfile
         shell: bash
-        run: sed -i -E '/^#COPY target\//s/^#//' ./opendj-packages/opendj-docker/Dockerfile
+        run: |
+          cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
+          sed -i -E '/^#COPY target\//s/^#//' ./opendj-packages/opendj-docker/Dockerfile
       - name: Build image (default)
         uses: docker/build-push-action@v5
         continue-on-error: true
@@ -297,10 +299,10 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
-          fetch-depth: 0
-          submodules: recursive
+          name: ubuntu-latest-11
       - name: Get latest release version
         shell: bash
         run:   |
@@ -323,7 +325,9 @@ jobs:
           driver-opts: network=host
       - name: Prepare Dockerfile
         shell: bash
-        run: sed -i -E '/^#COPY target\//s/^#//' ./opendj-packages/opendj-docker/Dockerfile-alpine
+        run: |
+          cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
+          sed -i -E '/^#COPY target\//s/^#//' ./opendj-packages/opendj-docker/Dockerfile-alpine
       - name: Build image
         continue-on-error: true
         uses: docker/build-push-action@v5
