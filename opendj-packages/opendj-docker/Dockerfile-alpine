@@ -19,22 +19,24 @@ ENV BACKEND_TYPE="je"
 ENV BACKEND_DB_DIRECTORY="db"
 #ENV SETUP_ARGS
 
+ARG OPENDJ_DIST_FILENAME=opendj.zip
+
 ARG VERSION
 
 WORKDIR /opt
 
-#COPY opendj-*.zip .
+#COPY opendj-*.zip $OPENDJ_DIST_FILENAME
 
 RUN apk add --update --no-cache --virtual builddeps curl unzip \
  && apk upgrade --update --no-cache \
  && apk add bash openjdk11 \
  && if [ -z "$VERSION" ] ; then VERSION="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)"; fi \
- && if [ ! -f "/opt/opendj-*.zip" ]; then echo file exists && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output opendj-$VERSION.zip; fi \
- && unzip opendj-$VERSION.zip \
+ && if [ ! -f "$OPENDJ_DIST_FILENAME" ]; then echo file exists && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output $OPENDJ_DIST_FILENAME; fi \
+ && unzip $OPENDJ_DIST_FILENAME \
  && apk del builddeps \
  && apk del curl \
  && apk del unzip \
- && rm -r opendj-$VERSION.zip \
+ && rm -r $OPENDJ_DIST_FILENAME \
  && addgroup -S $OPENDJ_USER \
  && adduser -S -u 1001 -G $OPENDJ_USER $OPENDJ_USER \
  && install -d -o $OPENDJ_USER /opt/opendj/data \
