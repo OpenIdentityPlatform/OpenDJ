@@ -23,11 +23,13 @@ ARG VERSION
 
 WORKDIR /opt
 
+#COPY opendj-server-legacy/target/package/opendj-*.zip .
+
 RUN  apt-get update \
  && apt-get install -y --no-install-recommends curl unzip \
  && if [ -z "$VERSION" ] ; then VERSION="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)"; fi \
- && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output opendj-$VERSION.zip \
- && unzip opendj-$VERSION.zip \
+ && if [ ! -f "/opt/opendj-*.zip" ]; then echo file exists && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output opendj-$VERSION.zip; fi \
+ && unzip opendj-*.zip \
  && apt-get remove -y --purge curl unzip \
  && rm -rf /var/lib/apt/lists/* \
  && rm -r opendj-*.zip \
