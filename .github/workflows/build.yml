@@ -280,12 +280,20 @@ jobs:
           './dsreplication enable --no-prompt --host1 opendj1.example.org --port1 4444 --bindDN1 "cn=Directory Manager" --bindPassword1 password --replicationPort1 8989 \
             --host2 opendj2.example.org --port2 4444 --bindDN2 "cn=Directory Manager" --bindPassword2 password --replicationPort2 8989 \
             --adminUID admin --adminPassword password --baseDN dc=example,dc=com --trustAll --noPropertiesFile'
+          
+          docker exec -w '/opt/opendj/bin' opendj-2 /bin/bash -c \
+          './dsreplication initialize --baseDN dc=example,dc=com --adminUID admin --adminPassword password --hostSource opendj1.example.org \
+            --portSource 4444 --hostDestination opendj2.example.org --portDestination 4444 -X -n'
 
           echo "Setup replication on node 3"
           docker exec -w '/opt/opendj/bin' opendj-3 /bin/bash -c \
           './dsreplication enable --no-prompt --host1 opendj2.example.org --port1 4444 --bindDN1 "cn=Directory Manager" --bindPassword1 password --replicationPort1 9989 \
             --host2 opendj3.example.org --port2 4444 --bindDN2 "cn=Directory Manager" --bindPassword2 password --replicationPort2 8989 \
             --adminUID admin --adminPassword password --baseDN dc=example,dc=com --trustAll --noPropertiesFile'
+          
+          docker exec -w '/opt/opendj/bin' opendj-3 /bin/bash -c \
+          './dsreplication initialize --baseDN dc=example,dc=com --adminUID admin --adminPassword password --hostSource opendj2.example.org \
+            --portSource 4444 --hostDestination opendj3.example.org --portDestination 4444 -X -n'
 
           docker kill opendj-1 opendj-2 opendj-3
           
