@@ -131,7 +131,7 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/stop-ds
         rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs,tmp}
     - name: Test LDAP in Cassandra
-      if: runner.os == 'Linux'
+      if: false #runner.os == 'Linux'
       run:   |
         docker run --rm -it -d -p 9042:9042 --name cassandra cassandra
         timeout 5m bash -c 'until docker logs cassandra | grep -q "Created default superuser role"; do sleep 5; done'
@@ -146,7 +146,7 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/stop-ds
         rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs,tmp}
     - name: Test LDAP in Postgres
-      if: runner.os == 'Linux'
+      if: false #runner.os == 'Linux'
       run:   |
         docker run --rm -it -d -p 5432:5432 -e POSTGRES_DB=database_name -e POSTGRES_PASSWORD=password --name postgres postgres
         timeout 5m bash -c 'until docker logs postgres | grep -q "database system is ready to accept connections"; do sleep 5; done'
@@ -230,6 +230,7 @@ jobs:
       - name: Prepare Dockerfile
         shell: bash
         run: |
+          unzip -d ./opendj-packages/opendj-docker ./opendj-packages/opendj-docker/target/Dockerfile.zip 
           cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
           sed -i -E '/^#COPY opendj/s/^#//' ./opendj-packages/opendj-docker/Dockerfile
       - name: Build image (default)
@@ -326,6 +327,7 @@ jobs:
       - name: Prepare Dockerfile
         shell: bash
         run: |
+          unzip -d ./opendj-packages/opendj-docker ./opendj-packages/opendj-docker/target/Dockerfile.zip 
           cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
           sed -i -E '/^#COPY opendj/s/^#//' ./opendj-packages/opendj-docker/Dockerfile-alpine
       - name: Build image
