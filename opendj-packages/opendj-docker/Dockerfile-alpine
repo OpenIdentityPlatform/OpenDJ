@@ -23,7 +23,7 @@ ARG VERSION
 
 WORKDIR /opt
 
-#COPY target/opendj-*.zip .
+#COPY opendj-*.zip .
 
 RUN apk add --update --no-cache --virtual builddeps curl unzip \
  && apk upgrade --update --no-cache \

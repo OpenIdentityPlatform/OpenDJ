@@ -231,7 +231,7 @@ jobs:
         shell: bash
         run: |
           cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
-          sed -i -E '/^#COPY target\//s/^#//' ./opendj-packages/opendj-docker/Dockerfile
+          sed -i -E '/^#COPY opendj/s/^#//' ./opendj-packages/opendj-docker/Dockerfile
       - name: Build image (default)
         uses: docker/build-push-action@v5
         continue-on-error: true
@@ -327,7 +327,7 @@ jobs:
         shell: bash
         run: |
           cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
-          sed -i -E '/^#COPY target\//s/^#//' ./opendj-packages/opendj-docker/Dockerfile-alpine
+          sed -i -E '/^#COPY opendj/s/^#//' ./opendj-packages/opendj-docker/Dockerfile-alpine
       - name: Build image
         continue-on-error: true
         uses: docker/build-push-action@v5
