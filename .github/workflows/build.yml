@@ -235,7 +235,6 @@ jobs:
           sed -i -E '/^#COPY opendj/s/^#//' ./opendj-packages/opendj-docker/Dockerfile
       - name: Build image (default)
         uses: docker/build-push-action@v5
-        continue-on-error: true
         with:
           context: ./opendj-packages/opendj-docker
           file: ./opendj-packages/opendj-docker/Dockerfile
@@ -266,7 +265,7 @@ jobs:
           docker network create opendj-network
           
           echo "Starting OpenDJ nodes"
-          docker run -it --rm -d --name opendj-1 -h opendj1.example.org --network opendj-network -e SAMPLE_DATA=100 localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
+          docker run -it --rm -d --name opendj-1 -h opendj1.example.org --network opendj-network -e SAMPLE_DATA=100000 localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
           docker run -it --rm -d --name opendj-2 -h opendj2.example.org --network opendj-network localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
           docker run -it --rm -d --name opendj-3 -h opendj3.example.org --network opendj-network localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
 
@@ -287,7 +286,7 @@ jobs:
           
           docker exec -w '/opt/opendj/bin' opendj-2 /bin/bash -c \
           './ldapsearch --port 1636 --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll \
-            --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn  | grep ^dn: | wc -l | grep -q 100'
+            --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn  | grep ^dn: | wc -l | grep -q 100000'
 
           echo "Setup replication on node 3"
           docker exec -w '/opt/opendj/bin' opendj-3 /bin/bash -c \
@@ -301,7 +300,7 @@ jobs:
           
           docker exec -w '/opt/opendj/bin' opendj-3 /bin/bash -c \
           './ldapsearch --port 1636 --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll \
-            --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn  | grep ^dn: | wc -l | grep -q 100'
+            --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn  | grep ^dn: | wc -l | grep -q 100000'
 
           docker kill opendj-1 opendj-2 opendj-3
           
@@ -347,7 +346,6 @@ jobs:
           cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
           sed -i -E '/^#COPY opendj/s/^#//' ./opendj-packages/opendj-docker/Dockerfile-alpine
       - name: Build image
-        continue-on-error: true
         uses: docker/build-push-action@v5
         with:
           context: ./opendj-packages/opendj-docker
@@ -379,7 +377,7 @@ jobs:
           docker network create opendj-network
           
           echo "Starting OpenDJ nodes"
-          docker run -it --rm -d --name opendj-1 -h opendj1.example.org --network opendj-network -e SAMPLE_DATA=100 localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
+          docker run -it --rm -d --name opendj-1 -h opendj1.example.org --network opendj-network -e SAMPLE_DATA=100000 localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
           docker run -it --rm -d --name opendj-2 -h opendj2.example.org --network opendj-network localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
           docker run -it --rm -d --name opendj-3 -h opendj3.example.org --network opendj-network localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
 
@@ -401,7 +399,7 @@ jobs:
           
           docker exec -w '/opt/opendj/bin' opendj-2 /bin/bash -c \
           './ldapsearch --port 1636 --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll \
-            --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn  | grep ^dn: | wc -l | grep -q 100'
+            --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn  | grep ^dn: | wc -l | grep -q 100000'
 
           echo "Setup replication on node 3"
           
@@ -416,7 +414,7 @@ jobs:
           
           docker exec -w '/opt/opendj/bin' opendj-3 /bin/bash -c \
           './ldapsearch --port 1636 --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll \
-            --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn  | grep ^dn: | wc -l | grep -q 100'
+            --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn  | grep ^dn: | wc -l | grep -q 100000'
 
           docker kill opendj-1 opendj-2 opendj-3
           
