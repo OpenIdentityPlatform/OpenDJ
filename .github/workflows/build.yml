@@ -160,6 +160,61 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
         opendj-server-legacy/target/package/opendj/bin/stop-ds
         rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs,tmp}
+    - name: Test replication
+      if: runner.os != 'Windows'
+      run: |
+        cp -r ./opendj-server-legacy/target/package/opendj ./opendj-server-legacy/target/package/opendj1
+        cp -r ./opendj-server-legacy/target/package/opendj ./opendj-server-legacy/target/package/opendj2
+        cp -r ./opendj-server-legacy/target/package/opendj ./opendj-server-legacy/target/package/opendj3
+        
+        echo "Setup OpenDJ-1"
+        
+        opendj-server-legacy/target/package/opendj1/setup -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS \
+        --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com \
+        --sampleData 100000 --cli --acceptLicense --no-prompt
+        
+        echo "Setup OpenDJ-2 with replication"
+        
+        opendj-server-legacy/target/package/opendj2/setup -h localhost -p 2389 --ldapsPort 2636 --adminConnectorPort 24444 --enableStartTLS \
+        --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com \
+        --addBaseEntry --cli --acceptLicense --no-prompt
+        
+        opendj-server-legacy/target/package/opendj2/bin/dsreplication enable --no-prompt --host1 localhost --port1 4444 --bindDN1 "cn=Directory Manager"  --bindPassword1 password --replicationPort1 8989 \
+        --host2 localhost --port2 24444 --bindDN2 "cn=Directory Manager" --bindPassword2 password --replicationPort2 28989 \
+        --adminUID admin --adminPassword password --baseDN dc=example,dc=com --trustAll --noPropertiesFile
+        
+        opendj-server-legacy/target/package/opendj2/bin/dsreplication initialize --baseDN dc=example,dc=com --adminUID admin --adminPassword password --hostSource localhost \
+        --portSource 4444 --hostDestination localhost --portDestination 24444 -X -n
+        
+        opendj-server-legacy/target/package/opendj2/bin/ldapsearch --port 2636 --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll \
+        --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn  | grep ^dn: | wc -l | grep -q 100000
+        
+        echo "Setup OpenDJ-3 with replication"
+        
+        opendj-server-legacy/target/package/opendj3/setup -h localhost -p 3389 --ldapsPort 3636 --adminConnectorPort 34444 --enableStartTLS \
+        --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com \
+        --addBaseEntry --cli --acceptLicense --no-prompt
+        
+        opendj-server-legacy/target/package/opendj3/bin/dsreplication enable --no-prompt --host1 localhost --port1 24444 --bindDN1 "cn=Directory Manager"  --bindPassword1 password --replicationPort1 28989 \
+        --host2 localhost --port2 34444 --bindDN2 "cn=Directory Manager" --bindPassword2 password --replicationPort2 38989 \
+        --adminUID admin --adminPassword password --baseDN dc=example,dc=com --trustAll --noPropertiesFile
+        
+        opendj-server-legacy/target/package/opendj3/bin/dsreplication initialize --baseDN dc=example,dc=com --adminUID admin --adminPassword password --hostSource localhost \
+        --portSource 24444 --hostDestination localhost --portDestination 34444 -X -n
+        
+        opendj-server-legacy/target/package/opendj2/bin/ldapsearch --port 3636 --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll \
+        --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn  | grep ^dn: | wc -l | grep -q 100000
+        
+        echo "Stopping and removing OpenDJ instances"
+        
+        opendj-server-legacy/target/package/opendj1/bin/stop-ds
+        opendj-server-legacy/target/package/opendj2/bin/stop-ds
+        opendj-server-legacy/target/package/opendj3/bin/stop-ds
+        
+        rm -rf ./opendj-server-legacy/target/package/opendj1
+        rm -rf ./opendj-server-legacy/target/package/opendj2
+        rm -rf ./opendj-server-legacy/target/package/opendj3
+
     - name: Test on Windows
       if: runner.os == 'Windows'
       run:   |
@@ -196,6 +251,7 @@ jobs:
             opendj-dsml-servlet/target/*.war
             opendj-rest2ldap-servlet/target/*.war
   build-docker:
+    needs: build-maven
     runs-on: 'ubuntu-latest'
     services:
       registry:
@@ -203,10 +259,10 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
-          fetch-depth: 0
-          submodules: recursive
+          name: ubuntu-latest-11
       - name: Get latest release version
         shell: bash
         run:   |
@@ -226,9 +282,14 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           driver-opts: network=host
+      - name: Prepare Dockerfile
+        shell: bash
+        run: |
+          unzip -d ./opendj-packages/opendj-docker ./opendj-packages/opendj-docker/target/Dockerfile.zip 
+          cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
+          sed -i -E '/^#COPY opendj/s/^#//' ./opendj-packages/opendj-docker/Dockerfile
       - name: Build image (default)
         uses: docker/build-push-action@v5
-        continue-on-error: true
         with:
           context: ./opendj-packages/opendj-docker
           file: ./opendj-packages/opendj-docker/Dockerfile
@@ -251,8 +312,10 @@ jobs:
           docker exec test 'sh' '-c' '/opt/opendj/bin/start-ds'
           docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
           docker exec test 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000'
+          docker kill test
 
   build-docker-alpine:
+    needs: build-maven
     runs-on: 'ubuntu-latest'
     services:
       registry:
@@ -260,10 +323,10 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
-          fetch-depth: 0
-          submodules: recursive
+          name: ubuntu-latest-11
       - name: Get latest release version
         shell: bash
         run:   |
@@ -284,8 +347,13 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           driver-opts: network=host
+      - name: Prepare Dockerfile
+        shell: bash
+        run: |
+          unzip -d ./opendj-packages/opendj-docker ./opendj-packages/opendj-docker/target/Dockerfile.zip 
+          cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
+          sed -i -E '/^#COPY opendj/s/^#//' ./opendj-packages/opendj-docker/Dockerfile-alpine
       - name: Build image
-        continue-on-error: true
         uses: docker/build-push-action@v5
         with:
           context: ./opendj-packages/opendj-docker
@@ -309,4 +377,4 @@ jobs:
           docker exec test 'sh' '-c' '/opt/opendj/bin/start-ds'
           docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
           docker exec test 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000'
-
+          docker kill test
