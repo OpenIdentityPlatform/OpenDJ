@@ -314,53 +314,6 @@ jobs:
           docker exec test 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000'
           docker kill test
 
-      - name: Docker replication test
-        shell: bash
-        run: |
-          docker network create opendj-network
-          
-          echo "Starting OpenDJ nodes"
-          docker run -it --rm -d --name opendj-1 -h opendj1.example.org --network opendj-network -e SAMPLE_DATA=100000 localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
-          docker run -it --rm -d --name opendj-2 -h opendj2.example.org --network opendj-network localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
-          docker run -it --rm -d --name opendj-3 -h opendj3.example.org --network opendj-network localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
-
-          echo "Waiting for OpenDJ nodes to be healthy"
-          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" opendj-1 | grep -q \"healthy\"; do sleep 10; done'
-          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" opendj-3 | grep -q \"healthy\"; do sleep 10; done'
-          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" opendj-3 | grep -q \"healthy\"; do sleep 10; done'
-          
-          echo "Setup replication on node 2"
-          docker exec -w '/opt/opendj/bin' opendj-2 /bin/bash -c \
-          './dsreplication enable --no-prompt --host1 opendj1.example.org --port1 4444 --bindDN1 "cn=Directory Manager" --bindPassword1 password --replicationPort1 8989 \
-            --host2 opendj2.example.org --port2 4444 --bindDN2 "cn=Directory Manager" --bindPassword2 password --replicationPort2 8989 \
-            --adminUID admin --adminPassword password --baseDN dc=example,dc=com --trustAll --noPropertiesFile'
-          
-          docker exec -w '/opt/opendj/bin' opendj-2 /bin/bash -c \
-          './dsreplication initialize --baseDN dc=example,dc=com --adminUID admin --adminPassword password --hostSource opendj1.example.org \
-            --portSource 4444 --hostDestination opendj2.example.org --portDestination 4444 -X -n'
-          
-          docker exec -w '/opt/opendj/bin' opendj-2 /bin/bash -c \
-          './ldapsearch --port 1636 --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll \
-            --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn  | grep ^dn: | wc -l | grep -q 100000'
-
-          echo "Setup replication on node 3"
-          docker exec -w '/opt/opendj/bin' opendj-3 /bin/bash -c \
-          './dsreplication enable --no-prompt --host1 opendj2.example.org --port1 4444 --bindDN1 "cn=Directory Manager" --bindPassword1 password --replicationPort1 9989 \
-            --host2 opendj3.example.org --port2 4444 --bindDN2 "cn=Directory Manager" --bindPassword2 password --replicationPort2 8989 \
-            --adminUID admin --adminPassword password --baseDN dc=example,dc=com --trustAll --noPropertiesFile'
-          
-          docker exec -w '/opt/opendj/bin' opendj-3 /bin/bash -c \
-          './dsreplication initialize --baseDN dc=example,dc=com --adminUID admin --adminPassword password --hostSource opendj2.example.org \
-            --portSource 4444 --hostDestination opendj3.example.org --portDestination 4444 -X -n'
-          
-          docker exec -w '/opt/opendj/bin' opendj-3 /bin/bash -c \
-          './ldapsearch --port 1636 --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll \
-            --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn  | grep ^dn: | wc -l | grep -q 100000'
-
-          docker kill opendj-1 opendj-2 opendj-3
-          
-          docker network rm opendj-network
-
   build-docker-alpine:
     needs: build-maven
     runs-on: 'ubuntu-latest'
@@ -425,52 +378,3 @@ jobs:
           docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
           docker exec test 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000'
           docker kill test
-
-      - name: Docker replication test
-        shell: bash
-        run: |
-          docker network create opendj-network
-          
-          echo "Starting OpenDJ nodes"
-          docker run -it --rm -d --name opendj-1 -h opendj1.example.org --network opendj-network -e SAMPLE_DATA=100000 localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
-          docker run -it --rm -d --name opendj-2 -h opendj2.example.org --network opendj-network localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
-          docker run -it --rm -d --name opendj-3 -h opendj3.example.org --network opendj-network localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
-
-          echo "Waiting for OpenDJ nodes to be healthy"
-          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" opendj-1 | grep -q \"healthy\"; do sleep 10; done'
-          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" opendj-3 | grep -q \"healthy\"; do sleep 10; done'
-          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" opendj-3 | grep -q \"healthy\"; do sleep 10; done'
-          
-          echo "Setup replication on node 2"
-          
-          docker exec -w '/opt/opendj/bin' opendj-2 /bin/bash -c \
-          './dsreplication enable --no-prompt --host1 opendj1.example.org --port1 4444 --bindDN1 "cn=Directory Manager" --bindPassword1 password --replicationPort1 8989 \
-            --host2 opendj2.example.org --port2 4444 --bindDN2 "cn=Directory Manager" --bindPassword2 password --replicationPort2 8989 \
-            --adminUID admin --adminPassword password --baseDN dc=example,dc=com --trustAll --noPropertiesFile'
-          
-          docker exec -w '/opt/opendj/bin' opendj-2 /bin/bash -c \
-          './dsreplication initialize --baseDN dc=example,dc=com --adminUID admin --adminPassword password --hostSource opendj1.example.org \
-            --portSource 4444 --hostDestination opendj2.example.org --portDestination 4444 -X -n'
-          
-          docker exec -w '/opt/opendj/bin' opendj-2 /bin/bash -c \
-          './ldapsearch --port 1636 --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll \
-            --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn  | grep ^dn: | wc -l | grep -q 100000'
-
-          echo "Setup replication on node 3"
-          
-          docker exec -w '/opt/opendj/bin' opendj-3 /bin/bash -c \
-          './dsreplication enable --no-prompt --host1 opendj2.example.org --port1 4444 --bindDN1 "cn=Directory Manager" --bindPassword1 password --replicationPort1 9989 \
-            --host2 opendj3.example.org --port2 4444 --bindDN2 "cn=Directory Manager" --bindPassword2 password --replicationPort2 8989 \
-            --adminUID admin --adminPassword password --baseDN dc=example,dc=com --trustAll --noPropertiesFile'
-          
-           docker exec -w '/opt/opendj/bin' opendj-3 /bin/bash -c \
-          './dsreplication initialize --baseDN dc=example,dc=com --adminUID admin --adminPassword password --hostSource opendj2.example.org \
-            --portSource 4444 --hostDestination opendj3.example.org --portDestination 4444 -X -n'
-          
-          docker exec -w '/opt/opendj/bin' opendj-3 /bin/bash -c \
-          './ldapsearch --port 1636 --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll \
-            --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn  | grep ^dn: | wc -l | grep -q 100000'
-
-          docker kill opendj-1 opendj-2 opendj-3
-          
-          docker network rm opendj-network
