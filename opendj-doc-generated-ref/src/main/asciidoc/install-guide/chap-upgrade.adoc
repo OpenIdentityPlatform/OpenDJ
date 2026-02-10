@@ -12,17 +12,18 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024-2025 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 ////
 
 :figure-caption!:
 :example-caption!:
 :table-caption!:
-:opendj-version: 4.9.3
+:opendj-version: 5.0.3
+:opendj-version-short: 5.0
 
 
 [#chap-upgrade]
-== Upgrading to OpenDJ 4.9
+== Upgrading to OpenDJ {opendj-version-short}
 
 This chapter covers upgrade from previous versions.
 
@@ -40,9 +41,9 @@ This chapter includes the following procedures and examples:
 
 * xref:#before-you-upgrade["Before You Upgrade"]
 
-* xref:#upgrade-zip["To Upgrade to OpenDJ 4.9"]
+* xref:#upgrade-zip["To Upgrade to OpenDJ {opendj-version-short}"]
 
-* xref:#upgrade-zip-example["Upgrading to OpenDJ 4.9"]
+* xref:#upgrade-zip-example["Upgrading to OpenDJ {opendj-version-short}"]
 
 * xref:#upgrade-repl["To Upgrade Replicated Servers"]
 
@@ -84,7 +85,7 @@ Due to changes to the backup archive format, make sure you stop OpenDJ directory
 ====
 
 [#upgrade-zip]
-.To Upgrade to OpenDJ 4.9
+.To Upgrade to OpenDJ {opendj-version-short}
 ====
 Before starting this procedure, follow the steps in xref:#before-you-upgrade["Before You Upgrade"].
 
