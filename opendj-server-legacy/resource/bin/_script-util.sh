@@ -14,7 +14,7 @@
 #
 # Copyright 2008-2010 Sun Microsystems, Inc.
 # Portions Copyright 2010-2016 ForgeRock AS.
-# Portions Copyright 2019-2025 3A Systems, LLC.
+# Portions Copyright 2019-2026 3A Systems, LLC.
 #
 # Display an error message
 #
@@ -85,6 +85,18 @@ set_opendj_java_bin() {
 
 set_temp_dir() {
   OPENDJ_TMP_DIR="${INSTANCE_ROOT}/tmp"
+  # check if instance root is mounted as noexec
+  if volume=`df -P ${INSTANCE_ROOT} | tail -1 | awk '{print $6}'` &&  mount | grep "$volume " | grep -q noexec; then
+    OPENDJ_TMP_DIR=${HOME}/tmp
+    if [ ! -d "${OPENDJ_TMP_DIR}" ]; then #show warning if temp directory does not exist
+      echo "WARNING: instance root $INSTANCE_ROOT is mounted as noexec, switching to $HOME/tmp as a tmpdir"
+    fi
+  fi
+
+  if volume=`df -P ${HOME} | tail -1 | awk '{print $6}'` &&  mount | grep "$volume " | grep -q noexec; then
+    echo "WARNING: $HOME/tmp is mounted as noexec, the OpenDJ installation could cause errors"
+  fi
+
   if [ ! -d "${OPENDJ_TMP_DIR}" ]; then
     mkdir ${OPENDJ_TMP_DIR}
   fi
