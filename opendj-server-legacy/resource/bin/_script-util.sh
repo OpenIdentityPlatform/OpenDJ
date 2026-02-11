@@ -85,17 +85,23 @@ set_opendj_java_bin() {
 
 set_temp_dir() {
   OPENDJ_TMP_DIR="${INSTANCE_ROOT}/tmp"
-  # check if instance root is mounted as noexec
-  if volume=`df -P ${INSTANCE_ROOT} | tail -1 | awk '{print $6}'` &&  mount | grep "$volume " | grep -q noexec; then
+  # check if instance root is mounted as noexec & current user is able to execute files
+  TMP_FILE=`mktemp ${INSTANCE_ROOT}/temp.XXXXXX`
+  chmod +x ${TMP_FILE}
+  if ! ${TMP_FILE} 2>/dev/null; then
     OPENDJ_TMP_DIR=${HOME}/tmp
     if [ ! -d "${OPENDJ_TMP_DIR}" ]; then #show warning if temp directory does not exist
       echo "WARNING: instance root $INSTANCE_ROOT is mounted as noexec, switching to $HOME/tmp as a tmpdir"
     fi
   fi
+  rm -rf ${TMP_FILE}
 
-  if volume=`df -P ${HOME} | tail -1 | awk '{print $6}'` &&  mount | grep "$volume " | grep -q noexec; then
+  TMP_FILE=`mktemp ${HOME}/temp.XXXXXX`
+  chmod +x ${TMP_FILE}
+  if ! ${TMP_FILE} 2>/dev/null; then
     echo "WARNING: $HOME/tmp is mounted as noexec, the OpenDJ installation could cause errors"
   fi
+  rm -rf ${TMP_FILE}
 
   if [ ! -d "${OPENDJ_TMP_DIR}" ]; then
     mkdir ${OPENDJ_TMP_DIR}
