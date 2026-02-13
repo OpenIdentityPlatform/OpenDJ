@@ -14,7 +14,7 @@
 #
 # Copyright 2008-2010 Sun Microsystems, Inc.
 # Portions Copyright 2010-2016 ForgeRock AS.
-# Portions Copyright 2019-2025 3A Systems, LLC.
+# Portions Copyright 2019-2026 3A Systems, LLC.
 #
 # Display an error message
 #
