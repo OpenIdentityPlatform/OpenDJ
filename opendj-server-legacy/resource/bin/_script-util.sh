@@ -14,7 +14,7 @@
 #
 # Copyright 2008-2010 Sun Microsystems, Inc.
 # Portions Copyright 2010-2016 ForgeRock AS.
-# Portions Copyright 2019-2026 3A Systems, LLC.
+# Portions Copyright 2019-2025 3A Systems, LLC.
 #
 # Display an error message
 #
@@ -83,25 +83,50 @@ set_opendj_java_bin() {
   export OPENDJ_JAVA_BIN
 }
 
-set_temp_dir() {
-  OPENDJ_TMP_DIR="${INSTANCE_ROOT}/tmp"
-  # check if instance root is mounted as noexec & current user is able to execute files
-  TMP_FILE=`mktemp ${INSTANCE_ROOT}/temp.XXXXXX`
+check_noexec() { #returns 0 if can execute files in the directory, otherwise 1
+  local DIR_TO_TEST=$1
+  local res=0
+  local remove_dir=0
+
+  if [ ! -d "${DIR_TO_TEST}" ]; then
+    remove_dir=1
+    mkdir ${DIR_TO_TEST}
+  fi
+
+  local TMP_FILE=`mktemp ${DIR_TO_TEST}/temp.XXXXXX`
+
   chmod +x ${TMP_FILE}
   if ! ${TMP_FILE} 2>/dev/null; then
-    OPENDJ_TMP_DIR=${HOME}/tmp
-    if [ ! -d "${OPENDJ_TMP_DIR}" ]; then #show warning if temp directory does not exist
-      echo "WARNING: instance root $INSTANCE_ROOT is mounted as noexec, switching to $HOME/tmp as a tmpdir"
-    fi
+    res=1
   fi
+
   rm -rf ${TMP_FILE}
 
-  TMP_FILE=`mktemp ${HOME}/temp.XXXXXX`
-  chmod +x ${TMP_FILE}
-  if ! ${TMP_FILE} 2>/dev/null; then
-    echo "WARNING: $HOME/tmp is mounted as noexec, the OpenDJ installation could cause errors"
+  if [ $remove_dir = 1 ]; then
+    rm -rf $DIR_TO_TEST
   fi
-  rm -rf ${TMP_FILE}
+
+  return $res
+}
+
+set_temp_dir() {
+
+  OPENDJ_TMP_DIR="${INSTANCE_ROOT}/tmp"
+
+  check_noexec "${OPENDJ_TMP_DIR}"
+  local res=$?
+  if [ $res = 1 ]; then
+    if [ "$SCRIPT_NAME" = "setup" ] ; then
+      echo "WARNING: instance root $INSTANCE_ROOT is mounted as noexec, switching to $HOME/tmp as a tmpdir"
+    fi
+    OPENDJ_TMP_DIR=${HOME}/tmp
+    check_noexec "${OPENDJ_TMP_DIR}"
+    res=$?
+    if [ $res = 1 ] && [ "$SCRIPT_NAME" = "setup" ]; then
+      echo "WARNING: $HOME/tmp is mounted as noexec, the OpenDJ installation could cause errors"
+    fi
+  fi
+
 
   if [ ! -d "${OPENDJ_TMP_DIR}" ]; then
     mkdir ${OPENDJ_TMP_DIR}
@@ -351,4 +376,3 @@ elif test "${SCRIPT_UTIL_CMD}" = "test-java"
 then
   test_java
 fi
-
