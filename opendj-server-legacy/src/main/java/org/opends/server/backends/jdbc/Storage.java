@@ -44,7 +44,7 @@ import static org.opends.server.backends.pluggable.spi.StorageUtils.addErrorMess
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 public class Storage implements org.opends.server.backends.pluggable.spi.Storage, ConfigurationChangeListener<JDBCBackendCfg>{
-
+	
 	private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 	private JDBCBackendCfg config;
@@ -107,7 +107,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	public StorageStatus getStorageStatus() {
 		return storageStatus;
 	}
-
+	
 	@Override
 	public void close() {
 		storageStatus = StorageStatus.lockedDown(LocalizableMessage.raw("closed"));
@@ -168,7 +168,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			close();
 		}
 	}
-
+	
 	//operation
 	@Override
 	public <T> T read(ReadOperation<T> readOperation) throws Exception {
@@ -300,7 +300,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				}
 			}
 		}
-
+		
 		public void clearTree(TreeName treeName) {
 			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName))){
 				execute(statement);
@@ -413,7 +413,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			}
 		}
 	}
-
+	
 	private final class CursorImpl implements Cursor<ByteString, ByteString> {
 		final TreeName treeName;
 
@@ -521,7 +521,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			}
 			return false;
 		}
-
+		
 		@Override
 		public boolean positionToKey(ByteSequence key) {
 			if (!isDefined() || key.compareTo(getKey())<0) {  //restart iterator
@@ -549,7 +549,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			return false;
 		}
 
-
+		
 		@Override
 		public boolean positionToLastKey() {
 			try{
@@ -583,7 +583,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			return false;
 		}
 	}
-
+	
 	@Override
 	public Set<TreeName> listTrees() {
 		return tree2table.asMap().keySet();
@@ -595,7 +595,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		final WriteableTransactionTransactionImpl txw;
 
 		final Boolean isOpen;
-
+		
 		public ImporterImpl() {
 			isOpen=getStorageStatus().isWorking();
 			if (!isOpen) {
@@ -613,7 +613,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			txr =new ReadableTransactionImpl(con);
 			txw =new WriteableTransactionTransactionImpl(con);
 		}
-
+		
 		@Override
 		public void close() {
 			try {
@@ -626,34 +626,34 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				Storage.this.close();
 			}
 		}
-
+		
 		@Override
 		public void clearTree(TreeName name) {
 			txw.clearTree(name);
 		}
-
+		
 		@Override
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
 			txw.put(treeName, key, value);
 		}
-
+		
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
 			return txr.read(treeName, key);
 		}
-
+		
 		@Override
 		public SequentialCursor<ByteString, ByteString> openCursor(TreeName treeName) {
 			return txr.openCursor(treeName);
 		}
 	}
-
+	
 	//import
 	@Override
 	public Importer startImport() throws ConfigException, StorageRuntimeException {
 		return new ImporterImpl();
 	}
-
+	
 	//backup
 	@Override
 	public boolean supportsBackupAndRestore() {
