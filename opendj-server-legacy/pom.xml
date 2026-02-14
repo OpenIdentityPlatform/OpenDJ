@@ -193,17 +193,18 @@
       <artifactId>handler-jdbc</artifactId>
     </dependency>
 
-    <!-- slf4j libraries -->
-<!--     <dependency> -->
-<!--       <groupId>org.slf4j</groupId> -->
-<!--       <artifactId>slf4j-jdk14</artifactId> -->
-<!--     </dependency> -->
-
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>jul-to-slf4j</artifactId>
     </dependency>
 
+    <!-- Source: https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine -->
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <version>3.2.3</version>
+      <scope>compile</scope>
+    </dependency>
 
     <!-- mail -->
     <dependency>

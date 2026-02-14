@@ -15,9 +15,9 @@
  */
 package org.opends.server.backends.jdbc;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -36,9 +36,9 @@ import org.opends.server.util.BackupManager;
 
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 import static org.opends.server.backends.pluggable.spi.StorageUtils.addErrorMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -47,11 +47,11 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	
 	private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    private JDBCBackendCfg config;
-	  
+	private JDBCBackendCfg config;
+
 	public Storage(JDBCBackendCfg cfg, ServerContext serverContext) {
-        this.config = cfg;
-	    cfg.addJDBCChangeListener(this);
+		this.config = cfg;
+		cfg.addJDBCChangeListener(this);
 	}
 
 	//config
@@ -63,15 +63,15 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	@Override
 	public ConfigChangeResult applyConfigurationChange(JDBCBackendCfg cfg) {
 		final ConfigChangeResult ccr = new ConfigChangeResult();
-	    try
-	    {
-	    	this.config = cfg;
-	    }
-	    catch (Exception e)
-	    {
-	      addErrorMessage(ccr, LocalizableMessage.raw(stackTraceToSingleLineString(e)));
-	    }
-	    return ccr;
+		try
+		{
+			this.config = cfg;
+		}
+		catch (Exception e)
+		{
+			addErrorMessage(ccr, LocalizableMessage.raw(stackTraceToSingleLineString(e)));
+		}
+		return ccr;
 	}
 
 	ResultSet executeResultSet(PreparedStatement statement) throws SQLException {
@@ -88,7 +88,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		return statement.executeUpdate();
 	}
 
-    Connection getConnection() throws Exception {
+	Connection getConnection() throws Exception {
 		return CachedConnection.getConnection(config.getDBDirectory());
 	}
 
@@ -113,29 +113,26 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		storageStatus = StorageStatus.lockedDown(LocalizableMessage.raw("closed"));
 	}
 
-	final LoadingCache<TreeName,String> tree2table= CacheBuilder.newBuilder()
-			.build(new CacheLoader<TreeName, String>() {
-				@Override
-				public String load(TreeName treeName) throws Exception {
-					final MessageDigest md = MessageDigest.getInstance("SHA-224");
-					final byte[] messageDigest = md.digest(treeName.toString().getBytes());
-					final StringBuilder hashtext = new StringBuilder(56);
-					for (byte b : messageDigest) {
-						String hex = Integer.toHexString(0xff & b);
-						if (hex.length() == 1) hashtext.append('0');
-						hashtext.append(hex);
-					}
-					return "opendj_"+hashtext;
+	final LoadingCache<TreeName,String> tree2table = Caffeine.newBuilder()
+		.build(treeName -> {
+			try {
+				final MessageDigest md = MessageDigest.getInstance("SHA-224");
+				final byte[] messageDigest = md.digest(treeName.toString().getBytes());
+				final StringBuilder hashtext = new StringBuilder(56);
+				for (byte b : messageDigest) {
+					String hex = Integer.toHexString(0xff & b);
+					if (hex.length() == 1) hashtext.append('0');
+					hashtext.append(hex);
 				}
-			});
+				return "opendj_" + hashtext;
+			} catch (NoSuchAlgorithmException e) {
+				throw new RuntimeException(e);
+			}
+		});
 
 	String getTableName(TreeName treeName) {
-        try {
-            return tree2table.get(treeName);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        }
-    }
+		return tree2table.get(treeName);
+	}
 
 	@Override
 	public void removeStorageFiles() throws StorageRuntimeException {
@@ -195,7 +192,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		}
 	}
 
-	final static byte[] NULL=new byte[]{(byte)0};
+	static final byte[] NULL=new byte[]{(byte)0};
 
 	static byte[] real2db(byte[] real) {
 		return real.length==0?NULL:real;
@@ -204,22 +201,24 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		return Arrays.equals(NULL,db)?new byte[0]:db;
 	}
 
-	final LoadingCache<ByteBuffer,String> key2hash= CacheBuilder.newBuilder()
-			.softValues()
-			.build(new CacheLoader<ByteBuffer, String>() {
-				@Override
-				public String load(ByteBuffer key) throws Exception {
-					final MessageDigest md = MessageDigest.getInstance("SHA-512");
-					final byte[] messageDigest = md.digest(key.array());
-					final StringBuilder hashtext = new StringBuilder(128);
-					for (byte b : messageDigest) {
-						String hex = Integer.toHexString(0xff & b);
-						if (hex.length() == 1) hashtext.append('0');
-						hashtext.append(hex);
-					}
-					return hashtext.toString();
+	final LoadingCache<ByteBuffer,String> key2hash = Caffeine.newBuilder()
+		.softValues()
+		.build(key -> {
+			try {
+				final MessageDigest md = MessageDigest.getInstance("SHA-512");
+				final byte[] messageDigest = md.digest(key.array());
+				final StringBuilder hashtext = new StringBuilder(128);
+				for (byte b : messageDigest) {
+					String hex = Integer.toHexString(0xff & b);
+					if (hex.length() == 1) hashtext.append('0');
+					hashtext.append(hex);
 				}
-			});
+				return hashtext.toString();
+			} catch (NoSuchAlgorithmException e) {
+				throw new RuntimeException(e);
+			}
+		});
+
 	private class ReadableTransactionImpl implements ReadableTransaction {
 		final Connection con;
 		boolean isReadOnly=true;
@@ -236,7 +235,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				try(ResultSet rc=executeResultSet(statement)) {
 					return rc.next() ? ByteString.wrap(rc.getBytes("v")) : null;
 				}
-			}catch (SQLException|ExecutionException e) {
+			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
 		}
@@ -327,12 +326,12 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
 			try {
 				upsert(treeName, key, value);
-			} catch (SQLException|ExecutionException e) {
+			} catch (SQLException e) {
 				throw new RuntimeException(e);
 			}
 		}
 
-		boolean upsert(TreeName treeName, ByteSequence key, ByteSequence value) throws SQLException, ExecutionException {
+		boolean upsert(TreeName treeName, ByteSequence key, ByteSequence value) throws SQLException {
 			final String driverName=((CachedConnection) con).parent.getClass().getName();
 			if (driverName.contains("postgres")) { //postgres upsert
 				try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) values (?,?,?) ON CONFLICT (h, k) DO UPDATE set v=excluded.v")) {
@@ -367,7 +366,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			}
 		}
 
-		boolean insert(TreeName treeName, ByteSequence key, ByteSequence value) throws SQLException, ExecutionException {
+		boolean insert(TreeName treeName, ByteSequence key, ByteSequence value) throws SQLException {
 			try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) select ?,?,? where not exists (select 1 from "+getTableName(treeName)+" where  h=? and k=? )")) {
 				statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2, real2db(key.toByteArray()));
@@ -378,7 +377,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			}
 		}
 
-		boolean update(TreeName treeName, ByteSequence key, ByteSequence value) throws SQLException, ExecutionException {
+		boolean update(TreeName treeName, ByteSequence key, ByteSequence value) throws SQLException {
 			try (final PreparedStatement statement=con.prepareStatement("update "+getTableName(treeName)+" set v=? where h=? and k=?")){
 				statement.setBytes(1,value.toByteArray());
 				statement.setString(2,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
@@ -392,14 +391,14 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			final ByteString oldValue=read(treeName,key);
 			final ByteSequence newValue=f.computeNewValue(oldValue);
 			if (Objects.equals(newValue, oldValue))
-	        {
+			{
 				return false;
-	        }
-	        if (newValue == null)
-	        {
+			}
+			if (newValue == null)
+			{
 				return delete(treeName, key);
-	        }
-	        put(treeName,key,newValue);
+			}
+			put(treeName,key,newValue);
 			return true;
 		}
 
@@ -409,7 +408,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
 				return (execute(statement)==1 && statement.getUpdateCount()>0);
-			}catch (SQLException|ExecutionException e) {
+			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
 		}
@@ -426,8 +425,8 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			this.isReadOnly=isReadOnly;
 			try {
 				statement=con.prepareStatement("select h,k,v from "+getTableName(treeName)+" order by k",
-						isReadOnly?ResultSet.TYPE_SCROLL_INSENSITIVE:ResultSet.TYPE_SCROLL_SENSITIVE,
-						isReadOnly?ResultSet.CONCUR_READ_ONLY:ResultSet.CONCUR_UPDATABLE);
+					isReadOnly?ResultSet.TYPE_SCROLL_INSENSITIVE:ResultSet.TYPE_SCROLL_SENSITIVE,
+					isReadOnly?ResultSet.CONCUR_READ_ONLY:ResultSet.CONCUR_UPDATABLE);
 				rc=executeResultSet(statement);
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
