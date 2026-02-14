@@ -15,72 +15,66 @@
  */
 package org.opends.server.backends.jdbc;
 
-import com.google.common.cache.*;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.RemovalCause;
 
 import java.sql.*;
-import java.util.LinkedList;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Queue;
 import java.util.concurrent.*;
 
 public class CachedConnection implements Connection {
     final Connection parent;
 
-    static LoadingCache<String, BlockingQueue<CachedConnection>> cached= CacheBuilder.newBuilder()
-            .expireAfterAccess(Long.parseLong(System.getProperty("org.openidentityplatform.opendj.jdbc.ttl","15000")), TimeUnit.MILLISECONDS)
-            .removalListener(new RemovalListener<String, BlockingQueue<CachedConnection>>() {
-                @Override
-                public void onRemoval(RemovalNotification<String, BlockingQueue<CachedConnection>> notification) {
-                    assert notification.getValue() != null;
-                    for (CachedConnection con: notification.getValue()) {
-                            try {
-                                if (!con.isClosed()) {
-                                    con.parent.close();
-                                }
-                            } catch (SQLException e) {
-                            }
-                        }
+    static LoadingCache<String, BlockingQueue<CachedConnection>> cached = Caffeine.newBuilder()
+        .expireAfterAccess(Duration.ofMillis(Long.parseLong(System.getProperty("org.openidentityplatform.opendj.jdbc.ttl","15000"))))
+        .removalListener((String key, BlockingQueue<CachedConnection> value, RemovalCause cause) -> {
+            for (CachedConnection con : value) {
+                try {
+                    if (!con.isClosed()) {
+                        con.parent.close();
+                    }
+                } catch (SQLException e) {
+                    // ignore
                 }
-            })
-            .build(new CacheLoader<String, BlockingQueue<CachedConnection>>() {
-                @Override
-                public BlockingQueue<CachedConnection> load(String connectionString) throws Exception {
-                    return new LinkedBlockingQueue<>();
-                }
-            });
+            }
+        })
+        .build(conStr -> new LinkedBlockingQueue<>());
 
     final String connectionString;
-    public CachedConnection(String connectionString,Connection parent) {
-        this.connectionString=connectionString;
+    public CachedConnection(String connectionString, Connection parent) {
+        this.connectionString = connectionString;
         this.parent = parent;
     }
 
     static Connection getConnection(String connectionString) throws Exception {
-        return getConnection(connectionString,0);
+        return getConnection(connectionString, 0);
     }
 
     static Connection getConnection(String connectionString, final int waitTime) throws Exception {
-        CachedConnection con=cached.get(connectionString).poll(waitTime,TimeUnit.MILLISECONDS);
-        while(con!=null) {
+        CachedConnection con = cached.get(connectionString).poll(waitTime, TimeUnit.MILLISECONDS);
+
+        while (con != null) {
             if (!con.isValid(0)) {
                 try {
                     con.parent.close();
                 } catch (SQLException e) {
-                    con=null;
+                    con = null;
                 }
-                con=cached.get(connectionString).poll();
-            }else{
+                con = cached.get(connectionString).poll();
+            } else {
                 return con;
             }
         }
         try {
-            final Connection conNew= DriverManager.getConnection(connectionString);
+            final Connection conNew = DriverManager.getConnection(connectionString);
             conNew.setAutoCommit(false);
             conNew.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
             return new CachedConnection(connectionString, conNew);
-        }catch (SQLException e) { //max_connection server error: try recursion for reuse connection
-            return getConnection(connectionString,(waitTime==0)?1:waitTime*2);
+        } catch (SQLException e) { // max_connection server error: try recursion for reuse connection
+            return getConnection(connectionString, (waitTime == 0) ? 1 : waitTime * 2);
         }
     }
 
@@ -127,11 +121,7 @@ public class CachedConnection implements Connection {
     @Override
     public void close() throws SQLException {
         rollback();
-        try {
-            cached.get(connectionString).add(this);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        }
+        cached.get(connectionString).add(this);
     }
 
     @Override
@@ -196,7 +186,7 @@ public class CachedConnection implements Connection {
 
     @Override
     public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-        return parent.prepareCall(sql, resultSetType, resultSetConcurrency) ;
+        return parent.prepareCall(sql, resultSetType, resultSetConcurrency);
     }
 
     @Override
