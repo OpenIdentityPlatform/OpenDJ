@@ -39,8 +39,8 @@
         <freemarker.version>2.3.34</freemarker.version>
         <metrics-core.version>4.2.30</metrics-core.version>
         <bc.fips.version>2.1.2</bc.fips.version>
-        <bctls.fips.version>2.1.20</bctls.fips.version>
-        <bcpkix.fips.version>2.1.9</bcpkix.fips.version>
+        <bctls.fips.version>2.1.22</bctls.fips.version>
+        <bcpkix.fips.version>2.1.10</bcpkix.fips.version>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <!-- OSGi bundles properties -->
