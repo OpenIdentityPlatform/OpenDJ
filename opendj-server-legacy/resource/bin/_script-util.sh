@@ -117,17 +117,16 @@ set_temp_dir() {
   local res=$?
   if [ $res = 1 ]; then
     if [ "$SCRIPT_NAME" = "setup" ] ; then
-      echo "WARNING: instance root $INSTANCE_ROOT is mounted as noexec, switching to $HOME/tmp as a tmpdir"
+      echo "WARNING: instance root $INSTANCE_ROOT/tmp is mounted as noexec, try switching to $HOME for org.bouncycastle.native.loader.install_dir"
     fi
-    OPENDJ_TMP_DIR=${HOME}/tmp
-    check_noexec "${OPENDJ_TMP_DIR}"
+    check_noexec "${HOME}"
     res=$?
-    if [ $res = 1 ] && [ "$SCRIPT_NAME" = "setup" ]; then
-      echo "WARNING: $HOME/tmp is mounted as noexec, the OpenDJ installation could cause errors"
+	if [ $res = 0 ]; then
+	  OPENDJ_JAVA_ARGS="${OPENDJ_JAVA_ARGS} -Dorg.bouncycastle.native.loader.install_dir=${HOME}"
+    else if [ "$SCRIPT_NAME" = "setup" ]; then
+      echo "WARNING: $HOME is mounted as noexec, the OpenDJ installation could cause errors"
     fi
   fi
-
-
   if [ ! -d "${OPENDJ_TMP_DIR}" ]; then
     mkdir ${OPENDJ_TMP_DIR}
   fi
