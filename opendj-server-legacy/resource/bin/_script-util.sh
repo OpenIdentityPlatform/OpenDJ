@@ -14,7 +14,7 @@
 #
 # Copyright 2008-2010 Sun Microsystems, Inc.
 # Portions Copyright 2010-2016 ForgeRock AS.
-# Portions Copyright 2019-2025 3A Systems, LLC.
+# Portions Copyright 2019-2026 3A Systems, LLC.
 #
 # Display an error message
 #
@@ -83,8 +83,62 @@ set_opendj_java_bin() {
   export OPENDJ_JAVA_BIN
 }
 
+check_noexec() { #returns 0 if can execute files in the directory, otherwise 1
+  local DIR_TO_TEST=$1
+  local res=0
+  local remove_dir=0
+
+  if [ ! -d "${DIR_TO_TEST}" ]; then
+    remove_dir=1
+    mkdir ${DIR_TO_TEST}
+  fi
+
+  local TMP_FILE=`mktemp ${DIR_TO_TEST}/temp.XXXXXX`
+
+  chmod +x ${TMP_FILE}
+  if ! ${TMP_FILE} 2>/dev/null; then
+    res=1
+  fi
+
+  rm -rf ${TMP_FILE}
+
+  if [ $remove_dir = 1 ]; then
+    rm -rf $DIR_TO_TEST
+  fi
+
+  return $res
+}
+
+set_bc_dir() {
+  if echo "$OPENDJ_JAVA_ARGS" | grep -q -o "\-Dorg.bouncycastle.native.loader.install_dir=[^ ]*"; then
+    return # bc install dir already set
+  fi
+
+  check_noexec "${OPENDJ_TMP_DIR}"
+  local res=$?
+  if [ $res = 1 ]; then
+    if [ "$SCRIPT_NAME" = "setup" ]; then
+      echo "WARNING: $OPENDJ_TMP_DIR is mounted as noexec, try switching to $HOME for org.bouncycastle.native.loader.install_dir"
+    fi
+    check_noexec "${HOME}"
+    res=$?
+	if [ $res = 0 ]; then
+	  OPENDJ_JAVA_ARGS="${OPENDJ_JAVA_ARGS} -Dorg.bouncycastle.native.loader.install_dir=${HOME}"
+    elif [ "$SCRIPT_NAME" = "setup" ]; then
+      echo "WARNING: $HOME is mounted as noexec, the OpenDJ installation could cause errors"
+    fi
+  fi
+}
+
 set_temp_dir() {
+
+  if echo "$OPENDJ_JAVA_ARGS" | grep -q -o "\-Djava.io.tmpdir=[^ ]*"; then
+    OPENDJ_TMP_DIR=$(echo "$OPENDJ_JAVA_ARGS" | grep -o "\-Djava.io.tmpdir=[^ ]*" | cut -d'=' -f2)
+    return # temp dir already set
+  fi
+
   OPENDJ_TMP_DIR="${INSTANCE_ROOT}/tmp"
+
   if [ ! -d "${OPENDJ_TMP_DIR}" ]; then
     mkdir ${OPENDJ_TMP_DIR}
   fi
@@ -110,6 +164,7 @@ set_java_home_and_args() {
     fi
   fi
   set_temp_dir
+  set_bc_dir
   set_opendj_java_bin
 }
 
@@ -333,4 +388,3 @@ elif test "${SCRIPT_UTIL_CMD}" = "test-java"
 then
   test_java
 fi
-
