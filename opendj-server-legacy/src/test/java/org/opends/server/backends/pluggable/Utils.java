@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -26,7 +27,7 @@ final class Utils
 {
   public static void assertIdsEquals(Iterator<EntryID> actual, long... expected)
   {
-    assertThat(actual).containsAll(asList(expected));
+    assertThat(actual).toIterable().containsAll(asList(expected));
   }
 
   public static void assertIsEmpty(EntryIDSet actual)

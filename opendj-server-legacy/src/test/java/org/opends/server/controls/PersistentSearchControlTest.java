@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.controls;
 
@@ -32,6 +33,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Writer;
@@ -143,6 +145,10 @@ public class PersistentSearchControlTest extends ControlsTestCase
                 + " does not correspond to any persistent search change type");
       }
     }
+  }
+
+  private void fail() {
+    Assertions.fail();
   }
 
   /**
