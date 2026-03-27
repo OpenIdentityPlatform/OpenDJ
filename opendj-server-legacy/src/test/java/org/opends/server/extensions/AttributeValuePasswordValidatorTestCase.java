@@ -371,6 +371,102 @@ public class AttributeValuePasswordValidatorTestCase
 
 
   /**
+   * Retrieves test data for substring and reversed-password substring checks
+   * using a user entry with uid=USN123.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @DataProvider(name = "substringTestData")
+  public Object[][] getSubstringTestData()
+         throws Exception
+  {
+    Entry configEntry = TestCaseUtils.makeEntry(
+         "dn: cn=Attribute Value,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-attribute-value-password-validator",
+         "cn: Attribute Value",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "AttributeValuePasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-match-attribute: uid",
+         "ds-cfg-check-substrings: true",
+         "ds-cfg-min-substring-length: 3",
+         "ds-cfg-test-reversed-password: true");
+
+    return new Object[][]
+    {
+      // Password containing a forward substring of the attribute value ("USN" is in "USN123") → rejected
+      new Object[] { configEntry, "USN123aa", false },
+
+      // Password containing another forward substring of the attribute value ("123" is in "USN123") → rejected
+      new Object[] { configEntry, "U1sn123b", false },
+
+      // Password whose reverse contains a substring of the attribute value:
+      // reversed("NsU321ab") = "ba123UsN"; "123" is in "USN123" → rejected
+      new Object[] { configEntry, "NsU321ab", false },
+
+      // Password with no substrings of the attribute value → accepted
+      new Object[] { configEntry, "Sun3RiseA", true },
+    };
+  }
+
+
+
+  /**
+   * Tests substring and reversed-password substring checks against a user
+   * entry with uid=USN123.
+   *
+   * @param  configEntry  The configuration entry to use for the password
+   *                      validator.
+   * @param  password     The password to test with the validator.
+   * @param  acceptable   Indicates whether the provided password should be
+   *                      considered acceptable.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "substringTestData")
+  public void testSubstringPasswordIsAcceptable(Entry configEntry,
+                                                String password,
+                                                boolean acceptable)
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    Entry userEntry = TestCaseUtils.makeEntry(
+         "dn: uid=USN123,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: USN123",
+         "givenName: USN",
+         "sn: 123",
+         "cn: USN 123",
+         "userPassword: doesntmatter");
+
+    AttributeValuePasswordValidator validator = initializePasswordValidator(configEntry);
+
+    ByteString pwOS = ByteString.valueOfUtf8(password);
+    ArrayList<Modification> mods = CollectionUtils.newArrayList(
+        new Modification(ModificationType.REPLACE, Attributes.create("userpassword", password)));
+
+    ModifyOperationBasis modifyOperation =
+         new ModifyOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
+                             new ArrayList<Control>(),
+                             DN.valueOf("uid=USN123,o=test"), mods);
+
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
+    assertEquals(validator.passwordIsAcceptable(pwOS,
+                              new HashSet<ByteString>(0), modifyOperation,
+                              userEntry, invalidReason),
+                 acceptable, invalidReason.toString());
+
+    validator.finalizePasswordValidator();
+  }
+
+
+
+  /**
    * Tests the {@code passwordIsAcceptable} method using the provided
    * information.
    *

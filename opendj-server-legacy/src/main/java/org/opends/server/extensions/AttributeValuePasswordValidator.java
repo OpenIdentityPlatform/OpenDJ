@@ -19,6 +19,7 @@ package org.opends.server.extensions;
 import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
@@ -87,11 +88,10 @@ public class AttributeValuePasswordValidator
     {
       for (int j = i + minSubstringLength; j <= passwordLength; j++)
       {
-        Attribute substring = Attributes.create(a.getAttributeDescription().getAttributeType(),
-            password.substring(i, j));
+        final String pwdSubstring = password.substring(i, j).toLowerCase(Locale.ROOT);
         for (ByteString val : a)
         {
-          if (substring.contains(val))
+          if (val.toString().toLowerCase(Locale.ROOT).contains(pwdSubstring))
           {
             return true;
           }
@@ -141,7 +141,8 @@ public class AttributeValuePasswordValidator
         if (a.contains(vf) ||
             (config.isTestReversedPassword() && a.contains(vr)) ||
             (config.isCheckSubstrings() &&
-                containsSubstring(password, minSubstringLength, a)))
+                (containsSubstring(password, minSubstringLength, a) ||
+                 (config.isTestReversedPassword() && containsSubstring(reversed, minSubstringLength, a)))))
         {
           invalidReason.append(ERR_ATTRVALUE_VALIDATOR_PASSWORD_IN_ENTRY.get());
           return false;
