@@ -397,18 +397,47 @@ public class AttributeValuePasswordValidatorTestCase
 
     return new Object[][]
     {
-      // Password containing a forward substring of the attribute value ("USN" is in "USN123") → rejected
+      // BLOCK: forward match "N12" in "USN123"
       new Object[] { configEntry, "USN123aa", false },
-
-      // Password containing another forward substring of the attribute value ("123" is in "USN123") → rejected
+      // BLOCK: forward match "N12" in "USN123"
+      new Object[] { configEntry, "aaUSN123", false },
+      // BLOCK: forward match "123" in "USN123"
       new Object[] { configEntry, "U1sn123b", false },
-
-      // Password whose reverse contains a substring of the attribute value:
-      // reversed("NsU321ab") = "ba123UsN"; "123" is in "USN123" → rejected
+      // BLOCK: reverse-password match "123" — reversed("NsU321ab")="ba123UsN" contains "123"
       new Object[] { configEntry, "NsU321ab", false },
+      // BLOCK: forward match "N12" in "USN123"
+      new Object[] { configEntry, "A9USN12z", false },
+      // BLOCK: forward match "USN" in "USN123"
+      new Object[] { configEntry, "xx123USN", false },
+      // BLOCK: reverse-password match "USN" — reversed("NSU123xy")="yx321USN" contains "USN"
+      new Object[] { configEntry, "NSU123xy", false },
+      // BLOCK: forward match "N12" in "USN123"
+      new Object[] { configEntry, "z9nUSN12", false },
+      // BLOCK: reverse-password match "123" — reversed("usN321AA")="AA123Nsu" contains "123"
+      new Object[] { configEntry, "usN321AA", false },
+      // BLOCK: forward match "USN" in "USN123"
+      new Object[] { configEntry, "1USN2abc", false },
 
-      // Password with no substrings of the attribute value → accepted
+      // PASS: no username substrings detected
       new Object[] { configEntry, "Sun3RiseA", true },
+      // PASS: no username substrings detected
+      new Object[] { configEntry, "Rock7fall", true },
+      // PASS: no username substrings detected
+      new Object[] { configEntry, "Tree9Bark", true },
+      // PASS: no username substrings detected
+      new Object[] { configEntry, "Wave4Deep", true },
+      // PASS: no username substrings detected
+      new Object[] { configEntry, "Glow5Star", true },
+      // PASS: no username substrings detected
+      new Object[] { configEntry, "Rain8Drop", true },
+      // PASS: no username substrings detected
+      new Object[] { configEntry, "Fire6Ash", true },
+      // PASS: no username substrings detected
+      new Object[] { configEntry, "Mist2Hill", true },
+      // PASS: no username substrings detected
+      new Object[] { configEntry, "Frog1Lake", true },
+      // PASS: no username substrings detected
+      new Object[] { configEntry, "Dust7Moon", true },
     };
   }
 
