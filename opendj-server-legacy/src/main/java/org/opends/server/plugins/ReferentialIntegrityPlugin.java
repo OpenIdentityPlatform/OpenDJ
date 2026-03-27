@@ -991,10 +991,9 @@ public class ReferentialIntegrityPlugin
     }
 
     final List<Modification> mods = modifyOperation.getModifications();
-    final Entry entry = modifyOperation.getModifiedEntry();
 
     /* Make sure the entry belongs to one of the configured naming contexts. */
-    DN entryDN = entry.getName();
+    DN entryDN = modifyOperation.getEntryDN();
     DN entryBaseDN = getEntryBaseDN(entryDN);
     if (entryBaseDN == null)
     {
@@ -1009,14 +1008,14 @@ public class ReferentialIntegrityPlugin
       if (modType != ModificationType.ADD
           && modType != ModificationType.REPLACE)
       {
-        break;
+        continue;
       }
 
-      Attribute modifiedAttribute = entry.getAttribute(mod.getAttribute().getAttributeDescription());
-      if (modifiedAttribute != null)
+      Attribute modifiedAttribute = mod.getAttribute();
+      if (modifiedAttribute != null && !modifiedAttribute.isEmpty())
       {
         PluginResult.PreOperation result =
-        isIntegrityMaintained(modifiedAttribute, entryDN, entryBaseDN);
+            isIntegrityMaintained(modifiedAttribute, entryDN, entryBaseDN);
         if (result.getResultCode() != ResultCode.SUCCESS)
         {
           return result;

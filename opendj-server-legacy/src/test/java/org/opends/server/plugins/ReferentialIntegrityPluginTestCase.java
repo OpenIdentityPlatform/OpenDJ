@@ -1829,4 +1829,27 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       "member", "uid=user.1,ou=people,ou=dept,o=test");
     assertEquals(modOperation.getResultCode(), ResultCode.SUCCESS);
   }
+
+  @Test
+  public void testEnforceIntegrityModifyGroupAddMissingUniqueMember() throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "uniquemember");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "uniquemember:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    ModifyOperation modOperation = addAttrEntry(DN.valueOf(ugroup),
+      "uniquemember", "uid=user.100,ou=people,ou=dept,dc=example,dc=com");
+    assertEquals(modOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
+  }
 }
