@@ -106,6 +106,13 @@ public final class LdapMessages {
         private LdapResponseMessage(final byte messageType, final int messageId, final Response content) {
             super(messageType, messageId, content);
         }
+
+        @Override
+        public String toString() {
+            return "LdapResponseMessage(messageType=" + getMessageType()
+                    + ", messageId=" + getMessageId()
+                    + ", content=" + getContent() + ")";
+        }
     }
 
     private static abstract class LdapMessageEnvelope<T> {

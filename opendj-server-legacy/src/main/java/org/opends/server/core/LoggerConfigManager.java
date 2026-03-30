@@ -109,8 +109,13 @@ public class LoggerConfigManager implements ConfigurationAddListener<LogPublishe
       {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         // This is needed to avoid major performance issue. See: http://www.slf4j.org/legacy.html#jul-to-slf4j
+        // Limit Grizzly JUL logging to FINE to prevent a ClassCastException in
+        // FilterChainContext.toString() (Grizzly bug) when debug logging is enabled.
+        // Grizzly 3.0.1 DefaultFilterChain.executeFilter() checks isLoggable(FINEST) but
+        // its FilterChainContext.toString() incorrectly casts the message to char[].
         LogManager.getLogManager().readConfiguration(
-                new ByteArrayInputStream((".level=" + newLevel).getBytes()));
+                new ByteArrayInputStream(
+                        (".level=" + newLevel + "\norg.glassfish.grizzly.level=FINE").getBytes()));
         SLF4JBridgeHandler.install();
         currentJulLogLevel = newLevel;
       }
