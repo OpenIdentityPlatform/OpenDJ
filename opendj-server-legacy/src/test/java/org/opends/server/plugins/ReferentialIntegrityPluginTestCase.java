@@ -1875,7 +1875,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
     // Build a modify request with a non-ADD/REPLACE modification first,
     // followed by an ADD of a uniquemember referencing a missing DN.
-    final ModifyRequest modifyRequest = newModifyRequest(DN.valueOf(ugroup));
+    final ModifyRequest modifyRequest = Requests.newModifyRequest(DN.valueOf(ugroup));
     modifyRequest.addModification(DELETE, "description");
     modifyRequest.addModification(ADD, "uniquemember",
         "uid=user.100,ou=people,ou=dept,dc=example,dc=com");
