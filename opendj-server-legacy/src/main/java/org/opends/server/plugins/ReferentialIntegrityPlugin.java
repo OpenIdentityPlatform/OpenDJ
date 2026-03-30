@@ -1015,6 +1015,27 @@ public class ReferentialIntegrityPlugin
       Attribute modifiedAttribute = mod.getAttribute();
       if (modifiedAttribute != null && !modifiedAttribute.isEmpty())
       {
+        // Only enforce referential integrity on attributes that this plugin is configured to manage.
+        final AttributeType modifiedAttrType = modifiedAttribute.getAttributeType();
+        boolean isManagedAttributeType = false;
+        if (modifiedAttrType != null && attributeTypes != null)
+        {
+          for (AttributeType configuredType : attributeTypes)
+          {
+            if (modifiedAttrType.equals(configuredType)
+                || modifiedAttrType.isSubTypeOf(configuredType))
+            {
+              isManagedAttributeType = true;
+              break;
+            }
+          }
+        }
+
+        if (!isManagedAttributeType)
+        {
+          // Skip integrity checks for attributes not configured for this plugin.
+          continue;
+        }
         PluginResult.PreOperation result =
             isIntegrityMaintained(modifiedAttribute, entryDN, entryBaseDN);
         if (result.getResultCode() != ResultCode.SUCCESS)
