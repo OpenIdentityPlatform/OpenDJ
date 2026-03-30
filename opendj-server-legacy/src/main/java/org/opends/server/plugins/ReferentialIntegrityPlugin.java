@@ -1016,7 +1016,7 @@ public class ReferentialIntegrityPlugin
       if (modifiedAttribute != null && !modifiedAttribute.isEmpty())
       {
         // Only enforce referential integrity on attributes that this plugin is configured to manage.
-        final AttributeType modifiedAttrType = modifiedAttribute.getAttributeType();
+        final AttributeType modifiedAttrType = modifiedAttribute.getAttributeDescription().getAttributeType();
         boolean isManagedAttributeType = false;
         if (modifiedAttrType != null && attributeTypes != null)
         {
