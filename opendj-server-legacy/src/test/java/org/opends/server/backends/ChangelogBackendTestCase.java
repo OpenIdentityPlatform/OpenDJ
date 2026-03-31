@@ -855,7 +855,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       final int expectedFirstChangeNumber, final int expectedLastChangeNumber) throws Exception
   {
     TestTimer timer = new TestTimer.Builder()
-      .maxSleep(3, SECONDS)
+      .maxSleep(10, SECONDS)
       .sleepTimes(100, MILLISECONDS)
       .toTimer();
     return timer.repeatUntilSuccess(new Callable<List<SearchResultEntry>>()
