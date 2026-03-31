@@ -1872,10 +1872,9 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     addAttrEntry(configDN, dsConfigAttrFiltMapping,
                            "uniquemember:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
-    
+
     // Ensure 'description' exists on ugroup so the DELETE modification succeeds.
     addAttrEntry(DN.valueOf(ugroup), "description", "test description");
-    
     // Build a modify request with a non-ADD/REPLACE modification first,
     // followed by an ADD of a uniquemember referencing a missing DN.
     final ModifyRequest modifyRequest = Requests.newModifyRequest(DN.valueOf(ugroup));
