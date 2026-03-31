@@ -234,6 +234,23 @@ jobs:
         opendj-server-legacy\target\package\opendj\bat\rebuild-index.bat --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "10000"
         opendj-server-legacy\target\package\opendj\bat\stop-ds.bat
+
+    - name: Build Windows native executables
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
+        cd opendj-server-legacy\src\build-tools\windows
+        nmake all
+
+    - name: Upload Windows exe artifacts
+      if: runner.os == 'Windows'
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-exe-${{ matrix.java }}
+        retention-days: 5
+        path: opendj-server-legacy/src/build-tools/windows/*.exe
+
     - name: Upload artifacts OpenDJ Server
       uses: actions/upload-artifact@v4
       with:
