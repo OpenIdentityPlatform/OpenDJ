@@ -585,11 +585,15 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     // write 4 changes starting from changenumber 1, and search them
     String testName = "Multiple/1";
     CSN[] csns = generateAndPublishUpdateMsgForEachOperationType(testName, false);
+    // Wait until changenumber 4 is visible before searching
+    assertChangelogAttributesInRootDSE(1, 4);
     searchChangesForEachOperationTypeUsingChangeNumberMode(1, csns, testName);
 
     // write 4 more changes starting from changenumber 5, and search them
     testName = "Multiple/5";
     csns = generateAndPublishUpdateMsgForEachOperationType(testName, false);
+    // Wait until changenumber 8 is visible before searching
+    assertChangelogAttributesInRootDSE(1, 8);
     searchChangesForEachOperationTypeUsingChangeNumberMode(5, csns, testName);
 
     // search from the provided change number: 6 (should be the add msg)
