@@ -677,6 +677,7 @@ ServiceReturnCode doStopApplication()
       Sleep(3000);
       while ((nTries > 0) && running)
       {
+        nTries--;
         if (isServerRunning(&running, TRUE) != SERVICE_RETURN_OK)
         {
           break;
