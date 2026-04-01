@@ -42,11 +42,21 @@ jobs:
          path: ~/.m2/repository
          key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
          restore-keys: ${{ runner.os }}-m2-repository
+    - name: Build Windows native executables
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
+        cd opendj-server-legacy\src\build-tools\windows
+        nmake all
+        xcopy /Y *.exe ..\..\..\lib\
+        git status
     - name: Set Integration Test Environment
       id: failsafe
       if: runner.os != 'Windows'
       run:   |
         echo "MAVEN_PROFILE_FLAG=-P precommit" >> $GITHUB_OUTPUT
+
     - name: Build with Maven
       timeout-minutes: 180
       env:
@@ -234,6 +244,21 @@ jobs:
         opendj-server-legacy\target\package\opendj\bat\rebuild-index.bat --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "10000"
         opendj-server-legacy\target\package\opendj\bat\stop-ds.bat
+        opendj-server-legacy\target\package\opendj\bat\windows-service.bat --enableService
+        net start "OpenDJ Server"
+        for ($i=0; $i -lt 12; $i++) { try { $c = New-Object System.Net.Sockets.TcpClient('localhost', 1636); $c.Close(); break } catch { Start-Sleep -Seconds 5 } }
+        opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "10000"
+        net stop "OpenDJ Server"
+        opendj-server-legacy\target\package\opendj\bat\windows-service.bat --disableService
+
+    - name: Upload Windows exe artifacts
+      if: runner.os == 'Windows'
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-exe-${{ matrix.java }}
+        retention-days: 5
+        path: opendj-server-legacy/src/build-tools/windows/*.exe
+
     - name: Upload artifacts OpenDJ Server
       uses: actions/upload-artifact@v4
       with:
