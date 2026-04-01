@@ -50,6 +50,7 @@ jobs:
         cd opendj-server-legacy\src\build-tools\windows
         nmake all
         xcopy /Y *.exe ..\..\..\lib\
+        git status
     - name: Set Integration Test Environment
       id: failsafe
       if: runner.os != 'Windows'
