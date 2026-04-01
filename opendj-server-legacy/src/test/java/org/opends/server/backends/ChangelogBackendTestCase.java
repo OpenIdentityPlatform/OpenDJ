@@ -1118,8 +1118,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       final ResultCode expectedResultCode, String testName) throws Exception
   {
     TestTimer timer = new TestTimer.Builder()
-      .maxSleep(10, SECONDS)
-      .sleepTimes(10, MILLISECONDS)
+      .maxSleep(30, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
       .toTimer();
     InternalSearchOperation searchOp = timer.repeatUntilSuccess(new Callable<InternalSearchOperation>()
     {
