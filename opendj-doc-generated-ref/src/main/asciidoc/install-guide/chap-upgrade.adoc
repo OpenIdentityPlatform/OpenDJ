@@ -18,8 +18,8 @@
 :figure-caption!:
 :example-caption!:
 :table-caption!:
-:opendj-version: 5.0.3
-:opendj-version-short: 5.0
+:opendj-version: x.y.z
+:opendj-version-short: x.y
 
 
 [#chap-upgrade]
