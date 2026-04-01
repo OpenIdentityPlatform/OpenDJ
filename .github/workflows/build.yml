@@ -42,11 +42,6 @@ jobs:
          path: ~/.m2/repository
          key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
          restore-keys: ${{ runner.os }}-m2-repository
-    - name: Set Integration Test Environment
-      id: failsafe
-      if: runner.os != 'Windows'
-      run:   |
-        echo "MAVEN_PROFILE_FLAG=-P precommit" >> $GITHUB_OUTPUT
     - name: Build Windows native executables
       if: runner.os == 'Windows'
       shell: cmd
@@ -55,6 +50,11 @@ jobs:
         cd opendj-server-legacy\src\build-tools\windows
         nmake all
         xcopy /Y *.exe ..\..\..\lib\
+    - name: Set Integration Test Environment
+      id: failsafe
+      if: runner.os != 'Windows'
+      run:   |
+        echo "MAVEN_PROFILE_FLAG=-P precommit" >> $GITHUB_OUTPUT
 
     - name: Build with Maven
       timeout-minutes: 180
