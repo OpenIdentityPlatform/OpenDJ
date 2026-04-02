@@ -503,7 +503,7 @@ ServiceReturnCode isServerRunning(BOOL *running, BOOL mustDebug)
 // The functions returns SERVICE_RETURN_OK if we could start the server
 // and SERVICE_RETURN_ERROR otherwise.
 // ----------------------------------------------------
-ServiceReturnCode doStartApplication()
+ServiceReturnCode doStartApplication(SERVICE_STATUS_HANDLE *serviceStatusHandle, DWORD *checkPoint)
 {
   ServiceReturnCode returnValue;
   // init out params
@@ -545,6 +545,11 @@ ServiceReturnCode doStartApplication()
       {
         debug("doStartApplication: OPENDJ_WINDOWS_SERVICE_STARTDS_WAIT is not set. Using default %d milliseconds.",
             STARTDS_WAIT_DEFAULT_VALUE);
+      }
+      if (serviceStatusHandle != NULL && checkPoint != NULL)
+      {
+        updateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0,
+            (*checkPoint)++, wait + 30000, serviceStatusHandle);
       }
       waitOk = waitForProcess(&procInfo, wait, &startDSExit);
       if (waitOk)
@@ -590,6 +595,11 @@ ServiceReturnCode doStartApplication()
       while ((nTries > 0) && !running)
       {
         nTries--;
+        if (serviceStatusHandle != NULL && checkPoint != NULL)
+        {
+          updateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0,
+              (*checkPoint)++, 10000, serviceStatusHandle);
+        }
         if (isServerRunning(&running, TRUE) != SERVICE_RETURN_OK)
         {
           break;
@@ -640,6 +650,11 @@ ServiceReturnCode doStartApplication()
       while ((nTries > 0) && !running)
       {
         nTries--;
+        if (serviceStatusHandle != NULL && checkPoint != NULL)
+        {
+          updateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0,
+              (*checkPoint)++, 10000, serviceStatusHandle);
+        }
         if (isServerRunning(&running, TRUE) != SERVICE_RETURN_OK)
         {
           break;
@@ -1119,7 +1134,7 @@ void serviceMain(int argc, char* argv[])
   {
     WORD argCount = 1;
     const char *argc[] = {_instanceDir};
-    code = doStartApplication();
+    code = doStartApplication(_serviceStatusHandle, &checkPoint);
 
     switch (code)
     {
