@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2013 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 #include "common.h"
@@ -95,6 +96,7 @@ ServiceReturnCode updateServiceStatus (
    DWORD  waitHint,
    SERVICE_STATUS_HANDLE *serviceStatusHandle
    );
+ServiceReturnCode doStartApplication(SERVICE_STATUS_HANDLE *serviceStatusHandle, DWORD *checkPoint);
 void serviceHandler(DWORD controlCode);
 BOOL getServiceStatus(char *serviceName, LPDWORD returnState);
 
