@@ -11,6 +11,7 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2016 ForgeRock AS.
+# Portions Copyright 2026 3A Systems LLC.
 dn: cn=config
 changetype: modify
 replace: ds-cfg-notify-abandoned-operations
@@ -1610,3 +1611,8 @@ ds-cfg-default-include-throwable-cause: true
 -
 replace: ds-cfg-default-throwable-stack-frames
 ds-cfg-default-throwable-stack-frames: 500
+
+dn: cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
+changetype: modify
+replace: ds-cfg-connection-timeout
+ds-cfg-connection-timeout: 30000 ms

@@ -2,6 +2,7 @@ name: Build
 
 on:
   push:
+    branches: [ 'sustaining/4.10.x','master' ]
   pull_request:
     branches: [ 'sustaining/4.10.x','master' ]
 

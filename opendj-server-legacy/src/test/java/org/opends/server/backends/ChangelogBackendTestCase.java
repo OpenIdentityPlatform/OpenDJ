@@ -590,6 +590,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     // write 4 more changes starting from changenumber 5, and search them
     testName = "Multiple/5";
     csns = generateAndPublishUpdateMsgForEachOperationType(testName, false);
+    // Wait until all 8 changes are indexed before searching
+    assertChangelogAttributesInRootDSE(1, 8);
     searchChangesForEachOperationTypeUsingChangeNumberMode(5, csns, testName);
 
     // search from the provided change number: 6 (should be the add msg)
@@ -1118,8 +1120,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       final ResultCode expectedResultCode, String testName) throws Exception
   {
     TestTimer timer = new TestTimer.Builder()
-      .maxSleep(10, SECONDS)
-      .sleepTimes(10, MILLISECONDS)
+      .maxSleep(30, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
       .toTimer();
     InternalSearchOperation searchOp = timer.repeatUntilSuccess(new Callable<InternalSearchOperation>()
     {

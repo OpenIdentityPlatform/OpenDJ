@@ -13,7 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2013 ForgeRock AS.
- * Portions copyright 2026 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 #include "service.h"
@@ -564,12 +564,44 @@ ServiceReturnCode doStartApplication()
 
   if (createOk && waitOk)
     {
-    BOOL running;
-      // Just check once if the server is running or not: since the wait
-      // wait was successful, if the server is getting the lock, it already
-      // got it.
-    isServerRunning(&running, TRUE);
-    if (running)
+      // The batch file process completed successfully, but the Java server
+      // process may not have acquired the lock file yet (especially on
+      // Windows 11 where JVM startup can be slower). Retry with a loop
+      // similar to the else-if branch below.
+      // See: https://github.com/OpenIdentityPlatform/OpenDJ/issues/259
+      const DWORD DEFAULT_TRIES = 100;
+      int nTries = DEFAULT_TRIES;
+      char * nTriesEnv = getenv("OPENDJ_WINDOWS_SERVICE_START_NTRIES");
+      BOOL running = FALSE;
+      if (nTriesEnv != NULL)
+      {
+        debug("OPENDJ_WINDOWS_SERVICE_START_NTRIES env var set to %s", nTriesEnv);
+        nTries = (int)strtol(nTriesEnv, (char **)NULL, 10);
+        if (nTries <= 0)
+        {
+          nTries = DEFAULT_TRIES;
+        }
+      }
+      else
+      {
+        debug("OPENDJ_WINDOWS_SERVICE_START_NTRIES is not set.  Using default %d tries.", nTries);
+      }
+
+      while ((nTries > 0) && !running)
+      {
+        nTries--;
+        if (isServerRunning(&running, TRUE) != SERVICE_RETURN_OK)
+        {
+          break;
+        }
+        if (!running)
+        {
+          debug("Sleeping for 5 seconds to allow the process to get the lock.  %d tries remaining.",
+              nTries);
+          Sleep(5000);
+        }
+      }
+      if (running)
       {
         returnValue = SERVICE_RETURN_OK;
         debug("doStartApplication: server running.");
