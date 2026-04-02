@@ -4,7 +4,6 @@ on:
   push:
     branches: [ 'sustaining/4.10.x','master' ]
   pull_request:
-    branches: [ 'sustaining/4.10.x','master' ]
 
 jobs:
   build-maven:
@@ -28,17 +27,17 @@ jobs:
         wine --version
         version="9.4.0"; sudo wget "https://dl.winehq.org/wine/wine-mono/$version/wine-mono-$version-x86.msi" -O /tmp/wine-mono.msi
         wine msiexec /i /tmp/wine-mono.msi
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: recursive
     - name: Java ${{ matrix.Java }} (${{ matrix.os }})
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         java-version: ${{ matrix.java }}
         distribution: 'zulu'
     - name: Cache Maven packages
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
          path: ~/.m2/repository
          key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
@@ -256,14 +255,14 @@ jobs:
 
     - name: Upload Windows exe artifacts
       if: runner.os == 'Windows'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: windows-exe-${{ matrix.java }}
         retention-days: 5
         path: opendj-server-legacy/src/build-tools/windows/*.exe
 
     - name: Upload artifacts OpenDJ Server
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.os }}-${{ matrix.java }}
         retention-days: 5
@@ -288,7 +287,7 @@ jobs:
           - 5000:5000
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ubuntu-latest-11
       - name: Get latest release version
@@ -298,16 +297,16 @@ jobs:
           echo "release_version=$git_version_last" >> $GITHUB_ENV
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             localhost:5000/${{ github.repository }}
           tags: |
             type=raw,value=${{ env.release_version }}
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
         with:
           driver-opts: network=host
       - name: Prepare Dockerfile
@@ -317,7 +316,7 @@ jobs:
           cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
           sed -i -E '/^#COPY opendj/s/^#//' ./opendj-packages/opendj-docker/Dockerfile
       - name: Build image (default)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: ./opendj-packages/opendj-docker
           file: ./opendj-packages/opendj-docker/Dockerfile
@@ -352,7 +351,7 @@ jobs:
           - 5000:5000
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ubuntu-latest-11
       - name: Get latest release version
@@ -362,7 +361,7 @@ jobs:
           echo "release_version=$git_version_last" >> $GITHUB_ENV
       - name: Docker meta 
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             localhost:5000/${{ github.repository }}
@@ -370,9 +369,9 @@ jobs:
             type=raw,value=alpine
             type=raw,value=${{ env.release_version }}-alpine
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
         with:
           driver-opts: network=host
       - name: Prepare Dockerfile
@@ -382,7 +381,7 @@ jobs:
           cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
           sed -i -E '/^#COPY opendj/s/^#//' ./opendj-packages/opendj-docker/Dockerfile-alpine
       - name: Build image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: ./opendj-packages/opendj-docker
           file: ./opendj-packages/opendj-docker/Dockerfile-alpine

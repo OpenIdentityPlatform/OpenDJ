@@ -27,13 +27,13 @@ jobs:
           wine --version
           version="9.4.0"; sudo wget "https://dl.winehq.org/wine/wine-mono/$version/wine-mono-$version-x86.msi" -O /tmp/wine-mono.msi
           wine msiexec /i /tmp/wine-mono.msi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: recursive
           ref: ${{ github.event.workflow_run.head_branch }}
       - name: Set up Java for publishing to Maven Central Repository OSS
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ github.event.workflow_run.head_branch == 'sustaining/4.10.x' && '8' || '11'}}
           distribution: 'temurin'
@@ -41,7 +41,7 @@ jobs:
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
       - name: Cache Maven packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
          path: ~/.m2/repository
          key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
@@ -71,52 +71,52 @@ jobs:
         continue-on-error: true
         run: mvn javadoc:aggregate
       - name: Upload artifacts OpenDJ Server
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
          name: OpenDJ Server
          path: opendj-server-legacy/target/package/*.zip
       - name: Upload artifacts OpenDJ SDK Toolkit
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
          name: OpenDJ SDK Toolkit
          path: opendj-ldap-toolkit/target/*.zip
       - name: Upload artifacts OpenDJ Debian Package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
          name: OpenDJ Debian Package
          path: opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb
       - name: Upload artifacts OpenDJ RPM Package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
          name: OpenDJ RPM Package
          path: opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
       - name: Upload artifacts OpenDJ MSI Package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
          name: OpenDJ MSI Package
          path: opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
       - name: Upload artifacts OpenDJ Docker Packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
          name: OpenDJ Docker Packages
          path: opendj-packages/opendj-docker/target/Dockerfile.zip
       - name: Upload artifacts OpenDJ Openshift template
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
          name: OpenDJ Openshift template
          path: opendj-packages/opendj-openshift-template/*.yaml
       - name: Upload artifacts OpenDJ Doc Generated Reference
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
          name: OpenDJ Doc Generated References
          path: opendj-doc-generated-ref/target/*.zip
       - name: Upload artifacts OpenDJ DSML Gateway
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
          name: OpenDJ DSML Gateway
          path: opendj-dsml-servlet/target/*.war
       - name: Upload artifacts OpenDJ Commons REST LDAP Gateway
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
          name: OpenDJ Commons REST LDAP Gateway
          path: opendj-rest2ldap-servlet/target/*.war
@@ -125,7 +125,7 @@ jobs:
           git config --global user.name "Open Identity Platform Community"
           git config --global user.email "open-identity-platform-opendj@googlegroups.com"
           cd ..
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         continue-on-error: true
         with:
           repository: ${{ github.repository }}.wiki
@@ -145,7 +145,7 @@ jobs:
           git commit -a -m "upload docs after deploy ${{ github.sha }}"
           git push --quiet --force
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         continue-on-error: true
         with:
           repository: OpenIdentityPlatform/doc.openidentityplatform.org

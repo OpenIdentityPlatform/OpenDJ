@@ -715,7 +715,7 @@ ServiceReturnCode doStopApplication()
     if (spawn(command, FALSE) != -1)
     {
       // Try to see if server is really stopped
-      int nTries = 10;
+      int nTries = 30;
       BOOL running = TRUE;
 
       debug("doStopApplication: the spawn of the process worked.");
@@ -1241,31 +1241,53 @@ void serviceMain(int argc, char* argv[])
         }
         else
         {
-      // Check current Status
-      DWORD state;
-      BOOL success = getServiceStatus(serviceName, &state);
-          if (!(success &&
-               ((state == SERVICE_STOPPED) ||
-                (state == SERVICE_STOP_PENDING))))
+          // Server appears not running - retry a few times before concluding
+          // it has actually stopped (the lock file check can be transient,
+          // e.g. during JVM GC pressure or heavy I/O after a large ldapsearch).
+          // 3 retries × 2 seconds gives up to 6 extra seconds of tolerance.
+          int retryCount = 3;
+          BOOL confirmedStopped = TRUE;
+          while (retryCount > 0)
           {
-          WORD argCount = 1;
-            const char *argc[] = {_instanceDir};
-            _serviceCurStatus = SERVICE_STOPPED;
-            debug("checking in serviceMain serviceHandler: service stopped with error.");
+            retryCount--;
+            Sleep(2000); // wait 2 seconds between retries before re-checking
+            code = isServerRunning(&running, TRUE);
+            if (code == SERVICE_RETURN_OK && running)
+            {
+              confirmedStopped = FALSE;
+              break;
+            }
+          }
 
-            updateServiceStatus (
-              _serviceCurStatus,
-              ERROR_SERVICE_SPECIFIC_ERROR,
-              -1,
-              CHECKPOINT_NO_ONGOING_OPERATION,
-              TIMEOUT_NONE,
-              _serviceStatusHandle);
-            reportLogEvent(
-              EVENTLOG_ERROR_TYPE,
-              WIN_EVENT_ID_SERVER_STOPPED_OUTSIDE_SCM,
-              argCount, argc);
-           }
-          break;
+          if (confirmedStopped)
+          {
+            // Check current Status
+            DWORD state;
+            BOOL success = getServiceStatus(serviceName, &state);
+            if (!(success &&
+                 ((state == SERVICE_STOPPED) ||
+                  (state == SERVICE_STOP_PENDING))))
+            {
+              WORD argCount = 1;
+              const char *argc[] = {_instanceDir};
+              _serviceCurStatus = SERVICE_STOPPED;
+              debug("checking in serviceMain serviceHandler: service stopped with error.");
+
+              updateServiceStatus (
+                _serviceCurStatus,
+                ERROR_SERVICE_SPECIFIC_ERROR,
+                -1,
+                CHECKPOINT_NO_ONGOING_OPERATION,
+                TIMEOUT_NONE,
+                _serviceStatusHandle);
+              reportLogEvent(
+                EVENTLOG_ERROR_TYPE,
+                WIN_EVENT_ID_SERVER_STOPPED_OUTSIDE_SCM,
+                argCount, argc);
+            }
+            break;
+          }
+          // else: server is actually still running, continue monitoring
         }
       }
     }
