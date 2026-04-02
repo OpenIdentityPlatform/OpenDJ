@@ -592,7 +592,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     // write 4 more changes starting from changenumber 5, and search them
     testName = "Multiple/5";
     csns = generateAndPublishUpdateMsgForEachOperationType(testName, false);
-    // Wait until changenumber 8 is visible before searching
+    // Wait until all 8 changes are indexed before searching
     assertChangelogAttributesInRootDSE(1, 8);
     searchChangesForEachOperationTypeUsingChangeNumberMode(5, csns, testName);
 

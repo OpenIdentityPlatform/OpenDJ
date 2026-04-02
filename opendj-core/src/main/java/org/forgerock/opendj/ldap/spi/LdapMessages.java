@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.spi;
 
@@ -105,6 +106,13 @@ public final class LdapMessages {
     public static final class LdapResponseMessage extends LdapMessageEnvelope<Response> {
         private LdapResponseMessage(final byte messageType, final int messageId, final Response content) {
             super(messageType, messageId, content);
+        }
+
+        @Override
+        public String toString() {
+            return "LdapResponseMessage(messageType=" + getMessageType()
+                    + ", messageId=" + getMessageId()
+                    + ", content=" + getContent() + ")";
         }
     }
 

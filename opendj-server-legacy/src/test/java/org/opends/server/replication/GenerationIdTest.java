@@ -921,7 +921,7 @@ public class GenerationIdTest extends ReplicationTestCase
       replServer3 = createReplicationServer(replServerId3, true, testCase);
 
       connectServer1ToReplServer(replServer1);
-      Thread.sleep(2000); //wait for all RS handshakes to complete
+      waitForDomainsOnAllReplicationServers();
 
       debugInfo("Expect genId are set in all replServers.");
       waitForStableGenerationId(EMPTY_DN_GENID);
@@ -990,10 +990,28 @@ public class GenerationIdTest extends ReplicationTestCase
     }
   }
 
-  private void waitForStableGenerationId(final long expectedGenId) throws Exception
+  private void waitForDomainsOnAllReplicationServers() throws Exception
   {
     TestTimer timer = new TestTimer.Builder()
       .maxSleep(30, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        assertNotNull(replServer1.getReplicationServerDomain(baseDN), "domain missing on replServer1");
+        assertNotNull(replServer2.getReplicationServerDomain(baseDN), "domain missing on replServer2");
+        assertNotNull(replServer3.getReplicationServerDomain(baseDN), "domain missing on replServer3");
+      }
+    });
+  }
+
+  private void waitForStableGenerationId(final long expectedGenId) throws Exception
+  {
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(60, SECONDS)
       .sleepTimes(100, MILLISECONDS)
       .toTimer();
     timer.repeatUntilSuccess(new CallableVoid()
