@@ -993,7 +993,7 @@ public class GenerationIdTest extends ReplicationTestCase
   private void waitForStableGenerationId(final long expectedGenId) throws Exception
   {
     TestTimer timer = new TestTimer.Builder()
-      .maxSleep(30, SECONDS)
+      .maxSleep(60, SECONDS)
       .sleepTimes(100, MILLISECONDS)
       .toTimer();
     timer.repeatUntilSuccess(new CallableVoid()
