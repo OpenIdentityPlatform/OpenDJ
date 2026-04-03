@@ -14,6 +14,7 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions copyright 2011 profiq s.r.o.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.plugins;
 
@@ -1828,5 +1829,61 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     ModifyOperation modOperation = addAttrEntry(DN.valueOf(group),
       "member", "uid=user.1,ou=people,ou=dept,o=test");
     assertEquals(modOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  @Test
+  public void testEnforceIntegrityModifyGroupAddMissingUniqueMember() throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "uniquemember");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "uniquemember:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    ModifyOperation modOperation = addAttrEntry(DN.valueOf(ugroup),
+      "uniquemember", "uid=user.100,ou=people,ou=dept,dc=example,dc=com");
+    assertEquals(modOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
+  }
+
+  @Test
+  public void testEnforceIntegrityModifyGroupAddMissingUniqueMemberWithPriorDelete() throws Exception
+  {
+    // Configure the plugin in the same way as for the single-ADD test.
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "uniquemember");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "uniquemember:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    // Ensure 'description' exists on ugroup so the DELETE modification succeeds.
+    addAttrEntry(DN.valueOf(ugroup), "description", "test description");
+    // Build a modify request with a non-ADD/REPLACE modification first,
+    // followed by an ADD of a uniquemember referencing a missing DN.
+    final ModifyRequest modifyRequest = Requests.newModifyRequest(DN.valueOf(ugroup));
+    modifyRequest.addModification(DELETE, "description");
+    modifyRequest.addModification(ADD, "uniquemember",
+        "uid=user.100,ou=people,ou=dept,dc=example,dc=com");
+
+    final InternalClientConnection connection = getRootConnection();
+    final ModifyOperation multiModOperation = connection.processModify(modifyRequest);
+    assertEquals(multiModOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
   }
 }

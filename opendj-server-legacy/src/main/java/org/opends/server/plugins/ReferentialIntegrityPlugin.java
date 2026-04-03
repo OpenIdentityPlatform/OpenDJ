@@ -14,6 +14,7 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions copyright 2011 profiq s.r.o.
+ * Portions copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.plugins;
 
@@ -991,10 +992,9 @@ public class ReferentialIntegrityPlugin
     }
 
     final List<Modification> mods = modifyOperation.getModifications();
-    final Entry entry = modifyOperation.getModifiedEntry();
 
     /* Make sure the entry belongs to one of the configured naming contexts. */
-    DN entryDN = entry.getName();
+    DN entryDN = modifyOperation.getEntryDN();
     DN entryBaseDN = getEntryBaseDN(entryDN);
     if (entryBaseDN == null)
     {
@@ -1009,14 +1009,35 @@ public class ReferentialIntegrityPlugin
       if (modType != ModificationType.ADD
           && modType != ModificationType.REPLACE)
       {
-        break;
+        continue;
       }
 
-      Attribute modifiedAttribute = entry.getAttribute(mod.getAttribute().getAttributeDescription());
-      if (modifiedAttribute != null)
+      Attribute modifiedAttribute = mod.getAttribute();
+      if (modifiedAttribute != null && !modifiedAttribute.isEmpty())
       {
+        // Only enforce referential integrity on attributes that this plugin is configured to manage.
+        final AttributeType modifiedAttrType = modifiedAttribute.getAttributeDescription().getAttributeType();
+        boolean isManagedAttributeType = false;
+        if (modifiedAttrType != null && attributeTypes != null)
+        {
+          for (AttributeType configuredType : attributeTypes)
+          {
+            if (modifiedAttrType.equals(configuredType)
+                || modifiedAttrType.isSubTypeOf(configuredType))
+            {
+              isManagedAttributeType = true;
+              break;
+            }
+          }
+        }
+
+        if (!isManagedAttributeType)
+        {
+          // Skip integrity checks for attributes not configured for this plugin.
+          continue;
+        }
         PluginResult.PreOperation result =
-        isIntegrityMaintained(modifiedAttribute, entryDN, entryBaseDN);
+            isIntegrityMaintained(modifiedAttribute, entryDN, entryBaseDN);
         if (result.getResultCode() != ResultCode.SUCCESS)
         {
           return result;
