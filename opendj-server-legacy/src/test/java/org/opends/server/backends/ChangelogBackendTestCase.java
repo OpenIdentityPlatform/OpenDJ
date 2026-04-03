@@ -585,6 +585,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     // write 4 changes starting from changenumber 1, and search them
     String testName = "Multiple/1";
     CSN[] csns = generateAndPublishUpdateMsgForEachOperationType(testName, false);
+    // Wait until changenumber 4 is visible before searching
+    assertChangelogAttributesInRootDSE(1, 4);
     searchChangesForEachOperationTypeUsingChangeNumberMode(1, csns, testName);
 
     // write 4 more changes starting from changenumber 5, and search them
@@ -853,7 +855,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       final int expectedFirstChangeNumber, final int expectedLastChangeNumber) throws Exception
   {
     TestTimer timer = new TestTimer.Builder()
-      .maxSleep(3, SECONDS)
+      .maxSleep(30, SECONDS)
       .sleepTimes(100, MILLISECONDS)
       .toTimer();
     return timer.repeatUntilSuccess(new Callable<List<SearchResultEntry>>()

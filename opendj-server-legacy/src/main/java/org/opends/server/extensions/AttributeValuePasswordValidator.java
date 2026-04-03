@@ -13,12 +13,15 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
 import org.forgerock.i18n.LocalizableMessage;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
@@ -81,17 +84,28 @@ public class AttributeValuePasswordValidator
   private boolean containsSubstring(String password, int minSubstringLength,
       Attribute a)
   {
+    // Clamp to at least 1 so an empty substring never matches unconditionally.
+    final int minLen = Math.max(1, minSubstringLength);
     final int passwordLength = password.length();
+
+    // Precompute the lowercase password once to avoid repeated conversions.
+    final String passwordLower = password.toLowerCase(Locale.ROOT);
+
+    // Precompute lowercase attribute values once, outside the substring loops.
+    final List<String> attrValuesLower = new ArrayList<>(a.size());
+    for (ByteString val : a)
+    {
+      attrValuesLower.add(val.toString().toLowerCase(Locale.ROOT));
+    }
 
     for (int i = 0; i < passwordLength; i++)
     {
-      for (int j = i + minSubstringLength; j <= passwordLength; j++)
+      for (int j = i + minLen; j <= passwordLength; j++)
       {
-        Attribute substring = Attributes.create(a.getAttributeDescription().getAttributeType(),
-            password.substring(i, j));
-        for (ByteString val : a)
+        final String pwdSubstring = passwordLower.substring(i, j);
+        for (String attrValueLower : attrValuesLower)
         {
-          if (substring.contains(val))
+          if (attrValueLower.contains(pwdSubstring))
           {
             return true;
           }
@@ -141,7 +155,8 @@ public class AttributeValuePasswordValidator
         if (a.contains(vf) ||
             (config.isTestReversedPassword() && a.contains(vr)) ||
             (config.isCheckSubstrings() &&
-                containsSubstring(password, minSubstringLength, a)))
+                (containsSubstring(password, minSubstringLength, a) ||
+                 (config.isTestReversedPassword() && containsSubstring(reversed, minSubstringLength, a)))))
         {
           invalidReason.append(ERR_ATTRVALUE_VALIDATOR_PASSWORD_IN_ENTRY.get());
           return false;
