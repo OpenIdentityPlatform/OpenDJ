@@ -246,9 +246,11 @@ jobs:
         opendj-server-legacy\target\package\opendj\bat\stop-ds.bat
         opendj-server-legacy\target\package\opendj\bat\windows-service.bat --enableService
         net start "OpenDJ Server"
+        if ($LASTEXITCODE -ne 0) { throw "net start 'OpenDJ Server' failed with exit code $LASTEXITCODE" }
         for ($i=0; $i -lt 12; $i++) { try { $c = New-Object System.Net.Sockets.TcpClient('localhost', 1636); $c.Close(); break } catch { Start-Sleep -Seconds 5 } }
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "10000"
         net stop "OpenDJ Server"
+        if ($LASTEXITCODE -ne 0) { throw "net stop 'OpenDJ Server' failed with exit code $LASTEXITCODE" }
         opendj-server-legacy\target\package\opendj\bat\windows-service.bat --disableService
 
     - name: Upload Windows exe artifacts
