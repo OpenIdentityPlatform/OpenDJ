@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ 'sustaining/4.10.x','master' ]
+    branches: [ 'sustaining/4.10.x','master', 'issues/**', 'features/**' ]
   pull_request:
 
 jobs:
