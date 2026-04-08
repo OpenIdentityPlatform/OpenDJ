@@ -309,6 +309,9 @@ jobs:
         uses: docker/setup-buildx-action@v4
         with:
           driver-opts: network=host
+          buildkitd-config-inline: |
+            [worker.oci]
+              max-parallelism = 1
       - name: Prepare Dockerfile
         shell: bash
         run: |
@@ -374,6 +377,9 @@ jobs:
         uses: docker/setup-buildx-action@v4
         with:
           driver-opts: network=host
+          buildkitd-config-inline: |
+            [worker.oci]
+              max-parallelism = 1
       - name: Prepare Dockerfile
         shell: bash
         run: |
