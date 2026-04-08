@@ -28,8 +28,13 @@ echo "Instance data Directory is empty. Creating new DJ instance"
 export BASE_DN=${BASE_DN:-"dc=example,dc=com"}
 echo "BASE DN is ${BASE_DN}"
 
-export PASSWORD=${ROOT_PASSWORD:-password}
-echo "Password set to $PASSWORD"
+# Read ROOT_PASSWORD from Docker secret file if available, fall back to env var, then default
+if [ -f /run/secrets/root_password ]; then
+  export ROOT_PASSWORD=$(tr -d '\n\r' < /run/secrets/root_password)
+fi
+export ROOT_PASSWORD=${ROOT_PASSWORD:-password}
+export PASSWORD=${ROOT_PASSWORD}
+echo "Password is set"
 
 BOOTSTRAP=${BOOTSTRAP:-/opt/opendj/bootstrap/setup.sh}
 echo "Running $BOOTSTRAP"

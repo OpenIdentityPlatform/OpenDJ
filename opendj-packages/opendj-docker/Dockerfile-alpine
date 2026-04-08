@@ -8,7 +8,9 @@ ENV LDAPS_PORT=1636
 ENV ADMIN_PORT=4444
 ENV BASE_DN="dc=example,dc=com"
 ENV ROOT_USER_DN="cn=Directory Manager"
-ENV ROOT_PASSWORD="password"
+# ROOT_PASSWORD should be passed at runtime via: docker run -e ROOT_PASSWORD=...
+# or mount a Docker secret file to /run/secrets/root_password
+# Default value if not provided: "password"
 #ENV SECRET_VOLUME
 ENV OPENDJ_SSL_OPTIONS="--generateSelfSignedCertificate"
 #ENV MASTER_SERVER
