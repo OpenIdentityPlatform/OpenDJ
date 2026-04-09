@@ -182,7 +182,7 @@ public final class SecureConnectionCliArgs
       argList.add(useStartTLSArg);
     }
 
-    hostNameArg = hostNameArgument(getDefaultHostName());
+    hostNameArg = hostNameArgument("localhost");
     argList.add(hostNameArg);
 
     portArg = createPortArgument(AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT);
