@@ -285,6 +285,11 @@ jobs:
         image: registry:3
         ports:
           - 5000:5000
+        env:
+          REGISTRY_STORAGE_DELETE_ENABLED: "true"
+          REGISTRY_VALIDATION_DISABLED: "true"
+          REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
+          REGISTRY_STORAGE_REDIRECT_DISABLE: "true"
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v8
@@ -349,6 +354,11 @@ jobs:
         image: registry:3
         ports:
           - 5000:5000
+        env:
+          REGISTRY_STORAGE_DELETE_ENABLED: "true"
+          REGISTRY_VALIDATION_DISABLED: "true"
+          REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
+          REGISTRY_STORAGE_REDIRECT_DISABLE: "true"
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v8
