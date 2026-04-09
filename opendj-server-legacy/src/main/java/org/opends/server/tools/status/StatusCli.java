@@ -246,14 +246,20 @@ public class StatusCli extends ConsoleApplication
       // LDAPConnectionConsoleInteraction, this done, it will not prompt
       // the user for them.
       controlInfo.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
-      int port = controlInfo.getAdminConnectorHostPort().getPort();
       final SecureConnectionCliArgs secureArgsList = argParser.getSecureArgsList();
       final StringArgument hostNameArg = secureArgsList.getHostNameArg();
-      hostNameArg.setPresent(true);
-      hostNameArg.addValue(hostNameArg.getDefaultValue());
+      if (!hostNameArg.isPresent())
+      {
+        hostNameArg.setPresent(true);
+        hostNameArg.addValue(hostNameArg.getDefaultValue());
+      }
       final IntegerArgument portArg = secureArgsList.getPortArg();
-      portArg.setPresent(true);
-      portArg.addValue(Integer.toString(port));
+      if (!portArg.isPresent())
+      {
+        int port = controlInfo.getAdminConnectorHostPort().getPort();
+        portArg.setPresent(true);
+        portArg.addValue(Integer.toString(port));
+      }
       // We already know if SSL or StartTLS can be used.  If we cannot
       // use them we will not propose them in the connection parameters
       // and if none of them can be used we will just not ask for the

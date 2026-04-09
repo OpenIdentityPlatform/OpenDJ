@@ -78,8 +78,6 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   throws ArgumentException
   {
     ArrayList<Argument> defaultArgs = new ArrayList<>(createGlobalArguments(outStream, alwaysSSL));
-    defaultArgs.remove(secureArgsList.getPortArg());
-    defaultArgs.remove(secureArgsList.getHostNameArg());
     defaultArgs.remove(verboseArg);
     defaultArgs.remove(noPropertiesFileArg);
     defaultArgs.remove(propertiesFileArg);
