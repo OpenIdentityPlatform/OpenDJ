@@ -67,7 +67,7 @@ jobs:
       run:   |
         export OPENDJ_JAVA_ARGS="-server -Xmx512m"
         opendj-server-legacy/target/package/opendj/setup -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --sampleData 5000 --cli --acceptLicense --no-prompt
-        opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password
+        opendj-server-legacy/target/package/opendj/bin/status --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --trustAll
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 5000
         opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
@@ -125,7 +125,7 @@ jobs:
         
         opendj-server-legacy/target/package/opendj/bin/start-ds
         
-        opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password --trustAll
+        opendj-server-legacy/target/package/opendj/bin/status --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --trustAll
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 5000
         opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
@@ -150,7 +150,7 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend -h localhost -p 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=userRoot --type cas --set base-dn:dc=example,dc=com --set db-directory:keyspace_name --set enabled:true --no-prompt --trustAll
         opendj-server-legacy/target/package/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example,dc=com opendj-server-legacy/target/package/opendj/config/MakeLDIF/example.template
         opendj-server-legacy/target/package/opendj/bin/import-ldif --ldifFile /tmp/test.ldif --backendID=userRoot -h localhost -p 4444 --bindDN "cn=Directory Manager" --bindPassword password --trustAll
-        opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password
+        opendj-server-legacy/target/package/opendj/bin/status --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --trustAll
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
         opendj-server-legacy/target/package/opendj/bin/stop-ds
@@ -165,7 +165,7 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend -h localhost -p 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=userRoot --type jdbc --set base-dn:dc=example,dc=com --set db-directory:jdbc:postgresql://localhost:5432/database_name?user=postgres\&password=password --set enabled:true --no-prompt --trustAll
         opendj-server-legacy/target/package/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example,dc=com opendj-server-legacy/target/package/opendj/config/MakeLDIF/example.template
         opendj-server-legacy/target/package/opendj/bin/ldapmodify --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll -f /tmp/test.ldif -a 1> /dev/null
-        opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password
+        opendj-server-legacy/target/package/opendj/bin/status --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --trustAll
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
         opendj-server-legacy/target/package/opendj/bin/stop-ds
@@ -230,7 +230,7 @@ jobs:
       run:   |
         set OPENDJ_JAVA_ARGS="-server -Xmx512m"
         opendj-server-legacy\target\package\opendj\setup.bat -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --sampleData 5000 --cli --acceptLicense --no-prompt
-        opendj-server-legacy\target\package\opendj\bat\status.bat --bindDN "cn=Directory Manager" --bindPassword password
+        opendj-server-legacy\target\package\opendj\bat\status.bat --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --trustAll
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "5000"
         opendj-server-legacy\target\package\opendj\bat\dsconfig.bat create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
