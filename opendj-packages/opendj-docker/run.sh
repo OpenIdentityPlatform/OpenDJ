@@ -42,8 +42,7 @@ echo "Instance data Directory is empty. Creating new DJ instance"
 export BASE_DN=${BASE_DN:-"dc=example,dc=com"}
 echo "BASE DN is ${BASE_DN}"
 
-export PASSWORD=${ROOT_PASSWORD:-password}
-echo "Password set to $PASSWORD"
+export ROOT_PASSWORD=${ROOT_PASSWORD:-password}
 
 BOOTSTRAP=${BOOTSTRAP:-/opt/opendj/bootstrap/setup.sh}
 echo "Running $BOOTSTRAP"
