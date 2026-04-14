@@ -1,10 +1,23 @@
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions copyright [year] [name of copyright owner]".
+#
+# Copyright 2021-2026 3A Systems, LLC.
+
 name: Build
 
 on:
   push:
-    branches: [ 'sustaining/4.10.x','master' ]
+    branches: [ 'sustaining/4.10.x','master', 'issues/**', 'features/**' ]
   pull_request:
-    branches: [ 'sustaining/4.10.x','master' ]
 
 jobs:
   build-maven:
@@ -28,17 +41,17 @@ jobs:
         wine --version
         version="9.4.0"; sudo wget "https://dl.winehq.org/wine/wine-mono/$version/wine-mono-$version-x86.msi" -O /tmp/wine-mono.msi
         wine msiexec /i /tmp/wine-mono.msi
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: recursive
     - name: Java ${{ matrix.Java }} (${{ matrix.os }})
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         java-version: ${{ matrix.java }}
         distribution: 'zulu'
     - name: Cache Maven packages
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
          path: ~/.m2/repository
          key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
@@ -68,7 +81,7 @@ jobs:
       run:   |
         export OPENDJ_JAVA_ARGS="-server -Xmx512m"
         opendj-server-legacy/target/package/opendj/setup -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --sampleData 5000 --cli --acceptLicense --no-prompt
-        opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password
+        opendj-server-legacy/target/package/opendj/bin/status --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --trustAll
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 5000
         opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
@@ -126,7 +139,7 @@ jobs:
         
         opendj-server-legacy/target/package/opendj/bin/start-ds
         
-        opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password --trustAll
+        opendj-server-legacy/target/package/opendj/bin/status --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --trustAll
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 5000
         opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
@@ -151,7 +164,7 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend -h localhost -p 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=userRoot --type cas --set base-dn:dc=example,dc=com --set db-directory:keyspace_name --set enabled:true --no-prompt --trustAll
         opendj-server-legacy/target/package/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example,dc=com opendj-server-legacy/target/package/opendj/config/MakeLDIF/example.template
         opendj-server-legacy/target/package/opendj/bin/import-ldif --ldifFile /tmp/test.ldif --backendID=userRoot -h localhost -p 4444 --bindDN "cn=Directory Manager" --bindPassword password --trustAll
-        opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password
+        opendj-server-legacy/target/package/opendj/bin/status --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --trustAll
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
         opendj-server-legacy/target/package/opendj/bin/stop-ds
@@ -166,7 +179,7 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend -h localhost -p 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=userRoot --type jdbc --set base-dn:dc=example,dc=com --set db-directory:jdbc:postgresql://localhost:5432/database_name?user=postgres\&password=password --set enabled:true --no-prompt --trustAll
         opendj-server-legacy/target/package/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example,dc=com opendj-server-legacy/target/package/opendj/config/MakeLDIF/example.template
         opendj-server-legacy/target/package/opendj/bin/ldapmodify --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll -f /tmp/test.ldif -a 1> /dev/null
-        opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password
+        opendj-server-legacy/target/package/opendj/bin/status --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --trustAll
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000
         opendj-server-legacy/target/package/opendj/bin/stop-ds
@@ -231,7 +244,7 @@ jobs:
       run:   |
         set OPENDJ_JAVA_ARGS="-server -Xmx512m"
         opendj-server-legacy\target\package\opendj\setup.bat -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --sampleData 5000 --cli --acceptLicense --no-prompt
-        opendj-server-legacy\target\package\opendj\bat\status.bat --bindDN "cn=Directory Manager" --bindPassword password
+        opendj-server-legacy\target\package\opendj\bat\status.bat --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --trustAll
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "5000"
         opendj-server-legacy\target\package\opendj\bat\dsconfig.bat create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
@@ -247,21 +260,23 @@ jobs:
         opendj-server-legacy\target\package\opendj\bat\stop-ds.bat
         opendj-server-legacy\target\package\opendj\bat\windows-service.bat --enableService
         net start "OpenDJ Server"
+        if ($LASTEXITCODE -ne 0) { throw "net start 'OpenDJ Server' failed with exit code $LASTEXITCODE" }
         for ($i=0; $i -lt 12; $i++) { try { $c = New-Object System.Net.Sockets.TcpClient('localhost', 1636); $c.Close(); break } catch { Start-Sleep -Seconds 5 } }
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "10000"
         net stop "OpenDJ Server"
+        if ($LASTEXITCODE -ne 0) { throw "net stop 'OpenDJ Server' failed with exit code $LASTEXITCODE" }
         opendj-server-legacy\target\package\opendj\bat\windows-service.bat --disableService
 
     - name: Upload Windows exe artifacts
       if: runner.os == 'Windows'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: windows-exe-${{ matrix.java }}
         retention-days: 5
         path: opendj-server-legacy/src/build-tools/windows/*.exe
 
     - name: Upload artifacts OpenDJ Server
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.os }}-${{ matrix.java }}
         retention-days: 5
@@ -281,12 +296,12 @@ jobs:
     runs-on: 'ubuntu-latest'
     services:
       registry:
-        image: registry:2
+        image: registry:3
         ports:
           - 5000:5000
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ubuntu-latest-11
       - name: Get latest release version
@@ -296,16 +311,16 @@ jobs:
           echo "release_version=$git_version_last" >> $GITHUB_ENV
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             localhost:5000/${{ github.repository }}
           tags: |
             type=raw,value=${{ env.release_version }}
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
         with:
           driver-opts: network=host
       - name: Prepare Dockerfile
@@ -315,7 +330,7 @@ jobs:
           cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
           sed -i -E '/^#COPY opendj/s/^#//' ./opendj-packages/opendj-docker/Dockerfile
       - name: Build image (default)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: ./opendj-packages/opendj-docker
           file: ./opendj-packages/opendj-docker/Dockerfile
@@ -339,18 +354,25 @@ jobs:
           docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
           docker exec test 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000'
           docker kill test
+      - name: Docker test custom password
+        shell: bash
+        run: |
+          docker run --rm -it -d --memory="512m" -e ROOT_PASSWORD=custom_password --name=test_custom localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
+          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_custom | grep -q \"healthy\"; do sleep 10; done'
+          docker exec test_custom 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword custom_password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
+          docker kill test_custom
 
   build-docker-alpine:
     needs: build-maven
     runs-on: 'ubuntu-latest'
     services:
       registry:
-        image: registry:2
+        image: registry:3
         ports:
           - 5000:5000
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ubuntu-latest-11
       - name: Get latest release version
@@ -360,7 +382,7 @@ jobs:
           echo "release_version=$git_version_last" >> $GITHUB_ENV
       - name: Docker meta 
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             localhost:5000/${{ github.repository }}
@@ -368,9 +390,9 @@ jobs:
             type=raw,value=alpine
             type=raw,value=${{ env.release_version }}-alpine
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
         with:
           driver-opts: network=host
       - name: Prepare Dockerfile
@@ -380,7 +402,7 @@ jobs:
           cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
           sed -i -E '/^#COPY opendj/s/^#//' ./opendj-packages/opendj-docker/Dockerfile-alpine
       - name: Build image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: ./opendj-packages/opendj-docker
           file: ./opendj-packages/opendj-docker/Dockerfile-alpine
@@ -404,3 +426,10 @@ jobs:
           docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
           docker exec test 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000'
           docker kill test
+      - name: Docker test custom password
+        shell: bash
+        run: |
+          docker run --rm -it -d --memory="1g" -e ROOT_PASSWORD=custom_password --name=test_custom localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
+          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_custom | grep -q \"healthy\"; do sleep 10; done'
+          docker exec test_custom 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword custom_password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
+          docker kill test_custom

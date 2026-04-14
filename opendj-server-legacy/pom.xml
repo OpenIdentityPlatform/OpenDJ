@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>5.0.5--SNAPSHOT</version>
+    <version>5.0.5-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-server-legacy</artifactId>
   <packaging>jar</packaging>
@@ -256,7 +256,6 @@
     <dependency>
 	    <groupId>org.apache.cassandra</groupId>
 	    <artifactId>java-driver-core</artifactId>
-	    <version>4.19.2</version>
 	    <exclusions>
 	    	<exclusion>
 	    		<groupId>org.reactivestreams</groupId>
@@ -1133,6 +1132,27 @@
                   <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="template/**/*" filemode="444" dirmode="744" prefix="opendj" />
                 </zip>
                 <attachartifact file="${project.build.directory}/package/${product.archive.name}.zip" type="zip" />
+              </target>
+            </configuration>
+          </execution>
+
+          <!-- Generate slim zip and attach artefact -->
+          <execution>
+            <id>attach-artifact-slim</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <zip destfile="${project.build.directory}/package/${product.archive.name}-slim.zip">
+                  <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="**/*" excludes="bin/*,template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/universalJavaApplicationStub,Uninstall.app/Contents/MacOS/universalJavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/universalJavaApplicationStub,lib/org.apache.cassandra.*,lib/com.oracle.database.jdbc*,lib/com.mysql.mysql-connector*,lib/com.microsoft.sqlserver*,lib/org.postgresql.*" filemode="644" dirmode="755" prefix="opendj" />
+                  <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh" filemode="755" dirmode="755" prefix="opendj" />
+                  <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="bin/*" filemode="755" dirmode="755" prefix="opendj" />
+                  <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/universalJavaApplicationStub,Uninstall.app/Contents/MacOS/universalJavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/universalJavaApplicationStub" filemode="755" dirmode="755" prefix="opendj" />
+                  <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="template/**/*" filemode="444" dirmode="744" prefix="opendj" />
+                </zip>
+                <attachartifact file="${project.build.directory}/package/${product.archive.name}-slim.zip" classifier="slim" type="zip" />
               </target>
             </configuration>
           </execution>

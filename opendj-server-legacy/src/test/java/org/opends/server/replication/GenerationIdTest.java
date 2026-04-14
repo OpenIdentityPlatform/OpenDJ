@@ -993,7 +993,7 @@ public class GenerationIdTest extends ReplicationTestCase
   private void waitForDomainsOnAllReplicationServers() throws Exception
   {
     TestTimer timer = new TestTimer.Builder()
-      .maxSleep(30, SECONDS)
+      .maxSleep(60, SECONDS)
       .sleepTimes(100, MILLISECONDS)
       .toTimer();
     timer.repeatUntilSuccess(new CallableVoid()
@@ -1001,9 +1001,19 @@ public class GenerationIdTest extends ReplicationTestCase
       @Override
       public void call() throws Exception
       {
-        assertNotNull(replServer1.getReplicationServerDomain(baseDN), "domain missing on replServer1");
-        assertNotNull(replServer2.getReplicationServerDomain(baseDN), "domain missing on replServer2");
-        assertNotNull(replServer3.getReplicationServerDomain(baseDN), "domain missing on replServer3");
+        ReplicationServerDomain d1 = replServer1.getReplicationServerDomain(baseDN);
+        assertNotNull(d1, "domain missing on replServer1");
+        ReplicationServerDomain d2 = replServer2.getReplicationServerDomain(baseDN);
+        assertNotNull(d2, "domain missing on replServer2");
+        ReplicationServerDomain d3 = replServer3.getReplicationServerDomain(baseDN);
+        assertNotNull(d3, "domain missing on replServer3");
+        // Ensure RS-to-RS topology connections are fully established
+        assertTrue(d1.getNumRSs() >= 2,
+            "replServer1 not yet connected to other RSs, got " + d1.getNumRSs());
+        assertTrue(d2.getNumRSs() >= 2,
+            "replServer2 not yet connected to other RSs, got " + d2.getNumRSs());
+        assertTrue(d3.getNumRSs() >= 2,
+            "replServer3 not yet connected to other RSs, got " + d3.getNumRSs());
       }
     });
   }
@@ -1011,7 +1021,7 @@ public class GenerationIdTest extends ReplicationTestCase
   private void waitForStableGenerationId(final long expectedGenId) throws Exception
   {
     TestTimer timer = new TestTimer.Builder()
-      .maxSleep(60, SECONDS)
+      .maxSleep(120, SECONDS)
       .sleepTimes(100, MILLISECONDS)
       .toTimer();
     timer.repeatUntilSuccess(new CallableVoid()

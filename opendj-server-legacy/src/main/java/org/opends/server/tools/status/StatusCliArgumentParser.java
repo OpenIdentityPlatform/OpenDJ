@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.status;
 
@@ -78,8 +79,6 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   throws ArgumentException
   {
     ArrayList<Argument> defaultArgs = new ArrayList<>(createGlobalArguments(outStream, alwaysSSL));
-    defaultArgs.remove(secureArgsList.getPortArg());
-    defaultArgs.remove(secureArgsList.getHostNameArg());
     defaultArgs.remove(verboseArg);
     defaultArgs.remove(noPropertiesFileArg);
     defaultArgs.remove(propertiesFileArg);

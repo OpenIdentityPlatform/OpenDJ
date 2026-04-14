@@ -503,7 +503,7 @@ ServiceReturnCode isServerRunning(BOOL *running, BOOL mustDebug)
 // The functions returns SERVICE_RETURN_OK if we could start the server
 // and SERVICE_RETURN_ERROR otherwise.
 // ----------------------------------------------------
-ServiceReturnCode doStartApplication()
+ServiceReturnCode doStartApplication(SERVICE_STATUS_HANDLE *serviceStatusHandle, DWORD *checkPoint)
 {
   ServiceReturnCode returnValue;
   // init out params
@@ -545,6 +545,11 @@ ServiceReturnCode doStartApplication()
       {
         debug("doStartApplication: OPENDJ_WINDOWS_SERVICE_STARTDS_WAIT is not set. Using default %d milliseconds.",
             STARTDS_WAIT_DEFAULT_VALUE);
+      }
+      if (serviceStatusHandle != NULL && checkPoint != NULL)
+      {
+        updateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0,
+            (*checkPoint)++, wait + 30000, serviceStatusHandle);
       }
       waitOk = waitForProcess(&procInfo, wait, &startDSExit);
       if (waitOk)
@@ -590,6 +595,11 @@ ServiceReturnCode doStartApplication()
       while ((nTries > 0) && !running)
       {
         nTries--;
+        if (serviceStatusHandle != NULL && checkPoint != NULL)
+        {
+          updateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0,
+              (*checkPoint)++, 10000, serviceStatusHandle);
+        }
         if (isServerRunning(&running, TRUE) != SERVICE_RETURN_OK)
         {
           break;
@@ -640,6 +650,11 @@ ServiceReturnCode doStartApplication()
       while ((nTries > 0) && !running)
       {
         nTries--;
+        if (serviceStatusHandle != NULL && checkPoint != NULL)
+        {
+          updateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0,
+              (*checkPoint)++, 10000, serviceStatusHandle);
+        }
         if (isServerRunning(&running, TRUE) != SERVICE_RETURN_OK)
         {
           break;
@@ -700,7 +715,7 @@ ServiceReturnCode doStopApplication()
     if (spawn(command, FALSE) != -1)
     {
       // Try to see if server is really stopped
-      int nTries = 10;
+      int nTries = 30;
       BOOL running = TRUE;
 
       debug("doStopApplication: the spawn of the process worked.");
@@ -710,6 +725,7 @@ ServiceReturnCode doStopApplication()
       Sleep(3000);
       while ((nTries > 0) && running)
       {
+        nTries--;
         if (isServerRunning(&running, TRUE) != SERVICE_RETURN_OK)
         {
           break;
@@ -1118,7 +1134,7 @@ void serviceMain(int argc, char* argv[])
   {
     WORD argCount = 1;
     const char *argc[] = {_instanceDir};
-    code = doStartApplication();
+    code = doStartApplication(_serviceStatusHandle, &checkPoint);
 
     switch (code)
     {
@@ -1225,31 +1241,53 @@ void serviceMain(int argc, char* argv[])
         }
         else
         {
-      // Check current Status
-      DWORD state;
-      BOOL success = getServiceStatus(serviceName, &state);
-          if (!(success &&
-               ((state == SERVICE_STOPPED) ||
-                (state == SERVICE_STOP_PENDING))))
+          // Server appears not running - retry a few times before concluding
+          // it has actually stopped (the lock file check can be transient,
+          // e.g. during JVM GC pressure or heavy I/O after a large ldapsearch).
+          // 3 retries × 2 seconds gives up to 6 extra seconds of tolerance.
+          int retryCount = 3;
+          BOOL confirmedStopped = TRUE;
+          while (retryCount > 0)
           {
-          WORD argCount = 1;
-            const char *argc[] = {_instanceDir};
-            _serviceCurStatus = SERVICE_STOPPED;
-            debug("checking in serviceMain serviceHandler: service stopped with error.");
+            retryCount--;
+            Sleep(2000); // wait 2 seconds between retries before re-checking
+            code = isServerRunning(&running, TRUE);
+            if (code == SERVICE_RETURN_OK && running)
+            {
+              confirmedStopped = FALSE;
+              break;
+            }
+          }
 
-            updateServiceStatus (
-              _serviceCurStatus,
-              ERROR_SERVICE_SPECIFIC_ERROR,
-              -1,
-              CHECKPOINT_NO_ONGOING_OPERATION,
-              TIMEOUT_NONE,
-              _serviceStatusHandle);
-            reportLogEvent(
-              EVENTLOG_ERROR_TYPE,
-              WIN_EVENT_ID_SERVER_STOPPED_OUTSIDE_SCM,
-              argCount, argc);
-           }
-          break;
+          if (confirmedStopped)
+          {
+            // Check current Status
+            DWORD state;
+            BOOL success = getServiceStatus(serviceName, &state);
+            if (!(success &&
+                 ((state == SERVICE_STOPPED) ||
+                  (state == SERVICE_STOP_PENDING))))
+            {
+              WORD argCount = 1;
+              const char *argc[] = {_instanceDir};
+              _serviceCurStatus = SERVICE_STOPPED;
+              debug("checking in serviceMain serviceHandler: service stopped with error.");
+
+              updateServiceStatus (
+                _serviceCurStatus,
+                ERROR_SERVICE_SPECIFIC_ERROR,
+                -1,
+                CHECKPOINT_NO_ONGOING_OPERATION,
+                TIMEOUT_NONE,
+                _serviceStatusHandle);
+              reportLogEvent(
+                EVENTLOG_ERROR_TYPE,
+                WIN_EVENT_ID_SERVER_STOPPED_OUTSIDE_SCM,
+                argCount, argc);
+            }
+            break;
+          }
+          // else: server is actually still running, continue monitoring
         }
       }
     }

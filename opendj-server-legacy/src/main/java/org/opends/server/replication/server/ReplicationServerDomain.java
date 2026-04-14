@@ -2137,6 +2137,15 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
+   * Returns the number of replication servers currently connected to this domain.
+   * @return The number of connected RSs
+   */
+  public int getNumRSs()
+  {
+    return connectedRSs.size();
+  }
+
+  /**
    * A synchronization mechanism is created to insure exclusive access to the
    * domain. The goal is to have a consistent view of the topology by locking
    * the structures holding the topology view of the domain:

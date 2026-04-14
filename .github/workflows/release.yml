@@ -31,12 +31,12 @@ jobs:
           wine --version
           version="9.4.0"; sudo wget "https://dl.winehq.org/wine/wine-mono/$version/wine-mono-$version-x86.msi" -O /tmp/wine-mono.msi
           wine msiexec /i /tmp/wine-mono.msi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: recursive
       - name: Set up Java for publishing to Maven Central Repository OSS
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ github.event.workflow_run.head_branch == 'sustaining/4.10.x' && '8' || '11'}}
           distribution: 'temurin'
@@ -44,7 +44,7 @@ jobs:
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
       - name: Cache Maven packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
          path: ~/.m2/repository
          key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
@@ -90,7 +90,7 @@ jobs:
             target/checkout/opendj-doc-generated-ref/target/*.zip
             target/checkout/opendj-dsml-servlet/target/*.war
             target/checkout/opendj-rest2ldap-servlet/target/*.war
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         continue-on-error: true
         with:
           repository: ${{ github.repository }}.wiki
@@ -113,7 +113,7 @@ jobs:
            git push --quiet --force
            git push --quiet --force origin ${{ github.event.inputs.releaseVersion }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         continue-on-error: true
         with:
           repository: OpenIdentityPlatform/doc.openidentityplatform.org
@@ -136,14 +136,14 @@ jobs:
     needs:
       - release-maven
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.inputs.releaseVersion }}
           fetch-depth: 1
           submodules: recursive
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             ${{ github.repository }}
@@ -152,22 +152,22 @@ jobs:
             type=raw,value=latest
             type=raw,value=${{ github.event.inputs.releaseVersion }}
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Login to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         continue-on-error: true
         with:
           context: ./opendj-packages/opendj-docker
@@ -184,14 +184,14 @@ jobs:
     needs:
       - release-maven
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.inputs.releaseVersion }}
           fetch-depth: 1
           submodules: recursive
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             ${{ github.repository }}
@@ -200,23 +200,23 @@ jobs:
             type=raw,value=alpine
             type=raw,value=${{ github.event.inputs.releaseVersion }}-alpine
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Login to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push image
         continue-on-error: true
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: ./opendj-packages/opendj-docker
           file: ./opendj-packages/opendj-docker/Dockerfile-alpine
