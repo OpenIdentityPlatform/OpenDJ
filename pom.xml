@@ -154,6 +154,15 @@
         		<scope>import</scope>
         	</dependency>
 
+            <!-- Fix CVE-2025-58057: Override transitive Netty to patched version -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>4.1.125.Final</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <dependency>
                 <groupId>com.io7m.jcip</groupId>
                 <artifactId>com.io7m.jcip.annotations</artifactId>
