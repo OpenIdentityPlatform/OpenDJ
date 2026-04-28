@@ -114,9 +114,13 @@ public class LoggerConfigManager implements ConfigurationAddListener<LogPublishe
         // FilterChainContext.toString() (Grizzly bug) when debug logging is enabled.
         // Grizzly 3.0.1 DefaultFilterChain.executeFilter() checks isLoggable(FINEST) but
         // its FilterChainContext.toString() incorrectly casts the message to char[].
+        Level grizzlyLevel = newLevel;
+        if(grizzlyLevel.intValue() < Level.FINE.intValue()) {
+          grizzlyLevel = Level.FINE;
+        }
         LogManager.getLogManager().readConfiguration(
                 new ByteArrayInputStream(
-                        (".level=" + newLevel + "\norg.glassfish.grizzly.level=FINE").getBytes()));
+                        (".level=" + newLevel + "\norg.glassfish.grizzly.level=" + grizzlyLevel).getBytes()));
         SLF4JBridgeHandler.install();
         currentJulLogLevel = newLevel;
       }
