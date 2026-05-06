@@ -29,11 +29,11 @@ if [ ! -d ./db ]; then
   mkdir -p /opt/opendj/data/lib/extensions
 fi
 
-# Instance dir does exist? We start opendj whithout detach
+# Instance dir does exist? We start opendj without detach
 if [ -d ./data/config ]; then
   sh ./upgrade -n
   exec ./bin/start-ds --nodetach
-  return
+  exit
 fi
 
 # If we are here, opendj is not installed & we need to run setup
@@ -49,7 +49,7 @@ echo "Running $BOOTSTRAP"
 sh "${BOOTSTRAP}"
 
 # Check if OPENDJ_REPLICATION_TYPE var is set. If it is - replicate to that server
-if [ ! -z ${MASTER_SERVER} ] && [ ! -z ${OPENDJ_REPLICATION_TYPE} ]; then
+if [ -n "${MASTER_SERVER}" ] && [ -n "${OPENDJ_REPLICATION_TYPE}" ]; then
   /opt/opendj/bootstrap/replicate.sh
 fi
 
