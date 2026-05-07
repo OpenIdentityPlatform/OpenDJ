@@ -72,10 +72,19 @@ jobs:
         call "%VSINSTALLDIR%\VC\Auxiliary\Build\vcvarsall.bat" x86
         if errorlevel 1 exit /b %errorlevel%
         pushd opendj-server-legacy\src\build-tools\windows
+        if errorlevel 1 exit /b %errorlevel%
         nmake all
         if errorlevel 1 exit /b %errorlevel%
-        if not exist *.exe (
-          echo No Windows native executables were generated.
+        if not exist opendj_service.exe (
+          echo Missing generated executable: opendj_service.exe
+          exit /b 1
+        )
+        if not exist winlauncher.exe (
+          echo Missing generated executable: winlauncher.exe
+          exit /b 1
+        )
+        if not exist launcher_administrator.exe (
+          echo Missing generated executable: launcher_administrator.exe
           exit /b 1
         )
         xcopy /Y *.exe ..\..\..\lib\
