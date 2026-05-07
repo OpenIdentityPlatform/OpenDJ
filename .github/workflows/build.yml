@@ -73,7 +73,25 @@ jobs:
         if errorlevel 1 exit /b %errorlevel%
         pushd opendj-server-legacy\src\build-tools\windows
         if errorlevel 1 exit /b %errorlevel%
-        nmake all
+        mc EventLogMsg.mc
+        if errorlevel 1 exit /b %errorlevel%
+        rc /fo EventLogMsg.res EventLogMsg.rc
+        if errorlevel 1 exit /b %errorlevel%
+        cl -D_WINDOWS -nologo -W3 -O2 -c common.c -Focommon.obj
+        if errorlevel 1 exit /b %errorlevel%
+        cl -D_WINDOWS -nologo -W3 -O2 -c service.c -Foservice.obj
+        if errorlevel 1 exit /b %errorlevel%
+        cl -D_WINDOWS -nologo -W3 -O2 -c winlauncher.c -Fowinlauncher.obj
+        if errorlevel 1 exit /b %errorlevel%
+        link -nologo /machine:x64 /OUT:opendj_service.exe EventLogMsg.res common.obj service.obj advapi32.lib
+        if errorlevel 1 exit /b %errorlevel%
+        mt -manifest opendj_service.exe.manifest -outputresource:opendj_service.exe;#1
+        if errorlevel 1 exit /b %errorlevel%
+        link -nologo /machine:x64 common.obj winlauncher.obj /OUT:winlauncher.exe
+        if errorlevel 1 exit /b %errorlevel%
+        link -nologo /machine:x64 common.obj winlauncher.obj /OUT:launcher_administrator.exe
+        if errorlevel 1 exit /b %errorlevel%
+        mt -manifest launcher_administrator.exe.manifest -outputresource:launcher_administrator.exe;#1
         if errorlevel 1 exit /b %errorlevel%
         if not exist opendj_service.exe (
           echo Missing generated executable: opendj_service.exe
