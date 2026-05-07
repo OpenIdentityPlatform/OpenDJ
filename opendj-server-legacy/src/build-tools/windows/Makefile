@@ -36,7 +36,7 @@ CC=cl
 SERVICE_PROGNAME=opendj_service.exe
 LAUNCHER_ADMINISTRATOR_PROGNAME=launcher_administrator.exe
 WINLAUNCHER_PROGNAME=winlauncher.exe
-LINKER=link -nologo /machine:x86
+LINKER=link -nologo /machine:x64
 LIBS=advapi32.lib
 
 CFLAGS= -D_WINDOWS  -nologo  -W3 -O2

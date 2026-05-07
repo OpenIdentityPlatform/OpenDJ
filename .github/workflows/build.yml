@@ -69,7 +69,7 @@ jobs:
           echo Unable to locate a Visual Studio installation with C++ build tools.
           exit /b 1
         )
-        call "%VSINSTALLDIR%\VC\Auxiliary\Build\vcvarsall.bat" x86
+        call "%VSINSTALLDIR%\VC\Auxiliary\Build\vcvarsall.bat" x64
         if errorlevel 1 exit /b %errorlevel%
         pushd opendj-server-legacy\src\build-tools\windows
         if errorlevel 1 exit /b %errorlevel%
