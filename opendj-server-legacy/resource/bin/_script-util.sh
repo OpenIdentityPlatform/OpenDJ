@@ -254,6 +254,17 @@ set_environment_vars() {
   then
   	export OPENDJ_JAVA_ARGS="$OPENDJ_JAVA_ARGS --add-exports java.base/sun.security.x509=ALL-UNNAMED --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED --add-opens java.base/jdk.internal.loader=ALL-UNNAMED"
   fi
+
+  "${OPENDJ_JAVA_BIN}" --enable-native-access=ALL-UNNAMED --version > /dev/null 2>&1
+  RESULT_CODE=${?}
+  if test ${RESULT_CODE} -eq 0
+  then
+    case " ${OPENDJ_JAVA_ARGS} " in
+      *" --enable-native-access=ALL-UNNAMED "*) ;;
+      *) OPENDJ_JAVA_ARGS="${OPENDJ_JAVA_ARGS} --enable-native-access=ALL-UNNAMED" ;;
+    esac
+    export OPENDJ_JAVA_ARGS
+  fi
 }
 
 # Configure the appropriate CLASSPATH for server, using Opend DJ logger.
