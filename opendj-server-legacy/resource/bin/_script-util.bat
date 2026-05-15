@@ -173,6 +173,13 @@ set SET_ENVIRONMENT_VARS_DONE=true
 "%OPENDJ_JAVA_BIN%" --add-opens java.base/jdk.internal.loader=ALL-UNNAMED --version > NUL 2>&1
 set RESULT_CODE=%errorlevel%
 if %RESULT_CODE% == 0 set OPENDJ_JAVA_ARGS=%OPENDJ_JAVA_ARGS% --add-opens java.base/jdk.internal.loader=ALL-UNNAMED
+"%OPENDJ_JAVA_BIN%" --enable-native-access=ALL-UNNAMED --version > NUL 2>&1
+set RESULT_CODE=%errorlevel%
+if NOT %RESULT_CODE% == 0 goto skipNativeAccessArg
+echo %OPENDJ_JAVA_ARGS% | findstr /C:"--enable-native-access=ALL-UNNAMED" > NUL 2>&1
+if %errorlevel% == 0 goto skipNativeAccessArg
+set OPENDJ_JAVA_ARGS=%OPENDJ_JAVA_ARGS% --enable-native-access=ALL-UNNAMED
+:skipNativeAccessArg
 goto scriptBegin
 
 :setTempDir
