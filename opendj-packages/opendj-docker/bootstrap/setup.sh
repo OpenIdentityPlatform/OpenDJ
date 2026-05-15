@@ -83,6 +83,6 @@ if [ -d /opt/opendj/bootstrap/data/ ]; then
 
   for file in /opt/opendj/bootstrap/data/*; do
     echo "Loading $file ..."
-    /opt/opendj/bin/ldapmodify -D "$ROOT_USER_DN" -h localhost -p $PORT -w $ROOT_PASSWORD -f $file
+    /opt/opendj/bin/ldapmodify -D "$ROOT_USER_DN" -h localhost -p $PORT -w $ROOT_PASSWORD -f $file --continueOnError
   done
 fi
