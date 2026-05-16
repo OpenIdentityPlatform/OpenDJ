@@ -10,13 +10,13 @@
 # Header, with the fields enclosed by brackets [] replaced by your own identifying
 # information: "Portions copyright [year] [name of copyright owner]".
 #
-# Copyright 2026 3A Systems, LLC.
+# Copyright 2018-2026 3A Systems, LLC.
 
 FROM alpine:latest
 
 LABEL org.opencontainers.image.authors="Open Identity Platform Community"
 
-ENV ADD_BASE_ENTRY="--addBaseEntry"
+#ENV ADD_BASE_ENTRY="--addBaseEntry" use during setup to add a base entry
 ENV PORT=1389
 ENV LDAPS_PORT=1636
 ENV ADMIN_PORT=4444
@@ -67,6 +67,6 @@ EXPOSE $PORT/tcp $LDAPS_PORT/tcp $ADMIN_PORT/tcp
 
 USER $OPENDJ_USER
 
-HEALTHCHECK --interval=30s --timeout=30s --start-period=1s --retries=3 CMD opendj/bin/ldapsearch --hostname localhost --port $LDAPS_PORT --bindDN "$ROOT_USER_DN" --bindPassword "${ROOT_PASSWORD:-password}" --useSsl --trustAll --baseDN "$BASE_DN" --searchScope base "(objectClass=*)" 1.1 || exit 1
+HEALTHCHECK --interval=30s --timeout=30s --start-period=1s --retries=3 CMD opendj/bin/ldapsearch --hostname localhost --port $LDAPS_PORT --bindDN "$ROOT_USER_DN" --bindPassword "${ROOT_PASSWORD:-password}" --useSsl --trustAll --baseDN "" --searchScope base "(objectClass=*)" 1.1 || exit 1
 
 ENTRYPOINT ["/opt/opendj/run.sh"]
