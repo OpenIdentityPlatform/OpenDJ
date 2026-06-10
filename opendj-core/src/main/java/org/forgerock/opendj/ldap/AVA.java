@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
+ * Portions copyright 2021-2026 3A Systems, LLC
  */
 package org.forgerock.opendj.ldap;
 
@@ -712,6 +713,26 @@ public final class AVA implements Comparable<AVA> {
      * <p>
      * These bytes are reserved to represent respectively the RDN separator,
      * the AVA separator and the escape byte in a normalized byte string.
+     * <p>
+     * NOTE (OpenDJ issue #648): the escaping is intentionally "self-nesting" and the
+     * repeated escaping across nesting levels is required, not redundant. The escaped
+     * output itself still contains reserved bytes (an escaped 0x00 becomes the pair
+     * 0x02 0x00), so when a DN-syntax attribute value is normalized - and its normalized
+     * value is itself the normalized byte string of a nested DN - the enclosing AVA must
+     * escape those reserved bytes again. This is mandatory to keep the flat normalized
+     * byte string both unambiguous (correct {@code equals}/{@code hashCode}) and
+     * byte-comparable (correct hierarchical {@code compareTo} ordering): the escape byte
+     * 0x02 sorts after the 0x00/0x01 separators, so structural separators always sort
+     * before escaped content.
+     * <p>
+     * The downside is that the number of reserved bytes roughly doubles per nesting level,
+     * so a value that recursively nests DN-syntax values N levels deep produces a
+     * normalized form of size ~2^N. This blow-up is inherent to any order-preserving,
+     * separator-escaped encoding that embeds itself, and it cannot be removed without
+     * breaking the ordering contract or the on-disk index key format. It is therefore
+     * mitigated by bounding the nesting depth and the normalized size in
+     * {@code DistinguishedNameEqualityMatchingRuleImpl} rather than by changing this
+     * encoding. Such deep self-nesting never occurs in legitimate data.
      */
     private ByteString escapeBytes(final ByteString value) {
         if (!needEscaping(value)) {

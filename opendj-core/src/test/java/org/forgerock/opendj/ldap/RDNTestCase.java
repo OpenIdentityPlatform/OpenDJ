@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
+ * Portions copyright 2026 3A Systems, LLC
  */
 
 package org.forgerock.opendj.ldap;
@@ -309,6 +310,45 @@ public final class RDNTestCase extends SdkTestCase {
         AVA example = new AVA("dc", "example");
         AVA org = new AVA("dc", "org");
         new RDN(Arrays.asList(example, org));
+    }
+
+    /**
+     * Detecting duplicate attribute types in a multi-valued RDN must only compare the
+     * attribute types and must not normalize the attribute values. Normalizing DN-syntax
+     * values (such as {@code aliasedObjectName}, OID 2.5.4.1) is potentially very expensive
+     * and used to make this validation pathologically slow (OpenDJ issue #648).
+     */
+    @Test(timeOut = 30000, expectedExceptions = LocalizedIllegalArgumentException.class)
+    public void testDuplicateDnSyntaxAvasAreDetectedQuickly() {
+        final StringBuilder nested = new StringBuilder();
+        for (int i = 0; i < 30; i++) {
+            nested.append("2.5.4.1=");
+        }
+        nested.append("0=0oa");
+        // Three AVAs sharing the same DN-syntax attribute type (2.5.4.1) so the default
+        // (3+) validation branch is exercised. Validation must throw without normalizing.
+        final AVA a1 = new AVA("2.5.4.1", nested.toString());
+        final AVA a2 = new AVA("2.5.4.1", nested.toString());
+        final AVA a3 = new AVA("2.5.4.1", "value");
+        new RDN(a1, a2, a3);
+    }
+
+    /**
+     * A multi-valued RDN built from distinct DN-syntax attribute types must be created
+     * quickly: the duplicate-type detection must not normalize the (expensive) values.
+     */
+    @Test(timeOut = 30000)
+    public void testDistinctDnSyntaxAvasAreValidatedQuickly() {
+        final StringBuilder nested = new StringBuilder();
+        for (int i = 0; i < 30; i++) {
+            nested.append("2.5.4.1=");
+        }
+        nested.append("0=0oa");
+        final AVA a1 = new AVA("2.5.4.1", nested.toString());
+        final AVA a2 = new AVA("2.5.4.34", nested.toString());
+        final AVA a3 = new AVA("cn", "value");
+        final RDN rdn = new RDN(a1, a2, a3);
+        assertEquals(rdn.size(), 3);
     }
 
     /**

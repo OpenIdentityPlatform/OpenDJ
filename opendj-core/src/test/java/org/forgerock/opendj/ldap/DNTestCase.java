@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
+ * Portions copyright 2021-2026 3A Systems, LLC
  */
 package org.forgerock.opendj.ldap;
 
@@ -672,6 +673,23 @@ public class DNTestCase extends SdkTestCase {
     @Test(dataProvider = "illegalDNs", expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testIllegalByteStringDNs(final String dn) throws Exception {
         DN.valueOf(ByteString.valueOfUtf8(dn));
+    }
+
+    /**
+     * Reproduces OpenDJ issue #648: parsing a DN whose multi-valued RDN contains duplicate
+     * DN-syntax attribute types (here 2.5.4.1, aliasedObjectName) with deeply nested values
+     * used to take minutes because the duplicate-type detection normalized the values. It
+     * must now fail fast with a "duplicate AVA types" error.
+     */
+    @Test(timeOut = 30000, expectedExceptions = LocalizedIllegalArgumentException.class)
+    public void testValueOfWithDuplicateNestedDnSyntaxAvasIsFast() throws Exception {
+        final StringBuilder nested = new StringBuilder();
+        for (int i = 0; i < 30; i++) {
+            nested.append("2.5.4.1=");
+        }
+        nested.append("0=0oa");
+        final String dnString = "NTLou=   r1oa      +2.5.4.1=" + nested + "      +2.5.4.1=2.";
+        DN.valueOf(dnString);
     }
 
     /**

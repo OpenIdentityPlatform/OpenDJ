@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions copyright 2013-2016 ForgeRock AS.
+ * Portions copyright 2024-2026 3A Systems, LLC
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -204,5 +205,23 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
             return ByteString.valueOfUtf8(s);
         }
         return new ByteStringBuilder().appendByte(0).appendUtf8(s).toByteString();
+    }
+
+    /**
+     * Reproduces OpenDJ issue #648: normalizing a DN-syntax value that recursively nests many
+     * DN-syntax values used to take minutes (and exhaust memory) because each nesting level
+     * roughly doubles the size of the normalized form. Normalization must now be bounded and
+     * complete in a reasonable time.
+     */
+    @Test(timeOut = 30000)
+    public void testNormalizationOfDeeplyNestedDnValueIsBounded() throws Exception {
+        final StringBuilder nested = new StringBuilder("2.5.4.1=");
+        for (int i = 0; i < 60; i++) {
+            nested.append("2.5.4.1=");
+        }
+        nested.append("0=0oa");
+        final ByteString normalized =
+                getRule().normalizeAttributeValue(ByteString.valueOfUtf8(nested.toString()));
+        assertThat(normalized).isNotNull();
     }
 }
