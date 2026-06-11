@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
+ * Portions copyright 2026 3A Systems, LLC
  */
 package org.forgerock.opendj.ldap;
 
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
@@ -69,6 +71,19 @@ import com.forgerock.opendj.util.SubstringReader;
  *      Models </a>
  */
 public final class RDN implements Iterable<AVA>, Comparable<RDN> {
+
+    /**
+     * Comparator used to detect duplicate attribute types within a multi-valued RDN.
+     * It only compares the attribute types and, deliberately, does not normalize the
+     * attribute values (which can be very expensive for DN-syntax values).
+     */
+    private static final Comparator<AVA> ATTRIBUTE_TYPE_COMPARATOR =
+            new Comparator<AVA>() {
+                @Override
+                public int compare(final AVA o1, final AVA o2) {
+                    return o1.getAttributeType().compareTo(o2.getAttributeType());
+                }
+            };
 
     /**
      * A constant holding a special RDN having zero AVAs
@@ -280,8 +295,12 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
             }
             break;
         default:
+            // Sort by attribute type only: detecting duplicate attribute types does not
+            // require normalizing the attribute values. Normalizing values here would be
+            // very expensive (and potentially pathological) for DN-syntax attribute values,
+            // which are themselves parsed recursively as DNs (see OpenDJ issue #648).
             final AVA[] sortedAVAs = Arrays.copyOf(avas, avas.length);
-            Arrays.sort(sortedAVAs);
+            Arrays.sort(sortedAVAs, ATTRIBUTE_TYPE_COMPARATOR);
             AttributeType previousAttributeType = null;
             for (AVA ava : sortedAVAs) {
                 if (ava.getAttributeType().equals(previousAttributeType)) {
