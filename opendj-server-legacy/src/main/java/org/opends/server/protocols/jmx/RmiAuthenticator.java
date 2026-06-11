@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.jmx;
 
@@ -102,9 +103,21 @@ public class RmiAuthenticator implements JMXAuthenticator
     {
       throw new SecurityException();
     }
-    Object c[] = (Object[]) credentials;
-    String authcID = (String) c[0];
-    String password = (String) c[1];
+    if (!(credentials instanceof String[]))
+    {
+      logger.trace("Invalid JMX credentials type");
+      throw new SecurityException();
+    }
+
+    String[] c = (String[]) credentials;
+    if (c.length != 2)
+    {
+      logger.trace("Invalid JMX credentials length");
+      throw new SecurityException();
+    }
+
+    String authcID = c[0];
+    String password = c[1];
 
     // The authcID is used at forwarder level to identify the calling client
     if (authcID == null)
