@@ -67,29 +67,15 @@ public class RmiAuthenticatorTest extends DirectoryServerTestCase
     Map<String, Object> env = new HashMap<>();
     RmiConnector.configureJmxDeserializationProtection(env);
 
-    assertEquals(env.get(RmiConnector.JMX_REMOTE_RMI_SERVER_CREDENTIAL_TYPES),
-        new String[] { String.class.getName(), String[].class.getName() });
     assertEquals(env.get(RmiConnector.JMX_REMOTE_RMI_SERVER_CREDENTIALS_FILTER_PATTERN),
         "maxdepth=3;maxarray=2;java.lang.String;!*");
     // The connector-wide filter must NOT be set, so legitimate JMX traffic
     // (MBean operations, notifications) is not affected by the allowlist.
     assertNull(env.get("jmx.remote.rmi.server.serial.filter.pattern"));
-  }
-
-  /** Verifies that each environment receives its own credential type array. */
-  @Test
-  public void credentialTypesAreDefensivelyCopied()
-  {
-    Map<String, Object> env = new HashMap<>();
-    RmiConnector.configureJmxDeserializationProtection(env);
-    String[] credentialTypes =
-        (String[]) env.get(RmiConnector.JMX_REMOTE_RMI_SERVER_CREDENTIAL_TYPES);
-    credentialTypes[0] = Date.class.getName();
-
-    Map<String, Object> env2 = new HashMap<>();
-    RmiConnector.configureJmxDeserializationProtection(env2);
-    assertEquals(((String[]) env2.get(RmiConnector.JMX_REMOTE_RMI_SERVER_CREDENTIAL_TYPES))[0],
-        String.class.getName());
+    // "jmx.remote.rmi.server.credential.types" is mutually exclusive with the
+    // credentials filter pattern: setting both prevents the connector from
+    // starting, so only the filter pattern must be configured.
+    assertNull(env.get("jmx.remote.rmi.server.credential.types"));
   }
 
   /** Verifies the configured filter allows only the expected credential payload. */
