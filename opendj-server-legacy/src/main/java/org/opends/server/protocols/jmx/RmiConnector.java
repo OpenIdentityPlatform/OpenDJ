@@ -65,9 +65,6 @@ public class RmiConnector
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  static final String JMX_REMOTE_RMI_SERVER_CREDENTIAL_TYPES =
-      "jmx.remote.rmi.server.credential.types";
-
   /**
    * JDK 10+ JMX environment property scoping a JEP 290 deserialization
    * filter to the credentials object passed during {@code newClient()}.
@@ -75,15 +72,16 @@ public class RmiConnector
    * {@code jmx.remote.rmi.server.serial.filter.pattern}) avoids breaking
    * legitimate JMX traffic such as MBean invocations and notifications,
    * which may legitimately carry non-String types.
+   * <p>
+   * Note: this property is mutually exclusive with
+   * {@code jmx.remote.rmi.server.credential.types}; specifying both makes
+   * {@code RMIJRMPServerImpl} throw an {@link IllegalArgumentException} and
+   * prevents the connector from starting. The filter pattern is preferred
+   * because it additionally constrains array length and nesting depth.
    */
   static final String JMX_REMOTE_RMI_SERVER_CREDENTIALS_FILTER_PATTERN =
       "jmx.remote.rmi.server.credentials.filter.pattern";
 
-  private static final String[] JMX_CREDENTIAL_TYPES =
-  {
-    String.class.getName(),
-    String[].class.getName()
-  };
 
   private static final String JMX_CREDENTIAL_SERIAL_FILTER =
       "maxdepth=3;maxarray=2;java.lang.String;!*";
@@ -392,11 +390,13 @@ public class RmiConnector
 
   static void configureJmxDeserializationProtection(Map<String, Object> env)
   {
-    env.put(JMX_REMOTE_RMI_SERVER_CREDENTIAL_TYPES,
-        JMX_CREDENTIAL_TYPES.clone());
     // Scope the JEP 290 deserialization filter to the credentials object
     // only, so legitimate JMX RMI traffic (MBean operations, notifications,
     // etc.) is not affected by the restrictive allowlist.
+    //
+    // Do NOT also set "jmx.remote.rmi.server.credential.types": the JDK
+    // rejects an environment that defines both properties, which would
+    // prevent the RMI connector from starting.
     env.put(JMX_REMOTE_RMI_SERVER_CREDENTIALS_FILTER_PATTERN,
         JMX_CREDENTIAL_SERIAL_FILTER);
   }
