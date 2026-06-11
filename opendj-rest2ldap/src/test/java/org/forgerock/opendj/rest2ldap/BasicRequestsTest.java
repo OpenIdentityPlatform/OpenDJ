@@ -13,6 +13,7 @@
  *
  * Copyright 2013-2016 ForgeRock AS.
  * Portions Copyright 2017 Rosie Applications, Inc.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -805,8 +806,12 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         assertThat(resource.getId()).isEqualTo("test1");
         assertThat(resource.getRevision()).isEqualTo("12345");
         assertThat(resource.getContent().get("_id").asString()).isNull();
-        assertThat(resource.getContent().get("name").asMap()).isNull();
-        assertThat(resource.getContent().get("surname").asString()).isEqualTo("user 1");
+        // The nested structure of the requested field is now preserved: the
+        // projected "/name/surname" is returned as { "name": { "surname": ... } }
+        // instead of being collapsed to a top-level "surname" field.
+        assertThat(resource.getContent().get("name").asMap()).isNotNull();
+        assertThat(resource.getContent().get("name").get("surname").asString()).isEqualTo("user 1");
+        assertThat(resource.getContent().get("surname").asString()).isNull();
         assertThat(resource.getContent().get("_rev").asString()).isNull();
     }
 
