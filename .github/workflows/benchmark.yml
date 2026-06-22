@@ -31,10 +31,10 @@ on:
         default: "openidentityplatform/opendj:latest"
       threads:
         description: "Concurrent JMeter threads"
-        default: "256"
+        default: "128"
       duration:
         description: "Test duration per server (seconds)"
-        default: "600"
+        default: "300"
       rampup:
         description: "Ramp-up period (seconds)"
         default: "0"
@@ -65,8 +65,8 @@ jobs:
       # `${{ inputs.X || 'default' }}` so workflow_run (which carries no inputs) falls back.
       OPENLDAP_IMAGE: ${{ inputs.openldap_image || 'osixia/openldap:latest' }}
       OPENDJ_IMAGE: ${{ inputs.opendj_image || 'openidentityplatform/opendj:latest' }}
-      THREADS: ${{ inputs.threads || '256' }}
-      DURATION: ${{ inputs.duration || '600' }}
+      THREADS: ${{ inputs.threads || '128' }}
+      DURATION: ${{ inputs.duration || '300' }}
       RAMPUP: ${{ inputs.rampup || '0' }}
       JMETER: ${{ inputs.jmeter_version || '5.6.3' }}
       BENCHPW: benchPass1
@@ -159,8 +159,13 @@ jobs:
             -l openldap.jtl -e -o openldap
 
       - name: Stop OpenLDAP
+        if: always()
         run: |
-          docker logs openldap 2>&1 | tail -n 100 || true
+          mkdir -p logs/openldap
+          docker logs openldap > logs/openldap/server.log 2>&1 || true
+          # osixia mostly logs to stdout (captured above); grab the in-container /var/log too.
+          docker cp openldap:/var/log logs/openldap/var-log 2>/dev/null || true
+          tail -n 100 logs/openldap/server.log || true
           docker rm -f openldap || true
 
       - name: Start OpenDJ
@@ -220,8 +225,14 @@ jobs:
             -l opendj.jtl -e -o opendj
 
       - name: Stop OpenDJ
+        if: always()
         run: |
-          docker logs opendj 2>&1 | tail -n 100 || true
+          mkdir -p logs/opendj
+          docker logs opendj > logs/opendj/server.log 2>&1 || true
+          # OpenDJ's internal log directory (errors, access, replication, server.out, ...).
+          docker cp opendj:/opt/opendj/data/logs logs/opendj/internal 2>/dev/null \
+            || docker cp opendj:/opt/opendj/logs logs/opendj/internal 2>/dev/null || true
+          tail -n 100 logs/opendj/server.log || true
           docker rm -f opendj || true
 
       # ---------------------------------------------------------------- Report
@@ -242,10 +253,22 @@ jobs:
             opendj/
             *.jtl
           if-no-files-found: warn
+          retention-days: 90
 
-      - name: Container logs + cleanup
+      - name: Upload OpenLDAP logs
         if: always()
-        run: |
-          docker logs openldap 2>&1 | tail -n 100 || true
-          docker logs opendj 2>&1 | tail -n 100 || true
-          docker rm -f openldap opendj || true
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs-openldap
+          path: logs/openldap/
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Upload OpenDJ logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs-opendj
+          path: logs/opendj/
+          if-no-files-found: warn
+          retention-days: 90

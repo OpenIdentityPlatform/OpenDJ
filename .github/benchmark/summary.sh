@@ -115,11 +115,12 @@ echo "![Total throughput (ops/s)]($(qc 500 320 "$TP_CFG"))"
 echo ""
 
 # ---------------------------------------------------------------- Latency chart (grouped bars)
-echo "### Mean latency per operation (ms, lower is better)"
+echo "### Mean latency per operation (ms, log scale — lower is better)"
 echo ""
-echo "_🟦 OpenLDAP · 🟧 OpenDJ — grouped bars per operation._"
+echo "_🟦 OpenLDAP · 🟧 OpenDJ — grouped bars per operation. Y axis is logarithmic so the small"
+echo "values stay visible next to the large ones._"
 echo ""
-LAT_CFG="{\"type\":\"bar\",\"data\":{\"labels\":$(labels_json),\"datasets\":[{\"label\":\"OpenLDAP\",\"backgroundColor\":\"$OL_COLOR\",\"data\":[$(vals m "$OL_JSON" meanResTime)]},{\"label\":\"OpenDJ\",\"backgroundColor\":\"$DJ_COLOR\",\"data\":[$(vals m "$DJ_JSON" meanResTime)]}]},\"options\":{\"title\":{\"display\":true,\"text\":\"Mean latency per operation (ms)\"}}}"
+LAT_CFG="{\"type\":\"bar\",\"data\":{\"labels\":$(labels_json),\"datasets\":[{\"label\":\"OpenLDAP\",\"backgroundColor\":\"$OL_COLOR\",\"data\":[$(vals m "$OL_JSON" meanResTime)]},{\"label\":\"OpenDJ\",\"backgroundColor\":\"$DJ_COLOR\",\"data\":[$(vals m "$DJ_JSON" meanResTime)]}]},\"options\":{\"title\":{\"display\":true,\"text\":\"Mean latency per operation (ms, log scale)\"},\"scales\":{\"yAxes\":[{\"type\":\"logarithmic\"}]}}}"
 echo "![Mean latency per operation (ms)]($(qc 900 400 "$LAT_CFG"))"
 echo ""
 
