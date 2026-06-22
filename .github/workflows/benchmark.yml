@@ -11,9 +11,9 @@
 # information: "Portions copyright [year] [name of copyright owner]".
 #
 # Copyright 2026 3A Systems, LLC.
-name: "LDAP benchmark: OpenDJ vs OpenLDAP"
+name: "Benchmark"
 
-# LDAP benchmark: OpenDJ vs OpenLDAP.
+# Benchmark: OpenDJ vs OpenLDAP.
 # Runs manually (workflow_dispatch) and automatically after the "Release" workflow completes.
 # Starts the latest OpenLDAP and OpenDJ from Docker (image tags overridable via inputs),
 # benchmarks OpenLDAP first then OpenDJ with Apache JMeter, and writes versions + comparison

@@ -39,7 +39,7 @@ m() { jq -r --arg l "$2" --arg f "$3" '((.[$l][$f]) // 0) | (.*10 | round / 10)'
 # mi <file> <label> <field> -> integer value (0 if absent).
 mi() { jq -r --arg l "$2" --arg f "$3" '((.[$l][$f]) // 0) | round' "$1"; }
 
-echo "## 🔬 LDAP Benchmark — OpenDJ vs OpenLDAP"
+echo "## 🔬 Benchmark: OpenDJ vs OpenLDAP"
 echo ""
 
 # ---------------------------------------------------------------- Versions
