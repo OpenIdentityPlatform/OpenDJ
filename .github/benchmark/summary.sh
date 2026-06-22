@@ -130,6 +130,6 @@ echo "- \`BIND\` is the measured **user authentication** (\`test=sbind\`, single
 echo "  own connection) as \`cn=user_<n>,ou=People\` with the password set by \`MODIFY\`. The admin"
 echo "  connection bind (\`ADMIN_CONNECT\`) is cached once per thread and excluded from these results."
 echo "- MODIFY sends the password in cleartext; each server hashes it on write with the **same"
-echo "  scheme (SSHA-256)** — OpenLDAP via the pw-sha2 module + ppolicy hash-cleartext, OpenDJ via"
-echo "  its Salted SHA-256 default scheme — so BIND authentication is compared on equal footing."
+echo "  scheme (SSHA, Salted SHA-1)** — OpenLDAP via the ppolicy hash-cleartext overlay, OpenDJ via"
+echo "  its Salted SHA-1 default scheme — so BIND authentication is compared on equal footing."
 echo "- Full interactive JMeter HTML dashboards are attached as the \`jmeter-reports\` artifact."

@@ -25,7 +25,7 @@ on:
     inputs:
       openldap_image:
         description: "OpenLDAP Docker image"
-        default: "osixia/openldap:latest"
+        default: "vegardit/docker-openldap:latest"
       opendj_image:
         description: "OpenDJ Docker image"
         default: "openidentityplatform/opendj:latest"
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # `${{ inputs.X || 'default' }}` so workflow_run (which carries no inputs) falls back.
-      OPENLDAP_IMAGE: ${{ inputs.openldap_image || 'osixia/openldap:latest' }}
+      OPENLDAP_IMAGE: ${{ inputs.openldap_image || 'vegardit/docker-openldap:latest' }}
       OPENDJ_IMAGE: ${{ inputs.opendj_image || 'openidentityplatform/opendj:latest' }}
       THREADS: ${{ inputs.threads || '200' }}
       DURATION: ${{ inputs.duration || '300' }}
@@ -97,13 +97,18 @@ jobs:
       - name: Start OpenLDAP
         run: |
           docker run -d --name openldap -p 2389:389 \
-            -e LDAP_ORGANISATION="Example" \
-            -e LDAP_DOMAIN="example.com" \
-            -e LDAP_ADMIN_PASSWORD="password" \
-            -e LDAP_TLS=false \
+            -e LDAP_INIT_ORG_NAME="Example" \
+            -e LDAP_INIT_ORG_DN="$BASEDN" \
+            -e LDAP_INIT_ROOT_USER_DN="cn=admin,$BASEDN" \
+            -e LDAP_INIT_ROOT_USER_PW="password" \
+            -e LDAP_TLS_ENABLED=false \
+            -e LDAP_LDAPS_ENABLED=false \
+            -e LDAP_INIT_PPOLICY_PW_MIN_LENGTH=1 \
+            -e LDAP_INIT_PPOLICY_MAX_FAILURES=0 \
+            -e LDAP_PPOLICY_PQCHECKER_RULE="0|00000000" \
             "$OPENLDAP_IMAGE"
 
-      - name: Configure OpenLDAP (SSHA-256 hash-on-write, seed)
+      - name: Configure OpenLDAP (SSHA hash-on-write, seed)
         run: |
           wait_ldap() {
             for i in $(seq 1 90); do
@@ -112,23 +117,17 @@ jobs:
               sleep 2
             done
           }
-          le() { docker exec -i openldap "$@" -Y EXTERNAL -H ldapi:/// >/dev/null 2>&1 || true; }
+          # cn=config edits via EXTERNAL over ldapi as root (-u 0).
+          le() { docker exec -u 0 -i openldap ldapmodify -Y EXTERNAL -H ldapi:/// >/dev/null 2>&1 || true; }
           wait_ldap
-          # Load pw-sha2 (provides {SSHA256}) and ppolicy (overlay) modules; osixia ships both
-          # in /usr/lib/ldap. Create the module list entry or append the values, then restart so
-          # the modules are active in the running slapd.
-          printf 'dn: cn=module{0},cn=config\nobjectClass: olcModuleList\nolcModuleLoad: pw-sha2\nolcModuleLoad: ppolicy\n' | le ldapadd
-          printf 'dn: cn=module{0},cn=config\nchangetype: modify\nadd: olcModuleLoad\nolcModuleLoad: pw-sha2\n' | le ldapmodify
-          printf 'dn: cn=module{0},cn=config\nchangetype: modify\nadd: olcModuleLoad\nolcModuleLoad: ppolicy\n' | le ldapmodify
-          docker restart openldap
-          wait_ldap
-          # Make slapd hash cleartext userPassword with {SSHA256} on a plain modify: set the global
-          # password-hash and enable the ppolicy overlay's hash_cleartext on the mdb database.
-          printf 'dn: olcDatabase={-1}frontend,cn=config\nchangetype: modify\nreplace: olcPasswordHash\nolcPasswordHash: {SSHA256}\n' | le ldapmodify
-          DBDN="$(docker exec openldap ldapsearch -Y EXTERNAL -H ldapi:/// -LLL -b cn=config '(olcDatabase=*mdb)' dn 2>/dev/null | sed -n 's/^dn: //p' | head -1)"
-          [ -n "$DBDN" ] || DBDN="olcDatabase={1}mdb,cn=config"
-          printf 'dn: olcOverlay=ppolicy,%s\nobjectClass: olcOverlayConfig\nobjectClass: olcPPolicyConfig\nolcOverlay: ppolicy\nolcPPolicyHashCleartext: TRUE\n' "$DBDN" | le ldapadd
-          # Seed ou=People (after the restart so it survives any re-init).
+          # This image ships no SHA-2 module, so use {SSHA} (Salted SHA-1, OpenLDAP core) — also a
+          # built-in OpenDJ scheme, so both servers hash identically. Set it as the global hash.
+          printf 'dn: olcDatabase={-1}frontend,cn=config\nchangetype: modify\nreplace: olcPasswordHash\nolcPasswordHash: {SSHA}\n' | le
+          # The image already loads the ppolicy overlay; enable hash-cleartext on it so a plain
+          # admin modify of a cleartext userPassword is hashed with {SSHA} on write.
+          PPDN="$(docker exec -u 0 openldap ldapsearch -Y EXTERNAL -H ldapi:/// -LLL -b cn=config '(olcOverlay=*ppolicy)' dn 2>/dev/null | sed -n 's/^dn: //p' | head -1)"
+          [ -z "$PPDN" ] || printf 'dn: %s\nchangetype: modify\nreplace: olcPPolicyHashCleartext\nolcPPolicyHashCleartext: TRUE\n' "$PPDN" | le
+          # Seed ou=People.
           ldapadd -x -H ldap://localhost:2389 -D "cn=admin,$BASEDN" -w password \
             -f .github/benchmark/people.ldif || true
 
@@ -163,7 +162,7 @@ jobs:
         run: |
           mkdir -p logs/openldap
           docker logs openldap > logs/openldap/server.log 2>&1 || true
-          # osixia mostly logs to stdout (captured above); grab the in-container /var/log too.
+          # slapd mostly logs to stdout (captured above); grab the in-container /var/log too.
           docker cp openldap:/var/log logs/openldap/var-log 2>/dev/null || true
           tail -n 100 logs/openldap/server.log || true
           docker rm -f openldap || true
@@ -188,12 +187,12 @@ jobs:
           ldapadd -x -H ldap://localhost:1389 -D "cn=Directory Manager" -w password \
             -f .github/benchmark/people.ldif || true
 
-      - name: Configure OpenDJ password policy (SSHA-256 hash-on-write)
+      - name: Configure OpenDJ password policy (SSHA hash-on-write)
         run: |
-          # Hash cleartext userPassword with Salted SHA-256 on write, matching OpenLDAP.
+          # Hash cleartext userPassword with Salted SHA-1 on write, matching OpenLDAP {SSHA}.
           docker exec opendj /opt/opendj/bin/dsconfig set-password-policy-prop \
             --policy-name "Default Password Policy" \
-            --set default-password-storage-scheme:"Salted SHA-256" \
+            --set default-password-storage-scheme:"Salted SHA-1" \
             --hostname localhost --port 4444 \
             --bindDN "cn=Directory Manager" --bindPassword password \
             --trustAll --no-prompt
