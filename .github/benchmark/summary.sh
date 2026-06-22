@@ -70,14 +70,13 @@ echo "| **OpenDJ** | ${dj_tot_tp} | ${dj_tot_mean} | ${dj_tot_n} | ${dj_tot_e} |
 echo ""
 
 # ---------------------------------------------------------------- Per-op table
-echo "### Per-operation comparison"
+echo "### Per-operation latency"
 echo ""
-echo "| Operation | ops/s OpenLDAP | ops/s OpenDJ | mean ms OpenLDAP | mean ms OpenDJ | p99 ms OpenLDAP | p99 ms OpenDJ | err OL | err DJ |"
-echo "|---|--:|--:|--:|--:|--:|--:|--:|--:|"
+echo "| Operation | mean ms OpenLDAP | mean ms OpenDJ | p99 ms OpenLDAP | p99 ms OpenDJ | err OL | err DJ |"
+echo "|---|--:|--:|--:|--:|--:|--:|"
 for op in "${OPS[@]}"; do
-  printf '| %s | %s | %s | %s | %s | %s | %s | %s | %s |\n' \
+  printf '| %s | %s | %s | %s | %s | %s | %s |\n' \
     "$op" \
-    "$(m  "$OL_JSON" "$op" throughput)"   "$(m  "$DJ_JSON" "$op" throughput)" \
     "$(m  "$OL_JSON" "$op" meanResTime)"  "$(m  "$DJ_JSON" "$op" meanResTime)" \
     "$(mi "$OL_JSON" "$op" pct3ResTime)"  "$(mi "$DJ_JSON" "$op" pct3ResTime)" \
     "$(mi "$OL_JSON" "$op" errorCount)"   "$(mi "$DJ_JSON" "$op" errorCount)"
@@ -89,10 +88,13 @@ echo ""
 # columns per operation we repeat each op on the x-axis and zero-pad the two series: OpenLDAP
 # bars land on the left tick of each pair, OpenDJ on the right tick.
 #
-# x-axis: each op twice -> "ADD", "ADD", "SEARCH", "SEARCH", ...
+# x-axis: each op as two *distinct* labels -> "ADD OL", "ADD DJ", "SEARCH OL", ...
+# The labels MUST be unique: xychart-beta merges duplicate category labels into one slot, which
+# would put both series back on the same column (overlapping). Distinct labels keep the columns
+# separate so the zero-padded series render side by side.
 xaxis_pairs() {
   local out="" op
-  for op in "${OPS[@]}"; do out+="${out:+, }\"${op}\", \"${op}\""; done
+  for op in "${OPS[@]}"; do out+="${out:+, }\"${op} OL\", \"${op} DJ\""; done
   printf '%s' "$out"
 }
 # OpenLDAP series: value then 0 per op (bar on the left tick of each pair).
@@ -113,19 +115,21 @@ XAXIS="$(xaxis_pairs)"
 PALETTE='%%{init: {"themeVariables": {"xyChart": {"plotColorPalette": "#4e79a7, #f28e2b"}}}}%%'
 CAPTION="_Each operation has two columns: 🟦 OpenLDAP (left) · 🟧 OpenDJ (right)._"
 
-# ---------------------------------------------------------------- Throughput chart
-echo "### Comparative chart — throughput per operation (ops/s, higher is better)"
+# ---------------------------------------------------------------- Total throughput chart
+echo "### Total throughput (ops/s, higher is better)"
 echo ""
-echo "$CAPTION"
+echo "_🟦 OpenLDAP · 🟧 OpenDJ. Per-operation throughput is intentionally not charted: every"
+echo "operation runs once per loop iteration, so each op's throughput just equals the loop rate"
+echo "(nearly identical across ops). The meaningful throughput is the aggregate shown here._"
 echo ""
 echo '```mermaid'
 echo "$PALETTE"
 echo "xychart-beta"
-echo "    title \"Throughput per operation (ops/s) — OpenLDAP vs OpenDJ\""
-echo "    x-axis [${XAXIS}]"
+echo "    title \"Total throughput (ops/s) — OpenLDAP vs OpenDJ\""
+echo "    x-axis [\"OpenLDAP\", \"OpenDJ\"]"
 echo "    y-axis \"ops/s\""
-echo "    bar [$(series_ol m "$OL_JSON" throughput)]"
-echo "    bar [$(series_dj m "$DJ_JSON" throughput)]"
+echo "    bar [${ol_tot_tp}, 0]"
+echo "    bar [0, ${dj_tot_tp}]"
 echo '```'
 echo ""
 
