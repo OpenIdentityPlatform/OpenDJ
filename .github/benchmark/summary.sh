@@ -83,70 +83,44 @@ for op in "${OPS[@]}"; do
 done
 echo ""
 
-# ---------------------------------------------------------------- Chart helpers
-# Mermaid xychart-beta has no grouped bars/legend, so to get two adjacent (non-overlapping)
-# columns per operation we repeat each op on the x-axis and zero-pad the two series: OpenLDAP
-# bars land on the left tick of each pair, OpenDJ on the right tick.
-#
-# x-axis: each op as two *distinct* labels -> "ADD OL", "ADD DJ", "SEARCH OL", ...
-# The labels MUST be unique: xychart-beta merges duplicate category labels into one slot, which
-# would put both series back on the same column (overlapping). Distinct labels keep the columns
-# separate so the zero-padded series render side by side.
-xaxis_pairs() {
-  local out="" op
-  for op in "${OPS[@]}"; do out+="${out:+, }\"${op} OL\", \"${op} DJ\""; done
-  printf '%s' "$out"
-}
-# OpenLDAP series: value then 0 per op (bar on the left tick of each pair).
-series_ol() { # <fn> <file> <field>
-  local fn="$1" file="$2" field="$3" out="" v
-  for op in "${OPS[@]}"; do v=$("$fn" "$file" "$op" "$field"); out+="${out:+, }${v}, 0"; done
-  printf '%s' "$out"
-}
-# OpenDJ series: 0 then value per op (bar on the right tick of each pair).
-series_dj() { # <fn> <file> <field>
-  local fn="$1" file="$2" field="$3" out="" v
-  for op in "${OPS[@]}"; do v=$("$fn" "$file" "$op" "$field"); out+="${out:+, }0, ${v}"; done
-  printf '%s' "$out"
-}
+# ---------------------------------------------------------------- Chart helpers (QuickChart)
+# Mermaid xychart-beta can't do grouped bars / a legend and crowds 14 x-labels, so render proper
+# grouped bar charts via QuickChart (Chart.js) as images: https://quickchart.io/chart?c=<config>.
+OL_COLOR="#4e79a7"   # blue   = OpenLDAP
+DJ_COLOR="#f28e2b"   # orange = OpenDJ
 
-XAXIS="$(xaxis_pairs)"
-# Fix the two series colors (series 1 = OpenLDAP blue, series 2 = OpenDJ orange).
-PALETTE='%%{init: {"themeVariables": {"xyChart": {"plotColorPalette": "#4e79a7, #f28e2b"}}}}%%'
-CAPTION="_Each operation has two columns: 🟦 OpenLDAP (left) · 🟧 OpenDJ (right)._"
+# JSON array of the OPS labels: ["ADD","SEARCH",...].
+labels_json() {
+  local out="" op
+  for op in "${OPS[@]}"; do out+="${out:+,}\"${op}\""; done
+  printf '[%s]' "$out"
+}
+# Comma-joined values for all OPS from <file> <field> via the <m> helper.
+vals() { # <fn> <file> <field>
+  local fn="$1" file="$2" field="$3" out="" v
+  for op in "${OPS[@]}"; do v=$("$fn" "$file" "$op" "$field"); out+="${out:+,}${v}"; done
+  printf '%s' "$out"
+}
+urienc() { jq -rn --arg s "$1" '$s|@uri'; }                       # URL-encode the chart config
+qc() { printf 'https://quickchart.io/chart?w=%s&h=%s&c=%s' "$1" "$2" "$(urienc "$3")"; }
 
 # ---------------------------------------------------------------- Total throughput chart
 echo "### Total throughput (ops/s, higher is better)"
 echo ""
-echo "_🟦 OpenLDAP · 🟧 OpenDJ. Per-operation throughput is intentionally not charted: every"
-echo "operation runs once per loop iteration, so each op's throughput just equals the loop rate"
-echo "(nearly identical across ops). The meaningful throughput is the aggregate shown here._"
+echo "_Per-operation throughput is not charted: every op runs once per loop iteration, so each"
+echo "op's throughput just equals the loop rate. The meaningful throughput is the aggregate._"
 echo ""
-echo '```mermaid'
-echo "$PALETTE"
-echo "xychart-beta"
-echo "    title \"Total throughput (ops/s) — OpenLDAP vs OpenDJ\""
-echo "    x-axis [\"OpenLDAP\", \"OpenDJ\"]"
-echo "    y-axis \"ops/s\""
-echo "    bar [${ol_tot_tp}, 0]"
-echo "    bar [0, ${dj_tot_tp}]"
-echo '```'
+TP_CFG="{\"type\":\"bar\",\"data\":{\"labels\":[\"OpenLDAP\",\"OpenDJ\"],\"datasets\":[{\"label\":\"ops/s\",\"backgroundColor\":[\"$OL_COLOR\",\"$DJ_COLOR\"],\"data\":[${ol_tot_tp},${dj_tot_tp}]}]},\"options\":{\"legend\":{\"display\":false},\"title\":{\"display\":true,\"text\":\"Total throughput (ops/s)\"}}}"
+echo "![Total throughput (ops/s)]($(qc 500 320 "$TP_CFG"))"
 echo ""
 
-# ---------------------------------------------------------------- Latency chart
-echo "### Comparative chart — mean latency per operation (ms, lower is better)"
+# ---------------------------------------------------------------- Latency chart (grouped bars)
+echo "### Mean latency per operation (ms, lower is better)"
 echo ""
-echo "$CAPTION"
+echo "_🟦 OpenLDAP · 🟧 OpenDJ — grouped bars per operation._"
 echo ""
-echo '```mermaid'
-echo "$PALETTE"
-echo "xychart-beta"
-echo "    title \"Mean latency per operation (ms) — OpenLDAP vs OpenDJ\""
-echo "    x-axis [${XAXIS}]"
-echo "    y-axis \"ms\""
-echo "    bar [$(series_ol m "$OL_JSON" meanResTime)]"
-echo "    bar [$(series_dj m "$DJ_JSON" meanResTime)]"
-echo '```'
+LAT_CFG="{\"type\":\"bar\",\"data\":{\"labels\":$(labels_json),\"datasets\":[{\"label\":\"OpenLDAP\",\"backgroundColor\":\"$OL_COLOR\",\"data\":[$(vals m "$OL_JSON" meanResTime)]},{\"label\":\"OpenDJ\",\"backgroundColor\":\"$DJ_COLOR\",\"data\":[$(vals m "$DJ_JSON" meanResTime)]}]},\"options\":{\"title\":{\"display\":true,\"text\":\"Mean latency per operation (ms)\"}}}"
+echo "![Mean latency per operation (ms)]($(qc 900 400 "$LAT_CFG"))"
 echo ""
 
 # ---------------------------------------------------------------- Caveats

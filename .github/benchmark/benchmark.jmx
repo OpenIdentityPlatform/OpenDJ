@@ -17,7 +17,7 @@
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="OpenDJ vs OpenLDAP - LDAP benchmark" enabled="true">
-      <stringProp name="TestPlan.comments">Parametrized LDAP benchmark. Admin bind is cached once per thread (Once Only Controller, labelled ADMIN_CONNECT, excluded from metrics). Data ops (ADD/SEARCH/COMPARE/MODIFY/DELETE/READD) reuse the cached admin connection. The measured user authentication is a single bind/unbind (test=sbind, own connection) after MODIFY has set the userPassword.</stringProp>
+      <stringProp name="TestPlan.comments">Parametrized LDAP benchmark. Admin bind is cached once per thread (Once Only Controller, labelled ADMIN_CONNECT, excluded from metrics). Data ops (ADD/SEARCH/COMPARE/MODIFY/DELETE/READD) reuse the cached admin connection. Entries use mail as the naming/searchable attribute (equality-indexed by default on BOTH OpenDJ and OpenLDAP/osixia); no cn/sn/uid/givenName/telephoneNumber/member/uniqueMember are stored (those are indexed on OpenDJ but not osixia, which would bias the write cost). Every created value is unique: ADD uses a per-iteration counter, READD uses a UUID. The measured user authentication is a single bind/unbind (test=sbind, own connection) after MODIFY has set the userPassword.</stringProp>
       <boolProp name="TestPlan.functional_mode">false</boolProp>
       <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
       <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
@@ -40,6 +40,20 @@
         <stringProp name="ThreadGroup.delay"></stringProp>
       </ThreadGroup>
       <hashTree>
+        <!-- Per-thread, per-iteration counter. Combined with ${__threadNum} it yields a value
+             unique across the whole run; it stays constant within a single loop iteration so the
+             same entry is referenced by ADD/SEARCH/COMPARE/MODIFY/BIND/DELETE. -->
+        <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Per-iteration counter" enabled="true">
+          <stringProp name="CounterConfig.start">1</stringProp>
+          <stringProp name="CounterConfig.end"></stringProp>
+          <stringProp name="CounterConfig.incr">1</stringProp>
+          <stringProp name="CounterConfig.name">iter</stringProp>
+          <stringProp name="CounterConfig.format"></stringProp>
+          <boolProp name="CounterConfig.per_user">true</boolProp>
+          <boolProp name="CounterConfig.reset_on_tg_iteration">false</boolProp>
+        </CounterConfig>
+        <hashTree/>
+
         <!-- Admin connection: bound once per thread, cached in ldapContexts[thread], reused by all
              data operations. Labelled ADMIN_CONNECT and excluded from metrics. -->
         <OnceOnlyController guiclass="OnceOnlyControllerGui" testclass="OnceOnlyController" testname="Once Only - admin connect" enabled="true"/>
@@ -68,7 +82,7 @@
           <hashTree/>
         </hashTree>
 
-        <!-- ADD (admin connection): create the per-thread user entry. -->
+        <!-- ADD (admin connection): create the per-iteration user entry, keyed by mail. -->
         <LDAPExtSampler guiclass="LdapExtTestSamplerGui" testclass="LDAPExtSampler" testname="ADD" enabled="true">
           <stringProp name="servername"></stringProp>
           <stringProp name="port"></stringProp>
@@ -89,17 +103,12 @@
           <stringProp name="modddn"></stringProp>
           <stringProp name="newdn"></stringProp>
           <stringProp name="test">add</stringProp>
-          <stringProp name="base_entry_dn">cn=user_${__threadNum}</stringProp>
+          <stringProp name="base_entry_dn">mail=u_${__threadNum}_${iter}@test.com</stringProp>
           <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
             <collectionProp name="Arguments.arguments">
-              <elementProp name="sn" elementType="Argument">
-                <stringProp name="Argument.name">sn</stringProp>
-                <stringProp name="Argument.value">user_${__threadNum}</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
               <elementProp name="mail" elementType="Argument">
                 <stringProp name="Argument.name">mail</stringProp>
-                <stringProp name="Argument.value">user_${__threadNum}@test.com</stringProp>
+                <stringProp name="Argument.value">u_${__threadNum}_${iter}@test.com</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
               <elementProp name="objectClass" elementType="Argument">
@@ -109,17 +118,12 @@
               </elementProp>
               <elementProp name="objectClass" elementType="Argument">
                 <stringProp name="Argument.name">objectClass</stringProp>
-                <stringProp name="Argument.value">inetOrgPerson</stringProp>
+                <stringProp name="Argument.value">locality</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
               <elementProp name="objectClass" elementType="Argument">
                 <stringProp name="Argument.name">objectClass</stringProp>
-                <stringProp name="Argument.value">organizationalPerson</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="objectClass" elementType="Argument">
-                <stringProp name="Argument.name">objectClass</stringProp>
-                <stringProp name="Argument.value">person</stringProp>
+                <stringProp name="Argument.value">extensibleObject</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
             </collectionProp>
@@ -127,7 +131,7 @@
         </LDAPExtSampler>
         <hashTree/>
 
-        <!-- SEARCH (admin connection). -->
+        <!-- SEARCH (admin connection): equality lookup on the indexed mail attribute. -->
         <LDAPExtSampler guiclass="LdapExtTestSamplerGui" testclass="LDAPExtSampler" testname="SEARCH" enabled="true">
           <stringProp name="servername"></stringProp>
           <stringProp name="port"></stringProp>
@@ -135,7 +139,7 @@
           <stringProp name="scope">2</stringProp>
           <stringProp name="countlimit">0</stringProp>
           <stringProp name="timelimit">0</stringProp>
-          <stringProp name="attributes">cn:dn:objectClass</stringProp>
+          <stringProp name="attributes">mail:dn:objectClass</stringProp>
           <stringProp name="return_object">false</stringProp>
           <stringProp name="deref_aliases">false</stringProp>
           <stringProp name="connection_timeout"></stringProp>
@@ -149,7 +153,7 @@
           <stringProp name="newdn"></stringProp>
           <stringProp name="test">search</stringProp>
           <stringProp name="search"></stringProp>
-          <stringProp name="searchfilter">(sn=user_${__threadNum})</stringProp>
+          <stringProp name="searchfilter">(mail=u_${__threadNum}_${iter}@test.com)</stringProp>
         </LDAPExtSampler>
         <hashTree/>
 
@@ -169,15 +173,16 @@
           <stringProp name="secure">false</stringProp>
           <stringProp name="user_dn"></stringProp>
           <stringProp name="user_pw"></stringProp>
-          <stringProp name="comparedn">cn=user_${__threadNum}</stringProp>
-          <stringProp name="comparefilt">mail=user_${__threadNum}@test.com</stringProp>
+          <stringProp name="comparedn">mail=u_${__threadNum}_${iter}@test.com</stringProp>
+          <stringProp name="comparefilt">mail=u_${__threadNum}_${iter}@test.com</stringProp>
           <stringProp name="modddn"></stringProp>
           <stringProp name="newdn"></stringProp>
           <stringProp name="test">compare</stringProp>
         </LDAPExtSampler>
         <hashTree/>
 
-        <!-- MODIFY (admin connection): rename sn and set userPassword so the user can authenticate. -->
+        <!-- MODIFY (admin connection): write a normal attribute (description) and set userPassword
+             (cleartext) so the server hashes it; the user then authenticates with it (sbind). -->
         <LDAPExtSampler guiclass="LdapExtTestSamplerGui" testclass="LDAPExtSampler" testname="MODIFY" enabled="true">
           <stringProp name="servername"></stringProp>
           <stringProp name="port"></stringProp>
@@ -198,12 +203,12 @@
           <stringProp name="modddn"></stringProp>
           <stringProp name="newdn"></stringProp>
           <stringProp name="test">modify</stringProp>
-          <stringProp name="base_entry_dn">cn=user_${__threadNum}</stringProp>
+          <stringProp name="base_entry_dn">mail=u_${__threadNum}_${iter}@test.com</stringProp>
           <elementProp name="ldaparguments" elementType="LDAPArguments" guiclass="LDAPArgumentsPanel" testclass="LDAPArguments" testname="LDAP Extended Request Defaults" enabled="true">
             <collectionProp name="Arguments.arguments">
-              <elementProp name="sn" elementType="LDAPArgument">
-                <stringProp name="Argument.name">sn</stringProp>
-                <stringProp name="Argument.value">rename_${__threadNum}</stringProp>
+              <elementProp name="description" elementType="LDAPArgument">
+                <stringProp name="Argument.name">description</stringProp>
+                <stringProp name="Argument.value">mod_${__threadNum}_${iter}</stringProp>
                 <stringProp name="Argument.opcode">replace</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
@@ -233,7 +238,7 @@
           <stringProp name="connection_timeout">60000</stringProp>
           <stringProp name="parseflag">false</stringProp>
           <stringProp name="secure">false</stringProp>
-          <stringProp name="user_dn">cn=user_${__threadNum},ou=People,${__P(basedn,dc=example\,dc=com)}</stringProp>
+          <stringProp name="user_dn">mail=u_${__threadNum}_${iter}@test.com,ou=People,${__P(basedn,dc=example\,dc=com)}</stringProp>
           <stringProp name="user_pw">${__P(benchpw,benchPass1)}</stringProp>
           <stringProp name="comparedn"></stringProp>
           <stringProp name="comparefilt"></stringProp>
@@ -243,7 +248,7 @@
         </LDAPExtSampler>
         <hashTree/>
 
-        <!-- DELETE (admin connection): remove the per-thread user entry. -->
+        <!-- DELETE (admin connection): remove the per-iteration entry. -->
         <LDAPExtSampler guiclass="LdapExtTestSamplerGui" testclass="LDAPExtSampler" testname="DELETE" enabled="true">
           <stringProp name="servername"></stringProp>
           <stringProp name="port"></stringProp>
@@ -264,11 +269,11 @@
           <stringProp name="modddn"></stringProp>
           <stringProp name="newdn"></stringProp>
           <stringProp name="test">delete</stringProp>
-          <stringProp name="delete">cn=user_${__threadNum}</stringProp>
+          <stringProp name="delete">mail=u_${__threadNum}_${iter}@test.com</stringProp>
         </LDAPExtSampler>
         <hashTree/>
 
-        <!-- READD (admin connection): re-add without delete (accumulation); unique RDN via __UUID. -->
+        <!-- READD (admin connection): accumulation; globally unique mail via __UUID, never deleted. -->
         <LDAPExtSampler guiclass="LdapExtTestSamplerGui" testclass="LDAPExtSampler" testname="READD" enabled="true">
           <stringProp name="servername"></stringProp>
           <stringProp name="port"></stringProp>
@@ -289,17 +294,12 @@
           <stringProp name="modddn"></stringProp>
           <stringProp name="newdn"></stringProp>
           <stringProp name="test">add</stringProp>
-          <stringProp name="base_entry_dn">cn=user_${__threadNum}_${__UUID}</stringProp>
+          <stringProp name="base_entry_dn">mail=u_${__UUID}@test.com</stringProp>
           <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
             <collectionProp name="Arguments.arguments">
-              <elementProp name="sn" elementType="Argument">
-                <stringProp name="Argument.name">sn</stringProp>
-                <stringProp name="Argument.value">user_${__threadNum}</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
               <elementProp name="mail" elementType="Argument">
                 <stringProp name="Argument.name">mail</stringProp>
-                <stringProp name="Argument.value">user_${__threadNum}@test.com</stringProp>
+                <stringProp name="Argument.value">u_${__UUID}@test.com</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
               <elementProp name="objectClass" elementType="Argument">
@@ -309,17 +309,12 @@
               </elementProp>
               <elementProp name="objectClass" elementType="Argument">
                 <stringProp name="Argument.name">objectClass</stringProp>
-                <stringProp name="Argument.value">inetOrgPerson</stringProp>
+                <stringProp name="Argument.value">locality</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
               <elementProp name="objectClass" elementType="Argument">
                 <stringProp name="Argument.name">objectClass</stringProp>
-                <stringProp name="Argument.value">organizationalPerson</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="objectClass" elementType="Argument">
-                <stringProp name="Argument.name">objectClass</stringProp>
-                <stringProp name="Argument.value">person</stringProp>
+                <stringProp name="Argument.value">extensibleObject</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
             </collectionProp>
