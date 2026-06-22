@@ -25,7 +25,7 @@ on:
     inputs:
       openldap_image:
         description: "OpenLDAP Docker image"
-        default: "vegardit/docker-openldap:latest"
+        default: "vegardit/openldap:latest"
       opendj_image:
         description: "OpenDJ Docker image"
         default: "openidentityplatform/opendj:latest"
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # `${{ inputs.X || 'default' }}` so workflow_run (which carries no inputs) falls back.
-      OPENLDAP_IMAGE: ${{ inputs.openldap_image || 'vegardit/docker-openldap:latest' }}
+      OPENLDAP_IMAGE: ${{ inputs.openldap_image || 'vegardit/openldap:latest' }}
       OPENDJ_IMAGE: ${{ inputs.opendj_image || 'openidentityplatform/opendj:latest' }}
       THREADS: ${{ inputs.threads || '200' }}
       DURATION: ${{ inputs.duration || '300' }}
