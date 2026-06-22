@@ -31,7 +31,7 @@ on:
         default: "openidentityplatform/opendj:latest"
       threads:
         description: "Concurrent JMeter threads"
-        default: "128"
+        default: "200"
       duration:
         description: "Test duration per server (seconds)"
         default: "300"
@@ -65,7 +65,7 @@ jobs:
       # `${{ inputs.X || 'default' }}` so workflow_run (which carries no inputs) falls back.
       OPENLDAP_IMAGE: ${{ inputs.openldap_image || 'osixia/openldap:latest' }}
       OPENDJ_IMAGE: ${{ inputs.opendj_image || 'openidentityplatform/opendj:latest' }}
-      THREADS: ${{ inputs.threads || '128' }}
+      THREADS: ${{ inputs.threads || '200' }}
       DURATION: ${{ inputs.duration || '300' }}
       RAMPUP: ${{ inputs.rampup || '0' }}
       JMETER: ${{ inputs.jmeter_version || '5.6.3' }}
