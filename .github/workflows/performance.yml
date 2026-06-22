@@ -1,0 +1,208 @@
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions copyright [year] [name of copyright owner]".
+#
+# Copyright 2026 3A Systems, LLC.
+name: Performance
+
+# LDAP benchmark: OpenDJ vs OpenLDAP.
+# Runs manually (workflow_dispatch) and automatically after the "Release" workflow completes.
+# Starts the latest OpenLDAP and OpenDJ from Docker (image tags overridable via inputs),
+# benchmarks OpenLDAP first then OpenDJ with Apache JMeter, and writes versions + comparison
+# table + comparative charts to the job summary. Full JMeter HTML dashboards are uploaded as
+# the "jmeter-reports" artifact.
+
+on:
+  workflow_dispatch:
+    inputs:
+      openldap_image:
+        description: "OpenLDAP Docker image"
+        default: "osixia/openldap:latest"
+      opendj_image:
+        description: "OpenDJ Docker image"
+        default: "openidentityplatform/opendj:latest"
+      threads:
+        description: "Concurrent JMeter threads"
+        default: "256"
+      duration:
+        description: "Test duration per server (seconds)"
+        default: "600"
+      rampup:
+        description: "Ramp-up period (seconds)"
+        default: "0"
+      jmeter_version:
+        description: "Apache JMeter version"
+        default: "5.6.3"
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: performance-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  benchmark:
+    # Manual runs always proceed; chained runs only after a successful Release.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    env:
+      # `${{ inputs.X || 'default' }}` so workflow_run (which carries no inputs) falls back.
+      OPENLDAP_IMAGE: ${{ inputs.openldap_image || 'osixia/openldap:latest' }}
+      OPENDJ_IMAGE: ${{ inputs.opendj_image || 'openidentityplatform/opendj:latest' }}
+      THREADS: ${{ inputs.threads || '256' }}
+      DURATION: ${{ inputs.duration || '600' }}
+      RAMPUP: ${{ inputs.rampup || '0' }}
+      JMETER: ${{ inputs.jmeter_version || '5.6.3' }}
+      BENCHPW: benchPass1
+      BASEDN: dc=example,dc=com
+      # Exclude the cached admin connection bind from the dashboard / statistics.json.
+      SAMPLE_FILTER: '^(?!ADMIN_CONNECT).*'
+      HEAP: -Xms1g -Xmx2g
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Cache JMeter
+        uses: actions/cache@v4
+        with:
+          path: ~/jmeter
+          key: jmeter-${{ env.JMETER }}
+
+      - name: Install tooling (ldap-utils + JMeter)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ldap-utils
+          if [ ! -x "$HOME/jmeter/apache-jmeter-$JMETER/bin/jmeter" ]; then
+            mkdir -p "$HOME/jmeter"
+            curl -fsSL "https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-$JMETER.tgz" -o /tmp/jmeter.tgz
+            tar -xzf /tmp/jmeter.tgz -C "$HOME/jmeter"
+          fi
+          echo "JMETER_BIN=$HOME/jmeter/apache-jmeter-$JMETER/bin/jmeter" >> "$GITHUB_ENV"
+
+      - name: Start OpenLDAP
+        run: |
+          docker run -d --name openldap -p 2389:389 \
+            -e LDAP_ORGANISATION="Example" \
+            -e LDAP_DOMAIN="example.com" \
+            -e LDAP_ADMIN_PASSWORD="password" \
+            -e LDAP_TLS=false \
+            "$OPENLDAP_IMAGE"
+
+      - name: Wait for OpenLDAP + seed ou=People
+        run: |
+          for i in $(seq 1 90); do
+            if ldapsearch -x -H ldap://localhost:2389 -D "cn=admin,$BASEDN" -w password \
+                 -b "$BASEDN" -s base dn >/dev/null 2>&1; then
+              echo "OpenLDAP is up"; break
+            fi
+            sleep 2
+          done
+          ldapadd -x -H ldap://localhost:2389 -D "cn=admin,$BASEDN" -w password \
+            -f .github/performance/people.ldif || true
+
+      - name: Capture OpenLDAP version
+        run: |
+          ver="$(docker exec openldap sh -c '/usr/sbin/slapd -VV 2>&1 || slapd -VV 2>&1' | head -1)"
+          echo "OpenLDAP: $ver"
+          {
+            echo "OPENLDAP_VER<<EOF"
+            echo "$ver"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
+      - name: Benchmark OpenLDAP
+        run: |
+          rm -rf openldap openldap.jtl
+          HEAP="$HEAP" "$JMETER_BIN" -n -t .github/performance/benchmark.jmx \
+            -Jhost=localhost -Jport=2389 \
+            -Jbasedn="$BASEDN" \
+            -Jadminbinddn="cn=admin,$BASEDN" -Jadminbindpw=password \
+            -Jbenchpw="$BENCHPW" \
+            -Jthreads="$THREADS" -Jduration="$DURATION" -Jrampup="$RAMPUP" \
+            -Jjmeter.reportgenerator.sample_filter="$SAMPLE_FILTER" \
+            -l openldap.jtl -e -o openldap
+
+      - name: Start OpenDJ
+        run: |
+          docker run -d --name opendj -p 1389:1389 \
+            -e ROOT_PASSWORD=password \
+            -e BASE_DN="$BASEDN" \
+            -e ADD_BASE_ENTRY=--addBaseEntry \
+            "$OPENDJ_IMAGE"
+
+      - name: Wait for OpenDJ + seed ou=People
+        run: |
+          for i in $(seq 1 90); do
+            if ldapsearch -x -H ldap://localhost:1389 -D "cn=Directory Manager" -w password \
+                 -b "$BASEDN" -s base dn >/dev/null 2>&1; then
+              echo "OpenDJ is up"; break
+            fi
+            sleep 2
+          done
+          ldapadd -x -H ldap://localhost:1389 -D "cn=Directory Manager" -w password \
+            -f .github/performance/people.ldif || true
+
+      - name: Capture OpenDJ version
+        run: |
+          ver="$(ldapsearch -x -LLL -H ldap://localhost:1389 -D 'cn=Directory Manager' -w password \
+                  -b '' -s base fullVendorVersion 2>/dev/null | sed -n 's/^fullVendorVersion: //p')"
+          [ -n "$ver" ] || ver="$OPENDJ_IMAGE"
+          echo "OpenDJ: $ver"
+          {
+            echo "OPENDJ_VER<<EOF"
+            echo "$ver"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
+      - name: Benchmark OpenDJ
+        run: |
+          rm -rf opendj opendj.jtl
+          HEAP="$HEAP" "$JMETER_BIN" -n -t .github/performance/benchmark.jmx \
+            -Jhost=localhost -Jport=1389 \
+            -Jbasedn="$BASEDN" \
+            -Jadminbinddn="cn=Directory Manager" -Jadminbindpw=password \
+            -Jbenchpw="$BENCHPW" \
+            -Jthreads="$THREADS" -Jduration="$DURATION" -Jrampup="$RAMPUP" \
+            -Jjmeter.reportgenerator.sample_filter="$SAMPLE_FILTER" \
+            -l opendj.jtl -e -o opendj
+
+      # ---------------------------------------------------------------- Report
+      - name: Build job summary
+        run: |
+          bash .github/performance/summary.sh \
+            openldap/statistics.json opendj/statistics.json \
+            "$OPENLDAP_VER" "$OPENDJ_VER" \
+            "$OPENLDAP_IMAGE" "$OPENDJ_IMAGE" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload JMeter reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jmeter-reports
+          path: |
+            openldap/
+            opendj/
+            *.jtl
+          if-no-files-found: warn
+
+      - name: Container logs + cleanup
+        if: always()
+        run: |
+          docker logs openldap 2>&1 | tail -n 100 || true
+          docker logs opendj 2>&1 | tail -n 100 || true
+          docker rm -f openldap opendj || true
