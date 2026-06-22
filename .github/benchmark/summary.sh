@@ -32,7 +32,7 @@ OL_IMG="${5:-}"
 DJ_IMG="${6:-}"
 
 # Operations to compare, in workflow order. ADMIN_CONNECT and Total are excluded.
-OPS=("ADD" "SEARCH" "COMPARE" "MODIFY" "BIND" "DELETE" "ADD WITHOUT DELETE")
+OPS=("ADD" "SEARCH" "COMPARE" "MODIFY" "BIND" "DELETE" "READD")
 
 # m <file> <label> <field>  -> numeric value (0 if absent), rounded to 1 decimal.
 m() { jq -r --arg l "$2" --arg f "$3" '((.[$l][$f]) // 0) | (.*10 | round / 10)' "$1"; }
@@ -85,51 +85,63 @@ done
 echo ""
 
 # ---------------------------------------------------------------- Chart helpers
-# Build a Mermaid list "x, y, z" of values for all OPS from <file> <field>, via <m|mi>.
-series() { # <fn> <file> <field>
-  local fn="$1" file="$2" field="$3" out="" v
-  for op in "${OPS[@]}"; do
-    v=$("$fn" "$file" "$op" "$field")
-    out+="${out:+, }${v}"
-  done
+# Mermaid xychart-beta has no grouped bars/legend, so to get two adjacent (non-overlapping)
+# columns per operation we repeat each op on the x-axis and zero-pad the two series: OpenLDAP
+# bars land on the left tick of each pair, OpenDJ on the right tick.
+#
+# x-axis: each op twice -> "ADD", "ADD", "SEARCH", "SEARCH", ...
+xaxis_pairs() {
+  local out="" op
+  for op in "${OPS[@]}"; do out+="${out:+, }\"${op}\", \"${op}\""; done
   printf '%s' "$out"
 }
-# x-axis with every label quoted (labels contain spaces).
-xaxis() {
-  local out="" op
-  for op in "${OPS[@]}"; do out+="${out:+, }\"${op}\""; done
+# OpenLDAP series: value then 0 per op (bar on the left tick of each pair).
+series_ol() { # <fn> <file> <field>
+  local fn="$1" file="$2" field="$3" out="" v
+  for op in "${OPS[@]}"; do v=$("$fn" "$file" "$op" "$field"); out+="${out:+, }${v}, 0"; done
+  printf '%s' "$out"
+}
+# OpenDJ series: 0 then value per op (bar on the right tick of each pair).
+series_dj() { # <fn> <file> <field>
+  local fn="$1" file="$2" field="$3" out="" v
+  for op in "${OPS[@]}"; do v=$("$fn" "$file" "$op" "$field"); out+="${out:+, }0, ${v}"; done
   printf '%s' "$out"
 }
 
-XAXIS="$(xaxis)"
+XAXIS="$(xaxis_pairs)"
+# Fix the two series colors (series 1 = OpenLDAP blue, series 2 = OpenDJ orange).
+PALETTE='%%{init: {"themeVariables": {"xyChart": {"plotColorPalette": "#4e79a7, #f28e2b"}}}}%%'
+CAPTION="_Each operation has two columns: 🟦 OpenLDAP (left) · 🟧 OpenDJ (right)._"
 
 # ---------------------------------------------------------------- Throughput chart
 echo "### Comparative chart — throughput per operation (ops/s, higher is better)"
 echo ""
-echo "_First bar series = OpenLDAP, second bar series = OpenDJ._"
+echo "$CAPTION"
 echo ""
 echo '```mermaid'
+echo "$PALETTE"
 echo "xychart-beta"
 echo "    title \"Throughput per operation (ops/s) — OpenLDAP vs OpenDJ\""
 echo "    x-axis [${XAXIS}]"
 echo "    y-axis \"ops/s\""
-echo "    bar [$(series m "$OL_JSON" throughput)]"
-echo "    bar [$(series m "$DJ_JSON" throughput)]"
+echo "    bar [$(series_ol m "$OL_JSON" throughput)]"
+echo "    bar [$(series_dj m "$DJ_JSON" throughput)]"
 echo '```'
 echo ""
 
 # ---------------------------------------------------------------- Latency chart
 echo "### Comparative chart — mean latency per operation (ms, lower is better)"
 echo ""
-echo "_First bar series = OpenLDAP, second bar series = OpenDJ._"
+echo "$CAPTION"
 echo ""
 echo '```mermaid'
+echo "$PALETTE"
 echo "xychart-beta"
 echo "    title \"Mean latency per operation (ms) — OpenLDAP vs OpenDJ\""
 echo "    x-axis [${XAXIS}]"
 echo "    y-axis \"ms\""
-echo "    bar [$(series m "$OL_JSON" meanResTime)]"
-echo "    bar [$(series m "$DJ_JSON" meanResTime)]"
+echo "    bar [$(series_ol m "$OL_JSON" meanResTime)]"
+echo "    bar [$(series_dj m "$DJ_JSON" meanResTime)]"
 echo '```'
 echo ""
 
@@ -139,6 +151,7 @@ echo ""
 echo "- \`BIND\` is the measured **user authentication** (\`test=sbind\`, single bind/unbind on its"
 echo "  own connection) as \`cn=user_<n>,ou=People\` with the password set by \`MODIFY\`. The admin"
 echo "  connection bind (\`ADMIN_CONNECT\`) is cached once per thread and excluded from these results."
-echo "- Default password storage scheme differs by server (OpenDJ PBKDF2/Salted-SHA vs OpenLDAP"
-echo "  SSHA); this is a legitimate part of authentication cost."
+echo "- MODIFY sends the password in cleartext; each server hashes it on write with the **same"
+echo "  scheme (SSHA-256)** — OpenLDAP via the pw-sha2 module + ppolicy hash-cleartext, OpenDJ via"
+echo "  its Salted SHA-256 default scheme — so BIND authentication is compared on equal footing."
 echo "- Full interactive JMeter HTML dashboards are attached as the \`jmeter-reports\` artifact."

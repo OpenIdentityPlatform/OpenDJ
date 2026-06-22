@@ -17,7 +17,7 @@
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="OpenDJ vs OpenLDAP - LDAP benchmark" enabled="true">
-      <stringProp name="TestPlan.comments">Parametrized LDAP benchmark. Admin bind is cached once per thread (Once Only Controller, labelled ADMIN_CONNECT, excluded from metrics). Data ops (ADD/SEARCH/COMPARE/MODIFY/DELETE/ADD WITHOUT DELETE) reuse the cached admin connection. The measured user authentication is a single bind/unbind (test=sbind, own connection) after MODIFY has set the userPassword.</stringProp>
+      <stringProp name="TestPlan.comments">Parametrized LDAP benchmark. Admin bind is cached once per thread (Once Only Controller, labelled ADMIN_CONNECT, excluded from metrics). Data ops (ADD/SEARCH/COMPARE/MODIFY/DELETE/READD) reuse the cached admin connection. The measured user authentication is a single bind/unbind (test=sbind, own connection) after MODIFY has set the userPassword.</stringProp>
       <boolProp name="TestPlan.functional_mode">false</boolProp>
       <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
       <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
@@ -268,8 +268,8 @@
         </LDAPExtSampler>
         <hashTree/>
 
-        <!-- ADD WITHOUT DELETE (admin connection): accumulation; unique RDN via __UUID. -->
-        <LDAPExtSampler guiclass="LdapExtTestSamplerGui" testclass="LDAPExtSampler" testname="ADD WITHOUT DELETE" enabled="true">
+        <!-- READD (admin connection): re-add without delete (accumulation); unique RDN via __UUID. -->
+        <LDAPExtSampler guiclass="LdapExtTestSamplerGui" testclass="LDAPExtSampler" testname="READD" enabled="true">
           <stringProp name="servername"></stringProp>
           <stringProp name="port"></stringProp>
           <stringProp name="rootdn"></stringProp>
