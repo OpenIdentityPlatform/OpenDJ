@@ -11,7 +11,7 @@
 # information: "Portions copyright [year] [name of copyright owner]".
 #
 # Copyright 2026 3A Systems, LLC.
-name: Performance
+name: "LDAP benchmark: OpenDJ vs OpenLDAP"
 
 # LDAP benchmark: OpenDJ vs OpenLDAP.
 # Runs manually (workflow_dispatch) and automatically after the "Release" workflow completes.
@@ -49,7 +49,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: performance-${{ github.ref }}
+  group: benchmark-${{ github.ref }}
   cancel-in-progress: true
 
 defaults:
@@ -113,11 +113,15 @@ jobs:
             sleep 2
           done
           ldapadd -x -H ldap://localhost:2389 -D "cn=admin,$BASEDN" -w password \
-            -f .github/performance/people.ldif || true
+            -f .github/benchmark/people.ldif || true
 
       - name: Capture OpenLDAP version
         run: |
-          ver="$(docker exec openldap sh -c '/usr/sbin/slapd -VV 2>&1 || slapd -VV 2>&1' | head -1)"
+          # No `| head -1`: head closes the pipe early, slapd -VV then gets SIGPIPE and under
+          # `pipefail` fails the step with exit 141. Capture fully, take the first line in bash.
+          ver="$(docker exec openldap sh -c '/usr/sbin/slapd -VV 2>&1 || slapd -VV 2>&1' || true)"
+          ver="${ver%%$'\n'*}"
+          [ -n "$ver" ] || ver="$OPENLDAP_IMAGE"
           echo "OpenLDAP: $ver"
           {
             echo "OPENLDAP_VER<<EOF"
@@ -128,7 +132,7 @@ jobs:
       - name: Benchmark OpenLDAP
         run: |
           rm -rf openldap openldap.jtl
-          HEAP="$HEAP" "$JMETER_BIN" -n -t .github/performance/benchmark.jmx \
+          HEAP="$HEAP" "$JMETER_BIN" -n -t .github/benchmark/benchmark.jmx \
             -Jhost=localhost -Jport=2389 \
             -Jbasedn="$BASEDN" \
             -Jadminbinddn="cn=admin,$BASEDN" -Jadminbindpw=password \
@@ -155,12 +159,14 @@ jobs:
             sleep 2
           done
           ldapadd -x -H ldap://localhost:1389 -D "cn=Directory Manager" -w password \
-            -f .github/performance/people.ldif || true
+            -f .github/benchmark/people.ldif || true
 
       - name: Capture OpenDJ version
         run: |
-          ver="$(ldapsearch -x -LLL -H ldap://localhost:1389 -D 'cn=Directory Manager' -w password \
-                  -b '' -s base fullVendorVersion 2>/dev/null | sed -n 's/^fullVendorVersion: //p')"
+          # `|| true` guards the bind so a transient ldapsearch failure can't trip pipefail;
+          # sed reads all input (no early pipe close), so no SIGPIPE here.
+          ver="$( { ldapsearch -x -LLL -H ldap://localhost:1389 -D 'cn=Directory Manager' -w password \
+                    -b '' -s base fullVendorVersion 2>/dev/null || true; } | sed -n 's/^fullVendorVersion: //p')"
           [ -n "$ver" ] || ver="$OPENDJ_IMAGE"
           echo "OpenDJ: $ver"
           {
@@ -172,7 +178,7 @@ jobs:
       - name: Benchmark OpenDJ
         run: |
           rm -rf opendj opendj.jtl
-          HEAP="$HEAP" "$JMETER_BIN" -n -t .github/performance/benchmark.jmx \
+          HEAP="$HEAP" "$JMETER_BIN" -n -t .github/benchmark/benchmark.jmx \
             -Jhost=localhost -Jport=1389 \
             -Jbasedn="$BASEDN" \
             -Jadminbinddn="cn=Directory Manager" -Jadminbindpw=password \
@@ -184,7 +190,7 @@ jobs:
       # ---------------------------------------------------------------- Report
       - name: Build job summary
         run: |
-          bash .github/performance/summary.sh \
+          bash .github/benchmark/summary.sh \
             openldap/statistics.json opendj/statistics.json \
             "$OPENLDAP_VER" "$OPENDJ_VER" \
             "$OPENLDAP_IMAGE" "$OPENDJ_IMAGE" >> "$GITHUB_STEP_SUMMARY"
