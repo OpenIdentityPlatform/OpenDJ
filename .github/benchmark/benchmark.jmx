@@ -47,7 +47,7 @@
           <LDAPExtSampler guiclass="LdapExtTestSamplerGui" testclass="LDAPExtSampler" testname="ADMIN_CONNECT" enabled="true">
             <stringProp name="servername">${__P(host,localhost)}</stringProp>
             <stringProp name="port">${__P(port,1389)}</stringProp>
-            <stringProp name="rootdn">ou=People,${__P(basedn,dc=example,dc=com)}</stringProp>
+            <stringProp name="rootdn">ou=People,${__P(basedn,dc=example\,dc=com)}</stringProp>
             <stringProp name="scope">2</stringProp>
             <stringProp name="countlimit"></stringProp>
             <stringProp name="timelimit"></stringProp>
@@ -223,7 +223,7 @@
         <LDAPExtSampler guiclass="LdapExtTestSamplerGui" testclass="LDAPExtSampler" testname="BIND" enabled="true">
           <stringProp name="servername">${__P(host,localhost)}</stringProp>
           <stringProp name="port">${__P(port,1389)}</stringProp>
-          <stringProp name="rootdn">ou=People,${__P(basedn,dc=example,dc=com)}</stringProp>
+          <stringProp name="rootdn">ou=People,${__P(basedn,dc=example\,dc=com)}</stringProp>
           <stringProp name="scope">2</stringProp>
           <stringProp name="countlimit"></stringProp>
           <stringProp name="timelimit"></stringProp>
@@ -233,7 +233,7 @@
           <stringProp name="connection_timeout">60000</stringProp>
           <stringProp name="parseflag">false</stringProp>
           <stringProp name="secure">false</stringProp>
-          <stringProp name="user_dn">cn=user_${__threadNum},ou=People,${__P(basedn,dc=example,dc=com)}</stringProp>
+          <stringProp name="user_dn">cn=user_${__threadNum},ou=People,${__P(basedn,dc=example\,dc=com)}</stringProp>
           <stringProp name="user_pw">${__P(benchpw,benchPass1)}</stringProp>
           <stringProp name="comparedn"></stringProp>
           <stringProp name="comparefilt"></stringProp>
