@@ -237,10 +237,24 @@ jobs:
       # ---------------------------------------------------------------- Report
       - name: Build job summary
         run: |
+          # summary.sh is generic: <name> <statistics.json> <version> <image> per server.
           bash .github/benchmark/summary.sh \
-            openldap/statistics.json opendj/statistics.json \
-            "$OPENLDAP_VER" "$OPENDJ_VER" \
-            "$OPENLDAP_IMAGE" "$OPENDJ_IMAGE" >> "$GITHUB_STEP_SUMMARY"
+            "OpenLDAP" openldap/statistics.json "$OPENLDAP_VER" "$OPENLDAP_IMAGE" \
+            "OpenDJ"   opendj/statistics.json   "$OPENDJ_VER"   "$OPENDJ_IMAGE" \
+            >> "$GITHUB_STEP_SUMMARY"
+          # benchmark-specific notes (kept out of the reusable script)
+          {
+            echo ""
+            echo "### Notes"
+            echo ""
+            echo '- `BIND` is the measured **user authentication** (`test=sbind`, single bind/unbind on its'
+            echo '  own connection) as `mail=u_<n>,ou=People` with the password set by `MODIFY`. The admin'
+            echo '  connection bind (`ADMIN_CONNECT`) is cached once per thread and excluded from these results.'
+            echo '- `MODIFY` sends the password in cleartext; each server hashes it on write with the **same'
+            echo '  scheme (`{SSHA}`, Salted SHA-1)** — OpenLDAP via the ppolicy hash-cleartext overlay, OpenDJ'
+            echo '  via its Salted SHA-1 default scheme — so `BIND` authentication is compared on equal footing.'
+            echo '- Full interactive JMeter HTML dashboards are attached as the `jmeter-reports` artifact.'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload JMeter reports
         if: always()
