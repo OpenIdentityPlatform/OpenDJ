@@ -93,9 +93,13 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 5000
         # --- Load-testing tools smoke tests (server online, 5000 sample users) ---
-        opendj-server-legacy/target/package/opendj/bin/searchrate --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password --baseDN "ou=people,dc=example,dc=com" --searchScope sub -c 4 -t 1 -m 2000 -i 1 -S -g "rand(0,4999)" "(uid=user.%d)" 1.1
-        opendj-server-legacy/target/package/opendj/bin/authrate --hostname localhost --port 1636 --useSSL --trustAll -D "uid=user.%d,ou=people,dc=example,dc=com" -w password -c 4 -m 2000 -i 1 -S -g "rand(0,4999)"
-        opendj-server-legacy/target/package/opendj/bin/modrate --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password -b "uid=user.%d,ou=people,dc=example,dc=com" -c 4 -t 1 -m 2000 -i 1 -S -g "rand(0,4999)" "description:modrate load test"
+        echo "===== searchrate ====="
+        opendj-server-legacy/target/package/opendj/bin/searchrate --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password --baseDN "ou=people,dc=example,dc=com" --searchScope sub -c 4 -t 1 -m 2000 -i 1 -g "rand(0,4999)" "(uid=user.%d)" 1.1
+        echo "===== authrate ====="
+        opendj-server-legacy/target/package/opendj/bin/authrate --hostname localhost --port 1636 --useSSL --trustAll -D "uid=user.%d,ou=people,dc=example,dc=com" -w password -c 4 -m 2000 -i 1 -g "rand(0,4999)"
+        echo "===== modrate ====="
+        opendj-server-legacy/target/package/opendj/bin/modrate --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password -b "uid=user.%d,ou=people,dc=example,dc=com" -c 4 -t 1 -m 2000 -i 1 -g "rand(0,4999)" "description:modrate-load-test"
+        echo "===== addrate ====="
         cat > /tmp/addrate.template <<'EOF'
         define suffix=dc=example,dc=com
 
@@ -113,7 +117,7 @@ jobs:
         sn: AddRate
         userPassword: password
         EOF
-        opendj-server-legacy/target/package/opendj/bin/addrate --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password -c 4 -t 1 -m 2000 -i 1 -S -C fifo -s 100 /tmp/addrate.template
+        opendj-server-legacy/target/package/opendj/bin/addrate --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password -c 4 -t 1 -m 2000 -i 1 -C fifo -s 100 /tmp/addrate.template
         opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
         opendj-server-legacy/target/package/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example2,dc=com opendj-server-legacy/target/package/opendj/config/MakeLDIF/example.template
         opendj-server-legacy/target/package/opendj/bin/stop-ds
@@ -278,12 +282,16 @@ jobs:
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "5000"
         # --- Load-testing tools smoke tests (server online, 5000 sample users) ---
-        opendj-server-legacy\target\package\opendj\bat\searchrate.bat --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password --baseDN "ou=people,dc=example,dc=com" --searchScope sub -c 4 -t 1 -m 2000 -i 1 -S -g "rand(0,4999)" "(uid=user.%d)" 1.1
+        Write-Host "===== searchrate ====="
+        opendj-server-legacy\target\package\opendj\bat\searchrate.bat --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password --baseDN "ou=people,dc=example,dc=com" --searchScope sub -c 4 -t 1 -m 2000 -i 1 -g "rand(0,4999)" "(uid=user.%d)" 1.1
         if ($LASTEXITCODE -ne 0) { throw "searchrate failed with exit code $LASTEXITCODE" }
-        opendj-server-legacy\target\package\opendj\bat\authrate.bat --hostname localhost --port 1636 --useSSL --trustAll -D "uid=user.%d,ou=people,dc=example,dc=com" -w password -c 4 -m 2000 -i 1 -S -g "rand(0,4999)"
+        Write-Host "===== authrate ====="
+        opendj-server-legacy\target\package\opendj\bat\authrate.bat --hostname localhost --port 1636 --useSSL --trustAll -D "uid=user.%d,ou=people,dc=example,dc=com" -w password -c 4 -m 2000 -i 1 -g "rand(0,4999)"
         if ($LASTEXITCODE -ne 0) { throw "authrate failed with exit code $LASTEXITCODE" }
-        opendj-server-legacy\target\package\opendj\bat\modrate.bat --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password -b "uid=user.%d,ou=people,dc=example,dc=com" -c 4 -t 1 -m 2000 -i 1 -S -g "rand(0,4999)" "description:modrate load test"
+        Write-Host "===== modrate ====="
+        opendj-server-legacy\target\package\opendj\bat\modrate.bat --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password -b "uid=user.%d,ou=people,dc=example,dc=com" -c 4 -t 1 -m 2000 -i 1 -g "rand(0,4999)" "description:modrate-load-test"
         if ($LASTEXITCODE -ne 0) { throw "modrate failed with exit code $LASTEXITCODE" }
+        Write-Host "===== addrate ====="
         @'
         define suffix=dc=example,dc=com
 
@@ -301,7 +309,7 @@ jobs:
         sn: AddRate
         userPassword: password
         '@ | Set-Content -Encoding ascii addrate.template
-        opendj-server-legacy\target\package\opendj\bat\addrate.bat --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password -c 4 -t 1 -m 2000 -i 1 -S -C fifo -s 100 addrate.template
+        opendj-server-legacy\target\package\opendj\bat\addrate.bat --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password -c 4 -t 1 -m 2000 -i 1 -C fifo -s 100 addrate.template
         if ($LASTEXITCODE -ne 0) { throw "addrate failed with exit code $LASTEXITCODE" }
         opendj-server-legacy\target\package\opendj\bat\dsconfig.bat create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
         opendj-server-legacy\target\package\opendj\bat\makeldif.bat -o test.ldif -c suffix=dc=example2,dc=com opendj-server-legacy\target\package\opendj\config\MakeLDIF\example.template
