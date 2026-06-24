@@ -70,7 +70,7 @@ b_tot_mean=$(m "$B_JSON" Total meanResTime)
 
 echo "### Totals (all operations, ADMIN_CONNECT excluded by the plan label)"
 echo ""
-echo "| Server | Throughput (ops/s) | Mean (ms) | Samples | Errors |"
+echo "| Server | Throughput (tests/s) | Mean (ms) | Samples | Errors |"
 echo "|---|--:|--:|--:|--:|"
 echo "| **${A_NAME}** | ${a_tot_tp} | ${a_tot_mean} | ${a_tot_n} | ${a_tot_e} |"
 echo "| **${B_NAME}** | ${b_tot_tp} | ${b_tot_mean} | ${b_tot_n} | ${b_tot_e} |"
@@ -110,13 +110,13 @@ urienc() { jq -rn --arg s "$1" '$s|@uri'; }                       # URL-encode t
 qc() { printf 'https://quickchart.io/chart?w=%s&h=%s&c=%s' "$1" "$2" "$(urienc "$3")"; }
 
 # ---------------------------------------------------------------- Total throughput chart
-echo "### Total throughput (ops/s, higher is better)"
+echo "### Total throughput (tests/s, higher is better)"
 echo ""
 echo "_Per-operation throughput is not charted: every op runs once per loop iteration, so each"
 echo "op's throughput just equals the loop rate. The meaningful throughput is the aggregate._"
 echo ""
-TP_CFG="{\"type\":\"bar\",\"data\":{\"labels\":[\"${A_NAME}\",\"${B_NAME}\"],\"datasets\":[{\"label\":\"ops/s\",\"backgroundColor\":[\"$A_COLOR\",\"$B_COLOR\"],\"data\":[${a_tot_tp},${b_tot_tp}]}]},\"options\":{\"legend\":{\"display\":false},\"title\":{\"display\":true,\"text\":\"Total throughput (ops/s)\"}}}"
-echo "![Total throughput (ops/s)]($(qc 500 320 "$TP_CFG"))"
+TP_CFG="{\"type\":\"horizontalBar\",\"data\":{\"labels\":[\"${A_NAME}\",\"${B_NAME}\"],\"datasets\":[{\"label\":\"tests/s\",\"backgroundColor\":[\"$A_COLOR\",\"$B_COLOR\"],\"data\":[${a_tot_tp},${b_tot_tp}]}]},\"options\":{\"legend\":{\"display\":false},\"title\":{\"display\":true,\"text\":\"Total throughput (tests/s)\"}}}"
+echo "![Total throughput (tests/s)]($(qc 700 280 "$TP_CFG"))"
 echo ""
 
 # ---------------------------------------------------------------- Latency chart (grouped bars)
