@@ -73,8 +73,16 @@ bench_one() {
       -Jadminbinddn="cn=Directory Manager" -Jadminbindpw=password -Jbenchpw="$BENCHPW" \
       -Jthreads="$THREADS" -Jduration="$DURATION" -Jrampup=0 \
       -Jjmeter.reportgenerator.sample_filter='^(?!ADMIN_CONNECT).*' \
-      -l "$out.jtl" -e -o "$out" >/dev/null 2>&1 || true
+      -l "$out.jtl" -e -o "$out" > "$out.jmeter.out" 2>&1 || true
     docker logs opendj-bench > "$out.docker.log" 2>&1 || true
+    # surface distinct error messages to the step log (stderr; stdout carries the version)
+    if [ -f "$out.jtl" ]; then
+      local errs
+      errs="$(awk -F',' 'NR==1{for(i=1;i<=NF;i++)h[$i]=i; next}
+                         tolower($h["success"])=="false"{print $h["label"]" | "$h["responseCode"]" | "$h["responseMessage"]}' \
+              "$out.jtl" 2>/dev/null | sort | uniq -c | sort -rn | head -10)"
+      [ -z "$errs" ] || { echo "[$out] errors (count | op | code | message):" >&2; echo "$errs" >&2; }
+    fi
   else
     echo "ERROR: failed to start image $image" >&2
   fi
