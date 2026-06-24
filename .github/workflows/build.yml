@@ -383,6 +383,19 @@ jobs:
           THREADS=200 DURATION=150 bash .github/benchmark/compare-opendj.sh \
             "Build"   localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }} \
             "Release" openidentityplatform/opendj:latest
+      - name: Upload benchmark artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-build-vs-release
+          path: |
+            a/
+            b/
+            *.jtl
+            *.docker.log
+            *.jmeter.out
+          if-no-files-found: warn
+          retention-days: 3
 
   build-docker-alpine:
     needs: build-maven
@@ -469,3 +482,16 @@ jobs:
           THREADS=200 DURATION=150 bash .github/benchmark/compare-opendj.sh \
             "Build-alpine"   localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine \
             "Release-alpine" openidentityplatform/opendj:alpine
+      - name: Upload benchmark artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-build-vs-release-alpine
+          path: |
+            a/
+            b/
+            *.jtl
+            *.docker.log
+            *.jmeter.out
+          if-no-files-found: warn
+          retention-days: 90
