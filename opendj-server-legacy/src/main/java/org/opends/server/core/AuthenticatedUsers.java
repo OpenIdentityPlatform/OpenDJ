@@ -13,21 +13,23 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.DITCacheMap;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult.PostResponse;
 import org.opends.server.types.DisconnectReason;
@@ -48,6 +50,13 @@ import static org.opends.server.api.plugin.PluginType.*;
  * This class also provides a mechanism for detecting changes to authenticated
  * user entries and notifying the corresponding client connections so that they
  * can update their cached versions.
+ * <BR><BR>
+ * The user map is a {@link ConcurrentHashMap}, so registering and deregistering
+ * a connection (which happens on every bind and unbind) is lock-free at the map
+ * level and only contends at the granularity of a single hash bin. The subtree
+ * operations triggered by changes to authenticated user entries (delete /
+ * modify / modify DN) are rare and scan the key set, which the concurrent map
+ * supports with weakly-consistent iteration.
  */
 public class AuthenticatedUsers extends InternalDirectoryServerPlugin
 {
@@ -57,10 +66,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
    * The mapping between authenticated user DNs and the associated client
    * connection objects.
    */
-  private final DITCacheMap<CopyOnWriteArraySet<ClientConnection>> userMap;
-
-  /** Lock to protect internal data structures. */
-  private final ReentrantReadWriteLock lock;
+  private final ConcurrentHashMap<DN, CopyOnWriteArraySet<ClientConnection>> userMap;
 
   /** Dummy configuration DN. */
   private static final String CONFIG_DN = "cn=Authenticated Users,cn=config";
@@ -75,8 +81,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
         // can not be authenticated as a user that does not exist yet.
         POST_RESPONSE_MODIFY, POST_RESPONSE_MODIFY_DN, POST_RESPONSE_DELETE),
         true);
-    userMap = new DITCacheMap<>();
-    lock = new ReentrantReadWriteLock();
+    userMap = new ConcurrentHashMap<>();
 
     DirectoryServer.registerInternalPlugin(this);
   }
@@ -91,25 +96,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
    */
   public void put(DN userDN, ClientConnection clientConnection)
   {
-    lock.writeLock().lock();
-    try
-    {
-      CopyOnWriteArraySet<ClientConnection> connectionSet = userMap.get(userDN);
-      if (connectionSet == null)
-      {
-        connectionSet = new CopyOnWriteArraySet<>();
-        connectionSet.add(clientConnection);
-        userMap.put(userDN, connectionSet);
-      }
-      else
-      {
-        connectionSet.add(clientConnection);
-      }
-    }
-    finally
-    {
-      lock.writeLock().unlock();
-    }
+    userMap.computeIfAbsent(userDN, k -> new CopyOnWriteArraySet<>()).add(clientConnection);
   }
 
 
@@ -124,23 +111,11 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
    */
   public void remove(DN userDN, ClientConnection clientConnection)
   {
-    lock.writeLock().lock();
-    try
+    userMap.computeIfPresent(userDN, (k, connectionSet) ->
     {
-      CopyOnWriteArraySet<ClientConnection> connectionSet = userMap.get(userDN);
-      if (connectionSet != null)
-      {
-        connectionSet.remove(clientConnection);
-        if (connectionSet.isEmpty())
-        {
-          userMap.remove(userDN);
-        }
-      }
-    }
-    finally
-    {
-      lock.writeLock().unlock();
-    }
+      connectionSet.remove(clientConnection);
+      return connectionSet.isEmpty() ? null : connectionSet;
+    });
   }
 
 
@@ -158,38 +133,23 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
    */
   public CopyOnWriteArraySet<ClientConnection> get(DN userDN)
   {
-    lock.readLock().lock();
-    try
-    {
-      return userMap.get(userDN);
-    }
-    finally
-    {
-      lock.readLock().unlock();
-    }
+    return userMap.get(userDN);
   }
 
   @Override
   public PostResponse doPostResponse(PostResponseDeleteOperation op)
   {
     final DN entryDN = op.getEntryDN();
-    if (op.getResultCode() != ResultCode.SUCCESS || operationDoesNotTargetAuthenticatedUser(entryDN))
+    if (op.getResultCode() != ResultCode.SUCCESS || userMap.isEmpty())
     {
       return PostResponse.continueOperationProcessing();
     }
 
-    // Identify any client connections that may be authenticated
-    // or authorized as the user whose entry has been deleted and terminate them
-    Set<CopyOnWriteArraySet<ClientConnection>> arraySet = new HashSet<>();
-    lock.writeLock().lock();
-    try
-    {
-      userMap.removeSubtree(entryDN, arraySet);
-    }
-    finally
-    {
-      lock.writeLock().unlock();
-    }
+    // Identify any client connections that may be authenticated or authorized as
+    // the user whose entry has been deleted (or, for a subtree delete, any user
+    // below it) and terminate them. A single removeSubtree pass both detects and
+    // collects the matches, so no separate pre-check scan is needed.
+    Set<CopyOnWriteArraySet<ClientConnection>> arraySet = removeSubtree(entryDN);
 
     for (CopyOnWriteArraySet<ClientConnection> connectionSet : arraySet)
     {
@@ -202,53 +162,51 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     return PostResponse.continueOperationProcessing();
   }
 
-  private boolean operationDoesNotTargetAuthenticatedUser(final DN entryDN)
+  /**
+   * Removes and returns every connection set whose user DN is at or below the
+   * provided base DN.
+   */
+  private Set<CopyOnWriteArraySet<ClientConnection>> removeSubtree(DN baseDN)
   {
-    lock.readLock().lock();
-    try
+    Set<CopyOnWriteArraySet<ClientConnection>> removed = new HashSet<>();
+    for (Iterator<Map.Entry<DN, CopyOnWriteArraySet<ClientConnection>>> it = userMap.entrySet().iterator();
+         it.hasNext();)
     {
-      return !userMap.containsSubtree(entryDN);
+      Map.Entry<DN, CopyOnWriteArraySet<ClientConnection>> entry = it.next();
+      if (entry.getKey().isSubordinateOrEqualTo(baseDN))
+      {
+        removed.add(entry.getValue());
+        it.remove();
+      }
     }
-    finally
-    {
-      lock.readLock().unlock();
-    }
+    return removed;
   }
 
   @Override
   public PostResponse doPostResponse(PostResponseModifyOperation op)
   {
     final Entry oldEntry = op.getCurrentEntry();
-    if (op.getResultCode() != ResultCode.SUCCESS || oldEntry == null
-            ||  operationDoesNotTargetAuthenticatedUser(oldEntry.getName()))
+    if (op.getResultCode() != ResultCode.SUCCESS || oldEntry == null)
     {
       return PostResponse.continueOperationProcessing();
     }
 
-    // Identify any client connections that may be authenticated
-    // or authorized as the user whose entry has been modified
-    // and update them with the latest version of the entry
-    // including any virtual attributes.
-    lock.writeLock().lock();
-    try
+    // A modify only changes the target entry itself, never its descendants, so an
+    // exact-DN lookup is sufficient (no subtree scan). Identify any client
+    // connections authenticated or authorized as that user and update them with
+    // the latest version of the entry, including any virtual attributes.
+    CopyOnWriteArraySet<ClientConnection> connectionSet = userMap.get(oldEntry.getName());
+    if (connectionSet != null)
     {
-      CopyOnWriteArraySet<ClientConnection> connectionSet = userMap.get(oldEntry.getName());
-      if (connectionSet != null)
+      Entry newEntry = null;
+      for (ClientConnection conn : connectionSet)
       {
-        Entry newEntry = null;
-        for (ClientConnection conn : connectionSet)
+        if (newEntry == null)
         {
-          if (newEntry == null)
-          {
-            newEntry = op.getModifiedEntry().duplicate(true);
-          }
-          conn.updateAuthenticationInfo(oldEntry, newEntry);
+          newEntry = op.getModifiedEntry().duplicate(true);
         }
+        conn.updateAuthenticationInfo(oldEntry, newEntry);
       }
-    }
-    finally
-    {
-      lock.writeLock().unlock();
     }
     return PostResponse.continueOperationProcessing();
   }
@@ -259,7 +217,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     final Entry oldEntry = op.getOriginalEntry();
     final Entry newEntry = op.getUpdatedEntry();
     if (op.getResultCode() != ResultCode.SUCCESS || oldEntry == null || newEntry == null
-            || operationDoesNotTargetAuthenticatedUser(oldEntry.getName()))
+            || userMap.isEmpty())
     {
       return PostResponse.continueOperationProcessing();
     }
@@ -270,81 +228,71 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     // Identify any client connections that may be authenticated
     // or authorized as the user whose entry has been modified
     // and update them with the latest version of the entry.
-    lock.writeLock().lock();
-    try
+    final Set<CopyOnWriteArraySet<ClientConnection>> arraySet = removeSubtree(oldEntry.getName());
+    for (CopyOnWriteArraySet<ClientConnection> connectionSet : arraySet)
     {
-      final Set<CopyOnWriteArraySet<ClientConnection>> arraySet = new HashSet<>();
-      userMap.removeSubtree(oldEntry.getName(), arraySet);
-      for (CopyOnWriteArraySet<ClientConnection> connectionSet : arraySet)
+      DN authNDN = null;
+      DN authZDN = null;
+      DN newAuthNDN = null;
+      DN newAuthZDN = null;
+      CopyOnWriteArraySet<ClientConnection> newAuthNSet = null;
+      CopyOnWriteArraySet<ClientConnection> newAuthZSet = null;
+      for (ClientConnection conn : connectionSet)
       {
-        DN authNDN = null;
-        DN authZDN = null;
-        DN newAuthNDN = null;
-        DN newAuthZDN = null;
-        CopyOnWriteArraySet<ClientConnection> newAuthNSet = null;
-        CopyOnWriteArraySet<ClientConnection> newAuthZSet = null;
-        for (ClientConnection conn : connectionSet)
+        if (authNDN == null)
         {
-          if (authNDN == null)
+          authNDN = conn.getAuthenticationInfo().getAuthenticationDN();
+          try
           {
-            authNDN = conn.getAuthenticationInfo().getAuthenticationDN();
-            try
-            {
-              newAuthNDN = authNDN.rename(oldDN, newDN);
-            }
-            catch (Exception e)
-            {
-              // Should not happen.
-              logger.traceException(e);
-            }
+            newAuthNDN = authNDN.rename(oldDN, newDN);
           }
-          if (authZDN == null)
+          catch (Exception e)
           {
-            authZDN = conn.getAuthenticationInfo().getAuthorizationDN();
-            try
-            {
-              newAuthZDN = authZDN.rename(oldDN, newDN);
-            }
-            catch (Exception e)
-            {
-              // Should not happen.
-              logger.traceException(e);
-            }
-          }
-          if (newAuthNDN != null && authNDN != null && authNDN.isSubordinateOrEqualTo(oldEntry.getName()))
-          {
-            if (newAuthNSet == null)
-            {
-              newAuthNSet = new CopyOnWriteArraySet<>();
-            }
-            conn.getAuthenticationInfo().setAuthenticationDN(newAuthNDN);
-            newAuthNSet.add(conn);
-          }
-          if (newAuthZDN != null && authZDN != null && authZDN.isSubordinateOrEqualTo(oldEntry.getName()))
-          {
-            if (newAuthZSet == null)
-            {
-              newAuthZSet = new CopyOnWriteArraySet<>();
-            }
-            conn.getAuthenticationInfo().setAuthorizationDN(newAuthZDN);
-            newAuthZSet.add(conn);
+            // Should not happen.
+            logger.traceException(e);
           }
         }
-        if (newAuthNDN != null && newAuthNSet != null)
+        if (authZDN == null)
         {
-          userMap.put(newAuthNDN, newAuthNSet);
+          authZDN = conn.getAuthenticationInfo().getAuthorizationDN();
+          try
+          {
+            newAuthZDN = authZDN.rename(oldDN, newDN);
+          }
+          catch (Exception e)
+          {
+            // Should not happen.
+            logger.traceException(e);
+          }
         }
-        if (newAuthZDN != null && newAuthZSet != null)
+        if (newAuthNDN != null && authNDN != null && authNDN.isSubordinateOrEqualTo(oldEntry.getName()))
         {
-          userMap.put(newAuthZDN, newAuthZSet);
+          if (newAuthNSet == null)
+          {
+            newAuthNSet = new CopyOnWriteArraySet<>();
+          }
+          conn.getAuthenticationInfo().setAuthenticationDN(newAuthNDN);
+          newAuthNSet.add(conn);
+        }
+        if (newAuthZDN != null && authZDN != null && authZDN.isSubordinateOrEqualTo(oldEntry.getName()))
+        {
+          if (newAuthZSet == null)
+          {
+            newAuthZSet = new CopyOnWriteArraySet<>();
+          }
+          conn.getAuthenticationInfo().setAuthorizationDN(newAuthZDN);
+          newAuthZSet.add(conn);
         }
       }
-    }
-    finally
-    {
-      lock.writeLock().unlock();
+      if (newAuthNDN != null && newAuthNSet != null)
+      {
+        userMap.put(newAuthNDN, newAuthNSet);
+      }
+      if (newAuthZDN != null && newAuthZSet != null)
+      {
+        userMap.put(newAuthZDN, newAuthZSet);
+      }
     }
     return PostResponse.continueOperationProcessing();
   }
 }
-
