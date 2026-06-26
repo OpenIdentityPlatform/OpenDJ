@@ -26,7 +26,7 @@
       <outputFileNameMapping>${artifact.groupId}.${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
       <excludes>
         <exclude>javax.activation:activation</exclude>
-        <exclude>org.forgerock.opendj:opendj-server-legacy</exclude>
+        <exclude>org.openidentityplatform.opendj:opendj-server-legacy</exclude>
       </excludes>
     </dependencySet>
   </dependencySets>
