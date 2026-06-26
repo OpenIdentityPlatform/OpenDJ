@@ -441,3 +441,98 @@ jobs:
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_custom | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_custom 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword custom_password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
           docker kill test_custom
+
+  test-deb:
+    needs: build-maven
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: ubuntu-latest-11
+      - name: Locate .deb
+        shell: bash
+        run: |
+          DEB=$(ls opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb | head -1)
+          echo "DEB=$PWD/$DEB" >> "$GITHUB_ENV"
+          echo "Found $DEB"
+      - name: Lint and inspect
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lintian
+          lintian --info --no-tag-display-limit "$DEB" || true
+          dpkg-deb -I "$DEB"
+          dpkg-deb -c "$DEB" | grep -E 'lib/systemd/system/opendj\.service|etc/init\.d/opendj'
+          systemd-analyze verify opendj-packages/resources/systemd/opendj.service || true
+          sh -n opendj-packages/resources/sysv/opendj
+      - name: Install
+        shell: bash
+        run: |
+          sudo apt-get install -y "$DEB"
+          getent passwd opendj
+          test "$(stat -c '%U' /opt/opendj)" = opendj
+      - name: Setup OpenDJ (configured, not started)
+        shell: bash
+        run: |
+          sudo runuser -u opendj -- /opt/opendj/setup --cli --no-prompt --acceptLicense --doNotStart \
+            --rootUserDN "cn=Directory Manager" --rootUserPassword password \
+            --hostname localhost --ldapPort 1389 --adminConnectorPort 4444 \
+            --baseDN dc=example,dc=com --addBaseEntry
+      - name: Start via systemd and verify
+        shell: bash
+        run: |
+          sudo systemctl enable --now opendj
+          OK=0
+          for i in $(seq 1 20); do
+            if /opt/opendj/bin/ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -w password -b "dc=example,dc=com" -s base "(objectClass=*)" 1.1 >/dev/null 2>&1; then OK=1; break; fi
+            sleep 3
+          done
+          sudo systemctl is-active --quiet opendj
+          test "$OK" = 1
+          echo "OpenDJ is active under systemd"
+      - name: Stop via systemd and verify
+        shell: bash
+        run: |
+          sudo systemctl stop opendj
+          sleep 3
+          if sudo systemctl is-active --quiet opendj; then echo "still active"; exit 1; fi
+          echo "OpenDJ stopped"
+      - name: Purge
+        shell: bash
+        run: sudo apt-get purge -y opendj
+
+  test-rpm:
+    needs: build-maven
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: ubuntu-latest-11
+      - name: Install and start/stop in Rocky Linux 9
+        shell: bash
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work rockylinux:9 bash -c '
+            set -e
+            RPM=$(ls opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm | head -1)
+            echo "Found $RPM"
+            dnf install -y java-21-openjdk-headless util-linux initscripts >/dev/null
+            dnf install -y "$RPM"
+            id opendj
+            test "$(stat -c %U /opt/opendj)" = opendj
+            runuser -u opendj -- /opt/opendj/setup --cli --no-prompt --acceptLicense --doNotStart \
+              --rootUserDN "cn=Directory Manager" --rootUserPassword password \
+              --hostname localhost --ldapPort 1389 --adminConnectorPort 4444 \
+              --baseDN dc=example,dc=com --addBaseEntry
+            /etc/init.d/opendj start
+            OK=0
+            for i in $(seq 1 20); do
+              if /opt/opendj/bin/ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -w password -b "dc=example,dc=com" -s base "(objectClass=*)" 1.1 >/dev/null 2>&1; then OK=1; break; fi
+              sleep 3
+            done
+            /etc/init.d/opendj status
+            test "$OK" = 1
+            /etc/init.d/opendj stop
+            rpm -e opendj
+          '

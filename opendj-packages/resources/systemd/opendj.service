@@ -1,4 +1,3 @@
-#!/bin/sh
 #
 # The contents of this file are subject to the terms of the Common Development and
 # Distribution License (the License). You may not use this file except in compliance with the
@@ -12,22 +11,26 @@
 # Header, with the fields enclosed by brackets [] replaced by your own identifying
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
-# Copyright 2013-2015 ForgeRock AS.
-# Portions Copyright 2026 3A Systems, LLC
+# Copyright 2026 3A Systems, LLC
 
-# ===================================
-# RPM Post Uninstall Script (%postun)
-# ===================================
+[Unit]
+Description=OpenDJ LDAPv3 Directory Server
+Documentation=https://github.com/OpenIdentityPlatform/OpenDJ
+After=network-online.target
+Wants=network-online.target
 
-# $1 is 0 for an uninstallation and 1 for an upgrade.
+[Service]
+Type=simple
+User=opendj
+Group=opendj
+Environment=INSTALL_ROOT=/opt/opendj
+# start-ds --nodetach keeps the JVM in the foreground so systemd supervises it directly.
+ExecStart=/opt/opendj/bin/start-ds --nodetach --quiet
+ExecStop=/opt/opendj/bin/stop-ds --quiet
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=180
+LimitNOFILE=65536
 
-if [ -d /run/systemd/system ] ; then
-    systemctl daemon-reload >/dev/null 2>&1 || true
-fi
-
-if [ "$1" = "0" ] ; then
-    echo "Post Uninstall - uninstall"
-    echo "OpenDJ successfully removed."
-elif [ "$1" = "1" ] ; then
-    echo "Post Uninstall - upgrade uninstall"
-fi
+[Install]
+WantedBy=multi-user.target

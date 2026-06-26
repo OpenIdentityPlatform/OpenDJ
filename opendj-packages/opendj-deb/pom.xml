@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2018-2026 3A Systems, LLC
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -146,7 +147,7 @@
                 <plugin>
                     <groupId>org.vafer</groupId>
                     <artifactId>jdeb</artifactId>
-                    <version>1.3</version>
+                    <version>1.14</version>
                     <executions>
                         <execution>
                             <id>generate-deb-package</id>
@@ -158,7 +159,7 @@
                                 <deb>${project.build.directory}/${deb.product.name.lowercase}_${project.version}-${deb.release}_all.deb</deb>
                                 <controlDir>${project.build.directory}/deb/control</controlDir>
                                 <dataSet>
-                                    <!-- OpenDJ service file -->
+                                    <!-- OpenDJ SysV init service file (fallback for non-systemd hosts) -->
                                     <data>
                                         <src>${sysv.file.location}</src>
                                         <type>file</type>
@@ -166,6 +167,17 @@
                                             <type>perm</type>
                                             <prefix>/etc/init.d</prefix>
                                             <filemode>755</filemode>
+                                        </mapper>
+                                    </data>
+
+                                    <!-- OpenDJ systemd service unit (native service management) -->
+                                    <data>
+                                        <src>${systemd.file.location}</src>
+                                        <type>file</type>
+                                        <mapper>
+                                            <type>perm</type>
+                                            <prefix>/lib/systemd/system</prefix>
+                                            <filemode>644</filemode>
                                         </mapper>
                                     </data>
 

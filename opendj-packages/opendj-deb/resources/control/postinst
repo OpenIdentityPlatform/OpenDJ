@@ -13,59 +13,71 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2013-2015 ForgeRock AS.
+# Portions Copyright 2026 3A Systems, LLC
 
-# Post install script
-# Install is launched with an empty second arg.
-# If the package is already installed, the second arg. is not empty.
+# Post install script.
+# On a fresh install the second argument is empty; on upgrade it holds the
+# previously-installed version.
 
-# Registers the service
-update-rc.d opendj defaults
+set -e
 
-# Symlinks to process ID
-test -h "/var/run/opendj.pid" || ln -s ${deb.prefix}/logs/server.pid /var/run/opendj.pid
+# Create the dedicated system user/group that runs the service.
+if ! getent group opendj >/dev/null; then
+    addgroup --system opendj
+fi
+if ! getent passwd opendj >/dev/null; then
+    adduser --system --no-create-home --ingroup opendj \
+        --home ${deb.prefix} --shell /usr/sbin/nologin \
+        --gecos "OpenDJ Directory Server" opendj
+fi
 
-# In this case, we are in upgrade mode.
-if [ "$1" = "configure" ] && [ ! -z "$2" ] ; then
-    # For being secure, we check the buildinfo file too.
+# Own the installation tree with the service account. On upgrade this also
+# migrates installations that were previously owned by root.
+chown -R opendj:opendj ${deb.prefix}
+
+# Register the service: prefer systemd, fall back to SysV init.
+if [ -d /run/systemd/system ] ; then
+    systemctl --system daemon-reload >/dev/null 2>&1 || true
+    deb-systemd-helper enable opendj.service >/dev/null 2>&1 || true
+else
+    update-rc.d opendj defaults >/dev/null 2>&1 || true
+fi
+
+# Upgrade mode.
+if [ "$1" = "configure" ] && [ -n "$2" ] ; then
+    # For safety, check the buildinfo file too.
     if [ -f ${deb.prefix}/config/buildinfo ] ; then
-        echo *Starting upgrade...
-        ${deb.prefix}/./upgrade -n --force --acceptLicense
-        echo
-
-        if [ "$?" -eq 0 ] ; then
-            # Restarts the service if needed.
-            # If server is stopped by upgrade process, the server will restart after upgrade.
-            # If server is stopped before the upgrade process (eg. upgrade the new package), the server will not restart.
-            # Uses the flag for determining server status at this point.
+        echo "*Starting upgrade..."
+        if runuser -u opendj -- ${deb.prefix}/upgrade -n --force --acceptLicense ; then
+            # Restart only if the server was running before the upgrade
+            # (preinst recorded this via the status flag).
             if [ -f ${deb.prefix}/logs/status ] ; then
-                echo
                 echo "*Restarting server..."
-                ${deb.prefix}/./bin/start-ds
-                if [ "$?" -eq 0 ] ; then
-                    rm -f ${deb.prefix}/logs/status
+                if [ -d /run/systemd/system ] ; then
+                    deb-systemd-invoke start opendj.service || true
                 else
-                    echo "start-ds failed with return code $?. Please read ${deb.prefix}/logs/status for more details."
+                    runuser -u opendj -- ${deb.prefix}/bin/start-ds || true
                 fi
+                rm -f ${deb.prefix}/logs/status
             fi
         else
-            # Upgrade fails - Requires mandatory user interaction.
-            # Nevertheless, exits successfully of the pkg process.
-            echo "upgrade failed with return code $?. Please read the installation guide for more information on the upgrade process."
+            # Upgrade failed - may require manual user interaction. Do not fail
+            # the package transaction.
+            echo "upgrade failed. Please read the installation guide for more information on the upgrade process."
             exit 0
         fi
     else
         echo "Invalid installation, could not find the build info file."
-        exit -1
+        exit 1
     fi
 fi
 
-
-# Add OpenDJ man pages to MANPATH
+# Add OpenDJ man pages to MANPATH.
 MAN_CONFIG_FILE=/etc/manpath.config
-MANPATH_DIRECTIVE=MANDATORY_MANPATH
-grep -q "$MANPATH_DIRECTIVE.*opendj" $MAN_CONFIG_FILE 2> /dev/null
-if [ $? -ne 0 ]; then
-    echo "$MANPATH_DIRECTIVE ${deb.prefix}/share/man" >> $MAN_CONFIG_FILE
+if [ -f "$MAN_CONFIG_FILE" ] && ! grep -q "MANDATORY_MANPATH.*opendj" "$MAN_CONFIG_FILE" 2>/dev/null ; then
+    echo "MANDATORY_MANPATH ${deb.prefix}/share/man" >> "$MAN_CONFIG_FILE"
 fi
-# End post install script
+
 echo
+exit 0
+# End post install script
