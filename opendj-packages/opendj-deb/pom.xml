@@ -181,6 +181,17 @@
                                         </mapper>
                                     </data>
 
+                                    <!-- Service environment override (jdeb auto-marks files under /etc as conffiles) -->
+                                    <data>
+                                        <src>${env.file.location}</src>
+                                        <type>file</type>
+                                        <mapper>
+                                            <type>perm</type>
+                                            <prefix>/etc/default</prefix>
+                                            <filemode>644</filemode>
+                                        </mapper>
+                                    </data>
+
                                     <!-- Debian copyright file in documentation -->
                                     <data>
                                         <src>${basedir}/resources/copyright</src>

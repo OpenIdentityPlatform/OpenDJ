@@ -28,6 +28,16 @@ getent passwd opendj >/dev/null || \
     useradd -r -g opendj -d "%{_prefix}" -s /sbin/nologin -c "OpenDJ Directory Server" opendj
 chown -R opendj:opendj "%{_prefix}" || true
 
+# Pin Java for the service via OpenDJ's own config, using a STABLE symlink (not a
+# version-specific path) so a JRE upgrade/reinstall does not break the service.
+# Only touch the shipped placeholder, never an admin-edited value.
+JAVA_PROPS="%{_prefix}"/config/java.properties
+JH=/usr/lib/jvm/jre
+[ -x "$JH/bin/java" ] || JH=$(dirname "$(dirname "$(command -v java 2>/dev/null)")" 2>/dev/null)
+if [ -n "$JH" ] && [ -x "$JH/bin/java" ] && grep -q '^default.java-home=\$JAVA_HOME' "$JAVA_PROPS" 2>/dev/null ; then
+    sed -i "s|^default.java-home=.*|default.java-home=$JH|" "$JAVA_PROPS"
+fi
+
 # Register the service: prefer systemd, fall back to chkconfig/SysV.
 if [ -d /run/systemd/system ] ; then
     systemctl daemon-reload >/dev/null 2>&1 || true

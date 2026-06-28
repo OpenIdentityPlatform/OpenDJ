@@ -250,6 +250,19 @@
                                 </sources>
                             </mapping>
 
+                            <!-- Service environment override (%config(noreplace)) -->
+                            <mapping>
+                                <directory>/etc/sysconfig</directory>
+                                <directoryIncluded>false</directoryIncluded>
+                                <filemode>644</filemode>
+                                <configuration>noreplace</configuration>
+                                <sources>
+                                    <source>
+                                        <location>${env.file.location}</location>
+                                    </source>
+                                </sources>
+                            </mapping>
+
                             <!-- Add executable scripts and libraries -->
                             <mapping>
                                 <directory>${rpm.prefix}</directory>

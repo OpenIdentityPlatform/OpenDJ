@@ -40,7 +40,7 @@ get_property() {
 #                                      is defined and 'SCRIPT_NAME.java-home'/bin/java points to a regular file
 # 4 - use the 'default.java-home' property from the config/java.properties file
 #                                      is defined and 'default.java-home'/bin/java points to a regular file
-# 5 - use `which java` command to find java path
+# 5 - use `command -v java` to find java path (POSIX builtin; no dependency on the `which` package)
 # 6 - use JAVA_BIN if defined and points to an existing regular file
 # 7 - use JAVA_HOME if defined and JAVA_HOME/bin/java points to a regural file
 # 8 - Displays an error message which says that java was not found on the running machine
@@ -63,7 +63,7 @@ set_opendj_java_bin() {
       then
         OPENDJ_JAVA_BIN=${PROPERTY_VALUE}/bin/java
       else
-        TEST_JAVA_PATH=`which java 2> /dev/null`
+        TEST_JAVA_PATH=`command -v java 2> /dev/null`
         if test ! -z ${TEST_JAVA_PATH} -a -f ${TEST_JAVA_PATH}
         then
           OPENDJ_JAVA_BIN=${TEST_JAVA_PATH}

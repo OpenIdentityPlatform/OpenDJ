@@ -59,6 +59,12 @@ fi
 # LOCKFILE is used by the service subsystem to know whether the opendj service is started and act upon it
 
 
+# Optional admin overrides (OPENDJ_JAVA_HOME / OPENDJ_JAVA_BIN / OPENDJ_JAVA_ARGS).
+# Exported so they survive the runuser switch to the service account in run_as().
+[ -r /etc/default/opendj ] && . /etc/default/opendj
+[ -r /etc/sysconfig/opendj ] && . /etc/sysconfig/opendj
+export OPENDJ_JAVA_HOME OPENDJ_JAVA_BIN OPENDJ_JAVA_ARGS
+
 # Sets the script vars
 INSTALL_ROOT="/opt/opendj"
 export INSTALL_ROOT

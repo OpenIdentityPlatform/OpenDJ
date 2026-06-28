@@ -24,6 +24,10 @@ Type=simple
 User=opendj
 Group=opendj
 Environment=INSTALL_ROOT=/opt/opendj
+# Optional admin overrides (OPENDJ_JAVA_HOME / OPENDJ_JAVA_BIN / OPENDJ_JAVA_ARGS).
+# The leading "-" makes the file optional; deb ships /etc/default, rpm /etc/sysconfig.
+EnvironmentFile=-/etc/default/opendj
+EnvironmentFile=-/etc/sysconfig/opendj
 # start-ds --nodetach keeps the JVM in the foreground so systemd supervises it directly.
 ExecStart=/opt/opendj/bin/start-ds --nodetach --quiet
 ExecStop=/opt/opendj/bin/stop-ds --quiet

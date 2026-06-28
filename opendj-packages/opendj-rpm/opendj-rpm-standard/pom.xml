@@ -35,6 +35,7 @@
     <properties>
         <sysv.file.location>${project.parent.parent.basedir}/resources/sysv/opendj</sysv.file.location>
         <systemd.file.location>${project.parent.parent.basedir}/resources/systemd/opendj.service</systemd.file.location>
+        <env.file.location>${project.parent.parent.basedir}/resources/env/opendj</env.file.location>
         <rpm.product.name>${product.name}</rpm.product.name>
         <rpm.product.name.lowercase>${product.name.lowercase}</rpm.product.name.lowercase>
         <rpm.resources.path>${project.parent.basedir}/resources</rpm.resources.path>

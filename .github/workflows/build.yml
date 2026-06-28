@@ -450,38 +450,51 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: ubuntu-latest-11
-      - name: Locate .deb
+      - name: Clean-room install + SysV start/stop (debian:12 container)
+        shell: bash
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work debian:12 bash -c '
+            set -e
+            export DEBIAN_FRONTEND=noninteractive
+            DEB=$(ls opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb | head -1)
+            echo "Found $DEB"
+            apt-get update
+            apt-get install -y lintian
+            lintian --info --no-tag-display-limit "$DEB" || true
+            dpkg-deb -I "$DEB"
+            dpkg-deb -c "$DEB" | grep -E "lib/systemd/system/opendj.service|etc/init.d/opendj"
+            apt-get install -y "./$DEB"
+            id opendj
+            test "$(stat -c %U /opt/opendj)" = opendj
+            # No JAVA_HOME and no "which" in this clean container: Java must resolve
+            # from config/java.properties (default.java-home set by postinst).
+            runuser -u opendj -- /opt/opendj/setup --cli --no-prompt --acceptLicense --doNotStart \
+              --rootUserDN "cn=Directory Manager" --rootUserPassword password \
+              --hostname localhost --ldapPort 1389 --adminConnectorPort 4444 \
+              --baseDN dc=example,dc=com --addBaseEntry
+            /etc/init.d/opendj start
+            OK=0
+            for i in $(seq 1 20); do
+              if /opt/opendj/bin/ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -w password -b "dc=example,dc=com" -s base "(objectClass=*)" 1.1 >/dev/null 2>&1; then OK=1; break; fi
+              sleep 3
+            done
+            /etc/init.d/opendj status
+            test "$OK" = 1
+            /etc/init.d/opendj stop
+            apt-get purge -y opendj
+          '
+      - name: Live systemd install + start/stop (runner)
         shell: bash
         run: |
           DEB=$(ls opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb | head -1)
-          echo "DEB=$PWD/$DEB" >> "$GITHUB_ENV"
-          echo "Found $DEB"
-      - name: Lint and inspect
-        shell: bash
-        run: |
           sudo apt-get update
-          sudo apt-get install -y lintian
-          lintian --info --no-tag-display-limit "$DEB" || true
-          dpkg-deb -I "$DEB"
-          dpkg-deb -c "$DEB" | grep -E 'lib/systemd/system/opendj\.service|etc/init\.d/opendj'
-          systemd-analyze verify opendj-packages/resources/systemd/opendj.service || true
-          sh -n opendj-packages/resources/sysv/opendj
-      - name: Install
-        shell: bash
-        run: |
-          sudo apt-get install -y "$DEB"
-          getent passwd opendj
+          sudo apt-get install -y "$PWD/$DEB"
           test "$(stat -c '%U' /opt/opendj)" = opendj
-      - name: Setup OpenDJ (configured, not started)
-        shell: bash
-        run: |
+          # sudo/runuser/systemd strip JAVA_HOME -> also relies on config/java.properties
           sudo runuser -u opendj -- /opt/opendj/setup --cli --no-prompt --acceptLicense --doNotStart \
             --rootUserDN "cn=Directory Manager" --rootUserPassword password \
             --hostname localhost --ldapPort 1389 --adminConnectorPort 4444 \
             --baseDN dc=example,dc=com --addBaseEntry
-      - name: Start via systemd and verify
-        shell: bash
-        run: |
           sudo systemctl enable --now opendj
           OK=0
           for i in $(seq 1 20); do
@@ -491,16 +504,10 @@ jobs:
           sudo systemctl is-active --quiet opendj
           test "$OK" = 1
           echo "OpenDJ is active under systemd"
-      - name: Stop via systemd and verify
-        shell: bash
-        run: |
           sudo systemctl stop opendj
           sleep 3
           if sudo systemctl is-active --quiet opendj; then echo "still active"; exit 1; fi
-          echo "OpenDJ stopped"
-      - name: Purge
-        shell: bash
-        run: sudo apt-get purge -y opendj
+          sudo apt-get purge -y opendj
 
   test-rpm:
     needs: build-maven
@@ -521,6 +528,7 @@ jobs:
             dnf install -y "$RPM"
             id opendj
             test "$(stat -c %U /opt/opendj)" = opendj
+            # Java must come from config/java.properties (no JAVA_HOME and no "which" here)
             runuser -u opendj -- /opt/opendj/setup --cli --no-prompt --acceptLicense --doNotStart \
               --rootUserDN "cn=Directory Manager" --rootUserPassword password \
               --hostname localhost --ldapPort 1389 --adminConnectorPort 4444 \
