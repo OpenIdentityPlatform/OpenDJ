@@ -35,15 +35,6 @@
     <!-- Upgrading -->
     <MajorUpgrade DowngradeErrorMessage="A newer version of $(var.name) is already installed."/>
 
-    <!-- Require Java: the MSI ships no JRE, so block install when JAVA_HOME is not set.
-         The value is captured from the environment before the LaunchConditions action.
-         'Installed' lets uninstall/repair proceed regardless of Java. -->
-    <Property Id="JAVA_HOME_ENV" Secure="yes"/>
-    <SetProperty Id="JAVA_HOME_ENV" Value="[%JAVA_HOME]" Before="LaunchConditions" Sequence="both"/>
-    <Condition Message="Java (JRE/JDK 11 or higher) is required to run $(var.name) but was not detected. Install a JRE or set the JAVA_HOME environment variable, then run this installer again.">
-      <![CDATA[ Installed OR JAVA_HOME_ENV ]]>
-    </Condition>
-
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder" Name="PFiles">
         <Directory Id="OPENDJ" Name="$(var.name)">
