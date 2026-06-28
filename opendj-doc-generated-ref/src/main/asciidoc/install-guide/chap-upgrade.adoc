@@ -89,7 +89,7 @@ Due to changes to the backup archive format, make sure you stop OpenDJ directory
 ====
 Before starting this procedure, follow the steps in xref:#before-you-upgrade["Before You Upgrade"].
 
-To upgrade to OpenDJ directory server installed from native packages (.deb, .rpm), use the command-line package management tools provided by the system.
+To upgrade OpenDJ directory server installed from native packages (.deb, .rpm), install the newer package with the system package manager (`sudo apt-get install ./opendj_{opendj-version}-1_all.deb` or `sudo dnf install ./opendj-{opendj-version}-1.noarch.rpm`). The package stops the running server, runs the `upgrade` tool as the dedicated `opendj` user, migrates file ownership under `/opt/opendj` to that user, and restarts the service (systemd, with a SysV init fallback) if it was running before the upgrade. Back up the installation directory first, as described in xref:#before-you-upgrade["Before You Upgrade"].
 
 [NOTE]
 ======
