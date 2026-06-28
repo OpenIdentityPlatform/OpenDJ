@@ -453,7 +453,7 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: 'zulu'
       - name: Install MSI (silent)
         shell: pwsh
@@ -472,7 +472,7 @@ jobs:
         run: |
           $root = $env:OPENDJ_ROOT
           $env:OPENDJ_JAVA_ARGS = "-server -Xmx512m"
-          & "$root\setup.bat" -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --addBaseEntry --cli --acceptLicense --no-prompt
+          & "$root\setup.bat" -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --addBaseEntry --cli --acceptLicense --no-prompt --doNotStart
           if ($LASTEXITCODE -ne 0) { throw "setup.bat failed: $LASTEXITCODE" }
           & "$root\bat\windows-service.bat" --enableService
           if ($LASTEXITCODE -ne 0) { throw "windows-service --enableService failed: $LASTEXITCODE" }
