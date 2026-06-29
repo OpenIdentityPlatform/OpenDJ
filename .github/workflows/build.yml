@@ -75,6 +75,9 @@ jobs:
     - name: Setup WiX (.NET tool) for MSI
       shell: bash
       run: |
+        # WiX 5 ships as a net6.0 tool; allow it to run on the newer .NET runtime present on the runners.
+        echo "DOTNET_ROLL_FORWARD=Major" >> "$GITHUB_ENV"
+        export DOTNET_ROLL_FORWARD=Major
         dotnet tool install --global wix --version 5.0.2 || dotnet tool update --global wix --version 5.0.2
         echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
         export PATH="$HOME/.dotnet/tools:$PATH"
