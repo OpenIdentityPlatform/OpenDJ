@@ -46,7 +46,7 @@
          Registered here, but NOT started during install (the instance must be configured by
          setup.bat first). -->
     <Component Id="OpenDJServiceExe" Directory="OPENDJ_LIB">
-      <File Id="opendj_service.exe" Source="$(var.staging)\lib\opendj_service.exe" KeyPath="yes"/>
+      <File Id="opendj_service.exe" Source="$(var.serviceExe)" KeyPath="yes"/>
       <ServiceInstall Id="OpenDJService" Name="OpenDJ" DisplayName="OpenDJ Server"
                       Description="OpenDJ LDAPv3 Directory Server" Type="ownProcess"
                       Start="auto" ErrorControl="normal"
@@ -55,19 +55,14 @@
                       Stop="both" Remove="uninstall" Wait="yes"/>
     </Component>
 
-    <!-- Harvest the payload: everything except lib goes under OPENDJ; lib (minus the service
-         wrapper, which is the explicit component above) goes under OPENDJ_LIB. -->
+    <!-- Harvest the payload. Exclusions are already applied during staging (Ant), so each
+         <Files> needs only the Include attribute (WiX 5 requires it; no Exclude here):
+         stagingRoot has everything except lib; stagingLib has lib minus the service wrapper. -->
     <ComponentGroup Id="OpenDJRoot" Directory="OPENDJ">
-      <Files>
-        <Include Path="$(var.staging)\**"/>
-        <Exclude Path="$(var.staging)\lib\**"/>
-      </Files>
+      <Files Include="$(var.stagingRoot)\**"/>
     </ComponentGroup>
     <ComponentGroup Id="OpenDJLib" Directory="OPENDJ_LIB">
-      <Files>
-        <Include Path="$(var.staging)\lib\**"/>
-        <Exclude Path="$(var.staging)\lib\opendj_service.exe"/>
-      </Files>
+      <Files Include="$(var.stagingLib)\**"/>
     </ComponentGroup>
 
     <Feature Id="All" Title="Server and tools" ConfigurableDirectory="OPENDJ">

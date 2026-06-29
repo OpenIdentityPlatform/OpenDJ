@@ -37,7 +37,11 @@
     <properties>
         <msi.resources>${basedir}/resources/msi</msi.resources>
         <package.dir>${project.build.directory}/${product.name.lowercase}</package.dir>
-        <staging.dir>${project.build.directory}/msi-staging</staging.dir>
+        <!-- Exclusions are done here (Ant), not in WiX <Files> (which only takes Include in WiX 5):
+             stagingRoot = payload minus lib; stagingLib = lib minus the service wrapper. -->
+        <staging.root>${project.build.directory}/msi-staging</staging.root>
+        <staging.lib>${project.build.directory}/msi-staging-lib</staging.lib>
+        <service.exe>${package.dir}/lib/opendj_service.exe</service.exe>
         <msi.file>${project.build.directory}/${product.name.lowercase}-${project.version}.msi</msi.file>
         <wix.version>5.0.2</wix.version>
     </properties>
@@ -86,16 +90,28 @@
                         </goals>
                         <configuration>
                             <target>
-                                <delete dir="${staging.dir}"/>
-                                <mkdir dir="${staging.dir}"/>
-                                <copy toDir="${staging.dir}">
+                                <!-- Everything except lib (and macOS/Unix bits) -> stagingRoot -->
+                                <delete dir="${staging.root}"/>
+                                <mkdir dir="${staging.root}"/>
+                                <copy toDir="${staging.root}">
                                     <fileset dir="${package.dir}">
                                         <exclude name="QuickSetup.app/**"/>
                                         <exclude name="Uninstall.app/**"/>
                                         <exclude name="bin/**"/>
+                                        <exclude name="lib/**"/>
                                         <exclude name="setup"/>
                                         <exclude name="uninstall"/>
                                         <exclude name="upgrade"/>
+                                        <exclude name="**/*.sh"/>
+                                    </fileset>
+                                </copy>
+                                <!-- lib minus the service wrapper (registered via an explicit
+                                     component in package.wxs) -> stagingLib -->
+                                <delete dir="${staging.lib}"/>
+                                <mkdir dir="${staging.lib}"/>
+                                <copy toDir="${staging.lib}">
+                                    <fileset dir="${package.dir}/lib">
+                                        <exclude name="opendj_service.exe"/>
                                         <exclude name="**/*.sh"/>
                                     </fileset>
                                 </copy>
@@ -129,7 +145,9 @@
                                 <argument>-d</argument><argument>major=${parsedVersion.majorVersion}</argument>
                                 <argument>-d</argument><argument>minor=${parsedVersion.minorVersion}</argument>
                                 <argument>-d</argument><argument>point=${parsedVersion.incrementalVersion}</argument>
-                                <argument>-d</argument><argument>staging=${staging.dir}</argument>
+                                <argument>-d</argument><argument>stagingRoot=${staging.root}</argument>
+                                <argument>-d</argument><argument>stagingLib=${staging.lib}</argument>
+                                <argument>-d</argument><argument>serviceExe=${service.exe}</argument>
                                 <argument>-o</argument><argument>${msi.file}</argument>
                             </arguments>
                         </configuration>
