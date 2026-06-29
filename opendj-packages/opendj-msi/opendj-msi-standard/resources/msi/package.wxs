@@ -58,10 +58,16 @@
     <!-- Harvest the payload: everything except lib goes under OPENDJ; lib (minus the service
          wrapper, which is the explicit component above) goes under OPENDJ_LIB. -->
     <ComponentGroup Id="OpenDJRoot" Directory="OPENDJ">
-      <Files Include="$(var.staging)\**" Exclude="$(var.staging)\lib\**"/>
+      <Files>
+        <Include Path="$(var.staging)\**"/>
+        <Exclude Path="$(var.staging)\lib\**"/>
+      </Files>
     </ComponentGroup>
     <ComponentGroup Id="OpenDJLib" Directory="OPENDJ_LIB">
-      <Files Include="$(var.staging)\lib\**" Exclude="$(var.staging)\lib\opendj_service.exe"/>
+      <Files>
+        <Include Path="$(var.staging)\lib\**"/>
+        <Exclude Path="$(var.staging)\lib\opendj_service.exe"/>
+      </Files>
     </ComponentGroup>
 
     <Feature Id="All" Title="Server and tools" ConfigurableDirectory="OPENDJ">

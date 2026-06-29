@@ -72,6 +72,11 @@ jobs:
       run:   |
         echo "MAVEN_PROFILE_FLAG=-P precommit" >> $GITHUB_OUTPUT
 
+    - name: Setup .NET runtime for WiX (macOS)
+      if: runner.os == 'macOS'
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
     - name: Setup WiX (.NET tool) for MSI
       shell: bash
       run: |
