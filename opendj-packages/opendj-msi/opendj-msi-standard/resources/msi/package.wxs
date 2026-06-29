@@ -15,45 +15,62 @@
  ! Copyright 2013-2016 ForgeRock AS.
  ! Portions Copyright 2018-2026 3A Systems, LLC
  ! -->
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Codepage="1252" Language="1033" Manufacturer="Open Identity Platform Community"
-           Name="$(var.name) $(var.major).$(var.minor).$(var.point)" Version="$(var.major).$(var.minor).$(var.point)"
-           UpgradeCode="A3E82AC0-88E6-4DEE-9D8C-5AE3B7853274">
-    <Package Id="*" Comments="This package contains $(var.name) $(var.major).$(var.minor).$(var.point)."
-             Description="Open Identity Platform Community products" InstallerVersion="300" Languages="1033" Manufacturer="Open Identity Platform Community"
-             Platform="x86" Compressed="yes"/>
-    <Media Id="1" Cabinet="opendj.cab" DiskPrompt="Disk 1" EmbedCab="yes" CompressionLevel="none"/>
-    <Property Id="DiskPrompt" Value="$(var.name) $(var.major).$(var.minor).$(var.point) Installation"/>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package Name="$(var.name) $(var.major).$(var.minor).$(var.point)"
+           Manufacturer="Open Identity Platform Community"
+           Version="$(var.major).$(var.minor).$(var.point)"
+           UpgradeCode="A3E82AC0-88E6-4DEE-9D8C-5AE3B7853274"
+           Language="1033" Codepage="1252" InstallerVersion="500" Scope="perMachine">
 
-    <Property Id="ALLUSERS" Value="1"/>
+    <SummaryInformation Description="Open Identity Platform Community products"
+                        Manufacturer="Open Identity Platform Community"/>
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
+
     <Property Id="ARPHELPLINK" Value="https://github.com/OpenIdentityPlatform/OpenDJ/wiki"/>
 
     <!-- UI customization -->
-    <WixVariable Id="WixUIBannerBmp" Value="opendjbanner.bmp" />
-    <WixVariable Id="WixUIDialogBmp" Value="opendjdialog.bmp" />
+    <WixVariable Id="WixUIBannerBmp" Value="opendjbanner.bmp"/>
+    <WixVariable Id="WixUIDialogBmp" Value="opendjdialog.bmp"/>
 
-    <!-- Upgrading -->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of $(var.name) is already installed."/>
-
-    <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFilesFolder" Name="PFiles">
-        <Directory Id="OPENDJ" Name="$(var.name)">
-        </Directory>
+    <!-- x64 install location: C:\Program Files\OpenDJ -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="OPENDJ" Name="$(var.name)">
+        <Directory Id="OPENDJ_LIB" Name="lib"/>
       </Directory>
-    </Directory>
+    </StandardDirectory>
 
-    <Feature Id="All" Title="Server and tools" Level="1" ConfigurableDirectory="OPENDJ">
-      <ComponentGroupRef Id="all"/>
+    <!-- Windows service: opendj_service.exe is the SCM wrapper that runs bat\start-ds.bat.
+         Registered here, but NOT started during install (the instance must be configured by
+         setup.bat first). -->
+    <Component Id="OpenDJServiceExe" Directory="OPENDJ_LIB">
+      <File Id="opendj_service.exe" Source="$(var.staging)\lib\opendj_service.exe" KeyPath="yes"/>
+      <ServiceInstall Id="OpenDJService" Name="OpenDJ" DisplayName="OpenDJ Server"
+                      Description="OpenDJ LDAPv3 Directory Server" Type="ownProcess"
+                      Start="auto" ErrorControl="normal"
+                      Arguments="start &quot;[OPENDJ]&quot;" Vital="no"/>
+      <ServiceControl Id="OpenDJServiceControl" Name="OpenDJ"
+                      Stop="both" Remove="uninstall" Wait="yes"/>
+    </Component>
+
+    <!-- Harvest the payload: everything except lib goes under OPENDJ; lib (minus the service
+         wrapper, which is the explicit component above) goes under OPENDJ_LIB. -->
+    <ComponentGroup Id="OpenDJRoot" Directory="OPENDJ">
+      <Files Include="$(var.staging)\**" Exclude="$(var.staging)\lib\**"/>
+    </ComponentGroup>
+    <ComponentGroup Id="OpenDJLib" Directory="OPENDJ_LIB">
+      <Files Include="$(var.staging)\lib\**" Exclude="$(var.staging)\lib\opendj_service.exe"/>
+    </ComponentGroup>
+
+    <Feature Id="All" Title="Server and tools" ConfigurableDirectory="OPENDJ">
+      <ComponentRef Id="OpenDJServiceExe"/>
+      <ComponentGroupRef Id="OpenDJRoot"/>
+      <ComponentGroupRef Id="OpenDJLib"/>
     </Feature>
 
-    <!-- User interface -->
-    <Property Id="WIXUI_INSTALLDIR" Value="OPENDJ"/>
-    <UI Id="OpenDJ_Install">
-      <UIRef Id="WixUI_InstallDir"/>
-      <UIRef Id="WixUI_ErrorProgressText"/>
-      <!-- Don't show the license agreement in the install, just in setup -->
-      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">NOT Installed</Publish>
-      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Order="2" Value="WelcomeDlg">1</Publish>
-    </UI>
-  </Product>
+    <!-- WixUI_InstallDir; the license is shown only by setup, not by this installer. -->
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="OPENDJ"/>
+  </Package>
 </Wix>

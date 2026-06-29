@@ -28,19 +28,12 @@ jobs:
         os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
       fail-fast: false
     steps:
-    - name:  Install wine+rpm for distribution
+    - name:  Install rpm for distribution
       if: runner.os == 'Linux'
       shell: bash
       run:   |
-        sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
-        sudo dpkg --add-architecture i386
-        sudo mkdir -pm755 /etc/apt/keyrings && sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
-        sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/$(lsb_release -c -s)/winehq-$(lsb_release -c -s).sources
         sudo apt-get update
-        sudo apt install --install-recommends winehq-stable || sudo apt install --install-recommends winehq-staging
-        wine --version
-        version="9.4.0"; sudo wget "https://dl.winehq.org/wine/wine-mono/$version/wine-mono-$version-x86.msi" -O /tmp/wine-mono.msi
-        wine msiexec /i /tmp/wine-mono.msi
+        sudo apt-get install -y rpm
     - uses: actions/checkout@v6
       with:
         fetch-depth: 0
@@ -79,6 +72,14 @@ jobs:
       run:   |
         echo "MAVEN_PROFILE_FLAG=-P precommit" >> $GITHUB_OUTPUT
 
+    - name: Setup WiX (.NET tool) for MSI
+      shell: bash
+      run: |
+        dotnet tool install --global wix --version 5.0.2 || dotnet tool update --global wix --version 5.0.2
+        echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+        export PATH="$HOME/.dotnet/tools:$PATH"
+        wix --version
+        wix extension add -g WixToolset.UI.wixext/5.0.2 || true
     - name: Build with Maven
       timeout-minutes: 180
       env:
@@ -474,8 +475,7 @@ jobs:
           $env:OPENDJ_JAVA_ARGS = "-server -Xmx512m"
           & "$root\setup.bat" -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --addBaseEntry --cli --acceptLicense --no-prompt --doNotStart
           if ($LASTEXITCODE -ne 0) { throw "setup.bat failed: $LASTEXITCODE" }
-          & "$root\bat\windows-service.bat" --enableService
-          if ($LASTEXITCODE -ne 0) { throw "windows-service --enableService failed: $LASTEXITCODE" }
+          # The service is already registered by the MSI (WiX ServiceInstall); just start it.
           net start "OpenDJ Server"
           if ($LASTEXITCODE -ne 0) { throw "net start failed: $LASTEXITCODE" }
           for ($i=0; $i -lt 12; $i++) { try { $c = New-Object System.Net.Sockets.TcpClient('localhost', 1636); $c.Close(); break } catch { Start-Sleep -Seconds 5 } }
@@ -483,7 +483,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "ldapsearch failed: $LASTEXITCODE" }
           net stop "OpenDJ Server"
           if ($LASTEXITCODE -ne 0) { throw "net stop failed: $LASTEXITCODE" }
-          & "$root\bat\windows-service.bat" --disableService
       - name: Uninstall MSI
         shell: pwsh
         run: |
