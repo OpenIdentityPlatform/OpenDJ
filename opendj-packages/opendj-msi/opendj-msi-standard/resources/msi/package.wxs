@@ -59,10 +59,10 @@
          <Files> needs only the Include attribute (WiX 5 requires it; no Exclude here):
          stagingRoot has everything except lib; stagingLib has lib minus the service wrapper. -->
     <ComponentGroup Id="OpenDJRoot" Directory="OPENDJ">
-      <Files Include="$(var.stagingRoot)\**"/>
+      <Files Include="$(var.stagingRoot)/**"/>
     </ComponentGroup>
     <ComponentGroup Id="OpenDJLib" Directory="OPENDJ_LIB">
-      <Files Include="$(var.stagingLib)\**"/>
+      <Files Include="$(var.stagingLib)/**"/>
     </ComponentGroup>
 
     <Feature Id="All" Title="Server and tools" ConfigurableDirectory="OPENDJ">
