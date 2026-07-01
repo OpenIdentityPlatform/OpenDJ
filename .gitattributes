@@ -1,0 +1,3 @@
+# WiX sources must stay LF so the WiX toolset parses them consistently across runners.
+*.wxs text eol=lf
+*.wxi text eol=lf

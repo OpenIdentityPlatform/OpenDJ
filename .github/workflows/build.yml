@@ -72,15 +72,12 @@ jobs:
       run:   |
         echo "MAVEN_PROFILE_FLAG=-P precommit" >> $GITHUB_OUTPUT
 
-    - name: Setup .NET runtime for WiX (macOS)
-      if: runner.os == 'macOS'
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
     - name: Setup WiX (.NET tool) for MSI
+      if: runner.os == 'Windows'
       shell: bash
       run: |
-        # WiX 5 ships as a net6.0 tool; allow it to run on the newer .NET runtime present on the runners.
+        # The MSI builds on Windows only (WiX cannot author MSIs on Linux/macOS). WiX 5 ships as a
+        # net6.0 tool; allow it to run on the newer .NET runtime present on the runner.
         echo "DOTNET_ROLL_FORWARD=Major" >> "$GITHUB_ENV"
         export DOTNET_ROLL_FORWARD=Major
         dotnet tool install --global wix --version 5.0.2 || dotnet tool update --global wix --version 5.0.2
