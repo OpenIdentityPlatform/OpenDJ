@@ -648,6 +648,8 @@ The installer refuses to install when it cannot detect a Java installation: inst
 
 . Install the package, either with the GUI or silently:
 +
+The package is not code-signed, so Windows SmartScreen or User Account Control may warn about an unrecognized publisher; choose to run the installer anyway.
++
 * GUI: double-click `opendj-{opendj-version}.msi` and follow the wizard.
 +
 * Silent: run the following command (optionally set the installation directory with the `OPENDJ` property):

@@ -43,7 +43,6 @@
         <staging.lib>${project.build.directory}/msi-staging-lib</staging.lib>
         <service.exe>${package.dir}/lib/opendj_service.exe</service.exe>
         <msi.file>${project.build.directory}/${product.name.lowercase}-${project.version}.msi</msi.file>
-        <wix.version>5.0.2</wix.version>
     </properties>
 
     <dependencies>
