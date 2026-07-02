@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.core;
 
@@ -1963,27 +1964,50 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return false;
     }
 
+    boolean isAuthPassword = passwordPolicy.isAuthPasswordSyntax();
     for (Attribute a : attrList)
     {
       for (ByteString v : a)
       {
         try
         {
-          String[] pwComponents = getPwComponents(v);
-          String schemeName = pwComponents[0];
-          PasswordStorageScheme<?> scheme = getPasswordStorageScheme(schemeName);
-          if (scheme == null)
+          String schemeName;
+          boolean matches;
+          if (isAuthPassword)
           {
-            if (logger.isTraceEnabled())
+            String[] pwComponents = getPwComponents(v);
+            schemeName = pwComponents[0];
+            PasswordStorageScheme<?> scheme = getPasswordStorageScheme(schemeName);
+            if (scheme == null)
             {
-              logger.trace("User entry %s contains a password with scheme %s that is not defined in the server.",
-                                  userDNString, schemeName);
+              traceUndefinedScheme(schemeName);
+              continue;
             }
-
-            continue;
+            matches = passwordMatches(password, pwComponents, scheme);
+          }
+          else
+          {
+            // This method runs for every bind: parse the {scheme} prefix at
+            // the byte level instead of materializing the whole stored value
+            // as a String only to convert its payload back to bytes.
+            int closePos = userPasswordSchemeEnd(v);
+            if (closePos < 0)
+            {
+              // Malformed value: raise the same errors as the String decoder.
+              getPwComponents(v);
+              continue;
+            }
+            schemeName = toLowerCase(v.subSequence(1, closePos).toString());
+            PasswordStorageScheme<?> scheme = DirectoryServer.getPasswordStorageScheme(schemeName);
+            if (scheme == null)
+            {
+              traceUndefinedScheme(schemeName);
+              continue;
+            }
+            matches = scheme.passwordMatches(password, v.subSequence(closePos + 1, v.length()));
           }
 
-          if (passwordMatches(password, pwComponents, scheme))
+          if (matches)
           {
             if (logger.isTraceEnabled())
             {
@@ -2022,6 +2046,37 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     return passwordPolicy.isAuthPasswordSyntax()
         ? AuthPasswordSyntax.decodeAuthPassword(v.toString())
         : UserPasswordSyntax.decodeUserPassword(v.toString());
+  }
+
+  /**
+   * Returns the index of the closing brace of the {scheme} prefix of the
+   * provided user password value, or -1 if the value is not well-formed
+   * (also when the scheme name is empty, mirroring
+   * {@link UserPasswordSyntax#decodeUserPassword(String)}).
+   */
+  private static int userPasswordSchemeEnd(ByteString v)
+  {
+    if (v.length() == 0 || v.byteAt(0) != '{')
+    {
+      return -1;
+    }
+    for (int i = 1; i < v.length(); i++)
+    {
+      if (v.byteAt(i) == '}')
+      {
+        return i > 1 ? i : -1;
+      }
+    }
+    return -1;
+  }
+
+  private void traceUndefinedScheme(String schemeName)
+  {
+    if (logger.isTraceEnabled())
+    {
+      logger.trace("User entry %s contains a password with scheme %s that is not defined in the server.",
+          userDNString, schemeName);
+    }
   }
 
   /**

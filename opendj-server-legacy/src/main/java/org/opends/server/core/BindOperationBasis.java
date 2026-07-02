@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.core;
 
@@ -482,10 +483,15 @@ public class BindOperationBasis
     ClientConnection clientConnection = getClientConnection();
     clientConnection.setUnauthenticated();
 
-    // Abandon any operations that may be in progress for the client.
-    LocalizableMessage cancelReason = INFO_CANCELED_BY_BIND_REQUEST.get();
-    CancelRequest cancelRequest = new CancelRequest(true, cancelReason);
-    clientConnection.cancelAllOperationsExcept(cancelRequest, getMessageID());
+    // Abandon any operations that may be in progress for the client. Only
+    // build the cancel request when there is something to cancel: on a plain
+    // re-bind the bind itself is the only operation in progress.
+    if (clientConnection.getOperationsInProgress().size() > 1)
+    {
+      LocalizableMessage cancelReason = INFO_CANCELED_BY_BIND_REQUEST.get();
+      CancelRequest cancelRequest = new CancelRequest(true, cancelReason);
+      clientConnection.cancelAllOperationsExcept(cancelRequest, getMessageID());
+    }
 
     // This flag is set to true as soon as a workflow has been executed.
     boolean workflowExecuted = false;
