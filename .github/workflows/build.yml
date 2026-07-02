@@ -459,15 +459,31 @@ jobs:
       - name: Install must fail without a JRE
         shell: pwsh
         run: |
-          # Simulate a machine with no Java: clear JAVA_HOME and strip java-looking PATH entries.
+          # Simulate a machine with no Java. The launch condition is evaluated by the Windows
+          # Installer service, which sees the MACHINE environment - so hide Java there too and
+          # restart msiserver to make it pick the change up; restore everything afterwards.
+          Stop-Service msiserver -Force -ErrorAction SilentlyContinue
+          $oldJH = [Environment]::GetEnvironmentVariable('JAVA_HOME','Machine')
+          $oldPM = [Environment]::GetEnvironmentVariable('Path','Machine')
+          [Environment]::SetEnvironmentVariable('JAVA_HOME',$null,'Machine')
+          [Environment]::SetEnvironmentVariable('Path',((($oldPM -split ';') | Where-Object { $_ -notmatch 'java|jdk|jre|zulu|javapath' }) -join ';'),'Machine')
           $env:JAVA_HOME = ""
           $env:PATH = (($env:PATH -split ';') | Where-Object { $_ -notmatch 'java|jdk|jre|zulu|javapath' }) -join ';'
-          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
-          if (-not $msi) { throw "MSI not found in the windows-latest-11 artifact" }
-          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v install-nojre.log"
-          if ($p.ExitCode -eq 0) { throw "installer succeeded without a JRE, but the Java launch condition must fail it" }
-          Write-Host "Installer refused to install without a JRE as expected (exit $($p.ExitCode))"
-          Select-String -Path install-nojre.log -Pattern "requires Java" | Select-Object -First 1
+          try {
+            $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+            if (-not $msi) { throw "MSI not found in the windows-latest-11 artifact" }
+            $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v install-nojre.log"
+            if ($p.ExitCode -eq 0) {
+              Get-Content install-nojre.log -Tail 60
+              throw "installer succeeded without a JRE, but the Java launch condition must fail it"
+            }
+            Write-Host "Installer refused to install without a JRE as expected (exit $($p.ExitCode))"
+            Select-String -Path install-nojre.log -Pattern "requires Java" | Select-Object -First 1
+          } finally {
+            [Environment]::SetEnvironmentVariable('JAVA_HOME',$oldJH,'Machine')
+            [Environment]::SetEnvironmentVariable('Path',$oldPM,'Machine')
+            Stop-Service msiserver -Force -ErrorAction SilentlyContinue
+          }
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
@@ -479,10 +495,12 @@ jobs:
           $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
           if (-not $msi) { throw "MSI not found in the windows-latest-11 artifact" }
           Write-Host "MSI: $msi"
-          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart OPENDJ=C:\opendj /l*v install.log"
+          # No OPENDJ property: exercise the x64 default C:\Program Files\OpenDJ (a path with
+          # spaces, which the server scripts must handle).
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v install.log"
           if ($p.ExitCode -ne 0) { Get-Content install.log -Tail 80; throw "msiexec /i failed: $($p.ExitCode)" }
-          $root = @("C:\opendj","C:\Program Files (x86)\OpenDJ","C:\Program Files\OpenDJ") | Where-Object { Test-Path "$_\setup.bat" } | Select-Object -First 1
-          if (-not $root) { Get-Content install.log -Tail 80; throw "OpenDJ install root with setup.bat not found" }
+          $root = "C:\Program Files\OpenDJ"
+          if (-not (Test-Path "$root\setup.bat")) { Get-Content install.log -Tail 80; throw "OpenDJ not installed into the x64 default $root" }
           Write-Host "Installed to $root"
           "OPENDJ_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Setup and start/stop the Windows service
@@ -512,7 +530,7 @@ jobs:
   # Verifies the new installer detects the legacy Program Files (x86) install, keeps the
   # instance data in place, replaces the windows-service.bat service with the MSI-managed
   # one, and the upgraded server starts with the old data.
-  test-win-upgrade:
+  test-msi-upgrade:
     needs: build-maven
     runs-on: 'windows-latest'
     steps:
@@ -529,9 +547,11 @@ jobs:
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/5.1.1/opendj-5.1.1.msi" -OutFile opendj-5.1.1.msi
-          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i opendj-5.1.1.msi /quiet /qn /norestart /l*v install-old.log"
+          # The released 5.1.1 scripts cannot run from a directory with spaces (unquoted
+          # java.io.tmpdir), so put the old install into C:\opendj.
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i opendj-5.1.1.msi /quiet /qn /norestart OPENDJ=C:\opendj /l*v install-old.log"
           if ($p.ExitCode -ne 0) { Get-Content install-old.log -Tail 80; throw "msiexec /i (5.1.1) failed: $($p.ExitCode)" }
-          $root = "C:\Program Files (x86)\OpenDJ"
+          $root = "C:\opendj"
           if (-not (Test-Path "$root\setup.bat")) { Get-Content install-old.log -Tail 80; throw "5.1.1 install root not found at $root" }
           $env:OPENDJ_JAVA_ARGS = "-server -Xmx512m"
           & "$root\setup.bat" -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --addBaseEntry --cli --acceptLicense --no-prompt --doNotStart
@@ -543,16 +563,16 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "net start (5.1.1) failed: $LASTEXITCODE" }
           net stop "OpenDJ Server"
           if ($LASTEXITCODE -ne 0) { throw "net stop (5.1.1) failed: $LASTEXITCODE" }
-      - name: Upgrade with the newly built MSI (no OPENDJ property - must auto-detect)
+      - name: Upgrade with the newly built MSI (same directory passed explicitly)
         shell: pwsh
         run: |
           $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
           if (-not $msi) { throw "MSI not found in the windows-latest-11 artifact" }
-          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v upgrade.log"
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart OPENDJ=C:\opendj /l*v upgrade.log"
           if ($p.ExitCode -ne 0) { Get-Content upgrade.log -Tail 120; throw "msiexec /i (upgrade) failed: $($p.ExitCode)" }
-          $root = "C:\Program Files (x86)\OpenDJ"
-          # New package files landed in the legacy directory, not the x64 default
-          if (-not (Test-Path "$root\setup.bat")) { throw "upgrade did not keep the legacy install dir" }
+          $root = "C:\opendj"
+          # New package files landed in the old directory, not the x64 default
+          if (-not (Test-Path "$root\setup.bat")) { throw "upgrade did not keep the old install dir" }
           if (Test-Path "C:\Program Files\OpenDJ") { throw "upgrade unexpectedly installed into the x64 default dir" }
           # Instance data survived
           if (-not (Test-Path "$root\config\config.ldif")) { throw "instance data (config\config.ldif) lost by the upgrade" }
@@ -576,3 +596,20 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "ldapsearch after upgrade failed: $LASTEXITCODE" }
           net stop "OpenDJ Server"
           if ($LASTEXITCODE -ne 0) { throw "net stop (upgraded) failed: $LASTEXITCODE" }
+      - name: Auto-detect the legacy default directory on a fresh install
+        shell: pwsh
+        run: |
+          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+          # Clean up the previous scenario first.
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall1.log"
+          if ($p.ExitCode -ne 0) { Get-Content uninstall1.log -Tail 80; throw "msiexec /x failed: $($p.ExitCode)" }
+          if (Get-Service OpenDJ -ErrorAction SilentlyContinue) { throw "service not removed by uninstall" }
+          # An existing legacy default directory must be picked up when OPENDJ is not given.
+          New-Item -ItemType Directory -Force "C:\Program Files (x86)\OpenDJ" | Out-Null
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v install-autodetect.log"
+          if ($p.ExitCode -ne 0) { Get-Content install-autodetect.log -Tail 80; throw "msiexec /i (autodetect) failed: $($p.ExitCode)" }
+          if (-not (Test-Path "C:\Program Files (x86)\OpenDJ\setup.bat")) { Get-Content install-autodetect.log -Tail 80; throw "installer did not auto-detect the legacy default dir" }
+          if (Test-Path "C:\Program Files\OpenDJ") { throw "installer used the x64 default dir despite an existing legacy dir" }
+          Write-Host "Legacy default directory auto-detected OK"
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall2.log"
+          if ($p.ExitCode -ne 0) { Get-Content uninstall2.log -Tail 80; throw "msiexec /x (cleanup) failed: $($p.ExitCode)" }

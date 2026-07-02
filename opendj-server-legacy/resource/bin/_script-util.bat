@@ -13,7 +13,7 @@ rem information: "Portions Copyright [year] [name of copyright owner]".
 rem
 rem Copyright 2008-2010 Sun Microsystems, Inc.
 rem Portions Copyright 2011-2016 ForgeRock AS.
-rem Portions Copyright 2020-2025 3A Systems, LLC.
+rem Portions Copyright 2020-2026 3A Systems, LLC.
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
@@ -186,7 +186,7 @@ goto scriptBegin
 if %SET_TEMP_DIR_DONE% == "true" goto end
 set OPENDJ_TMP_DIR=%INSTANCE_ROOT%\tmp
 if not exist "%OPENDJ_TMP_DIR%" mkdir "%OPENDJ_TMP_DIR%"
-set OPENDJ_JAVA_ARGS=%OPENDJ_JAVA_ARGS% -Djava.io.tmpdir=%OPENDJ_TMP_DIR%
+set OPENDJ_JAVA_ARGS=%OPENDJ_JAVA_ARGS% -Djava.io.tmpdir="%OPENDJ_TMP_DIR%"
 set SET_TEMP_DIR_DONE=true
 goto scriptBegin
 
