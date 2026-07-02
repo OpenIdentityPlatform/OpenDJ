@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -305,6 +305,8 @@ The entry cache configuration takes effect when the entry cache is enabled.
 Debug logs trace the internal workings of OpenDJ, and therefore generally should be used sparingly, especially in high performance deployments.
 
 In general leave other logs active for production environments to help troubleshoot any issues that arise.
+
+Note that only one access logger, the File-Based Access Logger, is enabled in the default configuration. The Json File-Based Access Logger records the same operations in JSON format and is disabled by default: each enabled access logger adds its own log messages for every client request, so running several access loggers multiplies the logging cost on the operation processing path.
 
 For OpenDJ servers handling very high throughput, however, such as 100,000 operations per second or more, the access log constitute a performance bottleneck, as each client request results in multiple access log messages. Consider disabling the access log in such cases:
 
