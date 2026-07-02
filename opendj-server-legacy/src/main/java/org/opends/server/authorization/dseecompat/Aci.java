@@ -285,7 +285,7 @@ public class Aci implements Comparable<Aci>
             //engine's recursion. StackOverflowError is an Error and would
             //escape catch(Exception) handlers, killing the worker thread, so
             //treat the value as an invalid ACI instead (issue #665).
-            throw new AciException(WARN_ACI_SYNTAX_GENERAL_PARSE_FAILED.get(input));
+            throw new AciException(WARN_ACI_SYNTAX_GENERAL_PARSE_FAILED.get(input), e);
         }
     }
 

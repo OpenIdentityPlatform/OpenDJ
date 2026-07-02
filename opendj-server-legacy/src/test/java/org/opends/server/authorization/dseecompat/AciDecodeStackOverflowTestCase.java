@@ -116,6 +116,16 @@ public class AciDecodeStackOverflowTestCase extends DirectoryServerTestCase
     assertThat(Aci.decode(ByteString.valueOfUtf8(aci), DN.rootDN()).toString()).isEqualTo(aci);
   }
 
+  /** The possessive target regex must still reject malformed target syntax. */
+  @Test
+  public void malformedTargetStillRejected() throws Exception
+  {
+    final String aci = "(targetscope \"onelevel\")"
+        + "(version 3.0; acl \"test\"; allow (read) userdn=\"ldap:///anyone\";)";
+    assertThatThrownBy(() -> Aci.decode(ByteString.valueOfUtf8(aci), DN.rootDN()))
+        .isInstanceOf(AciException.class);
+  }
+
   /** A runnable that may throw a checked exception (e.g. AciException). */
   private interface Task
   {
