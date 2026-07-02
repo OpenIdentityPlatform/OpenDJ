@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.types;
 
@@ -26,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
@@ -2231,7 +2231,7 @@ public class PrivilegeTestCase extends TypesTestCase
     {
       conn.bind("cn=Test User,o=test", "password");
 
-      CopyOnWriteArraySet<ClientConnection> connections = DirectoryServer
+      Set<ClientConnection> connections = DirectoryServer
           .getAuthenticatedUsers().get(DN.valueOf("cn=Test User,o=test"));
 
       assertNotNull(connections);

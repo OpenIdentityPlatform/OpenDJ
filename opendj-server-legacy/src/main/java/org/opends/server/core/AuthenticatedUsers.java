@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -53,10 +52,14 @@ import static org.opends.server.api.plugin.PluginType.*;
  * <BR><BR>
  * The user map is a {@link ConcurrentHashMap}, so registering and deregistering
  * a connection (which happens on every bind and unbind) is lock-free at the map
- * level and only contends at the granularity of a single hash bin. The subtree
- * operations triggered by changes to authenticated user entries (delete /
- * modify / modify DN) are rare and scan the key set, which the concurrent map
- * supports with weakly-consistent iteration.
+ * level and only contends at the granularity of a single hash bin. Each value is
+ * a concurrent set with O(1) add/remove, so many connections authenticating as
+ * the same user (e.g. an application service account) do not degrade: a
+ * copy-on-write set here would copy the whole connection array under the bin
+ * lock on every bind. The subtree operations triggered by changes to
+ * authenticated user entries (delete / modify / modify DN) are rare and scan
+ * the key set, which the concurrent map supports with weakly-consistent
+ * iteration.
  */
 public class AuthenticatedUsers extends InternalDirectoryServerPlugin
 {
@@ -66,7 +69,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
    * The mapping between authenticated user DNs and the associated client
    * connection objects.
    */
-  private final ConcurrentHashMap<DN, CopyOnWriteArraySet<ClientConnection>> userMap;
+  private final ConcurrentHashMap<DN, Set<ClientConnection>> userMap;
 
   /** Dummy configuration DN. */
   private static final String CONFIG_DN = "cn=Authenticated Users,cn=config";
@@ -96,7 +99,19 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
    */
   public void put(DN userDN, ClientConnection clientConnection)
   {
-    userMap.computeIfAbsent(userDN, k -> new CopyOnWriteArraySet<>()).add(clientConnection);
+    // The add must happen inside compute(), under the same bin lock as
+    // remove(): with computeIfAbsent(..).add(..) a concurrent remove() could
+    // unmap the set between the two calls and the connection would be
+    // registered in a set no longer reachable from the map.
+    userMap.compute(userDN, (dn, connectionSet) ->
+    {
+      if (connectionSet == null)
+      {
+        connectionSet = ConcurrentHashMap.newKeySet();
+      }
+      connectionSet.add(clientConnection);
+      return connectionSet;
+    });
   }
 
 
@@ -131,7 +146,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
    * @return  The set of client connections authenticated as the specified user,
    *          or {@code null} if there are none.
    */
-  public CopyOnWriteArraySet<ClientConnection> get(DN userDN)
+  public Set<ClientConnection> get(DN userDN)
   {
     return userMap.get(userDN);
   }
@@ -149,9 +164,9 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     // the user whose entry has been deleted (or, for a subtree delete, any user
     // below it) and terminate them. A single removeSubtree pass both detects and
     // collects the matches, so no separate pre-check scan is needed.
-    Set<CopyOnWriteArraySet<ClientConnection>> arraySet = removeSubtree(entryDN);
+    Set<Set<ClientConnection>> arraySet = removeSubtree(entryDN);
 
-    for (CopyOnWriteArraySet<ClientConnection> connectionSet : arraySet)
+    for (Set<ClientConnection> connectionSet : arraySet)
     {
       for (ClientConnection conn : connectionSet)
       {
@@ -166,13 +181,13 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
    * Removes and returns every connection set whose user DN is at or below the
    * provided base DN.
    */
-  private Set<CopyOnWriteArraySet<ClientConnection>> removeSubtree(DN baseDN)
+  private Set<Set<ClientConnection>> removeSubtree(DN baseDN)
   {
-    Set<CopyOnWriteArraySet<ClientConnection>> removed = new HashSet<>();
-    for (Iterator<Map.Entry<DN, CopyOnWriteArraySet<ClientConnection>>> it = userMap.entrySet().iterator();
+    Set<Set<ClientConnection>> removed = new HashSet<>();
+    for (Iterator<Map.Entry<DN, Set<ClientConnection>>> it = userMap.entrySet().iterator();
          it.hasNext();)
     {
-      Map.Entry<DN, CopyOnWriteArraySet<ClientConnection>> entry = it.next();
+      Map.Entry<DN, Set<ClientConnection>> entry = it.next();
       if (entry.getKey().isSubordinateOrEqualTo(baseDN))
       {
         removed.add(entry.getValue());
@@ -195,7 +210,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     // exact-DN lookup is sufficient (no subtree scan). Identify any client
     // connections authenticated or authorized as that user and update them with
     // the latest version of the entry, including any virtual attributes.
-    CopyOnWriteArraySet<ClientConnection> connectionSet = userMap.get(oldEntry.getName());
+    Set<ClientConnection> connectionSet = userMap.get(oldEntry.getName());
     if (connectionSet != null)
     {
       Entry newEntry = null;
@@ -228,15 +243,15 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     // Identify any client connections that may be authenticated
     // or authorized as the user whose entry has been modified
     // and update them with the latest version of the entry.
-    final Set<CopyOnWriteArraySet<ClientConnection>> arraySet = removeSubtree(oldEntry.getName());
-    for (CopyOnWriteArraySet<ClientConnection> connectionSet : arraySet)
+    final Set<Set<ClientConnection>> arraySet = removeSubtree(oldEntry.getName());
+    for (Set<ClientConnection> connectionSet : arraySet)
     {
       DN authNDN = null;
       DN authZDN = null;
       DN newAuthNDN = null;
       DN newAuthZDN = null;
-      CopyOnWriteArraySet<ClientConnection> newAuthNSet = null;
-      CopyOnWriteArraySet<ClientConnection> newAuthZSet = null;
+      Set<ClientConnection> newAuthNSet = null;
+      Set<ClientConnection> newAuthZSet = null;
       for (ClientConnection conn : connectionSet)
       {
         if (authNDN == null)
@@ -269,7 +284,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
         {
           if (newAuthNSet == null)
           {
-            newAuthNSet = new CopyOnWriteArraySet<>();
+            newAuthNSet = ConcurrentHashMap.newKeySet();
           }
           conn.getAuthenticationInfo().setAuthenticationDN(newAuthNDN);
           newAuthNSet.add(conn);
@@ -278,7 +293,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
         {
           if (newAuthZSet == null)
           {
-            newAuthZSet = new CopyOnWriteArraySet<>();
+            newAuthZSet = ConcurrentHashMap.newKeySet();
           }
           conn.getAuthenticationInfo().setAuthorizationDN(newAuthZDN);
           newAuthZSet.add(conn);
