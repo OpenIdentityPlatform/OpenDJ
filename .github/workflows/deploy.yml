@@ -14,19 +14,12 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: echo "$GITHUB_CONTEXT"
-      - name: Install wine+rpm for distribution
+      - name: Install rpm for distribution
         if: runner.os == 'Linux'
         shell: bash
         run:   |
-          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
-          sudo dpkg --add-architecture i386
-          sudo mkdir -pm755 /etc/apt/keyrings && sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
-          sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/$(lsb_release -c -s)/winehq-$(lsb_release -c -s).sources
           sudo apt-get update
-          sudo apt install --install-recommends winehq-stable || sudo apt install --install-recommends winehq-staging
-          wine --version
-          version="9.4.0"; sudo wget "https://dl.winehq.org/wine/wine-mono/$version/wine-mono-$version-x86.msi" -O /tmp/wine-mono.msi
-          wine msiexec /i /tmp/wine-mono.msi
+          sudo apt-get install -y rpm
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -90,11 +83,22 @@ jobs:
         with:
          name: OpenDJ RPM Package
          path: opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
+      # The MSI can only be built on Windows; reuse the one already built by the triggering
+      # Build run (windows-latest-11 artifact) instead of rebuilding it here.
+      - name: Download Windows build artifact (contains the MSI)
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-latest-11
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: windows-build
       - name: Upload artifacts OpenDJ MSI Package
+        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
          name: OpenDJ MSI Package
-         path: opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
+         path: windows-build/opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
       - name: Upload artifacts OpenDJ Docker Packages
         uses: actions/upload-artifact@v7
         with:
@@ -169,3 +173,4 @@ jobs:
             git commit -a -m "upload ${{github.event.repository.name}} docs after deploy ${{ github.sha }}"
             git push --force https://github.com/OpenIdentityPlatform/doc.openidentityplatform.org.git
           fi
+
