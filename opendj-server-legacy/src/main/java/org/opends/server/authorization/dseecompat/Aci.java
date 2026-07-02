@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2010-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -45,11 +46,25 @@ public class Aci implements Comparable<Aci>
     /** Regular expression matching a word group. */
     public static final String WORD_GROUP="(\\w+)";
 
+    /**
+     * Possessive variant of {@link #WORD_GROUP}. Use inside unbounded
+     * repetition so the regex engine matches iteratively instead of
+     * recursing once per repetition (issue #665).
+     */
+    public static final String WORD_GROUP_POSSESSIVE="(\\w++)";
+
     /** Regular expression matching a word group at the start of a pattern. */
     static final String WORD_GROUP_START_PATTERN = "^" + WORD_GROUP;
 
     /** Regular expression matching a white space. */
     public static final String ZERO_OR_MORE_WHITESPACE="\\s*";
+
+    /**
+     * Possessive variant of {@link #ZERO_OR_MORE_WHITESPACE}. Use inside
+     * unbounded repetition so the regex engine matches iteratively instead of
+     * recursing once per repetition (issue #665).
+     */
+    public static final String ZERO_OR_MORE_WHITESPACE_POSSESSIVE="\\s*+";
 
     /** Regular expression matching a white space at the start of a pattern. */
     public static final String ZERO_OR_MORE_WHITESPACE_START_PATTERN =
@@ -106,13 +121,17 @@ public class Aci implements Comparable<Aci>
                     "\\+" + ZERO_OR_MORE_WHITESPACE;
 
     /** Regular expression used to do quick check of OID string. */
-    private static final String OID_NAME = "[\\d.\\*]*";
+    private static final String OID_NAME = "[\\d.\\*]*+";
 
-    /** Regular expression that matches one or more OID_NAME's separated by the "||" token. */
-    private static final String oidListRegex  =  ZERO_OR_MORE_WHITESPACE +
-            OID_NAME + ZERO_OR_MORE_WHITESPACE + "(" +
-            LOGICAL_OR + ZERO_OR_MORE_WHITESPACE + OID_NAME +
-            ZERO_OR_MORE_WHITESPACE + ")*";
+    /**
+     * Regular expression that matches one or more OID_NAME's separated by the
+     * "||" token. Possessive quantifiers keep the unbounded repetition from
+     * recursing in the regex engine (issue #665).
+     */
+    private static final String oidListRegex  =  ZERO_OR_MORE_WHITESPACE_POSSESSIVE +
+            OID_NAME + ZERO_OR_MORE_WHITESPACE_POSSESSIVE + "(" +
+            LOGICAL_OR + ZERO_OR_MORE_WHITESPACE_POSSESSIVE + OID_NAME +
+            ZERO_OR_MORE_WHITESPACE_POSSESSIVE + ")*+";
 
     /** ACI_ADD is used to set the container rights for a LDAP add operation. */
     public static final int ACI_ADD = 0x0020;
@@ -247,19 +266,27 @@ public class Aci implements Comparable<Aci>
     public static Aci decode (ByteSequence byteString, DN dn)
     throws AciException {
         String input=byteString.toString();
-        //Perform a quick pattern check against the string to catch any
-        //obvious syntax errors.
-        if (!Pattern.matches(aciRegex, input)) {
+        try {
+            //Perform a quick pattern check against the string to catch any
+            //obvious syntax errors.
+            if (!Pattern.matches(aciRegex, input)) {
+                throw new AciException(WARN_ACI_SYNTAX_GENERAL_PARSE_FAILED.get(input));
+            }
+            //Decode the body first.
+            AciBody body=AciBody.decode(input);
+            //Create a substring from the start of the string to start of
+            //the body. That should be the target.
+            String targetStr = input.substring(0, body.getMatcherStartPos());
+            //Decode that target string using the substring.
+            AciTargets targets=AciTargets.decode(targetStr, dn);
+            return new Aci(input, dn, body, targets);
+        } catch (StackOverflowError e) {
+            //Defense in depth: a pathological ACI can overflow the regex
+            //engine's recursion. StackOverflowError is an Error and would
+            //escape catch(Exception) handlers, killing the worker thread, so
+            //treat the value as an invalid ACI instead (issue #665).
             throw new AciException(WARN_ACI_SYNTAX_GENERAL_PARSE_FAILED.get(input));
         }
-        //Decode the body first.
-        AciBody body=AciBody.decode(input);
-        //Create a substring from the start of the string to start of
-        //the body. That should be the target.
-        String targetStr = input.substring(0, body.getMatcherStartPos());
-        //Decode that target string using the substring.
-        AciTargets targets=AciTargets.decode(targetStr, dn);
-        return new Aci(input, dn, body, targets);
     }
 
     /**
