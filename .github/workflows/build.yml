@@ -461,9 +461,11 @@ jobs:
           $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
           if (-not $msi) { throw "MSI not found in the windows-latest-11 artifact" }
           Write-Host "MSI: $msi"
-          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart OPENDJ=C:\opendj /l*v install.log"
+          # No OPENDJ property: use the default install directory (a path with spaces),
+          # which the server scripts must handle.
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v install.log"
           if ($p.ExitCode -ne 0) { Get-Content install.log -Tail 80; throw "msiexec /i failed: $($p.ExitCode)" }
-          $root = @("C:\opendj","C:\Program Files (x86)\OpenDJ","C:\Program Files\OpenDJ") | Where-Object { Test-Path "$_\setup.bat" } | Select-Object -First 1
+          $root = @("C:\Program Files (x86)\OpenDJ","C:\Program Files\OpenDJ") | Where-Object { Test-Path "$_\setup.bat" } | Select-Object -First 1
           if (-not $root) { Get-Content install.log -Tail 80; throw "OpenDJ install root with setup.bat not found" }
           Write-Host "Installed to $root"
           "OPENDJ_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append
