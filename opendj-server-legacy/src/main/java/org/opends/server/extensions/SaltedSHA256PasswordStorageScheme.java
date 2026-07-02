@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2010-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -62,11 +63,13 @@ public class SaltedSHA256PasswordStorageScheme
   /** Size of the dgiest in bytes. */
   private static final int SHA256_LENGTH = 256 / 8;
 
-  /** The message digest that will actually be used to generate the 256-bit SHA-2 hashes. */
-  private MessageDigest messageDigest;
-
-  /** The lock used to provide threadsafe access to the message digest. */
-  private Object digestLock;
+  /**
+   * The message digests used to generate the 256-bit SHA-2 hashes.
+   * MessageDigest is not thread-safe, so a per-thread instance is used
+   * instead of a shared instance guarded by a lock: hashing under a global
+   * lock serializes all concurrent bind password verifications.
+   */
+  private ThreadLocal<MessageDigest> messageDigest;
 
   /** The secure random number generator to use to generate the salt values. */
   private Random random;
@@ -88,8 +91,8 @@ public class SaltedSHA256PasswordStorageScheme
   {
     try
     {
-      messageDigest =
-           MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA_256);
+      // Fail fast at initialization time if the algorithm is unavailable.
+      MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA_256);
     }
     catch (Exception e)
     {
@@ -100,8 +103,17 @@ public class SaltedSHA256PasswordStorageScheme
       throw new InitializationException(message, e);
     }
 
-    digestLock = new Object();
-    random     = new Random();
+    messageDigest = ThreadLocal.withInitial(() -> {
+      try
+      {
+        return MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA_256);
+      }
+      catch (Exception e)
+      {
+        throw new IllegalStateException(e);
+      }
+    });
+    random = new Random();
   }
 
   @Override
@@ -122,31 +134,28 @@ public class SaltedSHA256PasswordStorageScheme
 
     byte[] digestBytes;
 
-    synchronized (digestLock)
+    try
     {
-      try
-      {
-        // Generate the salt and put in the plain+salt array.
-        random.nextBytes(saltBytes);
-        System.arraycopy(saltBytes,0, plainPlusSalt, plainBytesLength,
-                         NUM_SALT_BYTES);
+      // Generate the salt and put in the plain+salt array.
+      random.nextBytes(saltBytes);
+      System.arraycopy(saltBytes,0, plainPlusSalt, plainBytesLength,
+                       NUM_SALT_BYTES);
 
-        // Create the hash from the concatenated value.
-        digestBytes = messageDigest.digest(plainPlusSalt);
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
+      // Create the hash from the concatenated value.
+      digestBytes = messageDigest.get().digest(plainPlusSalt);
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
 
-        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
-            CLASS_NAME, getExceptionMessage(e));
-        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
-                                     message, e);
-      }
-      finally
-      {
-        Arrays.fill(plainPlusSalt, (byte) 0);
-      }
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+          CLASS_NAME, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+                                   message, e);
+    }
+    finally
+    {
+      Arrays.fill(plainPlusSalt, (byte) 0);
     }
 
     // Append the salt to the hashed value and base64-the whole thing.
@@ -176,31 +185,28 @@ public class SaltedSHA256PasswordStorageScheme
 
     byte[] digestBytes;
 
-    synchronized (digestLock)
+    try
     {
-      try
-      {
-        // Generate the salt and put in the plain+salt array.
-        random.nextBytes(saltBytes);
-        System.arraycopy(saltBytes,0, plainPlusSalt, plainBytesLength,
-                         NUM_SALT_BYTES);
+      // Generate the salt and put in the plain+salt array.
+      random.nextBytes(saltBytes);
+      System.arraycopy(saltBytes,0, plainPlusSalt, plainBytesLength,
+                       NUM_SALT_BYTES);
 
-        // Create the hash from the concatenated value.
-        digestBytes = messageDigest.digest(plainPlusSalt);
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
+      // Create the hash from the concatenated value.
+      digestBytes = messageDigest.get().digest(plainPlusSalt);
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
 
-        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
-            CLASS_NAME, getExceptionMessage(e));
-        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
-                                     message, e);
-      }
-      finally
-      {
-        Arrays.fill(plainPlusSalt, (byte) 0);
-      }
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+          CLASS_NAME, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+                                   message, e);
+    }
+    finally
+    {
+      Arrays.fill(plainPlusSalt, (byte) 0);
     }
 
     // Append the salt to the hashed value and base64-the whole thing.
@@ -255,22 +261,19 @@ public class SaltedSHA256PasswordStorageScheme
 
     byte[] userDigestBytes;
 
-    synchronized (digestLock)
+    try
     {
-      try
-      {
-        userDigestBytes = messageDigest.digest(plainPlusSalt);
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
+      userDigestBytes = messageDigest.get().digest(plainPlusSalt);
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
 
-        return false;
-      }
-      finally
-      {
-        Arrays.fill(plainPlusSalt, (byte) 0);
-      }
+      return false;
+    }
+    finally
+    {
+      Arrays.fill(plainPlusSalt, (byte) 0);
     }
 
     return Arrays.equals(digestBytes, userDigestBytes);
@@ -301,31 +304,28 @@ public class SaltedSHA256PasswordStorageScheme
 
     byte[] digestBytes;
 
-    synchronized (digestLock)
+    try
     {
-      try
-      {
-        // Generate the salt and put in the plain+salt array.
-        random.nextBytes(saltBytes);
-        System.arraycopy(saltBytes,0, plainPlusSalt, plaintextLength,
-                         NUM_SALT_BYTES);
+      // Generate the salt and put in the plain+salt array.
+      random.nextBytes(saltBytes);
+      System.arraycopy(saltBytes,0, plainPlusSalt, plaintextLength,
+                       NUM_SALT_BYTES);
 
-        // Create the hash from the concatenated value.
-        digestBytes = messageDigest.digest(plainPlusSalt);
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
+      // Create the hash from the concatenated value.
+      digestBytes = messageDigest.get().digest(plainPlusSalt);
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
 
-        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
-            CLASS_NAME, getExceptionMessage(e));
-        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
-                                     message, e);
-      }
-      finally
-      {
-        Arrays.fill(plainPlusSalt, (byte) 0);
-      }
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+          CLASS_NAME, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+                                   message, e);
+    }
+    finally
+    {
+      Arrays.fill(plainPlusSalt, (byte) 0);
     }
 
     // Encode and return the value.
@@ -363,17 +363,14 @@ public class SaltedSHA256PasswordStorageScheme
     System.arraycopy(saltBytes, 0, plainPlusSaltBytes, plainBytesLength,
                      saltBytes.length);
 
-    synchronized (digestLock)
+    try
     {
-      try
-      {
-        return Arrays.equals(digestBytes,
-                                  messageDigest.digest(plainPlusSaltBytes));
-      }
-      finally
-      {
-        Arrays.fill(plainPlusSaltBytes, (byte) 0);
-      }
+      return Arrays.equals(digestBytes,
+                                messageDigest.get().digest(plainPlusSaltBytes));
+    }
+    finally
+    {
+      Arrays.fill(plainPlusSaltBytes, (byte) 0);
     }
   }
 

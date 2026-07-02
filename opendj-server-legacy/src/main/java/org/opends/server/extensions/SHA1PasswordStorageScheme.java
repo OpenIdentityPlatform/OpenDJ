@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -53,11 +54,13 @@ public class SHA1PasswordStorageScheme
   private static final String CLASS_NAME =
        "org.opends.server.extensions.SHA1PasswordStorageScheme";
 
-  /** The message digest that will actually be used to generate the SHA-1 hashes. */
-  private MessageDigest messageDigest;
-
-  /** The lock used to provide threadsafe access to the message digest. */
-  private Object digestLock;
+  /**
+   * The message digests used to generate the SHA-1 hashes.
+   * MessageDigest is not thread-safe, so a per-thread instance is used
+   * instead of a shared instance guarded by a lock: hashing under a global
+   * lock serializes all concurrent bind password verifications.
+   */
+  private ThreadLocal<MessageDigest> messageDigest;
 
   /**
    * Creates a new instance of this password storage scheme.  Note that no
@@ -76,7 +79,8 @@ public class SHA1PasswordStorageScheme
   {
     try
     {
-      messageDigest = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA_1);
+      // Fail fast at initialization time if the algorithm is unavailable.
+      MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA_1);
     }
     catch (Exception e)
     {
@@ -87,7 +91,16 @@ public class SHA1PasswordStorageScheme
       throw new InitializationException(message, e);
     }
 
-    digestLock = new Object();
+    messageDigest = ThreadLocal.withInitial(() -> {
+      try
+      {
+        return MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA_1);
+      }
+      catch (Exception e)
+      {
+        throw new IllegalStateException(e);
+      }
+    });
   }
 
   @Override
@@ -103,29 +116,26 @@ public class SHA1PasswordStorageScheme
     byte[] digestBytes;
     byte[] plaintextBytes = null;
 
-    synchronized (digestLock)
+    try
     {
-      try
-      {
-        // TODO: Can we avoid this copy?
-        plaintextBytes = plaintext.toByteArray();
-        digestBytes = messageDigest.digest(plaintextBytes);
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
+      // TODO: Can we avoid this copy?
+      plaintextBytes = plaintext.toByteArray();
+      digestBytes = messageDigest.get().digest(plaintextBytes);
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
 
-        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
-            CLASS_NAME, getExceptionMessage(e));
-        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
-                                     message, e);
-      }
-      finally
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+          CLASS_NAME, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+                                   message, e);
+    }
+    finally
+    {
+      if (plaintextBytes != null)
       {
-        if (plaintextBytes != null)
-        {
-          Arrays.fill(plaintextBytes, (byte) 0);
-        }
+        Arrays.fill(plaintextBytes, (byte) 0);
       }
     }
 
@@ -145,28 +155,25 @@ public class SHA1PasswordStorageScheme
     byte[] plaintextBytes = null;
     byte[] digestBytes;
 
-    synchronized (digestLock)
+    try
     {
-      try
-      {
-        plaintextBytes = plaintext.toByteArray();
-        digestBytes = messageDigest.digest(plaintextBytes);
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
+      plaintextBytes = plaintext.toByteArray();
+      digestBytes = messageDigest.get().digest(plaintextBytes);
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
 
-        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
-            CLASS_NAME, getExceptionMessage(e));
-        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
-                                     message, e);
-      }
-      finally
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+          CLASS_NAME, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+                                   message, e);
+    }
+    finally
+    {
+      if (plaintextBytes != null)
       {
-        if (plaintextBytes != null)
-        {
-          Arrays.fill(plaintextBytes, (byte) 0);
-        }
+        Arrays.fill(plaintextBytes, (byte) 0);
       }
     }
 
@@ -183,26 +190,23 @@ public class SHA1PasswordStorageScheme
     byte[] plaintextPasswordBytes = null;
     ByteString userPWDigestBytes;
 
-    synchronized (digestLock)
+    try
     {
-      try
-      {
-        plaintextPasswordBytes = plaintextPassword.toByteArray();
-        userPWDigestBytes =
-            ByteString.wrap(messageDigest.digest(plaintextPasswordBytes));
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
+      plaintextPasswordBytes = plaintextPassword.toByteArray();
+      userPWDigestBytes =
+          ByteString.wrap(messageDigest.get().digest(plaintextPasswordBytes));
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
 
-        return false;
-      }
-      finally
+      return false;
+    }
+    finally
+    {
+      if (plaintextPasswordBytes != null)
       {
-        if (plaintextPasswordBytes != null)
-        {
-          Arrays.fill(plaintextPasswordBytes, (byte) 0);
-        }
+        Arrays.fill(plaintextPasswordBytes, (byte) 0);
       }
     }
 
