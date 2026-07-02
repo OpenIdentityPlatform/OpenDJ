@@ -250,25 +250,19 @@ $
 ====
 Before starting this procedure, follow the steps in xref:#before-you-upgrade["Before You Upgrade"]. Installing the newer `.msi` performs a major upgrade that replaces the installed program files, so make a full file-system backup of the current installation first.
 
-. Stop the current OpenDJ server.
-
-. If OpenDJ is registered as a Windows service, disable the service:
-+
-
-[source, console]
-----
-C:\path\to\opendj\bat> windows-service.bat --disableService
-----
+. Stop the current OpenDJ server (if it runs as a Windows service, `net stop "OpenDJ Server"`).
 
 . Back up the file-system directory where OpenDJ is installed.
 
-. Install the newer package (GUI or silent), using the same installation directory as the current server. Your configured instance data (`config`, `db`, `logs`) is kept; only the program files are replaced:
+. Install the newer package (GUI or silent). The installer detects the existing installation — the location recorded in the registry by a previous x64 package, or the default directory of the older 32-bit package (`C:\Program Files (x86)\OpenDJ`) — and installs into the same directory, so your configured instance data (`config`, `db`, `logs`) is kept and only the program files are replaced. If the older server was installed in a custom directory the installer did not detect, select that directory in the GUI or pass it explicitly:
 +
 
 [source, console, subs="attributes"]
 ----
 C:\> msiexec /i opendj-{opendj-version}.msi /quiet OPENDJ="C:\path\to\opendj"
 ----
++
+The installer replaces a service registered by the older `windows-service.bat` command with the MSI-managed `OpenDJ Server` service automatically; no manual `--disableService`/`--enableService` is needed.
 
 . Run the `upgrade` command, described in xref:../reference/admin-tools-ref.adoc#upgrade-1[upgrade(1)] in the __Reference__, to bring the configuration and application data up to date with the new binary and script files:
 +
@@ -278,14 +272,12 @@ C:\> msiexec /i opendj-{opendj-version}.msi /quiet OPENDJ="C:\path\to\opendj"
 C:\path\to\opendj> upgrade.bat --no-prompt --acceptLicense
 ----
 
-. Start the upgraded OpenDJ server.
-
-. If you disabled the Windows service, enable it again:
+. Start the upgraded OpenDJ server:
 +
 
 [source, console]
 ----
-C:\path\to\opendj\bat> windows-service.bat --enableService
+C:\> net start "OpenDJ Server"
 ----
 
 ====

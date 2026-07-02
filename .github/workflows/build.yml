@@ -456,6 +456,18 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: windows-latest-11
+      - name: Install must fail without a JRE
+        shell: pwsh
+        run: |
+          # Simulate a machine with no Java: clear JAVA_HOME and strip java-looking PATH entries.
+          $env:JAVA_HOME = ""
+          $env:PATH = (($env:PATH -split ';') | Where-Object { $_ -notmatch 'java|jdk|jre|zulu|javapath' }) -join ';'
+          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+          if (-not $msi) { throw "MSI not found in the windows-latest-11 artifact" }
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v install-nojre.log"
+          if ($p.ExitCode -eq 0) { throw "installer succeeded without a JRE, but the Java launch condition must fail it" }
+          Write-Host "Installer refused to install without a JRE as expected (exit $($p.ExitCode))"
+          Select-String -Path install-nojre.log -Pattern "requires Java" | Select-Object -First 1
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
@@ -495,3 +507,72 @@ jobs:
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall.log"
           if ($p.ExitCode -ne 0) { Get-Content uninstall.log -Tail 80; throw "msiexec /x failed: $($p.ExitCode)" }
           Write-Host "Uninstalled OK"
+
+  # Upgrade path: released 5.1.1 x86 MSI (wine-built, WiX3) -> this build's x64 MSI.
+  # Verifies the new installer detects the legacy Program Files (x86) install, keeps the
+  # instance data in place, replaces the windows-service.bat service with the MSI-managed
+  # one, and the upgraded server starts with the old data.
+  test-win-upgrade:
+    needs: build-maven
+    runs-on: 'windows-latest'
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-latest-11
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'zulu'
+      - name: Install released 5.1.1 MSI and configure an instance
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/5.1.1/opendj-5.1.1.msi" -OutFile opendj-5.1.1.msi
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i opendj-5.1.1.msi /quiet /qn /norestart /l*v install-old.log"
+          if ($p.ExitCode -ne 0) { Get-Content install-old.log -Tail 80; throw "msiexec /i (5.1.1) failed: $($p.ExitCode)" }
+          $root = "C:\Program Files (x86)\OpenDJ"
+          if (-not (Test-Path "$root\setup.bat")) { Get-Content install-old.log -Tail 80; throw "5.1.1 install root not found at $root" }
+          $env:OPENDJ_JAVA_ARGS = "-server -Xmx512m"
+          & "$root\setup.bat" -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --addBaseEntry --cli --acceptLicense --no-prompt --doNotStart
+          if ($LASTEXITCODE -ne 0) { throw "setup.bat (5.1.1) failed: $LASTEXITCODE" }
+          # Register the LEGACY service the pre-MSI way and prove it works, then stop it.
+          & "$root\bat\windows-service.bat" --enableService
+          if ($LASTEXITCODE -ne 0) { throw "windows-service --enableService failed: $LASTEXITCODE" }
+          net start "OpenDJ Server"
+          if ($LASTEXITCODE -ne 0) { throw "net start (5.1.1) failed: $LASTEXITCODE" }
+          net stop "OpenDJ Server"
+          if ($LASTEXITCODE -ne 0) { throw "net stop (5.1.1) failed: $LASTEXITCODE" }
+      - name: Upgrade with the newly built MSI (no OPENDJ property - must auto-detect)
+        shell: pwsh
+        run: |
+          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+          if (-not $msi) { throw "MSI not found in the windows-latest-11 artifact" }
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v upgrade.log"
+          if ($p.ExitCode -ne 0) { Get-Content upgrade.log -Tail 120; throw "msiexec /i (upgrade) failed: $($p.ExitCode)" }
+          $root = "C:\Program Files (x86)\OpenDJ"
+          # New package files landed in the legacy directory, not the x64 default
+          if (-not (Test-Path "$root\setup.bat")) { throw "upgrade did not keep the legacy install dir" }
+          if (Test-Path "C:\Program Files\OpenDJ") { throw "upgrade unexpectedly installed into the x64 default dir" }
+          # Instance data survived
+          if (-not (Test-Path "$root\config\config.ldif")) { throw "instance data (config\config.ldif) lost by the upgrade" }
+          # Legacy service replaced by the MSI-managed one: display name maps to key 'OpenDJ'
+          $key = (sc.exe getkeyname "OpenDJ Server" | Select-String -Pattern "Name = (.+)").Matches[0].Groups[1].Value.Trim()
+          if ($key -ne "OpenDJ") { sc.exe query; throw "expected MSI-managed service key 'OpenDJ', got '$key'" }
+          sc.exe qc OpenDJ
+          "OPENDJ_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Run upgrade.bat and start the upgraded server
+        shell: pwsh
+        run: |
+          $root = $env:OPENDJ_ROOT
+          $env:OPENDJ_JAVA_ARGS = "-server -Xmx512m"
+          & "$root\upgrade.bat" --no-prompt --acceptLicense --force
+          if ($LASTEXITCODE -ne 0) { throw "upgrade.bat failed: $LASTEXITCODE" }
+          net start "OpenDJ Server"
+          if ($LASTEXITCODE -ne 0) { throw "net start (upgraded) failed: $LASTEXITCODE" }
+          for ($i=0; $i -lt 12; $i++) { try { $c = New-Object System.Net.Sockets.TcpClient('localhost', 1636); $c.Close(); break } catch { Start-Sleep -Seconds 5 } }
+          # The pre-upgrade data must still be served
+          & "$root\bat\ldapsearch.bat" --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
+          if ($LASTEXITCODE -ne 0) { throw "ldapsearch after upgrade failed: $LASTEXITCODE" }
+          net stop "OpenDJ Server"
+          if ($LASTEXITCODE -ne 0) { throw "net stop (upgraded) failed: $LASTEXITCODE" }

@@ -644,7 +644,7 @@ On Windows you can install OpenDJ directory server from the `.msi` package. The 
 
 . Make sure a supported Java runtime is available, as described in xref:#before-you-install["To Prepare For Installation"].
 +
-The installer does not check for Java. If your default Java environment is not appropriate, set `OPENDJ_JAVA_HOME` to the correct Java installation (or `OPENDJ_JAVA_BIN` to the absolute path of the `java` command), or make sure `java` is on the `PATH`, before you run `setup` or start the server.
+The installer refuses to install when it cannot detect a Java installation: install a JRE (for example link:https://adoptium.net[Eclipse Temurin, window=\_blank]), set `JAVA_HOME` to your Java installation, or make sure the `java` executable is on the `PATH`, before running it. If your default Java environment is not the one OpenDJ should use, additionally set `OPENDJ_JAVA_HOME` to the correct Java installation (or `OPENDJ_JAVA_BIN` to the absolute path of the `java` command) before you run `setup` or start the server.
 
 . Install the package, either with the GUI or silently:
 +

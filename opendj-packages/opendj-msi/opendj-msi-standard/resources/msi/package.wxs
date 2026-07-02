@@ -31,6 +31,43 @@
 
     <Property Id="ARPHELPLINK" Value="https://github.com/OpenIdentityPlatform/OpenDJ/wiki"/>
 
+    <!-- Upgrade path detection: install over an existing OpenDJ instead of the default.
+         Order matters - the last successful search wins: the registry value written by this
+         package (custom paths, new installs) beats the legacy x86 default directory
+         ([ProgramFilesFolder] is Program Files (x86) in an x64 package). The result is applied
+         only when OPENDJ was not set explicitly (command line / UI). -->
+    <Property Id="OPENDJ_DETECTED" Secure="yes">
+      <DirectorySearch Id="LegacyX86InstallDir" Path="[ProgramFilesFolder]$(var.name)"/>
+      <RegistrySearch Id="InstallDirRegistrySearch" Root="HKLM" Key="SOFTWARE\$(var.name)"
+                      Name="InstallDir" Type="directory"/>
+    </Property>
+    <SetProperty Id="OPENDJ" After="AppSearch" Sequence="both" Value="[OPENDJ_DETECTED]"
+                 Condition="OPENDJ_DETECTED AND NOT OPENDJ"/>
+
+    <!-- The server needs a JRE (11+) which this package does not ship: refuse to install when
+         none is detectable. Signals: %JAVA_HOME%\bin\java.exe, or java-looking entries on PATH
+         (an MSI cannot scan PATH for java.exe, so this is a substring heuristic).
+         'Installed' keeps repair/uninstall working. -->
+    <Property Id="JAVAHOME_JAVA">
+      <DirectorySearch Id="JavaHomeEnvDir" Path="[%JAVA_HOME]" Depth="0">
+        <DirectorySearch Id="JavaHomeBinDir" Path="bin" Depth="0">
+          <FileSearch Id="JavaHomeJavaExe" Name="java.exe"/>
+        </DirectorySearch>
+      </DirectorySearch>
+    </Property>
+    <Launch Condition="Installed OR JAVAHOME_JAVA OR (%PATH ~&gt;&lt; &quot;java&quot;) OR (%PATH ~&gt;&lt; &quot;jdk&quot;) OR (%PATH ~&gt;&lt; &quot;jre&quot;) OR (%PATH ~&gt;&lt; &quot;zulu&quot;)"
+            Message="[ProductName] requires Java (JRE 11 or later), which is not installed by this package. Install a JRE, for example Eclipse Temurin from https://adoptium.net, or set the JAVA_HOME environment variable to your Java installation, or make sure the java executable is on the PATH, then run the installer again."/>
+
+    <!-- The legacy windows-service.bat service is registered with key name = display name =
+         "OpenDJ Server" (not MSI-managed). It points at the old install and its display name
+         collides with the ServiceInstall below, so drop it before InstallServices. -->
+    <CustomAction Id="RemoveLegacyService" Directory="OPENDJ"
+                  ExeCommand="cmd.exe /c (net stop &quot;OpenDJ Server&quot; &amp; sc delete &quot;OpenDJ Server&quot;)"
+                  Execute="deferred" Impersonate="no" Return="ignore"/>
+    <InstallExecuteSequence>
+      <Custom Action="RemoveLegacyService" Before="InstallServices" Condition="NOT Installed"/>
+    </InstallExecuteSequence>
+
     <!-- UI customization -->
     <WixVariable Id="WixUIBannerBmp" Value="opendjbanner.bmp"/>
     <WixVariable Id="WixUIDialogBmp" Value="opendjdialog.bmp"/>
@@ -55,6 +92,12 @@
                       Stop="both" Remove="uninstall" Wait="yes"/>
     </Component>
 
+    <!-- Remember the install location so upgrades land in the same directory. -->
+    <Component Id="InstallDirRegistry" Directory="OPENDJ">
+      <RegistryValue Root="HKLM" Key="SOFTWARE\$(var.name)" Name="InstallDir"
+                     Type="string" Value="[OPENDJ]" KeyPath="yes"/>
+    </Component>
+
     <!-- Harvest the payload. Exclusions are already applied during staging (Ant), so each
          <Files> needs only the Include attribute (WiX 5 requires it; no Exclude here):
          stagingRoot has everything except lib; stagingLib has lib minus the service wrapper. -->
@@ -67,6 +110,7 @@
 
     <Feature Id="All" Title="Server and tools" ConfigurableDirectory="OPENDJ">
       <ComponentRef Id="OpenDJServiceExe"/>
+      <ComponentRef Id="InstallDirRegistry"/>
       <ComponentGroupRef Id="OpenDJRoot"/>
       <ComponentGroupRef Id="OpenDJLib"/>
     </Feature>
