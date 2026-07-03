@@ -13,7 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2025 3A Systems,LLC.
+ * Portions Copyright 2025-2026 3A Systems,LLC.
  */
 package org.opends.server.core;
 
@@ -676,6 +676,23 @@ public class GroupManager extends InternalDirectoryServerPlugin
     if (hasGroupMembershipUpdateControl(deleteOperation))
     {
       return;
+    }
+
+    // Fast path: this hook runs for every delete, but almost no deleted
+    // entries have a group registered at or below them. Check with the read
+    // lock first instead of serializing all delete threads on the exclusive
+    // lock (same pattern as SubentryManager.doPostDelete).
+    lock.readLock().lock();
+    try
+    {
+      if (!groupInstances.containsSubtree(entry.getName()))
+      {
+        return;
+      }
+    }
+    finally
+    {
+      lock.readLock().unlock();
     }
 
     lock.writeLock().lock();
