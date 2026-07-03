@@ -154,6 +154,8 @@
                         <targetOS>linux</targetOS>
                         <requires>
                             <require>java-headless &gt;= 1:11</require>
+                            <!-- postinstall runs the upgrade tool and the server via runuser. -->
+                            <require>util-linux</require>
                         </requires>
                         <requiresPre>
                             <require>shadow-utils</require>

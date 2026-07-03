@@ -524,7 +524,7 @@ jobs:
             set -e
             RPM=$(ls opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm | head -1)
             echo "Found $RPM"
-            dnf install -y java-21-openjdk-headless util-linux initscripts >/dev/null
+            # No manual dependencies: the package must pull everything itself (Requires).
             dnf install -y "$RPM"
             id opendj
             test "$(stat -c %U /opt/opendj)" = opendj
@@ -568,7 +568,7 @@ jobs:
             NEW=$(ls opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb | head -1)
             echo "New deb: $NEW"
             apt-get update
-            apt-get install -y default-jre-headless procps >/dev/null
+            # No manual dependencies: even the released 5.1.1 deb declares a JRE dependency.
             apt-get install -y ./opendj-5.1.1.deb
             # 5.1.1 model: no dedicated user, root-owned tree, SysV only
             /opt/opendj/setup --cli --no-prompt --acceptLicense --doNotStart \
@@ -595,7 +595,7 @@ jobs:
               sleep 3
             done
             test "$OK" = 1
-            test "$(ps -o user= -p "$(cat /opt/opendj/logs/server.pid)" | tr -d " ")" = opendj
+            test "$(stat -c %U /proc/$(cat /opt/opendj/logs/server.pid))" = opendj
             /etc/init.d/opendj stop
             apt-get purge -y opendj
           '
@@ -618,9 +618,11 @@ jobs:
             set -e
             NEW=$(ls opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm | head -1)
             echo "New rpm: $NEW"
-            # "which" is required by the RELEASED 5.1.1 scripts to locate java (the new
-            # package uses "command -v" and config/java.properties instead)
-            dnf install -y java-21-openjdk-headless util-linux initscripts procps-ng which >/dev/null
+            # java and "which" are needed only by the RELEASED 5.1.1 rpm, which declared no
+            # dependencies at all (declarations added by #677; java discovery fixed by this PR).
+            # Drop them when the upgrade-source artifact link points to a release with #677.
+            # Everything the NEW package needs must come from its own Requires.
+            dnf install -y java-21-openjdk-headless which >/dev/null
             dnf install -y ./opendj-5.1.1.rpm
             # 5.1.1 model: no dedicated user, root-owned tree, SysV only
             /opt/opendj/setup --cli --no-prompt --acceptLicense --doNotStart \
@@ -647,7 +649,7 @@ jobs:
               sleep 3
             done
             test "$OK" = 1
-            test "$(ps -o user= -p "$(cat /opt/opendj/logs/server.pid)" | tr -d " ")" = opendj
+            test "$(stat -c %U /proc/$(cat /opt/opendj/logs/server.pid))" = opendj
             /etc/init.d/opendj stop
             rpm -e opendj
           '
