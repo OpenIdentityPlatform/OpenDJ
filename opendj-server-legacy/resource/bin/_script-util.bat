@@ -56,10 +56,10 @@ rem get the absolute paths before building the classpath
 rem it also helps comparing the two paths
 FOR /F "delims=" %%i IN ("%INSTALL_ROOT%")  DO set INSTALL_ROOT=%%~dpnxi
 FOR /F "delims=" %%i IN ("%INSTANCE_ROOT%") DO set INSTANCE_ROOT=%%~dpnxi
-call "%INSTALL_ROOT%\lib\setcp.bat" %INSTALL_ROOT%\lib\bootstrap-client.jar
+call "%INSTALL_ROOT%\lib\setcp.bat" "%INSTALL_ROOT%\lib\bootstrap-client.jar"
 set CLASSPATH=%INSTANCE_ROOT%\classes;%CLASSPATH%
 if "%INSTALL_ROOT%" == "%INSTANCE_ROOT%" goto setClassPathDone
-FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
+FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" "%%x"
 :setClassPathDone
 set SET_CLASSPATH_DONE=true
 goto scriptBegin
@@ -71,7 +71,7 @@ rem get the absolute paths before building the classpath
 rem it also helps comparing the two paths
 FOR /F "delims=" %%i IN ("%INSTALL_ROOT%")  DO set INSTALL_ROOT=%%~dpnxi
 FOR /F "delims=" %%i IN ("%INSTANCE_ROOT%") DO set INSTANCE_ROOT=%%~dpnxi
-call "%INSTALL_ROOT%\lib\setcp.bat" %INSTALL_ROOT%\lib\*
+call "%INSTALL_ROOT%\lib\setcp.bat" "%INSTALL_ROOT%\lib\*"
 set CLASSPATH=%INSTANCE_ROOT%\classes;%CLASSPATH%
 set SET_CLASSPATH_DONE=true
 goto scriptBegin
