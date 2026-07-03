@@ -618,7 +618,9 @@ jobs:
             set -e
             NEW=$(ls opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm | head -1)
             echo "New rpm: $NEW"
-            dnf install -y java-21-openjdk-headless util-linux initscripts procps-ng >/dev/null
+            # "which" is required by the RELEASED 5.1.1 scripts to locate java (the new
+            # package uses "command -v" and config/java.properties instead)
+            dnf install -y java-21-openjdk-headless util-linux initscripts procps-ng which >/dev/null
             dnf install -y ./opendj-5.1.1.rpm
             # 5.1.1 model: no dedicated user, root-owned tree, SysV only
             /opt/opendj/setup --cli --no-prompt --acceptLicense --doNotStart \
