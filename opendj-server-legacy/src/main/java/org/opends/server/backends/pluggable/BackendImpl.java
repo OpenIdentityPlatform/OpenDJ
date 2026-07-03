@@ -13,7 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
- * Portions Copyright 2025 3A Systems, LLC
+ * Portions Copyright 2025-2026 3A Systems, LLC
  */
 package org.opends.server.backends.pluggable;
 
@@ -344,7 +344,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
       throw de;
     }
 
-    container.sharedLock.lock();
+    container.beginSharedAccess();
     try
     {
       return ConditionResult.valueOf(container.hasSubordinates(entryDN));
@@ -355,7 +355,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     finally
     {
-      container.sharedLock.unlock();
+      container.endSharedAccess();
       accessEnd();
     }
   }
