@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2023-2024 3A Systems, LLC.
+ * Portions Copyright 2023-2026 3A Systems, LLC.
  */
 package org.opends.server.types;
 
@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -663,9 +664,68 @@ public class Entry
     return Collections.emptyList();
   }
 
+  /**
+   * The set of attribute types having at least one subordinate type in the
+   * schema, cached per schema instance. Subtype-inclusive attribute lookups
+   * run for every entry read (compare assertions, search filters, password
+   * policy attributes, ...): when the requested type has no subordinates,
+   * walking every attribute of the entry degenerates to an exact map lookup,
+   * so cache which types actually need the walk. The set is published before
+   * the schema reference, so a reader observing the current schema also
+   * observes the set computed for it.
+   */
+  private static volatile Set<AttributeType> typesWithSubordinates = Collections.emptySet();
+  private static volatile Schema typesWithSubordinatesSchema;
+
+  private static boolean mayHaveSubordinateTypes(AttributeType attrType)
+  {
+    Schema schema;
+    try
+    {
+      schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    }
+    catch (Exception e)
+    {
+      // No server schema available (offline tools, early startup):
+      // conservatively assume subtypes may exist.
+      return true;
+    }
+    if (schema == null)
+    {
+      return true;
+    }
+    if (schema != typesWithSubordinatesSchema)
+    {
+      Set<AttributeType> withSubordinates = new HashSet<>();
+      for (AttributeType type : schema.getAttributeTypes())
+      {
+        for (AttributeType superior = type.getSuperiorType(); superior != null;
+            superior = superior.getSuperiorType())
+        {
+          withSubordinates.add(superior);
+        }
+      }
+      typesWithSubordinates = withSubordinates;
+      typesWithSubordinatesSchema = schema;
+    }
+    return typesWithSubordinates.contains(attrType);
+  }
+
   private void addAttributeTypeOrSubTypeValue(Collection<Attribute> results, AttributeType attrType,
       Map<AttributeType, List<Attribute>> attrsMap)
   {
+    if (!mayHaveSubordinateTypes(attrType))
+    {
+      // No type in the schema extends attrType: isSuperTypeOf() can only
+      // match the type itself, so use an exact lookup instead of walking
+      // every attribute of the entry.
+      List<Attribute> attributes = attrsMap.get(attrType);
+      if (attributes != null)
+      {
+        results.addAll(attributes);
+      }
+      return;
+    }
     for (Map.Entry<AttributeType, List<Attribute>> mapEntry : attrsMap.entrySet())
     {
       if (attrType.isSuperTypeOf(mapEntry.getKey()))
@@ -678,6 +738,21 @@ public class Entry
   private void addAttributeTypeOrSubTypeValue(Collection<Attribute> results, AttributeDescription attrDesc,
       Map<AttributeType, List<Attribute>> attrsMap)
   {
+    if (!mayHaveSubordinateTypes(attrDesc.getAttributeType()))
+    {
+      List<Attribute> attributes = attrsMap.get(attrDesc.getAttributeType());
+      if (attributes != null)
+      {
+        for (Attribute attribute : attributes)
+        {
+          if (attrDesc.isSuperTypeOf(attribute.getAttributeDescription()))
+          {
+            results.add(attribute);
+          }
+        }
+      }
+      return;
+    }
     for (Map.Entry<AttributeType, List<Attribute>> mapEntry : attrsMap.entrySet())
     {
       if (!attrDesc.getAttributeType().isSuperTypeOf(mapEntry.getKey()))
@@ -697,6 +772,23 @@ public class Entry
 
   private boolean hasAttributeOrSubType(AttributeDescription attrDesc, Map<AttributeType, List<Attribute>> attrsMap)
   {
+    if (!mayHaveSubordinateTypes(attrDesc.getAttributeType()))
+    {
+      List<Attribute> attributes = attrsMap.get(attrDesc.getAttributeType());
+      if (attributes != null)
+      {
+        for (Attribute attribute : attributes)
+        {
+          // It's possible that there could be an attribute without any values,
+          // which we should treat as not having the requested attribute.
+          if (!attribute.isEmpty() && attrDesc.isSuperTypeOf(attribute.getAttributeDescription()))
+          {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
     for (Map.Entry<AttributeType, List<Attribute>> mapEntry : attrsMap.entrySet())
     {
       if (!attrDesc.getAttributeType().isSuperTypeOf(mapEntry.getKey()))
