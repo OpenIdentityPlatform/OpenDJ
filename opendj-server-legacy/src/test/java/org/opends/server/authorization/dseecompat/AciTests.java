@@ -75,7 +75,7 @@ import org.testng.annotations.Test;
  * the syntax.
  */
 @SuppressWarnings("javadoc")
-@Test(sequential=true, groups="slow")
+@Test(sequential=true)
 public class AciTests extends AciTestCase {
 // TODO: test modify use cases
 // TODO: test searches where we expect a subset of attributes and entries
@@ -643,7 +643,6 @@ public class AciTests extends AciTestCase {
     buildAciValue("name", "w/ targattrfilters", "targattrfilters=",  TARG_ATTR_FILTERS_1 , "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ targattrfilters", "targattrfilters=",  TARG_ATTR_FILTERS_2 , "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ targattrfilters", "targattrfilters=",  TARG_ATTR_FILTERS_5 , "allow (write)", BIND_RULE_USERDN_SELF),
-    buildAciValue("name", "bad_ATTR_TYPE_NAME", "targattrfilters",TARG_ATTR_FILTERS_ATTR_TYPE_NAME, "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "read", "targetattr", "*", "allow (read)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "write", "targetattr", "*", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "add", "targetattr", "*", "allow (add)", BIND_RULE_USERDN_SELF),
@@ -746,6 +745,11 @@ public class AciTests extends AciTestCase {
           buildAciValue("name", "bad_op", "targattrfilters",TARG_ATTR_FILTERS_BAD_OP, "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "bad_op_match", "targattrfilters",TARG_ATTR_FILTERS_BAD_OP_MATCH, "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "bad_filter_attr", "targattrfilters",TARG_ATTR_FILTERS_BAD_FILTER_ATTR, "allow (write)", BIND_RULE_USERDN_SELF),
+          // The attribute name "1sn_" passes the lenient dseecompat ATTR_NAME
+          // pattern, but the filter part is parsed as an RFC 4512 attribute
+          // description, which cannot start with a digit unless it is a
+          // numeric OID, so the ACI is rejected at decode time.
+          buildAciValue("name", "bad_ATTR_TYPE_NAME", "targattrfilters",TARG_ATTR_FILTERS_ATTR_TYPE_NAME, "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "bad_format", "targattrfilters",TARG_ATTR_FILTERS_BAD_FORMAT, "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "too_many_lists", "targattrfilters",TARG_ATTR_FILTERS_TOO_MANY_LISTS, "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "bad_tok", "targattrfilters",TARG_ATTR_FILTERS_BAD_TOK, "allow (write)", BIND_RULE_USERDN_SELF),
@@ -1727,6 +1731,9 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
          "-p", getServerLdapPort(),
          "-D", _bindDn,
          "-w", _bindPw,
+         // Return the actual compare result code (COMPARE_TRUE / COMPARE_FALSE)
+         // instead of 0 on success, so callers can assert the evaluation result.
+         "--useCompareResultCode",
         attrAssertion,
         _searchBaseDn};
     }
