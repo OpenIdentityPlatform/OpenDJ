@@ -14,6 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions copyright 2013 Manuel Gaupp
+ * Portions Copyright 2025 3A Systems, LLC
  */
 package org.opends.server.backends.pluggable;
 
@@ -37,6 +38,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -235,7 +237,7 @@ public class EntryContainer
     {
       final ConfigChangeResult ccr = new ConfigChangeResult();
 
-      exclusiveLock.lock();
+      EntryContainer.this.lock();
       try
       {
         storage.write(new WriteOperation()
@@ -255,7 +257,7 @@ public class EntryContainer
       }
       finally
       {
-        exclusiveLock.unlock();
+        EntryContainer.this.unlock();
       }
 
       return ccr;
@@ -317,7 +319,7 @@ public class EntryContainer
     public ConfigChangeResult applyConfigurationDelete(final BackendVLVIndexCfg cfg)
     {
       final ConfigChangeResult ccr = new ConfigChangeResult();
-      exclusiveLock.lock();
+      EntryContainer.this.lock();
       try
       {
         storage.write(new WriteOperation()
@@ -336,7 +338,7 @@ public class EntryContainer
       }
       finally
       {
-        exclusiveLock.unlock();
+        EntryContainer.this.unlock();
       }
       return ccr;
     }
@@ -346,6 +348,67 @@ public class EntryContainer
   private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
   final Lock sharedLock = lock.readLock();
   final Lock exclusiveLock = lock.writeLock();
+
+  /**
+   * Striped count of in-flight lock-free shared accesses. Every operation
+   * (search, bind, compare, modify, ...) enters the entry container through
+   * {@link #beginSharedAccess()}, so acquiring even the read side of the
+   * ReentrantReadWriteLock becomes a cross-core hotspot under load: each
+   * acquire and release CAS-es the single lock state word. The hot paths
+   * register through this LongAdder instead and only fall back to waiting
+   * when an exclusive locker has closed the gate; exclusive lockers (rare
+   * structural changes: index removal, configuration changes, close) close
+   * the gate through {@link #lock()} and drain in-flight accesses.
+   */
+  private final LongAdder sharedAccessCount = new LongAdder();
+  /** True while an exclusive locker has closed the gate for lock-free shared access. */
+  private volatile boolean exclusiveAccessPending;
+  /** Monitor used to park shared accessors while the gate is closed. */
+  private final Object sharedAccessMonitor = new Object();
+
+  /**
+   * Begins a lock-free shared access to this entry container. Must be paired
+   * with {@link #endSharedAccess()} in a finally block. Equivalent to
+   * acquiring {@link #sharedLock}, but scales with the number of cores.
+   */
+  void beginSharedAccess()
+  {
+    boolean interrupted = false;
+    for (;;)
+    {
+      sharedAccessCount.increment();
+      if (!exclusiveAccessPending)
+      {
+        break;
+      }
+      // An exclusive locker is active or draining: back out and wait.
+      sharedAccessCount.decrement();
+      synchronized (sharedAccessMonitor)
+      {
+        while (exclusiveAccessPending)
+        {
+          try
+          {
+            sharedAccessMonitor.wait();
+          }
+          catch (InterruptedException e)
+          {
+            interrupted = true;
+          }
+        }
+      }
+    }
+    if (interrupted)
+    {
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  /** Ends a lock-free shared access to this entry container. */
+  void endSharedAccess()
+  {
+    sharedAccessCount.decrement();
+  }
 
   EntryContainer(DN baseDN, String backendID, PluggableBackendCfg config, Storage storage, RootContainer rootContainer,
       ServerContext serverContext) throws ConfigException
@@ -2411,7 +2474,7 @@ public class EntryContainer
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-    exclusiveLock.lock();
+    EntryContainer.this.lock();
     try
     {
       storage.write(new WriteOperation()
@@ -2435,7 +2498,7 @@ public class EntryContainer
     }
     finally
     {
-      exclusiveLock.unlock();
+      EntryContainer.this.unlock();
     }
 
     return ccr;
@@ -2722,15 +2785,37 @@ public class EntryContainer
     searchOp.addResponseControl(new VLVResponseControl(targetPosition, contentCount, vlvResultCode));
   }
 
-  /** Get the exclusive lock. */
+  /**
+   * Get the exclusive lock: acquires the write lock (excluding legacy
+   * sharedLock readers), closes the gate for lock-free shared accessors and
+   * drains the in-flight ones.
+   */
   void lock()
   {
     exclusiveLock.lock();
+    exclusiveAccessPending = true;
+    while (sharedAccessCount.sum() != 0)
+    {
+      try
+      {
+        Thread.sleep(1);
+      }
+      catch (InterruptedException e)
+      {
+        Thread.currentThread().interrupt();
+        break;
+      }
+    }
   }
 
-  /** Unlock the exclusive lock. */
+  /** Unlock the exclusive lock and reopen the gate for lock-free shared accessors. */
   void unlock()
   {
+    exclusiveAccessPending = false;
+    synchronized (sharedAccessMonitor)
+    {
+      sharedAccessMonitor.notifyAll();
+    }
     exclusiveLock.unlock();
   }
 
