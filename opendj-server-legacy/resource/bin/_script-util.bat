@@ -100,7 +100,8 @@ rem if not "%OPENDJ_JAVA_ARGS%" == "" goto checkEnvJavaHome
 set SCRIPT_JAVA_ARGS_PROPERTY=%SCRIPT_NAME%.java-args
 call:readProperty %SCRIPT_JAVA_ARGS_PROPERTY%
 set OPENDJ_JAVA_ARGS=%OPENDJ_JAVA_ARGS% %PROPERTY_VALUE%
-if not "%OPENDJ_JAVA_ARGS%" == "" goto checkEnvJavaHome
+rem "if defined" comparisons: the value may contain quotes (java.io.tmpdir), which break "%VAR%" == "" checks.
+if defined OPENDJ_JAVA_ARGS goto checkEnvJavaHome
 call:readProperty default.java-args
 set OPENDJ_JAVA_ARGS=%OPENDJ_JAVA_ARGS% %PROPERTY_VALUE
 if "%OPENDJ_JAVA_BIN%" == "" goto checkEnvJavaHome
@@ -191,7 +192,7 @@ set SET_TEMP_DIR_DONE=true
 goto scriptBegin
 
 :testJava
-if "%OPENDJ_JAVA_ARGS%" == "" goto checkLegacyArgs
+if not defined OPENDJ_JAVA_ARGS goto checkLegacyArgs
 :continueTestJava
 "%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% org.opends.server.tools.CheckJVMVersion > NUL 2>&1
 set RESULT_CODE=%errorlevel%
@@ -200,12 +201,12 @@ if not %RESULT_CODE% == 0 goto noValidJavaHome
 goto end
 
 :checkLegacyArgs
-if "%OPENDS_JAVA_ARGS%" == "" goto continueTestJava
+if not defined OPENDS_JAVA_ARGS goto continueTestJava
 set OPENDJ_JAVA_ARGS=%OPENDS_JAVA_ARGS%
 goto continueTestJava
 
 :noValidJavaHome
-if NOT "%OPENDJ_JAVA_ARGS%" == "" goto noValidHomeWithArgs
+if defined OPENDJ_JAVA_ARGS goto noValidHomeWithArgs
 echo ERROR:  The detected Java version could not be used.  The detected
 echo Java binary is:
 echo %OPENDJ_JAVA_BIN%
