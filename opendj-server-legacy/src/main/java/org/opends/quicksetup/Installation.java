@@ -774,7 +774,9 @@ public final class Installation
    */
   public File getOpenDSJarFile()
   {
-    return new File(getLibrariesDirectory(), "OpenDJ.jar");
+    // The assembly packages the server jar as lowercase "opendj.jar"; the
+    // mixed-case name only appeared to work on case-insensitive file systems.
+    return new File(getLibrariesDirectory(), "opendj.jar");
   }
 
   /**
