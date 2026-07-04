@@ -17,6 +17,9 @@
  */
 package org.opends.server.protocols.jmx;
 
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.rmi.RemoteException;
@@ -181,6 +184,11 @@ public class RmiConnector
     catch (Exception e)
     {
       logger.traceException(e);
+
+      logger.error(ERR_JMX_CONNHANDLER_CANNOT_START_RMI_CONNECTOR,
+          jmxConnectionHandler.getComponentEntryDN(),
+          jmxConnectionHandler.getListenPort(),
+          getExceptionMessage(e));
 
       throw new RuntimeException("Error while starting the RMI module : "
           + e.getMessage());
