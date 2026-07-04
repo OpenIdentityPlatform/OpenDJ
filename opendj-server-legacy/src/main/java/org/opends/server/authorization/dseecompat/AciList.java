@@ -27,7 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -54,15 +54,16 @@ public class AciList {
    * copy and publish it through this volatile reference. A published map is
    * never modified in place, so getCandidateAcis() can read it lock-free —
    * it runs for every access-controlled operation, and even a read lock
-   * becomes a cross-core hotspot under load.
+   * becomes a cross-core hotspot under load. Aci instances themselves are
+   * treated as immutable once published: the map and its value lists are
+   * the only mutable containers.
    */
   private volatile DITCacheMap<List<Aci>> aciList = new DITCacheMap<>();
 
   /**
    * Lock serializing mutators (ACI additions, removals and renames are rare).
    */
-  private final ReentrantReadWriteLock lock =
-          new ReentrantReadWriteLock();
+  private final ReentrantLock lock = new ReentrantLock();
 
   /** The configuration DN used to compare against the global ACI entry DN. */
   private final DN configDN;
@@ -157,7 +158,7 @@ public class AciList {
   public int addAci(List<? extends Entry> entries,
                                  LinkedList<LocalizableMessage> failedACIMsgs)
   {
-    lock.writeLock().lock();
+    lock.lock();
     try
     {
       DITCacheMap<List<Aci>> copy = copyAciList();
@@ -174,7 +175,7 @@ public class AciList {
     }
     finally
     {
-      lock.writeLock().unlock();
+      lock.unlock();
     }
   }
 
@@ -188,7 +189,7 @@ public class AciList {
    *
    */
   public void addAci(DN dn, SortedSet<Aci> acis) {
-    lock.writeLock().lock();
+    lock.lock();
     try
     {
       DITCacheMap<List<Aci>> copy = copyAciList();
@@ -197,7 +198,7 @@ public class AciList {
     }
     finally
     {
-      lock.writeLock().unlock();
+      lock.unlock();
     }
   }
 
@@ -215,7 +216,7 @@ public class AciList {
   public int addAci(Entry entry, boolean hasAci,
                                  boolean hasGlobalAci,
                                  List<LocalizableMessage> failedACIMsgs) {
-    lock.writeLock().lock();
+    lock.lock();
     try
     {
       DITCacheMap<List<Aci>> copy = copyAciList();
@@ -239,7 +240,7 @@ public class AciList {
     }
     finally
     {
-      lock.writeLock().unlock();
+      lock.unlock();
     }
   }
 
@@ -304,7 +305,7 @@ public class AciList {
                                              boolean hasAci,
                                              boolean hasGlobalAci) {
 
-    lock.writeLock().lock();
+    lock.lock();
     try
     {
       DITCacheMap<List<Aci>> copy = copyAciList();
@@ -330,7 +331,7 @@ public class AciList {
     }
     finally
     {
-      lock.writeLock().unlock();
+      lock.unlock();
     }
   }
 
@@ -367,7 +368,7 @@ public class AciList {
    */
   public boolean removeAci(Entry entry,  boolean hasAci,
                                                       boolean hasGlobalAci) {
-    lock.writeLock().lock();
+    lock.lock();
     try
     {
       DITCacheMap<List<Aci>> copy = copyAciList();
@@ -388,7 +389,7 @@ public class AciList {
     }
     finally
     {
-      lock.writeLock().unlock();
+      lock.unlock();
     }
   }
 
@@ -399,7 +400,7 @@ public class AciList {
    */
   public void removeAci(LocalBackend<?> backend) {
 
-    lock.writeLock().lock();
+    lock.lock();
     try
     {
       DITCacheMap<List<Aci>> copy = copyAciList();
@@ -417,7 +418,7 @@ public class AciList {
     }
     finally
     {
-      lock.writeLock().unlock();
+      lock.unlock();
     }
   }
 
@@ -429,7 +430,7 @@ public class AciList {
    */
   public void renameAci(DN oldDN, DN newDN ) {
 
-    lock.writeLock().lock();
+    lock.lock();
     try
     {
       DITCacheMap<List<Aci>> copy = copyAciList();
@@ -463,7 +464,7 @@ public class AciList {
     }
     finally
     {
-      lock.writeLock().unlock();
+      lock.unlock();
     }
   }
 }
