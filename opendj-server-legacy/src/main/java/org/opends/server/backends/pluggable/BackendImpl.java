@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.LongAdder;
 
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
@@ -95,11 +94,12 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
 
   /**
    * A count of the total operation threads currently in the backend. Bumped
-   * twice per operation by all worker threads, so it uses LongAdder to avoid
-   * contending on a single cache line; it is only read when waiting for the
-   * backend to become quiescent.
+   * twice per operation by all worker threads, so it uses a striped counter
+   * to avoid contending on a single cache line; it is only read when waiting
+   * for the backend to become quiescent, which is why it is not a LongAdder —
+   * see {@link StripedCounter}.
    */
-  private final LongAdder threadTotalCount = new LongAdder();
+  private final StripedCounter threadTotalCount = new StripedCounter();
   /** The base DNs defined for this backend instance. */
   private Set<DN> baseDNs;
 

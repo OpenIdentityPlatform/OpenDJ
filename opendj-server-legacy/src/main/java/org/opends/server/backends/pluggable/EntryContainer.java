@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -355,12 +354,14 @@ public class EntryContainer
    * {@link #beginSharedAccess()}, so acquiring even the read side of the
    * ReentrantReadWriteLock becomes a cross-core hotspot under load: each
    * acquire and release CAS-es the single lock state word. The hot paths
-   * register through this LongAdder instead and only fall back to waiting
-   * when an exclusive locker has closed the gate; exclusive lockers (rare
-   * structural changes: index removal, configuration changes, close) close
-   * the gate through {@link #lock()} and drain in-flight accesses.
+   * register through this striped counter instead and only fall back to
+   * waiting when an exclusive locker has closed the gate; exclusive lockers
+   * (rare structural changes: index removal, configuration changes, close)
+   * close the gate through {@link #lock()} and drain in-flight accesses. The
+   * drain relies on {@link StripedCounter#sum()} never under-counting to a
+   * false zero, which is why this is not a LongAdder — see StripedCounter.
    */
-  private final LongAdder sharedAccessCount = new LongAdder();
+  private final StripedCounter sharedAccessCount = new StripedCounter();
   /** True while an exclusive locker has closed the gate for lock-free shared access. */
   private volatile boolean exclusiveAccessPending;
   /** Monitor used to park shared accessors while the gate is closed. */
@@ -368,8 +369,9 @@ public class EntryContainer
 
   /**
    * Begins a lock-free shared access to this entry container. Must be paired
-   * with {@link #endSharedAccess()} in a finally block. Equivalent to
-   * acquiring {@link #sharedLock}, but scales with the number of cores.
+   * with {@link #endSharedAccess()} in a finally block on the same thread.
+   * Equivalent to acquiring {@link #sharedLock}, but scales with the number
+   * of cores.
    */
   void beginSharedAccess()
   {
@@ -404,7 +406,10 @@ public class EntryContainer
     }
   }
 
-  /** Ends a lock-free shared access to this entry container. */
+  /**
+   * Ends a lock-free shared access to this entry container. Must be called by
+   * the thread that did the paired {@link #beginSharedAccess()}.
+   */
   void endSharedAccess()
   {
     sharedAccessCount.decrement();
