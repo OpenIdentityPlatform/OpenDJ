@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.extensions;
 
@@ -210,7 +211,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     // they won't be processed because the server is shutting down.
     CancelRequest cancelRequest = new CancelRequest(true, reason);
     ArrayList<Operation> pendingOperations = new ArrayList<>();
-    opQueue.removeAll(pendingOperations);
+    opQueue.drainTo(pendingOperations);
     for (Operation o : pendingOperations)
     {
       try
