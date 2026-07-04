@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.quicksetup;
 
@@ -81,7 +82,6 @@ public final class Installation
   /** The relative path to the current Configuration LDIF file. */
   private static final String CURRENT_CONFIG_FILE_NAME = "config.ldif";
   /** The relative path to the current Configuration LDIF file. */
-  private static final String BASE_CONFIG_FILE_PREFIX = "config.ldif.";
   /** The relative path to the instance.loc file. */
   public static final String INSTANCE_LOCATION_PATH_RELATIVE = "instance.loc";
   /** The path to the instance.loc file. */
@@ -514,7 +514,9 @@ public final class Installation
    */
   public File getBaseConfigurationFile() throws ApplicationException
   {
-    return new File(getConfigurationUpgradeDirectory(), BASE_CONFIG_FILE_PREFIX + getInstanceVCSRevision());
+    // Modern packages no longer ship a config.ldif.<revision> snapshot in
+    // config/upgrade: the pristine configuration lives in template/config.
+    return new File(new File(getTemplateDirectory(), CONFIG_PATH_RELATIVE), CURRENT_CONFIG_FILE_NAME);
   }
 
   /**
