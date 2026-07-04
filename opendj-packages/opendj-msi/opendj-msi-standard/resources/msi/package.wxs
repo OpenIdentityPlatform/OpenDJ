@@ -101,23 +101,23 @@
     </StandardDirectory>
 
     <ComponentGroup Id="OpenDJEmptyDirs">
-      <Component Id="CDirBak" Directory="DIR_BAK"><CreateFolder/></Component>
-      <Component Id="CDirChangelogDb" Directory="DIR_CHANGELOGDB"><CreateFolder/></Component>
-      <Component Id="CDirClasses" Directory="DIR_CLASSES"><CreateFolder/></Component>
-      <Component Id="CDirDb" Directory="DIR_DB"><CreateFolder/></Component>
-      <Component Id="CDirImportTmp" Directory="DIR_IMPORTTMP"><CreateFolder/></Component>
-      <Component Id="CDirLdif" Directory="DIR_LDIF"><CreateFolder/></Component>
-      <Component Id="CDirLocks" Directory="DIR_LOCKS"><CreateFolder/></Component>
-      <Component Id="CDirLogs" Directory="DIR_LOGS"><CreateFolder/></Component>
-      <Component Id="CDirTmp" Directory="DIR_TMP"><CreateFolder/></Component>
-      <Component Id="CDirTplBak" Directory="DIR_TPL_BAK"><CreateFolder/></Component>
-      <Component Id="CDirTplChangelogDb" Directory="DIR_TPL_CHANGELOGDB"><CreateFolder/></Component>
-      <Component Id="CDirTplClasses" Directory="DIR_TPL_CLASSES"><CreateFolder/></Component>
-      <Component Id="CDirTplDb" Directory="DIR_TPL_DB"><CreateFolder/></Component>
-      <Component Id="CDirTplImportTmp" Directory="DIR_TPL_IMPORTTMP"><CreateFolder/></Component>
-      <Component Id="CDirTplLdif" Directory="DIR_TPL_LDIF"><CreateFolder/></Component>
-      <Component Id="CDirTplLocks" Directory="DIR_TPL_LOCKS"><CreateFolder/></Component>
-      <Component Id="CDirTplLogs" Directory="DIR_TPL_LOGS"><CreateFolder/></Component>
+      <Component Id="CDirBak" Directory="DIR_BAK" Guid="7CA85932-ADB2-4089-B3BF-0E2DD4AC4E66"><CreateFolder/></Component>
+      <Component Id="CDirChangelogDb" Directory="DIR_CHANGELOGDB" Guid="E9C21C67-E4B6-482D-8C86-593EC14F9152"><CreateFolder/></Component>
+      <Component Id="CDirClasses" Directory="DIR_CLASSES" Guid="7656FD50-3581-4394-9818-FF1A0E87ADB3"><CreateFolder/></Component>
+      <Component Id="CDirDb" Directory="DIR_DB" Guid="F0E4603C-6402-484C-A274-217BA489CF54"><CreateFolder/></Component>
+      <Component Id="CDirImportTmp" Directory="DIR_IMPORTTMP" Guid="EA738740-FA59-474D-93F0-3DD45366AB46"><CreateFolder/></Component>
+      <Component Id="CDirLdif" Directory="DIR_LDIF" Guid="77580438-E14F-4268-B947-D5142F92AD6C"><CreateFolder/></Component>
+      <Component Id="CDirLocks" Directory="DIR_LOCKS" Guid="078CF9AE-1510-4B29-B719-02FAAE85D3AC"><CreateFolder/></Component>
+      <Component Id="CDirLogs" Directory="DIR_LOGS" Guid="2FF1ECAD-2E64-4629-92A5-4CA635DA3959"><CreateFolder/></Component>
+      <Component Id="CDirTmp" Directory="DIR_TMP" Guid="DECC581E-2F76-4C89-9F18-02EAD2F26173"><CreateFolder/></Component>
+      <Component Id="CDirTplBak" Directory="DIR_TPL_BAK" Guid="EB4F9340-5C24-42AC-A996-C95E7DC3C7A3"><CreateFolder/></Component>
+      <Component Id="CDirTplChangelogDb" Directory="DIR_TPL_CHANGELOGDB" Guid="B0598916-0D2C-4497-900C-5A534FADA852"><CreateFolder/></Component>
+      <Component Id="CDirTplClasses" Directory="DIR_TPL_CLASSES" Guid="C66CC1A0-996E-4BE5-9CFB-57A32F2C4F14"><CreateFolder/></Component>
+      <Component Id="CDirTplDb" Directory="DIR_TPL_DB" Guid="97CD56F6-402F-4721-AF1C-A23DA232D7E7"><CreateFolder/></Component>
+      <Component Id="CDirTplImportTmp" Directory="DIR_TPL_IMPORTTMP" Guid="4888F735-CFF5-426F-8593-1592F45C076D"><CreateFolder/></Component>
+      <Component Id="CDirTplLdif" Directory="DIR_TPL_LDIF" Guid="AA9F70A5-0F88-4A7C-8457-81201CC619BE"><CreateFolder/></Component>
+      <Component Id="CDirTplLocks" Directory="DIR_TPL_LOCKS" Guid="93F3CFA4-207C-4F08-9413-1831E7B1E50C"><CreateFolder/></Component>
+      <Component Id="CDirTplLogs" Directory="DIR_TPL_LOGS" Guid="7A4ABB8C-01D4-43BA-B85E-B0FAC14CBE75"><CreateFolder/></Component>
     </ComponentGroup>
 
     <!-- Windows service: opendj_service.exe is the SCM wrapper that runs bat\start-ds.bat.
