@@ -665,20 +665,38 @@ public class Entry
   }
 
   /**
-   * The set of attribute types having at least one subordinate type in the
+   * The set of attribute types having at least one subordinate type in a
    * schema, cached per schema instance. Subtype-inclusive attribute lookups
    * run for every entry read (compare assertions, search filters, password
    * policy attributes, ...): when the requested type has no subordinates,
    * walking every attribute of the entry degenerates to an exact map lookup,
-   * so cache which types actually need the walk. The set is published before
-   * the schema reference, so a reader observing the current schema also
-   * observes the set computed for it.
+   * so cache which types actually need the walk. The schema and the set
+   * computed for it are held in one immutable holder swapped atomically, so
+   * a reader can never pair a set with the wrong schema.
    */
-  private static volatile Set<AttributeType> typesWithSubordinates = Collections.emptySet();
-  private static volatile Schema typesWithSubordinatesSchema;
+  private static final class TypesWithSubordinates
+  {
+    private final Schema schema;
+    private final Set<AttributeType> types;
+
+    private TypesWithSubordinates(Schema schema, Set<AttributeType> types)
+    {
+      this.schema = schema;
+      this.types = types;
+    }
+  }
+
+  private static volatile TypesWithSubordinates typesWithSubordinates =
+      new TypesWithSubordinates(null, Collections.<AttributeType> emptySet());
 
   private static boolean mayHaveSubordinateTypes(AttributeType attrType)
   {
+    if (attrType.isPlaceHolder())
+    {
+      // isSuperTypeOf() matches place-holder types against schema-defined
+      // types by name, which an exact map lookup cannot honor: keep the walk.
+      return true;
+    }
     Schema schema;
     try
     {
@@ -694,7 +712,8 @@ public class Entry
     {
       return true;
     }
-    if (schema != typesWithSubordinatesSchema)
+    TypesWithSubordinates cached = typesWithSubordinates;
+    if (cached.schema != schema)
     {
       Set<AttributeType> withSubordinates = new HashSet<>();
       for (AttributeType type : schema.getAttributeTypes())
@@ -705,10 +724,10 @@ public class Entry
           withSubordinates.add(superior);
         }
       }
-      typesWithSubordinates = withSubordinates;
-      typesWithSubordinatesSchema = schema;
+      cached = new TypesWithSubordinates(schema, withSubordinates);
+      typesWithSubordinates = cached;
     }
-    return typesWithSubordinates.contains(attrType);
+    return cached.types.contains(attrType);
   }
 
   private void addAttributeTypeOrSubTypeValue(Collection<Attribute> results, AttributeType attrType,
