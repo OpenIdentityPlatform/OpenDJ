@@ -76,18 +76,61 @@
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="OPENDJ" Name="$(var.name)">
         <Directory Id="OPENDJ_LIB" Name="lib"/>
+        <!-- Empty instance directories: the <Files> harvest ships files only (heat had -ke),
+             so they must be created explicitly or the server cannot write its lock/pid files. -->
+        <Directory Id="DIR_BAK" Name="bak"/>
+        <Directory Id="DIR_CHANGELOGDB" Name="changelogDb"/>
+        <Directory Id="DIR_CLASSES" Name="classes"/>
+        <Directory Id="DIR_DB" Name="db"/>
+        <Directory Id="DIR_IMPORTTMP" Name="import-tmp"/>
+        <Directory Id="DIR_LDIF" Name="ldif"/>
+        <Directory Id="DIR_LOCKS" Name="locks"/>
+        <Directory Id="DIR_LOGS" Name="logs"/>
+        <Directory Id="DIR_TMP" Name="tmp"/>
+        <Directory Id="DIR_TEMPLATE" Name="template">
+          <Directory Id="DIR_TPL_BAK" Name="bak"/>
+          <Directory Id="DIR_TPL_CHANGELOGDB" Name="changelogDb"/>
+          <Directory Id="DIR_TPL_CLASSES" Name="classes"/>
+          <Directory Id="DIR_TPL_DB" Name="db"/>
+          <Directory Id="DIR_TPL_IMPORTTMP" Name="import-tmp"/>
+          <Directory Id="DIR_TPL_LDIF" Name="ldif"/>
+          <Directory Id="DIR_TPL_LOCKS" Name="locks"/>
+          <Directory Id="DIR_TPL_LOGS" Name="logs"/>
+        </Directory>
       </Directory>
     </StandardDirectory>
+
+    <ComponentGroup Id="OpenDJEmptyDirs">
+      <Component Id="CDirBak" Directory="DIR_BAK"><CreateFolder/></Component>
+      <Component Id="CDirChangelogDb" Directory="DIR_CHANGELOGDB"><CreateFolder/></Component>
+      <Component Id="CDirClasses" Directory="DIR_CLASSES"><CreateFolder/></Component>
+      <Component Id="CDirDb" Directory="DIR_DB"><CreateFolder/></Component>
+      <Component Id="CDirImportTmp" Directory="DIR_IMPORTTMP"><CreateFolder/></Component>
+      <Component Id="CDirLdif" Directory="DIR_LDIF"><CreateFolder/></Component>
+      <Component Id="CDirLocks" Directory="DIR_LOCKS"><CreateFolder/></Component>
+      <Component Id="CDirLogs" Directory="DIR_LOGS"><CreateFolder/></Component>
+      <Component Id="CDirTmp" Directory="DIR_TMP"><CreateFolder/></Component>
+      <Component Id="CDirTplBak" Directory="DIR_TPL_BAK"><CreateFolder/></Component>
+      <Component Id="CDirTplChangelogDb" Directory="DIR_TPL_CHANGELOGDB"><CreateFolder/></Component>
+      <Component Id="CDirTplClasses" Directory="DIR_TPL_CLASSES"><CreateFolder/></Component>
+      <Component Id="CDirTplDb" Directory="DIR_TPL_DB"><CreateFolder/></Component>
+      <Component Id="CDirTplImportTmp" Directory="DIR_TPL_IMPORTTMP"><CreateFolder/></Component>
+      <Component Id="CDirTplLdif" Directory="DIR_TPL_LDIF"><CreateFolder/></Component>
+      <Component Id="CDirTplLocks" Directory="DIR_TPL_LOCKS"><CreateFolder/></Component>
+      <Component Id="CDirTplLogs" Directory="DIR_TPL_LOGS"><CreateFolder/></Component>
+    </ComponentGroup>
 
     <!-- Windows service: opendj_service.exe is the SCM wrapper that runs bat\start-ds.bat.
          Registered here, but NOT started during install (the instance must be configured by
          setup.bat first). -->
     <Component Id="OpenDJServiceExe" Directory="OPENDJ_LIB">
       <File Id="opendj_service.exe" Source="$(var.serviceExe)" KeyPath="yes"/>
+      <!-- [OPENDJ] ends with a backslash which would escape the closing quote in the
+           ImagePath, so an extra backslash is appended: \\" parses as backslash + quote. -->
       <ServiceInstall Id="OpenDJService" Name="OpenDJ" DisplayName="OpenDJ Server"
                       Description="OpenDJ LDAPv3 Directory Server" Type="ownProcess"
                       Start="auto" ErrorControl="normal"
-                      Arguments="start &quot;[OPENDJ]&quot;" Vital="no"/>
+                      Arguments="start &quot;[OPENDJ]\&quot;" Vital="no"/>
       <ServiceControl Id="OpenDJServiceControl" Name="OpenDJ"
                       Stop="both" Remove="uninstall" Wait="yes"/>
     </Component>
@@ -113,6 +156,7 @@
       <ComponentRef Id="InstallDirRegistry"/>
       <ComponentGroupRef Id="OpenDJRoot"/>
       <ComponentGroupRef Id="OpenDJLib"/>
+      <ComponentGroupRef Id="OpenDJEmptyDirs"/>
     </Feature>
 
     <!-- WixUI_InstallDir; the license is shown only by setup, not by this installer. -->
