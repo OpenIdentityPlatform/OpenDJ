@@ -130,10 +130,11 @@ public class CompressedSchema
       Schema currentSchema = serverContext.getSchema();
       if (schema != currentSchema)
       {
-        // build new maps from existing ones
-        Mappings newMappings = new Mappings(mappings.adEncodeMap.size(), mappings.ocEncodeMap.size());
-        reloadAttributeTypeMaps(mappings, newMappings);
-        reloadObjectClassesMap(mappings, newMappings);
+        // build new maps from one stable snapshot of the existing ones
+        final Mappings oldMappings = mappings;
+        Mappings newMappings = new Mappings(oldMappings.adEncodeMap.size(), oldMappings.ocEncodeMap.size());
+        reloadAttributeTypeMaps(oldMappings, newMappings);
+        reloadObjectClassesMap(oldMappings, newMappings);
 
         mappings = newMappings;
         schema = currentSchema;
