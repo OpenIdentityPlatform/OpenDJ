@@ -241,11 +241,7 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
     }
   }
 
-  // Kept in the "slow" group (excluded from the default build): setup of the
-  // temporary server fails with "Time service not started" when the main
-  // in-JVM server is stopped, because the slf4j adapter still routes through
-  // its error log publishers.
-  @Test(groups = "slow")
+  @Test
   public void testSetupFromArchive() throws Exception
   {
     EmbeddedDirectoryServer server = getServer();
