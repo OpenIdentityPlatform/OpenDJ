@@ -2794,6 +2794,10 @@ public class EntryContainer
   {
     exclusiveLock.lock();
     exclusiveAccessPending = true;
+    // The drain must not be abandoned on interrupt: returning early would let
+    // the exclusive caller run concurrently with in-flight shared accesses.
+    // Exclusive lockers are rare, so sleep-polling is an acceptable trade-off.
+    boolean interrupted = false;
     while (sharedAccessCount.sum() != 0)
     {
       try
@@ -2802,9 +2806,12 @@ public class EntryContainer
       }
       catch (InterruptedException e)
       {
-        Thread.currentThread().interrupt();
-        break;
+        interrupted = true;
       }
+    }
+    if (interrupted)
+    {
+      Thread.currentThread().interrupt();
     }
   }
 

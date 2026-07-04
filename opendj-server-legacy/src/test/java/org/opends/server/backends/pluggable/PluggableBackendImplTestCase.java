@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
- * Portions Copyright 2023-2025 3A Systems, LLC.
+ * Portions Copyright 2023-2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -31,9 +31,12 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.google.common.io.Resources;
 import org.forgerock.opendj.ldap.*;
@@ -627,6 +630,50 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
   private int getTotalNumberOfLDIFEntries()
   {
     return topEntries.size() + entries.size() + workEntries.size();
+  }
+
+  @Test(timeOut = 30000)
+  public void testExclusiveLockDrainsSharedAccessDespiteInterrupt() throws Exception
+  {
+    final EntryContainer ec = backend.getRootContainer().getEntryContainer(testBaseDN);
+    final CountDownLatch lockAcquired = new CountDownLatch(1);
+    final AtomicBoolean interruptPreserved = new AtomicBoolean();
+
+    ec.beginSharedAccess();
+    final Thread exclusiveLocker = new Thread("Test exclusive locker")
+    {
+      @Override
+      public void run()
+      {
+        ec.lock();
+        try
+        {
+          interruptPreserved.set(Thread.currentThread().isInterrupted());
+          lockAcquired.countDown();
+        }
+        finally
+        {
+          ec.unlock();
+        }
+      }
+    };
+
+    try
+    {
+      exclusiveLocker.start();
+      exclusiveLocker.interrupt();
+      assertFalse(lockAcquired.await(200, TimeUnit.MILLISECONDS),
+          "lock() returned while a shared access was still in flight");
+    }
+    finally
+    {
+      ec.endSharedAccess();
+    }
+
+    assertTrue(lockAcquired.await(10, TimeUnit.SECONDS),
+        "lock() did not complete after the shared access ended");
+    assertTrue(interruptPreserved.get(), "lock() must preserve the caller's interrupt status");
+    exclusiveLocker.join(10000);
   }
 
   @Test
