@@ -37,24 +37,28 @@
 #                    simplest and fastest directory servers to deploy and manage.
 ### END INIT INFO
 
-# Set up source function library depending on the distribution
-if [ -f /etc/redhat-release ] ; then
-    # Redhat
+# Set up the source function library by checking which one actually exists
+# (detecting the distribution is not enough: e.g. a RHEL-family system without
+# the optional initscripts package has /etc/redhat-release but no functions).
+if [ -f /etc/init.d/functions ] ; then
+    # RedHat-family (initscripts)
     . /etc/init.d/functions
     LOCKFILE=/var/lock/subsys/opendj
-elif [ -f /etc/SuSE-release ] ; then
+elif [ -f /etc/rc.status ] ; then
     # SuSE
     . /etc/rc.status
     LOCKFILE=/var/run/rcopendj
-elif [ -f /etc/lsb-release ] || lsb_release -a >/dev/null 2>&1 ; then
-    # Debian
-    # On Debian 8 the file /etc/lsb-release does not exist. The lsb_release command may be used instead.
+elif [ -f /lib/lsb/init-functions ] ; then
+    # Debian/LSB
     . /lib/lsb/init-functions
     LOCKFILE=/var/lock/opendj
 elif [ -f /etc/init.d/functions.sh ] ; then
     # Other dist.
     . /etc/init.d/functions.sh
     LOCKFILE=/tmp/unused-lockfile-opendj
+else
+    # No init function library: the script is self-contained anyway.
+    LOCKFILE=/tmp/opendj.lockfile
 fi
 # LOCKFILE is used by the service subsystem to know whether the opendj service is started and act upon it
 

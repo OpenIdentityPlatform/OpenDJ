@@ -618,11 +618,12 @@ jobs:
             set -e
             NEW=$(ls opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm | head -1)
             echo "New rpm: $NEW"
-            # java and "which" are needed only by the RELEASED 5.1.1 rpm, which declared no
-            # dependencies at all (declarations added by #677; java discovery fixed by this PR).
-            # Drop them when the upgrade-source artifact link points to a release with #677.
+            # java, "which" and initscripts are needed only by the RELEASED 5.1.1 rpm, which
+            # declared no dependencies at all (declarations added by #677; java discovery and
+            # init-functions sourcing fixed by this PR). Drop them when the upgrade-source
+            # artifact link points to a release with #677.
             # Everything the NEW package needs must come from its own Requires.
-            dnf install -y java-21-openjdk-headless which >/dev/null
+            dnf install -y java-21-openjdk-headless which initscripts >/dev/null
             dnf install -y ./opendj-5.1.1.rpm
             # 5.1.1 model: no dedicated user, root-owned tree, SysV only
             /opt/opendj/setup --cli --no-prompt --acceptLicense --doNotStart \
