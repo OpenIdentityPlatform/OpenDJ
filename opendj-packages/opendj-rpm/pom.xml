@@ -159,6 +159,8 @@
                             <require>which</require>
                             <!-- postinstall/preuninstall register the service via /sbin/chkconfig. -->
                             <require>chkconfig</require>
+                            <!-- /etc/init.d/opendj sources /etc/init.d/functions on RedHat-family. -->
+                            <require>initscripts</require>
                         </requires>
                         <description>
                             ${rpm.description.header}
