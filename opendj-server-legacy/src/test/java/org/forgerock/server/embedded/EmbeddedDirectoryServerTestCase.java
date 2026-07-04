@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.forgerock.server.embedded;
 
@@ -48,7 +49,7 @@ import org.testng.annotations.Test;
 /**
  * Tests for an embedded directory server.
  */
-@Test(groups = "slow", sequential=true)
+@Test(sequential=true)
 @SuppressWarnings("javadoc")
 public class EmbeddedDirectoryServerTestCase extends UtilTestCase
 {
@@ -240,7 +241,11 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
     }
   }
 
-  @Test
+  // Kept in the "slow" group (excluded from the default build): setup of the
+  // temporary server fails with "Time service not started" when the main
+  // in-JVM server is stopped, because the slf4j adapter still routes through
+  // its error log publishers.
+  @Test(groups = "slow")
   public void testSetupFromArchive() throws Exception
   {
     EmbeddedDirectoryServer server = getServer();
