@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.extensions;
 
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
@@ -63,6 +65,15 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
 
   /** The number of operations that have been submitted to the work queue for processing. */
   private AtomicLong opsSubmitted;
+
+  /**
+   * The number of operations that have been accepted by the work queue and are
+   * not yet fully processed: this covers operations sitting in the queue as
+   * well as operations currently handled by worker threads, including the
+   * hand-off window in between, which is invisible to both the queue and the
+   * worker thread activity flag.
+   */
+  private final AtomicInteger pendingOpsCount = new AtomicInteger();
 
   /**
    * The number of times that an attempt to submit a new request has been
@@ -139,6 +150,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
       killThreads = false;
       opsSubmitted = new AtomicLong(0);
       queueFullRejects = new AtomicLong(0);
+      pendingOpsCount.set(0);
 
       // Register to be notified of any configuration changes.
       configuration.addTraditionalChangeListener(this);
@@ -302,6 +314,11 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
   private void submitOperation(Operation operation,
       boolean blockEnqueuingWhenFull) throws DirectoryException
   {
+    // Count the operation before enqueuing it so that isIdle() can never
+    // observe an empty queue while the operation is in the process of being
+    // submitted; the count is rolled back if the operation is rejected.
+    pendingOpsCount.incrementAndGet();
+    boolean submitted = false;
     queueReadLock.lock();
     try
     {
@@ -359,9 +376,14 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
       }
 
       opsSubmitted.incrementAndGet();
+      submitted = true;
     }
     finally
     {
+      if (!submitted)
+      {
+        pendingOpsCount.decrementAndGet();
+      }
       queueReadLock.unlock();
     }
   }
@@ -696,10 +718,12 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
         if (pendingOperation != null)
         {
           pendingOperation.abort(cancelRequest);
+          pendingOpsCount.decrementAndGet();
         }
         while ((pendingOperation = oldOpQueue.poll()) != null)
         {
           pendingOperation.abort(cancelRequest);
+          pendingOpsCount.decrementAndGet();
         }
       }
       finally
@@ -714,28 +738,16 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
   @Override
   public boolean isIdle()
   {
-    queueReadLock.lock();
-    try
-    {
-      if (!opQueue.isEmpty())
-      {
-        return false;
-      }
+    return pendingOpsCount.get() == 0;
+  }
 
-      for (TraditionalWorkerThread t : workerThreads)
-      {
-        if (t.isActive())
-        {
-          return false;
-        }
-      }
-
-      return true;
-    }
-    finally
-    {
-      queueReadLock.unlock();
-    }
+  /**
+   * Notifies this work queue that a worker thread is done handling an
+   * operation previously taken from the queue.
+   */
+  void operationDone()
+  {
+    pendingOpsCount.decrementAndGet();
   }
 
   /**
