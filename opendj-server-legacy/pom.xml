@@ -1271,6 +1271,7 @@
                     <include>**/*Tests.java</include>
                     <include>**/*TestCase.java</include>
                     <include>**/*TestCases.java</include>
+                    <include>**/*TestSuite.java</include>
                   </includes>
                   <properties>
                     <property>
