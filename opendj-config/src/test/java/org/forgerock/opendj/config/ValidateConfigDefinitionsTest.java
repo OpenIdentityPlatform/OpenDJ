@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2024-2026 3A Systems, LLC
  */
 package org.forgerock.opendj.config;
 
@@ -67,7 +68,7 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
         "org.forgerock.opendj.config.std.meta.RootCfgDefn", "org.forgerock.opendj.config.std.meta.GlobalCfgDefn", });
 
     /** TODO : does not work because can't retrieve object class objects */
-    @Test(enabled = false, dataProvider = "enumerateManageObjectDefns")
+    @Test(dataProvider = "enumerateManageObjectDefns")
     public void validateConfigObjectDefinitions(AbstractManagedObjectDefinition<?, ?> objectDef) {
         String objName = objectDef.getName();
         StringBuilder errors = new StringBuilder();
