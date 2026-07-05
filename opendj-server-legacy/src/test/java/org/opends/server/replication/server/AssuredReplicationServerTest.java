@@ -1188,8 +1188,12 @@ public class AssuredReplicationServerTest
           false, AssuredMode.SAFE_DATA_MODE, 1, TIMEOUT_RS_SCENARIO);
       }
 
-      // Send update from DS 1
+      // Wait for connections to be finished
+      // DS must see expected numbers of fake DSs and RSs
       final FakeReplicationDomain fakeRd1 = fakeRDs[1];
+      waitForStableTopo(fakeRd1, otherFakeDS ? 1 : 0, fakeRS ? 2 : 1);
+
+      // Send update from DS 1
       long startTime = System.currentTimeMillis();
       fakeRd1.sendNewFakeUpdate();
 
@@ -1893,6 +1897,7 @@ public class AssuredReplicationServerTest
       if (dsInfo.size() == expectedDs && rsInfo.size() == expectedRs)
       {
         debugInfo("waitForStableTopo: expected topo obtained after " + nSec + " second(s).");
+        waitForAllConnectedPeersFollowing();
         return;
       }
       Thread.sleep(100);
@@ -1901,6 +1906,49 @@ public class AssuredReplicationServerTest
     while (nSec < 30);
     Assert.fail("Did not reach expected topo view in time: expected " + expectedDs +
       " DSs (had " + dsInfo +") and " + expectedRs + " RSs (had " + rsInfo +").");
+  }
+
+  /**
+   * Wait until every peer connected to the real RS is served from the RS
+   * in-memory message queue ("following") rather than catching up from the
+   * changelog DB. A freshly connected peer always starts in catch-up mode:
+   * until its server writer has checked there is nothing to recover from the
+   * changelog DB, updates are re-read from the DB and keep the assured flag
+   * of the original sender, while the NotAssuredUpdateMsg substitution
+   * performed by ReplicationServerDomain only applies to the in-memory queue
+   * path. An update sent by the test while a peer is still catching up may
+   * thus reach it with unexpected assured parameters and break
+   * checkUpdateAssuredParameters(). This regularly happens on slow (CI)
+   * machines.
+   */
+  private void waitForAllConnectedPeersFollowing() throws Exception
+  {
+    final ReplicationServerDomain domain =
+        rs1.getReplicationServerDomain(DN.valueOf(TEST_ROOT_DN_STRING));
+    assertNotNull(domain);
+    long nSec = 0;
+    long startTime = System.currentTimeMillis();
+    do
+    {
+      boolean allFollowing = true;
+      for (ServerHandler handler : domain.getConnectedDSs().values())
+      {
+        allFollowing &= handler.isFollowing();
+      }
+      for (ServerHandler handler : domain.getConnectedRSs().values())
+      {
+        allFollowing &= handler.isFollowing();
+      }
+      if (allFollowing)
+      {
+        debugInfo("waitForAllConnectedPeersFollowing: all peers following after " + nSec + " second(s).");
+        return;
+      }
+      Thread.sleep(100);
+      nSec = (System.currentTimeMillis() - startTime) / 1000;
+    }
+    while (nSec < 30);
+    Assert.fail("Some peers connected to the real RS did not catch up with the changelog DB in time");
   }
 
   /**
