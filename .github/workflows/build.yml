@@ -24,12 +24,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       # The full Java sweep runs on ubuntu only; macOS and Windows build with the
-      # latest Java (the OS-specific code does not depend on the Java version).
+      # minimum supported (11) and the latest (26) Java.
       matrix:
         os: [ 'ubuntu-latest' ]
         java: [ '11','17','21','25','26']
         include:
+          - { os: 'macos-latest',   java: '11' }
           - { os: 'macos-latest',   java: '26' }
+          - { os: 'windows-latest', java: '11' }
           - { os: 'windows-latest', java: '26' }
       fail-fast: false
     steps:
