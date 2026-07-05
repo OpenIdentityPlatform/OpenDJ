@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.server;
 
@@ -1066,7 +1067,7 @@ public class AssuredReplicationServerTest
    * See testSafeDataLevelOne comment.
    * This is a facility to run the testSafeDataLevelOne in precommit in simplest
    * case, so that precommit run test something and is not long.
-   * testSafeDataLevelOne will run in nightly tests (groups = "slow")
+   * testSafeDataLevelOne will run in nightly tests ()
    */
   @Test(enabled = true)
   public void testSafeDataLevelOnePrecommit() throws Exception
@@ -1125,7 +1126,7 @@ public class AssuredReplicationServerTest
    * All possible combinations tested thanks to the provider
    */
   @Test(dataProvider = "testSafeDataLevelOneProvider",
-        groups = { "slow", "opendj-256" },
+        groups = { "opendj-256" },
         enabled = true)
   public void testSafeDataLevelOne(
       int mainDsGid, boolean otherFakeDS, boolean fakeRS,
@@ -1276,7 +1277,7 @@ public class AssuredReplicationServerTest
   /**
    * See testSafeDataLevelHigh comment.
    */
-  @Test(dataProvider = "testSafeDataLevelHighPrecommitProvider", groups = "slow", enabled = true)
+  @Test(dataProvider = "testSafeDataLevelHighPrecommitProvider", enabled = true)
   public void testSafeDataLevelHighPrecommit(int sdLevel,
       boolean otherFakeDS, int otherFakeDsGid, long otherFakeDsGenId,
       int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen,
@@ -1386,7 +1387,7 @@ public class AssuredReplicationServerTest
   /**
    * See testSafeDataLevelHigh comment.
    */
-  @Test(dataProvider = "testSafeDataLevelHighNightlyProvider", groups = "slow", enabled = true)
+  @Test(dataProvider = "testSafeDataLevelHighNightlyProvider", enabled = true)
   public void testSafeDataLevelHighNightly(int sdLevel,
       boolean otherFakeDS, int otherFakeDsGid, long otherFakeDsGenId,
       int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen,
@@ -2013,7 +2014,7 @@ public class AssuredReplicationServerTest
    * Test that the RS is acking or not acking a safe data update sent from another
    * (fake) RS according to passed parameters.
    */
-  @Test(dataProvider = "testSafeDataFromRSProvider", groups = "slow", enabled = true)
+  @Test(dataProvider = "testSafeDataFromRSProvider", enabled = true)
   public void testSafeDataFromRS(int sdLevel, int fakeRsGid, long fakeRsGenId, boolean sendInAssured) throws Exception
   {
     String testCase = "testSafeDataFromRS";
@@ -2365,7 +2366,7 @@ public class AssuredReplicationServerTest
   /**
    * See testSafeReadOneRSComplex comment.
    */
-  @Test(dataProvider = "testSafeReadOneRSComplexPrecommitProvider", groups = "slow", enabled = true)
+  @Test(dataProvider = "testSafeReadOneRSComplexPrecommitProvider", enabled = true)
   public void testSafeReadOneRSComplexPrecommit(int otherFakeDsGid, long otherFakeDsGenId, int otherFakeDsScen,
     int otherFakeRsGid, long otherFakeRsGenId, int otherFakeRsScen) throws Exception
   {
@@ -2416,9 +2417,9 @@ public class AssuredReplicationServerTest
    * <ul>
    * All possible combinations tested thanks to the provider.
    * <p>
-   * Note: it is working but disabled as 17.5 minutes to run
+   * Note: takes several minutes to run (240 combinations).
    */
-  @Test(dataProvider = "testSafeReadOneRSComplexProvider", groups = "slow", enabled = false)
+  @Test(dataProvider = "testSafeReadOneRSComplexProvider", enabled = true)
   public void testSafeReadOneRSComplex(int otherFakeDsGid, long otherFakeDsGenId, int otherFakeDsScen,
     int otherFakeRsGid, long otherFakeRsGenId, int otherFakeRsScen) throws Exception
   {
@@ -2984,7 +2985,7 @@ public class AssuredReplicationServerTest
    * Topology:
    * DS1---RS1---RS2---DS2 (DS2 with changing configuration)
    */
-  @Test(dataProvider = "testSafeReadTwoRSsProvider", groups = "slow", enabled = true)
+  @Test(dataProvider = "testSafeReadTwoRSsProvider", enabled = true)
   public void testSafeReadTwoRSs(int fakeDsGid, long fakeDsGenId, int fakeDsScen) throws Exception
   {
     String testCase = "testSafeReadTwoRSs";
@@ -3102,7 +3103,7 @@ public class AssuredReplicationServerTest
    * Topology:
    * DS1---RS1---DS2 (DS2 going degraded)
    */
-  @Test(groups = "slow", enabled = true)
+  @Test(enabled = true)
   public void testSafeReadWrongStatus() throws Exception
   {
     String testCase = "testSafeReadWrongStatus";

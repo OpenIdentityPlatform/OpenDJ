@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.plugin;
 
@@ -285,7 +286,7 @@ public class StateMachineTest extends ReplicationTestCase
    * ->NC->N->D->N->NC
    * @throws Exception If a problem occurred
    */
-  @Test(enabled=true, groups="slow", dataProvider="stateMachineStatusAnalyzerTestProvider")
+  @Test(enabled=true, dataProvider="stateMachineStatusAnalyzerTestProvider")
   public void testStateMachineStatusAnalyzer(int thresholdValue) throws Throwable
   {
     String testCase = "testStateMachineStatusAnalyzer with threhold " + thresholdValue;
@@ -401,7 +402,7 @@ public class StateMachineTest extends ReplicationTestCase
    * ->NC->D->N->NC->N->D->NC->D->N->BG->NC->N->D->BG->FU->NC->N->D->FU->NC->BG->NC->N->FU->NC->N->NC
    * @throws Exception If a problem occurred
    */
-  @Test(enabled = false, groups = "slow")
+  @Test(enabled = false)
   public void testStateMachineFull() throws Exception
   {
     String testCase = "testStateMachineFull";

@@ -1071,7 +1071,7 @@ public class GenerationIdTest extends ReplicationTestCase
    * Test generationID saving when the root entry does not exist
    * at the moment when the replication is enabled.
    */
-  @Test(dependsOnMethods = { "testMultiRS" }, groups = "slow")
+  @Test(dependsOnMethods = { "testMultiRS" })
   public void testServerStop() throws Exception
   {
     String testCase = "testServerStop";
@@ -1112,7 +1112,7 @@ public class GenerationIdTest extends ReplicationTestCase
    * Loop opening sessions to the Replication Server
    * to check that it handle correctly disconnection and reconnection.
    */
-  @Test(dependsOnMethods = { "testServerStop" }, groups = "slow")
+  @Test(dependsOnMethods = { "testServerStop" })
   public void testLoop() throws Exception
   {
     String testCase = "testLoop";

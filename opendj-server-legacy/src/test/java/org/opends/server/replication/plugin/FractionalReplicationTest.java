@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.plugin;
 
@@ -190,7 +191,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Calls the testExclude test with a larger set of data, for nightly tests
    * purpose
    */
-  @Test(dataProvider = "testExcludeNightlyProvider", groups = "slow")
+  @Test(dataProvider = "testExcludeNightlyProvider")
   public void testExcludeNightly(int testProviderLineId,
     String... fractionalConf) throws Exception
   {
@@ -300,7 +301,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Calls the testInclude test with a larger set of data, for nightly tests
    * purpose
    */
-  @Test(dataProvider = "testIncludeNightlyProvider", groups = "slow")
+  @Test(dataProvider = "testIncludeNightlyProvider")
   public void testIncludeNightly(int testProviderLineId,
     String... fractionalConf) throws Exception
   {
@@ -802,7 +803,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Calls the testInitWithFullUpdateExclude test with a larger set of data, for nightly tests
    * purpose
    */
-  @Test(dataProvider = "testInitWithFullUpdateExcludeNightlyProvider", groups = "slow")
+  @Test(dataProvider = "testInitWithFullUpdateExcludeNightlyProvider")
   public void testInitWithFullUpdateExcludeNightly(int testProviderLineId,
     boolean importedDomainIsFractional, String... fractionalConf) throws Exception
   {
@@ -1038,7 +1039,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Calls the testInitWithFullUpdateExclude test with a larger set of data, for nightly tests
    * purpose
    */
-  @Test(dataProvider = "testInitWithFullUpdateIncludeNightlyProvider", groups = "slow")
+  @Test(dataProvider = "testInitWithFullUpdateIncludeNightlyProvider")
   public void testInitWithFullUpdateIncludeNightly(int testProviderLineId,
     boolean importedDomainIsFractional, String... fractionalConf) throws Exception
   {
