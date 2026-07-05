@@ -1282,10 +1282,6 @@
                       <value>org.opends.server.TestListener</value>
                     </property>
                     <property>
-                      <name>excludegroups</name>
-                      <value>slow</value>
-                    </property>
-                    <property>
                       <name>configfailurepolicy</name>
                       <value>skip</value>
                     </property>
