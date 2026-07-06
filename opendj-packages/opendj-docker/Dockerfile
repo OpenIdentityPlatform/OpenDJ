@@ -12,7 +12,7 @@
 #
 # Copyright 2018-2026 3A Systems, LLC.
 
-FROM eclipse-temurin:25-jre-jammy
+FROM eclipse-temurin:25-jre-noble
 
 LABEL org.opencontainers.image.authors="Open Identity Platform Community"
 
