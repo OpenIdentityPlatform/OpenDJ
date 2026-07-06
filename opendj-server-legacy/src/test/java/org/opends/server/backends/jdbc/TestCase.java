@@ -39,8 +39,16 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	@Override
 	public void setUp() throws Exception {
 		if(DockerClientFactory.instance().isDockerAvailable()) {
-			container = getContainer();
-			container.start();
+			try {
+				container = getContainer();
+				container.start();
+			} catch (Exception e) {
+				// The database container could not be started (e.g. a slow/flaky image
+				// pull or DB initialization failure on CI). Skip the test instead of
+				// failing the whole build - container startup is an infrastructure
+				// concern, not a regression in the JDBC backend under test.
+				throw new SkipException(getContainerDockerCommand());
+			}
 		}
 		try(Connection ignored = DriverManager.getConnection(createBackendCfg().getDBDirectory())){
 
