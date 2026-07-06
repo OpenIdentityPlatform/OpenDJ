@@ -125,12 +125,16 @@
          setup.bat first). -->
     <Component Id="OpenDJServiceExe" Directory="OPENDJ_LIB">
       <File Id="opendj_service.exe" Source="$(var.serviceExe)" KeyPath="yes"/>
-      <!-- [OPENDJ] ends with a backslash which would escape the closing quote in the
-           ImagePath, so an extra backslash is appended: \\" parses as backslash + quote. -->
+      <!-- [OPENDJ] always ends with a backslash, which would escape the closing quote in
+           the ImagePath, so a dot is appended: "<root>\." parses cleanly and
+           serviceCmdsMatch in service.c normalizes it back to "<root>" when the exe looks
+           its own service entry up (msiexec cannot write the canonical
+           '"<root>\lib\opendj_service.exe" start "<root>"' form: it only quotes the exe
+           when the path has spaces). -->
       <ServiceInstall Id="OpenDJService" Name="OpenDJ" DisplayName="OpenDJ Server"
                       Description="OpenDJ LDAPv3 Directory Server" Type="ownProcess"
                       Start="auto" ErrorControl="normal"
-                      Arguments="start &quot;[OPENDJ]\&quot;" Vital="no"/>
+                      Arguments="start &quot;[OPENDJ].&quot;" Vital="no"/>
       <ServiceControl Id="OpenDJServiceControl" Name="OpenDJ"
                       Stop="both" Remove="uninstall" Wait="yes"/>
     </Component>
