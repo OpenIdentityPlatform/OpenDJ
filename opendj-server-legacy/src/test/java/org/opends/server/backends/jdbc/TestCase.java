@@ -34,6 +34,11 @@ import org.testng.annotations.Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
@@ -57,12 +62,33 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			container = getContainer();
 			container.start();
 		}
-		try(Connection ignored = DriverManager.getConnection(createBackendCfg().getDBDirectory())){
-
+		try(Connection con = DriverManager.getConnection(createBackendCfg().getDBDirectory())){
+			dropStaleTrees(con);
 		} catch (Exception e) {
 			throw new SkipException(getContainerDockerCommand());
 		}
 		super.setUp();
+	}
+
+	/**
+	 * Backend test classes sharing one database map the same tree names to the same tables,
+	 * so a previous run may leave trees behind — including entries encrypted with a lost cipher key.
+	 */
+	static void dropStaleTrees(Connection con) throws SQLException {
+		final List<String> stale = new ArrayList<>();
+		try (final ResultSet rs = con.getMetaData().getTables(null, null, null, new String[]{"TABLE"})) {
+			while (rs.next()) {
+				final String name = rs.getString("TABLE_NAME");
+				if (name.toLowerCase().startsWith("opendj_")) {
+					stale.add(name);
+				}
+			}
+		}
+		try (final Statement st = con.createStatement()) {
+			for (final String name : stale) {
+				st.execute("drop table " + name);
+			}
+		}
 	}
 
 	@Override
