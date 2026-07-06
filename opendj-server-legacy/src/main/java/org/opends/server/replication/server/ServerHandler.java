@@ -928,16 +928,22 @@ public abstract class ServerHandler extends MessageHandler
   public UpdateMsg take() throws ChangelogException
   {
     UpdateMsg msg = getNextMessage();
-    if (msg != null && msg.isAssured()
-        && !replicationServerDomain.isExpectedAck(msg.getCSN(), serverId))
-    {
-      msg = toNotAssuredUpdateMsg(msg);
-    }
 
     acquirePermitInSendWindow();
 
     if (msg != null)
     {
+      // Decide whether to keep the assured flag as late as possible, right
+      // before the message is handed to the ServerWriter for publishing, so
+      // the ack window check reflects the state at send time and not the
+      // potentially much earlier time the message was dequeued:
+      // acquirePermitInSendWindow() above may block longer than the assured
+      // timeout when the send window is closed.
+      if (msg.isAssured()
+          && !replicationServerDomain.isExpectedAck(msg.getCSN(), serverId))
+      {
+        msg = toNotAssuredUpdateMsg(msg);
+      }
       incrementOutCount();
       if (msg.isAssured())
       {
@@ -949,15 +955,18 @@ public abstract class ServerHandler extends MessageHandler
   }
 
   /**
-   * Substitutes a not assured version of the provided update message.
+   * Substitutes a not assured version of the provided update message so that a
+   * peer not (or no longer) expected to acknowledge it does not receive it
+   * with the assured flag.
    * <p>
-   * Updates read back from the changelog during catch-up keep the assured
-   * flag of their original sender, whereas the in-memory queue path posts a
-   * {@link NotAssuredUpdateMsg} to servers not expected to acknowledge (see
-   * ReplicationServerDomain.addUpdate()). The assured flag must only be
-   * delivered while the ack window of the update is still open and this
-   * server was eligible for an ack when the update was received, otherwise
-   * the remote server would send back an ack that no one waits for.
+   * This is the counterpart, for the changelog catch-up path, of the
+   * {@link NotAssuredUpdateMsg} substitution performed on the in-memory queue
+   * path by ReplicationServerDomain.addUpdate(): updates re-read from the
+   * changelog DB keep the assured flag of their original sender. Doing the
+   * check here in {@link #take()} makes it the single guard covering both
+   * paths - on the queue path the message posted to a non-eligible peer is
+   * already a {@code NotAssuredUpdateMsg}, so {@code isAssured()} is false and
+   * this method is not even reached.
    */
   private UpdateMsg toNotAssuredUpdateMsg(UpdateMsg msg)
   {
@@ -967,6 +976,11 @@ public abstract class ServerHandler extends MessageHandler
     }
     catch (UnsupportedEncodingException e)
     {
+      // Could not build the not assured form (unexpected message encoding).
+      // Deliver the original message rather than dropping it: losing the
+      // update would break replication consistency, which is worse than a
+      // spurious ack - and such an ack is now safely ignored by
+      // ExpectedAcksInfo.processReceivedAck().
       logger.error(LocalizableMessage.raw(
           "Could not substitute a not assured version of update message %s: %s",
           msg, stackTraceToSingleLineString(e)));

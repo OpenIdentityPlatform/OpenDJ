@@ -51,6 +51,7 @@ import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.AssuredMode;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
@@ -581,7 +582,7 @@ public class AssuredReplicationServerTest
      * Sends a new update from this DS.
      * @throws TimeoutException If timeout waiting for an assured ack
      */
-    private void sendNewFakeUpdate() throws TimeoutException
+    private CSN sendNewFakeUpdate() throws TimeoutException
     {
       // Create a new delete update message (the simplest to create)
       DeleteMsg delMsg = new DeleteMsg(getBaseDN(), gen.newCSN(), UUID.randomUUID().toString());
@@ -590,6 +591,7 @@ public class AssuredReplicationServerTest
       prepareWaitForAckIfAssuredEnabled(delMsg);
       publish(delMsg);
       waitForAckIfAssuredEnabled(delMsg);
+      return delMsg.getCSN();
     }
 
     private void assertReceivedWrongUpdates(int expectedNbUpdates, int expectedNbWrongUpdates)
@@ -1076,51 +1078,106 @@ public class AssuredReplicationServerTest
   }
 
   /**
+   * Parameters for {@link #testCatchUpClearsAssuredFlag}: assured mode and
+   * safe data level of the update a peer catches up from the changelog.
+   */
+  @DataProvider(name = "catchUpAssuredModeProvider")
+  private Object[][] catchUpAssuredModeProvider()
+  {
+    return new Object[][]
+    {
+      { AssuredMode.SAFE_DATA_MODE, 1 },
+      { AssuredMode.SAFE_DATA_MODE, 2 },
+      { AssuredMode.SAFE_READ_MODE, 1 },
+    };
+  }
+
+  /**
    * Regression test for issue #710: an update served to a peer through the
    * changelog catch-up path must not keep the assured flag of its original
    * sender.
    * <p>
-   * A fake RS connects with an empty server state after an assured safe data
-   * level 1 update has already been received and persisted by the real RS. As
-   * the fake RS was not connected when the update was received, the update is
-   * re-read from the changelog DB (catch-up path) rather than served from the
-   * in-memory queue, and the fake RS is not an expected ack server for it.
-   * The update must therefore be forwarded with its assured flag cleared. This
-   * used to be delivered with assured=true, making the fake RS reply a
-   * spurious ack.
+   * A fake RS connects with an empty server state after an assured update has
+   * already been received and persisted by the real RS. As the fake RS was not
+   * connected when the update was received, the update is re-read from the
+   * changelog DB (catch-up path) rather than served from the in-memory queue,
+   * and the fake RS is not an expected ack server for it. The update must
+   * therefore be forwarded with its assured flag cleared (while its assured
+   * mode and safe data level are preserved). This used to be delivered with
+   * assured=true, making the fake RS reply a spurious ack. Exercised across
+   * safe data (level 1 and level > 1) and safe read modes.
    */
-  @Test(enabled = true)
-  public void testCatchUpClearsAssuredFlag() throws Exception
+  @Test(dataProvider = "catchUpAssuredModeProvider", enabled = true)
+  public void testCatchUpClearsAssuredFlag(AssuredMode assuredMode,
+      int safeDataLevel) throws Exception
   {
     String testCase = "testCatchUpClearsAssuredFlag";
-    debugInfo("Starting " + testCase);
+    debugInfo("Starting " + testCase + " mode=" + assuredMode + " sdl=" + safeDataLevel);
     initTest();
     try
     {
       // Real RS to be tested
       rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT, testCase, 0);
 
-      // Main DS sends an assured safe data level 1 update, acknowledged
-      // immediately by the RS. No other peer is connected yet, so the update
-      // only lands in the changelog DB, not in any peer message queue.
+      // Main DS sends an assured update, acknowledged by the RS. No other peer
+      // is connected yet, so the update only lands in the changelog DB, not in
+      // any peer message queue.
       fakeRDs[1] = createFakeReplicationDomain(FDS1_ID, DEFAULT_GID, RS1_ID,
-          DEFAULT_GENID, AssuredMode.SAFE_DATA_MODE, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
-      fakeRDs[1].sendNewFakeUpdate();
-      sleepWhileUpdatePropagates(500);
+          DEFAULT_GENID, assuredMode, safeDataLevel, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
+      CSN csn = fakeRDs[1].sendNewFakeUpdate();
+
+      // Ensure the update is persisted before the peer connects, so the peer is
+      // served through the changelog catch-up path (the RS acks the DS before
+      // persisting, so returning from sendNewFakeUpdate() does not guarantee it).
+      waitForChangePersisted(rs1, csn);
 
       // A fake RS connects with an empty state: it must catch up the historical
       // update from the changelog DB. It expects a non-assured forward and
       // never replies an ack (TIMEOUT_RS_SCENARIO).
       fakeRs1 = createFakeReplicationServer(FRS1_ID, DEFAULT_GID, DEFAULT_GENID,
-          false, AssuredMode.SAFE_DATA_MODE, 1, TIMEOUT_RS_SCENARIO);
+          false, assuredMode, safeDataLevel, TIMEOUT_RS_SCENARIO);
 
-      sleepWhileUpdatePropagates(500);
       // The historical update must have been received, with assured flag off
+      waitForReceivedUpdates(fakeRs1, 1);
       fakeRs1.assertReceivedUpdates(1);
     }
     finally
     {
       endTest();
+    }
+  }
+
+  /**
+   * Waits until the provided change has been persisted in the changelog of the
+   * provided replication server, i.e. is retrievable through the catch-up path.
+   */
+  private void waitForChangePersisted(ReplicationServer rs, CSN csn) throws Exception
+  {
+    ReplicationServerDomain domain =
+        rs.getReplicationServerDomain(DN.valueOf(TEST_ROOT_DN_STRING));
+    assertNotNull(domain);
+    int i = 0;
+    while (!domain.getLatestServerState().cover(csn))
+    {
+      if (i++ > 50)
+      {
+        Assert.fail("Change " + csn + " was not persisted in the changelog in time.");
+      }
+      Thread.sleep(100);
+    }
+  }
+
+  /**
+   * Waits until the provided fake RS has received at least the expected number
+   * of updates, so the assertion on the updates does not race with delivery.
+   */
+  private void waitForReceivedUpdates(FakeReplicationServer fakeRs, int expected)
+      throws Exception
+  {
+    int i = 0;
+    while (fakeRs.nReceivedUpdates < expected && i++ <= 50)
+    {
+      Thread.sleep(100);
     }
   }
 
