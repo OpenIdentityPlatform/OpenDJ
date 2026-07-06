@@ -13,12 +13,15 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.server;
 
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -924,7 +927,12 @@ public abstract class ServerHandler extends MessageHandler
    */
   public UpdateMsg take() throws ChangelogException
   {
-    final UpdateMsg msg = getNextMessage();
+    UpdateMsg msg = getNextMessage();
+    if (msg != null && msg.isAssured()
+        && !replicationServerDomain.isExpectedAck(msg.getCSN(), serverId))
+    {
+      msg = toNotAssuredUpdateMsg(msg);
+    }
 
     acquirePermitInSendWindow();
 
@@ -938,6 +946,32 @@ public abstract class ServerHandler extends MessageHandler
       return msg;
     }
     return null;
+  }
+
+  /**
+   * Substitutes a not assured version of the provided update message.
+   * <p>
+   * Updates read back from the changelog during catch-up keep the assured
+   * flag of their original sender, whereas the in-memory queue path posts a
+   * {@link NotAssuredUpdateMsg} to servers not expected to acknowledge (see
+   * ReplicationServerDomain.addUpdate()). The assured flag must only be
+   * delivered while the ack window of the update is still open and this
+   * server was eligible for an ack when the update was received, otherwise
+   * the remote server would send back an ack that no one waits for.
+   */
+  private UpdateMsg toNotAssuredUpdateMsg(UpdateMsg msg)
+  {
+    try
+    {
+      return new NotAssuredUpdateMsg(msg);
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      logger.error(LocalizableMessage.raw(
+          "Could not substitute a not assured version of update message %s: %s",
+          msg, stackTraceToSingleLineString(e)));
+      return msg;
+    }
   }
 
   private void acquirePermitInSendWindow()

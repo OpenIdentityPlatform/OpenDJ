@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2023-2026 3A Systems, LLC
  */
 package org.opends.server.replication.server;
 
@@ -1072,6 +1073,55 @@ public class AssuredReplicationServerTest
   public void testSafeDataLevelOnePrecommit() throws Exception
   {
     testSafeDataLevelOne(DEFAULT_GID, false, false, DEFAULT_GID, DEFAULT_GID);
+  }
+
+  /**
+   * Regression test for issue #710: an update served to a peer through the
+   * changelog catch-up path must not keep the assured flag of its original
+   * sender.
+   * <p>
+   * A fake RS connects with an empty server state after an assured safe data
+   * level 1 update has already been received and persisted by the real RS. As
+   * the fake RS was not connected when the update was received, the update is
+   * re-read from the changelog DB (catch-up path) rather than served from the
+   * in-memory queue, and the fake RS is not an expected ack server for it.
+   * The update must therefore be forwarded with its assured flag cleared. This
+   * used to be delivered with assured=true, making the fake RS reply a
+   * spurious ack.
+   */
+  @Test(enabled = true)
+  public void testCatchUpClearsAssuredFlag() throws Exception
+  {
+    String testCase = "testCatchUpClearsAssuredFlag";
+    debugInfo("Starting " + testCase);
+    initTest();
+    try
+    {
+      // Real RS to be tested
+      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT, testCase, 0);
+
+      // Main DS sends an assured safe data level 1 update, acknowledged
+      // immediately by the RS. No other peer is connected yet, so the update
+      // only lands in the changelog DB, not in any peer message queue.
+      fakeRDs[1] = createFakeReplicationDomain(FDS1_ID, DEFAULT_GID, RS1_ID,
+          DEFAULT_GENID, AssuredMode.SAFE_DATA_MODE, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
+      fakeRDs[1].sendNewFakeUpdate();
+      sleepWhileUpdatePropagates(500);
+
+      // A fake RS connects with an empty state: it must catch up the historical
+      // update from the changelog DB. It expects a non-assured forward and
+      // never replies an ack (TIMEOUT_RS_SCENARIO).
+      fakeRs1 = createFakeReplicationServer(FRS1_ID, DEFAULT_GID, DEFAULT_GENID,
+          false, AssuredMode.SAFE_DATA_MODE, 1, TIMEOUT_RS_SCENARIO);
+
+      sleepWhileUpdatePropagates(500);
+      // The historical update must have been received, with assured flag off
+      fakeRs1.assertReceivedUpdates(1);
+    }
+    finally
+    {
+      endTest();
+    }
   }
 
   /**

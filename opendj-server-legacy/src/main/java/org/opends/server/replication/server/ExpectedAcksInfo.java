@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 
 package org.opends.server.replication.server;
@@ -99,6 +100,20 @@ public abstract class ExpectedAcksInfo
     {
       expectedServersAckStatus.put(serverId, false);
     }
+  }
+
+  /**
+   * Indicates whether the provided server is one of the servers an ack is
+   * expected from for the matching update message. The set of expected
+   * servers is fixed at construction time, so this is safe to call without
+   * holding the lock on this object.
+   *
+   * @param serverId The serverId of the server.
+   * @return true if an ack is expected from the provided server.
+   */
+  public boolean isExpectedServer(int serverId)
+  {
+    return expectedServersAckStatus.containsKey(serverId);
   }
 
   /**
