@@ -753,9 +753,14 @@ public class AssuredReplicationServerTest
     private CSNGenerator gen;
 
     /** False if a received update had assured parameters not as expected. */
-    private boolean everyUpdatesAreOk = true;
-    /** Number of received updates. */
-    private int nReceivedUpdates;
+    private volatile boolean everyUpdatesAreOk = true;
+    /**
+     * Number of received updates. Volatile as it is incremented by the listen
+     * thread and polled from the test thread (waitForReceivedUpdates()); a read
+     * observing the incremented value also publishes everyUpdatesAreOk, which
+     * is written before the increment.
+     */
+    private volatile int nReceivedUpdates;
 
     /**
      * True if an ack has been replied to a received assured update (in assured
