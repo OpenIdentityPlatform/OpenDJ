@@ -282,7 +282,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			if (((CachedConnection) con).parent.getClass().getName().contains("oracle")) {
 				return "h char(128),k raw(2000),v blob,primary key(h,k)";
 			}else if (((CachedConnection) con).parent.getClass().getName().contains("mysql")) {
-				return "h char(128),k tinyblob,v longblob,primary key(h(128),k(255))";
+				return "h char(128),k varbinary(255),v longblob,primary key(h,k)";
 			}else if (((CachedConnection) con).parent.getClass().getName().contains("microsoft")) {
 				return "h char(128),k varbinary(max),v image,primary key(h)";
 			}
@@ -301,16 +301,39 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 					}
 				}
 				// CursorImpl iterates with "where k>? order by k" batches: primary key (h,k) cannot serve them
-				if (((CachedConnection) con).parent.getClass().getName().contains("postgres")) {
-					final String tableName=getTableName(treeName);
+				final String driverName=((CachedConnection) con).parent.getClass().getName();
+				final String tableName=getTableName(treeName);
+				if (driverName.contains("postgres")) {
 					try (final PreparedStatement statement=con.prepareStatement("create index if not exists k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)")){
 						execute(statement);
 						con.commit();
 					}catch (SQLException e) {
 						throw new StorageRuntimeException(e);
 					}
+				}else if (driverName.contains("mysql")) {
+					try {
+						if (!isExistsIndex(tableName,"k_"+tableName.substring("opendj_".length()))) { // mysql has no "create index if not exists"
+							try (final PreparedStatement statement=con.prepareStatement("create index k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)")){
+								execute(statement);
+								con.commit();
+							}
+						}
+					}catch (SQLException e) {
+						throw new StorageRuntimeException(e);
+					}
 				}
 			}
+		}
+
+		boolean isExistsIndex(String tableName, String indexName) throws SQLException {
+			try (final ResultSet rs = con.getMetaData().getIndexInfo(null, null, tableName, false, false)) {
+				while (rs.next()) {
+					if (indexName.equalsIgnoreCase(rs.getString("INDEX_NAME"))) {
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 		
 		public void clearTree(TreeName treeName) {
