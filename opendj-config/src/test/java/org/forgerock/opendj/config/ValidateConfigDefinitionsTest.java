@@ -20,13 +20,8 @@ package org.forgerock.opendj.config;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -65,9 +60,20 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
 
     /** Exceptions to config objects having a different objectclass. */
     private static final List<String> CLASS_OBJECT_CLASS_EXCEPTIONS = Arrays.asList(new String[] {
-        "org.forgerock.opendj.config.std.meta.RootCfgDefn", "org.forgerock.opendj.config.std.meta.GlobalCfgDefn", });
+        "org.forgerock.opendj.server.config.meta.RootCfgDefn",
+        "org.forgerock.opendj.server.config.meta.GlobalCfgDefn", });
 
-    /** TODO : does not work because can't retrieve object class objects */
+    /**
+     * Validates the naming conventions of every configuration definition and its properties.
+     * <p>
+     * This checks the parts of a definition that can be verified from the definitions and their
+     * LDAP profiles alone: object class and attribute names follow the {@code ds-cfg-} convention,
+     * {@code -class}/{@code -enabled} properties use the canonical names, and properties are not
+     * redundantly prefixed with their object name. It intentionally does not validate a definition
+     * against the live {@code ds-cfg-*} LDAP schema (required/optional attributes, single- vs
+     * multi-valued, mandatory), because that schema is generated in the server module and is not on
+     * this module's test class path.
+     */
     @Test(dataProvider = "enumerateManageObjectDefns")
     public void validateConfigObjectDefinitions(AbstractManagedObjectDefinition<?, ?> objectDef) {
         String objName = objectDef.getName();
@@ -87,14 +93,12 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
                         + " instead of " + ldapObjectclassName).append(EOL + EOL);
             }
         }
-        ObjectClass configObjectClass =
-            Schema.getDefaultSchema().asNonStrictSchema().getObjectClass(ldapObjectclassName.toLowerCase());
 
         for (PropertyDefinition<?> propDef : allPropertyDefs) {
-            validatePropertyDefinition(objectDef, configObjectClass, propDef, errors);
+            validatePropertyDefinition(objectDef, propDef, errors);
         }
 
-        assertTrue(errors.length() != 0, "The configuration definition for " + objectDef.getName()
+        assertTrue(errors.length() == 0, "The configuration definition for " + objectDef.getName()
                + " has the following problems: " + EOL + errors);
     }
 
@@ -116,8 +120,15 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
     // e.g. "prop-name-starting-with-object-prefix"
     });
 
+    /** Exceptions to LDAP attribute names not following the ds-cfg-&lt;property&gt; convention. */
+    private static final List<String> LDAP_ATTRIBUTE_NAME_EXCEPTIONS = Arrays.asList(new String[] {
+        // http-endpoint's authorization-mechanism property intentionally maps to this attribute.
+        "ds-cfg-http-authorization-mechanism"
+    // e.g. "ds-cfg-non-standard-attribute-name"
+    });
+
     private void validatePropertyDefinition(AbstractManagedObjectDefinition<?, ?> objectDef,
-        ObjectClass configObjectClass, PropertyDefinition<?> propDef, StringBuilder errors) {
+        PropertyDefinition<?> propDef, StringBuilder errors) {
         String objName = objectDef.getName();
         String propName = propDef.getName();
 
@@ -154,51 +165,12 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
 
         // LDAP attribute name is consistent with the property name
         String expectedLdapAttr = "ds-cfg-" + propName;
-        if (!ldapAttrName.equals(expectedLdapAttr)) {
+        if (!ldapAttrName.equals(expectedLdapAttr) && !LDAP_ATTRIBUTE_NAME_EXCEPTIONS.contains(ldapAttrName)) {
             errors.append(
                 "For the " + propName + " property on config object " + objName + ", the LDAP attribute must be "
-                    + expectedLdapAttr + " instead of " + ldapAttrName).append(EOL + EOL);
-        }
-
-        Schema schema = Schema.getDefaultSchema();
-        AttributeType attrType = schema.getAttributeType(ldapAttrName);
-
-        // LDAP attribute exists
-        if (attrType == null) {
-            errors.append(
-                propName + " property on config object " + objName + " is declared" + " to use ldap attribute "
-                    + ldapAttrName + ", but this attribute is not in the schema ").append(EOL + EOL);
-        } else {
-
-            // LDAP attribute is multivalued if the property is multivalued
-            if (propDef.hasOption(PropertyOption.MULTI_VALUED) && attrType.isSingleValue()) {
-                errors.append(
-                    propName + " property on config object " + objName + " is declared"
-                        + " as multi-valued, but the corresponding ldap attribute " + ldapAttrName
-                        + " is declared as single-valued.").append(EOL + EOL);
-            }
-
-            if (configObjectClass != null) {
-                // If it's mandatory in the schema, it must be mandatory on the
-                // config property
-                Set<AttributeType> mandatoryAttributes = configObjectClass.getRequiredAttributes();
-                if (mandatoryAttributes.contains(attrType) && !propDef.hasOption(PropertyOption.MANDATORY)) {
-                    errors.append(
-                        propName + " property on config object " + objName + " is not declared"
-                            + " as mandatory even though the corresponding ldap attribute " + ldapAttrName
-                            + " is declared as mandatory in the schema.").append(EOL + EOL);
-                }
-
-                Set<AttributeType> allowedAttributes = new HashSet<>(mandatoryAttributes);
-                allowedAttributes.addAll(configObjectClass.getOptionalAttributes());
-                if (!allowedAttributes.contains(attrType)) {
-                    errors.append(
-                        propName + " property on config object " + objName + " has"
-                            + " the corresponding ldap attribute " + ldapAttrName
-                            + ", but this attribute is not an allowed attribute on the configuration "
-                            + " object's objectclass " + configObjectClass.getNameOrOID()).append(EOL + EOL);
-                }
-            }
+                    + expectedLdapAttr + " instead of " + ldapAttrName + ".  If this deviation is intentional,"
+                    + " then add " + ldapAttrName + " to the LDAP_ATTRIBUTE_NAME_EXCEPTIONS array in "
+                    + ValidateConfigDefinitionsTest.class.getName() + " to suppress this warning.").append(EOL + EOL);
         }
     }
 
