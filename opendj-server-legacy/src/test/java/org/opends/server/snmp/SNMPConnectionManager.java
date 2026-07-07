@@ -140,7 +140,7 @@ public abstract class SNMPConnectionManager extends DirectoryServerTestCase
 
     try
     {
-      String host = InetAddress.getLocalHost().getCanonicalHostName();
+      String host = "localhost";
       SnmpOidTableSupport oidTable = new DIRECTORY_SERVER_MIBOidTable();
       SnmpOid.setSnmpOidTable(oidTable);
 
