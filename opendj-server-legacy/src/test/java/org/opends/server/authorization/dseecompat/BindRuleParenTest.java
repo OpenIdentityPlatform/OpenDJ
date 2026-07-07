@@ -31,6 +31,8 @@ import org.testng.annotations.Test;
  * data instead of grouping parentheses. Before the quote-aware scan, a grouped
  * bind rule whose value contained a parenthesis was wrongly rejected because the
  * embedded parenthesis was counted when locating the matching close parenthesis.
+ * Also verifies the scan stays fail-closed: genuinely unbalanced grouping
+ * parentheses (outside quotes) are still rejected with an {@link AciException}.
  */
 @SuppressWarnings("javadoc")
 public class BindRuleParenTest extends DirectoryServerTestCase
@@ -72,5 +74,26 @@ public class BindRuleParenTest extends DirectoryServerTestCase
     AciBody body = AciBody.decode(aci);
     assertThat(body.getPermBindRulePairs()).hasSize(1);
     assertThat(body.getPermBindRulePairs().get(0).getBindRule()).isNotNull();
+  }
+
+  @DataProvider(name = "malformedBindRules")
+  public Object[][] malformedBindRules()
+  {
+    return new Object[][] {
+      // grouped bind rule with no close parenthesis at all
+      { "(userdn=\"ldap:///self\"" },
+      // grouped bind rule with one extra (unmatched) open parenthesis
+      { "((userdn=\"ldap:///self\")" },
+      // grouped bind rule whose only ')' is embedded in a quoted value, so the
+      // group is genuinely unterminated: the quote-aware scan must not treat the
+      // embedded ')' as the closing parenthesis and silently accept the input.
+      { "(userdn=\"ldap:///cn=a)b,dc=x\" or userdn=\"ldap:///self\"" },
+    };
+  }
+
+  @Test(dataProvider = "malformedBindRules")
+  public void rejectsUnbalancedParensOutsideQuotes(String bindRule)
+  {
+    assertThatThrownBy(() -> BindRule.decode(bindRule)).isInstanceOf(AciException.class);
   }
 }
