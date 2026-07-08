@@ -648,9 +648,6 @@
               <showDeprecation>false</showDeprecation>
               <showWarnings>false</showWarnings>
               <testCompilerArgument>-nowarn</testCompilerArgument>
-              <testExcludes>
-                <testExclude>**/org/opends/server/snmp/**</testExclude>
-              </testExcludes>
             </configuration>
           </execution>
         </executions>
@@ -1260,9 +1257,6 @@
 <!--				  <enableProcessChecker>all</enableProcessChecker>-->
 				  <forkedProcessTimeoutInSeconds>2400</forkedProcessTimeoutInSeconds>
                   <forkedProcessExitTimeoutInSeconds>120</forkedProcessExitTimeoutInSeconds>
-                  <excludes>
-                    <exclude>org/opends/server/snmp/**</exclude>
-                  </excludes>
                   <includes>
                     <include>**/Test*.java</include>
                     <include>**/*Test.java</include>
@@ -1289,7 +1283,7 @@
                     <org.opends.server.BuildRoot>${basedir}</org.opends.server.BuildRoot>
                     <org.opends.server.BuildDir>${project.build.directory}</org.opends.server.BuildDir>
                     <org.opends.test.replicationDbImpl>LOG</org.opends.test.replicationDbImpl>
-                    <jvmarg value="-Dorg.opends.server.snmp.opendmk=${opendmk.lib.dir}" />
+                    <org.opends.server.snmp.opendmk>${opendmk.lib.dir}</org.opends.server.snmp.opendmk>
                     <org.opends.server.CleanupDirectories>true</org.opends.server.CleanupDirectories>
                     <org.opends.test.suppressOutput>true</org.opends.test.suppressOutput>
                     <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>
