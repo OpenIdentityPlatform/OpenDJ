@@ -146,11 +146,17 @@ public class BindRule {
      * @throws AciException If the string is an invalid bind rule.
      */
     public static BindRule decode (String input) throws AciException {
-        if (input == null || input.length() == 0)
+        if (input == null)
         {
           return null;
         }
         String bindruleStr = input.trim();
+        if (bindruleStr.isEmpty())
+        {
+          // A blank bind rule (e.g. "(          )") must be rejected as a
+          // syntax error rather than throwing StringIndexOutOfBoundsException.
+          return null;
+        }
         char firstChar = bindruleStr.charAt(0);
         char[] bindruleArray = bindruleStr.toCharArray();
 
