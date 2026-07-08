@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2024-2026 3A Systems, LLC
  */
 package org.forgerock.opendj.config;
 
@@ -35,8 +36,7 @@ public class StringPropertyDefinitionTest extends ConfigTestCase {
         d.validateValue("abc");
     }
 
-    // TODO : I18N problem
-    @Test(enabled = false, expectedExceptions = PropertyException.class)
+    @Test(expectedExceptions = PropertyException.class)
     public void testValidateValuePatternDoesNotMatch() {
         StringPropertyDefinition d = getDefinition(true, "^[a-z]+$");
         d.validateValue("abc123");
@@ -48,8 +48,7 @@ public class StringPropertyDefinitionTest extends ConfigTestCase {
         assertEquals(d.decodeValue("abc"), "abc");
     }
 
-    // TODO : I18N problem
-    @Test(enabled = false, expectedExceptions = PropertyException.class)
+    @Test(expectedExceptions = PropertyException.class)
     public void testDecodeValuePatternDoesNotMatch() {
         StringPropertyDefinition d = getDefinition(true, "^[a-z]+$");
         d.decodeValue("abc123");
