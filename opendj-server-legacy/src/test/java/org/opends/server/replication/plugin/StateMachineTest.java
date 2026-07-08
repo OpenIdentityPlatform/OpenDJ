@@ -293,7 +293,7 @@ public class StateMachineTest extends ReplicationTestCase
    * ->NC->N->D->N->NC
    * @throws Exception If a problem occurred
    */
-  @Test(enabled=true, groups="slow", dataProvider="stateMachineStatusAnalyzerTestProvider")
+  @Test(enabled=true, dataProvider="stateMachineStatusAnalyzerTestProvider")
   public void testStateMachineStatusAnalyzer(int thresholdValue) throws Throwable
   {
     String testCase = "testStateMachineStatusAnalyzer with threhold " + thresholdValue;

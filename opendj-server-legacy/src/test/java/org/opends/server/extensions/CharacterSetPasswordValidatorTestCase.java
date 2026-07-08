@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.extensions;
 
@@ -176,7 +177,7 @@ public class CharacterSetPasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "validConfigs", groups = "slow")
+  @Test(dataProvider = "validConfigs")
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {

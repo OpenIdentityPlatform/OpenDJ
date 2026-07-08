@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.server;
 
@@ -204,6 +205,24 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     attributes.add("queue-size-bytes", msgQueue.bytesCount());
     attributes.add("following", following);
     return attributes;
+  }
+
+  /**
+   * Indicates whether this handler is served from the in-memory message
+   * queue, i.e. it is done catching up with the changelog DB.
+   * <p>
+   * Package private: allows tests to wait until a freshly connected peer
+   * will receive published updates through the in-memory queue path rather
+   * than re-read from the changelog DB.
+   *
+   * @return true when this handler follows the in-memory message queue
+   */
+  boolean isFollowing()
+  {
+    synchronized (msgQueue)
+    {
+      return following;
+    }
   }
 
   /**

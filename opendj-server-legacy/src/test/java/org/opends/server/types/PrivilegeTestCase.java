@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.types;
 
@@ -956,7 +957,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "testdata", groups = { "slow" })
+  @Test(dataProvider = "testdata")
   public void testBackupBackend(InternalClientConnection conn,
                                 boolean hasPrivilege)
          throws Exception
@@ -991,8 +992,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "testdata", groups = { "slow" },
-        dependsOnMethods = { "testBackupBackend" })
+  @Test(dataProvider = "testdata", dependsOnMethods = { "testBackupBackend" })
   public void testRestoreBackend(InternalClientConnection conn,
                                  boolean hasPrivilege)
          throws Exception
@@ -1022,7 +1022,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "testdata", groups = { "slow" })
+  @Test(dataProvider = "testdata")
   public void testLDIFExport(InternalClientConnection conn,
                              boolean hasPrivilege)
          throws Exception
@@ -1063,7 +1063,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "testdata", groups = { "slow" })
+  @Test(dataProvider = "testdata")
   public void testLDIFImport(InternalClientConnection conn,
                              boolean hasPrivilege)
          throws Exception
@@ -1096,7 +1096,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *                     and therefore the rebuild should succeed.
    * @throws Exception if an unexpected problem occurs.
    */
-  @Test(dataProvider = "testdata", groups = { "slow" })
+  @Test(dataProvider = "testdata")
   public void testRebuildIndex(InternalClientConnection conn,
                                boolean hasPrivilege)
       throws Exception
