@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.extensions;
 
@@ -404,7 +405,7 @@ public class DefaultEntryCacheTestCase
 
 
   /** {@inheritDoc} */
-  @Test(groups = { "slow", "testDefaultCacheConcurrency" },
+  @Test(groups = { "testDefaultCacheConcurrency" },
         threadPoolSize = 10,
         invocationCount = 10,
         timeOut = 60000)

@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.server;
 
@@ -1066,7 +1067,7 @@ public class AssuredReplicationServerTest
    * See testSafeDataLevelOne comment.
    * This is a facility to run the testSafeDataLevelOne in precommit in simplest
    * case, so that precommit run test something and is not long.
-   * testSafeDataLevelOne will run in nightly tests (groups = "slow")
+   * testSafeDataLevelOne will run in nightly tests ()
    */
   @Test(enabled = true)
   public void testSafeDataLevelOnePrecommit() throws Exception
@@ -1125,7 +1126,7 @@ public class AssuredReplicationServerTest
    * All possible combinations tested thanks to the provider
    */
   @Test(dataProvider = "testSafeDataLevelOneProvider",
-        groups = { "slow", "opendj-256" },
+        groups = { "opendj-256" },
         enabled = true)
   public void testSafeDataLevelOne(
       int mainDsGid, boolean otherFakeDS, boolean fakeRS,
@@ -1187,8 +1188,12 @@ public class AssuredReplicationServerTest
           false, AssuredMode.SAFE_DATA_MODE, 1, TIMEOUT_RS_SCENARIO);
       }
 
-      // Send update from DS 1
+      // Wait for connections to be finished
+      // DS must see expected numbers of fake DSs and RSs
       final FakeReplicationDomain fakeRd1 = fakeRDs[1];
+      waitForStableTopo(fakeRd1, otherFakeDS ? 1 : 0, fakeRS ? 2 : 1);
+
+      // Send update from DS 1
       long startTime = System.currentTimeMillis();
       fakeRd1.sendNewFakeUpdate();
 
@@ -1276,7 +1281,7 @@ public class AssuredReplicationServerTest
   /**
    * See testSafeDataLevelHigh comment.
    */
-  @Test(dataProvider = "testSafeDataLevelHighPrecommitProvider", groups = "slow", enabled = true)
+  @Test(dataProvider = "testSafeDataLevelHighPrecommitProvider", enabled = true)
   public void testSafeDataLevelHighPrecommit(int sdLevel,
       boolean otherFakeDS, int otherFakeDsGid, long otherFakeDsGenId,
       int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen,
@@ -1386,7 +1391,7 @@ public class AssuredReplicationServerTest
   /**
    * See testSafeDataLevelHigh comment.
    */
-  @Test(dataProvider = "testSafeDataLevelHighNightlyProvider", groups = "slow", enabled = true)
+  @Test(dataProvider = "testSafeDataLevelHighNightlyProvider", enabled = true)
   public void testSafeDataLevelHighNightly(int sdLevel,
       boolean otherFakeDS, int otherFakeDsGid, long otherFakeDsGenId,
       int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen,
@@ -1892,6 +1897,7 @@ public class AssuredReplicationServerTest
       if (dsInfo.size() == expectedDs && rsInfo.size() == expectedRs)
       {
         debugInfo("waitForStableTopo: expected topo obtained after " + nSec + " second(s).");
+        waitForAllConnectedPeersFollowing();
         return;
       }
       Thread.sleep(100);
@@ -1900,6 +1906,49 @@ public class AssuredReplicationServerTest
     while (nSec < 30);
     Assert.fail("Did not reach expected topo view in time: expected " + expectedDs +
       " DSs (had " + dsInfo +") and " + expectedRs + " RSs (had " + rsInfo +").");
+  }
+
+  /**
+   * Wait until every peer connected to the real RS is served from the RS
+   * in-memory message queue ("following") rather than catching up from the
+   * changelog DB. A freshly connected peer always starts in catch-up mode:
+   * until its server writer has checked there is nothing to recover from the
+   * changelog DB, updates are re-read from the DB and keep the assured flag
+   * of the original sender, while the NotAssuredUpdateMsg substitution
+   * performed by ReplicationServerDomain only applies to the in-memory queue
+   * path. An update sent by the test while a peer is still catching up may
+   * thus reach it with unexpected assured parameters and break
+   * checkUpdateAssuredParameters(). This regularly happens on slow (CI)
+   * machines.
+   */
+  private void waitForAllConnectedPeersFollowing() throws Exception
+  {
+    final ReplicationServerDomain domain =
+        rs1.getReplicationServerDomain(DN.valueOf(TEST_ROOT_DN_STRING));
+    assertNotNull(domain);
+    long nSec = 0;
+    long startTime = System.currentTimeMillis();
+    do
+    {
+      boolean allFollowing = true;
+      for (ServerHandler handler : domain.getConnectedDSs().values())
+      {
+        allFollowing &= handler.isFollowing();
+      }
+      for (ServerHandler handler : domain.getConnectedRSs().values())
+      {
+        allFollowing &= handler.isFollowing();
+      }
+      if (allFollowing)
+      {
+        debugInfo("waitForAllConnectedPeersFollowing: all peers following after " + nSec + " second(s).");
+        return;
+      }
+      Thread.sleep(100);
+      nSec = (System.currentTimeMillis() - startTime) / 1000;
+    }
+    while (nSec < 30);
+    Assert.fail("Some peers connected to the real RS did not catch up with the changelog DB in time");
   }
 
   /**
@@ -2013,7 +2062,7 @@ public class AssuredReplicationServerTest
    * Test that the RS is acking or not acking a safe data update sent from another
    * (fake) RS according to passed parameters.
    */
-  @Test(dataProvider = "testSafeDataFromRSProvider", groups = "slow", enabled = true)
+  @Test(dataProvider = "testSafeDataFromRSProvider", enabled = true)
   public void testSafeDataFromRS(int sdLevel, int fakeRsGid, long fakeRsGenId, boolean sendInAssured) throws Exception
   {
     String testCase = "testSafeDataFromRS";
@@ -2365,7 +2414,7 @@ public class AssuredReplicationServerTest
   /**
    * See testSafeReadOneRSComplex comment.
    */
-  @Test(dataProvider = "testSafeReadOneRSComplexPrecommitProvider", groups = "slow", enabled = true)
+  @Test(dataProvider = "testSafeReadOneRSComplexPrecommitProvider", enabled = true)
   public void testSafeReadOneRSComplexPrecommit(int otherFakeDsGid, long otherFakeDsGenId, int otherFakeDsScen,
     int otherFakeRsGid, long otherFakeRsGenId, int otherFakeRsScen) throws Exception
   {
@@ -2416,9 +2465,9 @@ public class AssuredReplicationServerTest
    * <ul>
    * All possible combinations tested thanks to the provider.
    * <p>
-   * Note: it is working but disabled as 17.5 minutes to run
+   * Note: takes several minutes to run (240 combinations).
    */
-  @Test(dataProvider = "testSafeReadOneRSComplexProvider", groups = "slow", enabled = false)
+  @Test(dataProvider = "testSafeReadOneRSComplexProvider", enabled = true)
   public void testSafeReadOneRSComplex(int otherFakeDsGid, long otherFakeDsGenId, int otherFakeDsScen,
     int otherFakeRsGid, long otherFakeRsGenId, int otherFakeRsScen) throws Exception
   {
@@ -2984,7 +3033,7 @@ public class AssuredReplicationServerTest
    * Topology:
    * DS1---RS1---RS2---DS2 (DS2 with changing configuration)
    */
-  @Test(dataProvider = "testSafeReadTwoRSsProvider", groups = "slow", enabled = true)
+  @Test(dataProvider = "testSafeReadTwoRSsProvider", enabled = true)
   public void testSafeReadTwoRSs(int fakeDsGid, long fakeDsGenId, int fakeDsScen) throws Exception
   {
     String testCase = "testSafeReadTwoRSs";
@@ -3102,7 +3151,7 @@ public class AssuredReplicationServerTest
    * Topology:
    * DS1---RS1---DS2 (DS2 going degraded)
    */
-  @Test(groups = "slow", enabled = true)
+  @Test(enabled = true)
   public void testSafeReadWrongStatus() throws Exception
   {
     String testCase = "testSafeReadWrongStatus";

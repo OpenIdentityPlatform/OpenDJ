@@ -21,25 +21,25 @@ import org.testng.annotations.Test;
 
 import java.time.Duration;
 
-//docker run --rm --name oracle-db -p 1521:1521 -e APP_USER=opendj -e ORACLE_DATABASE=database_name -e APP_USER_PASSWORD=password gvenzl/oracle-free:23.4-slim-faststart
+//docker run --rm --name oracle-db -p 1521:1521 -e APP_USER=opendj -e ORACLE_DATABASE=database_name -e APP_USER_PASSWORD=password gvenzl/oracle-free:23.26.2-slim-faststart
 
 @Test(sequential = true)
 public class OracleTestCase extends TestCase {
 
     @Override
     protected JdbcDatabaseContainer<?> getContainer() {
-        return new OracleContainer("gvenzl/oracle-free:23.6-faststart")
+        return new OracleContainer("gvenzl/oracle-free:23.26.2-slim-faststart")
                 .withExposedPorts(1521)
                 .withUsername("opendj")
                 .withPassword("password")
                 .withDatabaseName("database_name")
                 .withStartupTimeout(Duration.ofMinutes(5))
-                .withStartupAttempts(10);
+                .withStartupAttempts(2);
     }
 
     @Override
     protected String getContainerDockerCommand() {
-        return "run before test: docker run --rm --name oracle-db -p 1521:1521 -e APP_USER=opendj -e ORACLE_DATABASE=database_name -e APP_USER_PASSWORD=password gvenzl/oracle-free:23.4-slim-faststart";
+        return "run before test: docker run --rm --name oracle-db -p 1521:1521 -e APP_USER=opendj -e ORACLE_DATABASE=database_name -e APP_USER_PASSWORD=password gvenzl/oracle-free:23.26.2-slim-faststart";
     }
 
     @Override

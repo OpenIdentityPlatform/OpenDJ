@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication;
 
@@ -131,7 +132,7 @@ public class ReSyncTest extends ReplicationTestCase
    * <li>Check that entry has been added again in the LDAP server.</li>
    * </ol>
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void testResyncAfterRestore() throws Exception
   {
     // Delete the entry we are going to use to make sure that we do test something.
@@ -178,7 +179,7 @@ public class ReSyncTest extends ReplicationTestCase
    * <li>Check that entry has been added again in the LDAP server.</li>
    * </ol>
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void testResyncAfterImport() throws Exception
   {
     // delete the entry we are going to use to make sure that we do test something.

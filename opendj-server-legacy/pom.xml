@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2011-2016 ForgeRock AS.
-  Portions Copyright 2017-2025 3A Systems, LLC.
+  Portions Copyright 2017-2026 3A Systems, LLC.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
@@ -1104,7 +1104,7 @@
             <phase>generate-resources</phase>
             <configuration>
               <target>
-                <copy todir="${project.build.directory}/template/config" file="${basedir}/resource/config/config.ldif" />
+                <copy todir="${project.build.directory}/template/config" file="${basedir}/resource/config/config.ldif" overwrite="true" />
               </target>
             </configuration>
             <goals>
@@ -1255,7 +1255,7 @@
 		          </additionalClasspathElements>
 				  <testSourceDirectory>src/test/java</testSourceDirectory>
 <!--				  <enableProcessChecker>all</enableProcessChecker>-->
-				  <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
+				  <forkedProcessTimeoutInSeconds>2400</forkedProcessTimeoutInSeconds>
                   <forkedProcessExitTimeoutInSeconds>120</forkedProcessExitTimeoutInSeconds>
                   <includes>
                     <include>**/Test*.java</include>
@@ -1263,6 +1263,7 @@
                     <include>**/*Tests.java</include>
                     <include>**/*TestCase.java</include>
                     <include>**/*TestCases.java</include>
+                    <include>**/*TestSuite.java</include>
                   </includes>
                   <properties>
                     <property>
@@ -1272,10 +1273,6 @@
                     <property>
                       <name>listener</name>
                       <value>org.opends.server.TestListener</value>
-                    </property>
-                    <property>
-                      <name>excludegroups</name>
-                      <value>slow</value>
                     </property>
                     <property>
                       <name>configfailurepolicy</name>

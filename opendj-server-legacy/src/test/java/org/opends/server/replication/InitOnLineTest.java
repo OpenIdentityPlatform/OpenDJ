@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication;
 
@@ -539,7 +540,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * and test that, on S1 side, the task ends with an error.
    * State of the backend on S1 partially initialized: ?
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void initializeImport() throws Exception
   {
     String testCase = "initializeImport ";
@@ -590,7 +591,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * - test that S1 has successfully exported the entries (by receiving them
    *   on S2 side).
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void initializeExport() throws Exception
   {
     String testCase = "initializeExport";
@@ -632,7 +633,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * - wait task completed
    * - test that S2 has successfully received the entries
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void initializeTargetExport() throws Exception
   {
     String testCase = "initializeTargetExport";
@@ -684,7 +685,7 @@ public class InitOnLineTest extends ReplicationTestCase
    *
    * TODO: Error case: make S2 crash in the middle of the import and test what??
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void initializeTargetExportAll() throws Exception
   {
     String testCase = "initializeTargetExportAll";
@@ -736,7 +737,7 @@ public class InitOnLineTest extends ReplicationTestCase
   /**
    * Tests the import side of the InitializeTarget task.
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void initializeTargetImport() throws Exception
   {
     String testCase = "initializeTargetImport";
@@ -919,7 +920,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * connected to each replication server of the topology, thanks to the
    * ReplServerInfoMessage(s) exchanged by the replication servers.
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void testReplServerInfos() throws Exception
   {
     String testCase = "testReplServerInfos";
@@ -976,7 +977,7 @@ public class InitOnLineTest extends ReplicationTestCase
     return domain.getConnectedDSs().keySet();
   }
 
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void initializeTargetExportMultiSS() throws Exception
   {
     String testCase = "initializeTargetExportMultiSS";
@@ -1039,7 +1040,7 @@ public class InitOnLineTest extends ReplicationTestCase
     Assertions.assertThat(msgrcv).isInstanceOf(InitializeTargetMsg.class);
   }
 
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void initializeExportMultiSS() throws Exception
   {
     String testCase = "initializeExportMultiSS";

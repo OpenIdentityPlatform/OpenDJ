@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2023-2026 3A Systems, LLC
  */
 package org.opends.server.replication;
 
@@ -357,7 +358,7 @@ public class UpdateOperationTest extends ReplicationTestCase
    * Tests whether the synchronization provider fails over when it loses
    * the heartbeat from the replication server.
    */
-  @Test(groups = "slow")
+  @Test
   public void lostHeartbeatFailover() throws Exception
   {
     testSetUp("lostHeartbeatFailover");
@@ -428,7 +429,7 @@ public class UpdateOperationTest extends ReplicationTestCase
    * It then uses this session to simulate conflicts and therefore
    * test the modify conflict resolution code.
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void modifyConflicts() throws Exception
   {
     testSetUp("modifyConflicts");
@@ -532,13 +533,35 @@ public class UpdateOperationTest extends ReplicationTestCase
       attrs = entry.getAllAttributes(attrType);
 
       // there should not be a value (delete at time t2)
-      assertNull(attrs);
+      Assertions.assertThat(attrs).isEmpty();
       assertEquals(getMonitorDelta(), 1);
     }
     finally
     {
       broker.stop();
     }
+  }
+
+  /**
+   * Waits for the replay thread to update the monitored counter: reading the
+   * monitor immediately after publishing a message races with the replay.
+   */
+  private void waitForMonitorDelta(final long expectedDelta) throws Exception
+  {
+    final long[] total = { 0 };
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(30, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        total[0] += getMonitorDelta();
+        assertEquals(total[0], expectedDelta);
+      }
+    });
   }
 
   /**
@@ -551,7 +574,7 @@ public class UpdateOperationTest extends ReplicationTestCase
    * It then uses this session to simulate conflicts and therefore
    * test the naming conflict resolution code.
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void namingConflicts() throws Exception
   {
     testSetUp("namingConflicts");
@@ -750,7 +773,10 @@ public class UpdateOperationTest extends ReplicationTestCase
       // check that the delete operation has not been applied
       assertNotNull(getEntry(newPersonDN, 10000, true),
           "The DELETE replication message was replayed when it should not");
-      assertEquals(getMonitorDelta(), 1);
+      // The entry already exists, so the getEntry() call above does not wait
+      // for the replay: poll the monitor until the replay thread has resolved
+      // the conflict.
+      waitForMonitorDelta(1);
       assertConflictAutomaticallyResolved(alertCount);
 
 

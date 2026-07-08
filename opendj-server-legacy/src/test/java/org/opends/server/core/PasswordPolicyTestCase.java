@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.core;
 
@@ -4601,7 +4602,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = "slow")
+  @Test
   public void testPasswordHistoryUsingDuration()
          throws Exception
   {

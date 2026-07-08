@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.types;
 
@@ -96,6 +97,40 @@ public class LDAPURLTestCase extends TypesTestCase
     LDAPURL url = LDAPURL.decode(urlString, fullyDecode);
     assertEquals(url.getRawBaseDN(), dnString);
     assertEquals(url.getRawFilter(), filterString);
+  }
+
+
+
+  /**
+   * Test data for testTruncatedPercentEncoding.
+   *
+   * @return URLs with a percent sign followed by fewer than two hexadecimal digits.
+   */
+  @DataProvider
+  public Object[][] truncatedPercentData()
+  {
+    return new Object[][] {
+        { "ldap:///cn=name%B" },
+        { "ldap:///cn=name%" },
+    };
+  }
+
+
+
+  /**
+   * A percent sign followed by fewer than two hexadecimal digits must be rejected with a
+   * clean decode error instead of an ArrayIndexOutOfBoundsException - see issue #673.
+   *
+   * @param urlString
+   *          The URL to decode.
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(dataProvider = "truncatedPercentData",
+        expectedExceptions = DirectoryException.class)
+  public void testTruncatedPercentEncoding(String urlString) throws Exception
+  {
+    LDAPURL.decode(urlString, true);
   }
 
 }
