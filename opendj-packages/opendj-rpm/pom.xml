@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -151,6 +152,16 @@
                         <url>${doc.homepage.url}</url>
                         <needarch>noarch</needarch>
                         <targetOS>linux</targetOS>
+                        <requires>
+                            <!-- The server needs a JRE (11+) at run time. -->
+                            <require>java-headless &gt;= 1:11</require>
+                            <!-- _script-util.sh locates java via "which java". -->
+                            <require>which</require>
+                            <!-- postinstall/preuninstall register the service via /sbin/chkconfig. -->
+                            <require>chkconfig</require>
+                            <!-- /etc/init.d/opendj sources /etc/init.d/functions on RedHat-family. -->
+                            <require>initscripts</require>
+                        </requires>
                         <description>
                             ${rpm.description.header}
                             OpenDJ is an LDAPv3 compliant directory service, developed for the Java
