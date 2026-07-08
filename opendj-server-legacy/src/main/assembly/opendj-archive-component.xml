@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015-2016 ForgeRock AS.
-  Portions Copyright 2018-2024 3A Systems, LLC
+  Portions Copyright 2018-2026 3A Systems, LLC
 -->
 <!-- OpenDJ final archive content descriptor -->
 <component>
@@ -26,7 +26,7 @@
       <outputFileNameMapping>${artifact.groupId}.${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
       <excludes>
         <exclude>javax.activation:activation</exclude>
-        <exclude>org.forgerock.opendj:opendj-server-legacy</exclude>
+        <exclude>org.openidentityplatform.opendj:opendj-server-legacy</exclude>
       </excludes>
     </dependencySet>
   </dependencySets>
