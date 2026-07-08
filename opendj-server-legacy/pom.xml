@@ -1262,8 +1262,6 @@
                   <forkedProcessExitTimeoutInSeconds>120</forkedProcessExitTimeoutInSeconds>
                   <excludes>
                     <exclude>org/opends/server/snmp/**</exclude>
-                    <exclude>org/opends/quicksetup/**</exclude>
-                    <exclude>org/opends/quicksetup/**</exclude>
                   </excludes>
                   <includes>
                     <include>**/Test*.java</include>
