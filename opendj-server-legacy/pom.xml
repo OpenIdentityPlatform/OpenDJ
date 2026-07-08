@@ -1107,7 +1107,7 @@
             <phase>generate-resources</phase>
             <configuration>
               <target>
-                <copy todir="${project.build.directory}/template/config" file="${basedir}/resource/config/config.ldif" />
+                <copy todir="${project.build.directory}/template/config" file="${basedir}/resource/config/config.ldif" overwrite="true" />
               </target>
             </configuration>
             <goals>
@@ -1262,8 +1262,6 @@
                   <forkedProcessExitTimeoutInSeconds>120</forkedProcessExitTimeoutInSeconds>
                   <excludes>
                     <exclude>org/opends/server/snmp/**</exclude>
-                    <exclude>org/opends/quicksetup/**</exclude>
-                    <exclude>org/opends/quicksetup/**</exclude>
                   </excludes>
                   <includes>
                     <include>**/Test*.java</include>

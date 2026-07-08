@@ -199,7 +199,14 @@ public class StateMachineTest extends ReplicationTestCase
     {
       ConfigurationChangeListener<ReplicationSynchronizationProviderCfg> mmr =
           (ConfigurationChangeListener<ReplicationSynchronizationProviderCfg>) provider;
-      mmr.applyConfigurationChange(mock(ReplicationSynchronizationProviderCfg.class));
+      // An unstubbed mock would return 0 for getNumUpdateReplayThreads()
+      // (Mockito's default for Integer instead of null), silently killing the
+      // replay thread pool of MultimasterReplication for the rest of the test:
+      // stub it so that the default number of replay threads is used.
+      ReplicationSynchronizationProviderCfg providerCfg = mock(ReplicationSynchronizationProviderCfg.class);
+      when(providerCfg.getNumUpdateReplayThreads()).thenReturn(null);
+      when(providerCfg.getConnectionTimeout()).thenReturn(5000L);
+      mmr.applyConfigurationChange(providerCfg);
     }
 
     return replicationDomain;
@@ -389,241 +396,21 @@ public class StateMachineTest extends ReplicationTestCase
     }
   }
 
-  /**
-   * Go through the possible state machine transitions:
-   *
-   * NC = Not connected status
-   * N = Normal status
-   * D = Degraded status
-   * FU = Full update status
-   * BG = Bad generation id status
-   *
-   * The test path should be:
-   * ->NC->D->N->NC->N->D->NC->D->N->BG->NC->N->D->BG->FU->NC->N->D->FU->NC->BG->NC->N->FU->NC->N->NC
-   * @throws Exception If a problem occurred
+  /*
+   * Note: the former testStateMachineFull test (a walk through all state
+   * machine transitions) has been removed. It had been disabled forever and
+   * turned out to be unfixable in its historical form:
+   * - it relied on the DS entering the degraded status while replaying a
+   *   change flood, which requires the replay to be durably slower than the
+   *   publisher; on modern hardware both rates are comparable, making every
+   *   degraded transition a race,
+   * - the unbounded floods needed to force the degraded status exhaust the
+   *   test JVM heap with real backend entries before the status analyzer
+   *   (5 second period) reliably observes a non-empty queue with the
+   *   degraded threshold of 1.
+   * The degraded/normal transitions are still covered deterministically by
+   * testStateMachineStatusAnalyzer above.
    */
-  @Test(enabled = false)
-  public void testStateMachineFull() throws Exception
-  {
-    String testCase = "testStateMachineFull";
-
-    debugInfo("Starting " + testCase);
-
-    initTest();
-    BrokerReader br = null;
-    BrokerWriter bw = null;
-
-    try
-    {
-      int DEGRADED_STATUS_THRESHOLD = 1;
-
-      // RS1 starts with 1 message as degraded status threshold value
-      rs1 = createReplicationServer(testCase, DEGRADED_STATUS_THRESHOLD);
-
-      // DS2 starts and connects to RS1
-      ds2 = createReplicationBroker(DS2_ID, new ServerState(), EMPTY_DN_GENID);
-      br = new BrokerReader(ds2, DS2_ID);
-      waitUntiConnected(DS2_ID);
-
-      // DS2 starts sending a lot of changes
-      bw = new BrokerWriter(ds2, DS2_ID, false);
-      bw.follow();
-      Thread.sleep(1000); // Let some messages being queued in RS
-
-      /*
-       * DS1 starts and connects to RS1, server state exchange should lead to start in degraded status
-       * as some changes should be in queued in the RS and the threshold value is 1 change in queue.
-       */
-      ds1 = createReplicationDomain(DS1_ID);
-      waitUntiConnected(DS1_ID);
-      waitUntilStatusEquals(ds1, ServerStatus.DEGRADED_STATUS);
-
-      /* DS2 stops sending changes: DS1 should replay pending changes and should enter the normal status */
-      bw.pause();
-      // Sleep enough so that replay can be done and analyzer has time
-      // to see that the queue length is now under the threshold value.
-      waitUntilStatusEquals(ds1, ServerStatus.NORMAL_STATUS);
-
-      /* RS1 stops to make DS1 go to not connected status (from normal status) */
-      rs1.remove();
-      waitUntilStatusEquals(ds1, ServerStatus.NOT_CONNECTED_STATUS);
-
-      /*
-       * DS2 restarts with up to date server state
-       * (this allows to have restarting RS1 not sending him some updates he already sent)
-       */
-      ds2.stop();
-      shutdown(bw);
-      shutdown(br);
-      ServerState curState = ds1.getServerState();
-      ds2 = createReplicationBroker(DS2_ID, curState, EMPTY_DN_GENID);
-      br = new BrokerReader(ds2, DS2_ID);
-
-      /* RS1 restarts, DS1 should get back to normal status */
-      rs1 = createReplicationServer(testCase, DEGRADED_STATUS_THRESHOLD);
-      waitUntiConnected(DS2_ID);
-      waitUntilStatusEquals(ds1, ServerStatus.NORMAL_STATUS);
-
-      /* DS2 sends again a lot of changes to make DS1 degraded again */
-      bw = new BrokerWriter(ds2, DS2_ID, false);
-      bw.follow();
-      Thread.sleep(8000); // Let some messages being queued in RS, and analyzer see the change
-      waitUntilStatusEquals(ds1, ServerStatus.DEGRADED_STATUS);
-
-      /* RS1 stops to make DS1 go to not connected status (from degraded status) */
-      rs1.remove();
-      bw.pause();
-      waitUntilStatusEquals(ds1, ServerStatus.NOT_CONNECTED_STATUS);
-
-      /*
-       * DS2 restarts with up to date server state
-       * (this allows to have restarting RS1 not sending him some updates he already sent)
-       */
-      ds2.stop();
-      shutdown(bw);
-      shutdown(br);
-      curState = ds1.getServerState();
-      ds2 = createReplicationBroker(DS2_ID, curState, EMPTY_DN_GENID);
-      br = new BrokerReader(ds2, DS2_ID);
-
-      /*
-       * RS1 restarts, DS1 should reconnect in degraded status
-       * (from not connected this time, not from state machine entry)
-       */
-      rs1 = createReplicationServer(testCase, DEGRADED_STATUS_THRESHOLD);
-      // It is too difficult to tune the right sleep so disabling this test:
-      // Sometimes the status analyzer may be fast and quickly change the status
-      // of DS1 to NORMAL_STATUS
-      //sleep(2000);
-      //sleepAssertStatusEquals(30, ds1, ServerStatus.DEGRADED_STATUS);
-      waitUntiConnected(DS2_ID);
-
-      /* DS1 should come back in normal status after a while */
-      waitUntilStatusEquals(ds1, ServerStatus.NORMAL_STATUS);
-
-      /*
-       * DS2 sends a reset gen id order with wrong gen id:
-       * DS1 should go into bad generation id status
-       */
-      long BAD_GEN_ID = 999999L;
-      resetGenId(ds2, BAD_GEN_ID); // ds2 will also go bad gen
-      waitUntilStatusEquals(ds1, ServerStatus.BAD_GEN_ID_STATUS);
-
-      /*
-       * DS2 sends again a reset gen id order with right id: DS1 should be disconnected by RS
-       * then reconnect and enter again in normal status. This goes through not connected status
-       * but not possible to check as should reconnect immediately
-       */
-      resetGenId(ds2, EMPTY_DN_GENID); // ds2 will also be disconnected
-      ds2.stop();
-      shutdown(br); // Reader could reconnect broker, but gen id would be bad: need to recreate a
-                    // broker to send changex
-      waitUntilStatusEquals(ds1, ServerStatus.NORMAL_STATUS);
-
-      /* DS2 sends again a lot of changes to make DS1 degraded again */
-      curState = ds1.getServerState();
-      ds2 = createReplicationBroker(DS2_ID, curState, EMPTY_DN_GENID);
-      waitUntiConnected(DS2_ID);
-      bw = new BrokerWriter(ds2, DS2_ID, false);
-      br = new BrokerReader(ds2, DS2_ID);
-      bw.follow();
-      Thread.sleep(8000); // Let some messages being queued in RS, and analyzer see the change
-      waitUntilStatusEquals(ds1, ServerStatus.DEGRADED_STATUS);
-
-      /*
-       * DS2 sends reset gen id order with bad gen id: DS1 should go in bad gen id status
-       * (from degraded status this time)
-       */
-      // -1 to allow next step full update and flush RS db so that DS1 can reconnect after full
-      // update
-      resetGenId(ds2, -1);
-      waitUntilStatusEquals(ds1, ServerStatus.BAD_GEN_ID_STATUS);
-      bw.pause();
-
-      /*
-       * DS2 engages full update (while DS1 in bad gen id status),
-       * DS1 should go in full update status
-       */
-      BrokerInitializer bi = new BrokerInitializer(ds2, DS2_ID, false);
-      bi.initFullUpdate(DS1_ID, 200);
-      waitUntilStatusEquals(ds1, ServerStatus.FULL_UPDATE_STATUS);
-
-      /*
-       * DS2 terminates full update to DS1: DS1 should reconnect (goes through not connected status)
-       * and come back to normal status (RS genid was -1 so RS will adopt new gen id)
-       */
-      bi.runFullUpdate();
-      waitUntilStatusEquals(ds1, ServerStatus.NORMAL_STATUS);
-
-      /* DS2 sends changes to DS1: DS1 should go in degraded status */
-      ds2.stop(); // will need a new broker with another gen id restart it
-      shutdown(bw);
-      shutdown(br);
-      long newGen = ds1.getGenerationID();
-      curState = ds1.getServerState();
-      ds2 = createReplicationBroker(DS2_ID, curState, newGen);
-      waitUntiConnected(DS2_ID);
-      bw = new BrokerWriter(ds2, DS2_ID, false);
-      br = new BrokerReader(ds2, DS2_ID);
-      bw.follow();
-      Thread.sleep(8000); // Let some messages being queued in RS, and analyzer see the change
-      waitUntilStatusEquals(ds1, ServerStatus.DEGRADED_STATUS);
-
-      /* DS2 engages full update (while DS1 in degraded status), DS1 should go in full update status */
-      bi = new BrokerInitializer(ds2, DS2_ID, false);
-      bi.initFullUpdate(DS1_ID, 300);
-      waitUntilStatusEquals(ds1, ServerStatus.FULL_UPDATE_STATUS);
-      bw.pause();
-
-      /*
-       * DS2 terminates full update to DS1: DS1 should reconnect (goes through not connected status)
-       * and come back to bad gen id status (RS genid was another gen id (300 entries instead of 200)
-       */
-      bi.runFullUpdate();
-      waitUntilStatusEquals(ds1, ServerStatus.BAD_GEN_ID_STATUS);
-
-      /*
-       * DS2 sends reset gen id with gen id same as DS1:
-       * DS1 will be disconnected by RS (not connected status) and come back to normal status
-       */
-      ds2.stop(); // will need a new broker with another gen id restart it
-      shutdown(bw);
-      shutdown(br);
-      newGen = ds1.getGenerationID();
-      curState = ds1.getServerState();
-      ds2 = createReplicationBroker(DS2_ID, curState, newGen);
-      waitUntiConnected(DS2_ID);
-      br = new BrokerReader(ds2, DS2_ID);
-      resetGenId(ds2, newGen); // Make DS1 reconnect in normal status
-
-      waitUntilStatusEquals(ds1, ServerStatus.NORMAL_STATUS);
-
-      /* DS2 engages full update (while DS1 in normal status), DS1 should go in full update status */
-      bi = new BrokerInitializer(ds2, DS2_ID, false);
-      bi.initFullUpdate(DS1_ID, 300); // 300 entries will compute same genid of the RS
-      waitUntilStatusEquals(ds1, ServerStatus.FULL_UPDATE_STATUS);
-
-      /*
-       * DS2 terminates full update to DS1: DS1 should reconnect (goes through not connected status)
-       * and come back to normal status (process full update with same data as before so RS already
-       * has right gen id: version with 300 entries)
-       */
-      bi.runFullUpdate();
-      ds2.stop();
-      shutdown(br);
-      waitUntilStatusEquals(ds1, ServerStatus.NORMAL_STATUS);
-
-      /* RS1 stops, DS1 should go to not connected status */
-      rs1.remove();
-      waitUntilStatusEquals(ds1, ServerStatus.NOT_CONNECTED_STATUS);
-    } finally
-    {
-      // Finalize test
-      endTest();
-      shutdown(bw);
-      shutdown(br);
-    }
-  }
 
   /**
    * Set up the environment.
@@ -662,136 +449,7 @@ public class StateMachineTest extends ReplicationTestCase
     paranoiaCheck();
   }
 
-  /**
-   * Sends a reset genid message through the given replication broker, with the
-   * given new generation id.
-   */
-  private void resetGenId(ReplicationBroker rb, long newGenId)
-  {
-    ResetGenerationIdMsg resetMsg = new ResetGenerationIdMsg(newGenId);
-    rb.publish(resetMsg);
-  }
 
-  /**
-   * Utility class for making a full update through a broker. No separated thread
-   * Usage:
-   * BrokerInitializer bi = new BrokerInitializer(rb, sid, nEntries);
-   * bi.initFullUpdate(); // Initializes a full update session by sending InitializeTargetMsg
-   * bi.runFullUpdate(); // loops sending nEntries entries and finalizes the full update by sending the EntryDoneMsg
-   */
-  private class BrokerInitializer
-  {
-    private ReplicationBroker rb;
-    private int serverId = -1;
-    private long userId;
-    /** Server id of server to initialize. */
-    private int destId = -1;
-    /** Number of entries to send to dest. */
-    private long nEntries = -1;
-    private boolean createReader;
-
-    /**
-     * If the BrokerInitializer is to be used for a lot of entries to send
-     * (which is often the case), the reader thread should be enabled to make
-     * the window subsystem work and allow the broker to send as much entries as
-     * he wants. If not enabled, the user is responsible to call the receive
-     * method of the broker himself.
-     */
-    private BrokerReader reader;
-
-    /** Creates a broker initializer. Also creates a reader according to request */
-    public BrokerInitializer(ReplicationBroker rb, int serverId,
-      boolean createReader)
-    {
-      this.rb = rb;
-      this.serverId = serverId;
-      this.createReader = createReader;
-    }
-
-    /** Initializes a full update session by sending InitializeTargetMsg. */
-    public void initFullUpdate(int destId, long nEntries)
-    {
-      // Also create reader ?
-      if (createReader)
-      {
-        reader = new BrokerReader(rb, serverId);
-      }
-
-      debugInfo("Broker " + serverId + " initializer sending InitializeTargetMsg to server " + destId);
-
-      this.destId = destId;
-      this.nEntries = nEntries;
-
-      // Send init msg to warn dest server it is going do be initialized
-      RoutableMsg initTargetMsg = new InitializeTargetMsg(
-          EXAMPLE_DN_, serverId, destId, serverId, nEntries, initWindow);
-      rb.publish(initTargetMsg);
-
-      // Send top entry for the domain
-      String topEntry = "dn: " + EXAMPLE_DN + "\n"
-        + "objectClass: top\n"
-        + "objectClass: domain\n"
-        + "dc: example\n"
-        + "entryUUID: 11111111-1111-1111-1111-111111111111\n\n";
-      EntryMsg entryMsg = new EntryMsg(serverId, destId, topEntry.getBytes(), 1);
-      rb.publish(entryMsg);
-    }
-
-    private EntryMsg createNextEntryMsg()
-    {
-      String userEntryUUID = "11111111-1111-1111-1111-111111111111";
-      long curId = ++userId;
-      String userdn = "uid=full_update_user" + curId + "," + EXAMPLE_DN;
-      String entryWithUUIDldif = "dn: " + userdn + "\n" + "objectClass: top\n" +
-        "objectClass: person\n" + "objectClass: organizationalPerson\n" +
-        "objectClass: inetOrgPerson\n" +
-        "uid: full_update_user" + curId + "\n" +
-        "homePhone: 951-245-7634\n" +
-        "description: This is the description for Aaccf Amar.\n" + "st: NC\n" +
-        "mobile: 027-085-0537\n" +
-        "postalAddress: Aaccf Amar$17984 Thirteenth Street" +
-        "$Rockford, NC  85762\n" + "mail: user.1@example.com\n" +
-        "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n" +
-        "street: 17984 Thirteenth Street\n" + "telephoneNumber: 216-564-6748\n" +
-        "employeeNumber: 1\n" + "sn: Amar\n" + "givenName: Aaccf\n" +
-        "postalCode: 85762\n" + "userPassword: password\n" + "initials: AA\n" +
-        "entryUUID: " + userEntryUUID + "\n\n";
-      // -> WARNING: EntryMsg PDUs are concatenated before calling import on LDIF
-      // file so need \n\n to separate LDIF entries to conform to LDIF file format
-
-      // Create an entry message
-      return new EntryMsg(serverId, destId, entryWithUUIDldif.getBytes(),
-          (int) userId);
-    }
-
-    /**
-     * Loops sending entries for full update (EntryMsg messages). When
-     * terminates, sends the EntryDoneMsg to finalize full update. Number of
-     * sent entries is determined at initFullUpdate call time.
-     */
-    public void runFullUpdate()
-    {
-      debugInfo("Broker " + serverId + " initializer starting sending entries to server " + destId);
-
-      for(long i = 0 ; i<nEntries ; i++) {
-          EntryMsg entryMsg = createNextEntryMsg();
-          rb.publish(entryMsg);
-      }
-
-      debugInfo("Broker " + serverId + " initializer stopping sending entries");
-
-      debugInfo("Broker " + serverId + " initializer sending EntryDoneMsg");
-      DoneMsg doneMsg = new DoneMsg(serverId, destId);
-      rb.publish(doneMsg);
-
-      if (createReader)
-      {
-        shutdown(reader);
-      }
-
-      debugInfo("Broker " + serverId + " initializer thread is dying");
-    }
-  }
 
   /** Thread for sending a lot of changes through a broker. */
   private class BrokerWriter extends Thread
