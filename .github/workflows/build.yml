@@ -442,6 +442,25 @@ jobs:
         with:
           path: ~/jmeter
           key: jmeter-5.6.3
+      - name: Benchmark PDB vs JE
+        shell: bash
+        run: |
+          A_BACKEND=je B_BACKEND=pdb THREADS=200 DURATION=150 bash .github/benchmark/compare-opendj.sh \
+            "JE"  localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }} \
+            "PDB" localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
+      - name: Upload benchmark artifacts (PDB vs JE)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-pdb-vs-je
+          path: |
+            a/
+            b/
+            *.jtl
+            *.docker.log
+            *.jmeter.out
+          if-no-files-found: warn
+          retention-days: 3
       - name: Benchmark Build vs Release
         shell: bash
         run: |

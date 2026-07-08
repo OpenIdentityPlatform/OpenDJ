@@ -20,6 +20,8 @@
 # Usage:
 #   compare-opendj.sh <A_name> <A_image> <B_name> <B_image>
 # Env: THREADS (default 200), DURATION (default 150), JMETER_VERSION (default 5.6.3).
+#      A_BACKEND / B_BACKEND (optional) -- userRoot backend type per side (e.g. je, pdb);
+#      when set, passed to the container as -e BACKEND_TYPE=<type>. Empty => image default.
 set -euo pipefail
 
 A_NAME="${1:?server A name required}"
@@ -30,6 +32,8 @@ B_IMAGE="${4:?server B image required}"
 THREADS="${THREADS:-200}"
 DURATION="${DURATION:-150}"
 JMETER_VERSION="${JMETER_VERSION:-5.6.3}"
+A_BACKEND="${A_BACKEND:-}"
+B_BACKEND="${B_BACKEND:-}"
 BASEDN="dc=example,dc=com"
 BENCHPW="benchPass1"
 HERE="$(cd "$(dirname "$0")" && pwd)"   # .github/benchmark
@@ -55,12 +59,15 @@ wait_dj() {  # poll OpenDJ readiness on localhost:1389
   return 1
 }
 
-# bench_one <image> <out-slug>  -> prints the captured server version (stdout only)
+# bench_one <image> <out-slug> [backend-type]  -> prints the captured server version (stdout only)
 bench_one() {
-  local image="$1" out="$2" ver=""
+  local image="$1" out="$2" backend="${3:-}" ver=""
   docker rm -f opendj-bench >/dev/null 2>&1 || true
+  # ${backend:+...} expands to "-e BACKEND_TYPE=<type>" only when a type is given; the
+  # values used (je/pdb) contain no spaces, so word-splitting is safe and portable.
   if docker run -d --name opendj-bench -p 1389:1389 \
        -e ROOT_PASSWORD=password -e BASE_DN="$BASEDN" -e ADD_BASE_ENTRY=--addBaseEntry \
+       ${backend:+-e BACKEND_TYPE=$backend} \
        "$image" >/dev/null 2>&1; then
     wait_dj || echo "WARN: $image not ready in time" >&2
     ldapadd -x -H ldap://localhost:1389 -D "cn=Directory Manager" -w password \
@@ -91,10 +98,10 @@ bench_one() {
   printf '%s' "$ver"
 }
 
-echo "Benchmarking ${A_NAME} (${A_IMAGE}) @ ${THREADS} threads / ${DURATION}s ..."
-A_VER="$(bench_one "$A_IMAGE" a)"
-echo "Benchmarking ${B_NAME} (${B_IMAGE}) @ ${THREADS} threads / ${DURATION}s ..."
-B_VER="$(bench_one "$B_IMAGE" b)"
+echo "Benchmarking ${A_NAME} (${A_IMAGE}${A_BACKEND:+, backend=$A_BACKEND}) @ ${THREADS} threads / ${DURATION}s ..."
+A_VER="$(bench_one "$A_IMAGE" a "$A_BACKEND")"
+echo "Benchmarking ${B_NAME} (${B_IMAGE}${B_BACKEND:+, backend=$B_BACKEND}) @ ${THREADS} threads / ${DURATION}s ..."
+B_VER="$(bench_one "$B_IMAGE" b "$B_BACKEND")"
 
 {
   bash "$HERE/summary.sh" \
@@ -103,8 +110,14 @@ B_VER="$(bench_one "$B_IMAGE" b)"
   echo ""
   echo "### Notes"
   echo ""
-  echo "- **${A_NAME}** = freshly built image; **${B_NAME}** = latest released image. Both are"
-  echo "  OpenDJ, so they share the same default password storage scheme (hashing parity is automatic)."
+  if [ -n "${A_BACKEND}${B_BACKEND}" ]; then
+    echo "- **${A_NAME}** (\`BACKEND_TYPE=${A_BACKEND:-default}\`) and **${B_NAME}**"
+    echo "  (\`BACKEND_TYPE=${B_BACKEND:-default}\`) are the same OpenDJ image; only the userRoot"
+    echo "  backend type differs, so the comparison isolates the storage backend."
+  else
+    echo "- **${A_NAME}** = freshly built image; **${B_NAME}** = latest released image. Both are"
+    echo "  OpenDJ, so they share the same default password storage scheme (hashing parity is automatic)."
+  fi
   echo "- The admin connection bind (\`ADMIN_CONNECT\`) is cached per thread and excluded; \`BIND\` is"
   echo "  the measured user authentication (\`test=sbind\`, single bind/unbind)."
 } >> "${GITHUB_STEP_SUMMARY:-/dev/stdout}"
