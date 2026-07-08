@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -34,11 +35,15 @@ public class Permission {
     /** Regular expression token representing the separator. */
     private static final String separatorToken = ",";
 
-    /** Regular expression used to match the ACI rights string. */
-    private static final String rightsRegex = ZERO_OR_MORE_WHITESPACE +
-            WORD_GROUP + ZERO_OR_MORE_WHITESPACE +
-            "(," + ZERO_OR_MORE_WHITESPACE + WORD_GROUP +
-            ZERO_OR_MORE_WHITESPACE +  ")*";
+    /**
+     * Regular expression used to match the ACI rights string. Possessive
+     * quantifiers keep the unbounded repetition from recursing in the regex
+     * engine (issue #665).
+     */
+    private static final String rightsRegex = ZERO_OR_MORE_WHITESPACE_POSSESSIVE +
+            WORD_GROUP_POSSESSIVE + ZERO_OR_MORE_WHITESPACE_POSSESSIVE +
+            "(," + ZERO_OR_MORE_WHITESPACE_POSSESSIVE + WORD_GROUP_POSSESSIVE +
+            ZERO_OR_MORE_WHITESPACE_POSSESSIVE +  ")*+";
 
     /** The access type (allow,deny) corresponding to the ACI permission value. */
     private final EnumAccessType accessType;
