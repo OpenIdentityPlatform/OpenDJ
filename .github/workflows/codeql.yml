@@ -66,6 +66,10 @@ jobs:
           - language: actions
             os: ubuntu-latest
             build-mode: none
+          # 'ruby' (interpreted) covers the few .rb helper/extension scripts.
+          - language: ruby
+            os: ubuntu-latest
+            build-mode: none
           # C/C++ (the Windows native launcher/service under
           # opendj-server-legacy/src/build-tools/windows) has no 'none' build
           # mode, so it is compiled manually with nmake/MSVC on Windows, exactly
