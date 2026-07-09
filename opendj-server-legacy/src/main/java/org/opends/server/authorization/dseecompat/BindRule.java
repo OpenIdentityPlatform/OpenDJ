@@ -212,6 +212,14 @@ public class BindRule {
                 bindruleStr.substring(currentPos + 1);
             return createBindRule(bindrule_1, remainingBindruleStr);
           }
+          /*
+           * An empty group such as "()" decodes to a null bind rule. A group
+           * with no bind rule inside is not valid, so reject it instead of
+           * returning null and letting the caller dereference it later.
+           */
+          if (bindrule_1 == null) {
+            throw new AciException(WARN_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(input));
+          }
           return bindrule_1;
         }
         else
@@ -295,6 +303,15 @@ public class BindRule {
      */
     private static BindRule createBindRule(BindRule bindrule,
             String remainingBindruleStr) throws AciException {
+        /*
+         * The left operand of an "and"/"or" bind rule must exist. It is null when
+         * the left side reduced to an empty group such as "()" (for example the
+         * bind rule "()or userdn=..."). A complex bind rule with a null left side
+         * would later be dereferenced during evaluation, so reject it here.
+         */
+        if (bindrule == null) {
+            throw new AciException(WARN_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(remainingBindruleStr));
+        }
         Pattern remainingBindrulePattern = Pattern.compile(remainingBindruleRegex);
         Matcher remainingBindruleMatcher = remainingBindrulePattern.matcher(remainingBindruleStr);
         if (remainingBindruleMatcher.find()) {
@@ -318,6 +335,15 @@ public class BindRule {
             boolean negate=determineNegation(ruleExpr);
             remainingBindrule=ruleExpr.toString();
             BindRule bindrule_2 = BindRule.decode(remainingBindrule);
+            /*
+             * The right operand of an "and"/"or" bind rule must exist. It is null
+             * when the boolean operator is not followed by a bind rule, e.g. the
+             * "or" in "(()or)" has nothing to its right (issue #719).
+             */
+            if (bindrule_2 == null) {
+                throw new AciException(
+                    WARN_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(remainingBindruleStr));
+            }
             bindrule_2.setNegate(negate);
             return new BindRule(bindrule, bindrule_2, operand);
         }
