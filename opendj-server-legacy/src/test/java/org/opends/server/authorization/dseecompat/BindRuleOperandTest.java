@@ -65,6 +65,14 @@ public class BindRuleOperandTest extends DirectoryServerTestCase
       { "()or userdn=\"ldap:///self\"" },
       // an empty group is not a bind rule on its own
       { "()" },
+      // a nested empty group is still empty
+      { "(())" },
+      // a whitespace-only group is empty once trimmed
+      { "(   )" },
+      // empty right *group*: reaches the decode-level guard from createBindRule
+      { "(userdn=\"ldap:///self\" or ())" },
+      // "not" applied to an empty group
+      { "not ()" },
     };
   }
 
@@ -74,11 +82,40 @@ public class BindRuleOperandTest extends DirectoryServerTestCase
     assertThatThrownBy(() -> BindRule.decode(bindRule)).isInstanceOf(AciException.class);
   }
 
-  /** Reproduces the full ACI from issue #719 through {@link Aci#decode}. */
-  @Test
-  public void decodeOfAciWithMissingOperandThrowsAciException()
+  @DataProvider(name = "validBindRules")
+  public Object[][] validBindRules()
   {
-    String aci = "(version 3.0; acl \"ac\"; allow (search)(()or) (userdn=\"ldap:///self\"); )";
+    return new Object[][] {
+      // a valid rule inside a nested group must still decode: guards must not
+      // start over-rejecting non-empty groups
+      { "((userdn=\"ldap:///self\"))" },
+      // a valid complex rule with both operands present
+      { "(userdn=\"ldap:///self\" or userdn=\"ldap:///anyone\")" },
+    };
+  }
+
+  @Test(dataProvider = "validBindRules")
+  public void acceptsValidBindRule(String bindRule) throws Exception
+  {
+    assertThat(BindRule.decode(bindRule)).isNotNull();
+  }
+
+  @DataProvider(name = "acisWithMissingOperand")
+  public Object[][] acisWithMissingOperand()
+  {
+    return new Object[][] {
+      // the full ACI from issue #719
+      { "(version 3.0; acl \"ac\"; allow (search)(()or) (userdn=\"ldap:///self\"); )" },
+      // missing *left* operand: previously accepted and stored with left == null,
+      // then NPEd during evaluation. Must now be rejected at decode time.
+      { "(version 3.0; acl \"ac\"; allow (search) ()or userdn=\"ldap:///self\"; )" },
+    };
+  }
+
+  /** Reproduces missing-operand ACIs from issue #719 through {@link Aci#decode}. */
+  @Test(dataProvider = "acisWithMissingOperand")
+  public void decodeOfAciWithMissingOperandThrowsAciException(String aci)
+  {
     assertThatThrownBy(() -> Aci.decode(ByteString.valueOfUtf8(aci), DN.rootDN()))
         .isInstanceOf(AciException.class);
   }

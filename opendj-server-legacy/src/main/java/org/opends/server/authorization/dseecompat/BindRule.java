@@ -142,7 +142,9 @@ public class BindRule {
     /**
      * Decode an ACI bind rule string representation.
      * @param input The string representation of the bind rule.
-     * @return A BindRule class representing the bind rule.
+     * @return A BindRule class representing the bind rule, or {@code null} if
+     * {@code input} is null or blank. This null is the recursion base case for
+     * an empty group; callers must reject it rather than dereference it.
      * @throws AciException If the string is an invalid bind rule.
      */
     public static BindRule decode (String input) throws AciException {
@@ -153,8 +155,10 @@ public class BindRule {
         String bindruleStr = input.trim();
         if (bindruleStr.isEmpty())
         {
-          // A blank bind rule (e.g. "(          )") must be rejected as a
-          // syntax error rather than throwing StringIndexOutOfBoundsException.
+          // A blank bind rule (e.g. "(          )") decodes to null rather than
+          // throwing StringIndexOutOfBoundsException on charAt(0). This null is
+          // the recursion base case for an empty group; the caller rejects it as
+          // a syntax error (see the bindrule_1 == null check below).
           return null;
         }
         char firstChar = bindruleStr.charAt(0);
@@ -203,6 +207,17 @@ public class BindRule {
               throw new AciException(WARN_ACI_SYNTAX_BIND_RULE_MISSING_CLOSE_PAREN.get(input));
           }
           /*
+           * An empty group such as "()" or "(   )" decodes to a null bind rule.
+           * Such a group is not a valid bind rule on its own, and using it as the
+           * left operand of an "and"/"or" (e.g. "()or userdn=...") would build a
+           * complex rule with a null left side that is later dereferenced during
+           * evaluation. Reject both cases here, before the remaining-chars test,
+           * so the message names the full offending input rather than a fragment.
+           */
+          if (bindrule_1 == null) {
+            throw new AciException(WARN_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(input));
+          }
+          /*
            * If there are remaining chars => there MUST be an operand (AND / OR)
            * otherwise there is a syntax error
            */
@@ -211,14 +226,6 @@ public class BindRule {
             String remainingBindruleStr =
                 bindruleStr.substring(currentPos + 1);
             return createBindRule(bindrule_1, remainingBindruleStr);
-          }
-          /*
-           * An empty group such as "()" decodes to a null bind rule. A group
-           * with no bind rule inside is not valid, so reject it instead of
-           * returning null and letting the caller dereference it later.
-           */
-          if (bindrule_1 == null) {
-            throw new AciException(WARN_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(input));
           }
           return bindrule_1;
         }
@@ -303,15 +310,6 @@ public class BindRule {
      */
     private static BindRule createBindRule(BindRule bindrule,
             String remainingBindruleStr) throws AciException {
-        /*
-         * The left operand of an "and"/"or" bind rule must exist. It is null when
-         * the left side reduced to an empty group such as "()" (for example the
-         * bind rule "()or userdn=..."). A complex bind rule with a null left side
-         * would later be dereferenced during evaluation, so reject it here.
-         */
-        if (bindrule == null) {
-            throw new AciException(WARN_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(remainingBindruleStr));
-        }
         Pattern remainingBindrulePattern = Pattern.compile(remainingBindruleRegex);
         Matcher remainingBindruleMatcher = remainingBindrulePattern.matcher(remainingBindruleStr);
         if (remainingBindruleMatcher.find()) {
@@ -338,7 +336,8 @@ public class BindRule {
             /*
              * The right operand of an "and"/"or" bind rule must exist. It is null
              * when the boolean operator is not followed by a bind rule, e.g. the
-             * "or" in "(()or)" has nothing to its right (issue #719).
+             * "or" in "userdn=\"ldap:///self\" or" has nothing to its right
+             * (issue #719).
              */
             if (bindrule_2 == null) {
                 throw new AciException(
