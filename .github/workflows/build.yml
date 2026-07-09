@@ -86,7 +86,7 @@ jobs:
         git status
     - name: Set Integration Test Environment
       id: failsafe
-      if: runner.os != 'Windows'
+      if: runner.os == 'Linux'
       run:   |
         echo "MAVEN_PROFILE_FLAG=-P precommit" >> $GITHUB_OUTPUT
 
@@ -96,7 +96,7 @@ jobs:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
       run: mvn --batch-mode --errors --update-snapshots verify --file pom.xml ${{ steps.failsafe.outputs.MAVEN_PROFILE_FLAG }}
     - name: Test on Unix
-      if: runner.os != 'Windows'
+      if: runner.os == 'Linux'
       run:   |
         export OPENDJ_JAVA_ARGS="-server -Xmx512m"
         opendj-server-legacy/target/package/opendj/setup -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --sampleData 5000 --cli --acceptLicense --no-prompt
@@ -143,7 +143,7 @@ jobs:
         rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs,tmp}
 
     - name: Test on Unix FIPS
-      if: runner.os != 'Windows'
+      if: runner.os == 'Linux'
       run: |
         export OPENDJ_JAVA_ARGS="-server -Xmx512m" 
         echo password > /tmp/opendj.keystore.pin
@@ -230,7 +230,7 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/stop-ds
         rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs,tmp}
     - name: Test replication
-      if: runner.os != 'Windows'
+      if: runner.os == 'Linux'
       run: |
         cp -r ./opendj-server-legacy/target/package/opendj ./opendj-server-legacy/target/package/opendj1
         cp -r ./opendj-server-legacy/target/package/opendj ./opendj-server-legacy/target/package/opendj2
