@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.config;
 
@@ -227,8 +228,11 @@ public final class PropertyDefinitionUsageBuilder {
                 if (isDetailed) {
                     LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
                     builder.append(d.getPatternUsage());
-                    builder.append(" - ");
-                    builder.append(d.getPatternSynopsis());
+                    // The pattern synopsis is optional.
+                    if (d.getPatternSynopsis() != null) {
+                        builder.append(" - ");
+                        builder.append(d.getPatternSynopsis());
+                    }
                     return builder.toMessage();
                 } else {
                     return LocalizableMessage.raw(d.getPatternUsage());

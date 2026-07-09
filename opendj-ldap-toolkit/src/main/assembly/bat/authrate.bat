@@ -13,10 +13,12 @@ rem Header, with the fields enclosed by brackets [] replaced by your own identif
 rem information: "Portions Copyright [year] [name of copyright owner]".
 rem
 rem Copyright 2010 Sun Microsystems, Inc.
-
+rem Portions Copyright 2026 3A  Systems, LLC
 setlocal
 
 set OPENDJ_INVOKE_CLASS="com.forgerock.opendj.ldap.tools.AuthRate"
 set SCRIPT_NAME=authrate
-call "%~dp0\..\lib\_client-script.bat" %*
+rem Chain (no CALL) so a literal '%' in arguments (e.g. the "%d" of a Java
+rem format string used by -g) is not stripped by CALL's extra expansion pass.
+"%~dp0\..\lib\_client-script.bat" %*
 

@@ -38,13 +38,16 @@ ARG OPENDJ_DIST_FILENAME=opendj.zip
 
 ARG VERSION
 
+ARG TARGETARCH
+
 WORKDIR /opt
 
 #COPY opendj-*.zip $OPENDJ_DIST_FILENAME
 
 RUN apk add --update --no-cache --virtual builddeps curl unzip \
  && apk upgrade --update --no-cache \
- && apk add bash openjdk11 \
+ && if [ "$TARGETARCH" = "386" ]; then JDK=openjdk11-jre; else JDK=openjdk25-jre; fi \
+ && apk add bash "$JDK" \
  && if [ -z "$VERSION" ] ; then VERSION="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)"; fi \
  && if [ ! -f "$OPENDJ_DIST_FILENAME" ]; then echo file exists && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output $OPENDJ_DIST_FILENAME; fi \
  && unzip $OPENDJ_DIST_FILENAME \

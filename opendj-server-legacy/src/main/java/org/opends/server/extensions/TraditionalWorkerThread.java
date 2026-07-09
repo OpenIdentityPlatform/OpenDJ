@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2025 3A Systems, LLC.
+ * Portions Copyright 2025-2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -147,6 +147,8 @@ public class TraditionalWorkerThread
         }
         else
         {
+          try
+          {
           // The operation is not null, so process it.  Make sure that when
           // processing is complete.
 
@@ -171,6 +173,13 @@ public class TraditionalWorkerThread
             transaction.add(operation);
             operation.setResultCode(ResultCode.SUCCESS);
             operation.getClientConnection().sendResponse(operation);
+          }
+          }
+          finally
+          {
+            // Whatever the outcome, tell the queue this operation is no
+            // longer pending so that isIdle() stays accurate.
+            workQueue.operationDone();
           }
         }
       }

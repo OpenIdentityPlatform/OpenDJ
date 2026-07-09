@@ -1,0 +1,44 @@
+////
+
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems LLC.
+
+////
+
+== Examples
+The following example uses the `modrate` command to write random 16-character description values to user entries:
+
+
+[source, console]
+----
+$ grep ^uid: /path/to/Example.ldif | sed -e "s/uid: //" > names.txt
+
+$ modrate -p 1389 -D "cn=Directory Manager" -w password  -A -F -c 4 -t 4 \
+ -b "uid=%s,ou=people,dc=example,dc=com" -g "rand(names.txt)" \
+ -g "randstr(16)" 'description:%2$s'
+
+--------------------------------------------------------------------------
+     Throughput                            Response Time
+   (ops/second)                           (milliseconds)
+recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  req/res
+--------------------------------------------------------------------------
+1085.9   1088.5  993.849  993.849  2135.220  2510.361  2510.361  0.0  2.3
+2086.7   1648.8  1963.980  1683.038  3015.025  3078.628  3215.050  0.0  1.0
+3097.3   2092.6  1332.930  1524.278  2940.131  3024.811  3215.050  0.0  1.0
+3848.3   2501.4  1045.000  1352.583  2902.235  3015.863  3215.050  0.0  1.0
+3641.2   2717.4  1106.157  1290.003  2901.379  3015.597  3215.050  0.0  1.0
+3759.4   2883.0  1065.732  1243.534  2900.400  3015.501  3215.050  0.0  1.0
+^C
+----
