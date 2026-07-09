@@ -222,7 +222,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     // they won't be processed because the server is shutting down.
     CancelRequest cancelRequest = new CancelRequest(true, reason);
     ArrayList<Operation> pendingOperations = new ArrayList<>();
-    opQueue.removeAll(pendingOperations);
+    opQueue.drainTo(pendingOperations);
     for (Operation o : pendingOperations)
     {
       try
