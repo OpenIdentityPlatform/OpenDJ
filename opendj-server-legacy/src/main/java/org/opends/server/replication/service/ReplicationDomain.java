@@ -1442,8 +1442,6 @@ public abstract class ReplicationDomain
       int serverRunningTheTask, Task initTask, int initWindow)
   throws DirectoryException
   {
-    final ImportExportContext ieCtx = acquireIEContext(false);
-
     /*
     We manage the list of servers to initialize in order :
     - to test at the end that all expected servers have reconnected
@@ -1451,7 +1449,12 @@ public abstract class ReplicationDomain
     - to update the task with the server(s) where this test failed
     */
 
-    Map<Integer, DSInfo> replicaInfos = getReplicaInfos();
+    // Validate the request before acquiring the import/export context: a
+    // validation failure must not leave the context acquired, otherwise
+    // ieRunning() would remain true forever and the domain would reject every
+    // subsequent total update as a simultaneous import/export.
+    final Map<Integer, DSInfo> replicaInfos = getReplicaInfos();
+    final DSInfo targetDsi;
     if (serverToInitialize == RoutableMsg.ALL_SERVERS)
     {
       if (replicaInfos.isEmpty())
@@ -1459,7 +1462,44 @@ public abstract class ReplicationDomain
         throw new DirectoryException(UNWILLING_TO_PERFORM,
             ERR_FULL_UPDATE_NO_REMOTES.get(getBaseDN(), getServerId()));
       }
+      targetDsi = null;
+    }
+    else
+    {
+      targetDsi = getDsInfoOrNull(replicaInfos.values(), serverToInitialize);
+      if (targetDsi == null)
+      {
+        throw new DirectoryException(UNWILLING_TO_PERFORM,
+            ERR_FULL_UPDATE_MISSING_REMOTE.get(getBaseDN(), getServerId(), serverToInitialize));
+      }
+    }
 
+    final ImportExportContext ieCtx = acquireIEContext(false);
+    try
+    {
+      initializeRemote(ieCtx, replicaInfos, targetDsi, serverToInitialize,
+          serverRunningTheTask, initTask, initWindow);
+    }
+    finally
+    {
+      // Release the context whatever the outcome, otherwise ieRunning() would
+      // remain true forever (resolves the historical "FIXME should not this
+      // be in a finally?").
+      releaseIEContext();
+    }
+  }
+
+  /**
+   * Performs the remote initialization with the import/export context already
+   * acquired - and released - by the caller.
+   */
+  private void initializeRemote(ImportExportContext ieCtx,
+      Map<Integer, DSInfo> replicaInfos, DSInfo targetDsi,
+      int serverToInitialize, int serverRunningTheTask, Task initTask,
+      int initWindow) throws DirectoryException
+  {
+    if (serverToInitialize == RoutableMsg.ALL_SERVERS)
+    {
       logger.info(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START_ALL,
           countEntries(), getBaseDN(), getServerId());
 
@@ -1475,18 +1515,11 @@ public abstract class ReplicationDomain
     }
     else
     {
-      DSInfo dsi = getDsInfoOrNull(replicaInfos.values(), serverToInitialize);
-      if (dsi == null)
-      {
-        throw new DirectoryException(UNWILLING_TO_PERFORM,
-            ERR_FULL_UPDATE_MISSING_REMOTE.get(getBaseDN(), getServerId(), serverToInitialize));
-      }
-
       logger.info(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START, countEntries(),
           getBaseDN(), getServerId(), serverToInitialize);
 
       ieCtx.startList.add(serverToInitialize);
-      ieCtx.setAckVal(dsi.getDsId(), 0);
+      ieCtx.setAckVal(targetDsi.getDsId(), 0);
     }
 
     DirectoryException exportRootException = null;
@@ -1624,9 +1657,6 @@ public abstract class ReplicationDomain
       exportRootException = new DirectoryException(ResultCode.OTHER,
               ERR_INIT_NO_SUCCESS_END_FROM_SERVERS.get(getGenerationID(), ieCtx.failureList));
     }
-
-    // Don't forget to release IEcontext acquired at beginning.
-    releaseIEContext(); // FIXME should not this be in a finally?
 
     final String cause = exportRootException == null ? ""
         : exportRootException.getLocalizedMessage();
