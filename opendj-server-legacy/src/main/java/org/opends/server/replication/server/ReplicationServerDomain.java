@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -1722,6 +1723,17 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
         this.generationId = generationId;
         this.generationIdSavedStatus = false;
+
+        // The generationId gossip between replication servers is purely
+        // event-driven: it is carried in the topology messages sent on
+        // connect/disconnect/status events, and there is no periodic
+        // re-advertisement. A peer RS that misses (or races) the single
+        // topology broadcast following a generationId change would otherwise
+        // stay stuck with a stale generationId (typically -1) indefinitely -
+        // the intermittent GenerationIdTest.testMultiRS failure. Re-advertising
+        // the topology on every real generationId transition makes the gossip
+        // self-healing so every connected peer converges on the new value.
+        sendTopoInfoToAll();
       }
       return oldGenerationId;
     }
