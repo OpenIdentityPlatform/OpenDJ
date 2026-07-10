@@ -13,7 +13,7 @@
  *
  * Portions Copyright 2014 The Apache Software Foundation
  * Copyright 2015-2016 ForgeRock AS.
- * Portions Copyright 2023-2025 3A Systems, LLC
+ * Portions Copyright 2023-2026 3A Systems, LLC
  */
 package org.opends.server.backends.pluggable;
 
@@ -102,6 +102,7 @@ import org.opends.server.backends.pluggable.CursorTransformer.SequentialCursorAd
 import org.opends.server.backends.pluggable.DN2ID.TreeVisitor;
 import org.opends.server.backends.pluggable.ImportLDIFReader.EntryInformation;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.BufferPool.MemoryBuffer;
+import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
@@ -118,6 +119,8 @@ import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 
@@ -156,6 +159,8 @@ final class OnDiskMergeImporter
 
     private static final String PHASE1_IMPORTER_THREAD_NAME = "PHASE1-IMPORTER-%d";
 
+    private static final String PHASE1_MIGRATOR_THREAD_NAME = "PHASE1-MIGRATOR-%d";
+
     private static final String PHASE2_IMPORTER_THREAD_NAME = "PHASE2-IMPORTER-%d";
 
     private static final String SORTER_THREAD_NAME = "PHASE1-SORTER-%d";
@@ -190,6 +195,23 @@ final class OnDiskMergeImporter
     {
       logger.info(NOTE_IMPORT_STARTING, DirectoryServer.getVersionString(), BUILD_ID, REVISION);
 
+      // A partial import (include and/or exclude branches) only replaces the
+      // imported branches: existing entries outside of the imported scope must
+      // be preserved. Snapshot them into temporary LDIF files before the
+      // import deletes the entry containers, so that they can be fed through
+      // the import pipeline together with the user-provided LDIF file.
+      final List<File> migrationFiles;
+      try
+      {
+        migrationFiles = exportEntriesToPreserve(importConfig);
+      }
+      catch (Exception e)
+      {
+        throw new ExecutionException(e);
+      }
+
+      try
+      {
       final long startTime = System.currentTimeMillis();
       final int maxThreadCount = importConfig.getThreadCount() == 0
           ? getDefaultNumberOfThread()
@@ -212,7 +234,34 @@ final class OnDiskMergeImporter
             final AbstractTwoPhaseImportStrategy importStrategy =
                 new ExternalSortAndImportStrategy(entryContainers, dbStorage, tempDir, bufferPool, sorter);
             importer = new OnDiskMergeImporter(PHASE2_IMPORTER_THREAD_NAME, importStrategy);
-            importer.doImport(source);
+            if (migrationFiles.isEmpty())
+            {
+              importer.doImport(source);
+            }
+            else
+            {
+              final List<String> migrationPaths = new ArrayList<>(migrationFiles.size());
+              for (File migrationFile : migrationFiles)
+              {
+                migrationPaths.add(migrationFile.getAbsolutePath());
+              }
+              final LDIFImportConfig migrationConfig = new LDIFImportConfig(migrationPaths);
+              try
+              {
+                // Entries come straight from this backend: no filtering and no
+                // schema validation must be applied to them.
+                migrationConfig.setValidateSchema(false);
+                try (final LDIFReaderSource migrationSource =
+                    new LDIFReaderSource(rootContainer, migrationConfig, PHASE1_MIGRATOR_THREAD_NAME, threadCount))
+                {
+                  importer.doImport(new CompositeSource(Arrays.asList((Source) migrationSource, source)));
+                }
+              }
+              finally
+              {
+                migrationConfig.close();
+              }
+            }
           }
           finally
           {
@@ -246,6 +295,150 @@ final class OnDiskMergeImporter
       {
         throw new ExecutionException(e);
       }
+      }
+      finally
+      {
+        for (File migrationFile : migrationFiles)
+        {
+          migrationFile.delete();
+        }
+      }
+    }
+
+    /**
+     * Exports the entries which must survive a partial import to temporary
+     * LDIF files, mimicking the migration performed by the previous generation
+     * importer: when include and/or exclude branches are configured, only the
+     * imported branches are replaced, so existing entries outside of the
+     * include branches, as well as existing entries below the exclude branches
+     * of an imported branch, are re-imported from the snapshot files.
+     *
+     * @return the temporary LDIF files containing the entries to preserve
+     */
+    private List<File> exportEntriesToPreserve(LDIFImportConfig importConfig) throws Exception
+    {
+      if (importConfig.clearBackend())
+      {
+        return Collections.emptyList();
+      }
+      final Set<DN> includeBranches = importConfig.getIncludeBranches();
+      final Set<DN> excludeBranches = importConfig.getExcludeBranches();
+      if (includeBranches.isEmpty() && excludeBranches.isEmpty())
+      {
+        return Collections.emptyList();
+      }
+
+      final List<File> migrationFiles = new ArrayList<>();
+      boolean storageOpen = false;
+      try
+      {
+        for (EntryContainer entryContainer : rootContainer.getEntryContainers())
+        {
+          final DN baseDN = entryContainer.getBaseDN();
+          if (excludeBranches.contains(baseDN))
+          {
+            // This entire base DN is excluded: the import does not touch it.
+            continue;
+          }
+
+          final List<DN> includesUnderBase = new ArrayList<>();
+          for (DN includeBranch : includeBranches)
+          {
+            if (includeBranch.isSubordinateOrEqualTo(baseDN))
+            {
+              includesUnderBase.add(includeBranch);
+            }
+          }
+          if (!includeBranches.isEmpty() && includesUnderBase.isEmpty())
+          {
+            // Nothing is imported under this base DN: the import does not touch it.
+            continue;
+          }
+
+          // Everything under this base DN which is not below an include branch
+          // is replaced by the import, unless the base DN itself is included.
+          final boolean wholeBaseReplaced = includesUnderBase.isEmpty() || includesUnderBase.contains(baseDN);
+          if (!wholeBaseReplaced)
+          {
+            if (!storageOpen)
+            {
+              rootContainer.getStorage().open(AccessMode.READ_ONLY);
+              storageOpen = true;
+            }
+            logger.info(NOTE_IMPORT_MIGRATION_START, "existing", baseDN);
+            migrationFiles.add(
+                exportBranches(Collections.singletonList(baseDN), new ArrayList<>(includesUnderBase)));
+          }
+
+          // Existing entries below exclude branches located inside the
+          // replaced scope must be preserved as well.
+          final List<DN> excludedToPreserve = new ArrayList<>();
+          for (DN excludeBranch : excludeBranches)
+          {
+            if (excludeBranch.isSubordinateOrEqualTo(baseDN)
+                && (wholeBaseReplaced || isUnderAnyOf(excludeBranch, includesUnderBase)))
+            {
+              excludedToPreserve.add(excludeBranch);
+            }
+          }
+          if (!excludedToPreserve.isEmpty())
+          {
+            if (!storageOpen)
+            {
+              rootContainer.getStorage().open(AccessMode.READ_ONLY);
+              storageOpen = true;
+            }
+            logger.info(NOTE_IMPORT_MIGRATION_START, "excluded", baseDN);
+            migrationFiles.add(exportBranches(excludedToPreserve, Collections.<DN> emptyList()));
+          }
+        }
+        return migrationFiles;
+      }
+      catch (Exception e)
+      {
+        for (File migrationFile : migrationFiles)
+        {
+          migrationFile.delete();
+        }
+        throw e;
+      }
+      finally
+      {
+        if (storageOpen)
+        {
+          rootContainer.getStorage().close();
+        }
+      }
+    }
+
+    private static boolean isUnderAnyOf(DN dn, List<DN> branches)
+    {
+      for (DN branch : branches)
+      {
+        if (dn.isSubordinateOrEqualTo(branch))
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    private File exportBranches(List<DN> includeBranches, List<DN> excludeBranches) throws Exception
+    {
+      final File migrationFile = File.createTempFile("import-migration-", ".ldif");
+      final LDIFExportConfig exportConfig =
+          new LDIFExportConfig(migrationFile.getAbsolutePath(), ExistingFileBehavior.OVERWRITE);
+      exportConfig.setIncludeBranches(includeBranches);
+      exportConfig.setExcludeBranches(excludeBranches);
+      try
+      {
+        new ExportJob(exportConfig).exportLDIF(rootContainer);
+      }
+      finally
+      {
+        exportConfig.close();
+      }
+      return migrationFile;
     }
 
     private static int getDefaultNumberOfThread()
@@ -642,6 +835,45 @@ final class OnDiskMergeImporter
     void processAllEntries(EntryProcessor processor) throws InterruptedException, ExecutionException;
 
     boolean isCancelled();
+  }
+
+  /** Chains {@link Source}s, processing them sequentially. */
+  private static final class CompositeSource implements Source
+  {
+    private final List<Source> sources;
+
+    CompositeSource(final List<Source> sources)
+    {
+      this.sources = sources;
+    }
+
+    @Override
+    public void processAllEntries(EntryProcessor processor) throws InterruptedException, ExecutionException
+    {
+      for (Source source : sources)
+      {
+        source.processAllEntries(processor);
+      }
+    }
+
+    @Override
+    public boolean isCancelled()
+    {
+      for (Source source : sources)
+      {
+        if (source.isCancelled())
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    @Override
+    public void close()
+    {
+      // The chained sources are closed by their respective owners.
+    }
   }
 
   /** Extract LDAP {@link Entry}s from an LDIF file. */
