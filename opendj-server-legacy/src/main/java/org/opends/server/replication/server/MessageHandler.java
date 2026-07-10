@@ -80,6 +80,13 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   private final int maxQueueBytesSize;
   /** Specifies whether the consumer is following the producer (is not late). */
   private boolean following;
+  /**
+   * Specifies whether the last update message returned by
+   * {@link #getNextMessage()} was re-read from the changelog DB (catch-up
+   * path) rather than taken from the in-memory {@link #msgQueue}. Only ever
+   * accessed by the single consumer thread calling {@link #getNextMessage()}.
+   */
+  private boolean lastMessageFromLateQueue;
   /** Specifies the current serverState of this handler. */
   private ServerState serverState;
   /** Specifies the baseDN of the domain. */
@@ -226,6 +233,21 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
+   * Indicates whether the last update message returned by
+   * {@link #getNextMessage()} was re-read from the changelog DB (catch-up
+   * path) rather than taken from the in-memory queue.
+   * <p>
+   * Must only be called from the consumer thread calling
+   * {@link #getNextMessage()}.
+   *
+   * @return true if the last returned update message came from the late queue
+   */
+  protected boolean isLastMessageFromLateQueue()
+  {
+    return lastMessageFromLateQueue;
+  }
+
+  /**
    * Retrieves the name of this monitor provider.  It should be unique among all
    * monitor providers, including all instances of the same monitor provider.
    *
@@ -319,6 +341,9 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
                 msgQueue.consumeUpTo(msg);
                 if (updateServerState(msg))
                 {
+                  // the returned instance is the one re-read from the
+                  // changelog DB, not its msgQueue equivalent
+                  lastMessageFromLateQueue = true;
                   return msg;
                 }
               }
@@ -347,6 +372,7 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           }
           if (updateServerState(msg))
           {
+            lastMessageFromLateQueue = true;
             return msg;
           }
           continue;
@@ -379,6 +405,7 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
              * by the other server.
              * Otherwise just loop to select the next message.
              */
+            lastMessageFromLateQueue = false;
             return msg;
           }
         }

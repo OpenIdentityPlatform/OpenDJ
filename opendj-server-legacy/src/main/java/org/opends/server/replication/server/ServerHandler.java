@@ -928,18 +928,27 @@ public abstract class ServerHandler extends MessageHandler
   public UpdateMsg take() throws ChangelogException
   {
     UpdateMsg msg = getNextMessage();
+    final boolean fromLateQueue = isLastMessageFromLateQueue();
 
     acquirePermitInSendWindow();
 
     if (msg != null)
     {
-      // Decide whether to keep the assured flag as late as possible, right
-      // before the message is handed to the ServerWriter for publishing, so
-      // the ack window check reflects the state at send time and not the
-      // potentially much earlier time the message was dequeued:
-      // acquirePermitInSendWindow() above may block longer than the assured
-      // timeout when the send window is closed.
-      if (msg.isAssured()
+      // Updates re-read from the changelog DB (catch-up path) carry the
+      // assured flag, mode and safe data level of their original sender:
+      // the NotAssuredUpdateMsg substitution performed at publish time by
+      // ReplicationServerDomain.addUpdate() only exists on the in-memory
+      // queue path. Normalize them here: keep the assured flag only while
+      // the ack window is still open and this server is expected to ack.
+      // Messages taken from the in-memory queue already carry the
+      // publish-time decision and must NOT be revisited: the ack window may
+      // legitimately close (timeout, or enough acks already received)
+      // before a slow peer gets here - e.g. when acquirePermitInSendWindow()
+      // above blocks on a closed send window - and such a peer must still
+      // receive the assured flag it was deemed eligible for. Its late ack is
+      // then safely ignored by ReplicationServerDomain.processAck() and
+      // ExpectedAcksInfo.processReceivedAck().
+      if (fromLateQueue && msg.isAssured()
           && !replicationServerDomain.isExpectedAck(msg.getCSN(), serverId))
       {
         msg = toNotAssuredUpdateMsg(msg);
@@ -956,17 +965,14 @@ public abstract class ServerHandler extends MessageHandler
 
   /**
    * Substitutes a not assured version of the provided update message so that a
-   * peer not (or no longer) expected to acknowledge it does not receive it
-   * with the assured flag.
+   * peer not expected to acknowledge it does not receive it with the assured
+   * flag.
    * <p>
    * This is the counterpart, for the changelog catch-up path, of the
    * {@link NotAssuredUpdateMsg} substitution performed on the in-memory queue
    * path by ReplicationServerDomain.addUpdate(): updates re-read from the
-   * changelog DB keep the assured flag of their original sender. Doing the
-   * check here in {@link #take()} makes it the single guard covering both
-   * paths - on the queue path the message posted to a non-eligible peer is
-   * already a {@code NotAssuredUpdateMsg}, so {@code isAssured()} is false and
-   * this method is not even reached.
+   * changelog DB keep the assured flag of their original sender and must be
+   * normalized in {@link #take()} before being handed to the ServerWriter.
    */
   private UpdateMsg toNotAssuredUpdateMsg(UpdateMsg msg)
   {
