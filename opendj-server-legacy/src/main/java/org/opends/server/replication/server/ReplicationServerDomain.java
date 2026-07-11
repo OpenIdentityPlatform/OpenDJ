@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyrighted 2026 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.server;
 
@@ -787,6 +787,20 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   private boolean isDifferentGenerationId(long generationId)
   {
     return this.generationId > 0 && this.generationId != generationId;
+  }
+
+  /**
+   * Indicates whether the ack window for the provided CSN is still open and
+   * the provided server is one of the servers an ack is expected from.
+   *
+   * @param csn The CSN of the update message.
+   * @param serverId The serverId of the candidate acknowledging server.
+   * @return true if an ack from the provided server would be accounted for.
+   */
+  boolean isExpectedAck(CSN csn, int serverId)
+  {
+    final ExpectedAcksInfo expectedAcksInfo = waitingAcks.get(csn);
+    return expectedAcksInfo != null && expectedAcksInfo.isExpectedServer(serverId);
   }
 
   /**

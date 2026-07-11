@@ -13,12 +13,15 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.server;
 
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -924,12 +927,32 @@ public abstract class ServerHandler extends MessageHandler
    */
   public UpdateMsg take() throws ChangelogException
   {
-    final UpdateMsg msg = getNextMessage();
+    UpdateMsg msg = getNextMessage();
+    final boolean fromLateQueue = isLastMessageFromLateQueue();
 
     acquirePermitInSendWindow();
 
     if (msg != null)
     {
+      // Updates re-read from the changelog DB (catch-up path) carry the
+      // assured flag, mode and safe data level of their original sender:
+      // the NotAssuredUpdateMsg substitution performed at publish time by
+      // ReplicationServerDomain.addUpdate() only exists on the in-memory
+      // queue path. Normalize them here: keep the assured flag only while
+      // the ack window is still open and this server is expected to ack.
+      // Messages taken from the in-memory queue already carry the
+      // publish-time decision and must NOT be revisited: the ack window may
+      // legitimately close (timeout, or enough acks already received)
+      // before a slow peer gets here - e.g. when acquirePermitInSendWindow()
+      // above blocks on a closed send window - and such a peer must still
+      // receive the assured flag it was deemed eligible for. Its late ack is
+      // then safely ignored by ReplicationServerDomain.processAck() and
+      // ExpectedAcksInfo.processReceivedAck().
+      if (fromLateQueue && msg.isAssured()
+          && !replicationServerDomain.isExpectedAck(msg.getCSN(), serverId))
+      {
+        msg = toNotAssuredUpdateMsg(msg);
+      }
       incrementOutCount();
       if (msg.isAssured())
       {
@@ -938,6 +961,37 @@ public abstract class ServerHandler extends MessageHandler
       return msg;
     }
     return null;
+  }
+
+  /**
+   * Substitutes a not assured version of the provided update message so that a
+   * peer not expected to acknowledge it does not receive it with the assured
+   * flag.
+   * <p>
+   * This is the counterpart, for the changelog catch-up path, of the
+   * {@link NotAssuredUpdateMsg} substitution performed on the in-memory queue
+   * path by ReplicationServerDomain.addUpdate(): updates re-read from the
+   * changelog DB keep the assured flag of their original sender and must be
+   * normalized in {@link #take()} before being handed to the ServerWriter.
+   */
+  private UpdateMsg toNotAssuredUpdateMsg(UpdateMsg msg)
+  {
+    try
+    {
+      return new NotAssuredUpdateMsg(msg);
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      // Could not build the not assured form (unexpected message encoding).
+      // Deliver the original message rather than dropping it: losing the
+      // update would break replication consistency, which is worse than a
+      // spurious ack - and such an ack is now safely ignored by
+      // ExpectedAcksInfo.processReceivedAck().
+      logger.error(LocalizableMessage.raw(
+          "Could not substitute a not assured version of update message %s: %s",
+          msg, stackTraceToSingleLineString(e)));
+      return msg;
+    }
   }
 
   private void acquirePermitInSendWindow()
