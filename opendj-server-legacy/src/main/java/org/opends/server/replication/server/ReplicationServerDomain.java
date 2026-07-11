@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -1722,6 +1723,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
         this.generationId = generationId;
         this.generationIdSavedStatus = false;
+
+        // generationId gossip is purely event-driven: it only travels in the
+        // topology messages sent on connect/disconnect/status events. Re-advertise
+        // on every real transition so a peer that missed one converges on the next.
+        if (generationId > 0)
+        {
+          sendTopoInfoToAll();
+        }
       }
       return oldGenerationId;
     }
