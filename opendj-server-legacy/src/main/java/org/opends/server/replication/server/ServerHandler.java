@@ -714,7 +714,7 @@ public abstract class ServerHandler extends MessageHandler
    * RS2 and wants to acquire the lock on the domain (here) but cannot as RS1
    * connect thread already has it</li>
    * </ol>
-   * => Deadlock: 4 threads are locked.
+   * =&gt; Deadlock: 4 threads are locked.
    * <p>
    * To prevent threads locking in such situation, the listen threads here will
    * both timeout trying to acquire the lock. The random time for the timeout

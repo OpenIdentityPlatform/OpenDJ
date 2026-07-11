@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.snmp;
 
@@ -89,7 +90,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
   private MBeanServer server;
 
   /**
-   * cn=monitor Mapping Class SNMP->MBean.
+   * cn=monitor Mapping Class SNMP-&gt;MBean.
    */
   private SNMPMonitor monitor;
 

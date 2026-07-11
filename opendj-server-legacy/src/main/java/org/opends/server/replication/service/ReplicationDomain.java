@@ -2199,7 +2199,6 @@ public abstract class ReplicationDomain
    * <p>
    * When this method is called, a request for initialization is sent to the
    * remote source server requesting initialization.
-   * <p>
    *
    * @param source   The server-id of the source from which to initialize.
    *                 The source can be discovered using the

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -1215,7 +1216,6 @@ public class BackendConfigManager implements
    * <p>
    * Implementation note: a separate map is kept for local backends in order to avoid filtering the backends map
    * each time local backends are requested.
-   * <p>
    */
   private static class Registry
   {

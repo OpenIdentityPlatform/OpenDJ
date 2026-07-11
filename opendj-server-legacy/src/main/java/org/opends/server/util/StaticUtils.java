@@ -2462,7 +2462,6 @@ public final class StaticUtils
    * }
    * </pre>
    *
-   * </p>
    *
    * @param <T>
    *          the generic type of the passed in Iterator and for the returned

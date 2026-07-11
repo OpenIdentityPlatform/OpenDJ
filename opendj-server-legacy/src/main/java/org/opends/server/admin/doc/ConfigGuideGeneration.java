@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.admin.doc;
 
@@ -97,7 +98,7 @@ public class ConfigGuideGeneration {
    *
    * Properties:
    * GenerationDir - The directory where the doc is generated
-   *              (default is /var/tmp/[CONFIG_GUIDE_DIR>])
+   *              (default is /var/tmp/[CONFIG_GUIDE_DIR&gt;])
    * LdapMapping - Presence means that the LDAP mapping section is to be
    *               generated (default is no)
    * OpenDJWiki - The URL of the OpenDJ Wiki
