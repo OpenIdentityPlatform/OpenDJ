@@ -53,4 +53,49 @@ public class UserDNTestCase extends AciTestCase
   {
     Aci.decode(ByteString.valueOfUtf8(aciString), DN.rootDN());
   }
+
+  /**
+   * ACIs whose userdn LDAP URL contains a malformed bracketed IPv6 host - see
+   * issue #726.
+   *
+   * @return The malformed ACIs.
+   */
+  @DataProvider
+  public Object[][] malformedIPv6HostAcis()
+  {
+    return new Object[][] {
+      { "(version 3.0; acl \"f\"; allow (search) userdn=\"q://[:1\"; )" },
+      { "(version 3.0; acl \"f\"; allow (search) userdn=\"ldap://[::1:389/dc=example,dc=com\"; )" },
+    };
+  }
+
+  /**
+   * A malformed bracketed IPv6 host in the userdn URL must be rejected with a
+   * clean AciException instead of a StringIndexOutOfBoundsException - see
+   * issue #726.
+   *
+   * @param aciString
+   *          The ACI to decode.
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(dataProvider = "malformedIPv6HostAcis", expectedExceptions = AciException.class)
+  public void testMalformedIPv6HostInUserDN(String aciString) throws Exception
+  {
+    Aci.decode(ByteString.valueOfUtf8(aciString), DN.rootDN());
+  }
+
+  /**
+   * A well-formed bracketed IPv6 host in the userdn URL must still decode.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test
+  public void testValidIPv6HostInUserDN() throws Exception
+  {
+    String aciString = "(version 3.0; acl \"f\"; allow (search) "
+        + "userdn=\"ldap://[::1]:389/uid=user,dc=example,dc=com\"; )";
+    Aci.decode(ByteString.valueOfUtf8(aciString), DN.rootDN());
+  }
 }
