@@ -234,11 +234,11 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
 
   /**
    * Indicates whether the last update message returned by
-   * {@link #getNextMessage()} was re-read from the changelog DB (catch-up
+   * {@code getNextMessage()} was re-read from the changelog DB (catch-up
    * path) rather than taken from the in-memory queue.
    * <p>
    * Must only be called from the consumer thread calling
-   * {@link #getNextMessage()}.
+   * {@code getNextMessage()}.
    *
    * @return true if the last returned update message came from the late queue
    */
