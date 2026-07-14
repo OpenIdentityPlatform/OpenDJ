@@ -148,8 +148,20 @@ public abstract class ServerHandler extends MessageHandler
   protected long generationId = -1;
   /** The generation id of the hosting RS. */
   protected long localGenerationId = -1;
-  /** The generation id before processing a new start handshake. */
-  protected long oldGenerationId = -1;
+  /**
+   * The domain generation id that this handler replaced during the start
+   * handshake, or -100 when this handler has not changed the domain generation
+   * id and there is nothing to roll back on {@link #abortStart(LocalizableMessage)}.
+   */
+  protected long oldGenerationId = -100;
+  /**
+   * The generation id this handler wrote into the domain during the start
+   * handshake, or -100 when it wrote none. Used by
+   * {@link #abortStart(LocalizableMessage)} to roll back only this handler's
+   * own change: a value concurrently set by another thread must not be
+   * overwritten with the stale {@link #oldGenerationId}.
+   */
+  private long generationIdSetOnStart = -100;
   /** Group id of this remote server. */
   protected byte groupId = -1;
   /** The SSL encryption after the negotiation with the peer. */
@@ -219,15 +231,54 @@ public abstract class ServerHandler extends MessageHandler
       localSession.close();
     }
 
-    releaseDomainLock();
-
-    // If generation id of domain was changed, set it back to old value
-    // We may have changed it as it was -1 and we received a value >0 from peer
-    // server and the last topo message sent may have failed being sent: in that
-    // case retrieve old value of generation id for replication server domain
+    // If this handler changed the domain generation id during the handshake,
+    // set it back to the old value. Only undo our own change: another thread
+    // may have legitimately changed the generation id in the meantime (e.g.
+    // adopted it from a peer topology message) and that value must not be
+    // overwritten with our stale snapshot. Do it BEFORE releasing the domain
+    // lock, so a handshake queued on the lock cannot read, advertise or arm on
+    // the doomed value in between.
     if (oldGenerationId != -100)
     {
-      replicationServerDomain.changeGenerationId(oldGenerationId);
+      replicationServerDomain.rollbackGenerationIdIfUnchanged(
+          generationIdSetOnStart, oldGenerationId);
+      oldGenerationId = -100;
+      generationIdSetOnStart = -100;
+    }
+
+    releaseDomainLock();
+  }
+
+  /**
+   * Changes the domain generation id during the start handshake, remembering
+   * the replaced value so that {@link #abortStart(LocalizableMessage)} can
+   * undo this handler's own change (and only it) if the handshake
+   * subsequently fails.
+   * <p>
+   * The change is applied only if the domain generation id still equals
+   * {@link #localGenerationId}, the value this handler based its decision on:
+   * a generation id concurrently adopted by a lock-free path (an update
+   * received from an already connected server) must not be stomped. This also
+   * makes a repeated call within one handshake a no-op, preserving the first
+   * arming's rollback point. Wire values below -1 are rejected — they can only
+   * come from a malformed peer and would collide with the -100 sentinel.
+   *
+   * @param generationId the generation id to set on the domain
+   */
+  protected void setDomainGenerationIdOnStart(long generationId)
+  {
+    if (generationId < -1)
+    {
+      return;
+    }
+    if (replicationServerDomain.changeGenerationIdIfUnchanged(
+        localGenerationId, generationId))
+    {
+      if (oldGenerationId == -100)
+      {
+        oldGenerationId = localGenerationId;
+      }
+      generationIdSetOnStart = generationId;
     }
   }
 

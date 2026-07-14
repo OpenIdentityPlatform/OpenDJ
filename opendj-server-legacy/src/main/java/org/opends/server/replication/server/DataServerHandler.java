@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.server;
 
@@ -365,7 +366,6 @@ public class DataServerHandler extends ServerHandler
     {
       // initializations
       localGenerationId = -1;
-      oldGenerationId = -100;
 
       // processes the ServerStart message received
       boolean sessionInitiatorSSLEncryption =
@@ -395,7 +395,6 @@ public class DataServerHandler extends ServerHandler
       lockDomainNoTimeout();
 
       localGenerationId = replicationServerDomain.getGenerationId();
-      oldGenerationId = localGenerationId;
 
       if (replicationServerDomain.isAlreadyConnectedToDS(this))
       {
@@ -601,7 +600,7 @@ public class DataServerHandler extends ServerHandler
         // WARNING: Must be done before computing topo message to send
         // to peer server as topo message must embed valid generation id
         // for our server
-        oldGenerationId = replicationServerDomain.changeGenerationId(generationId);
+        setDomainGenerationIdOnStart(generationId);
       }
     }
     return startSessionMsg;
