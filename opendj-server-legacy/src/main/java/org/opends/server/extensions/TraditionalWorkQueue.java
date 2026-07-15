@@ -112,7 +112,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
    * <p>
    * This is hard-coded to true for now because a reject on full policy does not
    * seem to have a valid use case.
-   * </p>
    */
   private final boolean isBlocking = true;
 

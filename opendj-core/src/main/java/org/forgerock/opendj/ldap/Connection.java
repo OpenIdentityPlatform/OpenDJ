@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.ldap;
@@ -45,14 +46,12 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
  * A connection with a Directory Server over which read and update operations
  * may be performed. See RFC 4511 for the LDAPv3 protocol specification and more
  * information about the types of operations defined in LDAP.
- * <p>
- * <h3>Operation processing</h3>
+ * <h2>Operation processing</h2>
  * <p>
  * Operations may be performed synchronously or asynchronously depending on the
  * method chosen. Asynchronous methods can be identified by their {@code Async}
  * suffix.
- * <p>
- * <h4>Performing operations synchronously</h4>
+ * <h3>Performing operations synchronously</h3>
  * <p>
  * Synchronous methods block until a response is received from the Directory
  * Server, at which point an appropriate {@link Result} object is returned if
@@ -64,8 +63,7 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
  * another thread. This will cause the calling thread unblock and throw a
  * {@link CancelledResultException} whose cause is the underlying
  * {@link InterruptedException}.
- * <p>
- * <h4>Performing operations asynchronously</h4>
+ * <h3>Performing operations asynchronously</h3>
  * <p>
  * Asynchronous methods, identified by their {@code Async} suffix, are
  * non-blocking, returning a {@link LdapPromise} or sub-type thereof which can
@@ -115,8 +113,7 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
  * SearchResponseHandler handle = ...;
  * connection.search(request, handler);
  * </pre>
- * <p>
- * <h3>Closing connections</h3>
+ * <h2>Closing connections</h2>
  * <p>
  * Applications must ensure that a connection is closed by calling
  * {@link #close()} even if a fatal error occurs on the connection. Once a
@@ -127,8 +124,7 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
  * connection. In this case all requests subsequent to the failure will fail
  * with an appropriate {@link LdapException} when their result is
  * retrieved.
- * <p>
- * <h3>Event notification</h3>
+ * <h2>Event notification</h2>
  * <p>
  * Applications can choose to be notified when a connection is closed by the
  * application, receives an unsolicited notification, or experiences a fatal

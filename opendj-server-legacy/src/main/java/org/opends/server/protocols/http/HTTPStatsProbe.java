@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.http;
 
@@ -30,7 +31,6 @@ import org.glassfish.grizzly.http.HttpProbe;
  * Use
  * <code>curl "http://localhost:8080/users?_queryFilter=true&_prettyPrint=true"
  * --trace-ascii output.txt</code> to trace the client-server communication.
- * </p>
  */
 @SuppressWarnings("rawtypes")
 final class HTTPStatsProbe extends HttpProbe.Adapter

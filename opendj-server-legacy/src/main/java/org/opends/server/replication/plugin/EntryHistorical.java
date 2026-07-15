@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -163,7 +164,6 @@ public class EntryHistorical
    * preOperation plugin, that is called just before committing into the DB.
    * </li>
    * </ul>
-   * </p>
    *
    * @param modifyOperation
    *          the modification.

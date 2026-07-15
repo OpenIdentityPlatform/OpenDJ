@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -612,10 +613,10 @@ public final class Utils {
      * Repeats the given {@code char} n times.
      *
      * @param charToRepeat
-     *      The {code char} to repeat.
+     *      The {@code char} to repeat.
      * @param length
      *      The repetition count.
-     * @return The given {code char} n times.
+     * @return The given {@code char} n times.
      */
     public static String repeat(final char charToRepeat, final int length) {
         final char[] str = new char[length];
@@ -624,11 +625,11 @@ public final class Utils {
     }
 
     /**
-     * Return a {code ValidationCallback<Integer>} which can be used to validate a port number.
+     * Return a {@code ValidationCallback<Integer>} which can be used to validate a port number.
      *
      * @param defaultPort
      *        The default value to suggest to the user.
-     * @return a {code ValidationCallback<Integer>} which can be used to validate a port number.
+     * @return a {@code ValidationCallback<Integer>} which can be used to validate a port number.
      */
     public static ValidationCallback<Integer> portValidationCallback(final int defaultPort) {
         return new ValidationCallback<Integer>() {
@@ -673,7 +674,7 @@ public final class Utils {
     }
 
     /**
-     * Adds a {@link LocalizableMessage} to the provided {@link Collection<LocalizableMessage>}
+     * Adds a {@link LocalizableMessage} to the provided {@link Collection}
      * if both provided {@link Argument} are presents in the command line arguments.
      *
      * @param errors

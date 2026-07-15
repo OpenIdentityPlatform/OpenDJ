@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -36,7 +37,7 @@ public final class MultiChoiceArgument<V> extends Argument {
 
     /**
      * Returns a builder which can be used for incrementally constructing a new
-     * {@link MultiChoiceArgument<V>}.
+     * {@link MultiChoiceArgument}.
      *
      * @param <V>
      *         The type of values returned by this argument.
@@ -48,7 +49,7 @@ public final class MultiChoiceArgument<V> extends Argument {
         return new Builder<>(longIdentifier);
     }
 
-    /** A fluent API for incrementally constructing {@link MultiChoiceArgument<V>}. */
+    /** A fluent API for incrementally constructing {@link MultiChoiceArgument}. */
     public static final class Builder<V> extends ArgumentBuilder<Builder<V>, V, MultiChoiceArgument<V>> {
         private final List<V> allowedValues = new LinkedList<>();
 
@@ -62,10 +63,10 @@ public final class MultiChoiceArgument<V> extends Argument {
         }
 
         /**
-         * Specifies the set of values that are allowed for the {@link MultiChoiceArgument<V>}.
+         * Specifies the set of values that are allowed for the {@link MultiChoiceArgument}.
          *
          * @param allowedValues
-         *         The {@link MultiChoiceArgument<V>} allowed values.
+         *         The {@link MultiChoiceArgument} allowed values.
          * @return This builder.
          */
         public Builder<V> allowedValues(final Collection<V> allowedValues) {
@@ -74,10 +75,10 @@ public final class MultiChoiceArgument<V> extends Argument {
         }
 
         /**
-         * Specifies the set of values that are allowed for the {@link MultiChoiceArgument<V>}.
+         * Specifies the set of values that are allowed for the {@link MultiChoiceArgument}.
          *
          * @param allowedValues
-         *         The {@link MultiChoiceArgument<V>} allowed values.
+         *         The {@link MultiChoiceArgument} allowed values.
          * @return This builder.
          */
         @SuppressWarnings("unchecked")
