@@ -13,7 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2024-2025 3A Systems, LLC.
+ * Portions Copyright 2024-2026 3A Systems, LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -216,6 +216,10 @@ public class LocalBackendSearchOperation
           if(!dereferencingDNs.contains(aliasedDn)) { //detect recursive search
             dereferencingDNs.add(aliasedDn);
             setBaseDN(aliasedDn);
+            // the alias may point into another backend: a null backend is reported
+            // as NO_SUCH_OBJECT by the recursive call
+            backend = DirectoryServer.getInstance().getServerContext()
+                    .getBackendConfigManager().findLocalBackendForEntry(aliasedDn);
             try {
               processSearch(executePostOpPlugins);
             } catch (StackOverflowError error) {
