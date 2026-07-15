@@ -297,6 +297,14 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
     return true;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Only the base changelog entry can be retrieved by DN. Change records are streamed by
+   * {@link #search(SearchOperation)}, which needs the search filter and the change number range to
+   * position its cursors, so they cannot be looked up individually and {@code null} is returned for
+   * them. None of them is ever an alias, so callers dereferencing aliases get the answer they need.
+   */
   @Override
   public Entry getEntry(final DN entryDN) throws DirectoryException
   {
@@ -305,7 +313,11 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
       throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_BACKEND_GET_ENTRY_NULL.get(getBackendID()));
     }
-    throw new RuntimeException("Not implemented");
+    if (CHANGELOG_BASE_DN.equals(entryDN))
+    {
+      return buildBaseChangelogEntry();
+    }
+    return null;
   }
 
   @Override
