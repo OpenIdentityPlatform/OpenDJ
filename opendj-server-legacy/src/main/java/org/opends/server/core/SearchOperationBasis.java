@@ -13,11 +13,12 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2024 3A Systems, LLC.
+ * Portions Copyright 2024-2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -449,11 +450,46 @@ public class SearchOperationBasis
   {
     return returnEntry(entry, controls, true);
   }
-  Set<DN> dereferenced=new HashSet<>();
+
+  /**
+   * The DNs of the entries already returned by the search phase. An alias may be dereferenced onto
+   * an entry which is in the scope of the search as well, and that entry must only be returned once.
+   * It is emptied once the search phase is over, because a persistent search must report every
+   * change it is notified of, whether or not the entry was returned before.
+   */
+  private final Set<DN> returnedDNs = ConcurrentHashMap.newKeySet();
+
+  /** Whether the search phase is over and only persistent search notifications remain. */
+  private volatile boolean searchPhaseOver;
+
+  @Override
+  public final void endSearchPhase()
+  {
+    searchPhaseOver = true;
+    returnedDNs.clear();
+  }
 
   @Override
   public final boolean returnEntry(Entry entry, List<Control> controls,
                                    boolean evaluateAci)
+  {
+    return returnEntry(entry, controls, evaluateAci, null);
+  }
+
+  /**
+   * Returns the provided entry to the client, dereferencing it first if it is an alias and the
+   * deref policy asks for it.
+   *
+   * @param  entry       The entry to return.
+   * @param  controls    The controls to attach to the entry.
+   * @param  evaluateAci Whether the access control handler must be consulted.
+   * @param  aliasChain  The DNs of the aliases already dereferenced on the way to this entry, or
+   *                     {@code null} if no alias was dereferenced yet. It only spans the current
+   *                     chain, so it cannot grow beyond the length of that chain.
+   * @return  {@code true} if the search should continue, {@code false} if it should stop.
+   */
+  private boolean returnEntry(Entry entry, List<Control> controls,
+                              boolean evaluateAci, Set<DN> aliasChain)
   {
     boolean typesOnly = getTypesOnly();
 
@@ -566,22 +602,12 @@ public class SearchOperationBasis
     //DereferenceAliasesPolicy
     if ( DereferenceAliasesPolicy.ALWAYS.equals(getDerefPolicy()) || DereferenceAliasesPolicy.IN_SEARCHING.equals(getDerefPolicy()) ) {
       if (entry.isAlias() && !baseDN.equals(entry.getName())) {
-        try {
-          final DN dn = entry.getAliasedDN();
-          final Entry dereference = DirectoryServer.getEntry(dn);
-          if (dereferenced.contains(dn)) {
-            return true;
-          }
-          dereferenced.add(dn);
-          return returnEntry(dereference, controls, true);
-        } catch (DirectoryException e) {
-          throw new RuntimeException(e);
-        }
+        return returnAliasedEntry(entry, controls, aliasChain);
       }
-      if (dereferenced.contains(entry.getName())) {
+      if (!searchPhaseOver && !returnedDNs.add(entry.getName())) {
+        // This entry was already returned by the search, through an alias or on its own.
         return true;
       }
-      dereferenced.add(entry.getName());
     }
 
     // Make a copy of the entry and pare it down to only include the set
@@ -707,6 +733,53 @@ public class SearchOperationBasis
     }
 
     return pluginResult.continueProcessing();
+  }
+
+  /**
+   * Returns the entry the provided alias points to, in place of the alias itself.
+   *
+   * @param  alias       The alias entry to dereference.
+   * @param  controls    The controls to attach to the entry.
+   * @param  aliasChain  The DNs of the aliases already dereferenced on the way to this alias, or
+   *                     {@code null} if this alias is the first one of the chain.
+   * @return  {@code true} if the search should continue, {@code false} if it should stop.
+   */
+  private boolean returnAliasedEntry(Entry alias, List<Control> controls, Set<DN> aliasChain)
+  {
+    final DN aliasedDN;
+    final Entry aliasedEntry;
+    try
+    {
+      aliasedDN = alias.getAliasedDN();
+      aliasedEntry = DirectoryServer.getEntry(aliasedDN);
+    }
+    catch (DirectoryException e)
+    {
+      // A single alias which cannot be read must not fail the whole search.
+      logger.traceException(e);
+      return true;
+    }
+
+    if (aliasedEntry == null)
+    {
+      // The alias points to an entry which does not exist: there is nothing to return for it.
+      return true;
+    }
+    if (!searchPhaseOver && returnedDNs.contains(aliasedDN))
+    {
+      // The aliased entry was already returned by the search.
+      return true;
+    }
+    if (aliasChain == null)
+    {
+      aliasChain = new HashSet<>();
+    }
+    if (!aliasChain.add(aliasedDN))
+    {
+      // The aliases point at each other: stop before looping forever.
+      return true;
+    }
+    return returnEntry(aliasedEntry, controls, true, aliasChain);
   }
 
   private AccessControlHandler<?> getACIHandler()

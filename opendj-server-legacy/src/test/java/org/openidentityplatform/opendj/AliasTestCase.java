@@ -16,9 +16,12 @@
 package org.openidentityplatform.opendj;
 
 import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.controls.PersistentSearchChangeType;
+import org.forgerock.opendj.ldap.controls.PersistentSearchRequestControl;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
@@ -30,6 +33,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -461,6 +467,113 @@ public class AliasTestCase extends DirectoryServerTestCase {
             fail("dereferencing an alias whose target has no backend must fail");
         } catch (LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.NO_SUCH_OBJECT);
+        }
+    }
+
+    // An alias whose target lies outside the search scope: the target is only
+    // reachable by dereferencing, so it must be returned by the search.
+    @Test
+    public void test_deref_target_outside_scope() throws Exception {
+        TestCaseUtils.addEntries(
+                "dn: ou=pointers,o=test",
+                "objectClass: top",
+                "objectClass: organizationalUnit",
+                "ou: pointers",
+                "",
+                "dn: cn=ptr,ou=pointers,o=test",
+                "objectClass: alias",
+                "objectClass: top",
+                "objectClass: extensibleObject",
+                "cn: ptr",
+                "aliasedObjectName: cn=John Doe,o=MyCompany,o=test",
+                ""
+        );
+        HashMap<String, SearchResultEntry> res =
+                search("ou=pointers,o=test", SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.ALWAYS);
+
+        assertThat(res.containsKey("cn=John Doe,o=MyCompany,o=test")).isTrue();
+    }
+
+    // An alias pointing at an entry which does not exist is skipped, and the entries next to it are
+    // still returned: aliases are not checked when they are written, so a dangling one is expected.
+    @Test
+    public void test_dangling_alias() throws Exception {
+        TestCaseUtils.addEntries(
+                "dn: ou=dangling,o=test",
+                "objectClass: top",
+                "objectClass: organizationalUnit",
+                "ou: dangling",
+                "",
+                "dn: cn=broken,ou=dangling,o=test",
+                "objectClass: alias",
+                "objectClass: top",
+                "objectClass: extensibleObject",
+                "cn: broken",
+                "aliasedObjectName: cn=does-not-exist,ou=dangling,o=test",
+                "",
+                "dn: cn=intact,ou=dangling,o=test",
+                "cn: intact",
+                "sn: intact",
+                "objectClass: person",
+                ""
+        );
+        HashMap<String, SearchResultEntry> res =
+                search("ou=dangling,o=test", SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.ALWAYS);
+
+        assertThat(res.containsKey("cn=does-not-exist,ou=dangling,o=test")).isFalse();
+        assertThat(res.containsKey("ou=dangling,o=test")).isTrue();
+        assertThat(res.containsKey("cn=intact,ou=dangling,o=test")).isTrue();
+    }
+
+    // A persistent search reports every change it is notified of. Dereferencing aliases must not
+    // make it drop a change because the entry was notified before.
+    @Test
+    public void test_persistent_search_reports_repeated_changes() throws Exception {
+        TestCaseUtils.addEntries(
+                "dn: ou=psearch,o=test",
+                "objectClass: top",
+                "objectClass: organizationalUnit",
+                "ou: psearch",
+                "",
+                "dn: cn=changing,ou=psearch,o=test",
+                "cn: changing",
+                "sn: changing",
+                "objectClass: person",
+                ""
+        );
+
+        final BlockingQueue<String> notified = new LinkedBlockingQueue<>();
+        final SearchRequest request =
+                Requests.newSearchRequest("ou=psearch,o=test", SearchScope.WHOLE_SUBTREE, "(objectclass=*)")
+                        .setDereferenceAliasesPolicy(DereferenceAliasesPolicy.ALWAYS)
+                        .addControl(PersistentSearchRequestControl.newControl(
+                                true, true, false, PersistentSearchChangeType.MODIFY));
+
+        final LDAPConnectionFactory factory =
+                new LDAPConnectionFactory("localhost", TestCaseUtils.getServerLdapPort());
+        try (Connection psearch = factory.getConnection()) {
+            psearch.bind("cn=Directory Manager", "password".toCharArray());
+            psearch.searchAsync(request, new SearchResultHandler() {
+                @Override
+                public boolean handleEntry(SearchResultEntry entry) {
+                    notified.add(entry.getName().toString());
+                    return true;
+                }
+
+                @Override
+                public boolean handleReference(SearchResultReference reference) {
+                    return true;
+                }
+            });
+
+            // The same entry is modified repeatedly: each change must reach the persistent search.
+            for (int i = 1; i <= 3; i++) {
+                connection.modify(Requests.newModifyRequest("cn=changing,ou=psearch,o=test")
+                        .addModification(ModificationType.REPLACE, "description", "change " + i));
+                assertThat(notified.poll(30, TimeUnit.SECONDS))
+                        .as("notification for change " + i)
+                        .isEqualTo("cn=changing,ou=psearch,o=test");
+            }
         }
     }
 
