@@ -15,21 +15,33 @@
  */
 package org.openidentityplatform.opendj;
 
+import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.controls.PersistentSearchChangeType;
+import org.forgerock.opendj.ldap.controls.PersistentSearchRequestControl;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
+import org.forgerock.opendj.server.config.client.GlobalCfgClient;
+import org.forgerock.opendj.server.config.meta.GlobalCfgDefn;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 
+import org.opends.server.api.LocalBackend;
 import org.opends.server.backends.MemoryBackend;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.Entry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -461,6 +473,220 @@ public class AliasTestCase extends DirectoryServerTestCase {
             fail("dereferencing an alias whose target has no backend must fail");
         } catch (LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.NO_SUCH_OBJECT);
+        }
+    }
+
+    // An alias whose target lies outside the search scope: the target is only
+    // reachable by dereferencing, so it must be returned by the search.
+    @Test
+    public void test_deref_target_outside_scope() throws Exception {
+        TestCaseUtils.addEntries(
+                "dn: ou=pointers,o=test",
+                "objectClass: top",
+                "objectClass: organizationalUnit",
+                "ou: pointers",
+                "",
+                "dn: cn=ptr,ou=pointers,o=test",
+                "objectClass: alias",
+                "objectClass: top",
+                "objectClass: extensibleObject",
+                "cn: ptr",
+                "aliasedObjectName: cn=John Doe,o=MyCompany,o=test",
+                ""
+        );
+        HashMap<String, SearchResultEntry> res =
+                search("ou=pointers,o=test", SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.ALWAYS);
+
+        assertThat(res.containsKey("cn=John Doe,o=MyCompany,o=test")).isTrue();
+    }
+
+    // An alias pointing at an entry which does not exist is skipped, and the entries next to it are
+    // still returned: aliases are not checked when they are written, so a dangling one is expected.
+    @Test
+    public void test_dangling_alias() throws Exception {
+        TestCaseUtils.addEntries(
+                "dn: ou=dangling,o=test",
+                "objectClass: top",
+                "objectClass: organizationalUnit",
+                "ou: dangling",
+                "",
+                "dn: cn=broken,ou=dangling,o=test",
+                "objectClass: alias",
+                "objectClass: top",
+                "objectClass: extensibleObject",
+                "cn: broken",
+                "aliasedObjectName: cn=does-not-exist,ou=dangling,o=test",
+                "",
+                "dn: cn=intact,ou=dangling,o=test",
+                "cn: intact",
+                "sn: intact",
+                "objectClass: person",
+                ""
+        );
+        HashMap<String, SearchResultEntry> res =
+                search("ou=dangling,o=test", SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.ALWAYS);
+
+        assertThat(res.containsKey("cn=does-not-exist,ou=dangling,o=test")).isFalse();
+        assertThat(res.containsKey("ou=dangling,o=test")).isTrue();
+        assertThat(res.containsKey("cn=intact,ou=dangling,o=test")).isTrue();
+    }
+
+    // A persistent search reports every change it is notified of. Dereferencing aliases must not
+    // make it drop a change because the entry was notified before.
+    @Test
+    public void test_persistent_search_reports_repeated_changes() throws Exception {
+        TestCaseUtils.addEntries(
+                "dn: ou=psearch,o=test",
+                "objectClass: top",
+                "objectClass: organizationalUnit",
+                "ou: psearch",
+                "",
+                "dn: cn=changing,ou=psearch,o=test",
+                "cn: changing",
+                "sn: changing",
+                "objectClass: person",
+                ""
+        );
+
+        final BlockingQueue<String> notified = new LinkedBlockingQueue<>();
+        final SearchRequest request =
+                Requests.newSearchRequest("ou=psearch,o=test", SearchScope.WHOLE_SUBTREE, "(objectclass=*)")
+                        .setDereferenceAliasesPolicy(DereferenceAliasesPolicy.ALWAYS)
+                        .addControl(PersistentSearchRequestControl.newControl(
+                                true, true, false, PersistentSearchChangeType.MODIFY));
+
+        final LDAPConnectionFactory factory =
+                new LDAPConnectionFactory("localhost", TestCaseUtils.getServerLdapPort());
+        try (Connection psearch = factory.getConnection()) {
+            psearch.bind("cn=Directory Manager", "password".toCharArray());
+            psearch.searchAsync(request, new SearchResultHandler() {
+                @Override
+                public boolean handleEntry(SearchResultEntry entry) {
+                    notified.add(entry.getName().toString());
+                    return true;
+                }
+
+                @Override
+                public boolean handleReference(SearchResultReference reference) {
+                    return true;
+                }
+            });
+
+            // searchAsync returns before the server has registered the persistent search, so wait
+            // until the backend reports it; otherwise the first modification below can be notified
+            // before the search is listening and be missed.
+            final LocalBackend<?> backend = TestCaseUtils.getServerContext()
+                    .getBackendConfigManager().getLocalBackendById(TestCaseUtils.TEST_BACKEND_ID);
+            for (int i = 0; backend.getPersistentSearches().isEmpty() && i < 500; i++) {
+                Thread.sleep(10);
+            }
+            assertThat(backend.getPersistentSearches()).isNotEmpty();
+
+            // The same entry is modified repeatedly: each change must reach the persistent search.
+            for (int i = 1; i <= 3; i++) {
+                connection.modify(Requests.newModifyRequest("cn=changing,ou=psearch,o=test")
+                        .addModification(ModificationType.REPLACE, "description", "change " + i));
+                assertThat(notified.poll(30, TimeUnit.SECONDS))
+                        .as("notification for change " + i)
+                        .isEqualTo("cn=changing,ou=psearch,o=test");
+            }
+        }
+    }
+
+    // An alias is dereferenced before its target is reached on its own: the target must still be
+    // returned, and exactly once. The original regression was order-sensitive, dropping the target
+    // when the alias reached it first, so this pins the alias-before-target order specifically. The
+    // MemoryBackend serving o=test walks entries in insertion order, so listing the alias before the
+    // target below guarantees the alias is visited first.
+    @Test
+    public void test_deref_alias_before_target_returns_target_once() throws Exception {
+        TestCaseUtils.addEntries(
+                "dn: ou=order,o=test",
+                "objectClass: top",
+                "objectClass: organizationalUnit",
+                "ou: order",
+                "",
+                "dn: cn=aaa-alias,ou=order,o=test",
+                "objectClass: alias",
+                "objectClass: top",
+                "objectClass: extensibleObject",
+                "cn: aaa-alias",
+                "aliasedObjectName: cn=zzz-target,ou=order,o=test",
+                "",
+                "dn: cn=zzz-target,ou=order,o=test",
+                "cn: zzz-target",
+                "sn: target",
+                "objectClass: person",
+                ""
+        );
+        // search() asserts every returned DN is unique, so a duplicated target would fail this call.
+        HashMap<String, SearchResultEntry> res =
+                search("ou=order,o=test", SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.ALWAYS);
+
+        // The target is returned, reached through the alias visited before it ...
+        assertThat(res.containsKey("cn=zzz-target,ou=order,o=test")).isTrue();
+        // ... and the alias entry itself is replaced by its target, never returned as-is.
+        assertThat(res.containsKey("cn=aaa-alias,ou=order,o=test")).isFalse();
+    }
+
+    // An alias whose aliasedObjectName is not a valid DN cannot be dereferenced. Reading it throws a
+    // DirectoryException, which must be logged and the alias skipped, not turned into a failed search.
+    @Test
+    public void test_alias_with_malformed_target_is_skipped() throws Exception {
+        // A malformed DN can only be stored while syntax enforcement is relaxed; the default REJECT
+        // policy refuses the add outright.
+        final AcceptRejectWarn previous = DirectoryServer.getCoreConfigManager().getSyntaxEnforcementPolicy();
+        setSyntaxEnforcementPolicy(GlobalCfgDefn.InvalidAttributeSyntaxBehavior.WARN);
+        try {
+            TestCaseUtils.addEntries(
+                    "dn: ou=malformed,o=test",
+                    "objectClass: top",
+                    "objectClass: organizationalUnit",
+                    "ou: malformed",
+                    "",
+                    "dn: cn=badptr,ou=malformed,o=test",
+                    "objectClass: alias",
+                    "objectClass: top",
+                    "objectClass: extensibleObject",
+                    "cn: badptr",
+                    "aliasedObjectName: not a valid dn",
+                    "",
+                    "dn: cn=neighbour,ou=malformed,o=test",
+                    "cn: neighbour",
+                    "sn: neighbour",
+                    "objectClass: person",
+                    ""
+            );
+        } finally {
+            setSyntaxEnforcementPolicy(asSyntaxBehavior(previous));
+        }
+
+        // The whole search still succeeds: the broken alias is skipped, its neighbours returned.
+        HashMap<String, SearchResultEntry> res =
+                search("ou=malformed,o=test", SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.ALWAYS);
+
+        assertThat(res.containsKey("cn=badptr,ou=malformed,o=test")).isFalse();
+        assertThat(res.containsKey("ou=malformed,o=test")).isTrue();
+        assertThat(res.containsKey("cn=neighbour,ou=malformed,o=test")).isTrue();
+    }
+
+    private static void setSyntaxEnforcementPolicy(GlobalCfgDefn.InvalidAttributeSyntaxBehavior value) throws Exception {
+        try (ManagementContext conf = TestCaseUtils.getServer().getConfiguration()) {
+            GlobalCfgClient globalCfg = conf.getRootConfiguration().getGlobalConfiguration();
+            globalCfg.setInvalidAttributeSyntaxBehavior(value);
+            globalCfg.commit();
+        }
+    }
+
+    private static GlobalCfgDefn.InvalidAttributeSyntaxBehavior asSyntaxBehavior(AcceptRejectWarn policy) {
+        switch (policy) {
+        case ACCEPT:
+            return GlobalCfgDefn.InvalidAttributeSyntaxBehavior.ACCEPT;
+        case WARN:
+            return GlobalCfgDefn.InvalidAttributeSyntaxBehavior.WARN;
+        case REJECT:
+        default:
+            return GlobalCfgDefn.InvalidAttributeSyntaxBehavior.REJECT;
         }
     }
 

@@ -258,6 +258,9 @@ public class LocalBackendSearchOperation
         // Process the search in the backend and all its subordinates.
         backend.search(this);
       }
+
+      // Any entry returned from now on comes from the persistent search, if there is one.
+      endSearchPhase();
     }
     catch (DirectoryException de)
     {
