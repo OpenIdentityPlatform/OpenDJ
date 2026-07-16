@@ -555,7 +555,7 @@ public class InitOnLineTest extends ReplicationTestCase
       if (server2 == null)
       {
         server2 = openReplicationSession(baseDN,
-          server2ID, 100, getReplServerPort(replServer1ID), 1000);
+          server2ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
       // In S1 launch the total update
@@ -608,7 +608,7 @@ public class InitOnLineTest extends ReplicationTestCase
       if (server2 == null)
       {
         server2 = openReplicationSession(baseDN,
-          server2ID, 100, getReplServerPort(replServer1ID), 1000);
+          server2ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
       InitializeRequestMsg initMsg = new InitializeRequestMsg(baseDN, server2ID, server1ID, 100);
@@ -652,7 +652,7 @@ public class InitOnLineTest extends ReplicationTestCase
       if (server2 == null)
       {
         server2 = openReplicationSession(baseDN,
-          server2ID, 100, getReplServerPort(replServer1ID), 1000);
+          server2ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
       // Launch in S1 the task that will initialize S2
@@ -705,13 +705,13 @@ public class InitOnLineTest extends ReplicationTestCase
       if (server2 == null)
       {
         server2 = openReplicationSession(baseDN,
-          server2ID, 100, getReplServerPort(replServer1ID), 1000);
+          server2ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
       if (server3 == null)
       {
         server3 = openReplicationSession(baseDN,
-          server3ID, 100, getReplServerPort(replServer1ID), 1000);
+          server3ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
       // Launch in S1 the task that will initialize S2
@@ -752,7 +752,7 @@ public class InitOnLineTest extends ReplicationTestCase
       if (server2==null)
       {
         server2 = openReplicationSession(baseDN,
-          server2ID, 100, getReplServerPort(replServer1ID), 1000);
+          server2ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
       // Creates config to synchronize suffix
@@ -941,11 +941,11 @@ public class InitOnLineTest extends ReplicationTestCase
 
       // Connects lDAP2 to replServer2
       broker2 = openReplicationSession(baseDN,
-        server2ID, 100, getReplServerPort(replServer2ID), 1000);
+        server2ID, 100, getReplServerPort(replServer2ID), 10000);
 
       // Connects lDAP3 to replServer2
       broker3 = openReplicationSession(baseDN,
-        server3ID, 100, getReplServerPort(replServer2ID), 1000);
+        server3ID, 100, getReplServerPort(replServer2ID), 10000);
 
       // Check that the list of connected LDAP servers is correct in each replication servers
       Assertions.assertThat(getConnectedDSServerIds(replServer1)).containsExactly(server1ID);
@@ -958,7 +958,7 @@ public class InitOnLineTest extends ReplicationTestCase
       Assertions.assertThat(getConnectedDSServerIds(replServer2)).containsExactly(server2ID);
 
       broker3 = openReplicationSession(baseDN,
-        server3ID, 100, getReplServerPort(replServer2ID), 1000);
+        server3ID, 100, getReplServerPort(replServer2ID), 10000);
       broker2.stop();
       Thread.sleep(1000);
       Assertions.assertThat(getConnectedDSServerIds(replServer2)).containsExactly(server3ID);
@@ -1001,7 +1001,7 @@ public class InitOnLineTest extends ReplicationTestCase
       {
         log(testCase + " Will connect server 2 to " + replServer2ID);
         server2 = openReplicationSession(baseDN,
-            server2ID, 100, getReplServerPort(replServer2ID), 1000);
+            server2ID, 100, getReplServerPort(replServer2ID), 10000);
       }
 
       // Launch in S1 the task that will initialize S2
@@ -1108,7 +1108,7 @@ public class InitOnLineTest extends ReplicationTestCase
         log(testCase + " Will connect server 2 to " + replServer2ID);
         server2 = openReplicationSession(baseDN,
           server2ID, 100, getReplServerPort(replServer2ID),
-          1000, replServer1.getGenerationId(baseDN));
+          10000, replServer1.getGenerationId(baseDN));
       }
 
       // Connect a broker acting as server 3 to Repl Server 3
@@ -1120,7 +1120,7 @@ public class InitOnLineTest extends ReplicationTestCase
         log(testCase + " Will connect server 3 to " + replServer3ID);
         server3 = openReplicationSession(baseDN,
           server3ID, 100, getReplServerPort(replServer3ID),
-          1000, replServer1.getGenerationId(baseDN));
+          10000, replServer1.getGenerationId(baseDN));
       }
 
       // S3 sends init request
@@ -1279,7 +1279,7 @@ public class InitOnLineTest extends ReplicationTestCase
       if (server2 == null)
       {
         server2 = openReplicationSession(baseDN,
-          server2ID, 100, getReplServerPort(replServer1ID), 1000);
+          server2ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
       // Creates config to synchronize suffix
