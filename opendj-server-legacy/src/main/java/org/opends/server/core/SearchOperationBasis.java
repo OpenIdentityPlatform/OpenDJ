@@ -750,10 +750,12 @@ public class SearchOperationBasis
     final Entry aliasedEntry;
     try
     {
+      // getAliasedDN() parses the aliasedObjectName value, which throws the unchecked
+      // LocalizedIllegalArgumentException when that value is not a valid DN.
       aliasedDN = alias.getAliasedDN();
       aliasedEntry = DirectoryServer.getEntry(aliasedDN);
     }
-    catch (DirectoryException e)
+    catch (DirectoryException | LocalizedIllegalArgumentException e)
     {
       // A single alias which cannot be read must not fail the whole search.
       logger.traceException(e);
