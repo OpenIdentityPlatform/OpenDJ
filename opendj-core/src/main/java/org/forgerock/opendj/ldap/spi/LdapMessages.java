@@ -31,7 +31,7 @@ public final class LdapMessages {
     }
 
     /**
-     * Creates a new {@link     } containing a partially decoded LDAP message.
+     * Creates a new {@link LdapRequestEnvelope} containing a partially decoded LDAP message.
      *
      * @param messageType
      *            Operation code of the message

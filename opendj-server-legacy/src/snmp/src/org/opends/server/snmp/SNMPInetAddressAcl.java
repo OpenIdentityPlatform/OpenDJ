@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.snmp;
 
@@ -158,7 +159,6 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
 
     /**
      * {@inheritDoc}
-     * @param address
      * @return the list of communities
      */
     public Enumeration getTrapCommunities(InetAddress address) {
@@ -178,7 +178,6 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
 
     /**
      * {@inheritDoc}
-     * @param address
      * @return an empty enumeration
      */
     public Enumeration getInformCommunities(InetAddress address) {

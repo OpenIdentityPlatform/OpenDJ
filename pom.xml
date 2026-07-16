@@ -67,6 +67,11 @@
         <docGuideRefUrl>https://doc.openidentityplatform.org/opendj/man-pages/</docGuideRefUrl>
         <docGuideAdminUrl>https://doc.openidentityplatform.org/opendj/admin-guide/</docGuideAdminUrl>
 
+        <!-- Javadoc doclint level (single source of truth, inherited by every module).
+             all,-missing = run all checks (html/syntax/reference/accessibility) but do
+             not require missing comments/tags. Read by maven-javadoc-plugin via -Ddoclint. -->
+        <doclint>all,-missing</doclint>
+
       </properties>
 
     <inceptionYear>2011</inceptionYear>
@@ -322,8 +327,9 @@
 			    </execution>
 			  </executions>
 			  <configuration>
-			  	<doclint>none</doclint>
+			  	<doclint>${doclint}</doclint>
                 <notimestamp>true</notimestamp>
+                <failOnWarnings>true</failOnWarnings>
 			  </configuration>
 			</plugin>
 			<plugin>
@@ -423,7 +429,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.11.2</version>
+                    <version>3.12.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -485,6 +491,7 @@
                 <plugin>
                     <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
                     <artifactId>maven-plugin</artifactId>
+                    <version>${commons.version}</version>
                 </plugin>
 
                 <plugin>

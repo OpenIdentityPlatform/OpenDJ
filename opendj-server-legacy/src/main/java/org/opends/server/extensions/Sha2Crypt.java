@@ -27,6 +27,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -48,13 +49,11 @@ import java.util.regex.Pattern;
  * into the Public Domain.
  * <p>
  * This class is immutable and thread-safe.
- * </p>
  *
  * <p>
  * Note this class was originally in the
  * <code>org.apache.commons.codec.digest</code> package, but was moved into
  * <code>org.opends.server.extensions</code> for convenience.
- * </p>
  *
  * @version $Id$
  * @since 1.7
@@ -70,7 +69,6 @@ final class Sha2Crypt {
    * Note this class was originally in the
    * <code>org.apache.commons.codec.digest</code> package, but was moved into an
    * inner class here for convenience. It is <b>not</b> compatible with Base64.
-   * </p>
    *
    * @version $Id$
    * @since 1.7
