@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2024-2025 3A Systems, LLC.
+ * Copyright 2024-2026 3A Systems, LLC.
  */
 package org.openidentityplatform.opendj;
 
@@ -23,22 +23,29 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 
+import org.opends.server.backends.MemoryBackend;
 import org.opends.server.types.Entry;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 @Test(sequential = true)
 public class AliasTestCase extends DirectoryServerTestCase {
+    /** Backend holding a naming context other than o=test, to check aliases crossing a backend boundary. */
+    static final String OTHER_BACKEND_ID = "test2";
+
     Connection connection;
 
     @BeforeClass
     public void startServer() throws Exception {
         TestCaseUtils.startServer();
         TestCaseUtils.initializeTestBackend(true);
+        TestCaseUtils.initializeMemoryBackend(OTHER_BACKEND_ID, "o=test2", true);
 
         TestCaseUtils.addEntries(
                  "dn: o=MyCompany, o=test",
@@ -116,6 +123,32 @@ public class AliasTestCase extends DirectoryServerTestCase {
                         "objectClass: extensibleObject",
                         "aliasedObjectName: uid=janedoe,ou=students,o=test",
                         "uid: janedoe",
+                        "",
+
+                        //an alias pointing into the o=test2 backend, and one pointing nowhere at all
+                        "dn: ou=people,o=test2",
+                        "objectClass: top",
+                        "objectClass: organizationalUnit",
+                        "ou: people",
+                        "",
+                        "dn: cn=Jane Roe,ou=people,o=test2",
+                        "cn: Jane Roe",
+                        "sn: Roe",
+                        "objectclass: person",
+                        "",
+                        "dn: ou=external,o=test",
+                        "objectClass: alias",
+                        "objectClass: top",
+                        "objectClass: extensibleObject",
+                        "ou: external",
+                        "aliasedObjectName: ou=people,o=test2",
+                        "",
+                        "dn: ou=nowhere,o=test",
+                        "objectClass: alias",
+                        "objectClass: top",
+                        "objectClass: extensibleObject",
+                        "ou: nowhere",
+                        "aliasedObjectName: ou=people,o=missing",
                         ""
         );
 
@@ -123,6 +156,20 @@ public class AliasTestCase extends DirectoryServerTestCase {
         connection = factory.getConnection();
         connection.bind("cn=Directory Manager", "password".toCharArray());
         assertThat(connection.isValid()).isTrue();
+    }
+
+    @AfterClass
+    public void stopServer() throws Exception {
+        if (connection != null) {
+            connection.close();
+        }
+        final MemoryBackend otherBackend = (MemoryBackend) TestCaseUtils.getServerContext()
+                .getBackendConfigManager().getLocalBackendById(OTHER_BACKEND_ID);
+        if (otherBackend != null) {
+            otherBackend.clearMemoryBackend();
+            otherBackend.finalizeBackend();
+            TestCaseUtils.getServerContext().getBackendConfigManager().deregisterLocalBackend(otherBackend);
+        }
     }
 
     public HashMap<String,SearchResultEntry> search(SearchScope scope,DereferenceAliasesPolicy policy) throws SearchResultReferenceIOException, LdapException {
@@ -384,6 +431,37 @@ public class AliasTestCase extends DirectoryServerTestCase {
         assertThat(res.containsKey("uid=janedoe,ou=students,o=test")).isTrue();
         assertThat(res.containsKey("uid=janedoe,ou=researches,o=test")).isFalse();
         assertThat(res.containsKey("uid=janedoe,ou=employees,o=test")).isFalse();
+    }
+
+    //    The alias target does not have to live in the backend holding the alias:
+    //    the search must be handed over to the backend holding the target.
+    @Test
+    public void test_cross_backend_alias_base_always() throws LdapException, SearchResultReferenceIOException {
+        HashMap<String, SearchResultEntry> res = search("ou=external,o=test", SearchScope.BASE_OBJECT, DereferenceAliasesPolicy.ALWAYS);
+
+        assertThat(res.containsKey("ou=external,o=test")).isFalse();
+        assertThat(res.containsKey("ou=people,o=test2")).isTrue();
+        assertThat(res.containsKey("cn=Jane Roe,ou=people,o=test2")).isFalse();
+    }
+
+    @Test
+    public void test_cross_backend_alias_sub_always() throws LdapException, SearchResultReferenceIOException {
+        HashMap<String, SearchResultEntry> res = search("ou=external,o=test", SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.ALWAYS);
+
+        assertThat(res.containsKey("ou=external,o=test")).isFalse();
+        assertThat(res.containsKey("ou=people,o=test2")).isTrue();
+        assertThat(res.containsKey("cn=Jane Roe,ou=people,o=test2")).isTrue();
+    }
+
+    //    No backend at all holds the alias target: this is a base DN that does not exist.
+    @Test
+    public void test_alias_target_without_backend() throws SearchResultReferenceIOException {
+        try {
+            search("ou=nowhere,o=test", SearchScope.BASE_OBJECT, DereferenceAliasesPolicy.ALWAYS);
+            fail("dereferencing an alias whose target has no backend must fail");
+        } catch (LdapException e) {
+            assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.NO_SUCH_OBJECT);
+        }
     }
 
     @Test(expectedExceptions = LdapException.class)

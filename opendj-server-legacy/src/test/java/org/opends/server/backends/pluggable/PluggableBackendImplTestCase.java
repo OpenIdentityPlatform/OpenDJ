@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
- * Portions Copyright 2023-2025 3A Systems, LLC.
+ * Portions Copyright 2023-2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -643,6 +643,22 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     assertEquals(backend.getNumberOfEntriesInBaseDN(testBaseDN), getTotalNumberOfLDIFEntries(), "Wrong DIT count.");
     assertEquals(backend.hasSubordinates(searchDN), ConditionResult.FALSE,
         "Leaf entry should not have any subordinates.");
+  }
+
+  /** A base DN held by no entry container of this backend has no entry either. */
+  @Test
+  public void testSearchBaseDNNotHeldByBackend() throws Exception
+  {
+    try
+    {
+      backend.search(createSearchOperation(
+          DN.valueOf("dc=a"), SearchScope.BASE_OBJECT, "(objectClass=*)", new ArrayList<Entry>()));
+      fail("Searching a base DN not held by this backend should have failed.");
+    }
+    catch (DirectoryException e)
+    {
+      assertEquals(e.getResultCode(), ResultCode.NO_SUCH_OBJECT);
+    }
   }
 
   private List<SearchResultEntry> runSearch(SearchRequest request, boolean useInternalConnection) throws Exception
