@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.types;
 
@@ -621,7 +622,7 @@ public final class LDAPURL
       {
         // There must be at least two bytes left.  If not, then that's
         // a problem.
-        if (i+2 > length)
+        if (i+2 >= length)
         {
           LocalizableMessage message = ERR_LDAPURL_PERCENT_TOO_CLOSE_TO_END.get(s, i);
           throw new DirectoryException(

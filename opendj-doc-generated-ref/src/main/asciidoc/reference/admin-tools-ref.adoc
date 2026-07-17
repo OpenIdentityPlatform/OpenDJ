@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
 
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -26,6 +26,14 @@
 You can find bundle tools under the folder where you installed OpenDJ directory server as listed in xref:../admin-guide/chap-admin-tools.adoc#cli-overview["Command-Line Tools"] in the __Administration Guide__.
 
 :leveloffset: 1"
+
+include::../partials/man-addrate.adoc[]
+
+'''
+
+include::../partials/man-authrate.adoc[]
+
+'''
 
 include::../partials/man-backendstat.adoc[]
 
@@ -123,11 +131,19 @@ include::../partials/man-manage-tasks.adoc[]
 
 '''
 
+include::../partials/man-modrate.adoc[]
+
+'''
+
 include::../partials/man-rebuild-index.adoc[]
 
 '''
 
 include::../partials/man-restore.adoc[]
+
+'''
+
+include::../partials/man-searchrate.adoc[]
 
 '''
 

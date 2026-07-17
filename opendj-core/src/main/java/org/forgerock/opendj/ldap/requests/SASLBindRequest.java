@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -30,7 +31,7 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * authenticate using one of the SASL authentication methods defined in RFC
  * 4513.
  * <p>
- * <TODO>finish doc.
+ * TODO: finish doc.
  *
  * @see <a href="http://tools.ietf.org/html/rfc4513#section-5.2.1.8">RFC 4513 -
  *      SASL Authorization Identities (authzId) </a>

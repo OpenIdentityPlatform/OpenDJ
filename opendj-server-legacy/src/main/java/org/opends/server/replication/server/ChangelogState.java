@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -113,9 +114,9 @@ public class ChangelogState
   }
 
   /**
-   * Returns the Map of domainBaseDN => generationId.
+   * Returns the Map of domainBaseDN =&gt; generationId.
    *
-   * @return a Map of domainBaseDN => generationId
+   * @return a Map of domainBaseDN =&gt; generationId
    */
   public Map<DN, Long> getDomainToGenerationId()
   {
@@ -123,9 +124,9 @@ public class ChangelogState
   }
 
   /**
-   * Returns the Map of domainBaseDN => List&lt;serverId&gt;.
+   * Returns the Map of domainBaseDN =&gt; List&lt;serverId&gt;.
    *
-   * @return a Map of domainBaseDN => List&lt;serverId&gt;.
+   * @return a Map of domainBaseDN =&gt; List&lt;serverId&gt;.
    */
   public Map<DN, Set<Integer>> getDomainToServerIds()
   {

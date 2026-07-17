@@ -13,11 +13,13 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.core;
 
 import static org.testng.Assert.*;
 
+import java.io.EOFException;
 import java.io.IOException;
 
 import org.opends.server.TestCaseUtils;
@@ -51,7 +53,7 @@ public class IdleTimeLimitTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups="slow")
+  @Test
   public void testServerWideAnonymousIdleTimeLimit()
          throws Exception
   {
@@ -78,7 +80,7 @@ public class IdleTimeLimitTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups="slow")
+  @Test
   public void testServerWideAuthenticatedIdleTimeLimit()
          throws Exception
   {
@@ -123,7 +125,7 @@ public class IdleTimeLimitTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups="slow")
+  @Test
   public void testUserSpecificIdleTimeLimit()
          throws Exception
   {
@@ -156,6 +158,13 @@ public class IdleTimeLimitTestCase
     ExtendedResponseProtocolOp extendedResponse = conn.readMessage().getExtendedResponseProtocolOp();
     assertEquals(extendedResponse.getOID(), LDAPConstants.OID_NOTICE_OF_DISCONNECTION);
 
-    assertNull(conn.readMessage());
+    try
+    {
+      fail("Expected the server to close the connection, but read " + conn.readMessage());
+    }
+    catch (EOFException expected)
+    {
+      // The server closed the connection after the notice of disconnection.
+    }
   }
 }

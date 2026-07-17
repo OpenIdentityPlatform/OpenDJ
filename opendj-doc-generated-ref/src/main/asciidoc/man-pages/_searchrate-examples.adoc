@@ -1,0 +1,43 @@
+////
+
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems LLC.
+
+////
+
+== Examples
+The following example demonstrates measuring search performance:
+
+
+[source, console]
+----
+$ grep ^uid: /path/to/Example.ldif | sed -e "s/uid: //" > names.txt
+
+$ searchrate -p 1389 -b dc=example,dc=com -A -F -c 4 -t 4 \
+ -g "rand(names.txt)" "(uid=%s)"
+
+-------------------------------------------------------------------------------
+     Throughput                            Response Time
+   (ops/second)                           (milliseconds)
+recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  Entries/Srch
+-------------------------------------------------------------------------------
+1475.9   1475.9   0.423    0.423  6.938  126.236 126.236      0.0           1.0
+2596.5   2038.4   0.254    0.315  6.866  12.980  126.236      0.0           1.0
+3210.7   2428.2   0.205    0.267  5.733  11.710  126.236      0.0           1.0
+3080.5   2591.0   0.215    0.252  5.733  10.541  126.236      0.0           1.0
+3236.9   2720.1   0.203    0.240  5.258  10.514  126.236      0.0           1.0
+3181.1   2796.8   0.207    0.234  5.258  10.384  126.236      0.0           1.0
+3202.5   2854.8   0.206    0.229  4.825  10.384  126.236      0.0           1.0
+----

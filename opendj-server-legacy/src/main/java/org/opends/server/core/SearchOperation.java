@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -261,6 +262,14 @@ public interface SearchOperation extends Operation
    */
   boolean returnEntry(Entry entry, List<Control> controls,
                                       boolean evaluateAci);
+
+  /**
+   * Indicates that the search phase is over and that any further entry comes from a persistent
+   * search. State kept to dereference aliases during the search phase is released, and no further
+   * entry is matched against it: a persistent search must report every change it is notified of,
+   * whether or not the entry was returned by the search phase.
+   */
+  void endSearchPhase();
 
   /**
    * Used as a callback for backends to indicate that the provided search

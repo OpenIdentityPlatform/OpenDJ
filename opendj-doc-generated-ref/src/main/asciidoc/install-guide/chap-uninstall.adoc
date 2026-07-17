@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -32,6 +32,8 @@ This chapter includes the following procedures:
 * xref:#uninstall-deb["To Uninstall the Debian Package"]
 
 * xref:#uninstall-rpm["To Uninstall the RPM Package"]
+
+* xref:#uninstall-msi["To Uninstall the Windows MSI Package"]
 
 
 [#uninstall-gui]
@@ -154,6 +156,31 @@ OpenDJ successfully removed.
 ----
 +
 Removing the package does not remove your data or configuration. You must remove `/opt/opendj` manually to get rid of all files.
+
+====
+
+[#uninstall-msi]
+.To Uninstall the Windows MSI Package
+====
+Remove OpenDJ directory server installed from the `.msi` package like any other Windows program.
+
+. If OpenDJ is registered as a Windows service, remove the service first:
++
+
+[source, console]
+----
+C:\path\to\opendj\bat> windows-service.bat --disableService
+----
+
+. Uninstall the package, either through __Settings > Apps__ (or __Control Panel > Programs and Features__) by selecting OpenDJ and choosing Uninstall, or from the command-line:
++
+
+[source, console, subs="attributes"]
+----
+C:\> msiexec /x opendj-{opendj-version}.msi /quiet
+----
++
+Uninstalling removes the files installed by the package. Your configured instance data under the installation directory (for example `config`, `db`, and `logs`) is not removed; delete the installation directory manually to remove all files.
 
 ====
 

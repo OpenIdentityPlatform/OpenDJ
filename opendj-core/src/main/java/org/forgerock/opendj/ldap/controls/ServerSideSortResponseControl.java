@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -60,7 +61,7 @@ import org.forgerock.util.Reject;
  *
  * ServerSideSortResponseControl control = result.getControl(
  *         ServerSideSortResponseControl.DECODER, new DecodeOptions());
- * if (control != null && control.getResult() == ResultCode.SUCCESS) {
+ * if (control != null &amp;&amp; control.getResult() == ResultCode.SUCCESS) {
  *     // Entries are sorted.
  * } else {
  *     // Entries not sorted.

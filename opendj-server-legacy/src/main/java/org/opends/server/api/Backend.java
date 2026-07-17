@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.api;
 
@@ -81,7 +82,6 @@ public abstract class Backend<C extends Configuration>
    * This method may not throw any exceptions. If any problems are encountered,
    * then they may be logged but the closure should progress as completely as
    * possible.
-   * <p>
    */
   public abstract void finalizeBackend();
 

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.server;
 
@@ -786,6 +787,20 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   private boolean isDifferentGenerationId(long generationId)
   {
     return this.generationId > 0 && this.generationId != generationId;
+  }
+
+  /**
+   * Indicates whether the ack window for the provided CSN is still open and
+   * the provided server is one of the servers an ack is expected from.
+   *
+   * @param csn The CSN of the update message.
+   * @param serverId The serverId of the candidate acknowledging server.
+   * @return true if an ack from the provided server would be accounted for.
+   */
+  boolean isExpectedAck(CSN csn, int serverId)
+  {
+    final ExpectedAcksInfo expectedAcksInfo = waitingAcks.get(csn);
+    return expectedAcksInfo != null && expectedAcksInfo.isExpectedServer(serverId);
   }
 
   /**
@@ -1722,8 +1737,66 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
         this.generationId = generationId;
         this.generationIdSavedStatus = false;
+
+        // generationId gossip is purely event-driven: it only travels in the
+        // topology messages sent on connect/disconnect/status events.
+        // Re-advertise on every real transition — including a reset or
+        // rollback to -1 — so peers that recorded the previous value converge
+        // instead of diverging until the next unrelated topology event.
+        sendTopoInfoToAll();
       }
       return oldGenerationId;
+    }
+  }
+
+  /**
+   * Sets the provided value as the new in memory generationId, but only if the
+   * current generation id still equals {@code expectedGenerationId}: a
+   * decision made on a stale snapshot must never overwrite a value another
+   * thread legitimately set in the meantime.
+   *
+   * @param expectedGenerationId The generation id the caller based its
+   *        decision on.
+   * @param newGenerationId The new value of generationId.
+   * @return whether the generation id was changed
+   */
+  public boolean changeGenerationIdIfUnchanged(long expectedGenerationId,
+      long newGenerationId)
+  {
+    synchronized (generationIDLock)
+    {
+      if (this.generationId != expectedGenerationId)
+      {
+        return false;
+      }
+      changeGenerationId(newGenerationId);
+      return true;
+    }
+  }
+
+  /**
+   * Rolls the generation id back to {@code oldGenerationId}, but only if it
+   * still has the {@code expectedGenerationId} value the caller previously set.
+   * An aborting handshake must undo its own change without overwriting a value
+   * that another thread legitimately set in the meantime (e.g. adopted from a
+   * peer topology message). The rollback is also skipped once the generation
+   * id has been saved to the changelog or while data servers are connected —
+   * the same invariant {@link #resetGenerationIdIfPossible()} enforces —
+   * because rolling back would clear a changelog that now holds real changes.
+   *
+   * @param expectedGenerationId The generation id the caller set and expects
+   *        to still be in place.
+   * @param oldGenerationId The value to restore.
+   */
+  public void rollbackGenerationIdIfUnchanged(long expectedGenerationId,
+      long oldGenerationId)
+  {
+    synchronized (generationIDLock)
+    {
+      if (!generationIdSavedStatus && connectedDSs.isEmpty())
+      {
+        changeGenerationIdIfUnchanged(expectedGenerationId, oldGenerationId);
+      }
     }
   }
 
@@ -2100,9 +2173,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   private void setGenerationIdIfUnset(long generationId)
   {
-    if (this.generationId < 0)
+    synchronized (generationIDLock)
     {
-      this.generationId = generationId;
+      if (this.generationId < 0)
+      {
+        this.generationId = generationId;
+      }
     }
   }
 

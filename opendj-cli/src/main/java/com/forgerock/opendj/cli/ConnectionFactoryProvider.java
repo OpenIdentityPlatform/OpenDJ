@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -702,7 +703,8 @@ public final class ConnectionFactoryProvider {
      *             If a problem occurs while loading with the key store.
      * @throws CertificateException
      *             If a problem occurs while loading with the key store.
-     * @throws UnrecoverableKeyException 
+     * @throws UnrecoverableKeyException
+     *             If a problem occurs while recovering a key from the key store.
      */
     public X509KeyManager getKeyManager(String keyStoreFile) throws KeyStoreException,
             IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException {
@@ -898,7 +900,7 @@ public final class ConnectionFactoryProvider {
      * user will be different as a normal connection. E.g if set :
      *
      * <pre>
-     * >>>> Specify OpenDJ LDAP connection parameters
+     * &gt;&gt;&gt;&gt; Specify OpenDJ LDAP connection parameters
      *
      * Directory server administration port number [4444]:
      * </pre>
@@ -906,7 +908,7 @@ public final class ConnectionFactoryProvider {
      * vs normal mode
      *
      * <pre>
-     * >>>> Specify OpenDJ LDAP connection parameters
+     * &gt;&gt;&gt;&gt; Specify OpenDJ LDAP connection parameters
      *
      * Directory server port number [1389]:
      * </pre>

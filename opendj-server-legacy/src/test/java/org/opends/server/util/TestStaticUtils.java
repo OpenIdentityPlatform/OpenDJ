@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
@@ -26,6 +27,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -36,6 +40,7 @@ import java.util.List;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.testng.Assert;
+import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -1045,5 +1050,54 @@ public final class TestStaticUtils extends UtilTestCase {
     hasCause = StaticUtils.stackTraceContainsCause(
         new RuntimeException(new IllegalThreadStateException()), IllegalArgumentException.class);
     Assert.assertTrue(hasCause, "Third case : IllegalThreadStateException should be detected as a cause");
+  }
+
+  @Test
+  public void testIsSelfConnectionFalseForNormalConnection() throws Exception
+  {
+    try (ServerSocket listener = new ServerSocket())
+    {
+      listener.bind(new InetSocketAddress("127.0.0.1", 0));
+      try (Socket client = new Socket())
+      {
+        client.connect(listener.getLocalSocketAddress(), 2000);
+        try (Socket accepted = listener.accept())
+        {
+          Assert.assertFalse(StaticUtils.isSelfConnection(client));
+          Assert.assertFalse(StaticUtils.isSelfConnection(accepted));
+        }
+      }
+    }
+  }
+
+  @Test
+  public void testIsSelfConnectionTrueForSelfConnectedSocket() throws Exception
+  {
+    // find a free port
+    final int port;
+    try (ServerSocket tmp = new ServerSocket())
+    {
+      tmp.bind(new InetSocketAddress("127.0.0.1", 0));
+      port = tmp.getLocalPort();
+    }
+
+    // Force the TCP self-connect (simultaneous open) that the kernel can
+    // produce spontaneously when connecting to an unbound port from the
+    // ephemeral range: bind the local end to the very port being connected.
+    try (Socket socket = new Socket())
+    {
+      socket.setReuseAddress(true);
+      socket.bind(new InetSocketAddress("127.0.0.1", port));
+      try
+      {
+        socket.connect(new InetSocketAddress("127.0.0.1", port), 2000);
+      }
+      catch (IOException e)
+      {
+        // BSD-based stacks (macOS) refuse an explicit self-connect
+        throw new SkipException("TCP self-connect not supported by this OS: " + e);
+      }
+      Assert.assertTrue(StaticUtils.isSelfConnection(socket));
+    }
   }
 }

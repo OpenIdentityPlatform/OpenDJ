@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 
 package org.forgerock.opendj.ldap;
@@ -19,6 +20,7 @@ package org.forgerock.opendj.ldap;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -180,5 +182,33 @@ public class LDAPUrlTestCase extends SdkTestCase {
         if (valid) {
             assertTrue(url1.equals(url2));
         }
+    }
+
+    /**
+     * URLs with a percent sign followed by fewer than two hexadecimal digits.
+     *
+     * @return The malformed URLs.
+     */
+    @DataProvider
+    public Object[][] truncatedPercentUrls() {
+        return new Object[][] {
+            { "ldap:///cn=name%B" },
+            { "ldap:///cn=name%" },
+        };
+    }
+
+    /**
+     * A truncated percent-encoded sequence must be rejected with a clean decode error
+     * instead of a StringIndexOutOfBoundsException - see issue #673.
+     *
+     * @param url
+     *            The URL to decode.
+     * @throws Exception
+     *             If the test failed unexpectedly.
+     */
+    @Test(dataProvider = "truncatedPercentUrls",
+            expectedExceptions = LocalizedIllegalArgumentException.class)
+    public void testTruncatedPercentEncoding(final String url) throws Exception {
+        LDAPUrl.valueOf(url);
     }
 }
