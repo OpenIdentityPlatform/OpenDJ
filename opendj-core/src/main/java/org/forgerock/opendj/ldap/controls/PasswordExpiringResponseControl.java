@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -43,7 +44,7 @@ import org.forgerock.util.Reject;
  *     PasswordExpiringResponseControl control =
  *             result.getControl(PasswordExpiringResponseControl.DECODER,
  *                     new DecodeOptions());
- *     if (!(control == null) && control.hasValue()) {
+ *     if (!(control == null) &amp;&amp; control.hasValue()) {
  *         // Password expires in control.getSecondsUntilExpiration() seconds
  *     }
  * } catch (DecodeException de) {

@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2013 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.server.core;
@@ -20,7 +21,7 @@ package org.forgerock.opendj.server.core;
 /**
  * Class used to define dynamic typed attachments on {@link AttachmentHolder}
  * instances. Storing attachment values in {@link AttachmentHolder} has the
- * advantage of the <tt>Attachment</tt> value being typed when compared to Map
+ * advantage of the <code>Attachment</code> value being typed when compared to Map
  * storage:
  *
  * @param <T>

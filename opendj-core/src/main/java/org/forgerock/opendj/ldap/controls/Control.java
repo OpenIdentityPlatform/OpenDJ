@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -35,7 +36,7 @@ import org.forgerock.opendj.ldap.ByteString;
  *
  * Control control = ...;
  * String OID = control.getOID();
- * if (supported != null && !supported.isEmpty() && supported.contains(OID)) {
+ * if (supported != null &amp;&amp; !supported.isEmpty() &amp;&amp; supported.contains(OID)) {
  *     // The control is supported. Use it here...
  * }
  * </pre>

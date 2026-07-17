@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -43,7 +44,7 @@ import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
  *
  * ExtendedRequest extension = ...;
  * String OID = extension.getOID();
- * if (supported != null && !supported.isEmpty() && supported.contains(OID)) {
+ * if (supported != null &amp;&amp; !supported.isEmpty() &amp;&amp; supported.contains(OID)) {
  *     // The extension is supported. Use it here...
  * }
  * </pre>

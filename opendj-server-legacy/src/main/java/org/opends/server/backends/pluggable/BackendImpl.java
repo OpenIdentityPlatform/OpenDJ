@@ -127,12 +127,28 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
    */
   private EntryContainer accessBegin(Operation operation, DN entryDN) throws DirectoryException
   {
+    return accessBegin(operation, entryDN, ResultCode.UNDEFINED);
+  }
+
+  /**
+   * Begin a Backend API method that accesses the {@link EntryContainer} for <code>entryDN</code>
+   * and returns it.
+   * @param operation requesting the storage
+   * @param entryDN the target DN for the operation
+   * @param noEntryContainerResultCode the result code to report when this backend holds no
+   *                                   entry container for <code>entryDN</code>
+   * @return <code>EntryContainer</code> where <code>entryDN</code> resides
+   */
+  private EntryContainer accessBegin(Operation operation, DN entryDN, ResultCode noEntryContainerResultCode)
+      throws DirectoryException
+  {
     checkRootContainerInitialized();
     rootContainer.checkForEnoughResources(operation);
     EntryContainer ec = rootContainer.getEntryContainer(entryDN);
     if (ec == null)
     {
-      throw new DirectoryException(ResultCode.UNDEFINED, ERR_BACKEND_ENTRY_DOESNT_EXIST.get(entryDN, getBackendID()));
+      throw new DirectoryException(
+          noEntryContainerResultCode, ERR_BACKEND_ENTRY_DOESNT_EXIST.get(entryDN, getBackendID()));
     }
     threadTotalCount.increment();
     return ec;
@@ -561,7 +577,9 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
   @Override
   public void search(SearchOperation searchOperation) throws DirectoryException, CanceledOperationException
   {
-    EntryContainer ec = accessBegin(searchOperation, searchOperation.getBaseDN());
+    // a base DN held by no entry container of this backend does not exist as far as a client
+    // is concerned: report it as such instead of the UNDEFINED result code used internally.
+    EntryContainer ec = accessBegin(searchOperation, searchOperation.getBaseDN(), ResultCode.NO_SUCH_OBJECT);
 
     ec.beginSharedAccess();
 

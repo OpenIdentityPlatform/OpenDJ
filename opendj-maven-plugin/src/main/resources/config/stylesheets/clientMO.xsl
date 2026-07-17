@@ -13,6 +13,7 @@
 
   Copyright 2008-2009 Sun Microsystems, Inc.
   Portions Copyright 2014-2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:admpp="http://opendj.forgerock.org/admin-preprocessor"
@@ -117,7 +118,7 @@
           <xsl:with-param name="content"
             select="concat('Determines whether the ', $ufn,' exists.&#xa;',
                        '&#xa;',
-                       '@return Returns &lt;true&gt; if the ', $ufn,' exists.&#xa;',
+                       '@return Returns &lt;code&gt;true&lt;/code&gt; if the ', $ufn,' exists.&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
                        '@throws LdapException&#xa;',
@@ -174,7 +175,7 @@
                        '         An optional collection in which to place any ',
                        '{@link PropertyException}s that occurred whilst ',
                        'attempting to determine the default values of the ', $ufn,
-                       '. This argument can be &lt;code&gt;null&lt;code&gt;.&#xa;',
+                       '. This argument can be &lt;code&gt;null&lt;/code&gt;.&#xa;',
                        '@return Returns a new ', $ufn,' configuration instance.&#xa;')" />
         </xsl:call-template>
         <xsl:value-of
@@ -284,7 +285,7 @@
                            '         An optional collection in which to place any ',
                            '{@link PropertyException}s that occurred whilst ',
                            'attempting to determine the default values of the ', $ufn,
-                           '. This argument can be &lt;code&gt;null&lt;code&gt;.&#xa;',
+                           '. This argument can be &lt;code&gt;null&lt;/code&gt;.&#xa;',
                            '@return Returns a new ', $ufn,' configuration instance.&#xa;',
                            '@throws IllegalManagedObjectNameException&#xa;',
                            '         If the name of the new ', $ufn,' is invalid.&#xa;')" />
@@ -312,7 +313,7 @@
                            '         An optional collection in which to place any ',
                            '{@link PropertyException}s that occurred whilst ',
                            'attempting to determine the default values of the ', $ufn,
-                           '. This argument can be &lt;code&gt;null&lt;code&gt;.&#xa;',
+                           '. This argument can be &lt;code&gt;null&lt;/code&gt;.&#xa;',
                            '@return Returns a new ', $ufn,' configuration instance.&#xa;')" />
             </xsl:call-template>
             <xsl:value-of

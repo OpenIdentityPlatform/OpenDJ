@@ -14,7 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions copyright 2013 Manuel Gaupp
- * Portions Copyright 2025 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.backends.pluggable;
 
@@ -2756,21 +2756,29 @@ public class EntryContainer
       afterCount = 0;
     }
 
-    int count = 1 + beforeCount + afterCount;
+    // Never allocate more longs than the number of entries actually available
+    // from startPos, and compute the size with long arithmetic so an
+    // attacker-supplied before/after count cannot overflow or drive an oversized
+    // array (GHSA-q4wx-wj4j-4657).
+    final int available = startPos >= 0 && startPos < sortMap.size() ? sortMap.size() - startPos : 0;
+    final int count = (int) Math.max(0L, Math.min(1L + beforeCount + afterCount, available));
     long[] sortedIDs = new long[count];
     int treePos = 0;
     int arrayPos = 0;
-    for (EntryID id : sortMap.values())
+    if (count > 0)
     {
-      if (treePos++ < startPos)
+      for (EntryID id : sortMap.values())
       {
-        continue;
-      }
+        if (treePos++ < startPos)
+        {
+          continue;
+        }
 
-      sortedIDs[arrayPos++] = id.longValue();
-      if (arrayPos >= count)
-      {
-        break;
+        sortedIDs[arrayPos++] = id.longValue();
+        if (arrayPos >= count)
+        {
+          break;
+        }
       }
     }
 

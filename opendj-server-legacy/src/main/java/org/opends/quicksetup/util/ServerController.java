@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.util;
 
@@ -534,7 +535,7 @@ public class ServerController {
   /**
    * This class is used to read the standard error and standard output of the
    * Stop process.
-   * <p/>
+   * <p>
    * When a new log message is found notifies the
    * UninstallProgressUpdateListeners of it. If an error occurs it also
    * notifies the listeners.

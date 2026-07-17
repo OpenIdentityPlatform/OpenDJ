@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.extensions;
 
@@ -285,7 +286,7 @@ public class FIFOEntryCacheTestCase
 
 
   /** {@inheritDoc} */
-  @Test(groups = { "slow", "testFIFOCacheConcurrency" },
+  @Test(groups = { "testFIFOCacheConcurrency" },
         threadPoolSize = 10,
         invocationCount = 10,
         timeOut = 60000)

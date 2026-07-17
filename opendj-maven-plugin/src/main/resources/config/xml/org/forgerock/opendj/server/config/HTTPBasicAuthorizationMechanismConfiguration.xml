@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <adm:managed-object name="http-basic-authorization-mechanism" plural-name="http-basic-authorization-mechanisms"
   extends="http-authorization-mechanism" package="org.forgerock.opendj.server.config" xmlns:adm="http://opendj.forgerock.org/admin"
@@ -111,7 +112,7 @@
   </adm:property>
 
   <adm:property name="identity-mapper" mandatory="true">
-    <adm:synopsis>>
+    <adm:synopsis>
       Specifies the name of the identity mapper used to get the user's entry corresponding to the user-id
       provided in
       the HTTP authentication header.

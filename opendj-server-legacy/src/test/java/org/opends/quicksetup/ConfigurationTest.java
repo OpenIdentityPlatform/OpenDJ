@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.quicksetup;
 
@@ -26,7 +27,7 @@ import java.util.Set;
  * Configuration Tester.
  */
 @SuppressWarnings("javadoc")
-@Test(groups = {"slow"})
+@Test(sequential=true)
 public class ConfigurationTest extends QuickSetupTestCase {
 
   private Configuration config;
@@ -36,51 +37,51 @@ public class ConfigurationTest extends QuickSetupTestCase {
     config = TestUtilities.getInstallation().getCurrentConfiguration();
   }
 
-  @Test(enabled = false)
+  @Test
   public void testGetDirectoryManagerDns() throws IOException {
     Set<String> dns = config.getDirectoryManagerDns();
     assertFalse(dns.isEmpty());
   }
 
-  @Test(enabled = false)
+  @Test
   public void testGetPort() throws IOException {
     assertEquals(TestUtilities.ldapPort, (Integer) config.getPort());
   }
 
-  @Test(enabled = false)
+  @Test
   public void testGetLogPaths() throws IOException {
     // TODO: something more useful
     config.getLogPaths();
   }
 
-  @Test(enabled = false)
+  @Test
   public void testHasBeenModified() throws IOException {
     assertTrue(config.hasBeenModified());
   }
 
-  @Test(enabled = false)
+  @Test
   public void testGetOutsideLogs() throws IOException {
     // TODO: something more useful
     config.getOutsideLogs();
   }
 
-  @Test(enabled = false)
+  @Test
   public void testGetOutsideDbs() throws IOException {
     // TODO: something more useful
     config.getOutsideDbs();
   }
 
-  @Test(enabled = false)
+  @Test
   public void testGetContents() throws IOException {
     assertNotNull(config.getContents());
   }
 
-  @Test(enabled = false)
+  @Test
   public void testGetDatabasePaths() throws IOException {
     assertFalse(config.getDatabasePaths().isEmpty());
   }
 
-  @Test(enabled = false)
+  @Test
   public void testLoad() {
     //TODO:  need way to verify reload
   }

@@ -13,13 +13,17 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 
 package org.opends.server.replication.server;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.CSN;
@@ -69,6 +73,15 @@ public abstract class ExpectedAcksInfo
   protected Map<Integer,Boolean> expectedServersAckStatus = new HashMap<>();
 
   /**
+   * Immutable snapshot of the ids of the servers we expect an ack from, taken
+   * at construction time. Used for lock-free membership checks: the key set of
+   * {@link #expectedServersAckStatus} never changes after construction, but
+   * that map has its values mutated under lock by {@code processReceivedAck()},
+   * so it must not be read concurrently without synchronization.
+   */
+  private final Set<Integer> expectedServerIds;
+
+  /**
    * Facility for monitoring:
    * If the timeout occurs for the original update, we call createAck(true)
    * in the timeout code for sending back an error ack to the original server.
@@ -99,6 +112,22 @@ public abstract class ExpectedAcksInfo
     {
       expectedServersAckStatus.put(serverId, false);
     }
+    this.expectedServerIds =
+        Collections.unmodifiableSet(new HashSet<>(expectedServers));
+  }
+
+  /**
+   * Indicates whether the provided server is one of the servers an ack is
+   * expected from for the matching update message. Reads an immutable snapshot
+   * taken at construction time, so it is safe to call without holding the lock
+   * on this object.
+   *
+   * @param serverId The serverId of the server.
+   * @return true if an ack is expected from the provided server.
+   */
+  public boolean isExpectedServer(int serverId)
+  {
+    return expectedServerIds.contains(serverId);
   }
 
   /**
