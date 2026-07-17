@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.protocols.ldap;
 
@@ -191,6 +192,16 @@ public class LDAPRequestHandler
           logger.traceException(e);
           readyConnection.disconnect(DisconnectReason.PROTOCOL_ERROR, true,
             e.getMessageObject());
+        }
+        catch (StackOverflowError e)
+        {
+          // Defense in depth for over-nested protocol elements (e.g. search
+          // filters - GHSA-rv4q-c6mr-wxp7). A StackOverflowError is an Error,
+          // not an Exception, so without this it would escape and kill the
+          // shared request-handler thread. Drop only the offending connection.
+          logger.traceException(e);
+          readyConnection.disconnect(DisconnectReason.PROTOCOL_ERROR, true,
+            LocalizableMessage.raw(e.toString()));
         }
         catch (Exception e)
         {

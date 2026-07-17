@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 
@@ -21,7 +22,7 @@
  * replication code that works on the Directory Server side.
  * <br>
  * Developers planning to use the Replication Service should
- * subClass the <A> HREF="ReplicationDomain.html"><B>ReplicationDomain</B></A>
+ * subClass the <A HREF="ReplicationDomain.html"><B>ReplicationDomain</B></A>
  * class
  */
 @org.opends.server.types.PublicAPI(

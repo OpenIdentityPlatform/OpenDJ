@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.core;
 
@@ -44,9 +45,11 @@ import org.opends.server.types.CancelRequest;
 import org.opends.server.types.Control;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
+import org.opends.server.util.TestTimer;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static java.util.concurrent.TimeUnit.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
@@ -1481,7 +1484,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = "slow")
+  @Test
   public void testSubtreeDeleteClearsAuthInfo()
          throws Exception
   {
@@ -1526,7 +1529,16 @@ public class BindOperationTestCase
         };
       assertEquals(LDAPDelete.run(nullPrintStream(), System.err, args), 0);
 
-      assertNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
+      // AuthenticatedUsers is a POST_RESPONSE plugin: the registry is updated
+      // after the client already received the response, so poll briefly.
+      newAuthInfoTimer().repeatUntilSuccess(new TestTimer.CallableVoid()
+      {
+        @Override
+        public void call() throws Exception
+        {
+          assertNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
+        }
+      });
     }
     finally
     {
@@ -1541,7 +1553,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = "slow")
+  @Test
   public void testSubtreeModifyUpdatesAuthInfo()
          throws Exception
   {
@@ -1590,14 +1602,36 @@ public class BindOperationTestCase
         };
       assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
-      DN newUserDN = DN.valueOf("uid=test,ou=users,dc=example,dc=com");
-      assertNotNull(DirectoryServer.getAuthenticatedUsers().get(newUserDN));
-      assertEquals(DirectoryServer.getAuthenticatedUsers().get(newUserDN).size(), 1);
+      final DN newUserDN = DN.valueOf("uid=test,ou=users,dc=example,dc=com");
+      // AuthenticatedUsers is a POST_RESPONSE plugin: the registry is updated
+      // after the client already received the response, so poll briefly.
+      newAuthInfoTimer().repeatUntilSuccess(new TestTimer.CallableVoid()
+      {
+        @Override
+        public void call() throws Exception
+        {
+          assertNotNull(DirectoryServer.getAuthenticatedUsers().get(newUserDN));
+          assertEquals(DirectoryServer.getAuthenticatedUsers().get(newUserDN).size(), 1);
+        }
+      });
     }
     finally
     {
       TestCaseUtils.clearBackend("userRoot");
     }
+  }
+
+  /**
+   * Timer to await the asynchronous {@link AuthenticatedUsers} registry
+   * update: it is performed by a POST_RESPONSE plugin, i.e. after the client
+   * already received the operation response.
+   */
+  private TestTimer newAuthInfoTimer()
+  {
+    return new TestTimer.Builder()
+        .maxSleep(10, SECONDS)
+        .sleepTimes(100, MILLISECONDS)
+        .toTimer();
   }
 
   /**

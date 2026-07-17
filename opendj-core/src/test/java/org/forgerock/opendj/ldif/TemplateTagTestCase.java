@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2024-2026 3A Systems, LLC
  */
 package org.forgerock.opendj.ldif;
 
@@ -39,7 +40,7 @@ import org.forgerock.opendj.ldif.TemplateTag.TagResult;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-public class TemplateTagTestcase extends SdkTestCase {
+public class TemplateTagTestCase extends SdkTestCase {
 
     private static final int LINE_NUMBER = 10;
     private static final TemplateFile NULL_TEMPLATE_FILE = null;

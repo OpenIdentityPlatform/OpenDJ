@@ -12,14 +12,17 @@ rem Header, with the fields enclosed by brackets [] replaced by your own identif
 rem information: "Portions Copyright [year] [name of copyright owner]".
 rem
 rem Copyright 2006-2008 Sun Microsystems, Inc.
+rem Portions Copyright 2026 3A Systems, LLC
 
-set CLASSPATHCOMPONENT=%1
-if ""%1""=="""" goto gotAllArgs
+rem Use %~1 and quoted comparisons so paths containing spaces and parentheses
+rem (for example C:\Program Files (x86)\OpenDJ) do not break the parser.
+set CLASSPATHCOMPONENT=%~1
+if "%~1"=="" goto gotAllArgs
 shift
 
 :argCheck
-if ""%1""=="""" goto gotAllArgs
-set CLASSPATHCOMPONENT=%CLASSPATHCOMPONENT% %1
+if "%~1"=="" goto gotAllArgs
+set CLASSPATHCOMPONENT=%CLASSPATHCOMPONENT% %~1
 shift
 goto argCheck
 

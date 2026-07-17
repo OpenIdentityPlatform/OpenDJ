@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -407,17 +408,17 @@ public final class Connections {
      * connection factories. A round robin load balancing algorithm distributes connection requests across a list of
      * connection factories one at a time. When the end of the list is reached, the algorithm starts again from the
      * beginning.
-     * <p/>
+     * <p>
      * This algorithm is typically used for load-balancing <i>within</i> data centers, where load must be distributed
      * equally across multiple data sources. This algorithm contrasts with the
      * {@link #newFailoverLoadBalancer(Collection, Options)} which is used for load-balancing <i>between</i> data
      * centers.
-     * <p/>
+     * <p>
      * If a problem occurs that temporarily prevents connections from being obtained for one of the connection
      * factories, then this algorithm automatically "fails over" to the next operational connection factory in the list.
      * If none of the connection factories are operational then a {@code ConnectionException} is returned to the
      * client.
-     * <p/>
+     * <p>
      * The implementation periodically attempts to connect to failed connection factories in order to determine if they
      * have become available again.
      *
@@ -470,22 +471,22 @@ public final class Connections {
      * Creates a new "fail-over" load-balancer which will load-balance connections across the provided set of connection
      * factories. A fail-over load balancing algorithm provides fault tolerance across multiple underlying connection
      * factories.
-     * <p/>
+     * <p>
      * This algorithm is typically used for load-balancing <i>between</i> data centers, where there is preference to
      * always forward connection requests to the <i>closest available</i> data center. This algorithm contrasts with the
      * {@link #newRoundRobinLoadBalancer(Collection, Options)} which is used for load-balancing <i>within</i> a data
      * center.
-     * <p/>
+     * <p>
      * This algorithm selects connection factories based on the order in which they were provided during construction.
      * More specifically, an attempt to obtain a connection factory will always return the <i>first operational</i>
      * connection factory in the list. Applications should, therefore, organize the connection factories such that the
      * <i>preferred</i> (usually the closest) connection factories appear before those which are less preferred.
-     * <p/>
+     * <p>
      * If a problem occurs that temporarily prevents connections from being obtained for one of the connection
      * factories, then this algorithm automatically "fails over" to the next operational connection factory in the list.
      * If none of the connection factories are operational then a {@code ConnectionException} is returned to the
      * client.
-     * <p/>
+     * <p>
      * The implementation periodically attempts to connect to failed connection factories in order to determine if they
      * have become available again.
      *
@@ -521,23 +522,23 @@ public final class Connections {
      * by performing a linear probe in order to find the next available replica thus ensuring high-availability when a
      * network partition occurs while sacrificing consistency, since the unavailable replica may still be visible to
      * other clients.
-     * <p/>
+     * <p>
      * This load-balancer distributes requests based on the hash of their target DN and handles all core operations, as
      * well as any password modify extended requests and SASL bind requests which use authentication IDs having the
      * "dn:" form. Note that subtree operations (searches, subtree deletes, and modify DN) are likely to include entries
      * which are "mastered" on different replicas, so client applications should be more tolerant of inconsistencies.
      * Requests that are either unrecognized or that do not have a parameter that may be considered to be a target DN
      * will be routed randomly.
-     * <p/>
+     * <p>
      * <b>NOTE:</b> this connection factory returns fake connections, since real connections are obtained for each
      * request. Therefore, the returned fake connections have certain limitations: abandon requests will be ignored
      * since they cannot be routed; connection event listeners can be registered, but will only be notified when the
      * fake connection is closed or when all of the connection factories are unavailable.
-     * <p/>
+     * <p>
      * <b>NOTE:</b> in deployments where there are multiple client applications, care should be taken to ensure that
      * the factories are configured using the same ordering, otherwise requests will not be routed consistently
      * across the client applications.
-     * <p/>
+     * <p>
      * The implementation periodically attempts to connect to failed connection factories in order to determine if they
      * have become available again.
      *
@@ -665,7 +666,7 @@ public final class Connections {
      * This load balancer allows client applications to linearly scale their deployment for write throughput as well
      * as total number of entries. For example, if a single replicated topology can support 10000 updates/s and a
      * total of 100M entries, then a 4 way distributed topology could support up to 40000 updates/s and 400M entries.
-     * <p/>
+     * <p>
      * <b>NOTE:</b> there are a number of assumptions in the design of this load balancer as well as a number of
      * limitations:
      * <ul>
@@ -706,21 +707,21 @@ public final class Connections {
      * which will have the effect of directing requests to the other replicas. Consistency is low compared to the
      * "affinity" load-balancer, because there is no guarantee that requests for the same DN are directed to the same
      * replica.
-     * <p/>
+     * <p>
      * It is possible to increase consistency by providing a {@link AffinityControl} with a
      * request. The control value will then be used to compute a hash that will determine the connection to use. In that
      * case, the "least requests" behavior is completely overridden, i.e. the most saturated connection may be chosen
      * depending on the hash value.
-     * <p/>
+     * <p>
      * <b>NOTE:</b> this connection factory returns fake connections, since real connections are obtained for each
      * request. Therefore, the returned fake connections have certain limitations: abandon requests will be ignored
      * since they cannot be routed; connection event listeners can be registered, but will only be notified when the
      * fake connection is closed or when all of the connection factories are unavailable.
-     * <p/>
+     * <p>
      * <b>NOTE:</b>Server selection is only based on information which is local to the client application. If other
      * applications are accessing the same servers then their additional load is not taken into account. Therefore,
      * this load balancer is only effective if all client applications access the servers in a similar way.
-     * <p/>
+     * <p>
      * The implementation periodically attempts to connect to failed connection factories in order to determine if they
      * have become available again.
      *

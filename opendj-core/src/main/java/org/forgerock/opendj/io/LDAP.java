@@ -12,8 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2024-2026 3A Systems, LLC
  */
 package org.forgerock.opendj.io;
+
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_FILTER_DECODE_MAX_NESTING_DEPTH;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -43,6 +46,15 @@ import org.forgerock.opendj.ldap.schema.Schema;
  */
 public final class LDAP {
     // @Checkstyle:ignore AvoidNestedBlocks
+
+    /**
+     * The maximum number of nested AND/OR/NOT components allowed in a search
+     * filter when decoding it from its ASN.1 representation. This bounds the
+     * decoder recursion so that a maliciously over-nested filter is rejected
+     * rather than overflowing the JVM stack (GHSA-rv4q-c6mr-wxp7). It matches
+     * the limit applied on the filter evaluation path.
+     */
+    private static final int MAX_NESTED_FILTER_DEPTH = 100;
 
     /** The OID for the Kerberos V GSSAPI mechanism. */
     public static final String OID_GSSAPI_KERBEROS_V = "1.2.840.113554.1.2.2";
@@ -402,14 +414,39 @@ public final class LDAP {
      *             If an error occurs while reading from {@code reader}.
      */
     public static Filter readFilter(final ASN1Reader reader) throws IOException {
+        return readFilter(reader, 0);
+    }
+
+    /**
+     * Reads the next ASN.1 element from the provided {@code ASN1Reader} as a
+     * {@code Filter}, tracking the current nesting depth so that a maliciously
+     * over-nested filter is rejected rather than overflowing the JVM stack
+     * (GHSA-rv4q-c6mr-wxp7).
+     *
+     * @param reader
+     *            The {@code ASN1Reader} from which the ASN.1 encoded
+     *            {@code Filter} should be read.
+     * @param depth
+     *            The current filter nesting depth (0 for the top-level filter).
+     * @return The decoded {@code Filter}.
+     * @throws IOException
+     *             If an error occurs while reading from {@code reader}, or if
+     *             the filter is nested more deeply than
+     *             {@link #MAX_NESTED_FILTER_DEPTH}.
+     */
+    private static Filter readFilter(final ASN1Reader reader, final int depth) throws IOException {
+        if (depth >= MAX_NESTED_FILTER_DEPTH) {
+            throw DecodeException.fatalError(
+                    ERR_LDAP_FILTER_DECODE_MAX_NESTING_DEPTH.get(MAX_NESTED_FILTER_DEPTH));
+        }
         final byte type = reader.peekType();
         switch (type) {
         case LDAP.TYPE_FILTER_AND:
-            return readAndFilter(reader);
+            return readAndFilter(reader, depth);
         case LDAP.TYPE_FILTER_OR:
-            return readOrFilter(reader);
+            return readOrFilter(reader, depth);
         case LDAP.TYPE_FILTER_NOT:
-            return readNotFilter(reader);
+            return readNotFilter(reader, depth);
         case LDAP.TYPE_FILTER_EQUALITY:
             return readEqualityMatchFilter(reader);
         case LDAP.TYPE_FILTER_GREATER_OR_EQUAL:
@@ -568,13 +605,13 @@ public final class LDAP {
         writer.writeEndSequence();
     }
 
-    private static Filter readAndFilter(final ASN1Reader reader) throws IOException {
+    private static Filter readAndFilter(final ASN1Reader reader, final int depth) throws IOException {
         reader.readStartSequence(LDAP.TYPE_FILTER_AND);
         try {
             if (reader.hasNextElement()) {
                 final List<Filter> subFilters = new LinkedList<>();
                 do {
-                    subFilters.add(readFilter(reader));
+                    subFilters.add(readFilter(reader, depth + 1));
                 } while (reader.hasNextElement());
                 return Filter.and(subFilters);
             } else {
@@ -654,22 +691,22 @@ public final class LDAP {
         }
     }
 
-    private static Filter readNotFilter(final ASN1Reader reader) throws IOException {
+    private static Filter readNotFilter(final ASN1Reader reader, final int depth) throws IOException {
         reader.readStartSequence(LDAP.TYPE_FILTER_NOT);
         try {
-            return Filter.not(readFilter(reader));
+            return Filter.not(readFilter(reader, depth + 1));
         } finally {
             reader.readEndSequence();
         }
     }
 
-    private static Filter readOrFilter(final ASN1Reader reader) throws IOException {
+    private static Filter readOrFilter(final ASN1Reader reader, final int depth) throws IOException {
         reader.readStartSequence(LDAP.TYPE_FILTER_OR);
         try {
             if (reader.hasNextElement()) {
                 final List<Filter> subFilters = new LinkedList<>();
                 do {
-                    subFilters.add(readFilter(reader));
+                    subFilters.add(readFilter(reader, depth + 1));
                 } while (reader.hasNextElement());
                 return Filter.or(subFilters);
             } else {

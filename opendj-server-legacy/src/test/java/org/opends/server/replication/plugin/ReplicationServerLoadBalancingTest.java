@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.plugin;
 
@@ -421,7 +422,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
    * Execute a full scenario with some RSs failovers and dynamic weight changes.
    * @throws Exception If a problem occurred
    */
-  @Test (groups = "slow")
+  @Test
   public void testFailoversAndWeightChanges() throws Exception
   {
     String testCase = "testFailoversAndWeightChanges";
@@ -842,7 +843,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
    * disconnections/reconnections after the very first connections.
    * @throws Exception If a problem occurred
    */
-  @Test (enabled=true,groups = "slow")
+  @Test (enabled=true)
   public void testNoYoyo1() throws Exception
   {
     String testCase = "testNoYoyo1";
@@ -925,7 +926,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
    * disconnections/reconnections after the very first connections.
    * @throws Exception If a problem occurred
    */
-  @Test (enabled=true, groups = "slow")
+  @Test (enabled=true)
   public void testNoYoyo2() throws Exception
   {
     String testCase = "testNoYoyo2";
@@ -1007,7 +1008,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
    * disconnections/reconnections after the very first connections.
    * @throws Exception If a problem occurred
    */
-  @Test (enabled=true, groups = "slow")
+  @Test (enabled=true)
   public void testNoYoyo3() throws Exception
   {
     String testCase = "testNoYoyo3";

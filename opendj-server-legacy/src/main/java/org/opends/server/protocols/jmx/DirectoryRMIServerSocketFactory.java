@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.jmx;
 
@@ -34,7 +35,6 @@ import javax.net.ssl.SSLSocketFactory;
  * <p>
  * This class implements <code>RMIServerSocketFactory</code> over the Secure
  * Sockets Layer (SSL) or Transport Layer Security (TLS) protocols.
- * </p>
  */
 public class DirectoryRMIServerSocketFactory implements
     RMIServerSocketFactory
@@ -72,7 +72,6 @@ public class DirectoryRMIServerSocketFactory implements
    * <p>
    * Returns <code>true</code> if client authentication is required on SSL
    * connections accepted by server sockets created by this factory.
-   * </p>
    *
    * @return <code>true</code> if client authentication is required
    *
@@ -125,17 +124,14 @@ public class DirectoryRMIServerSocketFactory implements
   /**
    * <p>
    * Indicates whether some other object is "equal to" this one.
-   * </p>
    *
    * <p>
    * Two <code>CacaoRMIServerSocketFactory</code> objects are equal if they
    * have been constructed with the same SSL socket configuration parameters.
-   * </p>
    *
    * <p>
    * A subclass should override this method (as well as {@link #hashCode()})
    * if it adds instance state that affects equality.
-   * </p>
    *
    * @param obj the reference object with which to compare.
    *

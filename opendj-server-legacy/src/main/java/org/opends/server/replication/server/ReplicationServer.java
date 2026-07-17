@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -21,6 +22,7 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -414,6 +416,15 @@ public class ReplicationServer
       }
       int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
       socket.connect(remoteServerAddress.toInetSocketAddress(), timeoutMS);
+      if (isSelfConnection(socket))
+      {
+        // While the remote RS is down, the kernel may pick its port as the
+        // local port of this connecting socket (TCP simultaneous open),
+        // "connecting" it to itself. Keeping such a socket open would hold
+        // the port and prevent the RS from binding it on restart.
+        throw new ConnectException("Connection to " + remoteServerAddress
+            + " is a TCP self-connect, no replication server is listening");
+      }
       session = replSessionSecurity.createClientSession(socket, timeoutMS);
 
       ReplicationServerHandler rsHandler = new ReplicationServerHandler(

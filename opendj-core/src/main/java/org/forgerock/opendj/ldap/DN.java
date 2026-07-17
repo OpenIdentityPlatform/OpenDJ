@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -823,10 +824,10 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      * <p>
      * Here is an example usage:
      * <pre>
-     * DN.valueOf("ou=people,dc=example,dc=com").rdn(0) => "ou=people"
-     * DN.valueOf("ou=people,dc=example,dc=com").rdn(1) => "dc=example"
-     * DN.valueOf("ou=people,dc=example,dc=com").rdn(2) => "dc=com"
-     * DN.valueOf("ou=people,dc=example,dc=com").rdn(3) => null
+     * DN.valueOf("ou=people,dc=example,dc=com").rdn(0) =&gt; "ou=people"
+     * DN.valueOf("ou=people,dc=example,dc=com").rdn(1) =&gt; "dc=example"
+     * DN.valueOf("ou=people,dc=example,dc=com").rdn(2) =&gt; "dc=com"
+     * DN.valueOf("ou=people,dc=example,dc=com").rdn(3) =&gt; null
      * </pre>
      *
      * @param index

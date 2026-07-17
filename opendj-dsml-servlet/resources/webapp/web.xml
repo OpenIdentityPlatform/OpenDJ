@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
+<!--
+  Portions Copyright 2026 3A Systems, LLC.
+-->
+
 <web-app xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
          version="2.4">
@@ -72,6 +76,35 @@
   </context-param>
 -->
 
+<!-- Server-side dereferencing of xsd:anyURI values is DISABLED by default.
+     When disabled, an anyURI value is stored verbatim instead of being fetched
+     by the gateway. Fetching attacker-supplied URIs server-side is a
+     server-side request forgery, local-file disclosure and unbounded-read DoS
+     primitive (GHSA-68r5-9hpg-7qw9); enable it only if you fully trust every
+     DSML client. When enabled, only the allowlisted schemes are permitted,
+     requests to loopback/link-local/private/reserved addresses are rejected,
+     HTTP redirects are refused, and the fetched content is capped. Known
+     limitation: the address check and the fetch resolve the host name
+     independently, so a DNS name whose records change between the two lookups
+     (DNS rebinding) can still reach an internal address; only enable
+     dereferencing for trusted clients.
+  <context-param>
+    <description>Enable server-side dereferencing of anyURI values (default false)</description>
+    <param-name>ldap.dsml.dereference.anyuri</param-name>
+    <param-value>true</param-value>
+  </context-param>
+  <context-param>
+    <description>Comma-separated allowlist of URI schemes to dereference (default http,https)</description>
+    <param-name>ldap.dsml.dereference.anyuri.schemes</param-name>
+    <param-value>http,https</param-value>
+  </context-param>
+  <context-param>
+    <description>Maximum number of bytes fetched from an anyURI value (default 10485760)</description>
+    <param-name>ldap.dsml.dereference.anyuri.maxsize</param-name>
+    <param-value>10485760</param-value>
+  </context-param>
+-->
+
 <!-- Add an extra <context-param> like the one below for each extended operation
      that is known to return a string in the LDAP response. -->
   <context-param>
@@ -89,6 +122,37 @@
     <servlet-name>DSMLServlet</servlet-name>
     <url-pattern>/DSMLServlet</url-pattern>
   </servlet-mapping>
+
+  <!-- Require container-managed authentication for the gateway so that it is
+       not reachable anonymously (GHSA-68r5-9hpg-7qw9). Map real accounts to the
+       "dsml-user" role in your servlet container's security realm; the same
+       HTTP Basic credentials are then forwarded as the LDAP bind. To serve the
+       gateway without authentication (NOT recommended), remove this
+       security-constraint, the login-config and the security-role below.
+       Uncomment the user-data-constraint to additionally require TLS. -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>DSML Gateway</web-resource-name>
+      <url-pattern>/DSMLServlet</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>dsml-user</role-name>
+    </auth-constraint>
+<!--
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
+-->
+  </security-constraint>
+
+  <login-config>
+    <auth-method>BASIC</auth-method>
+    <realm-name>OpenDJ DSML Gateway</realm-name>
+  </login-config>
+
+  <security-role>
+    <role-name>dsml-user</role-name>
+  </security-role>
 
 </web-app>
 
