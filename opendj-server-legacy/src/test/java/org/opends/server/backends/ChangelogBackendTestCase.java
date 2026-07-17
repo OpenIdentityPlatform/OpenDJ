@@ -145,6 +145,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   private final List<LDAPReplicationDomain> domains = new ArrayList<>();
   private final Map<ReplicaId, ReplicationBroker> brokers = new HashMap<>();
 
+  /** Time of the last CSN built by {@link #generateCSNs(int, ReplicaId)}, to keep batches monotonic. */
+  private long lastGeneratedCsnTime;
+
   @BeforeClass
   @Override
   public void setUp() throws Exception
@@ -1252,7 +1255,10 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
   private CSN[] generateCSNs(int numberOfCsns, ReplicaId replicaId)
   {
-    long startTime = TimeThread.getTime();
+    // TimeThread only refreshes its cached time every 200 ms, so two batches generated within one
+    // tick would collide and be filtered out by the changelog as breaking the key ordering.
+    // Start after the previous batch to keep CSNs monotonically increasing, like CSNGenerator does.
+    long startTime = Math.max(TimeThread.getTime(), lastGeneratedCsnTime + 1);
 
     CSN[] csns = new CSN[numberOfCsns];
     for (int i = 0; i < numberOfCsns; i++)
@@ -1260,6 +1266,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       // seqNum must be greater than 0, so start at 1
       csns[i] = new CSN(startTime + i, i + 1, replicaId.getServerId());
     }
+    lastGeneratedCsnTime = csns[numberOfCsns - 1].getTime();
     return csns;
   }
 
