@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
@@ -1319,7 +1320,25 @@ public final class StaticUtils
     return true;
   }
 
-
+  /**
+   * Indicates whether the provided connected socket is connected to itself,
+   * i.e. its local and remote endpoints are identical.
+   * <p>
+   * Connecting to a local port from the TCP ephemeral range while nothing
+   * listens on it can make the kernel pick that very port as the local port
+   * of the connecting socket: TCP simultaneous open then "establishes" the
+   * connection to itself (observed on Linux). Such a socket occupies the
+   * listen port its target service is about to bind, so callers retrying
+   * connections to a temporarily stopped service must detect and close it.
+   *
+   * @param socket a connected socket
+   * @return true if the socket is connected to itself
+   */
+  public static boolean isSelfConnection(Socket socket)
+  {
+    return socket.getLocalPort() == socket.getPort()
+        && socket.getLocalAddress().equals(socket.getInetAddress());
+  }
 
   /**
    * Returns a lower-case string representation of a given string, verifying for null input string.
@@ -2443,7 +2462,6 @@ public final class StaticUtils
    * }
    * </pre>
    *
-   * </p>
    *
    * @param <T>
    *          the generic type of the passed in Iterator and for the returned

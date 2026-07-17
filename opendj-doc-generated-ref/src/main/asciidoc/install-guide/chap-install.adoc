@@ -40,6 +40,8 @@ This chapter covers installation of OpenDJ server software and includes the foll
 
 * xref:#install-rpm["To Install From the RPM Package"]
 
+* xref:#install-msi["To Install With the Windows Installer (MSI)"]
+
 * xref:#install-properties-file["To Install OpenDJ Directory Server With a Properties File"]
 
 * xref:#pdb-to-je["To Move Data from a PDB Backend to a JE Backend"]
@@ -631,6 +633,48 @@ By default OpenDJ starts in run levels 2, 3, 4, and 5:
 # chkconfig --list | grep opendj
 ...
 opendj         0:off    1:off    2:on    3:on    4:on    5:on    6:off
+----
+
+====
+
+[#install-msi]
+.To Install With the Windows Installer (MSI)
+====
+On Windows you can install OpenDJ directory server from the `.msi` package. The installer only copies the server files to disk: it does not configure or start a server, it does not register a Windows service, and it does not install a Java runtime.
+
+. Make sure a supported Java runtime is available, as described in xref:#before-you-install["To Prepare For Installation"].
++
+The installer does not check for Java. If your default Java environment is not appropriate, set `OPENDJ_JAVA_HOME` to the correct Java installation (or `OPENDJ_JAVA_BIN` to the absolute path of the `java` command), or make sure `java` is on the `PATH`, before you run `setup` or start the server.
+
+. Install the package, either with the GUI or silently:
++
+* GUI: double-click `opendj-{opendj-version}.msi` and follow the wizard.
++
+* Silent: run the following command (optionally set the installation directory with the `OPENDJ` property):
++
+
+[source, console, subs="attributes"]
+----
+C:\> msiexec /i opendj-{opendj-version}.msi /quiet OPENDJ="C:\opendj"
+----
++
+By default the package installs under `C:\Program Files\OpenDJ` (the 32-bit installer uses `C:\Program Files (x86)\OpenDJ` on 64-bit Windows).
+
+. Configure OpenDJ directory server by running the `setup` command, described in xref:../reference/admin-tools-ref.adoc#setup-1[setup(1)] in the __Reference__, from the installation directory. Use `setup.bat` for the GUI wizard or `setup.bat --cli` for the command-line:
++
+
+[source, console]
+----
+C:\path\to\opendj> setup.bat --cli
+----
+
+. (Optional)  Register OpenDJ as a Windows service and start it. The MSI does not register the service; use the `windows-service` command:
++
+
+[source, console]
+----
+C:\path\to\opendj\bat> windows-service.bat --enableService
+C:\> net start "OpenDJ Server"
 ----
 
 ====

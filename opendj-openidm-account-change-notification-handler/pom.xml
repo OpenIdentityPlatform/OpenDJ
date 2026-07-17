@@ -13,13 +13,14 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2014-2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>5.1.2-SNAPSHOT</version>
+    <version>5.2.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-openidm-account-change-notification-handler</artifactId>
   <name>OpenDJ account change notification handler for OpenIDM</name>
@@ -28,7 +29,6 @@
     </description>
   <packaging>jar</packaging>
   <properties>
-  	<doclint>none</doclint>
   </properties>
   <dependencies>
     <dependency>

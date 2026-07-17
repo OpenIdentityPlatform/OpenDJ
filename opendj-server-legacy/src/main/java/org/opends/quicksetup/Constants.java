@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup;
 
@@ -57,7 +58,7 @@ public class Constants {
   /** DN of the schema object. */
   public static final DN SCHEMA_DN = DN.valueOf("cn=schema", Schema.getCoreSchema());
 
-  /** DN of legacy replication changes base DN for backwards compatibility with OpenDJ <= 2.6.x. */
+  /** DN of legacy replication changes base DN for backwards compatibility with OpenDJ &lt;= 2.6.x. */
   public static final DN REPLICATION_CHANGES_DN = DN.valueOf("dc=replicationChanges", Schema.getCoreSchema());
 
   /** The cli java system property. */

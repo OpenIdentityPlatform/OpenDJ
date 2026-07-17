@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.extensions;
 
@@ -41,7 +42,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
 /** Tests for {@link TLSByteChannel} class. */
-@Test(groups = "slow", sequential = true)
+@Test(sequential = true)
 public class TLSByteChannelTestCase extends DirectoryServerTestCase
 {
   /** Cipher suite hardcoded from the IANA registry on internet. */

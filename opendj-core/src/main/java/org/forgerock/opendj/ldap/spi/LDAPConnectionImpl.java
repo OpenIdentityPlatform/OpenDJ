@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.spi;
 
@@ -116,7 +117,7 @@ public interface LDAPConnectionImpl extends Closeable {
 
     /**
      * Releases any resources associated with this connection.
-     * <p/>
+     * <p>
      * Calling {@code close} on a connection that is already closed has no effect.
      * @see org.forgerock.opendj.ldap.Connection#close()
      */
@@ -125,7 +126,7 @@ public interface LDAPConnectionImpl extends Closeable {
 
     /**
      * Releases any resources associated with this connection.
-     * <p/>
+     * <p>
      * Calling {@code close} on a connection that is already closed has no effect.
      *
      * @param request

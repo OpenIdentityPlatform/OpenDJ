@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.ui;
 
@@ -61,9 +62,9 @@ public enum FieldName
   LDIF_PATH,
   /** The value associated with this is a String. */
   NUMBER_ENTRIES,
-  /** The value associated with this is a Map<String, String>. */
+  /** The value associated with this is a Map&lt;String, String&gt;. */
   REMOTE_REPLICATION_PORT,
-  /** The value associated with this is a Map<String, Boolean>. */
+  /** The value associated with this is a Map&lt;String, Boolean&gt;. */
   REMOTE_REPLICATION_SECURE,
   /** The value associated with this is a String. */
   REMOTE_SERVER_DN,

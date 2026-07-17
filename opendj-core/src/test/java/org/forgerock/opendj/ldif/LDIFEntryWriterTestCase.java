@@ -685,7 +685,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             If the test failed unexpectedly.
      */
-    @Test(enabled = false)
+    @Test
     public void testSetAddUserFriendlyComments() throws Exception {
         final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);

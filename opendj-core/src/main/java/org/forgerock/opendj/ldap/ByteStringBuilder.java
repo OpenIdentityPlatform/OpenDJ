@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -300,7 +301,7 @@ public final class ByteStringBuilder implements ByteSequence {
      *
      * <pre>
      * int i = ...;
-     * int i8bits = i & 0xFF;
+     * int i8bits = i &amp; 0xFF;
      * // only use "i8bits"
      * </pre>
      * OR
@@ -643,7 +644,7 @@ public final class ByteStringBuilder implements ByteSequence {
      *
      * <pre>
      * int i = ...;
-     * int i16bits = i & 0xFFFF;
+     * int i16bits = i &amp; 0xFFFF;
      * // only use "i16bits"
      * </pre>
      * OR

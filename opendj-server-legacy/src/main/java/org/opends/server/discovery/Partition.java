@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.discovery;
 
@@ -34,8 +35,7 @@ import org.opends.server.types.HostPort;
  * <dt>dc=example,dc=com
  * <dd>unsharded parent naming context replicated across all servers.<br>
  * Contains data common to all partitions, such as ACIs, groups, etc.
- * <dt>ou=people,dc=example,dc=com<
- * <dd>sharded naming context whose content (the users) is split up according to some function, e.g.
+ * <dt>ou=people,dc=example,dc=com * <dd>sharded naming context whose content (the users) is split up according to some function, e.g.
  * consistent hashing.
  * </dl>
  *

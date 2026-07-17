@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 
 package org.forgerock.opendj.ldif;
@@ -452,7 +453,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             If the test failed unexpectedly.
      */
-    @Test(enabled = false)
+    @Test
     public void testSetAddUserFriendlyComments() throws Exception {
         final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);

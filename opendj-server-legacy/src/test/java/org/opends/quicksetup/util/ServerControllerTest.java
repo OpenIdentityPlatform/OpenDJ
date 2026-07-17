@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.quicksetup.util;
 
@@ -30,7 +31,7 @@ import org.testng.annotations.Test;
  * ServerController Tester.
  */
 @SuppressWarnings("javadoc")
-@Test(groups = {"slow"})
+@Test(sequential=true)
 public class ServerControllerTest extends QuickSetupTestCase {
 
   private ServerController controller;
@@ -47,7 +48,7 @@ public class ServerControllerTest extends QuickSetupTestCase {
    * Tests ability to stop the server.
    * @throws ApplicationException
    */
-  @Test(enabled = false)
+  @Test
   public void testStopServer() throws ApplicationException {
     if (!status.isServerRunning()) {
       controller.startServer();
@@ -61,7 +62,7 @@ public class ServerControllerTest extends QuickSetupTestCase {
    * Tests ability to start the server.
    * @throws ApplicationException
    */
-  @Test(enabled = false)
+  @Test
   public void testStartServer() throws ApplicationException {
     if (status.isServerRunning()) {
       controller.stopServer();

@@ -13,7 +13,7 @@
  ! information: "Portions Copyright [year] [name of copyright owner]".
  !
  ! Copyright 2013-2016 ForgeRock AS.
- ! Portion Copyright 2018 Open Identity Platform Community
+ ! Portions Copyright 2018-2026 3A Systems, LLC
  ! -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*" Codepage="1252" Language="1033" Manufacturer="Open Identity Platform Community"
