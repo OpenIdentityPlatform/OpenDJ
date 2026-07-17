@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -58,6 +59,7 @@ import org.opends.server.protocols.ldap.LDAPClientConnection;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 
 /**
@@ -927,30 +929,54 @@ public class SASLContext implements CallbackHandler,
    */
   private boolean hasPermission(final AuthenticationInfo authInfo)
   {
-    boolean ret = true;
-    Entry e = authzEntry;
-
-    // If the authz entry is null, use the entry associated with the NULL DN.
-    if (e == null)
+    if (!hasProxyAccess(authInfo.getAuthenticationEntry(), authzEntry, bindOp))
     {
+      setCallbackMsg(ERR_SASL_AUTHZID_INSUFFICIENT_ACCESS.get(authEntry.getName()));
+      return false;
+    }
+    return true;
+  }
+
+
+
+  /**
+   * Determines whether the access control configuration permits the
+   * authenticated user to assume the given authorization identity, i.e. holds
+   * the "proxy" access control right for the target entry. A {@code null}
+   * authorization entry maps to the entry associated with the NULL DN (the
+   * anonymous / root authorization identity). This is the shared SASL
+   * proxy-scope check used by DIGEST-MD5 / GSSAPI and by SASL PLAIN.
+   *
+   * @param authEntry
+   *          The authenticated user entry (the proxy user).
+   * @param authzEntry
+   *          The entry to be assumed, or {@code null} for the anonymous / root
+   *          authorization identity.
+   * @param operation
+   *          The operation being processed.
+   * @return {@code true} if the authenticated user may assume the authorization
+   *         identity.
+   */
+  static boolean hasProxyAccess(final Entry authEntry, final Entry authzEntry,
+      final Operation operation)
+  {
+    Entry proxiedEntry = authzEntry;
+    if (proxiedEntry == null)
+    {
+      // A null authorization entry maps to the entry associated with the NULL DN.
       try
       {
-        e = DirectoryServer.getEntry(DN.rootDN());
+        proxiedEntry = DirectoryServer.getEntry(DN.rootDN());
       }
-      catch (final DirectoryException ex)
+      catch (final DirectoryException e)
       {
+        logger.traceException(e);
         return false;
       }
     }
 
-    if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
-        .mayProxy(authInfo.getAuthenticationEntry(), e, bindOp))
-    {
-      setCallbackMsg(ERR_SASL_AUTHZID_INSUFFICIENT_ACCESS.get(authEntry.getName()));
-      ret = false;
-    }
-
-    return ret;
+    return AccessControlConfigManager.getInstance().getAccessControlHandler()
+        .mayProxy(authEntry, proxiedEntry, operation);
   }
 
 
