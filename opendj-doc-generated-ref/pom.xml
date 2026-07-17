@@ -13,7 +13,7 @@
   ~ information: "Portions Copyright [year] [name of copyright owner]".
   ~
   ~ Copyright 2016 ForgeRock AS.
-  ~ Portions Copyright 2024-2025 3A Systems LLC.
+  ~ Portions Copyright 2024-2026 3A Systems LLC.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -21,7 +21,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.openidentityplatform.opendj</groupId>
-        <version>5.1.2-SNAPSHOT</version>
+        <version>5.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>opendj-doc-generated-ref</artifactId>
@@ -184,6 +184,23 @@
                             </extendedClasspath>
                             <outputDir>${project.build.directory}/asciidoc/source/man-pages</outputDir>
                             <tools>
+                                <tool>
+                                    <name>addrate</name>
+                                    <application>com.forgerock.opendj.ldap.tools.AddRate</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>_exit-codes-0-80-89.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_addrate-examples.adoc</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>authrate</name>
+                                    <application>com.forgerock.opendj.ldap.tools.AuthRate</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>_exit-codes-0-89.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_authrate-examples.adoc</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
 
                                 <tool>
                                     <name>base64</name>
@@ -284,6 +301,25 @@
                                         <trailingSectionPath>_makeldif-see-also.adoc</trailingSectionPath>
                                     </trailingSectionPaths>
                                 </tool>
+
+                                <tool>
+                                    <name>modrate</name>
+                                    <application>com.forgerock.opendj.ldap.tools.ModRate</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>_exit-codes-0-89.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_modrate-examples.adoc</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>searchrate</name>
+                                    <application>com.forgerock.opendj.ldap.tools.SearchRate</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>_exit-codes-0-89.adoc</trailingSectionPath>
+                                        <trailingSectionPath>_searchrate-examples.adoc</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
                             </tools>
                         </configuration>
                     </execution>

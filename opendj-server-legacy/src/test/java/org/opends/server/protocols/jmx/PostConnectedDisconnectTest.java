@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.protocols.jmx;
 
@@ -91,7 +92,7 @@ public class PostConnectedDisconnectTest extends JmxTestCase
    * Perform a simple connect.
    * @throws Exception If something wrong occurs.
    */
-  @Test(enabled = false, groups = "slow")
+  @Test
   public void checkPostConnectDisconnectPlugin() throws Exception
   {
     // Before the test, how many time postconnect and postdisconnect

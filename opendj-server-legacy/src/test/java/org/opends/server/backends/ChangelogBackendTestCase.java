@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends;
 
@@ -47,6 +48,7 @@ import org.assertj.core.api.SoftAssertions;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -142,6 +144,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   private int replicationServerPort;
   private final List<LDAPReplicationDomain> domains = new ArrayList<>();
   private final Map<ReplicaId, ReplicationBroker> brokers = new HashMap<>();
+
+  /** Time of the last CSN built by {@link #generateCSNs(int, ReplicaId)}, to keep batches monotonic. */
+  private long lastGeneratedCsnTime;
 
   @BeforeClass
   @Override
@@ -783,6 +788,84 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     debugInfo(testName, "Ending test successfully");
   }
 
+  /**
+   * The alias dereferencing policies which make the server look the search base entry up before
+   * handing the search over to the backend.
+   */
+  @DataProvider
+  Object[][] getBaseEntryLookupDerefPolicies()
+  {
+    return new Object[][] {
+      { DereferenceAliasesPolicy.ALWAYS },
+      { DereferenceAliasesPolicy.FINDING_BASE },
+      // only looks the base entry up for subtree searches, which newSearchRequest() uses
+      { DereferenceAliasesPolicy.IN_SEARCHING },
+    };
+  }
+
+  /**
+   * Dereferencing aliases makes the server read the base entry before searching, so the changelog
+   * backend must be able to return it rather than failing the whole search.
+   *
+   * @see <a href="https://github.com/OpenIdentityPlatform/OpenDJ/issues/737">issue #737</a>
+   */
+  @Test(dataProvider = "getBaseEntryLookupDerefPolicies")
+  public void searchWhenNoChangesShouldReturnRootEntryOnlyWhenDereferencingAliases(
+      DereferenceAliasesPolicy derefPolicy) throws Exception
+  {
+    String testName = "EmptyRSDeref/" + derefPolicy;
+    debugInfo(testName, "Starting test\n\n");
+
+    SearchRequest request = newSearchRequest("(objectclass=*)").setDereferenceAliasesPolicy(derefPolicy);
+    searchChangelog(request, 1, SUCCESS, testName);
+
+    debugInfo(testName, "Ending test successfully");
+  }
+
+  /**
+   * Dereferencing aliases used to fail change number searches with an unexpected error, which broke
+   * every client defaulting to it, JNDI-based ones in particular.
+   *
+   * @see <a href="https://github.com/OpenIdentityPlatform/OpenDJ/issues/737">issue #737</a>
+   */
+  @Test(dataProvider = "getBaseEntryLookupDerefPolicies")
+  public void searchInChangeNumberModeWhenDereferencingAliases(DereferenceAliasesPolicy derefPolicy) throws Exception
+  {
+    String testName = "ChangeNumberDeref/" + derefPolicy;
+    debugInfo(testName, "Starting test\n\n");
+
+    CSN[] csns = generateAndPublishUpdateMsgForEachOperationType(testName, false);
+
+    SearchRequest request = newSearchRequest("(changenumber>=1)").setDereferenceAliasesPolicy(derefPolicy);
+    InternalSearchOperation searchOp = searchChangelog(request, csns.length, SUCCESS, testName);
+
+    assertEntriesForEachOperationType(searchOp.getSearchEntries(), 1, testName, USER1_ENTRY_UUID, csns);
+
+    debugInfo(testName, "Ending test successfully");
+  }
+
+  /**
+   * The base changelog entry is the only one the backend can return by DN: change records need the
+   * search parameters to be located, so they are only reachable through a search.
+   */
+  @Test
+  public void getEntryShouldReturnBaseEntryOnly() throws Exception
+  {
+    String testName = "getEntry";
+    debugInfo(testName, "Starting test\n\n");
+
+    generateAndPublishUpdateMsgForEachOperationType(testName, false);
+
+    final LocalBackend<?> backend = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .getLocalBackendById(ChangelogBackend.BACKEND_ID);
+    assertEquals(backend.getEntry(ChangelogBackend.CHANGELOG_BASE_DN).getName(),
+        ChangelogBackend.CHANGELOG_BASE_DN);
+    assertNull(backend.getEntry(DN.valueOf("changeNumber=1,cn=changelog")));
+    assertNull(backend.getEntry(DN.valueOf("changeNumber=1000,cn=changelog")));
+
+    debugInfo(testName, "Ending test successfully");
+  }
+
   @Test
   public void operationalAndVirtualAttributesShouldNotBeVisibleOutsideRootDSE() throws Exception
   {
@@ -1172,7 +1255,10 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
   private CSN[] generateCSNs(int numberOfCsns, ReplicaId replicaId)
   {
-    long startTime = TimeThread.getTime();
+    // TimeThread only refreshes its cached time every 200 ms, so two batches generated within one
+    // tick would collide and be filtered out by the changelog as breaking the key ordering.
+    // Start after the previous batch to keep CSNs monotonically increasing, like CSNGenerator does.
+    long startTime = Math.max(TimeThread.getTime(), lastGeneratedCsnTime + 1);
 
     CSN[] csns = new CSN[numberOfCsns];
     for (int i = 0; i < numberOfCsns; i++)
@@ -1180,6 +1266,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       // seqNum must be greater than 0, so start at 1
       csns[i] = new CSN(startTime + i, i + 1, replicaId.getServerId());
     }
+    lastGeneratedCsnTime = csns[numberOfCsns - 1].getTime();
     return csns;
   }
 

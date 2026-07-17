@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -63,16 +64,19 @@ public class AciTargets {
 
     /** Regular expression used to match a single target rule. */
     private static final String targetRegex =
-           OPEN_PAREN +  ZERO_OR_MORE_WHITESPACE  +  WORD_GROUP +
-           ZERO_OR_MORE_WHITESPACE + "(!?=)" + ZERO_OR_MORE_WHITESPACE +
-           "\"([^\"]+)\"" + ZERO_OR_MORE_WHITESPACE + CLOSED_PAREN +
-           ZERO_OR_MORE_WHITESPACE;
+           OPEN_PAREN +  ZERO_OR_MORE_WHITESPACE_POSSESSIVE  +  WORD_GROUP_POSSESSIVE +
+           ZERO_OR_MORE_WHITESPACE_POSSESSIVE + "(!?=)" + ZERO_OR_MORE_WHITESPACE_POSSESSIVE +
+           "\"([^\"]+)\"" + ZERO_OR_MORE_WHITESPACE_POSSESSIVE + CLOSED_PAREN +
+           ZERO_OR_MORE_WHITESPACE_POSSESSIVE;
 
     /**
      * Regular expression used to match one or more target rules. The pattern is
-     * part of a general ACI verification.
+     * part of a general ACI verification. The possessive quantifiers make the
+     * regex engine match the repetition iteratively, so an ACI with thousands
+     * of repeated target rules is rejected instead of overflowing the stack
+     * (issue #665).
      */
-    static final String targetsRegex = "(" + targetRegex + ")*";
+    static final String targetsRegex = "(" + targetRegex + ")*+";
 
     /**
      * Rights that are skipped for certain target evaluations.

@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2011-2016 ForgeRock AS.
-  Portions Copyright 2017-2025 3A Systems, LLC.
+  Portions Copyright 2017-2026 3A Systems, LLC.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>5.1.2-SNAPSHOT</version>
+    <version>5.2.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-server-legacy</artifactId>
   <packaging>jar</packaging>
@@ -66,7 +66,6 @@
 
     <juel.version>2.2.7</juel.version>
 
-    <doclint>none</doclint>
     <opendmk.lib.dir>${basedir}/opendmk</opendmk.lib.dir>
   </properties>
 
@@ -648,9 +647,6 @@
               <showDeprecation>false</showDeprecation>
               <showWarnings>false</showWarnings>
               <testCompilerArgument>-nowarn</testCompilerArgument>
-              <testExcludes>
-                <testExclude>**/org/opends/server/snmp/**</testExclude>
-              </testExcludes>
             </configuration>
           </execution>
         </executions>
@@ -1258,19 +1254,15 @@
 		          </additionalClasspathElements>
 				  <testSourceDirectory>src/test/java</testSourceDirectory>
 <!--				  <enableProcessChecker>all</enableProcessChecker>-->
-				  <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
+				  <forkedProcessTimeoutInSeconds>2400</forkedProcessTimeoutInSeconds>
                   <forkedProcessExitTimeoutInSeconds>120</forkedProcessExitTimeoutInSeconds>
-                  <excludes>
-                    <exclude>org/opends/server/snmp/**</exclude>
-                    <exclude>org/opends/quicksetup/**</exclude>
-                    <exclude>org/opends/quicksetup/**</exclude>
-                  </excludes>
                   <includes>
                     <include>**/Test*.java</include>
                     <include>**/*Test.java</include>
                     <include>**/*Tests.java</include>
                     <include>**/*TestCase.java</include>
                     <include>**/*TestCases.java</include>
+                    <include>**/*TestSuite.java</include>
                   </includes>
                   <properties>
                     <property>
@@ -1282,10 +1274,6 @@
                       <value>org.opends.server.TestListener</value>
                     </property>
                     <property>
-                      <name>excludegroups</name>
-                      <value>slow</value>
-                    </property>
-                    <property>
                       <name>configfailurepolicy</name>
                       <value>skip</value>
                     </property>
@@ -1294,7 +1282,7 @@
                     <org.opends.server.BuildRoot>${basedir}</org.opends.server.BuildRoot>
                     <org.opends.server.BuildDir>${project.build.directory}</org.opends.server.BuildDir>
                     <org.opends.test.replicationDbImpl>LOG</org.opends.test.replicationDbImpl>
-                    <jvmarg value="-Dorg.opends.server.snmp.opendmk=${opendmk.lib.dir}" />
+                    <org.opends.server.snmp.opendmk>${opendmk.lib.dir}</org.opends.server.snmp.opendmk>
                     <org.opends.server.CleanupDirectories>true</org.opends.server.CleanupDirectories>
                     <org.opends.test.suppressOutput>true</org.opends.test.suppressOutput>
                     <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>

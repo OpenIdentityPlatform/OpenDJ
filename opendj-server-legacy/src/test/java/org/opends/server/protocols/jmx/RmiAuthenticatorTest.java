@@ -27,6 +27,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.management.Attribute;
+import javax.management.ObjectName;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.DataProvider;
@@ -69,13 +71,45 @@ public class RmiAuthenticatorTest extends DirectoryServerTestCase
 
     assertEquals(env.get(RmiConnector.JMX_REMOTE_RMI_SERVER_CREDENTIALS_FILTER_PATTERN),
         "maxdepth=3;maxarray=2;java.lang.String;!*");
-    // The connector-wide filter must NOT be set, so legitimate JMX traffic
-    // (MBean operations, notifications) is not affected by the allowlist.
-    assertNull(env.get("jmx.remote.rmi.server.serial.filter.pattern"));
+    // The connector-wide filter must also be set so that post-authentication
+    // traffic (MBean operation arguments, attribute values) is constrained to a
+    // safe allowlist instead of being deserialized without any filter
+    // (incomplete fix of CVE-2026-46495).
+    assertNotNull(env.get(RmiConnector.JMX_REMOTE_RMI_SERVER_SERIAL_FILTER_PATTERN));
     // "jmx.remote.rmi.server.credential.types" is mutually exclusive with the
     // credentials filter pattern: setting both prevents the connector from
     // starting, so only the filter pattern must be configured.
     assertNull(env.get("jmx.remote.rmi.server.credential.types"));
+  }
+
+  /**
+   * Verifies the connector-wide operation filter allows the JDK / JMX
+   * management types OpenDJ legitimately receives, while rejecting arbitrary
+   * (potentially gadget) classes.
+   */
+  @Test
+  public void operationSerialFilterAllowsManagementTypesAndRejectsOthers() throws Exception
+  {
+    Map<String, Object> env = new HashMap<>();
+    RmiConnector.configureJmxDeserializationProtection(env);
+    String filterPattern = (String) env.get(RmiConnector.JMX_REMOTE_RMI_SERVER_SERIAL_FILTER_PATTERN);
+
+    // Legitimate JMX management argument types must pass.
+    assertEquals(readWithFilter("an attribute name", filterPattern), "an attribute name");
+    assertEquals(readWithFilter(new String[] { "a", "b" }, filterPattern), new String[] { "a", "b" });
+    assertEquals(readWithFilter(new ObjectName("org.opends.server:type=test"), filterPattern),
+        new ObjectName("org.opends.server:type=test"));
+    assertEquals(readWithFilter(new Attribute("ds-cfg-listen-port", 1689), filterPattern),
+        new Attribute("ds-cfg-listen-port", 1689));
+
+    // Arbitrary application types must be rejected before readObject() runs.
+    assertRejectedByFilter(new UnexpectedArgument(), filterPattern);
+  }
+
+  /** An arbitrary serializable type standing in for a gadget argument. */
+  private static final class UnexpectedArgument implements java.io.Serializable
+  {
+    private static final long serialVersionUID = 1L;
   }
 
   /** Verifies the configured filter allows only the expected credential payload. */

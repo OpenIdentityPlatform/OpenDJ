@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2011 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.core;
 
@@ -2651,7 +2652,7 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "baseDNs", groups = { "slow" })
+  @Test(dataProvider = "baseDNs")
   public void testCannotLockEntry(String baseDN)
          throws Exception
   {

@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <adm:managed-object abstract="true" name="http-oauth2-authorization-mechanism" plural-name="http-oauth2-authorization-mechanisms"
   extends="http-authorization-mechanism" package="org.forgerock.opendj.server.config" xmlns:adm="http://opendj.forgerock.org/admin"
@@ -49,7 +50,7 @@
   </adm:property>
 
   <adm:property name="identity-mapper" mandatory="true">
-    <adm:synopsis>>
+    <adm:synopsis>
       Specifies the name of the identity mapper to use in conjunction with the authzid-json-pointer
       to get the
       user corresponding to the acccess-token.

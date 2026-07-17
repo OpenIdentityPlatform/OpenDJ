@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
@@ -67,7 +68,7 @@ public final class Proxy {
      * Main method.
      *
      * @param args
-     *            The command line arguments: [--load-balancer <mode>] listen address, listen port,
+     *            The command line arguments: [--load-balancer &lt;mode&gt;] listen address, listen port,
      *            remote address1, remote port1, remote address2, remote port2,
      *            ...
      */

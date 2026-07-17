@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends;
 
@@ -127,7 +128,7 @@ import org.opends.server.util.StaticUtils;
  * <code>changeNumber</code> attribute value is set from the content of
  * ChangeNumberIndexDB.</li>
  * </ul>
- * <h3>Searches flow</h3>
+ * <h2>Searches flow</h2>
  * <p>
  * Here is the flow of searches within the changelog backend APIs:
  * <ul>
@@ -142,7 +143,7 @@ import org.opends.server.util.StaticUtils;
  * (once, single threaded),</li>
  * <li>
  * {@link ChangelogBackend#search(SearchOperation)} (once, single threaded)</li>
- * <li>{@link ChangelogBackend#notify*EntryAdded()} (multiple times, multi
+ * <li>{@code notify*EntryAdded()} (multiple times, multi
  * threaded)</li>
  * </ol>
  * </li>
@@ -151,7 +152,7 @@ import org.opends.server.util.StaticUtils;
  * <li>{@link ChangelogBackend#registerPersistentSearch(PersistentSearch)}
  * (once, single threaded)</li>
  * <li>
- * {@link ChangelogBackend#notify*EntryAdded()} (multiple times, multi
+ * {@code notify*EntryAdded()} (multiple times, multi
  * threaded)</li>
  * </ol>
  * </li>
@@ -296,6 +297,14 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
     return true;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Only the base changelog entry can be retrieved by DN. Change records are streamed by
+   * {@link #search(SearchOperation)}, which needs the search filter and the change number range to
+   * position its cursors, so they cannot be looked up individually and {@code null} is returned for
+   * them. None of them is ever an alias, so callers dereferencing aliases get the answer they need.
+   */
   @Override
   public Entry getEntry(final DN entryDN) throws DirectoryException
   {
@@ -304,7 +313,11 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
       throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_BACKEND_GET_ENTRY_NULL.get(getBackendID()));
     }
-    throw new RuntimeException("Not implemented");
+    if (CHANGELOG_BASE_DN.equals(entryDN))
+    {
+      return buildBaseChangelogEntry();
+    }
+    return null;
   }
 
   @Override

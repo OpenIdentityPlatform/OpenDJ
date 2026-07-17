@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.protocols;
 
@@ -62,7 +63,7 @@ public class LDIFConnectionHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = "slow")
+  @Test
   public void testValidUserLDIF()
          throws Exception
   {
@@ -165,7 +166,7 @@ public class LDIFConnectionHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = "slow")
+  @Test
   public void testValidConfigLDIF()
          throws Exception
   {
@@ -253,7 +254,7 @@ public class LDIFConnectionHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = "slow")
+  @Test
   public void testUnparseableLDIF()
          throws Exception
   {

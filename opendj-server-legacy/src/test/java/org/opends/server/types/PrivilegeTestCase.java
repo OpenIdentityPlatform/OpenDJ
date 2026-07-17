@@ -217,7 +217,31 @@ public class PrivilegeTestCase extends TypesTestCase
       "givenName: PWReset",
       "sn: Target",
       "uid: pwreset.target",
-      "userPassword: password");
+      "userPassword: password",
+      "",
+      "dn: cn=Proxy Only User,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "cn: Proxy Only User",
+      "givenName: Proxy",
+      "sn: User",
+      "uid: proxy.only",
+      "userPassword: password",
+      "ds-privilege-name: proxied-auth",
+      "",
+      "dn: cn=Proxy ACI User,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "cn: Proxy ACI User",
+      "givenName: Proxy",
+      "sn: ACI User",
+      "uid: proxy.aci",
+      "userPassword: password",
+      "ds-privilege-name: proxied-auth");
 
     TestCaseUtils.applyModifications(false,
       "dn: o=test",
@@ -229,6 +253,8 @@ public class PrivilegeTestCase extends TypesTestCase
            "userdn=\"ldap:///cn=Unprivileged Root,cn=Root DNs,cn=config\";)",
       "aci: (version 3.0; acl \"Privileged User\"; allow (proxy) " +
            "userdn=\"ldap:///cn=Privileged User,o=test\";)",
+      "aci: (version 3.0; acl \"Proxy ACI User\"; allow (proxy) " +
+           "userdn=\"ldap:///cn=Proxy ACI User,o=test\";)",
       "aci: (targetattr=\"*\")(version 3.0; acl \"PWReset Target\"; " +
            "allow (all) userdn=\"ldap:///cn=PWReset Target,o=test\";)");
 
@@ -956,7 +982,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "testdata", groups = { "slow" })
+  @Test(dataProvider = "testdata")
   public void testBackupBackend(InternalClientConnection conn,
                                 boolean hasPrivilege)
          throws Exception
@@ -991,8 +1017,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "testdata", groups = { "slow" },
-        dependsOnMethods = { "testBackupBackend" })
+  @Test(dataProvider = "testdata", dependsOnMethods = { "testBackupBackend" })
   public void testRestoreBackend(InternalClientConnection conn,
                                  boolean hasPrivilege)
          throws Exception
@@ -1022,7 +1047,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "testdata", groups = { "slow" })
+  @Test(dataProvider = "testdata")
   public void testLDIFExport(InternalClientConnection conn,
                              boolean hasPrivilege)
          throws Exception
@@ -1063,7 +1088,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "testdata", groups = { "slow" })
+  @Test(dataProvider = "testdata")
   public void testLDIFImport(InternalClientConnection conn,
                              boolean hasPrivilege)
          throws Exception
@@ -1096,7 +1121,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *                     and therefore the rebuild should succeed.
    * @throws Exception if an unexpected problem occurs.
    */
-  @Test(dataProvider = "testdata", groups = { "slow" })
+  @Test(dataProvider = "testdata")
   public void testRebuildIndex(InternalClientConnection conn,
                                boolean hasPrivilege)
       throws Exception
@@ -2141,6 +2166,146 @@ public class PrivilegeTestCase extends TypesTestCase
     };
 
     assertNotEquals(runSearch(args), 0);
+  }
+
+
+
+  /**
+   * Regression test for GHSA-p279-2cqp-84jg: an authentication identity that
+   * holds the PROXIED_AUTH privilege but is not granted the "proxy" access
+   * control right for the target must be denied when specifying an alternate
+   * authorization ID through SASL PLAIN using the "dn:" syntax, matching the
+   * behaviour of the proxied authorization control and DIGEST-MD5.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testPLAINDifferentAuthzIDNoProxyAciDeniedDNColon()
+         throws Exception
+  {
+    // Control: the proxy user can authenticate and act as itself, proving its
+    // entry and password are valid so the denial below is an authorization
+    // failure and not a setup or authentication problem.
+    String[] selfArgs =
+    {
+      "--noPropertiesFile",
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=PLAIN",
+      "-o", "authid=dn:cn=Proxy Only User,o=test",
+      "-o", "authzid=dn:cn=Proxy Only User,o=test",
+      "-w", "password",
+      "-b", "",
+      "-s", "base",
+      "(objectClass=*)"
+    };
+
+    assertEquals(runSearchWithSystemErr(selfArgs), 0);
+
+    // Holding PROXIED_AUTH but lacking a "proxy" ACI over the target must be
+    // denied with INVALID_CREDENTIALS, matching DIGEST-MD5 / GSSAPI.
+    String[] args =
+    {
+      "--noPropertiesFile",
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=PLAIN",
+      "-o", "authid=dn:cn=Proxy Only User,o=test",
+      "-o", "authzid=dn:cn=Unprivileged User,o=test",
+      "-w", "password",
+      "-b", "o=test",
+      "-s", "base",
+      "(objectClass=*)"
+    };
+
+    assertEquals(runSearch(args), INVALID_CREDENTIALS.intValue());
+  }
+
+
+
+  /**
+   * Regression test for GHSA-p279-2cqp-84jg: an authentication identity that
+   * holds the PROXIED_AUTH privilege but is not granted the "proxy" access
+   * control right for the target must be denied when specifying an alternate
+   * authorization ID through SASL PLAIN using the "u:" syntax, matching the
+   * behaviour of the proxied authorization control and DIGEST-MD5.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testPLAINDifferentAuthzIDNoProxyAciDeniedUColon()
+         throws Exception
+  {
+    // Control: the proxy user can authenticate and act as itself, proving its
+    // entry and password are valid so the denial below is an authorization
+    // failure and not a setup or authentication problem.
+    String[] selfArgs =
+    {
+      "--noPropertiesFile",
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=PLAIN",
+      "-o", "authid=u:proxy.only",
+      "-o", "authzid=u:proxy.only",
+      "-w", "password",
+      "-b", "",
+      "-s", "base",
+      "(objectClass=*)"
+    };
+
+    assertEquals(runSearchWithSystemErr(selfArgs), 0);
+
+    // Holding PROXIED_AUTH but lacking a "proxy" ACI over the target must be
+    // denied with INVALID_CREDENTIALS, matching DIGEST-MD5 / GSSAPI.
+    String[] args =
+    {
+      "--noPropertiesFile",
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=PLAIN",
+      "-o", "authid=u:proxy.only",
+      "-o", "authzid=u:unprivileged.user",
+      "-w", "password",
+      "-b", "o=test",
+      "-s", "base",
+      "(objectClass=*)"
+    };
+
+    assertEquals(runSearch(args), INVALID_CREDENTIALS.intValue());
+  }
+
+
+
+  /**
+   * Regression test for GHSA-p279-2cqp-84jg: an authentication identity that
+   * holds the PROXIED_AUTH privilege AND is granted the "proxy" access control
+   * right for the target through an ACI, but does NOT hold the bypass-acl
+   * privilege, must be allowed to assume an alternate authorization ID through
+   * SASL PLAIN. This confirms the added mayProxy check does not over-deny
+   * legitimate ACI-granted proxying (the bypass-acl proxy users exercised by
+   * the other success tests short-circuit the ACI evaluation).
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testPLAINDifferentAuthzIDWithProxyAciSucceedsDNColon()
+         throws Exception
+  {
+    String[] args =
+    {
+      "--noPropertiesFile",
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=PLAIN",
+      "-o", "authid=dn:cn=Proxy ACI User,o=test",
+      "-o", "authzid=dn:cn=Unprivileged User,o=test",
+      "-w", "password",
+      "-b", "o=test",
+      "-s", "base",
+      "(objectClass=*)"
+    };
+
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
