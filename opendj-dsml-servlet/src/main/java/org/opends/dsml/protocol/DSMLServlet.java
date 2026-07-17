@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.dsml.protocol;
 
@@ -119,6 +120,9 @@ public class DSMLServlet extends HttpServlet {
   private static final String TRUSTALLCERTS = "ldap.trustall";
   private static final String USEHTTPAUTHZID = "ldap.authzidtypeisid";
   private static final String EXOPSTRINGPREFIX = "ldap.exop.string.";
+  private static final String DEREF_ANYURI = "ldap.dsml.dereference.anyuri";
+  private static final String DEREF_ANYURI_SCHEMES = "ldap.dsml.dereference.anyuri.schemes";
+  private static final String DEREF_ANYURI_MAXSIZE = "ldap.dsml.dereference.anyuri.maxsize";
   private static final long serialVersionUID = -3748022009593442973L;
   private static final AtomicInteger nextMessageID = new AtomicInteger(1);
 
@@ -190,8 +194,38 @@ public class DSMLServlet extends HttpServlet {
         }
       }
 
-      // allow the use of anyURI values in adds and modifies
+      // Materialise anyURI values as java.net.URI so that, when dereferencing
+      // is explicitly enabled, they can be fetched. Dereferencing itself is
+      // gated and hardened in ByteStringUtility (disabled by default).
       System.setProperty("mapAnyUriToUri", "true");
+
+      // Server-side dereferencing of anyURI values is disabled by default
+      // (SSRF / local-file / unbounded-read hardening, GHSA-68r5-9hpg-7qw9).
+      // Enable it explicitly, and optionally tune the scheme allowlist and the
+      // maximum fetched size, via the corresponding context-params.
+      boolean derefAnyUri = booleanValue(config, DEREF_ANYURI);
+      ByteStringUtility.setDereferenceUri(derefAnyUri);
+      if (derefAnyUri)
+      {
+        String schemes = stringValue(config, DEREF_ANYURI_SCHEMES);
+        if (schemes != null && !schemes.trim().isEmpty())
+        {
+          ByteStringUtility.setAllowedUriSchemes(schemes);
+        }
+        String maxSize = stringValue(config, DEREF_ANYURI_MAXSIZE);
+        if (maxSize != null && !maxSize.trim().isEmpty())
+        {
+          try
+          {
+            ByteStringUtility.setMaxUriContentLength(Long.parseLong(maxSize.trim()));
+          }
+          catch (IllegalArgumentException e)
+          {
+            throw new ServletException(DEREF_ANYURI_MAXSIZE
+                + " must be a positive number of bytes, but was: " + maxSize);
+          }
+        }
+      }
 
       if(jaxbContext==null)
       {

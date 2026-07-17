@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 
@@ -21,7 +22,7 @@
  * Java Edition as the repository for storing entry and index information.
  * <BR><BR>
  *
- * <H3>On-disk Representation</H3>
+ * <H2>On-disk Representation</H2>
  * <P>
  * First it is important to understand JE (Java Edition) terminology.  A JE
  * database environment has similarities to a database in the relational
@@ -72,14 +73,13 @@
  * dc_example_dc_com_telephoneNumber.substring
  * dc_example_dc_com_uid.equality
  * </pre>
- * <H4>Database Relocation</H4>
+ * <H3>Database Relocation</H3>
  * <P>
  * The data is stored in a format which is independent of system architecture,
  * and is also independent of file system location because it contains no
  * pathnames.  The backend, and its backups, can be copied, moved and restored
  * to a different location, within the same system or a different system.
- * <P>
- * <H4>The Entry ID</H4>
+ * <H3>The Entry ID</H3>
  * <P>
  * Each entry to be stored in the backend is assigned a 64-bit integer
  * identifier called the entry ID.  The first entry to be created is entry ID 1,
@@ -97,9 +97,7 @@
  * <P>
  * Currently, IDs of deleted entries are not reused.  The use of a 64-bit
  * integer means it is implausible that the entry ID space will be exhausted.
- * <P>
- * <P>
- * <H4>The entry database (id2entry)</H4>
+ * <H3>The entry database (id2entry)</H3>
  * <P>
  * Entries are stored in the id2entry database.  The key to the database is
  * the entry ID, and the value is an ASN.1 encoding of the entry contents.
@@ -109,7 +107,6 @@
  * assigned entry ID by reading the last key value in the entry database.
  * <P>
  * The format of the entry on disk is described by the following ASN.1.
- * <P>
  * <pre>
  * DatabaseEntry ::= [APPLICATION 0] IMPLICIT SEQUENCE {
  *  uncompressedSize        INTEGER,      -- A zero value means not compressed.
@@ -138,8 +135,7 @@
  * The ASN1 types have application tags to allow for future extensions.
  * The types may be extended with additional fields where this makes sense,
  * or additional types may be defined.
- * <P>
- * <H5>The entry count record</H5>
+ * <H4>The entry count record</H4>
  * <P>
  * Previous versions of Directory Server provide the current number of entries
  * stored in the backend.  JE does not maintain database record counts,
@@ -149,9 +145,7 @@
  * For this reason the backend maintains its own count of the number of
  * entries in the entry database, storing this count in the special record
  * whose key is entry ID zero.
- * <P>
- * <P>
- * <H4>The DN database (dn2id)</H4>
+ * <H3>The DN database (dn2id)</H3>
  * <P>
  * Although each entry's DN is stored in the entry database, we need to be
  * able to retrieve entries by DN.  The dn2id database key is the normalized
@@ -186,25 +180,20 @@
  * At first, it may seem strange that user.1100 comes after user.1000 but it
  * becomes clear when considering the values in reverse byte order, since
  * 0011.resu is indeed greater than 0001.resu.
- * <P>
- * <H4>Index Databases</H4>
+ * <H3>Index Databases</H3>
  * <P>
  * Index databases are used to efficiently process search requests.  The system
  * indexes, id2children and id2subtree, are dedicated to processing one-level
  * and subtree search scope respectively.  Then there are configurable
  * attribute indexes to process components of a search filter.  Each index
  * record maps a key to an Entry ID List.
- * <P>
- * <P>
- * <H5>Entry ID List</H5>
+ * <H4>Entry ID List</H4>
  * <P>
  * An entry ID list is a set of entry IDs, arranged in order of ID.  On disk,
  * the list is a concatenation of the 8-byte entry ID values, where the first
  * ID is the lowest.  The number of IDs in the list can be obtained by dividing
  * the total number of bytes by eight.
- * <P>
- * <P>
- * <H5>Index Entry Limit</H5>
+ * <H4>Index Entry Limit</H4>
  * <P>
  * In some cases, the number of entries indexed by a given key is so large
  * that the cost of maintaining the list during entry updates outweighs the
@@ -212,39 +201,29 @@
  * a configurable entry limit.  Whenever a list reaches the entry limit, it is
  * replaced with a zero length value to indicate that the list is no longer
  * maintained.
- * <P>
- * <P>
- * <H5>Children Index (id2children)</H5>
+ * <H4>Children Index (id2children)</H4>
  * <P>
  * The children index is a system index which maps the ID of any non-leaf entry
  * to entry IDs of the immediate children of the entry. This index is used to
  * get the set of entries within the scope of a one-level search.
- * <P>
- * <P>
- * <H5>Subtree Index (id2subtree)</H5>
+ * <H4>Subtree Index (id2subtree)</H4>
  * <P>
  * The subtree index is a system index which maps the ID of any non-leaf entry
  * to entry IDs of all descendants of the entry. This index is used to get the
  * set of entries within the scope of a subtree search.
- * <P>
- * <P>
- * <H5>Attribute Equality Index</H5>
+ * <H4>Attribute Equality Index</H4>
  * <P>
  * An attribute equality index maps the value of an attribute to entry IDs of
  * all entries containing that attribute value. The database key is the
  * attribute value after it has been normalized by the equality matching rule
  * for that attribute.  This index is used to get the set of entries matching
  * an equality filter.
- * <P>
- * <P>
- * <H5>Attribute Presence Index</H5>
+ * <H4>Attribute Presence Index</H4>
  * <P>
  * An attribute presence index contains a single record which has entry IDs
  * of all entries containing a value of the attribute. This index is used to get
  * the set of entries matching an attribute presence filter.
- * <P>
- * <P>
- * <H5>Attribute Substring Index</H5>
+ * <H4>Attribute Substring Index</H4>
  * <P>
  * An attribute substring index maps a substring of an attribute value to entry
  * IDs of all entries containing that substring in one or more of its values of
@@ -257,9 +236,7 @@
  * indexed by the keys ABC BCD CDE DE E.  To find entries containing a short
  * substring such as DE, iterate through all keys with prefix DE.  To find
  * entries containing a longer substring such as BCDE, read keys BCD and CDE.
- * <P>
- * <P>
- * <H5>Attribute Ordering Index</H5>
+ * <H4>Attribute Ordering Index</H4>
  * <P>
  * An attribute ordering index is similar to an equality index in that it maps
  * the value of an attribute to entry IDs of all entries containing that

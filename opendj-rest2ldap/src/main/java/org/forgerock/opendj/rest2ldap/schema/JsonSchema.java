@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap.schema;
 
@@ -108,12 +109,13 @@ public final class JsonSchema {
      * patterns for matching against JSON pointers. Patterns are JSON pointers where "*" represents zero or more
      * characters in a single path element, and "**" represents any number of path elements. For example:
      *
-     * <table valign="top">
+     * <table>
+     *     <caption>JSON pointer pattern matching examples</caption>
      *     <tr><th>Pattern</th><th>Matches</th><th>Doesn't match</th></tr>
-     *     <tr><td>/aaa/bbb/ccc</td><td>/aaa/bbb/ccc</td><td>/aaa/bbb/ccc/ddd<br/>/aaa/bbb/cccc</td></tr>
-     *     <tr><td>/aaa/b&#x002A;/ccc</td><td>/aaa/bbb/ccc<br/>/aaa/bxx/ccc</td><td>/aaa/xxx/ccc<br/>/aaa/bbb</td></tr>
-     *     <tr><td>/aaa/&#x002A;&#x002A;/ddd</td><td>/aaa/ddd<br/>/aaa/xxx/yyy/ddd</td><td>/aaa/bbb/ccc</td></tr>
-     *     <tr><td>/aaa/&#x002A;&#x002A;</td><td>/aaa<br/>/aaa/bbb<br/>/aaa/bbb/ccc<br/></td><td>/aa</td></tr>
+     *     <tr><td>/aaa/bbb/ccc</td><td>/aaa/bbb/ccc</td><td>/aaa/bbb/ccc/ddd<br>/aaa/bbb/cccc</td></tr>
+     *     <tr><td>/aaa/b&#x002A;/ccc</td><td>/aaa/bbb/ccc<br>/aaa/bxx/ccc</td><td>/aaa/xxx/ccc<br>/aaa/bbb</td></tr>
+     *     <tr><td>/aaa/&#x002A;&#x002A;/ddd</td><td>/aaa/ddd<br>/aaa/xxx/yyy/ddd</td><td>/aaa/bbb/ccc</td></tr>
+     *     <tr><td>/aaa/&#x002A;&#x002A;</td><td>/aaa<br>/aaa/bbb<br>/aaa/bbb/ccc<br></td><td>/aa</td></tr>
      * </table>
      */
     @SuppressWarnings("unchecked")

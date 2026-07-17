@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.forgerock.opendj.server.embedded;
 
@@ -46,6 +47,9 @@ public final class RebuildIndexParameters
       "--configFile", configurationFile,
       "--baseDN", baseDN,
       "--rebuildAll",
+      // rebuild-index only runs locally when the offline flag is set,
+      // otherwise TaskTool tries to schedule a task over LDAP
+      "--offline",
       "--noPropertiesFile"
     };
   }

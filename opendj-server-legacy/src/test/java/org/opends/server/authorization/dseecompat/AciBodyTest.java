@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -60,5 +61,16 @@ public class AciBodyTest extends DirectoryServerTestCase
     AciBody aciBody = AciBody.decode(aci);
     assertThat(aciBody.toString()).isEqualTo(aci);
     assertThat(aciBody.getPermBindRulePairs()).hasSize(1);
+  }
+
+  /**
+   * A blank bind rule (only whitespace between the parentheses) must be
+   * rejected with an {@link AciException} rather than crashing with an
+   * unchecked {@code StringIndexOutOfBoundsException}. See issue #712.
+   */
+  @Test(expectedExceptions = AciException.class)
+  public void decodeBlankBindRuleThrowsAciException() throws Exception
+  {
+    AciBody.decode("(version 3.0; acl \"C\"; allow (search)(          ) (userdn=\"ldap:///self\"); )");
   }
 }

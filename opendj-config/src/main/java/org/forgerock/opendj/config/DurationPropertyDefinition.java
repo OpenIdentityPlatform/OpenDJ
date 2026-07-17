@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.config;
@@ -179,7 +180,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
          * Set the lower limit in milli-seconds.
          *
          * @param lowerLimit
-         *            The new lower limit (must be >= 0) in milli-seconds.
+         *            The new lower limit (must be &gt;= 0) in milli-seconds.
          * @throws IllegalArgumentException
          *             If a negative lower limit was specified, or the lower
          *             limit is greater than the upper limit.

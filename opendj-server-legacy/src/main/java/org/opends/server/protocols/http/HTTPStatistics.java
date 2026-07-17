@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.http;
 
@@ -37,7 +38,6 @@ public class HTTPStatistics extends LDAPStatistics
    * Map containing the total number of requests per HTTP methods.
    * <p>
    * key: HTTP method => value: number of requests for that method.
-   * </p>
    * Not using a ConcurrentMap implementation here because the keys are static.
    * The keys are static because they need to be listed in the schema which is
    * static.
@@ -48,7 +48,6 @@ public class HTTPStatistics extends LDAPStatistics
    * <p>
    * key: HTTP method => value: total execution time for requests using that
    * method.
-   * </p>
    * Not using a ConcurrentMap implementation here because the keys are static.
    * The keys are static because they need to be listed in the schema which is
    * static.
