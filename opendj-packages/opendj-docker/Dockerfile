@@ -12,7 +12,7 @@
 #
 # Copyright 2018-2026 3A Systems, LLC.
 
-FROM eclipse-temurin:25-jre-jammy
+FROM eclipse-temurin:25-jre-noble
 
 LABEL org.opencontainers.image.authors="Open Identity Platform Community"
 
@@ -42,13 +42,14 @@ WORKDIR /opt
 
 #COPY opendj-*.zip $OPENDJ_DIST_FILENAME
 
-RUN  apt-get update \
+RUN  printf 'Acquire::ForceIPv4 "true";\nAcquire::Retries "5";\n' > /etc/apt/apt.conf.d/99-ci-network \
+ && apt-get update \
  && apt-get install -y --no-install-recommends curl unzip \
  && if [ -z "$VERSION" ] ; then VERSION="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)"; fi \
  && if [ ! -f "$OPENDJ_DIST_FILENAME" ]; then echo file exists && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output $OPENDJ_DIST_FILENAME; fi \
  && unzip $OPENDJ_DIST_FILENAME \
  && apt-get remove -y --purge curl unzip \
- && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /var/lib/apt/lists/* /etc/apt/apt.conf.d/99-ci-network \
  && rm -r $OPENDJ_DIST_FILENAME \
  && groupadd $OPENDJ_USER \
  && useradd -m -r -u 1001 -g $OPENDJ_USER $OPENDJ_USER \

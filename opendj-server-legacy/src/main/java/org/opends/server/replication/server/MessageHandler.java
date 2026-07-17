@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.server;
 
@@ -79,6 +80,13 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   private final int maxQueueBytesSize;
   /** Specifies whether the consumer is following the producer (is not late). */
   private boolean following;
+  /**
+   * Specifies whether the last update message returned by
+   * {@link #getNextMessage()} was re-read from the changelog DB (catch-up
+   * path) rather than taken from the in-memory {@link #msgQueue}. Only ever
+   * accessed by the single consumer thread calling {@link #getNextMessage()}.
+   */
+  private boolean lastMessageFromLateQueue;
   /** Specifies the current serverState of this handler. */
   private ServerState serverState;
   /** Specifies the baseDN of the domain. */
@@ -207,6 +215,39 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
+   * Indicates whether this handler is served from the in-memory message
+   * queue, i.e. it is done catching up with the changelog DB.
+   * <p>
+   * Package private: allows tests to wait until a freshly connected peer
+   * will receive published updates through the in-memory queue path rather
+   * than re-read from the changelog DB.
+   *
+   * @return true when this handler follows the in-memory message queue
+   */
+  boolean isFollowing()
+  {
+    synchronized (msgQueue)
+    {
+      return following;
+    }
+  }
+
+  /**
+   * Indicates whether the last update message returned by
+   * {@code getNextMessage()} was re-read from the changelog DB (catch-up
+   * path) rather than taken from the in-memory queue.
+   * <p>
+   * Must only be called from the consumer thread calling
+   * {@code getNextMessage()}.
+   *
+   * @return true if the last returned update message came from the late queue
+   */
+  protected boolean isLastMessageFromLateQueue()
+  {
+    return lastMessageFromLateQueue;
+  }
+
+  /**
    * Retrieves the name of this monitor provider.  It should be unique among all
    * monitor providers, including all instances of the same monitor provider.
    *
@@ -300,6 +341,9 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
                 msgQueue.consumeUpTo(msg);
                 if (updateServerState(msg))
                 {
+                  // the returned instance is the one re-read from the
+                  // changelog DB, not its msgQueue equivalent
+                  lastMessageFromLateQueue = true;
                   return msg;
                 }
               }
@@ -328,6 +372,7 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           }
           if (updateServerState(msg))
           {
+            lastMessageFromLateQueue = true;
             return msg;
           }
           continue;
@@ -360,6 +405,7 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
              * by the other server.
              * Otherwise just loop to select the next message.
              */
+            lastMessageFromLateQueue = false;
             return msg;
           }
         }

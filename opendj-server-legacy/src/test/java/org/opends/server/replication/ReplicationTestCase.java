@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.replication;
 
@@ -726,11 +727,13 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       }
     }
 
-    if (expectedTaskState == RUNNING && taskState == COMPLETED_SUCCESSFULLY)
+    if (expectedTaskState == RUNNING
+        && (taskState == COMPLETED_SUCCESSFULLY || taskState == STOPPED_BY_ERROR))
     {
       // We usually wait the running state after adding the task
-      // and if the task is fast enough then it may be already done
-      // and we can go on.
+      // and if the task is fast enough then it may already be done
+      // (successfully or not) and we can go on: callers interested in the
+      // final state wait for it explicitly afterwards.
     }
     else
     {

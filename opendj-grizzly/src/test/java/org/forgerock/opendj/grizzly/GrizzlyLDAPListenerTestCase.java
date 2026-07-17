@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2017-2026 3A Systems, LLC
  */
 package org.forgerock.opendj.grizzly;
 
@@ -273,7 +274,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected exception occurred.
      */
-    @Test(enabled = false)
+    @Test
     public void testLDAPListenerLoadBalanceDuringHandleAccept() throws Exception {
         // Online server listener.
         final MockServerConnection onlineServerConnection = new MockServerConnection();
@@ -453,7 +454,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected exception occurred.
      */
-    @Test(enabled = false)
+    @Test
     public void testLDAPListenerProxyDuringHandleAccept() throws Exception {
         final MockServerConnection onlineServerConnection = new MockServerConnection();
         final MockServerConnectionFactory onlineServerConnectionFactory =
@@ -513,10 +514,13 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                     new ServerConnectionFactoryAdapter(Options.defaultOptions().get(LDAP_DECODE_OPTIONS),
                             proxyServerConnectionFactory));
             try {
-                // Connect and close.
+                // Connect to the proxy listener (not to the online server
+                // directly, otherwise the proxy handleAccept is never invoked)
+                // and close.
+                final InetSocketAddress proxyAddr = proxyListener.firstSocketAddress();
                 final Connection connection =
-                        new LDAPConnectionFactory(onlineServerAddr.getHostName(),
-                            onlineServerAddr.getPort()).getConnection();
+                        new LDAPConnectionFactory(proxyAddr.getHostName(),
+                            proxyAddr.getPort()).getConnection();
 
                 assertThat(proxyServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
                 assertThat(onlineServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();

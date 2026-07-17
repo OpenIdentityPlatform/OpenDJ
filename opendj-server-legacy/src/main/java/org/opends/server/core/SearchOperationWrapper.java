@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -55,6 +56,12 @@ public abstract class SearchOperationWrapper extends
                              boolean evaluateAci)
   {
     return getOperation().returnEntry(entry, controls, evaluateAci);
+  }
+
+  @Override
+  public void endSearchPhase()
+  {
+    getOperation().endSearchPhase();
   }
 
   @Override

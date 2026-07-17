@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -88,9 +89,9 @@ public class MsgQueue
   }
 
   /**
-   * Returns <tt>true</tt> if this MsgQueue contains no UpdateMsg.
+   * Returns <code>true</code> if this MsgQueue contains no UpdateMsg.
    *
-   * @return <tt>true</tt> if this MsgQueue contains no UpdateMsg.
+   * @return <code>true</code> if this MsgQueue contains no UpdateMsg.
    */
   public boolean isEmpty()
   {
@@ -161,12 +162,12 @@ public class MsgQueue
   }
 
   /**
-   * Returns <tt>true</tt> if this map contains an UpdateMsg
+   * Returns <code>true</code> if this map contains an UpdateMsg
    * with the same CSN as the given UpdateMsg.
    *
    * @param msg UpdateMsg whose presence in this queue is to be tested.
    *
-   * @return <tt>true</tt> if this map contains an UpdateMsg
+   * @return <code>true</code> if this map contains an UpdateMsg
    *         with the same CSN as the given UpdateMsg.
    */
   public boolean contains(UpdateMsg msg)

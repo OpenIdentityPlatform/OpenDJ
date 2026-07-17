@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.server;
 
@@ -87,8 +88,6 @@ public class ReplicationServerHandler extends ServerHandler
         // Only V2 protocol has the group id in repl server start message
         this.groupId = inReplServerStartMsg.getGroupId();
       }
-
-      oldGenerationId = -100;
     }
     catch(Exception e)
     {
@@ -150,12 +149,16 @@ public class ReplicationServerHandler extends ServerHandler
 
     setBaseDNAndDomain(baseDN, false);
 
-    localGenerationId = replicationServerDomain.getGenerationId();
-    oldGenerationId = localGenerationId;
-
     try
     {
       lockDomainNoTimeout();
+
+      // Read under the domain lock so the start message advertises any change
+      // made by a previous handshake (handshakes serialize on this lock). The
+      // field itself is only guarded by generationIDLock and lock-free
+      // adopters can still move it — the arming CAS in
+      // setDomainGenerationIdOnStart handles that residual race.
+      localGenerationId = replicationServerDomain.getGenerationId();
 
       ReplServerStartMsg outReplServerStartMsg = sendStartToRemote();
 
@@ -196,8 +199,7 @@ public class ReplicationServerHandler extends ServerHandler
       */
       if (localGenerationId < 0 && generationId > 0)
       {
-        oldGenerationId =
-            replicationServerDomain.changeGenerationId(generationId);
+        setDomainGenerationIdOnStart(generationId);
       }
 
       logStartHandshakeSNDandRCV(outReplServerStartMsg,(ReplServerStartMsg)msg);
@@ -283,7 +285,6 @@ public class ReplicationServerHandler extends ServerHandler
   public void startFromRemoteRS(ReplServerStartMsg inReplServerStartMsg)
   {
     localGenerationId = -1;
-    oldGenerationId = -100;
     try
     {
       // The initiator decides if the session is encrypted
@@ -479,8 +480,7 @@ public class ReplicationServerHandler extends ServerHandler
       // The local RS is not initialized - take the one received
       // WARNING: Must be done before computing topo message to send to peer
       // server as topo message must embed valid generation id for our server
-      oldGenerationId =
-          replicationServerDomain.changeGenerationId(generationId);
+      setDomainGenerationIdOnStart(generationId);
       return;
     }
 

@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.server;
 
@@ -146,7 +147,19 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
   {
     // Get the ack status for the matching server
     int ackingServerId = ackingServer.getServerId();
-    boolean ackReceived = expectedServersAckStatus.get(ackingServerId);
+    Boolean ackReceived = expectedServersAckStatus.get(ackingServerId);
+    if (ackReceived == null)
+    {
+      // Ack from a server we were not expecting an ack from, for instance
+      // because the update was delivered to it with the assured flag of the
+      // original sender through the changelog catch-up path: ignore it.
+      if (logger.isTraceEnabled())
+      {
+        logger.trace("Received ack from not expected server id: "
+          + ackingServerId + " ack message: " + ackMsg);
+      }
+      return false;
+    }
     if (ackReceived)
     {
       // Sanity check: this should never happen

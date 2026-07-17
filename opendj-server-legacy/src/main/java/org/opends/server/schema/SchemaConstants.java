@@ -14,6 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
  * Portions copyright 2013-2014 Manuel Gaupp
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.schema;
 
@@ -34,7 +35,6 @@ package org.opends.server.schema;
  * <dt>SMR
  * <dd>Syntax Matching Rule
  * </dl>
- * </p>
  */
 public class SchemaConstants
 {

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.extensions;
 
@@ -125,7 +126,7 @@ public class TraditionalWorkQueueTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = { "slow" })
+  @Test
   public void testWaitUntilIdleNoOpsInProgress()
          throws Exception
   {
@@ -145,7 +146,7 @@ public class TraditionalWorkQueueTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = { "slow" }, timeOut=10000)
+  @Test(timeOut=10000)
   public void testWaitUntilIdleNoOpsInProgressNoTimeout()
          throws Exception
   {
@@ -165,7 +166,7 @@ public class TraditionalWorkQueueTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = { "slow" })
+  @Test
   public void testWaitUntilIdleSlowOpInProgress()
          throws Exception
   {
@@ -189,7 +190,7 @@ public class TraditionalWorkQueueTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = { "slow" })
+  @Test
   public void testWaitUntilTimeoutWithIdleSlowOpInProgress()
          throws Exception
   {

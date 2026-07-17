@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.types;
 
@@ -31,6 +32,7 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.util.ServerConstants.MAX_NESTED_FILTER_DEPTH;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -531,6 +533,42 @@ public abstract class RawFilter
   public static LDAPFilter decode(ASN1Reader reader)
          throws LDAPException
   {
+    return decode(reader, 0);
+  }
+
+  /**
+   * Decodes the elements from the provided ASN.1 reader as a raw
+   * search filter, tracking the current nesting depth.
+   * <p>
+   * The {@code depth} guard bounds the recursion so that a maliciously
+   * over-nested AND/OR/NOT filter is rejected with a
+   * {@code PROTOCOL_ERROR} instead of overflowing the JVM stack with a
+   * {@code StackOverflowError} (GHSA-rv4q-c6mr-wxp7). Without it an
+   * unauthenticated client could kill the request-handler thread, since
+   * a {@code StackOverflowError} is an {@code Error} and escapes the
+   * {@code catch (Exception)} blocks on the decode path.
+   *
+   * @param  reader The ASN.1 reader.
+   * @param  depth  The current filter nesting depth (0 for the top-level
+   *                filter).
+   *
+   * @return  The decoded search filter.
+   *
+   * @throws  LDAPException  If the provided ASN.1 element cannot be
+   *                         decoded as a raw search filter, or if it is
+   *                         nested more deeply than
+   *                         {@link org.opends.server.util.ServerConstants#MAX_NESTED_FILTER_DEPTH}.
+   */
+  private static LDAPFilter decode(ASN1Reader reader, int depth)
+         throws LDAPException
+  {
+    if (depth >= MAX_NESTED_FILTER_DEPTH)
+    {
+      LocalizableMessage message =
+          ERR_LDAP_FILTER_DECODE_MAX_NESTING_DEPTH.get(MAX_NESTED_FILTER_DEPTH);
+      throw new LDAPException(PROTOCOL_ERROR, message);
+    }
+
     byte type;
     try
     {
@@ -546,10 +584,10 @@ public abstract class RawFilter
     {
       case TYPE_FILTER_AND:
       case TYPE_FILTER_OR:
-        return decodeCompoundFilter(reader);
+        return decodeCompoundFilter(reader, depth);
 
       case TYPE_FILTER_NOT:
-        return decodeNotFilter(reader);
+        return decodeNotFilter(reader, depth);
 
       case TYPE_FILTER_EQUALITY:
       case TYPE_FILTER_GREATER_OR_EQUAL:
@@ -586,7 +624,7 @@ public abstract class RawFilter
    *                         decode the provided ASN.1 element as a
    *                         raw search filter.
    */
-  private static LDAPFilter decodeCompoundFilter(ASN1Reader reader)
+  private static LDAPFilter decodeCompoundFilter(ASN1Reader reader, int depth)
       throws LDAPException
   {
     byte type;
@@ -627,7 +665,7 @@ public abstract class RawFilter
       // could also be an absolute true/false filter
       while (reader.hasNextElement())
       {
-        filterComponents.add(LDAPFilter.decode(reader));
+        filterComponents.add(decode(reader, depth + 1));
       }
       reader.readEndSequence();
     }
@@ -659,14 +697,14 @@ public abstract class RawFilter
    *                         decode the provided ASN.1 element as a
    *                         raw search filter.
    */
-  private static LDAPFilter decodeNotFilter(ASN1Reader reader)
+  private static LDAPFilter decodeNotFilter(ASN1Reader reader, int depth)
           throws LDAPException
   {
     RawFilter notComponent;
     try
     {
       reader.readStartSequence();
-      notComponent = decode(reader);
+      notComponent = decode(reader, depth + 1);
       reader.readEndSequence();
     }
     catch (LDAPException le)

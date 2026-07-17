@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.tasks;
 
@@ -347,7 +348,7 @@ public class TestImportAndExport extends TasksTestCase
    * @param taskEntry The task entry.
    * @param expectedState The expected completion state of the task.
    */
-  @Test(dataProvider = "importexport", groups = "slow")
+  @Test(dataProvider = "importexport")
   public void testImportExport(Entry taskEntry, TaskState expectedState)
        throws Exception
   {

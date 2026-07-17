@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.tasks;
 
@@ -106,7 +107,6 @@ public class TestRebuildTask extends TasksTestCase
                    "ds-task-class-name: org.opends.server.tasks.RebuildTask",
                    "ds-task-rebuild-base-dn: " + suffix,
                    "ds-task-rebuild-index: dn2id",
-                   "ds-task-rebuild-index: dn2uri",
                    "ds-task-rebuild-index: mail"
               ),
               TaskState.COMPLETED_SUCCESSFULLY
@@ -120,15 +120,14 @@ public class TestRebuildTask extends TasksTestCase
                    "objectclass: ds-task-rebuild",
                    "ds-task-class-name: org.opends.server.tasks.RebuildTask",
                    "ds-task-rebuild-base-dn: ou=bad," + suffix,
-                   "ds-task-rebuild-index: dn2id",
-                   "ds-task-rebuild-index: dn2uri"
+                   "ds-task-rebuild-index: dn2id"
               ),
               TaskState.STOPPED_BY_ERROR
          },
     };
   }
 
-   @Test(dataProvider = "taskentry", groups = "slow")
+   @Test(dataProvider = "taskentry")
   public void testRebuildTask(Entry taskEntry, TaskState expectedState)
        throws Exception
   {

@@ -1770,7 +1770,6 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
 
   /**
    * Examines the provided result and logs a message if appropriate.
-   * <p>
    * <ul>
    * <li>If the result code is anything other than {@code SUCCESS}, then it will log an error message.</li>
    * <li>If the operation was successful but admin action is required, then it will log a warning message.</li>
