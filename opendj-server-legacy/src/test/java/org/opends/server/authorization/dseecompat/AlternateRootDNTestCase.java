@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -29,7 +30,7 @@ import org.testng.annotations.Test;
 
 /** This class tests ACI behavior using alternate root bind DNs. */
 @SuppressWarnings("javadoc")
-public class AlternateRootDN extends AciTestCase {
+public class AlternateRootDNTestCase extends AciTestCase {
 
   private static final String user1="uid=user.1,ou=People,o=test";
   private static final String user3="uid=user.3,ou=People,o=test";
@@ -41,6 +42,17 @@ public class AlternateRootDN extends AciTestCase {
   private static final
   String proxyACI = "(targetattr = \"*\")" +
        "(version 3.0; acl \"proxy" +  user3 + "\";" +
+       "allow (proxy) userdn=\"ldap:///" + user3 + "\";)";
+
+  /**
+   * The proxy right for a proxied authorization control is evaluated against
+   * the entry being authorized as - here the root DN entries under cn=config -
+   * so it must be granted through a global ACI.
+   */
+  private static final
+  String globalProxyACI = "(target = \"ldap:///cn=Root DNs,cn=config\")" +
+       "(targetattr = \"*\")" +
+       "(version 3.0; acl \"global proxy " +  user3 + "\";" +
        "allow (proxy) userdn=\"ldap:///" + user3 + "\";)";
 
   /** Need an ACI to allow proxy control. */
@@ -64,6 +76,7 @@ public class AlternateRootDN extends AciTestCase {
   @BeforeMethod
   public void clearBackend() throws Exception {
     deleteAttrFromEntry(user1, "aci");
+    deleteAttrFromEntry(user3, "aci");
     deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
   }
 
@@ -113,8 +126,15 @@ public class AlternateRootDN extends AciTestCase {
    */
   @Test
   public void testAlternateProxyDNs() throws Exception {
-    String aciLdif=makeAddLDIF("aci", user1, rootDNACI, proxyACI, controlACI);
+    String aciLdif=makeAddLDIF("aci", user1, rootDNACI, proxyACI);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+    // The targetcontrol ACI for the proxied authorization control is
+    // evaluated against the entry of the authenticated user (user3), not
+    // against the search target, so it must be placed on that entry.
+    String controlAciLdif=makeAddLDIF("aci", user3, controlACI);
+    LDIFModify(controlAciLdif, DIR_MGR_DN, PWD);
+    String globalAciLdif=makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN, globalProxyACI);
+    LDIFAdminModify(globalAciLdif, DIR_MGR_DN, PWD);
     String adminDNResults =
             LDAPSearchParams(user3, PWD, adminDN, null, null,
                     user1, pwdFilter, ATTR_USER_PASSWORD);
@@ -128,11 +148,12 @@ public class AlternateRootDN extends AciTestCase {
     Map<String, String> attrMap1 = getAttrMap(adminRootDNResults);
     assertTrue(attrMap1.containsKey(ATTR_USER_PASSWORD));
     String rootDNResults =
-            LDAPSearchParams(user3, PWD, adminDN, null, null,
+            LDAPSearchParams(user3, PWD, rootDN, null, null,
                     user1, pwdFilter, ATTR_USER_PASSWORD);
     assertNotEquals(rootDNResults, "");
     Map<String, String> attrMap2 = getAttrMap(rootDNResults);
     assertTrue(attrMap2.containsKey(ATTR_USER_PASSWORD));
     deleteAttrFromEntry(user1, "aci");
+    deleteAttrFromEntry(user3, "aci");
   }
 }

@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.openidm.accountchange;
 
@@ -108,7 +109,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *  <li>If interval is set to zero, then the change is sent immediately to OpenIDM using a HTTP POST request</li>
  *  <li>If interval is strictly superior to zero, then the change is stored locally (currently in a JE database).
  *    At each interval period of time, the changes which are stored locally are read and sent to OpenIDM using
- *    a HTTP POST request></li>
+ *    a HTTP POST request&gt;</li>
  * </ul>
  * <p>
  * The communication to OpenIDM can be done in one of three ways:

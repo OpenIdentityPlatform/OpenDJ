@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.config;
@@ -73,7 +74,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
          * Set the lower limit.
          *
          * @param lowerLimit
-         *            The new lower limit (must be >= 0).
+         *            The new lower limit (must be &gt;= 0).
          * @throws IllegalArgumentException
          *             If a negative lower limit was specified or the lower
          *             limit is greater than the upper limit.

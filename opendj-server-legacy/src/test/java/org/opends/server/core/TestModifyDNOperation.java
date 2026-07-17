@@ -767,7 +767,7 @@ public class TestModifyDNOperation extends OperationTestCase
     }
   }
 
-  @Test(groups = "slow")
+  @Test
   public void testWriteLockModify() throws Exception
   {
     // We need the operation to be run in a separate thread because we are going

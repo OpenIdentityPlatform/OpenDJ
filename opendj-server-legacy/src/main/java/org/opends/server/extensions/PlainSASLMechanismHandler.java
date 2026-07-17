@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -330,6 +331,11 @@ public class PlainSASLMechanismHandler
               return;
             }
           }
+
+          if (! checkProxyAccess(bindOperation, userEntry, authZEntry))
+          {
+            return;
+          }
         }
       }
       else
@@ -391,6 +397,11 @@ public class PlainSASLMechanismHandler
             bindOperation.setAuthFailureReason(message);
             return;
           }
+
+          if (! checkProxyAccess(bindOperation, userEntry, authZEntry))
+          {
+            return;
+          }
         }
       }
     }
@@ -442,6 +453,37 @@ public class PlainSASLMechanismHandler
                                 DirectoryServer.isRootDN(userEntry.getName()));
     bindOperation.setAuthenticationInfo(authInfo);
     return;
+  }
+
+  /**
+   * Checks whether the authenticated user is allowed by the access control
+   * subsystem to assume the given authorization identity (i.e. holds the
+   * "proxy" access control right for the target entry), and if not sets the
+   * bind failure result. This delegates to {@link SASLContext#hasProxyAccess}
+   * so that SASL PLAIN enforces the same ACI scope check as the proxied
+   * authorization controls and the DIGEST-MD5 / GSSAPI {@code authzid}, in
+   * addition to the {@code PROXIED_AUTH} privilege check. The denial uses the
+   * same {@code INVALID_CREDENTIALS} result and message as DIGEST-MD5 / GSSAPI
+   * so a client cannot distinguish a missing privilege from a missing proxy
+   * grant.
+   *
+   * @param  bindOperation  The bind operation being processed.
+   * @param  authEntry      The authenticated user entry (the proxy user).
+   * @param  authZEntry     The entry to be assumed, or {@code null} for the
+   *                        anonymous / root authorization identity.
+   * @return  {@code true} if the access control configuration permits the
+   *          authenticated user to assume the authorization identity.
+   */
+  private boolean checkProxyAccess(BindOperation bindOperation, Entry authEntry, Entry authZEntry)
+  {
+    if (! SASLContext.hasProxyAccess(authEntry, authZEntry, bindOperation))
+    {
+      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+      bindOperation.setAuthFailureReason(
+          ERR_SASL_AUTHZID_INSUFFICIENT_ACCESS.get(authEntry.getName()));
+      return false;
+    }
+    return true;
   }
 
   @Override
