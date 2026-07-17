@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldif;
 
@@ -292,7 +293,7 @@ public final class LDIF {
      * <p>
      * Sample usage:
      * <pre>
-     * List<Entry> smiths = TestCaseUtils.makeEntries(
+     * List&lt;Entry&gt; smiths = TestCaseUtils.makeEntries(
      *   "dn: cn=John Smith,dc=example,dc=com",
      *   "objectclass: inetorgperson",
      *   "cn: John Smith",

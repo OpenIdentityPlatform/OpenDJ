@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.ui;
 
@@ -55,7 +56,6 @@ import org.opends.server.util.SetupUtils;
 
 /**
  * This class is responsible for doing the following:
- * <p>
  * <ul>
  * <li>Check whether we are installing or uninstalling.</li>
  * <li>Performs all the checks and validation of the data provided by the user

@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.forgerock.opendj.ldap;
 
@@ -245,6 +246,12 @@ public final class LDAPUrl {
                 srcPos++;
                 dstPos++;
                 continue;
+            }
+            if (srcPos + 2 >= decoded.length()) {
+                // A percent sign must be followed by two hexadecimal digits.
+                final LocalizableMessage msg =
+                        ERR_LDAPURL_INVALID_HEX_BYTE.get(urlString, index + srcPos + 1);
+                throw new LocalizedIllegalArgumentException(msg);
             }
             int i = decodeHex(urlString, index + srcPos + 1, decoded.charAt(srcPos + 1)) << 4;
             int j = decodeHex(urlString, index + srcPos + 2, decoded.charAt(srcPos + 2));

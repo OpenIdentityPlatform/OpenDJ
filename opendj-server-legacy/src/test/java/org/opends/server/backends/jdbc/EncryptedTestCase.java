@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2023-2024 3A Systems, LLC.
+ * Copyright 2023-2026 3A Systems, LLC.
  */
 package org.opends.server.backends.jdbc;
 
@@ -46,6 +46,7 @@ public class EncryptedTestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			container.start();
 		}
 		try(Connection con= DriverManager.getConnection(createBackendCfg().getDBDirectory())){
+			TestCase.dropStaleTrees(con);
 		} catch (Exception e) {
 			throw new SkipException("run before test: docker run --rm -it -p 5432:5432 -e POSTGRES_DB=database_name -e POSTGRES_PASSWORD=password --name postgres postgres");
 		}

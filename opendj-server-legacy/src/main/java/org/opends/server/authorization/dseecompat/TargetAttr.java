@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -45,12 +46,13 @@ class TargetAttr {
 
     /**
      * Regular expression that matches one or more ATTR_NAME's separated by
-     * the "||" token.
+     * the "||" token. Possessive quantifiers keep the unbounded repetition
+     * from recursing in the regex engine (issue #665).
      */
-    private static final String attrListRegex  =  ZERO_OR_MORE_WHITESPACE +
-           ATTR_NAME + ZERO_OR_MORE_WHITESPACE + "(" +
-            LOGICAL_OR + ZERO_OR_MORE_WHITESPACE + ATTR_NAME +
-            ZERO_OR_MORE_WHITESPACE + ")*";
+    private static final String attrListRegex  =  ZERO_OR_MORE_WHITESPACE_POSSESSIVE +
+           ATTR_NAME + ZERO_OR_MORE_WHITESPACE_POSSESSIVE + "(" +
+            LOGICAL_OR + ZERO_OR_MORE_WHITESPACE_POSSESSIVE + ATTR_NAME +
+            ZERO_OR_MORE_WHITESPACE_POSSESSIVE + ")*+";
 
     /**
      * Constructor creating a class representing a targetattr keyword of an ACI.

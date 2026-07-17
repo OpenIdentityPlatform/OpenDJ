@@ -13,7 +13,7 @@ rem information: "Portions Copyright [year] [name of copyright owner]".
 rem
 rem Copyright 2008-2010 Sun Microsystems, Inc.
 rem Portions Copyright 2011-2016 ForgeRock AS.
-rem Portions Copyright 2020-2025 3A Systems, LLC.
+rem Portions Copyright 2020-2026 3A Systems, LLC.
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
@@ -56,10 +56,10 @@ rem get the absolute paths before building the classpath
 rem it also helps comparing the two paths
 FOR /F "delims=" %%i IN ("%INSTALL_ROOT%")  DO set INSTALL_ROOT=%%~dpnxi
 FOR /F "delims=" %%i IN ("%INSTANCE_ROOT%") DO set INSTANCE_ROOT=%%~dpnxi
-call "%INSTALL_ROOT%\lib\setcp.bat" %INSTALL_ROOT%\lib\bootstrap-client.jar
+call "%INSTALL_ROOT%\lib\setcp.bat" "%INSTALL_ROOT%\lib\bootstrap-client.jar"
 set CLASSPATH=%INSTANCE_ROOT%\classes;%CLASSPATH%
 if "%INSTALL_ROOT%" == "%INSTANCE_ROOT%" goto setClassPathDone
-FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
+FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" "%%x"
 :setClassPathDone
 set SET_CLASSPATH_DONE=true
 goto scriptBegin
@@ -71,7 +71,7 @@ rem get the absolute paths before building the classpath
 rem it also helps comparing the two paths
 FOR /F "delims=" %%i IN ("%INSTALL_ROOT%")  DO set INSTALL_ROOT=%%~dpnxi
 FOR /F "delims=" %%i IN ("%INSTANCE_ROOT%") DO set INSTANCE_ROOT=%%~dpnxi
-call "%INSTALL_ROOT%\lib\setcp.bat" %INSTALL_ROOT%\lib\*
+call "%INSTALL_ROOT%\lib\setcp.bat" "%INSTALL_ROOT%\lib\*"
 set CLASSPATH=%INSTANCE_ROOT%\classes;%CLASSPATH%
 set SET_CLASSPATH_DONE=true
 goto scriptBegin
@@ -100,7 +100,8 @@ rem if not "%OPENDJ_JAVA_ARGS%" == "" goto checkEnvJavaHome
 set SCRIPT_JAVA_ARGS_PROPERTY=%SCRIPT_NAME%.java-args
 call:readProperty %SCRIPT_JAVA_ARGS_PROPERTY%
 set OPENDJ_JAVA_ARGS=%OPENDJ_JAVA_ARGS% %PROPERTY_VALUE%
-if not "%OPENDJ_JAVA_ARGS%" == "" goto checkEnvJavaHome
+rem "if defined" comparisons: the value may contain quotes (java.io.tmpdir), which break "%VAR%" == "" checks.
+if defined OPENDJ_JAVA_ARGS goto checkEnvJavaHome
 call:readProperty default.java-args
 set OPENDJ_JAVA_ARGS=%OPENDJ_JAVA_ARGS% %PROPERTY_VALUE
 if "%OPENDJ_JAVA_BIN%" == "" goto checkEnvJavaHome
@@ -186,12 +187,12 @@ goto scriptBegin
 if %SET_TEMP_DIR_DONE% == "true" goto end
 set OPENDJ_TMP_DIR=%INSTANCE_ROOT%\tmp
 if not exist "%OPENDJ_TMP_DIR%" mkdir "%OPENDJ_TMP_DIR%"
-set OPENDJ_JAVA_ARGS=%OPENDJ_JAVA_ARGS% -Djava.io.tmpdir=%OPENDJ_TMP_DIR%
+set OPENDJ_JAVA_ARGS=%OPENDJ_JAVA_ARGS% -Djava.io.tmpdir="%OPENDJ_TMP_DIR%"
 set SET_TEMP_DIR_DONE=true
 goto scriptBegin
 
 :testJava
-if "%OPENDJ_JAVA_ARGS%" == "" goto checkLegacyArgs
+if not defined OPENDJ_JAVA_ARGS goto checkLegacyArgs
 :continueTestJava
 "%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% org.opends.server.tools.CheckJVMVersion > NUL 2>&1
 set RESULT_CODE=%errorlevel%
@@ -200,12 +201,12 @@ if not %RESULT_CODE% == 0 goto noValidJavaHome
 goto end
 
 :checkLegacyArgs
-if "%OPENDS_JAVA_ARGS%" == "" goto continueTestJava
+if not defined OPENDS_JAVA_ARGS goto continueTestJava
 set OPENDJ_JAVA_ARGS=%OPENDS_JAVA_ARGS%
 goto continueTestJava
 
 :noValidJavaHome
-if NOT "%OPENDJ_JAVA_ARGS%" == "" goto noValidHomeWithArgs
+if defined OPENDJ_JAVA_ARGS goto noValidHomeWithArgs
 echo ERROR:  The detected Java version could not be used.  The detected
 echo Java binary is:
 echo %OPENDJ_JAVA_BIN%

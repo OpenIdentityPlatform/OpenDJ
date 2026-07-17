@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2011 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -45,7 +46,7 @@ import org.forgerock.util.Reject;
  * <p>
  * Filters can be constructed using the various factory methods. For example,
  * the following code illustrates how to create a filter having the string
- * representation "{@code (&(cn=bjensen)(age>=21))}":
+ * representation "{@code (&(cn=bjensen)(age&gt;=21))}":
  *
  * <pre>
  * import static org.forgerock.opendj.Filter.*;
@@ -53,7 +54,7 @@ import org.forgerock.util.Reject;
  * Filter filter = and(equality("cn", "bjensen"), greaterOrEqual("age", 21));
  *
  * // Alternatively use a filter template:
- * Filter filter = Filter.format("(&(cn=%s)(age>=%s))", "bjensen", 21);
+ * Filter filter = Filter.format("(&amp;(cn=%s)(age&gt;=%s))", "bjensen", 21);
  * </pre>
  *
  * @see <a href="http://tools.ietf.org/html/rfc4511">RFC 4511 - Lightweight
