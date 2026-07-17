@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.server.backends.pluggable.spi;
@@ -29,7 +30,6 @@ import java.util.NoSuchElementException;
  * <li>Reading the key or value will return {@code null}.</li>
  * <li>Deleting the current element is not supported, {@link UnsupportedOperationException} will be thrown.</li>
  * </ul>
- * </p>
  *
  * @param <K> Type of the simulated record's key
  * @param <V> Type of the simulated record's value

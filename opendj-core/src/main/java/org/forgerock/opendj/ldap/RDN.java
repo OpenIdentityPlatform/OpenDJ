@@ -104,11 +104,11 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
      * construct a range whose contents is a sub-tree of entries, excluding the base entry:
      *
      * <pre>
-     * SortedMap<DN, Entry> entries = ...;
+     * SortedMap&lt;DN, Entry&gt; entries = ...;
      * DN baseDN = ...;
      *
      * // Returns a map containing the baseDN and all of its subordinates.
-     * SortedMap<DN,Entry> subtree = entries.subMap(
+     * SortedMap&lt;DN,Entry&gt; subtree = entries.subMap(
      *     baseDN.child(RDN.minValue()), baseDN.child(RDN.maxValue()));
      * </pre>
      *
@@ -128,11 +128,11 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
      * construct a range whose contents is a sub-tree of entries:
      *
      * <pre>
-     * SortedMap<DN, Entry> entries = ...;
+     * SortedMap&lt;DN, Entry&gt; entries = ...;
      * DN baseDN = ...;
      *
      * // Returns a map containing the baseDN and all of its subordinates.
-     * SortedMap<DN,Entry> subtree = entries.subMap(baseDN, baseDN.child(RDN.maxValue()));
+     * SortedMap&lt;DN,Entry&gt; subtree = entries.subMap(baseDN, baseDN.child(RDN.maxValue()));
      * </pre>
      *
      * @return A constant containing a special RDN which sorts after any

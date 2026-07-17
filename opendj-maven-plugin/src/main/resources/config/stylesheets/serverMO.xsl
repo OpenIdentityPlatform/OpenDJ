@@ -13,6 +13,7 @@
 
   Copyright 2007-2008 Sun Microsystems, Inc.
   Portions Copyright 2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:admpp="http://opendj.forgerock.org/admin-preprocessor"
@@ -135,7 +136,7 @@
           select="concat('  /**&#xa;',
                        '   * Determines whether the ', $ufn,' exists.&#xa;',
                        '   *&#xa;',
-                       '   * @return Returns &lt;true&gt; if the ', $ufn,' exists.&#xa;',
+                       '   * @return Returns &lt;code&gt;true&lt;/code&gt; if the ', $ufn,' exists.&#xa;',
                        '   */&#xa;')" />
         <xsl:value-of
           select="concat('  boolean has',

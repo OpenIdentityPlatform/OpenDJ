@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -391,7 +392,7 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "bindDN" string argument. <br/>
+     * Returns the "bindDN" string argument. <br>
      * <i> N.B : the 'D' short option is also used by rootUserDN.</i>
      *
      * @param defaultBindDN
@@ -406,7 +407,7 @@ public final class CommonArguments {
 
 
     /**
-     * Returns the "bindDN" string argument. <br/>
+     * Returns the "bindDN" string argument. <br>
      * <i> N.B : the 'D' short option is also used by rootUserDN.</i>
      *
      * @param defaultBindDN

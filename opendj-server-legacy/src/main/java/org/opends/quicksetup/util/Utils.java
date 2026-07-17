@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.util;
 
@@ -996,7 +997,7 @@ public class Utils
 
   /**
    * Returns the HTML representation of a plain text string which is obtained
-   * by converting some special characters (like '<') into its equivalent
+   * by converting some special characters (like '&lt;') into its equivalent
    * escaped HTML representation.
    *
    * @param rawString the String from which we want to obtain the HTML
@@ -1033,7 +1034,7 @@ public class Utils
   /**
    * Returns the HTML representation for a given text. without adding any kind
    * of font or style elements.  Just escapes the problematic characters
-   * (like '<') and transform the break lines into '\n' characters.
+   * (like '&lt;') and transform the break lines into '\n' characters.
    *
    * @param text the source text from which we want to get the HTML
    * representation

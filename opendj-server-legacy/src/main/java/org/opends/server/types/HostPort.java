@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
- * Portions Copyright 2025 3A Systems LLC.
+ * Portions Copyright 2025-2026 3A Systems LLC.
  */
 package org.opends.server.types;
 
@@ -229,8 +229,9 @@ public final class HostPort implements Comparable<HostPort>
    * @throws NumberFormatException
    *           If the "port" in the supplied string cannot be converted to an int
    * @throws IllegalArgumentException
-   *           if no port could be found in the supplied string, or if the port
-   *           is not a valid port number
+   *           if no port could be found in the supplied string, if the port
+   *           is not a valid port number, or if the host is a malformed
+   *           bracketed IPv6 address
    */
   public static HostPort valueOf(String hostPort) throws NumberFormatException,
           IllegalArgumentException
@@ -251,12 +252,18 @@ public final class HostPort implements Comparable<HostPort>
    * @throws NumberFormatException
    *           If the "port" in the supplied string cannot be converted to an int
    * @throws IllegalArgumentException
-   *           if no port could be found in the supplied string, or if the port
-   *           is not a valid port number
+   *           if no port could be found in the supplied string, if the port
+   *           is not a valid port number, or if the host is a malformed
+   *           bracketed IPv6 address
    */
   public static HostPort valueOf(String hostPort, Integer defaultPort) throws NumberFormatException,
       IllegalArgumentException
   {
+    if (hostPort.isEmpty())
+    {
+      throw new IllegalArgumentException(
+          "Invalid host/port string: no host name was provided in ''");
+    }
     final int sepIndex = hostPort.lastIndexOf(':');
     if ((hostPort.charAt(0) == '['
         && hostPort.charAt(hostPort.length() - 1) == ']')
@@ -276,8 +283,9 @@ public final class HostPort implements Comparable<HostPort>
           "Invalid host/port string: no host name was provided in '" + hostPort
               + "'");
     }
-    else if (hostPort.lastIndexOf(':', sepIndex - 1) != -1
-        && (hostPort.charAt(0) != '[' || hostPort.charAt(sepIndex - 1) != ']'))
+    else if (hostPort.charAt(0) == '['
+        ? hostPort.charAt(sepIndex - 1) != ']'
+        : hostPort.lastIndexOf(':', sepIndex - 1) != -1)
     {
       if (defaultPort != null)
       {
@@ -300,15 +308,24 @@ public final class HostPort implements Comparable<HostPort>
    * @param host
    *          the host name to clean
    * @return the cleaned up host name
+   * @throws IllegalArgumentException
+   *           if the host name starts or ends with a square bracket, but is
+   *           not a well-formed "[bracketed IPv6 address]"
    */
   private String removeExtraChars(String host)
   {
-    final int startsWith = host.indexOf("[");
-    if (startsWith == -1)
+    final boolean startsWithBracket = host.startsWith("[");
+    final boolean endsWithBracket = host.endsWith("]");
+    if (!startsWithBracket && !endsWithBracket)
     {
       return host;
     }
-    return host.substring(1, host.length() - 1);
+    if (startsWithBracket && endsWithBracket && host.length() > 2)
+    {
+      return host.substring(1, host.length() - 1);
+    }
+    throw new IllegalArgumentException(
+        "Invalid host name: expected \"[bracketed IPv6 address]\", but got '" + host + "'");
   }
 
   /**

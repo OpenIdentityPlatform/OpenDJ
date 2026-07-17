@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication;
 
@@ -38,6 +39,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -62,7 +64,7 @@ public class StressTest extends ReplicationTestCase
 
 
   /** Stress test from LDAP server to client using the ReplicationBroker API. */
-  @Test(enabled=false, groups="slow")
+  @Test
   public void fromServertoBroker() throws Exception
   {
     logger.error(LocalizableMessage.raw("Starting replication StressTest : fromServertoBroker"));
@@ -263,6 +265,12 @@ public class StressTest extends ReplicationTestCase
           if (msg == null)
           {
             break;
+          }
+          if (msg instanceof UpdateMsg)
+          {
+            // Acknowledge the flow control window, otherwise the replication
+            // server stops sending after windowSize messages.
+            broker.updateWindowAfterReplay();
           }
           count ++;
         }

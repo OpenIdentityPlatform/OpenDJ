@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication;
 
@@ -83,7 +84,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
    *  - receive all messages from the ReplicationBroker, check that
    *    the client receives the correct number of operations.
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void saturateQueueAndRestart() throws Exception
   {
     logger.error(LocalizableMessage.raw("Starting Replication ProtocolWindowTest : saturateAndRestart"));

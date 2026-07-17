@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools;
 
@@ -425,7 +426,6 @@ public class LDAPConnection
    * <p>
    * This method can never return null because it will receive
    * UnknownHostException before and then throw LDAPConnectionException.
-   * </p>
    *
    * @return a new {@link Socket}.
    * @throws LDAPConnectionException
@@ -484,7 +484,6 @@ public class LDAPConnection
    * <p>
    * This method can never return null because it will receive
    * UnknownHostException before and then throw LDAPConnectionException.
-   * </p>
    *
    * @return a new {@link Socket}.
    * @throws LDAPConnectionException

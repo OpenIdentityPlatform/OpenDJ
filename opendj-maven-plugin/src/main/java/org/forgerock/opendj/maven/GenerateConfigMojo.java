@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.maven;
 
@@ -61,36 +62,37 @@ import org.apache.maven.project.MavenProject;
  * places depending on whether the plugin is executing for the core config or an
  * extension:
  * <table border="1">
+ * <caption>Resource locations by execution context</caption>
  * <tr>
  * <th></th>
  * <th>Location</th>
  * </tr>
  * <tr>
- * <th align="left">XSLT stylesheets</th>
+ * <th>XSLT stylesheets</th>
  * <td>Internal: /config/stylesheets</td>
  * </tr>
  * <tr>
- * <th align="left">XML core definitions</th>
+ * <th>XML core definitions</th>
  * <td>Internal: /config/xml</td>
  * </tr>
  * <tr>
- * <th align="left">XML extension definitions</th>
+ * <th>XML extension definitions</th>
  * <td>${basedir}/src/main/java</td>
  * </tr>
  * <tr>
- * <th align="left">Generated Java APIs</th>
+ * <th>Generated Java APIs</th>
  * <td>${project.build.directory}/generated-sources/config</td>
  * </tr>
  * <tr>
- * <th align="left">Generated I18N messages</th>
+ * <th>Generated I18N messages</th>
  * <td>${project.build.outputDirectory}/config/messages</td>
  * </tr>
  * <tr>
- * <th align="left">Generated profiles</th>
+ * <th>Generated profiles</th>
  * <td>${project.build.outputDirectory}/config/profiles/${profile}</td>
  * </tr>
  * <tr>
- * <th align="left">Generated manifest</th>
+ * <th>Generated manifest</th>
  * <td>${project.build.outputDirectory}/META-INF/services/org.forgerock.opendj.
  * config.AbstractManagedObjectDefinition</td>
  * </tr>

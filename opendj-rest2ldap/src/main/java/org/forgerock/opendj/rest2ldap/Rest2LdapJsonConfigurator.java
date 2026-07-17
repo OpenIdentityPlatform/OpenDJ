@@ -13,6 +13,7 @@
  *
  * Copyright 2016 ForgeRock AS.
  * Portions Copyright 2017 Rosie Applications, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -90,7 +91,6 @@ public final class Rest2LdapJsonConfigurator {
 
     /**
      * Parses Rest2Ldap configuration options. The JSON configuration must have the following format:
-     * <p>
      * <pre>
      * {
      *      "readOnUpdatePolicy": "controls",
@@ -129,7 +129,6 @@ public final class Rest2LdapJsonConfigurator {
 
     /**
      * Parses a list of Rest2Ldap resource definitions. The JSON configuration must have the following format:
-     * <p>
      * <pre>
      * "top": {
      *     "isAbstract": true,

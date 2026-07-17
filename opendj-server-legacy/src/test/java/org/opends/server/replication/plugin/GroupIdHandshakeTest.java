@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.plugin;
 
@@ -346,7 +347,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
    * - Change group id of DS1 and DS2 to 3 : they should reconnect to RS1
    * @throws Exception If a problem occurred
    */
-  @Test (groups = "slow")
+  @Test
   public void testRSWithManyGroupIds() throws Exception
   {
     String testCase = "testRSWithManyGroupIds";

@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.config;
@@ -338,8 +339,8 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
     /**
      * Indicates whether some other object is &quot;equal to&quot; this property
      * definition. This method must obey the general contract of
-     * <tt>Object.equals(Object)</tt>. Additionally, this method can return
-     * <tt>true</tt> <i>only</i> if the specified Object is also a property
+     * <code>Object.equals(Object)</code>. Additionally, this method can return
+     * <code>true</code> <i>only</i> if the specified Object is also a property
      * definition and it has the same name, as returned by {@link #getName()},
      * and also is deemed to be &quot;compatible&quot; with this property
      * definition. Compatibility means that the two property definitions share

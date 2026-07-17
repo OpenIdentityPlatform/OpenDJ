@@ -13,12 +13,15 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.server;
 
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -145,8 +148,20 @@ public abstract class ServerHandler extends MessageHandler
   protected long generationId = -1;
   /** The generation id of the hosting RS. */
   protected long localGenerationId = -1;
-  /** The generation id before processing a new start handshake. */
-  protected long oldGenerationId = -1;
+  /**
+   * The domain generation id that this handler replaced during the start
+   * handshake, or -100 when this handler has not changed the domain generation
+   * id and there is nothing to roll back on {@link #abortStart(LocalizableMessage)}.
+   */
+  protected long oldGenerationId = -100;
+  /**
+   * The generation id this handler wrote into the domain during the start
+   * handshake, or -100 when it wrote none. Used by
+   * {@link #abortStart(LocalizableMessage)} to roll back only this handler's
+   * own change: a value concurrently set by another thread must not be
+   * overwritten with the stale {@link #oldGenerationId}.
+   */
+  private long generationIdSetOnStart = -100;
   /** Group id of this remote server. */
   protected byte groupId = -1;
   /** The SSL encryption after the negotiation with the peer. */
@@ -216,15 +231,54 @@ public abstract class ServerHandler extends MessageHandler
       localSession.close();
     }
 
-    releaseDomainLock();
-
-    // If generation id of domain was changed, set it back to old value
-    // We may have changed it as it was -1 and we received a value >0 from peer
-    // server and the last topo message sent may have failed being sent: in that
-    // case retrieve old value of generation id for replication server domain
+    // If this handler changed the domain generation id during the handshake,
+    // set it back to the old value. Only undo our own change: another thread
+    // may have legitimately changed the generation id in the meantime (e.g.
+    // adopted it from a peer topology message) and that value must not be
+    // overwritten with our stale snapshot. Do it BEFORE releasing the domain
+    // lock, so a handshake queued on the lock cannot read, advertise or arm on
+    // the doomed value in between.
     if (oldGenerationId != -100)
     {
-      replicationServerDomain.changeGenerationId(oldGenerationId);
+      replicationServerDomain.rollbackGenerationIdIfUnchanged(
+          generationIdSetOnStart, oldGenerationId);
+      oldGenerationId = -100;
+      generationIdSetOnStart = -100;
+    }
+
+    releaseDomainLock();
+  }
+
+  /**
+   * Changes the domain generation id during the start handshake, remembering
+   * the replaced value so that {@link #abortStart(LocalizableMessage)} can
+   * undo this handler's own change (and only it) if the handshake
+   * subsequently fails.
+   * <p>
+   * The change is applied only if the domain generation id still equals
+   * {@link #localGenerationId}, the value this handler based its decision on:
+   * a generation id concurrently adopted by a lock-free path (an update
+   * received from an already connected server) must not be stomped. This also
+   * makes a repeated call within one handshake a no-op, preserving the first
+   * arming's rollback point. Wire values below -1 are rejected — they can only
+   * come from a malformed peer and would collide with the -100 sentinel.
+   *
+   * @param generationId the generation id to set on the domain
+   */
+  protected void setDomainGenerationIdOnStart(long generationId)
+  {
+    if (generationId < -1)
+    {
+      return;
+    }
+    if (replicationServerDomain.changeGenerationIdIfUnchanged(
+        localGenerationId, generationId))
+    {
+      if (oldGenerationId == -100)
+      {
+        oldGenerationId = localGenerationId;
+      }
+      generationIdSetOnStart = generationId;
     }
   }
 
@@ -711,7 +765,7 @@ public abstract class ServerHandler extends MessageHandler
    * RS2 and wants to acquire the lock on the domain (here) but cannot as RS1
    * connect thread already has it</li>
    * </ol>
-   * => Deadlock: 4 threads are locked.
+   * =&gt; Deadlock: 4 threads are locked.
    * <p>
    * To prevent threads locking in such situation, the listen threads here will
    * both timeout trying to acquire the lock. The random time for the timeout
@@ -924,12 +978,32 @@ public abstract class ServerHandler extends MessageHandler
    */
   public UpdateMsg take() throws ChangelogException
   {
-    final UpdateMsg msg = getNextMessage();
+    UpdateMsg msg = getNextMessage();
+    final boolean fromLateQueue = isLastMessageFromLateQueue();
 
     acquirePermitInSendWindow();
 
     if (msg != null)
     {
+      // Updates re-read from the changelog DB (catch-up path) carry the
+      // assured flag, mode and safe data level of their original sender:
+      // the NotAssuredUpdateMsg substitution performed at publish time by
+      // ReplicationServerDomain.addUpdate() only exists on the in-memory
+      // queue path. Normalize them here: keep the assured flag only while
+      // the ack window is still open and this server is expected to ack.
+      // Messages taken from the in-memory queue already carry the
+      // publish-time decision and must NOT be revisited: the ack window may
+      // legitimately close (timeout, or enough acks already received)
+      // before a slow peer gets here - e.g. when acquirePermitInSendWindow()
+      // above blocks on a closed send window - and such a peer must still
+      // receive the assured flag it was deemed eligible for. Its late ack is
+      // then safely ignored by ReplicationServerDomain.processAck() and
+      // ExpectedAcksInfo.processReceivedAck().
+      if (fromLateQueue && msg.isAssured()
+          && !replicationServerDomain.isExpectedAck(msg.getCSN(), serverId))
+      {
+        msg = toNotAssuredUpdateMsg(msg);
+      }
       incrementOutCount();
       if (msg.isAssured())
       {
@@ -938,6 +1012,37 @@ public abstract class ServerHandler extends MessageHandler
       return msg;
     }
     return null;
+  }
+
+  /**
+   * Substitutes a not assured version of the provided update message so that a
+   * peer not expected to acknowledge it does not receive it with the assured
+   * flag.
+   * <p>
+   * This is the counterpart, for the changelog catch-up path, of the
+   * {@link NotAssuredUpdateMsg} substitution performed on the in-memory queue
+   * path by ReplicationServerDomain.addUpdate(): updates re-read from the
+   * changelog DB keep the assured flag of their original sender and must be
+   * normalized in {@link #take()} before being handed to the ServerWriter.
+   */
+  private UpdateMsg toNotAssuredUpdateMsg(UpdateMsg msg)
+  {
+    try
+    {
+      return new NotAssuredUpdateMsg(msg);
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      // Could not build the not assured form (unexpected message encoding).
+      // Deliver the original message rather than dropping it: losing the
+      // update would break replication consistency, which is worse than a
+      // spurious ack - and such an ack is now safely ignored by
+      // ExpectedAcksInfo.processReceivedAck().
+      logger.error(LocalizableMessage.raw(
+          "Could not substitute a not assured version of update message %s: %s",
+          msg, stackTraceToSingleLineString(e)));
+      return msg;
+    }
   }
 
   private void acquirePermitInSendWindow()

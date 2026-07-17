@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems LLC.
  */
 package org.opends.server.types;
 
@@ -208,6 +209,71 @@ public class HostPortTest extends TypesTestCase
   public void valueOfPortNumberTooBig()
   {
     HostPort.valueOf("host:99999999");
+  }
+
+  /** Issue #726: used to throw StringIndexOutOfBoundsException. */
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void valueOfOpeningBracketOnlyHost()
+  {
+    HostPort.valueOf("[:1");
+  }
+
+  /** Issue #726: used to throw StringIndexOutOfBoundsException. */
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void valueOfOpeningBracketOnlyHostDefaultPort()
+  {
+    HostPort.valueOf("[", 1);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void valueOfIPv6MissingClosingBracket()
+  {
+    HostPort.valueOf("[" + IPV6_ADDRESS + ":389");
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void valueOfIPv6MissingOpeningBracket()
+  {
+    HostPort.valueOf(IPV6_ADDRESS + "]:389");
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void valueOfEmptyBracketsHost()
+  {
+    HostPort.valueOf("[]:389");
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void valueOfEmptyString()
+  {
+    HostPort.valueOf("");
+  }
+
+  /** Issue #726: used to throw StringIndexOutOfBoundsException. */
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void constructorOpeningBracketOnlyHost()
+  {
+    new HostPort("[", 1);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void constructorMissingClosingBracket()
+  {
+    new HostPort("[" + IPV6_ADDRESS, 389);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void constructorMissingOpeningBracket()
+  {
+    new HostPort(IPV6_ADDRESS + "]", 389);
+  }
+
+  @Test
+  public void constructorBracketedIPv6()
+  {
+    final HostPort hp = new HostPort("[" + IPV6_ADDRESS + "]", 389);
+    assertThat(hp.getHost()).isEqualTo(IPV6_ADDRESS);
+    assertThat(hp.getPort()).isEqualTo(389);
   }
 
   @Test

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication;
 
@@ -539,7 +540,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * and test that, on S1 side, the task ends with an error.
    * State of the backend on S1 partially initialized: ?
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void initializeImport() throws Exception
   {
     String testCase = "initializeImport ";
@@ -554,7 +555,7 @@ public class InitOnLineTest extends ReplicationTestCase
       if (server2 == null)
       {
         server2 = openReplicationSession(baseDN,
-          server2ID, 100, getReplServerPort(replServer1ID), 1000);
+          server2ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
       // In S1 launch the total update
@@ -590,7 +591,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * - test that S1 has successfully exported the entries (by receiving them
    *   on S2 side).
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void initializeExport() throws Exception
   {
     String testCase = "initializeExport";
@@ -607,7 +608,7 @@ public class InitOnLineTest extends ReplicationTestCase
       if (server2 == null)
       {
         server2 = openReplicationSession(baseDN,
-          server2ID, 100, getReplServerPort(replServer1ID), 1000);
+          server2ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
       InitializeRequestMsg initMsg = new InitializeRequestMsg(baseDN, server2ID, server1ID, 100);
@@ -632,7 +633,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * - wait task completed
    * - test that S2 has successfully received the entries
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void initializeTargetExport() throws Exception
   {
     String testCase = "initializeTargetExport";
@@ -651,10 +652,11 @@ public class InitOnLineTest extends ReplicationTestCase
       if (server2 == null)
       {
         server2 = openReplicationSession(baseDN,
-          server2ID, 100, getReplServerPort(replServer1ID), 1000);
+          server2ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
       // Launch in S1 the task that will initialize S2
+      waitForRemoteReplicas(server2ID);
       addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
 
       // Signal RS we just entered the full update status
@@ -684,7 +686,7 @@ public class InitOnLineTest extends ReplicationTestCase
    *
    * TODO: Error case: make S2 crash in the middle of the import and test what??
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void initializeTargetExportAll() throws Exception
   {
     String testCase = "initializeTargetExportAll";
@@ -703,16 +705,17 @@ public class InitOnLineTest extends ReplicationTestCase
       if (server2 == null)
       {
         server2 = openReplicationSession(baseDN,
-          server2ID, 100, getReplServerPort(replServer1ID), 1000);
+          server2ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
       if (server3 == null)
       {
         server3 = openReplicationSession(baseDN,
-          server3ID, 100, getReplServerPort(replServer1ID), 1000);
+          server3ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
       // Launch in S1 the task that will initialize S2
+      waitForRemoteReplicas(server2ID, server3ID);
       addTask(taskInitTargetAll, ResultCode.SUCCESS, null);
 
       // Tests that entries have been received by S2
@@ -736,7 +739,7 @@ public class InitOnLineTest extends ReplicationTestCase
   /**
    * Tests the import side of the InitializeTarget task.
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void initializeTargetImport() throws Exception
   {
     String testCase = "initializeTargetImport";
@@ -749,7 +752,7 @@ public class InitOnLineTest extends ReplicationTestCase
       if (server2==null)
       {
         server2 = openReplicationSession(baseDN,
-          server2ID, 100, getReplServerPort(replServer1ID), 1000);
+          server2ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
       // Creates config to synchronize suffix
@@ -919,7 +922,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * connected to each replication server of the topology, thanks to the
    * ReplServerInfoMessage(s) exchanged by the replication servers.
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void testReplServerInfos() throws Exception
   {
     String testCase = "testReplServerInfos";
@@ -938,11 +941,11 @@ public class InitOnLineTest extends ReplicationTestCase
 
       // Connects lDAP2 to replServer2
       broker2 = openReplicationSession(baseDN,
-        server2ID, 100, getReplServerPort(replServer2ID), 1000);
+        server2ID, 100, getReplServerPort(replServer2ID), 10000);
 
       // Connects lDAP3 to replServer2
       broker3 = openReplicationSession(baseDN,
-        server3ID, 100, getReplServerPort(replServer2ID), 1000);
+        server3ID, 100, getReplServerPort(replServer2ID), 10000);
 
       // Check that the list of connected LDAP servers is correct in each replication servers
       Assertions.assertThat(getConnectedDSServerIds(replServer1)).containsExactly(server1ID);
@@ -955,7 +958,7 @@ public class InitOnLineTest extends ReplicationTestCase
       Assertions.assertThat(getConnectedDSServerIds(replServer2)).containsExactly(server2ID);
 
       broker3 = openReplicationSession(baseDN,
-        server3ID, 100, getReplServerPort(replServer2ID), 1000);
+        server3ID, 100, getReplServerPort(replServer2ID), 10000);
       broker2.stop();
       Thread.sleep(1000);
       Assertions.assertThat(getConnectedDSServerIds(replServer2)).containsExactly(server3ID);
@@ -976,7 +979,7 @@ public class InitOnLineTest extends ReplicationTestCase
     return domain.getConnectedDSs().keySet();
   }
 
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void initializeTargetExportMultiSS() throws Exception
   {
     String testCase = "initializeTargetExportMultiSS";
@@ -998,11 +1001,12 @@ public class InitOnLineTest extends ReplicationTestCase
       {
         log(testCase + " Will connect server 2 to " + replServer2ID);
         server2 = openReplicationSession(baseDN,
-            server2ID, 100, getReplServerPort(replServer2ID), 1000);
+            server2ID, 100, getReplServerPort(replServer2ID), 10000);
       }
 
       // Launch in S1 the task that will initialize S2
       log(testCase + " add task " + Thread.currentThread());
+      waitForRemoteReplicas(server2ID);
       addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
 
       log(testCase + " " + server2.getServerId() + " wait target " + Thread.currentThread());
@@ -1026,6 +1030,47 @@ public class InitOnLineTest extends ReplicationTestCase
     }
   }
 
+  /**
+   * Tests that an InitializeTarget task failing its validation (the remote
+   * replica is unknown to the domain) does not leave the import/export
+   * context acquired (issue #730): the domain used to reject every subsequent
+   * total update as a simultaneous import/export.
+   */
+  @Test(enabled=true)
+  public void initializeTargetUnknownRemote() throws Exception
+  {
+    String testCase = "initializeTargetUnknownRemote";
+    log("Starting " + testCase);
+    try
+    {
+      replServer1 = createReplicationServer(replServer1ID, testCase);
+      connectServer1ToReplServer(replServer1ID);
+      addTestEntriesToDB();
+
+      // DS(42424) is unknown in the topology: the task must fail to start...
+      Entry taskInitTargetUnknown = TestCaseUtils.makeEntry(
+          "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+          "objectclass: top",
+          "objectclass: ds-task",
+          "objectclass: ds-task-initialize-remote-replica",
+          "ds-task-class-name: org.opends.server.tasks.InitializeTargetTask",
+          "ds-task-initialize-domain-dn: " + EXAMPLE_DN,
+          "ds-task-initialize-replica-server-id: " + 42424);
+      addTask(taskInitTargetUnknown, ResultCode.SUCCESS, null);
+      waitTaskState(taskInitTargetUnknown, STOPPED_BY_ERROR, 20000, null);
+
+      // ...but must not leave the import/export context acquired
+      assertFalse(replDomain.ieRunning(),
+          "ReplicationDomain: Import/Export is not expected to be running after a failed InitializeTarget");
+
+      log("Successfully ending " + testCase);
+    }
+    finally
+    {
+      afterTest(testCase);
+    }
+  }
+
   private void waitForInitializeTargetMsg(String testCase,
       ReplicationBroker server) throws Exception
   {
@@ -1039,7 +1084,7 @@ public class InitOnLineTest extends ReplicationTestCase
     Assertions.assertThat(msgrcv).isInstanceOf(InitializeTargetMsg.class);
   }
 
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void initializeExportMultiSS() throws Exception
   {
     String testCase = "initializeExportMultiSS";
@@ -1063,7 +1108,7 @@ public class InitOnLineTest extends ReplicationTestCase
         log(testCase + " Will connect server 2 to " + replServer2ID);
         server2 = openReplicationSession(baseDN,
           server2ID, 100, getReplServerPort(replServer2ID),
-          1000, replServer1.getGenerationId(baseDN));
+          10000, replServer1.getGenerationId(baseDN));
       }
 
       // Connect a broker acting as server 3 to Repl Server 3
@@ -1075,7 +1120,7 @@ public class InitOnLineTest extends ReplicationTestCase
         log(testCase + " Will connect server 3 to " + replServer3ID);
         server3 = openReplicationSession(baseDN,
           server3ID, 100, getReplServerPort(replServer3ID),
-          1000, replServer1.getGenerationId(baseDN));
+          10000, replServer1.getGenerationId(baseDN));
       }
 
       // S3 sends init request
@@ -1234,7 +1279,7 @@ public class InitOnLineTest extends ReplicationTestCase
       if (server2 == null)
       {
         server2 = openReplicationSession(baseDN,
-          server2ID, 100, getReplServerPort(replServer1ID), 1000);
+          server2ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
       // Creates config to synchronize suffix
@@ -1292,9 +1337,30 @@ public class InitOnLineTest extends ReplicationTestCase
    * Disconnect broker and remove entries from the local DB
    * @param testCase The name of the test case.
    */
+  /**
+   * Waits until the local replication domain sees the provided replicas in
+   * its topology view, so that an InitializeTarget task does not race the
+   * topology propagation and fail to start with "the remote directory server
+   * DS(x) is unknown" - which, combined with the import/export context leak
+   * (issue #730), used to poison the domain for the rest of the test class.
+   */
+  private void waitForRemoteReplicas(Integer... serverIds) throws Exception
+  {
+    for (int serverId : serverIds)
+    {
+      for (int i = 0; i < 100 && !replDomain.getReplicaInfos().containsKey(serverId); i++)
+      {
+        sleep(100);
+      }
+      assertTrue(replDomain.getReplicaInfos().containsKey(serverId),
+          "DS(" + serverId + ") is not known to the local replication domain");
+    }
+  }
+
   private void afterTest(String testCase) throws Exception
   {
     // Check that the domain has completed the import/export task.
+    boolean ieStillRunning = false;
     if (replDomain != null)
     {
       // race condition could cause the main thread to reach
@@ -1308,7 +1374,10 @@ public class InitOnLineTest extends ReplicationTestCase
         }
         sleep(500);
       }
-      assertFalse(replDomain.ieRunning(), "ReplicationDomain: Import/Export is not expected to be running");
+      // asserted only after the cleanup below: failing before it would leak
+      // the domain config, the brokers and the replication servers into the
+      // following tests and cascade the failure over the whole class
+      ieStillRunning = replDomain.ieRunning();
     }
     // Remove domain config
     super.cleanConfigEntries();
@@ -1329,6 +1398,8 @@ public class InitOnLineTest extends ReplicationTestCase
 
     Arrays.fill(replServerPort, 0);
     log("Successfully cleaned " + testCase);
+
+    assertFalse(ieStillRunning, "ReplicationDomain: Import/Export is not expected to be running");
   }
 
   /**
