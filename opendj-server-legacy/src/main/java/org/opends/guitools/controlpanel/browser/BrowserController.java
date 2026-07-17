@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.browser;
 
@@ -1529,8 +1530,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   /**
    * Find a child node matching a given DN.
    *
-   * result >= 0    result is the index of the node matching childDn.
-   * result < 0   -(result + 1) is the index at which the new node must be
+   * result &gt;= 0    result is the index of the node matching childDn.
+   * result &lt; 0   -(result + 1) is the index at which the new node must be
    * inserted.
    * @param parent the parent node of the node that is being searched.
    * @param childDn the DN of the entry that is being searched.

@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
@@ -46,7 +47,6 @@ import org.forgerock.util.promise.Promise;
 
 /**
  * An {@link AccessTokenResolver} which is RFC 7662 compliant.
- * <p>
  * @see <a href="https://tools.ietf.org/html/rfc7662">RFC-7662</a>
  */
 final class Rfc7662AccessTokenResolver implements AccessTokenResolver {

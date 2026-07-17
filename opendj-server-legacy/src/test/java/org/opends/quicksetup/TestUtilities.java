@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2018-2026 3A Systems, LLC
  */
 package org.opends.quicksetup;
 
@@ -81,6 +82,9 @@ public class TestUtilities {
     args.add(Integer.toString(jmxPort));
     args.add("-w");
     args.add(DIRECTORY_MANAGER_PASSWORD);
+    // Create a backend so that configuration tests see database paths.
+    args.add("-b");
+    args.add("dc=example,dc=com");
     args.add("-O");
 
     ProcessBuilder pb = new ProcessBuilder(args);
@@ -116,7 +120,8 @@ public class TestUtilities {
     String[] files = packageDir.list();
     if (files != null) {
       for (String fileName : files) {
-        if (fileName.endsWith(".zip")) {
+        // Skip the slim package: tests exercise the full server layout.
+        if (fileName.endsWith(".zip") && !fileName.endsWith("-slim.zip")) {
           installPackageFile = new File(packageDir, fileName);
           break;
         }

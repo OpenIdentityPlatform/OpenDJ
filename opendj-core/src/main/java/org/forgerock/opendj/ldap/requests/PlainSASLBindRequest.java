@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -35,8 +36,8 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * authorization ID, or {@code authzId}, as defined in RFC 4513 section 5.2.1.8.
  *
  * <pre>
- * String authcid = ...;        // Authentication ID, e.g. dn:&lt;dn>, u:&lt;uid>
- * String authzid = ...;        // Authorization ID, e.g. dn:&lt;dn>, u:&lt;uid>
+ * String authcid = ...;        // Authentication ID, e.g. dn:&lt;dn&gt;, u:&lt;uid&gt;
+ * String authzid = ...;        // Authorization ID, e.g. dn:&lt;dn&gt;, u:&lt;uid&gt;
  * char[] password = ...;
  * Connection connection = ...; // Use StartTLS to protect the request
  *

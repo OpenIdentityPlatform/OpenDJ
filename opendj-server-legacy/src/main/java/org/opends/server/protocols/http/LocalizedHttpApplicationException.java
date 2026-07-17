@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.http;
 
@@ -20,7 +21,7 @@ import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 
 /**
- * Thrown to indicate that an {@link HttpApplication} was unable to start. A {@code LocalizedHttpApplicationException}
+ * Thrown to indicate that an {@link org.forgerock.http.HttpApplication} was unable to start. A {@code LocalizedHttpApplicationException}
  * contains a localized error message which may be used to provide the user with detailed diagnosis information. The
  * localized message can be retrieved using the {@link #getMessageObject} method.
  */

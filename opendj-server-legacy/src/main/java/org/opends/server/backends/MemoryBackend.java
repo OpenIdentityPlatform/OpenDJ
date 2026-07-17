@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.backends;
 
@@ -494,9 +495,10 @@ public class MemoryBackend
     SearchScope  scope  = searchOperation.getScope();
     SearchFilter filter = searchOperation.getFilter();
 
-    // Make sure the base entry exists if it's supposed to be in this backend.
+    // Make sure the base entry exists. A base DN this backend does not hold has no entry
+    // either, so it must be reported as missing rather than searched for.
     Entry baseEntry = entryMap.get(baseDN);
-    if (baseEntry == null && handlesEntry(baseDN))
+    if (baseEntry == null)
     {
       DN matchedDN = serverContext.getBackendConfigManager().getParentDNInSuffix(baseDN);
       while (matchedDN != null)
@@ -515,10 +517,7 @@ public class MemoryBackend
               ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
     }
 
-    if (baseEntry != null)
-    {
-      baseEntry = baseEntry.duplicate(true);
-    }
+    baseEntry = baseEntry.duplicate(true);
 
     // If it's a base-level search, then just get that entry and return it if it
     // matches the filter.
