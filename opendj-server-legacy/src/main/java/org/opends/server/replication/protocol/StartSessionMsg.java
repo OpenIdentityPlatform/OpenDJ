@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -33,10 +34,10 @@ import org.forgerock.util.Utils;
  * This message is used by DS to confirm a RS he wants to connect to him (open
  * a session):
  * Handshake sequence between DS and RS is like this:
- * DS --- ServerStartMsg ---> RS
- * DS <--- ReplServerStartMsg --- RS
- * DS --- StartSessionMsg ---> RS
- * DS <--- TopologyMsg --- RS
+ * DS --- ServerStartMsg ---&gt; RS
+ * DS &lt;--- ReplServerStartMsg --- RS
+ * DS --- StartSessionMsg ---&gt; RS
+ * DS &lt;--- TopologyMsg --- RS
  *
  * This message contains:
  * - status: the status we are entering the topology with

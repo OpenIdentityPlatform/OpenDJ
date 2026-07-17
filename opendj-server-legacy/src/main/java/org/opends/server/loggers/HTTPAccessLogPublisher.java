@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -54,9 +55,7 @@ public abstract class HTTPAccessLogPublisher
    *          The request info to log
    * @see <a href="http://www.w3.org/TR/WD-logfile.html">W3C's Extended Log File
    *      Format</a>
-   * @see <a href=
-   *      "http://www.microsoft.com/technet/prodtechnol/WindowsServer2003/
-   *      Library/IIS/676400bc-8969-4aa7-851a-9319490a9bbb.mspx?mfr=true">
+   * @see <a href="http://www.microsoft.com/technet/prodtechnol/WindowsServer2003/Library/IIS/676400bc-8969-4aa7-851a-9319490a9bbb.mspx?mfr=true">
    *      Microsoft's W3C Extended Log File Format (IIS 6.0)</a>
    */
   public void logRequestInfo(HTTPRequestInfo requestInfo)

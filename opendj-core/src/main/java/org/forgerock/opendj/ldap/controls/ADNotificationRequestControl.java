@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -21,7 +22,7 @@ import org.forgerock.opendj.ldap.ByteString;
  * The persistent search request control for Active Directory as defined by
  * Microsoft. This control allows a client to receive notification of changes
  * that occur in an Active Directory server.
- * <br/>
+ * <br>
  *
  * <pre>
  * Connection connection = ...;
@@ -39,12 +40,12 @@ import org.forgerock.opendj.ldap.ByteString;
  *         SearchResultEntry entry = reader.readEntry(); // Entry that changed
  *
  *         Boolean isDeleted = entry.parseAttribute("isDeleted").asBoolean();
- *         if (isDeleted != null && isDeleted) {
+ *         if (isDeleted != null &amp;&amp; isDeleted) {
  *             // Handle entry deletion
  *         }
  *         String whenCreated = entry.parseAttribute("whenCreated").asString();
  *         String whenChanged = entry.parseAttribute("whenChanged").asString();
- *         if (whenCreated != null && whenChanged != null) {
+ *         if (whenCreated != null &amp;&amp; whenChanged != null) {
  *             if (whenCreated.equals(whenChanged)) {
  *                 //Handle entry addition
  *             } else {

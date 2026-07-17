@@ -147,7 +147,7 @@ public class AttributeValuePasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "validConfigs", groups= { "slow" })
+  @Test(dataProvider = "validConfigs")
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {

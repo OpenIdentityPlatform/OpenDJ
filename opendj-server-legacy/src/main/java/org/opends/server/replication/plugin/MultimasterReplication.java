@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.plugin;
 
@@ -293,7 +294,10 @@ public class MultimasterReplication
   private int getNumberOfReplayThreadsOrDefault(ReplicationSynchronizationProviderCfg cfg)
   {
     Integer value = cfg.getNumUpdateReplayThreads();
-    return value == null ? Platform.computeNumberOfThreads(16, 2.0f) : value;
+    // A non-positive value would silently kill the replay thread pool: fall
+    // back to the default in that case (the configuration schema enforces a
+    // minimum of 1, so this can only come from a broken caller).
+    return value == null || value <= 0 ? Platform.computeNumberOfThreads(16, 2.0f) : value;
   }
 
   /** Create the threads that will wait for incoming update messages. */

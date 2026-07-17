@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -133,24 +134,33 @@ public class BindRule {
     }
 
     /*
-     * TODO Verify this method handles escaped parentheses by writing
-     * a unit test.
-     *
-     * It doesn't look like the decode() method handles the possibility of
-     * escaped parentheses in a bind rule.
+     * Parentheses embedded in a quoted bind rule expression (for example a DN
+     * value such as userdn="ldap:///cn=a(b),dc=example,dc=com") are treated as
+     * literal data and are not mistaken for grouping parentheses. See the
+     * quote-aware scan below and BindRuleParenTest for the covering cases.
      */
     /**
      * Decode an ACI bind rule string representation.
      * @param input The string representation of the bind rule.
-     * @return A BindRule class representing the bind rule.
+     * @return A BindRule class representing the bind rule, or {@code null} if
+     * {@code input} is null or blank. This null is the recursion base case for
+     * an empty group; callers must reject it rather than dereference it.
      * @throws AciException If the string is an invalid bind rule.
      */
     public static BindRule decode (String input) throws AciException {
-        if (input == null || input.length() == 0)
+        if (input == null)
         {
           return null;
         }
         String bindruleStr = input.trim();
+        if (bindruleStr.isEmpty())
+        {
+          // A blank bind rule (e.g. "(          )") decodes to null rather than
+          // throwing StringIndexOutOfBoundsException on charAt(0). This null is
+          // the recursion base case for an empty group; the caller rejects it as
+          // a syntax error (see the bindrule_1 == null check below).
+          return null;
+        }
         char firstChar = bindruleStr.charAt(0);
         char[] bindruleArray = bindruleStr.toCharArray();
 
@@ -160,19 +170,27 @@ public class BindRule {
           int currentPos;
           int numOpen = 0;
           int numClose = 0;
+          boolean inQuotes = false;
 
-          // Find the associated closed parenthesis
+          // Find the associated closed parenthesis. Parentheses that appear
+          // inside a quoted bind rule expression (e.g. a DN value containing
+          // '(' or ')') are literal data and must not be counted as grouping.
           for (currentPos = 0; currentPos < bindruleArray.length; currentPos++)
           {
-            if (bindruleArray[currentPos] == '(')
+            char currentChar = bindruleArray[currentPos];
+            if (currentChar == '"')
+            {
+              inQuotes = !inQuotes;
+            }
+            else if (!inQuotes && currentChar == '(')
             {
               numOpen++;
             }
-            else if (bindruleArray[currentPos] == ')')
+            else if (!inQuotes && currentChar == ')')
             {
               numClose++;
             }
-            if (numClose == numOpen)
+            if (!inQuotes && numClose == numOpen)
             {
               // We found the associated closed parenthesis the parenthesis are removed
               String bindruleStr1 = bindruleStr.substring(1, currentPos);
@@ -187,6 +205,17 @@ public class BindRule {
            */
           if (numOpen > numClose) {
               throw new AciException(WARN_ACI_SYNTAX_BIND_RULE_MISSING_CLOSE_PAREN.get(input));
+          }
+          /*
+           * An empty group such as "()" or "(   )" decodes to a null bind rule.
+           * Such a group is not a valid bind rule on its own, and using it as the
+           * left operand of an "and"/"or" (e.g. "()or userdn=...") would build a
+           * complex rule with a null left side that is later dereferenced during
+           * evaluation. Reject both cases here, before the remaining-chars test,
+           * so the message names the full offending input rather than a fragment.
+           */
+          if (bindrule_1 == null) {
+            throw new AciException(WARN_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(input));
           }
           /*
            * If there are remaining chars => there MUST be an operand (AND / OR)
@@ -304,6 +333,16 @@ public class BindRule {
             boolean negate=determineNegation(ruleExpr);
             remainingBindrule=ruleExpr.toString();
             BindRule bindrule_2 = BindRule.decode(remainingBindrule);
+            /*
+             * The right operand of an "and"/"or" bind rule must exist. It is null
+             * when the boolean operator is not followed by a bind rule, e.g. the
+             * "or" in "userdn=\"ldap:///self\" or" has nothing to its right
+             * (issue #719).
+             */
+            if (bindrule_2 == null) {
+                throw new AciException(
+                    WARN_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(remainingBindruleStr));
+            }
             bindrule_2.setNegate(negate);
             return new BindRule(bindrule, bindrule_2, operand);
         }

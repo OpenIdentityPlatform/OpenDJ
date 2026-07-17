@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2010-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
@@ -1950,7 +1951,7 @@ public final class ServerConstants
   /**
    * The maximum depth to which nested search filters will be processed.  This
    * can prevent stack overflow errors from filters that look like
-   * "(&(&(&(&(&(&(&(&(&....".
+   * "(&amp;(&amp;(&amp;(&amp;(&amp;(&amp;(&amp;(&amp;(&amp;....".
    */
   public static final int MAX_NESTED_FILTER_DEPTH = 100;
 

@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -62,7 +63,7 @@ import org.forgerock.util.Reject;
  * <p>
  * The following code sample presents how to create a {@link MultiColumnPrinter} to write CSV data:
  * <pre>
- * final List<MultiColumnPrinter.Column> columns = new ArrayList&lt;&gt;();
+ * final List&lt;MultiColumnPrinter.Column&gt; columns = new ArrayList&lt;&gt;();
  * columns.add(MultiColumnPrinter.column("CountryNameColumnId", "country_name", 0));
  * columns.add(MultiColumnPrinter.column("populationDensityId", "population_density", 1));
  * columns.add(MultiColumnPrinter.column("GiniId", "gini", 1));
@@ -84,7 +85,7 @@ import org.forgerock.util.Reject;
  * The following code sample presents how to configure a {@link MultiColumnPrinter}
  * to print the same data on console with some title headers.
  * <pre>
- *     final List<MultiColumnPrinter.Column> columns = new ArrayList&lt;&gt;();
+ *     final List&lt;MultiColumnPrinter.Column&gt; columns = new ArrayList&lt;&gt;();
  *     columns.add(MultiColumnPrinter.separatorColumn());
  *     columns.add(MultiColumnPrinter.column("CountryNameColumnId", "Country Name", 15, 0));
  *     columns.add(MultiColumnPrinter.column("populationDensityId", "Density", 10, 1));

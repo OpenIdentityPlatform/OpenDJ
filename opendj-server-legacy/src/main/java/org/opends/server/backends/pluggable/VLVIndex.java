@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.backends.pluggable;
 
@@ -689,7 +690,12 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     }
 
     final long[] selectedIDs;
-    final int count = 1 + beforeCount + afterCount;
+    // Never allocate more longs than the number of entries actually available
+    // from startPos, and compute the size with long arithmetic so an
+    // attacker-supplied before/after count cannot overflow or drive an oversized
+    // array (GHSA-q4wx-wj4j-4657).
+    final int available = startPos >= 0 && startPos < currentCount ? currentCount - startPos : 0;
+    final int count = (int) Math.max(0L, Math.min(1L + beforeCount + afterCount, available));
     try (Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
     {
       if (cursor.positionToIndex(startPos))

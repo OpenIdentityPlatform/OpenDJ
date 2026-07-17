@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.admin.ads;
 
@@ -448,7 +449,7 @@ public class ADSContext
   /**
    * Method called to unregister a server in the ADS. Note that the server's
    * instance key-pair public-key certificate entry (created in
-   * <tt>registerServer()</tt>) is left untouched.
+   * <code>registerServer()</code>) is left untouched.
    *
    * @param serverProperties
    *          the properties of the server.

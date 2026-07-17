@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -299,7 +300,7 @@ public final class ByteSequenceReader {
     /**
      * Relative read method for reading a compacted long value.
      * Compaction allows to reduce number of bytes needed to hold long types
-     * depending on its value (i.e: if value < 128, value will be encoded using one byte only).
+     * depending on its value (i.e: if value &lt; 128, value will be encoded using one byte only).
      * Reads the next bytes at this reader's current position, composing them into a long value
      * according to big-endian byte order, and then increments the position by the size of the
      * encoded long.
@@ -321,7 +322,7 @@ public final class ByteSequenceReader {
     /**
      * Relative read method for reading a compacted int value.
      * Compaction allows to reduce number of bytes needed to hold int types
-     * depending on its value (i.e: if value < 128, value will be encoded using one byte only).
+     * depending on its value (i.e: if value &lt; 128, value will be encoded using one byte only).
      * Reads the next bytes at this reader's current position, composing them into an int value
      * according to big-endian byte order, and then increments the position by the size of the
      * encoded int.

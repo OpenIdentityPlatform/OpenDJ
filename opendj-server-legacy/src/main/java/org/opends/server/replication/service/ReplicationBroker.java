@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2023-2025 3A Systems LLC.
+ * Portions Copyright 2023-2026 3A Systems LLC.
  * Portions Copyright 2025 Wren Security.
  */
 package org.opends.server.replication.service;
@@ -1083,6 +1083,15 @@ public class ReplicationBroker
       }
       int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
       socket.connect(HostPort.valueOf(serverURL).toInetSocketAddress(), timeoutMS);
+      if (isSelfConnection(socket))
+      {
+        // While the RS is down, the kernel may pick the RS port as the local
+        // port of this reconnecting socket (TCP simultaneous open),
+        // "connecting" it to itself. Keeping such a socket open would hold
+        // the RS port and prevent the RS from binding it on restart.
+        throw new ConnectException("Connection to " + serverURL
+            + " is a TCP self-connect, no replication server is listening");
+      }
       newSession = replSessionSecurity.createClientSession(socket, timeoutMS);
       boolean isSslEncryption = replSessionSecurity.isSslEncryption();
 

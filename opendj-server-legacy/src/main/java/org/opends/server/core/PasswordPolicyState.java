@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -139,7 +140,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    * Note that this version of the constructor should only be used for testing purposes when the tests should be
    * evaluated with a fixed time rather than the actual current time. For all other purposes, the other constructor
    * should be used.
-   * </p>
    *
    * @param policy      The password policy associated with the state.
    * @param userEntry   The entry with the user account.

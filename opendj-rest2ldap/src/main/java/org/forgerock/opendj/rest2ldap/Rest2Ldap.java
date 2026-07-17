@@ -13,6 +13,7 @@
  *
  * Copyright 2016 ForgeRock AS.
  *
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -60,19 +61,19 @@ import org.forgerock.util.Reject;
  * instance by calling {@link #rest2Ldap} passing in a list of {@link Resource resources} which together define
  * the data model being exposed by the gateway. Call {@link #newRequestHandlerFor(String)} in order to obtain
  * a request handler for a specific resource. The methods in this class can be categorized as follows:
- * <p/>
+ * <p>
  * Creating Rest2Ldap gateways:
  * <ul>
  * <li>{@link #rest2Ldap} - creates a gateway for a given set of resources</li>
  * <li>{@link #newRequestHandlerFor} - obtains a request handler for the specified endpoint resource.</li>
  * </ul>
- * <p/>
+ * <p>
  * Defining resource types, e.g. users, groups, devices, etc:
  * <ul>
  * <li>{@link #resource} - creates a resource having a fluent API for defining additional characteristics
  * such as the resource's inheritance, sub-resources, and properties</li>
  * </ul>
- * <p/>
+ * <p>
  * Defining a resource's sub-resources. A sub-resource is a resource which is subordinate to another resource. Or, to
  * put it another way, sub-resources define parent child relationships where the life-cycle of a child resource is
  * constrained by the life-cycle of the parent: deleting the parent implies that all children are deleted as well. An
@@ -85,7 +86,7 @@ import org.forgerock.util.Reject;
  * top-level entry points into REST APIs.
  * </li>
  * </ul>
- * <p/>
+ * <p>
  * Defining a resource's properties:
  * <ul>
  * <li>{@link #resourceType} - defines a property whose JSON value will be the name of the resource, e.g. "user"</li>

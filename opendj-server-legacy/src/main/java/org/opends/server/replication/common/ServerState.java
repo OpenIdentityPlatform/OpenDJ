@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.common;
 
@@ -283,9 +284,9 @@ public class ServerState implements Iterable<CSN>
   }
 
   /**
-   * Returns a copy of this ServerState's content as a Map of serverId => CSN.
+   * Returns a copy of this ServerState's content as a Map of serverId =&gt; CSN.
    *
-   * @return a copy of this ServerState's content as a Map of serverId => CSN.
+   * @return a copy of this ServerState's content as a Map of serverId =&gt; CSN.
    */
   public Map<Integer, CSN> getServerIdToCSNMap()
   {

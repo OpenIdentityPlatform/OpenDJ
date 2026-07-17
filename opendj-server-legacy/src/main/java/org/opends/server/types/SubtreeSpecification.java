@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.types;
 
@@ -1200,7 +1201,7 @@ public final class SubtreeSpecification
   /**
    * Get the minimum depth of the subtree specification.
    *
-   * @return Returns the minimum depth (<=0 indicates unlimited
+   * @return Returns the minimum depth (&lt;=0 indicates unlimited
    *         depth).
    */
   public int getMinimumDepth()
