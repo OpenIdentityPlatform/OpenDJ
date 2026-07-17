@@ -19,6 +19,10 @@ on:
     branches: [ 'sustaining/4.10.x','master', 'issues/**', 'features/**' ]
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-maven:
     runs-on: ${{ matrix.os }}
@@ -75,7 +79,7 @@ jobs:
         git status
     - name: Set Integration Test Environment
       id: failsafe
-      if: runner.os != 'Windows'
+      if: runner.os == 'Linux'
       run:   |
         echo "MAVEN_PROFILE_FLAG=-P precommit" >> $GITHUB_OUTPUT
 
@@ -98,13 +102,39 @@ jobs:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
       run: mvn --batch-mode --errors --update-snapshots verify --file pom.xml ${{ steps.failsafe.outputs.MAVEN_PROFILE_FLAG }}
     - name: Test on Unix
-      if: runner.os != 'Windows'
+      if: runner.os == 'Linux'
       run:   |
         export OPENDJ_JAVA_ARGS="-server -Xmx512m"
         opendj-server-legacy/target/package/opendj/setup -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --sampleData 5000 --cli --acceptLicense --no-prompt
         opendj-server-legacy/target/package/opendj/bin/status --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --trustAll
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 5000
+        # --- Load-testing tools smoke tests (server online, 5000 sample users) ---
+        echo "===== searchrate ====="
+        opendj-server-legacy/target/package/opendj/bin/searchrate --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password --baseDN "ou=people,dc=example,dc=com" --searchScope sub -c 4 -t 1 -m 2000 -i 1 -g "rand(0,4999)" "(uid=user.%d)" 1.1
+        echo "===== authrate ====="
+        opendj-server-legacy/target/package/opendj/bin/authrate --hostname localhost --port 1636 --useSSL --trustAll -D "uid=user.%d,ou=people,dc=example,dc=com" -w password -c 4 -m 2000 -i 1 -g "rand(0,4999)"
+        echo "===== modrate ====="
+        opendj-server-legacy/target/package/opendj/bin/modrate --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password -b "uid=user.%d,ou=people,dc=example,dc=com" -c 4 -t 1 -m 2000 -i 1 -g "rand(0,4999)" "description:modrate-load-test"
+        echo "===== addrate ====="
+        cat > /tmp/addrate.template <<'EOF'
+        define suffix=dc=example,dc=com
+
+        branch: ou=People,[suffix]
+        subordinateTemplate: person
+
+        template: person
+        rdnAttr: uid
+        objectClass: top
+        objectClass: person
+        objectClass: organizationalPerson
+        objectClass: inetOrgPerson
+        uid: addrate.<sequential:0>
+        cn: AddRate {uid}
+        sn: AddRate
+        userPassword: password
+        EOF
+        opendj-server-legacy/target/package/opendj/bin/addrate --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password -c 4 -t 1 -m 2000 -i 1 -C fifo -s 100 /tmp/addrate.template
         opendj-server-legacy/target/package/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
         opendj-server-legacy/target/package/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example2,dc=com opendj-server-legacy/target/package/opendj/config/MakeLDIF/example.template
         opendj-server-legacy/target/package/opendj/bin/stop-ds
@@ -119,7 +149,7 @@ jobs:
         rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs,tmp}
 
     - name: Test on Unix FIPS
-      if: runner.os != 'Windows'
+      if: runner.os == 'Linux'
       run: |
         export OPENDJ_JAVA_ARGS="-server -Xmx512m" 
         echo password > /tmp/opendj.keystore.pin
@@ -206,7 +236,7 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/stop-ds
         rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs,tmp}
     - name: Test replication
-      if: runner.os != 'Windows'
+      if: runner.os == 'Linux'
       run: |
         cp -r ./opendj-server-legacy/target/package/opendj ./opendj-server-legacy/target/package/opendj1
         cp -r ./opendj-server-legacy/target/package/opendj ./opendj-server-legacy/target/package/opendj2
@@ -268,6 +298,36 @@ jobs:
         opendj-server-legacy\target\package\opendj\bat\status.bat --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --trustAll
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "5000"
+        # --- Load-testing tools smoke tests (server online, 5000 sample users) ---
+        Write-Host "===== searchrate ====="
+        opendj-server-legacy\target\package\opendj\bat\searchrate.bat --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password --baseDN "ou=people,dc=example,dc=com" --searchScope sub -c 4 -t 1 -m 2000 -i 1 -g "rand(0,4999)" "(uid=user.%d)" 1.1
+        if ($LASTEXITCODE -ne 0) { throw "searchrate failed with exit code $LASTEXITCODE" }
+        Write-Host "===== authrate ====="
+        opendj-server-legacy\target\package\opendj\bat\authrate.bat --hostname localhost --port 1636 --useSSL --trustAll -D "uid=user.%d,ou=people,dc=example,dc=com" -w password -c 4 -m 2000 -i 1 -g "rand(0,4999)"
+        if ($LASTEXITCODE -ne 0) { throw "authrate failed with exit code $LASTEXITCODE" }
+        Write-Host "===== modrate ====="
+        opendj-server-legacy\target\package\opendj\bat\modrate.bat --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password -b "uid=user.%d,ou=people,dc=example,dc=com" -c 4 -t 1 -m 2000 -i 1 -g "rand(0,4999)" "description:modrate-load-test"
+        if ($LASTEXITCODE -ne 0) { throw "modrate failed with exit code $LASTEXITCODE" }
+        Write-Host "===== addrate ====="
+        @'
+        define suffix=dc=example,dc=com
+
+        branch: ou=People,[suffix]
+        subordinateTemplate: person
+
+        template: person
+        rdnAttr: uid
+        objectClass: top
+        objectClass: person
+        objectClass: organizationalPerson
+        objectClass: inetOrgPerson
+        uid: addrate.<sequential:0>
+        cn: AddRate {uid}
+        sn: AddRate
+        userPassword: password
+        '@ | Set-Content -Encoding ascii addrate.template
+        opendj-server-legacy\target\package\opendj\bat\addrate.bat --hostname localhost --port 1636 --useSSL --trustAll --bindDN "cn=Directory Manager" --bindPassword password -c 4 -t 1 -m 2000 -i 1 -C fifo -s 100 addrate.template
+        if ($LASTEXITCODE -ne 0) { throw "addrate failed with exit code $LASTEXITCODE" }
         opendj-server-legacy\target\package\opendj\bat\dsconfig.bat create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
         opendj-server-legacy\target\package\opendj\bat\makeldif.bat -o test.ldif -c suffix=dc=example2,dc=com opendj-server-legacy\target\package\opendj\config\MakeLDIF\example.template
         opendj-server-legacy\target\package\opendj\bat\stop-ds.bat
@@ -392,6 +452,25 @@ jobs:
         with:
           path: ~/jmeter
           key: jmeter-5.6.3
+      - name: Benchmark PDB vs JE
+        shell: bash
+        run: |
+          A_BACKEND=je B_BACKEND=pdb THREADS=200 DURATION=150 bash .github/benchmark/compare-opendj.sh \
+            "JE"  localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }} \
+            "PDB" localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
+      - name: Upload benchmark artifacts (PDB vs JE)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-pdb-vs-je
+          path: |
+            a/
+            b/
+            *.jtl
+            *.docker.log
+            *.jmeter.out
+          if-no-files-found: warn
+          retention-days: 3
       - name: Benchmark Build vs Release
         shell: bash
         run: |

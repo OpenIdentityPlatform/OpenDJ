@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.api;
 
@@ -48,7 +49,7 @@ public interface ReplicationDomainDB
    *
    * @param baseDN
    *          the replication domain baseDN
-   * @return a new ServerState object holding the {serverId => oldest CSN}
+   * @return a new ServerState object holding the {serverId =&gt; oldest CSN}
    *         mapping. If a replica DB is empty or closed, the oldest CSN will be
    *         null for that replica. The caller owns the generated ServerState.
    */
@@ -60,7 +61,7 @@ public interface ReplicationDomainDB
    *
    * @param baseDN
    *          the replication domain baseDN
-   * @return a new ServerState object holding the {serverId => newest CSN} Map.
+   * @return a new ServerState object holding the {serverId =&gt; newest CSN} Map.
    *         If a replica DB is empty or closed, the newest CSN will be null for
    *         that replica. The caller owns the generated ServerState.
    */

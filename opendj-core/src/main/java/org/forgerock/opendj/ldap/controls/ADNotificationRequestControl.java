@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
- * Portions Copyright 2026 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -22,7 +22,7 @@ import org.forgerock.opendj.ldap.ByteString;
  * The persistent search request control for Active Directory as defined by
  * Microsoft. This control allows a client to receive notification of changes
  * that occur in an Active Directory server.
- * <br/>
+ * <br>
  *
  * <pre>
  * Connection connection = ...;

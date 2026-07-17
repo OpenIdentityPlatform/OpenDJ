@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.controls;
 import org.forgerock.i18n.LocalizableMessage;
@@ -74,6 +75,16 @@ public class VLVRequestControl
         int beforeCount = (int)reader.readInteger();
         int afterCount  = (int)reader.readInteger();
 
+        // The VLV draft defines beforeCount/afterCount as INTEGER (0..maxInt).
+        // Reject negative values (including those produced by the (int) cast
+        // wrapping a wire value above 2^31-1): unchecked they would flow into an
+        // unbounded / overflowing array allocation downstream (GHSA-q4wx-wj4j-4657).
+        if (beforeCount < 0 || afterCount < 0)
+        {
+          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+              INFO_VLVREQ_CONTROL_CANNOT_DECODE_VALUE.get("beforeCount and afterCount must not be negative"));
+        }
+
         int offset = 0;
         int contentCount = 0;
         ByteString greaterThanOrEqual = null;
@@ -85,6 +96,11 @@ public class VLVRequestControl
             offset = (int)reader.readInteger();
             contentCount = (int)reader.readInteger();
             reader.readEndSequence();
+            if (offset < 0 || contentCount < 0)
+            {
+              throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                  INFO_VLVREQ_CONTROL_CANNOT_DECODE_VALUE.get("offset and contentCount must not be negative"));
+            }
             break;
 
           case TYPE_TARGET_GREATERTHANOREQUAL:

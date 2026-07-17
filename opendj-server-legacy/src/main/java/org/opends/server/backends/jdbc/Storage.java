@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2024-2025 3A Systems, LLC.
+ * Copyright 2024-2026 3A Systems, LLC.
  */
 package org.opends.server.backends.jdbc;
 
@@ -282,7 +282,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			if (((CachedConnection) con).parent.getClass().getName().contains("oracle")) {
 				return "h char(128),k raw(2000),v blob,primary key(h,k)";
 			}else if (((CachedConnection) con).parent.getClass().getName().contains("mysql")) {
-				return "h char(128),k tinyblob,v longblob,primary key(h(128),k(255))";
+				return "h char(128),k varbinary(255),v longblob,primary key(h,k)";
 			}else if (((CachedConnection) con).parent.getClass().getName().contains("microsoft")) {
 				return "h char(128),k varbinary(max),v image,primary key(h)";
 			}
@@ -291,14 +291,49 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public void openTree(TreeName treeName, boolean createOnDemand) {
-			if (createOnDemand && !isExistsTable(treeName)) {
-				try (final PreparedStatement statement=con.prepareStatement("create table "+getTableName(treeName)+" ("+getTableDialect()+")")){
-					execute(statement);
-					con.commit();
-				}catch (SQLException e) {
-					throw new StorageRuntimeException(e);
+			if (createOnDemand) {
+				if (!isExistsTable(treeName)) {
+					try (final PreparedStatement statement=con.prepareStatement("create table "+getTableName(treeName)+" ("+getTableDialect()+")")){
+						execute(statement);
+						con.commit();
+					}catch (SQLException e) {
+						throw new StorageRuntimeException(e);
+					}
+				}
+				// CursorImpl iterates with "where k>? order by k" batches: primary key (h,k) cannot serve them
+				final String driverName=((CachedConnection) con).parent.getClass().getName();
+				final String tableName=getTableName(treeName);
+				if (driverName.contains("postgres")) {
+					try (final PreparedStatement statement=con.prepareStatement("create index if not exists k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)")){
+						execute(statement);
+						con.commit();
+					}catch (SQLException e) {
+						throw new StorageRuntimeException(e);
+					}
+				}else if (driverName.contains("mysql")) {
+					try {
+						if (!isExistsIndex(tableName,"k_"+tableName.substring("opendj_".length()))) { // mysql has no "create index if not exists"
+							try (final PreparedStatement statement=con.prepareStatement("create index k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)")){
+								execute(statement);
+								con.commit();
+							}
+						}
+					}catch (SQLException e) {
+						throw new StorageRuntimeException(e);
+					}
 				}
 			}
+		}
+
+		boolean isExistsIndex(String tableName, String indexName) throws SQLException {
+			try (final ResultSet rs = con.getMetaData().getIndexInfo(null, null, tableName, false, false)) {
+				while (rs.next()) {
+					if (indexName.equalsIgnoreCase(rs.getString("INDEX_NAME"))) {
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 		
 		public void clearTree(TreeName treeName) {
@@ -414,74 +449,102 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		}
 	}
 	
+	// Iterates in batches of "fetchsize" records via keyset pagination ("where k>? order by k limit n"):
+	// scrollable ResultSet is not an option, the postgres/mysql drivers materialize it entirely in memory.
 	private final class CursorImpl implements Cursor<ByteString, ByteString> {
-		final TreeName treeName;
-
-		final PreparedStatement statement;
-		final ResultSet rc;
+		final Connection con;
+		final String tableName;
 		final boolean isReadOnly;
+		final int batchSize=Math.max(1,Integer.getInteger("org.openidentityplatform.opendj.jdbc.fetchsize",1000));
+		final String limitClause;
+
+		final ArrayDeque<byte[][]> buffer=new ArrayDeque<>();
+		byte[] currentKeyDb;
+		ByteString currentKey;
+		ByteString currentValue;
+		boolean defined;
+
 		public CursorImpl(boolean isReadOnly, Connection con, TreeName treeName) {
-			this.treeName=treeName;
 			this.isReadOnly=isReadOnly;
-			try {
-				statement=con.prepareStatement("select h,k,v from "+getTableName(treeName)+" order by k",
-					isReadOnly?ResultSet.TYPE_SCROLL_INSENSITIVE:ResultSet.TYPE_SCROLL_SENSITIVE,
-					isReadOnly?ResultSet.CONCUR_READ_ONLY:ResultSet.CONCUR_UPDATABLE);
-				rc=executeResultSet(statement);
+			this.con=con;
+			this.tableName=getTableName(treeName);
+			this.limitClause=((CachedConnection)con).parent.getClass().getName().contains("mysql")
+				? " limit ?,?" : " offset ? rows fetch next ? rows only";
+		}
+
+		boolean fetchBatch(String condition, byte[] dbKey, long offset, boolean descending, int limit) {
+			buffer.clear();
+			try (final PreparedStatement statement=con.prepareStatement("select k,v from "+tableName
+					+(condition!=null?" where k"+condition+"?":"")
+					+" order by k"+(descending?" desc":"")+limitClause)){
+				int i=1;
+				if (condition!=null) {
+					statement.setBytes(i++,dbKey);
+				}
+				statement.setLong(i++,offset);
+				statement.setLong(i,limit);
+				try(final ResultSet rc=executeResultSet(statement)) {
+					while (rc.next()) {
+						buffer.add(new byte[][]{rc.getBytes(1),rc.getBytes(2)});
+					}
+				}
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
+			return !buffer.isEmpty();
+		}
+
+		void advanceFromBuffer() {
+			final byte[][] row=buffer.poll();
+			currentKeyDb=row[0];
+			currentKey=ByteString.wrap(db2real(row[0]));
+			currentValue=ByteString.wrap(row[1]);
+			defined=true;
 		}
 
 		@Override
 		public boolean next() {
-			try {
-				return rc.next();
-			}catch (SQLException e) {
-				throw new StorageRuntimeException(e);
+			if (buffer.isEmpty() && !fetchBatch(currentKeyDb==null?null:">",currentKeyDb,0,false,batchSize)) {
+				defined=false;
+				return false;
 			}
+			advanceFromBuffer();
+			return true;
 		}
 
 		@Override
 		public boolean isDefined() {
-			try{
-				return rc.getRow()>0;
-			}catch (SQLException e) {
-				throw new StorageRuntimeException(e);
-			}
+			return defined;
 		}
 
 		@Override
 		public ByteString getKey() throws NoSuchElementException {
-			if (!isDefined()) {
+			if (!defined) {
 				throw new NoSuchElementException();
 			}
-			try{
-				return ByteString.wrap(db2real(rc.getBytes("k")));
-			}catch (SQLException e) {
-				throw new StorageRuntimeException(e);
-			}
+			return currentKey;
 		}
 
 		@Override
 		public ByteString getValue() throws NoSuchElementException {
-			if (!isDefined()) {
+			if (!defined) {
 				throw new NoSuchElementException();
 			}
-			try{
-				return ByteString.wrap(rc.getBytes("v"));
-			}catch (SQLException e) {
-				throw new StorageRuntimeException(e);
-			}
+			return currentValue;
 		}
 
 		@Override
 		public void delete() throws NoSuchElementException, UnsupportedOperationException {
-			if (!isDefined()) {
+			if (!defined) {
 				throw new NoSuchElementException();
 			}
-			try{
-				rc.deleteRow();
+			if (isReadOnly) {
+				throw new UnsupportedOperationException();
+			}
+			try (final PreparedStatement statement=con.prepareStatement("delete from "+tableName+" where h=? and k=?")){
+				statement.setString(1,key2hash.get(ByteBuffer.wrap(db2real(currentKeyDb))));
+				statement.setBytes(2,currentKeyDb);
+				execute(statement);
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
@@ -489,97 +552,60 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public void close() {
-			try{
-				rc.close();
-				statement.close();
-			}catch (SQLException e) {
-				throw new StorageRuntimeException(e);
-			}
+			buffer.clear();
+			defined=false;
 		}
-
 
 		@Override
 		public boolean positionToKeyOrNext(ByteSequence key) {
-			if (!isDefined() || key.compareTo(getKey())<0) { //restart iterator
-				try{
-					rc.first();
-				}catch (SQLException e) {
-					throw new StorageRuntimeException(e);
-				}
-			}
-			try{
-				if (!isDefined()){
-					return false;
-				}
-				do {
-					if (key.compareTo(getKey())<=0) {
-						return true;
-					}
-				}while(rc.next());
-			}catch (SQLException e) {
-				throw new StorageRuntimeException(e);
-			}
-			return false;
-		}
-		
-		@Override
-		public boolean positionToKey(ByteSequence key) {
-			if (!isDefined() || key.compareTo(getKey())<0) {  //restart iterator
-				try{
-					rc.first();
-				}catch (SQLException e) {
-					throw new StorageRuntimeException(e);
-				}
-			}
-			if (!isDefined()){
-				return false;
-			}
-			if (isDefined() && key.compareTo(getKey())==0) {
+			if (fetchBatch(">=",real2db(key.toByteArray()),0,false,batchSize)) {
+				advanceFromBuffer();
 				return true;
 			}
-			try{
-				do {
-					if (key.compareTo(getKey())==0) {
-						return true;
-					}
-				}while(rc.next());
-			}catch (SQLException e) {
-				throw new StorageRuntimeException(e);
-			}
+			defined=false;
 			return false;
 		}
 
-		
 		@Override
-		public boolean positionToLastKey() {
-			try{
-				return rc.last();
+		public boolean positionToKey(ByteSequence key) {
+			final byte[] real=key.toByteArray();
+			try (final PreparedStatement statement=con.prepareStatement("select v from "+tableName+" where h=? and k=?")){
+				statement.setString(1,key2hash.get(ByteBuffer.wrap(real)));
+				statement.setBytes(2,real2db(real));
+				try(final ResultSet rc=executeResultSet(statement)) {
+					if (rc.next()) {
+						buffer.clear();
+						currentKeyDb=real2db(real);
+						currentKey=ByteString.wrap(real);
+						currentValue=ByteString.wrap(rc.getBytes("v"));
+						defined=true;
+						return true;
+					}
+				}
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
+			defined=false;
+			return false;
+		}
+
+		@Override
+		public boolean positionToLastKey() {
+			if (fetchBatch(null,null,0,true,1)) {
+				advanceFromBuffer();
+				return true;
+			}
+			defined=false;
+			return false;
 		}
 
 		@Override
 		public boolean positionToIndex(int index) {
-			try{
-				rc.first();
-			}catch (SQLException e) {
-				throw new StorageRuntimeException(e);
+			if (index>=0 && fetchBatch(null,null,index,false,batchSize)) {
+				advanceFromBuffer();
+				return true;
 			}
-			if (!isDefined()){
-				return false;
-			}
-			int ct=0;
-			try{
-				do {
-					if (ct==index) {
-						return true;
-					}
-					ct++;
-				}while(rc.next());
-			}catch (SQLException e) {
-				throw new StorageRuntimeException(e);
-			}
+			defined=false;
 			return false;
 		}
 	}

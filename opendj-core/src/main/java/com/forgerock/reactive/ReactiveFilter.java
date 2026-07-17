@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.reactive;
 
@@ -21,6 +22,7 @@ import org.forgerock.util.promise.NeverThrowsException;
 /**
  * Filters and/or transforms the request and/or response of an exchange.
  *
+ * <pre>{@code
  *                +--------+              +---------+
  *   ---> I1 ---> |        | ---> I2 ---> |         |
  *                | Filter |              | Handler |
@@ -32,6 +34,7 @@ import org.forgerock.util.promise.NeverThrowsException;
  *                | Filter |              | Filter  |              | Handler |
  *   <--- O1 --<  |        | <--- O2 <--- |         | <--- O3 ---< |         |
  *                +--------+              +---------+              +---------+
+ * }</pre>
  *
  * @param <C>
  *            Context in which the filter will be evaluated

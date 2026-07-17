@@ -63,7 +63,6 @@ public class LoggerConfigManager implements ConfigurationAddListener<LogPublishe
   /**
    * Class to manage java.util.logging to slf4j bridge.
    * Main purpose of this class is to adapt the j.u.l log level when a debug/error log publisher change is detected.
-   * <p>
    * @ThreadSafe
    */
   private static class JulToSlf4jLogManager

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.loggers;
 import static org.opends.messages.LoggerMessages.*;
@@ -75,13 +76,8 @@ public class FileNumberRetentionPolicy implements
       throws DirectoryException
   {
     File[] files = fileNamingPolicy.listFiles();
-    if(files == null)
-    {
-      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
-          ERR_LOGGER_ERROR_LISTING_FILES.get(fileNamingPolicy.getInitialName()));
-    }
 
-    if (files.length <= numFiles)
+    if (files == null || files.length <= numFiles)
     {
       return new File[0];
     }

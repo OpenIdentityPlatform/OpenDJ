@@ -13,7 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2019-2024 3A Systems, LLC.
+ * Portions Copyright 2019-2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.grizzly;
@@ -308,7 +308,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      * @throws Exception
      *         If an unexpected error occurred.
      */
-    @Test(enabled = false)
+    @Test
     public void testSchemaUsage() throws Exception {
         // Create a connection factory: this should always use the default
         // schema, even if it is updated.

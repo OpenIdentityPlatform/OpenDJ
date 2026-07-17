@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication;
 
@@ -92,7 +93,7 @@ public class DependencyTest extends ReplicationTestCase
    * Then test that the sequence of Delete necessary to remove
    * all those entries is also correctly ordered.
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void addModDelDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;
@@ -333,7 +334,7 @@ public class DependencyTest extends ReplicationTestCase
    * has been added.
    * To increase the risks of failures a loop of add/del/add is done.
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void addDelAddDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;
@@ -438,7 +439,7 @@ public class DependencyTest extends ReplicationTestCase
    * Check that the dependency of moddn operation are working by
    * issuing a set of Add operation followed by a modrdn of the added entry.
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void addModdnDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;

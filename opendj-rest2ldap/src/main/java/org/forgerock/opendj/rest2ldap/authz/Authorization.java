@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
@@ -130,7 +131,6 @@ public final class Authorization {
 
     /**
      * Creates a new {@link AccessTokenResolver} as defined in the RFC-7662.
-     * <p>
      * @see <a href="https://tools.ietf.org/html/rfc7662">RFC-7662</a>
      *
      * @param httpClient

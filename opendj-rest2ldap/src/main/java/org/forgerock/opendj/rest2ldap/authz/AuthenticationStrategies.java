@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
@@ -64,7 +65,7 @@ public final class AuthenticationStrategies {
      * @param searchScope
      *            {@link SearchScope} of the search request performed to find the user's DN.
      * @param filterTemplate
-     *            Filter of the search request (i.e: (&(email=%s)(objectClass=inetOrgPerson)) where the first %s will be
+     *            Filter of the search request (i.e: (&amp;(email=%s)(objectClass=inetOrgPerson)) where the first %s will be
      *            replaced by the user's provided authentication-id.
      * @return a new search then bind {@link AuthenticationStrategy}
      * @throws NullPointerException
