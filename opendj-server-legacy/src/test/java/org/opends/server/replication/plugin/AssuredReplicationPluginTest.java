@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.plugin;
 
@@ -1096,7 +1097,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
    * Tests that a DS receiving an update from a RS in safe read mode effectively
    * sends an ack back (with or without error).
    */
-  @Test(dataProvider = "rsGroupIdProvider", groups = "slow")
+  @Test(dataProvider = "rsGroupIdProvider")
   public void testSafeReadModeReply(byte rsGroupId) throws Exception
   {
     int TIMEOUT = 5000;
@@ -1183,7 +1184,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
    * Tests that a DS receiving an update from a RS in safe data mode does not
    * send back and ack (only safe read is taken into account in DS replay).
    */
-  @Test(dataProvider = "rsGroupIdProvider", groups = "slow")
+  @Test(dataProvider = "rsGroupIdProvider")
   public void testSafeDataModeReply(byte rsGroupId) throws Exception
   {
     int TIMEOUT = 5000;
@@ -1225,7 +1226,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
    * DS performs many successive modifications in safe data mode and receives RS
    * acks with various errors. Check for monitoring right errors
    */
-  @Test(groups = "slow")
+  @Test
   public void testSafeDataManyErrors() throws Exception
   {
     int TIMEOUT = 5000;
@@ -1335,7 +1336,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
    * DS performs many successive modifications in safe read mode and receives RS
    * acks with various errors. Check for monitoring right errors
    */
-  @Test(groups = "slow")
+  @Test
   public void testSafeReadManyErrors() throws Exception
   {
     int TIMEOUT = 5000;

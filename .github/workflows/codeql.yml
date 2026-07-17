@@ -1,0 +1,144 @@
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions copyright [year] [name of copyright owner]".
+#
+# Copyright 2026 3A Systems, LLC.
+
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ 'sustaining/4.10.x','master', 'issues/**', 'features/**' ]
+  pull_request:
+    branches: [ 'master' ]
+  schedule:
+    # Weekly run, Mondays at 03:27 UTC
+    - cron: '27 3 * * 1'
+  # Allows running this workflow manually from the Actions tab or via the gh CLI.
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref to avoid the long-running,
+# eventually-cancelled analyses seen with the previous default setup.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 360
+    permissions:
+      # Required to upload results to code scanning.
+      security-events: write
+      # Only needed for workflows in private repositories.
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # java-kotlin is extracted from source, so build-mode 'none' lets
+          # CodeQL build its model without invoking Maven. This large
+          # multi-module Maven build is expensive to compile, and 'none' avoids
+          # the long, eventually-cancelled autobuild that the previous default
+          # setup hit.
+          #
+          # For higher precision on Java (dataflow through compiled dependencies)
+          # switch that entry to 'manual' and uncomment the Maven build below.
+          - language: java-kotlin
+            os: ubuntu-latest
+            build-mode: none
+          # 'actions' scans the workflow YAML under .github/workflows for
+          # injection, over-privileged permissions and untrusted-input issues.
+          - language: actions
+            os: ubuntu-latest
+            build-mode: none
+          # 'ruby' (interpreted) covers the few .rb helper/extension scripts.
+          - language: ruby
+            os: ubuntu-latest
+            build-mode: none
+          # C/C++ (the Windows native launcher/service under
+          # opendj-server-legacy/src/build-tools/windows) has no 'none' build
+          # mode, so it is compiled manually with nmake/MSVC on Windows, exactly
+          # as the main Build workflow does.
+          - language: c-cpp
+            os: windows-latest
+            build-mode: manual
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: security-and-quality
+          # Exclude test and integration-test sources. With build-mode 'none'
+          # CodeQL extracts straight from source, so paths-ignore reliably
+          # scopes the analysis (it is honored for compiled languages only when
+          # build-mode is 'none').
+          config: |
+            paths-ignore:
+              - '**/src/test/**'
+              - '**/src/it/**'
+
+      # --- C/C++ manual build (Windows native executables) -----------------
+      - name: Setup MSVC Developer Command Prompt (x86)
+        if: matrix.language == 'c-cpp'
+        uses: ilammy/msvc-dev-cmd@v1
+        env:
+          # Opt in to Node.js 24 for this action, which still ships on Node.js 20.
+          # See https://github.com/ilammy/msvc-dev-cmd/issues/99
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+        with:
+          arch: x86
+      - name: Build Windows native executables
+        if: matrix.language == 'c-cpp'
+        shell: cmd
+        run: |
+          cd opendj-server-legacy\src\build-tools\windows
+          nmake all
+      # ---------------------------------------------------------------------
+
+      # --- Java manual build (only used if the java entry is set to 'manual')
+      # - name: Set up JDK 11
+      #   if: matrix.language == 'java-kotlin'
+      #   uses: actions/setup-java@v5
+      #   with:
+      #     java-version: '11'
+      #     distribution: 'zulu'
+      # - name: Cache Maven packages
+      #   if: matrix.language == 'java-kotlin'
+      #   uses: actions/cache@v6
+      #   with:
+      #     path: ~/.m2/repository
+      #     key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
+      #     restore-keys: ${{ runner.os }}-m2-repository
+      # - name: Build with Maven
+      #   if: matrix.language == 'java-kotlin'
+      #   env:
+      #     MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
+      #   run: mvn --batch-mode --errors -DskipTests -Dmaven.test.skip=true clean compile --file pom.xml
+      # ---------------------------------------------------------------------
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{ matrix.language }}"

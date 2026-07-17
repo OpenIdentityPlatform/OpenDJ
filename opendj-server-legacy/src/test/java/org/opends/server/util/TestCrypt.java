@@ -14,6 +14,7 @@
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2007 Brighton Consulting, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.util;
 
@@ -28,10 +29,10 @@ import org.testng.annotations.Test;
 /**
  * This class defines a set of tests for the {@link org.opends.server.util.Crypt} class.
  * <p>
- * In the "slow" group, since they are unlikely to break and since there are 4K+ they can take a
+ * Historically in the "slow" group, since they are unlikely to break and since there are 4K+ they can take a
  * while
  */
-@Test(groups = { "slow" }, sequential = true)
+@Test(sequential = true)
 public final class TestCrypt extends UtilTestCase {
   private Crypt crypt = new Crypt();
 

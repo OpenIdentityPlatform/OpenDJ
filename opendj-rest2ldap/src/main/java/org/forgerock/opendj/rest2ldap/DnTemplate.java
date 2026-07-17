@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -34,7 +35,6 @@ import org.forgerock.util.Options;
  * Two types of DN template are supported: {@link #compile(String) absolute/relative} or {@link #compileRelative(String)
  * relative}. The table below shows how DN templates will be resolved to DNs when the template parameter "subdomain"
  * has the value "www" and the current routing state references the DN "dc=example,dc=com":
- * <p>
  * <table>
  * <tr><th>DN Template</th><th>{@link #compile(String)}</th><th>{@link #compileRelative(String)}</th></tr>
  * <tr><td>dc=www</td><td>dc=www</td><td>dc=www,dc=example,dc=com</td></tr>

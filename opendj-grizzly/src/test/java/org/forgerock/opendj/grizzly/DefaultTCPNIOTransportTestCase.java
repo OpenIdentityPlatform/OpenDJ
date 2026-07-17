@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2023-2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.grizzly;
@@ -43,7 +44,7 @@ public class DefaultTCPNIOTransportTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected error occurred.
      */
-    @Test(enabled = false)
+    @Test
     public void testGetInstance() throws Exception {
         // Create a transport.
         final ReferenceCountedObject<TCPNIOTransport>.Reference transport = DEFAULT_TRANSPORT.acquire();

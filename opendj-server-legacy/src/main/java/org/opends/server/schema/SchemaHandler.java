@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.schema;
 
@@ -126,7 +127,6 @@ public final class SchemaHandler
 
   /**
    * The schema.
-   * <p>
    * @GuardedBy("exclusiveLock")
    */
   private volatile Schema schema;

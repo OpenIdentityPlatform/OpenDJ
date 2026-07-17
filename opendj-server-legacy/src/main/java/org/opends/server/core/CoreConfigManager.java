@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.core;
 
@@ -212,6 +213,9 @@ public class CoreConfigManager implements ConfigurationChangeListener<GlobalCfg>
     core.disabledPrivileges = convert(globalConfig.getDisabledPrivilege());
     core.returnBindErrorMessages = globalConfig.isReturnBindErrorMessages();
     core.idleTimeLimit = globalConfig.getIdleTimeLimit();
+    // New client connections snapshot the limit from DirectoryServer at accept
+    // time (see ClientConnection), so the global value must be pushed there too.
+    DirectoryServer.setIdleTimeLimit(globalConfig.getIdleTimeLimit());
     core.saveConfigOnSuccessfulStartup = globalConfig.isSaveConfigOnSuccessfulStartup();
 
     core.useNanoTime= globalConfig.getEtimeResolution() == GlobalCfgDefn.EtimeResolution.NANOSECONDS;

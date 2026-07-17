@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.server.embedded;
 
@@ -256,7 +257,7 @@ public class EmbeddedDirectoryServer
    * Example reading configuration:
    * <pre>
    *   try(ManagementContext config = server.getConfiguration()) {
-   *      List<String> syncProviders = config.getRootConfiguration().listSynchronizationProviders();
+   *      List&lt;String&gt; syncProviders = config.getRootConfiguration().listSynchronizationProviders();
    *      System.out.println("sync providers=" + syncProviders);
    *   }
    * </pre>

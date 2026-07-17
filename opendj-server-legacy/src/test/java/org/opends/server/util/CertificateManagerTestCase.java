@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.util;
 
@@ -829,7 +830,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test(groups="slow", dataProvider="keyTypes")
+  @Test(dataProvider="keyTypes")
   public void testGenerateSelfSignedCertificatePKCS12(KeyType keyType)
          throws Exception
   {

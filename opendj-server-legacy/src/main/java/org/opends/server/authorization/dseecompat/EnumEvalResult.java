@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -75,7 +76,7 @@ public enum EnumEvalResult {
      * This method is used to possibly negate the result of a simple bind rule
      * evaluation. If the boolean is true than the result is negated.
      * @param v The enumeration result of the simple bind rule evaluation.
-     * @param negate If true the result should be negated (TRUE->FALSE, FALSE->TRUE).
+     * @param negate If true the result should be negated (TRUE-&gt;FALSE, FALSE-&gt;TRUE).
      * @return  A possibly negated enumeration result.
      */
     public  static EnumEvalResult negateIfNeeded(EnumEvalResult v, boolean negate) {

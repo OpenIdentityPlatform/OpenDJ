@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 /**
@@ -19,7 +20,6 @@
  * java.security.KeyStore KeyStore} service. The key store has the type "LDAP" and alias "OPENDJ" and can be created
  * using a number of approaches. Firstly, by directly calling one of the factory methods in {@link
  * org.forgerock.opendj.security.OpenDJProvider}:
- * <p>
  * <pre>
  * ConnectionFactory ldapServer = ...;
  * DN keyStoreBaseDN = DN.valueOf("ou=key store,dc=example,dc=com");
@@ -30,7 +30,6 @@
  * <p>
  * Alternatively, if the OpenDJ security provider is registered with the JVM's JCA framework together with a suitable
  * configuration file, then an LDAP key store can be created like this:
- * <p>
  * <pre>
  * KeyStore ldapKeyStore = KeyStore.getInstance("LDAP");
  * ldapKeyStore.load(null);
@@ -55,7 +54,6 @@
  * <p>
  * Interacting with an LDAP/LDIF key store using Java's "keytool" command is a little complicated if the OpenDJ provider
  * is not configured in the JVM due to the need to specify the class-path:
- * <p>
  * <pre>
  * # Generate an RSA private key entry:
  * keytool -J-cp -J/path/to/opendj/server/lib/bootstrap-client.jar \

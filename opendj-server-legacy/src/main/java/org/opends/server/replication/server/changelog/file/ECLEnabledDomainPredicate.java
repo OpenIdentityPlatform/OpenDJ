@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -21,7 +22,6 @@ import org.forgerock.opendj.ldap.DN;
 /**
  * Returns whether a domain is enabled for the external changelog.
  *
- * @FunctionalInterface
  */
 public class ECLEnabledDomainPredicate
 {
