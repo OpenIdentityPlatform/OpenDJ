@@ -13,8 +13,11 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.plugin;
+
+import static java.util.concurrent.TimeUnit.*;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
@@ -42,6 +45,8 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.util.TestTimer;
+import org.opends.server.util.TestTimer.CallableVoid;
 import org.testng.annotations.Test;
 
 /**
@@ -469,7 +474,7 @@ public class TopologyViewTest extends ReplicationTestCase
    * in DS1,DS2,DS5,DS6)
    * @throws Exception If a problem occurred
    */
-  @Test(enabled = true, groups = "slow")
+  @Test(enabled = true)
   public void testTopologyChanges() throws Exception
   {
     String testCase = "testTopologyChanges";
@@ -929,57 +934,69 @@ public class TopologyViewTest extends ReplicationTestCase
    * with the theoretical topology view that every body should have at the time
    * this method is called.
    */
-  private void checkTopoView(int[] dsIdList, TopoView theoricalTopoView)
+  private void checkTopoView(final int[] dsIdList, final TopoView theoricalTopoView)
       throws Exception
   {
-   Thread.sleep(500);
-   for(int currentDsId : dsIdList)
-   {
-     LDAPReplicationDomain rd = null;
+    // Topology messages are propagated asynchronously: poll until every DS
+    // sees the expected view instead of relying on a fixed sleep.
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(30, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        for (int currentDsId : dsIdList)
+        {
+          LDAPReplicationDomain rd = null;
 
-     switch (currentDsId)
-     {
-       case DS1_ID:
-         rd = rd1;
-         break;
-       case DS2_ID:
-         rd = rd2;
-         break;
-       case DS3_ID:
-         rd = rd3;
-         break;
-       case DS4_ID:
-         rd = rd4;
-         break;
-       case DS5_ID:
-         rd = rd5;
-         break;
-       case DS6_ID:
-         rd = rd6;
-         break;
-       default:
-         fail("Unknown replication domain server id.");
-     }
+          switch (currentDsId)
+          {
+            case DS1_ID:
+              rd = rd1;
+              break;
+            case DS2_ID:
+              rd = rd2;
+              break;
+            case DS3_ID:
+              rd = rd3;
+              break;
+            case DS4_ID:
+              rd = rd4;
+              break;
+            case DS5_ID:
+              rd = rd5;
+              break;
+            case DS6_ID:
+              rd = rd6;
+              break;
+            default:
+              fail("Unknown replication domain server id.");
+          }
 
-     /**
-      * Get the topo view of the current analyzed DS
-      */
-     // Add info for DS itself:
-     // we need to clone the list as we don't want to modify the list kept
-     // inside the DS.
-      final DSInfo dsInfo = new DSInfo(rd.getServerId(), "dummy:1234", rd.getRsServerId(),
-          TEST_DN_WITH_ROOT_ENTRY_GENID,
-          rd.getStatus(),
-          rd.isAssured(), rd.getAssuredMode(), rd.getAssuredSdLevel(),
-          rd.getGroupId(), rd.getRefUrls(),
-          rd.getEclIncludes(), rd.getEclIncludesForDeletes(),
-          ProtocolVersion.getCurrentVersion());
-      final List<DSInfo> dsList = new ArrayList<>(rd.getReplicaInfos().values());
-      dsList.add(dsInfo);
+          /**
+           * Get the topo view of the current analyzed DS
+           */
+          // Add info for DS itself:
+          // we need to clone the list as we don't want to modify the list kept
+          // inside the DS.
+          final DSInfo dsInfo = new DSInfo(rd.getServerId(), "dummy:1234", rd.getRsServerId(),
+              TEST_DN_WITH_ROOT_ENTRY_GENID,
+              rd.getStatus(),
+              rd.isAssured(), rd.getAssuredMode(), rd.getAssuredSdLevel(),
+              rd.getGroupId(), rd.getRefUrls(),
+              rd.getEclIncludes(), rd.getEclIncludesForDeletes(),
+              ProtocolVersion.getCurrentVersion());
+          final List<DSInfo> dsList = new ArrayList<>(rd.getReplicaInfos().values());
+          dsList.add(dsInfo);
 
-     TopoView dsTopoView = new TopoView(dsList, rd.getRsInfos());
-     assertEquals(dsTopoView, theoricalTopoView, " in DSid=" + currentDsId);
-   }
+          TopoView dsTopoView = new TopoView(dsList, rd.getRsInfos());
+          assertEquals(dsTopoView, theoricalTopoView, " in DSid=" + currentDsId);
+        }
+      }
+    });
   }
 
   /**

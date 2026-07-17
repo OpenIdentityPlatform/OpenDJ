@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.maven;
 
@@ -39,7 +40,6 @@ import org.apache.maven.project.MavenProject;
  * also include the X-SCHEMA-FILE extension to indicate the source schema file.
  * <p>
  * There is a single goal that generates the base schema.
- * <p>
  */
 @Mojo(name = "concat", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public final class ConcatSchemaMojo extends AbstractMojo {

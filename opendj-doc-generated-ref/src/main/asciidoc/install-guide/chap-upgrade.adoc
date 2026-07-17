@@ -45,6 +45,8 @@ This chapter includes the following procedures and examples:
 
 * xref:#upgrade-zip-example["Upgrading to OpenDJ {opendj-version-short}"]
 
+* xref:#upgrade-msi["To Upgrade the Windows MSI Installation"]
+
 * xref:#upgrade-repl["To Upgrade Replicated Servers"]
 
 * xref:#new-repl-mixed-topology["To Add a New Replica to an Existing Topology"]
@@ -241,6 +243,51 @@ $ /path/to/opendj/upgrade --acceptLicense
 $ /path/to/opendj/bin/start-ds --quiet
 $
 ----
+====
+
+[#upgrade-msi]
+.To Upgrade the Windows MSI Installation
+====
+Before starting this procedure, follow the steps in xref:#before-you-upgrade["Before You Upgrade"]. Installing the newer `.msi` performs a major upgrade that replaces the installed program files, so make a full file-system backup of the current installation first.
+
+. Stop the current OpenDJ server.
+
+. If OpenDJ is registered as a Windows service, disable the service:
++
+
+[source, console]
+----
+C:\path\to\opendj\bat> windows-service.bat --disableService
+----
+
+. Back up the file-system directory where OpenDJ is installed.
+
+. Install the newer package (GUI or silent), using the same installation directory as the current server. Your configured instance data (`config`, `db`, `logs`) is kept; only the program files are replaced:
++
+
+[source, console, subs="attributes"]
+----
+C:\> msiexec /i opendj-{opendj-version}.msi /quiet OPENDJ="C:\path\to\opendj"
+----
+
+. Run the `upgrade` command, described in xref:../reference/admin-tools-ref.adoc#upgrade-1[upgrade(1)] in the __Reference__, to bring the configuration and application data up to date with the new binary and script files:
++
+
+[source, console]
+----
+C:\path\to\opendj> upgrade.bat --no-prompt --acceptLicense
+----
+
+. Start the upgraded OpenDJ server.
+
+. If you disabled the Windows service, enable it again:
++
+
+[source, console]
+----
+C:\path\to\opendj\bat> windows-service.bat --enableService
+----
+
 ====
 
 [#upgrade-repl]

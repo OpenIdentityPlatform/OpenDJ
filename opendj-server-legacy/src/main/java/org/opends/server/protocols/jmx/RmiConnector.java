@@ -71,10 +71,8 @@ public class RmiConnector
   /**
    * JDK 10+ JMX environment property scoping a JEP 290 deserialization
    * filter to the credentials object passed during {@code newClient()}.
-   * Using the credentials-scoped filter (instead of the connector-wide
-   * {@code jmx.remote.rmi.server.serial.filter.pattern}) avoids breaking
-   * legitimate JMX traffic such as MBean invocations and notifications,
-   * which may legitimately carry non-String types.
+   * It is the tightest of the two filters configured below (it accepts only
+   * the two-element {@code String[]} used for SASL/PLAIN authentication).
    * <p>
    * Note: this property is mutually exclusive with
    * {@code jmx.remote.rmi.server.credential.types}; specifying both makes
@@ -88,6 +86,38 @@ public class RmiConnector
 
   private static final String JMX_CREDENTIAL_SERIAL_FILTER =
       "maxdepth=3;maxarray=2;java.lang.String;!*";
+
+
+  /**
+   * JDK 10+ JMX environment property installing a JEP 290 deserialization
+   * filter for the whole RMI connection, in particular the arguments of MBean
+   * operations ({@code invoke}) and attribute values ({@code setAttribute}).
+   * Unlike {@link #JMX_REMOTE_RMI_SERVER_CREDENTIALS_FILTER_PATTERN}, which
+   * only guards the credentials object exchanged during authentication, this
+   * filter closes the post-authentication deserialization surface: without it,
+   * an authenticated client could drive native deserialization of arbitrary
+   * object graphs through MBean operation arguments
+   * (advisory GHSA-qj63-3vrg-vcfx, incomplete fix of CVE-2026-46495).
+   */
+  static final String JMX_REMOTE_RMI_SERVER_SERIAL_FILTER_PATTERN =
+      "jmx.remote.rmi.server.serial.filter.pattern";
+
+
+  /**
+   * Allowlist of the JDK and JMX management types OpenDJ legitimately receives
+   * as MBean operation arguments / attribute values, rejecting everything else
+   * via the trailing {@code !*}. OpenDJ exposes read-only configuration and
+   * monitoring attributes and no MBean operations, so the only types that need
+   * to cross this filter are strings, primitive wrappers and the standard
+   * {@code javax.management} request types ({@code ObjectName},
+   * {@code Attribute}, {@code AttributeList}, {@code QueryExp}, ...).
+   */
+  private static final String JMX_OPERATION_SERIAL_FILTER =
+      "maxdepth=20;"
+      + "java.lang.*;java.math.BigInteger;java.math.BigDecimal;"
+      + "java.util.*;"
+      + "javax.management.*;javax.management.openmbean.*;"
+      + "!*";
 
 
   /**
@@ -398,15 +428,23 @@ public class RmiConnector
 
   static void configureJmxDeserializationProtection(Map<String, Object> env)
   {
-    // Scope the JEP 290 deserialization filter to the credentials object
-    // only, so legitimate JMX RMI traffic (MBean operations, notifications,
-    // etc.) is not affected by the restrictive allowlist.
+    // Tightly constrain the credentials object exchanged during authentication
+    // (CVE-2026-46495): only a two-element String[] is accepted.
     //
     // Do NOT also set "jmx.remote.rmi.server.credential.types": the JDK
     // rejects an environment that defines both properties, which would
     // prevent the RMI connector from starting.
     env.put(JMX_REMOTE_RMI_SERVER_CREDENTIALS_FILTER_PATTERN,
         JMX_CREDENTIAL_SERIAL_FILTER);
+
+    // Additionally constrain the rest of the RMI connection -- in particular
+    // MBean operation arguments and attribute values, which are deserialized
+    // after authentication -- to a small allowlist of JDK and JMX management
+    // types. This closes the post-authentication deserialization surface left
+    // open by the credentials-only filter
+    // (GHSA-qj63-3vrg-vcfx, incomplete fix of CVE-2026-46495).
+    env.put(JMX_REMOTE_RMI_SERVER_SERIAL_FILTER_PATTERN,
+        JMX_OPERATION_SERIAL_FILTER);
   }
 
   /**

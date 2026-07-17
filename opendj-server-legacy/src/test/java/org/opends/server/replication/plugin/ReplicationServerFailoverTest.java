@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.plugin;
 
@@ -171,7 +172,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
    *
    * @throws Exception If a problem occurred
    */
-  @Test(groups="slow")
+  @Test
   public void testFailOverMulti() throws Exception
   {
     String testCase = "testFailOverMulti";

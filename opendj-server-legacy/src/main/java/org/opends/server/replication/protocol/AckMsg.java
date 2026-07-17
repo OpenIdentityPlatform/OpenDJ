@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.replication.protocol;
 
@@ -254,5 +255,11 @@ public class AckMsg extends ReplicationMsg
       "concerned server ids: " + idList;
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + " csn: " + csn + ", " + errorsToString();
+  }
 }
 

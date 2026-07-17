@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.security;
 
@@ -42,7 +43,7 @@ public final class KeyStoreParameters implements LoadStoreParameter {
      * protected by a separate password. The default value for this option is a password factory which always
      * returns {@code null}, indicating that there is no global password and that separate passwords should be used
      * instead.
-     * <p/>
+     * <p>
      * Applications should provide a factory which always returns a new instance of the same password. The LDAP key
      * store will destroy the contents of the returned password after each use. It is the responsibility of the
      * factory to protect the in memory representation of the password between successive calls.

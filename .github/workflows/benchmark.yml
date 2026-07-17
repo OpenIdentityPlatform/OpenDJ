@@ -49,7 +49,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: benchmark-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 defaults:

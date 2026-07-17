@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-packages</artifactId>
-        <version>5.1.2-SNAPSHOT</version>
+        <version>5.2.0-SNAPSHOT</version>
     </parent>
 
     <packaging>pom</packaging>
@@ -153,11 +153,19 @@
                         <needarch>noarch</needarch>
                         <targetOS>linux</targetOS>
                         <requires>
+                            <!-- The server needs a JRE (11+) at run time. -->
                             <require>java-headless &gt;= 1:11</require>
+                            <!-- _script-util.sh locates java via "which java". -->
+                            <require>which</require>
                             <!-- postinstall runs the upgrade tool and the server via runuser. -->
                             <require>util-linux</require>
+                            <!-- postinstall registers the service via /sbin/chkconfig on non-systemd hosts. -->
+                            <require>chkconfig</require>
+                            <!-- /etc/init.d/opendj sources /etc/init.d/functions on RedHat-family. -->
+                            <require>initscripts</require>
                         </requires>
                         <requiresPre>
+                            <!-- preinstall creates the dedicated opendj service user/group. -->
                             <require>shadow-utils</require>
                         </requiresPre>
                         <description>

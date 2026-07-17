@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.util;
 
@@ -267,13 +268,19 @@ public final class TimeThread
    *
    * @return A string containing the current time in the local time
    *         zone.
-   * @throws IllegalStateException
-   *           If the time service has not been started.
    */
-  public static String getLocalTime() throws IllegalStateException
+  public static String getLocalTime()
   {
-    checkState();
-    return INSTANCE.timeInfo.localTimestamp;
+    TimeThread instance = INSTANCE;
+    if (instance == null)
+    {
+      // The time service is not running: this happens in offline tools and in
+      // an embedded server that has not been started (or has been stopped),
+      // while log publishers may still emit messages. Compute the timestamp
+      // on demand instead of failing.
+      return new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z").format(new Date());
+    }
+    return instance.timeInfo.localTimestamp;
   }
 
 

@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.snmp;
 
@@ -83,9 +84,6 @@ public class SNMPUserAcl implements UserAcl {
 
     /**
      * {@inheritDoc}
-     * @param user
-     * @param contextName
-     * @param securityLevel
      */
     public boolean checkReadPermission(String user, String contextName,
             int securityLevel) {
@@ -129,7 +127,6 @@ public class SNMPUserAcl implements UserAcl {
 
     /**
      * Check the incoming security level of the request.
-     * @param securityLevel
      * @return true if the securityLevel is appropriated, else return false
      */
     private boolean checkSecurityLevel(int securityLevel) {

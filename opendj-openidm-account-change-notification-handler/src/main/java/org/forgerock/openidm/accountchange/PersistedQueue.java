@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.openidm.accountchange;
 
@@ -33,7 +34,6 @@ import net.jcip.annotations.ThreadSafe;
  * Fast request queue implementation on top of Berkley DB Java Edition.
  * The queue uses the canonalised dn for key and store only
  * the last password change for each dn.
- * <p/>
  */
 @ThreadSafe
 public class PersistedQueue {
@@ -114,7 +114,7 @@ public class PersistedQueue {
 
     /**
      * Pushes element to the queue.
-     * <p/>
+     * <p>
      * The entries are sorted in natural order and not in order of time when
      * they were added.
      *

@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -49,7 +50,7 @@ import org.forgerock.util.Reject;
  *     PasswordPolicyResponseControl control =
  *             result.getControl(PasswordPolicyResponseControl.DECODER,
  *                     new DecodeOptions());
- *     if (!(control == null) && !(control.getWarningType() == null)) {
+ *     if (!(control == null) &amp;&amp; !(control.getWarningType() == null)) {
  *         // Password policy warning, use control.getWarningType(),
  *         // and control.getWarningValue().
  *     }
