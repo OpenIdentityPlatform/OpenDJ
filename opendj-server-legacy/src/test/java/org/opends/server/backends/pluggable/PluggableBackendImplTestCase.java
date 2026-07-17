@@ -1217,7 +1217,9 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
               "objectClasses: ( 16.32.256.1.1.1.12.4.6 NAME 'examplePerson' DESC 'Extension to person' SUP inetOrgPerson STRUCTURAL MUST ( exampleIdentifier ) MAY ( exampleEmails $ userAccountControl ) X-SCHEMA-FILE '999-user.ldif' )",
               ""
             );
-    assertEquals(resultCode, 0);
+    // 20 = attributeOrValueExists: another backend test class already added these definitions
+    // to the schema of the shared in-JVM server
+    assertTrue(resultCode == 0 || resultCode == 20, "unexpected result code " + resultCode);
     TestCaseUtils.addEntries(
             Resources.readLines(Resources.getResource("issue496.ldif"), StandardCharsets.UTF_8).toArray(new String[]{})
     );
