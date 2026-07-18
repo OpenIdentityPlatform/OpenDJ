@@ -389,8 +389,8 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 					statement.setBytes(3, value.toByteArray());
 					return (execute(statement) == 1 && statement.getUpdateCount() > 0);
 				}
-			}else if (driverName.contains("microsoft")) { //ANSI MERGE with ;
-				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " old using (select ? h,? k,? v) new on (old.h=new.h and old.k=new.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v);")) {
+			}else if (driverName.contains("microsoft")) { //ANSI MERGE with ; WITH (HOLDLOCK) makes the upsert atomic: without it SQL Server MERGE can race two concurrent NOT MATCHED inserts of the same key into a PRIMARY KEY violation
+				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " WITH (HOLDLOCK) old using (select ? h,? k,? v) new on (old.h=new.h and old.k=new.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v);")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
