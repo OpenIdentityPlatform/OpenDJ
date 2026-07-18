@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC
  */
 package org.forgerock.opendj.grizzly;
 
@@ -86,8 +87,16 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
      */
     private static final int ITERATIONS = 100;
 
-    /** Test timeout for tests which need to wait for network events. */
-    private static final long TEST_TIMEOUT = 30L;
+    /**
+     * Test timeout for tests which need to wait for network events. This is a
+     * generous upper bound rather than an expected duration: in the normal case
+     * the awaited latch/promise is released within milliseconds. It only takes
+     * effect when a CI runner is slow enough to delay delivery of an async
+     * event (see issue #748, where {@code testResourceManagement} timed out on
+     * a loaded macOS/Java 11 runner), so a larger value trades a slower failure
+     * for far fewer false-negative builds.
+     */
+    private static final long TEST_TIMEOUT = 60L;
 
     /*
      * It is usually quite a bad code smell to share state between unit tests.
