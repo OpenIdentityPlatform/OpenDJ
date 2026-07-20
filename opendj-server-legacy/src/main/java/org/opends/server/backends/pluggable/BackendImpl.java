@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
@@ -93,9 +92,14 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
   /** The root container to use for this backend. */
   private RootContainer rootContainer;
 
-  // FIXME: this is broken. Replace with read-write lock.
-  /** A count of the total operation threads currently in the backend. */
-  private final AtomicInteger threadTotalCount = new AtomicInteger(0);
+  /**
+   * A count of the total operation threads currently in the backend. Bumped
+   * twice per operation by all worker threads, so it uses a striped counter
+   * to avoid contending on a single cache line; it is only read when waiting
+   * for the backend to become quiescent, which is why it is not a LongAdder —
+   * see {@link StripedCounter}.
+   */
+  private final StripedCounter threadTotalCount = new StripedCounter();
   /** The base DNs defined for this backend instance. */
   private Set<DN> baseDNs;
 
@@ -146,14 +150,14 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
       throw new DirectoryException(
           noEntryContainerResultCode, ERR_BACKEND_ENTRY_DOESNT_EXIST.get(entryDN, getBackendID()));
     }
-    threadTotalCount.getAndIncrement();
+    threadTotalCount.increment();
     return ec;
   }
 
   /** End a Backend API method that accesses the EntryContainer. */
   private void accessEnd()
   {
-    threadTotalCount.getAndDecrement();
+    threadTotalCount.decrement();
   }
 
   /**
@@ -163,7 +167,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
    */
   private void waitUntilQuiescent()
   {
-    while (threadTotalCount.get() > 0)
+    while (threadTotalCount.sum() > 0)
     {
       // Still have threads accessing the storage so sleep a little
       try
@@ -268,7 +272,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
 
     // Make sure the thread counts are zero for next initialization.
-    threadTotalCount.set(0);
+    threadTotalCount.reset();
 
     // Log an informational message.
     logger.info(NOTE_BACKEND_OFFLINE, cfg.getBackendId());
@@ -356,7 +360,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
       throw de;
     }
 
-    container.sharedLock.lock();
+    container.beginSharedAccess();
     try
     {
       return ConditionResult.valueOf(container.hasSubordinates(entryDN));
@@ -367,7 +371,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     finally
     {
-      container.sharedLock.unlock();
+      container.endSharedAccess();
       accessEnd();
     }
   }
@@ -378,7 +382,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     checkNotNull(baseDN, "baseDN must not be null");
 
     final EntryContainer ec = accessBegin(null, baseDN);
-    ec.sharedLock.lock();
+    ec.beginSharedAccess();
     try
     {
       return ec.getNumberOfEntriesInBaseDN();
@@ -390,7 +394,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     finally
     {
-      ec.sharedLock.unlock();
+      ec.endSharedAccess();
       accessEnd();
     }
   }
@@ -417,7 +421,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
       throw de;
     }
 
-    ec.sharedLock.lock();
+    ec.beginSharedAccess();
     try
     {
       return ec.getNumberOfChildren(parentDN);
@@ -428,7 +432,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     finally
     {
-      ec.sharedLock.unlock();
+      ec.endSharedAccess();
       accessEnd();
     }
   }
@@ -437,7 +441,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
   public boolean entryExists(final DN entryDN) throws DirectoryException
   {
     EntryContainer ec = accessBegin(null, entryDN);
-    ec.sharedLock.lock();
+    ec.beginSharedAccess();
     try
     {
       return ec.entryExists(entryDN);
@@ -448,7 +452,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     finally
     {
-      ec.sharedLock.unlock();
+      ec.endSharedAccess();
       accessEnd();
     }
   }
@@ -457,7 +461,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
     EntryContainer ec = accessBegin(null, entryDN);
-    ec.sharedLock.lock();
+    ec.beginSharedAccess();
     try
     {
       return ec.getEntry(entryDN);
@@ -468,7 +472,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     finally
     {
-      ec.sharedLock.unlock();
+      ec.endSharedAccess();
       accessEnd();
     }
   }
@@ -478,7 +482,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
   {
     EntryContainer ec = accessBegin(addOperation, entry.getName());
 
-    ec.sharedLock.lock();
+    ec.beginSharedAccess();
     try
     {
       ec.addEntry(entry, addOperation);
@@ -489,7 +493,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     finally
     {
-      ec.sharedLock.unlock();
+      ec.endSharedAccess();
       accessEnd();
     }
   }
@@ -500,7 +504,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
   {
     EntryContainer ec = accessBegin(deleteOperation, entryDN);
 
-    ec.sharedLock.lock();
+    ec.beginSharedAccess();
     try
     {
       ec.deleteEntry(entryDN, deleteOperation);
@@ -511,7 +515,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     finally
     {
-      ec.sharedLock.unlock();
+      ec.endSharedAccess();
       accessEnd();
     }
   }
@@ -522,7 +526,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
   {
     EntryContainer ec = accessBegin(modifyOperation, newEntry.getName());
 
-    ec.sharedLock.lock();
+    ec.beginSharedAccess();
 
     try
     {
@@ -534,7 +538,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     finally
     {
-      ec.sharedLock.unlock();
+      ec.endSharedAccess();
       accessEnd();
     }
   }
@@ -554,7 +558,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, WARN_FUNCTION_NOT_SUPPORTED.get());
     }
 
-    currentContainer.sharedLock.lock();
+    currentContainer.beginSharedAccess();
     try
     {
       currentContainer.renameEntry(currentDN, entry, modifyDNOperation);
@@ -565,7 +569,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     finally
     {
-      currentContainer.sharedLock.unlock();
+      currentContainer.endSharedAccess();
       accessEnd();
     }
   }
@@ -577,7 +581,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     // is concerned: report it as such instead of the UNDEFINED result code used internally.
     EntryContainer ec = accessBegin(searchOperation, searchOperation.getBaseDN(), ResultCode.NO_SUCH_OBJECT);
 
-    ec.sharedLock.lock();
+    ec.beginSharedAccess();
 
     try
     {
@@ -589,7 +593,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     finally
     {
-      ec.sharedLock.unlock();
+      ec.endSharedAccess();
       accessEnd();
     }
   }

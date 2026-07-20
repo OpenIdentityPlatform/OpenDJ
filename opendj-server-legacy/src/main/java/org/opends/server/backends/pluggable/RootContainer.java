@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.backends.pluggable;
 
@@ -322,14 +323,14 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     for (DN baseDN : entryContainers.keySet())
     {
       EntryContainer ec = unregisterEntryContainer(baseDN);
-      ec.exclusiveLock.lock();
+      ec.lock();
       try
       {
         ec.close();
       }
       finally
       {
-        ec.exclusiveLock.unlock();
+        ec.unlock();
       }
     }
     config.removePluggableChangeListener(this);
