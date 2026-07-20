@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.core;
 
@@ -51,6 +52,15 @@ public class BindOperationBasis
              implements BindOperation, PreParseBindOperation
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /**
+   * The cancel request sent to the other operations in progress when a bind
+   * starts. CancelRequest and LocalizableMessage are both immutable (the
+   * message is rendered per locale when used), so a single shared instance
+   * avoids building both objects on every bind.
+   */
+  private static final CancelRequest CANCEL_ALL_BY_BIND_REQUEST =
+      new CancelRequest(true, INFO_CANCELED_BY_BIND_REQUEST.get());
 
   /** The credentials used for SASL authentication. */
   private ByteString saslCredentials;
@@ -483,9 +493,7 @@ public class BindOperationBasis
     clientConnection.setUnauthenticated();
 
     // Abandon any operations that may be in progress for the client.
-    LocalizableMessage cancelReason = INFO_CANCELED_BY_BIND_REQUEST.get();
-    CancelRequest cancelRequest = new CancelRequest(true, cancelReason);
-    clientConnection.cancelAllOperationsExcept(cancelRequest, getMessageID());
+    clientConnection.cancelAllOperationsExcept(CANCEL_ALL_BY_BIND_REQUEST, getMessageID());
 
     // This flag is set to true as soon as a workflow has been executed.
     boolean workflowExecuted = false;
