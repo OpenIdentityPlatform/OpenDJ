@@ -339,6 +339,10 @@ The Open Identity Platform common audit event framework includes handlers for lo
 +
 OpenDJ supports LDAP and HTTP CSV access logs, which you must configure in order to use.
 
+* JSON files.
++
+The default configuration includes the Json File-Based Access Logger, a JSON file handler for LDAP access events. The logger is disabled by default, because it records the same operations as the standard File-Based Access Logger and adds logging overhead for every client request.
+
 * Elasticsearch server.
 +
 You configure the Elasticsearch handler as an external log publisher that logs access messages to Elasticsearch.
@@ -354,12 +358,59 @@ Although it is rarely used for access events, you can configure the Syslog handl
 The Open Identity Platform common audit event framework supports a variety of audit event topics. OpenDJ currently supports handling for access events, which are system boundary events such as the initial request and final response to that request. In other words, the implementation in OpenDJ is focused only on access logging. Based on the connection handler for the request, OpenDJ divides access events into `ldap-access` events and `http-access` events.
 To enable common audit-based logging, follow one of these procedures:
 
+* xref:#log-common-audit-ldap-json["To Enable JSON LDAP Access Logs"]
+
 * xref:#log-common-audit-ldap-csv["To Enable LDAP CSV Access Logs"]
 
 * xref:#log-common-audit-http-csv["To Enable HTTP CSV Access Logs"]
 
 * xref:#log-common-audit-external["To Enable External LDAP or HTTP Access Logging"]
 
+
+[#log-common-audit-ldap-json]
+.To Enable JSON LDAP Access Logs
+====
+The default configuration includes the Json File-Based Access Logger, a common audit JSON file handler for LDAP access events. The logger is disabled by default: it records the same operations as the standard File-Based Access Logger, so running both loggers doubles the logging work for every client request.
+
+After you complete the following steps, OpenDJ directory server records LDAP access event messages in files named like `logs/ldap-access.audit.json`:
+
+. (Optional)  If you trust transaction IDs sent by client applications, and want monitoring and reporting systems consuming the logs to allow correlation of requests as they traverse multiple servers, update the global server configuration as described in xref:#log-common-audit-trust-transaction-ids["To Trust Transaction IDs"].
+
+. Enable the log publisher as in the following example:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-log-publisher-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "Json File-Based Access Logger" \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt
+----
+
+. (Optional)  To avoid logging each operation twice, consider disabling the standard access logger as in the following example:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-log-publisher-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Access Logger" \
+ --set enabled:false \
+ --trustAll \
+ --no-prompt
+----
+
+====
 
 [#log-common-audit-ldap-csv]
 .To Enable LDAP CSV Access Logs
