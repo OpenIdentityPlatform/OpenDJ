@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2010-2016 ForgeRock AS.
- * Portions Copyright 2022-2025 3A Systems, LLC.
+ * Portions Copyright 2022-2026 3A Systems, LLC.
  * Portions Copyright 2025 Wren Security.
  */
 package org.opends.server.core;
@@ -466,8 +466,12 @@ public final class DirectoryServer
 
   /** The configuration handler used to manage the password generators. */
   private PasswordGeneratorConfigManager passwordGeneratorConfigManager;
-  /** The default password policy for the Directory Server. */
-  private PasswordPolicy defaultPasswordPolicy;
+  /**
+   * The default password policy for the Directory Server. Volatile so that
+   * getDefaultPasswordPolicy() can read the cached value without taking the
+   * authenticationPolicies monitor; all mutations happen under that monitor.
+   */
+  private volatile PasswordPolicy defaultPasswordPolicy;
   /** The configuration handler used to manage the authentication policies. */
   private PasswordPolicyConfigManager authenticationPolicyConfigManager;
   /** The configuration handler used to manage the password storage schemes. */
@@ -2535,6 +2539,15 @@ public final class DirectoryServer
    */
   public static PasswordPolicy getDefaultPasswordPolicy()
   {
+    // This method is called on every authentication. Do not take the global
+    // monitor just to read the cached value: it is volatile and only mutated
+    // under the authenticationPolicies monitor.
+    PasswordPolicy cachedPolicy = directoryServer.defaultPasswordPolicy;
+    if (cachedPolicy != null)
+    {
+      return cachedPolicy;
+    }
+
     // Ensure default policy is synchronized.
     synchronized (directoryServer.authenticationPolicies)
     {
