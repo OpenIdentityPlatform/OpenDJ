@@ -23,6 +23,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# The build only checks out sources and publishes artifacts through the actions
+# API; no job needs to write back to the repository.
+permissions:
+  contents: read
+
 jobs:
   build-maven:
     runs-on: ${{ matrix.os }}
