@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2024-2026 3A Systems, LLC
  */
 package org.opends.server.api;
 
@@ -30,11 +31,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import net.jcip.annotations.GuardedBy;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
@@ -88,16 +85,19 @@ public class CompressedSchema
   }
 
   private final ServerContext serverContext;
-  /** Lock to update the maps. */
-  private final ReadWriteLock lock = new ReentrantReadWriteLock();
-  private final Lock exclusiveLock = lock.writeLock();
-  private final Lock sharedLock = lock.readLock();
+  /** Lock serializing all mutations (id registration and schema reload). */
+  private final ReentrantLock exclusiveLock = new ReentrantLock();
 
-  /** Schema used to build the compressed information. */
-  @GuardedBy("lock")
-  private Schema schema;
-  @GuardedBy("lock")
-  private Mappings mappings = new Mappings();
+  /**
+   * Readers are lock-free: the Mappings internals are concurrent collections,
+   * and both references are volatile. decodeAttribute() runs for every
+   * attribute of every entry read from a backend, so taking even a read lock
+   * here becomes a cross-core hotspot under load. On schema reload the new
+   * mappings reference is written before the schema reference, so a reader
+   * observing the current schema also observes the mappings rebuilt for it.
+   */
+  private volatile Schema schema;
+  private volatile Mappings mappings = new Mappings();
 
   /**
    * Creates a new empty instance of this compressed schema.
@@ -112,47 +112,38 @@ public class CompressedSchema
 
   private Mappings getMappings()
   {
-    sharedLock.lock();
-    try
-    {
-      return mappings;
-    }
-    finally
-    {
-      sharedLock.unlock();
-    }
+    return mappings;
   }
 
   private Mappings reloadMappingsIfSchemaChanged()
   {
-    sharedLock.lock();
-    boolean shared = true;
+    // Lock-free fast path: the schema reference must be read before the
+    // mappings reference, mirroring the publication order in the slow path.
+    if (schema == serverContext.getSchema())
+    {
+      return mappings;
+    }
+
+    exclusiveLock.lock();
     try
     {
       Schema currentSchema = serverContext.getSchema();
       if (schema != currentSchema)
       {
-        sharedLock.unlock();
-        exclusiveLock.lock();
-        shared = false;
+        // build new maps from one stable snapshot of the existing ones
+        final Mappings oldMappings = mappings;
+        Mappings newMappings = new Mappings(oldMappings.adEncodeMap.size(), oldMappings.ocEncodeMap.size());
+        reloadAttributeTypeMaps(oldMappings, newMappings);
+        reloadObjectClassesMap(oldMappings, newMappings);
 
-        currentSchema = serverContext.getSchema();
-        if (schema != currentSchema)
-        {
-          // build new maps from existing ones
-          Mappings newMappings = new Mappings(mappings.adEncodeMap.size(), mappings.ocEncodeMap.size());
-          reloadAttributeTypeMaps(mappings, newMappings);
-          reloadObjectClassesMap(mappings, newMappings);
-
-          mappings = newMappings;
-          schema = currentSchema;
-        }
+        mappings = newMappings;
+        schema = currentSchema;
       }
       return mappings;
     }
     finally
     {
-      (shared ? sharedLock : exclusiveLock).unlock();
+      exclusiveLock.unlock();
     }
   }
 
@@ -290,21 +281,19 @@ public class CompressedSchema
 
   private int getAttributeId(final AttributeDescription ad) throws DirectoryException
   {
-    // avoid lazy registration races
-    boolean shared = true;
-    sharedLock.lock();
+    // Lock-free fast path for already-registered attribute descriptions.
+    Integer id = mappings.adEncodeMap.get(ad);
+    if (id != null)
+    {
+      return id;
+    }
+
+    // Take the exclusive lock to avoid lazy registration races, and re-read
+    // the mappings reference: a schema reload may have replaced it.
+    exclusiveLock.lock();
     try
     {
-      Integer id = mappings.adEncodeMap.get(ad);
-      if (id != null)
-      {
-        return id;
-      }
-
-      sharedLock.unlock();
-      exclusiveLock.lock();
-      shared = false;
-
+      final Mappings mappings = this.mappings;
       id = mappings.adEncodeMap.get(ad);
       if (id == null)
       {
@@ -317,7 +306,7 @@ public class CompressedSchema
     }
     finally
     {
-      (shared ? sharedLock : exclusiveLock).unlock();
+      exclusiveLock.unlock();
     }
   }
 
@@ -349,21 +338,19 @@ public class CompressedSchema
 
   private int getObjectClassId(final Map<ObjectClass, String> objectClasses) throws DirectoryException
   {
-    // avoid lazy registration races
-    boolean shared = true;
-    sharedLock.lock();
+    // Lock-free fast path for already-registered object class sets.
+    Integer id = mappings.ocEncodeMap.get(objectClasses);
+    if (id != null)
+    {
+      return id;
+    }
+
+    // Take the exclusive lock to avoid lazy registration races, and re-read
+    // the mappings reference: a schema reload may have replaced it.
+    exclusiveLock.lock();
     try
     {
-      Integer id = mappings.ocEncodeMap.get(objectClasses);
-      if (id != null)
-      {
-        return id;
-      }
-
-      sharedLock.unlock();
-      exclusiveLock.lock();
-      shared = false;
-
+      final Mappings mappings = this.mappings;
       id = mappings.ocEncodeMap.get(objectClasses);
       if (id == null)
       {
@@ -376,7 +363,7 @@ public class CompressedSchema
     }
     finally
     {
-      (shared ? sharedLock : exclusiveLock).unlock();
+      exclusiveLock.unlock();
     }
   }
 
