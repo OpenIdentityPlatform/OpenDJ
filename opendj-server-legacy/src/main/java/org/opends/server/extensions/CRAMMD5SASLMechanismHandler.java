@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -81,11 +82,13 @@ public class CRAMMD5SASLMechanismHandler
   /** The identity mapper that will be used to map ID strings to user entries. */
   private IdentityMapper<?> identityMapper;
 
-  /** The message digest engine that will be used to create the MD5 digests. */
-  private MessageDigest md5Digest;
-
-  /** The lock that will be used to provide threadsafe access to the message digest. */
-  private Object digestLock;
+  /**
+   * The message digest engines that will be used to create the MD5 digests.
+   * MessageDigest is not thread-safe, so a per-thread instance is used
+   * instead of a shared instance guarded by a lock: hashing under a global
+   * lock serializes all concurrent CRAM-MD5 binds.
+   */
+  private ThreadLocal<MessageDigest> md5Digest;
 
   /** The random number generator that we will use to create the server challenge. */
   private SecureRandom randomGenerator;
@@ -109,12 +112,12 @@ public class CRAMMD5SASLMechanismHandler
     currentConfig = configuration;
 
     // Initialize the variables needed for the MD5 digest creation.
-    digestLock      = new Object();
     randomGenerator = new SecureRandom();
 
     try
     {
-      md5Digest = MessageDigest.getInstance("MD5");
+      // Fail fast at initialization time if the algorithm is unavailable.
+      MessageDigest.getInstance("MD5");
     }
     catch (Exception e)
     {
@@ -124,6 +127,17 @@ public class CRAMMD5SASLMechanismHandler
           ERR_SASLCRAMMD5_CANNOT_GET_MESSAGE_DIGEST.get(getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
+
+    md5Digest = ThreadLocal.withInitial(() -> {
+      try
+      {
+        return MessageDigest.getInstance("MD5");
+      }
+      catch (Exception e)
+      {
+        throw new IllegalStateException(e);
+      }
+    });
 
     // Create and fill the iPad and oPad arrays.
     iPad = new byte[HMAC_MD5_BLOCK_LENGTH];
@@ -427,40 +441,38 @@ public class CRAMMD5SASLMechanismHandler
     byte[] p = password.toByteArray();
     byte[] c = challenge.toByteArray();
 
-    // Grab a lock to protect the MD5 digest generation.
-    synchronized (digestLock)
+    MessageDigest md5Digest = this.md5Digest.get();
+
+    // If the password is longer than the HMAC-MD5 block length, then use an
+    // MD5 digest of the password rather than the password itself.
+    if (p.length > HMAC_MD5_BLOCK_LENGTH)
     {
-      // If the password is longer than the HMAC-MD5 block length, then use an
-      // MD5 digest of the password rather than the password itself.
-      if (p.length > HMAC_MD5_BLOCK_LENGTH)
-      {
-        p = md5Digest.digest(p);
-      }
-
-      // Create byte arrays with data needed for the hash generation.
-      byte[] iPadAndData = new byte[HMAC_MD5_BLOCK_LENGTH + c.length];
-      System.arraycopy(iPad, 0, iPadAndData, 0, HMAC_MD5_BLOCK_LENGTH);
-      System.arraycopy(c, 0, iPadAndData, HMAC_MD5_BLOCK_LENGTH, c.length);
-
-      byte[] oPadAndHash = new byte[HMAC_MD5_BLOCK_LENGTH + MD5_DIGEST_LENGTH];
-      System.arraycopy(oPad, 0, oPadAndHash, 0, HMAC_MD5_BLOCK_LENGTH);
-
-      // Iterate through the bytes in the key and XOR them with the iPad and
-      // oPad as appropriate.
-      for (int i=0; i < p.length; i++)
-      {
-        iPadAndData[i] ^= p[i];
-        oPadAndHash[i] ^= p[i];
-      }
-
-      // Copy an MD5 digest of the iPad-XORed key and the data into the array to
-      // be hashed.
-      System.arraycopy(md5Digest.digest(iPadAndData), 0, oPadAndHash,
-                       HMAC_MD5_BLOCK_LENGTH, MD5_DIGEST_LENGTH);
-
-      // Return an MD5 digest of the resulting array.
-      return md5Digest.digest(oPadAndHash);
+      p = md5Digest.digest(p);
     }
+
+    // Create byte arrays with data needed for the hash generation.
+    byte[] iPadAndData = new byte[HMAC_MD5_BLOCK_LENGTH + c.length];
+    System.arraycopy(iPad, 0, iPadAndData, 0, HMAC_MD5_BLOCK_LENGTH);
+    System.arraycopy(c, 0, iPadAndData, HMAC_MD5_BLOCK_LENGTH, c.length);
+
+    byte[] oPadAndHash = new byte[HMAC_MD5_BLOCK_LENGTH + MD5_DIGEST_LENGTH];
+    System.arraycopy(oPad, 0, oPadAndHash, 0, HMAC_MD5_BLOCK_LENGTH);
+
+    // Iterate through the bytes in the key and XOR them with the iPad and
+    // oPad as appropriate.
+    for (int i=0; i < p.length; i++)
+    {
+      iPadAndData[i] ^= p[i];
+      oPadAndHash[i] ^= p[i];
+    }
+
+    // Copy an MD5 digest of the iPad-XORed key and the data into the array to
+    // be hashed.
+    System.arraycopy(md5Digest.digest(iPadAndData), 0, oPadAndHash,
+                     HMAC_MD5_BLOCK_LENGTH, MD5_DIGEST_LENGTH);
+
+    // Return an MD5 digest of the resulting array.
+    return md5Digest.digest(oPadAndHash);
   }
 
   @Override
