@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.ldap;
 
@@ -182,6 +183,14 @@ public final class LDAPConnectionHandler extends
    * returning.
    */
   private final Object waitListen = new Object();
+
+  /**
+   * Condition predicate for {@link #waitListen}: set once the selector thread
+   * has attempted to open the listen channels (successfully or not). Guarded
+   * by the {@link #waitListen} monitor; protects the start method against
+   * spurious wakeups.
+   */
+  private boolean listenAttempted;
 
   /** The friendly name of this connection handler. */
   private String friendlyName;
@@ -814,12 +823,16 @@ public final class LDAPConnectionHandler extends
 
       try
       {
-        waitListen.wait();
+        while (!listenAttempted)
+        {
+          waitListen.wait();
+        }
       }
       catch (InterruptedException e)
       {
         // If something interrupted the start its probably better
         // to return ASAP.
+        Thread.currentThread().interrupt();
       }
     }
   }
@@ -859,6 +872,7 @@ public final class LDAPConnectionHandler extends
           synchronized (waitListen)
           {
             starting = false;
+            listenAttempted = true;
             waitListen.notify();
           }
         }
@@ -882,6 +896,7 @@ public final class LDAPConnectionHandler extends
         // should be notified and resume its work in any cases.
         synchronized (waitListen)
         {
+          listenAttempted = true;
           waitListen.notify();
         }
 
