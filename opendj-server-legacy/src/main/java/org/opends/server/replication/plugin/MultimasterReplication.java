@@ -98,6 +98,12 @@ public class MultimasterReplication
 
   private ReplicationServerListener replicationServerListener;
   private static final Map<DN, LDAPReplicationDomain> domains = new ConcurrentHashMap<>(4);
+  /**
+   * Shared stateless "continue processing" result: the provider hooks run for
+   * every operation, so avoid allocating a fresh result each time.
+   */
+  private static final SynchronizationProviderResult CONTINUE =
+      new SynchronizationProviderResult.ContinueProcessing();
   private static final DSRSShutdownSync dsrsShutdownSync = new DSRSShutdownSync();
   /** The queue of received update messages, to be treated by the ReplayThread threads. */
   private static final BlockingQueue<UpdateToReplay> updateToReplayQueue = new LinkedBlockingQueue<>(10000);
@@ -165,6 +171,15 @@ public class MultimasterReplication
             return null;
           }
         }
+    }
+
+    if (domains.isEmpty())
+    {
+      // The Multimaster Synchronization provider is enabled by default even
+      // on standalone servers with no replication domain configured: skip
+      // the walk to the suffix that every write operation would otherwise
+      // pay three times (conflict resolution, pre- and post-operation).
+      return null;
     }
 
     LDAPReplicationDomain domain = null;
@@ -406,7 +421,7 @@ public class MultimasterReplication
     {
       return domain.handleConflictResolution(modifyOperation);
     }
-    return new SynchronizationProviderResult.ContinueProcessing();
+    return CONTINUE;
   }
 
   @Override
@@ -418,7 +433,7 @@ public class MultimasterReplication
     {
       return domain.handleConflictResolution(addOperation);
     }
-    return new SynchronizationProviderResult.ContinueProcessing();
+    return CONTINUE;
   }
 
   @Override
@@ -430,7 +445,7 @@ public class MultimasterReplication
     {
       return domain.handleConflictResolution(deleteOperation);
     }
-    return new SynchronizationProviderResult.ContinueProcessing();
+    return CONTINUE;
   }
 
   @Override
@@ -442,7 +457,7 @@ public class MultimasterReplication
     {
       return domain.handleConflictResolution(modifyDNOperation);
     }
-    return new SynchronizationProviderResult.ContinueProcessing();
+    return CONTINUE;
   }
 
   @Override
@@ -454,7 +469,7 @@ public class MultimasterReplication
 
     if (domain == null || !domain.solveConflict())
     {
-      return new SynchronizationProviderResult.ContinueProcessing();
+      return CONTINUE;
     }
 
     EntryHistorical historicalInformation = (EntryHistorical)
@@ -479,14 +494,14 @@ public class MultimasterReplication
           ResultCode.SUCCESS, null);
     }
 
-    return new SynchronizationProviderResult.ContinueProcessing();
+    return CONTINUE;
   }
 
   @Override
   public SynchronizationProviderResult doPreOperation(
          PreOperationDeleteOperation deleteOperation) throws DirectoryException
   {
-    return new SynchronizationProviderResult.ContinueProcessing();
+    return CONTINUE;
   }
 
   @Override
@@ -499,7 +514,7 @@ public class MultimasterReplication
 
     if (domain == null || !domain.solveConflict())
     {
-      return new SynchronizationProviderResult.ContinueProcessing();
+      return CONTINUE;
     }
 
     // The historical object is retrieved from the attachment created
@@ -520,7 +535,7 @@ public class MultimasterReplication
     // Add to the operation the historical attribute : "dn:changeNumber:moddn"
     historicalInformation.setHistoricalAttrToOperation(modifyDNOperation);
 
-    return new SynchronizationProviderResult.ContinueProcessing();
+    return CONTINUE;
   }
 
   @Override
@@ -532,7 +547,7 @@ public class MultimasterReplication
       findDomain(addOperation.getEntryDN(), addOperation);
     if (domain == null)
     {
-      return new SynchronizationProviderResult.ContinueProcessing();
+      return CONTINUE;
     }
 
     // For LOCAL op only, generate CSN and attach Context
@@ -544,7 +559,7 @@ public class MultimasterReplication
     // Add to the operation the historical attribute : "dn:changeNumber:add"
     EntryHistorical.setHistoricalAttrToOperation(addOperation);
 
-    return new SynchronizationProviderResult.ContinueProcessing();
+    return CONTINUE;
   }
 
   @Override
