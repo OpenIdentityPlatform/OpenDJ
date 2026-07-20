@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -26,7 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -48,15 +49,21 @@ public class AciList {
 
   /**
    * A map containing all the ACIs.
-   * We use the copy-on-write technique to avoid locking when reading.
+   * We use the copy-on-write technique to avoid locking when reading:
+   * mutators build a copy of the map (with copied value lists), modify the
+   * copy and publish it through this volatile reference. A published map is
+   * never modified in place, so getCandidateAcis() can read it lock-free —
+   * it runs for every access-controlled operation, and even a read lock
+   * becomes a cross-core hotspot under load. Aci instances themselves are
+   * treated as immutable once published: the map and its value lists are
+   * the only mutable containers.
    */
   private volatile DITCacheMap<List<Aci>> aciList = new DITCacheMap<>();
 
   /**
-   * Lock to protect internal data structures.
+   * Lock serializing mutators (ACI additions, removals and renames are rare).
    */
-  private final ReentrantReadWriteLock lock =
-          new ReentrantReadWriteLock();
+  private final ReentrantLock lock = new ReentrantLock();
 
   /** The configuration DN used to compare against the global ACI entry DN. */
   private final DN configDN;
@@ -87,46 +94,56 @@ public class AciList {
       return candidates;
     }
 
-    lock.readLock().lock();
-    try
-    {
-      //Save the baseDN in case we need to evaluate a global ACI.
-      DN entryDN=baseDN;
-      while (baseDN != null) {
-        List<Aci> acis = aciList.get(baseDN);
-        if (acis != null) {
-          //Check if there are global ACIs. Global ACI has a NULL DN.
-          if (baseDN.isRootDN()) {
-            for (Aci aci : acis) {
-              AciTargets targets = aci.getTargets();
-              //If there is a target, evaluate it to see if this ACI should
-              //be included in the candidate set.
-              if (targets != null
-                  && AciTargets.isTargetApplicable(aci, targets, entryDN))
-              {
-                  candidates.add(aci);  //Add this ACI to the candidates.
-              }
+    // Lock-free read of the copy-on-write map: mutators never modify a
+    // published map or its value lists in place.
+    final DITCacheMap<List<Aci>> aciList = this.aciList;
+    //Save the baseDN in case we need to evaluate a global ACI.
+    DN entryDN=baseDN;
+    while (baseDN != null) {
+      List<Aci> acis = aciList.get(baseDN);
+      if (acis != null) {
+        //Check if there are global ACIs. Global ACI has a NULL DN.
+        if (baseDN.isRootDN()) {
+          for (Aci aci : acis) {
+            AciTargets targets = aci.getTargets();
+            //If there is a target, evaluate it to see if this ACI should
+            //be included in the candidate set.
+            if (targets != null
+                && AciTargets.isTargetApplicable(aci, targets, entryDN))
+            {
+                candidates.add(aci);  //Add this ACI to the candidates.
             }
-          } else {
-            candidates.addAll(acis);
           }
-        }
-        if(baseDN.isRootDN()) {
-          break;
-        }
-        DN parentDN=baseDN.parent();
-        if(parentDN == null) {
-          baseDN=DN.rootDN();
         } else {
-          baseDN=parentDN;
+          candidates.addAll(acis);
         }
       }
-      return candidates;
+      if(baseDN.isRootDN()) {
+        break;
+      }
+      DN parentDN=baseDN.parent();
+      if(parentDN == null) {
+        baseDN=DN.rootDN();
+      } else {
+        baseDN=parentDN;
+      }
     }
-    finally
+    return candidates;
+  }
+
+  /**
+   * Returns a copy of the current ACI map with copied value lists, suitable
+   * for mutation and subsequent publication through the volatile reference.
+   * Must be called while holding the write lock.
+   */
+  private DITCacheMap<List<Aci>> copyAciList()
+  {
+    DITCacheMap<List<Aci>> copy = new DITCacheMap<>();
+    for (Map.Entry<DN, List<Aci>> entry : aciList.entrySet())
     {
-      lock.readLock().unlock();
+      copy.put(entry.getKey(), new LinkedList<>(entry.getValue()));
     }
+    return copy;
   }
 
   /**
@@ -141,22 +158,24 @@ public class AciList {
   public int addAci(List<? extends Entry> entries,
                                  LinkedList<LocalizableMessage> failedACIMsgs)
   {
-    lock.writeLock().lock();
+    lock.lock();
     try
     {
+      DITCacheMap<List<Aci>> copy = copyAciList();
       int validAcis = 0;
       for (Entry entry : entries) {
         DN dn=entry.getName();
         List<Attribute> attributeList =
              entry.getOperationalAttribute(AciHandler.aciType);
-        validAcis += addAciAttributeList(aciList, dn, configDN,
+        validAcis += addAciAttributeList(copy, dn, configDN,
                                          attributeList, failedACIMsgs);
       }
+      aciList = copy;
       return validAcis;
     }
     finally
     {
-      lock.writeLock().unlock();
+      lock.unlock();
     }
   }
 
@@ -170,14 +189,16 @@ public class AciList {
    *
    */
   public void addAci(DN dn, SortedSet<Aci> acis) {
-    lock.writeLock().lock();
+    lock.lock();
     try
     {
-      aciList.put(dn, new LinkedList<>(acis));
+      DITCacheMap<List<Aci>> copy = copyAciList();
+      copy.put(dn, new LinkedList<>(acis));
+      aciList = copy;
     }
     finally
     {
-      lock.writeLock().unlock();
+      lock.unlock();
     }
   }
 
@@ -195,29 +216,31 @@ public class AciList {
   public int addAci(Entry entry, boolean hasAci,
                                  boolean hasGlobalAci,
                                  List<LocalizableMessage> failedACIMsgs) {
-    lock.writeLock().lock();
+    lock.lock();
     try
     {
+      DITCacheMap<List<Aci>> copy = copyAciList();
       int validAcis = 0;
       //Process global "ds-cfg-global-aci" attribute type. The oldentry
       //DN is checked to verify it is equal to the config DN. If not those
       //attributes are skipped.
       if(hasGlobalAci && entry.getName().equals(configDN)) {
           List<Attribute> attributeList = entry.getAllAttributes(globalAciType);
-          validAcis = addAciAttributeList(aciList, DN.rootDN(), configDN,
+          validAcis = addAciAttributeList(copy, DN.rootDN(), configDN,
                                           attributeList, failedACIMsgs);
       }
 
       if(hasAci) {
           List<Attribute> attributeList = entry.getAllAttributes(aciType);
-          validAcis += addAciAttributeList(aciList, entry.getName(), configDN,
+          validAcis += addAciAttributeList(copy, entry.getName(), configDN,
                                            attributeList, failedACIMsgs);
       }
+      aciList = copy;
       return validAcis;
     }
     finally
     {
-      lock.writeLock().unlock();
+      lock.unlock();
     }
   }
 
@@ -282,31 +305,33 @@ public class AciList {
                                              boolean hasAci,
                                              boolean hasGlobalAci) {
 
-    lock.writeLock().lock();
+    lock.lock();
     try
     {
+      DITCacheMap<List<Aci>> copy = copyAciList();
       List<LocalizableMessage> failedACIMsgs=new LinkedList<>();
       //Process "aci" attribute types.
       if(hasAci) {
-          aciList.remove(oldEntry.getName());
+          copy.remove(oldEntry.getName());
           List<Attribute> attributeList =
                   newEntry.getOperationalAttribute(aciType);
-          addAciAttributeList(aciList,newEntry.getName(), configDN,
+          addAciAttributeList(copy,newEntry.getName(), configDN,
                               attributeList, failedACIMsgs);
       }
       //Process global "ds-cfg-global-aci" attribute type. The oldentry
       //DN is checked to verify it is equal to the config DN. If not those
       //attributes are skipped.
       if(hasGlobalAci && oldEntry.getName().equals(configDN)) {
-          aciList.remove(DN.rootDN());
+          copy.remove(DN.rootDN());
           List<Attribute> attributeList = newEntry.getAllAttributes(globalAciType);
-          addAciAttributeList(aciList, DN.rootDN(), configDN,
+          addAciAttributeList(copy, DN.rootDN(), configDN,
                               attributeList, failedACIMsgs);
       }
+      aciList = copy;
     }
     finally
     {
-      lock.writeLock().unlock();
+      lock.unlock();
     }
   }
 
@@ -343,24 +368,28 @@ public class AciList {
    */
   public boolean removeAci(Entry entry,  boolean hasAci,
                                                       boolean hasGlobalAci) {
-    lock.writeLock().lock();
+    lock.lock();
     try
     {
+      DITCacheMap<List<Aci>> copy = copyAciList();
       DN entryDN = entry.getName();
       if (hasGlobalAci && entryDN.equals(configDN) &&
-          aciList.remove(DN.rootDN()) == null)
+          copy.remove(DN.rootDN()) == null)
       {
+        aciList = copy;
         return false;
       }
+      boolean result = true;
       if (hasAci || !hasGlobalAci)
       {
-        return aciList.removeSubtree(entryDN, null);
+        result = copy.removeSubtree(entryDN, null);
       }
-      return true;
+      aciList = copy;
+      return result;
     }
     finally
     {
-      lock.writeLock().unlock();
+      lock.unlock();
     }
   }
 
@@ -371,11 +400,12 @@ public class AciList {
    */
   public void removeAci(LocalBackend<?> backend) {
 
-    lock.writeLock().lock();
+    lock.lock();
     try
     {
+      DITCacheMap<List<Aci>> copy = copyAciList();
       Iterator<Map.Entry<DN,List<Aci>>> iterator =
-              aciList.entrySet().iterator();
+              copy.entrySet().iterator();
       while (iterator.hasNext())
       {
         Map.Entry<DN,List<Aci>> mapEntry = iterator.next();
@@ -384,10 +414,11 @@ public class AciList {
           iterator.remove();
         }
       }
+      aciList = copy;
     }
     finally
     {
-      lock.writeLock().unlock();
+      lock.unlock();
     }
   }
 
@@ -399,12 +430,13 @@ public class AciList {
    */
   public void renameAci(DN oldDN, DN newDN ) {
 
-    lock.writeLock().lock();
+    lock.lock();
     try
     {
+      DITCacheMap<List<Aci>> copy = copyAciList();
       Map<DN,List<Aci>> tempAciList = new HashMap<>();
       Iterator<Map.Entry<DN,List<Aci>>> iterator =
-              aciList.entrySet().iterator();
+              copy.entrySet().iterator();
       while (iterator.hasNext()) {
         Map.Entry<DN,List<Aci>> hashEntry = iterator.next();
         DN keyDn = hashEntry.getKey();
@@ -427,11 +459,12 @@ public class AciList {
           iterator.remove();
         }
       }
-      aciList.putAll(tempAciList);
+      copy.putAll(tempAciList);
+      aciList = copy;
     }
     finally
     {
-      lock.writeLock().unlock();
+      lock.unlock();
     }
   }
 }
