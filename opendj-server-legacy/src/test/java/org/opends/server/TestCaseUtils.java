@@ -14,7 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2013 Manuel Gaupp
- * Portions Copyright 2018-2025 3A Systems, LLC
+ * Portions Copyright 2018-2026 3A Systems, LLC
  */
 package org.opends.server;
 
@@ -68,6 +68,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.LogManager;
@@ -119,6 +120,7 @@ import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFReader;
+import org.opends.server.util.TestTimer;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
@@ -327,6 +329,7 @@ public final class TestCaseUtils {
       setupLoggers();
       writeBuildInfoFile();
       server.start();
+      waitForLdapListener();
       assertTrue(InvocationCounterPlugin.startupCalled());
       // Save config.ldif for when we restart the server
       backupServerConfigLdif();
@@ -607,6 +610,7 @@ public final class TestCaseUtils {
       restoreServerConfigLdif();
 
       server.start();
+      waitForLdapListener();
 
       clearJEBackends();
       initializeTestBackend(true);
@@ -623,6 +627,38 @@ public final class TestCaseUtils {
       e.printStackTrace(originalSystemErr);
       throw e;
     }
+  }
+
+  /**
+   * Waits until the LDAP connection handler actually accepts TCP connections.
+   * {@code LDAPConnectionHandler.start()} may return before the listen
+   * channel is bound (e.g. after an early wakeup of its wait-for-listen
+   * handshake), so the very first connection made right after a server
+   * (re)start could otherwise be refused.
+   */
+  private static void waitForLdapListener() throws Exception
+  {
+    new TestTimer.Builder()
+        .maxSleep(10, TimeUnit.SECONDS)
+        .sleepTimes(100, TimeUnit.MILLISECONDS)
+        .toTimer()
+        .repeatUntilSuccess(new TestTimer.CallableVoid()
+        {
+          @Override
+          public void call() throws Exception
+          {
+            try (Socket s = new Socket())
+            {
+              s.connect(new InetSocketAddress("127.0.0.1", getServerLdapPort()), 500);
+            }
+            catch (IOException e)
+            {
+              // repeatUntilSuccess() only retries on assertion errors.
+              throw new AssertionError("LDAP port " + getServerLdapPort()
+                  + " is not accepting connections yet", e);
+            }
+          }
+        });
   }
 
   /**
