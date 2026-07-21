@@ -13,12 +13,14 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.plugins;
 
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.PluginMessages.*;
 
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -55,8 +57,47 @@ public final class EntryUUIDPlugin
 {
   /** The attribute type for the "entryUUID" attribute. */
   private static final AttributeType entryUUIDType = getEntryUUIDAttributeType();
+
+  /**
+   * Per-thread random source for entryUUID generation. This plugin runs for
+   * every LDAP add, and {@code UUID.randomUUID()} draws from a single shared
+   * {@code SecureRandom} whose engine is synchronized, serializing all
+   * concurrent adds on one monitor.
+   */
+  private static final ThreadLocal<SecureRandom> RANDOM = new ThreadLocal<SecureRandom>()
+  {
+    @Override
+    protected SecureRandom initialValue()
+    {
+      return new SecureRandom();
+    }
+  };
+
   /** The current configuration for this plugin. */
   private EntryUUIDPluginCfg currentConfig;
+
+  /**
+   * Returns a version 4 (random) UUID per RFC 4122, equivalent to
+   * {@code UUID.randomUUID()} but drawn from a per-thread random source.
+   */
+  private static UUID newRandomUUID()
+  {
+    final byte[] data = new byte[16];
+    RANDOM.get().nextBytes(data);
+    data[6] = (byte) ((data[6] & 0x0f) | 0x40); // version 4
+    data[8] = (byte) ((data[8] & 0x3f) | 0x80); // IETF variant
+    long msb = 0;
+    long lsb = 0;
+    for (int i = 0; i < 8; i++)
+    {
+      msb = (msb << 8) | (data[i] & 0xff);
+    }
+    for (int i = 8; i < 16; i++)
+    {
+      lsb = (lsb << 8) | (data[i] & 0xff);
+    }
+    return new UUID(msb, lsb);
+  }
 
   /** Mandatory default constructor of this Directory Server plugin. */
   public EntryUUIDPlugin()
@@ -129,7 +170,7 @@ public final class EntryUUIDPlugin
     }
 
     // Construct a new random UUID.
-    addOperation.setAttribute(entryUUIDType, toAttributeList(UUID.randomUUID()));
+    addOperation.setAttribute(entryUUIDType, toAttributeList(newRandomUUID()));
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 
