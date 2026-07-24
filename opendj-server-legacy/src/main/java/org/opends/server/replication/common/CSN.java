@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.common;
 
@@ -319,11 +320,11 @@ public class CSN implements Serializable, Comparable<CSN>
     }
     else if (csn1.seqnum != csn2.seqnum)
     {
-      return csn1.seqnum - csn2.seqnum;
+      return Integer.compare(csn1.seqnum, csn2.seqnum);
     }
     else
     {
-      return csn1.serverId - csn2.serverId;
+      return Integer.compare(csn1.serverId, csn2.serverId);
     }
   }
 

@@ -499,7 +499,11 @@ public final class ByteSequenceReader {
      *             of the underlying byte sequence.
      */
     public void skip(final int length) {
-        position(pos + length);
+        final long newPos = (long) pos + length;
+        if (newPos < 0 || newPos > sequence.length()) {
+            throw new IndexOutOfBoundsException();
+        }
+        position((int) newPos);
     }
 
     @Override
