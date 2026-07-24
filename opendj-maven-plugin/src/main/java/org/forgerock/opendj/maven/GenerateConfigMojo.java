@@ -245,6 +245,15 @@ public final class GenerateConfigMojo extends AbstractMojo {
         createTransformTask(inputFactory, output, stylesheet, executor, parameters);
     }
 
+    /** Resolves a file name against an output directory, refusing names which escape it. */
+    private static String safeOutputPath(final String outputDir, final String fileName) throws IOException {
+        final File outputFile = new File(outputDir, fileName);
+        if (!outputFile.toPath().normalize().startsWith(new File(outputDir).toPath().normalize())) {
+            throw new IOException("File name '" + fileName + "' is outside of the output directory");
+        }
+        return outputFile.getPath();
+    }
+
     private void executeTransformXMLDefinitions() throws Exception {
         getLog().info("Transforming XML definitions...");
 
@@ -282,24 +291,24 @@ public final class GenerateConfigMojo extends AbstractMojo {
 
             for (final Map.Entry<String, StreamSourceFactory> entry : componentDescriptors
                     .entrySet()) {
-                final String meta = metaDir + entry.getKey() + "CfgDefn.java";
+                final String meta = safeOutputPath(metaDir, entry.getKey() + "CfgDefn.java");
                 createTransformTask(entry.getValue(), meta, stylesheetMetaJava, parallelExecutor);
 
-                final String server = serverDir + entry.getKey() + "Cfg.java";
+                final String server = safeOutputPath(serverDir, entry.getKey() + "Cfg.java");
                 createTransformTask(entry.getValue(), server, stylesheetServerJava,
                         parallelExecutor);
 
-                final String client = clientDir + entry.getKey() + "CfgClient.java";
+                final String client = safeOutputPath(clientDir, entry.getKey() + "CfgClient.java");
                 createTransformTask(entry.getValue(), client, stylesheetClientJava,
                         parallelExecutor);
 
-                final String ldap = ldapProfileDir + entry.getKey() + "CfgDefn.properties";
+                final String ldap = safeOutputPath(ldapProfileDir, entry.getKey() + "CfgDefn.properties");
                 createTransformTask(entry.getValue(), ldap, stylesheetProfileLDAP, parallelExecutor);
 
-                final String cli = cliProfileDir + entry.getKey() + "CfgDefn.properties";
+                final String cli = safeOutputPath(cliProfileDir, entry.getKey() + "CfgDefn.properties");
                 createTransformTask(entry.getValue(), cli, stylesheetProfileCLI, parallelExecutor);
 
-                final String i18n = i18nDir + entry.getKey() + "CfgDefn.properties";
+                final String i18n = safeOutputPath(i18nDir, entry.getKey() + "CfgDefn.properties");
                 createTransformTask(entry.getValue(), i18n, stylesheetMessages, parallelExecutor);
 
                 createTransformTask(entry.getValue(), manifest, stylesheetManifest,

@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.util;
 
@@ -200,6 +201,10 @@ public class ZipExtractor {
         if (name != null && name.length() > 0) {
           try {
             File destination = new File(destDir, name);
+            if (!destination.toPath().normalize().startsWith(new File(destDir).toPath().normalize())) {
+              throw new IOException("Zip entry '" + entry.getName()
+                      + "' is outside of the destination directory");
+            }
             copyZipEntry(entry, destination, zipIn,
                     ratioBeforeCompleted, ratioWhenCompleted, permissions);
           } catch (IOException ioe) {

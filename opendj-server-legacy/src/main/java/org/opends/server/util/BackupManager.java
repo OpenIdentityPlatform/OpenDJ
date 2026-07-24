@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
@@ -1098,7 +1099,11 @@ public class BackupManager
     private void restoreZipEntry(String zipEntryName, ZipInputStream zipStream, Path restoreDir,
         RestoreConfig restoreConfig) throws IOException, DirectoryException
     {
-      Path fileToRestore = restoreDir.resolve(zipEntryName);
+      Path fileToRestore = restoreDir.resolve(zipEntryName).normalize();
+      if (!fileToRestore.startsWith(restoreDir.normalize()))
+      {
+        throw new IOException("Zip entry '" + zipEntryName + "' is outside of the restore directory");
+      }
       ensureFileCanBeRestored(fileToRestore);
 
       try (OutputStream outputStream = new FileOutputStream(fileToRestore.toFile()))

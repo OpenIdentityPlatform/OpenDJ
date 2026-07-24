@@ -2541,6 +2541,10 @@ public final class StaticUtils
       while ((fileEntry = zipStream.getNextEntry()) != null)
       {
         File targetFile = new File(targetDirectory.getPath(), fileEntry.getName());
+        if (!targetFile.toPath().normalize().startsWith(targetDirectory.toPath().normalize()))
+        {
+          throw new IOException("Zip entry '" + fileEntry.getName() + "' is outside of the target directory");
+        }
 
         if (fileEntry.isDirectory())
         {
