@@ -22,8 +22,10 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <io.h>
+#include <share.h>
 #include <stdio.h>
 #include <sys/locking.h>
+#include <sys/stat.h>
 #include <time.h>
 
 BOOL DEBUG = TRUE;
@@ -260,6 +262,7 @@ void debugInner(BOOL isError, const char *msg, va_list ap)
   // The file containing the log.
   char * logFile;
   FILE *fp;
+  int fd;
 	time_t rawtime;
   struct tm timeinfo;
   char formattedTime[100];
@@ -279,7 +282,20 @@ void debugInner(BOOL isError, const char *msg, va_list ap)
   
   logFile = getDebugLogFileName();
   deleteIfLargerThan(logFile, MAX_DEBUG_LOG_SIZE);
-  if ((fp = fopen(logFile, "a")) != NULL)
+  // Create the log file readable and writable by the owner only, while
+  // keeping the shareable append behavior that fopen provides.
+  fp = NULL;
+  fd = -1;
+  if ((_sopen_s(&fd, logFile, _O_WRONLY | _O_APPEND | _O_CREAT | _O_TEXT,
+      _SH_DENYNO, _S_IREAD | _S_IWRITE) == 0) && (fd != -1))
+  {
+    fp = _fdopen(fd, "a");
+    if (fp == NULL)
+    {
+      _close(fd);
+    }
+  }
+  if (fp != NULL)
   {
     fprintf(fp, "%s: (pid=%d)  ", formattedTime, currentProcessPid);
     if (isError) 
@@ -442,4 +458,36 @@ BOOL isExistingDirectory(char * fileName)
 BOOL isSafePath(const char* path)
 {
   return (path != NULL) && (strstr(path, "..") == NULL);
+}
+
+// ---------------------------------------------------------------
+// See common.h for the contract of this function.
+// ---------------------------------------------------------------
+char* getCanonicalDirectoryPath(const char* path)
+{
+  char canonical[MAX_PATH];
+  DWORD length;
+
+  if (path == NULL)
+  {
+    return NULL;
+  }
+
+  // Let the operating system resolve the absolute path, removing any
+  // relative components such as "." and "..".
+  length = GetFullPathName(path, MAX_PATH, canonical, NULL);
+  if ((length == 0) || (length >= MAX_PATH))
+  {
+    debugError("Could not resolve the path '%s'.  Last error = %d.",
+        path, GetLastError());
+    return NULL;
+  }
+
+  if (!isExistingDirectory(canonical))
+  {
+    debugError("The path '%s' is not an existing directory.", canonical);
+    return NULL;
+  }
+
+  return _strdup(canonical);
 }
