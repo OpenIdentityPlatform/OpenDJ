@@ -232,7 +232,7 @@ BOOL createPidFile(const char* instanceDir, int pid)
 {
   BOOL returnValue = FALSE;
   char pidFile[PATH_SIZE];
-  FILE *f;
+  FILE *f = NULL;
 
   debug("createPidFile(instanceDir='%s',pid=%d)", instanceDir, pid);
 
