@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -231,7 +232,9 @@ public class DatabaseMonitoringTableModel extends SortableTableModel implements 
     {
       boolean valueSet = false;
       boolean notImplemented = false;
-      long totalValue = 0;
+      // Accumulate in a double so that decimal column values are not silently
+      // truncated when added to the running total.
+      double totalValue = 0;
       for (String[] l : dataArray)
       {
         String value = l[i];
@@ -261,7 +264,11 @@ public class DatabaseMonitoringTableModel extends SortableTableModel implements 
       }
       else if (valueSet)
       {
-        line[i] = String.valueOf(totalValue);
+        // Render whole totals as integers (as before) and keep the fractional
+        // part only when the summed column actually carried decimal values.
+        line[i] = totalValue == Math.rint(totalValue) && !Double.isInfinite(totalValue)
+            ? String.valueOf((long) totalValue)
+            : String.valueOf(totalValue);
       }
       else
       {
