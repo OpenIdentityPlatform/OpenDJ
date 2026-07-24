@@ -16,6 +16,9 @@
  * Portions Copyright 2026 3A Systems, LLC.
  */
 
+#ifndef OPENDJ_WINDOWS_SERVICE_H
+#define OPENDJ_WINDOWS_SERVICE_H
+
 #include "common.h"
 #include <errno.h>
 #include <fcntl.h>
@@ -99,4 +102,6 @@ ServiceReturnCode updateServiceStatus (
 ServiceReturnCode doStartApplication(SERVICE_STATUS_HANDLE *serviceStatusHandle, DWORD *checkPoint);
 void serviceHandler(DWORD controlCode);
 BOOL getServiceStatus(char *serviceName, LPDWORD returnState);
+
+#endif // OPENDJ_WINDOWS_SERVICE_H
 

@@ -13,10 +13,12 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 #include "common.h"
 #include "service.h"
+#include <direct.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <io.h>
@@ -112,7 +114,7 @@ PROCESS_INFORMATION* procInfo)
     debug("createBatchFileChildProcess: the batch file path is too long.");
 	return FALSE;
   }
-  sprintf(command, "/c %s", batchFile);
+  _snprintf(command, COMMAND_SIZE, "/c %s", batchFile);
   debug("createBatchFileChildProcess: Attempting to create child process '%s' background=%d.",
 	  command,
       background);
@@ -259,7 +261,7 @@ void debugInner(BOOL isError, const char *msg, va_list ap)
   char * logFile;
   FILE *fp;
 	time_t rawtime;
-  struct tm * timeinfo;
+  struct tm timeinfo;
   char formattedTime[100];
   
   if (noMessageLogged)
@@ -272,8 +274,8 @@ void debugInner(BOOL isError, const char *msg, va_list ap)
 
   // Time-stamp
   time(&rawtime);
-  timeinfo = localtime(&rawtime);
-  strftime(formattedTime, 100, "%Y/%m/%d %H:%M:%S", timeinfo);
+  localtime_s(&timeinfo, &rawtime);
+  strftime(formattedTime, 100, "%Y/%m/%d %H:%M:%S", &timeinfo);
   
   logFile = getDebugLogFileName();
   deleteIfLargerThan(logFile, MAX_DEBUG_LOG_SIZE);
@@ -341,16 +343,24 @@ char * getDebugLogFileName()
   
   // If the log folder doesn's exist in the instance path
   // we create the log file in the temp directory.
-  if (isExistingDirectory(logpath)) 
+  if (isExistingDirectory(logpath))
   {
-    sprintf(path, "%s\\logs\\%s", execName, DEBUG_LOG_NAME);
+    _snprintf(path, MAX_PATH, "%s\\logs\\%s", execName, DEBUG_LOG_NAME);
+  } else if (isSafePath(temp)) {
+    // Build the log path in a local buffer instead of mutating the
+    // buffer returned by getenv(), which is not safe to extend in place.
+    char tempLogDir[MAX_PATH];
+    _snprintf(tempLogDir, MAX_PATH, "%s\\logs\\", temp);
+    _mkdir(tempLogDir);
+    _snprintf(path, MAX_PATH, "%s%s", tempLogDir, DEBUG_LOG_NAME);
+    file = fopen(path, "a+");
+    if (file != NULL)
+    {
+      fclose(file);
+    }
   } else {
-    strcat(temp, "\\logs\\");
-    mkdir(temp);
-    strcat(temp, DEBUG_LOG_NAME);
-    file = fopen(temp,"a+");
-    fclose(file);
-    sprintf(path, "%s", temp);
+    // TEMP is unset or unsafe: fall back to just the log file name.
+    _snprintf(path, MAX_PATH, "%s", DEBUG_LOG_NAME);
   }
 
   logFile = _strdup(path);
@@ -415,6 +425,16 @@ BOOL isExistingDirectory(char * fileName)
 {
   DWORD str = GetFileAttributes(fileName);
 
-  return (str != INVALID_FILE_ATTRIBUTES && 
+  return (str != INVALID_FILE_ATTRIBUTES &&
          (str & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+// ---------------------------------------------------------------
+// Returns TRUE if the given path is non-NULL and does not contain a
+// parent-directory reference ("..") that could be used to escape the
+// intended directory (path traversal), FALSE otherwise.
+// ---------------------------------------------------------------
+BOOL isSafePath(const char* path)
+{
+  return (path != NULL) && (strstr(path, "..") == NULL);
 }

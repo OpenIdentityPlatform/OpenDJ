@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 #include "winlauncher.h"
@@ -29,9 +30,14 @@ BOOL getPidFile(const char* instanceDir, char* pidFile, unsigned int maxSize)
 
   debug("Attempting to get the PID file for instanceDir='%s'", instanceDir);
 
-  if ((strlen(relativePath) + strlen(instanceDir)) < maxSize)
+  if (!isSafePath(instanceDir))
   {
-    sprintf(pidFile, "%s\\logs\\server.pid", instanceDir);
+    debugError("Unable to get the PID file name because the instance dir is not a safe path.");
+    returnValue = FALSE;
+  }
+  else if ((strlen(relativePath) + strlen(instanceDir)) < maxSize)
+  {
+    _snprintf(pidFile, maxSize, "%s\\logs\\server.pid", instanceDir);
     returnValue = TRUE;
     debug("PID file name is '%s'.", pidFile);
   }
@@ -283,7 +289,7 @@ BOOL getCommandLine(const char* argv[], char* command, unsigned int maxSize)
     {
       if (curCmdInd + strlen(" ") < maxSize)
       {
-        sprintf (&command[curCmdInd], " ");
+        _snprintf (&command[curCmdInd], maxSize - curCmdInd, " ");
         curCmdInd = strlen(command);
       }
       else
@@ -314,7 +320,7 @@ BOOL getCommandLine(const char* argv[], char* command, unsigned int maxSize)
         if (curCmdInd + strlen("\"\"") + strlen(curarg) < maxSize)
         {
           // no begining quote and white space inside => add quotes
-          sprintf (&command[curCmdInd], "\"%s\"", curarg);
+          _snprintf (&command[curCmdInd], maxSize - curCmdInd, "\"%s\"", curarg);
           curCmdInd = strlen (command);
         }
         else
@@ -327,7 +333,7 @@ BOOL getCommandLine(const char* argv[], char* command, unsigned int maxSize)
         if (curCmdInd + strlen(curarg) < maxSize)
         {
           // no white space or quotes detected, keep the arg as is
-          sprintf (&command[curCmdInd], "%s", curarg);
+          _snprintf (&command[curCmdInd], maxSize - curCmdInd, "%s", curarg);
           curCmdInd = strlen (command);
         }
         else
@@ -339,7 +345,7 @@ BOOL getCommandLine(const char* argv[], char* command, unsigned int maxSize)
     } else {
       if (curCmdInd + strlen("\"\"") < maxSize)
       {
-        sprintf (&command[curCmdInd], "\"\"");
+        _snprintf (&command[curCmdInd], maxSize - curCmdInd, "\"\"");
         curCmdInd = strlen (command);
       }
       else
