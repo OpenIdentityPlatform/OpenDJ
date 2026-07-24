@@ -17,6 +17,7 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2013-2015 ForgeRock AS.
+# Portions Copyright 2025-2026 3A Systems, LLC
 
 
 # chkconfig: 2345 80 05
@@ -36,27 +37,37 @@
 #                    simplest and fastest directory servers to deploy and manage.
 ### END INIT INFO
 
-# Set up source function library depending on the distribution
-if [ -f /etc/redhat-release ] ; then
-    # Redhat
+# Set up the source function library by checking which one actually exists
+# (detecting the distribution is not enough: e.g. a RHEL-family system without
+# the optional initscripts package has /etc/redhat-release but no functions).
+if [ -f /etc/init.d/functions ] ; then
+    # RedHat-family (initscripts)
     . /etc/init.d/functions
     LOCKFILE=/var/lock/subsys/opendj
-elif [ -f /etc/SuSE-release ] ; then
+elif [ -f /etc/rc.status ] ; then
     # SuSE
     . /etc/rc.status
     LOCKFILE=/var/run/rcopendj
-elif [ -f /etc/lsb-release ] || lsb_release -a >/dev/null 2>&1 ; then
-    # Debian
-    # On Debian 8 the file /etc/lsb-release does not exist. The lsb_release command may be used instead.
+elif [ -f /lib/lsb/init-functions ] ; then
+    # Debian/LSB
     . /lib/lsb/init-functions
     LOCKFILE=/var/lock/opendj
 elif [ -f /etc/init.d/functions.sh ] ; then
     # Other dist.
     . /etc/init.d/functions.sh
     LOCKFILE=/tmp/unused-lockfile-opendj
+else
+    # No init function library: the script is self-contained anyway.
+    LOCKFILE=/tmp/opendj.lockfile
 fi
 # LOCKFILE is used by the service subsystem to know whether the opendj service is started and act upon it
 
+
+# Optional admin overrides (OPENDJ_JAVA_HOME / OPENDJ_JAVA_BIN / OPENDJ_JAVA_ARGS).
+# Exported so they survive the runuser switch to the service account in run_as().
+[ -r /etc/default/opendj ] && . /etc/default/opendj
+[ -r /etc/sysconfig/opendj ] && . /etc/sysconfig/opendj
+export OPENDJ_JAVA_HOME OPENDJ_JAVA_BIN OPENDJ_JAVA_ARGS
 
 # Sets the script vars
 INSTALL_ROOT="/opt/opendj"
@@ -67,8 +78,24 @@ DAEMON=opendj
 ORIGINPIDFILE=/opt/opendj/logs/server.pid
 
 # Pid file is a symlink to /opt/opendj/log/server.pid
-PIDFILE=/var/run/opendj.pid
+# /run is the canonical location (/var/run is a compatibility symlink to it).
+PIDFILE=/run/opendj.pid
 RETVAL=0
+
+# The dedicated service account the server runs as (created by the package).
+RUNASUSER=opendj
+
+# Runs the given command as $RUNASUSER when that account exists and we are root;
+# otherwise runs it as the current user (keeps old root-only installs working).
+run_as() {
+    if [ "$(id -un)" = "$RUNASUSER" ] || ! getent passwd "$RUNASUSER" >/dev/null 2>&1 ; then
+        "$@"
+    elif command -v runuser >/dev/null 2>&1 ; then
+        runuser -u "$RUNASUSER" -- "$@"
+    else
+        su -s /bin/sh "$RUNASUSER" -c "$(while [ "$#" -gt 0 ]; do printf '%s ' "$1"; shift; done)"
+    fi
+}
 
 # If the daemon is not there, then exit / LSB return code.
 test -x "$INSTALL_ROOT/bin/start-ds" || exit 5
@@ -98,7 +125,7 @@ start() {
         echo "> Already running."
         return 0
     else
-        "$INSTALL_ROOT"/bin/start-ds --quiet
+        run_as "$INSTALL_ROOT"/bin/start-ds --quiet
         RETVAL=$?
         if [ $RETVAL = 0 ] ; then
             touch $LOCKFILE
@@ -123,7 +150,7 @@ stop() {
     if [ -e $PIDFILE ]
     then
         # Server is running
-        "$INSTALL_ROOT"/bin/stop-ds --quiet
+        run_as "$INSTALL_ROOT"/bin/stop-ds --quiet
         RETVAL=$?
         if [ $RETVAL = 0 ] ; then
             echo "> SUCCESS."

@@ -13,18 +13,21 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2013-2015 ForgeRock AS.
+# Portions Copyright 2026 3A Systems, LLC
 
 # ===================================
 # RPM Post Uninstall Script (%postun)
 # ===================================
 
-# If the first argument to %preun and %postun is 0, the action is uninstallation.
-# If the first argument to %preun and %postun is 1, the action is an upgrade.
+# $1 is 0 for an uninstallation and 1 for an upgrade.
 
-if [ "$1" == "0" ] ; then
+if [ -d /run/systemd/system ] ; then
+    systemctl daemon-reload >/dev/null 2>&1 || true
+fi
+
+if [ "$1" = "0" ] ; then
     echo "Post Uninstall - uninstall"
     echo "OpenDJ successfully removed."
-else if [ "$1" == "1" ] ; then
+elif [ "$1" = "1" ] ; then
     echo "Post Uninstall - upgrade uninstall"
-    fi
 fi

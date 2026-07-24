@@ -434,48 +434,26 @@ You can install OpenDJ in unattended and silent fashion, too. See the procedure,
 ====
 On Debian and related Linux distributions such as Ubuntu, you can install OpenDJ directory server from the Debian package:
 
-. (Optional)  Before you install OpenDJ, install a Java runtime environment if none is installed yet:
-+
-
-[source, console]
-----
-$ sudo apt-get install default-jre
-----
-
-. Install the OpenDJ directory server package:
+. Install the OpenDJ directory server package. Use `apt-get install ./<file>.deb` (rather than `dpkg -i`) so the required Java runtime dependency (`default-jre-headless`) is resolved and installed automatically:
 +
 
 [source, console, subs="attributes"]
 ----
-$ sudo dpkg -i opendj_{opendj-version}-1_all.deb
-Selecting previously unselected package opendj.
-(Reading database ... 185569 files and directories currently installed.)
-Unpacking opendj (from opendj_{opendj-version}-1_all.deb) ...
-
-Setting up opendj ({opendj-version}) ...
- Adding system startup for /etc/init.d/opendj ...
-   /etc/rc0.d/K20opendj -> ../init.d/opendj
-   /etc/rc1.d/K20opendj -> ../init.d/opendj
-   /etc/rc6.d/K20opendj -> ../init.d/opendj
-   /etc/rc2.d/S20opendj -> ../init.d/opendj
-   /etc/rc3.d/S20opendj -> ../init.d/opendj
-   /etc/rc4.d/S20opendj -> ../init.d/opendj
-   /etc/rc5.d/S20opendj -> ../init.d/opendj
-
-Processing triggers for ureadahead ...
-ureadahead will be reprofiled on next reboot
+$ sudo apt-get install ./opendj_{opendj-version}-1_all.deb
 ----
 +
-The Debian package installs OpenDJ directory server in the `/opt/opendj` directory, generates service management scripts, adds documentation files under `/usr/share/doc/opendj`, and adds man pages under `/opt/opendj/share/man`.
+The Debian package installs OpenDJ directory server in the `/opt/opendj` directory, registers the service with systemd (`opendj.service`, with a SysV init script kept as a fallback on non-systemd hosts), adds documentation files under `/usr/share/doc/opendj`, and adds man pages under `/opt/opendj/share/man`.
 +
-The files are owned by root by default, making it easier to have OpenDJ listen on ports 389 and 636.
+The package creates a dedicated `opendj` system user; the files under `/opt/opendj` are owned by it and the service runs as that user. The systemd service is granted `CAP_NET_BIND_SERVICE`, so it can bind privileged ports such as LDAP 389 and LDAPS 636 even though it runs as a non-root user. On non-systemd hosts that use the SysV init script, grant the capability another way (for example `authbind` or an `iptables` redirect) or use ports above 1024.
++
+To pin or override the Java runtime used by the service, set `OPENDJ_JAVA_HOME` (or `OPENDJ_JAVA_ARGS`) in `/etc/default/opendj`.
 
-. Configure OpenDJ directory server by using the command `sudo /opt/opendj/setup`:
+. Configure OpenDJ directory server by running `setup` as the `opendj` user (the account that owns the files and runs the service):
 +
 
 [source, console]
 ----
-$ sudo /opt/opendj/setup --cli
+$ sudo -u opendj /opt/opendj/setup --cli
 ...
 To see basic server configuration status and configuration you can launch
  /opt/opendj/bin/status
@@ -486,9 +464,9 @@ To see basic server configuration status and configuration you can launch
 
 [source, console, subs="attributes"]
 ----
-$ service opendj status
-opendj status: > Running.
-$ sudo /opt/opendj/bin/status
+$ systemctl is-active opendj
+active
+$ sudo -u opendj /opt/opendj/bin/status
 
 
 >>>> Specify OpenDJ LDAP connection parameters
@@ -543,38 +521,28 @@ Password:
 #
 ----
 
-. Before you install OpenDJ, install a Java runtime environment if none is installed yet.
-+
-You might need to download an RPM to install the Java runtime environment, and then install the RPM by using the `rpm` command:
-+
-
-[source, console]
-----
-# rpm -ivh jre-*.rpm
-----
-
-. Install the OpenDJ directory server package:
+. Install the OpenDJ directory server package. Use `dnf install ./<file>.rpm` (rather than `rpm -i`) so the required Java runtime dependency (`java-headless >= 11`) is resolved and installed automatically:
 +
 
 [source, console, subs="attributes"]
 ----
-# rpm -i opendj-{opendj-version}-1.noarch.rpm
+# dnf install ./opendj-{opendj-version}-1.noarch.rpm
 Pre Install - initial install
 Post Install - initial install
-
-#
 ----
 +
-The RPM package installs OpenDJ directory server in the `/opt/opendj` directory, generates service management scripts, and adds man pages under `/opt/opendj/share/man`.
+The RPM package installs OpenDJ directory server in the `/opt/opendj` directory, registers the service with systemd (`opendj.service`, with a SysV init script kept as a fallback on non-systemd hosts), and adds man pages under `/opt/opendj/share/man`.
 +
-The files are owned by root by default, making it easier to have OpenDJ listen on ports 389 and 636.
+The package creates a dedicated `opendj` system user; the files under `/opt/opendj` are owned by it and the service runs as that user. The systemd service is granted `CAP_NET_BIND_SERVICE`, so it can bind privileged ports such as LDAP 389 and LDAPS 636 even though it runs as a non-root user. On non-systemd hosts that use the SysV init script, grant the capability another way (for example `authbind` or an `iptables` redirect) or use ports above 1024.
++
+To pin or override the Java runtime used by the service, set `OPENDJ_JAVA_HOME` (or `OPENDJ_JAVA_ARGS`) in `/etc/sysconfig/opendj`.
 
-. Configure OpenDJ directory server by using the command `/opt/opendj/setup`:
+. Configure OpenDJ directory server by running `setup` as the `opendj` user (the account that owns the files and runs the service):
 +
 
 [source, console]
 ----
-# /opt/opendj/setup --cli
+# runuser -u opendj -- /opt/opendj/setup --cli
 ...
 To see basic server configuration status and configuration you can launch
  /opt/opendj/bin/status
@@ -585,9 +553,9 @@ To see basic server configuration status and configuration you can launch
 
 [source, console, subs="attributes"]
 ----
-# service opendj status
-opendj status: > Running.
-# /opt/opendj/bin/status
+# systemctl is-active opendj
+active
+# runuser -u opendj -- /opt/opendj/bin/status
 
 
 >>>> Specify OpenDJ LDAP connection parameters
@@ -625,14 +593,13 @@ Entries:     2002
 Replication:
 ----
 +
-By default OpenDJ starts in run levels 2, 3, 4, and 5:
+The service is enabled to start at boot:
 +
 
 [source, console]
 ----
-# chkconfig --list | grep opendj
-...
-opendj         0:off    1:off    2:on    3:on    4:on    5:on    6:off
+# systemctl is-enabled opendj
+enabled
 ----
 
 ====

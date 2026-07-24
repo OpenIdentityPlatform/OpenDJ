@@ -13,25 +13,29 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2013-2015 ForgeRock AS.
+# Portions Copyright 2026 3A Systems, LLC
 
 # =============================
 # RPM Pre Install Script (%pre)
 # =============================
 
-# If the first argument to %pre is 1, the RPM operation is an initial installation.
-# If the argument to %pre is 2, the operation is an upgrade from an existing version to a new one.
+# $1 is 1 for an initial installation and 2 for an upgrade.
 
-if [ "$1" == "1" ]; then
-    echo "Pre Install - initial install"
-else if [ "$1" == "2" ] ; then
-    # Only if the instance has been configured
-    if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ] ; then
+# Create the dedicated system user/group that runs the service.
+getent group opendj >/dev/null || groupadd -r opendj
+getent passwd opendj >/dev/null || \
+    useradd -r -g opendj -d "%{_prefix}" -s /sbin/nologin -c "OpenDJ Directory Server" opendj
+
+if [ "$1" = "2" ] ; then
+    # Upgrade: stop a running, configured instance and record state for restart.
+    if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs 2>/dev/null)" ] ; then
         echo "Pre Install - upgrade install"
-        # If the server is running before upgrade, creates a file flag
         if [ -f "%{_prefix}"/logs/server.pid ] ; then
             touch "%{_prefix}"/logs/status
         fi
-        "%{_prefix}"/bin/./stop-ds
+        if [ -d /run/systemd/system ] ; then
+            systemctl stop opendj.service >/dev/null 2>&1 || true
         fi
+        [ -x "%{_prefix}"/bin/stop-ds ] && "%{_prefix}"/bin/stop-ds || true
     fi
 fi

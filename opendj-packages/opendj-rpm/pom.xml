@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015-2016 ForgeRock AS.
-  Portions Copyright 2026 3A Systems, LLC
+  Portions Copyright 2018-2026 3A Systems, LLC
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -157,11 +157,17 @@
                             <require>java-headless &gt;= 1:11</require>
                             <!-- _script-util.sh locates java via "which java". -->
                             <require>which</require>
-                            <!-- postinstall/preuninstall register the service via /sbin/chkconfig. -->
+                            <!-- postinstall runs the upgrade tool and the server via runuser. -->
+                            <require>util-linux</require>
+                            <!-- postinstall registers the service via /sbin/chkconfig on non-systemd hosts. -->
                             <require>chkconfig</require>
                             <!-- /etc/init.d/opendj sources /etc/init.d/functions on RedHat-family. -->
                             <require>initscripts</require>
                         </requires>
+                        <requiresPre>
+                            <!-- preinstall creates the dedicated opendj service user/group. -->
+                            <require>shadow-utils</require>
+                        </requiresPre>
                         <description>
                             ${rpm.description.header}
                             OpenDJ is an LDAPv3 compliant directory service, developed for the Java
@@ -230,7 +236,7 @@
                                 <directory>${rpm.prefix}/snmp/mib</directory>
                             </mapping>
 
-                            <!-- Add service script -->
+                            <!-- Add SysV init service script (fallback for non-systemd hosts) -->
                             <mapping>
                                 <directory>/etc/init.d</directory>
                                 <directoryIncluded>false</directoryIncluded>
@@ -238,6 +244,31 @@
                                 <sources>
                                     <source>
                                         <location>${sysv.file.location}</location>
+                                    </source>
+                                </sources>
+                            </mapping>
+
+                            <!-- Add systemd service unit (native service management) -->
+                            <mapping>
+                                <directory>/usr/lib/systemd/system</directory>
+                                <directoryIncluded>false</directoryIncluded>
+                                <filemode>644</filemode>
+                                <sources>
+                                    <source>
+                                        <location>${systemd.file.location}</location>
+                                    </source>
+                                </sources>
+                            </mapping>
+
+                            <!-- Service environment override (%config(noreplace)) -->
+                            <mapping>
+                                <directory>/etc/sysconfig</directory>
+                                <directoryIncluded>false</directoryIncluded>
+                                <filemode>644</filemode>
+                                <configuration>noreplace</configuration>
+                                <sources>
+                                    <source>
+                                        <location>${env.file.location}</location>
                                     </source>
                                 </sources>
                             </mapping>

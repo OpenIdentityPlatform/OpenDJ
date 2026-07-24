@@ -13,15 +13,27 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2013-2015 ForgeRock AS.
+# Portions Copyright 2026 3A Systems, LLC
 
 set -e
-# Post rm script
-# Files are removed automatically by pm.
-if [ "$1" = "remove" ] ; then
-    # Deletes the service.
-    update-rc.d -f opendj remove
-    echo
-    echo *OpenDJ successfully removed
+# Post rm script. Package files are removed automatically by the package manager.
+
+if [ "$1" = "remove" ] || [ "$1" = "purge" ] ; then
+    if [ -d /run/systemd/system ] ; then
+        systemctl --system daemon-reload >/dev/null 2>&1 || true
+    else
+        update-rc.d opendj remove >/dev/null 2>&1 || true
+    fi
 fi
+
+if [ "$1" = "purge" ] ; then
+    if command -v deb-systemd-helper >/dev/null 2>&1 ; then
+        deb-systemd-helper purge opendj.service >/dev/null 2>&1 || true
+        deb-systemd-helper unmask opendj.service >/dev/null 2>&1 || true
+    fi
+    echo "*OpenDJ successfully removed"
+fi
+
 echo
+exit 0
 # End of the post rm script

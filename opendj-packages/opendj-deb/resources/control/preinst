@@ -13,22 +13,23 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2013-2015 ForgeRock AS.
+# Portions Copyright 2026 3A Systems, LLC
 
 set -e
 
-# Pre installation script
+# Pre installation script.
 if [ "$1" = "upgrade" ] ; then
-    # Only if the instance has been configured
-    if [ -f ${deb.prefix}/config/buildinfo ] && [ "$(ls -A ${deb.prefix}/config/archived-configs)" ] ; then
-        # If the server is running before upgrade, creates a flag.
+    # Only act if the instance has been configured.
+    if [ -f ${deb.prefix}/config/buildinfo ] && [ "$(ls -A ${deb.prefix}/config/archived-configs 2>/dev/null)" ] ; then
+        # If the server is running before the upgrade, record it so postinst can restart it.
         if [ -f ${deb.prefix}/logs/server.pid ] ; then
             touch ${deb.prefix}/logs/status
         fi
-        echo *Stopping OpenDJ server...
-        ${deb.prefix}/bin/./stop-ds
-    else
-        echo "Instance is not configured. Upgrade aborted."
-        exit -1
+        echo "*Stopping OpenDJ server..."
+        if [ -d /run/systemd/system ] ; then
+            deb-systemd-invoke stop opendj.service || true
+        fi
+        [ -x ${deb.prefix}/bin/stop-ds ] && ${deb.prefix}/bin/stop-ds || true
     fi
 fi
 echo

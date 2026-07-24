@@ -129,7 +129,7 @@ Stopping Server...
 $
 ----
 +
-Removing the package does not remove your data or configuration. You must remove `/opt/opendj` manually to get rid of all files.
+Removing the package stops the server but does not remove your data or configuration, nor the dedicated `opendj` system user it created. Remove `/opt/opendj` manually to delete all files, and remove the `opendj` user if you no longer need it.
 
 ====
 
@@ -155,7 +155,7 @@ OpenDJ successfully removed.
 #
 ----
 +
-Removing the package does not remove your data or configuration. You must remove `/opt/opendj` manually to get rid of all files.
+Removing the package stops the server but does not remove your data or configuration, nor the dedicated `opendj` system user it created. Remove `/opt/opendj` manually to delete all files, and remove the `opendj` user if you no longer need it.
 
 ====
 

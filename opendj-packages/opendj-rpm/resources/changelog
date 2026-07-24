@@ -11,31 +11,485 @@
 # Header, with the fields enclosed by brackets [] replaced by your own identifying
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
-# Copyright 2013-2015 ForgeRock AS.
+# Copyright 2013-2015 ForgeRock AS
+# Portions Copyright 2026 3A Systems, LLC
 
 # =============================
 # opendj rpm package changelog
 # =============================
 
 %changelog
-* Wed Dec  9 2015 ForgeRock
-- init.d service script now generates and removes a lockfile.
-
-* Thu Mar  5 2015 ForgeRock
-- Package is now build using maven.
-
-* Thu Aug 22 2013 ForgeRock
-- Modified init.d script.
-
-* Tue Aug 6 2013 ForgeRock
-- Added init.d service script.
-
-* Wed Jul 31 2013 ForgeRock
-- Fixed the doc's section.
-- Target no longer fails when build path contains spaces.
-
-* Thu Jul 18 2013 ForgeRock
-- Fixed the sections' order and added a new "clean" section.
-- Added '%doc' section.
-- Added '%changelog' at the end of the file.
-- Added license to header's files.
+* Thu Jun 11 2026 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 5.1.1
+- CVE-2026-46495 OpenDJ Unauthenticated RCE via Java Deserialization in JMX
+  RMI
+- CVE-2026-42198 pgjdbc: Unbounded PBKDF2 iterations in SCRAM authentication
+  allows CPU exhaustion DoS
+- [#648] slow DN.valueOf / AVA normalization for nested DN-syntax values
+- chore: bump Bouncy Castle FIPS deps to latest 2.1.x patch releases
+- Fix grizzly log level is always FINE
+- Fix shell script issues in opendj-docker/run.sh
+- Fix Windows CI: use ilammy/msvc-dev-cmd to set up MSVC env
+- Add native access JVM flag for Bouncy Castle FIPS on newer Java releases
+- Docker base DN entry creation opt-in and improves bootstrap LDIF loading
+  resilience
+- Fix BasicRequestsTest.testReadSelectPartial for nesting-preserving field
+  projection
+- Update org.openidentityplatform.commons to 3.1.1
+- Fix JMX RMI connector startup failure introduced by CVE-2026-46495 hardening
+* Wed Apr 15 2026 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 5.1.0
+- [#72] Fix infinite loop in doStopApplication() on Windows service stop
+- [#259] fix: retry loop for Windows Service start race condition (issue #259)
+- [#566] Fix AttributeValuePasswordValidator: inverted substring logic and
+  missing reversed-password substring check
+- [#579] Fix ReferentialIntegrityPlugin silently bypassing check-references on
+  modify operations
+- [#601] Fix server crash when File-Based Debug Logger is enabled
+- Update build.yml add JDK 26 support
+- Docs: set neutral version for the docs
+- ci: add Windows service start/stop test to CI workflow
+- CI: Build and upload Windows native executables (winlauncher,
+  opendj_service, launcher_administrator)
+- fix: use 127.0.0.1 instead of localIP in LockdownModeTaskTestCase
+- Filter branches to build workflow triggers (on push)
+- Fix intermittent testMultiRS failure by doubling waitForStableGenerationId
+  timeout
+- Fix race condition in ChangelogBackendTestCase flaky test
+- Fix flaky testMultiRS: replace fixed sleep with deterministic domain-ready
+  wait
+- increase replication connection timeout to fix Socket Timeout error on Mac
+  in integration test
+- chore: bump GitHub Actions to latest major versions
+- Fix snapshot version format
+- Fix intermittent GenerationIdTest.testMultiRS race condition on RS-to-RS
+  topology
+- [OpenIdentityPlatform/OpenAM#980] OpenDJ slim maven artifact
+- Upgrade local Docker registry from registry:2 to registry:3 in CI
+- status CLI: allow --hostname, --port, and --trustAll arguments
+- Fix status CLI to accept --hostname, --port, and --trustAll arguments, and
+  add them to all status command invocations in build.yml
+- Remove ENV ROOT_PASSWORD from Dockerfiles, fix HEALTHCHECK default, add CDDL
+  headers
+- Update commons.version to 3.1.0
+* Mon Mar 23 2026 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 5.0.4
+- CVE-2025-24970 SslHandler doesn't correctly validate packets which can lead
+  to native crash when using native SSLEngine
+- CVE‐2025‐12194 While the situation with the JVM garbage collector overrun
+  for Java 17 and Java 21 greatly improved with the changes in 2.1.1, we’ve
+  still had some reports that can only be related to the use of the disposal
+  daemon
+- [#590] Fallback to $HOME/tmp dir as a temp if instance root is mounted as
+  noexec
+- Bump logback to 1.5.32
+- Migrate to caffeine 3
+- Update commons.version from 3.0.2 to 3.0.4
+- Docs: fix short version in the upgrade guide
+* Wed Feb  4 2026 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 5.0.3
+- CVE-2026-1225 Logback allows an attacker to instantiate classes already
+  present on the class path
+- Fix three and more nodes replication process stuck error
+- Update org.openidentityplatform.commons to 3.0.2
+- Docs: update supported Java version
+* Tue Nov 25 2025 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 5.0.2
+- [#575] FIX unable to install: UnsatisfiedLinkError: /tmp/bc-fips
+- [#577] Windows upgrading with Upgrade.bat: an error with "" unexpected
+- [#573] Added the SAMPLE_DATA Docker environment variable to generate sample
+  data during setup.
+* Sat Nov  8 2025 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 5.0.1
+- Update target JDK to 11 and move to JakartaEE 9
+- Add support LTS JDK 25
+- Update base docker image Java version to 25 LTS
+- CVE-2025-12194 Bouncy Castle Vulnerable to Uncontrolled Resource Consumption
+- CVE-2025-59250 JDBC Driver for SQL Server has improper input validation
+  issue
+- CVE-2025-11226 logback-core is vulnerable to Arbitrary Code Execution
+  through file processing
+- Switch from sun.security.x509 to Bouncy Castle API
+- Update OpenDMK external library to fix SNMP monitoring
+- Build & deploy: add branch sustaining/4.10.x
+- Make GrizzlyLDAPListener close in a synchronous fasion to prevent test race
+  conditions
+- [#141] Test large replication pending changes
+- FIX bindFreePort Bind Unable to bind to a free port
+- Fix unavailable monitoring attributes over JMX
+- Bump org.openidentityplatform.commons to 3.0.1
+- Improve ReplicationDomainTest stability
+* Thu Sep  4 2025 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.10.2
+- CVE-2025-9092 CVE-2025-9340 CVE-2025-9341 Uncontrolled Resource Consumption
+  vulnerability
+- [#545] Add GroupManager writeLock performance
+- [#540] Fix OnDiskMergeImporter::PhaseOneWriteableTransaction: update over
+  put (referral attr)
+- [#544] Add requires-admin-action component-restart for max-request-size
+- Update Java minimum version number in the setup UI
+- Update README.md: add backers and sponsors
+- ISSUE_TEMPLATE: add "Vote to raise the priority"
+- Bump commons.version 2.4.1
+* Tue Aug  5 2025 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.10.1
+- [#529] FIX jdbc connection deadlock
+- [#530] Fixed error when creating a backend for BASE_DN with OU in Docker
+- Docker: Fix issues with quoting params
+* Tue Jul 15 2025 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.10.0
+- [#462] RFC5805 Lightweight Directory Access Protocol (LDAP) Transactions
+- CVE-2025-49146 pgjdbc Client Allows Fallback to Insecure Authentication
+  Despite channelBinding=require Configuration
+- Bump io.reactivex.rxjava to 3.x
+- Bump various dependencies
+- Bump commons to 2.2.5
+- Take Glassfish Grizzly version from commons
+- Bump bc.fips to 2.1.x
+- Bump commons.version 2.3.0
+- Deploy: migrating from Legacy OSSRH to Central Portal
+- Fix OSGI bundle excluded package error for rxjava3
+- Exclude BouncyCastle from OSGI Import-Package
+- Fix makeldif templates: add objectClass to baseDN
+- Bump org.openidentityplatform.commons 2.4.0
+* Wed Apr 23 2025 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.9.4
+- Configure backend type for Docker
+- Docs: update OpenDJ release version to 4.9.3
+- Add OpenDJ Docker tests to the build process
+- Fix docker env variables + add VERSION autodetect
+- Set isRunning later (EmbeddedServer check)
+- Bump org.openidentityplatform.commons to 2.2.4
+- [#498] FIX warning output from export-ldif: "grep: warning: stray \ before
+  -"
+- move Java args to java.properties, upgrade docker alpine
+- [#497] Set the same indexes for a new backend as for the initial backend
+- Add support Java SE 24
+- Bump test containers & cassandra driver
+- [#496] FIX MySQL truncate PK default to 64 len
+- [#496] FIX JDBC storage update concurrency
+- FIX Replication IT tests unstable result
+- made their first contribution
+- made their first contribution
+* Wed Mar  5 2025 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.9.3
+- CVE-2025-27497 Fix Denial of Service (Dos) using alias loop ()
+- [#477] Change permission config.ldif.startok to owner ()
+- [#208] FIX The definition for the attribute type declared that it should use
+  the syntax which is not defined in the schema
+- Documentation update
+- Docs: Generate and publish javadoc
+* Tue Feb  4 2025 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.9.2
+- [#465] Fix custom library loading when put to the lib directory
+- [#463] Disable warning message on downstream closed
+- [#471] Fix table name truncate: make jdbc table 63 charter
+- [#466] JDBC: added tests for Oracle, MySQL, MSSQL
+- [#466] FIX compatibility jdbc backend: Postgres, Oracle, MySQL, MSSQL
+- [#471] PluggableBackendImplTestCase: add duplicate mail test
+- IT ReplicationDomainTest upper waitEndExport timeout
+- Update year in generated documentation templates
+- Update documentation issues and update links
+* Mon Jan 20 2025 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.9.1
+- [#460] Clear unused path info after backupConfig (memory pleasure)
+- jdbc: make connection short-lived
+- Replace import-ldif with ldapmodify in Postgres IT test
+* Thu Dec 26 2024 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.9.0
+- Store LDAPv3 database in SQL JDBC database
+- CVE-2024-12798 CVE-2024-12801 logback-core Expression Language Injection,
+  Server-Side Request Forgery vulnerability
+- FIX NoSuchMethodError: java.nio.MappedByteBuffer.duplicate
+- FIX Unable to locate package winehq-stable
+* Tue Nov 12 2024 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.8.2
+- [#438] FIX import-ldif --offline "import has been aborted because the entry
+  does not have a parent entry"
+- 00-core.ldif: X.501, cl. 14.2.2: 2.5.15.16 subentryNameForm OC subentry MUST
+  cn
+- FIX makeldif -c suffix=dc=example: Unable to parse a constant argument
+  expecting name=value
+- Bump commons.version 2.2.3
+- Fix MAC OS build failure
+- Actions: get ubuntu source from $(lsb_release -c -s)
+- depoloy.yml: Fix documents deploy
+* Thu Oct 17 2024 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.8.1
+- [#393] FIX DIT SUP delimiter
+- [#392] FIX RootDSE Entry allow user objectClass
+- Addresses #397, #398, #399, #404
+- Docs in asciidoc & deploy antora docs after build
+- [#402] Change default SSL HandshakeTimeout -1 -> 10s (see #146)
+- [#401] Change "Object class violation (65)" -> "Naming violation (64)" LDAP
+  result code for DIT Structure Rule violation
+- [#394] FIX dsconfig --help-<subcommand>
+- [#400] Reduce character escaping in example, add note
+- Added missing documentation attachments
+- Generate man pages in the AsciiDoc format
+- Reduce character escaping in example, add note
+- minor docs glitches fix
+- Add JDK 23 build support
+- Bump org.openidentityplatform.commons 2.2.2
+- Docker: Use tail instead of sleep to allow the container to be stopped with
+  SIGTERM
+- [#423] Eliminate asciidoctor warning messages when generating documentation
+- [#426] ADD maven.compiler.release=8 for cross compile compatibility
+- Remove legacy files
+- [#90, #432] FIX delete entries in overlapping backends
+- [#425] Add option
+  -Dorg.openidentityplatform.opendj.ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR for
+  force control "Entry is invalid according to the server schema because there
+  is no DIT structure rule that applies to that entry, but there is a DIT
+  structure rule for the parent entry". Default: warning level
+- [#425] Workaround: Entry is invalid according to the server schema because
+  there is no DIT structure rule that applies to that entry, but there is a
+  DIT structure rule for the parent entry
+- [#431] Update importldiff --offline and --clearBacked flags descriptions
+- made their first contribution
+- made their first contribution
+* Mon Sep  9 2024 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.8.0
+- Switch docker to last LTS JRE 21
+- Add JDK 22 support
+- [#376] JMX fix docs with "Allow insecure authentication"
+- [#376] FIX SNMP monitoring config
+- [#383] FIX docs: import-ldif and export-ldif binaries should be shown using
+  the --offline option
+- [#384] FIX Control Panel: empty help URL values
+- FIX do not check DIT structure parent/child on same ObjectClass (thanks for
+  the research )
+- Bump org.openidentityplatform.commons 2.2.0
+* Thu Aug  8 2024 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.7.0
+- [#204] ADD LDAP Relax Rules Control
+- [#287] ADD alias dereferencing for search requests
+- [#187] FIX RFC3671: collective attribute values should be merged. Virtuals
+  with other virtuals and real values.
+- [#84] FIX incorrect entry-Based ACIs is defined with only "deny" permission
+  without "allow"
+- [#250] Add Overlapping Backend TestSuite
+- [#294] Dont send client notification on IOException
+- [#368] CASSANDRA ADD property -Dkeyspace=ldap_opendj
+- Bump commons.version 2.1.6
+- Publish docs to
+- Fix documentation version
+* Tue Jul 16 2024 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.6.5
+- compress webhelp, xhtml and html docs after build
+- add missing docs
+- Update README.md
+- [#354] FIX "OpenDJ fails to upgrade from version 3->4: An error occurred
+  while attempting to perform index rebuild: Unable to decode the provided
+  object class set because it used an undefined token"
+- [#167] FIX control-panel ResetUserPasswordTask unpredictable result (wait
+  async result)
+- Add rest operations modifyPassword, resetPassword to docs from
+- [#148,#261,#282] FIX control-panel schema errors in remote mode
+* Wed Jun 26 2024 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.6.4
+- Embedded OpenDJ module initial commit
+- Bump ch.qos.logback:logback-core from 1.2.11 to 1.2.13 in /opendj-embedded
+- Bump ch.qos.logback:logback-classic from 1.2.9 to 1.2.13 in /opendj-embedded
+- update opendj-parent version
+- Bump org.bouncycastle:bc-fips from 1.0.2.3 to 1.0.2.5 in /opendj-core
+- Bump org.bouncycastle:bctls-fips from 1.0.13 to 1.0.19 in /opendj-core
+- Bump org.openidentityplatform.commons 2.1.4
+- move commons version to property & fix doc-maven-plugin version
+- made their first contribution
+* Tue May  7 2024 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.6.3
+- ADD build test with memory pressure
+- Update Docker jre 17->19
+- org.openidentityplatform.commons 2.1.3-SNAPSHOT
+- FIX OpenIDM compatibility
+- [#329] make posixGroup AUXILIARY by default
+- [#331] Allow downgrade version without upgrade task
+- Bump org.openidentityplatform.commons 2.1.3
+- Add Build test on MacOS M1 arm64
+- Restore macos-latest build strategy
+* Wed Jan 17 2024 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.6.2
+- FIX CLIENT_SIDE_NO_RESULTS_RETURNED in hasNext()
+- update org.openidentityplatform.commons to 2.1.2-SNAPSHOT
+- FIX performance java.util.TimeZone.getTimeZone(TimeZone.java:516) is
+  synchronized
+- [#317] sendUnsolicitedNotification can fail on client disconnect with
+  OnErrorNotImplementedException
+- org.openidentityplatform.commons 2.1.2
+* Thu Oct 26 2023 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.6.1
+- Allow store LDAP catalog data in CASSANDRA noSQL cluster --backendType cas
+  (ldapv3 to cassandra)
+- ADD IT test for wars
+- Add TestContainers to test Apache Cassandra backend
+- Bump org.openidentityplatform.commons 2.0.19-SNAPSHOT
+- Update README.md: allow store LDAPv3 database in Cassandra/Scylla cluster
+- Bump org.openidentityplatform.commons 2.1.1
+- Add JDK 21 support
+- CASSANDRA storage: cursor performance
+- FIX newHeapBufferPool calculation (import OOM error)
+* Fri Sep 22 2023 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.5.9
+- Generate SHA256WithRSA certificate as default
+- convert JMX metrics to appropriate type #293
+- Fix attribute value. bean should return native object #293
+- Remove TLSv1 as default protocol FIX
+- nexus-staging-maven-plugin 1.6.13 + disable auto release
+- made their first contribution
+* Wed Aug 30 2023 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.5.6
+- FIX unused trailing bytes in ASN.1 SEQUENCE
+* Thu Jul 20 2023 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.5.5
+- FIX build with Installation failure for grub-efi-amd64-signed on ubuntu-
+  latest
+- FIX add-source for generate-sources
+- Restore IT test for server-legacy and fix many errors
+- change posixGroup type to structural. and add cn
+- FIX argument listBackups is incompatible with use of this tool to interact
+- PBKDF2-HMAC-SHA256 and PBKDF-HMAC-SHA512 password storage not configured by
+  default
+- FIX Setup Issue - Error Creating Base Entry
+- Extend admin port connection limits
+- Restore TLSv1.3 support
+- Bump org.openidentityplatform.commons 2.0.18
+* Fri Dec  9 2022 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.5.4
+- BUILD java: [ '8','11','17','19'] + fix install wine32:i386 without
+  conflicts
+- FIX build allow fail for remove deb.sury.org
+- Docker add jdk17 platforms: linux/amd64, linux/arm64/8, linux/arm/v7,
+* Wed Nov 30 2022 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.5.3
+- Create target directory before copying custom schema
+- Copy ldif configs to the correct template directory
+- UPDATE build process
+- FIX DSML servlet can't find JAX-B runtime
+* Tue Aug  2 2022 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.5.1
+- update commons version to 2.0.16-SNAPSHOT
+- 'find' command is missing in the 4.5.0 docker image #242
+- FIX wine32 install (from ppa:ondrej/php so that we will be able to install
+  wine32:i386 without conflicts)
+- Don't clone buffer in ldap codec
+- Add BCFKS FIPS key store type support
+- fix FipsStaticUtils code formatting
+- made their first contribution
+* Wed Jun  1 2022 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.5.0
+- Switch base docker image to Java 17
+* Wed Jun  1 2022 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.4.15
+- Add alpine platforms linux/s390x, linux/386, linux/arm/v7, linux/arm/v6,
+  linux/ppc64le
+- Implement PBKDF2-HMAC-SHA256 and PBKDF-HMAC-SHA512 password encoding schemes
+- Docker refactoring
+- FIX tamil (ta.6) matching rule schema has typo in definition
+- FIX Failed to delete entries under multiple backends
+- Add support jdk '16','17','18'
+- support AD attributes userAccountControl, msDS-UserAccountDisabled and
+  pwdLastSet
+- Test + Run on jdk15+
+- FIX OpenDJ is not logging errors to logfile #128
+- FIX Windows install to path with spaces
+- made their first contribution
+* Mon May  2 2022 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.4.14
+- add docker test
+- Release multi-platform Docker images
+- Support to load plain ldif files during container setup
+- made their first contribution
+* Fri Apr 22 2022 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.4.13
+- FIX OpenDJ setup failure
+- Add FIPS support
+- GithubAction build
+- Github action deploy
+- actions: separate deploy
+- Update opendj_service.exe
+- Switch org.openidentityplatform.commons 2.0.13-SNAPSHOT
+- Fix rebuild-index in FIPS mode
+- ADD JSONEntryWriter JSONEntryReader
+- FIX DN escape 'Equal sign':
+- FIX JSONEntryWriter escape DN values
+- move fips functions to separate class
+- do not use fips when bc-fips classes not found
+- Update pom.xml nexus-staging-maven-plugin 1.6.11
+- Refactor Dockerfile debian and alpine
+- Migrate release from Travis to GitHub
+- FIX Deployment of external dependency failed. Failed to deploy artifacts:
+  Could not transfer artifact openidentityplatform.org:wixtoolset:zip
+- made their first contribution
+- made their first contribution
+- made their first contribution
+- made their first contribution
+* Mon Jun 21 2021 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.4.11
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.11
+* Mon Feb  8 2021 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.4.10
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.10
+* Wed Dec 30 2020 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.4.9
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.9
+* Tue Nov 10 2020 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.4.8
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.8
+* Wed Sep  9 2020 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.4.7
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.7
+* Thu Jun 11 2020 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.4.6
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.6
+* Tue Mar 10 2020 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.4.5
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.5
+* Fri Feb 21 2020 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.4.4
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.4
+* Mon Jul 29 2019 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.4.3
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.3
+* Mon Apr 29 2019 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.4.2
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.2
+* Sun Mar 10 2019 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.4.1
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.1
+* Mon Mar  4 2019 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.3.5
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.5
+* Sun Feb 17 2019 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.3.4
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.4
+* Fri Feb  8 2019 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.3.3
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.3
+* Tue Jan 29 2019 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.3.2
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.2
+* Mon Dec 10 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.3.1
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.1
+* Fri Oct 26 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.2.5
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.5
+* Thu Oct 18 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.2.4
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.4
+* Wed Oct 17 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.2.3
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.3
+* Mon Oct  8 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.2.2
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.2
+* Fri Oct  5 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.2.1
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.1
+* Wed May 30 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.1.10
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.10
+* Fri May 25 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.1.9
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.9
+* Sat May 12 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.1.8
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.8
+* Tue May  1 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.1.7
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.7
+* Tue Apr 10 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.1.6
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.6
+* Tue Mar  6 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.1.5
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.5
+* Sat Mar  3 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.1.4
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.4
+* Wed Feb 28 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.1.3
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.3
+* Wed Feb 28 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.1.2
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.2
+* Fri Feb 23 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.1.1
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.1
+* Tue Feb 20 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.0.3
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.0.3
+* Fri Feb 16 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.0.2
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.0.2
+* Fri Feb 16 2018 Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com> - 4.0.1
+- See release notes:
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.0.1

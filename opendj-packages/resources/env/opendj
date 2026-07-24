@@ -1,0 +1,17 @@
+# Environment overrides for the OpenDJ service.
+#
+# This file is sourced by the systemd unit (EnvironmentFile=) and by the SysV
+# init script. By default everything is commented out and the server resolves
+# Java from its config/java.properties (default.java-home), which the package
+# points at the system default JRE at install time.
+#
+# Uncomment to override the JRE used by the service (one line, no export):
+#   - OPENDJ_JAVA_HOME: a JAVA_HOME directory (its bin/java is used)
+#   - OPENDJ_JAVA_BIN : a direct path to the java binary (takes precedence)
+# Using the stable /usr alternatives symlink survives Java upgrades:
+#
+#OPENDJ_JAVA_HOME=/usr/lib/jvm/default-java
+#OPENDJ_JAVA_BIN=/usr/bin/java
+#
+# Extra JVM args for the server:
+#OPENDJ_JAVA_ARGS=-server -Xmx2g
