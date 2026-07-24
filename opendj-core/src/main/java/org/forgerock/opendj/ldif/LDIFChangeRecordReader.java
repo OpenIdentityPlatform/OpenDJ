@@ -14,6 +14,7 @@
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
  * Portions copyright 2016 Matthew Stevenson
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldif;
 
@@ -82,7 +83,7 @@ import static com.forgerock.opendj.util.StaticUtils.*;
  */
 public final class LDIFChangeRecordReader extends AbstractLDIFReader implements ChangeRecordReader {
     private static final Pattern CONTROL_REGEX = Pattern
-            .compile("^\\s*(\\d+(.\\d+)*)(\\s+((true)|(false)))?\\s*(:(:)?\\s*?\\S+)?\\s*$");
+            .compile("^\\s*(\\d+(\\.\\d+)*)(\\s+((true)|(false)))?\\s*(:(:)?\\s*?\\S+)?\\s*$");
 
     /** Poison used to indicate end of LDIF. */
     private static final ChangeRecord EOF = Requests.newAddRequest(DN.rootDN());
