@@ -38,6 +38,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.Files;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -425,7 +426,7 @@ final class OnDiskMergeImporter
 
     private File exportBranches(List<DN> includeBranches, List<DN> excludeBranches) throws Exception
     {
-      final File migrationFile = File.createTempFile("import-migration-", ".ldif");
+      final File migrationFile = Files.createTempFile("import-migration-", ".ldif").toFile();
       final LDIFExportConfig exportConfig =
           new LDIFExportConfig(migrationFile.getAbsolutePath(), ExistingFileBehavior.OVERWRITE);
       exportConfig.setIncludeBranches(includeBranches);

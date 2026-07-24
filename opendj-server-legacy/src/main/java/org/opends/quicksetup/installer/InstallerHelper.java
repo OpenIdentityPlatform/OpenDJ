@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.installer;
 
@@ -33,6 +34,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -272,7 +274,7 @@ public class InstallerHelper {
     File ldifFile;
     try
     {
-      ldifFile = File.createTempFile("opendj-base-entry", ".ldif");
+      ldifFile = Files.createTempFile("opendj-base-entry", ".ldif").toFile();
       ldifFile.deleteOnExit();
     } catch (IOException ioe)
     {

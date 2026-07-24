@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.tools;
 
@@ -28,6 +29,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.PrivilegedExceptionAction;
 import java.security.SecureRandom;
@@ -1892,7 +1894,7 @@ public class LDAPAuthenticationHandler
     String configFileName;
     try
     {
-      File tempFile = File.createTempFile("login", "conf");
+      File tempFile = Files.createTempFile("login", "conf").toFile();
       configFileName = tempFile.getAbsolutePath();
       tempFile.deleteOnExit();
       try (BufferedWriter w = new BufferedWriter(new FileWriter(tempFile, false))) {

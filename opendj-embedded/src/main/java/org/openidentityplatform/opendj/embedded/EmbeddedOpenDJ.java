@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2024 3A Systems LLC.
+ * Copyright 2024-2026 3A Systems LLC.
  */
 
 package org.openidentityplatform.opendj.embedded;
@@ -69,13 +69,10 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
         logger.info("Create embedded OpenDJ instance: {}", config);
 
         this.config = config;
-        File tempDirectory = new File(System.getProperty("java.io.tmpdir"));
-        File rootDirectory = new File(tempDirectory, "opendj");
         try {
-            if(rootDirectory.exists()) {
-                FileUtils.deleteDirectory(rootDirectory);
-            }
-            rootDirectory.mkdir();
+            // Create a fresh per-instance server root, only accessible by the current
+            // user, instead of the fixed shared {java.io.tmpdir}/opendj directory.
+            File rootDirectory = Files.createTempDirectory("opendj").toFile();
 
             File configDirectory = new File(rootDirectory, "config");
             File schemaDirectory = new File(configDirectory, "schema");

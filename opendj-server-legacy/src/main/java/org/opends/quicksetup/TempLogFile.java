@@ -13,12 +13,14 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Date;
 import java.text.DateFormat;
 
@@ -51,7 +53,7 @@ public class TempLogFile
   {
     try
     {
-      return new TempLogFile(File.createTempFile(prefix, ".log"));
+      return new TempLogFile(Files.createTempFile(prefix, ".log").toFile());
     }
     catch (final IOException e)
     {
