@@ -390,7 +390,10 @@ HANDLE registerEventLog(char *serviceName)
   char subkey [MAX_SERVICE_NAME];
   debug("Registering the Event Log for service '%s'.", serviceName);
 
+  // _snprintf does not null-terminate on truncation (MSVC), so terminate
+  // explicitly: serviceName ultimately derives from argv and is unbounded.
   _snprintf (subkey, MAX_SERVICE_NAME, "%s", serviceName);
+  subkey[MAX_SERVICE_NAME - 1] = '\0';
 
   eventLog = RegisterEventSource(
   NULL,      // local host
@@ -1791,6 +1794,9 @@ ServiceReturnCode createServiceName(char* serviceName, char* baseName)
     {
       _snprintf(serviceName, MAX_SERVICE_NAME, "%s-%d", baseName, i);
     }
+    // _snprintf does not null-terminate on truncation (MSVC), and baseName
+    // (== argv[3]) is unbounded, so terminate explicitly.
+    serviceName[MAX_SERVICE_NAME - 1] = '\0';
 
     nameInUseResult = serviceNameInUse(serviceName);
 

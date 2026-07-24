@@ -312,16 +312,13 @@ char * getDebugLogFileName()
   char execName [MAX_PATH];
   char * lastSlash;
   char logpath[MAX_PATH];
-  char * temp;  
-  FILE *file; 
 
-  if (logFile != NULL) 
+  if (logFile != NULL)
   {
     return logFile;
   }
-  temp = getenv("TEMP");
-  
-  // Get the name of the executable.  
+
+  // Get the name of the executable.
   GetModuleFileName (
     NULL,
     execName,
@@ -341,26 +338,36 @@ char * getDebugLogFileName()
   strcpy(logpath, execName); 
   strcat(logpath, "\\logs\\"); 
   
-  // If the log folder doesn's exist in the instance path
+  // If the log folder doesn't exist in the instance path
   // we create the log file in the temp directory.
   if (isExistingDirectory(logpath))
   {
     _snprintf(path, MAX_PATH, "%s\\logs\\%s", execName, DEBUG_LOG_NAME);
-  } else if (isSafePath(temp)) {
-    // Build the log path in a local buffer instead of mutating the
-    // buffer returned by getenv(), which is not safe to extend in place.
-    char tempLogDir[MAX_PATH];
-    _snprintf(tempLogDir, MAX_PATH, "%s\\logs\\", temp);
-    _mkdir(tempLogDir);
-    _snprintf(path, MAX_PATH, "%s%s", tempLogDir, DEBUG_LOG_NAME);
-    file = fopen(path, "a+");
-    if (file != NULL)
+    path[MAX_PATH - 1] = '\0';
+  }
+  else
+  {
+    // Fall back to the OS temp directory.  Use GetTempPath (a trusted OS API
+    // that resolves the TMP/TEMP/USERPROFILE locations) rather than
+    // getenv("TEMP"), whose buffer must not be extended in place.
+    char tempDir[MAX_PATH];
+    DWORD tempLen = GetTempPath(MAX_PATH, tempDir);
+    if ((tempLen > 0) && (tempLen < MAX_PATH))
     {
-      fclose(file);
+      // GetTempPath returns a path that already ends with a backslash.
+      char tempLogDir[MAX_PATH];
+      _snprintf(tempLogDir, MAX_PATH, "%slogs\\", tempDir);
+      tempLogDir[MAX_PATH - 1] = '\0';
+      _mkdir(tempLogDir);
+      _snprintf(path, MAX_PATH, "%s%s", tempLogDir, DEBUG_LOG_NAME);
+      path[MAX_PATH - 1] = '\0';
     }
-  } else {
-    // TEMP is unset or unsafe: fall back to just the log file name.
-    _snprintf(path, MAX_PATH, "%s", DEBUG_LOG_NAME);
+    else
+    {
+      // Could not determine a temp directory: fall back to the log file name.
+      _snprintf(path, MAX_PATH, "%s", DEBUG_LOG_NAME);
+      path[MAX_PATH - 1] = '\0';
+    }
   }
 
   logFile = _strdup(path);
@@ -430,9 +437,7 @@ BOOL isExistingDirectory(char * fileName)
 }
 
 // ---------------------------------------------------------------
-// Returns TRUE if the given path is non-NULL and does not contain a
-// parent-directory reference ("..") that could be used to escape the
-// intended directory (path traversal), FALSE otherwise.
+// See common.h for the contract of this function.
 // ---------------------------------------------------------------
 BOOL isSafePath(const char* path)
 {
