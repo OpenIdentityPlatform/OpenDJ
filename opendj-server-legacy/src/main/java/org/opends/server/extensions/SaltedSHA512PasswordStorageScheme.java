@@ -13,12 +13,13 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2010-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.Random;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Base64;
@@ -69,7 +70,7 @@ public class SaltedSHA512PasswordStorageScheme
   private Object digestLock;
 
   /** The secure random number generator to use to generate the salt values. */
-  private Random random;
+  private SecureRandom random;
 
   /**
    * Creates a new instance of this password storage scheme.  Note that no
@@ -101,7 +102,7 @@ public class SaltedSHA512PasswordStorageScheme
     }
 
     digestLock = new Object();
-    random     = new Random();
+    random     = new SecureRandom();
   }
 
   @Override
@@ -426,7 +427,7 @@ public class SaltedSHA512PasswordStorageScheme
          throws DirectoryException
   {
     byte[] saltBytes = new byte[NUM_SALT_BYTES];
-    new Random().nextBytes(saltBytes);
+    new SecureRandom().nextBytes(saltBytes);
 
     byte[] passwordPlusSalt = new byte[passwordBytes.length + NUM_SALT_BYTES];
     System.arraycopy(passwordBytes, 0, passwordPlusSalt, 0,
