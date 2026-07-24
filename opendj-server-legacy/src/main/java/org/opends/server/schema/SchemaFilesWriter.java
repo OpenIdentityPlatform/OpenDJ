@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.schema;
 
@@ -725,7 +726,7 @@ class SchemaFilesWriter
     }
 
     // Create a temporary file to which we can write the schema entry.
-    File tempFile = File.createTempFile(schemaFile, "temp");
+    File tempFile = Files.createTempFile(schemaFile, "temp").toFile();
     LDIFExportConfig exportConfig =
          new LDIFExportConfig(tempFile.getAbsolutePath(),
                               ExistingFileBehavior.OVERWRITE);

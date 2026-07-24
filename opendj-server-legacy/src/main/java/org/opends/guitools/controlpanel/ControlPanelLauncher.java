@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel;
 
@@ -23,6 +24,7 @@ import static org.opends.messages.ToolMessages.*;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.nio.file.Files;
 
 import javax.swing.SwingUtilities;
 
@@ -64,7 +66,7 @@ public class ControlPanelLauncher
   {
     try {
       ControlPanelLog.initLogFileHandler(
-          File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX));
+          Files.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX).toFile());
     } catch (Throwable t) {
       System.err.println("Unable to initialize log");
       t.printStackTrace();

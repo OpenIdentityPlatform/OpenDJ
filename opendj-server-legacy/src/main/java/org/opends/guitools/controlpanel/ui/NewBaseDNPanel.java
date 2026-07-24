@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -28,6 +29,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1239,7 +1241,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       final TemplateFile generator = new TemplateFile(resourceDir.getAbsolutePath(), new Random(0));
       generator.parse(templateFile.getAbsolutePath(), Collections.<LocalizableMessage>emptyList());
 
-      final File tempFile = File.createTempFile("opendj-control-panel", ".ldif");
+      final File tempFile = Files.createTempFile("opendj-control-panel", ".ldif").toFile();
       tempFile.deleteOnExit();
       final String generatedLdifFilePath = tempFile.getAbsolutePath();
 

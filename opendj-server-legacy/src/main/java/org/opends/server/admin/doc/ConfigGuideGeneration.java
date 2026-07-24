@@ -19,6 +19,7 @@ package org.opends.server.admin.doc;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -112,14 +113,14 @@ public class ConfigGuideGeneration {
   public static void main(String[] args) {
     Properties properties = System.getProperties();
     generationDir = properties.getProperty("GenerationDir");
-    if (generationDir == null) {
-      // Default dir is prefixed by the system-dependent default temporary dir
-      generationDir = System.getProperty("java.io.tmpdir") + File.separator +
-        CONFIG_GUIDE_DIR;
-    }
-    // Create new dir if necessary
     try {
-      new File(generationDir).mkdir();
+      if (generationDir == null) {
+        // Default dir is a fresh temporary dir, only accessible by the current user
+        generationDir = Files.createTempDirectory(CONFIG_GUIDE_DIR).toString();
+      } else {
+        // Create new dir if necessary
+        new File(generationDir).mkdir();
+      }
     } catch (Exception e) {
       e.printStackTrace();
       System.exit(1);
