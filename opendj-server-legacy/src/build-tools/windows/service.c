@@ -190,7 +190,7 @@ BOOLEAN createRegistryKey(char* serviceName)
 
   // Check whether the Registry Key is already created,
   // If so don't create a new one.
-  sprintf (subkey, EVENT_LOG_KEY, serviceName);
+  _snprintf (subkey, MAX_REGISTRY_KEY, EVENT_LOG_KEY, serviceName);
   result = RegOpenKeyEx(
   HKEY_LOCAL_MACHINE,
   subkey,
@@ -292,7 +292,7 @@ BOOLEAN createRegistryKey(char* serviceName)
   // Set the number of categories: 1 (OPENDJ)
   if (success)
   {
-    long result = RegSetValueEx(
+    result = RegSetValueEx(
     hkey,                    // subkey handle
     "CategoryCount",         // value name
     0,                       // must be zero
@@ -346,7 +346,7 @@ BOOLEAN removeRegistryKey(char* serviceName)
 
   // Check whether the Registry Key is already created,
   // If so don't create a new one.
-  sprintf (subkey, EVENT_LOG_KEY, serviceName);
+  _snprintf (subkey, MAX_REGISTRY_KEY, EVENT_LOG_KEY, serviceName);
   result = RegOpenKeyEx(
   HKEY_LOCAL_MACHINE,
   subkey,
@@ -390,7 +390,10 @@ HANDLE registerEventLog(char *serviceName)
   char subkey [MAX_SERVICE_NAME];
   debug("Registering the Event Log for service '%s'.", serviceName);
 
-  sprintf (subkey, serviceName);
+  // _snprintf does not null-terminate on truncation (MSVC), so terminate
+  // explicitly: serviceName ultimately derives from argv and is unbounded.
+  _snprintf (subkey, MAX_SERVICE_NAME, "%s", serviceName);
+  subkey[MAX_SERVICE_NAME - 1] = '\0';
 
   eventLog = RegisterEventSource(
   NULL,      // local host
@@ -427,11 +430,11 @@ ServiceReturnCode isServerRunning(BOOL *running, BOOL mustDebug)
   {
     debug("Determining if the server is running.");
   }
-  if (strlen(relativePath)+strlen(_instanceDir)+1 < MAX_PATH)
+  if (isSafePath(_instanceDir) && strlen(relativePath)+strlen(_instanceDir)+1 < MAX_PATH)
   {
     int fd;
 
-    sprintf(lockFile, "%s%s", _instanceDir, relativePath);
+    _snprintf(lockFile, MAX_PATH, "%s%s", _instanceDir, relativePath);
     if (mustDebug)
     {
       debug(
@@ -517,7 +520,7 @@ ServiceReturnCode doStartApplication(SERVICE_STATUS_HANDLE *serviceStatusHandle,
 
   if (strlen(relativePath)+strlen(_instanceDir)+1 < COMMAND_SIZE)
   {
-  sprintf(command, "\"%s%s\" --windowsNetStart", _instanceDir, relativePath);
+  _snprintf(command, COMMAND_SIZE, "\"%s%s\" --windowsNetStart", _instanceDir, relativePath);
     debug("doStartApplication: Launching batch file: %s", command);
     createOk = createBatchFileChildProcess(command, FALSE, &procInfo);
 
@@ -709,7 +712,7 @@ ServiceReturnCode doStopApplication()
   debug("doStopApplication");
   if (strlen(relativePath)+strlen(_instanceDir)+1 < COMMAND_SIZE)
   {
-    sprintf(command, "\"%s%s\" --windowsNetStop", _instanceDir, relativePath);
+    _snprintf(command, COMMAND_SIZE, "\"%s%s\" --windowsNetStop", _instanceDir, relativePath);
 
     // launch the command
     if (spawn(command, FALSE) != -1)
@@ -808,7 +811,7 @@ ServiceReturnCode createServiceBinPath(char* serviceBinPath)
       if ((strlen(fileName) + strlen(" start ") + strlen(_instanceDir) +
           2 * strlen("\"\"")) < COMMAND_SIZE)
       {
-        sprintf(serviceBinPath, "\"%s\" start \"%s\"", fileName,
+        _snprintf(serviceBinPath, COMMAND_SIZE, "\"%s\" start \"%s\"", fileName,
         _instanceDir);
       }
       else
@@ -873,7 +876,7 @@ ServiceReturnCode getServiceName(char* cmdToRun, char* serviceName)
               // This function assumes that there are at least
               // MAX_SERVICE_NAME (256) characters reserved in
               // servicename.
-              sprintf(serviceName, curService.serviceName);
+              _snprintf(serviceName, MAX_SERVICE_NAME, "%s", curService.serviceName);
               returnValue = SERVICE_RETURN_OK;
             }
             else
@@ -1061,10 +1064,10 @@ void serviceMain(int argc, char* argv[])
   ServiceReturnCode code;
   // a checkpoint value indicate the progress of an operation
   DWORD checkPoint = CHECKPOINT_FIRST_VALUE;
-  SERVICE_STATUS_HANDLE serviceStatusHandle;
+  // static so its address does not escape the stack when stored in the
+  // global _serviceStatusHandle; there is only one service per process.
+  static SERVICE_STATUS_HANDLE serviceStatusHandle;
   BOOL running;
-
-  // __debugbreak();
 
   debug("serviceMain");
 
@@ -1133,16 +1136,12 @@ void serviceMain(int argc, char* argv[])
   if (!running && code == SERVICE_RETURN_OK)
   {
     WORD argCount = 1;
-    const char *argc[] = {_instanceDir};
+    const char *logArgs[] = {_instanceDir};
     code = doStartApplication(_serviceStatusHandle, &checkPoint);
 
-    switch (code)
+    if (code != SERVICE_RETURN_OK)
     {
-      case SERVICE_RETURN_OK:
-      // start is ok: do nothing for the moment.
-      break;
-
-      default:
+      // start failed
       debugError("serviceMain: doStartApplication() failed");
       code = SERVICE_RETURN_ERROR;
       _serviceCurStatus = SERVICE_STOPPED;
@@ -1156,7 +1155,7 @@ void serviceMain(int argc, char* argv[])
       reportLogEvent(
         EVENTLOG_ERROR_TYPE,
         WIN_EVENT_ID_SERVER_START_FAILED,
-        argCount, argc
+        argCount, logArgs
       );
     }
   }
@@ -1222,7 +1221,7 @@ void serviceMain(int argc, char* argv[])
       if (!updatedRunningStatus)
       {
         WORD argCount = 1;
-            const char *argc[] = {_instanceDir};
+            const char *logArgs[] = {_instanceDir};
             updateServiceStatus (
                _serviceCurStatus,
                NO_ERROR,
@@ -1234,7 +1233,7 @@ void serviceMain(int argc, char* argv[])
              reportLogEvent(
                EVENTLOG_SUCCESS,
                WIN_EVENT_ID_SERVER_STARTED,
-               argCount, argc
+               argCount, logArgs
              );
        updatedRunningStatus = TRUE;
       }
@@ -1269,7 +1268,7 @@ void serviceMain(int argc, char* argv[])
                   (state == SERVICE_STOP_PENDING))))
             {
               WORD argCount = 1;
-              const char *argc[] = {_instanceDir};
+              const char *logArgs[] = {_instanceDir};
               _serviceCurStatus = SERVICE_STOPPED;
               debug("checking in serviceMain serviceHandler: service stopped with error.");
 
@@ -1283,7 +1282,7 @@ void serviceMain(int argc, char* argv[])
               reportLogEvent(
                 EVENTLOG_ERROR_TYPE,
                 WIN_EVENT_ID_SERVER_STOPPED_OUTSIDE_SCM,
-                argCount, argc);
+                argCount, logArgs);
             }
             break;
           }
@@ -1324,6 +1323,68 @@ void doTerminateService(HANDLE terminationEvent)
 }  // doTerminateService
 
 // ----------------------------------------------------
+// Stops the service from within the service handler.  Shared by the
+// SERVICE_CONTROL_STOP and SERVICE_CONTROL_SHUTDOWN control codes.
+// ----------------------------------------------------
+static void stopServiceFromHandler(void)
+{
+  ServiceReturnCode code;
+  DWORD checkpoint;
+
+  // update service status to STOP_PENDING
+  debug("serviceHandler: stop");
+  _serviceCurStatus = SERVICE_STOP_PENDING;
+  checkpoint = CHECKPOINT_FIRST_VALUE;
+  updateServiceStatus (
+  _serviceCurStatus,
+  NO_ERROR,
+  0,
+  checkpoint++,
+  TIMEOUT_STOP_SERVICE,
+  _serviceStatusHandle
+  );
+
+  // let's try to stop the application whatever may be the status above
+  // (best effort mode)
+  code = doStopApplication();
+  if (code == SERVICE_RETURN_OK)
+  {
+    WORD argCount = 1;
+    const char *logArgs[] = {_instanceDir};
+    _serviceCurStatus = SERVICE_STOPPED;
+    updateServiceStatus (
+    _serviceCurStatus,
+    NO_ERROR,
+    0,
+    CHECKPOINT_NO_ONGOING_OPERATION,
+    TIMEOUT_NONE,
+    _serviceStatusHandle
+    );
+
+    // again, let's ignore the above status and
+    // notify serviceMain that service has stopped
+    doTerminateService (_terminationEvent);
+    reportLogEvent(
+    EVENTLOG_SUCCESS,
+    WIN_EVENT_ID_SERVER_STOP,
+    argCount, logArgs
+    );
+  }
+  else
+  {
+    WORD argCount = 1;
+    const char *logArgs[] = {_instanceDir};
+    debug("serviceHandler: The server could not be stopped.");
+    // We could not stop the server
+    reportLogEvent(
+    EVENTLOG_ERROR_TYPE,
+    WIN_EVENT_ID_SERVER_STOP_FAILED,
+    argCount, logArgs
+    );
+  }
+}  // stopServiceFromHandler
+
+// ----------------------------------------------------
 // This function is the handler of the service. It is processing the
 // commands send by the SCM. Commands can be: STOP, PAUSE, CONTINUE,
 // SHUTDOWN and INTERROGATE.
@@ -1333,7 +1394,6 @@ void doTerminateService(HANDLE terminationEvent)
 void serviceHandler(DWORD controlCode)
 {
   ServiceReturnCode code;
-  DWORD checkpoint;
   BOOL running;
   debug("serviceHandler called with controlCode=%d.", controlCode);
   switch (controlCode)
@@ -1343,60 +1403,9 @@ void serviceHandler(DWORD controlCode)
     // -> no break here
       debug("serviceHandler: shutdown");
     case SERVICE_CONTROL_STOP:
-    {
-      // update service status to STOP_PENDING
-      debug("serviceHandler: stop");
-      _serviceCurStatus = SERVICE_STOP_PENDING;
-      checkpoint = CHECKPOINT_FIRST_VALUE;
-      updateServiceStatus (
-      _serviceCurStatus,
-      NO_ERROR,
-      0,
-      checkpoint++,
-      TIMEOUT_STOP_SERVICE,
-      _serviceStatusHandle
-      );
-
-      // let's try to stop the application whatever may be the status above
-      // (best effort mode)
-      code = doStopApplication();
-      if (code == SERVICE_RETURN_OK)
-      {
-        WORD argCount = 1;
-        const char *argc[] = {_instanceDir};
-        _serviceCurStatus = SERVICE_STOPPED;
-        updateServiceStatus (
-        _serviceCurStatus,
-        NO_ERROR,
-        0,
-        CHECKPOINT_NO_ONGOING_OPERATION,
-        TIMEOUT_NONE,
-        _serviceStatusHandle
-        );
-
-        // again, let's ignore the above status and
-        // notify serviceMain that service has stopped
-        doTerminateService (_terminationEvent);
-        reportLogEvent(
-        EVENTLOG_SUCCESS,
-        WIN_EVENT_ID_SERVER_STOP,
-        argCount, argc
-        );
-      }
-      else
-      {
-        WORD argCount = 1;
-        const char *argc[] = {_instanceDir};
-    debug("serviceHandler: The server could not be stopped.");
-        // We could not stop the server
-        reportLogEvent(
-        EVENTLOG_ERROR_TYPE,
-        WIN_EVENT_ID_SERVER_STOP_FAILED,
-        argCount, argc
-        );
-      }
+      // update service status to STOP_PENDING and stop the application
+      stopServiceFromHandler();
       break;
-    }
 
 
     // Request to pause the service
@@ -1526,7 +1535,7 @@ char* binPathName)
       {
         if (strlen(serviceConfig->lpBinaryPathName) < COMMAND_SIZE)
         {
-          sprintf(binPathName, serviceConfig->lpBinaryPathName);
+          _snprintf(binPathName, COMMAND_SIZE, "%s", serviceConfig->lpBinaryPathName);
           returnValue = SERVICE_RETURN_OK;
         }
         else
@@ -1543,11 +1552,8 @@ char* binPathName)
     }
   }
 
-  // free buffers
-  if (serviceConfig != NULL)
-  {
-    free(serviceConfig);
-  }
+  // free buffers (free(NULL) is a safe no-op, so no guard is needed)
+  free(serviceConfig);
 
   return returnValue;
 } // getBinaryPathName
@@ -1618,12 +1624,12 @@ int *nbServices)
 
         if (! svcStatusOk)
         {
-          DWORD lastError = GetLastError();
-          if (lastError != ERROR_MORE_DATA)
+          DWORD innerLastError = GetLastError();
+          if (innerLastError != ERROR_MORE_DATA)
           {
             returnValue = SERVICE_RETURN_ERROR;
             debug("getServiceList: second try generic error. Code [%d]",
-                lastError);
+                innerLastError);
           }
           else
           {
@@ -1690,8 +1696,10 @@ int *nbServices)
   if (scm != NULL)
   {
     CloseServiceHandle (scm);
-    // free the result buffer
-    if (lpServiceData != NULL)
+    // free the result buffer, but only if it was heap-allocated: it still
+    // points to the stack-based serviceData when the first EnumServicesStatus
+    // call succeeded without needing a larger buffer.
+    if (lpServiceData != &serviceData)
     {
       free (lpServiceData);
     }
@@ -1780,12 +1788,15 @@ ServiceReturnCode createServiceName(char* serviceName, char* baseName)
   {
     if (i == 1)
     {
-      sprintf(serviceName, baseName);
+      _snprintf(serviceName, MAX_SERVICE_NAME, "%s", baseName);
     }
     else
     {
-      sprintf(serviceName, "%s-%d", baseName, i);
+      _snprintf(serviceName, MAX_SERVICE_NAME, "%s-%d", baseName, i);
     }
+    // _snprintf does not null-terminate on truncation (MSVC), and baseName
+    // (== argv[3]) is unbounded, so terminate explicitly.
+    serviceName[MAX_SERVICE_NAME - 1] = '\0';
 
     nameInUseResult = serviceNameInUse(serviceName);
 
@@ -1930,11 +1941,8 @@ char* cmdToRun)
     CloseServiceHandle (scm);
   }
 
-  // free names
-  if (serviceName != NULL)
-  {
-    free (serviceName);
-  }
+  // free names (free(NULL) is a safe no-op, so no guard is needed)
+  free (serviceName);
 
   debug("createServiceInScm returning %d.", returnValue);
 
@@ -1970,7 +1978,7 @@ ServiceReturnCode removeServiceFromScm(char* serviceName)
     serviceName,
     SERVICE_ALL_ACCESS | DELETE
     );
-    debug("After opening service myService=%d.", myService);
+    debug("After opening service myService=%p.", (void*)myService);
     if (myService == NULL)
     {
       debugError("Failed to open the service '%s'. Last error = %d",
@@ -2176,7 +2184,7 @@ int serviceState()
     {
       // There is a valid serviceName for the command to run, so
       // OpenDJ is registered as a service.
-      fprintf(stdout, serviceName);
+      fprintf(stdout, "%s", serviceName);
       returnCode = 0;
       debug("Service '%s' is enabled.", serviceName);
     }
@@ -2375,6 +2383,13 @@ ERROR_SERVICE_ALREADY_RUNNING.";
 
 
 
+// ---------------------------------------------------------------
+// Entry point for the opendj_service executable.  Dispatches to the
+// requested subcommand (create, state, remove, start, isrunning or
+// cleanup); each operates on the OpenDJ instance directory (or the
+// service name, for cleanup) given as the following argument.
+// Returns 0 on success and a non-zero value otherwise.
+// ---------------------------------------------------------------
 int main(int argc, char* argv[])
 {
   char* subcommand;
@@ -2387,8 +2402,6 @@ int main(int argc, char* argv[])
   for (i = 0; i < argc; i++) {
       debug("  argv[%d] = '%s'", i, argv[i]);
   }
-
-  // __debugbreak();
 
   if (argc <= 1)
   {
