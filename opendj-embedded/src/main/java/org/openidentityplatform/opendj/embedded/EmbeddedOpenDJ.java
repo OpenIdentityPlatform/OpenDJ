@@ -70,9 +70,13 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
 
         this.config = config;
         try {
-            // Create a fresh per-instance server root, only accessible by the current
-            // user, instead of the fixed shared {java.io.tmpdir}/opendj directory.
-            File rootDirectory = Files.createTempDirectory("opendj").toFile();
+            // Create a fresh per-instance parent directory, only accessible by the
+            // current user, instead of the fixed shared {java.io.tmpdir}/opendj
+            // directory. The server root inside it must be named "opendj" because
+            // setup from an archive requires the server root directory to match the
+            // root directory contained in the archive.
+            File rootDirectory = new File(Files.createTempDirectory("opendj").toFile(), "opendj");
+            rootDirectory.mkdir();
 
             File configDirectory = new File(rootDirectory, "config");
             File schemaDirectory = new File(configDirectory, "schema");
