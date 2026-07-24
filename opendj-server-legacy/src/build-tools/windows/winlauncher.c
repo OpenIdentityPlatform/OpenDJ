@@ -238,7 +238,9 @@ BOOL createPidFile(const char* instanceDir, int pid)
 
   if (getPidFile(instanceDir, pidFile, PATH_SIZE))
   {
-    if ((f = fopen(pidFile, "w")) != NULL)
+    // fopen_s creates the file readable and writable by the owner only,
+    // unlike fopen which would create it world-writable.
+    if ((fopen_s(&f, pidFile, "w") == 0) && (f != NULL))
     {
       fprintf(f, "%d", pid);
       fclose (f);
@@ -595,15 +597,39 @@ int main(int argc, char* argv[])
 
   if (strcmp(subcommand, "start") == 0)
   {
-    instanceDir = argv[2];
-    argv += 3;
-    returnCode = start(instanceDir, argv);
+    // Work on the canonical form of the instance directory so that the
+    // file names derived from it (such as the pid file) are unambiguous.
+    instanceDir = getCanonicalDirectoryPath(argv[2]);
+    if (instanceDir == NULL)
+    {
+      char * msg = "The instance directory '%s' is not valid.\n";
+      debugError(msg, argv[2]);
+      fprintf(stderr, msg, argv[2]);
+      returnCode = -1;
+    }
+    else
+    {
+      argv += 3;
+      returnCode = start(instanceDir, argv);
+      free(instanceDir);
+    }
   }
   else if (strcmp(subcommand, "stop") == 0)
   {
-    instanceDir = argv[2];
-    argv += 3;
-    returnCode = stop(instanceDir);
+    instanceDir = getCanonicalDirectoryPath(argv[2]);
+    if (instanceDir == NULL)
+    {
+      char * msg = "The instance directory '%s' is not valid.\n";
+      debugError(msg, argv[2]);
+      fprintf(stderr, msg, argv[2]);
+      returnCode = -1;
+    }
+    else
+    {
+      argv += 3;
+      returnCode = stop(instanceDir);
+      free(instanceDir);
+    }
   }
   else if (strcmp(subcommand, "launch") == 0)
   {

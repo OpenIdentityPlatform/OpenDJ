@@ -2384,6 +2384,22 @@ ERROR_SERVICE_ALREADY_RUNNING.";
 
 
 // ---------------------------------------------------------------
+// Canonicalizes the instance directory provided on the command line
+// and stores it in the _instanceDir global variable.  Returns TRUE
+// on success and FALSE (after printing an error) otherwise.
+// ---------------------------------------------------------------
+BOOL setInstanceDir(const char* dir)
+{
+  _instanceDir = getCanonicalDirectoryPath(dir);
+  if (_instanceDir == NULL)
+  {
+    fprintf(stdout, "The instance dir '%s' is not valid.\n", dir);
+    return FALSE;
+  }
+  return TRUE;
+}
+
+// ---------------------------------------------------------------
 // Entry point for the opendj_service executable.  Dispatches to the
 // requested subcommand (create, state, remove, start, isrunning or
 // cleanup); each operates on the OpenDJ instance directory (or the
@@ -2420,11 +2436,15 @@ int main(int argc, char* argv[])
     "Subcommand create requires instance dir, service name and description.\n");
         returnCode = -1;
       }
-      else
+      else if (setInstanceDir(argv[2]))
       {
-        _instanceDir = _strdup(argv[2]);
+        // Register the Windows service for the provided instance directory.
         returnCode = createService(argv[3], argv[4]);
         free(_instanceDir);
+      }
+      else
+      {
+        returnCode = -1;
       }
     }
     else if (strcmp(subcommand, "state") == 0)
@@ -2435,11 +2455,15 @@ int main(int argc, char* argv[])
         "Subcommand state requires instance dir.\n");
         returnCode = -1;
       }
-      else
+      else if (setInstanceDir(argv[2]))
       {
-        _instanceDir = _strdup(argv[2]);
+        // Report whether a service is registered for this instance directory.
         returnCode = serviceState();
         free(_instanceDir);
+      }
+      else
+      {
+        returnCode = -1;
       }
     }
     else if (strcmp(subcommand, "remove") == 0)
@@ -2450,11 +2474,15 @@ int main(int argc, char* argv[])
         "Subcommand remove requires instance dir.\n");
         returnCode = -1;
       }
-      else
+      else if (setInstanceDir(argv[2]))
       {
-        _instanceDir = _strdup(argv[2]);
+        // Unregister the Windows service of this instance directory.
         returnCode = removeService();
         free(_instanceDir);
+      }
+      else
+      {
+        returnCode = -1;
       }
     }
     else if (strcmp(subcommand, "start") == 0)
@@ -2465,11 +2493,15 @@ int main(int argc, char* argv[])
         "Subcommand start requires instance dir.\n");
         returnCode = -1;
       }
-      else
+      else if (setInstanceDir(argv[2]))
       {
-        _instanceDir = _strdup(argv[2]);
+        // Called by the service control manager: run the service main loop.
         returnCode = startService();
         free(_instanceDir);
+      }
+      else
+      {
+        returnCode = -1;
       }
     }
     else if (strcmp(subcommand, "isrunning") == 0)
@@ -2480,11 +2512,11 @@ int main(int argc, char* argv[])
         "Subcommand isrunning requires instance dir.\n");
         returnCode = -1;
       }
-      else
+      else if (setInstanceDir(argv[2]))
       {
         BOOL running;
         ServiceReturnCode code;
-        _instanceDir = _strdup(argv[2]);
+        // Check the server lock file to determine if the server is running.
         code = isServerRunning(&running, TRUE);
         if (code == SERVICE_RETURN_OK)
         {
@@ -2495,6 +2527,10 @@ int main(int argc, char* argv[])
           returnCode = -1;
         }
         free(_instanceDir);
+      }
+      else
+      {
+        returnCode = -1;
       }
 
     }
