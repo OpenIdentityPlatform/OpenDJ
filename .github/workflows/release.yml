@@ -38,18 +38,11 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: echo "$GITHUB_CONTEXT"
-      - name: Install wine+rpm for distribution
+      - name: Install rpm for distribution
         shell: bash
         run:   |
-          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
-          sudo dpkg --add-architecture i386
-          sudo mkdir -pm755 /etc/apt/keyrings && sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
-          sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/$(lsb_release -c -s)/winehq-$(lsb_release -c -s).sources
           sudo apt-get update
-          sudo apt install --install-recommends winehq-stable || sudo apt install --install-recommends winehq-staging
-          wine --version
-          version="9.4.0"; sudo wget "https://dl.winehq.org/wine/wine-mono/$version/wine-mono-$version-x86.msi" -O /tmp/wine-mono.msi
-          wine msiexec /i /tmp/wine-mono.msi
+          sudo apt-get install -y rpm
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -89,8 +82,17 @@ jobs:
           MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
         if: ${{ env.MAVEN_USERNAME!='' && env.MAVEN_PASSWORD!='' }}
         run: mvn --batch-mode -Darguments="-Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}" -DsignTag=true -DtagNameFormat="${{ github.event.inputs.releaseVersion }}" -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }} release:prepare release:perform --file pom.xml
+      # Hand the just-released server zip to the release-msi job (the MSI can only be
+      # built on Windows), so it does not have to rebuild opendj-server-legacy.
+      - name: Upload the server zip for the MSI job
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-server-zip
+          retention-days: 1
+          path: target/checkout/opendj-server-legacy/target/package/*.zip
       - name: Release on GitHub
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
           name: ${{ github.event.inputs.releaseVersion }}
           tag_name: ${{ github.event.inputs.releaseVersion }}
@@ -103,7 +105,6 @@ jobs:
             target/checkout/opendj-ldap-toolkit/target/*.zip
             target/checkout/opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb
             target/checkout/opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
-            target/checkout/opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
             target/checkout/opendj-packages/opendj-docker/target/Dockerfile.zip
             target/checkout/opendj-packages/opendj-openshift-template/*.yaml
             target/checkout/opendj-doc-generated-ref/target/*.zip
@@ -148,6 +149,65 @@ jobs:
           cd doc.openidentityplatform.org
           git tag -f ${TAG_NAME}
           git push --quiet --force origin ${TAG_NAME}
+
+  # The MSI can only be built on Windows. Reuses the server zip built by release-maven
+  # (installed into the local repo), so only the opendj-msi-standard module is built here.
+  # continue-on-error: an MSI failure must not break the release.
+  release-msi:
+    name: Windows MSI release
+    runs-on: 'windows-latest'
+    continue-on-error: true
+    needs:
+      - release-maven
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.releaseVersion }}
+          submodules: recursive
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+      - name: Cache Maven packages
+        uses: actions/cache@v5
+        with:
+         path: ~/.m2/repository
+         key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
+         restore-keys: ${{ runner.os }}-m2-repository
+      - name: Setup WiX (.NET tool)
+        shell: bash
+        run: |
+          echo "DOTNET_ROLL_FORWARD=Major" >> "$GITHUB_ENV"
+          export DOTNET_ROLL_FORWARD=Major
+          dotnet tool install --global wix --version 5.0.2 || dotnet tool update --global wix --version 5.0.2
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          export PATH="$HOME/.dotnet/tools:$PATH"
+          wix --version
+          wix extension add -g WixToolset.UI.wixext/5.0.2 || true
+      - name: Download the server zip built by release-maven
+        uses: actions/download-artifact@v8
+        with:
+          name: release-server-zip
+          path: server-zip
+      - name: Install the server zip into the local Maven repository
+        shell: bash
+        run: |
+          ZIP=$(ls server-zip/*.zip | head -1)
+          echo "Installing $ZIP as opendj-server-legacy:${{ github.event.inputs.releaseVersion }}:zip"
+          mvn --batch-mode install:install-file -Dfile="$ZIP" \
+            -DgroupId=org.openidentityplatform.opendj -DartifactId=opendj-server-legacy \
+            -Dversion=${{ github.event.inputs.releaseVersion }} -Dpackaging=zip
+      - name: Build the MSI (packaging only, no rebuild)
+        env:
+          MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
+        run: mvn --batch-mode --errors -DskipTests package -pl :opendj-msi-standard --file pom.xml
+      - name: Attach the MSI to the GitHub release
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        with:
+          tag_name: ${{ github.event.inputs.releaseVersion }}
+          fail_on_unmatched_files: true
+          files: opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
 
   release-docker:
     name: Docker release

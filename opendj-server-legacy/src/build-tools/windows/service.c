@@ -827,6 +827,118 @@ ServiceReturnCode createServiceBinPath(char* serviceBinPath)
 } // createServiceBinPath
 
 // ----------------------------------------------------
+// Reads the next command line token starting at *p into out (at most
+// outSize - 1 characters). A token is either a run of non-blank
+// characters or a double-quoted string; quotes are treated as plain
+// delimiters without escape processing, so a trailing backslash-quote
+// sequence (as written by msiexec) leaves trailing backslashes on the
+// token, which normalizeInstanceDir strips. Returns the position right
+// after the token.
+// ----------------------------------------------------
+
+static const char* nextCmdToken(const char* p, char* out, int outSize)
+{
+  int i = 0;
+  while ((*p == ' ') || (*p == '\t'))
+  {
+    p++;
+  }
+  if (*p == '"')
+  {
+    p++;
+    while ((*p != '\0') && (*p != '"'))
+    {
+      if (i < (outSize - 1))
+      {
+        out[i++] = *p;
+      }
+      p++;
+    }
+    if (*p == '"')
+    {
+      p++;
+    }
+  }
+  else
+  {
+    while ((*p != '\0') && (*p != ' ') && (*p != '\t'))
+    {
+      if (i < (outSize - 1))
+      {
+        out[i++] = *p;
+      }
+      p++;
+    }
+  }
+  out[i] = '\0';
+  return p;
+}  // nextCmdToken
+
+// ----------------------------------------------------
+// Strips trailing backslashes and "\." path segments from an instance
+// dir so that "C:\opendj", "C:\opendj\" and "C:\opendj\." all compare
+// equal.
+// ----------------------------------------------------
+
+static void normalizeInstanceDir(char* dir)
+{
+  size_t len = strlen(dir);
+  BOOL changed = TRUE;
+  while (changed && (len > 0))
+  {
+    changed = FALSE;
+    if (dir[len - 1] == '\\')
+    {
+      dir[--len] = '\0';
+      changed = TRUE;
+    }
+    else if ((len > 1) && (dir[len - 1] == '.') && (dir[len - 2] == '\\'))
+    {
+      dir[--len] = '\0';
+      changed = TRUE;
+    }
+  }
+}  // normalizeInstanceDir
+
+// ----------------------------------------------------
+// Tells whether two service command lines refer to the same server
+// instance. The strings cannot be compared verbatim because every
+// writer quotes differently: this executable and the java tools write
+// '"<root>\lib\opendj_service.exe" start "<root>"' while the MSI
+// ServiceInstall writes the executable unquoted (when the path has no
+// spaces) and the instance dir with a trailing backslash. Instead the
+// executable path, the subcommand and the normalized instance dir are
+// compared token by token, case-insensitively.
+// ----------------------------------------------------
+
+static BOOL serviceCmdsMatch(const char* cmd1, const char* cmd2)
+{
+  char exe1[COMMAND_SIZE];
+  char exe2[COMMAND_SIZE];
+  char sub1[COMMAND_SIZE];
+  char sub2[COMMAND_SIZE];
+  char dir1[COMMAND_SIZE];
+  char dir2[COMMAND_SIZE];
+  const char* p1 = cmd1;
+  const char* p2 = cmd2;
+
+  p1 = nextCmdToken(p1, exe1, COMMAND_SIZE);
+  p1 = nextCmdToken(p1, sub1, COMMAND_SIZE);
+  nextCmdToken(p1, dir1, COMMAND_SIZE);
+
+  p2 = nextCmdToken(p2, exe2, COMMAND_SIZE);
+  p2 = nextCmdToken(p2, sub2, COMMAND_SIZE);
+  nextCmdToken(p2, dir2, COMMAND_SIZE);
+
+  normalizeInstanceDir(dir1);
+  normalizeInstanceDir(dir2);
+
+  return (_stricmp(exe1, exe2) == 0)
+      && (_stricmp(sub1, sub2) == 0)
+      && (_stricmp(dir1, dir2) == 0);
+}  // serviceCmdsMatch
+
+// ----------------------------------------------------
 // Returns the service name that maps the command used to start the
 // product. All commands are supposed to be unique because they have
 // the instance dir as parameter.
@@ -866,7 +978,7 @@ ServiceReturnCode getServiceName(char* cmdToRun, char* serviceName)
         ServiceDescriptor curService = serviceList[i];
         if (curService.cmdToRun != NULL)
         {
-          if (_stricmp(cmdToRun, curService.cmdToRun) == 0)
+          if (serviceCmdsMatch(cmdToRun, curService.cmdToRun))
           {
             if (strlen(curService.serviceName) < MAX_SERVICE_NAME)
             {

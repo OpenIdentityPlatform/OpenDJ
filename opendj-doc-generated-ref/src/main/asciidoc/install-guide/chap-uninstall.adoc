@@ -162,17 +162,9 @@ Removing the package does not remove your data or configuration. You must remove
 [#uninstall-msi]
 .To Uninstall the Windows MSI Package
 ====
-Remove OpenDJ directory server installed from the `.msi` package like any other Windows program.
+Remove OpenDJ directory server installed from the `.msi` package like any other Windows program. The uninstaller stops and removes the `OpenDJ Server` Windows service that the package registered.
 
-. If OpenDJ is registered as a Windows service, remove the service first:
-+
-
-[source, console]
-----
-C:\path\to\opendj\bat> windows-service.bat --disableService
-----
-
-. Uninstall the package, either through __Settings > Apps__ (or __Control Panel > Programs and Features__) by selecting OpenDJ and choosing Uninstall, or from the command-line:
+* Uninstall the package, either through __Settings > Apps__ (or __Control Panel > Programs and Features__) by selecting OpenDJ and choosing Uninstall, or from the command-line:
 +
 
 [source, console, subs="attributes"]

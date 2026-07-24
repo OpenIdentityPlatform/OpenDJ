@@ -55,7 +55,6 @@
                 <module>opendj-deb</module>
                 <module>opendj-rpm</module>
                 <module>opendj-svr4</module>
-                <module>opendj-msi</module>
     		 	<module>opendj-docker</module>
             </modules>
         </profile>
@@ -69,7 +68,6 @@
             </activation>
             <modules>
                 <module>opendj-svr4</module>
-                <module>opendj-msi</module>
                 <module>opendj-docker</module>
             </modules>
         </profile>
@@ -79,6 +77,8 @@
                 <os><family>windows</family></os>
             </activation>
             <modules>
+            	<!-- MSI is built here only: the WiX toolset can create MSIs on Windows only
+            	     (msi.dll / WIX0389 make Linux/macOS builds impossible). -->
             	<module>opendj-msi</module>
     	 		<module>opendj-docker</module>
             </modules>
