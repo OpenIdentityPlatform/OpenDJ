@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -25,11 +26,11 @@ import static com.forgerock.opendj.ldap.tools.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.PrintStream;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
 import com.codahale.metrics.RatioGauge;
 import com.forgerock.opendj.cli.MultiColumnPrinter;
@@ -108,10 +109,10 @@ public final class AuthRate extends ConsoleApplication {
             private Object[] data;
             private final char[] invalidPassword = "invalid-password".toCharArray();
 
-            private final ThreadLocal<Random> rng = new ThreadLocal<Random>() {
+            private final ThreadLocal<SecureRandom> rng = new ThreadLocal<SecureRandom>() {
                 @Override
-                protected Random initialValue() {
-                    return new Random();
+                protected SecureRandom initialValue() {
+                    return new SecureRandom();
                 }
             };
 
@@ -183,7 +184,7 @@ public final class AuthRate extends ConsoleApplication {
                     useInvalidPassword = true;
                     break;
                 default:
-                    final Random r = rng.get();
+                    final SecureRandom r = rng.get();
                     final int p = r.nextInt(100);
                     useInvalidPassword = p < invalidCredPercent;
                     break;
