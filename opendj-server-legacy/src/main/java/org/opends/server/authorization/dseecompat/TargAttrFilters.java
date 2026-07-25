@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -137,9 +138,12 @@ public class TargAttrFilters {
         //This pattern is built dynamically and is used to see if the operations
         //in the two filter list parts (if the second exists) are equal. See
         //comment below.
+        // firstOp is captured from the (add|del) group of keywordFullPattern, so it can
+        // only ever be the literal "add" or "del". Quote it defensively before embedding it
+        // into another regular expression to avoid any regex-injection into opPattern.
         String opPattern=
                 "[,]{1}" + ZERO_OR_MORE_WHITESPACE  +
-                firstOp + ZERO_OR_MORE_WHITESPACE + EQUAL_SIGN +
+                Pattern.quote(firstOp) + ZERO_OR_MORE_WHITESPACE + EQUAL_SIGN +
                 ZERO_OR_MORE_WHITESPACE;
         String[] temp=subExpression.split(opPattern);
         /*
