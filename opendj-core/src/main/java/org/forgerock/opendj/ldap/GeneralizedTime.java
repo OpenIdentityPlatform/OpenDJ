@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -653,15 +654,35 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
             throw new LocalizedIllegalArgumentException(message);
         }
 
-        final Double fractionValue = Double.parseDouble(fractionBuffer.toString());
-        final int additionalMilliseconds = (int) Math.round(fractionValue * multiplier);
+        final double fractionValue;
+        try {
+            fractionValue = Double.parseDouble(fractionBuffer.toString());
+        } catch (final NumberFormatException e) {
+            final LocalizableMessage message =
+                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(value, fractionBuffer);
+            throw new LocalizedIllegalArgumentException(message, e);
+        }
+        if (fractionValue < 0.0d || fractionValue >= 1.0d) {
+            // "0." followed by 17 nines parses as exactly 1.0, so reject before scaling.
+            final LocalizableMessage message =
+                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(value, fractionBuffer);
+            throw new LocalizedIllegalArgumentException(message);
+        }
+        final long additionalMilliseconds = Math.round(fractionValue * multiplier);
+        if (additionalMilliseconds >= multiplier) {
+            // 16 nines: 0.9999999999999999 * 1000 still rounds up to 1000. The calendar below
+            // only validates lazily, so reject the out-of-range value here.
+            final LocalizableMessage message =
+                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(value, fractionBuffer);
+            throw new LocalizedIllegalArgumentException(message);
+        }
 
         try {
             final GregorianCalendar calendar = new GregorianCalendar();
             calendar.setLenient(false);
             calendar.setTimeZone(timeZone);
             calendar.set(year, month, day, hour, minute, second);
-            calendar.set(Calendar.MILLISECOND, additionalMilliseconds);
+            calendar.set(Calendar.MILLISECOND, (int) additionalMilliseconds);
             return new GeneralizedTime(calendar, null, Long.MIN_VALUE, value);
         } catch (final Exception e) {
             // This should only happen if the provided date wasn't legal
