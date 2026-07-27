@@ -238,8 +238,12 @@ BOOL createPidFile(const char* instanceDir, int pid)
 
   if (getPidFile(instanceDir, pidFile, PATH_SIZE))
   {
-    // fopen_s creates the file readable and writable by the owner only,
-    // unlike fopen which would create it world-writable.
+    // The CodeQL query cpp/world-writable-file-creation models POSIX
+    // creation modes, which do not exist on Windows: the file's ACL is
+    // inherited from the parent directory either way.  Using fopen_s
+    // satisfies the query without changing the actual permissions; the
+    // sharing it denies does not matter for a file written and closed
+    // immediately.
     if ((fopen_s(&f, pidFile, "w") == 0) && (f != NULL))
     {
       fprintf(f, "%d", pid);
@@ -595,7 +599,7 @@ int main(int argc, char* argv[])
 
   subcommand = argv[1];
 
-  if (strcmp(subcommand, "start") == 0)
+  if ((strcmp(subcommand, "start") == 0) || (strcmp(subcommand, "stop") == 0))
   {
     // Work on the canonical form of the instance directory so that the
     // file names derived from it (such as the pid file) are unambiguous.
@@ -610,24 +614,14 @@ int main(int argc, char* argv[])
     else
     {
       argv += 3;
-      returnCode = start(instanceDir, argv);
-      free(instanceDir);
-    }
-  }
-  else if (strcmp(subcommand, "stop") == 0)
-  {
-    instanceDir = getCanonicalDirectoryPath(argv[2]);
-    if (instanceDir == NULL)
-    {
-      char * msg = "The instance directory '%s' is not valid.\n";
-      debugError(msg, argv[2]);
-      fprintf(stderr, msg, argv[2]);
-      returnCode = -1;
-    }
-    else
-    {
-      argv += 3;
-      returnCode = stop(instanceDir);
+      if (strcmp(subcommand, "start") == 0)
+      {
+        returnCode = start(instanceDir, argv);
+      }
+      else
+      {
+        returnCode = stop(instanceDir);
+      }
       free(instanceDir);
     }
   }

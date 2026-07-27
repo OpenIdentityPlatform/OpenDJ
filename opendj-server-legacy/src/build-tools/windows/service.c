@@ -2388,7 +2388,7 @@ ERROR_SERVICE_ALREADY_RUNNING.";
 // and stores it in the _instanceDir global variable.  Returns TRUE
 // on success and FALSE (after printing an error) otherwise.
 // ---------------------------------------------------------------
-BOOL setInstanceDir(const char* dir)
+static BOOL setInstanceDir(const char* dir)
 {
   _instanceDir = getCanonicalDirectoryPath(dir);
   if (_instanceDir == NULL)
@@ -2397,6 +2397,15 @@ BOOL setInstanceDir(const char* dir)
     return FALSE;
   }
   return TRUE;
+}
+
+// ---------------------------------------------------------------
+// Frees the _instanceDir global variable allocated by setInstanceDir.
+// ---------------------------------------------------------------
+static void freeInstanceDir()
+{
+  free(_instanceDir);
+  _instanceDir = NULL;
 }
 
 // ---------------------------------------------------------------
@@ -2436,15 +2445,15 @@ int main(int argc, char* argv[])
     "Subcommand create requires instance dir, service name and description.\n");
         returnCode = -1;
       }
-      else if (setInstanceDir(argv[2]))
+      else if (!setInstanceDir(argv[2]))
       {
-        // Register the Windows service for the provided instance directory.
-        returnCode = createService(argv[3], argv[4]);
-        free(_instanceDir);
+        returnCode = -1;
       }
       else
       {
-        returnCode = -1;
+        // Register the Windows service for the provided instance directory.
+        returnCode = createService(argv[3], argv[4]);
+        freeInstanceDir();
       }
     }
     else if (strcmp(subcommand, "state") == 0)
@@ -2455,15 +2464,15 @@ int main(int argc, char* argv[])
         "Subcommand state requires instance dir.\n");
         returnCode = -1;
       }
-      else if (setInstanceDir(argv[2]))
+      else if (!setInstanceDir(argv[2]))
       {
-        // Report whether a service is registered for this instance directory.
-        returnCode = serviceState();
-        free(_instanceDir);
+        returnCode = -1;
       }
       else
       {
-        returnCode = -1;
+        // Report whether a service is registered for this instance directory.
+        returnCode = serviceState();
+        freeInstanceDir();
       }
     }
     else if (strcmp(subcommand, "remove") == 0)
@@ -2474,15 +2483,15 @@ int main(int argc, char* argv[])
         "Subcommand remove requires instance dir.\n");
         returnCode = -1;
       }
-      else if (setInstanceDir(argv[2]))
+      else if (!setInstanceDir(argv[2]))
       {
-        // Unregister the Windows service of this instance directory.
-        returnCode = removeService();
-        free(_instanceDir);
+        returnCode = -1;
       }
       else
       {
-        returnCode = -1;
+        // Unregister the Windows service of this instance directory.
+        returnCode = removeService();
+        freeInstanceDir();
       }
     }
     else if (strcmp(subcommand, "start") == 0)
@@ -2493,15 +2502,15 @@ int main(int argc, char* argv[])
         "Subcommand start requires instance dir.\n");
         returnCode = -1;
       }
-      else if (setInstanceDir(argv[2]))
+      else if (!setInstanceDir(argv[2]))
       {
-        // Called by the service control manager: run the service main loop.
-        returnCode = startService();
-        free(_instanceDir);
+        returnCode = -1;
       }
       else
       {
-        returnCode = -1;
+        // Called by the service control manager: run the service main loop.
+        returnCode = startService();
+        freeInstanceDir();
       }
     }
     else if (strcmp(subcommand, "isrunning") == 0)
@@ -2512,7 +2521,11 @@ int main(int argc, char* argv[])
         "Subcommand isrunning requires instance dir.\n");
         returnCode = -1;
       }
-      else if (setInstanceDir(argv[2]))
+      else if (!setInstanceDir(argv[2]))
+      {
+        returnCode = -1;
+      }
+      else
       {
         BOOL running;
         ServiceReturnCode code;
@@ -2526,11 +2539,7 @@ int main(int argc, char* argv[])
         {
           returnCode = -1;
         }
-        free(_instanceDir);
-      }
-      else
-      {
-        returnCode = -1;
+        freeInstanceDir();
       }
 
     }

@@ -282,8 +282,11 @@ void debugInner(BOOL isError, const char *msg, va_list ap)
   
   logFile = getDebugLogFileName();
   deleteIfLargerThan(logFile, MAX_DEBUG_LOG_SIZE);
-  // Create the log file readable and writable by the owner only, while
-  // keeping the shareable append behavior that fopen provides.
+  // The CodeQL query cpp/world-writable-file-creation models POSIX creation
+  // modes, which do not exist on Windows: the file's ACL is inherited from
+  // the parent directory regardless of the pmode argument.  Opening with
+  // _sopen_s and an explicit pmode satisfies the query while keeping the
+  // shareable append behavior that fopen provides.
   fp = NULL;
   fd = -1;
   if ((_sopen_s(&fd, logFile, _O_WRONLY | _O_APPEND | _O_CREAT | _O_TEXT,
@@ -473,13 +476,27 @@ char* getCanonicalDirectoryPath(const char* path)
     return NULL;
   }
 
+  // "C:" is drive-relative: it would resolve to the current directory on
+  // that drive rather than to its root.
+  if ((strlen(path) == 2) && (path[1] == ':'))
+  {
+    debugError("The path '%s' is drive-relative.", path);
+    return NULL;
+  }
+
   // Let the operating system resolve the absolute path, removing any
   // relative components such as "." and "..".
   length = GetFullPathName(path, MAX_PATH, canonical, NULL);
-  if ((length == 0) || (length >= MAX_PATH))
+  if (length == 0)
   {
     debugError("Could not resolve the path '%s'.  Last error = %d.",
         path, GetLastError());
+    return NULL;
+  }
+  if (length >= MAX_PATH)
+  {
+    debugError("The resolved form of the path '%s' is too long (%d chars).",
+        path, length);
     return NULL;
   }
 
