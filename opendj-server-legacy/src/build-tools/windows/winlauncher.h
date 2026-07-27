@@ -12,11 +12,15 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 #include "common.h"
+#include <fcntl.h>
+#include <io.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/locking.h>
 #include <sys/stat.h>
 #include <process.h>
 
