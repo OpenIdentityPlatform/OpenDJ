@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.common;
 
@@ -77,9 +78,9 @@ public class CSNTest extends ReplicationTestCase
   @DataProvider(name = "createCSN")
   public Object[][] createCSNData()
   {
-    long time[] = {1, TimeThread.getTime()};
-    int seq[] = {0,  123};
-    int id [] = {1,  45};
+    long time[] = {1, TimeThread.getTime(), 1, 1};
+    int seq[] = {0,  123, Integer.MIN_VALUE, Integer.MAX_VALUE - 1};
+    int id [] = {1,  45, 1, 1};
 
     Object[][] obj = new Object[time.length][5];
     for (int i=0; i<time.length; i++)
@@ -138,6 +139,26 @@ public class CSNTest extends ReplicationTestCase
     assertTrue(CSN.compare(csn4, csn1) > 0);
     assertTrue(CSN.compare(csn1, csn5) < 0);
     assertTrue(CSN.compare(csn5, csn1) > 0);
+  }
+
+  /**
+   * Test that {@link CSN#compare(CSN, CSN)} orders extreme seqnums correctly and
+   * transitively: subtraction-based comparison overflowed for MIN_VALUE vs
+   * MAX_VALUE at equal timestamps and inverted the sign, which is fatal for
+   * TreeMaps keyed on CSN.
+   */
+  @Test
+  public void csnCompareExtremeSeqnums() throws Exception
+  {
+    final CSN minSeqnum = new CSN(1, Integer.MIN_VALUE, 1);
+    final CSN zeroSeqnum = new CSN(1, 0, 1);
+    final CSN maxSeqnum = new CSN(1, Integer.MAX_VALUE, 1);
+
+    assertTrue(CSN.compare(minSeqnum, zeroSeqnum) < 0);
+    assertTrue(CSN.compare(zeroSeqnum, maxSeqnum) < 0);
+    assertTrue(CSN.compare(minSeqnum, maxSeqnum) < 0);
+    assertTrue(CSN.compare(maxSeqnum, minSeqnum) > 0);
+    assertEquals(CSN.compare(maxSeqnum, maxSeqnum), 0);
   }
 
   /** Test {@link CSN#isOlderThan(CSN)} method. */
