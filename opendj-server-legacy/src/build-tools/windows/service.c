@@ -698,21 +698,32 @@ ServiceReturnCode doStartApplication(SERVICE_STATUS_HANDLE *serviceStatusHandle,
 
 
 // ----------------------------------------------------
-// Stop the application using stop-ds.bat
+// Stop the application by invoking winlauncher.exe stop directly.
+// The stop used to go through stop-ds.bat --windowsNetStop, but on
+// that path two java processes are launched only to end up in the
+// very same winlauncher.exe stop call, keeping the SCM waiting for
+// tens of seconds before the stop even begins.
+// While the stop is in progress the SERVICE_STOP_PENDING status is
+// re-reported with an incrementing checkPoint through
+// serviceStatusHandle, as doStartApplication does for the start
+// (both parameters may be NULL when no reporting is wanted).
 // The functions returns SERVICE_RETURN_OK if we could stop the server
 // and SERVICE_RETURN_ERROR otherwise.
 // ----------------------------------------------------
-ServiceReturnCode doStopApplication()
+ServiceReturnCode doStopApplication(SERVICE_STATUS_HANDLE *serviceStatusHandle, DWORD *checkPoint)
 {
   ServiceReturnCode returnValue;
   // init out params
-  char* relativePath = "\\bat\\stop-ds.bat";
+  char* relativePath = "\\lib\\winlauncher.exe";
   char command[COMMAND_SIZE];
 
   debug("doStopApplication");
-  if (strlen(relativePath)+strlen(_instanceDir)+1 < COMMAND_SIZE)
+  if (strlen(relativePath) + 2 * strlen(_instanceDir) + strlen("\"\" stop \"\\.\"") + 1 < COMMAND_SIZE)
   {
-    _snprintf(command, COMMAND_SIZE, "\"%s%s\" --windowsNetStop", _instanceDir, relativePath);
+    // The trailing "\." protects the closing quote from a _instanceDir that
+    // ends with a backslash (which the command line parser would treat as an
+    // escape); winlauncher.exe removes it again when canonicalizing the path.
+    _snprintf(command, COMMAND_SIZE, "\"%s%s\" stop \"%s\\.\"", _instanceDir, relativePath, _instanceDir);
 
     // launch the command
     if (spawn(command, FALSE) != -1)
@@ -723,12 +734,15 @@ ServiceReturnCode doStopApplication()
 
       debug("doStopApplication: the spawn of the process worked.");
 
-      // Wait to be able to launch the java process in order it to free the lock
-      // on the file.
-      Sleep(3000);
+      Sleep(1000);
       while ((nTries > 0) && running)
       {
         nTries--;
+        if (serviceStatusHandle != NULL && checkPoint != NULL)
+        {
+          updateServiceStatus(SERVICE_STOP_PENDING, NO_ERROR, 0,
+              (*checkPoint)++, 10000, serviceStatusHandle);
+        }
         if (isServerRunning(&running, TRUE) != SERVICE_RETURN_OK)
         {
           break;
@@ -939,10 +953,10 @@ SERVICE_STATUS_HANDLE *serviceStatusHandle
   // elaborate the commands supported by the service:
   // - STOP        customer has performed a stop-ds (or NET STOP)
   // - SHUTDOWN    the system is rebooting
-  // - INTERROGATE service controler can interrogate the service
   // - No need to support PAUSE/CONTINUE
   //
-  // Note: INTERROGATE *must* be supported by the service handler
+  // Note: INTERROGATE has no SERVICE_ACCEPT_ bit: it is always accepted
+  // and *must* be supported by the service handler
   DWORD controls;
   SERVICE_STATUS serviceStatus;
   BOOL success;
@@ -961,8 +975,7 @@ SERVICE_STATUS_HANDLE *serviceStatusHandle
   {
     controls =
     SERVICE_ACCEPT_STOP
-    | SERVICE_ACCEPT_SHUTDOWN
-    | SERVICE_CONTROL_INTERROGATE;
+    | SERVICE_ACCEPT_SHUTDOWN;
   }
 
   // fill in the status structure
@@ -1346,7 +1359,7 @@ static void stopServiceFromHandler(void)
 
   // let's try to stop the application whatever may be the status above
   // (best effort mode)
-  code = doStopApplication();
+  code = doStopApplication(_serviceStatusHandle, &checkpoint);
   if (code == SERVICE_RETURN_OK)
   {
     WORD argCount = 1;
@@ -1375,7 +1388,18 @@ static void stopServiceFromHandler(void)
     WORD argCount = 1;
     const char *logArgs[] = {_instanceDir};
     debug("serviceHandler: The server could not be stopped.");
-    // We could not stop the server
+    // We could not stop the server: report the service as RUNNING again
+    // instead of leaving it in SERVICE_STOP_PENDING forever, where the
+    // SCM would refuse any further stop or delete request.
+    _serviceCurStatus = SERVICE_RUNNING;
+    updateServiceStatus (
+    _serviceCurStatus,
+    NO_ERROR,
+    0,
+    CHECKPOINT_NO_ONGOING_OPERATION,
+    TIMEOUT_NONE,
+    _serviceStatusHandle
+    );
     reportLogEvent(
     EVENTLOG_ERROR_TYPE,
     WIN_EVENT_ID_SERVER_STOP_FAILED,
@@ -2032,7 +2056,19 @@ ServiceReturnCode removeServiceFromScm(char* serviceName)
       }
       else
       {
-        Sleep (500);
+        // Wait until the service actually reaches SERVICE_STOPPED so that
+        // DeleteService below performs a clean delete instead of merely
+        // marking a still-running service for deletion.
+        int nTries = 60;
+        while ((nTries > 0) && (serviceStatus.dwCurrentState != SERVICE_STOPPED))
+        {
+          nTries--;
+          Sleep (1000);
+          if (!QueryServiceStatus (myService, &serviceStatus))
+          {
+            break;
+          }
+        }
       }
     }
   }
