@@ -29,7 +29,6 @@ import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.QuickSetupMessages.INFO_NOT_AVAILABLE_LABEL;
 import static org.opends.messages.ToolMessages.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;

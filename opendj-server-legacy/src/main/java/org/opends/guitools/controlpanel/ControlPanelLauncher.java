@@ -13,7 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyrighted 2026 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel;
 
@@ -22,7 +22,6 @@ import static com.forgerock.opendj.cli.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 
-import java.io.File;
 import java.io.PrintStream;
 import java.nio.file.Files;
 

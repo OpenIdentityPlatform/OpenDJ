@@ -60,6 +60,9 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
 
     final Config config;
 
+    private final File instanceDirectory;
+    private final File rootDirectory;
+
     public EmbeddedOpenDJ() {
         this(new Config());
     }
@@ -69,14 +72,18 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
         logger.info("Create embedded OpenDJ instance: {}", config);
 
         this.config = config;
+        File instanceDirectory = null;
         try {
             // Create a fresh per-instance parent directory, only accessible by the
             // current user, instead of the fixed shared {java.io.tmpdir}/opendj
             // directory. The server root inside it must be named "opendj" because
             // setup from an archive requires the server root directory to match the
-            // root directory contained in the archive.
-            File rootDirectory = new File(Files.createTempDirectory("opendj").toFile(), "opendj");
+            // root directory contained in the archive. The whole directory is
+            // deleted on close().
+            instanceDirectory = Files.createTempDirectory("opendj").toFile();
+            File rootDirectory = new File(instanceDirectory, "opendj");
             rootDirectory.mkdir();
+            logger.info("OpenDJ server root: {}", rootDirectory);
 
             File configDirectory = new File(rootDirectory, "config");
             File schemaDirectory = new File(configDirectory, "schema");
@@ -110,11 +117,23 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
 
             copyFilesFromJar(schemaFiles, JAR_SCHEMA_DIRECTORY, schemaDirectory);
 
+            this.instanceDirectory = instanceDirectory;
+            this.rootDirectory = rootDirectory;
         }catch (Exception e) {
             logger.error("Error initializing OpenDJ");
+            FileUtils.deleteQuietly(instanceDirectory);
             throw new RuntimeException(e);
         }
         Runtime.getRuntime().addShutdownHook(new Thread(this::close));
+    }
+
+    /**
+     * Returns the server root directory of this embedded instance.
+     *
+     * @return the server root directory
+     */
+    public File getServerRootDirectory() {
+        return rootDirectory;
     }
 
     @Override
@@ -146,13 +165,16 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
 
     @Override
     public void close()  {
-        if (server.isRunning())
+        if (server.isRunning()) {
             try {
                 logger.info("Shutting down OpenDJ ...");
                 server.stop(this.getClass().getName(), LocalizableMessage.raw("Stopped after receiving Control-C"));
             }catch (Throwable e) {
                 logger.error("Error stopping OpenDJ", e);
             }
+        }
+        // close() is also registered as a shutdown hook, so deletion must stay idempotent
+        FileUtils.deleteQuietly(instanceDirectory);
     }
 
     private void copyFilesFromJar(List<String> jarFiles, String jarDirectory, File outputDirectory) throws IOException{

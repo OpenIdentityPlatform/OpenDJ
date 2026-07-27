@@ -99,7 +99,7 @@ public class ConfigGuideGeneration {
    *
    * Properties:
    * GenerationDir - The directory where the doc is generated
-   *              (default is /var/tmp/[CONFIG_GUIDE_DIR&gt;])
+   *              (default is a fresh temporary directory, printed on startup)
    * LdapMapping - Presence means that the LDAP mapping section is to be
    *               generated (default is no)
    * OpenDJWiki - The URL of the OpenDJ Wiki
