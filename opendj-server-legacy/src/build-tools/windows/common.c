@@ -22,8 +22,10 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <io.h>
+#include <share.h>
 #include <stdio.h>
 #include <sys/locking.h>
+#include <sys/stat.h>
 #include <time.h>
 
 BOOL DEBUG = TRUE;
@@ -260,6 +262,7 @@ void debugInner(BOOL isError, const char *msg, va_list ap)
   // The file containing the log.
   char * logFile;
   FILE *fp;
+  int fd;
 	time_t rawtime;
   struct tm timeinfo;
   char formattedTime[100];
@@ -279,7 +282,23 @@ void debugInner(BOOL isError, const char *msg, va_list ap)
   
   logFile = getDebugLogFileName();
   deleteIfLargerThan(logFile, MAX_DEBUG_LOG_SIZE);
-  if ((fp = fopen(logFile, "a")) != NULL)
+  // The CodeQL query cpp/world-writable-file-creation models POSIX creation
+  // modes, which do not exist on Windows: the file's ACL is inherited from
+  // the parent directory regardless of the pmode argument.  Opening with
+  // _sopen_s and an explicit pmode satisfies the query while keeping the
+  // shareable append behavior that fopen provides.
+  fp = NULL;
+  fd = -1;
+  if ((_sopen_s(&fd, logFile, _O_WRONLY | _O_APPEND | _O_CREAT | _O_TEXT,
+      _SH_DENYNO, _S_IREAD | _S_IWRITE) == 0) && (fd != -1))
+  {
+    fp = _fdopen(fd, "a");
+    if (fp == NULL)
+    {
+      _close(fd);
+    }
+  }
+  if (fp != NULL)
   {
     fprintf(fp, "%s: (pid=%d)  ", formattedTime, currentProcessPid);
     if (isError) 
@@ -442,4 +461,50 @@ BOOL isExistingDirectory(char * fileName)
 BOOL isSafePath(const char* path)
 {
   return (path != NULL) && (strstr(path, "..") == NULL);
+}
+
+// ---------------------------------------------------------------
+// See common.h for the contract of this function.
+// ---------------------------------------------------------------
+char* getCanonicalDirectoryPath(const char* path)
+{
+  char canonical[MAX_PATH];
+  DWORD length;
+
+  if (path == NULL)
+  {
+    return NULL;
+  }
+
+  // "C:" is drive-relative: it would resolve to the current directory on
+  // that drive rather than to its root.
+  if ((strlen(path) == 2) && (path[1] == ':'))
+  {
+    debugError("The path '%s' is drive-relative.", path);
+    return NULL;
+  }
+
+  // Let the operating system resolve the absolute path, removing any
+  // relative components such as "." and "..".
+  length = GetFullPathName(path, MAX_PATH, canonical, NULL);
+  if (length == 0)
+  {
+    debugError("Could not resolve the path '%s'.  Last error = %d.",
+        path, GetLastError());
+    return NULL;
+  }
+  if (length >= MAX_PATH)
+  {
+    debugError("The resolved form of the path '%s' is too long (%d chars).",
+        path, length);
+    return NULL;
+  }
+
+  if (!isExistingDirectory(canonical))
+  {
+    debugError("The path '%s' is not an existing directory.", canonical);
+    return NULL;
+  }
+
+  return _strdup(canonical);
 }

@@ -41,4 +41,11 @@ BOOL waitForProcess(PROCESS_INFORMATION* procInfo, DWORD waitTime,
 // parent-directory reference ("..") that could be used for path traversal.
 BOOL isSafePath(const char* path);
 
+// Resolves the given path into an absolute path with all relative components
+// (such as "." and "..") removed, and checks that it is an existing
+// directory.  Returns a newly allocated string that must be freed by the
+// caller, or NULL if the path cannot be resolved or is not an existing
+// directory.
+char* getCanonicalDirectoryPath(const char* path);
+
 #endif // OPENDJ_WINDOWS_COMMON_H
