@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
@@ -28,6 +29,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.DirectoryServerTestCase;
@@ -35,6 +38,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backupable;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RestoreConfig;
 import org.testng.Reporter;
 import org.testng.annotations.BeforeClass;
@@ -212,6 +216,47 @@ public class BackupManagerTestCase extends DirectoryServerTestCase
     assertThat(new File(backupPath, getArchiveFileName(initialBackupId))).doesNotExist();
 
     cleanDirectories(sourceDirectory, backupPath);
+  }
+
+  /**
+   * A restore must reject archive entries which resolve outside of the restore
+   * directory (zip slip) and must not write any file outside of it.
+   */
+  @Test
+  public void testRestoreRejectsZipSlipEntries() throws Exception
+  {
+    String label = "zipslip";
+    Path sourceDirectory = createSourceDirectory(label);
+    Backupable backupable = buildBackupable(sourceDirectory, 1);
+    BackupDirectory backupDir = buildBackupDir(label);
+    BackupConfig backupConfig = new BackupConfig(backupDir, BACKUP_ID, false);
+    RestoreConfig restoreConfig = new RestoreConfig(backupDir, BACKUP_ID, false);
+
+    BackupManager backupManager = new BackupManager(BACKEND_ID);
+    backupManager.createBackup(backupable, backupConfig);
+
+    // replace the archive with one containing an entry escaping the restore directory
+    File archiveFile = new File(backupDir.getPath(), getArchiveFileName(BACKUP_ID));
+    try (ZipOutputStream zipOutput = new ZipOutputStream(new FileOutputStream(archiveFile)))
+    {
+      zipOutput.putNextEntry(new ZipEntry("../evil.txt"));
+      zipOutput.write(getBytes("evil"));
+      zipOutput.closeEntry();
+    }
+
+    File escapedFile = new File(sourceDirectory.toFile().getParentFile(), "evil.txt");
+    try
+    {
+      backupManager.restoreBackup(backupable, restoreConfig);
+      fail("Expected restoreBackup to reject a zip entry escaping the restore directory");
+    }
+    catch (DirectoryException expected)
+    {
+      assertThat(expected.getMessage()).contains("evil.txt");
+    }
+    assertThat(escapedFile).doesNotExist();
+
+    cleanDirectories(sourceDirectory, backupDir.getPath());
   }
 
   @Test

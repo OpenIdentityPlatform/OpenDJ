@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.util;
 
@@ -27,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -173,6 +175,7 @@ public class ZipExtractor {
      */
     Map<String, List<String>> permissions = new HashMap<>();
     permissions.put(getProtectedDirectoryPermissionUnix(), newArrayList(destDir));
+    Path destDirPath = new File(destDir).toPath().toAbsolutePath().normalize();
     try {
       if(application != null) {
         application.checkAbort();
@@ -198,9 +201,13 @@ public class ZipExtractor {
           }
         }
         if (name != null && name.length() > 0) {
+          Path destination = destDirPath.resolve(name).normalize();
+          if (!destination.startsWith(destDirPath)) {
+            throw new IOException("Zip entry '" + entry.getName()
+                    + "' is outside of the destination directory");
+          }
           try {
-            File destination = new File(destDir, name);
-            copyZipEntry(entry, destination, zipIn,
+            copyZipEntry(entry, destination.toFile(), zipIn,
                     ratioBeforeCompleted, ratioWhenCompleted, permissions);
           } catch (IOException ioe) {
             throw new ApplicationException(
