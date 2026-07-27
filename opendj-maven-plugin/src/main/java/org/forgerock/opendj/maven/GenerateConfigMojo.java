@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -247,11 +248,12 @@ public final class GenerateConfigMojo extends AbstractMojo {
 
     /** Resolves a file name against an output directory, refusing names which escape it. */
     private static String safeOutputPath(final String outputDir, final String fileName) throws IOException {
-        final File outputFile = new File(outputDir, fileName);
-        if (!outputFile.toPath().normalize().startsWith(new File(outputDir).toPath().normalize())) {
+        final Path outputDirPath = new File(outputDir).toPath().toAbsolutePath().normalize();
+        final Path outputFile = outputDirPath.resolve(fileName).normalize();
+        if (!outputFile.startsWith(outputDirPath)) {
             throw new IOException("File name '" + fileName + "' is outside of the output directory");
         }
-        return outputFile.getPath();
+        return outputFile.toString();
     }
 
     private void executeTransformXMLDefinitions() throws Exception {
@@ -333,7 +335,7 @@ public final class GenerateConfigMojo extends AbstractMojo {
                         }
                     }
                 };
-                final String profile = javaDir + "/" + entry.getKey() + "/package-info.java";
+                final String profile = safeOutputPath(javaDir, entry.getKey() + "/package-info.java");
                 createTransformTask(sourceFactory, profile, entry.getValue(), parallelExecutor,
                         "type", entry.getKey());
             }

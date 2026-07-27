@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyrighted 2026 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
@@ -32,6 +32,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -2535,16 +2536,18 @@ public final class StaticUtils
   public static void extractZipArchive(File zipFile, File targetDirectory, List<String> executableDirectories,
       List<String> executableFiles) throws IOException
   {
+    Path targetDir = targetDirectory.toPath().toAbsolutePath().normalize();
     try (ZipInputStream zipStream = new ZipInputStream(new FileInputStream(zipFile)))
     {
       ZipEntry fileEntry;
       while ((fileEntry = zipStream.getNextEntry()) != null)
       {
-        File targetFile = new File(targetDirectory.getPath(), fileEntry.getName());
-        if (!targetFile.toPath().normalize().startsWith(targetDirectory.toPath().normalize()))
+        Path targetPath = targetDir.resolve(fileEntry.getName()).normalize();
+        if (!targetPath.startsWith(targetDir))
         {
           throw new IOException("Zip entry '" + fileEntry.getName() + "' is outside of the target directory");
         }
+        File targetFile = targetPath.toFile();
 
         if (fileEntry.isDirectory())
         {
