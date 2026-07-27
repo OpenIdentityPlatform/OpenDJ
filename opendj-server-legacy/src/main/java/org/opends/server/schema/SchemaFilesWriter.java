@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.schema;
 
@@ -40,6 +41,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -725,7 +727,7 @@ class SchemaFilesWriter
     }
 
     // Create a temporary file to which we can write the schema entry.
-    File tempFile = File.createTempFile(schemaFile, "temp");
+    File tempFile = Files.createTempFile(schemaFile, "temp").toFile();
     LDIFExportConfig exportConfig =
          new LDIFExportConfig(tempFile.getAbsolutePath(),
                               ExistingFileBehavior.OVERWRITE);
@@ -1064,11 +1066,23 @@ class SchemaFilesWriter
     // files.  If this fails, then try to restore the originals.
     try
     {
+      boolean posixSupported = schemaInstanceDir.toPath().getFileSystem()
+          .supportedFileAttributeViews().contains("posix");
       for (int i=0; i < installedFileList.size(); i++)
       {
         File installedFile = installedFileList.get(i);
         File tempFile      = tempFileList.get(i);
+        // The temporary file was created with owner-only permissions and Files.copy
+        // propagates the source permissions, so preserve the permissions of the
+        // previously installed schema file.
+        Set<PosixFilePermission> previousPermissions = posixSupported && installedFile.exists()
+            ? Files.getPosixFilePermissions(installedFile.toPath())
+            : null;
         Files.copy(tempFile.toPath(), installedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        if (previousPermissions != null)
+        {
+          Files.setPosixFilePermissions(installedFile.toPath(), previousPermissions);
+        }
       }
     }
     catch (Exception e)
