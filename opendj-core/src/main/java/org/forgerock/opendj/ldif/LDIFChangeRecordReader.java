@@ -83,7 +83,7 @@ import static com.forgerock.opendj.util.StaticUtils.*;
  */
 public final class LDIFChangeRecordReader extends AbstractLDIFReader implements ChangeRecordReader {
     private static final Pattern CONTROL_REGEX = Pattern
-            .compile("^\\s*(\\d+(\\.\\d+)*)(\\s+((true)|(false)))?\\s*(:(:)?\\s*?\\S+)?\\s*$");
+            .compile("^\\s*+(\\d++(\\.\\d++)*+)(\\s++((true)|(false)))?\\s*+(:(:)?\\s*?\\S++)?\\s*+$");
 
     /** Poison used to indicate end of LDIF. */
     private static final ChangeRecord EOF = Requests.newAddRequest(DN.rootDN());
