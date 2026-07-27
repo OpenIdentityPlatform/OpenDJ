@@ -654,12 +654,24 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
             throw new LocalizedIllegalArgumentException(message);
         }
 
-        final double fractionValue = Double.parseDouble(fractionBuffer.toString());
+        final double fractionValue;
+        try {
+            fractionValue = Double.parseDouble(fractionBuffer.toString());
+        } catch (final NumberFormatException e) {
+            final LocalizableMessage message =
+                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(value, fractionBuffer);
+            throw new LocalizedIllegalArgumentException(message, e);
+        }
+        if (fractionValue < 0.0d || fractionValue >= 1.0d) {
+            // "0." followed by 17 nines parses as exactly 1.0, so reject before scaling.
+            final LocalizableMessage message =
+                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(value, fractionBuffer);
+            throw new LocalizedIllegalArgumentException(message);
+        }
         final long additionalMilliseconds = Math.round(fractionValue * multiplier);
-        if (additionalMilliseconds < 0 || additionalMilliseconds >= multiplier) {
-            // Parsing and scaling both round up: "0." followed by 17 nines parses as exactly 1.0,
-            // and with 16 nines the rounded product is still 1000. The calendar below only
-            // validates lazily, so reject the out-of-range value here.
+        if (additionalMilliseconds >= multiplier) {
+            // 16 nines: 0.9999999999999999 * 1000 still rounds up to 1000. The calendar below
+            // only validates lazily, so reject the out-of-range value here.
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(value, fractionBuffer);
             throw new LocalizedIllegalArgumentException(message);
