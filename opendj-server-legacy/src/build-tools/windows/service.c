@@ -2530,14 +2530,23 @@ int main(int argc, char* argv[])
         BOOL running;
         ServiceReturnCode code;
         // Check the server lock file to determine if the server is running.
+        // Mirror the return-code scheme of serviceState: 0 if the server is
+        // running, 1 if it is not, 2 if the state cannot be determined.
         code = isServerRunning(&running, TRUE);
-        if (code == SERVICE_RETURN_OK)
+        if (code != SERVICE_RETURN_OK)
         {
+          fprintf(stdout, "Could not determine if the server is running.\n");
+          returnCode = 2;
+        }
+        else if (running)
+        {
+          fprintf(stdout, "true\n");
           returnCode = 0;
         }
         else
         {
-          returnCode = -1;
+          fprintf(stdout, "false\n");
+          returnCode = 1;
         }
         freeInstanceDir();
       }
