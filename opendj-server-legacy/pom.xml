@@ -31,20 +31,6 @@
   </description>
   <inceptionYear>2010</inceptionYear>
 
-  <repositories>
-    <repository>
-      <id>oracle-repository</id>
-      <name>Oracle Maven Repository</name>
-      <url>http://download.oracle.com/maven</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
-
   <properties>
     <!-- General server-wide properties -->
     <docgen.dir>${project.build.directory}/docgen</docgen.dir>
