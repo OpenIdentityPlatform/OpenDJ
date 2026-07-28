@@ -100,6 +100,7 @@ ServiceReturnCode updateServiceStatus (
    SERVICE_STATUS_HANDLE *serviceStatusHandle
    );
 ServiceReturnCode doStartApplication(SERVICE_STATUS_HANDLE *serviceStatusHandle, DWORD *checkPoint);
+ServiceReturnCode doStopApplication(SERVICE_STATUS_HANDLE *serviceStatusHandle, DWORD *checkPoint);
 void serviceHandler(DWORD controlCode);
 BOOL getServiceStatus(char *serviceName, LPDWORD returnState);
 
