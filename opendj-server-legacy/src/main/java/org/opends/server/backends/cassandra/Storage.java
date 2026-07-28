@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2023-2024 3A Systems, LLC.
+ * Copyright 2023-2026 3A Systems, LLC.
  */
 package org.opends.server.backends.cassandra;
 
@@ -147,11 +147,11 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	}
 
 	String getKeyspaceName() {
-		return "\""+System.getProperty("keyspace",config.getDBDirectory()).replaceAll("[^a-zA-z0-9_]", "_")+"\"";
+		return "\""+System.getProperty("keyspace",config.getDBDirectory()).replaceAll("[^a-zA-Z0-9_]", "_")+"\"";
 	}
 	
 	String getTableName() {
-		return getKeyspaceName()+".\""+config.getBackendId().replaceAll("[^a-zA-z0-9_]", "_")+"\"";
+		return getKeyspaceName()+".\""+config.getBackendId().replaceAll("[^a-zA-Z0-9_]", "_")+"\"";
 	}
 	
 	@Override
