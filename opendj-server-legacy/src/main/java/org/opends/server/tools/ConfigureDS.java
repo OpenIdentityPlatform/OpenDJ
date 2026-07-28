@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools;
 
@@ -1291,10 +1292,12 @@ public class ConfigureDS
    */
   private static String getAlternativeCipher()
   {
+    // Only OAEP variants belong here: RSA with PKCS#1 v1.5 padding is vulnerable to
+    // Bleichenbacher-style padding oracle attacks and must not be used to wrap the
+    // CryptoManager secret keys.
     final String[] preferredAlternativeCiphers =
     {
-        "RSA/ECB/OAEPWITHSHA1ANDMGF1PADDING",
-        "RSA/ECB/PKCS1Padding"
+        "RSA/ECB/OAEPWITHSHA1ANDMGF1PADDING"
     };
     for (final String cipher : preferredAlternativeCiphers)
     {
