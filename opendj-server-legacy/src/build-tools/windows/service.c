@@ -28,7 +28,8 @@ char * _logFile = NULL;
 // locks\server.lock live).  _instanceDir is the install root the
 // service was created with; on split install/instance layouts the
 // instance root differs and is resolved from the install root's
-// instance.loc file.  Computed lazily by getInstanceRoot.
+// instance.loc file.  Resolved by getInstanceRoot(), normally once
+// from setInstanceDir(), and released by freeInstanceDir().
 static char *_instanceRoot = NULL;
 
 // ----------------------------------------------------
@@ -428,13 +429,21 @@ void deregisterEventLog()
 // from the install root's instance.loc file when that file exists
 // (split install/instance layouts), resolving a relative content
 // against the install root, and fall back to the install root
-// itself.  This function performs the same resolution; the result is
-// computed once and cached.
+// itself.  This function performs the same resolution.  The result is
+// cached, except when instance.loc exists but its content cannot be
+// resolved yet (getCanonicalDirectoryPath requires the directory to
+// exist, e.g. an instance on a volume that is not mounted yet):
+// caching the install root then would make isServerRunning() probe
+// the wrong locks\server.lock for the lifetime of the process, so
+// that case is reported to the event log and retried on the next
+// call, probing the install root only for the current call.
 // ----------------------------------------------------
 static char* getInstanceRoot(void)
 {
   char locFile[MAX_PATH];
   FILE *f;
+  char *resolved = NULL;
+  BOOL unresolvable = FALSE;
 
   if (_instanceRoot != NULL)
   {
@@ -470,24 +479,53 @@ static char* getInstanceRoot(void)
           {
             _snprintf(joined, sizeof(joined), "%s\\%s", _instanceDir, line);
           }
-          _instanceRoot = getCanonicalDirectoryPath(joined);
-          if (_instanceRoot == NULL)
+          resolved = getCanonicalDirectoryPath(joined);
+          if (resolved == NULL)
           {
+            unresolvable = TRUE;
             debugError("Could not resolve the instance root '%s' read from '%s'.",
                 joined, locFile);
           }
           else
           {
-            debug("Instance root resolved from '%s': '%s'.", locFile, _instanceRoot);
+            debug("Instance root resolved from '%s': '%s'.", locFile, resolved);
           }
         }
       }
       fclose(f);
     }
   }
-  if (_instanceRoot == NULL)
+  if (unresolvable)
   {
+    static volatile LONG alreadyReported = 0;
+    if (InterlockedCompareExchange(&alreadyReported, 1, 0) == 0)
+    {
+      char msg[2 * MAX_PATH];
+      const char *logArgs[1];
+      _snprintf(msg, sizeof(msg),
+          "Could not resolve the OpenDJ instance root from '%s'; probing the install root '%s' until the instance root becomes available.",
+          locFile, _instanceDir);
+      msg[sizeof(msg) - 1] = '\0';
+      logArgs[0] = msg;
+      if (!reportLogEvent(EVENTLOG_WARNING_TYPE, WIN_EVENT_ID_DEBUG, 1, logArgs))
+      {
+        // The event log is not registered yet (command-line paths and the
+        // eager call from setInstanceDir): let a later call report it.
+        InterlockedExchange(&alreadyReported, 0);
+      }
+    }
+    return _instanceDir;
+  }
+  if (resolved == NULL)
+  {
+    // No usable instance.loc: the install root is the instance root.
     _instanceRoot = _instanceDir;
+  }
+  else if (InterlockedCompareExchangePointer((PVOID*)&_instanceRoot, resolved,
+      NULL) != NULL)
+  {
+    // A concurrent first call published its copy: keep that one.
+    free(resolved);
   }
   return _instanceRoot;
 }  // getInstanceRoot
@@ -806,6 +844,9 @@ ServiceReturnCode doStopApplication(SERVICE_STATUS_HANDLE *serviceStatusHandle, 
     // escape); winlauncher.exe removes it again when canonicalizing the path.
     _snprintf(command, COMMAND_SIZE, "\"%s%s\" stop \"%s\\.\"", _instanceDir, relativePath, instanceRoot);
 
+    // The stop no longer goes through stop-ds.bat, so this debug log is
+    // the only file trace of the stop: record the command unconditionally.
+    debug("doStopApplication: launching '%s'.", command);
     // launch the command
     if (spawn(command, FALSE) != -1)
     {
@@ -1290,19 +1331,24 @@ void serviceMain(int argc, char* argv[])
       else
       {
         running = FALSE;
+        // Wait on the termination event rather than sleeping: a completed
+        // stop signals it through doTerminateService, so the process can
+        // exit right away instead of after the next poll plus its
+        // confirmation retries - the window in which a following start
+        // fails with ERROR_SERVICE_ALREADY_RUNNING.
         if (updatedRunningStatus)
         {
-          Sleep(5000);
+          returnValue = WaitForSingleObject (_terminationEvent, 5000);
         }
         else
         {
           returnValue = WaitForSingleObject (_terminationEvent,
                                            refreshPeriodSeconds * 1000);
-          if (returnValue == WAIT_OBJECT_0)
-          {
-            debug("The application has exited.");
-            break;
-          }
+        }
+        if (returnValue == WAIT_OBJECT_0)
+        {
+          debug("The application has exited.");
+          break;
         }
         code = isServerRunning(&running, FALSE);
         if (code != SERVICE_RETURN_OK)
@@ -1495,6 +1541,7 @@ static void stopService(BOOL duringShutdown)
 // ----------------------------------------------------
 static DWORD WINAPI stopServiceWorker(LPVOID lpParam)
 {
+  (void)lpParam;
   stopService(FALSE);
   return 0;
 }  // stopServiceWorker
@@ -2219,7 +2266,18 @@ ServiceReturnCode removeServiceFromScm(char* serviceName)
             break;
           }
         }
-        if (serviceStatus.dwCurrentState != SERVICE_STOPPED)
+        if (serviceStatus.dwCurrentState == SERVICE_RUNNING)
+        {
+          // The stop worker reports SERVICE_RUNNING when the stop failed:
+          // deleting the service now would merely mark a still-running
+          // service for deletion and report success while the server keeps
+          // running with no service registration left to retry with.
+          debugError(
+              "The service '%s' is still running after the stop request: not deleting it.",
+              serviceName);
+          returnValue = SERVICE_RETURN_ERROR;
+        }
+        else if (serviceStatus.dwCurrentState != SERVICE_STOPPED)
         {
           debugError(
               "The service '%s' did not reach SERVICE_STOPPED (state=%d): DeleteService will only mark it for deletion.",
@@ -2588,14 +2646,24 @@ static BOOL setInstanceDir(const char* dir)
     fprintf(stdout, "The instance dir '%s' is not valid.\n", dir);
     return FALSE;
   }
+  // Resolve the instance root before serviceMain's monitor loop and the
+  // stop worker can race on the lazy initialization, and so the resolved
+  // root appears in the debug log at startup.
+  getInstanceRoot();
   return TRUE;
 }
 
 // ---------------------------------------------------------------
-// Frees the _instanceDir global variable allocated by setInstanceDir.
+// Frees the _instanceDir and _instanceRoot global variables allocated
+// by setInstanceDir/getInstanceRoot.
 // ---------------------------------------------------------------
 static void freeInstanceDir()
 {
+  if ((_instanceRoot != NULL) && (_instanceRoot != _instanceDir))
+  {
+    free(_instanceRoot);
+  }
+  _instanceRoot = NULL;
   free(_instanceDir);
   _instanceDir = NULL;
 }
