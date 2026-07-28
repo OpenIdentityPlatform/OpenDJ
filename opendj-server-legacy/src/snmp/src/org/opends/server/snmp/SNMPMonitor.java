@@ -13,7 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2014 ForgeRock AS.
- * Portions Copyright 2024 3A Systems, LLC.
+ * Portions Copyright 2024-2026 3A Systems, LLC.
  */
 package org.opends.server.snmp;
 
@@ -426,7 +426,7 @@ public class SNMPMonitor
    */
   private static long pow(long x, long y)
   {
-    int j = 1;
+    long j = 1;
     long k = x;
     if (y == 0)
     {
