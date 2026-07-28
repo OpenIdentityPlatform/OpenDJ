@@ -16,6 +16,7 @@
  */
 
 #include "common.h"
+#include <errno.h>
 #include <fcntl.h>
 #include <io.h>
 #include <stdio.h>

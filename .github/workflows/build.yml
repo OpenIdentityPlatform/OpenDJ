@@ -288,11 +288,17 @@ jobs:
       if: runner.os == 'Windows'
       run:   |
         # Verify a stop took effect before moving on: wait until the server
-        # releases the exclusive lock it holds on locks\server.lock.
+        # releases the exclusive byte-range lock it holds on locks\server.lock.
+        # The explicit Lock(0, 1) probe is required: a byte-range lock does not
+        # prevent opening the file, so a bare Open() would always succeed.
         function Wait-ServerStopped($lockFile) {
+          $lockFile = Join-Path $PWD $lockFile
           for ($i = 0; $i -lt 30; $i++) {
             if (-not (Test-Path $lockFile)) { return }
-            try { $fs = [System.IO.File]::Open($lockFile, 'Open', 'ReadWrite', 'None'); $fs.Close(); return } catch { Start-Sleep -Seconds 2 }
+            try {
+              $fs = [System.IO.File]::Open($lockFile, 'Open', 'ReadWrite', 'ReadWrite')
+              try { $fs.Lock(0, 1); $fs.Unlock(0, 1); return } finally { $fs.Close() }
+            } catch { Start-Sleep -Seconds 2 }
           }
           throw "The server still holds the lock on ${lockFile}: the stop did not take effect"
         }

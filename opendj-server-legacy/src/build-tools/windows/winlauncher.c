@@ -262,7 +262,7 @@ BOOL createPidFile(const char* instanceDir, int pid)
     // immediately.
     if ((fopen_s(&f, pidFile, "w") == 0) && (f != NULL))
     {
-      fprintf(f, "%d", pid);
+      fprintf(f, "%d\n", pid);
       fclose (f);
       returnValue = TRUE;
       debug("Successfully put pid=%d in the pid file '%s'.", pid, pidFile);
@@ -448,8 +448,11 @@ int start(const char* instanceDir, char* argv[])
 // that the server process is gone (the pid in the pid file may be
 // stale and belong to another process, so the outcome of killProcess
 // alone is not proof that the server was stopped).
-// Returns TRUE if the lock could be acquired (or the lock file does
-// not exist) and FALSE if the server still holds it after the
+// Only a lock conflict (EACCES) is proof that the server still runs:
+// like isServerRunning in service.c, a lock file that cannot be opened
+// or an unexpected locking error is not treated as a running server.
+// Returns TRUE if the server no longer holds the lock (or holding it
+// cannot be proven) and FALSE if the lock conflict persists after the
 // bounded retries.
 // ----------------------------------------------------
 BOOL waitForLockRelease(const char* instanceDir)
@@ -469,22 +472,32 @@ BOOL waitForLockRelease(const char* instanceDir)
   while (nTries > 0)
   {
     int fd;
+    int lockingError;
     if (!fileExists(lockFile))
     {
       debug("Lock file '%s' does not exist, so the server is stopped.", lockFile);
       return TRUE;
     }
     fd = _open(lockFile, _O_RDWR);
-    if (fd != -1)
+    if (fd == -1)
     {
-      if (_locking(fd, LK_NBLCK, 1) != -1)
-      {
-        _locking(fd, LK_UNLCK, 1);
-        _close(fd);
-        debug("Acquired the lock on '%s', so the server is stopped.", lockFile);
-        return TRUE;
-      }
+      debug("Could not open the lock file '%s' (errno=%d), so the server is considered stopped.",
+        lockFile, errno);
+      return TRUE;
+    }
+    if (_locking(fd, LK_NBLCK, 1) != -1)
+    {
+      _locking(fd, LK_UNLCK, 1);
       _close(fd);
+      debug("Acquired the lock on '%s', so the server is stopped.", lockFile);
+      return TRUE;
+    }
+    lockingError = errno;
+    _close(fd);
+    if (lockingError != EACCES)
+    {
+      debugError("Unexpected error locking '%s': %d", lockFile, lockingError);
+      return TRUE;
     }
     nTries--;
     debug("The server still holds the lock on '%s'.  Sleeping for 1 second and will try %d more time(s).",
@@ -514,13 +527,14 @@ BOOL waitForLockRelease(const char* instanceDir)
 // sets the pid file to be deleted on the exit of the process
 // the file is not always deleted.
 //
-// Returns 0 if the instance could be stopped using the
-// pid stored in a file of the server installation and
-// -1 otherwise.
+// Returns 0 if the server no longer holds the server lock (the process
+// found in the pid file, if any, was killed and the lock was released)
+// and -1 otherwise.
 // ----------------------------------------------------
 int stop(const char* instanceDir)
 {
   int returnCode = -1;
+  BOOL mayHaveStopped = FALSE;
 
   int childPid;
 
@@ -530,24 +544,33 @@ int stop(const char* instanceDir)
 
   if (childPid != 0)
   {
-    if (killProcess(childPid))
-    {
-      if (waitForLockRelease(instanceDir))
-      {
-        returnCode = 0;
-        deletePidFile(instanceDir);
-      }
-      else
-      {
-        char * msg = "The server at '%s' is still running: it did not release the server lock.\n";
-        debugError(msg, instanceDir);
-        fprintf(stderr, msg, instanceDir);
-      }
-    }
+    mayHaveStopped = killProcess(childPid);
   }
   else
   {
-    debug("Could not stop the server running at root '%s' because the pid could not be located.", instanceDir);
+    // The pid file is typically missing because the server has already
+    // stopped (or is stopping right now): the lock probe below gives the
+    // definitive answer.
+    debug("Could not locate the pid of the server running at root '%s': relying on the server lock alone.", instanceDir);
+    mayHaveStopped = TRUE;
+  }
+
+  if (mayHaveStopped)
+  {
+    if (waitForLockRelease(instanceDir))
+    {
+      returnCode = 0;
+      if (childPid != 0)
+      {
+        deletePidFile(instanceDir);
+      }
+    }
+    else
+    {
+      char * msg = "The server at '%s' is still running: it did not release the server lock.\n";
+      debugError(msg, instanceDir);
+      fprintf(stderr, msg, instanceDir);
+    }
   }
 
   return returnCode;
