@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -574,7 +575,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
       int nOcs = 0;
       for (ByteString v : values)
       {
-        if (!"top".equals(v))
+        if (!"top".equals(v.toString()))
         {
           nOcs++;
         }
@@ -693,7 +694,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
     // Handle the root entry separately: most of its attributes are operational
     // so we filter a list of hardcoded attributes.
-    boolean isRootEntry = "".equals(sr.getName());
+    boolean isRootEntry = sr.getName().isRootDN();
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (isRootEntry)
     {
@@ -984,7 +985,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
       else if (isConfirmPassword(attrName) || isPassword(attrName))
       {
         JPasswordField pf = Utilities.createPasswordField();
-        if (!"".equals(v))
+        if (!v.isEmpty())
         {
           pf.setText(getPasswordStringValue(getAttributeForConfirmPasswordKey(attrName), v));
         }

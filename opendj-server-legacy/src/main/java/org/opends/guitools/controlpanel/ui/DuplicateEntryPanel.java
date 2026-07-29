@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -349,7 +350,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     {
       AttributeDescription attrDesc = attr.getAttributeDescription();
       String attrName = attr.getAttributeDescriptionAsString();
-      if (attrDesc.equals(getUserPasswordAttributeType()))
+      if (attrDesc.getAttributeType().equals(getUserPasswordAttributeType()))
       {
         sb.append("\n");
         String pwd = new String(password.getPassword());
@@ -392,7 +393,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
           for (ByteString value : attr)
           {
             sb.append("\n");
-            if (oldValue.equals(value))
+            if (oldValue.equals(value.toString()))
             {
               sb.append(attrName).append(": ").append(newValue);
             }

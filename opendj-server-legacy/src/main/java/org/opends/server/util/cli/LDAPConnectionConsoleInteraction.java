@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.util.cli;
 
@@ -1605,7 +1606,7 @@ public class LDAPConnectionConsoleInteraction
     }
     else
     {
-      app.println(ApplicationTrustManager.Cause.NOT_TRUSTED.equals(authType)
+      app.println(cause == ApplicationTrustManager.Cause.NOT_TRUSTED
           ? INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI.get(host, port)
           : INFO_CERTIFICATE_NAME_MISMATCH_TEXT_CLI.get(host, port, host, host, port));
     }

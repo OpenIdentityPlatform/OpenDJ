@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -596,7 +597,7 @@ class TableViewEntryPanel extends ViewEntryPanel
       for (Attribute attr : searchResult.getAllAttributes())
       {
         AttributeDescription attrDesc = attr.getAttributeDescription();
-        if (attrDesc.equals(getObjectClassAttributeType()))
+        if (attrDesc.getAttributeType().equals(getObjectClassAttributeType()))
         {
           if (schema != null)
           {

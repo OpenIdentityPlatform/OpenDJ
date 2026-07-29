@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -983,7 +984,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 
     private void tracePurgeDetails(final CSN purgeCSN, final CSN oldestNotPurgedCSN, final long sleepTime)
     {
-      if (purgeCSN.equals(oldestNotPurgedCSN.toStringUI()))
+      if (purgeCSN.equals(oldestNotPurgedCSN))
       {
         logger.trace("Purged up to %s. "
             + "now sleeping until next purge during %s",
