@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -20,7 +21,6 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.Utils;
 import org.forgerock.opendj.config.ClassPropertyDefinition;
 import org.forgerock.opendj.config.server.ConfigurationAddListener;
@@ -207,9 +207,9 @@ public class EntryCacheConfigManager
 
     if (!cacheOrderMap.isEmpty() && !cacheNameToLevelMap.isEmpty())
     {
-      final ByteString normDN = configuration.dn().toNormalizedByteString();
-      if (cacheNameToLevelMap.containsKey(normDN)) {
-        int currentCacheLevel = cacheNameToLevelMap.get(normDN);
+      final DN dn = configuration.dn();
+      if (cacheNameToLevelMap.containsKey(dn)) {
+        int currentCacheLevel = cacheNameToLevelMap.get(dn);
 
         // Check if there any existing cache at the same level.
         if (currentCacheLevel != configuration.getCacheLevel() &&
@@ -411,7 +411,7 @@ public class EntryCacheConfigManager
       }
       entryCache.finalizeEntryCache();
       cacheOrderMap.remove(configuration.getCacheLevel());
-      cacheNameToLevelMap.remove(configuration.dn().toNormalizedByteString());
+      cacheNameToLevelMap.remove(configuration.dn());
 
       // Push any changes made to the cache order map.
       setCacheOrder(cacheOrderMap);
