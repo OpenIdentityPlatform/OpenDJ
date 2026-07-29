@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -86,9 +87,17 @@ public class ControlPanelInfo
   private final IconPool iconPool = new IconPool();
 
   private long poolingPeriod = 20000;
+  /**
+   * Guards the pooling thread life cycle.  A dedicated lock is used on purpose:
+   * the pooling thread calls methods that are synchronized on this object (for
+   * instance {@link #regenerateDescriptor()}), so waiting for that thread to
+   * die while holding the monitor of this object would deadlock.
+   */
+  private final Object poolingLock = new Object();
+  /** Guarded by {@link #poolingLock}. */
   private Thread poolingThread;
-  private boolean stopPooling;
-  private boolean pooling;
+  /** Read by the pooling thread without any lock, hence volatile. */
+  private volatile boolean stopPooling;
 
   private ApplicationTrustManager trustManager;
   private int connectTimeout = CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
@@ -694,59 +703,81 @@ public class ControlPanelInfo
    * specified as a parameter.  This method is asynchronous and it will start
    * the pooling in another thread.
    */
-  public synchronized void startPooling()
+  public void startPooling()
   {
-    if (poolingThread != null)
+    synchronized (poolingLock)
     {
-      return;
-    }
-    pooling = true;
-    stopPooling = false;
-
-    poolingThread = new Thread(new Runnable()
-    {
-      @Override
-      public void run()
+      if (poolingThread != null && poolingThread.isAlive())
       {
-        try
+        return;
+      }
+      stopPooling = false;
+
+      poolingThread = new Thread(new Runnable()
+      {
+        @Override
+        public void run()
         {
-          while (!stopPooling)
+          try
           {
-            cleanupTasks();
-            regenerateDescriptor();
-            Thread.sleep(poolingPeriod);
+            while (!stopPooling)
+            {
+              cleanupTasks();
+              regenerateDescriptor();
+              Thread.sleep(poolingPeriod);
+            }
+          }
+          catch (InterruptedException e)
+          {
+            // stopPooling() asked this thread to stop.
+          }
+          catch (Throwable t)
+          {
+            logger.warn(LocalizableMessage.raw("Error polling the server: " + t, t));
           }
         }
-        catch (Throwable t)
-        {
-        }
-        pooling = false;
-      }
-    });
-    poolingThread.start();
+      });
+      poolingThread.start();
+    }
   }
 
   /**
    * Stops pooling the server.  This method is synchronous, it does not return
    * until the pooling is actually stopped.
    */
-  public synchronized void stopPooling()
+  public void stopPooling()
   {
-    stopPooling = true;
-    while (poolingThread != null && pooling)
+    synchronized (poolingLock)
     {
-      try
+      stopPooling = true;
+      boolean interrupted = false;
+      if (poolingThread != null)
       {
-        poolingThread.interrupt();
-        Thread.sleep(100);
+        // Keep interrupting the pooling thread until it dies: it may be blocked
+        // in an operation that swallows the interruption.  Note that this must
+        // not be done while holding the monitor of this object, see poolingLock.
+        while (poolingThread.isAlive())
+        {
+          poolingThread.interrupt();
+          try
+          {
+            poolingThread.join(100);
+          }
+          catch (InterruptedException e)
+          {
+            // Do not give up the wait: this method must not return before the
+            // pooling thread has actually stopped.  The interruption is
+            // propagated to the caller once the thread is dead.
+            interrupted = true;
+          }
+        }
+        poolingThread = null;
       }
-      catch (Throwable t)
+      if (interrupted)
       {
-        // do nothing;
+        Thread.currentThread().interrupt();
       }
     }
-    poolingThread = null;
-    pooling = false;
   }
 
   /**
