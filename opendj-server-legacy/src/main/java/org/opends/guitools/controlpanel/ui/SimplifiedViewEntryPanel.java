@@ -572,15 +572,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
   {
     if (OBJECTCLASS_ATTRIBUTE_TYPE_NAME.equalsIgnoreCase(attr))
     {
-      int nOcs = 0;
-      for (ByteString v : values)
-      {
-        if (!"top".equals(v.toString()))
-        {
-          nOcs++;
-        }
-      }
-      return nOcs > 1 ? GridBagConstraints.NORTHWEST : GridBagConstraints.WEST;
+      return countObjectClassesBesidesTop(values) > 1 ? GridBagConstraints.NORTHWEST : GridBagConstraints.WEST;
     }
     else if (isSingleValue(attr))
     {
@@ -594,6 +586,26 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     {
       return GridBagConstraints.NORTHWEST;
     }
+  }
+
+  /**
+   * Returns the number of object classes of an entry, not counting {@code top}.
+   *
+   * @param values the values of the object class attribute of the entry.
+   * @return the number of object classes, not counting {@code top}.
+   */
+  static int countObjectClassesBesidesTop(List<ByteString> values)
+  {
+    int nOcs = 0;
+    for (ByteString v : values)
+    {
+      // Object class values are case insensitive.
+      if (!OC_TOP.equalsIgnoreCase(v.toString()))
+      {
+        nOcs++;
+      }
+    }
+    return nOcs;
   }
 
   private int anchor1(List<ByteString> values)

@@ -384,6 +384,37 @@ class TableViewEntryPanel extends ViewEntryPanel
     return tableModel.getValues(attrName);
   }
 
+  /**
+   * Returns whether the provided attribute must be displayed as an {@link ObjectClassValue}
+   * instead of as a plain list of values.
+   * <p>
+   * The object class descriptor cannot be built without the schema, so when the schema could not
+   * be read the raw values must be displayed instead: otherwise the object class attribute would
+   * not be displayed at all.
+   *
+   * @param attrDesc the description of the attribute.
+   * @param schema the schema of the server, {@code null} if it could not be read.
+   * @return {@code true} if the attribute must be displayed as an {@link ObjectClassValue},
+   *         {@code false} otherwise.
+   */
+  static boolean isObjectClassWithSchema(AttributeDescription attrDesc, Schema schema)
+  {
+    return schema != null && attrDesc.getAttributeType().equals(getObjectClassAttributeType());
+  }
+
+  /**
+   * Returns whether the provided attribute is one of the required attributes of the entry.
+   *
+   * @param requiredAttrs the names of the required attributes, in lower case.
+   * @param attrDesc the description of the attribute.
+   * @return {@code true} if the attribute is required, {@code false} otherwise.
+   */
+  static boolean isRequired(Set<String> requiredAttrs, AttributeDescription attrDesc)
+  {
+    // The required attributes are stored in lower case since attribute names are case insensitive.
+    return requiredAttrs.contains(attrDesc.getNameOrOID().toLowerCase());
+  }
+
   /** The table model used by the tree in the panel. */
   private class LDAPEntryTableModel extends SortableTableModel
   implements Comparator<AttributeValuePair>
@@ -597,14 +628,11 @@ class TableViewEntryPanel extends ViewEntryPanel
       for (Attribute attr : searchResult.getAllAttributes())
       {
         AttributeDescription attrDesc = attr.getAttributeDescription();
-        if (attrDesc.getAttributeType().equals(getObjectClassAttributeType()))
+        if (isObjectClassWithSchema(attrDesc, schema))
         {
-          if (schema != null)
-          {
-            ocs = attr;
-            ObjectClassValue ocValue = getObjectClassDescriptor(ocs, schema);
-            allSortedValues.add(new AttributeValuePair(attrDesc, ocValue));
-          }
+          ocs = attr;
+          ObjectClassValue ocValue = getObjectClassDescriptor(ocs, schema);
+          allSortedValues.add(new AttributeValuePair(attrDesc, ocValue));
         }
         else
         {
@@ -782,7 +810,7 @@ class TableViewEntryPanel extends ViewEntryPanel
 
     private boolean isRequired(AttributeValuePair value)
     {
-      return requiredAttrs.contains(value.attrDesc.getNameOrOID());
+      return TableViewEntryPanel.isRequired(requiredAttrs, value.attrDesc);
     }
 
     private boolean hasValue(AttributeValuePair value)

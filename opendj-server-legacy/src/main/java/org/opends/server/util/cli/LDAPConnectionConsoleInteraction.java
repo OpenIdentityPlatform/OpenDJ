@@ -1604,12 +1604,10 @@ public class LDAPConnectionConsoleInteraction
     {
       logger.warn(ERROR_CERTIFICATE_NULL_AUTH_TYPE.get());
     }
-    else
-    {
-      app.println(cause == ApplicationTrustManager.Cause.NOT_TRUSTED
-          ? INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI.get(host, port)
-          : INFO_CERTIFICATE_NAME_MISMATCH_TEXT_CLI.get(host, port, host, host, port));
-    }
+    // The explanation only depends on the cause of the rejection, so it must be displayed even
+    // when the authentication type is unknown: otherwise the user is prompted to accept a
+    // certificate without being told what is wrong with it.
+    app.println(getCertificateRejectionMessage(cause, host, port));
 
     final X509Certificate[] chain = usedTrustManager.getLastRefusedChain();
     if (chain == null)
@@ -1623,6 +1621,21 @@ public class LDAPConnectionConsoleInteraction
     }
 
     return checkServerCertificate(chain, authType, host);
+  }
+
+  /**
+   * Returns the message explaining why the certificate presented by the server was rejected.
+   *
+   * @param cause the reason why the certificate was rejected.
+   * @param host the host name of the server.
+   * @param port the port of the server.
+   * @return the message explaining why the certificate was rejected.
+   */
+  static LocalizableMessage getCertificateRejectionMessage(ApplicationTrustManager.Cause cause, String host, int port)
+  {
+    return cause == ApplicationTrustManager.Cause.NOT_TRUSTED
+        ? INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI.get(host, port)
+        : INFO_CERTIFICATE_NAME_MISMATCH_TEXT_CLI.get(host, port, host, host, port);
   }
 
   /**
