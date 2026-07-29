@@ -28,10 +28,6 @@ import org.forgerock.opendj.io.ASN1Writer;
  */
 public class ProfileStack
 {
-
-
-
-
   /**
    * The line number that will be used for stack frames in which the line number
    * is unknown but it is not a native method.

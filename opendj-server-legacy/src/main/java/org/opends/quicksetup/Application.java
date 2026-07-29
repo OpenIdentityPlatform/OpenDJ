@@ -800,7 +800,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
   /** Class used to add points periodically to the end of the logs. */
   protected class PointAdder implements Runnable
   {
-    private Thread t;
+    /** Written by start() and read by stop(), hence volatile. */
+    private volatile Thread t;
     /** Written by stop() and read by the point adder thread, hence volatile. */
     private volatile boolean stopPointAdder;
     /** Written by the point adder thread and read by stop(), hence volatile. */
@@ -828,13 +829,22 @@ public abstract class Application implements ProgressNotifier, Runnable {
       t.start();
     }
 
-    /** Stops the PointAdder: points are no longer added at the end of the logs periodically. */
+    /**
+     * Stops the PointAdder: points are no longer added at the end of the logs periodically.
+     * <p>
+     * Calling this method on a PointAdder that was never started is a no-op.
+     */
     public void stop()
     {
       stopPointAdder = true;
+      final Thread thread = t;
+      if (thread == null)
+      {
+        return;
+      }
       while (!pointAdderStopped)
       {
-        t.interrupt();
+        thread.interrupt();
         try
         {
           // To allow the thread to set the boolean.

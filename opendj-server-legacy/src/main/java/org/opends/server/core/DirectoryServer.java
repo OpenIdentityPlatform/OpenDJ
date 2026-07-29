@@ -183,14 +183,21 @@ public final class DirectoryServer
    * A dedicated lock is used because the {@code directoryServer} field is reassigned
    * by {@link #getNewInstance(DirectoryEnvironmentConfig)}: synchronizing on the field
    * itself would let threads acquire different monitors and provide no exclusion at all.
+   * <p>
+   * The lock makes the guarded transitions atomic; it does not make the life cycle flags
+   * visible to the code that reads them without holding it (see {@link #isRunning()} and
+   * {@link #isShuttingDown()}), which is why those flags are {@code volatile}.
    */
   private static final Object LIFECYCLE_LOCK = new Object();
 
   /** The singleton Directory Server instance. */
   private static volatile DirectoryServer directoryServer = new DirectoryServer();
 
-  /** Indicates whether the server currently holds an exclusive lock on the server lock file. */
-  private static boolean serverLocked;
+  /**
+   * Indicates whether the server currently holds an exclusive lock on the server lock file.
+   * Written outside {@link #LIFECYCLE_LOCK} on shutdown, hence volatile.
+   */
+  private static volatile boolean serverLocked;
 
   /** The message to be displayed on the command-line when the user asks for the usage. */
   private static final LocalizableMessage toolDescription = INFO_DSCORE_TOOL_DESCRIPTION.get();
@@ -237,15 +244,18 @@ public final class DirectoryServer
   /** The configuration manager that will handle the server backends. */
   private BackendConfigManager backendConfigManager;
 
-  /** Indicates whether the server has been bootstrapped. */
-  private boolean isBootstrapped;
-  /** Indicates whether the server is currently online. */
-  private boolean isRunning;
+  /** Indicates whether the server has been bootstrapped. Read without holding {@link #LIFECYCLE_LOCK}. */
+  private volatile boolean isBootstrapped;
+  /** Indicates whether the server is currently online. Read without holding {@link #LIFECYCLE_LOCK}. */
+  private volatile boolean isRunning;
   /** Indicates whether the server is currently in "lockdown mode". */
   private boolean lockdownMode;
 
-  /** Indicates whether the server is currently in the process of shutting down. */
-  private boolean shuttingDown;
+  /**
+   * Indicates whether the server is currently in the process of shutting down.
+   * Read without holding {@link #LIFECYCLE_LOCK}.
+   */
+  private volatile boolean shuttingDown;
 
   /** The configuration manager that will handle the certificate mapper. */
   private CertificateMapperConfigManager certificateMapperConfigManager;
@@ -293,7 +303,7 @@ public final class DirectoryServer
    * a mapping between the DN of the associated configuration entry and the
    * policy implementation.
    */
-  private ConcurrentMap<DN, AuthenticationPolicy> authenticationPolicies;
+  private final ConcurrentMap<DN, AuthenticationPolicy> authenticationPolicies = new ConcurrentHashMap<>();
 
   /**
    * The set of password validators registered with the Directory Server, as a
@@ -365,7 +375,7 @@ public final class DirectoryServer
   /** The set of alert handlers registered with the Directory Server. */
   private List<AlertHandler<?>> alertHandlers;
   /** The set of connection handlers registered with the Directory Server. */
-  private List<ConnectionHandler<?>> connectionHandlers;
+  private final List<ConnectionHandler<?>> connectionHandlers = new CopyOnWriteArrayList<>();
 
   /** The set of backup task listeners registered with the Directory Server. */
   private CopyOnWriteArrayList<BackupTaskListener> backupTaskListeners;
@@ -439,7 +449,7 @@ public final class DirectoryServer
   private KeyManagerProviderConfigManager keyManagerProviderConfigManager;
 
   /** The set of connections that are currently established. */
-  private Set<ClientConnection> establishedConnections;
+  private final Set<ClientConnection> establishedConnections = new LinkedHashSet<>(1000);
 
   /** The log rotation policy config manager for the Directory Server. */
   private LogRotationPolicyConfigManager rotationPolicyConfigManager;
@@ -1152,14 +1162,14 @@ public final class DirectoryServer
       directoryServer.rotationPolicies = new ConcurrentHashMap<>();
       directoryServer.retentionPolicies = new ConcurrentHashMap<>();
       directoryServer.certificateMappers = new ConcurrentHashMap<>();
-      directoryServer.authenticationPolicies = new ConcurrentHashMap<>();
+      directoryServer.authenticationPolicies.clear();
       directoryServer.defaultPasswordPolicy = null;
       directoryServer.monitorProviders = new ConcurrentHashMap<>();
       directoryServer.initializationCompletedListeners = new CopyOnWriteArrayList<>();
       directoryServer.shutdownListeners = new CopyOnWriteArrayList<>();
       directoryServer.synchronizationProviders = new CopyOnWriteArrayList<>();
       directoryServer.supportedLDAPVersions = new ConcurrentHashMap<>();
-      directoryServer.connectionHandlers = new CopyOnWriteArrayList<>();
+      directoryServer.connectionHandlers.clear();
       directoryServer.identityMappers = new ConcurrentHashMap<>();
       directoryServer.extendedOperationHandlers = new ConcurrentHashMap<>();
       directoryServer.saslMechanismHandlers = new ConcurrentHashMap<>();
@@ -1214,7 +1224,10 @@ public final class DirectoryServer
     bootstrapClient();
 
     // Initialize the variables that will be used for connection tracking.
-    establishedConnections = new LinkedHashSet<>(1000);
+    synchronized (establishedConnections)
+    {
+      establishedConnections.clear();
+    }
     currentConnections     = 0;
     maxConnections         = 0;
     totalConnections       = 0;
@@ -4328,7 +4341,9 @@ public final class DirectoryServer
     // doing that, destroy the previous instance.
     DirectoryEnvironmentConfig envConfig = directoryServer.environmentConfig;
     directoryServer.destroy();
-    directoryServer = getNewInstance(envConfig);
+    // getNewInstance() publishes the new instance under LIFECYCLE_LOCK: assigning its
+    // result here again would repeat that write outside the lock.
+    getNewInstance(envConfig);
   }
 
   /**

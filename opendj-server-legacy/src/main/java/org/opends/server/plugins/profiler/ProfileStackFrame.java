@@ -22,8 +22,6 @@ package org.opends.server.plugins.profiler;
 import java.util.Arrays;
 import java.util.HashMap;
 
-
-
 /**
  * This class defines a data structure for holding information about a stack
  * frame captured by the Directory Server profiler.  It will contain the class
@@ -34,10 +32,6 @@ import java.util.HashMap;
 public class ProfileStackFrame
        implements Comparable
 {
-
-
-
-
   /**
    * The mapping between the line numbers for this stack frame and the
    * number of times that they were encountered.

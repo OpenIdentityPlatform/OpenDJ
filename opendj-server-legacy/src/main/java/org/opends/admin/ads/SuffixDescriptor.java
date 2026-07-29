@@ -122,16 +122,28 @@ public class SuffixDescriptor implements Comparable<SuffixDescriptor>
 
   /**
    * Returns an Id that is unique for this suffix.
+   * <p>
+   * The id is built from the suffix DN and the ids of the servers holding a replica of it.
+   * The server ids are sorted because {@link #getReplicas()} hands out a {@link HashSet} of
+   * {@link ReplicaDescriptor}s, which do not override {@code hashCode()}: without the sort,
+   * two descriptors describing the same suffix on the same servers could produce different
+   * ids depending on the iteration order.
    *
    * @return an Id that is unique for this suffix.
    */
   public String getId()
   {
-    StringBuilder buf = new StringBuilder();
-    buf.append(getDN());
+    Set<String> serverIds = new TreeSet<>();
     for (ReplicaDescriptor replica : getReplicas())
     {
-      buf.append("-").append(replica.getServer().getId());
+      serverIds.add(replica.getServer().getId());
+    }
+
+    StringBuilder buf = new StringBuilder();
+    buf.append(getDN());
+    for (String serverId : serverIds)
+    {
+      buf.append("-").append(serverId);
     }
     return buf.toString();
   }

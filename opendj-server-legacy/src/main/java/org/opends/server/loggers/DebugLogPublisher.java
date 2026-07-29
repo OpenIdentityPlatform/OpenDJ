@@ -45,15 +45,19 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
   /**
    * The map of class names to their trace settings.
    * <p>
-   * Read on the tracing hot path without any lock, so the field is volatile and
-   * the map is concurrent: writes go through the synchronized setters below.
+   * The getters below read this map without any lock, so the field is volatile
+   * (the map is created lazily and must be published safely) and the map itself
+   * is concurrent; all writes go through the synchronized mutators below.
    */
   private volatile Map<String,TraceSettings> classTraceSettings;
 
   /**
    * The map of class names to their method trace settings.
    * <p>
-   * Concurrent for the same reason as {@link #classTraceSettings}.
+   * Concurrent for the same reason as {@link #classTraceSettings}. The nested maps
+   * are concurrent as well: {@link DebugTracer} keeps the one returned by
+   * {@link #getMethodSettings(String)} and iterates it while another thread may be
+   * reconfiguring the publisher.
    */
   private volatile Map<String,Map<String,TraceSettings>> methodTraceSettings;
 
@@ -155,6 +159,10 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    *                   {@code null} to set the trace settings for the
    *                   global scope.
    * @param  settings  The trace settings for the specified scope.
+   *                   Must not be {@code null}.
+   * @throws NullPointerException  If {@code settings} is {@code null}: the trace
+   *                   settings are held in concurrent maps, which do not accept
+   *                   null values.
    */
   public final void addTraceSettings(String scope, TraceSettings settings)
   {
