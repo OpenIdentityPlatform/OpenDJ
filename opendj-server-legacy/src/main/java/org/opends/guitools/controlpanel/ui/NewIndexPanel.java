@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -120,7 +121,6 @@ public class NewIndexPanel extends AbstractIndexPanel
       BackendDescriptor backend = getBackendByID(backendName.getText());
 
       TreeSet<String> standardAttrNames = new TreeSet<>();
-      TreeSet<String> configurationAttrNames = new TreeSet<>();
       TreeSet<String> customAttrNames = new TreeSet<>();
       for (AttributeType attr : schema.getAttributeTypes())
       {
@@ -131,12 +131,9 @@ public class NewIndexPanel extends AbstractIndexPanel
           {
             standardAttrNames.add(name);
           }
-          else if (Utilities.isConfiguration(attr))
+          else if (!Utilities.isConfiguration(attr))
           {
-            configurationAttrNames.add(name);
-          }
-          else
-          {
+            // Configuration attributes are not offered for indexing.
             customAttrNames.add(name);
           }
         }

@@ -1251,10 +1251,8 @@ final class OnDiskMergeImporter
     try (final PhaseTwoProgressReporter progressReporter = new PhaseTwoProgressReporter())
     {
       final List<Callable<Void>> tasks = new ArrayList<>();
-      final Set<String> importedBaseDNs = new HashSet<>();
       for (Map.Entry<TreeName, Chunk> treeChunk : transaction.getChunks().entrySet())
       {
-        importedBaseDNs.add(treeChunk.getKey().getBaseDN());
         tasks.add(importStrategy.newPhaseTwoTask(treeChunk.getKey(), treeChunk.getValue(), progressReporter));
       }
       invokeParallel(phase2ThreadNameTemplate, tasks);
