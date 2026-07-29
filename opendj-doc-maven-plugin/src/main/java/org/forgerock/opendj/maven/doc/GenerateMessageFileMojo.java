@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.maven.doc;
 
@@ -32,6 +33,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
@@ -273,12 +275,14 @@ public class GenerateMessageFileMojo extends AbstractMojo {
 
         @Override
         public int compareTo(MessagePropertyKey k) {
-            if (ordinal == k.ordinal) {
+            if (Objects.equals(ordinal, k.ordinal)) {
                 return description.compareTo(k.description);
-            } else if (ordinal != null && k.ordinal != null) {
-                return ordinal.compareTo(k.ordinal);
+            } else if (ordinal == null) {
+                return -1;
+            } else if (k.ordinal == null) {
+                return 1;
             } else {
-                return 0;
+                return ordinal.compareTo(k.ordinal);
             }
         }
     }
