@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -1168,7 +1169,6 @@ public final class DSConfig extends ConsoleApplication {
         final Map<RelationDefinition<?, ?>, CreateSubCommandHandler<?, ?>> createHandlers = new HashMap<>();
         final Map<RelationDefinition<?, ?>, DeleteSubCommandHandler> deleteHandlers = new HashMap<>();
         final Map<RelationDefinition<?, ?>, ListSubCommandHandler> listHandlers = new HashMap<>();
-        final Map<RelationDefinition<?, ?>, GetPropSubCommandHandler> getPropHandlers = new HashMap<>();
         final Map<RelationDefinition<?, ?>, SetPropSubCommandHandler> setPropHandlers = new HashMap<>();
 
         for (final CreateSubCommandHandler<?, ?> ch : handlerFactory.getCreateSubCommandHandlers()) {
@@ -1188,7 +1188,6 @@ public final class DSConfig extends ConsoleApplication {
 
         for (final GetPropSubCommandHandler gh : handlerFactory.getGetPropSubCommandHandlers()) {
             relations.add(gh.getRelationDefinition());
-            getPropHandlers.put(gh.getRelationDefinition(), gh);
         }
 
         for (final SetPropSubCommandHandler sh : handlerFactory.getSetPropSubCommandHandlers()) {

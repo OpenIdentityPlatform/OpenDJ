@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.browser;
 
@@ -37,7 +38,6 @@ class NodeSearcherQueue implements Runnable {
   private final String name;
   private final List<AbstractNodeTask> waitingQueue = new ArrayList<>();
   private final Map<BasicNode, AbstractNodeTask> workingList = new HashMap<>();
-  private final Map<BasicNode, BasicNode> cancelList = new HashMap<>();
   private final ThreadGroup threadGroup;
 
 
@@ -111,7 +111,6 @@ class NodeSearcherQueue implements Runnable {
     // Mark the on-going task as cancelled
     AbstractNodeTask task = workingList.get(node);
     if (task != null) {
-      cancelList.put(node, node);
       task.cancel();
     }
     notify();
@@ -134,10 +133,7 @@ class NodeSearcherQueue implements Runnable {
     waitingQueue.clear();
     for (Map.Entry<BasicNode, AbstractNodeTask> entry : workingList.entrySet())
     {
-      BasicNode node = entry.getKey();
-      AbstractNodeTask task = entry.getValue();
-      cancelList.put(node, node);
-      task.cancel();
+      entry.getValue().cancel();
     }
   }
 
@@ -201,7 +197,6 @@ class NodeSearcherQueue implements Runnable {
       throw new IllegalArgumentException("null argument");
     }
     workingList.remove(task.getNode());
-    cancelList.remove(task.getNode());
     notify();
 //    System.out.println("Flushed " + task + " from " + _name);
   }
