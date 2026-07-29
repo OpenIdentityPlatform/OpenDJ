@@ -175,16 +175,26 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         }
 
         /**
-         * Compare message entries by unique identifier.
+         * Compare message entries by ordinal, then by unique identifier.
+         * <p>
+         * Entries are held in a {@code TreeSet}, so this must be a total order:
+         * returning 0 for entries that are not the same message drops them from
+         * the log reference. Entries without an ordinal sort first, as they do
+         * in {@link MessagePropertyKey#compareTo(MessagePropertyKey)}.
          *
          * @return See {@link java.lang.Comparable#compareTo(Object)}.
          */
         @Override
         public int compareTo(MessageRefEntry mre) {
-            if (this.ordinal != null && mre.ordinal != null) {
-                return this.ordinal.compareTo(mre.ordinal);
+            if (Objects.equals(ordinal, mre.ordinal)) {
+                return xmlId.compareTo(mre.xmlId);
+            } else if (ordinal == null) {
+                return -1;
+            } else if (mre.ordinal == null) {
+                return 1;
+            } else {
+                return ordinal.compareTo(mre.ordinal);
             }
-            return 0;
         }
     }
 
