@@ -17,6 +17,7 @@
  */
 package org.forgerock.opendj.ldap;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
@@ -58,6 +59,11 @@ final class InternalConnection extends AbstractAsynchronousConnection {
      * its listeners can observe.
      */
     private final ConnectionState state = new ConnectionState();
+    /**
+     * Guards the hand-over to the server connection so that it happens exactly
+     * once, even if notifying the listeners fails.
+     */
+    private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicInteger messageID = new AtomicInteger();
 
     /**
@@ -106,9 +112,19 @@ final class InternalConnection extends AbstractAsynchronousConnection {
     @Override
     public void close(final UnbindRequest request, final String reason) {
         // Closing an already closed connection has no effect.
-        if (state.notifyConnectionClosed()) {
-            final int i = messageID.getAndIncrement();
-            serverConnection.handleConnectionClosed(i, request);
+        if (isClosed.compareAndSet(false, true)) {
+            try {
+                state.notifyConnectionClosed();
+            } finally {
+                /*
+                 * A listener throwing an exception must not prevent the server
+                 * connection from releasing its resources: for an internal
+                 * connection this is the only cleanup there is, and a second
+                 * close() would be a no-op.
+                 */
+                final int i = messageID.getAndIncrement();
+                serverConnection.handleConnectionClosed(i, request);
+            }
         }
     }
 
