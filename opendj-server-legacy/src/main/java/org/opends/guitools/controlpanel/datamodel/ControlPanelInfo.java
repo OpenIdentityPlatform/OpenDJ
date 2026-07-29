@@ -707,7 +707,7 @@ public class ControlPanelInfo
   {
     synchronized (poolingLock)
     {
-      if (poolingThread != null)
+      if (poolingThread != null && poolingThread.isAlive())
       {
         return;
       }
@@ -727,10 +727,13 @@ public class ControlPanelInfo
               Thread.sleep(poolingPeriod);
             }
           }
+          catch (InterruptedException e)
+          {
+            // stopPooling() asked this thread to stop.
+          }
           catch (Throwable t)
           {
-            // The thread has been interrupted by stopPooling() or an unexpected
-            // error occurred: in both cases the pooling simply stops.
+            logger.warn(LocalizableMessage.raw("Error polling the server: " + t, t));
           }
         }
       });
@@ -747,23 +750,33 @@ public class ControlPanelInfo
     synchronized (poolingLock)
     {
       stopPooling = true;
-      // Keep interrupting the pooling thread until it dies: it may be blocked in
-      // an operation that swallows the interruption.  Note that this must not be
-      // done while holding the monitor of this object, see poolingLock.
-      while (poolingThread != null && poolingThread.isAlive())
+      boolean interrupted = false;
+      if (poolingThread != null)
       {
-        poolingThread.interrupt();
-        try
+        // Keep interrupting the pooling thread until it dies: it may be blocked
+        // in an operation that swallows the interruption.  Note that this must
+        // not be done while holding the monitor of this object, see poolingLock.
+        while (poolingThread.isAlive())
         {
-          poolingThread.join(100);
+          poolingThread.interrupt();
+          try
+          {
+            poolingThread.join(100);
+          }
+          catch (InterruptedException e)
+          {
+            // Do not give up the wait: this method must not return before the
+            // pooling thread has actually stopped.  The interruption is
+            // propagated to the caller once the thread is dead.
+            interrupted = true;
+          }
         }
-        catch (InterruptedException e)
-        {
-          Thread.currentThread().interrupt();
-          break;
-        }
+        poolingThread = null;
       }
-      poolingThread = null;
+      if (interrupted)
+      {
+        Thread.currentThread().interrupt();
+      }
     }
   }
 
