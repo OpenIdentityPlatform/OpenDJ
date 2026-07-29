@@ -13,12 +13,12 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.plugins.profiler;
 
 import java.io.IOException;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 
@@ -28,7 +28,6 @@ import org.forgerock.opendj.io.ASN1Writer;
  */
 public class ProfileStack
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -240,43 +239,32 @@ public class ProfileStack
   @Override
   public boolean equals(Object o)
   {
-    if (o == null)
-    {
-      return false;
-    }
-    else if (this == o)
+    if (this == o)
     {
       return true;
     }
-
-
-    try
+    if (!(o instanceof ProfileStack))
     {
-      ProfileStack s = (ProfileStack) o;
+      return false;
+    }
 
-      if (numFrames != s.numFrames)
+    ProfileStack s = (ProfileStack) o;
+    if (numFrames != s.numFrames)
+    {
+      return false;
+    }
+
+    for (int i=0; i < numFrames; i++)
+    {
+      if (lineNumbers[i] != s.lineNumbers[i] ||
+          !classNames[i].equals(s.classNames[i]) ||
+          !methodNames[i].equals(s.methodNames[i]))
       {
         return false;
       }
-
-      for (int i=0; i < numFrames; i++)
-      {
-        if (lineNumbers[i] != s.lineNumbers[i] ||
-            !classNames[i].equals(s.classNames[i]) ||
-            !methodNames[i].equals(s.methodNames[i]))
-        {
-          return false;
-        }
-      }
-
-      return true;
     }
-    catch (Exception e)
-    {
-      logger.traceException(e);
 
-      return false;
-    }
+    return true;
   }
 
 

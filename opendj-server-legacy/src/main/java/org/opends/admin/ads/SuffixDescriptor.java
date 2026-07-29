@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.admin.ads;
 
@@ -104,6 +105,13 @@ public class SuffixDescriptor implements Comparable<SuffixDescriptor>
       replicationServers.addAll(replica.getReplicationServers());
     }
     return replicationServers;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    return this == o
+        || (o instanceof SuffixDescriptor && getId().equals(((SuffixDescriptor) o).getId()));
   }
 
   @Override

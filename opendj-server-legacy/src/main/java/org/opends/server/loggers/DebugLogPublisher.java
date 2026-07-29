@@ -13,13 +13,13 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.server.config.server.DebugLogPublisherCfg;
@@ -42,11 +42,20 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
   /** The default global settings key. */
   private static final String GLOBAL= "_global";
 
-  /** The map of class names to their trace settings. */
-  private Map<String,TraceSettings> classTraceSettings;
+  /**
+   * The map of class names to their trace settings.
+   * <p>
+   * Read on the tracing hot path without any lock, so the field is volatile and
+   * the map is concurrent: writes go through the synchronized setters below.
+   */
+  private volatile Map<String,TraceSettings> classTraceSettings;
 
-  /** The map of class names to their method trace settings. */
-  private Map<String,Map<String,TraceSettings>> methodTraceSettings;
+  /**
+   * The map of class names to their method trace settings.
+   * <p>
+   * Concurrent for the same reason as {@link #classTraceSettings}.
+   */
+  private volatile Map<String,Map<String,TraceSettings>> methodTraceSettings;
 
 
 
@@ -213,7 +222,7 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    *          {@code null} if no trace setting is defined for that
    *          scope.
    */
-  final TraceSettings removeTraceSettings(String scope)
+  final synchronized TraceSettings removeTraceSettings(String scope)
   {
     TraceSettings removedSettings = null;
     if (scope == null) {
@@ -262,7 +271,7 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
   {
     if (classTraceSettings == null)
     {
-      classTraceSettings = new HashMap<>();
+      classTraceSettings = new ConcurrentHashMap<>();
     }
     classTraceSettings.put(className, settings);
   }
@@ -280,12 +289,12 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
       String methodName, TraceSettings settings)
   {
     if (methodTraceSettings == null) {
-      methodTraceSettings = new HashMap<>();
+      methodTraceSettings = new ConcurrentHashMap<>();
     }
     Map<String, TraceSettings> methodLevels = methodTraceSettings.get(className);
     if (methodLevels == null)
     {
-      methodLevels = new TreeMap<>();
+      methodLevels = new ConcurrentHashMap<>();
       methodTraceSettings.put(className, methodLevels);
     }
     methodLevels.put(methodName, settings);
