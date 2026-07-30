@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.util.Reject;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
@@ -59,7 +61,7 @@ class AsynchronousTextWriter
   {
     this.name = name;
     this.autoFlush = autoFlush;
-    this.writer = writer;
+    this.writer = Reject.checkNotNull(writer);
 
     this.queue = new LinkedBlockingQueue<>(capacity);
     this.capacity = capacity;
@@ -145,21 +147,18 @@ class AsynchronousTextWriter
   @Override
   public void writeRecord(String record)
   {
-    // No writer?  Off to the bit bucket.
-    if (writer != null) {
-      while (!stopRequested.get())
+    while (!stopRequested.get())
+    {
+      // Put request on queue for writer
+      try
       {
-        // Put request on queue for writer
-        try
-        {
-          queue.put(record);
-          break;
-        }
-        catch(InterruptedException e)
-        {
-          // We expect this to happen. Just ignore it and hopefully
-          // drop out in the next try.
-        }
+        queue.put(record);
+        break;
+      }
+      catch(InterruptedException e)
+      {
+        // We expect this to happen. Just ignore it and hopefully
+        // drop out in the next try.
       }
     }
   }
@@ -237,7 +236,7 @@ class AsynchronousTextWriter
     }
 
     // Shutdown the wrapped writer.
-    if (shutdownWrapped && writer != null)
+    if (shutdownWrapped)
     {
       writer.shutdown();
     }
