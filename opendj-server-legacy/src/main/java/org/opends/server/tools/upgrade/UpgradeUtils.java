@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.upgrade;
 
@@ -360,6 +361,9 @@ final class UpgradeUtils
           {
             ldifDNs.add(DN.valueOf(removeDnPrefix(dnLine)));
           }
+          break;
+        default:
+          // No action needed for the remaining values.
           break;
         }
       }

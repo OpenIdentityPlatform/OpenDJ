@@ -14,6 +14,7 @@
  * Copyright 2008-2011 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2024-2025 3A Systems,LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -951,6 +952,9 @@ public class LocalBackendModifyOperation
     case INCREMENT:
       processIncrementModification(attr);
       break;
+    default:
+      // No action needed for the remaining values.
+      break;
     }
   }
 
@@ -1234,6 +1238,9 @@ public class LocalBackendModifyOperation
           setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
           logger.error(msg);
           invalidReason = new LocalizableMessageBuilder();
+          break;
+        default:
+          // No action needed for the remaining values.
           break;
         }
       }

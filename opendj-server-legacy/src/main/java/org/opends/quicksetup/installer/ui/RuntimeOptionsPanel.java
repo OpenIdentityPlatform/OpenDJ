@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.installer.ui;
 
@@ -382,6 +383,9 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
             INFO_AUTOMATICALLY_GENERATED_DATA_WARNING_UPDATE_RUNTIME_ARGS.
             get();
         }
+        break;
+      default:
+        // No action needed for the remaining values.
         break;
       }
     }

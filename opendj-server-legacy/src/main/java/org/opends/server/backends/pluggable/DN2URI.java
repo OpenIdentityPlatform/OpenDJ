@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -331,6 +332,9 @@ class DN2URI extends AbstractTree
             {
               update(txn, entryDN, toStrings(a));
             }
+            break;
+          default:
+            // No action needed for the remaining values.
             break;
         }
       }

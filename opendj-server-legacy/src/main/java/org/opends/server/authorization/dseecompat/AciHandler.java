@@ -15,6 +15,7 @@
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2013 Manuel Gaupp
  * Portions Copyright 2024 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -728,6 +729,9 @@ public final class AciHandler extends
                 }
               }
             }
+            break;
+          default:
+            // No action needed for the remaining values.
             break;
           }
           /*

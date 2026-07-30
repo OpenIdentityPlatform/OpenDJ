@@ -1480,6 +1480,9 @@ public final class LDAPURL
       case SUBORDINATES:
         buffer.append("subordinate");
         break;
+      default:
+        // No action needed for the remaining values.
+        break;
     }
 
     buffer.append("?");

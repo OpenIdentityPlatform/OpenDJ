@@ -3590,6 +3590,9 @@ public final class DirectoryServer
          }
          break;
 
+        default:
+          // No action needed for the remaining values.
+          break;
       }
     }
 
@@ -3655,6 +3658,9 @@ public final class DirectoryServer
 
           // Modify may or may not be allowed, but we'll leave that
           // determination up to the modify operation itself.
+        default:
+          // No action needed for the remaining values.
+          break;
       }
     }
   }

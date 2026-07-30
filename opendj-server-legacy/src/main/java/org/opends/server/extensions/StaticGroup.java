@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -598,6 +599,9 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
                   nestedGroups.add(member);
                 }
               }
+              break;
+            default:
+              // No action needed for the remaining values.
               break;
           }
         }

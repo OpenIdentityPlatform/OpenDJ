@@ -1827,6 +1827,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
           errorType = ERROR_SEARCHING_CHILDREN;
           break;
 
+        default:
+          // No action needed for the remaining values.
+          break;
         }
         errorException = error.getException();
         errorArg = error.getArg();
