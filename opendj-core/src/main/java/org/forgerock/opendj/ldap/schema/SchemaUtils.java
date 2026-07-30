@@ -13,8 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2024 3A Systems, LLC.
- * Portions Copyright 2026 3A Systems, LLC.
+ * Portions Copyright 2024-2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -324,7 +323,6 @@ final class SchemaUtils {
                     }
                     length++;
                 }
-
             } else if (isAlpha(c)) {
                 // This must be an attribute description. In this case, we will
                 // only accept alphabetic characters, numeric digits, and the hyphen.

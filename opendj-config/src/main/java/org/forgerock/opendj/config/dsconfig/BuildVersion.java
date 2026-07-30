@@ -192,11 +192,8 @@ class BuildVersion implements Comparable<BuildVersion> {
         if (major == version.major) {
             if (minor == version.minor) {
                 if (point == version.point) {
-                    if (rev.equals(version.rev)) {
-                        return 0;
-                    } else if (rev.compareTo(version.rev) < 0) {
-                        return -1;
-                    }
+                    // Compares the revisions as strings: they are VCS revisions, not numbers.
+                    return Integer.signum(rev.compareTo(version.rev));
                 } else if (point < version.point) {
                     return -1;
                 }

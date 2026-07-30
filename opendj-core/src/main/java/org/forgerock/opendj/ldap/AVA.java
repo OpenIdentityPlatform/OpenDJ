@@ -12,7 +12,6 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2026 3A Systems, LLC.
  * Portions copyright 2011-2016 ForgeRock AS.
  * Portions copyright 2021-2026 3A Systems, LLC
  */

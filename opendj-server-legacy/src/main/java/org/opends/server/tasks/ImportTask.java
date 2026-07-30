@@ -328,12 +328,6 @@ public class ImportTask extends Task
       }
     }
 
-    if (backend == null)
-    {
-      // Neither a backend ID nor an include branch identified a backend.
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID.get());
-    }
-
     // Make sure the selected backend will handle all the include branches
     defaultIncludeBranches = new ArrayList<>(backend.getBaseDNs());
 
@@ -482,14 +476,16 @@ public class ImportTask extends Task
       }
     }
 
-    // Find backends with subordinate base DNs that should be excluded from the import.
     if (backend == null)
     {
-      // Neither a backend ID nor an include branch identified a backend.
+      // Unlike initializeTask(), this method does not reject an include branch which resolves to no
+      // backend, so none of them having resolved leaves nothing to import into. The message of the
+      // backend ID case is reused here rather than adding a new one for a malformed task.
       logger.error(ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID);
       return TaskState.STOPPED_BY_ERROR;
     }
 
+    // Find backends with subordinate base DNs that should be excluded from the import.
     defaultIncludeBranches = new HashSet<>(backend.getBaseDNs());
     for (Backend<?> subBackend : getServerContext().getBackendConfigManager().getSubordinateBackends(backend))
     {

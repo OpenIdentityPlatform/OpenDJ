@@ -79,7 +79,6 @@ import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.BuildVersion;
-import org.opends.server.util.StaticUtils;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import com.forgerock.opendj.cli.ArgumentException;
@@ -370,7 +369,17 @@ public class StatusCli extends ConsoleApplication
 
       if (timeToSleep > 0)
       {
-        StaticUtils.sleep(timeToSleep);
+        try
+        {
+          // Not StaticUtils.sleep(): it discards the interruption, which would leave this loop
+          // running with no way for the caller to stop it.
+          Thread.sleep(timeToSleep);
+        }
+        catch (InterruptedException e)
+        {
+          Thread.currentThread().interrupt();
+          break;
+        }
       }
       println();
       println(LocalizableMessage.raw("          ---------------------"));
