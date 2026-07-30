@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -78,9 +79,10 @@ public class ReplicationServerListener
     }
     catch (ConfigException e)
     {
-      // we should never get to this point because the configEntry has
-      // already been validated in configAddisAcceptable
+      // The configEntry has already been validated in configAddisAcceptable, but the
+      // listen port may have been taken since then: report why the creation failed.
       ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+      ccr.addMessage(e.getMessageObject());
     }
     return ccr;
   }
