@@ -66,7 +66,7 @@ public abstract class JebTestCase extends DirectoryServerTestCase {
         ArrayList<LocalizableMessage> warnings = new ArrayList<>();
         templateFile.parse(template, warnings);
         MakeLDIFInputStream ldifEntryStream =
-            new MakeLDIFInputStream(templateFile).start();
+            MakeLDIFInputStream.newStartedInputStream(templateFile);
         LDIFReader reader =
             new LDIFReader(new LDIFImportConfig(ldifEntryStream));
         for(int i =0; i<numEntries;i++) {

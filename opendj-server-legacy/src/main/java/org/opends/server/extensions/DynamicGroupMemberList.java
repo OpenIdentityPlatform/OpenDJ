@@ -126,7 +126,6 @@ public class DynamicGroupMemberList
 
     searchesCompleted = false;
     resultQueue = new LinkedBlockingQueue<>(10);
-    // Assigned at the end of this constructor and started separately by start().
 
     // We're going to have to perform one or more internal searches in order to
     // get the results.  We need to be careful about the way that we construct

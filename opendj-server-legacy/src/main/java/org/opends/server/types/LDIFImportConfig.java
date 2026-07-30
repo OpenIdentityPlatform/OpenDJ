@@ -204,7 +204,7 @@ public final class LDIFImportConfig extends OperationConfig
    */
   public LDIFImportConfig(TemplateFile templateFile)
   {
-    this(new MakeLDIFInputStream(templateFile).start());
+    this(MakeLDIFInputStream.newStartedInputStream(templateFile));
   }
 
 

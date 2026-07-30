@@ -43,7 +43,15 @@ public class InitializeTask extends Task
   private String domainString;
   private int  source;
   private LDAPReplicationDomain domain;
-  private TaskState initState;
+  /**
+   * The monitor used to signal the completion of the import to {@link #runTask()}.
+   * <p>
+   * A dedicated lock is required because {@link #initState} is reassigned: synchronizing on the
+   * state itself would lock the monitor of an enum constant which is both shared JVM wide and
+   * different for the waiting and the notifying thread.
+   */
+  private final Object initStateLock = new Object();
+  private volatile TaskState initState;
 
   /** The total number of entries expected to be processed when this import will end successfully. */
   private long total;
@@ -104,12 +112,12 @@ public class InitializeTask extends Task
       // launch the import
       domain.initializeFromRemote(source, this);
 
-      synchronized(initState)
+      synchronized (initStateLock)
       {
         // Waiting for the end of the job
         while (initState == TaskState.RUNNING)
         {
-          initState.wait(1000);
+          initStateLock.wait(1000);
           replaceAttributeValue(ATTR_TASK_INITIALIZE_LEFT, String.valueOf(left));
           replaceAttributeValue(ATTR_TASK_INITIALIZE_DONE, String.valueOf(total-left));
         }
@@ -159,9 +167,9 @@ public class InitializeTask extends Task
     finally
     {
       // Wake up runTask method waiting for completion
-      synchronized (initState)
+      synchronized (initStateLock)
       {
-        initState.notifyAll();
+        initStateLock.notifyAll();
       }
     }
   }

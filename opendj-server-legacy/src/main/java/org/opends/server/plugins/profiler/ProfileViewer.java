@@ -215,12 +215,10 @@ public class ProfileViewer
    */
   public void processDataFile(String filename) throws IOException
   {
-    // Try to open the file for reading. The stream is closed explicitly as well, in case the
-    // reader could not be created around it.
-    FileInputStream fileStream = new FileInputStream(filename);
-    ASN1Reader reader = ASN1.getReader(fileStream);
-
-    try
+    // Both resources are declared here so that the file stream is closed as well if the reader
+    // cannot be created around it.
+    try (FileInputStream fileStream = new FileInputStream(filename);
+         ASN1Reader reader = ASN1.getReader(fileStream))
     {
       // The first element in the file must be a sequence with the header
       // information.
@@ -274,10 +272,6 @@ public class ProfileViewer
 
         existingFrame.recurseSubFrames(stack, pos-1, count, stacksByMethod);
       }
-    }
-    finally
-    {
-      close(reader, fileStream);
     }
   }
 

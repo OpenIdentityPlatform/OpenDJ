@@ -166,6 +166,12 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
    */
   private final Object waitListen = new Object();
 
+  /**
+   * The condition guarding {@link #waitListen}: set once the run method has tried to open the
+   * socket port, whether it succeeded or not. Guarded by {@link #waitListen}.
+   */
+  private boolean listenAttempted;
+
   /** The friendly name of this connection handler. */
   private String friendlyName;
 
@@ -580,11 +586,15 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
 
       try
       {
-        waitListen.wait();
+        while (!listenAttempted)
+        {
+          waitListen.wait();
+        }
       }
       catch (InterruptedException e)
       {
         // If something interrupted the start its probably better to return ASAP
+        Thread.currentThread().interrupt();
       }
     }
   }
@@ -626,6 +636,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
           synchronized (waitListen)
           {
             starting = false;
+            listenAttempted = true;
             waitListen.notifyAll();
           }
         }
@@ -647,6 +658,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
         // to start but the start process should be notified and resume its work in any cases.
         synchronized (waitListen)
         {
+          listenAttempted = true;
           waitListen.notifyAll();
         }
 

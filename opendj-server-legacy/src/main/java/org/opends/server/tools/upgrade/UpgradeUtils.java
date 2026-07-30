@@ -55,6 +55,7 @@ import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.forgerock.util.Reject;
+import org.forgerock.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.ChangeOperationType;
 import org.opends.server.util.SchemaUtils;
@@ -314,7 +315,7 @@ final class UpgradeUtils
     }
     catch (RuntimeException e)
     {
-      org.forgerock.util.Utils.closeSilently(configStream);
+      Utils.closeSilently(configStream);
       throw e;
     }
   }

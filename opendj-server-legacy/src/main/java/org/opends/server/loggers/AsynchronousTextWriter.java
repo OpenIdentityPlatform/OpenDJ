@@ -42,7 +42,7 @@ class AsynchronousTextWriter
 
   private String name;
   private AtomicBoolean stopRequested;
-  private WriterThread writerThread;
+  private final WriterThread writerThread;
 
   private boolean autoFlush;
 
@@ -230,7 +230,7 @@ class AsynchronousTextWriter
     stopRequested.set(true);
 
     // Wait for publisher thread to terminate
-    while (writerThread != null && writerThread.isAlive()) {
+    while (writerThread.isAlive()) {
       try {
         // Interrupt the thread if its blocking
         writerThread.interrupt();

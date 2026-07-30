@@ -75,7 +75,7 @@ public class MakeLDIFInputStream
    *
    * @param  templateFile  The template file to use to generate the entries.
    */
-  public MakeLDIFInputStream(TemplateFile templateFile)
+  private MakeLDIFInputStream(TemplateFile templateFile)
   {
     allGenerated = false;
     closed       = false;
@@ -101,17 +101,21 @@ public class MakeLDIFInputStream
   }
 
   /**
-   * Starts generating entries in the background.
+   * Creates a new MakeLDIF input stream based on the provided template file and starts generating
+   * entries in the background.
    * <p>
-   * The thread is not started by the constructor so that {@code this} is not published to it before
-   * construction has completed.
+   * The generator thread is started here rather than by the constructor so that {@code this} is not
+   * published to it before construction has completed.
    *
-   * @return this input stream
+   * @param  templateFile  The template file to use to generate the entries.
+   *
+   * @return  A new input stream which has started generating entries.
    */
-  public MakeLDIFInputStream start()
+  public static MakeLDIFInputStream newStartedInputStream(TemplateFile templateFile)
   {
-    generatorThread.start();
-    return this;
+    MakeLDIFInputStream inputStream = new MakeLDIFInputStream(templateFile);
+    inputStream.generatorThread.start();
+    return inputStream;
   }
 
 
