@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.installer;
 
@@ -591,7 +592,7 @@ public class Installer extends GuiApplication
     int cumulatedTime = 0;
     for (InstallProgressStep s : steps)
     {
-      Integer statusTime = s.getRelativeDuration();
+      int statusTime = s.getRelativeDuration();
       hmRatio.put(s, (100 * cumulatedTime) / totalTime);
       cumulatedTime += statusTime;
     }
@@ -2676,7 +2677,7 @@ public class Installer extends GuiApplication
             {
               throw new ApplicationException(ReturnCode.APPLICATION_ERROR, pnfe.getMessageObject(), null);
             }
-            StaticUtils.sleep((5 - nTries) * 3000);
+            StaticUtils.sleep((5 - nTries) * 3000L);
           }
           nTries--;
         }

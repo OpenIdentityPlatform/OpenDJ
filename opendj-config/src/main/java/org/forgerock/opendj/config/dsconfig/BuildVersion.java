@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -191,7 +192,7 @@ class BuildVersion implements Comparable<BuildVersion> {
         if (major == version.major) {
             if (minor == version.minor) {
                 if (point == version.point) {
-                    if (rev == version.rev) {
+                    if (rev.equals(version.rev)) {
                         return 0;
                     } else if (rev.compareTo(version.rev) < 0) {
                         return -1;

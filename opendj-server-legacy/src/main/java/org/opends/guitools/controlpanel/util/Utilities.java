@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.util;
 
@@ -2411,7 +2412,7 @@ public class Utilities
       {
         return NO_VALUE_SET.toString();
       }
-      Long l = Long.parseLong(monitoringValue);
+      long l = Long.parseLong(monitoringValue);
       Date date = new Date(l);
       return ConfigFromConnection.formatter.format(date);
     }
@@ -2437,7 +2438,7 @@ public class Utilities
     }
     else if (attr.isValueInBytes())
     {
-      Long l = Long.parseLong(monitoringValue);
+      long l = Long.parseLong(monitoringValue);
       long mb = l / (1024 * 1024);
       long kbs = (l - mb * 1024 * 1024) / 1024;
       return INFO_CTRL_PANEL_MEMORY_VALUE.get(mb, kbs).toString();

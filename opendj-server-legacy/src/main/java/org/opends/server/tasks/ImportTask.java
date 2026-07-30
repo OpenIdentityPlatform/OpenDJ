@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tasks;
 
@@ -327,6 +328,12 @@ public class ImportTask extends Task
       }
     }
 
+    if (backend == null)
+    {
+      // Neither a backend ID nor an include branch identified a backend.
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID.get());
+    }
+
     // Make sure the selected backend will handle all the include branches
     defaultIncludeBranches = new ArrayList<>(backend.getBaseDNs());
 
@@ -476,6 +483,13 @@ public class ImportTask extends Task
     }
 
     // Find backends with subordinate base DNs that should be excluded from the import.
+    if (backend == null)
+    {
+      // Neither a backend ID nor an include branch identified a backend.
+      logger.error(ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID);
+      return TaskState.STOPPED_BY_ERROR;
+    }
+
     defaultIncludeBranches = new HashSet<>(backend.getBaseDNs());
     for (Backend<?> subBackend : getServerContext().getBackendConfigManager().getSubordinateBackends(backend))
     {

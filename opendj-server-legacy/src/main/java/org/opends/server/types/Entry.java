@@ -14,6 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2023-2024 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.types;
 
@@ -3357,7 +3358,7 @@ public class Entry
     {
       // The first byte must be the entry version.  If it's not one
       // we recognize, then that's an error.
-      Byte version = entryBuffer.readByte();
+      byte version = entryBuffer.readByte();
       if (version != 0x03 && version != 0x02 && version != 0x01)
       {
         LocalizableMessage message = ERR_ENTRY_DECODE_UNRECOGNIZED_VERSION.get(

@@ -355,9 +355,10 @@ public class StatusCli extends ConsoleApplication
     writeStatus(controlInfo.getServerDescriptor());
     int period = argParser.getRefreshPeriod();
     boolean first = true;
-    while (period > 0)
+    // A positive refresh period means refreshing until the command is interrupted.
+    while (period > 0 && !Thread.currentThread().isInterrupted())
     {
-      long timeToSleep = period * 1000;
+      long timeToSleep = period * 1000L;
       if (!first)
       {
         long t1 = System.currentTimeMillis();
@@ -1125,7 +1126,7 @@ public class StatusCli extends ConsoleApplication
     // Interact with the user though the console to get
     // LDAP connection information
     final String hostName = getHostNameForLdapUrl(ci.getHostName());
-    final Integer portNumber = ci.getPortNumber();
+    final int portNumber = ci.getPortNumber();
     final DN bindDN = ci.getBindDN();
     final String bindPassword = ci.getBindPassword();
     TrustManager trustManager = ci.getTrustManager();

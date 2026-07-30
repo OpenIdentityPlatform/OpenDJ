@@ -138,8 +138,7 @@ public final class PasswordPolicyResponseControl implements Control {
                             // nested element.
                             reader.readStartSequence();
                             final int warningChoiceValue = (0x7F & reader.peekType());
-                            if (warningChoiceValue < 0
-                                    || warningChoiceValue >= PasswordPolicyWarningType.values().length) {
+                            if (warningChoiceValue >= PasswordPolicyWarningType.values().length) {
                                 final LocalizableMessage message =
                                         ERR_PWPOLICYRES_INVALID_WARNING_TYPE.get(byteToHex(reader
                                                 .peekType()));

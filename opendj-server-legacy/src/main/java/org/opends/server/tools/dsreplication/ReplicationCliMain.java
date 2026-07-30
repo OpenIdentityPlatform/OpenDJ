@@ -6595,7 +6595,7 @@ public class ReplicationCliMain extends ConsoleApplication
               ERR_REPLICATION_INITIALIZING_TRIES_COMPLETED.get(
                   pnfe.getMessageObject()), INITIALIZING_TRIES_COMPLETED, pnfe);
         }
-        sleepCatchInterrupt((5 - nTries) * 3000);
+        sleepCatchInterrupt((5 - nTries) * 3000L);
       }
       catch (ApplicationException ae)
       {
@@ -6648,7 +6648,7 @@ public class ReplicationCliMain extends ConsoleApplication
               ERR_REPLICATION_INITIALIZING_TRIES_COMPLETED.get(
                   pnfe.getMessageObject()), INITIALIZING_TRIES_COMPLETED, pnfe);
         }
-        sleepCatchInterrupt((5 - nTries) * 3000);
+        sleepCatchInterrupt((5 - nTries) * 3000L);
       }
       catch (ClientException ae)
       {

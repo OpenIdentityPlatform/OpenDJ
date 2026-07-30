@@ -525,11 +525,9 @@ public class BindRule {
      *          should be appended.
      */
     public final void toString(StringBuilder buffer) {
-        if (this.keywordRuleMap != null) {
-            for (KeywordBindRule rule : this.keywordRuleMap.values()) {
-                rule.toString(buffer);
-                buffer.append(";");
-            }
+        for (KeywordBindRule rule : this.keywordRuleMap.values()) {
+            rule.toString(buffer);
+            buffer.append(";");
         }
     }
 }

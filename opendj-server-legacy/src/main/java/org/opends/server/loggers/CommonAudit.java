@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -357,7 +358,7 @@ public class CommonAudit
       throws IOException, AuditException, ConfigException
   {
     final JsonValue jsonConfig;
-    try (InputStream input = getClass().getResourceAsStream(AUDIT_SERVICE_JSON_CONFIGURATION_FILE))
+    try (InputStream input = CommonAudit.class.getResourceAsStream(AUDIT_SERVICE_JSON_CONFIGURATION_FILE))
     {
       jsonConfig = AuditJsonConfig.getJson(input);
     }

@@ -836,9 +836,9 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
 
     @Override
     public int compareTo(final GeneralizedTime o) {
-        final Long timeMS1 = getTimeInMillis();
-        final Long timeMS2 = o.getTimeInMillis();
-        return timeMS1.compareTo(timeMS2);
+        final long timeMS1 = getTimeInMillis();
+        final long timeMS2 = o.getTimeInMillis();
+        return Long.compare(timeMS1, timeMS2);
     }
 
     @Override

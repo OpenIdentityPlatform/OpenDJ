@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  * Portions copyright 2011-2016 ForgeRock AS.
  * Portions copyright 2021-2026 3A Systems, LLC
  */
@@ -166,9 +167,10 @@ public final class AVA implements Comparable<AVA> {
                         builder.append(StaticUtils.byteToLowerHex(b));
                     }
                 } else {
+                    // NUL needs no test here: it is already handled by the c < ' ' branch above.
                     if ((c == ' ' && si == length - 1)
                             || (c == '"' || c == '+' || c == ',' || c == ';' || c == '<'
-                            || c == '>' || c == '\\' || c == '\u0000' || c == '=')) {
+                            || c == '>' || c == '\\' || c == '=')) {
                         builder.append('\\');
                     }
                     builder.append(c);

@@ -238,8 +238,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
               this.mib, this.server, this.applIndex);
 
       // if the entry already exists nothing to do
-      if ((this.dsTableEntries.containsKey(entry.getObjectName())) ||
-              (entry == null)) {
+      if (this.dsTableEntries.containsKey(entry.getObjectName())) {
         return true;
       }
 
@@ -279,8 +278,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
               this.applIndex, this.applIfOpsIndex);
 
       // If the entry already exists then nothing to do
-      if ((this.dsApplIfOpsTableEntries.containsKey(entry.getObjectName())) ||
-              (entry == null)) {
+      if (this.dsApplIfOpsTableEntries.containsKey(entry.getObjectName())) {
         return true;
       }
       // Add the entry in the Table

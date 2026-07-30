@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  * Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
@@ -399,16 +400,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl {
         case '3':
         case '4':
         case '5':
-            // There must be at least two more characters, and the next one
-            // must be a digit between 0 and 9.
-            if (length < 11) {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString, String.valueOf(m1),
-                                8);
-                invalidReason.append(message);
-                return false;
-            }
-
+            // A length below 11 was already rejected at the top of this method, so the next
+            // character is present and must be a digit between 0 and 9.
             switch (valueString.charAt(9)) {
             case '0':
             case '1':

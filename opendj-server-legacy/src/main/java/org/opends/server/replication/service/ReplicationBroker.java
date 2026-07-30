@@ -1341,7 +1341,7 @@ public class ReplicationBroker
     {
       if (foundBestRS())
       {
-        final Integer bestRSServerId = getBestRS().getServerId();
+        final int bestRSServerId = getBestRS().getServerId();
         if (rsEvals.get(bestRSServerId) == null)
         {
           final LocalizableMessage eval = NOTE_BEST_RS.get(bestRSServerId, localServerId);

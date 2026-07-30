@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package com.forgerock.opendj.util;
@@ -110,7 +111,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
             this.isKeyChar = true;
             this.isCompatKeyChar = true;
             this.decimalValue = -1;
-            if (c >= 'a' && c <= 'f') {
+            if (c <= 'f') {
                 this.isHexChar = true;
                 this.hexValue = c - 87;
             } else {
@@ -127,7 +128,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
             this.isKeyChar = true;
             this.isCompatKeyChar = true;
             this.decimalValue = -1;
-            if (c >= 'A' && c <= 'F') {
+            if (c <= 'F') {
                 this.isHexChar = true;
                 this.hexValue = c - 55;
             } else {

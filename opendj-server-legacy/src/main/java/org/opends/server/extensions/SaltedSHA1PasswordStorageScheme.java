@@ -60,6 +60,13 @@ public class SaltedSHA1PasswordStorageScheme
   /** The number of bytes of random data to use as the salt when generating the hashes. */
   private static final int NUM_SALT_BYTES = 8;
 
+  /**
+   * Source of randomness for the offline encoding, which has no access to the server's
+   * crypto manager. A single instance is shared because {@code SecureRandom} is thread-safe
+   * and reseeding it for every password would weaken it.
+   */
+  private static final SecureRandom OFFLINE_RANDOM = new SecureRandom();
+
   /** The number of bytes SHA algorithm produces. */
   private static final int SHA1_LENGTH = 20;
 
@@ -423,7 +430,7 @@ public class SaltedSHA1PasswordStorageScheme
          throws DirectoryException
   {
     byte[] saltBytes = new byte[NUM_SALT_BYTES];
-    new SecureRandom().nextBytes(saltBytes);
+    OFFLINE_RANDOM.nextBytes(saltBytes);
 
     byte[] passwordPlusSalt = new byte[passwordBytes.length + NUM_SALT_BYTES];
     System.arraycopy(passwordBytes, 0, passwordPlusSalt, 0,

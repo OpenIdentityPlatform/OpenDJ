@@ -14,6 +14,7 @@
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2024 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -229,11 +230,8 @@ final class SchemaUtils {
                         && (c = reader.read()) != ' '
                         && c != ')'
                         && (c != '\'' || !enclosingQuote)) {
-                    if (length == 0 && !isAlpha(c)) {
-                        throw DecodeException.error(
-                                ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));
-                    }
-
+                    // The first character was already required to be alphabetic by the enclosing
+                    // test, so only the key-character check is needed here.
                     if (!isKeyChar(c, allowCompatChars)) {
                         throw DecodeException.error(
                                 ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));
@@ -327,10 +325,6 @@ final class SchemaUtils {
                     length++;
                 }
 
-                if (length == 0) {
-                    throw DecodeException.error(
-                            ERR_ATTR_SYNTAX_OID_NO_VALUE1.get(reader.pos() - 1));
-                }
             } else if (isAlpha(c)) {
                 // This must be an attribute description. In this case, we will
                 // only accept alphabetic characters, numeric digits, and the hyphen.
@@ -338,11 +332,8 @@ final class SchemaUtils {
                         && c != ')'
                         && c != '{'
                         && (c != '\'' || !enclosingQuote)) {
-                    if (length == 0 && !isAlpha(c)) {
-                        throw DecodeException.error(
-                                ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));
-                    }
-
+                    // The first character was already required to be alphabetic by the enclosing
+                    // test, so only the key-character check is needed here.
                     if (!isKeyChar(c, allowCompatChars)) {
                         throw DecodeException.error(
                                 ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));

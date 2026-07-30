@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -531,6 +532,11 @@ public class ModifyDNOperationBasis
       {
         setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         appendErrorMessage(ERR_MODDN_NO_PARENT.get(entryDN));
+        if (parentDN == null)
+        {
+          // Without a parent there is no new DN to build; the error set above is the outcome.
+          return null;
+        }
       }
       newDN = parentDN.child(getNewRDN());
     }
