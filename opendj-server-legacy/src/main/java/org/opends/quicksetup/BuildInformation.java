@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup;
 
@@ -61,6 +62,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
     ProcessBuilder pb = new ProcessBuilder(args);
     InputStream is = null;
     OutputStream out = null;
+    BufferedReader reader = null;
     final boolean[] done = {false};
     try {
       Map<String, String> env = pb.environment();
@@ -100,7 +102,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
         });
         t.start();
       }
-      BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+      reader = new BufferedReader(new InputStreamReader(is));
       String line = reader.readLine();
       bi.values.put(NAME, line);
       StringBuilder sb = new StringBuilder();
@@ -154,7 +156,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
 
     } finally {
       done[0] = true;
-      StaticUtils.close(is, out);
+      StaticUtils.close(reader, is, out);
     }
 
     // Make sure we got values for important properties that are used

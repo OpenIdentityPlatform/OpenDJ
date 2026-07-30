@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.maven.doc;
 
@@ -102,12 +103,14 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
      */
     private Map<String, String> getAciDescriptions() throws IOException {
         final Map<String, String> descriptions = new HashMap<>();
-        BufferedReader reader = new BufferedReader(new FileReader(configDotLdif));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            if (line.startsWith("# @aci ")) {
-                String[] split = line.replace("# @aci ", "").split(":", 2);
-                descriptions.put(split[0], split[1]);
+        try (FileReader fileReader = new FileReader(configDotLdif);
+             BufferedReader reader = new BufferedReader(fileReader)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("# @aci ")) {
+                    String[] split = line.replace("# @aci ", "").split(":", 2);
+                    descriptions.put(split[0], split[1]);
+                }
             }
         }
         return descriptions;
@@ -120,19 +123,21 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
      * @throws IOException  Failed to read the LDIF.
      */
     private void readAcis(Map<String, String> descriptions) throws IOException {
-        LDIFEntryReader reader = new LDIFEntryReader(new FileInputStream(configDotLdif));
-        reader.setIncludeBranch(DN.valueOf("cn=Access Control Handler,cn=config"));
+        try (FileInputStream configStream = new FileInputStream(configDotLdif);
+             LDIFEntryReader reader = new LDIFEntryReader(configStream)) {
+            reader.setIncludeBranch(DN.valueOf("cn=Access Control Handler,cn=config"));
 
-        while (reader.hasNext()) {
-            Entry entry = reader.readEntry();
-            for (String attribute : entry.parseAttribute("ds-cfg-global-aci").asSetOfString()) {
-                Aci aci = new Aci();
-                aci.name = getName(attribute);
-                if (descriptions != null) {
-                    aci.description = descriptions.get(aci.name);
+            while (reader.hasNext()) {
+                Entry entry = reader.readEntry();
+                for (String attribute : entry.parseAttribute("ds-cfg-global-aci").asSetOfString()) {
+                    Aci aci = new Aci();
+                    aci.name = getName(attribute);
+                    if (descriptions != null) {
+                        aci.description = descriptions.get(aci.name);
+                    }
+                    aci.definition = AsciidocConverterUtils.escapeVerticalLine(attribute);
+                    allGlobalAcis.add(aci);
                 }
-                aci.definition = AsciidocConverterUtils.escapeVerticalLine(attribute);
-                allGlobalAcis.add(aci);
             }
         }
     }

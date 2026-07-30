@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -59,6 +60,9 @@ public class DynamicGroupMemberList
    * objects to return or MembershipException objects to throw.
    */
   private final LinkedBlockingQueue<Object> resultQueue;
+
+  /** The background thread which performs the internal searches. */
+  private final DynamicGroupSearchThread searchThread;
 
   /** The search filter to use when filtering the set of group members. */
   private final SearchFilter filter;
@@ -122,6 +126,7 @@ public class DynamicGroupMemberList
 
     searchesCompleted = false;
     resultQueue = new LinkedBlockingQueue<>(10);
+    // Assigned at the end of this constructor and started separately by start().
 
     // We're going to have to perform one or more internal searches in order to
     // get the results.  We need to be careful about the way that we construct
@@ -292,9 +297,22 @@ public class DynamicGroupMemberList
       }
     }
 
-    DynamicGroupSearchThread searchThread =
+    searchThread =
          new DynamicGroupSearchThread(this, baseDNArray, filterArray, urlArray);
+  }
+
+  /**
+   * Starts the background searches which populate this member list.
+   * <p>
+   * The searches are not started by the constructor so that {@code this} is not published to the
+   * search thread before construction has completed.
+   *
+   * @return this member list
+   */
+  DynamicGroupMemberList start()
+  {
     searchThread.start();
+    return this;
   }
 
   /**

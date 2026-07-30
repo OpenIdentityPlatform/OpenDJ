@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
@@ -80,8 +81,9 @@ public final class Server {
 
         // Create the memory backend.
         final MemoryBackend backend;
-        try {
-            backend = new MemoryBackend(new LDIFEntryReader(new FileInputStream(ldifFileName)));
+        try (FileInputStream ldifStream = new FileInputStream(ldifFileName);
+                LDIFEntryReader ldifReader = new LDIFEntryReader(ldifStream)) {
+            backend = new MemoryBackend(ldifReader);
         } catch (final IOException e) {
             System.err.println(e.getMessage());
             System.exit(ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue());

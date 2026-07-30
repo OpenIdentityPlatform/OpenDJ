@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -275,7 +276,7 @@ public final class TextHTTPAccessLogPublisher extends
   private AsynchronousTextWriter newAsyncWriter(MultifileTextWriter mfWriter, FileBasedHTTPAccessLogPublisherCfg config)
   {
     String name = "Asynchronous Text Writer for " + config.dn();
-    return new AsynchronousTextWriter(name, config.getQueueSize(), config.isAutoFlush(), mfWriter);
+    return new AsynchronousTextWriter(name, config.getQueueSize(), config.isAutoFlush(), mfWriter).start();
   }
 
   private LocalizableMessage setLogFormatFields(String logFormat)
@@ -335,6 +336,9 @@ public final class TextHTTPAccessLogPublisher extends
       {
         theWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
       }
+
+      // Rotation only starts once the policies above are registered.
+      theWriter.start();
 
       if (cfg.isAsynchronous())
       {

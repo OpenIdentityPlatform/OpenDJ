@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.makeldif;
 
@@ -65,6 +66,9 @@ public class MakeLDIFInputStream
   /** The queue used to hold generated entries until they can be read. */
   private LinkedBlockingQueue<TemplateEntry> entryQueue;
 
+  /** The background thread used to actually generate the entries. */
+  private final MakeLDIFInputStreamThread generatorThread;
+
   /**
    * Creates a new MakeLDIF input stream that will generate entries based on the
    * provided template file.
@@ -93,7 +97,21 @@ public class MakeLDIFInputStream
     }
 
     /* The background thread being used to actually generate the entries. */
-    new MakeLDIFInputStreamThread(this, templateFile).start();
+    generatorThread = new MakeLDIFInputStreamThread(this, templateFile);
+  }
+
+  /**
+   * Starts generating entries in the background.
+   * <p>
+   * The thread is not started by the constructor so that {@code this} is not published to it before
+   * construction has completed.
+   *
+   * @return this input stream
+   */
+  public MakeLDIFInputStream start()
+  {
+    generatorThread.start();
+    return this;
   }
 
 

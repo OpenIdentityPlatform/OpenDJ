@@ -911,7 +911,7 @@ public class SearchOperationBasis
   }
 
   @Override
-  public void abort(CancelRequest cancelRequest)
+  public synchronized void abort(CancelRequest cancelRequest)
   {
     if(cancelResult == null && this.cancelRequest == null)
     {

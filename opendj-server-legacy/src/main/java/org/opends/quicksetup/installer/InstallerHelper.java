@@ -162,7 +162,7 @@ public class InstallerHelper {
           application.notifyListeners(LocalizableMessage.raw(line));
           application.notifyListeners(application.getLineBreak());
         }
-      };
+      }.start();
 
       final BufferedReader out = new BufferedReader(new InputStreamReader(process.getInputStream()));
       new OutputReader(out)
@@ -174,7 +174,7 @@ public class InstallerHelper {
           application.notifyListeners(LocalizableMessage.raw(line));
           application.notifyListeners(application.getLineBreak());
         }
-      };
+      }.start();
 
       return process.waitFor();
     }

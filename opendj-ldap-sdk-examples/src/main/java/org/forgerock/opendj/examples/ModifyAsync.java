@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
@@ -78,20 +79,24 @@ public final class ModifyAsync {
         final String userName = args[2];
         final char[] password = args[3].toCharArray();
 
-        // Create the LDIF reader using either the named file, if provided, or stdin.
-        InputStream ldif;
+        // Read the LDIF from either the named file, if provided, or stdin. Only a file is closed
+        // here; stdin belongs to the caller.
+        final String[] ldifLines;
         if (args.length > 4) {
-            try {
-                ldif = new FileInputStream(args[4]);
+            try (InputStream ldif = new FileInputStream(args[4])) {
+                ldifLines = getInputLines(ldif);
             } catch (final FileNotFoundException e) {
                 System.err.println(e.getMessage());
                 System.exit(ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue());
                 return;
+            } catch (final IOException e) {
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
+                return;
             }
         } else {
-            ldif = System.in;
+            ldifLines = getInputLines(System.in);
         }
-        final String[] ldifLines = getInputLines(ldif);
 
         // Connect to the server, bind, and request the modifications.
         new LDAPConnectionFactory(hostName, port)

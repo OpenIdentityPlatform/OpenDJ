@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.http;
 
@@ -625,7 +626,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
           synchronized (waitListen)
           {
             starting = false;
-            waitListen.notify();
+            waitListen.notifyAll();
           }
         }
 
@@ -646,7 +647,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
         // to start but the start process should be notified and resume its work in any cases.
         synchronized (waitListen)
         {
-          waitListen.notify();
+          waitListen.notifyAll();
         }
 
         // If we have gotten here, then we are about to start listening

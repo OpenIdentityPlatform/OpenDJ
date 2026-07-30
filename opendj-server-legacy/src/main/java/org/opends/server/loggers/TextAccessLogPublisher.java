@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -242,6 +243,9 @@ public final class TextAccessLogPublisher extends
         theWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
       }
 
+      // Rotation only starts once the policies above are registered.
+      theWriter.start();
+
       if (cfg.isAsynchronous())
       {
         this.writer = newAsyncWriter(theWriter, cfg);
@@ -285,7 +289,7 @@ public final class TextAccessLogPublisher extends
   private AsynchronousTextWriter newAsyncWriter(MultifileTextWriter mfWriter, FileBasedAccessLogPublisherCfg config)
   {
     String name = "Asynchronous Text Writer for " + config.dn();
-    return new AsynchronousTextWriter(name, config.getQueueSize(), config.isAutoFlush(), mfWriter);
+    return new AsynchronousTextWriter(name, config.getQueueSize(), config.isAutoFlush(), mfWriter).start();
   }
 
   @Override

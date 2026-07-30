@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.plugins.profiler;
 
@@ -214,9 +215,10 @@ public class ProfileViewer
    */
   public void processDataFile(String filename) throws IOException
   {
-    // Try to open the file for reading.
-    ASN1Reader reader = ASN1.getReader(new FileInputStream(filename));
-
+    // Try to open the file for reading. The stream is closed explicitly as well, in case the
+    // reader could not be created around it.
+    FileInputStream fileStream = new FileInputStream(filename);
+    ASN1Reader reader = ASN1.getReader(fileStream);
 
     try
     {
@@ -275,7 +277,7 @@ public class ProfileViewer
     }
     finally
     {
-      close(reader);
+      close(reader, fileStream);
     }
   }
 

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.reactive;
 
@@ -701,7 +702,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                     // so notify here to allow the server startup to complete.
                     synchronized (waitListen) {
                         starting = false;
-                        waitListen.notify();
+                        waitListen.notifyAll();
                     }
                 }
 
@@ -719,7 +720,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                 // At this point, the connection Handler either started correctly or failed
                 // to start but the start process should be notified and resume its work in any cases.
                 synchronized (waitListen) {
-                    waitListen.notify();
+                    waitListen.notifyAll();
                 }
 
                 // If we have gotten here, then we are about to start listening

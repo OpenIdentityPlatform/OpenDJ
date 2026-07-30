@@ -593,7 +593,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       final ChangelogDBPurger currentPurger = cnPurger.get();
       synchronized (currentPurger)
       {
-        currentPurger.notify();
+        currentPurger.notifyAll();
       }
     }
   }
@@ -1017,7 +1017,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       super.initiateShutdown();
       synchronized (this)
       {
-        notify(); // wake up the purger thread for faster shutdown
+        notifyAll(); // wake up the purger thread for faster shutdown
       }
     }
   }

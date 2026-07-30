@@ -953,7 +953,7 @@ public abstract class ReplicationDomain
     {
       synchronized (update)
       {
-        update.notify();
+        update.notifyAll();
       }
 
       // Analyze status of embedded in the ack to see if everything went well

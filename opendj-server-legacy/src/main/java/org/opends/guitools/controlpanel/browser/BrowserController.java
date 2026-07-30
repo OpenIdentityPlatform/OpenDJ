@@ -152,7 +152,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     connectionPool = cpool;
     connectionPool.addReferralAuthenticationListener(this);
 
-    refreshQueue = new NodeSearcherQueue("New red", 2);
+    refreshQueue = new NodeSearcherQueue("New red", 2).start();
 
     // NUMSUBORDINATE HACK
     // Create an empty hacker to avoid null value test.

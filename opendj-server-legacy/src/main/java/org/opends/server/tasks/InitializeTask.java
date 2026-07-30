@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tasks;
 
@@ -160,7 +161,7 @@ public class InitializeTask extends Task
       // Wake up runTask method waiting for completion
       synchronized (initState)
       {
-        initState.notify();
+        initState.notifyAll();
       }
     }
   }

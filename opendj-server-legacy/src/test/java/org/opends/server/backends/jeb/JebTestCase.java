@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.jeb;
 
@@ -65,7 +66,7 @@ public abstract class JebTestCase extends DirectoryServerTestCase {
         ArrayList<LocalizableMessage> warnings = new ArrayList<>();
         templateFile.parse(template, warnings);
         MakeLDIFInputStream ldifEntryStream =
-            new MakeLDIFInputStream(templateFile);
+            new MakeLDIFInputStream(templateFile).start();
         LDIFReader reader =
             new LDIFReader(new LDIFImportConfig(ldifEntryStream));
         for(int i =0; i<numEntries;i++) {

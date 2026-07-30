@@ -13,6 +13,7 @@
  *
  * Copyright 2014-2016 ForgeRock AS.
  * Portions Copyright 2025 3A Systems,LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.config;
 
@@ -1405,7 +1406,8 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
   {
     byte[] buffer = new byte[8192];
     try(FileInputStream inputStream = new FileInputStream(configFile);
-        GZIPOutputStream outputStream = new GZIPOutputStream(new FileOutputStream(archiveFile)))
+        FileOutputStream archiveStream = new FileOutputStream(archiveFile);
+        GZIPOutputStream outputStream = new GZIPOutputStream(archiveStream))
     {
       int bytesRead = inputStream.read(buffer);
       while (bytesRead > 0)

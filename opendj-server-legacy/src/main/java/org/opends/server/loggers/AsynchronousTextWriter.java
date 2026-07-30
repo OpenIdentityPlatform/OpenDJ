@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -63,13 +64,25 @@ class AsynchronousTextWriter
 
     this.queue = new LinkedBlockingQueue<>(capacity);
     this.capacity = capacity;
-    this.writerThread = null;
     this.stopRequested = new AtomicBoolean(false);
 
     writerThread = new WriterThread();
-    writerThread.start();
 
     DirectoryServer.registerShutdownListener(this);
+  }
+
+  /**
+   * Starts the background thread which publishes the queued log records.
+   * <p>
+   * The thread is not started by the constructor so that {@code this} is not published to it before
+   * construction has completed.
+   *
+   * @return this writer
+   */
+  AsynchronousTextWriter start()
+  {
+    writerThread.start();
+    return this;
   }
 
   /**

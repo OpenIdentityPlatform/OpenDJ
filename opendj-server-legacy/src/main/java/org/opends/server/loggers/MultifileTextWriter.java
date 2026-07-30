@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -134,9 +135,22 @@ class MultifileTextWriter
     this.stopRequested = false;
 
     rotaterThread = new RotaterThread(this);
-    rotaterThread.start();
 
     DirectoryServer.registerShutdownListener(this);
+  }
+
+  /**
+   * Starts the background thread which rotates and retains the log files.
+   * <p>
+   * The thread is not started by the constructor so that {@code this} is not published to it before
+   * construction has completed.
+   *
+   * @return this writer
+   */
+  MultifileTextWriter start()
+  {
+    rotaterThread.start();
+    return this;
   }
 
   /**

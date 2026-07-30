@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -131,13 +132,13 @@ public class FilterTextField extends JTextField
   }
 
   @Override
-  public void addActionListener(ActionListener listener)
+  public synchronized void addActionListener(ActionListener listener)
   {
     listeners.add(listener);
   }
 
   @Override
-  public void removeActionListener(ActionListener listener)
+  public synchronized void removeActionListener(ActionListener listener)
   {
     listeners.remove(listener);
   }

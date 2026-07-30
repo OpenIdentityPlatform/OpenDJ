@@ -100,15 +100,22 @@ public class ZipExtractor {
                                       Application app)
     throws FileNotFoundException, IllegalArgumentException
   {
-    this(new FileInputStream(zipFile),
+    // The name is validated before the stream is opened, otherwise the stream would leak when the
+    // validation fails.
+    this(openZipFile(zipFile),
       minRatio,
       maxRatio,
       numberZipEntries,
       zipFile.getName(),
       app);
+  }
+
+  private static FileInputStream openZipFile(File zipFile) throws FileNotFoundException
+  {
     if (!zipFile.getName().endsWith(".zip")) {
       throw new IllegalArgumentException("File must have extension .zip");
     }
+    return new FileInputStream(zipFile);
   }
 
   /**

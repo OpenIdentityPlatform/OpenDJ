@@ -829,7 +829,7 @@ public class ReplicationBroker
       final ConnectedRS rs = connectedRS.get();
       if (rs.isConnected())
       {
-        connectPhaseLock.notify();
+        connectPhaseLock.notifyAll();
 
         final long rsGenId = rs.rsInfo.getGenerationId();
         final int rsServerId = rs.rsInfo.getServerId();
@@ -851,7 +851,7 @@ public class ReplicationBroker
         if (!connectionError)
         {
           connectionError = true;
-          connectPhaseLock.notify();
+          connectPhaseLock.notifyAll();
 
           if (!rsInfos.isEmpty())
           {
@@ -2510,7 +2510,7 @@ public class ReplicationBroker
           synchronized (monitorResponse)
           {
             monitorResponse.set(true);
-            monitorResponse.notify();
+            monitorResponse.notifyAll();
           }
 
           // Update the replication servers ServerStates with new received info

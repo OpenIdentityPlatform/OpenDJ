@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.types;
 
@@ -203,7 +204,7 @@ public final class LDIFImportConfig extends OperationConfig
    */
   public LDIFImportConfig(TemplateFile templateFile)
   {
-    this(new MakeLDIFInputStream(templateFile));
+    this(new MakeLDIFInputStream(templateFile).start());
   }
 
 
@@ -243,7 +244,7 @@ public final class LDIFImportConfig extends OperationConfig
 
       if (isCompressed)
       {
-        inputStream = new GZIPInputStream(inputStream);
+        inputStream = wrapWithGzip(inputStream);
       }
 
       reader = new BufferedReader(new InputStreamReader(inputStream),
@@ -251,6 +252,23 @@ public final class LDIFImportConfig extends OperationConfig
     }
 
     return reader;
+  }
+
+  /**
+   * Wraps the provided stream for decompression, closing it if the wrapping fails so that the
+   * underlying file descriptor is not leaked.
+   */
+  private static InputStream wrapWithGzip(final InputStream inputStream) throws IOException
+  {
+    try
+    {
+      return new GZIPInputStream(inputStream);
+    }
+    catch (IOException | RuntimeException e)
+    {
+      StaticUtils.close(inputStream);
+      throw e;
+    }
   }
 
 
@@ -284,7 +302,7 @@ public final class LDIFImportConfig extends OperationConfig
 
     if (isCompressed)
     {
-      inputStream = new GZIPInputStream(inputStream);
+      inputStream = wrapWithGzip(inputStream);
     }
 
     reader = new BufferedReader(new InputStreamReader(inputStream), bufferSize);
