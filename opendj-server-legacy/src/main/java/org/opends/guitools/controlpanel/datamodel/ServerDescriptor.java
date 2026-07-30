@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -22,6 +23,7 @@ import static org.opends.server.util.SchemaUtils.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -695,8 +697,9 @@ public class ServerDescriptor
       {
         String start = firstValueAsString(rootMonitor, START_DATE.getAttributeName());
         String current = firstValueAsString(rootMonitor, CURRENT_DATE.getAttributeName());
-        Date startTime = ConfigFromConnection.utcParser.parse(start);
-        Date currentTime = ConfigFromConnection.utcParser.parse(current);
+        SimpleDateFormat utcParser = ConfigFromConnection.newUtcParser();
+        Date startTime = utcParser.parse(start);
+        Date currentTime = utcParser.parse(current);
         return currentTime.getTime() - startTime.getTime();
       }
       catch (Throwable t)

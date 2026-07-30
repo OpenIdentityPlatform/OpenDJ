@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.util;
 
@@ -2413,7 +2414,7 @@ public class Utilities
       }
       Long l = Long.parseLong(monitoringValue);
       Date date = new Date(l);
-      return ConfigFromConnection.formatter.format(date);
+      return ConfigFromConnection.newDateFormatter().format(date);
     }
     else if (attr.isTime())
     {
@@ -2427,8 +2428,8 @@ public class Utilities
     {
       try
       {
-        Date date = ConfigFromConnection.utcParser.parse(monitoringValue);
-        return ConfigFromConnection.formatter.format(date);
+        Date date = ConfigFromConnection.newUtcParser().parse(monitoringValue);
+        return ConfigFromConnection.newDateFormatter().format(date);
       }
       catch (Throwable t)
       {

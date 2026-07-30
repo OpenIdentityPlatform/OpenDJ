@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2011 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.util;
 
@@ -135,14 +136,33 @@ public class ConfigFromConnection extends ConfigReader
     }
   }
 
-  /** The date formatter to be used to parse GMT dates. */
-  public static final SimpleDateFormat utcParser = new SimpleDateFormat(ServerConstants.DATE_FORMAT_GMT_TIME);
+  /**
+   * Returns a date formatter to be used to parse GMT dates.
+   * <p>
+   * A new instance is returned by each call because {@link SimpleDateFormat} is not thread-safe and
+   * this method is called from several threads.
+   *
+   * @return a date formatter to be used to parse GMT dates
+   */
+  public static SimpleDateFormat newUtcParser()
   {
+    SimpleDateFormat utcParser = new SimpleDateFormat(ServerConstants.DATE_FORMAT_GMT_TIME);
     utcParser.setTimeZone(TimeZone.getTimeZone("UTC"));
+    return utcParser;
   }
 
-  /** The date formatter to be used to format dates. */
-  public static final DateFormat formatter = DateFormat.getDateTimeInstance();
+  /**
+   * Returns a date formatter to be used to format dates.
+   * <p>
+   * A new instance is returned by each call because {@link DateFormat} is not thread-safe and this
+   * method is called from several threads.
+   *
+   * @return a date formatter to be used to format dates
+   */
+  public static DateFormat newDateFormatter()
+  {
+    return DateFormat.getDateTimeInstance();
+  }
 
   /**
    * Returns the monitoring entry for the entry caches.
