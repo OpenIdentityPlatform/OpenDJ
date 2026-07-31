@@ -51,9 +51,25 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class EmbeddedOpenDJ implements Runnable, Closeable {
     private static final String JAR_SCHEMA_DIRECTORY = "opendj/config/schema/";
+
+    private static final String ARCHIVE_NAME = "opendj.zip";
+
+    /**
+     * How long {@link #close()} keeps retrying the deletion of the instance directory
+     * before giving up and falling back to a deletion on JVM exit.
+     */
+    private static final long DELETE_TIMEOUT_MS = 10_000L;
+
+    private static final long INITIAL_DELETE_RETRY_DELAY_MS = 50L;
+
+    private static final long MAX_DELETE_RETRY_DELAY_MS = 500L;
+
+    /** Upper bound on the number of leftover paths reported when the deletion fails. */
+    private static final int MAX_REPORTED_REMAINING_PATHS = 20;
 
     final static Logger logger = LoggerFactory.getLogger(EmbeddedOpenDJ.class.getName());
     final EmbeddedDirectoryServer server;
@@ -62,6 +78,10 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
 
     private final File instanceDirectory;
     private final File rootDirectory;
+    private final Thread shutdownHook;
+
+    /** Guarded by {@code this}. */
+    private boolean closed;
 
     public EmbeddedOpenDJ() {
         this(new Config());
@@ -100,8 +120,15 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
                     System.out,
                     System.err);
 
-            copyFilesFromJar(Collections.singletonList("opendj.zip"),"embedded-opendj/",rootDirectory);
-            server.extractArchiveForSetup(new File(rootDirectory,"opendj.zip"));
+            copyFilesFromJar(Collections.singletonList(ARCHIVE_NAME),"embedded-opendj/",rootDirectory);
+            final File archive = new File(rootDirectory, ARCHIVE_NAME);
+            server.extractArchiveForSetup(archive);
+            // The archive is only needed for the extraction above. Keeping it would leave a
+            // full copy of the distribution in the temporary directory and one more file to
+            // delete on close().
+            if (!archive.delete()) {
+                logger.warn("Cannot delete {} after extracting it", archive);
+            }
 
             server.setup(
                     SetupParameters.setupParams()
@@ -121,10 +148,11 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
             this.rootDirectory = rootDirectory;
         }catch (Exception e) {
             logger.error("Error initializing OpenDJ");
-            FileUtils.deleteQuietly(instanceDirectory);
+            deleteInstanceDirectory(instanceDirectory);
             throw new RuntimeException(e);
         }
-        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
+        shutdownHook = new Thread(this::close, "EmbeddedOpenDJ shutdown hook");
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
     }
 
     /**
@@ -138,15 +166,16 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
 
     @Override
     public void run() {
+        if (isClosed()) {
+            throw new IllegalStateException("this embedded OpenDJ instance is closed");
+        }
         try {
             final DN baseDN = DN.valueOf(config.getBaseDN());
-            try {
-                ManagementContext config = server.getConfiguration();
-                BackendCfgClient userRoot = config.getRootConfiguration().getBackend("userRoot");
+            try (ManagementContext managementContext = server.getConfiguration()) {
+                BackendCfgClient userRoot = managementContext.getRootConfiguration().getBackend("userRoot");
                 userRoot.setBaseDN((Collections.singletonList(baseDN)));
                 userRoot.setEnabled(true);
                 userRoot.commit();
-                config.close();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -163,8 +192,18 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
         }
     }
 
+    /**
+     * Stops this instance, if it is still running, and deletes its temporary directory.
+     * <p>
+     * This method is idempotent: it is also registered as a JVM shutdown hook.
+     */
     @Override
-    public void close()  {
+    public synchronized void close()  {
+        if (closed) {
+            return;
+        }
+        closed = true;
+        unregisterShutdownHook();
         if (server.isRunning()) {
             try {
                 logger.info("Shutting down OpenDJ ...");
@@ -173,8 +212,94 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
                 logger.error("Error stopping OpenDJ", e);
             }
         }
-        // close() is also registered as a shutdown hook, so deletion must stay idempotent
-        FileUtils.deleteQuietly(instanceDirectory);
+        deleteInstanceDirectory(instanceDirectory);
+    }
+
+    private synchronized boolean isClosed() {
+        return closed;
+    }
+
+    private void unregisterShutdownHook() {
+        try {
+            Runtime.getRuntime().removeShutdownHook(shutdownHook);
+        } catch (IllegalStateException e) {
+            // close() was reached from the shutdown hook itself: nothing to unregister
+        }
+    }
+
+    /**
+     * Deletes the temporary directory of this instance, retrying for a bounded period.
+     * <p>
+     * Deleting once is not enough. On Windows a file cannot be deleted while a handle to it
+     * is still open, and {@code server.stop()} does not wait for the server threads to
+     * terminate: an embedded server runs them as daemon threads, which the shutdown monitor
+     * of the directory server ignores. Some handles are therefore released shortly after
+     * {@code stop()} has returned, and a single best-effort deletion loses that race and
+     * silently leaks the whole directory, backend data included.
+     *
+     * @param directory
+     *            the directory to delete, may be {@code null} when the instance failed to
+     *            initialize before creating it
+     */
+    private static void deleteInstanceDirectory(File directory) {
+        if (directory == null || !directory.exists()) {
+            return;
+        }
+        final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(DELETE_TIMEOUT_MS);
+        long retryDelay = INITIAL_DELETE_RETRY_DELAY_MS;
+        while (true) {
+            // deleteQuietly() stops at the first entry it cannot remove, so every attempt
+            // deletes a bit more and the next one continues with whatever is left over.
+            if (FileUtils.deleteQuietly(directory) || !directory.exists()) {
+                return;
+            }
+            if (System.nanoTime() >= deadline) {
+                break;
+            }
+            try {
+                Thread.sleep(retryDelay);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+            retryDelay = Math.min(retryDelay * 2, MAX_DELETE_RETRY_DELAY_MS);
+        }
+        logger.warn("Cannot delete {}, some files are still in use: {}. "
+                + "They are now scheduled for deletion on JVM exit.", directory, remainingPaths(directory));
+        deleteOnExit(directory);
+    }
+
+    /** Returns at most {@link #MAX_REPORTED_REMAINING_PATHS} paths left in the given directory. */
+    private static List<String> remainingPaths(File directory) {
+        final List<String> remaining = new ArrayList<>();
+        collectRemainingPaths(directory, remaining);
+        return remaining;
+    }
+
+    private static void collectRemainingPaths(File file, List<String> remaining) {
+        if (remaining.size() >= MAX_REPORTED_REMAINING_PATHS) {
+            return;
+        }
+        final File[] children = file.listFiles();
+        if (children == null || children.length == 0) {
+            remaining.add(file.getPath());
+            return;
+        }
+        for (File child : children) {
+            collectRemainingPaths(child, remaining);
+        }
+    }
+
+    private static void deleteOnExit(File file) {
+        // deleteOnExit() deletes in reverse order of registration, so a directory has to be
+        // registered before its content for the content to be removed first.
+        file.deleteOnExit();
+        final File[] children = file.listFiles();
+        if (children != null) {
+            for (File child : children) {
+                deleteOnExit(child);
+            }
+        }
     }
 
     private void copyFilesFromJar(List<String> jarFiles, String jarDirectory, File outputDirectory) throws IOException{
@@ -183,65 +308,56 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
             final String resourcePath = !jarFile.contains("/")
                     ? "/"+jarDirectory + jarFile
                     : jarFile;
-            InputStream in = new File(jarFile).exists()
+            try (InputStream in = new File(jarFile).exists()
                     ? Files.newInputStream(new File(jarFile).toPath())
-                    : MemoryBackend.class.getResourceAsStream(resourcePath);
-            if (in == null) {
-                throw new IOException("cannot find " + resourcePath);
+                    : MemoryBackend.class.getResourceAsStream(resourcePath)) {
+                if (in == null) {
+                    throw new IOException("cannot find " + resourcePath);
+                }
+                FileUtils.copyInputStreamToFile(in, outputFile);
             }
-            FileUtils.copyInputStreamToFile(in, outputFile);
-            in.close();
         }
     }
 
     public void importData(InputStream inputStream) throws EmbeddedDirectoryServerException, IOException {
         logger.info("start import ldif from stream");
 
-        EntryReader reader;
-        try {
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-            reader = new LDIFEntryReader(bufferedReader);
-        } catch (Exception e) {
-            logger.error("import ldif : {}", e, e);
-            throw e;
-        }
         org.forgerock.opendj.ldap.Entry  entryBefore;
-        final Connection connection = server.getInternalConnection();
         long recordCount = 0;
-        while (reader.hasNext() && (entryBefore = reader.readEntry()) != null) {
-            recordCount++;
-            try {
-                connection.add(entryBefore);
-                logger.info("import ldif : {}",entryBefore.getName());
-            }catch (LdapException e) {
-                logger.error("import ldif : {} {}",entryBefore.getName(),e.toString());
+        try (EntryReader reader = new LDIFEntryReader(new BufferedReader(new InputStreamReader(inputStream)));
+             Connection connection = server.getInternalConnection()) {
+            while (reader.hasNext() && (entryBefore = reader.readEntry()) != null) {
+                recordCount++;
+                try {
+                    connection.add(entryBefore);
+                    logger.info("import ldif : {}",entryBefore.getName());
+                }catch (LdapException e) {
+                    logger.error("import ldif : {} {}",entryBefore.getName(),e.toString());
+                }
             }
         }
         if(recordCount == 0) {
             logger.error("no records were imported, check file contents and permissions");
             throw new RuntimeException("no records were imported");
         }
-        reader.close();
-        connection.close();
     }
 
     public void getData(String baseDN, OutputStream out) throws IOException, EmbeddedDirectoryServerException {
-        LDIFEntryWriter ldifWriter = new LDIFEntryWriter(out);
-        final Connection connection = server.getInternalConnection();
-
-        ConnectionEntryReader reader = connection.search(baseDN, SearchScope.WHOLE_SUBTREE, "(objectClass=*)");
-        while(reader.hasNext()) {
-            if (!reader.isReference()) {
-                SearchResultEntry se = reader.readEntry();
-                if (!skipEntry(se)) {
-                    ldifWriter.writeEntry(se);
-                    logger.info("export {}", se.toString());
+        // resources are closed in reverse order, so the writer is flushed and closed last
+        try (LDIFEntryWriter ldifWriter = new LDIFEntryWriter(out);
+             Connection connection = server.getInternalConnection();
+             ConnectionEntryReader reader =
+                     connection.search(baseDN, SearchScope.WHOLE_SUBTREE, "(objectClass=*)")) {
+            while (reader.hasNext()) {
+                if (!reader.isReference()) {
+                    SearchResultEntry se = reader.readEntry();
+                    if (!skipEntry(se)) {
+                        ldifWriter.writeEntry(se);
+                        logger.info("export {}", se.toString());
+                    }
                 }
             }
         }
-        reader.close();
-        ldifWriter.close();
-        connection.close();
     }
 
     private boolean skipEntry(SearchResultEntry se) {

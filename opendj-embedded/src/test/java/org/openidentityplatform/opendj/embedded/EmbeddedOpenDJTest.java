@@ -26,15 +26,18 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.testng.annotations.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Stream;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
@@ -51,44 +54,64 @@ public class EmbeddedOpenDJTest {
 
         //start embedded OpenDJ server
         EmbeddedOpenDJ embeddedOpenDJ = new EmbeddedOpenDJ(config);
-        embeddedOpenDJ.run();
-        assertTrue(embeddedOpenDJ.isRunning());
-
         File serverRoot = embeddedOpenDJ.getServerRootDirectory();
-        assertTrue(serverRoot.isDirectory());
+        try {
+            embeddedOpenDJ.run();
+            assertTrue(embeddedOpenDJ.isRunning());
+            assertTrue(serverRoot.isDirectory());
 
-        //import ldif data from an input stream
-        URI resUri = getClass().getClassLoader().getResource("opendj/data.ldif").toURI();
-        byte[] bytes = Files.readAllBytes(Paths.get(resUri));
-        String newBytes = new String(bytes);
-        InputStream is = new ByteArrayInputStream(newBytes.getBytes(StandardCharsets.UTF_8));
-        embeddedOpenDJ.importData(is);
+            //import ldif data from an input stream
+            URI resUri = getClass().getClassLoader().getResource("opendj/data.ldif").toURI();
+            try (InputStream is = Files.newInputStream(Paths.get(resUri))) {
+                embeddedOpenDJ.importData(is);
+            }
 
-        //export OpenDJ data
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        embeddedOpenDJ.getData("dc=openidentityplatform,dc=org", bos);
-        String imported = bos.toString();
-        assertTrue(imported.contains("dn: uid=jdoe,ou=people,dc=openidentityplatform,dc=org"));
+            //export OpenDJ data
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            embeddedOpenDJ.getData(config.getBaseDN(), bos);
+            String imported = new String(bos.toByteArray(), StandardCharsets.UTF_8);
+            assertTrue(imported.contains("dn: uid=jdoe,ou=people," + config.getBaseDN()));
 
-        //test search in the imported data
-        try(LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", 1389);
-            Connection connection = factory.getConnection()) {
-            BindResult result = connection.bind("cn=Directory Manager", "passw0rd".toCharArray());
-            assertTrue(result.isSuccess());
+            //test search in the imported data
+            try (LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", config.getPort());
+                 Connection connection = factory.getConnection()) {
+                BindResult result = connection.bind("cn=Directory Manager", config.getAdminPassword().toCharArray());
+                assertTrue(result.isSuccess());
 
-            SearchRequest request = Requests.newSearchRequest("dc=openidentityplatform,dc=org",
-                    SearchScope.WHOLE_SUBTREE, "(uid=jdoe)", "uid");
-            ConnectionEntryReader reader = connection.search(request);
-            SearchResultEntry entry = reader.readEntry();
-            entry.getAllAttributes();
+                SearchRequest request = Requests.newSearchRequest(config.getBaseDN(),
+                        SearchScope.WHOLE_SUBTREE, "(uid=jdoe)", "uid");
+                try (ConnectionEntryReader reader = connection.search(request)) {
+                    SearchResultEntry entry = reader.readEntry();
+                    assertEquals(entry.getName().toString(), "uid=jdoe,ou=people," + config.getBaseDN());
+                    assertEquals(entry.getAttribute("uid").firstValueAsString(), "jdoe");
+                    assertFalse(reader.hasNext(), "the search returned more than one entry");
+                }
+            }
+        } finally {
+            //stop OpenDJ
+            embeddedOpenDJ.close();
         }
-
-        //stop OpenDJ
-        embeddedOpenDJ.close();
         assertFalse(embeddedOpenDJ.isRunning());
 
         //the per-instance temporary directory is deleted on close
-        assertFalse(serverRoot.exists());
-        assertFalse(serverRoot.getParentFile().exists());
+        assertFalse(serverRoot.exists(), leftovers(serverRoot));
+        assertFalse(serverRoot.getParentFile().exists(), leftovers(serverRoot.getParentFile()));
+
+        //close() is idempotent, it is also registered as a shutdown hook
+        embeddedOpenDJ.close();
+    }
+
+    /** Describes what is left in the given directory, to make an assertion failure diagnosable. */
+    private static String leftovers(File directory) {
+        if (!directory.exists()) {
+            return "";
+        }
+        final StringBuilder message = new StringBuilder(directory + " still exists and contains:");
+        try (Stream<Path> paths = Files.walk(directory.toPath())) {
+            paths.forEach(path -> message.append("\n  ").append(path));
+        } catch (IOException e) {
+            message.append(" <cannot be listed: ").append(e).append('>');
+        }
+        return message.toString();
     }
 }
