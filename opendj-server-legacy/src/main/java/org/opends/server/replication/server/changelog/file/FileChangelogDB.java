@@ -294,12 +294,9 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
     catch (ChangelogException e)
     {
-      // A changelog which could not be read leaves this DB unusable: the replication
-      // environment may not exist at all, and the state which was restored before the failure
-      // only covers part of the domains. Both surface much later and somewhere else: as a
-      // failure on the first update to be persisted, or as a domain adopting the generation id
-      // of the first replica to connect, over a changelog which holds another generation.
-      // Not logged here: the caller reports the failure, logging it once.
+      // A changelog which could not be read leaves this DB unusable, and every shape of that
+      // failure surfaces much later and somewhere else (issue #802). Not logged here: the
+      // caller reports the failure, logging it once.
       logger.traceException(e);
       throw new ChangelogException(
           ERR_COULD_NOT_READ_DB.get(this.dbDirectory.getAbsolutePath(), e.getLocalizedMessage()), e);

@@ -40,6 +40,8 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.ChangelogBackend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.common.CSNGenerator;
+import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.VirtualAttributeRule;
@@ -315,6 +317,307 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       // through ReplicationTestCase.remove().
       recursiveDelete(dbDirectory);
     }
+  }
+
+  /**
+   * Tests the failure shape where the changelog state is restored only partially: the
+   * domains processed before the failure got their generation id and the ones after it did
+   * not, so they would adopt the generation id of the first replica to connect, over
+   * on-disk logs which belong to another generation.
+   * <p>
+   * It is also the shape which restores domains before it fails, so it is the one where the
+   * aborted initialization has something to release.
+   */
+  @Test
+  public void replServerFailsWhenAReplicaChangelogCannotBeRead() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    final int rsServerId = 8021;
+    final String dbDirName = "replServerFailsWhenAReplicaChangelogCannotBeReadDb";
+    final File dbDirectory = createPopulatedChangelog(dbDirName, rsServerId);
+    try
+    {
+      // The head log file of the replica is replaced by a directory: the changelog state is
+      // then still readable, and the changes of the domain it names are not.
+      final File headLogFile = findFile(dbDirectory, "head", ".log");
+      assertNotNull(headLogFile, "no replica changelog was written under " + dbDirectory);
+      assertTrue(headLogFile.delete() && headLogFile.mkdir(), "could not replace " + headLogFile);
+
+      final int[] ports = TestCaseUtils.findFreePorts(1);
+      final int instancesBefore = ReplicationServer.getAllInstances().size();
+      try
+      {
+        final ReplicationServer replicationServer = new ReplicationServer(
+            new ReplServerFakeConfiguration(ports[0], dbDirName, 0, rsServerId, 0, 0, null));
+        remove(replicationServer);
+        fail("Creating a replication server over an unreadable replica changelog should have failed");
+      }
+      catch (ConfigException expected)
+      {
+        assertTrue(expected.getCause() instanceof ChangelogException,
+            "the failure should be the one of the changelog, but was: " + expected.getCause());
+        assertTrue(expected.getMessage().contains(dbDirectory.getAbsolutePath()),
+            "the failure should name the changelog directory, but was: " + expected.getMessage());
+        assertEquals(ReplicationServer.getAllInstances().size(), instancesBefore,
+            "the failed replication server must not be left registered");
+        assertNothingLeftBehind(rsServerId);
+      }
+    }
+    finally
+    {
+      recursiveDelete(dbDirectory);
+    }
+  }
+
+  /**
+   * Tests that a replication server which cannot bind its listen port over a changelog it
+   * did read releases the domains that reading restored: each of them holds a timer thread
+   * and registers monitor providers, and the aborted instance is never handed to anything
+   * which could shut them down later.
+   */
+  @Test
+  public void abortedStartReleasesTheRestoredDomains() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    final int rsServerId = 8022;
+    final String dbDirName = "abortedStartReleasesTheRestoredDomainsDb";
+    final File dbDirectory = createPopulatedChangelog(dbDirName, rsServerId);
+    try (ServerSocket portHolder = TestCaseUtils.bindFreePort())
+    {
+      try
+      {
+        final ReplicationServer replicationServer = new ReplicationServer(
+            new ReplServerFakeConfiguration(portHolder.getLocalPort(), dbDirName, 0, rsServerId, 0, 0, null));
+        remove(replicationServer);
+        fail("Creating a replication server on a port already in use should have failed");
+      }
+      catch (ConfigException expected)
+      {
+        assertNothingLeftBehind(rsServerId);
+      }
+    }
+    finally
+    {
+      recursiveDelete(dbDirectory);
+    }
+  }
+
+  /**
+   * Tests that a replication server which restarted over an existing changelog releases the
+   * domains that reading it restored when it stops: their monitor instance name embeds the
+   * URL of their replication server, which used to be assigned only after the changelog had
+   * been read, so they were registered under a name holding a null URL and the name looked
+   * up to deregister them, built from the assigned URL, could never match it again.
+   */
+  @Test
+  public void restartedReplServerReleasesTheRestoredDomains() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    final int rsServerId = 8023;
+    final String dbDirName = "restartedReplServerReleasesTheRestoredDomainsDb";
+    final File dbDirectory = createPopulatedChangelog(dbDirName, rsServerId);
+    ReplicationServer replicationServer = null;
+    try
+    {
+      final int[] ports = TestCaseUtils.findFreePorts(1);
+      replicationServer = new ReplicationServer(
+          new ReplServerFakeConfiguration(ports[0], dbDirName, 0, rsServerId, 0, 0, null));
+      assertTrue(replicationServer.isListening());
+      assertFalse(domainRegistrationsOf(rsServerId).isEmpty(),
+          "the restored domain should hold a timer thread and monitor providers, otherwise"
+              + " this test does not test that they are released");
+    }
+    finally
+    {
+      remove(replicationServer);
+      recursiveDelete(dbDirectory);
+    }
+    assertNothingLeftBehind(rsServerId);
+  }
+
+  /**
+   * Tests that a port change whose wait for the previous listen thread is interrupted still
+   * leaves this replication server listening: the new port is served before the previous one
+   * is released, so an interrupt can only cut the wait for a thread which is already stopping
+   * short, never leave the replication server with no listener at all.
+   */
+  @Test
+  public void replServerKeepsListeningWhenAPortChangeIsInterrupted() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    ReplicationServer replicationServer = null;
+    try
+    {
+      final int[] ports = TestCaseUtils.findFreePorts(2);
+      final String dbDirName = "replServerKeepsListeningWhenAPortChangeIsInterruptedDb";
+      replicationServer = new ReplicationServer(
+          new ReplServerFakeConfiguration(ports[0], dbDirName, 0, 1, 0, 0, null));
+      assertTrue(replicationServer.isListening());
+
+      // Thread.join() throws InterruptedException at once when the interrupt status is
+      // already set, i.e. this interrupts the port change in its wait for the listen thread.
+      Thread.currentThread().interrupt();
+      final ConfigChangeResult ccr = replicationServer.applyConfigurationChange(
+          new ReplServerFakeConfiguration(ports[1], dbDirName, 0, 1, 0, 0, null));
+      // Cleared for the rest of this test, and for whatever runs next in this thread.
+      final boolean interrupted = Thread.interrupted();
+
+      assertEquals(ccr.getResultCode(), ResultCode.SUCCESS);
+      assertTrue(interrupted, "the interrupted port change should have restored the interrupt status");
+      assertEquals(replicationServer.getReplicationPort(), ports[1],
+          "the replication server should have switched to the new listen port");
+      assertTrue(replicationServer.isListening(),
+          "an interrupted port change must not leave the replication server without a listener");
+
+      // and it must be usable on the new port.
+      ReplicationBroker broker = openReplicationSession(
+          DN.valueOf(TEST_ROOT_DN_STRING), 1, 10, ports[1], 1000);
+      assertTrue(broker.getCurrentSendWindow() != 0);
+    }
+    finally
+    {
+      remove(replicationServer);
+    }
+  }
+
+  /**
+   * Creates the changelog of a replication server which ran and served one replica, and
+   * returns its directory: a changelog whose reading restores a domain, i.e. one over which
+   * an initialization has something to release when it fails.
+   */
+  private File createPopulatedChangelog(String dbDirName, int rsServerId) throws Exception
+  {
+    final File dbDirectory = getFileForPath(dbDirName);
+    recursiveDelete(dbDirectory);
+
+    final int[] ports = TestCaseUtils.findFreePorts(1);
+    final ReplicationServer replicationServer = new ReplicationServer(
+        new ReplServerFakeConfiguration(ports[0], dbDirName, 0, rsServerId, 0, 0, null));
+    ReplicationBroker broker = null;
+    try
+    {
+      final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+      broker = openReplicationSession(baseDN, 42, 100, ports[0], 1000);
+      broker.publish(new DeleteMsg(baseDN, new CSNGenerator(42, 0).newCSN(), "uid"));
+
+      // The changelog is written by the replication server, so the publication above is only
+      // over once the log of the replica exists.
+      waitFor(dbDirectory, "head", ".log");
+    }
+    finally
+    {
+      stop(broker);
+      replicationServer.shutdown();
+    }
+
+    assertNotNull(findFile(dbDirectory, "generation", ".id"),
+        "the changelog should hold the generation id of the domain, otherwise reading it back"
+            + " restores no domain at all and this test tests nothing");
+    // A replication server which stopped normally must not leave anything behind either.
+    assertNothingLeftBehind(rsServerId);
+    return dbDirectory;
+  }
+
+  /**
+   * Asserts that the replication server with the provided server id left neither a thread of
+   * a domain nor a monitor provider of a domain or of its changelog behind.
+   */
+  private void assertNothingLeftBehind(int rsServerId) throws Exception
+  {
+    // Stopping a thread only asks it to stop, so give the ones being stopped the time to
+    // actually stop before reporting them as left behind.
+    final long deadline = System.currentTimeMillis() + 10000;
+    List<String> leftBehind;
+    while (!(leftBehind = domainRegistrationsOf(rsServerId)).isEmpty() && System.currentTimeMillis() < deadline)
+    {
+      Thread.sleep(10);
+    }
+    assertEquals(leftBehind, Collections.emptyList(),
+        "the replication server RS(" + rsServerId + ") left the above behind");
+  }
+
+  /** The threads a {@link ReplicationServerDomain} starts, and which its shutdown stops. */
+  private static final Collection<String> DOMAIN_THREADS =
+      Arrays.asList("assured timer for domain", "status monitor for domain");
+
+  /**
+   * Returns the threads and the monitor providers which the domains of the replication server
+   * with the provided server id have started and registered.
+   */
+  private List<String> domainRegistrationsOf(int rsServerId)
+  {
+    final String replicationServer = "replication server rs(" + rsServerId + ")";
+    final List<String> registrations = new ArrayList<>();
+    for (Thread thread : Thread.getAllStackTraces().keySet())
+    {
+      final String name = thread.getName().toLowerCase();
+      if (name.startsWith(replicationServer) && containsAnyOf(name, DOMAIN_THREADS))
+      {
+        registrations.add(thread.getName());
+      }
+    }
+    // The monitor instance names are registered in lowercase.
+    for (String monitorName : DirectoryServer.getMonitorProviders().keySet())
+    {
+      if (monitorName.contains(replicationServer))
+      {
+        registrations.add(monitorName);
+      }
+    }
+    Collections.sort(registrations);
+    return registrations;
+  }
+
+  private boolean containsAnyOf(String name, Collection<String> candidates)
+  {
+    for (String candidate : candidates)
+    {
+      if (name.contains(candidate))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Waits for a file whose name matches to appear anywhere under the provided directory. */
+  private void waitFor(File directory, String prefix, String suffix) throws Exception
+  {
+    final long deadline = System.currentTimeMillis() + 10000;
+    while (findFile(directory, prefix, suffix) == null && System.currentTimeMillis() < deadline)
+    {
+      Thread.sleep(10);
+    }
+    assertNotNull(findFile(directory, prefix, suffix),
+        "no " + prefix + "*" + suffix + " was written under " + directory);
+  }
+
+  /** Returns the first file whose name matches, at any depth of the provided directory. */
+  private File findFile(File directory, String prefix, String suffix)
+  {
+    final File[] files = directory.listFiles();
+    if (files == null)
+    {
+      return null;
+    }
+    for (File file : files)
+    {
+      final String name = file.getName();
+      if (name.startsWith(prefix) && name.endsWith(suffix))
+      {
+        return file;
+      }
+      final File found = file.isDirectory() ? findFile(file, prefix, suffix) : null;
+      if (found != null)
+      {
+        return found;
+      }
+    }
+    return null;
   }
 
   /** Returns the names of the virtual attributes provided by the external changelog. */
