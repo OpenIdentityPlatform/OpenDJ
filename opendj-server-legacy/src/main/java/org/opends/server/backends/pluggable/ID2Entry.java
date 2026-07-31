@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -268,21 +269,24 @@ class ID2Entry extends AbstractTree
         {
           is = new InflaterInputStream(is);
         }
-        byte[] data = new byte[encodedEntryLen];
-        int readBytes;
-        int position = 0;
-        int leftToRead = encodedEntryLen;
-        // CipherInputStream does not read more than block size...
-        do
+        try (InputStream entryStream = is)
         {
-          if ((readBytes = is.read(data, position, leftToRead)) == -1 )
+          byte[] data = new byte[encodedEntryLen];
+          int readBytes;
+          int position = 0;
+          int leftToRead = encodedEntryLen;
+          // CipherInputStream does not read more than block size...
+          do
           {
-            throw DecodeException.error(ERR_CANNOT_DECODE_ENTRY.get());
-          }
-          position += readBytes;
-          leftToRead -= readBytes;
-        } while (leftToRead > 0 && readBytes > 0);
-        return Entry.decode(ByteString.wrap(data).asReader(), compressedSchema);
+            if ((readBytes = entryStream.read(data, position, leftToRead)) == -1 )
+            {
+              throw DecodeException.error(ERR_CANNOT_DECODE_ENTRY.get());
+            }
+            position += readBytes;
+            leftToRead -= readBytes;
+          } while (leftToRead > 0 && readBytes > 0);
+          return Entry.decode(ByteString.wrap(data).asReader(), compressedSchema);
+        }
       }
       catch (CryptoManagerException cme)
       {

@@ -43,7 +43,7 @@ class AsynchronousTextWriter
 
   private String name;
   private AtomicBoolean stopRequested;
-  private WriterThread writerThread;
+  private final WriterThread writerThread;
 
   private boolean autoFlush;
 
@@ -65,13 +65,25 @@ class AsynchronousTextWriter
 
     this.queue = new LinkedBlockingQueue<>(capacity);
     this.capacity = capacity;
-    this.writerThread = null;
     this.stopRequested = new AtomicBoolean(false);
 
     writerThread = new WriterThread();
-    writerThread.start();
 
     DirectoryServer.registerShutdownListener(this);
+  }
+
+  /**
+   * Starts the background thread which publishes the queued log records.
+   * <p>
+   * The thread is not started by the constructor so that {@code this} is not published to it before
+   * construction has completed.
+   *
+   * @return this writer
+   */
+  AsynchronousTextWriter start()
+  {
+    writerThread.start();
+    return this;
   }
 
   /**
@@ -216,7 +228,7 @@ class AsynchronousTextWriter
     stopRequested.set(true);
 
     // Wait for publisher thread to terminate
-    while (writerThread != null && writerThread.isAlive()) {
+    while (writerThread.isAlive()) {
       try {
         // Interrupt the thread if its blocking
         writerThread.interrupt();

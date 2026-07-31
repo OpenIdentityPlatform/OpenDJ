@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.security;
 
@@ -210,7 +211,8 @@ public final class OpenDJProvider extends Provider {
     }
 
     private static ConnectionFactory newLDIFConnectionFactory(final File ldifFile) throws IOException {
-        try (LDIFEntryReader reader = new LDIFEntryReader(new FileReader(ldifFile)).setSchema(SCHEMA)) {
+        try (FileReader ldifFileReader = new FileReader(ldifFile);
+                LDIFEntryReader reader = new LDIFEntryReader(ldifFileReader).setSchema(SCHEMA)) {
             final MemoryBackend backend = new MemoryBackend(SCHEMA, reader).enableVirtualAttributes(true);
             return newInternalConnectionFactory(new WriteLDIFOnUpdateRequestHandler(backend, ldifFile));
         }

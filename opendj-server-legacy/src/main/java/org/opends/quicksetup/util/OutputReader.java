@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.quicksetup.util;
@@ -33,18 +34,23 @@ public abstract class OutputReader {
    */
   public abstract void processLine(String line);
 
+  private final Thread thread;
+
   /**
    * The protected constructor.
+   * <p>
+   * The reader is consumed until end of stream and then closed by this reader's thread, which is
+   * only launched by {@link #start()}.
    *
    * @param reader  the BufferedReader of the stop process.
    */
   public OutputReader(final BufferedReader reader) {
-    Thread t = new Thread(new Runnable() {
+    thread = new Thread(new Runnable() {
       @Override
       public void run() {
-        try {
+        try (BufferedReader in = reader) {
           String line;
-          while (null != (line = reader.readLine())) {
+          while (null != (line = in.readLine())) {
             processLine(line);
           }
         } catch (Throwable t) {
@@ -52,6 +58,18 @@ public abstract class OutputReader {
         }
       }
     });
-    t.start();
+  }
+
+  /**
+   * Starts consuming the reader in a background thread.
+   * <p>
+   * The thread is not started by the constructor so that {@code this} does not escape before
+   * construction of the subclass has completed.
+   *
+   * @return this reader
+   */
+  public OutputReader start() {
+    thread.start();
+    return this;
   }
 }

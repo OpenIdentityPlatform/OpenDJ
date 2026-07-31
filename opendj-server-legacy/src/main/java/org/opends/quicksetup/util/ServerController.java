@@ -561,8 +561,9 @@ public class ServerController {
       Thread t = new Thread(new Runnable() {
         @Override
         public void run() {
-          try {
-            String line = reader.readLine();
+          // The reader is owned by this thread, which closes it once the stream is drained.
+          try (BufferedReader in = reader) {
+            String line = in.readLine();
             while (line != null) {
               if (application != null) {
                 LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
@@ -581,7 +582,7 @@ public class ServerController {
                 isFirstLine = false;
               }
               logger.info(LocalizableMessage.raw("server: " + line));
-              line = reader.readLine();
+              line = in.readLine();
             }
           } catch (Throwable t) {
             if (application != null) {
@@ -646,9 +647,10 @@ public class ServerController {
         @Override
         public void run()
         {
-          try
+          // The reader is owned by this thread, which closes it once the stream is drained.
+          try (BufferedReader in = reader)
           {
-            String line = reader.readLine();
+            String line = in.readLine();
             while (line != null)
             {
               if (application != null) {
@@ -676,7 +678,7 @@ public class ServerController {
                 isFinished = true;
                 startedIdFound = true;
               }
-              line = reader.readLine();
+              line = in.readLine();
             }
           } catch (Throwable t)
           {

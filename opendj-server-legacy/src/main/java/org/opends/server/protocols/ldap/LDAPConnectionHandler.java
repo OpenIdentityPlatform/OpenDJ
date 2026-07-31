@@ -873,7 +873,7 @@ public final class LDAPConnectionHandler extends
           {
             starting = false;
             listenAttempted = true;
-            waitListen.notify();
+            waitListen.notifyAll();
           }
         }
 
@@ -897,7 +897,7 @@ public final class LDAPConnectionHandler extends
         synchronized (waitListen)
         {
           listenAttempted = true;
-          waitListen.notify();
+          waitListen.notifyAll();
         }
 
         // If none of the listeners were created successfully, then

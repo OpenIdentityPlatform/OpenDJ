@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -628,7 +629,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     }
     synchronized (entryReaderThread)
     {
-      entryReaderThread.notify();
+      entryReaderThread.notifyAll();
     }
   }
 

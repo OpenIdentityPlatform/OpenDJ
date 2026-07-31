@@ -39,6 +39,7 @@ class NodeSearcherQueue implements Runnable {
   private final List<AbstractNodeTask> waitingQueue = new ArrayList<>();
   private final Map<BasicNode, AbstractNodeTask> workingList = new HashMap<>();
   private final ThreadGroup threadGroup;
+  private final List<Thread> threads = new ArrayList<>();
 
 
   /**
@@ -53,8 +54,23 @@ class NodeSearcherQueue implements Runnable {
     for (int i = 0; i < threadCount; i++) {
       Thread t = new Thread(threadGroup, this, name + "[" + i + "]");
       t.setPriority(Thread.MIN_PRIORITY);
+      threads.add(t);
+    }
+  }
+
+  /**
+   * Starts the threads consuming this queue.
+   * <p>
+   * The threads are not started by the constructor so that {@code this} is not published to them
+   * before construction has completed.
+   *
+   * @return this queue
+   */
+  public NodeSearcherQueue start() {
+    for (Thread t : threads) {
       t.start();
     }
+    return this;
   }
 
   /**
@@ -83,7 +99,7 @@ class NodeSearcherQueue implements Runnable {
       throw new IllegalArgumentException("null argument");
     }
     waitingQueue.add(nodeTask);
-    notify();
+    notifyAll();
 //    System.out.println("Queued " + nodeTask + " in " + _name);
   }
 
@@ -113,7 +129,7 @@ class NodeSearcherQueue implements Runnable {
     if (task != null) {
       task.cancel();
     }
-    notify();
+    notifyAll();
   }
 
   /**
@@ -197,7 +213,7 @@ class NodeSearcherQueue implements Runnable {
       throw new IllegalArgumentException("null argument");
     }
     workingList.remove(task.getNode());
-    notify();
+    notifyAll();
 //    System.out.println("Flushed " + task + " from " + _name);
   }
 

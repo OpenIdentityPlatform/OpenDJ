@@ -283,8 +283,21 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     this.domainDB =
         localReplicationServer.getChangelogDB().getReplicationDomainDB();
     this.statusAnalyzer = new StatusAnalyzer(this);
-    this.statusAnalyzer.start();
     DirectoryServer.registerMonitorProvider(this);
+  }
+
+  /**
+   * Starts the status analyzer of this domain.
+   * <p>
+   * The analyzer is not started by the constructor so that {@code this} is not published to its
+   * thread before construction has completed.
+   *
+   * @return this domain
+   */
+  ReplicationServerDomain start()
+  {
+    statusAnalyzer.start();
+    return this;
   }
 
   /**

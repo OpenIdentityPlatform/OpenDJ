@@ -746,7 +746,7 @@ public class ReplicationServer
     {
       ReplicationServerDomain domain = baseDNs.get(baseDN);
       if (domain == null && create) {
-        domain = new ReplicationServerDomain(baseDN, this);
+        domain = new ReplicationServerDomain(baseDN, this).start();
         baseDNs.put(baseDN, domain);
       }
       return domain;
@@ -770,7 +770,7 @@ public class ReplicationServer
       }
 
       // Wake up connect thread.
-      connectThreadLock.notify();
+      connectThreadLock.notifyAll();
     }
 
     // Wait until the connect thread has processed next connect phase.
