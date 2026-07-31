@@ -133,12 +133,6 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     /** SSL instance name used in context creation. */
     private static final String SSL_CONTEXT_INSTANCE_NAME = "TLS";
 
-    /**
-     * Maximum time the start method waits for the handler thread to attempt to open the listen socket. The wait is
-     * bounded so that a handler thread dying before it reaches the listen code cannot hang the whole server startup.
-     */
-    private static final long LISTEN_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(60);
-
     private LDAPListener listener;
 
     /** The current configuration state. */
@@ -692,6 +686,13 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
         logger.info(NOTE_CONNHANDLER_STARTED_LISTENING, handlerName);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Deliberately left unsynchronized, unlike the overridden {@link Thread#start()}: the state this method touches is
+     * guarded by the {@link #waitListen} monitor, and holding the thread's own monitor across {@code waitListen.wait()}
+     * would block {@link Thread#join()}.
+     */
     @Override
     public void start() {
         // The Directory Server start process should only return when the connection handler port is fully opened
@@ -704,7 +705,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                 while (!listenAttempted) {
                     final long remainingMs = TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime());
                     if (remainingMs <= 0) {
-                        logger.error(ERR_CONNHANDLER_TIMEOUT_WAITING_FOR_LISTENER, friendlyName, currentConfig.dn(),
+                        logger.error(ERR_CONNHANDLER_TIMEOUT_WAITING_FOR_LISTENER, handlerName,
                                 TimeUnit.MILLISECONDS.toSeconds(LISTEN_TIMEOUT_MS));
                         break;
                     }

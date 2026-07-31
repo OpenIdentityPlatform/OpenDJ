@@ -20,8 +20,6 @@ package org.opends.server.protocols.ldap;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.testng.Assert.*;
 
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -162,22 +160,20 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
         "ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config",
         "ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config");
     LDAPConnectionHandler2 handler = getLDAPHandlerInstance(handlerEntry);
+    int listenPort = handler.getListeners().iterator().next().getPort();
     try
     {
       handler.start();
 
       // No retry loop here on purpose: once start() has returned, the port must already be open.
-      int listenPort = handler.getListeners().iterator().next().getPort();
-      try (Socket socket = new Socket())
-      {
-        socket.connect(new InetSocketAddress("127.0.0.1", listenPort), 1000);
-      }
+      TestCaseUtils.assertPortIsAcceptingConnections(listenPort);
     }
     finally
     {
       handler.processServerShutdown(reasonMsg);
       handler.finalizeConnectionHandler(reasonMsg);
       handler.join(10000);
+      assertFalse(handler.isAlive(), "the connection handler thread is still running");
     }
   }
 

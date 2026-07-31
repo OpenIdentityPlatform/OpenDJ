@@ -120,14 +120,6 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
   /** SSL instance name used in context creation. */
   private static final String SSL_CONTEXT_INSTANCE_NAME = "TLS";
 
-  /**
-   * Maximum time the start method waits for the handler thread to attempt to
-   * start the embedded HTTP server. The wait is bounded so that a handler
-   * thread dying before it reaches the listen code cannot hang the whole
-   * server startup.
-   */
-  private static final long LISTEN_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(60);
-
   /** The initialization configuration. */
   private HTTPConnectionHandlerCfg initConfig;
 
@@ -584,6 +576,14 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     return httpServer != null;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Deliberately left unsynchronized, unlike the overridden {@link Thread#start()}:
+   * the state this method touches is guarded by the {@link #waitListen} monitor, and
+   * holding the thread's own monitor across {@code waitListen.wait()} would block
+   * {@link Thread#join()}.
+   */
   @Override
   public void start()
   {
@@ -602,7 +602,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
           final long remainingMs = TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime());
           if (remainingMs <= 0)
           {
-            logger.error(ERR_CONNHANDLER_TIMEOUT_WAITING_FOR_LISTENER, friendlyName, currentConfig.dn(),
+            logger.error(ERR_CONNHANDLER_TIMEOUT_WAITING_FOR_LISTENER, handlerName,
                 TimeUnit.MILLISECONDS.toSeconds(LISTEN_TIMEOUT_MS));
             break;
           }
