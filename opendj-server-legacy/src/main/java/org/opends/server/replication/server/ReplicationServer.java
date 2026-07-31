@@ -486,8 +486,8 @@ public class ReplicationServer
    * Initialization function for the replicationServer.
    *
    * @throws ConfigException
-   *           when the replication server cannot be started, in particular when its listen
-   *           port cannot be bound.
+   *           when the replication server cannot be started, in particular when its changelog
+   *           cannot be read or when its listen port cannot be bound.
    */
   private void initialize() throws ConfigException
   {
@@ -520,6 +520,13 @@ public class ReplicationServer
       {
         logger.trace("RS " + getMonitorInstanceName() + " successfully initialized");
       }
+    } catch (ChangelogException e)
+    {
+      // A replication server which cannot read its changelog is as dead as one which cannot
+      // bind its listen port: it would otherwise accept connections and fail on the first
+      // change it has to persist. The message already names the changelog directory.
+      logger.traceException(e);
+      throw new ConfigException(e.getMessageObject(), e);
     } catch (UnknownHostException e)
     {
       // Not logged here: the caller reports the ConfigException, logging it once.

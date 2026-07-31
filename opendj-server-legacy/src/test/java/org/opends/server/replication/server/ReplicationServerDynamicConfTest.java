@@ -21,7 +21,11 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
+import java.io.File;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,6 +40,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.ChangelogBackend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.VirtualAttributeRule;
 import org.forgerock.opendj.ldap.DN;
@@ -254,6 +259,61 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
     finally
     {
       remove(replicationServer);
+    }
+  }
+
+  /**
+   * Tests that a replication server whose changelog cannot be read fails fast instead of
+   * starting over a changelog it never opened: it used to log ERR_COULD_NOT_READ_DB, whose
+   * text already says the replication server failed to start, then bind its listen port and
+   * accept connections anyway, so the failure surfaced much later and somewhere else.
+   */
+  @Test
+  public void replServerFailsWhenChangelogCannotBeRead() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    final String dbDirName = "replServerFailsWhenChangelogCannotBeReadDb";
+    final File dbDirectory = getFileForPath(dbDirName);
+    try
+    {
+      // A domains.state whose second field is not a DN: what a corrupted changelog state file
+      // looks like to ReplicationEnvironment, which then cannot be created at all.
+      assertTrue(dbDirectory.isDirectory() || dbDirectory.mkdirs(), "could not create " + dbDirectory);
+      Files.write(new File(dbDirectory, "domains.state").toPath(),
+          Collections.singletonList("1:this is not a DN"), StandardCharsets.UTF_8);
+
+      final int[] ports = TestCaseUtils.findFreePorts(1);
+      final int instancesBefore = ReplicationServer.getAllInstances().size();
+      try
+      {
+        final ReplicationServer replicationServer = new ReplicationServer(
+            new ReplServerFakeConfiguration(ports[0], dbDirName, 0, 1, 0, 0, null));
+        remove(replicationServer);
+        fail("Creating a replication server over an unreadable changelog should have failed");
+      }
+      catch (ConfigException expected)
+      {
+        assertTrue(expected.getCause() instanceof ChangelogException,
+            "the failure should be the one of the changelog, but was: " + expected.getCause());
+        assertTrue(expected.getMessage().contains(dbDirectory.getAbsolutePath()),
+            "the failure should name the changelog directory, but was: " + expected.getMessage());
+        assertEquals(ReplicationServer.getAllInstances().size(), instancesBefore,
+            "the failed replication server must not be left registered");
+      }
+
+      // The listen port is never bound when the changelog cannot be read, and the aborted
+      // initialization leaves nothing holding it.
+      try (ServerSocket socket = new ServerSocket())
+      {
+        socket.bind(new InetSocketAddress(ports[0]));
+      }
+    }
+    finally
+    {
+      // The aborted instance is never handed to the test, so its changelog cannot be removed
+      // through ReplicationTestCase.remove().
+      recursiveDelete(dbDirectory);
     }
   }
 
