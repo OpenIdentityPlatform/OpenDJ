@@ -51,6 +51,7 @@ import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.net.BindException;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -839,6 +840,62 @@ public final class TestCaseUtils {
     {
       
     }
+  }
+
+  /**
+   * Asserts that the given local port accepts connections right now, without any retry loop.
+   * <p>
+   * Intended for connection handler tests: a handler start method must not return before its listen
+   * port is open. When the port is closed this method tells the two possible causes apart, because a
+   * plain connection failure cannot distinguish them: the handler may never have managed to bind at
+   * all, or its start method may have returned too early.
+   *
+   * @param port
+   *          the port the connection handler under test is supposed to be listening on
+   * @throws IOException
+   *           if the connection fails for a reason other than the port being closed
+   */
+  public static void assertPortIsAcceptingConnections(int port) throws IOException
+  {
+    try
+    {
+      connectTo(port);
+    }
+    catch (ConnectException e)
+    {
+      // Give the handler thread the extra time it should not have needed. If the port opens now, the
+      // handler can bind and the start method simply returned too early, which is the regression this
+      // check is about. If it never opens, the test failed for an unrelated reason.
+      assertTrue(waitForPortToOpen(port), "the connection handler never opened port " + port);
+      fail("the connection handler start method returned before port " + port + " was open");
+    }
+  }
+
+  private static void connectTo(int port) throws IOException
+  {
+    try (Socket socket = new Socket())
+    {
+      socket.connect(new InetSocketAddress("127.0.0.1", port), 1000);
+    }
+  }
+
+  private static boolean waitForPortToOpen(int port)
+  {
+    final long deadline = System.currentTimeMillis() + 10000;
+    do
+    {
+      try
+      {
+        connectTo(port);
+        return true;
+      }
+      catch (IOException ignored)
+      {
+        sleep(100);
+      }
+    }
+    while (System.currentTimeMillis() < deadline);
+    return false;
   }
 
   /**

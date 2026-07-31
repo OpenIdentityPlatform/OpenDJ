@@ -167,8 +167,10 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
   private final Object waitListen = new Object();
 
   /**
-   * The condition guarding {@link #waitListen}: set once the run method has tried to open the
-   * socket port, whether it succeeded or not. Guarded by {@link #waitListen}.
+   * Condition predicate for {@link #waitListen}: set once the handler thread
+   * has attempted to start the embedded HTTP server (successfully or not).
+   * Guarded by the {@link #waitListen} monitor; protects the start method
+   * against spurious wakeups.
    */
   private boolean listenAttempted;
 
@@ -574,6 +576,14 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     return httpServer != null;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Deliberately left unsynchronized, unlike the overridden {@link Thread#start()}:
+   * the state this method touches is guarded by the {@link #waitListen} monitor, and
+   * holding the thread's own monitor across {@code waitListen.wait()} would block
+   * {@link Thread#join()}.
+   */
   @Override
   public void start()
   {
@@ -584,11 +594,19 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     {
       super.start();
 
+      final long deadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(LISTEN_TIMEOUT_MS);
       try
       {
         while (!listenAttempted)
         {
-          waitListen.wait();
+          final long remainingMs = TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime());
+          if (remainingMs <= 0)
+          {
+            logger.error(ERR_CONNHANDLER_TIMEOUT_WAITING_FOR_LISTENER, handlerName,
+                TimeUnit.MILLISECONDS.toSeconds(LISTEN_TIMEOUT_MS));
+            break;
+          }
+          waitListen.wait(remainingMs);
         }
       }
       catch (InterruptedException e)
@@ -654,14 +672,6 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
 
       try
       {
-        // At this point, the connection Handler either started correctly or failed
-        // to start but the start process should be notified and resume its work in any cases.
-        synchronized (waitListen)
-        {
-          listenAttempted = true;
-          waitListen.notifyAll();
-        }
-
         // If we have gotten here, then we are about to start listening
         // for the first time since startup or since we were previously disabled.
         // Start the embedded HTTP server
@@ -693,6 +703,16 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
         else
         {
           lastIterationFailed = true;
+        }
+      }
+      finally
+      {
+        // At this point, the connection handler either started correctly or failed to start
+        // but the start process should be notified and resume its work in any cases.
+        synchronized (waitListen)
+        {
+          listenAttempted = true;
+          waitListen.notifyAll();
         }
       }
     }
