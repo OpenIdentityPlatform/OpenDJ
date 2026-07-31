@@ -443,10 +443,10 @@ public class LDAPConnection
       {
         try
         {
-        	final Socket s=new Socket();
-        	s.setReuseAddress(true);
-        	s.bind( new InetSocketAddress(inetAddress, portNumber));
-        	return s;
+          final Socket s = new Socket();
+          s.setReuseAddress(true);
+          s.connect(new InetSocketAddress(inetAddress, portNumber));
+          return s;
         }
         catch (ConnectException ce2)
         {
