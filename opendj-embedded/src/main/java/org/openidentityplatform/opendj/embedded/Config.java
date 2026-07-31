@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2024 3A Systems LLC.
+ * Copyright 2024-2026 3A Systems LLC.
  */
 
 package org.openidentityplatform.opendj.embedded;
@@ -40,6 +40,8 @@ public class Config {
     private String file = System.getProperty(CONFIG_PREFIX + ".ldif.data", "/test.ldif");
 
     private Set<String> skipSet = new HashSet<>(Arrays.asList(System.getProperty(CONFIG_PREFIX + ".skip", ",ou=sample-skip-group,").toLowerCase().split(";")));
+
+    private long deleteTimeout = Long.parseLong(System.getProperty(CONFIG_PREFIX + ".delete_timeout", "10000"));
 
     public int getPort() {
         return port;
@@ -115,6 +117,25 @@ public class Config {
         this.skipSet = skipSet;
     }
 
+    /**
+     * Returns how long {@link EmbeddedOpenDJ#close()} retries the deletion of the temporary
+     * directory of the instance, in milliseconds.
+     * <p>
+     * The deletion has to be retried because a file cannot be deleted on Windows while a
+     * handle to it is still open, and the server threads release their handles shortly after
+     * the server has been stopped. Whatever is still locked when this expires is scheduled for
+     * deletion on JVM exit. Set it to {@code 0} to delete once and never wait.
+     *
+     * @return the deletion timeout in milliseconds
+     */
+    public long getDeleteTimeout() {
+        return deleteTimeout;
+    }
+
+    public void setDeleteTimeout(long deleteTimeout) {
+        this.deleteTimeout = deleteTimeout;
+    }
+
     @Override
     public String toString() {
         return "Config {" +
@@ -127,6 +148,7 @@ public class Config {
                 ", ldifSchema='" + ldifSchema + '\'' +
                 ", file='" + file + '\'' +
                 ", skipSet=" + skipSet +
+                ", deleteTimeout=" + deleteTimeout +
                 '}';
     }
 }

@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,6 +38,7 @@ import java.util.stream.Stream;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
 public class EmbeddedOpenDJTest {
@@ -69,7 +69,9 @@ public class EmbeddedOpenDJTest {
             //export OpenDJ data
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             embeddedOpenDJ.getData(config.getBaseDN(), bos);
-            String imported = new String(bos.toByteArray(), StandardCharsets.UTF_8);
+            //getData() writes LDIF in the platform default charset, so it has to be read back
+            //in the same one: LDIFEntryWriter(OutputStream) wraps it in a plain OutputStreamWriter
+            String imported = bos.toString();
             assertTrue(imported.contains("dn: uid=jdoe,ou=people," + config.getBaseDN()));
 
             //test search in the imported data
@@ -83,7 +85,7 @@ public class EmbeddedOpenDJTest {
                 try (ConnectionEntryReader reader = connection.search(request)) {
                     SearchResultEntry entry = reader.readEntry();
                     assertEquals(entry.getName().toString(), "uid=jdoe,ou=people," + config.getBaseDN());
-                    assertEquals(entry.getAttribute("uid").firstValueAsString(), "jdoe");
+                    assertEquals(entry.parseAttribute("uid").asString(), "jdoe");
                     assertFalse(reader.hasNext(), "the search returned more than one entry");
                 }
             }
@@ -96,6 +98,11 @@ public class EmbeddedOpenDJTest {
         //the per-instance temporary directory is deleted on close
         assertFalse(serverRoot.exists(), leftovers(serverRoot));
         assertFalse(serverRoot.getParentFile().exists(), leftovers(serverRoot.getParentFile()));
+
+        //a closed instance cannot be used any more: its directory is gone
+        assertThrows(IllegalStateException.class, embeddedOpenDJ::run);
+        assertThrows(IllegalStateException.class, embeddedOpenDJ::getServerRootDirectory);
+        assertThrows(IllegalStateException.class, () -> embeddedOpenDJ.getData(config.getBaseDN(), new ByteArrayOutputStream()));
 
         //close() is idempotent, it is also registered as a shutdown hook
         embeddedOpenDJ.close();
