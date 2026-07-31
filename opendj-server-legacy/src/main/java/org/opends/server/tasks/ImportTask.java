@@ -328,6 +328,15 @@ public class ImportTask extends Task
       }
     }
 
+    if (backend == null)
+    {
+      // Unreachable as long as the checks above hold: a null backend ID implies at least one
+      // include branch, and every include branch either resolves to a backend or is rejected.
+      // The guard mirrors the one in runTask() and keeps the dereference below safe.
+      LocalizableMessage message = ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID.get();
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    }
+
     // Make sure the selected backend will handle all the include branches
     defaultIncludeBranches = new ArrayList<>(backend.getBaseDNs());
 
