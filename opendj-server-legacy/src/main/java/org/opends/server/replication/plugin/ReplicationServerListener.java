@@ -20,6 +20,7 @@ package org.opends.server.replication.plugin;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.config.server.ConfigurationAddListener;
@@ -39,6 +40,8 @@ public class ReplicationServerListener
        implements ConfigurationAddListener<ReplicationServerCfg>,
        ConfigurationDeleteListener<ReplicationServerCfg>
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   private final DSRSShutdownSync dsrsShutdownSync;
   private ReplicationServer replicationServer;
 
@@ -57,15 +60,18 @@ public class ReplicationServerListener
       ReplicationSynchronizationProviderCfg configuration,
       DSRSShutdownSync dsrsShutdownSync) throws ConfigException
   {
-    configuration.addReplicationServerAddListener(this);
-    configuration.addReplicationServerDeleteListener(this);
-
     this.dsrsShutdownSync = dsrsShutdownSync;
     if (configuration.hasReplicationServer())
     {
       final ReplicationServerCfg cfg = configuration.getReplicationServer();
+      // Registered only once the replication server exists: the listeners are held by the
+      // server wide configuration repository and keyed by DN, so a listener registered by
+      // a listener which is then discarded would be leaked until the server is restarted.
       replicationServer = new ReplicationServer(cfg, dsrsShutdownSync);
     }
+
+    configuration.addReplicationServerAddListener(this);
+    configuration.addReplicationServerDeleteListener(this);
   }
 
   /** {@inheritDoc} */
@@ -81,6 +87,7 @@ public class ReplicationServerListener
     {
       // The configEntry has already been validated in configAddisAcceptable, but the
       // listen port may have been taken since then: report why the creation failed.
+      logger.error(e.getMessageObject());
       ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
       ccr.addMessage(e.getMessageObject());
     }

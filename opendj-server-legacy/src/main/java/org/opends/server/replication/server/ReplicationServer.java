@@ -120,8 +120,16 @@ public class ReplicationServer
   /** The backend that allow to search the changes (external changelog). */
   private ChangelogBackend changelogBackend;
 
+  /**
+   * Whether this instance registered the virtual attribute rules of the external changelog.
+   * They are registered globally, by attribute name, so an instance which did not register
+   * them must not deregister them: it would strip them from the instance which did.
+   */
+  private boolean externalChangelogRegistered;
+
   private final AtomicBoolean shutdown = new AtomicBoolean();
-  private boolean stopListen;
+  /** Written by the thread applying a configuration change, read by the listen thread. */
+  private volatile boolean stopListen;
   private final ReplSessionSecurity replSessionSecurity;
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -502,16 +510,15 @@ public class ReplicationServer
       }
     } catch (UnknownHostException e)
     {
-      logger.error(ERR_UNKNOWN_HOSTNAME);
+      // Not logged here: the caller reports the ConfigException, logging it once.
+      logger.traceException(e);
       throw new ConfigException(ERR_UNKNOWN_HOSTNAME.get(), e);
     } catch (IOException e)
     {
       // A replication server whose listen port is not bound is dead: every consumer would
       // otherwise only learn about it as a "connection refused" somewhere else.
-      final LocalizableMessage message =
-          ERR_COULD_NOT_BIND_CHANGELOG.get(getReplicationPort(), describeBindFailure(getReplicationPort(), e));
-      logger.error(message);
-      throw new ConfigException(message, e);
+      logger.traceException(e);
+      throw new ConfigException(bindFailureMessage(getReplicationPort(), e), e);
     }
   }
 
@@ -544,7 +551,9 @@ public class ReplicationServer
         {
           throw e;
         }
-        logger.warn(WARN_RETRYING_BIND_CHANGELOG, port, describeBindFailure(port, e), LISTEN_BIND_RETRY_DELAY_MS);
+        // The port is probed only when giving up: probing it on every attempt would cost a
+        // connection to whoever holds it, and delay the next attempt for nothing.
+        logger.warn(WARN_RETRYING_BIND_CHANGELOG, port, getExceptionMessage(e), LISTEN_BIND_RETRY_DELAY_MS);
         try
         {
           Thread.sleep(LISTEN_BIND_RETRY_DELAY_MS);
@@ -559,41 +568,129 @@ public class ReplicationServer
   }
 
   /**
-   * Returns a description of a failed bind of the listen port, i.e. the error itself plus a
+   * Stops the listen thread and releases the listen port.
+   *
+   * @throws InterruptedException
+   *           if this thread is interrupted while waiting for the listen thread to stop
+   */
+  private void stopListenThread() throws InterruptedException
+  {
+    stopListen = true;
+    close(listenSocket);
+    if (listenThread != null)
+    {
+      listenThread.join();
+      listenThread = null;
+    }
+  }
+
+  /**
+   * Binds the listen port of the current configuration and starts a listen thread on it.
+   * <p>
+   * {@code stopListen} is only cleared once the port is bound, so a failure leaves this
+   * replication server consistently stopped rather than with a listen thread which would
+   * spin on a closed socket.
+   *
+   * @throws IOException
+   *           if the listen port could not be bound
+   */
+  private void startListenThread() throws IOException
+  {
+    setServerURL();
+    listenSocket = bindListenPort();
+
+    stopListen = false;
+    listenThread = new ReplicationServerListenThread(this);
+    listenThread.start();
+  }
+
+  /**
+   * Goes back to the listen port of the previous configuration after a port change failed,
+   * so that this replication server does not stay deaf with a configuration which
+   * advertises a port it does not listen to.
+   *
+   * @param previousConfig
+   *          the configuration which was in use before the failed change
+   * @param ccr
+   *          the result of the configuration change, to which a failed rollback is added
+   */
+  private void rollbackListenPort(ReplicationServerCfg previousConfig, ConfigChangeResult ccr)
+  {
+    this.config = previousConfig;
+    try
+    {
+      startListenThread();
+    }
+    catch (UnknownHostException e)
+    {
+      logger.traceException(e);
+      logger.error(ERR_UNKNOWN_HOSTNAME);
+      ccr.addMessage(ERR_UNKNOWN_HOSTNAME.get());
+    }
+    catch (IOException e)
+    {
+      // Nothing else can be done: the port was free a moment ago, it is not anymore.
+      logger.traceException(e);
+      final LocalizableMessage message = bindFailureMessage(getReplicationPort(), e);
+      logger.error(message);
+      ccr.addMessage(message);
+    }
+  }
+
+  /**
+   * Returns the message of a failed bind of the listen port, i.e. the error itself plus a
    * best effort diagnostic of what holds the port.
    * <p>
-   * The port is probed over the loopback interface, which covers the realistic cases of a
-   * wildcard or loopback listener. A successful connect means a live listener owns the
-   * port, while a refused connect means the port is held by a socket which does not accept
-   * connections, e.g. a client socket which was given that port as its local port.
+   * The port is probed over the loopback interface only, so the diagnostic reports what was
+   * observed there and nothing more: a socket bound to another address holds the port
+   * without ever accepting a loopback connection, and cannot be told apart from a socket
+   * which does not accept connections at all, e.g. a client socket which was given that
+   * port as its local port.
    *
    * @param port
    *          the port which could not be bound
    * @param cause
    *          the error returned by the failed bind
-   * @return a human readable description of the failure
+   * @return the message describing the failure
    */
-  private static String describeBindFailure(int port, IOException cause)
+  private static LocalizableMessage bindFailureMessage(int port, IOException cause)
   {
-    final String diagnostic;
+    final LocalizableMessage error = getExceptionMessage(cause);
+    final String probedAddress = InetAddress.getLoopbackAddress().getHostAddress() + ":" + port;
     try (Socket probe = new Socket())
     {
+      // Without SO_REUSEADDR a probe which self-connects would, once closed, hold the port
+      // in TIME_WAIT and defeat the very bind it is diagnosing.
+      probe.setReuseAddress(true);
       probe.connect(new InetSocketAddress(InetAddress.getLoopbackAddress(), port), LISTEN_PORT_PROBE_TIMEOUT_MS);
-      diagnostic = isSelfConnection(probe)
-          ? "the port is held by a TCP self-connect, nothing is listening on it"
-          : "another socket is listening on the port";
+      if (isSelfConnection(probe))
+      {
+        // The kernel can only give the probed port to the probe as its local port while
+        // that port is free: whoever held it released it in the meantime.
+        return ERR_COULD_NOT_BIND_CHANGELOG_PORT_FREE.get(port, error, probedAddress);
+      }
+      return ERR_COULD_NOT_BIND_CHANGELOG_LISTENING.get(port, error, probedAddress);
     }
     catch (IOException e)
     {
-      return cause.getMessage() + " (the port is held by a socket which does not accept connections)";
+      logger.traceException(e);
+      return ERR_COULD_NOT_BIND_CHANGELOG_NOT_ACCEPTING.get(port, error, probedAddress);
     }
-    return cause.getMessage() + " (" + diagnostic + ")";
   }
 
   /** Releases what {@link #initialize()} acquired before it failed. */
   private void abortInitialization()
   {
+    shutdown.set(true);
+    if (connectThread != null)
+    {
+      connectThread.interrupt();
+    }
     close(listenSocket);
+    if (listenThread != null)
+    {
+      listenThread.interrupt();
+    }
     shutdownExternalChangelog();
     try
     {
@@ -650,6 +747,7 @@ public class ReplicationServer
       }
 
       registerVirtualAttributeRules();
+      externalChangelogRegistered = true;
     }
     catch (Exception e)
     {
@@ -669,7 +767,14 @@ public class ReplicationServer
       changelogBackend.finalizeBackend();
       changelogBackend = null;
     }
-    deregisterVirtualAttributeRules();
+    if (externalChangelogRegistered)
+    {
+      // Virtual attribute rules are registered globally, by attribute name: deregistering
+      // rules which this instance did not register would strip them from the instance
+      // which did, e.g. when this one took the early return of enableExternalChangeLog().
+      externalChangelogRegistered = false;
+      deregisterVirtualAttributeRules();
+    }
   }
 
   private List<VirtualAttributeRule> getVirtualAttributesRules() throws DirectoryException
@@ -997,17 +1102,14 @@ public class ReplicationServer
   {
     int port = configuration.getReplicationPort();
 
-    try
+    try (ServerSocket tmpSocket = new ServerSocket())
     {
-      ServerSocket tmpSocket = new ServerSocket();
       tmpSocket.bind(new InetSocketAddress(port));
-      tmpSocket.close();
       return true;
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_COULD_NOT_BIND_CHANGELOG.get(port, e.getMessage());
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(ERR_COULD_NOT_BIND_CHANGELOG.get(port, getExceptionMessage(e)));
       return false;
     }
   }
@@ -1053,21 +1155,13 @@ public class ReplicationServer
     // and restart it.
     if (getReplicationPort() != oldConfig.getReplicationPort())
     {
-      stopListen = true;
       try
       {
-        close(listenSocket);
-        if (listenThread != null)
-        {
-          listenThread.join();
-        }
-        stopListen = false;
+        stopListenThread();
+        startListenThread();
 
-        setServerURL();
-        listenSocket = bindListenPort();
-
-        listenThread = new ReplicationServerListenThread(this);
-        listenThread.start();
+        localPorts.remove(oldConfig.getReplicationPort());
+        localPorts.add(getReplicationPort());
       }
       catch (UnknownHostException e)
       {
@@ -1075,25 +1169,29 @@ public class ReplicationServer
         logger.error(ERR_UNKNOWN_HOSTNAME);
         ccr.setResultCode(ResultCode.OPERATIONS_ERROR);
         ccr.addMessage(ERR_UNKNOWN_HOSTNAME.get());
+        rollbackListenPort(oldConfig, ccr);
       }
       catch (IOException e)
       {
-        // The old listen socket is already closed, so this replication server is now left
-        // without any listener: report the failure instead of silently going deaf.
+        // The old listen socket is already closed, so this replication server would be left
+        // without any listener: report the failure and go back to the previous port.
         logger.traceException(e);
-        final LocalizableMessage message =
-            ERR_COULD_NOT_BIND_CHANGELOG.get(getReplicationPort(), describeBindFailure(getReplicationPort(), e));
+        final LocalizableMessage message = bindFailureMessage(getReplicationPort(), e);
         logger.error(message);
         ccr.setResultCode(ResultCode.OPERATIONS_ERROR);
         ccr.addMessage(message);
+        rollbackListenPort(oldConfig, ccr);
       }
       catch (InterruptedException e)
       {
+        // The previous listen thread may still be running, so do not start another one:
+        // stopListen is still set, which makes that thread stop as soon as it wakes up.
         Thread.currentThread().interrupt();
         logger.traceException(e);
         logger.error(ERR_COULD_NOT_STOP_LISTEN_THREAD, e);
         ccr.setResultCode(ResultCode.OPERATIONS_ERROR);
         ccr.addMessage(ERR_COULD_NOT_STOP_LISTEN_THREAD.get(e));
+        this.config = oldConfig;
       }
     }
 
