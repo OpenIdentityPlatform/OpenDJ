@@ -19,6 +19,7 @@ package org.opends.quicksetup.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -181,16 +182,9 @@ public class ServerController {
           logger.info(LocalizableMessage.raw("Launching stop command, argList: "+argList));
           Process process = pb.start();
 
-          BufferedReader err =
-            new BufferedReader(
-                new InputStreamReader(process.getErrorStream()));
-          BufferedReader out =
-            new BufferedReader(
-                new InputStreamReader(process.getInputStream()));
-
           /* Create these objects to resend the stop process output to the details area. */
-          new StopReader(err, true);
-          new StopReader(out, false);
+          new StopReader(process.getErrorStream(), true);
+          new StopReader(process.getInputStream(), false);
 
           int returnValue = process.waitFor();
 
@@ -388,11 +382,8 @@ public class ServerController {
     String startedId = getStartedId();
     Process process = pb.start();
 
-    BufferedReader err = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-    BufferedReader out = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-    StartReader errReader = new StartReader(err, startedId, true);
-    StartReader outputReader = new StartReader(out, startedId, false);
+    StartReader errReader = new StartReader(process.getErrorStream(), startedId, true);
+    StartReader outputReader = new StartReader(process.getInputStream(), startedId, false);
 
     int returnValue = process.waitFor();
 
@@ -546,12 +537,11 @@ public class ServerController {
     /**
      * The protected constructor.
      *
-     * @param reader  the BufferedReader of the stop process.
-     * @param isError a boolean indicating whether the BufferedReader
+     * @param stream  the stream of the stop process to read.
+     * @param isError a boolean indicating whether the stream
      *        corresponds to the standard error or to the standard output.
      */
-    public StopReader(final BufferedReader reader,
-                                      final boolean isError) {
+    public StopReader(final InputStream stream, final boolean isError) {
       final LocalizableMessage errorTag =
               isError ?
                       INFO_ERROR_READING_ERROROUTPUT.get() :
@@ -562,7 +552,7 @@ public class ServerController {
         @Override
         public void run() {
           // The reader is owned by this thread, which closes it once the stream is drained.
-          try (BufferedReader in = reader) {
+          try (BufferedReader in = new BufferedReader(new InputStreamReader(stream))) {
             String line = in.readLine();
             while (line != null) {
               if (application != null) {
@@ -626,13 +616,13 @@ public class ServerController {
 
     /**
      * The protected constructor.
-     * @param reader the BufferedReader of the start process.
+     * @param stream the stream of the start process to read.
      * @param startedId the message ID that this class can use to know whether
      * the start is over or not.
-     * @param isError a boolean indicating whether the BufferedReader
+     * @param isError a boolean indicating whether the stream
      * corresponds to the standard error or to the standard output.
      */
-    public StartReader(final BufferedReader reader, final String startedId,
+    public StartReader(final InputStream stream, final String startedId,
         final boolean isError)
     {
       final LocalizableMessage errorTag =
@@ -648,7 +638,7 @@ public class ServerController {
         public void run()
         {
           // The reader is owned by this thread, which closes it once the stream is drained.
-          try (BufferedReader in = reader)
+          try (BufferedReader in = new BufferedReader(new InputStreamReader(stream)))
           {
             String line = in.readLine();
             while (line != null)

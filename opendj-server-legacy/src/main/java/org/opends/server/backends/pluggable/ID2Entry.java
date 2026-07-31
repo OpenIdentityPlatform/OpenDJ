@@ -260,16 +260,7 @@ class ID2Entry extends AbstractTree
         {
           return Entry.decode(reader, compressedSchema);
         }
-        InputStream is = reader.asInputStream();
-        if ((format & ENCRYPT_ENTRY) == ENCRYPT_ENTRY)
-        {
-          is = getCryptoManager().getCipherInputStream(is);
-        }
-        if ((format & COMPRESS_ENTRY) == COMPRESS_ENTRY)
-        {
-          is = new InflaterInputStream(is);
-        }
-        try (InputStream entryStream = is)
+        try (InputStream entryStream = newEntryInputStream(reader, format))
         {
           byte[] data = new byte[encodedEntryLen];
           int readBytes;
@@ -293,6 +284,31 @@ class ID2Entry extends AbstractTree
         logger.traceException(cme);
         throw DecodeException.error(cme.getMessageObject());
       }
+    }
+
+    /**
+     * Returns the stream to read the encoded entry from, decorated as mandated by the format.
+     * <p>
+     * The returned stream owns the streams it wraps, so closing it closes the whole chain.
+     *
+     * @param reader the reader positioned at the start of the encoded entry.
+     * @param format the format byte of the encoded entry.
+     * @return the stream to read the encoded entry from.
+     * @throws CryptoManagerException If the cipher input stream cannot be created.
+     */
+    private static InputStream newEntryInputStream(ByteSequenceReader reader, int format)
+        throws CryptoManagerException
+    {
+      InputStream is = reader.asInputStream();
+      if ((format & ENCRYPT_ENTRY) == ENCRYPT_ENTRY)
+      {
+        is = getCryptoManager().getCipherInputStream(is);
+      }
+      if ((format & COMPRESS_ENTRY) == COMPRESS_ENTRY)
+      {
+        is = new InflaterInputStream(is);
+      }
+      return is;
     }
 
     private ByteString encode(Entry entry, DataConfig dataConfig) throws DirectoryException

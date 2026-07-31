@@ -33,7 +33,6 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -152,8 +151,7 @@ public class InstallerHelper {
     try
     {
       process = processBuilder.start();
-      final BufferedReader err = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-      new OutputReader(err)
+      new OutputReader(process.getErrorStream())
       {
         @Override
         public void processLine(final String line)
@@ -164,8 +162,7 @@ public class InstallerHelper {
         }
       }.start();
 
-      final BufferedReader out = new BufferedReader(new InputStreamReader(process.getInputStream()));
-      new OutputReader(out)
+      new OutputReader(process.getInputStream())
       {
         @Override
         public void processLine(final String line)
@@ -182,8 +179,10 @@ public class InstallerHelper {
     {
       if (process != null)
       {
-        closeProcessStream(process.getErrorStream(), "error");
-        closeProcessStream(process.getOutputStream(), "output");
+        // The error and output streams of the process are owned by the readers started above,
+        // which close them once drained. Only the stream writing to the standard input of the
+        // process, which is never used here, is left to close.
+        closeProcessStream(process.getOutputStream(), "input");
       }
     }
   }

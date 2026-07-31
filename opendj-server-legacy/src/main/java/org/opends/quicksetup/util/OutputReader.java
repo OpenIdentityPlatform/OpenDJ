@@ -19,6 +19,8 @@
 package org.opends.quicksetup.util;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -39,16 +41,17 @@ public abstract class OutputReader {
   /**
    * The protected constructor.
    * <p>
-   * The reader is consumed until end of stream and then closed by this reader's thread, which is
-   * only launched by {@link #start()}.
+   * The stream is consumed until end of stream and then closed by this reader's thread, which is
+   * only launched by {@link #start()}. Wrapping the stream is done by that thread as well, so that
+   * this reader is the sole owner of every resource built on top of the stream.
    *
-   * @param reader  the BufferedReader of the stop process.
+   * @param stream  the output stream of the process to read.
    */
-  public OutputReader(final BufferedReader reader) {
+  public OutputReader(final InputStream stream) {
     thread = new Thread(new Runnable() {
       @Override
       public void run() {
-        try (BufferedReader in = reader) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(stream))) {
           String line;
           while (null != (line = in.readLine())) {
             processLine(line);
