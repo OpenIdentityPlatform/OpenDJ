@@ -23,9 +23,9 @@ import java.util.Set;
 public class Config {
 
     private final String CONFIG_PREFIX = Config.class.getPackage().getName();
-    private int port = Integer.parseInt(System.getProperty(CONFIG_PREFIX + ".port", "1389"));
+    private int port = intProperty(CONFIG_PREFIX + ".port", "1389");
 
-    private int adminPort = Integer.parseInt(System.getProperty(CONFIG_PREFIX + ".admin_port", "4444"));
+    private int adminPort = intProperty(CONFIG_PREFIX + ".admin_port", "4444");
 
     private String adminPassword = System.getProperty(CONFIG_PREFIX + ".password", "passw0rd");
 
@@ -33,7 +33,7 @@ public class Config {
 
     private String backendType = System.getProperty(CONFIG_PREFIX + ".backend", "je");
 
-    private int jmxPort = Integer.parseInt(System.getProperty(CONFIG_PREFIX + ".jmx_port", "1689"));
+    private int jmxPort = intProperty(CONFIG_PREFIX + ".jmx_port", "1689");
 
     private String ldifSchema = System.getProperty(CONFIG_PREFIX + ".ldif.schema");
 
@@ -41,7 +41,63 @@ public class Config {
 
     private Set<String> skipSet = new HashSet<>(Arrays.asList(System.getProperty(CONFIG_PREFIX + ".skip", ",ou=sample-skip-group,").toLowerCase().split(";")));
 
-    private long deleteTimeout = Long.parseLong(System.getProperty(CONFIG_PREFIX + ".delete_timeout", "10000"));
+    private long deleteTimeout = timeoutProperty(CONFIG_PREFIX + ".delete_timeout", "10000");
+
+    /**
+     * Returns the value of a system property holding a number.
+     * <p>
+     * These fields are initialized when the instance is created, so an unhandled
+     * {@link NumberFormatException} would surface from the constructor of
+     * {@link EmbeddedOpenDJ} saying only which string was rejected, without naming the
+     * property that carried it.
+     *
+     * @param name
+     *            the name of the system property
+     * @param defaultValue
+     *            the value used when the property is not set
+     * @return the value of the property, or {@code defaultValue} when it is not set
+     * @throws IllegalArgumentException
+     *             If the value of the property is not a number.
+     */
+    private static int intProperty(String name, String defaultValue) {
+        final String value = System.getProperty(name, defaultValue);
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            throw invalidProperty(name, value, e);
+        }
+    }
+
+    /**
+     * Returns the value of a system property holding a duration in milliseconds.
+     *
+     * @param name
+     *            the name of the system property
+     * @param defaultValue
+     *            the value used when the property is not set
+     * @return the value of the property, or {@code defaultValue} when it is not set
+     * @throws IllegalArgumentException
+     *             If the value of the property is not a number, or is negative.
+     */
+    private static long timeoutProperty(String name, String defaultValue) {
+        final String value = System.getProperty(name, defaultValue);
+        final long timeout;
+        try {
+            timeout = Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            throw invalidProperty(name, value, e);
+        }
+        if (timeout < 0) {
+            throw new IllegalArgumentException("Invalid value \"" + value + "\" for the system property "
+                    + name + ": a timeout in milliseconds cannot be negative");
+        }
+        return timeout;
+    }
+
+    private static IllegalArgumentException invalidProperty(String name, String value, NumberFormatException cause) {
+        return new IllegalArgumentException("Invalid value \"" + value + "\" for the system property "
+                + name + ": expected a number", cause);
+    }
 
     public int getPort() {
         return port;
@@ -132,7 +188,19 @@ public class Config {
         return deleteTimeout;
     }
 
+    /**
+     * Sets how long {@link EmbeddedOpenDJ#close()} retries the deletion of the temporary
+     * directory of the instance.
+     *
+     * @param deleteTimeout
+     *            the deletion timeout in milliseconds, {@code 0} to delete once and never wait
+     * @throws IllegalArgumentException
+     *             If the timeout is negative.
+     */
     public void setDeleteTimeout(long deleteTimeout) {
+        if (deleteTimeout < 0) {
+            throw new IllegalArgumentException("The delete timeout cannot be negative, but was " + deleteTimeout);
+        }
         this.deleteTimeout = deleteTimeout;
     }
 

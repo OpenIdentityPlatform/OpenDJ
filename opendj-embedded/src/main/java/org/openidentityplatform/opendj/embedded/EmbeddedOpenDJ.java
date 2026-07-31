@@ -106,7 +106,10 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
             // deleted on close().
             instanceDirectory = Files.createTempDirectory("opendj").toFile();
             File rootDirectory = new File(instanceDirectory, "opendj");
-            rootDirectory.mkdir();
+            if (!rootDirectory.mkdir()) {
+                // the parent has just been created, so this only fails on a real filesystem error
+                throw new IOException("Cannot create the server root directory " + rootDirectory);
+            }
             logger.info("OpenDJ server root: {}", rootDirectory);
 
             File configDirectory = new File(rootDirectory, "config");
