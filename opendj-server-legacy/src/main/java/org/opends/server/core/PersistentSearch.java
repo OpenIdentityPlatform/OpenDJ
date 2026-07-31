@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.controls.EntryChangeNotificationControl;
@@ -187,6 +189,33 @@ public final class PersistentSearch
     }
 
     return new CancelResult(ResultCode.CANCELLED, null);
+  }
+
+  /**
+   * Cancels this persistent search and tells the client that no more changes will be reported for
+   * it. Contrary to {@link #cancel()}, which leaves the search open as far as the client can tell,
+   * this is meant for cancellations decided by the server: without a search result done, the client
+   * waits forever for changes on a search which no longer exists.
+   *
+   * @param reason
+   *          The reason why this persistent search is terminated, reported to the client.
+   * @return The result of the cancellation.
+   */
+  public CancelResult cancelAndNotifyClient(LocalizableMessage reason)
+  {
+    final CancelResult result = cancel();
+    try
+    {
+      searchOperation.setResultCode(ResultCode.UNAVAILABLE);
+      searchOperation.appendErrorMessage(reason);
+      searchOperation.sendSearchResultDone();
+    }
+    catch (Exception e)
+    {
+      // The client may be gone already: the persistent search is cancelled either way.
+      logger.traceException(e);
+    }
+    return result;
   }
 
   /**
@@ -388,7 +417,9 @@ public final class PersistentSearch
   {
     try
     {
-      if (!searchOperation.returnEntry(entry, entryControls))
+      // Notifications go through their own path: a change must be reported whether or not the
+      // entry was already returned by the search phase, and for as long as this search lives.
+      if (!searchOperation.returnPersistentSearchEntry(entry, entryControls))
       {
         cancel();
         searchOperation.sendSearchResultDone();

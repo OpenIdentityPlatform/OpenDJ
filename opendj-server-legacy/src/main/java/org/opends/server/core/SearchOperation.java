@@ -264,10 +264,25 @@ public interface SearchOperation extends Operation
                                       boolean evaluateAci);
 
   /**
+   * Used as a callback for persistent searches to send an entry which has just changed to the
+   * client. Contrary to {@link #returnEntry(Entry, List)}, the entry is not matched against the
+   * state kept to dereference aliases during the search phase, and neither the size limit nor the
+   * time limit of the search applies to it: a persistent search must report every change it is
+   * notified of, for as long as it is alive, whether or not the entry was returned before.
+   *
+   * @param  entry     The entry which has changed and should be sent to the client.
+   * @param  controls  The set of controls to include with the entry (may be <CODE>null</CODE> if
+   *                   none are needed).
+   *
+   * @return  <CODE>true</CODE> if the persistent search should keep reporting changes, or
+   *          <CODE>false</CODE> if it should stop for some reason (e.g. the search has been
+   *          abandoned).
+   */
+  boolean returnPersistentSearchEntry(Entry entry, List<Control> controls);
+
+  /**
    * Indicates that the search phase is over and that any further entry comes from a persistent
-   * search. State kept to dereference aliases during the search phase is released, and no further
-   * entry is matched against it: a persistent search must report every change it is notified of,
-   * whether or not the entry was returned by the search phase.
+   * search. State kept to dereference aliases during the search phase is released.
    */
   void endSearchPhase();
 

@@ -32,6 +32,9 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.PersistentSearch;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.Entry;
 import org.testng.annotations.AfterClass;
@@ -562,7 +565,9 @@ public class AliasTestCase extends DirectoryServerTestCase {
             psearch.searchAsync(request, new SearchResultHandler() {
                 @Override
                 public boolean handleEntry(SearchResultEntry entry) {
-                    notified.add(entry.getName().toString());
+                    // Every notification carries the same DN, so the DN alone cannot tell a lost
+                    // notification from a duplicated one: record which change is being reported.
+                    notified.add(entry.getName() + " " + entry.parseAttribute("description").asString());
                     return true;
                 }
 
@@ -574,23 +579,88 @@ public class AliasTestCase extends DirectoryServerTestCase {
 
             // searchAsync returns before the server has registered the persistent search, so wait
             // until the backend reports it; otherwise the first modification below can be notified
-            // before the search is listening and be missed.
+            // before the search is listening and be missed. Other tests may leave persistent
+            // searches behind on this backend, hence the search for our own base DN.
             final LocalBackend<?> backend = TestCaseUtils.getServerContext()
                     .getBackendConfigManager().getLocalBackendById(TestCaseUtils.TEST_BACKEND_ID);
-            for (int i = 0; backend.getPersistentSearches().isEmpty() && i < 500; i++) {
+            for (int i = 0; !isPersistentSearchRegistered(backend, "ou=psearch,o=test") && i < 500; i++) {
                 Thread.sleep(10);
             }
-            assertThat(backend.getPersistentSearches()).isNotEmpty();
+            assertThat(isPersistentSearchRegistered(backend, "ou=psearch,o=test"))
+                    .as("the persistent search was never registered with backend %s", backend.getBackendID())
+                    .isTrue();
 
             // The same entry is modified repeatedly: each change must reach the persistent search.
             for (int i = 1; i <= 3; i++) {
                 connection.modify(Requests.newModifyRequest("cn=changing,ou=psearch,o=test")
                         .addModification(ModificationType.REPLACE, "description", "change " + i));
                 assertThat(notified.poll(30, TimeUnit.SECONDS))
-                        .as("notification for change " + i)
-                        .isEqualTo("cn=changing,ou=psearch,o=test");
+                        .as("notification for change %d, persistent search still registered: %s, "
+                                        + "notifications received afterwards: %s",
+                                i, isPersistentSearchRegistered(backend, "ou=psearch,o=test"), notified)
+                        .isEqualTo("cn=changing,ou=psearch,o=test change " + i);
             }
         }
+    }
+
+    // A persistent search notification is not a search result: it must be reported whether or not
+    // the entry was returned before, and it is not bound by the size and time limits of the search.
+    // In a real persistent search the search phase is only open for a few instructions after the
+    // search is registered with the backend, so the notification path is driven directly here.
+    @Test
+    public void test_persistent_search_notification_ignores_search_phase_state() throws Exception {
+        TestCaseUtils.addEntries(
+                "dn: ou=psearch-notify,o=test",
+                "objectClass: top",
+                "objectClass: organizationalUnit",
+                "ou: psearch-notify",
+                ""
+        );
+        final Entry entry = DirectoryServer.getEntry(DN.valueOf("ou=psearch-notify,o=test"));
+
+        final InternalSearchOperation search = new InternalSearchOperation(
+                InternalClientConnection.getRootConnection(),
+                InternalClientConnection.nextOperationID(),
+                InternalClientConnection.nextMessageID(),
+                org.opends.server.protocols.internal.Requests
+                        .newSearchRequest(DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE)
+                        .setDereferenceAliasesPolicy(DereferenceAliasesPolicy.ALWAYS));
+        // The expiration is computed by run(), which is not called here: the operation is driven
+        // entry by entry.
+        search.setTimeLimitExpiration(Long.MAX_VALUE);
+
+        // The search phase returns the entry once, and drops it when it reaches it a second time
+        // through an alias ...
+        assertThat(search.returnEntry(entry, null)).isTrue();
+        assertThat(search.returnEntry(entry, null)).isTrue();
+        assertThat(search.getSearchEntries()).hasSize(1);
+
+        // ... but a change reported to a persistent search is never a duplicate, whether the search
+        // phase is still open (the entry was just returned by it) or already over.
+        assertThat(search.returnPersistentSearchEntry(entry, null)).isTrue();
+        search.endSearchPhase();
+        assertThat(search.returnPersistentSearchEntry(entry, null)).isTrue();
+        assertThat(search.getSearchEntries()).hasSize(3);
+
+        // Neither the size limit nor the time limit of the search bounds a notification: both only
+        // bound the search phase, and are lifted for the rest of a persistent search once it ends.
+        search.setSizeLimit(1);
+        search.setTimeLimit(1);
+        search.setTimeLimitExpiration(0);
+        assertThat(search.returnPersistentSearchEntry(entry, null)).isTrue();
+        assertThat(search.getSearchEntries()).hasSize(4);
+        // The search phase itself is still bound by them.
+        assertThat(search.returnEntry(entry, null)).isFalse();
+    }
+
+    /** Whether the provided backend has a persistent search registered for the provided base DN. */
+    private static boolean isPersistentSearchRegistered(LocalBackend<?> backend, String baseDN) {
+        for (PersistentSearch psearch : backend.getPersistentSearches()) {
+            if (psearch.getSearchOperation().getBaseDN().equals(DN.valueOf(baseDN))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // An alias is dereferenced before its target is reached on its own: the target must still be

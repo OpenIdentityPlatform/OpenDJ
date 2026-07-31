@@ -59,6 +59,12 @@ public abstract class SearchOperationWrapper extends
   }
 
   @Override
+  public boolean returnPersistentSearchEntry(Entry entry, List<Control> controls)
+  {
+    return getOperation().returnPersistentSearchEntry(entry, controls);
+  }
+
+  @Override
   public void endSearchPhase()
   {
     getOperation().endSearchPhase();

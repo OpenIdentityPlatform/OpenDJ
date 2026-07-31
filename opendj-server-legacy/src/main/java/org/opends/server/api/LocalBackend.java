@@ -103,7 +103,9 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
   {
     for (PersistentSearch psearch : persistentSearches)
     {
-      psearch.cancel();
+      // Tell the clients that no more changes are coming: this backend will not notify them any
+      // more, and a cancelled persistent search which sends nothing leaves them waiting forever.
+      psearch.cancelAndNotifyClient(WARN_PSEARCH_BACKEND_UNAVAILABLE.get(getBackendID()));
     }
     persistentSearches.clear();
     closeBackend();
