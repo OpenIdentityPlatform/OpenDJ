@@ -511,11 +511,7 @@ public final class StaticUtils
       int firstByte = 0xFF & a[i];
       int secondByte = 0xFF & a2[i];
       if (firstByte != secondByte) {
-        if (firstByte < secondByte) {
-          return -1;
-        } else if (firstByte > secondByte) {
-          return 1;
-        }
+        return firstByte < secondByte ? -1 : 1;
       }
     }
 
@@ -1795,7 +1791,10 @@ public final class StaticUtils
         }
       }
 
-      return successful & file.delete();
+      // The delete must be attempted even when a child could not be removed, so it is
+      // evaluated into a local before being combined with the running result.
+      final boolean deleted = file.delete();
+      return successful && deleted;
     }
     return false;
   }

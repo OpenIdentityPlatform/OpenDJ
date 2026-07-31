@@ -184,7 +184,7 @@ public final class GenerateConfigMojo extends AbstractMojo {
         } else if (!isXMLPackageDirectoryValid()) {
             throw new MojoExecutionException("The XML definition directory \""
                     + getXMLPackageDirectory() + "\" does not exist.");
-        } else if (getClass().getResource(getStylesheetDirectory()) == null) {
+        } else if (GenerateConfigMojo.class.getResource(getStylesheetDirectory()) == null) {
             throw new MojoExecutionException("The XSLT stylesheet directory \""
                     + getStylesheetDirectory() + "\" does not exist.");
         }
@@ -439,7 +439,7 @@ public final class GenerateConfigMojo extends AbstractMojo {
     private Templates loadStylesheet(final String stylesheet)
             throws TransformerConfigurationException {
         final Source xslt =
-                new StreamSource(getClass().getResourceAsStream(
+                new StreamSource(GenerateConfigMojo.class.getResourceAsStream(
                         getStylesheetDirectory() + "/" + stylesheet));
         return stylesheetFactory.newTemplates(xslt);
     }

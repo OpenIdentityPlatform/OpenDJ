@@ -79,7 +79,6 @@ import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.BuildVersion;
-import org.opends.server.util.StaticUtils;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import com.forgerock.opendj.cli.ArgumentException;
@@ -355,9 +354,10 @@ public class StatusCli extends ConsoleApplication
     writeStatus(controlInfo.getServerDescriptor());
     int period = argParser.getRefreshPeriod();
     boolean first = true;
-    while (period > 0)
+    // A positive refresh period means refreshing until the command is interrupted.
+    while (period > 0 && !Thread.currentThread().isInterrupted())
     {
-      long timeToSleep = period * 1000;
+      long timeToSleep = period * 1000L;
       if (!first)
       {
         long t1 = System.currentTimeMillis();
@@ -369,7 +369,17 @@ public class StatusCli extends ConsoleApplication
 
       if (timeToSleep > 0)
       {
-        StaticUtils.sleep(timeToSleep);
+        try
+        {
+          // Not StaticUtils.sleep(): it discards the interruption, which would leave this loop
+          // running with no way for the caller to stop it.
+          Thread.sleep(timeToSleep);
+        }
+        catch (InterruptedException e)
+        {
+          Thread.currentThread().interrupt();
+          break;
+        }
       }
       println();
       println(LocalizableMessage.raw("          ---------------------"));
@@ -1125,7 +1135,7 @@ public class StatusCli extends ConsoleApplication
     // Interact with the user though the console to get
     // LDAP connection information
     final String hostName = getHostNameForLdapUrl(ci.getHostName());
-    final Integer portNumber = ci.getPortNumber();
+    final int portNumber = ci.getPortNumber();
     final DN bindDN = ci.getBindDN();
     final String bindPassword = ci.getBindPassword();
     TrustManager trustManager = ci.getTrustManager();

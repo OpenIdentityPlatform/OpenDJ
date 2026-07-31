@@ -234,7 +234,7 @@ public class DSMLServlet extends HttpServlet {
       // assign the DSMLv2 schema for validation
       if(schema==null)
       {
-        URL url = getClass().getResource("/resources/DSMLv2.xsd");
+        URL url = DSMLServlet.class.getResource("/resources/DSMLv2.xsd");
         if ( url != null ) {
           SchemaFactory sf = SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI);
           schema = sf.newSchema(url);

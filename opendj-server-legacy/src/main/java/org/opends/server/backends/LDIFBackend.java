@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends;
 
@@ -366,12 +367,7 @@ public class LDIFBackend
 
     try
     {
-      if (entryMap != null)
-      {
-        return entryMap.size();
-      }
-
-      return -1;
+      return entryMap.size();
     }
     finally
     {

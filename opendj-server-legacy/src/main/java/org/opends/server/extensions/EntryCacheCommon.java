@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -362,11 +363,11 @@ public class EntryCacheCommon
       // Cache misses is required to get cache tries and hit ratio.
       if (cacheMisses != null)
       {
-        Long cacheTries = cacheHits + cacheMisses;
+        long cacheTries = cacheHits + cacheMisses;
         attrs.add("entryCacheTries", cacheTries);
 
-        Double hitRatioRaw = cacheTries > 0 ? cacheHits.doubleValue()
-            / cacheTries.doubleValue() : cacheHits.doubleValue() / 1;
+        double hitRatioRaw = cacheTries > 0 ? cacheHits.doubleValue()
+            / cacheTries : cacheHits.doubleValue();
         Double hitRatio = hitRatioRaw * 100D;
         attrs.add("entryCacheHitRatio", hitRatio);
       }

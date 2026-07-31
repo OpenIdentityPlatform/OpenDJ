@@ -595,7 +595,7 @@ public class Installer extends GuiApplication
     int cumulatedTime = 0;
     for (InstallProgressStep s : steps)
     {
-      Integer statusTime = s.getRelativeDuration();
+      int statusTime = s.getRelativeDuration();
       hmRatio.put(s, (100 * cumulatedTime) / totalTime);
       cumulatedTime += statusTime;
     }
@@ -2683,7 +2683,7 @@ public class Installer extends GuiApplication
             {
               throw new ApplicationException(ReturnCode.APPLICATION_ERROR, pnfe.getMessageObject(), null);
             }
-            StaticUtils.sleep((5 - nTries) * 3000);
+            StaticUtils.sleep((5 - nTries) * 3000L);
           }
           nTries--;
         }

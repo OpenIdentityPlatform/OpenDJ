@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.server.core;
 
@@ -43,7 +44,7 @@ public final class ProductInformation {
 
     private ProductInformation(final String productName) {
         final String resourceName = "/META-INF/product/" + productName + ".properties";
-        final InputStream stream = getClass().getResourceAsStream(resourceName);
+        final InputStream stream = ProductInformation.class.getResourceAsStream(resourceName);
 
         if (stream == null) {
             throw new MissingResourceException("Can't find product information " + resourceName,

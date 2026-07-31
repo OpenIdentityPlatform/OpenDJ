@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap.schema;
 
@@ -430,7 +431,7 @@ final class JsonQueryEqualityMatchingRuleImpl implements MatchingRuleImpl {
         if (value == null) {
             return createNullIndexKey(builder);
         } else if (value instanceof Number) {
-            final Double doubleValue = ((Number) value).doubleValue();
+            final double doubleValue = ((Number) value).doubleValue();
             return createNumberIndexKey(builder, BigDecimal.valueOf(doubleValue));
         } else if (value instanceof Boolean) {
             final Boolean booleanValue = (Boolean) value;

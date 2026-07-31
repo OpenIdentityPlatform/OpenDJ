@@ -358,7 +358,7 @@ public class CommonAudit
       throws IOException, AuditException, ConfigException
   {
     final JsonValue jsonConfig;
-    try (InputStream input = getClass().getResourceAsStream(AUDIT_SERVICE_JSON_CONFIGURATION_FILE))
+    try (InputStream input = CommonAudit.class.getResourceAsStream(AUDIT_SERVICE_JSON_CONFIGURATION_FILE))
     {
       jsonConfig = AuditJsonConfig.getJson(input);
     }
