@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.task;
 
@@ -761,6 +762,9 @@ public class TaskBackend
           searchScheduledTasks  = true;
           searchRecurringTasks  = true;
           break;
+        default:
+          // No action needed for the remaining values.
+          break;
       }
     }
     else if (baseDN.equals(scheduledTaskParentDN))
@@ -780,6 +784,9 @@ public class TaskBackend
         case SUBORDINATES:
           searchScheduledTasks  = true;
           break;
+        default:
+          // No action needed for the remaining values.
+          break;
       }
     }
     else if (baseDN.equals(recurringTaskParentDN))
@@ -798,6 +805,9 @@ public class TaskBackend
           break;
         case SUBORDINATES:
           searchRecurringTasks  = true;
+          break;
+        default:
+          // No action needed for the remaining values.
           break;
       }
     }

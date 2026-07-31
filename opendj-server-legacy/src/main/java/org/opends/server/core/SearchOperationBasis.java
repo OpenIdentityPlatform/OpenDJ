@@ -1216,6 +1216,9 @@ public class SearchOperationBasis
         }
       }
       break;
+    default:
+      // No action needed for the remaining values.
+      break;
     }
 
     return false;

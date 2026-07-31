@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  * Portions copyright 2024-2025 3A Systems,LLC.
  */
 package org.opends.server.workflowelement.localbackend;
@@ -737,6 +738,9 @@ public class LocalBackendModifyDNOperation
 
         case INCREMENT:
           newEntry.incrementAttribute(a);
+          break;
+        default:
+          // No action needed for the remaining values.
           break;
       }
     }

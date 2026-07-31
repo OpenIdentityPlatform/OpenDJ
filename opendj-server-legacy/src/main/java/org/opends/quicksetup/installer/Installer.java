@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.installer;
 
@@ -550,6 +551,9 @@ public class Installer extends GuiApplication
       case IMPORT_AUTOMATICALLY_GENERATED_DATA:
         steps.add(InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED);
         break;
+      default:
+        // No action needed for the remaining values.
+        break;
       }
     }
 
@@ -928,6 +932,9 @@ public class Installer extends GuiApplication
         return new ProgressPanel(this);
       case FINISHED:
         return new FinishedPanel(this);
+      default:
+        // No action needed for the remaining values.
+        break;
       }
     }
     return null;

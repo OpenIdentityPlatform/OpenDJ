@@ -348,6 +348,9 @@ public class LDAPConnection
               case CHANGE_AFTER_RESET:
                 out.println(INFO_BIND_MUST_CHANGE_PASSWORD.get());
                 break;
+              default:
+                // No action needed for the remaining values.
+                break;
             }
           }
 

@@ -415,6 +415,10 @@ public class BindRule {
                 throw new AciException(
                     WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD_OPERATOR_COMBO.get(keyword, op));
             }
+            break;
+        default:
+          // No action needed for the remaining values.
+          break;
         }
     }
 

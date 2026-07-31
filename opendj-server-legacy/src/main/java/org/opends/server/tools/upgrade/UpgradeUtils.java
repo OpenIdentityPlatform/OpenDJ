@@ -375,6 +375,9 @@ final class UpgradeUtils
             ldifDNs.add(DN.valueOf(removeDnPrefix(dnLine)));
           }
           break;
+        default:
+          // No action needed for the remaining values.
+          break;
         }
       }
 
