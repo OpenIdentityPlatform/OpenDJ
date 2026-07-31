@@ -1,0 +1,376 @@
+/*
+ * The contents of this file are subject to the terms of the Common Development and
+ * Distribution License (the License). You may not use this file except in compliance with the
+ * License.
+ *
+ * You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+ * specific language governing permission and limitations under the License.
+ *
+ * When distributing Covered Software, include this CDDL Header Notice in each file and include
+ * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+ * Header, with the fields enclosed by brackets [] replaced by your own identifying
+ * information: "Portions copyright [year] [name of copyright owner]".
+ *
+ * Copyright 2026 3A Systems, LLC.
+ */
+package org.opends.dsml.protocol;
+
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_ABANDON_REQUEST;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_BIND_REQUEST;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_UNBIND_REQUEST;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import jakarta.servlet.ReadListener;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.forgerock.testng.ForgeRockTestCase;
+import org.opends.server.protocols.ldap.BindResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.tools.LDAPReader;
+import org.opends.server.tools.LDAPWriter;
+import org.testng.annotations.Test;
+
+/**
+ * Tests the error handling of {@link DSMLServlet#doPost}: an abandon request
+ * used to trigger a {@code NullPointerException} which leaked the LDAP
+ * connection, and a request without a usable Content-Type header used to
+ * trigger a {@code NullPointerException} as well.
+ */
+@SuppressWarnings("javadoc")
+@Test(groups = { "precommit", "dsml" })
+public class DSMLServletTestCase extends ForgeRockTestCase
+{
+  /** SOAP 1.1 content type. */
+  private static final String SOAP_1_1_CONTENT_TYPE = "text/xml";
+
+  private static final String ABANDON_BATCH =
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+      + "<se:Envelope xmlns:se=\"http://schemas.xmlsoap.org/soap/envelope/\">"
+      + "<se:Body>"
+      + "<batchRequest xmlns=\"urn:oasis:names:tc:DSML:2:0:core\" requestID=\"1\">"
+      + "<abandonRequest abandonID=\"1\"/>"
+      + "</batchRequest>"
+      + "</se:Body>"
+      + "</se:Envelope>";
+
+  /**
+   * An abandon request produces no response element: the servlet must neither
+   * fail nor leave the connection to the directory server open.
+   */
+  @Test
+  public void testAbandonRequestIsProcessedAndConnectionIsClosed() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      Map<String, String> headers = new LinkedHashMap<>();
+      headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
+
+      String response = doPost(server.getPort(), headers, ABANDON_BATCH);
+
+      assertTrue(response.contains("batchResponse"), response);
+      assertFalse(response.contains("errorResponse"), response);
+      // no response element is defined for an abandon request
+      assertFalse(response.contains("abandonResponse"), response);
+
+      server.awaitDisconnect();
+      assertEquals(server.getReceivedOpTypes(),
+          list(OP_TYPE_BIND_REQUEST, OP_TYPE_ABANDON_REQUEST, OP_TYPE_UNBIND_REQUEST),
+          "the abandon request was not forwarded, or the connection was leaked");
+    }
+  }
+
+  /** A request without any Content-Type header must be rejected as malformed. */
+  @Test
+  public void testMissingContentTypeIsRejectedAsMalformedRequest() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      String response = doPost(server.getPort(), new LinkedHashMap<String, String>(), ABANDON_BATCH);
+
+      assertTrue(response.contains("malformedRequest"), response);
+      assertTrue(server.getReceivedOpTypes().isEmpty(),
+          "no connection to the directory server should have been opened");
+    }
+  }
+
+  /** A Content-Type header matching neither SOAP 1.1 nor SOAP 1.2 is malformed too. */
+  @Test
+  public void testUnsupportedContentTypeIsRejectedAsMalformedRequest() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      Map<String, String> headers = new LinkedHashMap<>();
+      headers.put("Content-Type", "application/json");
+
+      String response = doPost(server.getPort(), headers, ABANDON_BATCH);
+
+      assertTrue(response.contains("malformedRequest"), response);
+      assertTrue(server.getReceivedOpTypes().isEmpty(),
+          "no connection to the directory server should have been opened");
+    }
+  }
+
+  /**
+   * An error detected before the request is parsed must still reach the client
+   * when the Content-Type header is missing.
+   */
+  @Test
+  public void testMissingContentTypeStillReportsCredentialsError() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      Map<String, String> headers = new LinkedHashMap<>();
+      // credentials without the ':' separator: the password cannot be retrieved
+      headers.put("Authorization", "Basic " + Base64.getEncoder()
+          .encodeToString("cn=directory manager".getBytes(StandardCharsets.UTF_8)));
+
+      String response = doPost(server.getPort(), headers, ABANDON_BATCH);
+
+      assertTrue(response.contains("authenticationFailed"), response);
+      assertTrue(server.getReceivedOpTypes().isEmpty(),
+          "no connection to the directory server should have been opened");
+    }
+  }
+
+  /** Runs {@code doPost} against a servlet configured to use the given LDAP port. */
+  private String doPost(int ldapPort, Map<String, String> headers, String body) throws Exception
+  {
+    Map<String, String> params = new LinkedHashMap<>();
+    params.put("ldap.host", InetAddress.getLoopbackAddress().getHostAddress());
+    params.put("ldap.port", String.valueOf(ldapPort));
+
+    DSMLServlet servlet = new DSMLServlet();
+    servlet.init(servletConfig(params));
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    servlet.doPost(httpRequest(headers, body.getBytes(StandardCharsets.UTF_8)), httpResponse(out));
+    return new String(out.toByteArray(), StandardCharsets.UTF_8);
+  }
+
+  private static List<Byte> list(byte... opTypes)
+  {
+    List<Byte> result = new ArrayList<>(opTypes.length);
+    for (byte opType : opTypes)
+    {
+      result.add(opType);
+    }
+    return result;
+  }
+
+  /**
+   * A minimal LDAP endpoint which answers the bind request with a success
+   * result and records the type of every message it receives.
+   */
+  private static final class FakeLdapServer implements Closeable
+  {
+    private final ServerSocket serverSocket;
+    private final List<Byte> receivedOpTypes = new CopyOnWriteArrayList<>();
+    private final CountDownLatch disconnected = new CountDownLatch(1);
+    private volatile boolean stopped;
+
+    FakeLdapServer() throws IOException
+    {
+      serverSocket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
+      Thread thread = new Thread(this::serve, "fake-ldap-server");
+      thread.setDaemon(true);
+      thread.start();
+    }
+
+    int getPort()
+    {
+      return serverSocket.getLocalPort();
+    }
+
+    List<Byte> getReceivedOpTypes()
+    {
+      return new ArrayList<>(receivedOpTypes);
+    }
+
+    void awaitDisconnect() throws InterruptedException
+    {
+      assertTrue(disconnected.await(30, TimeUnit.SECONDS), "the client did not disconnect");
+    }
+
+    private void serve()
+    {
+      try (Socket socket = serverSocket.accept())
+      {
+        LDAPReader reader = new LDAPReader(socket);
+        LDAPWriter writer = new LDAPWriter(socket);
+        LDAPMessage message;
+        while ((message = reader.readMessage()) != null)
+        {
+          receivedOpTypes.add(message.getProtocolOpType());
+          if (message.getProtocolOpType() == OP_TYPE_BIND_REQUEST)
+          {
+            writer.writeMessage(new LDAPMessage(message.getMessageID(),
+                new BindResponseProtocolOp(LDAPResultCode.SUCCESS)));
+          }
+        }
+      }
+      catch (Exception e)
+      {
+        if (!stopped)
+        {
+          e.printStackTrace();
+        }
+      }
+      finally
+      {
+        disconnected.countDown();
+      }
+    }
+
+    @Override
+    public void close() throws IOException
+    {
+      stopped = true;
+      serverSocket.close();
+    }
+  }
+
+  private static ServletConfig servletConfig(final Map<String, String> params)
+  {
+    final ServletContext context = stub(ServletContext.class, (proxy, method, args) -> {
+      switch (method.getName())
+      {
+      case "getInitParameter":
+        return params.get(args[0]);
+      case "getInitParameterNames":
+        return Collections.enumeration(params.keySet());
+      default:
+        return defaultValue(method);
+      }
+    });
+    return stub(ServletConfig.class, (proxy, method, args) ->
+        "getServletContext".equals(method.getName()) ? context : defaultValue(method));
+  }
+
+  private static HttpServletRequest httpRequest(final Map<String, String> headers, final byte[] body)
+  {
+    final ByteArrayInputStream content = new ByteArrayInputStream(body);
+    final ServletInputStream in = new ServletInputStream()
+    {
+      @Override
+      public int read()
+      {
+        return content.read();
+      }
+
+      @Override
+      public boolean isFinished()
+      {
+        return content.available() == 0;
+      }
+
+      @Override
+      public boolean isReady()
+      {
+        return true;
+      }
+
+      @Override
+      public void setReadListener(ReadListener readListener)
+      {
+        // not used
+      }
+    };
+    return stub(HttpServletRequest.class, (proxy, method, args) -> {
+      switch (method.getName())
+      {
+      case "getInputStream":
+        return in;
+      case "getHeaderNames":
+        return Collections.enumeration(headers.keySet());
+      case "getHeader":
+        return headers.get(args[0]);
+      default:
+        return defaultValue(method);
+      }
+    });
+  }
+
+  private static HttpServletResponse httpResponse(final ByteArrayOutputStream out)
+  {
+    final ServletOutputStream os = new ServletOutputStream()
+    {
+      @Override
+      public void write(int b)
+      {
+        out.write(b);
+      }
+
+      @Override
+      public boolean isReady()
+      {
+        return true;
+      }
+
+      @Override
+      public void setWriteListener(WriteListener writeListener)
+      {
+        // not used
+      }
+    };
+    return stub(HttpServletResponse.class, (proxy, method, args) ->
+        "getOutputStream".equals(method.getName()) ? os : defaultValue(method));
+  }
+
+  private static <T> T stub(Class<T> type, InvocationHandler handler)
+  {
+    return type.cast(Proxy.newProxyInstance(
+        DSMLServletTestCase.class.getClassLoader(), new Class<?>[] { type }, handler));
+  }
+
+  private static Object defaultValue(Method method)
+  {
+    Class<?> returnType = method.getReturnType();
+    if (returnType == boolean.class)
+    {
+      return Boolean.FALSE;
+    }
+    else if (returnType == int.class)
+    {
+      return 0;
+    }
+    else if (returnType == long.class)
+    {
+      return 0L;
+    }
+    else if ("toString".equals(method.getName()))
+    {
+      return "stub";
+    }
+    return null;
+  }
+}

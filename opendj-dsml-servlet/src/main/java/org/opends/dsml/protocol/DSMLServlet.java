@@ -400,9 +400,8 @@ public class DSMLServlet extends HttpServlet {
             messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
             messageContentType = SOAPConstants.SOAP_1_2_CONTENT_TYPE;
           }
-          else {
-            throw new ServletException("Content-Type does not match SOAP 1.1 or SOAP 1.2");
-          }
+          // An unsupported Content-Type leaves the message factory unset: the
+          // request is rejected as malformed once all the headers are read.
         }
         catch (SOAPException e)
         {
@@ -477,6 +476,30 @@ public class DSMLServlet extends HttpServlet {
       }
     }
 
+    if ( messageFactory == null ) {
+      // The request carries no Content-Type header, or one which matches
+      // neither SOAP 1.1 nor SOAP 1.2: it cannot be parsed. Fall back to
+      // SOAP 1.1 for the response and reject the request as malformed,
+      // unless an error has already been reported.
+      try
+      {
+        messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL);
+        messageContentType = SOAPConstants.SOAP_1_1_CONTENT_TYPE;
+      }
+      catch (SOAPException e)
+      {
+        throw new ServletException(e.getMessage());
+      }
+      if ( batchResponses.isEmpty() ) {
+        ErrorResponse errorResponse = objFactory.createErrorResponse();
+        errorResponse.setType(MALFORMED_REQUEST);
+        errorResponse.setMessage(
+            "Content-Type does not match SOAP 1.1 or SOAP 1.2");
+        batchResponses.add(
+            objFactory.createBatchResponseErrorResponse(errorResponse));
+      }
+    }
+
     // if an error already occurred, the list is not empty
     if ( batchResponses.isEmpty() ) {
       try {
@@ -541,60 +564,67 @@ public class DSMLServlet extends HttpServlet {
 
           boolean connected = false;
 
-          if ( connection == null ) {
-            connection = new LDAPConnection(hostName, port, connOptions);
-            try {
+          try {
+            if ( connection == null ) {
+              connection = new LDAPConnection(hostName, port, connOptions);
+              try {
 
-              connection.connectToHost(bindDN, bindPassword);
-              if (authzInControl)
-              {
-                proxyAuthzControl = checkAuthzControl(connection,
-                    batchRequest.authRequest.getPrincipal());
-              }
-              if (authzInBind || authzInControl)
-              {
-                LDAPResult authResponse = objFactory.createLDAPResult();
-                ResultCode code = ResultCodeFactory.create(objFactory,
-                    LDAPResultCode.SUCCESS);
-                authResponse.setResultCode(code);
-                batchResponses.add(
-                    objFactory.createBatchResponseAuthResponse(authResponse));
-              }
-              connected = true;
-            } catch (LDAPConnectionException e) {
-              // if connection failed, return appropriate error response
-              batchResponses.add(createErrorResponse(objFactory, e));
-            }
-          }
-          if ( connected ) {
-            List<DsmlMessage> list = batchRequest.getBatchRequests();
-
-            for (DsmlMessage request : list) {
-              JAXBElement<?> result = performLDAPRequest(connection, objFactory, proxyAuthzControl, request);
-              if ( result != null ) {
-                batchResponses.add(result);
-              }
-              // evaluate response to check if an error occurred
-              Object o = result.getValue();
-              if ( o instanceof ErrorResponse ) {
-                if ( ON_ERROR_EXIT.equals(batchRequest.getOnError()) ) {
-                  break;
-                }
-              } else if ( o instanceof LDAPResult ) {
-                int code = ((LDAPResult)o).getResultCode().getCode();
-                if ( code != LDAPResultCode.SUCCESS
-                  && code != LDAPResultCode.REFERRAL
-                  && code != LDAPResultCode.COMPARE_TRUE
-                  && code != LDAPResultCode.COMPARE_FALSE && ON_ERROR_EXIT.equals(batchRequest.getOnError()) )
+                connection.connectToHost(bindDN, bindPassword);
+                if (authzInControl)
                 {
-                  break;
+                  proxyAuthzControl = checkAuthzControl(connection,
+                      batchRequest.authRequest.getPrincipal());
+                }
+                if (authzInBind || authzInControl)
+                {
+                  LDAPResult authResponse = objFactory.createLDAPResult();
+                  ResultCode code = ResultCodeFactory.create(objFactory,
+                      LDAPResultCode.SUCCESS);
+                  authResponse.setResultCode(code);
+                  batchResponses.add(
+                      objFactory.createBatchResponseAuthResponse(authResponse));
+                }
+                connected = true;
+              } catch (LDAPConnectionException e) {
+                // if connection failed, return appropriate error response
+                batchResponses.add(createErrorResponse(objFactory, e));
+              }
+            }
+            if ( connected ) {
+              List<DsmlMessage> list = batchRequest.getBatchRequests();
+
+              for (DsmlMessage request : list) {
+                JAXBElement<?> result = performLDAPRequest(connection, objFactory, proxyAuthzControl, request);
+                if ( result == null ) {
+                  // an abandon request does not produce any response element
+                  continue;
+                }
+                batchResponses.add(result);
+                // evaluate response to check if an error occurred
+                Object o = result.getValue();
+                if ( o instanceof ErrorResponse ) {
+                  if ( ON_ERROR_EXIT.equals(batchRequest.getOnError()) ) {
+                    break;
+                  }
+                } else if ( o instanceof LDAPResult ) {
+                  int code = ((LDAPResult)o).getResultCode().getCode();
+                  if ( code != LDAPResultCode.SUCCESS
+                    && code != LDAPResultCode.REFERRAL
+                    && code != LDAPResultCode.COMPARE_TRUE
+                    && code != LDAPResultCode.COMPARE_FALSE && ON_ERROR_EXIT.equals(batchRequest.getOnError()) )
+                  {
+                    break;
+                  }
                 }
               }
             }
-          }
-          // close connection to LDAP server
-          if ( connection != null ) {
-            connection.close(nextMessageID);
+          } finally {
+            // close connection to LDAP server, whatever happened while
+            // processing the batch, and do not reuse it for the next one
+            if ( connection != null ) {
+              connection.close(nextMessageID);
+              connection = null;
+            }
           }
         }
       }
@@ -604,7 +634,8 @@ public class DSMLServlet extends HttpServlet {
       marshaller.marshal(objFactory.createBatchResponse(batchResponse), doc);
       sendResponse(doc, messageFactory, messageContentType, res);
     } catch (Exception e) {
-      e.printStackTrace();
+      // the client gets an empty response: at least make the cause visible
+      Logger.getLogger(PKG_NAME).log(Level.SEVERE, "Unable to send the DSML response", e);
     }
 
   }
