@@ -20,7 +20,6 @@ package org.opends.server.replication.plugin;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.config.server.ConfigurationAddListener;
@@ -40,8 +39,6 @@ public class ReplicationServerListener
        implements ConfigurationAddListener<ReplicationServerCfg>,
        ConfigurationDeleteListener<ReplicationServerCfg>
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
   private final DSRSShutdownSync dsrsShutdownSync;
   private ReplicationServer replicationServer;
 
@@ -70,8 +67,18 @@ public class ReplicationServerListener
       replicationServer = new ReplicationServer(cfg, dsrsShutdownSync);
     }
 
-    configuration.addReplicationServerAddListener(this);
-    configuration.addReplicationServerDeleteListener(this);
+    try
+    {
+      configuration.addReplicationServerAddListener(this);
+      configuration.addReplicationServerDeleteListener(this);
+    }
+    catch (ConfigException e)
+    {
+      // This listener is not returned to MultimasterReplication, which is what stops the
+      // replication server: nothing would ever shut down the one just created.
+      shutdown();
+      throw e;
+    }
   }
 
   /** {@inheritDoc} */
@@ -86,8 +93,8 @@ public class ReplicationServerListener
     catch (ConfigException e)
     {
       // The configEntry has already been validated in configAddisAcceptable, but the
-      // listen port may have been taken since then: report why the creation failed.
-      logger.error(e.getMessageObject());
+      // listen port may have been taken since then: report why the creation failed. The
+      // message is logged by the configuration handler, which reports the result.
       ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
       ccr.addMessage(e.getMessageObject());
     }

@@ -112,10 +112,11 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       final int instancesBefore = ReplicationServer.getAllInstances().size();
 
       // Keep the port bound for the whole lifetime of the replication server creation.
+      final String dbDirName = "replServerFailsWhenListenPortIsInUseDb";
       try (ServerSocket portHolder = TestCaseUtils.bindFreePort())
       {
         final ReplServerFakeConfiguration conf = new ReplServerFakeConfiguration(
-            portHolder.getLocalPort(), "replServerFailsWhenListenPortIsInUseDb", 0, 1, 0, 0, null);
+            portHolder.getLocalPort(), dbDirName, 0, 1, 0, 0, null);
         try
         {
           final ReplicationServer replicationServer = new ReplicationServer(conf);
@@ -134,6 +135,12 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
               .hasLocalBackend(ChangelogBackend.BACKEND_ID), "the changelog backend should still be registered");
           assertTrue(runningServer.isListening(), "the running replication server should still listen");
         }
+        finally
+        {
+          // The aborted instance is never handed to the test, so its changelog cannot be
+          // removed through ReplicationTestCase.remove().
+          recursiveDelete(getFileForPath(dbDirName));
+        }
       }
     }
     finally
@@ -146,6 +153,11 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
    * Tests that a listen port which is only momentarily unavailable, as it happens when a
    * socket holding it is being closed, does not prevent the replication server from
    * starting: {@code bindListenPort()} retries the bind a few times.
+   * <p>
+   * The port is released as soon as the replication server has actually failed to bind it,
+   * so the retry is the only thing which can make it start: a test releasing the port after
+   * a delay would silently stop exercising the retry as soon as the replication server took
+   * longer than that delay to reach its first attempt.
    */
   @Test
   public void replServerRetriesToBindItsListenPort() throws Exception
@@ -154,14 +166,18 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
 
     ReplicationServer replicationServer = null;
     final ServerSocket portHolder = TestCaseUtils.bindFreePort();
+    final int bindFailuresBefore = ReplicationServer.listenPortBindFailures.get();
     try
     {
-      // Release the port while the replication server is retrying to bind it. The retry
-      // gives 800 ms in total, which leaves a wide margin for this thread to be scheduled.
       final Thread portReleaser = new Thread(() -> {
         try
         {
-          Thread.sleep(300);
+          final long deadline = System.currentTimeMillis() + 30000;
+          while (ReplicationServer.listenPortBindFailures.get() == bindFailuresBefore
+              && System.currentTimeMillis() < deadline)
+          {
+            Thread.sleep(10);
+          }
         }
         catch (InterruptedException e)
         {
@@ -175,6 +191,9 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
           portHolder.getLocalPort(), "replServerRetriesToBindItsListenPortDb", 0, 1, 0, 0, null));
       portReleaser.join();
 
+      assertTrue(ReplicationServer.listenPortBindFailures.get() > bindFailuresBefore,
+          "the replication server should have failed its first attempt to bind the port,"
+              + " otherwise this test does not exercise the retry");
       assertTrue(replicationServer.isListening(),
           "the replication server should have bound the port which was released while it was retrying");
     }
@@ -187,12 +206,12 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
 
   /**
    * Tests that a port change to a port which is not available is rejected, and that a
-   * replication server which nevertheless goes through the change goes back to its
-   * previous listen port instead of staying deaf with a configuration which advertises a
-   * port it does not listen to.
+   * replication server which nevertheless goes through the change keeps its listen port
+   * and its whole configuration: the new port is bound before the current one is released,
+   * so a failure has nothing to roll back and leaves nothing half applied.
    */
   @Test
-  public void replServerRollsBackAFailedPortChange() throws Exception
+  public void replServerKeepsItsConfigurationWhenAPortChangeFails() throws Exception
   {
     TestCaseUtils.startServer();
 
@@ -200,14 +219,17 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
     try
     {
       final int[] ports = TestCaseUtils.findFreePorts(1);
+      final String dbDirName = "replServerKeepsItsConfigurationWhenAPortChangeFailsDb";
       replicationServer = new ReplicationServer(new ReplServerFakeConfiguration(
-          ports[0], "replServerRollsBackAFailedPortChangeDb", 0, 1, 0, 0, null));
+          ports[0], dbDirName, 0, 1, 0, 0, null, 1, 2000, 5000, 1));
       assertTrue(replicationServer.isListening());
 
       try (ServerSocket portHolder = TestCaseUtils.bindFreePort())
       {
+        // The weight changes too, so that a failed change can be seen not to have applied
+        // the part of the new configuration which does not depend on the listen port.
         final ReplServerFakeConfiguration newConf = new ReplServerFakeConfiguration(
-            portHolder.getLocalPort(), "replServerRollsBackAFailedPortChangeDb", 0, 1, 0, 0, null);
+            portHolder.getLocalPort(), dbDirName, 0, 1, 0, 0, null, 1, 2000, 5000, 2);
 
         final List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         assertFalse(replicationServer.isConfigurationChangeAcceptable(newConf, unacceptableReasons),
@@ -218,8 +240,10 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
         assertEquals(ccr.getResultCode(), ResultCode.OPERATIONS_ERROR);
         assertFalse(ccr.getMessages().isEmpty(), "the failed change should say why it failed");
         assertEquals(replicationServer.getReplicationPort(), ports[0],
-            "the replication server should have gone back to its previous listen port");
+            "the replication server should have kept its previous listen port");
         assertTrue(replicationServer.isListening(), "the replication server should still listen");
+        assertEquals(replicationServer.getWeight(), 1,
+            "a failed port change must not apply the rest of the new configuration");
       }
 
       // and it must still be usable on its original port.
