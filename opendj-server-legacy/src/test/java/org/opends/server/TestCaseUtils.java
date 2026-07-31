@@ -832,12 +832,13 @@ public final class TestCaseUtils {
         sockets[i] = bindFreePort();
         ports[i] = sockets[i].getLocalPort();
       }
-      close(sockets);
       return ports;
     }
     finally
     {
-      
+      // Close them all, including when an allocation failed halfway: a socket which stays bound
+      // holds its port in listen state, and bindFreePort() hands out each number only once.
+      close(sockets);
     }
   }
 

@@ -24,6 +24,7 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -71,7 +72,6 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.DirectoryException;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -196,20 +196,15 @@ public class AssuredReplicationServerTest
     }
   }
 
-  /**
-   * Before starting the tests configure some stuff.
-   */
-  @BeforeClass
-  @Override
-  public void setUp() throws Exception
+  private void initTest() throws IOException
   {
-    super.setUp();
-
+    /*
+     * Allocate the listen ports of the real replication servers for this invocation only. The test
+     * methods of this class run several hundred times, each of them creating a replication server
+     * again, and a port which is bound again and again is exposed, for the whole time it is not
+     * bound, to anything in this JVM which may take it in the meantime.
+     */
     rsPorts = TestCaseUtils.findFreePorts(4);
-  }
-
-  private void initTest()
-  {
     fakeRDs = new FakeReplicationDomain[13];
     fakeRs1 = fakeRs2 = fakeRs3 = null;
     rs1 = rs2 = rs3 = rs4 = null;
