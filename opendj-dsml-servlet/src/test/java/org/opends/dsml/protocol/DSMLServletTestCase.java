@@ -23,6 +23,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -47,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
@@ -68,7 +70,9 @@ import org.testng.annotations.Test;
  * used to trigger a {@code NullPointerException} which leaked the LDAP
  * connection, a request without a usable Content-Type header used to trigger a
  * {@code NullPointerException} as well, and the second batch request of a SOAP
- * body used to be silently skipped.
+ * body used to be silently skipped. Also covers the caps on the number of
+ * batchRequest elements per SOAP body (each element costs a bind) and on the
+ * size of the request body.
  */
 @SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "dsml" })
@@ -249,16 +253,20 @@ public class DSMLServletTestCase extends ForgeRockTestCase
   /**
    * Every batch request of a SOAP body gets its own connection: the second one
    * used to be silently skipped because the first connection was left assigned.
+   * The cap on batchRequest elements has to be raised to let two of them in.
    */
   @Test
   public void testEachBatchRequestGetsItsOwnConnection() throws Exception
   {
     try (FakeLdapServer server = new FakeLdapServer())
     {
+      Map<String, String> params = new LinkedHashMap<>();
+      params.put("ldap.dsml.batchrequests.max", "2");
+
       Map<String, String> headers = new LinkedHashMap<>();
       headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
 
-      String response = doPost(server.getPort(), headers, TWO_ABANDON_BATCHES);
+      String response = doPost(server.getPort(), params, headers, TWO_ABANDON_BATCHES);
 
       assertFalse(response.contains("errorResponse"), response);
 
@@ -267,6 +275,100 @@ public class DSMLServletTestCase extends ForgeRockTestCase
           list(OP_TYPE_BIND_REQUEST, OP_TYPE_ABANDON_REQUEST, OP_TYPE_UNBIND_REQUEST,
                OP_TYPE_BIND_REQUEST, OP_TYPE_ABANDON_REQUEST, OP_TYPE_UNBIND_REQUEST),
           "the second batch request was not processed on its own connection");
+    }
+  }
+
+  /**
+   * Each batchRequest element of a SOAP body costs its own connection and
+   * bind, so by default a single POST may only hold one: the excess must be
+   * rejected without being executed, not silently skipped.
+   */
+  @Test
+  public void testExcessBatchRequestsAreRejectedByDefault() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      Map<String, String> headers = new LinkedHashMap<>();
+      headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
+
+      String response = doPost(server.getPort(), headers, TWO_ABANDON_BATCHES);
+
+      assertTrue(response.contains("notAttempted"), response);
+
+      server.awaitDisconnect();
+      assertEquals(server.getReceivedOpTypes(),
+          list(OP_TYPE_BIND_REQUEST, OP_TYPE_ABANDON_REQUEST, OP_TYPE_UNBIND_REQUEST),
+          "only the first batch request may bind under the default cap");
+    }
+  }
+
+  /**
+   * A request whose declared Content-Length exceeds the configured cap is
+   * rejected before the body is read: the LDAP server must never be contacted.
+   */
+  @Test
+  public void testOversizedDeclaredBodyIsRejected() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      Map<String, String> headers = new LinkedHashMap<>();
+      headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
+
+      String response = doPost(server.getPort(), Collections.<String, String> emptyMap(),
+          headers, ABANDON_BATCH, 20L * 1024 * 1024);
+
+      assertTrue(response.contains("notAttempted"), response);
+      assertTrue(server.getReceivedOpTypes().isEmpty(),
+          "no connection to the directory server should have been opened");
+    }
+  }
+
+  /**
+   * A chunked body declares no length, so the cap has to be enforced while the
+   * body is streamed: the gateway must not buffer more than the configured
+   * maximum, and the LDAP server must never be contacted.
+   */
+  @Test
+  public void testOversizedChunkedBodyIsRejected() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      Map<String, String> params = new LinkedHashMap<>();
+      params.put("ldap.dsml.request.maxsize", "64");
+
+      Map<String, String> headers = new LinkedHashMap<>();
+      headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
+
+      String response = doPost(server.getPort(), params, headers, ABANDON_BATCH, -1);
+
+      assertTrue(response.contains("notAttempted"), response);
+      assertTrue(server.getReceivedOpTypes().isEmpty(),
+          "no connection to the directory server should have been opened");
+    }
+  }
+
+  /** A cap which is not a positive number must be rejected when the servlet initialises. */
+  @Test
+  public void testNonPositiveCapsAreRejectedAtInit() throws Exception
+  {
+    for (String[] param : new String[][] {
+        { "ldap.dsml.batchrequests.max", "0" },
+        { "ldap.dsml.batchrequests.max", "banana" },
+        { "ldap.dsml.request.maxsize", "-1" } })
+    {
+      Map<String, String> params = new LinkedHashMap<>();
+      params.put("ldap.host", InetAddress.getLoopbackAddress().getHostAddress());
+      params.put("ldap.port", "389");
+      params.put(param[0], param[1]);
+      try
+      {
+        new DSMLServlet().init(servletConfig(params));
+        fail(param[0] + "=" + param[1] + " must be rejected");
+      }
+      catch (ServletException expected)
+      {
+        assertTrue(expected.getMessage().contains(param[0]), expected.getMessage());
+      }
     }
   }
 
@@ -322,6 +424,7 @@ public class DSMLServletTestCase extends ForgeRockTestCase
   {
     Map<String, String> params = new LinkedHashMap<>();
     params.put("ldap.authzidtypeisid", "true");
+    params.put("ldap.dsml.batchrequests.max", "2");
 
     Map<String, String> headers = new LinkedHashMap<>();
     headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
@@ -340,6 +443,17 @@ public class DSMLServletTestCase extends ForgeRockTestCase
   private String doPost(int ldapPort, Map<String, String> extraParams,
       Map<String, String> headers, String body) throws Exception
   {
+    return doPost(ldapPort, extraParams, headers, body,
+        body.getBytes(StandardCharsets.UTF_8).length);
+  }
+
+  /**
+   * Same, declaring the given Content-Length: it may differ from the size of
+   * the body, and is -1 for a chunked transfer.
+   */
+  private String doPost(int ldapPort, Map<String, String> extraParams,
+      Map<String, String> headers, String body, long declaredLength) throws Exception
+  {
     Map<String, String> params = new LinkedHashMap<>();
     params.put("ldap.host", InetAddress.getLoopbackAddress().getHostAddress());
     params.put("ldap.port", String.valueOf(ldapPort));
@@ -349,7 +463,9 @@ public class DSMLServletTestCase extends ForgeRockTestCase
     servlet.init(servletConfig(params));
 
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    servlet.doPost(httpRequest(headers, body.getBytes(StandardCharsets.UTF_8)), httpResponse(out));
+    servlet.doPost(
+        httpRequest(headers, body.getBytes(StandardCharsets.UTF_8), declaredLength),
+        httpResponse(out));
     return new String(out.toByteArray(), StandardCharsets.UTF_8);
   }
 
@@ -530,7 +646,8 @@ public class DSMLServletTestCase extends ForgeRockTestCase
         "getServletContext".equals(method.getName()) ? context : defaultValue(method));
   }
 
-  private static HttpServletRequest httpRequest(final Map<String, String> headers, final byte[] body)
+  private static HttpServletRequest httpRequest(final Map<String, String> headers,
+      final byte[] body, final long declaredLength)
   {
     final ByteArrayInputStream content = new ByteArrayInputStream(body);
     final ServletInputStream in = new ServletInputStream()
@@ -564,6 +681,8 @@ public class DSMLServletTestCase extends ForgeRockTestCase
       {
       case "getInputStream":
         return in;
+      case "getContentLengthLong":
+        return declaredLength;
       case "getHeaderNames":
         return Collections.enumeration(headers.keySet());
       case "getHeader":

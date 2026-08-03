@@ -27,6 +27,7 @@ import static org.opends.messages.CoreMessages.
 import static org.opends.messages.CoreMessages.INFO_RESULT_AUTHORIZATION_DENIED;
 
 import java.io.BufferedInputStream;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -127,6 +128,16 @@ public class DSMLServlet extends HttpServlet {
   private static final String DEREF_ANYURI = "ldap.dsml.dereference.anyuri";
   private static final String DEREF_ANYURI_SCHEMES = "ldap.dsml.dereference.anyuri.schemes";
   private static final String DEREF_ANYURI_MAXSIZE = "ldap.dsml.dereference.anyuri.maxsize";
+  private static final String MAX_BATCH_REQUESTS = "ldap.dsml.batchrequests.max";
+  private static final String REQUEST_MAXSIZE = "ldap.dsml.request.maxsize";
+
+  /**
+   * A SOAP body carries a single batchRequest element by default, as DSMLv2
+   * describes: every extra element costs its own connection and bind.
+   */
+  private static final long DEFAULT_MAX_BATCH_REQUESTS = 1;
+  /** Default cap on the size of an accepted request body, in bytes. */
+  private static final long DEFAULT_REQUEST_MAXSIZE = 10 * 1024 * 1024;
   private static final long serialVersionUID = -3748022009593442973L;
   private static final AtomicInteger nextMessageID = new AtomicInteger(1);
 
@@ -157,6 +168,8 @@ public class DSMLServlet extends HttpServlet {
   private String trustStorePasswordValue;
   private Boolean trustAll;
   private Boolean useHTTPAuthzID;
+  private long maxBatchRequests;
+  private long requestMaxSize;
   private final Set<String> exopStrings = new HashSet<>();
 
   /**
@@ -234,6 +247,14 @@ public class DSMLServlet extends HttpServlet {
         }
       }
 
+      // Every batchRequest element of a SOAP body is executed over its own
+      // connection and bind, and password verification is deliberately
+      // expensive: cap how many binds a single POST may fan out into, and how
+      // much memory its body may claim, so that a small request cannot buy
+      // unbounded work.
+      maxBatchRequests = positiveValue(config, MAX_BATCH_REQUESTS, DEFAULT_MAX_BATCH_REQUESTS);
+      requestMaxSize = positiveValue(config, REQUEST_MAXSIZE, DEFAULT_REQUEST_MAXSIZE);
+
       if(jaxbContext==null)
       {
         jaxbContext = JAXBContext.newInstance(PKG_NAME, getClass().getClassLoader());
@@ -263,6 +284,33 @@ public class DSMLServlet extends HttpServlet {
   private String stringValue(ServletConfig config, String paramName)
   {
     return config.getServletContext().getInitParameter(paramName);
+  }
+
+  /**
+   * Returns the value of a context-param which must be a positive number, or
+   * the given default when the parameter is absent or empty.
+   */
+  private long positiveValue(ServletConfig config, String paramName, long defaultValue)
+      throws ServletException
+  {
+    String value = stringValue(config, paramName);
+    if (value == null || value.trim().isEmpty())
+    {
+      return defaultValue;
+    }
+    try
+    {
+      long parsed = Long.parseLong(value.trim());
+      if (parsed < 1)
+      {
+        throw new NumberFormatException();
+      }
+      return parsed;
+    }
+    catch (NumberFormatException e)
+    {
+      throw new ServletException(paramName + " must be a positive number, but was: " + value);
+    }
   }
 
   /**
@@ -342,11 +390,16 @@ public class DSMLServlet extends HttpServlet {
 
     BatchRequest batchRequest = null;
 
+    // The SOAP message is materialised in memory before any of it is
+    // processed, so an unbounded body is an unbounded allocation: refuse to
+    // stream more than the configured cap.
+    final CappedInputStream cappedStream =
+        new CappedInputStream(req.getInputStream(), requestMaxSize);
+
     // Keep the Servlet input stream buffered in case the SOAP un-marshalling
     // fails, the SAX parsing will be able to retrieve the requestID even if
     // the XML is malformed by resetting the input stream.
-    BufferedInputStream is = new BufferedInputStream(req.getInputStream(),
-                                                     65536);
+    BufferedInputStream is = new BufferedInputStream(cappedStream, 65536);
     if ( is.markSupported() ) {
       is.mark(65536);
     }
@@ -509,6 +562,12 @@ public class DSMLServlet extends HttpServlet {
       }
     }
 
+    if ( req.getContentLengthLong() > requestMaxSize ) {
+      // The declared size already exceeds the cap: reject the request without
+      // reading the body at all.
+      batchResponses.add(createErrorResponse(objFactory, requestSizeExceeded()));
+    }
+
     // if an error already occurred, the list is not empty
     if ( batchResponses.isEmpty() ) {
       try {
@@ -516,20 +575,39 @@ public class DSMLServlet extends HttpServlet {
         soapBody = message.getSOAPBody();
       } catch (SOAPException ex) {
         // SOAP was unable to parse XML successfully
-        batchResponses.add(
-          createXMLParsingErrorResponse(is,
-                                        objFactory,
-                                        batchResponse,
-                                        String.valueOf(ex.getCause())));
+        batchResponses.add(cappedStream.isLimitExceeded()
+            ? createErrorResponse(objFactory, requestSizeExceeded())
+            : createXMLParsingErrorResponse(is,
+                                            objFactory,
+                                            batchResponse,
+                                            String.valueOf(ex.getCause())));
+      } catch (IOException ex) {
+        if ( ! cappedStream.isLimitExceeded() ) {
+          throw ex;
+        }
+        // The body streamed past the cap: chunked, or a lying Content-Length.
+        batchResponses.add(createErrorResponse(objFactory, requestSizeExceeded()));
       }
     }
 
     if ( soapBody != null ) {
+      long batchRequestCount = 0;
       Iterator<?> it = soapBody.getChildElements();
       while (it.hasNext()) {
         Object obj = it.next();
         if (!(obj instanceof SOAPElement)) {
           continue;
+        }
+        if ( ++batchRequestCount > maxBatchRequests ) {
+          // Each element costs its own connection and bind: refuse to fan a
+          // single POST out into more binds than the configured cap, before
+          // the element is even schema-validated.
+          batchResponses.add(createErrorResponse(objFactory,
+              new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
+                  LocalizableMessage.raw("The SOAP body holds more than "
+                      + MAX_BATCH_REQUESTS + "=" + maxBatchRequests
+                      + " batchRequest element(s): the remaining elements were not attempted."))));
+          break;
         }
         // Parse and unmarshall the SOAP object - the implementation prevents the use of a
         // DOCTYPE and xincludes, so should be safe. There is no way to configure a more
@@ -727,6 +805,17 @@ public class DSMLServlet extends HttpServlet {
     errorResponse.setType(MALFORMED_REQUEST);
 
     return objFactory.createBatchResponseErrorResponse(errorResponse);
+  }
+
+  /**
+   * Returns the exception reporting a request body larger than the configured
+   * cap; its result code maps to a 'notAttempted' error response.
+   */
+  private LDAPException requestSizeExceeded()
+  {
+    return new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
+        LocalizableMessage.raw("The request body is larger than "
+            + REQUEST_MAXSIZE + "=" + requestMaxSize + " bytes: not attempted."));
   }
 
   /**
@@ -1041,6 +1130,69 @@ public class DSMLServlet extends HttpServlet {
     public InputSource resolveEntity(String publicId, String systemId)
     {
       return new InputSource(new StringReader(""));
+    }
+  }
+
+  /**
+   * An input stream which refuses to serve more than a fixed number of bytes,
+   * failing instead of truncating so that an oversized request is rejected
+   * rather than parsed as a shorter one.
+   */
+  private static final class CappedInputStream extends FilterInputStream
+  {
+    private final long limit;
+    private long consumed;
+    private boolean limitExceeded;
+
+    private CappedInputStream(InputStream in, long limit)
+    {
+      super(in);
+      this.limit = limit;
+    }
+
+    private boolean isLimitExceeded()
+    {
+      return limitExceeded;
+    }
+
+    @Override
+    public int read() throws IOException
+    {
+      int b = super.read();
+      if (b >= 0)
+      {
+        count(1);
+      }
+      return b;
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException
+    {
+      int read = super.read(b, off, len);
+      if (read > 0)
+      {
+        count(read);
+      }
+      return read;
+    }
+
+    @Override
+    public long skip(long n) throws IOException
+    {
+      long skipped = super.skip(n);
+      count(skipped);
+      return skipped;
+    }
+
+    private void count(long read) throws IOException
+    {
+      consumed += read;
+      if (consumed > limit)
+      {
+        limitExceeded = true;
+        throw new IOException("request body larger than " + limit + " bytes");
+      }
     }
   }
 }
