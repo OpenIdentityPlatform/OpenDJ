@@ -18,6 +18,7 @@
 package org.forgerock.opendj.ldif;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -1074,7 +1075,7 @@ final class TemplateFile {
             newTag = tag.getClass().getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_NEW_TAG.get(
-                    tagName, lineNumber + 1, String.valueOf(e)), e);
+                    tagName, lineNumber + 1, getExceptionMessage(e)), e);
         }
 
         if (branch == null) {

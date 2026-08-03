@@ -187,7 +187,7 @@ public class LogRotationPolicyConfigManager implements
       return true;
     } catch (Exception e) {
       unacceptableReasons.add(
-          ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className, config.dn(), e));
+          ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className, config.dn(), stackTraceToSingleLineString(e)));
       return false;
     }
   }
@@ -205,7 +205,7 @@ public class LogRotationPolicyConfigManager implements
       return rotationPolicy;
     } catch (Exception e) {
       LocalizableMessage message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(
-          className, config.dn(), e);
+          className, config.dn(), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     }
   }

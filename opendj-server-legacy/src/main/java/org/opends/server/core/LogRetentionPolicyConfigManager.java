@@ -190,7 +190,7 @@ public class LogRetentionPolicyConfigManager implements
       return true;
     } catch (Exception e) {
       unacceptableReasons.add(
-          ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(className, config.dn(), e));
+          ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(className, config.dn(), stackTraceToSingleLineString(e)));
       return false;
     }
   }
@@ -208,7 +208,7 @@ public class LogRetentionPolicyConfigManager implements
       return retentionPolicy;
     } catch (Exception e) {
       LocalizableMessage message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(
-          className, config.dn(), e);
+          className, config.dn(), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     }
   }

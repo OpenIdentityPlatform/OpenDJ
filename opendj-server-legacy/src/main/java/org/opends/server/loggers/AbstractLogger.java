@@ -377,7 +377,8 @@ public abstract class AbstractLogger
       P publisher = pd.loadClass(className, logPublisherClass).getDeclaredConstructor().newInstance();
       return publisher.isConfigurationAcceptable(config, unacceptableReasons);
     } catch (Exception e) {
-      unacceptableReasons.add(invalidLoggerClassErrorMessage.get(className, config.dn(), e));
+      unacceptableReasons.add(invalidLoggerClassErrorMessage.get(className, config.dn(),
+          stackTraceToSingleLineString(e)));
       return false;
     }
   }
@@ -394,7 +395,7 @@ public abstract class AbstractLogger
     catch (Exception e)
     {
       throw new ConfigException(
-          invalidLoggerClassErrorMessage.get(className, config.dn(), e), e);
+          invalidLoggerClassErrorMessage.get(className, config.dn(), stackTraceToSingleLineString(e)), e);
     }
   }
 

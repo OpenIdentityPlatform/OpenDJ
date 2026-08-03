@@ -1230,7 +1230,8 @@ public class TemplateFile
     }
     catch (Exception e)
     {
-      throw new MakeLDIFException(ERR_MAKELDIF_CANNOT_INSTANTIATE_NEW_TAG.get(tagName, lineNumber, e), e);
+      throw new MakeLDIFException(ERR_MAKELDIF_CANNOT_INSTANTIATE_NEW_TAG.get(tagName, lineNumber,
+          getExceptionMessage(e)), e);
     }
 
     if (branch == null)

@@ -279,7 +279,8 @@ public class ExtendedOperationConfigManager implements
     catch (Exception e)
     {
       logger.traceException(e);
-      throw new ConfigException(ERR_CONFIG_EXTOP_INVALID_CLASS.get(className, config.dn(), e), e);
+      throw new ConfigException(ERR_CONFIG_EXTOP_INVALID_CLASS.get(className, config.dn(),
+          stackTraceToSingleLineString(e)), e);
     }
   }
 
@@ -302,7 +303,8 @@ public class ExtendedOperationConfigManager implements
     catch (Exception e)
     {
       logger.traceException(e);
-      unacceptableReasons.add(ERR_CONFIG_EXTOP_INVALID_CLASS.get(className, config.dn(), e));
+      unacceptableReasons.add(ERR_CONFIG_EXTOP_INVALID_CLASS.get(className, config.dn(),
+          stackTraceToSingleLineString(e)));
       return false;
     }
   }
