@@ -42,8 +42,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -106,6 +104,12 @@ import org.xml.sax.helpers.DefaultHandler;
  * It parses the SOAP request, calls the appropriate class
  * which performs the LDAP operation, and returns the response
  * as a DSML response.
+ * <p>
+ * Everything is logged through {@code getServletContext().log()}: it is the
+ * only sink which survives at runtime, as
+ * {@code LDAPConnection.connectToHost()} turns {@code java.util.logging} off
+ * for the whole JVM on every non-verbose connection, and the war ships
+ * {@code slf4j-api} without any provider.
  */
 public class DSMLServlet extends HttpServlet {
   private static final String PKG_NAME = "org.opends.dsml.protocol";
@@ -165,6 +169,9 @@ public class DSMLServlet extends HttpServlet {
    */
   @Override
   public void init(ServletConfig config) throws ServletException {
+    // Let GenericServlet keep the configuration: getServletContext() relies on
+    // it, and it is the only logging facility available at runtime.
+    super.init(config);
     try {
       hostName = stringValue(config, HOST);
       port = Integer.valueOf(stringValue(config, PORT));
@@ -333,7 +340,6 @@ public class DSMLServlet extends HttpServlet {
     connOptions.setUseSSL(useSSL);
     connOptions.setStartTLS(useStartTLS);
 
-    LDAPConnection connection = null;
     BatchRequest batchRequest = null;
 
     // Keep the Servlet input stream buffered in case the SOAP un-marshalling
@@ -400,9 +406,8 @@ public class DSMLServlet extends HttpServlet {
             messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
             messageContentType = SOAPConstants.SOAP_1_2_CONTENT_TYPE;
           }
-          else {
-            throw new ServletException("Content-Type does not match SOAP 1.1 or SOAP 1.2");
-          }
+          // An unsupported Content-Type leaves the message factory unset: the
+          // request is rejected as malformed once all the headers are read.
         }
         catch (SOAPException e)
         {
@@ -430,12 +435,14 @@ public class DSMLServlet extends HttpServlet {
             bindPassword = unencoded.substring(colon + 1);
           }
         } catch (final LocalizedIllegalArgumentException ex) {
-          // user/DN:password parsing error
+          // user/DN:password parsing error. Keep reading the headers: the
+          // Content-Type may still be ahead, and it decides which SOAP
+          // version the error is reported with.
           batchResponses.add(
             createErrorResponse(objFactory,
                   new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
                   LocalizableMessage.raw(ex.getMessage()))));
-          break;
+          continue;
         }
       }
       StringTokenizer tk = new StringTokenizer(headerVal, ",");
@@ -474,6 +481,31 @@ public class DSMLServlet extends HttpServlet {
               createErrorResponse(objFactory,
                     new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
                     LocalizableMessage.raw("Unable to retrieve credentials."))));
+      }
+    }
+
+    if ( messageFactory == null ) {
+      // The request carries no Content-Type header, or one which matches
+      // neither SOAP 1.1 nor SOAP 1.2: it cannot be parsed. Fall back to
+      // SOAP 1.1 for the response and reject the request as malformed,
+      // unless an error has already been reported.
+      try
+      {
+        messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL);
+        messageContentType = SOAPConstants.SOAP_1_1_CONTENT_TYPE;
+      }
+      catch (SOAPException e)
+      {
+        throw new ServletException(e.getMessage());
+      }
+      if ( batchResponses.isEmpty() ) {
+        // Nothing has been read from the stream yet, so the SAX pass can still
+        // recover the requestID and let the client correlate the reply.
+        batchResponses.add(
+            createXMLParsingErrorResponse(is,
+                                          objFactory,
+                                          batchResponse,
+                                          "Content-Type does not match SOAP 1.1 or SOAP 1.2"));
       }
     }
 
@@ -520,6 +552,13 @@ public class DSMLServlet extends HttpServlet {
           boolean authzInControl = false;
           batchRequest = batchRequestElement.getValue();
 
+          // The connection options are shared by all the batch requests of this
+          // SOAP body, so the authzid of the previous one must not survive into
+          // the bind of this one: it would run under an authorization identity
+          // it never asked for, and addSASLProperty() appends to the values of
+          // a key, which SASL PLAIN rejects as a multi-valued authzid.
+          connOptions.getSASLProperties().remove("authzid");
+
           /*
            *  Process optional authRequest (i.e. use authz)
            */
@@ -541,10 +580,12 @@ public class DSMLServlet extends HttpServlet {
 
           boolean connected = false;
 
-          if ( connection == null ) {
-            connection = new LDAPConnection(hostName, port, connOptions);
+          // Each batch request gets its own connection: the previous one has
+          // been closed by the finally block below.
+          LDAPConnection connection =
+              new LDAPConnection(hostName, port, connOptions);
+          try {
             try {
-
               connection.connectToHost(bindDN, bindPassword);
               if (authzInControl)
               {
@@ -565,35 +606,37 @@ public class DSMLServlet extends HttpServlet {
               // if connection failed, return appropriate error response
               batchResponses.add(createErrorResponse(objFactory, e));
             }
-          }
-          if ( connected ) {
-            List<DsmlMessage> list = batchRequest.getBatchRequests();
+            if ( connected ) {
+              List<DsmlMessage> list = batchRequest.getBatchRequests();
 
-            for (DsmlMessage request : list) {
-              JAXBElement<?> result = performLDAPRequest(connection, objFactory, proxyAuthzControl, request);
-              if ( result != null ) {
-                batchResponses.add(result);
-              }
-              // evaluate response to check if an error occurred
-              Object o = result.getValue();
-              if ( o instanceof ErrorResponse ) {
-                if ( ON_ERROR_EXIT.equals(batchRequest.getOnError()) ) {
-                  break;
+              for (DsmlMessage request : list) {
+                JAXBElement<?> result = performLDAPRequest(connection, objFactory, proxyAuthzControl, request);
+                if ( result == null ) {
+                  // an abandon request does not produce any response element
+                  continue;
                 }
-              } else if ( o instanceof LDAPResult ) {
-                int code = ((LDAPResult)o).getResultCode().getCode();
-                if ( code != LDAPResultCode.SUCCESS
-                  && code != LDAPResultCode.REFERRAL
-                  && code != LDAPResultCode.COMPARE_TRUE
-                  && code != LDAPResultCode.COMPARE_FALSE && ON_ERROR_EXIT.equals(batchRequest.getOnError()) )
-                {
-                  break;
+                batchResponses.add(result);
+                // evaluate response to check if an error occurred
+                Object o = result.getValue();
+                if ( o instanceof ErrorResponse ) {
+                  if ( ON_ERROR_EXIT.equals(batchRequest.getOnError()) ) {
+                    break;
+                  }
+                } else if ( o instanceof LDAPResult ) {
+                  int code = ((LDAPResult)o).getResultCode().getCode();
+                  if ( code != LDAPResultCode.SUCCESS
+                    && code != LDAPResultCode.REFERRAL
+                    && code != LDAPResultCode.COMPARE_TRUE
+                    && code != LDAPResultCode.COMPARE_FALSE && ON_ERROR_EXIT.equals(batchRequest.getOnError()) )
+                  {
+                    break;
+                  }
                 }
               }
             }
-          }
-          // close connection to LDAP server
-          if ( connection != null ) {
+          } finally {
+            // close connection to LDAP server, whatever happened while
+            // processing the batch
             connection.close(nextMessageID);
           }
         }
@@ -604,7 +647,8 @@ public class DSMLServlet extends HttpServlet {
       marshaller.marshal(objFactory.createBatchResponse(batchResponse), doc);
       sendResponse(doc, messageFactory, messageContentType, res);
     } catch (Exception e) {
-      e.printStackTrace();
+      // The client gets an empty response: at least make the cause visible.
+      getServletContext().log("Unable to send the DSML response", e);
     }
 
   }
@@ -628,14 +672,14 @@ public class DSMLServlet extends HttpServlet {
     {
       if (logFeatureWarnings.compareAndSet(false, true))
       {
-        Logger.getLogger(PKG_NAME).log(Level.SEVERE, "XMLReader unsupported feature " + feature);
+        getServletContext().log("XMLReader unsupported feature " + feature);
       }
     }
     catch (SAXNotRecognizedException e)
     {
       if (logFeatureWarnings.compareAndSet(false, true))
       {
-        Logger.getLogger(PKG_NAME).log(Level.SEVERE, "XMLReader unrecognized feature " + feature);
+        getServletContext().log("XMLReader unrecognized feature " + feature);
       }
     }
   }
@@ -893,7 +937,7 @@ public class DSMLServlet extends HttpServlet {
     catch (ParserConfigurationException e) {
       if (logFeatureWarnings.compareAndSet(false, true))
       {
-        Logger.getLogger(PKG_NAME).log(Level.SEVERE, "DocumentBuilderFactory unsupported feature " + feature);
+        getServletContext().log("DocumentBuilderFactory unsupported feature " + feature);
       }
     }
   }
@@ -916,7 +960,7 @@ public class DSMLServlet extends HttpServlet {
     catch (ParserConfigurationException e)
     {
       if (logFeatureWarnings.compareAndSet(false, true)) {
-        Logger.getLogger(PKG_NAME).log(Level.SEVERE, "DocumentBuilderFactory cannot be configured securely");
+        getServletContext().log("DocumentBuilderFactory cannot be configured securely");
       }
     }
     dbf.setXIncludeAware(false);
