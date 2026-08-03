@@ -87,8 +87,14 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    * @return an OID representing the connection handler:port
    */
   public String getDsApplIfProtocol() {
-      String portNumber = (String)this.monitor.getAttribute
-              (this.connectionHandlerName, "ds-connectionhandler-listener");
+      Object listener = this.monitor.getAttribute(
+              this.connectionHandlerName, "ds-connectionhandler-listener");
+      if (listener instanceof Object[]) {
+          // A connection handler with several listen addresses reports them as an array.
+          Object[] listeners = (Object[]) listener;
+          listener = listeners.length > 0 ? listeners[0] : null;
+      }
+      String portNumber = listener != null ? String.valueOf(listener) : null;
       if (portNumber==null) {
           return this.DsApplIfProtocol;
       }
