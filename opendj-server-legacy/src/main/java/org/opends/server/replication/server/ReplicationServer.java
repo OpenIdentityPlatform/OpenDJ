@@ -106,7 +106,8 @@ public class ReplicationServer
   private static final int LISTEN_PORT_PROBE_TIMEOUT_MS = 200;
 
   private volatile ServerSocket listenSocket;
-  private Thread listenThread;
+  /** Volatile like its socket above: a port change reads it from the configuration thread. */
+  private volatile Thread listenThread;
   private Thread connectThread;
 
   /** The current configuration of this replication server. */
@@ -791,8 +792,8 @@ public class ReplicationServer
     // Opening the changelog restores one domain per domain it holds, and each of them starts
     // its threads and registers its monitor provider: a failure after that point, such as a
     // listen port which cannot be bound, would otherwise leave them behind. Shut them down
-    // before the changelog they write to, and one failure at a time: the changelog this one
-    // is built on is known to be broken, and what follows still has to run.
+    // before the changelog they write to, and one unchecked exception at a time: the changelog
+    // this one is built on is known to be broken, and what follows still has to run.
     for (ReplicationServerDomain domain : getReplicationServerDomains())
     {
       try

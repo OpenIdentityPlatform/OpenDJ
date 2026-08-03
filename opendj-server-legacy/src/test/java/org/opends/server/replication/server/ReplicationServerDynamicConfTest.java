@@ -456,6 +456,9 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
    * before the wait even begins: {@code Thread.join()} only throws while the thread it waits
    * for is alive, so without that connection this test would pass over the interruption
    * instead of exercising it. {@code interruptedListenThreadStops} tells the two apart.
+   * <p>
+   * That the connection is accepted is waited for on both sides of it, see
+   * {@link #waitForListenThread(int, int, boolean)}: connecting only proves the port is bound.
    */
   @Test
   public void replServerKeepsListeningWhenAPortChangeIsInterrupted() throws Exception
@@ -475,11 +478,20 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       final ConfigChangeResult ccr;
       try (Socket silent = new Socket())
       {
+        // The listen thread has to be inside accept() before the connection is made, and to
+        // have left it afterwards: a connection completes against the listen backlog of the
+        // kernel, so it does not prove that the thread which serves it ever ran.
+        final int serverId = replicationServer.getServerId();
+        waitForListenThread(serverId, ports[0], true);
         silent.connect(new InetSocketAddress("127.0.0.1", ports[0]), 5000);
-        waitForListenThreadOf(ports[0]);
+        waitForListenThread(serverId, ports[0], false);
 
         // Thread.join() throws InterruptedException at once when the interrupt status is
         // already set, i.e. this interrupts the port change in its wait for the listen thread.
+        // What runs until that wait — binding the new port, resolving the server URL, starting
+        // the new listen thread — has to fit in the handshake timeout of the silent connection,
+        // MultimasterReplication.getConnectionTimeoutMS(), 5s by default: that handshake is
+        // what keeps the previous listen thread alive, hence what makes the wait for it block.
         Thread.currentThread().interrupt();
         ccr = replicationServer.applyConfigurationChange(
             new ReplServerFakeConfiguration(ports[1], dbDirName, 0, 1, 0, 0, null));
@@ -509,26 +521,43 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
   }
 
   /**
-   * Waits for the listen thread of the provided port to leave {@code accept()}, i.e. for the
-   * connection which was just made to it to have been accepted.
+   * Waits for the listen thread of the provided replication server and port to be inside
+   * {@code accept()}, or to have left it.
+   * <p>
+   * Having left {@code accept()} is what tells that the connection which was just made to
+   * that port is being served: a connection completes against the listen backlog of the
+   * kernel, and {@code isListening()} only tells that the socket is bound — the listen
+   * thread is started after it — so neither of them proves that thread ever ran. Waiting for
+   * it to be inside {@code accept()} first is what makes the second wait conclusive: it can
+   * then only have left it for the connection this test made.
+   *
+   * @param serverId
+   *          the server id of the replication server whose listen thread is waited for
+   * @param port
+   *          the port that listen thread listens on
+   * @param accepting
+   *          {@code true} to wait for that thread to be inside {@code accept()},
+   *          {@code false} to wait for it to have left it
    */
-  private void waitForListenThreadOf(int port) throws Exception
+  private void waitForListenThread(int serverId, int port, boolean accepting) throws Exception
   {
-    final String listenThread = "replication server rs(1) connection listener on port " + port;
+    final String listenThread =
+        "replication server rs(" + serverId + ") connection listener on port " + port;
     final long deadline = System.currentTimeMillis() + 60000;
     while (System.currentTimeMillis() < deadline)
     {
       for (Map.Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet())
       {
         if (entry.getKey().getName().toLowerCase().equals(listenThread)
-            && !isAccepting(entry.getValue()))
+            && isAccepting(entry.getValue()) == accepting)
         {
           return;
         }
       }
       Thread.sleep(10);
     }
-    fail("the listen thread on port " + port + " never accepted the connection made to it");
+    fail("the listen thread on port " + port
+        + (accepting ? " never reached accept()" : " never accepted the connection made to it"));
   }
 
   private boolean isAccepting(StackTraceElement[] stackTrace)
@@ -666,7 +695,9 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       Thread.sleep(10);
     }
     assertNotNull(findReplicaLogFile(dbDirectory),
-        "no replica changelog was written under " + dbDirectory);
+        "no replica changelog, i.e. no head log file under a '" + DOMAIN_DIRECTORY_SUFFIX
+            + "' directory, was written under " + dbDirectory
+            + ": check that suffix against ReplicationEnvironment, which owns it");
   }
 
   /**
