@@ -18,6 +18,7 @@
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 import static org.forgerock.opendj.ldap.LDAPListener.*;
 
 import java.io.FileInputStream;
@@ -73,7 +74,7 @@ public final class Server {
 
         // Parse command line arguments.
         final String localAddress = args[0];
-        final int localPort = Integer.parseInt(args[1]);
+        final int localPort = parsePort(args[1]);
         final String ldifFileName = args[2];
         final String keyStoreFileName = (args.length == 6) ? args[3] : null;
         final String keyStorePassword = (args.length == 6) ? args[4] : null;

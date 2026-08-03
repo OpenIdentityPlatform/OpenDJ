@@ -12,8 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2012-2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.examples;
+
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 
 import java.io.IOException;
 
@@ -113,7 +116,7 @@ public final class GetInfo {
         }
 
         host = args[0];
-        port = Integer.parseInt(args[1]);
+        port = parsePort(args[1]);
         infoType = args[2];
         final String infoTypeLc = infoType.toLowerCase();
         if (!"all".equals(infoTypeLc)
