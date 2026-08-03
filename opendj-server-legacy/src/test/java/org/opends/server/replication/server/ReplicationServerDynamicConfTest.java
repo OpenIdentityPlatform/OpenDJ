@@ -24,6 +24,7 @@ import static org.testng.Assert.*;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -335,12 +337,12 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
 
     final int rsServerId = 8021;
     final String dbDirName = "replServerFailsWhenAReplicaChangelogCannotBeReadDb";
-    final File dbDirectory = createPopulatedChangelog(dbDirName, rsServerId);
+    final File dbDirectory = createPopulatedChangelog(dbDirName);
     try
     {
       // The head log file of the replica is replaced by a directory: the changelog state is
       // then still readable, and the changes of the domain it names are not.
-      final File headLogFile = findFile(dbDirectory, "head", ".log");
+      final File headLogFile = findReplicaLogFile(dbDirectory);
       assertNotNull(headLogFile, "no replica changelog was written under " + dbDirectory);
       assertTrue(headLogFile.delete() && headLogFile.mkdir(), "could not replace " + headLogFile);
 
@@ -359,6 +361,11 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
             "the failure should be the one of the changelog, but was: " + expected.getCause());
         assertTrue(expected.getMessage().contains(dbDirectory.getAbsolutePath()),
             "the failure should name the changelog directory, but was: " + expected.getMessage());
+        // The log of the replica, named after its directory, and not the one of the change
+        // number index: otherwise this test exercises another failure shape than its name.
+        assertTrue(expected.getMessage().contains(headLogFile.getParentFile().getPath()),
+            "the failure should be the one of the replica changelog which was corrupted,"
+                + " but was: " + expected.getMessage());
         assertEquals(ReplicationServer.getAllInstances().size(), instancesBefore,
             "the failed replication server must not be left registered");
         assertNothingLeftBehind(rsServerId);
@@ -383,7 +390,7 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
 
     final int rsServerId = 8022;
     final String dbDirName = "abortedStartReleasesTheRestoredDomainsDb";
-    final File dbDirectory = createPopulatedChangelog(dbDirName, rsServerId);
+    final File dbDirectory = createPopulatedChangelog(dbDirName);
     try (ServerSocket portHolder = TestCaseUtils.bindFreePort())
     {
       try
@@ -418,7 +425,7 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
 
     final int rsServerId = 8023;
     final String dbDirName = "restartedReplServerReleasesTheRestoredDomainsDb";
-    final File dbDirectory = createPopulatedChangelog(dbDirName, rsServerId);
+    final File dbDirectory = createPopulatedChangelog(dbDirName);
     ReplicationServer replicationServer = null;
     try
     {
@@ -441,8 +448,14 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
   /**
    * Tests that a port change whose wait for the previous listen thread is interrupted still
    * leaves this replication server listening: the new port is served before the previous one
-   * is released, so an interrupt can only cut the wait for a thread which is already stopping
-   * short, never leave the replication server with no listener at all.
+   * is released, so an interrupt can only cut short the wait for a thread which is already
+   * stopping, never leave the replication server with no listener at all.
+   * <p>
+   * A connection which is accepted and then says nothing keeps the previous listen thread in
+   * its handshake instead of at {@code accept()}, so closing its socket does not stop it
+   * before the wait even begins: {@code Thread.join()} only throws while the thread it waits
+   * for is alive, so without that connection this test would pass over the interruption
+   * instead of exercising it. {@code interruptedListenThreadStops} tells the two apart.
    */
   @Test
   public void replServerKeepsListeningWhenAPortChangeIsInterrupted() throws Exception
@@ -458,16 +471,27 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
           new ReplServerFakeConfiguration(ports[0], dbDirName, 0, 1, 0, 0, null));
       assertTrue(replicationServer.isListening());
 
-      // Thread.join() throws InterruptedException at once when the interrupt status is
-      // already set, i.e. this interrupts the port change in its wait for the listen thread.
-      Thread.currentThread().interrupt();
-      final ConfigChangeResult ccr = replicationServer.applyConfigurationChange(
-          new ReplServerFakeConfiguration(ports[1], dbDirName, 0, 1, 0, 0, null));
+      final int interruptsBefore = ReplicationServer.interruptedListenThreadStops.get();
+      final ConfigChangeResult ccr;
+      try (Socket silent = new Socket())
+      {
+        silent.connect(new InetSocketAddress("127.0.0.1", ports[0]), 5000);
+        waitForListenThreadOf(ports[0]);
+
+        // Thread.join() throws InterruptedException at once when the interrupt status is
+        // already set, i.e. this interrupts the port change in its wait for the listen thread.
+        Thread.currentThread().interrupt();
+        ccr = replicationServer.applyConfigurationChange(
+            new ReplServerFakeConfiguration(ports[1], dbDirName, 0, 1, 0, 0, null));
+      }
       // Cleared for the rest of this test, and for whatever runs next in this thread.
       final boolean interrupted = Thread.interrupted();
 
-      assertEquals(ccr.getResultCode(), ResultCode.SUCCESS);
+      assertEquals(ReplicationServer.interruptedListenThreadStops.get(), interruptsBefore + 1,
+          "the port change should have been interrupted in its wait for the previous listen"
+              + " thread, otherwise this test does not test that interruption");
       assertTrue(interrupted, "the interrupted port change should have restored the interrupt status");
+      assertEquals(ccr.getResultCode(), ResultCode.SUCCESS);
       assertEquals(replicationServer.getReplicationPort(), ports[1],
           "the replication server should have switched to the new listen port");
       assertTrue(replicationServer.isListening(),
@@ -485,18 +509,66 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
   }
 
   /**
+   * Waits for the listen thread of the provided port to leave {@code accept()}, i.e. for the
+   * connection which was just made to it to have been accepted.
+   */
+  private void waitForListenThreadOf(int port) throws Exception
+  {
+    final String listenThread = "replication server rs(1) connection listener on port " + port;
+    final long deadline = System.currentTimeMillis() + 60000;
+    while (System.currentTimeMillis() < deadline)
+    {
+      for (Map.Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet())
+      {
+        if (entry.getKey().getName().toLowerCase().equals(listenThread)
+            && !isAccepting(entry.getValue()))
+        {
+          return;
+        }
+      }
+      Thread.sleep(10);
+    }
+    fail("the listen thread on port " + port + " never accepted the connection made to it");
+  }
+
+  private boolean isAccepting(StackTraceElement[] stackTrace)
+  {
+    for (StackTraceElement frame : stackTrace)
+    {
+      if ("java.net.ServerSocket".equals(frame.getClassName()) && frame.getMethodName().contains("accept"))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * The server id of the replication server which writes the changelog the tests read back.
+   * <p>
+   * It is not the one of the replication servers under test, so that what it leaves behind —
+   * it is the only one to which a replica ever connects, and the monitor providers of a
+   * connection are deregistered when its handler notices it is gone — cannot be mistaken for
+   * what they leave behind.
+   */
+  private static final int CHANGELOG_WRITER_RS_ID = 8020;
+
+  /** The suffix of the directory a changelog holds per domain, see {@code ReplicationEnvironment}. */
+  private static final String DOMAIN_DIRECTORY_SUFFIX = ".dom";
+
+  /**
    * Creates the changelog of a replication server which ran and served one replica, and
    * returns its directory: a changelog whose reading restores a domain, i.e. one over which
    * an initialization has something to release when it fails.
    */
-  private File createPopulatedChangelog(String dbDirName, int rsServerId) throws Exception
+  private File createPopulatedChangelog(String dbDirName) throws Exception
   {
     final File dbDirectory = getFileForPath(dbDirName);
     recursiveDelete(dbDirectory);
 
     final int[] ports = TestCaseUtils.findFreePorts(1);
     final ReplicationServer replicationServer = new ReplicationServer(
-        new ReplServerFakeConfiguration(ports[0], dbDirName, 0, rsServerId, 0, 0, null));
+        new ReplServerFakeConfiguration(ports[0], dbDirName, 0, CHANGELOG_WRITER_RS_ID, 0, 0, null));
     ReplicationBroker broker = null;
     try
     {
@@ -504,21 +576,17 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       broker = openReplicationSession(baseDN, 42, 100, ports[0], 1000);
       broker.publish(new DeleteMsg(baseDN, new CSNGenerator(42, 0).newCSN(), "uid"));
 
-      // The changelog is written by the replication server, so the publication above is only
-      // over once the log of the replica exists.
-      waitFor(dbDirectory, "head", ".log");
+      // The changelog is written by the replication server, so the calls above are only over
+      // once the log of the replica exists. It is the last of the four files which
+      // ReplicationEnvironment.getOrCreateReplicaDB() writes, after domains.state, the server
+      // id directory and the generation id, so waiting for it waits for all of them.
+      waitForReplicaLogFile(dbDirectory);
     }
     finally
     {
       stop(broker);
       replicationServer.shutdown();
     }
-
-    assertNotNull(findFile(dbDirectory, "generation", ".id"),
-        "the changelog should hold the generation id of the domain, otherwise reading it back"
-            + " restores no domain at all and this test tests nothing");
-    // A replication server which stopped normally must not leave anything behind either.
-    assertNothingLeftBehind(rsServerId);
     return dbDirectory;
   }
 
@@ -536,8 +604,8 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
     {
       Thread.sleep(10);
     }
-    assertEquals(leftBehind, Collections.emptyList(),
-        "the replication server RS(" + rsServerId + ") left the above behind");
+    assertTrue(leftBehind.isEmpty(),
+        "the replication server RS(" + rsServerId + ") left behind: " + leftBehind);
   }
 
   /** The threads a {@link ReplicationServerDomain} starts, and which its shutdown stops. */
@@ -584,16 +652,49 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
     return false;
   }
 
-  /** Waits for a file whose name matches to appear anywhere under the provided directory. */
-  private void waitFor(File directory, String prefix, String suffix) throws Exception
+  /**
+   * Waits for the head log file of a replica changelog to appear under the provided changelog.
+   * <p>
+   * The wait is long because it is only ever reached on a machine which is slow enough for
+   * the replication server to still be writing that file: a test which passes never waits.
+   */
+  private void waitForReplicaLogFile(File dbDirectory) throws Exception
   {
-    final long deadline = System.currentTimeMillis() + 10000;
-    while (findFile(directory, prefix, suffix) == null && System.currentTimeMillis() < deadline)
+    final long deadline = System.currentTimeMillis() + 60000;
+    while (findReplicaLogFile(dbDirectory) == null && System.currentTimeMillis() < deadline)
     {
       Thread.sleep(10);
     }
-    assertNotNull(findFile(directory, prefix, suffix),
-        "no " + prefix + "*" + suffix + " was written under " + directory);
+    assertNotNull(findReplicaLogFile(dbDirectory),
+        "no replica changelog was written under " + dbDirectory);
+  }
+
+  /**
+   * Returns the head log file of a replica changelog, i.e. the one under a domain directory.
+   * <p>
+   * The changelog of the change number index holds a head log file of its own, and it is
+   * created when the replication server starts: a lookup which is not scoped to a domain
+   * directory can match it instead, and then waits for nothing and corrupts the wrong log.
+   */
+  private File findReplicaLogFile(File dbDirectory)
+  {
+    final File[] entries = dbDirectory.listFiles();
+    if (entries == null)
+    {
+      return null;
+    }
+    for (File entry : entries)
+    {
+      if (entry.isDirectory() && entry.getName().endsWith(DOMAIN_DIRECTORY_SUFFIX))
+      {
+        final File replicaLogFile = findFile(entry, "head", ".log");
+        if (replicaLogFile != null)
+        {
+          return replicaLogFile;
+        }
+      }
+    }
+    return null;
   }
 
   /** Returns the first file whose name matches, at any depth of the provided directory. */

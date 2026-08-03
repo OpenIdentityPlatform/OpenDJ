@@ -153,6 +153,15 @@ public class ReplicationServer
    */
   static final AtomicInteger listenPortBindFailures = new AtomicInteger();
 
+  /**
+   * Number of listen port changes whose wait for the previous listen thread was interrupted.
+   * <p>
+   * This is required for unit testing: a wait which is interrupted and a wait which is over
+   * before it starts leave this replication server in the same state, so nothing else tells
+   * a test that it exercised the interruption instead of passing over it.
+   */
+  static final AtomicInteger interruptedListenThreadStops = new AtomicInteger();
+
   /** Monitors for synchronizing domain creation with the connect thread. */
   private final Object domainTicketLock = new Object();
   private final Object connectThreadLock = new Object();
@@ -638,6 +647,10 @@ public class ReplicationServer
    * open and serving. A failure therefore leaves this replication server listening on its
    * current port, with its current configuration: there is nothing to roll back, and there
    * is no window during which this replication server listens on no port at all.
+   * <p>
+   * The trade is a window during which both ports accept, so a peer which connects to the
+   * previous port just before it is released gets a session which outlives the change. That
+   * is the deliberate inverse of a window during which nothing listens at all.
    *
    * @param newConfig
    *          the configuration being applied, whose listen port differs from the current one
@@ -674,6 +687,7 @@ public class ReplicationServer
       {
         // The previous port is already released and its thread stops on its own as soon as
         // it wakes up on its closed socket: only the wait for it was cut short.
+        interruptedListenThreadStops.incrementAndGet();
         Thread.currentThread().interrupt();
         logger.traceException(e);
       }
@@ -777,10 +791,18 @@ public class ReplicationServer
     // Opening the changelog restores one domain per domain it holds, and each of them starts
     // its threads and registers its monitor provider: a failure after that point, such as a
     // listen port which cannot be bound, would otherwise leave them behind. Shut them down
-    // before the changelog they write to.
+    // before the changelog they write to, and one failure at a time: the changelog this one
+    // is built on is known to be broken, and what follows still has to run.
     for (ReplicationServerDomain domain : getReplicationServerDomains())
     {
-      domain.shutdown();
+      try
+      {
+        domain.shutdown();
+      }
+      catch (RuntimeException ignored)
+      {
+        logger.traceException(ignored);
+      }
     }
     shutdownExternalChangelog();
     if (this.changelogDB != null)
