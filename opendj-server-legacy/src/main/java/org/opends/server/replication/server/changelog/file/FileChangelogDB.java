@@ -215,7 +215,19 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     throw new ChangelogException(ERR_CANNOT_CREATE_REPLICA_DB_BECAUSE_CHANGELOG_DB_SHUTDOWN.get());
   }
 
-  private ConcurrentMap<Integer, FileReplicaDB> getExistingOrNewDomainMap(final DN baseDN)
+  /**
+   * Returns the map holding the replica DBs of the provided domain, inserting a new one if it does
+   * not exist yet.
+   * <p>
+   * Package private and overridable so that tests can stop a thread right after it has read the
+   * shutdown flag in {@link #getOrCreateReplicaDB(DN, int, ReplicationServer)}, i.e. inside the
+   * window {@link #shutdownDB()} races with.
+   *
+   * @param baseDN
+   *          the baseDN whose map of replica DBs must be returned
+   * @return the map of replica DBs of the provided domain
+   */
+  ConcurrentMap<Integer, FileReplicaDB> getExistingOrNewDomainMap(final DN baseDN)
   {
     // happy path: the domainMap already exists
     final ConcurrentMap<Integer, FileReplicaDB> currentValue = domainToReplicaDBs.get(baseDN);
@@ -272,10 +284,47 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
         return null;
       }
 
-      final FileReplicaDB newDB = new FileReplicaDB(serverId, baseDN, server, cryptoSuite, replicationEnv);
+      if (shutdown.get())
+      {
+        // A shutdown was initiated after the shutdown flag was read by getOrCreateReplicaDB():
+        // it may already have drained domainToReplicaDBs before this domainMap was inserted into
+        // it, in which case nothing would ever shutdown a replicaDB created here.
+        // Reading false instead means shutdownDB() has not flipped the flag yet, hence has not
+        // created its iterator yet either: it will see this domainMap, which was inserted before
+        // this monitor was acquired, and will have to block on this same monitor to drain it.
+        return null;
+      }
+
+      final FileReplicaDB newDB = newReplicaDB(serverId, baseDN, server, cryptoSuite, replicationEnv);
       domainMap.put(serverId, newDB);
       return Pair.of(newDB, true);
     }
+  }
+
+  /**
+   * Creates a new replica DB.
+   * <p>
+   * Package private and overridable so that tests can control the creation and the shutdown of the
+   * replica DBs this changelog holds.
+   *
+   * @param serverId
+   *          the serverId for which to create a replica DB
+   * @param baseDN
+   *          the baseDN for which to create a replica DB
+   * @param server
+   *          the ReplicationServer
+   * @param cryptoSuite
+   *          the cryptosuite to use for encryption
+   * @param replicationEnv
+   *          the replication environment holding the log of the replica DB
+   * @return the newly created replica DB
+   * @throws ChangelogException
+   *           if a problem occurred with the database
+   */
+  FileReplicaDB newReplicaDB(final int serverId, final DN baseDN, final ReplicationServer server,
+      final CryptoSuite cryptoSuite, final ReplicationEnvironment replicationEnv) throws ChangelogException
+  {
+    return new FileReplicaDB(serverId, baseDN, server, cryptoSuite, replicationEnv);
   }
 
   @Override
