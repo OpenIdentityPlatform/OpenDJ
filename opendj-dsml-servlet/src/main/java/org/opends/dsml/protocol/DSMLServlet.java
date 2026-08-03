@@ -42,8 +42,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -106,6 +104,12 @@ import org.xml.sax.helpers.DefaultHandler;
  * It parses the SOAP request, calls the appropriate class
  * which performs the LDAP operation, and returns the response
  * as a DSML response.
+ * <p>
+ * Everything is logged through {@code getServletContext().log()}: it is the
+ * only sink which survives at runtime, as
+ * {@code LDAPConnection.connectToHost()} turns {@code java.util.logging} off
+ * for the whole JVM on every non-verbose connection, and the war ships
+ * {@code slf4j-api} without any provider.
  */
 public class DSMLServlet extends HttpServlet {
   private static final String PKG_NAME = "org.opends.dsml.protocol";
@@ -548,17 +552,19 @@ public class DSMLServlet extends HttpServlet {
           boolean authzInControl = false;
           batchRequest = batchRequestElement.getValue();
 
+          // The connection options are shared by all the batch requests of this
+          // SOAP body, so the authzid of the previous one must not survive into
+          // the bind of this one: it would run under an authorization identity
+          // it never asked for, and addSASLProperty() appends to the values of
+          // a key, which SASL PLAIN rejects as a multi-valued authzid.
+          connOptions.getSASLProperties().remove("authzid");
+
           /*
            *  Process optional authRequest (i.e. use authz)
            */
           if (batchRequest.authRequest != null) {
             if (authenticationIsID) {
-              // If we are using SASL, then use the bind authz. The options are
-              // shared by all the batch requests of this SOAP body, and
-              // addSASLProperty() appends to the values of a key: drop the
-              // authzid of the previous batch request, as SASL PLAIN rejects a
-              // multi-valued one.
-              connOptions.getSASLProperties().remove("authzid");
+              // If we are using SASL, then use the bind authz.
               connOptions.addSASLProperty("authzid=" +
                   batchRequest.authRequest.getPrincipal());
               authzInBind = true;
@@ -642,9 +648,6 @@ public class DSMLServlet extends HttpServlet {
       sendResponse(doc, messageFactory, messageContentType, res);
     } catch (Exception e) {
       // The client gets an empty response: at least make the cause visible.
-      // The container log is the only usable sink here, as connectToHost()
-      // turns java.util.logging off for the whole JVM and the war ships no
-      // SLF4J binding.
       getServletContext().log("Unable to send the DSML response", e);
     }
 
@@ -669,14 +672,14 @@ public class DSMLServlet extends HttpServlet {
     {
       if (logFeatureWarnings.compareAndSet(false, true))
       {
-        Logger.getLogger(PKG_NAME).log(Level.SEVERE, "XMLReader unsupported feature " + feature);
+        getServletContext().log("XMLReader unsupported feature " + feature);
       }
     }
     catch (SAXNotRecognizedException e)
     {
       if (logFeatureWarnings.compareAndSet(false, true))
       {
-        Logger.getLogger(PKG_NAME).log(Level.SEVERE, "XMLReader unrecognized feature " + feature);
+        getServletContext().log("XMLReader unrecognized feature " + feature);
       }
     }
   }
@@ -934,7 +937,7 @@ public class DSMLServlet extends HttpServlet {
     catch (ParserConfigurationException e) {
       if (logFeatureWarnings.compareAndSet(false, true))
       {
-        Logger.getLogger(PKG_NAME).log(Level.SEVERE, "DocumentBuilderFactory unsupported feature " + feature);
+        getServletContext().log("DocumentBuilderFactory unsupported feature " + feature);
       }
     }
   }
@@ -957,7 +960,7 @@ public class DSMLServlet extends HttpServlet {
     catch (ParserConfigurationException e)
     {
       if (logFeatureWarnings.compareAndSet(false, true)) {
-        Logger.getLogger(PKG_NAME).log(Level.SEVERE, "DocumentBuilderFactory cannot be configured securely");
+        getServletContext().log("DocumentBuilderFactory cannot be configured securely");
       }
     }
     dbf.setXIncludeAware(false);

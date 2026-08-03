@@ -15,6 +15,7 @@
  */
 package org.opends.dsml.protocol;
 
+import static java.util.Arrays.asList;
 import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_ABANDON_REQUEST;
 import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_BIND_REQUEST;
 import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_UNBIND_REQUEST;
@@ -52,7 +53,9 @@ import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.testng.ForgeRockTestCase;
+import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -88,6 +91,10 @@ public class DSMLServletTestCase extends ForgeRockTestCase
   /** Same, with an authRequest which turns into a SASL authzid on each bind. */
   private static final String TWO_AUTHZ_BATCHES =
       soap11(abandonBatch("1", "dn:cn=first") + abandonBatch("2", "dn:cn=second"));
+
+  /** Same, but only the first batch request asks for an authorization identity. */
+  private static final String MIXED_AUTHZ_BATCHES =
+      soap11(abandonBatch("1", "dn:cn=first") + abandonBatch("2", null));
 
   private static String abandonBatch(String requestID, String authzPrincipal)
   {
@@ -273,17 +280,7 @@ public class DSMLServletTestCase extends ForgeRockTestCase
   {
     try (FakeLdapServer server = new FakeLdapServer())
     {
-      Map<String, String> params = new LinkedHashMap<>();
-      // turn the HTTP credentials into a SASL PLAIN authid, so that the
-      // authRequest of each batch request becomes an authzid
-      params.put("ldap.authzidtypeisid", "true");
-
-      Map<String, String> headers = new LinkedHashMap<>();
-      headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
-      headers.put("Authorization", "Basic " + Base64.getEncoder()
-          .encodeToString("user:password".getBytes(StandardCharsets.UTF_8)));
-
-      String response = doPost(server.getPort(), params, headers, TWO_AUTHZ_BATCHES);
+      String response = doAuthzPost(server, TWO_AUTHZ_BATCHES);
 
       assertFalse(response.contains("errorResponse"), response);
 
@@ -292,7 +289,46 @@ public class DSMLServletTestCase extends ForgeRockTestCase
           list(OP_TYPE_BIND_REQUEST, OP_TYPE_ABANDON_REQUEST, OP_TYPE_UNBIND_REQUEST,
                OP_TYPE_BIND_REQUEST, OP_TYPE_ABANDON_REQUEST, OP_TYPE_UNBIND_REQUEST),
           "the bind of the second batch request did not happen");
+      assertEquals(server.getReceivedAuthzIds(), asList("dn:cn=first", "dn:cn=second"),
+          "each batch request must bind under the authzid of its own authRequest");
     }
+  }
+
+  /**
+   * A batch request which carries no authRequest must not inherit the
+   * authorization identity of the previous one: the shared connection options
+   * have to be cleared whether or not this batch request sets an authzid.
+   */
+  @Test
+  public void testAuthzIdDoesNotSurviveIntoBatchRequestWithoutAuthRequest() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      String response = doAuthzPost(server, MIXED_AUTHZ_BATCHES);
+
+      assertFalse(response.contains("errorResponse"), response);
+
+      server.awaitDisconnect(2);
+      assertEquals(server.getReceivedAuthzIds(), asList("dn:cn=first", ""),
+          "the second batch request ran under the authorization identity of the first one");
+    }
+  }
+
+  /**
+   * Posts the given SOAP body with HTTP credentials turned into a SASL PLAIN
+   * authid, so that the authRequest of a batch request becomes an authzid.
+   */
+  private String doAuthzPost(FakeLdapServer server, String body) throws Exception
+  {
+    Map<String, String> params = new LinkedHashMap<>();
+    params.put("ldap.authzidtypeisid", "true");
+
+    Map<String, String> headers = new LinkedHashMap<>();
+    headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
+    headers.put("Authorization", "Basic " + Base64.getEncoder()
+        .encodeToString("user:password".getBytes(StandardCharsets.UTF_8)));
+
+    return doPost(server.getPort(), params, headers, body);
   }
 
   /** Runs {@code doPost} against a servlet configured to use the given LDAP port. */
@@ -329,14 +365,16 @@ public class DSMLServletTestCase extends ForgeRockTestCase
 
   /**
    * A minimal LDAP endpoint which answers the bind request with a success
-   * result and records the type of every message it receives. Connections are
-   * served one after the other, so that a SOAP body holding several batch
-   * requests can be exercised.
+   * result and records the type of every message it receives, as well as the
+   * authorization identity of every SASL bind. Connections are served one after
+   * the other, so that a SOAP body holding several batch requests can be
+   * exercised.
    */
   private static final class FakeLdapServer implements Closeable
   {
     private final ServerSocket serverSocket;
     private final List<Byte> receivedOpTypes = new CopyOnWriteArrayList<>();
+    private final List<String> receivedAuthzIds = new CopyOnWriteArrayList<>();
     private final Object lock = new Object();
     private int closedConnections;
     private volatile Exception failure;
@@ -358,6 +396,12 @@ public class DSMLServletTestCase extends ForgeRockTestCase
     List<Byte> getReceivedOpTypes()
     {
       return new ArrayList<>(receivedOpTypes);
+    }
+
+    /** The authorization identity of every SASL bind, in the order received. */
+    List<String> getReceivedAuthzIds()
+    {
+      return new ArrayList<>(receivedAuthzIds);
     }
 
     void awaitDisconnect() throws InterruptedException
@@ -429,10 +473,28 @@ public class DSMLServletTestCase extends ForgeRockTestCase
         receivedOpTypes.add(message.getProtocolOpType());
         if (message.getProtocolOpType() == OP_TYPE_BIND_REQUEST)
         {
+          recordAuthzId(message.getBindRequestProtocolOp());
           writer.writeMessage(new LDAPMessage(message.getMessageID(),
               new BindResponseProtocolOp(LDAPResultCode.SUCCESS)));
         }
       }
+    }
+
+    /**
+     * Records the authorization identity of a SASL bind. The credentials of
+     * SASL PLAIN are "authzid NUL authid NUL password", with an empty authzid
+     * when the client asked for none.
+     */
+    private void recordAuthzId(BindRequestProtocolOp bindRequest)
+    {
+      ByteString credentials = bindRequest.getSASLCredentials();
+      if (credentials == null)
+      {
+        return;
+      }
+      String plain = credentials.toString();
+      int separator = plain.indexOf('\0');
+      receivedAuthzIds.add(separator >= 0 ? plain.substring(0, separator) : plain);
     }
 
     private void recordFailure(Exception e)
