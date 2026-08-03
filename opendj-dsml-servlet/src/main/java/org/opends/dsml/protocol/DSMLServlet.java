@@ -165,6 +165,9 @@ public class DSMLServlet extends HttpServlet {
    */
   @Override
   public void init(ServletConfig config) throws ServletException {
+    // Let GenericServlet keep the configuration: getServletContext() relies on
+    // it, and it is the only logging facility available at runtime.
+    super.init(config);
     try {
       hostName = stringValue(config, HOST);
       port = Integer.valueOf(stringValue(config, PORT));
@@ -333,7 +336,6 @@ public class DSMLServlet extends HttpServlet {
     connOptions.setUseSSL(useSSL);
     connOptions.setStartTLS(useStartTLS);
 
-    LDAPConnection connection = null;
     BatchRequest batchRequest = null;
 
     // Keep the Servlet input stream buffered in case the SOAP un-marshalling
@@ -429,12 +431,14 @@ public class DSMLServlet extends HttpServlet {
             bindPassword = unencoded.substring(colon + 1);
           }
         } catch (final LocalizedIllegalArgumentException ex) {
-          // user/DN:password parsing error
+          // user/DN:password parsing error. Keep reading the headers: the
+          // Content-Type may still be ahead, and it decides which SOAP
+          // version the error is reported with.
           batchResponses.add(
             createErrorResponse(objFactory,
                   new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
                   LocalizableMessage.raw(ex.getMessage()))));
-          break;
+          continue;
         }
       }
       StringTokenizer tk = new StringTokenizer(headerVal, ",");
@@ -491,12 +495,13 @@ public class DSMLServlet extends HttpServlet {
         throw new ServletException(e.getMessage());
       }
       if ( batchResponses.isEmpty() ) {
-        ErrorResponse errorResponse = objFactory.createErrorResponse();
-        errorResponse.setType(MALFORMED_REQUEST);
-        errorResponse.setMessage(
-            "Content-Type does not match SOAP 1.1 or SOAP 1.2");
+        // Nothing has been read from the stream yet, so the SAX pass can still
+        // recover the requestID and let the client correlate the reply.
         batchResponses.add(
-            objFactory.createBatchResponseErrorResponse(errorResponse));
+            createXMLParsingErrorResponse(is,
+                                          objFactory,
+                                          batchResponse,
+                                          "Content-Type does not match SOAP 1.1 or SOAP 1.2"));
       }
     }
 
@@ -548,7 +553,12 @@ public class DSMLServlet extends HttpServlet {
            */
           if (batchRequest.authRequest != null) {
             if (authenticationIsID) {
-              // If we are using SASL, then use the bind authz.
+              // If we are using SASL, then use the bind authz. The options are
+              // shared by all the batch requests of this SOAP body, and
+              // addSASLProperty() appends to the values of a key: drop the
+              // authzid of the previous batch request, as SASL PLAIN rejects a
+              // multi-valued one.
+              connOptions.getSASLProperties().remove("authzid");
               connOptions.addSASLProperty("authzid=" +
                   batchRequest.authRequest.getPrincipal());
               authzInBind = true;
@@ -564,31 +574,31 @@ public class DSMLServlet extends HttpServlet {
 
           boolean connected = false;
 
+          // Each batch request gets its own connection: the previous one has
+          // been closed by the finally block below.
+          LDAPConnection connection =
+              new LDAPConnection(hostName, port, connOptions);
           try {
-            if ( connection == null ) {
-              connection = new LDAPConnection(hostName, port, connOptions);
-              try {
-
-                connection.connectToHost(bindDN, bindPassword);
-                if (authzInControl)
-                {
-                  proxyAuthzControl = checkAuthzControl(connection,
-                      batchRequest.authRequest.getPrincipal());
-                }
-                if (authzInBind || authzInControl)
-                {
-                  LDAPResult authResponse = objFactory.createLDAPResult();
-                  ResultCode code = ResultCodeFactory.create(objFactory,
-                      LDAPResultCode.SUCCESS);
-                  authResponse.setResultCode(code);
-                  batchResponses.add(
-                      objFactory.createBatchResponseAuthResponse(authResponse));
-                }
-                connected = true;
-              } catch (LDAPConnectionException e) {
-                // if connection failed, return appropriate error response
-                batchResponses.add(createErrorResponse(objFactory, e));
+            try {
+              connection.connectToHost(bindDN, bindPassword);
+              if (authzInControl)
+              {
+                proxyAuthzControl = checkAuthzControl(connection,
+                    batchRequest.authRequest.getPrincipal());
               }
+              if (authzInBind || authzInControl)
+              {
+                LDAPResult authResponse = objFactory.createLDAPResult();
+                ResultCode code = ResultCodeFactory.create(objFactory,
+                    LDAPResultCode.SUCCESS);
+                authResponse.setResultCode(code);
+                batchResponses.add(
+                    objFactory.createBatchResponseAuthResponse(authResponse));
+              }
+              connected = true;
+            } catch (LDAPConnectionException e) {
+              // if connection failed, return appropriate error response
+              batchResponses.add(createErrorResponse(objFactory, e));
             }
             if ( connected ) {
               List<DsmlMessage> list = batchRequest.getBatchRequests();
@@ -620,11 +630,8 @@ public class DSMLServlet extends HttpServlet {
             }
           } finally {
             // close connection to LDAP server, whatever happened while
-            // processing the batch, and do not reuse it for the next one
-            if ( connection != null ) {
-              connection.close(nextMessageID);
-              connection = null;
-            }
+            // processing the batch
+            connection.close(nextMessageID);
           }
         }
       }
@@ -634,8 +641,11 @@ public class DSMLServlet extends HttpServlet {
       marshaller.marshal(objFactory.createBatchResponse(batchResponse), doc);
       sendResponse(doc, messageFactory, messageContentType, res);
     } catch (Exception e) {
-      // the client gets an empty response: at least make the cause visible
-      Logger.getLogger(PKG_NAME).log(Level.SEVERE, "Unable to send the DSML response", e);
+      // The client gets an empty response: at least make the cause visible.
+      // The container log is the only usable sink here, as connectToHost()
+      // turns java.util.logging off for the whole JVM and the war ships no
+      // SLF4J binding.
+      getServletContext().log("Unable to send the DSML response", e);
     }
 
   }
