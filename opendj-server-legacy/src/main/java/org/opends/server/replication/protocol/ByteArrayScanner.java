@@ -284,7 +284,7 @@ public class ByteArrayScanner
     {
       return CSN.valueOf(nextString());
     }
-    catch (IndexOutOfBoundsException e)
+    catch (LocalizedIllegalArgumentException | IndexOutOfBoundsException e)
     {
       throw new DataFormatException(e.getMessage());
     }

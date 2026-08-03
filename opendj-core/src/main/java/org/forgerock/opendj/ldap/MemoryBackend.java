@@ -649,7 +649,9 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             return Integer.parseInt(cookie);
         } catch (final NumberFormatException e) {
             throw newLdapException(newResult(ResultCode.PROTOCOL_ERROR)
-                    .setDiagnosticMessage("Invalid paged results cookie: " + cookie));
+                    .setDiagnosticMessage(
+                            "Invalid paged results cookie: " + pagedResults.getCookie().toHexString())
+                    .setCause(e));
         }
     }
 

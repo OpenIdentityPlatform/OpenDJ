@@ -58,11 +58,14 @@ public class CachedConnection implements Connection {
         final String ttl = System.getProperty(TTL_PROPERTY);
         if (ttl != null) {
             try {
-                return Long.parseLong(ttl.trim());
-            } catch (NumberFormatException e) {
-                logger.warn(LocalizableMessage.raw("Ignoring invalid value \"%s\" of the %s property, using %d ms",
-                    ttl, TTL_PROPERTY, DEFAULT_TTL_MS));
+                final long millis = Long.parseLong(ttl.trim());
+                if (millis >= 0) {
+                    return millis;
+                }
+            } catch (NumberFormatException ignored) {
             }
+            logger.warn(LocalizableMessage.raw("Ignoring invalid value \"%s\" of the %s property, using %d ms",
+                ttl, TTL_PROPERTY, DEFAULT_TTL_MS));
         }
         return DEFAULT_TTL_MS;
     }

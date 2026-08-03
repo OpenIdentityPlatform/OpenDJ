@@ -699,6 +699,11 @@ class ReplicationEnvironment implements ChangelogStateProvider
       }
       return new CSN(line);
     }
+    catch(LocalizedIllegalArgumentException e)
+    {
+      throw new ChangelogException(ERR_CHANGELOG_INVALID_REPLICA_OFFLINE_STATE_FILE.get(
+          domainDN.toString(), offlineFile.getPath()), e);
+    }
     catch(IOException e)
     {
       throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_READ_REPLICA_OFFLINE_STATE_FILE.get(

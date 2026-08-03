@@ -575,7 +575,7 @@ public final class SubtreeSpecification
       catch (NumberFormatException e)
       {
         // The token matches the integer pattern but is too big to fit in an int.
-        throw new InputMismatchException(e.getMessage());
+        throw new InputMismatchException();
       }
     }
 

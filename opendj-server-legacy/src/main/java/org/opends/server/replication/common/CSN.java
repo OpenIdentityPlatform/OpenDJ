@@ -74,6 +74,8 @@ public class CSN implements Serializable, Comparable<CSN>
    * @param s
    *          The string to be parsed.
    * @return The parsed CSN.
+   * @throws LocalizedIllegalArgumentException
+   *           If the provided string is not a valid {@link #toString()} representation of a CSN
    * @see #toString()
    */
   public static CSN valueOf(String s)
