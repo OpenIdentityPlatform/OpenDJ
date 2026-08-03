@@ -14,6 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011 profiq s.r.o.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools;
 
@@ -291,10 +292,10 @@ public class InstallDS extends ConsoleApplication
     }
 
     lastResetDirectoryManagerDN = DN.valueOf(argParser.directoryManagerDNArg.getDefaultValue());
-    lastResetLdapPort = Integer.parseInt(argParser.ldapPortArg.getDefaultValue());
-    lastResetLdapsPort = Integer.parseInt(argParser.ldapsPortArg.getDefaultValue());
-    lastResetAdminConnectorPort = Integer.parseInt(argParser.adminConnectorPortArg.getDefaultValue());
-    lastResetJmxPort = Integer.parseInt(argParser.jmxPortArg.getDefaultValue());
+    lastResetLdapPort = argParser.ldapPortArg.getDefaultIntValue(-1);
+    lastResetLdapsPort = argParser.ldapsPortArg.getDefaultIntValue(-1);
+    lastResetAdminConnectorPort = argParser.adminConnectorPortArg.getDefaultIntValue(-1);
+    lastResetJmxPort = argParser.jmxPortArg.getDefaultIntValue(-1);
 
     // Validate user provided data
     try
@@ -758,8 +759,15 @@ public class InstallDS extends ConsoleApplication
     }
     else if (argParser.sampleDataArg.isPresent())
     {
-      dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDNs,
-          Integer.valueOf(argParser.sampleDataArg.getValue()));
+      try
+      {
+        dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDNs, argParser.sampleDataArg.getIntValue());
+      }
+      catch (final ArgumentException ae)
+      {
+        errorMessages.add(ae.getMessageObject());
+        dataOptions = NewSuffixOptions.createEmpty(baseDNs);
+      }
     }
     else
     {

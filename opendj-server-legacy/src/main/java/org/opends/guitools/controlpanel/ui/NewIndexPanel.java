@@ -53,6 +53,7 @@ import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.quicksetup.util.Utils;
 import org.forgerock.opendj.ldap.schema.Schema;
 
 /** Panel that appears when the user defines a new index. */
@@ -339,7 +340,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       super(info, dlg);
       backendSet.add(backendName.getText());
       attributeName = getAttributeName();
-      entryLimitValue = Integer.parseInt(entryLimit.getText());
+      entryLimitValue = Utils.parseIntOrDefault(entryLimit.getText(), DEFAULT_ENTRY_LIMIT);
       indexTypes = getTypes();
     }
 

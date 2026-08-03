@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -575,7 +576,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
 
         private HostPort getHostPort()
         {
-          return new HostPort(hostName.getText().trim(), Integer.valueOf(port.getText().trim()));
+          return new HostPort(hostName.getText().trim(), Utils.parseIntOrDefault(port.getText(), -1));
         }
 
         @Override

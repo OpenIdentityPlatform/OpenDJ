@@ -3326,7 +3326,7 @@ public class Installer extends GuiApplication
 
       if (errorMsgs.isEmpty())
       {
-        port = Integer.parseInt(sPort);
+        port = Utils.parseIntOrDefault(sPort, -1);
         // Try to connect
         boolean[] globalAdmin = { hasGlobalAdministrators };
         DN[] effectiveDn = { dn };
@@ -3907,7 +3907,7 @@ public class Installer extends GuiApplication
     ui.displayFieldInvalid(FieldName.NUMBER_ENTRIES, !fieldIsValid);
     if (validBaseDn && localErrorMsgs.isEmpty())
     {
-      return NewSuffixOptions.createAutomaticallyGenerated(baseDn, Integer.parseInt(nEntries));
+      return NewSuffixOptions.createAutomaticallyGenerated(baseDn, Utils.parseIntOrDefault(nEntries, 0));
     }
     errorMsgs.addAll(localErrorMsgs);
 

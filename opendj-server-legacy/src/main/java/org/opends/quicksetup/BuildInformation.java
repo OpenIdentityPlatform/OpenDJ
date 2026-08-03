@@ -275,7 +275,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
    * @return String representing the major version
    */
   public Integer getMajorVersion() {
-    return Integer.valueOf(values.get(MAJOR_VERSION));
+    return getVersionNumber(MAJOR_VERSION);
   }
 
   /**
@@ -284,7 +284,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
    * @return String representing the minor version
    */
   public Integer getMinorVersion() {
-    return Integer.valueOf(values.get(MINOR_VERSION));
+    return getVersionNumber(MINOR_VERSION);
   }
 
   /**
@@ -293,7 +293,24 @@ public class BuildInformation implements Comparable<BuildInformation> {
    * @return String representing the point version
    */
   public Integer getPointVersion() {
-    return Integer.valueOf(values.get(POINT_VERSION));
+    return getVersionNumber(POINT_VERSION);
+  }
+
+  /**
+   * Returns the number held by the provided version property, or zero if the
+   * build information does not hold a number for it.
+   *
+   * @param versionProperty the name of the version property
+   * @return the number held by the property
+   */
+  private Integer getVersionNumber(String versionProperty) {
+    try {
+      return Integer.valueOf(values.get(versionProperty));
+    } catch (NumberFormatException e) {
+      // The build information does not hold a version number: treat it as unknown
+      // rather than failing the version comparison with a runtime exception.
+      return 0;
+    }
   }
 
   /**
