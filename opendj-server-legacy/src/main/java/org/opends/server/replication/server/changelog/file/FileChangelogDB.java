@@ -290,8 +290,10 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
         // it may already have drained domainToReplicaDBs before this domainMap was inserted into
         // it, in which case nothing would ever shutdown a replicaDB created here.
         // Reading false instead means shutdownDB() has not flipped the flag yet, hence has not
-        // created its iterator yet either: it will see this domainMap, which was inserted before
-        // this monitor was acquired, and will have to block on this same monitor to drain it.
+        // created its iterator yet either: since ConcurrentHashMap iterators traverse the
+        // elements as they existed upon construction of the iterator, it will see this domainMap,
+        // which was inserted before this monitor was acquired, and will have to block on this
+        // same monitor to drain it.
         return null;
       }
 

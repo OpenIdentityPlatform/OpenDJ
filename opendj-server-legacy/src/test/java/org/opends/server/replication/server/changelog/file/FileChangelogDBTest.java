@@ -16,9 +16,6 @@
 package org.opends.server.replication.server.changelog.file;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -28,12 +25,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.SoftAssertions;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -41,6 +40,8 @@ import org.testng.annotations.Test;
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.replication.server.changelog.file.FileChangelogTestFixtures.*;
+import static org.opends.server.util.StaticUtils.toLowerCase;
 
 /**
  * Test the FileChangelogDB class.
@@ -54,8 +55,6 @@ public class FileChangelogDBTest extends ReplicationTestCase
   private static final int RACING_SERVER_ID = 813;
   private static final long TIMEOUT_MS = 30000;
 
-  private final String cipherTransformation = "AES/CBC/PKCS5Padding";
-  private final int keyLength = 128;
   private DN TEST_ROOT_DN;
 
   @BeforeClass
@@ -93,19 +92,20 @@ public class FileChangelogDBTest extends ReplicationTestCase
     final AtomicReference<Throwable> shutdownFailure = new AtomicReference<>();
     try
     {
-      replicationServer = configureReplicationServer();
-      testRoot = createCleanDir();
-      changelogDB = new RaceableChangelogDB(replicationServer, testRoot.getPath(), createCryptoSuite());
+      replicationServer = configureReplicationServer(100, 5000);
+      testRoot = createCleanDir("FileChangelogDB");
+      changelogDB = new RaceableChangelogDB(replicationServer, testRoot.getPath(), createCryptoSuite(false));
       changelogDB.initializeDB();
 
       // the replica DB the drain will be held in, and which is the only one registered so far
       changelogDB.holdNextReplicaDBInItsShutdown();
       changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, DRAINED_SERVER_ID, replicationServer);
       // asserted, so that the test cannot pass by looking for a registration it cannot see
-      assertThat(replicaDBMonitorNames(DRAINED_SERVER_ID))
+      assertThat(DirectoryServer.getMonitorProviders().keySet())
           .as("the replica DB held by the drain is not registered")
-          .hasSize(1);
-      assertThat(replicaDBMonitorNames(RACING_SERVER_ID)).isEmpty();
+          .contains(replicaDBMonitorName(replicationServer, DRAINED_SERVER_ID));
+      assertThat(DirectoryServer.getMonitorProviders().keySet())
+          .doesNotContain(replicaDBMonitorName(replicationServer, RACING_SERVER_ID));
 
       final FileChangelogDB racedChangelogDB = changelogDB;
       final ReplicationServer racedReplicationServer = replicationServer;
@@ -155,95 +155,236 @@ public class FileChangelogDBTest extends ReplicationTestCase
           .as("a replica DB created while the changelog is being drained is released by nobody")
           .isInstanceOf(ChangelogException.class)
           .hasMessage(ERR_CANNOT_CREATE_REPLICA_DB_BECAUSE_CHANGELOG_DB_SHUTDOWN.get().toString());
-      softly.assertThat(replicaDBMonitorNames(RACING_SERVER_ID))
+      softly.assertThat(DirectoryServer.getMonitorProviders().keySet())
           .as("monitor providers of the replica DBs created during the shutdown")
-          .isEmpty();
+          .doesNotContain(replicaDBMonitorName(replicationServer, RACING_SERVER_ID));
       softly.assertAll();
 
       changelogDB.releaseDrain();
       shutdowner.join(TIMEOUT_MS);
       assertThat(shutdowner.isAlive()).as("the shutdown thread did not complete").isFalse();
       assertThat(shutdownFailure.get()).isNull();
-      assertThat(replicaDBMonitorNames(DRAINED_SERVER_ID))
+      assertThat(DirectoryServer.getMonitorProviders().keySet())
           .as("the drained replica DB is still registered")
-          .isEmpty();
+          .doesNotContain(replicaDBMonitorName(replicationServer, DRAINED_SERVER_ID));
     }
     finally
     {
       if (changelogDB != null)
       {
-        changelogDB.releaseCreator();
-        changelogDB.releaseDrain();
+        changelogDB.releaseAllHeldThreads();
         changelogDB.shutdownDB();
       }
       join(creator);
       join(shutdowner);
-      // release what the unfixed code leaks, so that it does not outlive this test
-      for (String monitorName : replicaDBMonitorNames(RACING_SERVER_ID))
-      {
-        DirectoryServer.getMonitorProviders().remove(monitorName);
-      }
+      deregisterLeakedReplicaDBMonitors(replicationServer);
       remove(replicationServer);
       TestCaseUtils.deleteDirectory(testRoot);
     }
   }
 
+  /**
+   * A replica DB whose creation wins the race against {@code shutdownDB()} - i.e. reads the
+   * shutdown flag as {@code false} under the domain map monitor - must be shut down by the drain:
+   * the drain builds its iterator over {@code domainToReplicaDBs} after the flag is flipped, so it
+   * sees the domain map inserted before that monitor was taken, and blocks on the monitor until
+   * the creation has published the new replica DB.
+   * <p>
+   * This is the branch the fix in {@code getExistingOrNewReplicaDB()} relies on: a drain rewritten
+   * to no longer traverse the map as it existed when the flag was flipped - snapshotting the keys
+   * beforehand, shutting the replication environment down first - would silently reintroduce the
+   * leak this test guards against.
+   * <p>
+   * The interleaving is driven step by step:
+   * <ol>
+   * <li>the creator thread creates its replica DB - the monitor provider is now registered - and
+   * is held before the DB is published into the domain map, still under the domain map
+   * monitor;</li>
+   * <li>the shutdown starts, flips the flag, and blocks on the domain map monitor the creator
+   * holds;</li>
+   * <li>the creator is released: it publishes the replica DB and exits the monitor, and the drain
+   * must then shut that replica DB down.</li>
+   * </ol>
+   */
+  @Test
+  public void replicaDBWinningTheRaceAgainstShutdownIsShutDownByTheDrain() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    ReplicationServer replicationServer = null;
+    RaceableChangelogDB changelogDB = null;
+    File testRoot = null;
+    Thread creator = null;
+    Thread shutdowner = null;
+    final AtomicReference<Throwable> creationFailure = new AtomicReference<>();
+    final AtomicReference<Throwable> shutdownFailure = new AtomicReference<>();
+    final AtomicReference<FileReplicaDB> createdReplicaDB = new AtomicReference<>();
+    try
+    {
+      replicationServer = configureReplicationServer(100, 5000);
+      testRoot = createCleanDir("FileChangelogDB");
+      changelogDB = new RaceableChangelogDB(replicationServer, testRoot.getPath(), createCryptoSuite(false));
+      changelogDB.initializeDB();
+
+      final FileChangelogDB racedChangelogDB = changelogDB;
+      final ReplicationServer racedReplicationServer = replicationServer;
+      changelogDB.holdNextReplicaDBOnceCreated();
+      creator = new Thread("FileChangelogDBTest replica DB creator")
+      {
+        @Override
+        public void run()
+        {
+          try
+          {
+            createdReplicaDB.set(racedChangelogDB
+                .getOrCreateReplicaDB(TEST_ROOT_DN, RACING_SERVER_ID, racedReplicationServer).getFirst());
+          }
+          catch (Throwable t)
+          {
+            creationFailure.set(t);
+          }
+        }
+      };
+      creator.start();
+      changelogDB.awaitCreatorHoldingItsCreatedReplicaDB();
+      // asserted, so that the deregistration below cannot pass by never having seen a registration
+      assertThat(DirectoryServer.getMonitorProviders().keySet())
+          .as("the racing replica DB is not registered")
+          .contains(replicaDBMonitorName(replicationServer, RACING_SERVER_ID));
+
+      shutdowner = new Thread("FileChangelogDBTest changelog shutdown")
+      {
+        @Override
+        public void run()
+        {
+          try
+          {
+            racedChangelogDB.shutdownDB();
+          }
+          catch (Throwable t)
+          {
+            shutdownFailure.set(t);
+          }
+        }
+      };
+      shutdowner.start();
+      awaitBlockedOnAMonitor(shutdowner);
+
+      changelogDB.releaseCreatedReplicaDB();
+      creator.join(TIMEOUT_MS);
+      shutdowner.join(TIMEOUT_MS);
+      assertThat(creator.isAlive()).as("the creator thread did not complete").isFalse();
+      assertThat(shutdowner.isAlive()).as("the shutdown thread did not complete").isFalse();
+      assertThat(creationFailure.get()).as("a creation which won the race must succeed").isNull();
+      assertThat(createdReplicaDB.get()).as("the replica DB which won the race").isNotNull();
+      assertThat(shutdownFailure.get()).isNull();
+      assertThat(DirectoryServer.getMonitorProviders().keySet())
+          .as("the replica DB which won the race is not shut down by the drain")
+          .doesNotContain(replicaDBMonitorName(replicationServer, RACING_SERVER_ID));
+    }
+    finally
+    {
+      if (changelogDB != null)
+      {
+        changelogDB.releaseAllHeldThreads();
+        changelogDB.shutdownDB();
+      }
+      join(creator);
+      join(shutdowner);
+      deregisterLeakedReplicaDBMonitors(replicationServer);
+      remove(replicationServer);
+      TestCaseUtils.deleteDirectory(testRoot);
+    }
+  }
+
+  /** Joins the provided thread, leaving a signal behind when it did not die within the timeout. */
   private void join(final Thread thread) throws InterruptedException
   {
     if (thread != null)
     {
       thread.join(TIMEOUT_MS);
-    }
-  }
-
-  /** Returns the names the replica DBs of the provided server id are registered under. */
-  private List<String> replicaDBMonitorNames(final int serverId)
-  {
-    final String prefix = "changelog for ds(" + serverId + ")";
-    final List<String> names = new ArrayList<>();
-    for (String monitorName : DirectoryServer.getMonitorProviders().keySet())
-    {
-      if (monitorName.startsWith(prefix))
+      if (thread.isAlive())
       {
-        names.add(monitorName);
+        final IllegalStateException hung = new IllegalStateException("Test thread " + thread.getName()
+            + " is still alive after " + TIMEOUT_MS + " ms: it may leak a live changelog into later tests");
+        hung.setStackTrace(thread.getStackTrace());
+        hung.printStackTrace();
+        thread.interrupt();
       }
     }
-    return names;
   }
 
-  private ReplicationServer configureReplicationServer() throws IOException, ConfigException
+  /**
+   * Waits until the provided thread is blocked acquiring a monitor: the domain map monitor held by
+   * the creator is the only one it can stay blocked on - the other locks on its way to the drain
+   * are only transiently contended, hence the two consecutive observations.
+   */
+  private static void awaitBlockedOnAMonitor(final Thread thread) throws InterruptedException
   {
-    return new ReplicationServer(
-        new ReplServerFakeConfiguration(findFreePort(), null, 0, 2, 5000, 100, null));
+    final long deadline = System.currentTimeMillis() + TIMEOUT_MS;
+    int blockedObservations = 0;
+    while (blockedObservations < 2)
+    {
+      if (!thread.isAlive())
+      {
+        throw new IllegalStateException(thread.getName() + " completed without blocking on the domain map monitor");
+      }
+      if (System.currentTimeMillis() > deadline)
+      {
+        throw new IllegalStateException(
+            "timed out waiting for " + thread.getName() + " to block on the domain map monitor");
+      }
+      blockedObservations = thread.getState() == Thread.State.BLOCKED ? blockedObservations + 1 : 0;
+      Thread.sleep(1);
+    }
   }
 
-  private CryptoSuite createCryptoSuite()
+  /**
+   * Returns the name the monitor provider of the provided replica DB is registered under, i.e. the
+   * name built by {@code FileReplicaDB.DbMonitorProvider.getMonitorInstanceName()}, lower-cased
+   * the way {@code DirectoryServer.registerMonitorProvider()} stores it.
+   */
+  private String replicaDBMonitorName(final ReplicationServer replicationServer, final int serverId)
   {
-    return getServerContext().getCryptoManager().newCryptoSuite(cipherTransformation, keyLength, false);
+    final ReplicationServerDomain domain = replicationServer.getReplicationServerDomain(TEST_ROOT_DN);
+    assertThat(domain).as("the domain scoping the monitor name of DS(" + serverId + ")").isNotNull();
+    return toLowerCase("Changelog for DS(" + serverId + "),cn=" + domain.getMonitorInstanceName());
   }
 
-  private File createCleanDir() throws IOException
+  /** Releases the monitor providers a regression leaks, so that they do not outlive this test. */
+  private void deregisterLeakedReplicaDBMonitors(final ReplicationServer replicationServer)
   {
-    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot
-            + File.separator + "build");
-    path = path + File.separator + "unit-tests" + File.separator + "FileChangelogDB";
-    final File testRoot = new File(path);
-    TestCaseUtils.deleteDirectory(testRoot);
-    testRoot.mkdirs();
-    return testRoot;
+    if (replicationServer == null || replicationServer.getReplicationServerDomain(TEST_ROOT_DN) == null)
+    {
+      return; // no replica DB was ever created, hence no monitor provider was ever registered
+    }
+    for (final int serverId : new int[] { RACING_SERVER_ID, DRAINED_SERVER_ID })
+    {
+      // deregister the provider instead of removing the map entry, so that the JMX MBean
+      // registered alongside it is released as well
+      final MonitorProvider<? extends MonitorProviderCfg> provider =
+          DirectoryServer.getMonitorProviders().get(replicaDBMonitorName(replicationServer, serverId));
+      if (provider != null)
+      {
+        DirectoryServer.deregisterMonitorProvider(provider);
+      }
+    }
   }
 
   /**
    * A changelog DB which lets a test hold a thread creating a replica DB right after it has read
-   * the shutdown flag, and hold the shutdown inside the drain of {@code domainToReplicaDBs}.
+   * the shutdown flag, hold it again once the replica DB is created but not yet published into the
+   * domain map, and hold the shutdown inside the drain of {@code domainToReplicaDBs}.
    */
   private static final class RaceableChangelogDB extends FileChangelogDB
   {
     private final AtomicBoolean holdNextCreation = new AtomicBoolean();
-    private final AtomicBoolean holdNextReplicaDB = new AtomicBoolean();
+    private final AtomicBoolean holdNextReplicaDBShutdown = new AtomicBoolean();
+    private final AtomicBoolean holdNextCreatedReplicaDB = new AtomicBoolean();
     private final CountDownLatch creatorIsInWindow = new CountDownLatch(1);
     private final CountDownLatch creatorIsReleased = new CountDownLatch(1);
+    private final CountDownLatch creatorHoldsItsCreatedReplicaDB = new CountDownLatch(1);
+    private final CountDownLatch createdReplicaDBIsReleased = new CountDownLatch(1);
     private final CountDownLatch drainIsInReplicaDBShutdown = new CountDownLatch(1);
     private final CountDownLatch drainIsReleased = new CountDownLatch(1);
 
@@ -268,11 +409,19 @@ public class FileChangelogDBTest extends ReplicationTestCase
     FileReplicaDB newReplicaDB(final int serverId, final DN baseDN, final ReplicationServer server,
         final CryptoSuite cryptoSuite, final ReplicationEnvironment replicationEnv) throws ChangelogException
     {
-      if (holdNextReplicaDB.compareAndSet(true, false))
+      if (holdNextReplicaDBShutdown.compareAndSet(true, false))
       {
         return new HeldOnShutdownReplicaDB(serverId, baseDN, server, cryptoSuite, replicationEnv);
       }
-      return super.newReplicaDB(serverId, baseDN, server, cryptoSuite, replicationEnv);
+      final FileReplicaDB replicaDB = super.newReplicaDB(serverId, baseDN, server, cryptoSuite, replicationEnv);
+      if (holdNextCreatedReplicaDB.compareAndSet(true, false))
+      {
+        // the replica DB exists and its monitor provider is registered, but it is not published
+        // into the domain map yet: hold the creator there, under the domain map monitor
+        creatorHoldsItsCreatedReplicaDB.countDown();
+        await(createdReplicaDBIsReleased);
+      }
+      return replicaDB;
     }
 
     void holdNextReplicaDBCreationBeforeItsDomainMapIsInserted()
@@ -282,12 +431,22 @@ public class FileChangelogDBTest extends ReplicationTestCase
 
     void holdNextReplicaDBInItsShutdown()
     {
-      holdNextReplicaDB.set(true);
+      holdNextReplicaDBShutdown.set(true);
+    }
+
+    void holdNextReplicaDBOnceCreated()
+    {
+      holdNextCreatedReplicaDB.set(true);
     }
 
     void awaitCreatorInWindow()
     {
       await(creatorIsInWindow);
+    }
+
+    void awaitCreatorHoldingItsCreatedReplicaDB()
+    {
+      await(creatorHoldsItsCreatedReplicaDB);
     }
 
     void awaitDrainInReplicaDBShutdown()
@@ -300,9 +459,21 @@ public class FileChangelogDBTest extends ReplicationTestCase
       creatorIsReleased.countDown();
     }
 
+    void releaseCreatedReplicaDB()
+    {
+      createdReplicaDBIsReleased.countDown();
+    }
+
     void releaseDrain()
     {
       drainIsReleased.countDown();
+    }
+
+    void releaseAllHeldThreads()
+    {
+      releaseCreator();
+      releaseCreatedReplicaDB();
+      releaseDrain();
     }
 
     /** A replica DB which holds the thread shutting it down until the test releases it. */
