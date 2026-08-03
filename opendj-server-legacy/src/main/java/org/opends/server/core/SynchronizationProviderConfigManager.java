@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -303,7 +304,7 @@ public class SynchronizationProviderConfigManager
     try
     {
       // Instantiate the class.
-      provider = theClass.newInstance();
+      provider = theClass.getDeclaredConstructor().newInstance();
     } catch (Exception e)
     {
       // Handle the exception: put a message in the unacceptable reasons.
@@ -355,7 +356,7 @@ public class SynchronizationProviderConfigManager
     {
       Class<? extends SynchronizationProvider> theClass =
           pd.loadClass(className, SynchronizationProvider.class);
-      SynchronizationProvider provider = theClass.newInstance();
+      SynchronizationProvider provider = theClass.getDeclaredConstructor().newInstance();
 
       return provider.isConfigurationAcceptable(configuration,
           unacceptableReasons);

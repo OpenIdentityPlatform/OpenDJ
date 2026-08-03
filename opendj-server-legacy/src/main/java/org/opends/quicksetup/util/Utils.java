@@ -1085,7 +1085,7 @@ public class Utils
     try
     {
       Class<?> c = Class.forName(Utils.CUSTOMIZATION_CLASS_NAME);
-      Object obj = c.newInstance();
+      Object obj = c.getDeclaredConstructor().newInstance();
       return valueClass.cast(c.getField(fieldName).get(obj));
     }
     catch (Exception ignored)

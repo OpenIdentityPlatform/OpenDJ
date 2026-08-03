@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -269,7 +270,7 @@ public class ExtendedOperationConfigManager implements
     {
       Class<? extends ExtendedOperationHandler> theClass =
           pd.loadClass(className, ExtendedOperationHandler.class);
-      ExtendedOperationHandler extendedOperationHandler = theClass.newInstance();
+      ExtendedOperationHandler extendedOperationHandler = theClass.getDeclaredConstructor().newInstance();
 
       extendedOperationHandler.initializeExtendedOperationHandler(config);
 
@@ -294,7 +295,7 @@ public class ExtendedOperationConfigManager implements
     try {
       Class<? extends ExtendedOperationHandler> theClass =
           pd.loadClass(className, ExtendedOperationHandler.class);
-      ExtendedOperationHandler extOpHandler = theClass.newInstance();
+      ExtendedOperationHandler extOpHandler = theClass.getDeclaredConstructor().newInstance();
 
       return extOpHandler.isConfigurationAcceptable(config, unacceptableReasons);
     }

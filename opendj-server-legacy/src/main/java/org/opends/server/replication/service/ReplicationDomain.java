@@ -2401,7 +2401,7 @@ public abstract class ReplicationDomain
         logger.trace("[IE] Domain=" + this
           + " ends initialization with exception=" + ieCtx.getException()
           + " connected=" + broker.isConnected()
-          + " task=" + initFromTask
+          + " task=" + (initFromTask != null ? initFromTask.getTaskEntryDN() : null)
           + " attempt=" + ieCtx.attemptCnt);
       }
 

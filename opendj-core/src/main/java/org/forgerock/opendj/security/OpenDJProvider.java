@@ -123,7 +123,7 @@ public final class OpenDJProvider extends Provider {
     }
 
     OpenDJProvider(final KeyStoreParameters defaultConfig) {
-        super("OpenDJ", 1.0D, "OpenDJ LDAP security provider");
+        super("OpenDJ", "1.0", "OpenDJ LDAP security provider");
         this.defaultConfig = defaultConfig;
         AccessController.doPrivileged(new PrivilegedAction<Void>() {
             public Void run() {

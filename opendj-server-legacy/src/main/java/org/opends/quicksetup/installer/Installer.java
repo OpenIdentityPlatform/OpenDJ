@@ -3879,7 +3879,7 @@ public class Installer extends GuiApplication
     boolean fieldIsValid = true;
     final List<LocalizableMessage> localErrorMsgs = new LinkedList<>();
     final String nEntries = ui.getFieldStringValue(FieldName.NUMBER_ENTRIES);
-    if (nEntries == null || "".equals(nEntries.trim()))
+    if (nEntries == null || nEntries.trim().isEmpty())
     {
       localErrorMsgs.add(INFO_NO_NUMBER_ENTRIES.get());
       fieldIsValid = false;

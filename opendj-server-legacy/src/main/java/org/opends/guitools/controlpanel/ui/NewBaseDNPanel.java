@@ -648,7 +648,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     if (importDataFromLDIF.isSelected())
     {
       String ldifPath = path.getText();
-      if (ldifPath == null || "".equals(ldifPath.trim()))
+      if (ldifPath == null || ldifPath.trim().isEmpty())
       {
         errors.add(INFO_NO_LDIF_PATH.get());
         setSecondaryInvalid(lPath);

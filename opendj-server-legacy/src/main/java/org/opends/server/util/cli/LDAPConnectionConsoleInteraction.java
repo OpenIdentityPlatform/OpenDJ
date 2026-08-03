@@ -1047,7 +1047,7 @@ public class LDAPConnectionConsoleInteraction
           certificateNumber++;
           X509Certificate certif = (X509Certificate) keystore.getCertificate(alias);
           builder.addNumberedOption(INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_ALIAS.get(
-                                                                                alias, certif.getSubjectDN().getName()),
+                                                                                alias, certif.getSubjectX500Principal().getName()),
                                     MenuResult.success(alias));
         }
       }
@@ -1422,12 +1422,12 @@ public class LDAPConnectionConsoleInteraction
       }
 
       // Certificate DN
-      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_USER_DN.get(cert.getSubjectDN()));
+      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_USER_DN.get(cert.getSubjectX500Principal()));
       // certificate validity
       app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_VALIDITY.get(
           cert.getNotBefore(), cert.getNotAfter()));
       // certificate Issuer
-      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_ISSUER.get(cert.getIssuerDN()));
+      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_ISSUER.get(cert.getIssuerX500Principal()));
     }
   }
 
@@ -1480,7 +1480,7 @@ public class LDAPConnectionConsoleInteraction
     // User choice if to add the certificate to the trust store for the current session or permanently.
     for (final X509Certificate cert : chain)
     {
-      state.truststore.setCertificateEntry(cert.getSubjectDN().getName(), cert);
+      state.truststore.setCertificateEntry(cert.getSubjectX500Principal().getName(), cert);
     }
 
     // Update the trust manager
@@ -1517,7 +1517,7 @@ public class LDAPConnectionConsoleInteraction
 
     for (final X509Certificate cert : chain)
     {
-      keyStore.setCertificateEntry(cert.getSubjectDN().getName(), cert);
+      keyStore.setCertificateEntry(cert.getSubjectX500Principal().getName(), cert);
     }
 
     try (final FileOutputStream trustStoreOutputFile = new FileOutputStream(trustStorePath))

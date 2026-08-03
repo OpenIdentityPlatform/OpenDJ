@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 import java.util.List;
@@ -180,7 +181,7 @@ public class LogRotationPolicyConfigManager implements
       Class<? extends RotationPolicy> theClass =
           pd.loadClass(className, RotationPolicy.class);
       // Explicitly cast to check that implementation implements the correct interface.
-      RotationPolicy<?> retentionPolicy = theClass.newInstance();
+      RotationPolicy<?> retentionPolicy = theClass.getDeclaredConstructor().newInstance();
       // next line is here to ensure that eclipse does not remove the cast in the line above
       retentionPolicy.hashCode();
       return true;
@@ -199,7 +200,7 @@ public class LogRotationPolicyConfigManager implements
     try {
       Class<? extends RotationPolicy> theClass =
           pd.loadClass(className, RotationPolicy.class);
-      RotationPolicy<LogRotationPolicyCfg> rotationPolicy = theClass.newInstance();
+      RotationPolicy<LogRotationPolicyCfg> rotationPolicy = theClass.getDeclaredConstructor().newInstance();
       rotationPolicy.initializeLogRotationPolicy(config);
       return rotationPolicy;
     } catch (Exception e) {

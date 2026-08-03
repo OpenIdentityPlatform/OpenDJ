@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.task;
 
@@ -1857,7 +1858,7 @@ public class TaskScheduler
     Task task;
     try
     {
-      task = (Task) taskClass.newInstance();
+      task = (Task) taskClass.getDeclaredConstructor().newInstance();
     }
     catch (Exception e)
     {

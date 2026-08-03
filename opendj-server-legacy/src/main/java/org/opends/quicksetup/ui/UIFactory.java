@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.ui;
 
@@ -1479,7 +1480,7 @@ class TextFieldFocusListener implements FocusListener
   @Override
   public void focusGained(FocusEvent e)
   {
-    if (tf.getText() == null || "".equals(tf.getText()))
+    if (tf.getText() == null || tf.getText().isEmpty())
     {
       tf.setText(" ");
       tf.selectAll();
