@@ -1281,7 +1281,15 @@
 	          	  <forkCount>1</forkCount>
 	          	  <parallel>none</parallel>
 	          	  <runOrder>alphabetical</runOrder>
-	          	  <rerunFailingTestsCount>3</rerunFailingTestsCount>
+	          	  <!--
+	          	    No <rerunFailingTestsCount> here on purpose. These tests run with the TestNG
+	          	    provider, which ignores that option: up to and including surefire/failsafe 3.5.x
+	          	    it is implemented by the JUnit 4/5 providers only (SUREFIRE-2134 is still open).
+	          	    Nothing was ever rerun here - neither plain @Test methods nor @DataProvider
+	          	    driven ones - so the setting only looked like a safety net, see issue #801.
+	          	    It starts working with surefire 3.6.0, where TestNG is executed through the
+	          	    unified JUnit Platform provider; moving to it is a migration of its own.
+	          	  -->
                 </configuration>
               </execution>
             </executions>
