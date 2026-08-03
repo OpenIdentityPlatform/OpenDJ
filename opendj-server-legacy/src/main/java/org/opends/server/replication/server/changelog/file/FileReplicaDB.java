@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -113,7 +114,17 @@ class FileReplicaDB
     this.replicationServer = replicationServer;
     this.replicationEnv = replicationEnv;
     this.log = createLog(replicationEnv, cryptoSuite);
-    this.csnLimits = new CSNLimits(readOldestCSN(), readNewestCSN());
+    try
+    {
+      this.csnLimits = new CSNLimits(readOldestCSN(), readNewestCSN());
+    }
+    catch (ChangelogException | RuntimeException e)
+    {
+      // This instance never escapes the failed constructor, so nobody could ever call shutdown()
+      // to release the reference taken on the log by createLog().
+      log.close();
+      throw e;
+    }
 
     DirectoryServer.deregisterMonitorProvider(dbMonitor);
     DirectoryServer.registerMonitorProvider(dbMonitor);
