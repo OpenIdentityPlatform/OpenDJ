@@ -52,6 +52,7 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.testng.ForgeRockTestCase;
@@ -62,13 +63,17 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.testng.annotations.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * Tests the error handling of {@link DSMLServlet#doPost}: an abandon request
  * used to trigger a {@code NullPointerException} which leaked the LDAP
  * connection, a request without a usable Content-Type header used to trigger a
- * {@code NullPointerException} as well, and the second batch request of a SOAP
- * body used to be silently skipped.
+ * {@code NullPointerException} as well, the second batch request of a SOAP
+ * body used to be silently skipped, and every batch request of a SOAP body
+ * used to be answered inside a single shared batchResponse.
  */
 @SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "dsml" })
@@ -80,6 +85,8 @@ public class DSMLServletTestCase extends ForgeRockTestCase
   private static final String SOAP_1_2_CONTENT_TYPE = "application/soap+xml";
   /** SOAP 1.2 envelope namespace, as it appears in the reply. */
   private static final String SOAP_1_2_NAMESPACE = "http://www.w3.org/2003/05/soap-envelope";
+  /** DSMLv2 core namespace. */
+  private static final String DSML_NAMESPACE = "urn:oasis:names:tc:DSML:2:0:core";
 
   private static final String ABANDON_BATCH =
       soap11(abandonBatch("1", null));
@@ -98,7 +105,7 @@ public class DSMLServletTestCase extends ForgeRockTestCase
 
   private static String abandonBatch(String requestID, String authzPrincipal)
   {
-    return "<batchRequest xmlns=\"urn:oasis:names:tc:DSML:2:0:core\" requestID=\"" + requestID + "\">"
+    return "<batchRequest xmlns=\"" + DSML_NAMESPACE + "\" requestID=\"" + requestID + "\">"
         + (authzPrincipal != null ? "<authRequest principal=\"" + authzPrincipal + "\"/>" : "")
         + "<abandonRequest abandonID=\"1\"/>"
         + "</batchRequest>";
@@ -312,6 +319,117 @@ public class DSMLServletTestCase extends ForgeRockTestCase
       assertEquals(server.getReceivedAuthzIds(), asList("dn:cn=first", ""),
           "the second batch request ran under the authorization identity of the first one");
     }
+  }
+
+  /**
+   * Every batchRequest of a SOAP body is answered with a batchResponse of its
+   * own: a single shared one used to merge the elements of every batch
+   * request and to keep only the requestID of the last one.
+   */
+  @Test
+  public void testEachBatchRequestGetsItsOwnBatchResponse() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      String response = doAuthzPost(server, TWO_AUTHZ_BATCHES);
+
+      server.awaitDisconnect(2);
+      List<Element> replies = batchResponsesOf(response);
+      assertEquals(replies.size(), 2, response);
+      assertEquals(replies.get(0).getAttribute("requestID"), "1", response);
+      assertEquals(replies.get(1).getAttribute("requestID"), "2", response);
+      for (Element reply : replies)
+      {
+        List<Element> elements = childElements(reply);
+        assertEquals(elements.size(), 1,
+            "each batch request must keep its response elements to itself: " + response);
+        assertEquals(elements.get(0).getLocalName(), "authResponse", response);
+      }
+    }
+  }
+
+  /**
+   * A batchRequest which fails schema validation is answered inside its own
+   * batchResponse, under its own requestID: the SAX fallback used to recover
+   * the requestID of the first batchRequest of the body instead.
+   */
+  @Test
+  public void testMalformedBatchRequestIsAnsweredUnderItsOwnRequestID() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      Map<String, String> headers = new LinkedHashMap<>();
+      headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
+
+      String malformed = "<batchRequest xmlns=\"" + DSML_NAMESPACE + "\" requestID=\"2\">"
+          + "<bogusRequest/></batchRequest>";
+      String response =
+          doPost(server.getPort(), headers, soap11(abandonBatch("1", null) + malformed));
+
+      server.awaitDisconnect();
+      List<Element> replies = batchResponsesOf(response);
+      assertEquals(replies.size(), 2, response);
+      assertEquals(replies.get(0).getAttribute("requestID"), "1", response);
+      assertTrue(childElements(replies.get(0)).isEmpty(),
+          "an abandon request produces no response element: " + response);
+      assertEquals(replies.get(1).getAttribute("requestID"), "2", response);
+      List<Element> errors = childElements(replies.get(1));
+      assertEquals(errors.size(), 1, response);
+      assertEquals(errors.get(0).getLocalName(), "errorResponse", response);
+      assertEquals(errors.get(0).getAttribute("type"), "malformedRequest", response);
+      assertEquals(server.getReceivedOpTypes(),
+          list(OP_TYPE_BIND_REQUEST, OP_TYPE_ABANDON_REQUEST, OP_TYPE_UNBIND_REQUEST),
+          "only the valid batch request should have reached the directory server");
+    }
+  }
+
+  /** A SOAP body without any batchRequest is answered with a single, empty batchResponse. */
+  @Test
+  public void testEmptySoapBodyIsAnsweredWithEmptyBatchResponse() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      Map<String, String> headers = new LinkedHashMap<>();
+      headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
+
+      String response = doPost(server.getPort(), headers, soap11(""));
+
+      List<Element> replies = batchResponsesOf(response);
+      assertEquals(replies.size(), 1, response);
+      assertTrue(childElements(replies.get(0)).isEmpty(), response);
+      assertTrue(server.getReceivedOpTypes().isEmpty(),
+          "no connection to the directory server should have been opened");
+    }
+  }
+
+  /** The batchResponse elements of the reply, in document order. */
+  private static List<Element> batchResponsesOf(String response) throws Exception
+  {
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setNamespaceAware(true);
+    Document doc = factory.newDocumentBuilder()
+        .parse(new ByteArrayInputStream(response.getBytes(StandardCharsets.UTF_8)));
+    NodeList nodes = doc.getElementsByTagNameNS(DSML_NAMESPACE, "batchResponse");
+    List<Element> result = new ArrayList<>();
+    for (int i = 0; i < nodes.getLength(); i++)
+    {
+      result.add((Element) nodes.item(i));
+    }
+    return result;
+  }
+
+  private static List<Element> childElements(Element parent)
+  {
+    List<Element> result = new ArrayList<>();
+    NodeList children = parent.getChildNodes();
+    for (int i = 0; i < children.getLength(); i++)
+    {
+      if (children.item(i) instanceof Element)
+      {
+        result.add((Element) children.item(i));
+      }
+    }
+    return result;
   }
 
   /**
