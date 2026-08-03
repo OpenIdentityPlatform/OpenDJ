@@ -817,19 +817,8 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     }
 
     // If a ".startok" file already exists, then move it to an ".old" file.
+    // renameFile() deletes an existing ".old" file and reports a failure to do so.
     File oldFile = new File(oldFilePath);
-    try
-    {
-      if (oldFile.exists())
-      {
-        oldFile.delete();
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-    }
-
     File startOKFile = new File(startOKFilePath);
     try
     {

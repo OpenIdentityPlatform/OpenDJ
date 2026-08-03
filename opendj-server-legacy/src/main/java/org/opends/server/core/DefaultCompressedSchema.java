@@ -24,6 +24,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -229,7 +230,19 @@ public final class DefaultCompressedSchema extends CompressedSchema
 
         if (liveFile.exists())
         {
-          renameFile(liveFile, new File(liveFile.getAbsolutePath() + ".save"));
+          // Keeping a copy of the previous version is best effort only: save() is called from the
+          // entry encoding path, so failing here would turn a backup problem into a failed update.
+          final File saveFile = new File(liveFile.getAbsolutePath() + ".save");
+          try
+          {
+            renameFile(liveFile, saveFile);
+          }
+          catch (final IOException e)
+          {
+            logger.traceException(e);
+            logger.warn(WARN_COMPRESSEDSCHEMA_CANNOT_SAVE_PREVIOUS_DATA, liveFile, saveFile,
+                stackTraceToSingleLineString(e));
+          }
         }
         renameFile(tempFile, liveFile);
       }

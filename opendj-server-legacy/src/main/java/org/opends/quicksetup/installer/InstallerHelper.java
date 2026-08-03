@@ -977,13 +977,6 @@ public class InstallerHelper {
         writer.write(getJavaArgPropertyForScript(scriptName) + "=" + argument);
       }
     }
-
-    String libDir = Utils.getPath(
-        Utils.getInstancePathFromInstallPath(installPath), LIBRARIES_PATH_RELATIVE);
-    // Create directory if it doesn't exist yet
-    Files.createDirectories(new File(libDir).toPath());
-//    final String destinationFile = Utils.getPath(libDir, isWindows() ? SET_JAVA_PROPERTIES_FILE_WINDOWS
-//                                                                     : SET_JAVA_PROPERTIES_FILE_UNIX);
   }
 
   /**

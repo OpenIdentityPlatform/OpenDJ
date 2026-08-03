@@ -1249,22 +1249,9 @@ public class TaskScheduler
       writer.close();
 
 
-      // See if there is a ".save" file.  If so, then delete it.
-      File saveFile = getFileForPath(backingFilePath + ".save");
-      try
-      {
-        if (saveFile.exists())
-        {
-          saveFile.delete();
-        }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-
-
       // If there is an existing backing file, then rename it to ".save".
+      // renameFile() deletes an existing ".save" file and reports a failure to do so.
+      File saveFile = getFileForPath(backingFilePath + ".save");
       File backingFile = getFileForPath(backingFilePath);
       try
       {

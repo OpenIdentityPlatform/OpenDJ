@@ -866,7 +866,7 @@ public class ReferentialIntegrityPlugin
           }
         }
         if (!logFile.delete() || !logFile.createNewFile()) {
-          logger.error(ERR_PLUGIN_REFERENT_REPLACE_LOGFILE, logFileName);
+          logger.error(ERR_PLUGIN_REFERENT_CANNOT_REPLACE_LOGFILE, logFileName);
         }
       } catch (IOException io) {
         logger.error(ERR_PLUGIN_REFERENT_REPLACE_LOGFILE, io.getMessage());

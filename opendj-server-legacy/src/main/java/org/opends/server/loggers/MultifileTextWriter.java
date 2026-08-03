@@ -84,6 +84,16 @@ class MultifileTextWriter
   private long totalFilesRotated;
   private long totalFilesCleaned;
 
+  /**
+   * Set when the current file could not be renamed by {@link #rotate()} and cleared as soon as a
+   * rotation succeeds again. While it is set, size based rotations are not triggered from
+   * {@link #writeRecord(String)} and the failure is not logged again: the rotation is only retried
+   * from the {@code RotaterThread}, once per interval.
+   */
+  private boolean rotationFailed;
+  /** Same latch as {@link #rotationFailed}, for the log files a retention policy cannot delete. */
+  private boolean cleanupFailed;
+
   /** The underlying output stream. */
   private MeteredStream outputStream;
   /** The underlying buffered writer using the output stream. */
@@ -421,17 +431,28 @@ class MultifileTextWriter
             File[] files =
                 retentionPolicy.deleteFiles(writer.getNamingPolicy());
 
+            int cleanedCount = 0;
             for(File file : files)
             {
-              file.delete();
-              totalFilesCleaned++;
-              logger.trace("%s cleaned up log file %s", retentionPolicy, file);
+              if (file.delete())
+              {
+                cleanedCount++;
+                totalFilesCleaned++;
+                cleanupFailed = false;
+                logger.trace("%s cleaned up log file %s", retentionPolicy, file);
+              }
+              else if (!cleanupFailed)
+              {
+                // Only report the first failure: the same files are returned on every interval.
+                cleanupFailed = true;
+                logger.warn(WARN_LOGGER_ERROR_DELETING_FILE, file, retentionPolicy);
+              }
             }
 
-            if(files.length > 0)
+            if(cleanedCount > 0)
             {
               lastCleanTime = TimeThread.getCalendar();
-              lastCleanCount = files.length;
+              lastCleanCount = cleanedCount;
             }
           }
           catch(DirectoryException de)
@@ -549,7 +570,9 @@ class MultifileTextWriter
 
     synchronized(this)
     {
-      if(sizeLimit > 0 && outputStream.written + size + 1 >= sizeLimit)
+      // Once a rotation has failed the file stays over the size limit, so rotating it again for
+      // every single record would only repeat the failure. Leave the retry to the RotaterThread.
+      if(sizeLimit > 0 && !rotationFailed && outputStream.written + size + 1 >= sizeLimit)
       {
         rotate();
       }
@@ -585,9 +608,12 @@ class MultifileTextWriter
   }
 
   /**
-   * Tries to rotate the log files. If the new log file already exists, it
-   * tries to rename the file. On failure, all subsequent log write requests
-   * will throw exceptions.
+   * Tries to rotate the log files by renaming the current file to the name provided by the naming
+   * policy. When the rename fails, the current file is kept and appended to rather than truncated,
+   * the failure is reported once and the rotation is retried on the next interval.
+   * <p>
+   * Note that {@code File.renameTo} silently replaces the target on most platforms, so a rotation
+   * happening within the same second as a previous one overwrites the file it just rotated.
    */
   private synchronized void rotate()
   {
@@ -604,12 +630,7 @@ class MultifileTextWriter
 
     File currentFile = namingPolicy.getInitialName();
     File newFile = namingPolicy.getNextName();
-    // Do not overwrite an already rotated file: only report the failure.
     final boolean renamed = currentFile.renameTo(newFile);
-    if (!renamed)
-    {
-      logger.error(LocalizableMessage.raw("Unable to rotate log file %s to %s", currentFile, newFile));
-    }
 
     try
     {
@@ -627,8 +648,19 @@ class MultifileTextWriter
     {
       logger.trace("Log file %s rotated and renamed to %s", currentFile, newFile);
       totalFilesRotated++;
+      rotationFailed = false;
+      lastRotationTime = TimeThread.getCalendar();
     }
-    lastRotationTime = TimeThread.getCalendar();
+    else if (!rotationFailed)
+    {
+      // The latch must be set before logging: when this writer backs the error log, the message
+      // below comes straight back into writeRecord() on this thread. It has to reach a writer which
+      // has been re-opened above, and it must not trigger another rotation attempt.
+      rotationFailed = true;
+      logger.error(ERR_LOGGER_ERROR_ROTATING_FILE, currentFile, newFile);
+    }
+    // lastRotationTime is left untouched on failure so that a time based policy keeps asking for a
+    // rotation on every interval instead of waiting for a whole new period.
   }
 
   @Override
