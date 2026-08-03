@@ -393,7 +393,7 @@ public class LDAPAuthenticationHandler
     case SASL_MECHANISM_EXTERNAL:
       return doSASLExternal(bindDN, saslProperties, requestControls, responseControls);
     case SASL_MECHANISM_GSSAPI:
-      return doSASLGSSAPI(bindDN, bindPassword, saslProperties, requestControls, responseControls);
+      return doSASLGSSAPI(bindDN, bindPassword, saslProperties);
     case SASL_MECHANISM_PLAIN:
       return doSASLPlain(bindDN, bindPassword, saslProperties, requestControls, responseControls);
     default:
@@ -1747,10 +1747,6 @@ public class LDAPAuthenticationHandler
    *                           to process the SASL bind.  SASL EXTERNAL does not
    *                           take any properties, so this should be empty or
    *                           <CODE>null</CODE>.
-   * @param  requestControls   The set of controls to include the request to the
-   *                           server.
-   * @param  responseControls  A list to hold the set of controls included in
-   *                           the response from the server.
    *
    * @return  A message providing additional information about the bind if
    *          appropriate, or <CODE>null</CODE> if there is no special
@@ -1764,9 +1760,7 @@ public class LDAPAuthenticationHandler
    */
   private String doSASLGSSAPI(ByteSequence bindDN,
                      ByteSequence bindPassword,
-                     Map<String,List<String>> saslProperties,
-                     List<Control> requestControls,
-                     List<Control> responseControls)
+                     Map<String,List<String>> saslProperties)
          throws ClientException, LDAPException
   {
     String kdc     = null;

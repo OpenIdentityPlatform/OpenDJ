@@ -1112,7 +1112,14 @@ public class LDAPConnectionConsoleInteraction
     {
       arg.clearValues();
       arg.addValue(value);
-      commandBuilder.addArgument(arg);
+      if (obfuscated)
+      {
+        commandBuilder.addObfuscatedArgument(arg);
+      }
+      else
+      {
+        commandBuilder.addArgument(arg);
+      }
     }
   }
 
