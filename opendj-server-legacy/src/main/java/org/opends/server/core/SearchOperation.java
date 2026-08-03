@@ -282,7 +282,9 @@ public interface SearchOperation extends Operation
 
   /**
    * Indicates that the search phase is over and that any further entry comes from a persistent
-   * search. State kept to dereference aliases during the search phase is released.
+   * search. State kept to dereference aliases during the search phase is released. Entries can
+   * still reach {@link #returnEntry(Entry, List)} afterwards, as backends are free to report their
+   * own results from another thread, so that method keeps track of this phase being over.
    */
   void endSearchPhase();
 

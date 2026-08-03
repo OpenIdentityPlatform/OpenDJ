@@ -21,6 +21,7 @@ import org.forgerock.opendj.ldap.controls.PersistentSearchChangeType;
 import org.forgerock.opendj.ldap.controls.PersistentSearchRequestControl;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
@@ -579,8 +580,9 @@ public class AliasTestCase extends DirectoryServerTestCase {
 
             // searchAsync returns before the server has registered the persistent search, so wait
             // until the backend reports it; otherwise the first modification below can be notified
-            // before the search is listening and be missed. Other tests may leave persistent
-            // searches behind on this backend, hence the search for our own base DN.
+            // before the search is listening and be missed. A failed test is rerun in the same JVM
+            // (rerunFailingTestsCount), which can leave the persistent search of the previous run
+            // behind, hence the wait for a persistent search on our own base DN.
             final LocalBackend<?> backend = TestCaseUtils.getServerContext()
                     .getBackendConfigManager().getLocalBackendById(TestCaseUtils.TEST_BACKEND_ID);
             for (int i = 0; !isPersistentSearchRegistered(backend, "ou=psearch,o=test") && i < 500; i++) {
@@ -625,9 +627,6 @@ public class AliasTestCase extends DirectoryServerTestCase {
                 org.opends.server.protocols.internal.Requests
                         .newSearchRequest(DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE)
                         .setDereferenceAliasesPolicy(DereferenceAliasesPolicy.ALWAYS));
-        // The expiration is computed by run(), which is not called here: the operation is driven
-        // entry by entry.
-        search.setTimeLimitExpiration(Long.MAX_VALUE);
 
         // The search phase returns the entry once, and drops it when it reaches it a second time
         // through an alias ...
@@ -642,15 +641,77 @@ public class AliasTestCase extends DirectoryServerTestCase {
         assertThat(search.returnPersistentSearchEntry(entry, null)).isTrue();
         assertThat(search.getSearchEntries()).hasSize(3);
 
-        // Neither the size limit nor the time limit of the search bounds a notification: both only
-        // bound the search phase, and are lifted for the rest of a persistent search once it ends.
+        // The size limit of the search does not bound a notification: it only bounds the search
+        // phase, and is lifted for the rest of a persistent search once that phase is over.
         search.setSizeLimit(1);
+        assertThat(search.returnPersistentSearchEntry(entry, null)).isTrue();
+        assertThat(search.getSearchEntries()).hasSize(4);
+        // The search phase itself is still bound by it.
+        assertThat(search.returnEntry(entry, null)).isFalse();
+        assertThat(search.getResultCode()).isEqualTo(ResultCode.SIZE_LIMIT_EXCEEDED);
+
+        // Same for the time limit, checked on its own: with a size limit left in the way the search
+        // phase would stop on that one and the time limit would never be reached.
+        search.setSizeLimit(0);
         search.setTimeLimit(1);
         search.setTimeLimitExpiration(0);
         assertThat(search.returnPersistentSearchEntry(entry, null)).isTrue();
-        assertThat(search.getSearchEntries()).hasSize(4);
-        // The search phase itself is still bound by them.
+        assertThat(search.getSearchEntries()).hasSize(5);
         assertThat(search.returnEntry(entry, null)).isFalse();
+        assertThat(search.getResultCode()).isEqualTo(ResultCode.TIME_LIMIT_EXCEEDED);
+    }
+
+    // A persistent search which is cancelled because its backend goes away, as happens when the
+    // backend is disabled or re-initialized, must be told so: without a search result done the
+    // client waits forever for changes on a search which no longer exists.
+    @Test
+    public void test_persistent_search_is_told_when_its_backend_goes_away() throws Exception {
+        final String backendID = "psearchUnavailable";
+        final String baseDN = "o=psearch-unavailable";
+        TestCaseUtils.initializeMemoryBackend(backendID, baseDN, true);
+        final MemoryBackend backend = (MemoryBackend) TestCaseUtils.getServerContext()
+                .getBackendConfigManager().getLocalBackendById(backendID);
+
+        final SearchRequest request =
+                Requests.newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, "(objectclass=*)")
+                        .addControl(PersistentSearchRequestControl.newControl(
+                                true, true, false, PersistentSearchChangeType.MODIFY));
+
+        final LDAPConnectionFactory factory =
+                new LDAPConnectionFactory("localhost", TestCaseUtils.getServerLdapPort());
+        try (Connection psearch = factory.getConnection()) {
+            psearch.bind("cn=Directory Manager", "password".toCharArray());
+            final LdapPromise<Result> searchDone = psearch.searchAsync(request, new SearchResultHandler() {
+                @Override
+                public boolean handleEntry(SearchResultEntry entry) {
+                    return true;
+                }
+
+                @Override
+                public boolean handleReference(SearchResultReference reference) {
+                    return true;
+                }
+            });
+
+            for (int i = 0; !isPersistentSearchRegistered(backend, baseDN) && i < 500; i++) {
+                Thread.sleep(10);
+            }
+            assertThat(isPersistentSearchRegistered(backend, baseDN))
+                    .as("the persistent search was never registered with backend %s", backendID)
+                    .isTrue();
+
+            backend.finalizeBackend();
+
+            try {
+                final Result result = searchDone.getOrThrow(30, TimeUnit.SECONDS);
+                fail("the persistent search should have been terminated, it returned " + result);
+            } catch (LdapException e) {
+                assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNAVAILABLE);
+                assertThat(e.getResult().getDiagnosticMessage()).contains(backendID);
+            }
+        } finally {
+            TestCaseUtils.getServerContext().getBackendConfigManager().deregisterLocalBackend(backend);
+        }
     }
 
     /** Whether the provided backend has a persistent search registered for the provided base DN. */

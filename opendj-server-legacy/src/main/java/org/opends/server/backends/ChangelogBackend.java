@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -399,7 +400,10 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
       {
         final SearchOperation searchOp = pSearch.getSearchOperation();
         final CookieEntrySender entrySender = searchOp.getAttachment(ENTRY_SENDER_ATTACHMENT);
-        entrySender.persistentSearchSendEntry(baseDN, updateMsg);
+        if (!entrySender.persistentSearchSendEntry(baseDN, updateMsg))
+        {
+          stopPersistentSearch(pSearch);
+        }
       }
     }
     catch (DirectoryException e)
@@ -447,7 +451,10 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
       {
         final SearchOperation searchOp = pSearch.getSearchOperation();
         final ChangeNumberEntrySender entrySender = searchOp.getAttachment(ENTRY_SENDER_ATTACHMENT);
-        entrySender.persistentSearchSendEntry(changeNumber, changeNumberEntry);
+        if (!entrySender.persistentSearchSendEntry(changeNumber, changeNumberEntry))
+        {
+          stopPersistentSearch(pSearch);
+        }
       }
     }
     catch (DirectoryException e)
@@ -875,14 +882,20 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
   {
     initializePersistentSearch(pSearch);
 
-    if (isCookieBased(pSearch.getSearchOperation()))
+    final Queue<PersistentSearch> psearches = isCookieBased(pSearch.getSearchOperation())
+        ? cookieBasedPersistentSearches
+        : changeNumberBasedPersistentSearches;
+    psearches.add(pSearch);
+    // Without this, a cancelled persistent search keeps being handed the changes it can no longer
+    // report, for as long as this backend lives.
+    pSearch.registerCancellationCallback(new PersistentSearch.CancellationCallback()
     {
-      cookieBasedPersistentSearches.add(pSearch);
-    }
-    else
-    {
-      changeNumberBasedPersistentSearches.add(pSearch);
-    }
+      @Override
+      public void persistentSearchCancelled(PersistentSearch psearch)
+      {
+        psearches.remove(psearch);
+      }
+    });
     super.registerPersistentSearch(pSearch);
   }
 
@@ -1400,6 +1413,47 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
     return true;
   }
 
+  /**
+   * Sends a change reported by the "persistent search" phase, if it matches the base, scope and
+   * filter of the current search operation. Contrary to the "initial search" phase, the change goes
+   * through the persistent search path: it is not bound by the size and time limits of the search,
+   * which are only lifted once the initial phase is over, and a change published in the meantime
+   * would be dropped without the client ever hearing about it.
+   *
+   * @return {@code true} if the persistent search should keep reporting changes, {@code false}
+   *         otherwise
+   */
+  private static boolean sendNotificationIfMatches(SearchOperation searchOp, Entry entry, String cookie)
+      throws DirectoryException
+  {
+    if (matchBaseAndScopeAndFilter(searchOp, entry))
+    {
+      return searchOp.returnPersistentSearchEntry(entry, getControls(cookie));
+    }
+    // maybe the next entry will match?
+    return true;
+  }
+
+  /**
+   * Stops the provided persistent search and tells the client, which would otherwise wait forever
+   * for changes on a search which no longer reports any.
+   */
+  private static void stopPersistentSearch(PersistentSearch pSearch)
+  {
+    try
+    {
+      // Before the cancellation, which deregisters this persistent search from the connection: the
+      // search operation left the operations in progress when its initial phase ended, so nothing
+      // would be left to hang the response on afterwards.
+      pSearch.getSearchOperation().sendSearchResultDone();
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+    }
+    pSearch.cancel();
+  }
+
   /** Indicates if the provided entry matches the filter, base and scope. */
   private static boolean matchBaseAndScopeAndFilter(SearchOperation searchOp, Entry entry) throws DirectoryException
   {
@@ -1647,12 +1701,17 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
       return sendEntryIfMatches(searchOp, entry, null);
     }
 
-    private void persistentSearchSendEntry(long changeNumber, Entry entry) throws DirectoryException
+    /**
+     * @return {@code true} if the persistent search should keep reporting changes, {@code false}
+     *         otherwise
+     */
+    private boolean persistentSearchSendEntry(long changeNumber, Entry entry) throws DirectoryException
     {
       if (sendEntryData.persistentSearchCanSendEntry(changeNumber))
       {
-        sendEntryIfMatches(searchOp, entry, null);
+        return sendNotificationIfMatches(searchOp, entry, null);
       }
+      return true;
     }
   }
 
@@ -1713,7 +1772,11 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
       return sendEntryIfMatches(searchOp, entry, cookieString);
     }
 
-    private void persistentSearchSendEntry(DN baseDN, UpdateMsg updateMsg)
+    /**
+     * @return {@code true} if the persistent search should keep reporting changes, {@code false}
+     *         otherwise
+     */
+    private boolean persistentSearchSendEntry(DN baseDN, UpdateMsg updateMsg)
         throws DirectoryException
     {
       final CSN csn = updateMsg.getCSN();
@@ -1725,8 +1788,9 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
         final Entry cookieEntry = createEntryFromMsg(baseDN, 0, cookieString, updateMsg);
         // FIXME JNR use this instead of previous line:
         // entry.replaceAttribute(Attributes.create("changelogcookie", cookieString));
-        sendEntryIfMatches(searchOp, cookieEntry, cookieString);
+        return sendNotificationIfMatches(searchOp, cookieEntry, cookieString);
       }
+      return true;
     }
 
     private String updateCookie(DN baseDN, final CSN csn)

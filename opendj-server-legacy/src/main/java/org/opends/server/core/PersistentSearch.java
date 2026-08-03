@@ -201,13 +201,22 @@ public final class PersistentSearch
    *          The reason why this persistent search is terminated, reported to the client.
    * @return The result of the cancellation.
    */
-  public CancelResult cancelAndNotifyClient(LocalizableMessage reason)
+  public synchronized CancelResult cancelAndNotifyClient(LocalizableMessage reason)
   {
-    final CancelResult result = cancel();
+    if (isCancelled)
+    {
+      // Whoever cancelled this search first is responsible for what the client was told: a second
+      // search result done for the same message ID would break the protocol.
+      return new CancelResult(ResultCode.CANCELLED, null);
+    }
+
     try
     {
       searchOperation.setResultCode(ResultCode.UNAVAILABLE);
       searchOperation.appendErrorMessage(reason);
+      // The response is sent before the cancellation on purpose: the search operation left the set
+      // of operations in progress when its search phase ended, so the connection only knows it as
+      // this persistent search, which cancelling deregisters.
       searchOperation.sendSearchResultDone();
     }
     catch (Exception e)
@@ -215,7 +224,7 @@ public final class PersistentSearch
       // The client may be gone already: the persistent search is cancelled either way.
       logger.traceException(e);
     }
-    return result;
+    return cancel();
   }
 
   /**
@@ -421,15 +430,16 @@ public final class PersistentSearch
       // entry was already returned by the search phase, and for as long as this search lives.
       if (!searchOperation.returnPersistentSearchEntry(entry, entryControls))
       {
-        cancel();
+        // Send the response first: cancelling deregisters this persistent search, and the search
+        // operation is no longer in progress on the connection either, so there would be nothing
+        // left to hang the response on.
         searchOperation.sendSearchResultDone();
+        cancel();
       }
     }
     catch (Exception e)
     {
       logger.traceException(e);
-
-      cancel();
 
       try
       {
@@ -439,6 +449,8 @@ public final class PersistentSearch
       {
         logger.traceException(e2);
       }
+
+      cancel();
     }
   }
 

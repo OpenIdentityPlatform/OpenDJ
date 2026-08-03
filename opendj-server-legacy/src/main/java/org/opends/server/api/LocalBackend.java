@@ -24,6 +24,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -72,6 +74,8 @@ import org.opends.server.types.WritabilityMode;
 public abstract class LocalBackend<C extends Configuration> extends Backend<C>
 // should have been BackendCfg instead of Configuration
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /** Indicates whether this is a private backend or one that holds user data. */
   private boolean isPrivateBackend;
 
@@ -105,7 +109,9 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
     {
       // Tell the clients that no more changes are coming: this backend will not notify them any
       // more, and a cancelled persistent search which sends nothing leaves them waiting forever.
-      psearch.cancelAndNotifyClient(WARN_PSEARCH_BACKEND_UNAVAILABLE.get(getBackendID()));
+      final LocalizableMessage reason = WARN_PSEARCH_BACKEND_UNAVAILABLE.get(getBackendID());
+      logger.warn(reason);
+      psearch.cancelAndNotifyClient(reason);
     }
     persistentSearches.clear();
     closeBackend();

@@ -465,9 +465,23 @@ public class SearchOperationBasis
 
   /**
    * Whether the search phase is over. Entries still sent through {@link #returnEntry(Entry, List)}
-   * after it are no longer matched against {@link #returnedDNs}, which has been emptied by then.
+   * after it, as the external changelog backend does for its own notifications, are no longer
+   * matched against {@link #returnedDNs}, which has been emptied by then.
    */
   private volatile boolean searchPhaseOver;
+
+  /** Why an entry is being returned to the client. */
+  private enum EntrySource
+  {
+    /** The entry is a result of the search phase. */
+    SEARCH_PHASE,
+    /**
+     * The entry reports a change to a persistent search. It must be sent whether or not the same
+     * entry was returned before, and neither the size limit nor the time limit of the search
+     * applies to it.
+     */
+    PSEARCH_NOTIFICATION
+  }
 
   @Override
   public final void endSearchPhase()
@@ -480,13 +494,13 @@ public class SearchOperationBasis
   public final boolean returnEntry(Entry entry, List<Control> controls,
                                    boolean evaluateAci)
   {
-    return returnEntry(entry, controls, evaluateAci, false, null);
+    return returnEntry(entry, controls, evaluateAci, EntrySource.SEARCH_PHASE, null);
   }
 
   @Override
   public final boolean returnPersistentSearchEntry(Entry entry, List<Control> controls)
   {
-    return returnEntry(entry, controls, true, true, null);
+    return returnEntry(entry, controls, true, EntrySource.PSEARCH_NOTIFICATION, null);
   }
 
   /**
@@ -496,23 +510,21 @@ public class SearchOperationBasis
    * @param  entry       The entry to return.
    * @param  controls    The controls to attach to the entry.
    * @param  evaluateAci Whether the access control handler must be consulted.
-   * @param  psearchNotification  Whether the entry is a persistent search notification rather than
-   *                     a result of the search phase. Such an entry reports a change: it must be
-   *                     sent whether or not the same entry was sent before, and neither the size
-   *                     limit nor the time limit of the search applies to it.
+   * @param  source      Whether the entry is a persistent search notification rather than a result
+   *                     of the search phase.
    * @param  aliasChain  The DNs of the aliases already dereferenced on the way to this entry, or
    *                     {@code null} if no alias was dereferenced yet. It only spans the current
    *                     chain, so it cannot grow beyond the length of that chain.
    * @return  {@code true} if the search should continue, {@code false} if it should stop.
    */
   private boolean returnEntry(Entry entry, List<Control> controls,
-                              boolean evaluateAci, boolean psearchNotification, Set<DN> aliasChain)
+                              boolean evaluateAci, EntrySource source, Set<DN> aliasChain)
   {
     boolean typesOnly = getTypesOnly();
 
     // Both limits only bound the search phase: they are lifted for the rest of a persistent search
     // once that phase is over, but a notification can reach this point before that happens.
-    if (!psearchNotification)
+    if (source == EntrySource.SEARCH_PHASE)
     {
       // See if the size limit has been exceeded.  If so, then don't send the
       // entry and indicate that the search should end.
@@ -548,12 +560,15 @@ public class SearchOperationBasis
           && !filterIncludesSubentries
           && !isReturnSubentriesOnly())
       {
+        logger.trace("Not sending entry %s: it is a subentry and this search does not ask for "
+            + "subentries", entry.getName());
         return true;
       }
     }
     else if (isReturnSubentriesOnly())
     {
       // Subentries are visible and normal entries are not.
+      logger.trace("Not sending entry %s: this search only asks for subentries", entry.getName());
       return true;
     }
 
@@ -625,9 +640,9 @@ public class SearchOperationBasis
     //DereferenceAliasesPolicy
     if ( DereferenceAliasesPolicy.ALWAYS.equals(getDerefPolicy()) || DereferenceAliasesPolicy.IN_SEARCHING.equals(getDerefPolicy()) ) {
       if (entry.isAlias() && !baseDN.equals(entry.getName())) {
-        return returnAliasedEntry(entry, controls, psearchNotification, aliasChain);
+        return returnAliasedEntry(entry, controls, source, aliasChain);
       }
-      if (!psearchNotification && !searchPhaseOver && !returnedDNs.add(entry.getName())) {
+      if (source == EntrySource.SEARCH_PHASE && !searchPhaseOver && !returnedDNs.add(entry.getName())) {
         // This entry was already returned by the search, through an alias or on its own.
         logger.trace("Not sending entry %s: it was already returned by the search phase", entry.getName());
         return true;
@@ -768,14 +783,14 @@ public class SearchOperationBasis
    *
    * @param  alias       The alias entry to dereference.
    * @param  controls    The controls to attach to the entry.
-   * @param  psearchNotification  Whether the alias is reported by a persistent search notification
-   *                     rather than by the search phase.
+   * @param  source      Whether the alias is reported by a persistent search notification rather
+   *                     than by the search phase.
    * @param  aliasChain  The DNs of the aliases already dereferenced on the way to this alias, or
    *                     {@code null} if this alias is the first one of the chain.
    * @return  {@code true} if the search should continue, {@code false} if it should stop.
    */
   private boolean returnAliasedEntry(Entry alias, List<Control> controls,
-                                     boolean psearchNotification, Set<DN> aliasChain)
+                                     EntrySource source, Set<DN> aliasChain)
   {
     final DN aliasedDN;
     final Entry aliasedEntry;
@@ -796,9 +811,10 @@ public class SearchOperationBasis
     if (aliasedEntry == null)
     {
       // The alias points to an entry which does not exist: there is nothing to return for it.
+      logger.trace("Not dereferencing alias %s: %s does not exist", alias.getName(), aliasedDN);
       return true;
     }
-    if (!psearchNotification && !searchPhaseOver && returnedDNs.contains(aliasedDN))
+    if (source == EntrySource.SEARCH_PHASE && !searchPhaseOver && returnedDNs.contains(aliasedDN))
     {
       // The aliased entry was already returned by the search.
       logger.trace("Not dereferencing alias %s: %s was already returned by the search phase",
@@ -812,9 +828,11 @@ public class SearchOperationBasis
     if (!aliasChain.add(aliasedDN))
     {
       // The aliases point at each other: stop before looping forever.
+      logger.trace("Not dereferencing alias %s: %s is already part of the alias chain %s",
+          alias.getName(), aliasedDN, aliasChain);
       return true;
     }
-    return returnEntry(aliasedEntry, controls, true, psearchNotification, aliasChain);
+    return returnEntry(aliasedEntry, controls, true, source, aliasChain);
   }
 
   private AccessControlHandler<?> getACIHandler()
