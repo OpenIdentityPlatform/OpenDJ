@@ -657,10 +657,15 @@ public class ReplicationServer
    *          the configuration being applied, whose listen port differs from the current one
    * @param ccr
    *          the result of the configuration change, to which a failure is added
+   * @param listenThreadStopInterrupted
+   *          set when the wait for the previous listen thread was interrupted, instead of
+   *          restoring the interrupt status here: the caller restores it once the rest of
+   *          the change, some of which is interruptible, has run
    * @return {@code true} when this replication server listens on the new port, in which
    *         case {@code newConfig} has become its configuration
    */
-  private boolean switchListenPort(ReplicationServerCfg newConfig, ConfigChangeResult ccr)
+  private boolean switchListenPort(ReplicationServerCfg newConfig, ConfigChangeResult ccr,
+      AtomicBoolean listenThreadStopInterrupted)
   {
     final ReplicationServerCfg previousConfig = this.config;
     final String previousServerURL = serverURL;
@@ -680,6 +685,12 @@ public class ReplicationServer
       // server is never left with no listener at all, whatever happens next.
       startListenThread(newListenSocket);
       newListenSocket = null;
+
+      // In step with getReplicationPort(), which answers the new port from here on: the
+      // wait below blocks for as long as the previous thread takes to serve its current
+      // connection, and localPorts must not trail it for that whole window.
+      localPorts.remove(previousConfig.getReplicationPort());
+      localPorts.add(newPort);
       try
       {
         stopListenThread(previousListenSocket, previousListenThread);
@@ -689,12 +700,9 @@ public class ReplicationServer
         // The previous port is already released and its thread stops on its own as soon as
         // it wakes up on its closed socket: only the wait for it was cut short.
         interruptedListenThreadStops.incrementAndGet();
-        Thread.currentThread().interrupt();
+        listenThreadStopInterrupted.set(true);
         logger.traceException(e);
       }
-
-      localPorts.remove(previousConfig.getReplicationPort());
-      localPorts.add(newPort);
       return true;
     }
     catch (UnknownHostException e)
@@ -1246,8 +1254,9 @@ public class ReplicationServer
     // done first, and the new port is bound before the current one is released, so that a
     // change which cannot be applied leaves this replication server as it was, instead of
     // half configured and, worse, without any listener.
+    final AtomicBoolean listenThreadStopInterrupted = new AtomicBoolean();
     if (configuration.getReplicationPort() != oldConfig.getReplicationPort()
-        && !switchListenPort(configuration, ccr))
+        && !switchListenPort(configuration, ccr, listenThreadStopInterrupted))
     {
       return ccr;
     }
@@ -1312,6 +1321,15 @@ public class ReplicationServer
     if (newDir != null && !newDir.equals(oldConfig.getReplicationDBDirectory()))
     {
       ccr.setAdminActionRequired(true);
+    }
+
+    // The interrupt which cut short the wait for the previous listen thread, deferred by
+    // switchListenPort(): restored only now, because the steps above include interruptible
+    // ones — stopping the handlers of removed replication servers locks interruptibly —
+    // which an interrupt status left set would have failed while the change reports SUCCESS.
+    if (listenThreadStopInterrupted.get())
+    {
+      Thread.currentThread().interrupt();
     }
     return ccr;
   }

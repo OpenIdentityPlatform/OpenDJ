@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -524,12 +525,18 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
    * Waits for the listen thread of the provided replication server and port to be inside
    * {@code accept()}, or to have left it.
    * <p>
-   * Having left {@code accept()} is what tells that the connection which was just made to
-   * that port is being served: a connection completes against the listen backlog of the
-   * kernel, and {@code isListening()} only tells that the socket is bound — the listen
-   * thread is started after it — so neither of them proves that thread ever ran. Waiting for
-   * it to be inside {@code accept()} first is what makes the second wait conclusive: it can
-   * then only have left it for the connection this test made.
+   * A connection completes against the listen backlog of the kernel, and
+   * {@code isListening()} only tells that the socket is bound — the listen thread is
+   * started after it — so neither of them proves that thread ever ran. Waiting for it to be
+   * inside {@code accept()} before connecting is what makes the second wait conclusive: the
+   * thread can then only have left {@code accept()} for the connection this test made. That
+   * rests on it being the only connection the port ever gets — a stale broker of an earlier
+   * test reconnecting to a recycled port would satisfy the second wait spuriously.
+   * <p>
+   * Having left {@code accept()} does not mean the connection is served yet — the thread is
+   * typically still warming up towards its handshake. What the second wait establishes is
+   * that the thread is off {@code accept()} and cannot terminate until its socket is
+   * closed, which is what stopping it does.
    *
    * @param serverId
    *          the server id of the replication server whose listen thread is waited for
@@ -548,13 +555,15 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
     {
       for (Map.Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet())
       {
-        if (entry.getKey().getName().toLowerCase().equals(listenThread)
+        if (entry.getKey().getName().toLowerCase(Locale.ROOT).equals(listenThread)
             && isAccepting(entry.getValue()) == accepting)
         {
           return;
         }
       }
-      Thread.sleep(10);
+      // Each iteration is a full VM thread dump: poll slowly enough for the failure path
+      // not to be dominated by them, the passing case returns within an iteration or two.
+      Thread.sleep(50);
     }
     fail("the listen thread on port " + port
         + (accepting ? " never reached accept()" : " never accepted the connection made to it"));
@@ -631,7 +640,9 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
     List<String> leftBehind;
     while (!(leftBehind = domainRegistrationsOf(rsServerId)).isEmpty() && System.currentTimeMillis() < deadline)
     {
-      Thread.sleep(10);
+      // Each iteration is a full VM thread dump: poll slowly enough for the failure path
+      // not to be dominated by them, the passing case returns within an iteration or two.
+      Thread.sleep(50);
     }
     assertTrue(leftBehind.isEmpty(),
         "the replication server RS(" + rsServerId + ") left behind: " + leftBehind);
@@ -651,7 +662,7 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
     final List<String> registrations = new ArrayList<>();
     for (Thread thread : Thread.getAllStackTraces().keySet())
     {
-      final String name = thread.getName().toLowerCase();
+      final String name = thread.getName().toLowerCase(Locale.ROOT);
       if (name.startsWith(replicationServer) && containsAnyOf(name, DOMAIN_THREADS))
       {
         registrations.add(thread.getName());
