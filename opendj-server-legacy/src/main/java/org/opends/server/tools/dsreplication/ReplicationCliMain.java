@@ -806,7 +806,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else
     {
-      initializeWithArgParser(uData);
+      initializeWithArgParserForSourceServer(uData);
       return initializeAllReplication(uData);
     }
   }
@@ -834,7 +834,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else
     {
-      initializeWithArgParser(uData);
+      initializeWithArgParserForSourceServer(uData);
       return preExternalInitialization(uData);
     }
   }
@@ -862,7 +862,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else
     {
-      initializeWithArgParser(uData);
+      initializeWithArgParserForSourceServer(uData);
       return postExternalInitialization(uData);
     }
   }
@@ -2674,7 +2674,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean promptIfRequired(InitializeAllReplicationUserData uData)
   {
-    ConnectionWrapper conn = getConnection(uData);
+    ConnectionWrapper conn = getConnectionToSourceServer(uData);
     if (conn == null)
     {
       return false;
@@ -2736,7 +2736,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean promptIfRequiredForPreOrPost(MonoServerReplicationUserData uData)
   {
-    ConnectionWrapper conn = getConnection(uData);
+    ConnectionWrapper conn = getConnectionToSourceServer(uData);
     if (conn == null)
     {
       return false;
@@ -2754,7 +2754,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private ConnectionWrapper getConnection(MonoServerReplicationUserData uData)
+  private ConnectionWrapper getConnectionToSourceServer(MonoServerReplicationUserData uData)
   {
     // Try to connect to the server.
     while (true)
@@ -2809,7 +2809,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean promptIfRequired(StatusReplicationUserData uData) throws ReplicationCliException
   {
-    ConnectionWrapper conn = getConnection(uData);
+    ConnectionWrapper conn = getConnectionToSourceServer(uData);
     if (conn == null)
     {
       return false;
@@ -3105,11 +3105,15 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Initializes the contents of the provided user data object with what was
-   * provided in the command-line without prompting to the user.
+   * Initializes the contents of the provided user data object of a subcommand which operates on a
+   * single server with what was provided in the command-line without prompting to the user.
+   * <p>
+   * The subcommands which need more than the source server, or other arguments, have their own
+   * overload taking their own user data type.
+   *
    * @param uData the user data object to be initialized.
    */
-  private void initializeWithArgParser(MonoServerReplicationUserData uData)
+  private void initializeWithArgParserForSourceServer(MonoServerReplicationUserData uData)
   {
     initialize(uData);
 
