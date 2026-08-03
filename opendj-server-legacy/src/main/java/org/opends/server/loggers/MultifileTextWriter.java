@@ -172,12 +172,7 @@ class MultifileTextWriter
                                int bufferSize)
       throws IOException, DirectoryException
   {
-    // Create new file if it doesn't exist
-    if(!file.exists())
-    {
-      file.createNewFile();
-    }
-
+    // The file is created by the output stream below if it does not exist yet.
     FileOutputStream stream = new FileOutputStream(file, append);
     outputStream = new MeteredStream(stream, file.length());
 
@@ -609,11 +604,17 @@ class MultifileTextWriter
 
     File currentFile = namingPolicy.getInitialName();
     File newFile = namingPolicy.getNextName();
-    currentFile.renameTo(newFile);
+    // Do not overwrite an already rotated file: only report the failure.
+    final boolean renamed = currentFile.renameTo(newFile);
+    if (!renamed)
+    {
+      logger.error(LocalizableMessage.raw("Unable to rotate log file %s to %s", currentFile, newFile));
+    }
 
     try
     {
-      constructWriter(currentFile, filePermissions, encoding, append,
+      // If the file could not be rotated then keep appending to it rather than truncating it.
+      constructWriter(currentFile, filePermissions, encoding, append || !renamed,
                       bufferSize);
     }
     catch (Exception e)
@@ -622,8 +623,11 @@ class MultifileTextWriter
       errorHandler.handleOpenError(currentFile, e);
     }
 
-    logger.trace("Log file %s rotated and renamed to %s", currentFile, newFile);
-    totalFilesRotated++;
+    if (renamed)
+    {
+      logger.trace("Log file %s rotated and renamed to %s", currentFile, newFile);
+      totalFilesRotated++;
+    }
     lastRotationTime = TimeThread.getCalendar();
   }
 

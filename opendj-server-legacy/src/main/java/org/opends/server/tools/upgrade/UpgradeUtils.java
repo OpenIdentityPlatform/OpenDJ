@@ -24,6 +24,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -682,17 +683,14 @@ final class UpgradeUtils
     {
       logger.debug(LocalizableMessage.raw("Parent file of %s doesn't exist", destination.getPath()));
 
-      parentDirectory.mkdirs();
+      Files.createDirectories(parentDirectory.toPath());
 
       logger.debug(LocalizableMessage.raw("Parent directory %s created.", parentDirectory.getPath()));
-    }
-    if (!destination.exists())
-    {
-      destination.createNewFile();
     }
 
     logger.debug(LocalizableMessage.raw("Writing entries in %s.", destination.getAbsolutePath()));
 
+    // The destination file is created by the output stream below if it does not exist yet.
     try (LDIFEntryWriter writer = new LDIFEntryWriter(new FileOutputStream(destination)))
     {
       writer.writeEntry(theNewSchemaEntry);

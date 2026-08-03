@@ -119,7 +119,7 @@ public class ConfigGuideGeneration {
         generationDir = Files.createTempDirectory(CONFIG_GUIDE_DIR).toString();
       } else {
         // Create new dir if necessary
-        new File(generationDir).mkdir();
+        Files.createDirectories(new File(generationDir).toPath());
       }
     } catch (Exception e) {
       e.printStackTrace();

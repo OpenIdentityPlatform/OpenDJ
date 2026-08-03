@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -228,14 +229,9 @@ public final class DefaultCompressedSchema extends CompressedSchema
 
         if (liveFile.exists())
         {
-          final File saveFile = new File(liveFile.getAbsolutePath() + ".save");
-          if (saveFile.exists())
-          {
-            saveFile.delete();
-          }
-          liveFile.renameTo(saveFile);
+          renameFile(liveFile, new File(liveFile.getAbsolutePath() + ".save"));
         }
-        tempFile.renameTo(liveFile);
+        renameFile(tempFile, liveFile);
       }
       catch (final Exception e)
       {

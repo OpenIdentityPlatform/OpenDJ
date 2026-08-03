@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols;
 
@@ -493,7 +494,7 @@ public final class LDIFConnectionHandler
           logger.trace("Renaming source file to " + renamedPath);
         }
 
-        ldifFile.renameTo(new File(renamedPath));
+        renameFile(ldifFile, new File(renamedPath));
       }
       catch (Exception e)
       {

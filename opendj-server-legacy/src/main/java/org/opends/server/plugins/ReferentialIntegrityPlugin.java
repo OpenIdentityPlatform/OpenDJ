@@ -755,9 +755,9 @@ public class ReferentialIntegrityPlugin
 
     try
     {
-      if(!logFile.exists())
+      if(!logFile.createNewFile())
       {
-        logFile.createNewFile();
+        logger.trace("Referential integrity update log file %s already exists", logFileName);
       }
     }
     catch (IOException io)
@@ -865,8 +865,9 @@ public class ReferentialIntegrityPlugin
             }
           }
         }
-        logFile.delete();
-        logFile.createNewFile();
+        if (!logFile.delete() || !logFile.createNewFile()) {
+          logger.error(ERR_PLUGIN_REFERENT_REPLACE_LOGFILE, logFileName);
+        }
       } catch (IOException io) {
         logger.error(ERR_PLUGIN_REFERENT_REPLACE_LOGFILE, io.getMessage());
       }

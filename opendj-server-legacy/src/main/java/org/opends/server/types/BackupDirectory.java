@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.types;
 
@@ -289,7 +290,7 @@ public final class BackupDirectory
     // Rename the new descriptor file to match the previous one.
     try
     {
-      newDescriptorFile.renameTo(descriptorFile);
+      renameFile(newDescriptorFile, descriptorFile);
     }
     catch (Exception e)
     {
@@ -345,7 +346,7 @@ public final class BackupDirectory
 
       try
       {
-        descriptorFile.renameTo(savedDescriptorFile);
+        renameFile(descriptorFile, savedDescriptorFile);
       }
       catch (Exception e)
       {

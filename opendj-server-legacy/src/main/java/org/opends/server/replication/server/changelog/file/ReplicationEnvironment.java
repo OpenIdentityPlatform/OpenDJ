@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -934,7 +935,11 @@ class ReplicationEnvironment implements ChangelogStateProvider
     final File newRotationFile = getLastRotationTimePath(lastRotationTime);
     try
     {
-      newRotationFile.createNewFile();
+      if (!newRotationFile.createNewFile() && !newRotationFile.isFile())
+      {
+        throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_CREATE_LAST_LOG_ROTATION_TIME_FILE.get(
+            newRotationFile.getPath(), lastRotationTime));
+      }
     }
     catch (IOException e)
     {

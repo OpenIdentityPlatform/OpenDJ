@@ -199,9 +199,9 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   {
     try
     {
-      if (!logfile.exists())
+      if (!logfile.createNewFile())
       {
-        logfile.createNewFile();
+        logger.trace("Log file %s already exists", logfile.getPath());
       }
     }
     catch (IOException e)

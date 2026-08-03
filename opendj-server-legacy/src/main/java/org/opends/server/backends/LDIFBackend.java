@@ -298,7 +298,7 @@ public class LDIFBackend
     {
       if (ldifFile.exists())
       {
-        ldifFile.renameTo(oldFile);
+        renameFile(ldifFile, oldFile);
       }
     }
     catch (Exception e)
@@ -308,7 +308,7 @@ public class LDIFBackend
 
     try
     {
-      tempFile.renameTo(ldifFile);
+      renameFile(tempFile, ldifFile);
     }
     catch (Exception e)
     {

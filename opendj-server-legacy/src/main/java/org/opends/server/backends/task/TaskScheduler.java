@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.task;
 
@@ -1269,7 +1270,7 @@ public class TaskScheduler
       {
         if (backingFile.exists())
         {
-          backingFile.renameTo(saveFile);
+          renameFile(backingFile, saveFile);
         }
       }
       catch (Exception e)
@@ -1288,7 +1289,7 @@ public class TaskScheduler
       File tmpFile = getFileForPath(tmpFilePath);
       try
       {
-        tmpFile.renameTo(backingFile);
+        renameFile(tmpFile, backingFile);
       }
       catch (Exception e)
       {
