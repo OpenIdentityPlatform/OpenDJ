@@ -2700,8 +2700,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       if (logger.isTraceEnabled())
       {
-        logger.trace("Unable to generate a new password for user %s because no password generator has been defined" +
-            "in the associated password policy.", userDNString);
+        logger.trace("Unable to generate a new password for user %s because no password generator has been defined "
+            + "in the associated password policy.", userDNString);
       }
 
       return null;

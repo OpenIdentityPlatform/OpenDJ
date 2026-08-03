@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -580,8 +581,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
         }
 
         final int pageSize = pagedResults != null ? pagedResults.getSize() : 0;
-        final int offset = (pagedResults != null && !pagedResults.getCookie().isEmpty())
-                ? Integer.valueOf(pagedResults.getCookie().toString()) : 0;
+        final int offset = decodePagedResultsCookie(pagedResults);
         int numberOfResults = 0;
         int position = 0;
         for (final Entry entry : subtree.values()) {
@@ -628,6 +628,29 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             result.addControl(SimplePagedResultsControl.newControl(true, 0, cookie));
         }
         resultHandler.handleResult(result);
+    }
+
+    /**
+     * Returns the offset of the first entry to be returned, as encoded by this backend in the cookie
+     * of the previous page.
+     *
+     * @param pagedResults
+     *            The simple paged results control, if present.
+     * @return The offset of the first entry to be returned.
+     * @throws LdapException
+     *             If the cookie was not created by this backend.
+     */
+    private static int decodePagedResultsCookie(final SimplePagedResultsControl pagedResults) throws LdapException {
+        if (pagedResults == null || pagedResults.getCookie().isEmpty()) {
+            return 0;
+        }
+        final String cookie = pagedResults.getCookie().toString();
+        try {
+            return Integer.parseInt(cookie);
+        } catch (final NumberFormatException e) {
+            throw newLdapException(newResult(ResultCode.PROTOCOL_ERROR)
+                    .setDiagnosticMessage("Invalid paged results cookie: " + cookie));
+        }
     }
 
     private <R extends Result> R addResultControls(final Request request, final Entry before,

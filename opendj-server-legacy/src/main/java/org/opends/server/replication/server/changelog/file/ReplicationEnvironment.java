@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -731,12 +732,21 @@ class ReplicationEnvironment implements ChangelogStateProvider
   }
 
   /** Find the next domain id to use. This is the lowest integer that is higher than all existing ids. */
-  private String findNextDomainId()
+  private String findNextDomainId() throws ChangelogException
   {
     int nextId = 1;
     for (final String domainId : domains.values())
     {
-      final Integer id = Integer.valueOf(domainId);
+      final int id;
+      try
+      {
+        id = Integer.parseInt(domainId);
+      }
+      catch (NumberFormatException e)
+      {
+        throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_READ_DOMAIN_STATE_FILE.get(
+            new File(replicationRootPath, DOMAINS_STATE_FILENAME).getPath()), e);
+      }
       if (nextId <= id)
       {
         nextId = id + 1;
