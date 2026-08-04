@@ -27,6 +27,7 @@ import static org.opends.messages.CoreMessages.
 import static org.opends.messages.CoreMessages.INFO_RESULT_AUTHORIZATION_DENIED;
 
 import java.io.BufferedInputStream;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -127,6 +128,16 @@ public class DSMLServlet extends HttpServlet {
   private static final String DEREF_ANYURI = "ldap.dsml.dereference.anyuri";
   private static final String DEREF_ANYURI_SCHEMES = "ldap.dsml.dereference.anyuri.schemes";
   private static final String DEREF_ANYURI_MAXSIZE = "ldap.dsml.dereference.anyuri.maxsize";
+  private static final String MAX_BATCH_REQUESTS = "ldap.dsml.batchrequests.max";
+  private static final String REQUEST_MAXSIZE = "ldap.dsml.request.maxsize";
+
+  /**
+   * A SOAP body carries a single batchRequest element by default, as DSMLv2
+   * describes: every extra element costs its own connection and bind.
+   */
+  private static final long DEFAULT_MAX_BATCH_REQUESTS = 1;
+  /** Default cap on the size of an accepted request body, in bytes. */
+  private static final long DEFAULT_REQUEST_MAXSIZE = 10 * 1024 * 1024;
   private static final long serialVersionUID = -3748022009593442973L;
   private static final AtomicInteger nextMessageID = new AtomicInteger(1);
 
@@ -157,6 +168,8 @@ public class DSMLServlet extends HttpServlet {
   private String trustStorePasswordValue;
   private Boolean trustAll;
   private Boolean useHTTPAuthzID;
+  private long maxBatchRequests;
+  private long requestMaxSize;
   private final Set<String> exopStrings = new HashSet<>();
 
   /**
@@ -222,17 +235,17 @@ public class DSMLServlet extends HttpServlet {
         String maxSize = stringValue(config, DEREF_ANYURI_MAXSIZE);
         if (maxSize != null && !maxSize.trim().isEmpty())
         {
-          try
-          {
-            ByteStringUtility.setMaxUriContentLength(Long.parseLong(maxSize.trim()));
-          }
-          catch (IllegalArgumentException e)
-          {
-            throw new ServletException(DEREF_ANYURI_MAXSIZE
-                + " must be a positive number of bytes, but was: " + maxSize);
-          }
+          ByteStringUtility.setMaxUriContentLength(positiveValue(DEREF_ANYURI_MAXSIZE, maxSize));
         }
       }
+
+      // Every batchRequest element of a SOAP body is executed over its own
+      // connection and bind, and password verification is deliberately
+      // expensive: cap how many binds a single POST may fan out into, and how
+      // much memory its body may claim, so that a small request cannot buy
+      // unbounded work.
+      maxBatchRequests = positiveValue(config, MAX_BATCH_REQUESTS, DEFAULT_MAX_BATCH_REQUESTS);
+      requestMaxSize = positiveValue(config, REQUEST_MAXSIZE, DEFAULT_REQUEST_MAXSIZE);
 
       if(jaxbContext==null)
       {
@@ -249,8 +262,10 @@ public class DSMLServlet extends HttpServlet {
       }
 
       DirectoryServer.bootstrapClient();
+    } catch (ServletException se) {
+      throw se;
     } catch (Exception je) {
-      je.printStackTrace();
+      getServletContext().log("Unable to initialize the DSML gateway", je);
       throw new ServletException(je.getMessage());
     }
   }
@@ -263,6 +278,41 @@ public class DSMLServlet extends HttpServlet {
   private String stringValue(ServletConfig config, String paramName)
   {
     return config.getServletContext().getInitParameter(paramName);
+  }
+
+  /**
+   * Returns the value of a context-param which must be a positive number, or
+   * the given default when the parameter is absent or empty.
+   */
+  private long positiveValue(ServletConfig config, String paramName, long defaultValue)
+      throws ServletException
+  {
+    String value = stringValue(config, paramName);
+    if (value == null || value.trim().isEmpty())
+    {
+      return defaultValue;
+    }
+    return positiveValue(paramName, value);
+  }
+
+  /** Parses the given context-param value, which must be a positive number. */
+  private long positiveValue(String paramName, String value) throws ServletException
+  {
+    final String message = paramName + " must be a positive number, but was: " + value;
+    final long parsed;
+    try
+    {
+      parsed = Long.parseLong(value.trim());
+    }
+    catch (NumberFormatException e)
+    {
+      throw new ServletException(message);
+    }
+    if (parsed < 1)
+    {
+      throw new ServletException(message);
+    }
+    return parsed;
   }
 
   /**
@@ -342,313 +392,347 @@ public class DSMLServlet extends HttpServlet {
 
     BatchRequest batchRequest = null;
 
+    // The SOAP message is materialised in memory before any of it is
+    // processed, so an unbounded body is an unbounded allocation: refuse to
+    // stream more than the configured cap.
+    final CappedInputStream cappedStream =
+        new CappedInputStream(req.getInputStream(), requestMaxSize);
+
     // Keep the Servlet input stream buffered in case the SOAP un-marshalling
     // fails, the SAX parsing will be able to retrieve the requestID even if
     // the XML is malformed by resetting the input stream.
-    BufferedInputStream is = new BufferedInputStream(req.getInputStream(),
-                                                     65536);
-    if ( is.markSupported() ) {
-      is.mark(65536);
-    }
-
-    // Create response in the beginning as it might be used if the parsing
-    // fails.
-    ObjectFactory objFactory = new ObjectFactory();
-    BatchResponse batchResponse = objFactory.createBatchResponse();
-    List<JAXBElement<?>> batchResponses = batchResponse.getBatchResponses();
-
-    // Thi sis only used for building the response
-    Document doc = createSafeDocument();
-
-    MessageFactory messageFactory = null;
-    String messageContentType = null;
-
-    if (useSSL || useStartTLS)
-    {
-      SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
-      try
-      {
-        sslConnectionFactory.init(trustAll, null, null, null,
-                                  trustStorePathValue, trustStorePasswordValue);
+    try (BufferedInputStream is = new BufferedInputStream(cappedStream, 65536)) {
+      if ( is.markSupported() ) {
+        is.mark(65536);
       }
-      catch(SSLConnectionException e)
+
+      // Create response in the beginning as it might be used if the parsing
+      // fails.
+      ObjectFactory objFactory = new ObjectFactory();
+      BatchResponse batchResponse = objFactory.createBatchResponse();
+      List<JAXBElement<?>> batchResponses = batchResponse.getBatchResponses();
+
+      // Thi sis only used for building the response
+      Document doc = createSafeDocument();
+
+      MessageFactory messageFactory = null;
+      String messageContentType = null;
+
+      if (useSSL || useStartTLS)
       {
-        batchResponses.add(
-          createErrorResponse(objFactory,
-            new LDAPException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
-              LocalizableMessage.raw(
-              "Invalid SSL or TLS configuration to connect to LDAP server."))));
-      }
-      connOptions.setSSLConnectionFactory(sslConnectionFactory);
-    }
-
-    SOAPBody soapBody = null;
-
-    MimeHeaders mimeHeaders = new MimeHeaders();
-    String bindDN = null;
-    String bindPassword = null;
-    boolean authenticationInHeader = false;
-    boolean authenticationIsID = false;
-    final Enumeration<String> en = req.getHeaderNames();
-    while (en.hasMoreElements()) {
-      String headerName = en.nextElement();
-      String headerVal = req.getHeader(headerName);
-      if (headerName.equalsIgnoreCase("content-type")) {
+        SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
         try
         {
-          if (headerVal.startsWith(SOAPConstants.SOAP_1_1_CONTENT_TYPE))
+          sslConnectionFactory.init(trustAll, null, null, null,
+                                    trustStorePathValue, trustStorePasswordValue);
+        }
+        catch(SSLConnectionException e)
+        {
+          batchResponses.add(
+            createErrorResponse(objFactory,
+              new LDAPException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
+                LocalizableMessage.raw(
+                "Invalid SSL or TLS configuration to connect to LDAP server."))));
+        }
+        connOptions.setSSLConnectionFactory(sslConnectionFactory);
+      }
+
+      SOAPBody soapBody = null;
+
+      MimeHeaders mimeHeaders = new MimeHeaders();
+      String bindDN = null;
+      String bindPassword = null;
+      boolean authenticationInHeader = false;
+      boolean authenticationIsID = false;
+      final Enumeration<String> en = req.getHeaderNames();
+      while (en.hasMoreElements()) {
+        String headerName = en.nextElement();
+        String headerVal = req.getHeader(headerName);
+        if (headerName.equalsIgnoreCase("content-type")) {
+          try
           {
-            messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL);
-            messageContentType = SOAPConstants.SOAP_1_1_CONTENT_TYPE;
+            if (headerVal.startsWith(SOAPConstants.SOAP_1_1_CONTENT_TYPE))
+            {
+              messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL);
+              messageContentType = SOAPConstants.SOAP_1_1_CONTENT_TYPE;
+            }
+            else if (headerVal.startsWith(SOAPConstants.SOAP_1_2_CONTENT_TYPE))
+            {
+              messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
+              messageContentType = SOAPConstants.SOAP_1_2_CONTENT_TYPE;
+            }
+            // An unsupported Content-Type leaves the message factory unset: the
+            // request is rejected as malformed once all the headers are read.
           }
-          else if (headerVal.startsWith(SOAPConstants.SOAP_1_2_CONTENT_TYPE))
+          catch (SOAPException e)
           {
-            messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
-            messageContentType = SOAPConstants.SOAP_1_2_CONTENT_TYPE;
+            throw new ServletException(e.getMessage());
           }
-          // An unsupported Content-Type leaves the message factory unset: the
-          // request is rejected as malformed once all the headers are read.
+        } else if (headerName.equalsIgnoreCase("authorization") && headerVal.startsWith("Basic "))
+        {
+          authenticationInHeader = true;
+          String authorization = headerVal.substring(6).trim();
+          try {
+            String unencoded = new String(Base64.decode(authorization).toByteArray());
+            int colon = unencoded.indexOf(':');
+            if (colon > 0) {
+              if (useHTTPAuthzID)
+              {
+                connOptions.setSASLMechanism("mech=" + SASL_MECHANISM_PLAIN);
+                connOptions.addSASLProperty(
+                    "authid=u:" + unencoded.substring(0, colon).trim());
+                authenticationIsID = true;
+              }
+              else
+              {
+                bindDN = unencoded.substring(0, colon).trim();
+              }
+              bindPassword = unencoded.substring(colon + 1);
+            }
+          } catch (final LocalizedIllegalArgumentException ex) {
+            // user/DN:password parsing error. Keep reading the headers: the
+            // Content-Type may still be ahead, and it decides which SOAP
+            // version the error is reported with.
+            batchResponses.add(
+              createErrorResponse(objFactory,
+                    new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
+                    LocalizableMessage.raw(ex.getMessage()))));
+            continue;
+          }
+        }
+        StringTokenizer tk = new StringTokenizer(headerVal, ",");
+        while (tk.hasMoreTokens()) {
+          mimeHeaders.addHeader(headerName, tk.nextToken().trim());
+        }
+      }
+
+      if ( ! authenticationInHeader ) {
+        // if no authentication, set default user from web.xml
+        if (userDN != null)
+        {
+          bindDN = userDN;
+          if (userPassword != null)
+          {
+            bindPassword = userPassword;
+          }
+          else
+          {
+            batchResponses.add(
+                createErrorResponse(objFactory,
+                      new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
+                      LocalizableMessage.raw("Invalid configured credentials."))));
+          }
+        }
+        else
+        {
+          bindDN = "";
+          bindPassword = "";
+        }
+      } else {
+        // otherwise if DN or password is null, send back an error
+        if (((!authenticationIsID && bindDN == null) || bindPassword == null)
+           && batchResponses.isEmpty()) {
+          batchResponses.add(
+                createErrorResponse(objFactory,
+                      new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
+                      LocalizableMessage.raw("Unable to retrieve credentials."))));
+        }
+      }
+
+      if ( batchResponses.isEmpty() && req.getContentLengthLong() > requestMaxSize ) {
+        // The declared size already exceeds the cap: reject the request before
+        // anything reads the stream — the malformed Content-Type fallback below
+        // SAX-parses the whole body to recover the requestID.
+        batchResponses.add(createErrorResponse(objFactory, requestSizeExceeded()));
+      }
+
+      if ( messageFactory == null ) {
+        // The request carries no Content-Type header, or one which matches
+        // neither SOAP 1.1 nor SOAP 1.2: it cannot be parsed. Fall back to
+        // SOAP 1.1 for the response and reject the request as malformed,
+        // unless an error has already been reported.
+        try
+        {
+          messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL);
+          messageContentType = SOAPConstants.SOAP_1_1_CONTENT_TYPE;
         }
         catch (SOAPException e)
         {
           throw new ServletException(e.getMessage());
         }
-      } else if (headerName.equalsIgnoreCase("authorization") && headerVal.startsWith("Basic "))
-      {
-        authenticationInHeader = true;
-        String authorization = headerVal.substring(6).trim();
-        try {
-          String unencoded = new String(Base64.decode(authorization).toByteArray());
-          int colon = unencoded.indexOf(':');
-          if (colon > 0) {
-            if (useHTTPAuthzID)
-            {
-              connOptions.setSASLMechanism("mech=" + SASL_MECHANISM_PLAIN);
-              connOptions.addSASLProperty(
-                  "authid=u:" + unencoded.substring(0, colon).trim());
-              authenticationIsID = true;
-            }
-            else
-            {
-              bindDN = unencoded.substring(0, colon).trim();
-            }
-            bindPassword = unencoded.substring(colon + 1);
-          }
-        } catch (final LocalizedIllegalArgumentException ex) {
-          // user/DN:password parsing error. Keep reading the headers: the
-          // Content-Type may still be ahead, and it decides which SOAP
-          // version the error is reported with.
+        if ( batchResponses.isEmpty() ) {
+          // Nothing has been read from the stream yet, so the SAX pass can still
+          // recover the requestID and let the client correlate the reply.
           batchResponses.add(
-            createErrorResponse(objFactory,
-                  new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
-                  LocalizableMessage.raw(ex.getMessage()))));
-          continue;
+              createXMLParsingErrorResponse(is,
+                                            objFactory,
+                                            batchResponse,
+                                            "Content-Type does not match SOAP 1.1 or SOAP 1.2"));
         }
       }
-      StringTokenizer tk = new StringTokenizer(headerVal, ",");
-      while (tk.hasMoreTokens()) {
-        mimeHeaders.addHeader(headerName, tk.nextToken().trim());
-      }
-    }
 
-    if ( ! authenticationInHeader ) {
-      // if no authentication, set default user from web.xml
-      if (userDN != null)
-      {
-        bindDN = userDN;
-        if (userPassword != null)
-        {
-          bindPassword = userPassword;
-        }
-        else
-        {
-          batchResponses.add(
-              createErrorResponse(objFactory,
-                    new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
-                    LocalizableMessage.raw("Invalid configured credentials."))));
-        }
-      }
-      else
-      {
-        bindDN = "";
-        bindPassword = "";
-      }
-    } else {
-      // otherwise if DN or password is null, send back an error
-      if (((!authenticationIsID && bindDN == null) || bindPassword == null)
-         && batchResponses.isEmpty()) {
-        batchResponses.add(
-              createErrorResponse(objFactory,
-                    new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
-                    LocalizableMessage.raw("Unable to retrieve credentials."))));
-      }
-    }
-
-    if ( messageFactory == null ) {
-      // The request carries no Content-Type header, or one which matches
-      // neither SOAP 1.1 nor SOAP 1.2: it cannot be parsed. Fall back to
-      // SOAP 1.1 for the response and reject the request as malformed,
-      // unless an error has already been reported.
-      try
-      {
-        messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL);
-        messageContentType = SOAPConstants.SOAP_1_1_CONTENT_TYPE;
-      }
-      catch (SOAPException e)
-      {
-        throw new ServletException(e.getMessage());
-      }
+      // if an error already occurred, the list is not empty
       if ( batchResponses.isEmpty() ) {
-        // Nothing has been read from the stream yet, so the SAX pass can still
-        // recover the requestID and let the client correlate the reply.
-        batchResponses.add(
-            createXMLParsingErrorResponse(is,
-                                          objFactory,
-                                          batchResponse,
-                                          "Content-Type does not match SOAP 1.1 or SOAP 1.2"));
-      }
-    }
-
-    // if an error already occurred, the list is not empty
-    if ( batchResponses.isEmpty() ) {
-      try {
-        SOAPMessage message = messageFactory.createMessage(mimeHeaders, is);
-        soapBody = message.getSOAPBody();
-      } catch (SOAPException ex) {
-        // SOAP was unable to parse XML successfully
-        batchResponses.add(
-          createXMLParsingErrorResponse(is,
-                                        objFactory,
-                                        batchResponse,
-                                        String.valueOf(ex.getCause())));
-      }
-    }
-
-    if ( soapBody != null ) {
-      Iterator<?> it = soapBody.getChildElements();
-      while (it.hasNext()) {
-        Object obj = it.next();
-        if (!(obj instanceof SOAPElement)) {
-          continue;
-        }
-        // Parse and unmarshall the SOAP object - the implementation prevents the use of a
-        // DOCTYPE and xincludes, so should be safe. There is no way to configure a more
-        // restrictive parser.
-        SOAPElement se = (SOAPElement) obj;
-        JAXBElement<BatchRequest> batchRequestElement = null;
         try {
-          Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-          unmarshaller.setSchema(schema);
-          batchRequestElement = unmarshaller.unmarshal(se, BatchRequest.class);
-        } catch (JAXBException e) {
-          // schema validation failed
-          batchResponses.add(createXMLParsingErrorResponse(is,
-                                                       objFactory,
-                                                       batchResponse,
-                                                       String.valueOf(e)));
-        }
-        if ( batchRequestElement != null ) {
-          boolean authzInBind = false;
-          boolean authzInControl = false;
-          batchRequest = batchRequestElement.getValue();
-
-          // The connection options are shared by all the batch requests of this
-          // SOAP body, so the authzid of the previous one must not survive into
-          // the bind of this one: it would run under an authorization identity
-          // it never asked for, and addSASLProperty() appends to the values of
-          // a key, which SASL PLAIN rejects as a multi-valued authzid.
-          connOptions.getSASLProperties().remove("authzid");
-
-          /*
-           *  Process optional authRequest (i.e. use authz)
-           */
-          if (batchRequest.authRequest != null) {
-            if (authenticationIsID) {
-              // If we are using SASL, then use the bind authz.
-              connOptions.addSASLProperty("authzid=" +
-                  batchRequest.authRequest.getPrincipal());
-              authzInBind = true;
-            } else {
-              // If we are using simple then we have to do some work after
-              // the bind.
-              authzInControl = true;
-            }
+          SOAPMessage message = messageFactory.createMessage(mimeHeaders, is);
+          soapBody = message.getSOAPBody();
+        } catch (SOAPException ex) {
+          // SOAP was unable to parse XML successfully
+          batchResponses.add(cappedStream.isLimitExceeded()
+              ? createErrorResponse(objFactory, requestSizeExceeded())
+              : createXMLParsingErrorResponse(is,
+                                              objFactory,
+                                              batchResponse,
+                                              String.valueOf(ex.getCause())));
+        } catch (IOException ex) {
+          if ( ! cappedStream.isLimitExceeded() ) {
+            throw ex;
           }
-          // set requestID in response
-          batchResponse.setRequestID(batchRequest.getRequestID());
-          org.opends.server.types.Control proxyAuthzControl = null;
+          // The body streamed past the cap: chunked, or a lying Content-Length.
+          batchResponses.add(createErrorResponse(objFactory, requestSizeExceeded()));
+        }
+      }
 
-          boolean connected = false;
-
-          // Each batch request gets its own connection: the previous one has
-          // been closed by the finally block below.
-          LDAPConnection connection =
-              new LDAPConnection(hostName, port, connOptions);
+      if ( soapBody != null ) {
+        long batchRequestCount = 0;
+        Iterator<?> it = soapBody.getChildElements();
+        while (it.hasNext()) {
+          Object obj = it.next();
+          if (!(obj instanceof SOAPElement)) {
+            continue;
+          }
+          if ( ++batchRequestCount > maxBatchRequests ) {
+            // Each element costs its own connection and bind: refuse to fan a
+            // single POST out into more binds than the configured cap
+            // (MAX_BATCH_REQUESTS), before the element is even schema-validated.
+            // The cap is counted over all the elements of the body, whatever
+            // their type, and its configured value is not echoed to the
+            // unauthenticated client.
+            batchResponses.add(createErrorResponse(objFactory,
+                new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
+                    LocalizableMessage.raw("The SOAP body holds more elements than the configured"
+                        + " maximum: the remaining elements were not attempted."))));
+            break;
+          }
+          // Parse and unmarshall the SOAP object - the implementation prevents the use of a
+          // DOCTYPE and xincludes, so should be safe. There is no way to configure a more
+          // restrictive parser.
+          SOAPElement se = (SOAPElement) obj;
+          JAXBElement<BatchRequest> batchRequestElement = null;
           try {
-            try {
-              connection.connectToHost(bindDN, bindPassword);
-              if (authzInControl)
-              {
-                proxyAuthzControl = checkAuthzControl(connection,
-                    batchRequest.authRequest.getPrincipal());
-              }
-              if (authzInBind || authzInControl)
-              {
-                LDAPResult authResponse = objFactory.createLDAPResult();
-                ResultCode code = ResultCodeFactory.create(objFactory,
-                    LDAPResultCode.SUCCESS);
-                authResponse.setResultCode(code);
-                batchResponses.add(
-                    objFactory.createBatchResponseAuthResponse(authResponse));
-              }
-              connected = true;
-            } catch (LDAPConnectionException e) {
-              // if connection failed, return appropriate error response
-              batchResponses.add(createErrorResponse(objFactory, e));
-            }
-            if ( connected ) {
-              List<DsmlMessage> list = batchRequest.getBatchRequests();
+            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+            unmarshaller.setSchema(schema);
+            batchRequestElement = unmarshaller.unmarshal(se, BatchRequest.class);
+          } catch (JAXBException e) {
+            // schema validation failed
+            batchResponses.add(createXMLParsingErrorResponse(is,
+                                                         objFactory,
+                                                         batchResponse,
+                                                         String.valueOf(e)));
+          }
+          if ( batchRequestElement != null ) {
+            boolean authzInBind = false;
+            boolean authzInControl = false;
+            batchRequest = batchRequestElement.getValue();
 
-              for (DsmlMessage request : list) {
-                JAXBElement<?> result = performLDAPRequest(connection, objFactory, proxyAuthzControl, request);
-                if ( result == null ) {
-                  // an abandon request does not produce any response element
-                  continue;
+            // The connection options are shared by all the batch requests of this
+            // SOAP body, so the authzid of the previous one must not survive into
+            // the bind of this one: it would run under an authorization identity
+            // it never asked for, and addSASLProperty() appends to the values of
+            // a key, which SASL PLAIN rejects as a multi-valued authzid.
+            connOptions.getSASLProperties().remove("authzid");
+
+            /*
+             *  Process optional authRequest (i.e. use authz)
+             */
+            if (batchRequest.authRequest != null) {
+              if (authenticationIsID) {
+                // If we are using SASL, then use the bind authz.
+                connOptions.addSASLProperty("authzid=" +
+                    batchRequest.authRequest.getPrincipal());
+                authzInBind = true;
+              } else {
+                // If we are using simple then we have to do some work after
+                // the bind.
+                authzInControl = true;
+              }
+            }
+            // set requestID in response
+            batchResponse.setRequestID(batchRequest.getRequestID());
+            org.opends.server.types.Control proxyAuthzControl = null;
+
+            boolean connected = false;
+
+            // Each batch request gets its own connection: the previous one has
+            // been closed by the finally block below.
+            LDAPConnection connection =
+                new LDAPConnection(hostName, port, connOptions);
+            try {
+              try {
+                connection.connectToHost(bindDN, bindPassword);
+                if (authzInControl)
+                {
+                  proxyAuthzControl = checkAuthzControl(connection,
+                      batchRequest.authRequest.getPrincipal());
                 }
-                batchResponses.add(result);
-                // evaluate response to check if an error occurred
-                Object o = result.getValue();
-                if ( o instanceof ErrorResponse ) {
-                  if ( ON_ERROR_EXIT.equals(batchRequest.getOnError()) ) {
-                    break;
+                if (authzInBind || authzInControl)
+                {
+                  LDAPResult authResponse = objFactory.createLDAPResult();
+                  ResultCode code = ResultCodeFactory.create(objFactory,
+                      LDAPResultCode.SUCCESS);
+                  authResponse.setResultCode(code);
+                  batchResponses.add(
+                      objFactory.createBatchResponseAuthResponse(authResponse));
+                }
+                connected = true;
+              } catch (LDAPConnectionException e) {
+                // if connection failed, return appropriate error response
+                batchResponses.add(createErrorResponse(objFactory, e));
+              }
+              if ( connected ) {
+                List<DsmlMessage> list = batchRequest.getBatchRequests();
+
+                for (DsmlMessage request : list) {
+                  JAXBElement<?> result = performLDAPRequest(connection, objFactory, proxyAuthzControl, request);
+                  if ( result == null ) {
+                    // an abandon request does not produce any response element
+                    continue;
                   }
-                } else if ( o instanceof LDAPResult ) {
-                  int code = ((LDAPResult)o).getResultCode().getCode();
-                  if ( code != LDAPResultCode.SUCCESS
-                    && code != LDAPResultCode.REFERRAL
-                    && code != LDAPResultCode.COMPARE_TRUE
-                    && code != LDAPResultCode.COMPARE_FALSE && ON_ERROR_EXIT.equals(batchRequest.getOnError()) )
-                  {
-                    break;
+                  batchResponses.add(result);
+                  // evaluate response to check if an error occurred
+                  Object o = result.getValue();
+                  if ( o instanceof ErrorResponse ) {
+                    if ( ON_ERROR_EXIT.equals(batchRequest.getOnError()) ) {
+                      break;
+                    }
+                  } else if ( o instanceof LDAPResult ) {
+                    int code = ((LDAPResult)o).getResultCode().getCode();
+                    if ( code != LDAPResultCode.SUCCESS
+                      && code != LDAPResultCode.REFERRAL
+                      && code != LDAPResultCode.COMPARE_TRUE
+                      && code != LDAPResultCode.COMPARE_FALSE && ON_ERROR_EXIT.equals(batchRequest.getOnError()) )
+                    {
+                      break;
+                    }
                   }
                 }
               }
+            } finally {
+              // close connection to LDAP server, whatever happened while
+              // processing the batch
+              connection.close(nextMessageID);
             }
-          } finally {
-            // close connection to LDAP server, whatever happened while
-            // processing the batch
-            connection.close(nextMessageID);
           }
         }
       }
-    }
-    try {
-      Marshaller marshaller = jaxbContext.createMarshaller();
-      marshaller.marshal(objFactory.createBatchResponse(batchResponse), doc);
-      sendResponse(doc, messageFactory, messageContentType, res);
-    } catch (Exception e) {
-      // The client gets an empty response: at least make the cause visible.
-      getServletContext().log("Unable to send the DSML response", e);
+      try {
+        Marshaller marshaller = jaxbContext.createMarshaller();
+        marshaller.marshal(objFactory.createBatchResponse(batchResponse), doc);
+        sendResponse(doc, messageFactory, messageContentType, res);
+      } catch (Exception e) {
+        // The client gets an empty response: at least make the cause visible.
+        getServletContext().log("Unable to send the DSML response", e);
+      }
     }
 
   }
@@ -727,6 +811,19 @@ public class DSMLServlet extends HttpServlet {
     errorResponse.setType(MALFORMED_REQUEST);
 
     return objFactory.createBatchResponseErrorResponse(errorResponse);
+  }
+
+  /**
+   * Returns the exception reporting a request body larger than the configured
+   * cap (REQUEST_MAXSIZE); its result code maps to a 'notAttempted' error
+   * response. The configured value is not echoed to the unauthenticated
+   * client.
+   */
+  private LDAPException requestSizeExceeded()
+  {
+    return new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
+        LocalizableMessage.raw(
+            "The request body is larger than the configured maximum: not attempted."));
   }
 
   /**
@@ -1041,6 +1138,69 @@ public class DSMLServlet extends HttpServlet {
     public InputSource resolveEntity(String publicId, String systemId)
     {
       return new InputSource(new StringReader(""));
+    }
+  }
+
+  /**
+   * An input stream which refuses to serve more than a fixed number of bytes,
+   * failing instead of truncating so that an oversized request is rejected
+   * rather than parsed as a shorter one.
+   */
+  private static final class CappedInputStream extends FilterInputStream
+  {
+    private final long limit;
+    private long consumed;
+    private boolean limitExceeded;
+
+    private CappedInputStream(InputStream in, long limit)
+    {
+      super(in);
+      this.limit = limit;
+    }
+
+    private boolean isLimitExceeded()
+    {
+      return limitExceeded;
+    }
+
+    @Override
+    public int read() throws IOException
+    {
+      int b = super.read();
+      if (b >= 0)
+      {
+        count(1);
+      }
+      return b;
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException
+    {
+      int read = super.read(b, off, len);
+      if (read > 0)
+      {
+        count(read);
+      }
+      return read;
+    }
+
+    @Override
+    public long skip(long n) throws IOException
+    {
+      long skipped = super.skip(n);
+      count(skipped);
+      return skipped;
+    }
+
+    private void count(long read) throws IOException
+    {
+      consumed += read;
+      if (consumed > limit)
+      {
+        limitExceeded = true;
+        throw new IOException("request body larger than " + limit + " bytes");
+      }
     }
   }
 }
