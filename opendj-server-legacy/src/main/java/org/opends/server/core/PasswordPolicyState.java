@@ -2012,7 +2012,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   /**
    * Get the broken-down components of the given password value.
    *
-   * @param  usesAuthPasswordSyntax  true if the value is an authPassword.
    * @param  v  The encoded password value to break down.
    *
    * @return An array of components.
