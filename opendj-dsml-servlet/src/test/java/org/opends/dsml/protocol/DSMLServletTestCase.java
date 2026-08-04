@@ -73,8 +73,9 @@ import org.testng.annotations.Test;
  * connection, a request without a usable Content-Type header used to trigger a
  * {@code NullPointerException} as well, and the second batch request of a SOAP
  * body used to be silently skipped. Also covers the caps on the number of
- * batchRequest elements per SOAP body (each element costs a bind) and on the
- * size of the request body.
+ * batchRequest elements per SOAP body (each element costs a bind), on the
+ * size of the request body, and on the number of operations per batchRequest
+ * (a compare on a password attribute costs a password verification).
  */
 @SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "dsml" })
@@ -116,6 +117,18 @@ public class DSMLServletTestCase extends ForgeRockTestCase
         + (authzPrincipal != null ? "<authRequest principal=\"" + authzPrincipal + "\"/>" : "")
         + "<abandonRequest abandonID=\"1\"/>"
         + "</batchRequest>";
+  }
+
+  /** A batch request holding the given number of abandon operations. */
+  private static String multiOperationBatch(String requestID, int operationCount)
+  {
+    StringBuilder batch = new StringBuilder(
+        "<batchRequest xmlns=\"urn:oasis:names:tc:DSML:2:0:core\" requestID=\"" + requestID + "\">");
+    for (int i = 1; i <= operationCount; i++)
+    {
+      batch.append("<abandonRequest abandonID=\"").append(i).append("\"/>");
+    }
+    return batch.append("</batchRequest>").toString();
   }
 
   private static String searchBatch(String requestID)
@@ -441,6 +454,59 @@ public class DSMLServletTestCase extends ForgeRockTestCase
     }
   }
 
+  /**
+   * A batchRequest holding more operations than the configured cap is rejected
+   * as a whole before the gateway even connects: a compare on a password
+   * attribute costs a password verification, and a provisioning batch applied
+   * halfway is worse than one not attempted. The requestID is kept so that the
+   * client can correlate the reply.
+   */
+  @Test
+  public void testBatchHoldingMoreOperationsThanTheCapIsRejectedWhole() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      Map<String, String> params = new LinkedHashMap<>();
+      params.put("ldap.dsml.batchrequest.operations.max", "2");
+
+      Map<String, String> headers = new LinkedHashMap<>();
+      headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
+
+      String response = doPost(server.getPort(), params, headers,
+          soap11(multiOperationBatch("1", 3)));
+
+      assertTrue(response.contains("notAttempted"), response);
+      assertTrue(response.contains("requestID=\"1\""), response);
+      assertTrue(server.getReceivedOpTypes().isEmpty(),
+          "no connection to the directory server should have been opened");
+    }
+  }
+
+  /** A batch of exactly the configured maximum is accepted: the cap fails only past the limit. */
+  @Test
+  public void testBatchOfExactlyTheMaximumOperationsIsAccepted() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      Map<String, String> params = new LinkedHashMap<>();
+      params.put("ldap.dsml.batchrequest.operations.max", "2");
+
+      Map<String, String> headers = new LinkedHashMap<>();
+      headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
+
+      String response = doPost(server.getPort(), params, headers,
+          soap11(multiOperationBatch("1", 2)));
+
+      assertFalse(response.contains("errorResponse"), response);
+
+      server.awaitDisconnect();
+      assertEquals(server.getReceivedOpTypes(),
+          list(OP_TYPE_BIND_REQUEST, OP_TYPE_ABANDON_REQUEST, OP_TYPE_ABANDON_REQUEST,
+               OP_TYPE_UNBIND_REQUEST),
+          "a batch of exactly the configured maximum must be processed");
+    }
+  }
+
   /** A cap which is not a positive number must be rejected when the servlet initialises. */
   @Test
   public void testNonPositiveCapsAreRejectedAtInit() throws Exception
@@ -448,7 +514,8 @@ public class DSMLServletTestCase extends ForgeRockTestCase
     for (String[] param : new String[][] {
         { "ldap.dsml.batchrequests.max", "0" },
         { "ldap.dsml.batchrequests.max", "banana" },
-        { "ldap.dsml.request.maxsize", "-1" } })
+        { "ldap.dsml.request.maxsize", "-1" },
+        { "ldap.dsml.batchrequest.operations.max", "0" } })
     {
       Map<String, String> params = new LinkedHashMap<>();
       params.put("ldap.host", InetAddress.getLoopbackAddress().getHostAddress());
