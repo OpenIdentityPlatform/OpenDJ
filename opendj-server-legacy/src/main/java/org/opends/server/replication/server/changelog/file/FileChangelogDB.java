@@ -81,6 +81,12 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
    * </ol>
    * When creating a replicaDB, synchronize on the domainMap to avoid
    * concurrent shutdown.
+   * <p>
+   * A creation which bails out while holding the domainMap monitor removes the still empty
+   * domainMap it inserted, so that no phantom domain is left behind. It may only do so after
+   * checking, under that same monitor, that the domainMap is still the one mapped to its baseDN:
+   * the removal is equality based and two empty maps are equal, so without the identity check it
+   * could unmap the fresh domainMap of another creation.
    */
   private final ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>> domainToReplicaDBs =
       new ConcurrentHashMap<>();
@@ -275,17 +281,19 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
         return Pair.of(currentValue, false);
       }
 
+      if (domainToReplicaDBs.get(baseDN) != domainMap)
+      {
+        // The domainMap could have been concurrently removed because
+        // 1) a shutdown was initiated or 2) an initialize was called.
+        // Return will allow the code to:
+        // 1) shutdown properly or 2) lazily recreate the replicaDB
+        // There is nothing to clean up here: this domainMap is already unmapped, and whatever map
+        // is now associated to baseDN belongs to another creation.
+        return null;
+      }
+
       try
       {
-        if (domainToReplicaDBs.get(baseDN) != domainMap)
-        {
-          // The domainMap could have been concurrently removed because
-          // 1) a shutdown was initiated or 2) an initialize was called.
-          // Return will allow the code to:
-          // 1) shutdown properly or 2) lazily recreate the replicaDB
-          return null;
-        }
-
         if (shutdown.get())
         {
           // A shutdown was initiated after the shutdown flag was read by getOrCreateReplicaDB():
@@ -310,6 +318,12 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
         // domain cursor created afterwards would walk a domain holding no replica DB at all.
         // Only an empty map may be dropped: a populated one must stay mapped for the drain of
         // shutdownDB() to find, even when the creation of this serverId failed.
+        // The identity check above passed under this monitor, and every removal site takes the
+        // monitor of the map it unmaps before removing it: the mapping cannot have changed since,
+        // so this equality based remove provably drops this domainMap and no other.
+        // Unlike removeDomain(), this path clears no ChangeNumberIndexer state, and a later
+        // creation broadcasts addDomain() anew to multi domain cursors which already incorporated
+        // the domain: a pre-existing hazard of repeated addDomain() calls, unchanged here.
         if (domainMap.isEmpty())
         {
           domainToReplicaDBs.remove(baseDN, domainMap);
@@ -342,6 +356,18 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       final CryptoSuite cryptoSuite, final ReplicationEnvironment replicationEnv) throws ChangelogException
   {
     return new FileReplicaDB(serverId, baseDN, server, cryptoSuite, replicationEnv);
+  }
+
+  /**
+   * Returns the map of replica DBs per domain.
+   * <p>
+   * Package private so that tests can observe which domain maps this changelog holds.
+   *
+   * @return the map of replica DBs per domain
+   */
+  ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>> getDomainToReplicaDBs()
+  {
+    return domainToReplicaDBs;
   }
 
   @Override

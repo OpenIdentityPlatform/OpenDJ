@@ -16,8 +16,9 @@
 package org.opends.server.replication.server.changelog.file;
 
 import java.io.File;
-import java.lang.reflect.Field;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,15 +35,22 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.common.MultiDomainServerState;
+import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.opends.server.replication.server.changelog.file.FileChangelogTestFixtures.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
@@ -56,6 +64,10 @@ public class FileChangelogDBTest extends ReplicationTestCase
   private static final int DRAINED_SERVER_ID = 814;
   /** Server id of the replica DB whose creation races that drain. */
   private static final int RACING_SERVER_ID = 813;
+  /** Server id of the replica DB whose creation bails out on the identity check. */
+  private static final int STALE_SERVER_ID = 815;
+  /** Server id of the replica DB created in the fresh domain map the bail-out must not unmap. */
+  private static final int FRESH_SERVER_ID = 816;
   /** Server id of a replica DB created before the failing one, in the same domain. */
   private static final int EXISTING_SERVER_ID = 817;
   /** Server id of the replica DB whose creation is made to fail. */
@@ -187,7 +199,7 @@ public class FileChangelogDBTest extends ReplicationTestCase
       }
       join(creator);
       join(shutdowner);
-      deregisterLeakedReplicaDBMonitors(replicationServer);
+      deregisterLeakedReplicaDBMonitors(replicationServer, RACING_SERVER_ID, DRAINED_SERVER_ID);
       remove(replicationServer);
       TestCaseUtils.deleteDirectory(testRoot);
     }
@@ -301,7 +313,7 @@ public class FileChangelogDBTest extends ReplicationTestCase
       }
       join(creator);
       join(shutdowner);
-      deregisterLeakedReplicaDBMonitors(replicationServer);
+      deregisterLeakedReplicaDBMonitors(replicationServer, RACING_SERVER_ID, DRAINED_SERVER_ID);
       remove(replicationServer);
       TestCaseUtils.deleteDirectory(testRoot);
     }
@@ -310,7 +322,8 @@ public class FileChangelogDBTest extends ReplicationTestCase
   /**
    * A replica DB creation which fails must not leave behind the empty domain map it inserted:
    * nothing would ever remove it from {@code domainToReplicaDBs}, and every multi domain cursor
-   * created afterwards would walk a domain holding no replica DB at all.
+   * created afterwards would walk a domain holding no replica DB at all - the symptom this test
+   * also asserts, through the domains a new multi domain cursor asks the changelog to open.
    */
   @Test
   public void failedReplicaDBCreationDropsTheDomainMapItInserted() throws Exception
@@ -318,13 +331,13 @@ public class FileChangelogDBTest extends ReplicationTestCase
     TestCaseUtils.startServer();
 
     ReplicationServer replicationServer = null;
-    FailingChangelogDB changelogDB = null;
+    RaceableChangelogDB changelogDB = null;
     File testRoot = null;
     try
     {
       replicationServer = configureReplicationServer(100, 5000);
       testRoot = createCleanDir("FileChangelogDB");
-      changelogDB = new FailingChangelogDB(replicationServer, testRoot.getPath(), createCryptoSuite(false));
+      changelogDB = new RaceableChangelogDB(replicationServer, testRoot.getPath(), createCryptoSuite(false));
       changelogDB.initializeDB();
 
       changelogDB.failNextReplicaDBCreation();
@@ -337,24 +350,47 @@ public class FileChangelogDBTest extends ReplicationTestCase
       {
         assertThat(expected).hasMessage(CREATION_FAILURE.toString());
       }
-      assertThat(domainToReplicaDBs(changelogDB))
+      assertThat(changelogDB.getDomainToReplicaDBs())
           .as("the empty domain map inserted for the creation which failed")
           .doesNotContainKey(TEST_ROOT_DN);
+
+      // the symptom of the leftover map: a multi domain cursor created after the failure must not
+      // walk the phantom domain
+      changelogDB.walkedDomains.clear();
+      final MultiDomainDBCursor cursor = changelogDB.getCursorFrom(
+          new MultiDomainServerState(), new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY));
+      try
+      {
+        cursor.next();
+        assertThat(changelogDB.walkedDomains)
+            .as("the domains walked by a multi domain cursor created after the failed creation")
+            .doesNotContain(TEST_ROOT_DN);
+      }
+      finally
+      {
+        cursor.close();
+      }
 
       // the next creation starts from scratch and repopulates the domain
       final Pair<FileReplicaDB, Boolean> result =
           changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, FAILING_SERVER_ID, replicationServer);
       assertThat(result.getSecond()).as("the replica DB was created anew").isTrue();
-      assertThat(domainToReplicaDBs(changelogDB).get(TEST_ROOT_DN)).containsOnlyKeys(FAILING_SERVER_ID);
+      assertThat(changelogDB.getDomainToReplicaDBs().get(TEST_ROOT_DN)).containsOnlyKeys(FAILING_SERVER_ID);
     }
     finally
     {
-      if (changelogDB != null)
+      try
       {
-        changelogDB.shutdownDB();
+        if (changelogDB != null)
+        {
+          changelogDB.shutdownDB();
+        }
       }
-      remove(replicationServer);
-      TestCaseUtils.deleteDirectory(testRoot);
+      finally
+      {
+        remove(replicationServer);
+        TestCaseUtils.deleteDirectory(testRoot);
+      }
     }
   }
 
@@ -369,17 +405,18 @@ public class FileChangelogDBTest extends ReplicationTestCase
     TestCaseUtils.startServer();
 
     ReplicationServer replicationServer = null;
-    FailingChangelogDB changelogDB = null;
+    RaceableChangelogDB changelogDB = null;
     File testRoot = null;
     try
     {
       replicationServer = configureReplicationServer(100, 5000);
       testRoot = createCleanDir("FileChangelogDB");
-      changelogDB = new FailingChangelogDB(replicationServer, testRoot.getPath(), createCryptoSuite(false));
+      changelogDB = new RaceableChangelogDB(replicationServer, testRoot.getPath(), createCryptoSuite(false));
       changelogDB.initializeDB();
 
       changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, EXISTING_SERVER_ID, replicationServer);
-      final ConcurrentMap<Integer, FileReplicaDB> domainMap = domainToReplicaDBs(changelogDB).get(TEST_ROOT_DN);
+      final ConcurrentMap<Integer, FileReplicaDB> domainMap =
+          changelogDB.getDomainToReplicaDBs().get(TEST_ROOT_DN);
 
       changelogDB.failNextReplicaDBCreation();
       try
@@ -391,29 +428,155 @@ public class FileChangelogDBTest extends ReplicationTestCase
       {
         assertThat(expected).hasMessage(CREATION_FAILURE.toString());
       }
-      assertThat(domainToReplicaDBs(changelogDB).get(TEST_ROOT_DN))
+      assertThat(changelogDB.getDomainToReplicaDBs().get(TEST_ROOT_DN))
           .as("the domain map holding the replica DB created before the failure")
           .isSameAs(domainMap)
           .containsOnlyKeys(EXISTING_SERVER_ID);
     }
     finally
     {
-      if (changelogDB != null)
+      try
       {
-        changelogDB.shutdownDB();
+        if (changelogDB != null)
+        {
+          changelogDB.shutdownDB();
+        }
       }
-      remove(replicationServer);
-      TestCaseUtils.deleteDirectory(testRoot);
+      finally
+      {
+        remove(replicationServer);
+        TestCaseUtils.deleteDirectory(testRoot);
+      }
     }
   }
 
-  @SuppressWarnings("unchecked")
-  private static ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>> domainToReplicaDBs(
-      final FileChangelogDB changelogDB) throws Exception
+  /**
+   * A creation which bails out on the identity check must not drop the domain map another creation
+   * has freshly inserted: the drop is equality based and two empty maps are equal, so an identity
+   * unaware cleanup would unmap the fresh map, and the replica DB about to be published into it
+   * would no longer be reachable from {@code domainToReplicaDBs} - nothing would ever shut it
+   * down, which is the leak of #813 all over again.
+   * <p>
+   * The interleaving is driven step by step:
+   * <ol>
+   * <li>the stale creator obtains its domain map and is held before entering its monitor;</li>
+   * <li>{@code removeDomain()} unmaps that domain map;</li>
+   * <li>a fresh creator inserts a new, still empty domain map and is held inside
+   * {@code newReplicaDB()}, under the fresh map's monitor;</li>
+   * <li>the stale creator is released: its identity check fails and it must bail out without
+   * touching the fresh map, then retry and block on the fresh map's monitor;</li>
+   * <li>the fresh creator is released: both creations complete into that same map.</li>
+   * </ol>
+   */
+  @Test
+  public void bailOutMustNotUnmapAnotherThreadsFreshDomainMap() throws Exception
   {
-    final Field field = FileChangelogDB.class.getDeclaredField("domainToReplicaDBs");
-    field.setAccessible(true);
-    return (ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>>) field.get(changelogDB);
+    TestCaseUtils.startServer();
+
+    ReplicationServer replicationServer = null;
+    RaceableChangelogDB changelogDB = null;
+    File testRoot = null;
+    Thread staleCreator = null;
+    Thread freshCreator = null;
+    final AtomicReference<Throwable> staleCreationFailure = new AtomicReference<>();
+    final AtomicReference<Throwable> freshCreationFailure = new AtomicReference<>();
+    try
+    {
+      replicationServer = configureReplicationServer(100, 5000);
+      testRoot = createCleanDir("FileChangelogDB");
+      changelogDB = new RaceableChangelogDB(replicationServer, testRoot.getPath(), createCryptoSuite(false));
+      changelogDB.initializeDB();
+
+      final RaceableChangelogDB racedChangelogDB = changelogDB;
+      final ReplicationServer racedReplicationServer = replicationServer;
+
+      // 1- the stale creator obtains the domain map about to be unmapped, and is parked there
+      changelogDB.holdNextCreationAfterItsDomainMapIsObtained();
+      staleCreator = new Thread("FileChangelogDBTest stale replica DB creator")
+      {
+        @Override
+        public void run()
+        {
+          try
+          {
+            racedChangelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, STALE_SERVER_ID, racedReplicationServer);
+          }
+          catch (Throwable t)
+          {
+            staleCreationFailure.set(t);
+          }
+        }
+      };
+      staleCreator.start();
+      changelogDB.awaitCreatorHoldingItsDomainMap();
+
+      // 2- the domain map the stale creator holds is unmapped
+      changelogDB.removeDomain(TEST_ROOT_DN);
+
+      // 3- the fresh creator inserts a new, still empty domain map, and is parked inside
+      // newReplicaDB(), under the monitor of that fresh map
+      changelogDB.holdNextReplicaDBOnceCreated();
+      freshCreator = new Thread("FileChangelogDBTest fresh replica DB creator")
+      {
+        @Override
+        public void run()
+        {
+          try
+          {
+            racedChangelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, FRESH_SERVER_ID, racedReplicationServer);
+          }
+          catch (Throwable t)
+          {
+            freshCreationFailure.set(t);
+          }
+        }
+      };
+      freshCreator.start();
+      changelogDB.awaitCreatorHoldingItsCreatedReplicaDB();
+      final ConcurrentMap<Integer, FileReplicaDB> freshDomainMap =
+          changelogDB.getDomainToReplicaDBs().get(TEST_ROOT_DN);
+      assertThat(freshDomainMap).as("the fresh domain map, not published into yet").isNotNull().isEmpty();
+
+      // 4- the stale creator bails out on its identity check, retries, and blocks on the monitor
+      // of the fresh domain map - without the identity check its cleanup would have unmapped the
+      // fresh map, and it would have completed into a third map instead of blocking
+      changelogDB.releaseCreatorHoldingItsDomainMap();
+      awaitBlockedOnAMonitorOrCompleted(staleCreator);
+      assertThat(changelogDB.getDomainToReplicaDBs().get(TEST_ROOT_DN))
+          .as("the domain map the fresh creator is about to publish its replica DB into")
+          .isSameAs(freshDomainMap);
+
+      // 5- both creations complete into that same map
+      changelogDB.releaseCreatedReplicaDB();
+      staleCreator.join(TIMEOUT_MS);
+      freshCreator.join(TIMEOUT_MS);
+      assertThat(staleCreator.isAlive()).as("the stale creator thread did not complete").isFalse();
+      assertThat(freshCreator.isAlive()).as("the fresh creator thread did not complete").isFalse();
+      assertThat(staleCreationFailure.get()).isNull();
+      assertThat(freshCreationFailure.get()).isNull();
+      assertThat(changelogDB.getDomainToReplicaDBs().get(TEST_ROOT_DN))
+          .isSameAs(freshDomainMap)
+          .containsOnlyKeys(STALE_SERVER_ID, FRESH_SERVER_ID);
+    }
+    finally
+    {
+      try
+      {
+        if (changelogDB != null)
+        {
+          changelogDB.releaseAllHeldThreads();
+          changelogDB.shutdownDB();
+        }
+      }
+      finally
+      {
+        join(staleCreator);
+        join(freshCreator);
+        deregisterLeakedReplicaDBMonitors(replicationServer, STALE_SERVER_ID, FRESH_SERVER_ID);
+        remove(replicationServer);
+        TestCaseUtils.deleteDirectory(testRoot);
+      }
+    }
   }
 
   /** Joins the provided thread, leaving a signal behind when it did not die within the timeout. */
@@ -434,11 +597,26 @@ public class FileChangelogDBTest extends ReplicationTestCase
   }
 
   /**
-   * Waits until the provided thread is blocked acquiring a monitor: the domain map monitor held by
-   * the creator is the only one it can stay blocked on - the other locks on its way to the drain
-   * are only transiently contended, hence the two consecutive observations.
+   * Waits until the provided thread is blocked acquiring a monitor: the domain map monitor is the
+   * only one it can stay blocked on - the other locks on its way are only transiently contended,
+   * hence the two consecutive observations. A thread expected to block but completing instead is
+   * an error.
    */
   private static void awaitBlockedOnAMonitor(final Thread thread) throws InterruptedException
+  {
+    awaitBlockedOnAMonitorOrCompleted(thread);
+    if (!thread.isAlive())
+    {
+      throw new IllegalStateException(thread.getName() + " completed without blocking on the domain map monitor");
+    }
+  }
+
+  /**
+   * Waits until the provided thread is durably blocked acquiring a monitor - two consecutive
+   * observations, since the other locks on its way are only transiently contended - or has
+   * completed: completion is left for the caller's assertions to diagnose.
+   */
+  private static void awaitBlockedOnAMonitorOrCompleted(final Thread thread) throws InterruptedException
   {
     final long deadline = System.currentTimeMillis() + TIMEOUT_MS;
     int blockedObservations = 0;
@@ -446,7 +624,7 @@ public class FileChangelogDBTest extends ReplicationTestCase
     {
       if (!thread.isAlive())
       {
-        throw new IllegalStateException(thread.getName() + " completed without blocking on the domain map monitor");
+        return;
       }
       if (System.currentTimeMillis() > deadline)
       {
@@ -471,13 +649,13 @@ public class FileChangelogDBTest extends ReplicationTestCase
   }
 
   /** Releases the monitor providers a regression leaks, so that they do not outlive this test. */
-  private void deregisterLeakedReplicaDBMonitors(final ReplicationServer replicationServer)
+  private void deregisterLeakedReplicaDBMonitors(final ReplicationServer replicationServer, final int... serverIds)
   {
     if (replicationServer == null || replicationServer.getReplicationServerDomain(TEST_ROOT_DN) == null)
     {
       return; // no replica DB was ever created, hence no monitor provider was ever registered
     }
-    for (final int serverId : new int[] { RACING_SERVER_ID, DRAINED_SERVER_ID })
+    for (final int serverId : serverIds)
     {
       // deregister the provider instead of removing the map entry, so that the JMX MBean
       // registered alongside it is released as well
@@ -492,20 +670,29 @@ public class FileChangelogDBTest extends ReplicationTestCase
 
   /**
    * A changelog DB which lets a test hold a thread creating a replica DB right after it has read
-   * the shutdown flag, hold it again once the replica DB is created but not yet published into the
-   * domain map, and hold the shutdown inside the drain of {@code domainToReplicaDBs}.
+   * the shutdown flag, hold it after it has obtained its domain map but before it enters the
+   * monitor, hold it again once the replica DB is created but not yet published into the domain
+   * map, hold the shutdown inside the drain of {@code domainToReplicaDBs}, make the next replica
+   * DB creation fail, and record the domains cursors are opened for.
    */
   private static final class RaceableChangelogDB extends FileChangelogDB
   {
     private final AtomicBoolean holdNextCreation = new AtomicBoolean();
+    private final AtomicBoolean holdNextDomainMapObtained = new AtomicBoolean();
     private final AtomicBoolean holdNextReplicaDBShutdown = new AtomicBoolean();
     private final AtomicBoolean holdNextCreatedReplicaDB = new AtomicBoolean();
+    private final AtomicBoolean failNextCreation = new AtomicBoolean();
     private final CountDownLatch creatorIsInWindow = new CountDownLatch(1);
     private final CountDownLatch creatorIsReleased = new CountDownLatch(1);
+    private final CountDownLatch creatorHoldsItsDomainMap = new CountDownLatch(1);
+    private final CountDownLatch domainMapIsReleased = new CountDownLatch(1);
     private final CountDownLatch creatorHoldsItsCreatedReplicaDB = new CountDownLatch(1);
     private final CountDownLatch createdReplicaDBIsReleased = new CountDownLatch(1);
     private final CountDownLatch drainIsInReplicaDBShutdown = new CountDownLatch(1);
     private final CountDownLatch drainIsReleased = new CountDownLatch(1);
+
+    /** The baseDNs of the domains any cursor was opened for. */
+    private final Set<DN> walkedDomains = new CopyOnWriteArraySet<>();
 
     RaceableChangelogDB(final ReplicationServer replicationServer, final String dbDirectoryPath,
         final CryptoSuite cryptoSuite) throws ConfigException
@@ -521,13 +708,23 @@ public class FileChangelogDBTest extends ReplicationTestCase
         creatorIsInWindow.countDown();
         await(creatorIsReleased);
       }
-      return super.getExistingOrNewDomainMap(baseDN);
+      final ConcurrentMap<Integer, FileReplicaDB> domainMap = super.getExistingOrNewDomainMap(baseDN);
+      if (holdNextDomainMapObtained.compareAndSet(true, false))
+      {
+        creatorHoldsItsDomainMap.countDown();
+        await(domainMapIsReleased);
+      }
+      return domainMap;
     }
 
     @Override
     FileReplicaDB newReplicaDB(final int serverId, final DN baseDN, final ReplicationServer server,
         final CryptoSuite cryptoSuite, final ReplicationEnvironment replicationEnv) throws ChangelogException
     {
+      if (failNextCreation.compareAndSet(true, false))
+      {
+        throw new ChangelogException(CREATION_FAILURE);
+      }
       if (holdNextReplicaDBShutdown.compareAndSet(true, false))
       {
         return new HeldOnShutdownReplicaDB(serverId, baseDN, server, cryptoSuite, replicationEnv);
@@ -543,9 +740,22 @@ public class FileChangelogDBTest extends ReplicationTestCase
       return replicaDB;
     }
 
+    @Override
+    public DBCursor<UpdateMsg> getCursorFrom(final DN baseDN, final ServerState startState,
+        final CursorOptions options) throws ChangelogException
+    {
+      walkedDomains.add(baseDN);
+      return super.getCursorFrom(baseDN, startState, options);
+    }
+
     void holdNextReplicaDBCreationBeforeItsDomainMapIsInserted()
     {
       holdNextCreation.set(true);
+    }
+
+    void holdNextCreationAfterItsDomainMapIsObtained()
+    {
+      holdNextDomainMapObtained.set(true);
     }
 
     void holdNextReplicaDBInItsShutdown()
@@ -558,9 +768,19 @@ public class FileChangelogDBTest extends ReplicationTestCase
       holdNextCreatedReplicaDB.set(true);
     }
 
+    void failNextReplicaDBCreation()
+    {
+      failNextCreation.set(true);
+    }
+
     void awaitCreatorInWindow()
     {
       await(creatorIsInWindow);
+    }
+
+    void awaitCreatorHoldingItsDomainMap()
+    {
+      await(creatorHoldsItsDomainMap);
     }
 
     void awaitCreatorHoldingItsCreatedReplicaDB()
@@ -578,6 +798,11 @@ public class FileChangelogDBTest extends ReplicationTestCase
       creatorIsReleased.countDown();
     }
 
+    void releaseCreatorHoldingItsDomainMap()
+    {
+      domainMapIsReleased.countDown();
+    }
+
     void releaseCreatedReplicaDB()
     {
       createdReplicaDBIsReleased.countDown();
@@ -591,6 +816,7 @@ public class FileChangelogDBTest extends ReplicationTestCase
     void releaseAllHeldThreads()
     {
       releaseCreator();
+      releaseCreatorHoldingItsDomainMap();
       releaseCreatedReplicaDB();
       releaseDrain();
     }
@@ -627,34 +853,6 @@ public class FileChangelogDBTest extends ReplicationTestCase
         Thread.currentThread().interrupt();
         throw new IllegalStateException(e);
       }
-    }
-  }
-
-  /** A changelog DB which lets a test make the next replica DB creation fail. */
-  private static final class FailingChangelogDB extends FileChangelogDB
-  {
-    private final AtomicBoolean failNextCreation = new AtomicBoolean();
-
-    FailingChangelogDB(final ReplicationServer replicationServer, final String dbDirectoryPath,
-        final CryptoSuite cryptoSuite) throws ConfigException
-    {
-      super(replicationServer, dbDirectoryPath, cryptoSuite);
-    }
-
-    @Override
-    FileReplicaDB newReplicaDB(final int serverId, final DN baseDN, final ReplicationServer server,
-        final CryptoSuite cryptoSuite, final ReplicationEnvironment replicationEnv) throws ChangelogException
-    {
-      if (failNextCreation.compareAndSet(true, false))
-      {
-        throw new ChangelogException(CREATION_FAILURE);
-      }
-      return super.newReplicaDB(serverId, baseDN, server, cryptoSuite, replicationEnv);
-    }
-
-    void failNextReplicaDBCreation()
-    {
-      failNextCreation.set(true);
     }
   }
 }
