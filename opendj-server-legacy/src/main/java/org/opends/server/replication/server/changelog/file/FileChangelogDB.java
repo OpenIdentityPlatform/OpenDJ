@@ -279,7 +279,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   }
 
   @Override
-  public void initializeDB()
+  public void initializeDB() throws ChangelogException
   {
     try
     {
@@ -294,8 +294,12 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
     catch (ChangelogException e)
     {
+      // A changelog which could not be read leaves this DB unusable, and every shape of that
+      // failure surfaces much later and somewhere else (issue #802). Not logged here: the
+      // caller reports the failure, logging it once.
       logger.traceException(e);
-      logger.error(ERR_COULD_NOT_READ_DB, this.dbDirectory.getAbsolutePath(), e.getLocalizedMessage());
+      throw new ChangelogException(
+          ERR_COULD_NOT_READ_DB.get(this.dbDirectory.getAbsolutePath(), e.getLocalizedMessage()), e);
     }
   }
 
