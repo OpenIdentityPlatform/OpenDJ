@@ -24,6 +24,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.SizeLimitLogRotationPolicyCfg;
 import org.opends.server.DirectoryServerTestCase;
@@ -38,11 +40,16 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class MultifileTextWriterTestCase extends DirectoryServerTestCase
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   private static final DN PUBLISHER_DN = DN.valueOf("cn=Test Logger,cn=Loggers,cn=config");
   /** Small enough for two records to overflow it, large enough for one not to. */
   private static final long SIZE_LIMIT = 64;
   private static final String RECORD_A = "a".repeat(32);
   private static final String RECORD_B = "b".repeat(32);
+  /** Long enough to leave the re-opened stream over the size limit together with the first record. */
+  private static final String STAND_IN_WARNING =
+      "stand-in for the permission warnings logged while the writer is re-opened";
 
   /** Naming policy with fixed names, so that the test does not depend on the current second. */
   private static final class FixedNamingPolicy implements FileNamingPolicy
@@ -85,6 +92,32 @@ public class MultifileTextWriterTestCase extends DirectoryServerTestCase
     public File[] listFiles()
     {
       return new File[0];
+    }
+  }
+
+  /**
+   * A file which can run a hook from within constructWriter(): after a failed rotation the writer
+   * is re-opened, and {@code FilePermission.setPermissions} checks {@code exists()} at the exact
+   * point where the permission warnings are logged.
+   */
+  private static final class HookedFile extends File
+  {
+    private static final long serialVersionUID = 1L;
+    private transient Runnable onExists;
+
+    private HookedFile(File parent, String child)
+    {
+      super(parent, child);
+    }
+
+    @Override
+    public boolean exists()
+    {
+      if (onExists != null)
+      {
+        onExists.run();
+      }
+      return super.exists();
     }
   }
 
@@ -233,5 +266,51 @@ public class MultifileTextWriterTestCase extends DirectoryServerTestCase
     assertTrue(lines.contains(RECORD_B), "the record which triggered the rotation must not be lost");
     assertTrue(lines.stream().anyMatch(line -> line.contains("rotating log file")),
         "the rotation failure must be reported in the log file, but it contained: " + lines);
+  }
+
+  /**
+   * constructWriter() logs permission warnings of its own, between re-seeding the stream with the
+   * over-limit file length and the point where the failed rotation used to set its latch. When the
+   * writer backs the error log, such a warning used to re-enter writeRecord() and to recurse until
+   * the stack blew up. The hook stands in for the permission warning, firing at the same point of
+   * the re-open.
+   */
+  @Test
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public void testWarningDuringReopenAfterFailedRotationDoesNotRecurse() throws Exception
+  {
+    breakRotation();
+    HookedFile hookedLogFile = new HookedFile(tempDir, logFile.getName());
+    logFile = hookedLogFile;
+    writer = newWriter();
+
+    MultifileTextWriter publishing = writer;
+    ErrorLogPublisher publisher = TextErrorLogPublisher.getServerStartupTextErrorPublisher(publishing);
+    ErrorLogger.getInstance().addLogPublisher(publisher);
+    try
+    {
+      publishing.writeRecord(RECORD_A);
+      hookedLogFile.onExists = () -> logger.warn(LocalizableMessage.raw(STAND_IN_WARNING));
+      // Overflows the size limit: the rotation fails, and while the writer is re-opened the hook
+      // logs through the very logger this writer is backing, like the permission warnings do.
+      publishing.writeRecord(RECORD_B);
+      publishing.flush();
+    }
+    finally
+    {
+      // Removing the publisher closes it, which already shuts this writer down.
+      ErrorLogger.getInstance().removeLogPublisher(publisher);
+      writer = null;
+    }
+
+    assertEquals(publishing.getTotalFilesRotated(), 0);
+
+    List<String> lines = linesOf(logFile);
+    assertEquals(lines.get(0), RECORD_A, "the log file must have been appended to");
+    assertTrue(lines.stream().anyMatch(line -> line.contains(STAND_IN_WARNING)),
+        "the warning logged during the re-open must not be lost, but the log file contained: " + lines);
+    assertTrue(lines.contains(RECORD_B), "the record which triggered the rotation must not be lost");
+    assertEquals(lines.stream().filter(line -> line.contains("rotating log file")).count(), 1L,
+        "the rotation failure must be reported exactly once, but the log file contained: " + lines);
   }
 }

@@ -631,6 +631,11 @@ class MultifileTextWriter
     File currentFile = namingPolicy.getInitialName();
     File newFile = namingPolicy.getNextName();
     final boolean renamed = currentFile.renameTo(newFile);
+    // The latch must be set before the writer is re-opened: constructWriter() logs warnings of its
+    // own, and when this writer backs the error log they come straight back into writeRecord() on
+    // this thread, where they must not trigger another rotation attempt.
+    final boolean report = !renamed && !rotationFailed;
+    rotationFailed = !renamed;
 
     try
     {
@@ -648,15 +653,10 @@ class MultifileTextWriter
     {
       logger.trace("Log file %s rotated and renamed to %s", currentFile, newFile);
       totalFilesRotated++;
-      rotationFailed = false;
       lastRotationTime = TimeThread.getCalendar();
     }
-    else if (!rotationFailed)
+    else if (report)
     {
-      // The latch must be set before logging: when this writer backs the error log, the message
-      // below comes straight back into writeRecord() on this thread. It has to reach a writer which
-      // has been re-opened above, and it must not trigger another rotation attempt.
-      rotationFailed = true;
       logger.error(ERR_LOGGER_ERROR_ROTATING_FILE, currentFile, newFile);
     }
     // lastRotationTime is left untouched on failure so that a time based policy keeps asking for a
