@@ -75,8 +75,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
    * <ol>
    * <li>first get the domainMap</li>
    * <li>synchronized on the domainMap</li>
-   * <li>remove the domainMap</li>
-   * <li>then check it's not null</li>
+   * <li>remove the domainMap, but only if it is still the mapped value</li>
    * <li>then close all inside</li>
    * </ol>
    * When creating a replicaDB, synchronize on the domainMap to avoid
@@ -510,7 +509,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     ChangelogException firstException = null;
 
     // 1- clear the replica DBs
-    Map<Integer, FileReplicaDB> domainMap = domainToReplicaDBs.get(baseDN);
+    final Map<Integer, FileReplicaDB> domainMap = domainToReplicaDBs.get(baseDN);
     if (domainMap != null)
     {
       final ChangeNumberIndexer indexer = this.cnIndexer.get();
@@ -520,7 +519,15 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       }
       synchronized (domainMap)
       {
-        domainMap = domainToReplicaDBs.remove(baseDN);
+        // shutdownDB(), clearDB() or a concurrent removeDomain() may have unmapped this
+        // domainMap before this monitor was acquired: only remove the instance the monitor
+        // was taken on, and never a domainMap concurrently recreated for the same baseDN.
+        // Replica DBs another remover already visited are cleared and shut down again below,
+        // which is harmless: both operations are no-ops the second time.
+        if (domainToReplicaDBs.get(baseDN) == domainMap)
+        {
+          domainToReplicaDBs.remove(baseDN);
+        }
         for (FileReplicaDB replicaDB : domainMap.values())
         {
           try
