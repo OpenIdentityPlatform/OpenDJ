@@ -18,6 +18,7 @@ package org.opends.dsml.protocol;
 import static java.util.Arrays.asList;
 import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_ABANDON_REQUEST;
 import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_BIND_REQUEST;
+import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_SEARCH_REQUEST;
 import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_UNBIND_REQUEST;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -61,6 +62,7 @@ import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.testng.annotations.Test;
@@ -100,11 +102,29 @@ public class DSMLServletTestCase extends ForgeRockTestCase
   private static final String MIXED_AUTHZ_BATCHES =
       soap11(abandonBatch("1", "dn:cn=first") + abandonBatch("2", null));
 
+  /**
+   * A search batch followed by an excess abandon batch: the search produces a
+   * response element, proving that the reply carries the partial results next
+   * to the error rejecting the excess.
+   */
+  private static final String SEARCH_AND_ABANDON_BATCHES =
+      soap11(searchBatch("1") + abandonBatch("2", null));
+
   private static String abandonBatch(String requestID, String authzPrincipal)
   {
     return "<batchRequest xmlns=\"urn:oasis:names:tc:DSML:2:0:core\" requestID=\"" + requestID + "\">"
         + (authzPrincipal != null ? "<authRequest principal=\"" + authzPrincipal + "\"/>" : "")
         + "<abandonRequest abandonID=\"1\"/>"
+        + "</batchRequest>";
+  }
+
+  private static String searchBatch(String requestID)
+  {
+    return "<batchRequest xmlns=\"urn:oasis:names:tc:DSML:2:0:core\" requestID=\"" + requestID + "\">"
+        + "<searchRequest dn=\"dc=example,dc=com\" scope=\"baseObject\""
+        + " derefAliases=\"neverDerefAliases\">"
+        + "<filter><present name=\"objectClass\"/></filter>"
+        + "</searchRequest>"
         + "</batchRequest>";
   }
 
@@ -281,7 +301,8 @@ public class DSMLServletTestCase extends ForgeRockTestCase
   /**
    * Each batchRequest element of a SOAP body costs its own connection and
    * bind, so by default a single POST may only hold one: the excess must be
-   * rejected without being executed, not silently skipped.
+   * rejected without being executed, not silently skipped, and the results of
+   * the elements under the cap must still reach the client next to the error.
    */
   @Test
   public void testExcessBatchRequestsAreRejectedByDefault() throws Exception
@@ -291,13 +312,14 @@ public class DSMLServletTestCase extends ForgeRockTestCase
       Map<String, String> headers = new LinkedHashMap<>();
       headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
 
-      String response = doPost(server.getPort(), headers, TWO_ABANDON_BATCHES);
+      String response = doPost(server.getPort(), headers, SEARCH_AND_ABANDON_BATCHES);
 
+      assertTrue(response.contains("searchResponse"), response);
       assertTrue(response.contains("notAttempted"), response);
 
       server.awaitDisconnect();
       assertEquals(server.getReceivedOpTypes(),
-          list(OP_TYPE_BIND_REQUEST, OP_TYPE_ABANDON_REQUEST, OP_TYPE_UNBIND_REQUEST),
+          list(OP_TYPE_BIND_REQUEST, OP_TYPE_SEARCH_REQUEST, OP_TYPE_UNBIND_REQUEST),
           "only the first batch request may bind under the default cap");
     }
   }
@@ -344,6 +366,78 @@ public class DSMLServletTestCase extends ForgeRockTestCase
       assertTrue(response.contains("notAttempted"), response);
       assertTrue(server.getReceivedOpTypes().isEmpty(),
           "no connection to the directory server should have been opened");
+    }
+  }
+
+  /**
+   * The declared-size check must not add a second error to a reply which
+   * already reports one: the credentials error wins, and the reply holds a
+   * single errorResponse.
+   */
+  @Test
+  public void testOversizedDeclaredBodyDoesNotDoubleACredentialsError() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      Map<String, String> headers = new LinkedHashMap<>();
+      headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
+      // credentials without the ':' separator: the password cannot be retrieved
+      headers.put("Authorization", "Basic " + Base64.getEncoder()
+          .encodeToString("cn=directory manager".getBytes(StandardCharsets.UTF_8)));
+
+      String response = doPost(server.getPort(), Collections.<String, String> emptyMap(),
+          headers, ABANDON_BATCH, 20L * 1024 * 1024);
+
+      assertTrue(response.contains("authenticationFailed"), response);
+      assertFalse(response.contains("notAttempted"), response);
+      assertTrue(server.getReceivedOpTypes().isEmpty(),
+          "no connection to the directory server should have been opened");
+    }
+  }
+
+  /**
+   * An oversized declared body without a usable Content-Type is rejected on
+   * its size alone: the malformed-request fallback which SAX-parses the whole
+   * body to recover the requestID must not run, so the reply carries a single
+   * error and no requestID.
+   */
+  @Test
+  public void testOversizedDeclaredBodyWithoutContentTypeIsNotParsed() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      String response = doPost(server.getPort(), Collections.<String, String> emptyMap(),
+          new LinkedHashMap<String, String>(), ABANDON_BATCH, 20L * 1024 * 1024);
+
+      assertTrue(response.contains("notAttempted"), response);
+      assertFalse(response.contains("malformedRequest"), response);
+      assertFalse(response.contains("requestID"), response);
+      assertTrue(server.getReceivedOpTypes().isEmpty(),
+          "no connection to the directory server should have been opened");
+    }
+  }
+
+  /** A body of exactly the configured maximum size is accepted: the cap fails only past the limit. */
+  @Test
+  public void testBodyOfExactlyTheMaximumSizeIsAccepted() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      Map<String, String> params = new LinkedHashMap<>();
+      params.put("ldap.dsml.request.maxsize",
+          String.valueOf(ABANDON_BATCH.getBytes(StandardCharsets.UTF_8).length));
+
+      Map<String, String> headers = new LinkedHashMap<>();
+      headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
+
+      String response = doPost(server.getPort(), params, headers, ABANDON_BATCH);
+
+      assertFalse(response.contains("errorResponse"), response);
+
+      server.awaitDisconnect();
+      assertEquals(server.getReceivedOpTypes(),
+          list(OP_TYPE_BIND_REQUEST, OP_TYPE_ABANDON_REQUEST, OP_TYPE_UNBIND_REQUEST),
+          "a body of exactly the configured maximum must be processed");
     }
   }
 
@@ -481,10 +575,10 @@ public class DSMLServletTestCase extends ForgeRockTestCase
 
   /**
    * A minimal LDAP endpoint which answers the bind request with a success
-   * result and records the type of every message it receives, as well as the
-   * authorization identity of every SASL bind. Connections are served one after
-   * the other, so that a SOAP body holding several batch requests can be
-   * exercised.
+   * result, answers a search request with an empty success result, and records
+   * the type of every message it receives, as well as the authorization
+   * identity of every SASL bind. Connections are served one after the other,
+   * so that a SOAP body holding several batch requests can be exercised.
    */
   private static final class FakeLdapServer implements Closeable
   {
@@ -592,6 +686,12 @@ public class DSMLServletTestCase extends ForgeRockTestCase
           recordAuthzId(message.getBindRequestProtocolOp());
           writer.writeMessage(new LDAPMessage(message.getMessageID(),
               new BindResponseProtocolOp(LDAPResultCode.SUCCESS)));
+        }
+        else if (message.getProtocolOpType() == OP_TYPE_SEARCH_REQUEST)
+        {
+          // no entries: the search completes with an empty result
+          writer.writeMessage(new LDAPMessage(message.getMessageID(),
+              new SearchResultDoneProtocolOp(LDAPResultCode.SUCCESS)));
         }
       }
     }
