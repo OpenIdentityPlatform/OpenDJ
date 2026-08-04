@@ -1165,11 +1165,19 @@ public class UIFactory
   {
     String s = String.valueOf(l);
     String[] colors = s.split(",");
-    int r = Integer.parseInt(colors[0].trim());
-    int g = Integer.parseInt(colors[1].trim());
-    int b = Integer.parseInt(colors[2].trim());
+    try
+    {
+      int r = Integer.parseInt(colors[0].trim());
+      int g = Integer.parseInt(colors[1].trim());
+      int b = Integer.parseInt(colors[2].trim());
 
-    return new Color(r, g, b);
+      return new Color(r, g, b);
+    }
+    catch (NumberFormatException | IndexOutOfBoundsException e)
+    {
+      logger.warn(LocalizableMessage.raw("Invalid color definition \"%s\", using black instead", s));
+      return Color.BLACK;
+    }
   }
 
   /**

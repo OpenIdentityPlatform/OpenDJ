@@ -576,7 +576,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
 
         private HostPort getHostPort()
         {
-          return new HostPort(hostName.getText().trim(), Integer.valueOf(port.getText().trim()));
+          return new HostPort(hostName.getText().trim(), Utils.parseIntOrDefault(port.getText(), -1));
         }
 
         @Override
