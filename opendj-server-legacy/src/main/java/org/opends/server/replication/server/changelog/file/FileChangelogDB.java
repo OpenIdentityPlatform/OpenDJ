@@ -21,6 +21,7 @@ import static org.opends.server.replication.server.changelog.api.DBCursor.Positi
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -144,10 +145,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     final File dbDirectory = getFileForPath(dbDirName);
     try
     {
-      if (!dbDirectory.exists())
-      {
-        dbDirectory.mkdir();
-      }
+      Files.createDirectories(dbDirectory.toPath());
       return dbDirectory;
     }
     catch (Exception e)
