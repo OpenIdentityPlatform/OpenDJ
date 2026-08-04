@@ -1112,7 +1112,7 @@ public class DSMLServlet extends HttpServlet {
    * This class is used when an XML request is malformed to retrieve the
    * requestID value using an event XML parser.
    */
-  private class DSMLContentHandler extends DefaultHandler {
+  private static class DSMLContentHandler extends DefaultHandler {
     private String requestID;
     /**
      * This function fetches the requestID value of the batchRequest xml
@@ -1132,7 +1132,7 @@ public class DSMLServlet extends HttpServlet {
    * This is defensive - we prevent entity resolving by configuration, but
    * just in case, we ensure that nothing resolves.
    */
-  private class SafeEntityResolver implements EntityResolver
+  private static class SafeEntityResolver implements EntityResolver
   {
     @Override
     public InputSource resolveEntity(String publicId, String systemId)

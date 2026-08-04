@@ -571,7 +571,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * - processSafeDataUpdateMsg
    * This is a facility to pack many interesting returned object.
    */
-  private class PreparedAssuredInfo
+  private static class PreparedAssuredInfo
   {
       /**
        * The list of servers identified as servers we are interested in

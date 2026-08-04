@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -540,7 +541,7 @@ public class ArgumentParser implements ToolRefDocContainer {
      * A supplement to the description for all subcommands of this tool,
      * intended for use in generated reference documentation.
      */
-    private class DocSubcommandDescriptionSupplement implements DocDescriptionSupplement {
+    private static class DocSubcommandDescriptionSupplement implements DocDescriptionSupplement {
         /** A supplement to the description intended for use in generated reference documentation. */
         private LocalizableMessage docDescriptionSupplement;
 

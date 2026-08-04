@@ -109,7 +109,7 @@ public class ConfigureDS
 
   /** Private exception class to handle error message printing. */
   @SuppressWarnings("serial")
-  private class ConfigureDSException extends Exception
+  private static class ConfigureDSException extends Exception
   {
     private final int returnedErrorCode;
     private final LocalizableMessage errorMessage;
