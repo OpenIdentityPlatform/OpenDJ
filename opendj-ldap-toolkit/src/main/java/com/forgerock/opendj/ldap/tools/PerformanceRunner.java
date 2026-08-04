@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -128,14 +129,14 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         @Override
         public void run() {
             Promise<?, LdapException> promise;
-            Connection connection;
+            Connection connectionToUse;
             final double targetTimeMs = 1000.0 / (targetThroughput / (double) (numThreads * numConnections));
             double sleepTimeMs = 0;
 
             while (!stopRequested && !localStopRequested
                     && (maxIterations <= 0 || count < maxIterations)) {
                 try {
-                    connection = getConnectionToUse();
+                    connectionToUse = getConnectionToUse();
                 } catch (final InterruptedException e) {
                     // Ignore and check stop requested
                     continue;
@@ -145,7 +146,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 }
 
                 long startTimeNs = System.nanoTime();
-                promise = performOperation(connection, dataSources.get(), startTimeNs);
+                promise = performOperation(connectionToUse, dataSources.get(), startTimeNs);
                 statsThread.incrementOperationCount();
                 try {
                     promise.getOrThrow();
@@ -160,8 +161,8 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                     }
                     // Ignore. Handled by result handler
                 } finally {
-                    if (this.connection == null) {
-                        connection.close();
+                    if (connection == null) {
+                        connectionToUse.close();
                     }
                 }
 
