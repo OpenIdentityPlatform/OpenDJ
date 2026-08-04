@@ -13,7 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014 ForgeRock AS.
- * Portions Copyright 2024 3A Systems, LLC.
+ * Portions Copyright 2024-2026 3A Systems, LLC.
  */
 package org.opends.server.snmp;
 
@@ -80,6 +80,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
      * Getter for the "DsServerType" variable.
      * @return a Byte[] representing the Ds Server Type
      */
+    @Override
     public Byte[] getDsServerType() {
         try {
             String value1 = (String) this.monitor.getAttribute(
@@ -169,6 +170,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
      * Gets the object of the entry.
      * @return ObjectName of the entry
      */
+    @Override
     public ObjectName getObjectName() {
         if (this.entryName == null) {
             try {

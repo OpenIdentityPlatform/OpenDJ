@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.discovery;
 
@@ -152,6 +153,7 @@ public class ServiceDiscoveryMechanismConfigManager implements
   /**
    * Finalize all service discovery mechanism for shutdown.
    */
+  @Override
   public void finalize()
   {
     for (ServiceDiscoveryMechanism<?> service : serviceDiscoveryMechanisms.values())

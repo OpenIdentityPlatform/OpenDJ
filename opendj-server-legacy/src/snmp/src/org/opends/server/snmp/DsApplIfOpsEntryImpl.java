@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.snmp;
 
@@ -85,6 +86,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    * Getter for the "DsApplIfProtocol" variable.
    * @return an OID representing the connection handler:port
    */
+  @Override
   public String getDsApplIfProtocol() {
       String portNumber = (String)this.monitor.getAttribute
               (this.connectionHandlerName, "ds-connectionhandler-listener");
@@ -326,6 +328,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    * Returns the ObjectName of the SNMP entry MBean.
    * @return ObjectName of the entry
    */
+  @Override
   public ObjectName getObjectName() {
     if (this.entryName == null) {
       try {

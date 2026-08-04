@@ -126,6 +126,7 @@ public final class OpenDJProvider extends Provider {
         super("OpenDJ", 1.0D, "OpenDJ LDAP security provider");
         this.defaultConfig = defaultConfig;
         AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            @Override
             public Void run() {
                 putService(new KeyStoreService());
                 return null;
