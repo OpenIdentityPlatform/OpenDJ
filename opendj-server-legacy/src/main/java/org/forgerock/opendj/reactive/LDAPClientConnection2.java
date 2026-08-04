@@ -1684,7 +1684,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
     }
 
     /** Upstream -> BlockingBackpressureSubscription -> Downstream. */
-    private final class BlockingBackpressureSubscription implements Subscription, Processor<Response, Response> {
+    private static final class BlockingBackpressureSubscription implements Subscription, Processor<Response, Response> {
         private final AtomicLong pendingRequests = new AtomicLong();
         private final AtomicInteger missedDrain = new AtomicInteger();
         private final BlockingQueue<Response> queue = new LinkedBlockingQueue<>(32);

@@ -61,7 +61,7 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
     private File outputDirectory;
 
     /** Holds documentation for an ACI. */
-    private class Aci {
+    private static class Aci {
         String name;
         String description;
         String definition;

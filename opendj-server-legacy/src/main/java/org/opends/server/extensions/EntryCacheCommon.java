@@ -60,7 +60,7 @@ public class EntryCacheCommon
    * The error handler simplifies the code of initializeEntryCache(),
    * isConfigurationChangeAcceptable() and applyConfigurationChanges() methods.
    */
-  public class ConfigErrorHandler
+  public static class ConfigErrorHandler
   {
     /** Configuration phase. */
     private EntryCacheCommon.ConfigPhase _configPhase;
@@ -324,8 +324,7 @@ public class EntryCacheCommon
       List<LocalizableMessage> errorMessages
       )
   {
-    EntryCacheCommon ec = new EntryCacheCommon();
-    return ec.new ConfigErrorHandler(
+    return new ConfigErrorHandler(
         configPhase, unacceptableReasons, errorMessages);
   }
 
