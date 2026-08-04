@@ -12,8 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.examples;
+
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -141,7 +144,7 @@ public final class SearchAsync {
 
         // Parse command line arguments.
         final String hostName = args[0];
-        final int port = Integer.parseInt(args[1]);
+        final int port = parsePort(args[1]);
         userName = args[2];
         password = args[3];
         baseDN = args[4];

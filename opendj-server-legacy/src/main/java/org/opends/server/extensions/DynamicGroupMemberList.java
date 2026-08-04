@@ -173,15 +173,16 @@ public class DynamicGroupMemberList
           // is closest to the naming context.  If not, then add a new list with
           // the current base DN.
           boolean found = false;
-          Iterator<DN> iterator = baseDNs.keySet().iterator();
+          Iterator<Map.Entry<DN, LinkedList<LDAPURL>>> iterator = baseDNs.entrySet().iterator();
           while (iterator.hasNext())
           {
-            DN existingBaseDN = iterator.next();
+            Map.Entry<DN, LinkedList<LDAPURL>> baseDNEntry = iterator.next();
+            DN existingBaseDN = baseDNEntry.getKey();
             if (urlBaseDN.isSubordinateOrEqualTo(existingBaseDN))
             {
               // The base DN for the current URL is below an existing base DN,
               // so we can just add this URL to the existing list and be done.
-              urlList = baseDNs.get(existingBaseDN);
+              urlList = baseDNEntry.getValue();
               urlList.add(memberURL);
               found = true;
               break;
@@ -191,7 +192,7 @@ public class DynamicGroupMemberList
               // The base DN for the current URL is above the existing base DN,
               // so we should use the base DN for the current URL instead of the
               // existing one.
-              urlList = baseDNs.get(existingBaseDN);
+              urlList = baseDNEntry.getValue();
               urlList.add(memberURL);
               iterator.remove();
               baseDNs.put(urlBaseDN, urlList);

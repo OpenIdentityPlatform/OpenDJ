@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools;
 
@@ -119,8 +120,8 @@ public class PromptTrustManager
       }
 
       System.out.println(INFO_PROMPTTM_SERVER_CERT.get(
-              chain[0].getSubjectDN().getName(),
-              chain[0].getIssuerDN().getName(),
+              chain[0].getSubjectX500Principal().getName(),
+              chain[0].getIssuerX500Principal().getName(),
               notBeforeDate,
               notAfterDate));
     }

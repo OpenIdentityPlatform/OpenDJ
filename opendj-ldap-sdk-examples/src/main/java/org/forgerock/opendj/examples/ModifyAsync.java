@@ -17,7 +17,9 @@
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 import static org.forgerock.util.Utils.closeSilently;
+
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
@@ -75,7 +77,7 @@ public final class ModifyAsync {
 
         // Parse command line arguments.
         final String hostName = args[0];
-        final int port = Integer.parseInt(args[1]);
+        final int port = parsePort(args[1]);
         final String userName = args[2];
         final char[] password = args[3].toCharArray();
 

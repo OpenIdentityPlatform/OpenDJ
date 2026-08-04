@@ -273,7 +273,7 @@ public class ConfigFromConnection extends ConfigReader
 
     hmConnectionHandlersMonitor.clear();
 
-    readSchemaIfNeeded(connWrapper, errors);
+    readSchemaIfNeeded(connWrapper);
 
     try
     {
@@ -324,7 +324,7 @@ public class ConfigFromConnection extends ConfigReader
     exceptions = Collections.unmodifiableList(errors);
   }
 
-  private void readSchemaIfNeeded(final ConnectionWrapper connWrapper, final List<Exception> errors)
+  private void readSchemaIfNeeded(final ConnectionWrapper connWrapper)
   {
     if (mustReadSchema())
     {

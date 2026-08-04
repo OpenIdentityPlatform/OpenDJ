@@ -215,7 +215,7 @@ final class JsonQueryEqualityMatchingRuleImpl implements MatchingRuleImpl {
         case START_OBJECT:
             final TreeMap<String, ByteSequence> normalizedObject = new TreeMap<>();
             while (parser.nextToken() != END_OBJECT) {
-                final String key = parser.getCurrentName();
+                final String key = parser.currentName();
                 final ByteStringBuilder value = new ByteStringBuilder();
                 normalizeJsonValue(parser, parser.nextToken(), value);
                 normalizedObject.put(key, value);
@@ -329,7 +329,7 @@ final class JsonQueryEqualityMatchingRuleImpl implements MatchingRuleImpl {
                         break;
                     case FIELD_NAME:
                         // Normalize for the pathological case where a field name happens to be a number.
-                        jsonPointer = parentJsonPointer.child(parser.getCurrentName());
+                        jsonPointer = parentJsonPointer.child(parser.currentName());
                         normalizedJsonPointer = normalizeJsonPointer(jsonPointer);
                         break;
                     case VALUE_NULL:

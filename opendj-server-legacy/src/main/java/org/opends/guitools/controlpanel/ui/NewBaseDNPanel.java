@@ -648,7 +648,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     if (importDataFromLDIF.isSelected())
     {
       String ldifPath = path.getText();
-      if (ldifPath == null || "".equals(ldifPath.trim()))
+      if (ldifPath == null || ldifPath.trim().isEmpty())
       {
         errors.add(INFO_NO_LDIF_PATH.get());
         setSecondaryInvalid(lPath);
@@ -735,7 +735,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
       else if (importAutomaticallyGenerated.isSelected())
       {
-        int nEntries = Integer.parseInt(numberOfEntries.getText().trim());
+        int nEntries = Utils.parseIntOrDefault(numberOfEntries.getText(), 0);
         if (nEntries < 500)
         {
           return 30;
@@ -1164,7 +1164,8 @@ public class NewBaseDNPanel extends StatusGenericPanel
             }
           });
 
-          final File templateFile = SetupUtils.createTemplateFile(newBaseDN, Integer.parseInt(nEntries));
+          final File templateFile =
+              SetupUtils.createTemplateFile(newBaseDN, Utils.parseIntOrDefault(nEntries, 0));
           if (!isLocal())
           {
             try

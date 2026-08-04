@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.admin.client.cli;
 
@@ -159,7 +160,9 @@ public final class SecureConnectionCliArgs
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used to create
    *           this argument.
-   * @return a ArrayList with the options created.
+   * @return a new set holding the options created. Callers may add their own arguments to it:
+   *         the set is a copy, so doing so does not add them to the connection arguments this
+   *         object reports through {@link #argumentsPresent()}.
    */
   public Set<Argument> createGlobalArguments() throws ArgumentException
   {
@@ -230,7 +233,7 @@ public final class SecureConnectionCliArgs
     connectTimeoutArg = connectTimeOutArgument();
     argList.add(connectTimeoutArg);
 
-    return argList;
+    return new LinkedHashSet<>(argList);
   }
 
   /**

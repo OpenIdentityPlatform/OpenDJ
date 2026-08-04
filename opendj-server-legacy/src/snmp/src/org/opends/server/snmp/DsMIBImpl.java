@@ -156,6 +156,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
    * @param notification received
    * @param handback The handback
    */
+  @Override
   public void handleNotification(Notification notification, Object handback) {
     if (notification instanceof MBeanServerNotification) {
       MBeanServerNotification notif = (MBeanServerNotification) notification;

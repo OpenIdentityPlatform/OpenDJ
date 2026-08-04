@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.types;
 
@@ -110,6 +111,7 @@ public enum WritabilityMode
    *
    * @return  A string representation of this writability mode.
    */
+  @Override
   public String toString()
   {
     return modeName;

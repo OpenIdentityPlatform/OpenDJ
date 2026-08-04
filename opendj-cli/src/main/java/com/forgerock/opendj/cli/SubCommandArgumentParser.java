@@ -318,7 +318,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
     @Override
     public void parseArguments(String[] rawArguments, Properties argumentProperties) throws ArgumentException {
         this.subCommand = null;
-        final ArrayList<String> trailingArguments = getTrailingArguments();
+        final List<String> trailingArguments = trailingArguments();
         trailingArguments.clear();
         setUsageOrVersionDisplayed(false);
 

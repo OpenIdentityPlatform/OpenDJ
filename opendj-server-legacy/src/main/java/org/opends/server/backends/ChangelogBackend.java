@@ -753,7 +753,7 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
     {
       // == exact CSN
       // validate provided CSN is correct
-      new CSN(filter.getAssertionValue().toString());
+      validateCSN(filter.getAssertionValue());
     }
     else if (filter.getFilterType() == FilterType.AND)
     {
@@ -805,6 +805,20 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
     {
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
           LocalizableMessage.raw("Could not convert value '%s' to long", assertionValue));
+    }
+  }
+
+  private static void validateCSN(final ByteString assertionValue)
+      throws DirectoryException
+  {
+    try
+    {
+      new CSN(assertionValue.toString());
+    }
+    catch (IllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+          LocalizableMessage.raw("Could not convert value '%s' to a CSN", assertionValue), e);
     }
   }
 
@@ -1520,7 +1534,7 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
 
   private static void addAttribute(final Entry e, final String attrType, final String attrValue)
   {
-    e.addAttribute(Attributes.create(attrType, attrValue), null);
+    e.addAttribute(Attributes.create(attrType, attrValue));
   }
 
   private static void addAttributeByType(String attrName, String attrValue,

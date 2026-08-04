@@ -13,6 +13,7 @@
  *
  * Copyright 2011-2012 profiq s.r.o.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.plugins;
 
@@ -594,8 +595,8 @@ public final class SambaPasswordPlugin extends
   /**
    * Set the parity bit for an integer.
    *
-   * @param integer
-   *          to add the parity bit for.
+   * @param parity
+   *          the integer to add the parity bit for.
    * @return integer with the parity bit set.
    */
   private static int setOddParity(final int parity)

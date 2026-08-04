@@ -1085,7 +1085,7 @@ public class Utils
     try
     {
       Class<?> c = Class.forName(Utils.CUSTOMIZATION_CLASS_NAME);
-      Object obj = c.newInstance();
+      Object obj = c.getDeclaredConstructor().newInstance();
       return valueClass.cast(c.getField(fieldName).get(obj));
     }
     catch (Exception ignored)
@@ -1837,6 +1837,35 @@ public class Utils
 
     cmdLines.add(cmdReplicationServer);
     return cmdLines;
+  }
+
+  /**
+   * Returns the number held by the provided field value, or the provided default value if it does
+   * not hold a number.
+   * <p>
+   * The panels validate their fields before using their values, so the default value is only
+   * returned when a field has not been validated beforehand.
+   *
+   * @param value
+   *          the value to be parsed, which may be {@code null}
+   * @param defaultValue
+   *          the value to return when {@code value} does not hold a number
+   * @return the number held by the provided value
+   */
+  public static int parseIntOrDefault(String value, int defaultValue)
+  {
+    if (value == null)
+    {
+      return defaultValue;
+    }
+    try
+    {
+      return Integer.parseInt(value.trim());
+    }
+    catch (NumberFormatException e)
+    {
+      return defaultValue;
+    }
   }
 }
 

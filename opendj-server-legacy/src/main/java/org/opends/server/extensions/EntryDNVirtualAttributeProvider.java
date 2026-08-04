@@ -163,7 +163,7 @@ public class EntryDNVirtualAttributeProvider
    * to make the determination.
    *
    * @param  attributeType  The attribute type used to hold the entryDN value.
-   * @param  searchFilter   The search filter for which to make the
+   * @param  filter         The search filter for which to make the
    *                        determination.
    * @param  depth          The current recursion depth for this processing.
    *
