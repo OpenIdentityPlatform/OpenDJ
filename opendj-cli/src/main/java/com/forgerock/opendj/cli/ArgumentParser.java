@@ -582,10 +582,20 @@ public class ArgumentParser implements ToolRefDocContainer {
      * Retrieves the set of unnamed trailing arguments that were provided on the
      * command line.
      *
-     * @return The set of unnamed trailing arguments that were provided on the
+     * @return A copy of the set of unnamed trailing arguments that were provided on the
      *         command line.
      */
     public ArrayList<String> getTrailingArguments() {
+        return new ArrayList<>(trailingArguments);
+    }
+
+    /**
+     * Returns the live list of unnamed trailing arguments, so that a sub-class parsing the
+     * command line can fill it in. Unlike {@link #getTrailingArguments()}, this does not copy.
+     *
+     * @return The list of unnamed trailing arguments held by this parser.
+     */
+    List<String> trailingArguments() {
         return trailingArguments;
     }
 
