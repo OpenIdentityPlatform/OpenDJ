@@ -12,12 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import net.jcip.annotations.NotThreadSafe;
 
@@ -34,6 +36,18 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
 {
   private final ReplicationDomainDB domainDB;
   private final ConcurrentSkipListMap<DN, ServerState> newDomains = new ConcurrentSkipListMap<>();
+  /**
+   * The domains this cursor already iterates over, so that announcing a domain a second time is a
+   * no-op: a second cursor over the same domain would either leak unclosed - the cursor tree of
+   * {@link CompositeDBCursor} collapses cursors comparing equal - or deliver every change twice.
+   * A domain may be announced again after the empty domainMap of a failed replica DB creation was
+   * dropped, while this cursor still iterates over it.
+   * <p>
+   * Only ever mutated from the thread iterating this cursor - {@link #incorporateNewCursors()},
+   * {@link #removeDomain(DN)} and {@link #close()} all run on it - and read by the threads
+   * announcing domains.
+   */
+  private final ConcurrentSkipListSet<DN> incorporatedDomains = new ConcurrentSkipListSet<>();
   private final CursorOptions options;
 
   /**
@@ -52,6 +66,9 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
   /**
    * Adds a replication domain for this cursor to iterate over. Added cursors
    * will be created and iterated over on the next call to {@link #next()}.
+   * <p>
+   * A no-op for a domain this cursor already iterates over: new replica DBs of such a domain
+   * reach it through {@link DomainDBCursor#addReplicaDB(int, org.opends.server.replication.common.CSN)}.
    *
    * @param baseDN
    *          the replication domain's baseDN
@@ -60,7 +77,10 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
    */
   public void addDomain(DN baseDN, ServerState startAfterState)
   {
-    newDomains.put(baseDN, startAfterState != null ? startAfterState : new ServerState());
+    if (!incorporatedDomains.contains(baseDN))
+    {
+      newDomains.put(baseDN, startAfterState != null ? startAfterState : new ServerState());
+    }
   }
 
   /** {@inheritDoc} */
@@ -73,8 +93,15 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
       final Entry<DN, ServerState> entry = iter.next();
       final DN baseDN = entry.getKey();
       final ServerState serverState = entry.getValue();
-      final DBCursor<UpdateMsg> domainDBCursor = domainDB.getCursorFrom(baseDN, serverState, options);
-      addCursor(domainDBCursor, baseDN);
+      // the check in addDomain() is only a fast path: an announcement racing an incorporation of
+      // the same domain can still queue it a second time, so incorporation itself must ignore
+      // domains this cursor already iterates over
+      if (!incorporatedDomains.contains(baseDN))
+      {
+        final DBCursor<UpdateMsg> domainDBCursor = domainDB.getCursorFrom(baseDN, serverState, options);
+        addCursor(domainDBCursor, baseDN);
+        incorporatedDomains.add(baseDN);
+      }
       iter.remove();
     }
   }
@@ -90,6 +117,7 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
   public void removeDomain(DN baseDN)
   {
     removeCursor(baseDN);
+    incorporatedDomains.remove(baseDN);
   }
 
   /** {@inheritDoc} */
@@ -99,6 +127,7 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
     super.close();
     domainDB.unregisterCursor(this);
     newDomains.clear();
+    incorporatedDomains.clear();
   }
 
 }

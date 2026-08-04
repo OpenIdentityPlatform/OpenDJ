@@ -20,11 +20,10 @@ import java.lang.management.LockInfo;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
-import java.lang.reflect.Field;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,8 +40,10 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
@@ -63,11 +64,14 @@ import static org.testng.Assert.*;
 
 /**
  * Test the FileChangelogDB class: the races between a replica DB creation and
- * {@link FileChangelogDB#shutdownDB()}, and the window between
+ * {@link FileChangelogDB#shutdownDB()}; the window between
  * {@link FileChangelogDB#removeDomain(DN)}'s unlocked read of the domainMap and its
  * acquisition of the domainMap monitor, during which a concurrent remover
  * ({@code shutdownDB()}, {@code clearDB()} or another {@code removeDomain()}) may have
- * unmapped the domain.
+ * unmapped the domain; and the cleanup of a creation which bails out without having created a
+ * replica DB - the empty domainMap it inserted must be dropped, without unmapping the fresh
+ * domainMap of a concurrent creation and without announcing the domain a second time to the
+ * multi domain cursors that were live at the time.
  */
 @SuppressWarnings("javadoc")
 public class FileChangelogDBTest extends ReplicationTestCase
@@ -304,7 +308,7 @@ public class FileChangelogDBTest extends ReplicationTestCase
         }
       };
       shutdowner.start();
-      awaitBlockedOnAMonitor(shutdowner);
+      waitUntilBlockedOn(shutdowner, changelogDB.getDomainToReplicaDBs().get(TEST_ROOT_DN));
 
       changelogDB.releaseCreatedReplicaDB();
       creator.join(TIMEOUT_MS);
@@ -327,7 +331,7 @@ public class FileChangelogDBTest extends ReplicationTestCase
       }
       join(creator);
       join(shutdowner);
-      deregisterLeakedReplicaDBMonitors(replicationServer, RACING_SERVER_ID, DRAINED_SERVER_ID);
+      deregisterLeakedReplicaDBMonitors(replicationServer, RACING_SERVER_ID);
       remove(replicationServer);
       TestCaseUtils.deleteDirectory(testRoot);
     }
@@ -465,6 +469,87 @@ public class FileChangelogDBTest extends ReplicationTestCase
   }
 
   /**
+   * The cleanup of a failed creation leaves the domain announced to every multi domain cursor
+   * which was live at the time, and the next successful creation of the domain announces it to
+   * them again: the second announcement must not open a second cursor over the same domain. Such
+   * a cursor would either leak unclosed - the cursor tree of {@code CompositeDBCursor} collapses
+   * cursors comparing equal - or deliver every change twice, which kills the
+   * {@code ChangeNumberIndexer} thread with the {@code IllegalStateException} its cookie update
+   * throws on a replayed change.
+   */
+  @Test
+  public void announcingADomainTwiceToALiveCursorMustNotOpenASecondDomainCursor() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    ReplicationServer replicationServer = null;
+    RaceableChangelogDB changelogDB = null;
+    File testRoot = null;
+    try
+    {
+      replicationServer = configureReplicationServer(100, 5000);
+      testRoot = createCleanDir("FileChangelogDB");
+      changelogDB = new RaceableChangelogDB(replicationServer, testRoot.getPath(), createCryptoSuite(false));
+      changelogDB.initializeDB();
+
+      // the live cursor both announcements reach
+      final MultiDomainDBCursor cursor = changelogDB.getCursorFrom(
+          new MultiDomainServerState(), new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY));
+      try
+      {
+        // first announcement: the failed creation announces the domain before dropping its map
+        changelogDB.failNextReplicaDBCreation();
+        try
+        {
+          changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, FAILING_SERVER_ID, replicationServer);
+          failBecauseExceptionWasNotThrown(ChangelogException.class);
+        }
+        catch (ChangelogException expected)
+        {
+          assertThat(expected).hasMessage(CREATION_FAILURE.toString());
+        }
+        cursor.next();
+        assertThat(changelogDB.walkedDomains)
+            .as("the domains the live cursor iterates over after the first announcement")
+            .containsExactly(TEST_ROOT_DN);
+
+        // second announcement: the next creation of the domain announces it to the cursor again
+        final FileReplicaDB replicaDB =
+            changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, FAILING_SERVER_ID, replicationServer).getFirst();
+        final CSN csn = new CSN(System.currentTimeMillis(), 1, FAILING_SERVER_ID);
+        replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csn, "uid"));
+        waitChangesArePersisted(replicaDB, 1);
+
+        assertThat(cursor.next()).as("the change published after the second announcement").isTrue();
+        assertThat(cursor.getRecord().getCSN()).isEqualTo(csn);
+        assertThat(changelogDB.walkedDomains)
+            .as("announcing an already incorporated domain again must not open a second cursor over it")
+            .containsExactly(TEST_ROOT_DN);
+        assertThat(cursor.next()).as("the single published change is delivered more than once").isFalse();
+      }
+      finally
+      {
+        cursor.close();
+      }
+    }
+    finally
+    {
+      try
+      {
+        if (changelogDB != null)
+        {
+          changelogDB.shutdownDB();
+        }
+      }
+      finally
+      {
+        remove(replicationServer);
+        TestCaseUtils.deleteDirectory(testRoot);
+      }
+    }
+  }
+
+  /**
    * A creation which bails out on the identity check must not drop the domain map another creation
    * has freshly inserted: the drop is equality based and two empty maps are equal, so an identity
    * unaware cleanup would unmap the fresh map, and the replica DB about to be published into it
@@ -555,7 +640,7 @@ public class FileChangelogDBTest extends ReplicationTestCase
       // of the fresh domain map - without the identity check its cleanup would have unmapped the
       // fresh map, and it would have completed into a third map instead of blocking
       changelogDB.releaseCreatorHoldingItsDomainMap();
-      awaitBlockedOnAMonitorOrCompleted(staleCreator);
+      waitUntilBlockedOnOrCompleted(staleCreator, freshDomainMap);
       assertThat(changelogDB.getDomainToReplicaDBs().get(TEST_ROOT_DN))
           .as("the domain map the fresh creator is about to publish its replica DB into")
           .isSameAs(freshDomainMap);
@@ -611,7 +696,7 @@ public class FileChangelogDBTest extends ReplicationTestCase
           changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, SERVER_ID, replicationServer).getFirst();
 
       final ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>> domainToReplicaDBs =
-          getDomainToReplicaDBs(changelogDB);
+          changelogDB.getDomainToReplicaDBs();
       final ConcurrentMap<Integer, FileReplicaDB> domainMap = domainToReplicaDBs.get(TEST_ROOT_DN);
       assertThat(domainMap).isNotNull();
 
@@ -655,7 +740,7 @@ public class FileChangelogDBTest extends ReplicationTestCase
           changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, SERVER_ID, replicationServer).getFirst();
 
       final ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>> domainToReplicaDBs =
-          getDomainToReplicaDBs(changelogDB);
+          changelogDB.getDomainToReplicaDBs();
       final ConcurrentMap<Integer, FileReplicaDB> domainMap = domainToReplicaDBs.get(TEST_ROOT_DN);
       assertThat(domainMap).isNotNull();
 
@@ -702,27 +787,27 @@ public class FileChangelogDBTest extends ReplicationTestCase
     }, "removeDomain() under test");
   }
 
-  @SuppressWarnings("unchecked")
-  private ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>> getDomainToReplicaDBs(
-      FileChangelogDB changelogDB) throws Exception
+  /** Waits until the provided replica DB has persisted the provided number of records. */
+  private void waitChangesArePersisted(FileReplicaDB replicaDB, int recordCount) throws Exception
   {
-    final Field field = FileChangelogDB.class.getDeclaredField("domainToReplicaDBs");
-    field.setAccessible(true);
-    return (ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>>) field.get(changelogDB);
+    final long deadline = System.currentTimeMillis() + TIMEOUT_MS;
+    while (replicaDB.getNumberRecords() < recordCount)
+    {
+      if (System.currentTimeMillis() > deadline)
+      {
+        throw new AssertionError("Timed out waiting for " + recordCount + " records to be persisted");
+      }
+      Thread.sleep(10);
+    }
   }
 
   /** Waits until the provided thread is blocked acquiring the monitor of the provided object. */
   private void waitUntilBlockedOn(Thread thread, Object monitor) throws Exception
   {
-    final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
     final long deadline = System.currentTimeMillis() + TIMEOUT_MS;
     while (System.currentTimeMillis() < deadline)
     {
-      final ThreadInfo threadInfo = threadMXBean.getThreadInfo(thread.getId());
-      final LockInfo lockInfo = threadInfo != null ? threadInfo.getLockInfo() : null;
-      if (lockInfo != null
-          && threadInfo.getThreadState() == Thread.State.BLOCKED
-          && lockInfo.getIdentityHashCode() == System.identityHashCode(monitor))
+      if (isBlockedOn(thread, monitor))
       {
         return;
       }
@@ -730,6 +815,35 @@ public class FileChangelogDBTest extends ReplicationTestCase
     }
     throw new AssertionError(
         "Timed out waiting for " + thread.getName() + " to block on the domainMap monitor");
+  }
+
+  /**
+   * Waits until the provided thread is blocked acquiring the monitor of the provided object, or
+   * has completed: completion is left for the caller's assertions to diagnose.
+   */
+  private void waitUntilBlockedOnOrCompleted(Thread thread, Object monitor) throws Exception
+  {
+    final long deadline = System.currentTimeMillis() + TIMEOUT_MS;
+    while (System.currentTimeMillis() < deadline)
+    {
+      if (!thread.isAlive() || isBlockedOn(thread, monitor))
+      {
+        return;
+      }
+      Thread.sleep(1);
+    }
+    throw new AssertionError("Timed out waiting for " + thread.getName()
+        + " to block on the domainMap monitor or complete");
+  }
+
+  private static boolean isBlockedOn(Thread thread, Object monitor)
+  {
+    final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    final ThreadInfo threadInfo = threadMXBean.getThreadInfo(thread.getId());
+    final LockInfo lockInfo = threadInfo != null ? threadInfo.getLockInfo() : null;
+    return lockInfo != null
+        && threadInfo.getThreadState() == Thread.State.BLOCKED
+        && lockInfo.getIdentityHashCode() == System.identityHashCode(monitor);
   }
 
   /** Joins the provided thread, leaving a signal behind when it did not die within the timeout. */
@@ -746,46 +860,6 @@ public class FileChangelogDBTest extends ReplicationTestCase
         hung.printStackTrace();
         thread.interrupt();
       }
-    }
-  }
-
-  /**
-   * Waits until the provided thread is blocked acquiring a monitor: the domain map monitor is the
-   * only one it can stay blocked on - the other locks on its way are only transiently contended,
-   * hence the two consecutive observations. A thread expected to block but completing instead is
-   * an error.
-   */
-  private static void awaitBlockedOnAMonitor(final Thread thread) throws InterruptedException
-  {
-    awaitBlockedOnAMonitorOrCompleted(thread);
-    if (!thread.isAlive())
-    {
-      throw new IllegalStateException(thread.getName() + " completed without blocking on the domain map monitor");
-    }
-  }
-
-  /**
-   * Waits until the provided thread is durably blocked acquiring a monitor - two consecutive
-   * observations, since the other locks on its way are only transiently contended - or has
-   * completed: completion is left for the caller's assertions to diagnose.
-   */
-  private static void awaitBlockedOnAMonitorOrCompleted(final Thread thread) throws InterruptedException
-  {
-    final long deadline = System.currentTimeMillis() + TIMEOUT_MS;
-    int blockedObservations = 0;
-    while (blockedObservations < 2)
-    {
-      if (!thread.isAlive())
-      {
-        return;
-      }
-      if (System.currentTimeMillis() > deadline)
-      {
-        throw new IllegalStateException(
-            "timed out waiting for " + thread.getName() + " to block on the domain map monitor");
-      }
-      blockedObservations = thread.getState() == Thread.State.BLOCKED ? blockedObservations + 1 : 0;
-      Thread.sleep(1);
     }
   }
 
@@ -844,8 +918,8 @@ public class FileChangelogDBTest extends ReplicationTestCase
     private final CountDownLatch drainIsInReplicaDBShutdown = new CountDownLatch(1);
     private final CountDownLatch drainIsReleased = new CountDownLatch(1);
 
-    /** The baseDNs of the domains any cursor was opened for. */
-    private final Set<DN> walkedDomains = new CopyOnWriteArraySet<>();
+    /** The baseDNs of the domains any cursor was opened for, one element per opening. */
+    private final List<DN> walkedDomains = new CopyOnWriteArrayList<>();
 
     RaceableChangelogDB(final ReplicationServer replicationServer, final String dbDirectoryPath,
         final CryptoSuite cryptoSuite) throws ConfigException

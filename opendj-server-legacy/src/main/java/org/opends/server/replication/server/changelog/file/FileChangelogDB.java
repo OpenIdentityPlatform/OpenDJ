@@ -320,7 +320,8 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
         // so this equality based remove provably drops this domainMap and no other.
         // Unlike removeDomain(), this path clears no ChangeNumberIndexer state, and a later
         // creation broadcasts addDomain() anew to multi domain cursors which already incorporated
-        // the domain: a pre-existing hazard of repeated addDomain() calls, unchanged here.
+        // the domain: that second announcement is a no-op, MultiDomainDBCursor.addDomain()
+        // ignores domains its cursor already iterates over.
         if (domainMap.isEmpty())
         {
           domainToReplicaDBs.remove(baseDN, domainMap);
@@ -358,9 +359,11 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   /**
    * Returns the map of replica DBs per domain.
    * <p>
-   * Package private so that tests can observe which domain maps this changelog holds.
+   * Package private, for tests only: they both observe which domain maps this changelog holds and
+   * mutate the map to drive race interleavings, so this getter intentionally returns the live
+   * internal map, not a copy or an unmodifiable view.
    *
-   * @return the map of replica DBs per domain
+   * @return the live map of replica DBs per domain
    */
   ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>> getDomainToReplicaDBs()
   {
@@ -444,13 +447,19 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       firstException = e;
     }
 
-    for (Iterator<ConcurrentMap<Integer, FileReplicaDB>> it =
-        this.domainToReplicaDBs.values().iterator(); it.hasNext();)
+    for (Iterator<Map.Entry<DN, ConcurrentMap<Integer, FileReplicaDB>>> it =
+        this.domainToReplicaDBs.entrySet().iterator(); it.hasNext();)
     {
-      final ConcurrentMap<Integer, FileReplicaDB> domainMap = it.next();
+      final Map.Entry<DN, ConcurrentMap<Integer, FileReplicaDB>> entry = it.next();
+      final ConcurrentMap<Integer, FileReplicaDB> domainMap = entry.getValue();
       synchronized (domainMap)
       {
-        it.remove();
+        // Follow the removal protocol documented on domainToReplicaDBs: unmap the domainMap under
+        // its own monitor, and only while it is still the mapped value. An iterator based remove
+        // is unconditional by key and would drop whatever map is under the baseDN when it runs,
+        // e.g. the fresh map of a creation which started after the shutdown flag was flipped -
+        // that creation observes the flag and cleans its own map up instead.
+        domainToReplicaDBs.remove(entry.getKey(), domainMap);
         for (FileReplicaDB replicaDB : domainMap.values())
         {
           replicaDB.shutdown();
