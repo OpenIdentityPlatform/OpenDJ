@@ -1200,11 +1200,11 @@ outerLoop:
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
-    double fractionValue = Double.parseDouble(fractionBuffer.toString());
-    long additionalMilliseconds = Math.round(fractionValue * multiplier);
-
     try
     {
+      double fractionValue = Double.parseDouble(fractionBuffer.toString());
+      long additionalMilliseconds = Math.round(fractionValue * multiplier);
+
       GregorianCalendar calendar = new GregorianCalendar();
       calendar.setLenient(false);
       calendar.setTimeZone(timeZone);

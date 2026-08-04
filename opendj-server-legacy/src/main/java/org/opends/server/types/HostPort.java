@@ -24,6 +24,7 @@ import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Locale;
@@ -497,7 +498,8 @@ public final class HostPort implements Comparable<HostPort>
       else if (thisAddresses == null || otherAddresses == null)
       {
         if(logger.isTraceEnabled()) {
-          logger.trace("port and host does not match: " + this + "=" + thisAddresses + "; " + other + "=" + otherAddresses);
+          logger.trace("port and host does not match: " + this + "=" + Arrays.toString(thisAddresses)
+              + "; " + other + "=" + Arrays.toString(otherAddresses));
         }
         // One local address and one non-local.
         return false;
@@ -515,7 +517,8 @@ public final class HostPort implements Comparable<HostPort>
         }
       }
       if(logger.isTraceEnabled()) {
-        logger.trace("port and host does not match: " + this + "=" + thisAddresses + "; " + other + "=" + otherAddresses);
+        logger.trace("port and host does not match: " + this + "=" + Arrays.toString(thisAddresses)
+            + "; " + other + "=" + Arrays.toString(otherAddresses));
       }
 
       return false;

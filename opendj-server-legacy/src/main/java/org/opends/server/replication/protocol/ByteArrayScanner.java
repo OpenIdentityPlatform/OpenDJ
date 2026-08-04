@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -152,7 +153,15 @@ public class ByteArrayScanner
    */
   public int nextIntUTF8() throws DataFormatException
   {
-    return Integer.valueOf(nextString());
+    final String s = nextString();
+    try
+    {
+      return Integer.parseInt(s);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new DataFormatException("Expected an int but read \"" + s + "\"");
+    }
   }
 
   /**
@@ -164,7 +173,15 @@ public class ByteArrayScanner
    */
   public long nextLongUTF8() throws DataFormatException
   {
-    return Long.valueOf(nextString());
+    final String s = nextString();
+    try
+    {
+      return Long.parseLong(s);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new DataFormatException("Expected a long but read \"" + s + "\"");
+    }
   }
 
   /**
@@ -267,7 +284,7 @@ public class ByteArrayScanner
     {
       return CSN.valueOf(nextString());
     }
-    catch (IndexOutOfBoundsException e)
+    catch (LocalizedIllegalArgumentException | IndexOutOfBoundsException e)
     {
       throw new DataFormatException(e.getMessage());
     }

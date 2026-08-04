@@ -23,6 +23,7 @@ import static org.opends.server.util.ServerConstants.*;
 import java.awt.Font;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Set;
@@ -1838,7 +1839,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       sb.append(getURL());
       if (getReferral() != null) {
         sb.append(" -> ");
-        sb.append(getReferral());
+        sb.append(Arrays.toString(getReferral()));
       }
       toString = sb.toString();
     }
