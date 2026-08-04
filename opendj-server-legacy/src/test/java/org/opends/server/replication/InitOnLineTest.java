@@ -611,6 +611,10 @@ public class InitOnLineTest extends ReplicationTestCase
           server2ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
+      // The export is rejected when the InitializeRequestMsg arrives before
+      // the local domain sees DS2 in its topology view (issue #841)
+      waitForRemoteReplicas(server2ID);
+
       InitializeRequestMsg initMsg = new InitializeRequestMsg(baseDN, server2ID, server1ID, 100);
       server2.publish(initMsg);
 
@@ -1074,14 +1078,27 @@ public class InitOnLineTest extends ReplicationTestCase
   private void waitForInitializeTargetMsg(String testCase,
       ReplicationBroker server) throws Exception
   {
-    ReplicationMsg msgrcv;
-    do
+    // Fail fast when the initialization is lost or failed: looping until the
+    // TestNG method timeout would leave the replication servers (and their
+    // ports) running for the remaining tests of the class (issue #841).
+    final long deadline = System.currentTimeMillis() + 60000;
+    while (true)
     {
-      msgrcv = server.receive();
+      ReplicationMsg msgrcv = server.receive();
       log(testCase + " " + server.getServerId() + " receives " + msgrcv);
+      if (msgrcv instanceof InitializeTargetMsg)
+      {
+        return;
+      }
+      if (msgrcv == null || msgrcv instanceof ErrorMsg)
+      {
+        fail(testCase + ": waiting for InitializeTargetMsg, received " + msgrcv);
+      }
+      if (System.currentTimeMillis() > deadline)
+      {
+        fail(testCase + ": no InitializeTargetMsg received within 60s, last received " + msgrcv);
+      }
     }
-    while (!(msgrcv instanceof InitializeTargetMsg));
-    Assertions.assertThat(msgrcv).isInstanceOf(InitializeTargetMsg.class);
   }
 
   @Test(enabled=true)
@@ -1122,6 +1139,13 @@ public class InitOnLineTest extends ReplicationTestCase
           server3ID, 100, getReplServerPort(replServer3ID),
           10000, replServer1.getGenerationId(baseDN));
       }
+
+      // Wait for the local domain to see DS3 in its topology view before S3
+      // requests the initialization: the InitializeRequestMsg can outrun the
+      // TopologyMsg propagation (RS3 -> RS1 -> DS1), in which case the export
+      // is rejected with "the remote directory server DS(3) is unknown" and
+      // S3 never receives the InitializeTargetMsg (issue #841).
+      waitForRemoteReplicas(server3ID);
 
       // S3 sends init request
       log(testCase + " server 3 Will send reqinit to " + server1ID);

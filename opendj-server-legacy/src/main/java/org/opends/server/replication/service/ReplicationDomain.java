@@ -1469,26 +1469,54 @@ public abstract class ReplicationDomain
     // subsequent total update as a simultaneous import/export.
     final Map<Integer, DSInfo> replicaInfos = getReplicaInfos();
     final DSInfo targetDsi;
-    if (serverToInitialize == RoutableMsg.ALL_SERVERS)
+    final ImportExportContext ieCtx;
+    try
     {
-      if (replicaInfos.isEmpty())
+      if (serverToInitialize == RoutableMsg.ALL_SERVERS)
       {
-        throw new DirectoryException(UNWILLING_TO_PERFORM,
-            ERR_FULL_UPDATE_NO_REMOTES.get(getBaseDN(), getServerId()));
+        if (replicaInfos.isEmpty())
+        {
+          throw new DirectoryException(UNWILLING_TO_PERFORM,
+              ERR_FULL_UPDATE_NO_REMOTES.get(getBaseDN(), getServerId()));
+        }
+        targetDsi = null;
       }
-      targetDsi = null;
+      else
+      {
+        targetDsi = getDsInfoOrNull(replicaInfos.values(), serverToInitialize);
+        if (targetDsi == null)
+        {
+          throw new DirectoryException(UNWILLING_TO_PERFORM,
+              ERR_FULL_UPDATE_MISSING_REMOTE.get(getBaseDN(), getServerId(), serverToInitialize));
+        }
+      }
+
+      ieCtx = acquireIEContext(false);
     }
-    else
+    catch (DirectoryException de)
     {
-      targetDsi = getDsInfoOrNull(replicaInfos.values(), serverToInitialize);
-      if (targetDsi == null)
+      if (initTask == null)
       {
-        throw new DirectoryException(UNWILLING_TO_PERFORM,
-            ERR_FULL_UPDATE_MISSING_REMOTE.get(getBaseDN(), getServerId(), serverToInitialize));
+        /*
+        The export was requested by the remote server itself, which has
+        acquired an import context and is now waiting for the
+        InitializeTargetMsg: without a reply it would wait forever
+        (e.g. when this request raced the topology propagation and the
+        requester is not in our replicas view yet). Best effort: the
+        requester may not even be routable in that very case.
+        */
+        try
+        {
+          broker.publish(new ErrorMsg(serverToInitialize, de.getMessageObject()));
+        }
+        catch (Exception e)
+        {
+          // Ignore the failure raised while notifying the root failure
+        }
       }
+      throw de;
     }
 
-    final ImportExportContext ieCtx = acquireIEContext(false);
     try
     {
       initializeRemote(ieCtx, replicaInfos, targetDsi, serverToInitialize,
