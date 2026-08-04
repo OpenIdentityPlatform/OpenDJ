@@ -52,6 +52,7 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -1424,6 +1425,31 @@ public class InitOnLineTest extends ReplicationTestCase
     log("Successfully cleaned " + testCase);
 
     assertFalse(ieStillRunning, "ReplicationDomain: Import/Export is not expected to be running");
+  }
+
+  /**
+   * Releases the replication servers a timed out test method left behind:
+   * TestNG abandons the test thread on a thread timeout, the finally block of
+   * the test never completes, and the listen ports would otherwise stay bound
+   * (and cached in replServerPort) for the remaining tests of the class
+   * (issue #841). Successful tests clean up in afterTest, which nulls every
+   * field checked here.
+   */
+  @AfterMethod(alwaysRun = true)
+  public void releaseLeakedReplicationServers() throws Exception
+  {
+    if (replServer1 == null && replServer2 == null && replServer3 == null)
+    {
+      // the test method cleaned up after itself
+      return;
+    }
+    log("Releasing the replication servers leaked by a timed out test");
+    stop(server2, server3);
+    server2 = server3 = null;
+    remove(replServer1, replServer2, replServer3);
+    replServer1 = replServer2 = replServer3 = null;
+    replDomain = null;
+    Arrays.fill(replServerPort, 0);
   }
 
   /**

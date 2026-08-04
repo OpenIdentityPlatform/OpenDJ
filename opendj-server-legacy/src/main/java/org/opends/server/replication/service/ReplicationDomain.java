@@ -1491,23 +1491,37 @@ public abstract class ReplicationDomain
         }
       }
 
+      // countEntries() is called by initializeRemote(ieCtx, ...) outside the
+      // region that reports the failure to the requester: probe it here so a
+      // backend that cannot be exported is notified like any other rejection.
+      countEntries();
+
       ieCtx = acquireIEContext(false);
     }
     catch (DirectoryException de)
     {
-      if (initTask == null)
+      if (initTask == null
+          && serverToInitialize != RoutableMsg.ALL_SERVERS
+          && serverRunningTheTask != getServerId())
       {
         /*
-        The export was requested by the remote server itself, which has
-        acquired an import context and is now waiting for the
-        InitializeTargetMsg: without a reply it would wait forever
+        The export was requested by the remote server itself (the
+        ExportThread contract: no local task and the requester is the
+        target), which has acquired an import context and is now waiting
+        for the InitializeTargetMsg: without a reply it would wait forever
         (e.g. when this request raced the topology propagation and the
         requester is not in our replicas view yet). Best effort: the
-        requester may not even be routable in that very case.
+        requester may not even be routable in that very case, and when the
+        session is down the requester detects the disconnection instead.
         */
+        logger.info(NOTE_FULL_UPDATE_REMOTE_REQUEST_REJECTED,
+            getServerId(), serverToInitialize, getBaseDN(), de.getMessageObject());
         try
         {
-          broker.publish(new ErrorMsg(serverToInitialize, de.getMessageObject()));
+          if (broker.isConnected())
+          {
+            broker.publish(new ErrorMsg(serverToInitialize, de.getMessageObject()));
+          }
         }
         catch (Exception e)
         {
