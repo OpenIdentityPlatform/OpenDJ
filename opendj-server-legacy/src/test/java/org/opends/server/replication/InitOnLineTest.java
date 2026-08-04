@@ -54,6 +54,7 @@ import org.opends.server.types.Entry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -1384,6 +1385,14 @@ public class InitOnLineTest extends ReplicationTestCase
 
   private void afterTest(String testCase) throws Exception
   {
+    if (releasedByAfterMethod)
+    {
+      // this is the abandoned thread of a timed out test method, unblocked by
+      // releaseLeakedReplicationServers: the shared state was already
+      // neutralised and cleaned on the main thread, running the cleanup below
+      // concurrently would wreck the currently running test method
+      return;
+    }
     // Check that the domain has completed the import/export task.
     boolean ieStillRunning = false;
     if (replDomain != null)
@@ -1428,28 +1437,68 @@ public class InitOnLineTest extends ReplicationTestCase
   }
 
   /**
-   * Releases the replication servers a timed out test method left behind:
-   * TestNG abandons the test thread on a thread timeout, the finally block of
-   * the test never completes, and the listen ports would otherwise stay bound
-   * (and cached in replServerPort) for the remaining tests of the class
+   * Set when releaseLeakedReplicationServers cleaned up after a timed out
+   * test method: closing the leaked sessions unblocks the abandoned test
+   * thread, whose own finally{afterTest()} must then become a no-op instead
+   * of cleaning up the next test method. Written on the main thread before
+   * anything can wake the abandoned thread, read on afterTest's first line.
+   */
+  private volatile boolean releasedByAfterMethod;
+
+  @BeforeMethod(alwaysRun = true)
+  public void resetReleasedByAfterMethod()
+  {
+    releasedByAfterMethod = false;
+  }
+
+  /**
+   * Releases what a timed out test method left behind: TestNG abandons the
+   * test thread on a thread timeout, the finally block of the test never
+   * completes, and the domain config entry and the listen ports (cached in
+   * replServerPort) would otherwise poison the remaining tests of the class
    * (issue #841). Successful tests clean up in afterTest, which nulls every
-   * field checked here.
+   * field checked here. Runs on the main thread - TestNG still runs
+   * configuration methods after a thread timeout.
    */
   @AfterMethod(alwaysRun = true)
-  public void releaseLeakedReplicationServers() throws Exception
+  public void releaseLeakedReplicationServers()
   {
-    if (replServer1 == null && replServer2 == null && replServer3 == null)
+    if (replServer1 == null && replServer2 == null && replServer3 == null
+        && server2 == null && server3 == null && replDomain == null)
     {
       // the test method cleaned up after itself
       return;
     }
     log("Releasing the replication servers leaked by a timed out test");
-    stop(server2, server3);
+    // Neutralise the shared state *before* anything can wake the abandoned
+    // test thread: stopping its broker unblocks receive(), and its own
+    // finally{afterTest()} would otherwise clean up the *next* test.
+    releasedByAfterMethod = true;
+    final ReplicationBroker b2 = server2, b3 = server3;
+    final ReplicationServer rs1 = replServer1, rs2 = replServer2, rs3 = replServer3;
     server2 = server3 = null;
-    remove(replServer1, replServer2, replServer3);
     replServer1 = replServer2 = replServer3 = null;
     replDomain = null;
     Arrays.fill(replServerPort, 0);
+    // best effort: throwing from an @AfterMethod would skip the rest of the
+    // class (configfailurepolicy=skip), which is worse than the leak
+    try
+    {
+      super.cleanConfigEntries();
+    }
+    catch (Throwable t)
+    {
+      log("Failed to remove the leaked domain configuration: " + t);
+    }
+    try
+    {
+      stop(b2, b3);
+      remove(rs1, rs2, rs3);
+    }
+    catch (Throwable t)
+    {
+      log("Failed to release the leaked replication servers: " + t);
+    }
   }
 
   /**
