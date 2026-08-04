@@ -310,6 +310,9 @@ public class DSMLServletTestCase extends ForgeRockTestCase
    * bind, so by default a single POST may only hold one: the excess must be
    * rejected without being executed, not silently skipped, and the results of
    * the elements under the cap must still reach the client next to the error.
+   * The error joins the answered batchResponse instead of forming a root of
+   * its own: DSMLv2 expects a single batchResponse per SOAP body, and the
+   * default configuration must not produce a two-root reply.
    */
   @Test
   public void testExcessBatchRequestsAreRejectedByDefault() throws Exception
@@ -321,8 +324,15 @@ public class DSMLServletTestCase extends ForgeRockTestCase
 
       String response = doPost(server.getPort(), headers, SEARCH_AND_ABANDON_BATCHES);
 
-      assertTrue(response.contains("searchResponse"), response);
-      assertTrue(response.contains("notAttempted"), response);
+      List<Element> replies = batchResponsesOf(response);
+      assertEquals(replies.size(), 1,
+          "the default configuration must answer with a single batchResponse root: " + response);
+      assertEquals(replies.get(0).getAttribute("requestID"), "1", response);
+      List<Element> elements = childElements(replies.get(0));
+      assertEquals(elements.size(), 2, response);
+      assertEquals(elements.get(0).getLocalName(), "searchResponse", response);
+      assertEquals(elements.get(1).getLocalName(), "errorResponse", response);
+      assertEquals(elements.get(1).getAttribute("type"), "notAttempted", response);
 
       server.awaitDisconnect();
       assertEquals(server.getReceivedOpTypes(),
@@ -580,6 +590,70 @@ public class DSMLServletTestCase extends ForgeRockTestCase
       assertEquals(server.getReceivedOpTypes(),
           list(OP_TYPE_BIND_REQUEST, OP_TYPE_ABANDON_REQUEST, OP_TYPE_UNBIND_REQUEST),
           "only the valid batch request should have reached the directory server");
+    }
+  }
+
+  /**
+   * A malformed batchRequest without a requestID is answered inside a
+   * batchResponse which carries no requestID at all: an empty attribute would
+   * read as a requestID of "".
+   */
+  @Test
+  public void testMalformedBatchRequestWithoutRequestIDIsAnsweredWithoutOne() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      Map<String, String> headers = new LinkedHashMap<>();
+      headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
+
+      String malformed = "<batchRequest xmlns=\"" + DSML_NAMESPACE + "\">"
+          + "<bogusRequest/></batchRequest>";
+      String response = doPost(server.getPort(), headers, soap11(malformed));
+
+      List<Element> replies = batchResponsesOf(response);
+      assertEquals(replies.size(), 1, response);
+      assertFalse(replies.get(0).hasAttribute("requestID"),
+          "a batch request without a requestID must be answered without one: " + response);
+      List<Element> errors = childElements(replies.get(0));
+      assertEquals(errors.size(), 1, response);
+      assertEquals(errors.get(0).getLocalName(), "errorResponse", response);
+      assertEquals(errors.get(0).getAttribute("type"), "malformedRequest", response);
+      assertTrue(server.getReceivedOpTypes().isEmpty(),
+          "no connection to the directory server should have been opened");
+    }
+  }
+
+  /**
+   * A SOAP body element which is no batchRequest at all is answered in place,
+   * as a malformed request, under the requestID read from the element itself.
+   */
+  @Test
+  public void testNonBatchRequestElementIsAnsweredAsMalformed() throws Exception
+  {
+    try (FakeLdapServer server = new FakeLdapServer())
+    {
+      Map<String, String> params = new LinkedHashMap<>();
+      params.put("ldap.dsml.batchrequests.max", "2");
+
+      Map<String, String> headers = new LinkedHashMap<>();
+      headers.put("Content-Type", SOAP_1_1_CONTENT_TYPE);
+
+      String alien = "<somethingElse xmlns=\"urn:example:not-dsml\" requestID=\"7\"/>";
+      String response =
+          doPost(server.getPort(), params, headers, soap11(abandonBatch("1", null) + alien));
+
+      server.awaitDisconnect();
+      List<Element> replies = batchResponsesOf(response);
+      assertEquals(replies.size(), 2, response);
+      assertEquals(replies.get(0).getAttribute("requestID"), "1", response);
+      assertEquals(replies.get(1).getAttribute("requestID"), "7", response);
+      List<Element> errors = childElements(replies.get(1));
+      assertEquals(errors.size(), 1, response);
+      assertEquals(errors.get(0).getLocalName(), "errorResponse", response);
+      assertEquals(errors.get(0).getAttribute("type"), "malformedRequest", response);
+      assertEquals(server.getReceivedOpTypes(),
+          list(OP_TYPE_BIND_REQUEST, OP_TYPE_ABANDON_REQUEST, OP_TYPE_UNBIND_REQUEST),
+          "only the batchRequest should have reached the directory server");
     }
   }
 
