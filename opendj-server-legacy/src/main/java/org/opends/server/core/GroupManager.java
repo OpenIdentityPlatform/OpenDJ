@@ -13,7 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2025 3A Systems,LLC.
+ * Portions Copyright 2025-2026 3A Systems,LLC.
  */
 package org.opends.server.core;
 
@@ -413,7 +413,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
            definition.getJavaClassPropertyDefinition();
       Class<? extends Group> groupClass =
            propertyDefinition.loadClass(className, Group.class);
-      Group group = groupClass.newInstance();
+      Group group = groupClass.getDeclaredConstructor().newInstance();
 
       if (initialize)
       {

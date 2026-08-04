@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -30,18 +31,22 @@ import static org.opends.server.extensions.ExtensionsConstants.*;
 public class PBKDF2PasswordStorageScheme
     extends AbstractPBKDF2PasswordStorageScheme
 {
+  @Override
   public String getStorageSchemeName() {
     return STORAGE_SCHEME_NAME_PBKDF2;
   }
 
+  @Override
   public String getAuthPasswordSchemeName() {
     return AUTH_PASSWORD_SCHEME_NAME_PBKDF2;
   }
 
+  @Override
   String getMessageDigestAlgorithm() {
     return MESSAGE_DIGEST_ALGORITHM_PBKDF2;
   }
 
+  @Override
   int getDigestSize() {
     return 20;
   }

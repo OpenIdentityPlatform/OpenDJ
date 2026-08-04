@@ -291,7 +291,7 @@ class SchemaFilesWriter
           matchingRuleUses, ldapSyntaxes);
 
       File upgradeDirectory = getUpgradeDirectory();
-      upgradeDirectory.mkdir();
+      Files.createDirectories(upgradeDirectory.toPath());
       File concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
       concatFilePath = concatFile.getAbsolutePath();
 
@@ -313,11 +313,7 @@ class SchemaFilesWriter
         writeLines(writer, ATTR_LDAP_SYNTAXES, ldapSyntaxes);
       }
 
-      if (concatFile.exists())
-      {
-        concatFile.delete();
-      }
-      tempFile.renameTo(concatFile);
+      renameFile(tempFile, concatFile);
     }
     catch (Exception e)
     {
@@ -840,8 +836,6 @@ class SchemaFilesWriter
    * Adds the definition for the specified attribute type to the provided set of attribute values,
    * recursively adding superior types as appropriate.
    *
-   * @param schema
-   *          The schema containing the attribute type.
    * @param schemaFile
    *          The schema file with which the attribute type is associated.
    * @param attributeType
@@ -929,8 +923,6 @@ class SchemaFilesWriter
    * Adds the definition for the specified DIT structure rule to the provided set of attribute
    * values, recursively adding superior rules as appropriate.
    *
-   * @param schema
-   *          The schema containing the DIT structure rule.
    * @param schemaFile
    *          The schema file with which the DIT structure rule is associated.
    * @param ditStructureRule

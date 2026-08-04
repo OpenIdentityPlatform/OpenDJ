@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -271,7 +272,7 @@ public class TopologyMsg extends ReplicationMsg
       + "CONNECTED RS SERVERS:"
       + "\n--------------------\n"
       + rsStr
-      + ("".equals(rsStr) ? "----------------------------\n" : "");
+      + (rsStr.isEmpty() ? "----------------------------\n" : "");
   }
 
   /**

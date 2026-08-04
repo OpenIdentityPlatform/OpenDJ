@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.internal;
 
@@ -807,7 +808,7 @@ public final class InternalClientConnection
     Entry e = newEntry(addRecord.getDN());
     Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
 
-    ArrayList<ByteString> duplicateValues = new ArrayList<>();
+    Collection<ByteString> duplicateValues = new ArrayList<>();
     for (Attribute a : addRecord.getAttributes())
     {
       if (a.getAttributeDescription().getAttributeType().isObjectClass())

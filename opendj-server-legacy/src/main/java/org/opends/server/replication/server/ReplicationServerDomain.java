@@ -571,7 +571,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * - processSafeDataUpdateMsg
    * This is a facility to pack many interesting returned object.
    */
-  private class PreparedAssuredInfo
+  private static class PreparedAssuredInfo
   {
       /**
        * The list of servers identified as servers we are interested in
@@ -1162,6 +1162,59 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     {
       connectedDSs.remove(sHandler.getServerId());
     }
+  }
+
+  /**
+   * Removes a handler registered by a handshake that subsequently failed and
+   * performs the same cleanup as {@link #stopServer(ServerHandler, boolean)}
+   * would have done. Without this cleanup the handler stays registered
+   * forever: the reader and writer threads that normally trigger
+   * {@link #stopServer(ServerHandler, boolean)} when the session dies were
+   * never started, so the dead server keeps being advertised to the whole
+   * topology and its server id can never reconnect.
+   * <p>
+   * Unlike {@link #stopServer(ServerHandler, boolean)} this method never
+   * acquires the domain lock: it is called from the handshake thread, which
+   * already holds the lock whenever the handler is registered, and acquiring
+   * it interruptibly would silently skip the cleanup when the handshake was
+   * aborted by an interrupt — the very trigger being cleaned up after.
+   * <p>
+   * The removal only fires when the domain still holds this very handler
+   * instance, so calling it for a handshake aborted before registration never
+   * evicts a legitimately connected server with the same server id.
+   *
+   * @param sHandler the handler whose handshake failed after registration
+   */
+  void unregisterFailedHandshake(ServerHandler sHandler)
+  {
+    final boolean isDataServer = !sHandler.isReplicationServer();
+    final Map<Integer, ? extends ServerHandler> connectedServers =
+        isDataServer ? connectedDSs : connectedRSs;
+    if (!connectedServers.remove(sHandler.getServerId(), sHandler))
+    {
+      return;
+    }
+
+    if (connectedDSs.isEmpty() && connectedRSs.isEmpty())
+    {
+      stopMonitoringPublisher();
+    }
+    sHandler.shutdown();
+
+    resetGenerationIdIfPossible();
+    synchronized (pendingStatusMessagesLock)
+    {
+      if (isDataServer)
+      {
+        // Update the remote replication servers with our list
+        // of connected LDAP servers
+        pendingStatusMessages.enqueueTopoInfoToAllRSs();
+      }
+      // Warn our DSs that a RS or DS has quit (does not use this
+      // handler as already removed from list)
+      pendingStatusMessages.enqueueTopoInfoToAllDSsExcept(null);
+    }
+    statusAnalyzer.notifyPendingStatusMessage();
   }
 
   /**

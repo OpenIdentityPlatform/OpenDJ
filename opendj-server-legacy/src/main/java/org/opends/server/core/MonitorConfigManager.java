@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -314,7 +315,7 @@ public class MonitorConfigManager
       Class<? extends MonitorProvider<T>> providerClass =
           (Class<? extends MonitorProvider<T>>) propertyDefinition
               .loadClass(className, MonitorProvider.class);
-      MonitorProvider<T> monitor = providerClass.newInstance();
+      MonitorProvider<T> monitor = providerClass.getDeclaredConstructor().newInstance();
 
       if (configuration != null)
       {

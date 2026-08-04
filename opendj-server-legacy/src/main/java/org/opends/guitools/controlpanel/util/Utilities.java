@@ -2412,9 +2412,16 @@ public class Utilities
       {
         return NO_VALUE_SET.toString();
       }
-      long l = Long.parseLong(monitoringValue);
-      Date date = new Date(l);
-      return ConfigFromConnection.newDateFormatter().format(date);
+      try
+      {
+        Date date = new Date(Long.parseLong(monitoringValue));
+        return ConfigFromConnection.newDateFormatter().format(date);
+      }
+      catch (NumberFormatException e)
+      {
+        // The server did not return a number: display the value as it is.
+        return monitoringValue;
+      }
     }
     else if (attr.isTime())
     {
@@ -2438,10 +2445,18 @@ public class Utilities
     }
     else if (attr.isValueInBytes())
     {
-      long l = Long.parseLong(monitoringValue);
-      long mb = l / (1024 * 1024);
-      long kbs = (l - mb * 1024 * 1024) / 1024;
-      return INFO_CTRL_PANEL_MEMORY_VALUE.get(mb, kbs).toString();
+      try
+      {
+        long l = Long.parseLong(monitoringValue);
+        long mb = l / (1024 * 1024);
+        long kbs = (l - mb * 1024 * 1024) / 1024;
+        return INFO_CTRL_PANEL_MEMORY_VALUE.get(mb, kbs).toString();
+      }
+      catch (NumberFormatException e)
+      {
+        // The server did not return a number: display the value as it is.
+        return monitoringValue;
+      }
     }
     return monitoringValue;
   }

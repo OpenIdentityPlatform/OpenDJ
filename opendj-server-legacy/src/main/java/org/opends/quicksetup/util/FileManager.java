@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.util;
 
@@ -354,7 +355,7 @@ public class FileManager {
   }
 
   /** A file operation. */
-  private abstract class FileOperation {
+  private abstract static class FileOperation {
     private File objectFile;
 
     /**

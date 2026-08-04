@@ -60,6 +60,7 @@ import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
 import org.opends.guitools.controlpanel.task.DeleteIndexTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.quicksetup.util.Utils;
 
 /**
  * The panel that displays an existing index (it appears on the right of the
@@ -492,7 +493,7 @@ class IndexPanel extends AbstractIndexPanel
       backendSet = new HashSet<>();
       backendSet.add(backendName);
       attributeName = index.getName();
-      entryLimitValue = Integer.parseInt(entryLimit.getText());
+      entryLimitValue = Utils.parseIntOrDefault(entryLimit.getText(), index.getEntryLimit());
       indexTypes = getTypes();
 
       indexToModify = index;

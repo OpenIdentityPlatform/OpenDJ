@@ -1395,7 +1395,7 @@ public final class DSConfig extends ConsoleApplication {
             String command = "";
             String line;
             while ((line = bReader.readLine()) != null) {
-                if ("".equals(line) || line.startsWith("#")) {
+                if (line.isEmpty() || line.startsWith("#")) {
                     // Empty line or comment
                     continue;
                 }

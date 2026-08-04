@@ -32,6 +32,8 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.InflaterOutputStream;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
@@ -556,7 +558,27 @@ class ID2Entry extends AbstractTree
   @Override
   public ByteString generateKey(String data)
   {
-    EntryID entryID = new EntryID(Long.parseLong(data));
-    return entryID.toByteString();
+    return new EntryID(parseEntryID(data)).toByteString();
+  }
+
+  /**
+   * Returns the entry ID held by the provided string.
+   *
+   * @param data
+   *          The string representation of an entry ID
+   * @return the parsed entry ID
+   * @throws LocalizedIllegalArgumentException
+   *           If the provided string does not hold an entry ID
+   */
+  static long parseEntryID(String data)
+  {
+    try
+    {
+      return Long.parseLong(data);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new LocalizedIllegalArgumentException(LocalizableMessage.raw("Invalid entry ID: \"%s\"", data));
+    }
   }
 }

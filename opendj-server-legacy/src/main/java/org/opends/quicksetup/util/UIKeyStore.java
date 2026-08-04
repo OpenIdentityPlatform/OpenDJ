@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.quicksetup.util;
@@ -125,10 +126,10 @@ public class UIKeyStore extends KeyStore
     KeyStore k = getInstance();
     for (X509Certificate aChain : chain) {
       if (!containsCertificate(aChain, k)) {
-        String alias = aChain.getSubjectDN().getName();
+        String alias = aChain.getSubjectX500Principal().getName();
         int j = 1;
         while (k.containsAlias(alias)) {
-          alias = aChain.getSubjectDN().getName() + "-" + j;
+          alias = aChain.getSubjectX500Principal().getName() + "-" + j;
           j++;
         }
         k.setCertificateEntry(alias, aChain);

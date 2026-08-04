@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -625,7 +626,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     }
 
     String f = filter.getText().trim();
-    if ("".equals(f))
+    if (f.isEmpty())
     {
       errors.add(ERR_CTRL_PANEL_NO_FILTER_FOR_VLV_PROVIDED.get());
       setPrimaryInvalid(lFilter);

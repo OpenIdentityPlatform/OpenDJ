@@ -14,6 +14,7 @@
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014 Manuel Gaupp
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -2116,7 +2117,7 @@ public final class SchemaBuilder {
 
         final Syntax element = numericOID2Syntaxes.get(numericOID);
         if (element != null) {
-            removeSyntax(element, null);
+            removeSyntax(element);
             return true;
         }
         return false;
@@ -2490,7 +2491,7 @@ public final class SchemaBuilder {
                         syntax, syntax.getOID(), conflictingSyntax.getOID());
                 throw new ConflictingSchemaElementException(message);
             }
-            removeSyntax(conflictingSyntax, null);
+            removeSyntax(conflictingSyntax);
         }
 
         numericOID2Syntaxes.put(syntax.getOID(), syntax);
@@ -2688,7 +2689,7 @@ public final class SchemaBuilder {
         }
     }
 
-    private void removeSyntax(final Syntax syntax, NamesMapping names) {
+    private void removeSyntax(final Syntax syntax) {
         for (Map.Entry<String, List<String>> property : syntax.getExtraProperties().entrySet()) {
             if ("x-enum".equalsIgnoreCase(property.getKey())) {
                 removeMatchingRule(OMR_OID_GENERIC_ENUM + "." + syntax.getOID());
@@ -2705,7 +2706,7 @@ public final class SchemaBuilder {
             try {
                 syntax.validate(schema, warnings);
             } catch (final SchemaException e) {
-                removeSyntax(syntax, names);
+                removeSyntax(syntax);
                 warnings.add(ERR_SYNTAX_VALIDATION_FAIL.get(syntax, e.getMessageObject()));
             }
         }
