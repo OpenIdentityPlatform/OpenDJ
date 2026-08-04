@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -450,7 +451,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     boolean doChecks = !isLocal || isLocalServerRunning;
     if (doChecks)
     {
-      if ("".equals(dn.getText().trim()))
+      if (dn.getText().trim().isEmpty())
       {
         dnInvalid = true;
         errors.add(INFO_EMPTY_DIRECTORY_MANAGER_DN.get());
@@ -478,7 +479,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
 
       if (!isLocal)
       {
-        if ("".equals(hostName.getText().trim()))
+        if (hostName.getText().trim().isEmpty())
         {
           errors.add(INFO_EMPTY_REMOTE_HOST_NAME.get());
         }

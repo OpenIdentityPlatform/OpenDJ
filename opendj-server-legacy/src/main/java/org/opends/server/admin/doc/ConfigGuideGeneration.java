@@ -227,7 +227,7 @@ public class ConfigGuideGeneration {
   }
 
   private boolean isRoot(String name) {
-    return name.equals("");
+    return name.isEmpty();
   }
 
   /**
@@ -718,7 +718,7 @@ public class ConfigGuideGeneration {
       } else if (actionType == Type.NONE) {
         actionStr = "None";
       }
-      String dot = actionStr.equals("") ? "" : ". ";
+      String dot = actionStr.isEmpty() ? "" : ". ";
       action = actionStr +
         ((synopsis != null) ? dot + synopsis : "");
     }
@@ -1045,7 +1045,7 @@ public class ConfigGuideGeneration {
     RelationDefinition rel = relList.get(mo.getName());
     if (rel != null) {
       String baseDn = ldapProfile.getRelationRDNSequence(rel);
-      if (!baseDn.equals("")) {
+      if (!baseDn.isEmpty()) {
         return baseDn;
       } else {
         // Check the parent relation

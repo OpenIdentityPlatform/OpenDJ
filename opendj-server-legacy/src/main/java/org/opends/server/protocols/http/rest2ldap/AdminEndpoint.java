@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.http.rest2ldap;
 
@@ -388,7 +389,7 @@ public final class AdminEndpoint extends HttpEndpoint<AdminEndpointCfg>
       }
 
       final String title = attrType.getDescription();
-      if (title != null && !"".equals(title))
+      if (title != null && !title.isEmpty())
       {
         result.put("title", title);
       }

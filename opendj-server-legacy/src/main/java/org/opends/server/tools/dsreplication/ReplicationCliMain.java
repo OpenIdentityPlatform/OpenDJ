@@ -6569,7 +6569,7 @@ public class ReplicationCliMain extends ConsoleApplication
       public void progressUpdate(ProgressUpdateEvent ev)
       {
         LocalizableMessage newLogDetails = ev.getNewLogs();
-        if (newLogDetails != null && !"".equals(newLogDetails.toString().trim()))
+        if (newLogDetails != null && !newLogDetails.toString().trim().isEmpty())
         {
           print(newLogDetails);
           println();

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -331,7 +332,7 @@ public class PasswordGeneratorConfigManager
            definition.getJavaClassPropertyDefinition();
       Class<? extends PasswordGenerator> generatorClass =
            propertyDefinition.loadClass(className, PasswordGenerator.class);
-      PasswordGenerator<T> generator = generatorClass.newInstance();
+      PasswordGenerator<T> generator = generatorClass.getDeclaredConstructor().newInstance();
 
       if (initialize)
       {

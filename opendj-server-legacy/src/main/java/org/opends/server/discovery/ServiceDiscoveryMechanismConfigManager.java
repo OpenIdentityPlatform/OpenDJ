@@ -131,7 +131,7 @@ public class ServiceDiscoveryMechanismConfigManager implements
   private ServiceDiscoveryMechanism loadAndInitializeMechanism(ServiceDiscoveryMechanismCfg cfg) throws Exception
   {
     final ServiceDiscoveryMechanism newMechanism =
-        ((Class<ServiceDiscoveryMechanism>) DirectoryServer.loadClass(cfg.getJavaClass())).newInstance();
+        ((Class<ServiceDiscoveryMechanism>) DirectoryServer.loadClass(cfg.getJavaClass())).getDeclaredConstructor().newInstance();
     newMechanism.initializeMechanism(cfg, serverContext);
     return newMechanism;
   }

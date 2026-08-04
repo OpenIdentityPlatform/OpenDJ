@@ -1375,8 +1375,6 @@ public class BackupManager
    *
    * @throws DirectoryException
    *           If a Directory Server error occurs.
-   * @throws IOException
-   *           If an I/O exception occurs during the restore.
    */
   private void restoreArchive(Path restoreDir,
                               Set<String> filesToRestore,

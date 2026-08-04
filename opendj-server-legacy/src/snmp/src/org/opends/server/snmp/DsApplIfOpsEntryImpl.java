@@ -77,8 +77,8 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
     super(mib);
     this.server = server;
     this.connectionHandlerName = connectionHandlerObjectName;
-    this.ApplIndex = new Integer(applIndex);
-    this.DsApplIfProtocolIndex = new Integer(connectionHandlerIndex);
+    this.ApplIndex = Integer.valueOf(applIndex);
+    this.DsApplIfProtocolIndex = Integer.valueOf(connectionHandlerIndex);
     this.monitor = SNMPMonitor.getMonitor(server);
   }
 
@@ -98,7 +98,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
           if (index==-1) {
               return this.DsApplIfProtocol;
           }
-          return  new String("1.3.6.1..27.3.") + portNumber.substring(index+1);
+          return  "1.3.6.1..27.3." + portNumber.substring(index+1);
       }
   }
 

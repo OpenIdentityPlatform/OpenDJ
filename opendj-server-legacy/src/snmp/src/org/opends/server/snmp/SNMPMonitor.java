@@ -319,7 +319,7 @@ public class SNMPMonitor
     Byte[] barray = new Byte[b.length];
     for (int index = 0; index < b.length; index++)
     {
-      barray[index] = new Byte(b[index]);
+      barray[index] = Byte.valueOf(b[index]);
     }
     return barray;
   }
@@ -355,7 +355,7 @@ public class SNMPMonitor
     long v = V.longValue();
     if (v > (pow(2, 32) - 1))
     {
-      return new Long(v % pow(2, 32));
+      return Long.valueOf(v % pow(2, 32));
     }
     else
     {
@@ -394,7 +394,7 @@ public class SNMPMonitor
     long v = V.longValue();
     if (v > (pow(2, 32) - 1))
     {
-      return new Long(pow(2, 32) - 1);
+      return Long.valueOf(pow(2, 32) - 1);
     }
     else
     {
@@ -418,7 +418,7 @@ public class SNMPMonitor
     {
       throw new SnmpStatusException("Returned intrumented value size too big");
     }
-    Integer ret = new Integer(V.intValue());
+    Integer ret = Integer.valueOf(V.intValue());
     return ret;
   }
 

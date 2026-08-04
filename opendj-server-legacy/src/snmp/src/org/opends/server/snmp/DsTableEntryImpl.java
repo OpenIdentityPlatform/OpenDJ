@@ -73,7 +73,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
         super(mib);
         this.server = server;
         this.monitor = SNMPMonitor.getMonitor(server);
-        this.applIndex = new Integer(index);
+        this.applIndex = Integer.valueOf(index);
     }
 
     /**
@@ -145,7 +145,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
                 Object value = this.monitor.getAttribute(name,
                         "ds-backend-entry-count");
                 if (value != null && value instanceof String) {
-                    result = result + new Long((String) value);
+                    result = result + Long.valueOf((String) value);
                 }else if (value != null && value instanceof Long) {
                     result = result + (Long)value;
                 }

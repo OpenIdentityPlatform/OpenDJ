@@ -396,8 +396,6 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    * Returns the newest (last) record from this log.
    *
    * @return the newest record, which may be {@code null}
-   * @throws ChangelogException
-   *           If an error occurs while retrieving the record.
    */
   Record<K, V> getNewestRecord()
   {

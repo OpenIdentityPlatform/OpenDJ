@@ -14,7 +14,7 @@
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
  * Portions Copyright 2025 Wren Security.
- * Portions Copyright 2025 3A Systems LLC.
+ * Portions Copyright 2025-2026 3A Systems LLC.
  */
 
 package org.opends.server.util;
@@ -297,7 +297,7 @@ public final class Platform
      */
     private boolean isSelfSigned(X509Certificate cert)
     {
-      return cert.getSubjectDN().equals(cert.getIssuerDN());
+      return cert.getSubjectX500Principal().equals(cert.getIssuerX500Principal());
     }
   }
 

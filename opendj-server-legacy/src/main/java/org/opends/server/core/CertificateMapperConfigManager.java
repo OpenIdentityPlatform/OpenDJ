@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -321,7 +322,7 @@ public class CertificateMapperConfigManager
            definition.getJavaClassPropertyDefinition();
       Class<? extends CertificateMapper> mapperClass =
            propertyDefinition.loadClass(className, CertificateMapper.class);
-      CertificateMapper mapper = mapperClass.newInstance();
+      CertificateMapper mapper = mapperClass.getDeclaredConstructor().newInstance();
 
       if (initialize)
       {
