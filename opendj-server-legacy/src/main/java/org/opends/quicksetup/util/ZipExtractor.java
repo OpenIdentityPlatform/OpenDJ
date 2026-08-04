@@ -291,7 +291,7 @@ public class ZipExtractor {
 
     if (entry.isDirectory())
     {
-      String perm = getDirectoryFileSystemPermissions(destination);
+      String perm = getDirectoryFileSystemPermissions();
       addPermission(destination, permissions, perm);
       if (!Utils.createDirectory(destination))
       {
@@ -331,10 +331,9 @@ public class ZipExtractor {
 
   /**
    * Returns the file system permissions for a directory.
-   * @param path the directory for which we want the file permissions.
    * @return the file system permissions for the directory.
    */
-  private String getDirectoryFileSystemPermissions(File path)
+  private String getDirectoryFileSystemPermissions()
   {
     // TODO We should get this dynamically during build?
     return "755";

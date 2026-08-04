@@ -576,22 +576,11 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   /** Notify this controller that authentication data have changed in the connection pool. */
   @Override
   public void notifyAuthDataChanged() {
-    notifyAuthDataChanged(null);
-  }
-
-  /**
-   * Notify this controller that authentication data have changed in the
-   * connection pool for the specified url.
-   * The controller starts refreshing the node which represent entries from the
-   * url.
-   * @param url the URL of the connection that changed.
-   */
-  private void notifyAuthDataChanged(LDAPURL url) {
     // TODO: temporary implementation
     //    we should refresh only nodes :
-    //    - whose URL matches 'url'
+    //    - whose URL matches the URL of the connection that changed
     //    - whose errorType == ERROR_SOLVING_REFERRAL and
-    //      errorArg == url
+    //      errorArg == that URL
     startRefreshReferralNodes(rootNode);
   }
 

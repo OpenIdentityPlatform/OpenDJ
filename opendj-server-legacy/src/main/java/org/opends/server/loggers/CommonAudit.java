@@ -519,7 +519,6 @@ public class CommonAudit
       jsonConfig.setLogDirectory(logDirectory.getAbsolutePath());
       jsonConfig.setName(publisher.getName());
       jsonConfig.setTopics(Collections.singleton(publisher.getCommonAuditTopic()));
-      addJsonHandlerBufferingConfig(config, jsonConfig);
       addHandlerRetentionConfig(publisher, config, jsonConfig);
       addHandlerRotationConfig(publisher, config, jsonConfig);
 
@@ -529,12 +528,6 @@ public class CommonAudit
     {
       throw new ConfigException(ERR_COMMON_AUDIT_FILE_BASED_HANDLER_CREATION.get(publisher.getDn(), e), e);
     }
-  }
-
-  private void addJsonHandlerBufferingConfig(JsonConfigData config, JsonAuditEventHandlerConfiguration auditConfig)
-  {
-    JsonAuditEventHandlerConfiguration.EventBufferingConfiguration jsonBufferingConfig =
-        new JsonAuditEventHandlerConfiguration.EventBufferingConfiguration();
   }
 
   private void addHandlerRotationConfig(PublisherConfig publisher, HandlerConfigData config,
