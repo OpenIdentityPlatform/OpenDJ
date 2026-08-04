@@ -57,6 +57,17 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
   private static final int RS2_ID = 502;
   private static final int RS3_ID = 503;
 
+  /**
+   * The admissible layouts once the 20 DSs are spread over the 4 RSs of
+   * testFailoversAndWeightChanges with RS3 having weight 3 and the 3 others
+   * weight 1: RS3 gets 10 DSs, the 10 remaining ones go to RS1, RS2 and RS4,
+   * one of them getting 4 DSs and the 2 others 3 DSs.
+   */
+  private static final int[][] TWENTY_DSS_LAYOUTS = new int[][] {
+    new int[] {4, 3, 10, 3},
+    new int[] {3, 4, 10, 3},
+    new int[] {3, 3, 10, 4}};
+
   /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -239,17 +250,10 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
        * - RS4 has 8 DSs
        */
       createReplicationDomains(testCase, 1, NDS);
-      Thread.sleep(2000);     
-      
+
       // Now check the number of connected DSs for each RS
-      assertEquals(getNbDSsConnectedToRS(0), 2,
-       "Wrong expected number of DSs connected to RS1");
-      assertEquals(getNbDSsConnectedToRS(1), 4,
-       "Wrong expected number of DSs connected to RS2");
-      assertEquals(getNbDSsConnectedToRS(2), 6,
-       "Wrong expected number of DSs connected to RS3");
-      assertEquals(getNbDSsConnectedToRS(3), 8,
-       "Wrong expected number of DSs connected to RS4");
+      checkForCorrectNumbersOfConnectedDSs(new int[][]{new int[] {2, 4, 6, 8}},
+        "All the " + NDS + " DSs are started");
     } finally
     {
       endTest();
@@ -259,6 +263,14 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
   /**
    * Return the number of DSs currently connected to the RS with the passed
    * index.
+   * <p>
+   * This is a replication server side information, which is not established
+   * at the same time as the directory server side one: the RS sends the
+   * TopologyMsg which ends the handshake, and thus makes the DS consider
+   * itself connected, before it registers the DS handler in its domain. So a
+   * DS which has just been started may not be counted here yet: callers must
+   * poll with {@link #checkForCorrectNumbersOfConnectedDSs(int[][], String)}
+   * instead of sampling this counter once.
    */
   private int getNbDSsConnectedToRS(int rsIndex)
   {
@@ -504,13 +516,10 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
        * DS7 to DS12 start, we must end up with RS1, RS2 and RS3 each with 4 DSs
        */
       createReplicationDomains(testCase, 6, 12);
-      // Now check the number of connected DSs for each RS
-      assertEquals(getNbDSsConnectedToRS(0), 4,
-        "Wrong expected number of DSs connected to RS1");
-      assertEquals(getNbDSsConnectedToRS(1), 4,
-        "Wrong expected number of DSs connected to RS2");
-      assertEquals(getNbDSsConnectedToRS(2), 4,
-        "Wrong expected number of DSs connected to RS3");
+      // Now check the number of connected DSs for each RS. Only the 3 started
+      // RSs are examined: RS4 does not exist yet.
+      checkForCorrectNumbersOfConnectedDSs(new int[][]{new int[] {4, 4, 4}},
+        "DS7 to DS12 started, RS1, RS2 and RS3 should each have 4 DSs");
 
       /**
        * RS4 (weight=1) starts, we must end up with RS1, RS2, RS3 and RS4 each
@@ -542,6 +551,9 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
        * or 4 DSs (1 with 4 and the 2 others with 3) and RS3 with 10 DSs
        */
       createReplicationDomains(testCase, 12, 20);
+      checkForCorrectNumbersOfConnectedDSs(TWENTY_DSS_LAYOUTS,
+        "DS13 to DS20 started");
+
       int rsWith4DsIndex = -1; // The RS (index) that has 4 DSs
       // Now check the number of connected DSs for each RS
       int nbDSsRS1 = getNbDSsConnectedToRS(0);
@@ -617,6 +629,9 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       // Restart the 2 stopped DSs
       rd[aFirstDsOnRs3Id] = createReplicationDomain(aFirstDsOnRs3Id, testCase);
       rd[aSecondDsOnRs3Id] = createReplicationDomain(aSecondDsOnRs3Id, testCase);
+      checkForCorrectNumbersOfConnectedDSs(TWENTY_DSS_LAYOUTS,
+        "DSs " + aFirstDsOnRs3Id + " and " + aSecondDsOnRs3Id + " restarted");
+
       // Now check the number of connected DSs for each RS
       nbDSsRS1 = getNbDSsConnectedToRS(0);
       nbDSsRS2 = getNbDSsConnectedToRS(1);
@@ -758,6 +773,25 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
   }
 
   /**
+   * Builds the single expected layout for
+   * {@link #checkForCorrectNumbersOfConnectedDSs(int[][], String)} where only
+   * one RS is taken into account, the other ones being ignored (-1). This is
+   * needed when the RS a DS connects to is only known at runtime.
+   *
+   * @param nbRSs The number of RSs started by the test case. RSs beyond that
+   *        index must not be examined as they do not exist
+   * @param rsIndex The index of the RS to check
+   * @param nbDSs The expected number of DSs connected to this RS
+   */
+  private static int[][] onlyCheckRS(int nbRSs, int rsIndex, int nbDSs)
+  {
+    final int[] expectedDSsNumbers = new int[nbRSs];
+    Arrays.fill(expectedDSsNumbers, -1);
+    expectedDSsNumbers[rsIndex] = nbDSs;
+    return new int[][] { expectedDSsNumbers };
+  }
+
+  /**
    * Wait for the correct number of connected DSs for each RS. Fails if timeout
    * before condition met.
    * @param possibleExpectedDSsNumbers The expected number of connected DSs for each
@@ -891,9 +925,10 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       rd[dsIsIndex] = createReplicationDomain(dsIsIndex, testCase);
       int rsId = rd[dsIsIndex].getRsServerId();
       int rsIndex = rsId - 501;
-      int nDSs = getNbDSsConnectedToRS(rsIndex);
-      assertEquals(getNbDSsConnectedToRS(rsIndex), 2, " Expected 2 DSs on RS " + rsId);
-      debugInfo(testCase + ": DS3 connected to RS " + rsId + ", with " + nDSs + " DSs");
+      checkForCorrectNumbersOfConnectedDSs(
+        onlyCheckRS(getNbRSs(testCase), rsIndex, 2),
+        "DS3 connected to RS " + rsId);
+      debugInfo(testCase + ": DS3 connected to RS " + rsId + ", with 2 DSs");
 
       // Be sure that DS3 stays connected to the same RS during some long time
       // check every second
@@ -973,9 +1008,10 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       rd[dsIsIndex] = createReplicationDomain(dsIsIndex, testCase);
       int rsId = rd[dsIsIndex].getRsServerId();
       int rsIndex = rsId - 501;
-      int nDSs = getNbDSsConnectedToRS(rsIndex);
-      assertEquals(getNbDSsConnectedToRS(rsIndex), 2, " Expected 2 DSs on RS " + rsId);
-      debugInfo(testCase + ": DS4 connected to RS " + rsId + ", with " + nDSs + " DSs");
+      checkForCorrectNumbersOfConnectedDSs(
+        onlyCheckRS(getNbRSs(testCase), rsIndex, 2),
+        "DS4 connected to RS " + rsId);
+      debugInfo(testCase + ": DS4 connected to RS " + rsId + ", with 2 DSs");
 
       // Be sure that DS3 stays connected to the same RS during some long time
       // check every second
@@ -1055,9 +1091,10 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       rd[dsIsIndex] = createReplicationDomain(dsIsIndex, testCase);
       int rsId = rd[dsIsIndex].getRsServerId();
       int rsIndex = rsId - 501;
-      int nDSs = getNbDSsConnectedToRS(rsIndex);
-      assertEquals(getNbDSsConnectedToRS(rsIndex), 3, " Expected 2 DSs on RS " + rsId);
-      debugInfo(testCase + ": DS7 connected to RS " + rsId + ", with " + nDSs + " DSs");
+      checkForCorrectNumbersOfConnectedDSs(
+        onlyCheckRS(getNbRSs(testCase), rsIndex, 3),
+        "DS7 connected to RS " + rsId);
+      debugInfo(testCase + ": DS7 connected to RS " + rsId + ", with 3 DSs");
 
       // Be sure that DS3 stays connected to the same RS during some long time
       // check every second
