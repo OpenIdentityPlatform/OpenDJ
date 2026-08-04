@@ -18,6 +18,7 @@
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 import static org.forgerock.opendj.ldap.LDAPListener.*;
 import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
@@ -91,7 +92,7 @@ public final class Proxy {
         }
 
         final String localAddress = args[i++];
-        final int localPort = Integer.parseInt(args[i++]);
+        final int localPort = parsePort(args[i++]);
 
         final String proxyDN = args[i++];
         final String proxyPassword = args[i++];
@@ -109,7 +110,7 @@ public final class Proxy {
 
         for (; i < args.length; i += 2) {
             final String remoteAddress = args[i];
-            final int remotePort = Integer.parseInt(args[i + 1]);
+            final int remotePort = parsePort(args[i + 1]);
 
             factories.add(Connections.newCachedConnectionPool(new LDAPConnectionFactory(remoteAddress,
                                                                                         remotePort,

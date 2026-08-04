@@ -23,6 +23,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Set;
 
@@ -94,16 +95,16 @@ public abstract class Application implements ProgressNotifier, Runnable {
       Class<?> appClass = null;
       try {
         appClass = Class.forName(appClassName);
-        app = (GuiApplication) appClass.newInstance();
+        app = (GuiApplication) appClass.getDeclaredConstructor().newInstance();
       } catch (ClassNotFoundException e) {
         logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
         String msg = "Application class " + appClass + " not found";
         throw new RuntimeException(msg, e);
-      } catch (IllegalAccessException e) {
+      } catch (IllegalAccessException | NoSuchMethodException e) {
         logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
         String msg = "Could not access class " + appClass;
         throw new RuntimeException(msg, e);
-      } catch (InstantiationException e) {
+      } catch (InstantiationException | InvocationTargetException e) {
         logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
         String msg = "Error instantiating class " + appClass;
         throw new RuntimeException(msg, e);

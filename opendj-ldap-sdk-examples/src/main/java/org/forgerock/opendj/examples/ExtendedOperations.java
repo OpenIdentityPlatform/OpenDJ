@@ -12,9 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2012-2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
+
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 
 import java.util.Collection;
 
@@ -55,7 +58,7 @@ public final class ExtendedOperations {
             System.exit(1);
         }
         final String host = args[0];
-        final int port = Integer.parseInt(args[1]);
+        final int port = parsePort(args[1]);
 
         final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
         Connection connection = null;

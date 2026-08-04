@@ -587,8 +587,8 @@ public class ServerDescriptor
   /**
    * Method used to compare attributes defined in the schema.
    * Returns whether the two schema attributes are equal.
-   * @param schema1 the first schema attribute.
-   * @param schema2 the second schema attribute.
+   * @param attr1 the first attribute type.
+   * @param attr2 the second attribute type.
    * @return {@code true} if the two schema attributes are equal, {@code false} otherwise.
    */
   private static boolean areAttributesEqual(AttributeType attr1, AttributeType attr2)
@@ -616,8 +616,8 @@ public class ServerDescriptor
   /**
    * Method used to compare objectclasses defined in the schema.
    * Returns whether the two schema objectclasses are equal.
-   * @param schema1 the first schema objectclass.
-   * @param schema2 the second schema objectclass.
+   * @param oc1 the first objectclass.
+   * @param oc2 the second objectclass.
    * @return {@code true} if the two schema objectclasses are equal, {@code false} otherwise.
    */
   private static boolean areObjectClassesEqual(ObjectClass oc1, ObjectClass oc2)

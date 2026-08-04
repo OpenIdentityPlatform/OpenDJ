@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -93,9 +94,9 @@ public class LockFileManager
       File f = getFileForPath(lockFile);
       try
       {
-        if (! f.exists())
+        if (! f.createNewFile())
         {
-          f.createNewFile();
+          logger.trace("Lock file %s already exists", lockFile);
         }
       }
       catch (Exception e)
@@ -207,9 +208,9 @@ public class LockFileManager
       File f = getFileForPath(lockFile);
       try
       {
-        if (! f.exists())
+        if (! f.createNewFile())
         {
-          f.createNewFile();
+          logger.trace("Lock file %s already exists", lockFile);
         }
       }
       catch (Exception e)

@@ -13,7 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
- * Portions Copyright 2017-2024 3A Systems, LLC.
+ * Portions Copyright 2017-2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -242,9 +242,9 @@ public final class LDAPServerFilter extends BaseFilter {
         };
     }
 
-    final class ClientConnectionImpl extends BaseFilter implements LDAPClientContext {
+    static final class ClientConnectionImpl extends BaseFilter implements LDAPClientContext {
 
-        final class GrizzlyBackpressureSubscription implements Subscription {
+        static final class GrizzlyBackpressureSubscription implements Subscription {
             private final AtomicLong pendingRequests = new AtomicLong();
             private final Subscriber<? super LdapRequestEnvelope> subscriber;
             private FilterChainContext suspendedCtx;

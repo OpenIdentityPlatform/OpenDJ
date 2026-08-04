@@ -20,7 +20,6 @@ package org.opends.server.authorization.dseecompat;
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -408,7 +407,7 @@ public class TargAttrFilters {
                                               SearchFilter filter) {
         Attribute attr = Attributes.create(attrType, value);
         Entry e = new Entry(DN.rootDN(), null, null, null);
-        e.addAttribute(attr, new ArrayList<ByteString>());
+        e.addAttribute(attr);
         try {
             return filter.matchesEntry(e);
         } catch(DirectoryException ex) {

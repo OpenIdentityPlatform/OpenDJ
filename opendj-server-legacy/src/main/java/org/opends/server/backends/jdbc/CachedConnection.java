@@ -11,13 +11,15 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2024-2025 3A Systems, LLC.
+ * Copyright 2024-2026 3A Systems, LLC.
  */
 package org.opends.server.backends.jdbc;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.benmanes.caffeine.cache.RemovalCause;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import java.sql.*;
 import java.time.Duration;
@@ -26,10 +28,15 @@ import java.util.Properties;
 import java.util.concurrent.*;
 
 public class CachedConnection implements Connection {
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+    static final String TTL_PROPERTY = "org.openidentityplatform.opendj.jdbc.ttl";
+    static final long DEFAULT_TTL_MS = 15000;
+
     final Connection parent;
 
     static LoadingCache<String, BlockingQueue<CachedConnection>> cached = Caffeine.newBuilder()
-        .expireAfterAccess(Duration.ofMillis(Long.parseLong(System.getProperty("org.openidentityplatform.opendj.jdbc.ttl","15000"))))
+        .expireAfterAccess(Duration.ofMillis(getCacheTtlMillis()))
         .removalListener((String key, BlockingQueue<CachedConnection> value, RemovalCause cause) -> {
             for (CachedConnection con : value) {
                 try {
@@ -42,6 +49,26 @@ public class CachedConnection implements Connection {
             }
         })
         .build(conStr -> new LinkedBlockingQueue<>());
+
+    /**
+     * Returns the time after which an idle pooled connection is closed, as configured by the
+     * {@value #TTL_PROPERTY} system property. An invalid value is ignored in favor of the default.
+     */
+    private static long getCacheTtlMillis() {
+        final String ttl = System.getProperty(TTL_PROPERTY);
+        if (ttl != null) {
+            try {
+                final long millis = Long.parseLong(ttl.trim());
+                if (millis >= 0) {
+                    return millis;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+            logger.warn(LocalizableMessage.raw("Ignoring invalid value \"%s\" of the %s property, using %d ms",
+                ttl, TTL_PROPERTY, DEFAULT_TTL_MS));
+        }
+        return DEFAULT_TTL_MS;
+    }
 
     final String connectionString;
     public CachedConnection(String connectionString, Connection parent) {

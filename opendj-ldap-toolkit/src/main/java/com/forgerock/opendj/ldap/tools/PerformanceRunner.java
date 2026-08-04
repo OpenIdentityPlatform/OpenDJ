@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -481,13 +482,18 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
     double[] getPercentiles() {
         if (percentilesArgument.isPresent()) {
-            double[] percentiles = new double[percentilesArgument.getValues().size()];
-            int index = 0;
-            for (final String percentile : percentilesArgument.getValues()) {
-                percentiles[index++] = Double.parseDouble(percentile);
+            try {
+                final double[] percentiles = new double[percentilesArgument.getValues().size()];
+                int index = 0;
+                for (final String percentile : percentilesArgument.getValues()) {
+                    percentiles[index++] = Double.parseDouble(percentile);
+                }
+                Arrays.sort(percentiles);
+                return percentiles;
+            } catch (final NumberFormatException e) {
+                // The argument parser only accepts integers in the [0, 100] range, so this cannot
+                // happen. Fall back to the default percentiles rather than failing the run.
             }
-            Arrays.sort(percentiles);
-            return percentiles;
         }
 
         return DEFAULT_PERCENTILES;

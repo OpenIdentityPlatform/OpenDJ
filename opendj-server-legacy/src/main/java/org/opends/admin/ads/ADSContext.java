@@ -403,8 +403,6 @@ public class ADSContext
    *
    * @param serverProperties
    *          the new properties of the server.
-   * @param newServerId
-   *          The new server Identifier, or null.
    * @throws ADSContextException
    *           if the server could not be registered.
    */
@@ -1645,7 +1643,7 @@ public class ADSContext
   /**
    * Creates an entry with the provided add request.
    *
-   * @param addRequest
+   * @param request
    *          the add request.
    * @throws ADSContextException
    *           if the entry could not be created.

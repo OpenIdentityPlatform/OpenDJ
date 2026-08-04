@@ -523,7 +523,7 @@ public class EntryCacheConfigManager
       // it instead of creating a new one unless explicit init is requested.
       EntryCache<T> cache;
       if (initialize || entryCache == null) {
-        cache = cacheClass.newInstance();
+        cache = cacheClass.getDeclaredConstructor().newInstance();
       } else {
         cache = entryCache;
       }

@@ -568,7 +568,15 @@ public final class SubtreeSpecification
         NoSuchElementException
     {
       final String s = nextValue(INT, INT_TOKEN);
-      return Integer.parseInt(s);
+      try
+      {
+        return Integer.parseInt(s);
+      }
+      catch (NumberFormatException e)
+      {
+        // The token matches the integer pattern but is too big to fit in an int.
+        throw new InputMismatchException();
+      }
     }
 
     /**

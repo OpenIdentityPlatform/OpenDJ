@@ -16,6 +16,12 @@
 package org.opends.server.replication.server.changelog.file;
 
 import java.io.File;
+import java.lang.management.LockInfo;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import java.lang.reflect.Field;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -53,9 +59,15 @@ import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMat
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.opends.server.replication.server.changelog.file.FileChangelogTestFixtures.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.testng.Assert.*;
 
 /**
- * Test the FileChangelogDB class.
+ * Test the FileChangelogDB class: the races between a replica DB creation and
+ * {@link FileChangelogDB#shutdownDB()}, and the window between
+ * {@link FileChangelogDB#removeDomain(DN)}'s unlocked read of the domainMap and its
+ * acquisition of the domainMap monitor, during which a concurrent remover
+ * ({@code shutdownDB()}, {@code clearDB()} or another {@code removeDomain()}) may have
+ * unmapped the domain.
  */
 @SuppressWarnings("javadoc")
 public class FileChangelogDBTest extends ReplicationTestCase
@@ -64,6 +76,8 @@ public class FileChangelogDBTest extends ReplicationTestCase
   private static final int DRAINED_SERVER_ID = 814;
   /** Server id of the replica DB whose creation races that drain. */
   private static final int RACING_SERVER_ID = 813;
+  /** Server id of the replica DB whose domain removal races a concurrent remover. */
+  private static final int SERVER_ID = 1;
   /** Server id of the replica DB whose creation bails out on the identity check. */
   private static final int STALE_SERVER_ID = 815;
   /** Server id of the replica DB created in the fresh domain map the bail-out must not unmap. */
@@ -577,6 +591,145 @@ public class FileChangelogDBTest extends ReplicationTestCase
         TestCaseUtils.deleteDirectory(testRoot);
       }
     }
+  }
+
+  /**
+   * The concurrent remover unmapped the domain and shut its replica DBs down, exactly like
+   * the {@code shutdownDB()} drain does: {@code removeDomain()} must complete without
+   * throwing a {@link NullPointerException}.
+   */
+  @Test
+  public void removeDomainRacingConcurrentRemovalMustNotThrowNPE() throws Exception
+  {
+    ReplicationServer replicationServer = null;
+    try
+    {
+      TestCaseUtils.startServer();
+      replicationServer = configureReplicationServer(100, 100);
+      final FileChangelogDB changelogDB = (FileChangelogDB) replicationServer.getChangelogDB();
+      final FileReplicaDB replicaDB =
+          changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, SERVER_ID, replicationServer).getFirst();
+
+      final ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>> domainToReplicaDBs =
+          getDomainToReplicaDBs(changelogDB);
+      final ConcurrentMap<Integer, FileReplicaDB> domainMap = domainToReplicaDBs.get(TEST_ROOT_DN);
+      assertThat(domainMap).isNotNull();
+
+      final AtomicReference<Throwable> thrown = new AtomicReference<>();
+      final Thread remover = newRemoverThread(changelogDB, thrown);
+      synchronized (domainMap)
+      {
+        remover.start();
+        // removeDomain() read the domain entry and is now blocked on the monitor held here
+        waitUntilBlockedOn(remover, domainMap);
+
+        domainToReplicaDBs.remove(TEST_ROOT_DN);
+        replicaDB.shutdown();
+      }
+      remover.join(TIMEOUT_MS);
+
+      assertFalse(remover.isAlive(), "removeDomain() did not complete");
+      assertThat(thrown.get()).isNull();
+    }
+    finally
+    {
+      remove(replicationServer);
+    }
+  }
+
+  /**
+   * The concurrent remover unmapped the domain and {@code getOrCreateReplicaDB()} then
+   * recreated it: {@code removeDomain()} must only unmap the domainMap instance it holds the
+   * monitor on, never the recreated one.
+   */
+  @Test
+  public void removeDomainMustNotUnmapConcurrentlyRecreatedDomain() throws Exception
+  {
+    ReplicationServer replicationServer = null;
+    try
+    {
+      TestCaseUtils.startServer();
+      replicationServer = configureReplicationServer(100, 100);
+      final FileChangelogDB changelogDB = (FileChangelogDB) replicationServer.getChangelogDB();
+      final FileReplicaDB replicaDB =
+          changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, SERVER_ID, replicationServer).getFirst();
+
+      final ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>> domainToReplicaDBs =
+          getDomainToReplicaDBs(changelogDB);
+      final ConcurrentMap<Integer, FileReplicaDB> domainMap = domainToReplicaDBs.get(TEST_ROOT_DN);
+      assertThat(domainMap).isNotNull();
+
+      final ConcurrentMap<Integer, FileReplicaDB> recreatedDomainMap = new ConcurrentHashMap<>();
+      final AtomicReference<Throwable> thrown = new AtomicReference<>();
+      final Thread remover = newRemoverThread(changelogDB, thrown);
+      synchronized (domainMap)
+      {
+        remover.start();
+        waitUntilBlockedOn(remover, domainMap);
+
+        domainToReplicaDBs.remove(TEST_ROOT_DN);
+        replicaDB.shutdown();
+        domainToReplicaDBs.put(TEST_ROOT_DN, recreatedDomainMap);
+      }
+      remover.join(TIMEOUT_MS);
+
+      assertFalse(remover.isAlive(), "removeDomain() did not complete");
+      assertThat(thrown.get()).isNull();
+      assertThat(domainToReplicaDBs.get(TEST_ROOT_DN)).isSameAs(recreatedDomainMap);
+    }
+    finally
+    {
+      remove(replicationServer);
+    }
+  }
+
+  private Thread newRemoverThread(final FileChangelogDB changelogDB, final AtomicReference<Throwable> thrown)
+  {
+    return new Thread(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        try
+        {
+          changelogDB.removeDomain(TEST_ROOT_DN);
+        }
+        catch (Throwable t)
+        {
+          thrown.set(t);
+        }
+      }
+    }, "removeDomain() under test");
+  }
+
+  @SuppressWarnings("unchecked")
+  private ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>> getDomainToReplicaDBs(
+      FileChangelogDB changelogDB) throws Exception
+  {
+    final Field field = FileChangelogDB.class.getDeclaredField("domainToReplicaDBs");
+    field.setAccessible(true);
+    return (ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>>) field.get(changelogDB);
+  }
+
+  /** Waits until the provided thread is blocked acquiring the monitor of the provided object. */
+  private void waitUntilBlockedOn(Thread thread, Object monitor) throws Exception
+  {
+    final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    final long deadline = System.currentTimeMillis() + TIMEOUT_MS;
+    while (System.currentTimeMillis() < deadline)
+    {
+      final ThreadInfo threadInfo = threadMXBean.getThreadInfo(thread.getId());
+      final LockInfo lockInfo = threadInfo != null ? threadInfo.getLockInfo() : null;
+      if (lockInfo != null
+          && threadInfo.getThreadState() == Thread.State.BLOCKED
+          && lockInfo.getIdentityHashCode() == System.identityHashCode(monitor))
+      {
+        return;
+      }
+      Thread.sleep(1);
+    }
+    throw new AssertionError(
+        "Timed out waiting for " + thread.getName() + " to block on the domainMap monitor");
   }
 
   /** Joins the provided thread, leaving a signal behind when it did not die within the timeout. */

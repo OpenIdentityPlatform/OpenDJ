@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools;
 
@@ -86,7 +87,7 @@ public class BackendToolUtils
         final BackendCfg cfg;
         try
         {
-          backend = (LocalBackend) backendClass.newInstance();
+          backend = (LocalBackend) backendClass.getDeclaredConstructor().newInstance();
           backend.setBackendID(backendID);
           cfg = root.getBackend(backendID);
           backend.configureBackend(cfg, serverContext);

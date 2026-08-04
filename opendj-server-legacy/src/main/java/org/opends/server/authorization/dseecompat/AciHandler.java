@@ -14,7 +14,7 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2013 Manuel Gaupp
- * Portions Copyright 2024 3A Systems, LLC.
+ * Portions Copyright 2024-2026 3A Systems, LLC.
  * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.authorization.dseecompat;
@@ -413,7 +413,7 @@ public final class AciHandler extends
     builder.addAllStrings(reference.getReferralURLs());
 
     final Entry e = new Entry(dn, null, null, null);
-    e.addAttribute(builder.toAttribute(), null);
+    e.addAttribute(builder.toAttribute());
     final SearchResultEntry se = new SearchResultEntry(e);
     final AciContainer container =
         new AciLDAPOperationContainer(operation, ACI_READ, se);

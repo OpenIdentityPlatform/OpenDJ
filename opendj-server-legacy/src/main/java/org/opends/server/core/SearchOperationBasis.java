@@ -20,6 +20,7 @@ package org.opends.server.core;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -128,8 +129,11 @@ public class SearchOperationBasis
   /** The proxied authorization target DN for this operation. */
   private DN proxiedAuthorizationDN;
 
-  /** The number of entries that have been sent to the client. */
-  private int entriesSent;
+  /**
+   * The number of entries that have been sent to the client. Persistent search notifications are
+   * sent by the threads which apply the changes, so several of them can be counted concurrently.
+   */
+  private final AtomicInteger entriesSent = new AtomicInteger();
 
   /**
    * The number of search result references that have been sent to the client.
@@ -436,7 +440,7 @@ public class SearchOperationBasis
   @Override
   public final int getEntriesSent()
   {
-    return entriesSent;
+    return entriesSent.get();
   }
 
   @Override
@@ -454,13 +458,30 @@ public class SearchOperationBasis
   /**
    * The DNs of the entries already returned by the search phase. An alias may be dereferenced onto
    * an entry which is in the scope of the search as well, and that entry must only be returned once.
-   * It is emptied once the search phase is over, because a persistent search must report every
-   * change it is notified of, whether or not the entry was returned before.
+   * It is emptied once the search phase is over, because it is only meaningful while that phase
+   * runs.
    */
   private final Set<DN> returnedDNs = ConcurrentHashMap.newKeySet();
 
-  /** Whether the search phase is over and only persistent search notifications remain. */
+  /**
+   * Whether the search phase is over. Entries still sent through {@link #returnEntry(Entry, List)}
+   * after it, as the external changelog backend does for its own notifications, are no longer
+   * matched against {@link #returnedDNs}, which has been emptied by then.
+   */
   private volatile boolean searchPhaseOver;
+
+  /** Why an entry is being returned to the client. */
+  private enum EntrySource
+  {
+    /** The entry is a result of the search phase. */
+    SEARCH_PHASE,
+    /**
+     * The entry reports a change to a persistent search. It must be sent whether or not the same
+     * entry was returned before, and neither the size limit nor the time limit of the search
+     * applies to it.
+     */
+    PSEARCH_NOTIFICATION
+  }
 
   @Override
   public final void endSearchPhase()
@@ -473,7 +494,13 @@ public class SearchOperationBasis
   public final boolean returnEntry(Entry entry, List<Control> controls,
                                    boolean evaluateAci)
   {
-    return returnEntry(entry, controls, evaluateAci, null);
+    return returnEntry(entry, controls, evaluateAci, EntrySource.SEARCH_PHASE, null);
+  }
+
+  @Override
+  public final boolean returnPersistentSearchEntry(Entry entry, List<Control> controls)
+  {
+    return returnEntry(entry, controls, true, EntrySource.PSEARCH_NOTIFICATION, null);
   }
 
   /**
@@ -483,33 +510,40 @@ public class SearchOperationBasis
    * @param  entry       The entry to return.
    * @param  controls    The controls to attach to the entry.
    * @param  evaluateAci Whether the access control handler must be consulted.
+   * @param  source      Whether the entry is a persistent search notification rather than a result
+   *                     of the search phase.
    * @param  aliasChain  The DNs of the aliases already dereferenced on the way to this entry, or
    *                     {@code null} if no alias was dereferenced yet. It only spans the current
    *                     chain, so it cannot grow beyond the length of that chain.
    * @return  {@code true} if the search should continue, {@code false} if it should stop.
    */
   private boolean returnEntry(Entry entry, List<Control> controls,
-                              boolean evaluateAci, Set<DN> aliasChain)
+                              boolean evaluateAci, EntrySource source, Set<DN> aliasChain)
   {
     boolean typesOnly = getTypesOnly();
 
-    // See if the size limit has been exceeded.  If so, then don't send the
-    // entry and indicate that the search should end.
-    if (getSizeLimit() > 0 && getEntriesSent() >= getSizeLimit())
+    // Both limits only bound the search phase: they are lifted for the rest of a persistent search
+    // once that phase is over, but a notification can reach this point before that happens.
+    if (source == EntrySource.SEARCH_PHASE)
     {
-      setResultCode(ResultCode.SIZE_LIMIT_EXCEEDED);
-      appendErrorMessage(ERR_SEARCH_SIZE_LIMIT_EXCEEDED.get(getSizeLimit()));
-      return false;
-    }
+      // See if the size limit has been exceeded.  If so, then don't send the
+      // entry and indicate that the search should end.
+      if (getSizeLimit() > 0 && getEntriesSent() >= getSizeLimit())
+      {
+        setResultCode(ResultCode.SIZE_LIMIT_EXCEEDED);
+        appendErrorMessage(ERR_SEARCH_SIZE_LIMIT_EXCEEDED.get(getSizeLimit()));
+        return false;
+      }
 
-    // See if the time limit has expired.  If so, then don't send the entry and
-    // indicate that the search should end.
-    if (getTimeLimit() > 0
-        && TimeThread.getTime() >= getTimeLimitExpiration())
-    {
-      setResultCode(ResultCode.TIME_LIMIT_EXCEEDED);
-      appendErrorMessage(ERR_SEARCH_TIME_LIMIT_EXCEEDED.get(getTimeLimit()));
-      return false;
+      // See if the time limit has expired.  If so, then don't send the entry and
+      // indicate that the search should end.
+      if (getTimeLimit() > 0
+          && TimeThread.getTime() >= getTimeLimitExpiration())
+      {
+        setResultCode(ResultCode.TIME_LIMIT_EXCEEDED);
+        appendErrorMessage(ERR_SEARCH_TIME_LIMIT_EXCEEDED.get(getTimeLimit()));
+        return false;
+      }
     }
 
     // Determine whether the provided entry is a subentry and if so whether it
@@ -526,12 +560,15 @@ public class SearchOperationBasis
           && !filterIncludesSubentries
           && !isReturnSubentriesOnly())
       {
+        logger.trace("Not sending entry %s: it is a subentry and this search does not ask for "
+            + "subentries", entry.getName());
         return true;
       }
     }
     else if (isReturnSubentriesOnly())
     {
       // Subentries are visible and normal entries are not.
+      logger.trace("Not sending entry %s: this search only asks for subentries", entry.getName());
       return true;
     }
 
@@ -596,16 +633,18 @@ public class SearchOperationBasis
     SearchResultEntry unfilteredSearchEntry = new SearchResultEntry(entry, controls);
     if (evaluateAci && !getACIHandler().maySend(this, unfilteredSearchEntry))
     {
+      logger.trace("Not sending entry %s: access control forbids it", entry.getName());
       return true;
     }
 
     //DereferenceAliasesPolicy
     if ( DereferenceAliasesPolicy.ALWAYS.equals(getDerefPolicy()) || DereferenceAliasesPolicy.IN_SEARCHING.equals(getDerefPolicy()) ) {
       if (entry.isAlias() && !baseDN.equals(entry.getName())) {
-        return returnAliasedEntry(entry, controls, aliasChain);
+        return returnAliasedEntry(entry, controls, source, aliasChain);
       }
-      if (!searchPhaseOver && !returnedDNs.add(entry.getName())) {
+      if (source == EntrySource.SEARCH_PHASE && !searchPhaseOver && !returnedDNs.add(entry.getName())) {
         // This entry was already returned by the search, through an alias or on its own.
+        logger.trace("Not sending entry %s: it was already returned by the search phase", entry.getName());
         return true;
       }
     }
@@ -721,7 +760,7 @@ public class SearchOperationBasis
       {
         sendSearchEntry(filteredSearchEntry);
 
-        entriesSent++;
+        entriesSent.incrementAndGet();
       }
       catch (DirectoryException de)
       {
@@ -730,6 +769,10 @@ public class SearchOperationBasis
         setResponseData(de);
         return false;
       }
+    }
+    else
+    {
+      logger.trace("Not sending entry %s: a search result entry plugin suppressed it", entry.getName());
     }
 
     return pluginResult.continueProcessing();
@@ -740,11 +783,14 @@ public class SearchOperationBasis
    *
    * @param  alias       The alias entry to dereference.
    * @param  controls    The controls to attach to the entry.
+   * @param  source      Whether the alias is reported by a persistent search notification rather
+   *                     than by the search phase.
    * @param  aliasChain  The DNs of the aliases already dereferenced on the way to this alias, or
    *                     {@code null} if this alias is the first one of the chain.
    * @return  {@code true} if the search should continue, {@code false} if it should stop.
    */
-  private boolean returnAliasedEntry(Entry alias, List<Control> controls, Set<DN> aliasChain)
+  private boolean returnAliasedEntry(Entry alias, List<Control> controls,
+                                     EntrySource source, Set<DN> aliasChain)
   {
     final DN aliasedDN;
     final Entry aliasedEntry;
@@ -765,11 +811,14 @@ public class SearchOperationBasis
     if (aliasedEntry == null)
     {
       // The alias points to an entry which does not exist: there is nothing to return for it.
+      logger.trace("Not dereferencing alias %s: %s does not exist", alias.getName(), aliasedDN);
       return true;
     }
-    if (!searchPhaseOver && returnedDNs.contains(aliasedDN))
+    if (source == EntrySource.SEARCH_PHASE && !searchPhaseOver && returnedDNs.contains(aliasedDN))
     {
       // The aliased entry was already returned by the search.
+      logger.trace("Not dereferencing alias %s: %s was already returned by the search phase",
+          alias.getName(), aliasedDN);
       return true;
     }
     if (aliasChain == null)
@@ -779,9 +828,11 @@ public class SearchOperationBasis
     if (!aliasChain.add(aliasedDN))
     {
       // The aliases point at each other: stop before looping forever.
+      logger.trace("Not dereferencing alias %s: %s is already part of the alias chain %s",
+          alias.getName(), aliasedDN, aliasChain);
       return true;
     }
-    return returnEntry(aliasedEntry, controls, true, aliasChain);
+    return returnEntry(aliasedEntry, controls, true, source, aliasChain);
   }
 
   private AccessControlHandler<?> getACIHandler()
