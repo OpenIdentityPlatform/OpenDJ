@@ -14,6 +14,7 @@
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
  * Portions copyright 2011 Nemanja Lukić
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -474,7 +475,7 @@ public abstract class ConsoleApplication {
             println();
         }
 
-        if ("".equals(response)) {
+        if (response.isEmpty()) {
             if (defaultValue != null) {
                 return defaultValue;
             }

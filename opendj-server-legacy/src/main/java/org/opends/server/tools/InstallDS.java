@@ -2278,7 +2278,7 @@ public class InstallDS extends ConsoleApplication
         s = "";
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
       }
-      if ("".equals(s))
+      if (s.isEmpty())
       {
         if (defaultValue == null)
         {
