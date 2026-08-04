@@ -550,7 +550,7 @@ public class ReferentialIntegrityPlugin
    * entries under it contain references to the deleted entry DN that need
    * to be removed.
    *
-   * @param entryDN  The DN of the deleted entry.
+   * @param deleteDNset  The DNs of the deleted entries.
    *
    * @param log Set to <code>true</code> if the DN should be written to a log
    *            file so that the background thread can process the change at
@@ -807,7 +807,7 @@ public class ReferentialIntegrityPlugin
    * Write the specified entry DNs to the log file.
    * These entry DNs are related to a delete operation.
    *
-   * @param deletedEntryDN The DN of the deleted entry.
+   * @param deleteDNset The DNs of the deleted entries.
    */
   private void writeLog(Set<DN> deleteDNset) {
     synchronized(logFile)

@@ -306,7 +306,6 @@ public class ServerController {
    * connect to the server after starting to verify that it is listening.
    * @param suppressOutput indicating that ouput to standard output streams
    * from the server should be suppressed.
-   * @param trustManager can be null
    * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
   private void startServer(boolean verifyCanConnect, boolean suppressOutput)

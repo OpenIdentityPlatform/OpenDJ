@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -574,12 +575,8 @@ public class NewSchemaElementsTask extends Task
    *
    * @param schemaFile
    *          the schema file.
-   * @param isSchemaFileDefined
-   *          whether the schema is defined or not.
-   * @param attributes
-   *          the attributes to add.
-   * @param objectClasses
-   *          the object classes to add.
+   * @param schemaElements
+   *          the schema elements to add.
    * @throws OpenDsException
    *           if an error occurs updating the schema file.
    */

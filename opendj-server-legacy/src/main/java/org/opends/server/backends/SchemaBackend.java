@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends;
 
@@ -789,8 +790,8 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
    * the given schema, replacing an existing type if necessary, and ensuring all
    * other metadata is properly updated.
    *
-   * @param  attributeType        The attribute type to add or replace in the
-   *                              server schema.
+   * @param  definition           The definition of the attribute type to add or
+   *                              replace in the server schema.
    * @param  schemaBuilder        The schema builder to which the attribute type should
    *                              be added.
    * @param  modifiedSchemaFiles  The names of the schema files containing
@@ -987,8 +988,8 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
    *
    * @param  definition           The definition of objectclass to remove from the server
    *                              schema.
-   * @param  schema               The schema from which the objectclass should
-   *                              be removed.
+   * @param  newSchemaBuilder     The schema builder from which the objectclass
+   *                              should be removed.
    * @param  modifications        The full set of modifications to be processed
    *                              against the server schema.
    * @param  currentPosition      The position of the modification currently
@@ -1062,8 +1063,8 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
    * the given schema, replacing an existing name form if necessary, and
    * ensuring all other metadata is properly updated.
    *
-   * @param  nameForm             The name form to add or replace in the server
-   *                              schema.
+   * @param  definition           The definition of the name form to add or replace
+   *                              in the server schema.
    * @param  schemaBuilder        The schema builder to which the name form should be
    *                              added.
    * @param  modifiedSchemaFiles  The names of the schema files containing
@@ -1174,8 +1175,8 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
    * the given schema, replacing an existing rule if necessary, and ensuring
    * all other metadata is properly updated.
    *
-   * @param  ditContentRule       The DIT content rule to add or replace in the
-   *                              server schema.
+   * @param  definition           The definition of the DIT content rule to add or
+   *                              replace in the server schema.
    * @param  schemaBuilder               The schema to which the DIT content rule
    *                              should be added.
    * @param  modifiedSchemaFiles  The names of the schema files containing

@@ -765,8 +765,6 @@ public class LocalBackendWorkflowElement
    *
    * @param searchOp
    *          the search operation to execute
-   * @param baseDN
-   *          base DN to search
    * @throws CanceledOperationException
    *           if this operation should be canceled.
    */
