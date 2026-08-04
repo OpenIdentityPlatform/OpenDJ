@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -47,8 +48,12 @@ import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
  * Statistics thread base implementation.
  * <p>
  * The goal of this class is to compute and print rate tool general statistics.
+ * <p>
+ * This class is a {@link Runnable} rather than a {@link Thread}: it is run periodically by
+ * {@code statThreadScheduler}, and {@link #stopRecording(boolean)} calls {@link #run()} directly
+ * to print the last line of statistics.
  */
-class StatsThread extends Thread {
+class StatsThread implements Runnable {
 
     static final String STAT_ID_PREFIX = "org.forgerock.opendj.";
 
@@ -263,10 +268,10 @@ class StatsThread extends Thread {
     private final RateReporter reporter;
     private long startTimeMs;
     private volatile boolean warmingUp;
-    private final ScheduledExecutorService statThreadScheduler = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService statThreadScheduler =
+            Executors.newSingleThreadScheduledExecutor(runnable -> new Thread(runnable, "Stats Thread"));
 
     StatsThread(final PerformanceRunner performanceRunner, final ConsoleApplication application) {
-        super("Stats Thread");
         resetStats();
         this.performanceRunner = performanceRunner;
         this.app = application;
