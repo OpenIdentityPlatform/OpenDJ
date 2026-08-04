@@ -16,6 +16,7 @@
 package org.opends.server.replication.server.changelog.file;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -23,9 +24,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.assertj.core.api.SoftAssertions;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
+import org.forgerock.util.Pair;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
@@ -53,7 +56,14 @@ public class FileChangelogDBTest extends ReplicationTestCase
   private static final int DRAINED_SERVER_ID = 814;
   /** Server id of the replica DB whose creation races that drain. */
   private static final int RACING_SERVER_ID = 813;
+  /** Server id of a replica DB created before the failing one, in the same domain. */
+  private static final int EXISTING_SERVER_ID = 817;
+  /** Server id of the replica DB whose creation is made to fail. */
+  private static final int FAILING_SERVER_ID = 818;
   private static final long TIMEOUT_MS = 30000;
+
+  private static final LocalizableMessage CREATION_FAILURE =
+      LocalizableMessage.raw("FileChangelogDBTest replica DB creation failure");
 
   private DN TEST_ROOT_DN;
 
@@ -297,6 +307,115 @@ public class FileChangelogDBTest extends ReplicationTestCase
     }
   }
 
+  /**
+   * A replica DB creation which fails must not leave behind the empty domain map it inserted:
+   * nothing would ever remove it from {@code domainToReplicaDBs}, and every multi domain cursor
+   * created afterwards would walk a domain holding no replica DB at all.
+   */
+  @Test
+  public void failedReplicaDBCreationDropsTheDomainMapItInserted() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    ReplicationServer replicationServer = null;
+    FailingChangelogDB changelogDB = null;
+    File testRoot = null;
+    try
+    {
+      replicationServer = configureReplicationServer(100, 5000);
+      testRoot = createCleanDir("FileChangelogDB");
+      changelogDB = new FailingChangelogDB(replicationServer, testRoot.getPath(), createCryptoSuite(false));
+      changelogDB.initializeDB();
+
+      changelogDB.failNextReplicaDBCreation();
+      try
+      {
+        changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, FAILING_SERVER_ID, replicationServer);
+        failBecauseExceptionWasNotThrown(ChangelogException.class);
+      }
+      catch (ChangelogException expected)
+      {
+        assertThat(expected).hasMessage(CREATION_FAILURE.toString());
+      }
+      assertThat(domainToReplicaDBs(changelogDB))
+          .as("the empty domain map inserted for the creation which failed")
+          .doesNotContainKey(TEST_ROOT_DN);
+
+      // the next creation starts from scratch and repopulates the domain
+      final Pair<FileReplicaDB, Boolean> result =
+          changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, FAILING_SERVER_ID, replicationServer);
+      assertThat(result.getSecond()).as("the replica DB was created anew").isTrue();
+      assertThat(domainToReplicaDBs(changelogDB).get(TEST_ROOT_DN)).containsOnlyKeys(FAILING_SERVER_ID);
+    }
+    finally
+    {
+      if (changelogDB != null)
+      {
+        changelogDB.shutdownDB();
+      }
+      remove(replicationServer);
+      TestCaseUtils.deleteDirectory(testRoot);
+    }
+  }
+
+  /**
+   * A replica DB creation which fails must only drop an <b>empty</b> domain map: a populated one
+   * must stay mapped, so that the drain of {@code shutdownDB()} finds the replica DBs it holds and
+   * shuts them down.
+   */
+  @Test
+  public void failedReplicaDBCreationKeepsAPopulatedDomainMap() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    ReplicationServer replicationServer = null;
+    FailingChangelogDB changelogDB = null;
+    File testRoot = null;
+    try
+    {
+      replicationServer = configureReplicationServer(100, 5000);
+      testRoot = createCleanDir("FileChangelogDB");
+      changelogDB = new FailingChangelogDB(replicationServer, testRoot.getPath(), createCryptoSuite(false));
+      changelogDB.initializeDB();
+
+      changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, EXISTING_SERVER_ID, replicationServer);
+      final ConcurrentMap<Integer, FileReplicaDB> domainMap = domainToReplicaDBs(changelogDB).get(TEST_ROOT_DN);
+
+      changelogDB.failNextReplicaDBCreation();
+      try
+      {
+        changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, FAILING_SERVER_ID, replicationServer);
+        failBecauseExceptionWasNotThrown(ChangelogException.class);
+      }
+      catch (ChangelogException expected)
+      {
+        assertThat(expected).hasMessage(CREATION_FAILURE.toString());
+      }
+      assertThat(domainToReplicaDBs(changelogDB).get(TEST_ROOT_DN))
+          .as("the domain map holding the replica DB created before the failure")
+          .isSameAs(domainMap)
+          .containsOnlyKeys(EXISTING_SERVER_ID);
+    }
+    finally
+    {
+      if (changelogDB != null)
+      {
+        changelogDB.shutdownDB();
+      }
+      remove(replicationServer);
+      TestCaseUtils.deleteDirectory(testRoot);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private static ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>> domainToReplicaDBs(
+      final FileChangelogDB changelogDB) throws Exception
+  {
+    final Field field = FileChangelogDB.class.getDeclaredField("domainToReplicaDBs");
+    field.setAccessible(true);
+    return (ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>>) field.get(changelogDB);
+  }
+
   /** Joins the provided thread, leaving a signal behind when it did not die within the timeout. */
   private void join(final Thread thread) throws InterruptedException
   {
@@ -508,6 +627,34 @@ public class FileChangelogDBTest extends ReplicationTestCase
         Thread.currentThread().interrupt();
         throw new IllegalStateException(e);
       }
+    }
+  }
+
+  /** A changelog DB which lets a test make the next replica DB creation fail. */
+  private static final class FailingChangelogDB extends FileChangelogDB
+  {
+    private final AtomicBoolean failNextCreation = new AtomicBoolean();
+
+    FailingChangelogDB(final ReplicationServer replicationServer, final String dbDirectoryPath,
+        final CryptoSuite cryptoSuite) throws ConfigException
+    {
+      super(replicationServer, dbDirectoryPath, cryptoSuite);
+    }
+
+    @Override
+    FileReplicaDB newReplicaDB(final int serverId, final DN baseDN, final ReplicationServer server,
+        final CryptoSuite cryptoSuite, final ReplicationEnvironment replicationEnv) throws ChangelogException
+    {
+      if (failNextCreation.compareAndSet(true, false))
+      {
+        throw new ChangelogException(CREATION_FAILURE);
+      }
+      return super.newReplicaDB(serverId, baseDN, server, cryptoSuite, replicationEnv);
+    }
+
+    void failNextReplicaDBCreation()
+    {
+      failNextCreation.set(true);
     }
   }
 }

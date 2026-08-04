@@ -275,31 +275,46 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
         return Pair.of(currentValue, false);
       }
 
-      if (domainToReplicaDBs.get(baseDN) != domainMap)
+      try
       {
-        // The domainMap could have been concurrently removed because
-        // 1) a shutdown was initiated or 2) an initialize was called.
-        // Return will allow the code to:
-        // 1) shutdown properly or 2) lazily recreate the replicaDB
-        return null;
-      }
+        if (domainToReplicaDBs.get(baseDN) != domainMap)
+        {
+          // The domainMap could have been concurrently removed because
+          // 1) a shutdown was initiated or 2) an initialize was called.
+          // Return will allow the code to:
+          // 1) shutdown properly or 2) lazily recreate the replicaDB
+          return null;
+        }
 
-      if (shutdown.get())
+        if (shutdown.get())
+        {
+          // A shutdown was initiated after the shutdown flag was read by getOrCreateReplicaDB():
+          // it may already have drained domainToReplicaDBs before this domainMap was inserted into
+          // it, in which case nothing would ever shutdown a replicaDB created here.
+          // Reading false instead means shutdownDB() has not flipped the flag yet, hence has not
+          // created its iterator yet either: since ConcurrentHashMap iterators traverse the
+          // elements as they existed upon construction of the iterator, it will see this domainMap,
+          // which was inserted before this monitor was acquired, and will have to block on this
+          // same monitor to drain it.
+          return null;
+        }
+
+        final FileReplicaDB newDB = newReplicaDB(serverId, baseDN, server, cryptoSuite, replicationEnv);
+        domainMap.put(serverId, newDB);
+        return Pair.of(newDB, true);
+      }
+      finally
       {
-        // A shutdown was initiated after the shutdown flag was read by getOrCreateReplicaDB():
-        // it may already have drained domainToReplicaDBs before this domainMap was inserted into
-        // it, in which case nothing would ever shutdown a replicaDB created here.
-        // Reading false instead means shutdownDB() has not flipped the flag yet, hence has not
-        // created its iterator yet either: since ConcurrentHashMap iterators traverse the
-        // elements as they existed upon construction of the iterator, it will see this domainMap,
-        // which was inserted before this monitor was acquired, and will have to block on this
-        // same monitor to drain it.
-        return null;
+        // Leaving without having created the replica DB must not leave behind the empty domainMap
+        // inserted by getExistingOrNewDomainMap(): nothing would ever remove it, and every multi
+        // domain cursor created afterwards would walk a domain holding no replica DB at all.
+        // Only an empty map may be dropped: a populated one must stay mapped for the drain of
+        // shutdownDB() to find, even when the creation of this serverId failed.
+        if (domainMap.isEmpty())
+        {
+          domainToReplicaDBs.remove(baseDN, domainMap);
+        }
       }
-
-      final FileReplicaDB newDB = newReplicaDB(serverId, baseDN, server, cryptoSuite, replicationEnv);
-      domainMap.put(serverId, newDB);
-      return Pair.of(newDB, true);
     }
   }
 
