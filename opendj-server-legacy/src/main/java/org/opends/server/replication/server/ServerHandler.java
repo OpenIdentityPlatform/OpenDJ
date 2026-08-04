@@ -246,6 +246,16 @@ public abstract class ServerHandler extends MessageHandler
       generationIdSetOnStart = -100;
     }
 
+    // A handshake that got as far as registering this handler in the domain
+    // must unregister it on abort: the reader and writer threads that
+    // normally trigger the cleanup when the session dies were never started,
+    // so nothing else will ever remove it. Do it BEFORE releasing the domain
+    // lock, so a handshake queued on the lock never sees the dead handler.
+    if (replicationServerDomain != null)
+    {
+      replicationServerDomain.unregisterFailedHandshake(this);
+    }
+
     releaseDomainLock();
   }
 
