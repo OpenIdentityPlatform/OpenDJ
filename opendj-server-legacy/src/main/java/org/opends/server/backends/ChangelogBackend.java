@@ -1534,7 +1534,7 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
 
   private static void addAttribute(final Entry e, final String attrType, final String attrValue)
   {
-    e.addAttribute(Attributes.create(attrType, attrValue), null);
+    e.addAttribute(Attributes.create(attrType, attrValue));
   }
 
   private static void addAttributeByType(String attrName, String attrValue,

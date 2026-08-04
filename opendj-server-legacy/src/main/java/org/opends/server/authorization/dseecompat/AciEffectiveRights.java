@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -382,7 +383,7 @@ public class AciEffectiveRights {
         //Only try to add the attribute type if it already hasn't been added.
         if (!retEntry.hasAttribute(attr.getAttributeDescription().getAttributeType()))
         {
-          retEntry.addAttribute(attr,null);
+          retEntry.addAttribute(attr);
         }
       }
     }
@@ -508,7 +509,7 @@ public class AciEffectiveRights {
     addEntryLevelRightsInfo(container, mask, retEntry, "proxy");
     if(hasAttrMask(mask, ACL_RIGHTS)) {
       Attribute attr = Attributes.create(aclRightsEntryLevelStr, evalInfo.toString());
-      retEntry.addAttribute(attr,null);
+      retEntry.addAttribute(attr);
     }
   }
 
@@ -610,7 +611,7 @@ public class AciEffectiveRights {
       // not but it is possible.
       if (!retEntry.hasAttribute(attr.getAttributeDescription().getAttributeType()))
       {
-        retEntry.addAttribute(attr,null);
+        retEntry.addAttribute(attr);
       }
     }
   }
@@ -633,7 +634,7 @@ public class AciEffectiveRights {
      if(hasAttrMask(mask,ACL_RIGHTS_INFO)) {
       String typeStr = aclRightsInfoEntryLogsStr + ";" + rightStr;
       Attribute attr = Attributes.create(typeStr, container.getEvalSummary());
-       retEntry.addAttribute(attr,null);
+       retEntry.addAttribute(attr);
      }
    }
 
