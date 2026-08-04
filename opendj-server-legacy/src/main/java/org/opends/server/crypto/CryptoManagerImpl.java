@@ -598,14 +598,14 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
 
         // Add the key ID attribute.
         final Attribute keyIDAttr = Attributes.create(attrKeyID, distinguishedValue);
-        entry.addAttribute(keyIDAttr, new ArrayList<ByteString>(0));
+        entry.addAttribute(keyIDAttr);
 
         // Add the public key certificate attribute.
         AttributeBuilder builder = new AttributeBuilder(attrPublicKeyCertificate);
         builder.setOption("binary");
         builder.add(ByteString.wrap(instanceKeyCertificate));
         final Attribute certificateAttr = builder.toAttribute();
-        entry.addAttribute(certificateAttr, new ArrayList<ByteString>(0));
+        entry.addAttribute(certificateAttr);
 
         AddOperation addOperation = icc.processAdd(entry);
         if (ResultCode.SUCCESS != addOperation.getResultCode()) {

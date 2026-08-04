@@ -291,7 +291,7 @@ class SchemaFilesWriter
           matchingRuleUses, ldapSyntaxes);
 
       File upgradeDirectory = getUpgradeDirectory();
-      upgradeDirectory.mkdir();
+      Files.createDirectories(upgradeDirectory.toPath());
       File concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
       concatFilePath = concatFile.getAbsolutePath();
 
@@ -313,11 +313,7 @@ class SchemaFilesWriter
         writeLines(writer, ATTR_LDAP_SYNTAXES, ldapSyntaxes);
       }
 
-      if (concatFile.exists())
-      {
-        concatFile.delete();
-      }
-      tempFile.renameTo(concatFile);
+      renameFile(tempFile, concatFile);
     }
     catch (Exception e)
     {

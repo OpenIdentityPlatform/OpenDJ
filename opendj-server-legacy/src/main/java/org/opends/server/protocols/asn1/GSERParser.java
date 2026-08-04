@@ -13,6 +13,7 @@
  *
  * Copyright 2013-2014 Manuel Gaupp
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.asn1;
 
@@ -382,7 +383,16 @@ public class GSERParser
                       .substring(pos,length));
       throw new GSERException(msg);
     }
-    return Integer.valueOf(next(GSER_INTEGER)).intValue();
+    final String integer = next(GSER_INTEGER);
+    try
+    {
+      return Integer.parseInt(integer);
+    }
+    catch (NumberFormatException e)
+    {
+      // The value matches the integer pattern but does not fit in an int.
+      throw new GSERException(ERR_GSER_NO_VALID_INTEGER.get(integer), e);
+    }
   }
 
 

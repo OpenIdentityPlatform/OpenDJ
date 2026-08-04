@@ -587,10 +587,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      * @return The attribute description.
      * @throws NullPointerException
      *             If {@code attributeType} was {@code null}.
-     * @deprecated This method may be removed at any time
-     * @since OPENDJ-2803 Migrate Attribute
      */
-    @Deprecated
     public static AttributeDescription create(final String attributeName, final AttributeType attributeType) {
         Reject.ifNull(attributeName, attributeType);
 
@@ -628,10 +625,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      * @return The attribute description.
      * @throws NullPointerException
      *             If {@code attributeType} or {@code option} was {@code null}.
-     * @deprecated This method may be removed at any time
-     * @since OPENDJ-2803 Migrate Attribute
      */
-    @Deprecated
     public static AttributeDescription create(
             final String attributeName, final AttributeType attributeType, final String option) {
         Reject.ifNull(attributeName, attributeType, option);
@@ -663,10 +657,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      * @return The attribute description.
      * @throws NullPointerException
      *             If {@code attributeType} or {@code options} was {@code null}.
-     * @deprecated This method may be removed at any time
-     * @since OPENDJ-2803 Migrate Attribute
      */
-    @Deprecated
     public static AttributeDescription create(
             final String attributeName, final AttributeType attributeType, final String... options) {
         Reject.ifNull(options);
@@ -716,10 +707,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      * @return The attribute description.
      * @throws NullPointerException
      *             If {@code attributeType} or {@code options} was {@code null}.
-     * @deprecated This method may be removed at any time
-     * @since OPENDJ-2803 Migrate Attribute
      */
-    @Deprecated
     public static AttributeDescription create(
             final String attributeName, final AttributeType attributeType, final Collection<String> options) {
         Reject.ifNull(attributeName, attributeType);
@@ -1164,13 +1152,14 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      * <p>
      * In other words, it returns the user-provided name or oid of this attribute description,
      * leaving out the option(s).
+     * <p>
+     * Unlike {@code getAttributeType().getNameOrOID()}, which returns the primary name of the
+     * attribute type in the schema, this method preserves the name as it was provided, including
+     * its case and any alias which was used.
      *
      * @return The attribute name or the oid provided by the user associated with this attribute
      *         description.
-     * @deprecated This method may be removed at any time
-     * @since OPENDJ-2803 Migrate Attribute
      */
-    @Deprecated
     public String getNameOrOID() {
         return nameOrOid;
     }

@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -161,12 +162,12 @@ public class JavaArgumentsDialog extends JDialog
     String sMaxMemory = tfMaxMemory.getText().trim();
     if (sMaxMemory.length() > 0)
     {
-      javaArguments.setMaxMemory(Integer.parseInt(sMaxMemory));
+      javaArguments.setMaxMemory(Utils.parseIntOrDefault(sMaxMemory, -1));
     }
     String sInitialMemory = tfInitialMemory.getText().trim();
     if (sInitialMemory.length() > 0)
     {
-      javaArguments.setInitialMemory(Integer.parseInt(sInitialMemory));
+      javaArguments.setInitialMemory(Utils.parseIntOrDefault(sInitialMemory, -1));
     }
     String[] args = getOtherArguments();
     if (args.length > 0)

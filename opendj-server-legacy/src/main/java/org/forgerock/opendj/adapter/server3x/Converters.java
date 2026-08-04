@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.adapter.server3x;
 
@@ -94,7 +95,7 @@ public final class Converters {
             org.opends.server.types.Entry entry =
                 new org.opends.server.types.Entry(sdkEntry.getName(), null, null, null);
             Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
-            List<ByteString> duplicateValues = new ArrayList<>();
+            Collection<ByteString> duplicateValues = new ArrayList<>();
             for (org.opends.server.types.Attribute attribute : toAttributes(sdkEntry.getAllAttributes())) {
                 if (attribute.getAttributeDescription().getAttributeType().isObjectClass()) {
                     for (ByteString attrName : attribute) {
@@ -128,7 +129,7 @@ public final class Converters {
                 new org.opends.server.types.Entry(value.getName(), null, null, null);
             org.opends.server.types.SearchResultEntry searchResultEntry =
                 new org.opends.server.types.SearchResultEntry(entry, to(value.getControls()));
-            List<ByteString> duplicateValues = new ArrayList<>();
+            Collection<ByteString> duplicateValues = new ArrayList<>();
             for (org.opends.server.types.Attribute attribute : toAttributes(value.getAllAttributes())) {
                 searchResultEntry.addAttribute(attribute, duplicateValues);
             }
@@ -672,7 +673,7 @@ public final class Converters {
 
             @Override
             public int getAttributeCount() {
-                return srvResultEntry.getAttributes().size();
+                return Iterables.size(srvResultEntry.getAllAttributes());
             }
 
             @Override

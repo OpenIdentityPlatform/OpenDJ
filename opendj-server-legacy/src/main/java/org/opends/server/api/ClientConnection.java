@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2025 3A Systems, LLC.
+ * Portions Copyright 2025-2026 3A Systems, LLC.
  */
 package org.opends.server.api;
 
@@ -654,6 +654,27 @@ public abstract class ClientConnection
   public final List<PersistentSearch> getPersistentSearches()
   {
     return persistentSearches;
+  }
+
+  /**
+   * Indicates whether a persistent search is registered on this connection for the provided message
+   * ID. A persistent search outlives the operation which started it: that operation leaves the set
+   * of operations in progress as soon as its search phase is over, but the server can still have a
+   * final response to send for it, when the search is terminated on the server side.
+   *
+   * @param  messageID  The message ID to look for.
+   * @return  {@code true} if a persistent search is registered for the provided message ID.
+   */
+  protected final boolean hasPersistentSearch(int messageID)
+  {
+    for (PersistentSearch psearch : persistentSearches)
+    {
+      if (psearch.getMessageID() == messageID)
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
 

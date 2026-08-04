@@ -1022,7 +1022,7 @@ public class ConfigureDS
     }
 
     if (StaticUtils.isFips()) {
-        putAdminTrustManagerConfigAttribute(trustManagerProviderDN, DN_ADMIN_TRUST_MANAGER);
+        putAdminTrustManagerConfigAttribute(DN_ADMIN_TRUST_MANAGER);
     }
   }
 
@@ -1045,7 +1045,7 @@ public class ConfigureDS
     }
   }
 
-  private void putAdminTrustManagerConfigAttribute(final Argument trustManagerProviderDN, final String attributeDN)
+  private void putAdminTrustManagerConfigAttribute(final String attributeDN)
       throws ConfigureDSException
   {
     if (keyManagerProviderDN.isPresent())

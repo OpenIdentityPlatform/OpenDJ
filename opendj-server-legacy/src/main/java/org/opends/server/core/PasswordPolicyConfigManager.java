@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -372,7 +373,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       Class<AuthenticationPolicyFactory<T>> theClass =
           (Class<AuthenticationPolicyFactory<T>>) pd.loadClass(className,
               AuthenticationPolicyFactory.class);
-      AuthenticationPolicyFactory<T> factory = theClass.newInstance();
+      AuthenticationPolicyFactory<T> factory = theClass.getDeclaredConstructor().newInstance();
       factory.setServerContext(serverContext);
 
       AuthenticationPolicy policy = factory.createAuthenticationPolicy(policyConfiguration);
@@ -430,7 +431,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       Class<?> theClass =
           pd.loadClass(className, AuthenticationPolicyFactory.class);
       AuthenticationPolicyFactory<T> factory =
-          (AuthenticationPolicyFactory<T>) theClass.newInstance();
+          (AuthenticationPolicyFactory<T>) theClass.getDeclaredConstructor().newInstance();
       factory.setServerContext(serverContext);
 
       return factory.isConfigurationAcceptable(policyConfiguration, unacceptableReasons);

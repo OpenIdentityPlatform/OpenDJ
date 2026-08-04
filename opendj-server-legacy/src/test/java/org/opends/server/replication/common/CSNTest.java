@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.DataProvider;
@@ -73,6 +74,28 @@ public class CSNTest extends ReplicationTestCase
    assertEquals(csn2.toString(), str,
        "The encoding/decoding of CSN is not reversible for toString()");
  }
+
+  /** Create invalid CSN string representations. */
+  @DataProvider(name = "invalidCSNStrings")
+  public Object[][] createInvalidCSNStrings()
+  {
+    return new Object[][] {
+      { null },
+      { "" },
+      { "\u0001" }, // truncated CSN read from a legacy replication message
+      { "0000000000012abc002d0000007" }, // one character too short
+      { "000000000001zabc002d0000007b" }, // non hexadecimal timestamp
+      { "0000000000012abc002d0000007z" }, // non hexadecimal seqnum
+    };
+  }
+
+  /** Test constructor from an invalid String. */
+  @Test(dataProvider = "invalidCSNStrings",
+      expectedExceptions = LocalizedIllegalArgumentException.class)
+  public void csnDecodeInvalidString(String str) throws Exception
+  {
+    new CSN(str);
+  }
 
   /** Create CSN. */
   @DataProvider(name = "createCSN")

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.server.tools.upgrade;
@@ -21,6 +22,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -31,6 +34,8 @@ import org.opends.server.util.StaticUtils;
  */
 class LicenseFile
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   private static final String INSTALL_ROOT_SYSTEM_PROPERTY = "INSTALL_ROOT";
 
   /**
@@ -80,9 +85,9 @@ class LicenseFile
     final String instanceDirname = UpgradeUtils.getInstancePathFromInstallPath(getInstallRootPathFromSystem("."));
     final String instanceLegalDirName = instanceDirname + File.separator + LEGAL_FOLDER_NAME;
     final File instanceLegalDir = new File(instanceLegalDirName);
-    if (!instanceLegalDir.exists())
+    if (!instanceLegalDir.isDirectory() && !instanceLegalDir.mkdirs())
     {
-      instanceLegalDir.mkdir();
+      logger.warn(LocalizableMessage.raw("Unable to create the legal directory %s", instanceLegalDirName));
     }
     return instanceLegalDirName;
   }
@@ -197,12 +202,18 @@ class LicenseFile
   {
     if (getApproval())
     {
+      final File approvalFile = new File(getInstanceLegalDirectory(), ACCEPTED_LICENSE_FILE_NAME);
       try
       {
-        new File(getInstanceLegalDirectory(), ACCEPTED_LICENSE_FILE_NAME).createNewFile();
+        if (!approvalFile.createNewFile() && !approvalFile.isFile())
+        {
+          logger.warn(LocalizableMessage.raw("Unable to create the license approval file %s", approvalFile));
+        }
       }
       catch (IOException e)
-      { // do  nothing
+      {
+        logger.warn(LocalizableMessage.raw(
+            "Unable to create the license approval file %s: %s", approvalFile, e.getLocalizedMessage()));
       }
     }
   }
