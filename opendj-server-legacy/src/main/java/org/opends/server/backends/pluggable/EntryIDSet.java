@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -668,7 +669,7 @@ final class EntryIDSet implements Iterable<EntryID>
   {
     checkNotNull(sets, "sets must not be null");
 
-    int count = 0;
+    long count = 0;
 
     boolean containsUndefinedSet = false;
     for (EntryIDSet l : sets)
@@ -684,13 +685,15 @@ final class EntryIDSet implements Iterable<EntryID>
       count += l.size();
     }
 
-    if (containsUndefinedSet)
+    if (containsUndefinedSet || count > Integer.MAX_VALUE)
     {
+      // Either at least one set was undefined, or the combined number of IDs
+      // cannot be represented by a single array: fall back to an undefined set.
       return newUndefinedSet();
     }
 
     boolean needSort = false;
-    long[] n = new long[count];
+    long[] n = new long[(int) count];
     int pos = 0;
     for (EntryIDSet l : sets)
     {
@@ -698,7 +701,7 @@ final class EntryIDSet implements Iterable<EntryID>
       {
         needSort |= pos > 0 && l.iterator().next().longValue() < n[pos - 1];
         System.arraycopy(l.getIDs(), 0, n, pos, l.getIDs().length);
-        pos += l.size();
+        pos += (int) l.size();
       }
     }
     if (needSort)

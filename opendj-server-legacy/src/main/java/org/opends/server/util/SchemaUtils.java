@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
@@ -413,7 +414,16 @@ public class SchemaUtils
   public static int parseRuleID(String definition) throws DirectoryException
   {
     // Reuse code of parseOID, even though this is not an OID
-    return Integer.parseInt(parseOID(definition, ERR_PARSING_DIT_STRUCTURE_RULE_RULEID));
+    final String ruleID = parseOID(definition, ERR_PARSING_DIT_STRUCTURE_RULE_RULEID);
+    try
+    {
+      return Integer.parseInt(ruleID);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+          ERR_PARSING_DIT_STRUCTURE_RULE_RULEID.get(definition), e);
+    }
   }
 
   /**

@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.common;
 
@@ -39,6 +40,9 @@ public class StatusMachine
       case DEGRADED_STATUS:
       case BAD_GEN_ID_STATUS:
         return true;
+      default:
+        // No action needed for the remaining values.
+        break;
     }
 
     return false;

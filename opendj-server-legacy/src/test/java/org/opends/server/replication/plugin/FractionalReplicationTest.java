@@ -55,7 +55,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -127,18 +126,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     {
       logger.trace("** TEST **" + s);
     }
-  }
-
-  /**
-   * Before starting the tests configure some stuff
-   */
-  @BeforeClass
-  @Override
-  public void setUp() throws Exception
-  {
-    super.setUp();
-
-    replServerPort = findFreePort();
   }
 
   /** Returns a bunch of single values for fractional-exclude configuration attribute. */
@@ -373,6 +360,10 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
   private void initTest() throws Exception
   {
+    // Allocate the listen port of the replication server for this invocation only: a port which is
+    // bound again and again is exposed, for the whole time it is not bound, to anything in this JVM
+    // which may take it in the meantime.
+    replServerPort = findFreePort();
     replicationDomain = null;
     fractionalDomainCfgEntry = null;
     replicationServer = null;

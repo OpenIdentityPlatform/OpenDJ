@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -237,8 +238,8 @@ public class BoundedWorkQueueStrategy implements QueueingStrategy
    * Execute the provided operation and decrement the number of currently
    * running operations after it has finished executing.
    *
-   * @param the
-   *          operation to execute
+   * @param operation
+   *          the operation to execute
    */
   private void runWrapped(final Operation operation)
   {

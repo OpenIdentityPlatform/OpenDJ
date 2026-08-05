@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools;
 
@@ -668,7 +669,7 @@ public class EncodePassword
   }
 
   /** Thread that mask user input. */
-  private class ErasingThread extends Thread
+  private static class ErasingThread extends Thread
   {
     private boolean stop;
     private String prompt;

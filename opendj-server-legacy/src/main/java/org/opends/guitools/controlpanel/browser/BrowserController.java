@@ -23,6 +23,7 @@ import static org.opends.server.util.ServerConstants.*;
 import java.awt.Font;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Set;
@@ -152,7 +153,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     connectionPool = cpool;
     connectionPool.addReferralAuthenticationListener(this);
 
-    refreshQueue = new NodeSearcherQueue("New red", 2);
+    refreshQueue = new NodeSearcherQueue("New red", 2).start();
 
     // NUMSUBORDINATE HACK
     // Create an empty hacker to avoid null value test.
@@ -575,22 +576,11 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   /** Notify this controller that authentication data have changed in the connection pool. */
   @Override
   public void notifyAuthDataChanged() {
-    notifyAuthDataChanged(null);
-  }
-
-  /**
-   * Notify this controller that authentication data have changed in the
-   * connection pool for the specified url.
-   * The controller starts refreshing the node which represent entries from the
-   * url.
-   * @param url the URL of the connection that changed.
-   */
-  private void notifyAuthDataChanged(LDAPURL url) {
     // TODO: temporary implementation
     //    we should refresh only nodes :
-    //    - whose URL matches 'url'
+    //    - whose URL matches the URL of the connection that changed
     //    - whose errorType == ERROR_SOLVING_REFERRAL and
-    //      errorArg == url
+    //      errorArg == that URL
     startRefreshReferralNodes(rootNode);
   }
 
@@ -1827,6 +1817,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
           errorType = ERROR_SEARCHING_CHILDREN;
           break;
 
+        default:
+          // No action needed for the remaining values.
+          break;
         }
         errorException = error.getException();
         errorArg = error.getArg();
@@ -1835,7 +1828,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       sb.append(getURL());
       if (getReferral() != null) {
         sb.append(" -> ");
-        sb.append(getReferral());
+        sb.append(Arrays.toString(getReferral()));
       }
       toString = sb.toString();
     }

@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.tasks;
 
@@ -496,7 +497,7 @@ public class TaskEntry {
     if (task == null && className != null) {
       try {
         Class<?> clazz = Class.forName(className);
-        Object o = clazz.newInstance();
+        Object o = clazz.getDeclaredConstructor().newInstance();
         if (Task.class.isAssignableFrom(o.getClass())) {
           this.task = (Task) o;
         }

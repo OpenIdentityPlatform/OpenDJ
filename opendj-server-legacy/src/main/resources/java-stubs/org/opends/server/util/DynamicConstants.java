@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
@@ -104,7 +105,7 @@ public final class DynamicConstants
   static {
      try {
         Class<?> c = Class.forName("org.opends.server.util.ReleaseDefinition");
-        Object obj = c.newInstance();
+        Object obj = c.getDeclaredConstructor().newInstance();
 
         try {
          PRODUCT_NAME = (String)c.getField("PRODUCT_NAME").get(obj);

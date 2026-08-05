@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2014 Manuel Gaupp
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -321,7 +322,13 @@ public final class GSERParser {
                     WARN_GSER_NO_VALID_INTEGER.get(gserValue.substring(pos, length));
             throw DecodeException.error(msg);
         }
-        return Integer.valueOf(next(GSER_INTEGER)).intValue();
+        final String integer = next(GSER_INTEGER);
+        try {
+            return Integer.parseInt(integer);
+        } catch (final NumberFormatException e) {
+            // The value matches the integer pattern but does not fit in an int.
+            throw DecodeException.error(WARN_GSER_NO_VALID_INTEGER.get(integer), e);
+        }
     }
 
     /**

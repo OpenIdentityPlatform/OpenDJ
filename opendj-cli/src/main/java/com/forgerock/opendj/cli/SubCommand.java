@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -224,10 +225,6 @@ public class SubCommand implements DocDescriptionSupplement {
         final String argumentLongID = argument.getLongIdentifier();
         if (getArgumentForLongIdentifier(argumentLongID) != null) {
             throw new ArgumentException(ERR_ARG_SUBCOMMAND_DUPLICATE_ARGUMENT_NAME.get(name, argumentLongID));
-        }
-
-        if (parser.hasGlobalArgument(argumentLongID)) {
-            throw new ArgumentException(ERR_ARG_SUBCOMMAND_ARGUMENT_GLOBAL_CONFLICT.get(argumentLongID, name));
         }
 
         Character shortID = argument.getShortIdentifier();

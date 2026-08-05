@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.util;
 
@@ -462,7 +463,7 @@ public final class StringPrepProfile {
                     if (canMapToSpace(buffer, trim)) {
                         buffer.append(SPACE_CHAR);
                     }
-                } else if ((b >= '\u0000' && b <= '\u0008') || (b >= '\u000E' && b <= '\u001F')
+                } else if (b <= '\u0008' || (b >= '\u000E' && b <= '\u001F')
                         || b == '\u007F') {
                     // These characters are mapped to nothing and hence not
                     // copied over..

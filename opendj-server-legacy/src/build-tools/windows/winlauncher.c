@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 #include "winlauncher.h"
@@ -29,9 +30,14 @@ BOOL getPidFile(const char* instanceDir, char* pidFile, unsigned int maxSize)
 
   debug("Attempting to get the PID file for instanceDir='%s'", instanceDir);
 
-  if ((strlen(relativePath) + strlen(instanceDir)) < maxSize)
+  if (!isSafePath(instanceDir))
   {
-    sprintf(pidFile, "%s\\logs\\server.pid", instanceDir);
+    debugError("Unable to get the PID file name because the instance dir is not a safe path.");
+    returnValue = FALSE;
+  }
+  else if ((strlen(relativePath) + strlen(instanceDir)) < maxSize)
+  {
+    _snprintf(pidFile, maxSize, "%s\\logs\\server.pid", instanceDir);
     returnValue = TRUE;
     debug("PID file name is '%s'.", pidFile);
   }
@@ -116,21 +122,26 @@ int getPid(const char* instanceDir)
   char pidFile[PATH_SIZE];
   FILE *f;
   char buf[BUF_SIZE];
-  int read;
+  size_t nRead;
 
   debug("Attempting to get the PID for the server rooted at '%s'.", instanceDir);
   if (getPidFile(instanceDir, pidFile, PATH_SIZE))
   {
     if ((f = fopen(pidFile, "r")) != NULL)
     {
-      read = fread(buf, 1, sizeof(buf),f);
-      debug("Read '%s' from the PID file '%s'.", buf, pidFile);
-    }
-
-    if (f != NULL)
-    {
+      nRead = fread(buf, 1, sizeof(buf) - 1, f);
       fclose(f);
-      returnValue = (int)strtol(buf, (char **)NULL, 10);
+      buf[nRead] = '\0';
+      if (nRead > 0)
+      {
+        debug("Read '%s' from the PID file '%s'.", buf, pidFile);
+        returnValue = (int)strtol(buf, (char **)NULL, 10);
+      }
+      else
+      {
+        debugError("The PID file '%s' is empty.", pidFile);
+        returnValue = 0;
+      }
     }
     else
     {
@@ -171,9 +182,20 @@ BOOL killProcess(int pid)
 
   if (procHandle == NULL)
   {
-    debug("The process with pid=%d has already terminated.", pid);
-    // process already dead
-    processDead = TRUE;
+    DWORD lastError = GetLastError();
+    if (lastError == ERROR_INVALID_PARAMETER)
+    {
+      // no process with this pid exists: it has already terminated
+      debug("The process with pid=%d has already terminated.", pid);
+      processDead = TRUE;
+    }
+    else
+    {
+      // Access denied or any other error: the process may well still be
+      // running, so it must not be reported as stopped.
+      debugError("Failed to open the process (pid=%d) lastError=%d.", pid, lastError);
+      processDead = FALSE;
+    }
   }
   else
   {
@@ -226,15 +248,21 @@ BOOL createPidFile(const char* instanceDir, int pid)
 {
   BOOL returnValue = FALSE;
   char pidFile[PATH_SIZE];
-  FILE *f;
+  FILE *f = NULL;
 
   debug("createPidFile(instanceDir='%s',pid=%d)", instanceDir, pid);
 
   if (getPidFile(instanceDir, pidFile, PATH_SIZE))
   {
-    if ((f = fopen(pidFile, "w")) != NULL)
+    // The CodeQL query cpp/world-writable-file-creation models POSIX
+    // creation modes, which do not exist on Windows: the file's ACL is
+    // inherited from the parent directory either way.  Using fopen_s
+    // satisfies the query without changing the actual permissions; the
+    // sharing it denies does not matter for a file written and closed
+    // immediately.
+    if ((fopen_s(&f, pidFile, "w") == 0) && (f != NULL))
     {
-      fprintf(f, "%d", pid);
+      fprintf(f, "%d\n", pid);
       fclose (f);
       returnValue = TRUE;
       debug("Successfully put pid=%d in the pid file '%s'.", pid, pidFile);
@@ -283,7 +311,7 @@ BOOL getCommandLine(const char* argv[], char* command, unsigned int maxSize)
     {
       if (curCmdInd + strlen(" ") < maxSize)
       {
-        sprintf (&command[curCmdInd], " ");
+        _snprintf (&command[curCmdInd], maxSize - curCmdInd, " ");
         curCmdInd = strlen(command);
       }
       else
@@ -314,7 +342,7 @@ BOOL getCommandLine(const char* argv[], char* command, unsigned int maxSize)
         if (curCmdInd + strlen("\"\"") + strlen(curarg) < maxSize)
         {
           // no begining quote and white space inside => add quotes
-          sprintf (&command[curCmdInd], "\"%s\"", curarg);
+          _snprintf (&command[curCmdInd], maxSize - curCmdInd, "\"%s\"", curarg);
           curCmdInd = strlen (command);
         }
         else
@@ -327,7 +355,7 @@ BOOL getCommandLine(const char* argv[], char* command, unsigned int maxSize)
         if (curCmdInd + strlen(curarg) < maxSize)
         {
           // no white space or quotes detected, keep the arg as is
-          sprintf (&command[curCmdInd], "%s", curarg);
+          _snprintf (&command[curCmdInd], maxSize - curCmdInd, "%s", curarg);
           curCmdInd = strlen (command);
         }
         else
@@ -339,7 +367,7 @@ BOOL getCommandLine(const char* argv[], char* command, unsigned int maxSize)
     } else {
       if (curCmdInd + strlen("\"\"") < maxSize)
       {
-        sprintf (&command[curCmdInd], "\"\"");
+        _snprintf (&command[curCmdInd], maxSize - curCmdInd, "\"\"");
         curCmdInd = strlen (command);
       }
       else
@@ -415,6 +443,74 @@ int start(const char* instanceDir, char* argv[])
 
 
 // ----------------------------------------------------
+// Waits until the exclusive lock that the server holds on
+// locks\server.lock has been released, which is the definitive sign
+// that the server process is gone (the pid in the pid file may be
+// stale and belong to another process, so the outcome of killProcess
+// alone is not proof that the server was stopped).
+// Only a lock conflict (EACCES) is proof that the server still runs:
+// like isServerRunning in service.c, a lock file that cannot be opened
+// or an unexpected locking error is not treated as a running server.
+// Returns TRUE if the server no longer holds the lock (or holding it
+// cannot be proven) and FALSE if the lock conflict persists after the
+// bounded retries.
+// ----------------------------------------------------
+BOOL waitForLockRelease(const char* instanceDir)
+{
+  char lockFile[PATH_SIZE];
+  char* relativePath = "\\locks\\server.lock";
+  int nTries = 30;
+
+  if (!isSafePath(instanceDir)
+    || (strlen(relativePath) + strlen(instanceDir)) >= PATH_SIZE)
+  {
+    debugError("Unable to get the lock file name for instanceDir='%s'.", instanceDir);
+    return FALSE;
+  }
+  _snprintf(lockFile, PATH_SIZE, "%s%s", instanceDir, relativePath);
+
+  while (nTries > 0)
+  {
+    int fd;
+    int lockingError;
+    if (!fileExists(lockFile))
+    {
+      debug("Lock file '%s' does not exist, so the server is stopped.", lockFile);
+      return TRUE;
+    }
+    fd = _open(lockFile, _O_RDWR);
+    if (fd == -1)
+    {
+      debug("Could not open the lock file '%s' (errno=%d), so the server is considered stopped.",
+        lockFile, errno);
+      return TRUE;
+    }
+    if (_locking(fd, LK_NBLCK, 1) != -1)
+    {
+      _locking(fd, LK_UNLCK, 1);
+      _close(fd);
+      debug("Acquired the lock on '%s', so the server is stopped.", lockFile);
+      return TRUE;
+    }
+    lockingError = errno;
+    _close(fd);
+    if (lockingError != EACCES)
+    {
+      debugError("Unexpected error locking '%s': %d", lockFile, lockingError);
+      return TRUE;
+    }
+    nTries--;
+    debug("The server still holds the lock on '%s'.  Sleeping for 1 second and will try %d more time(s).",
+      lockFile, nTries);
+    Sleep(1000);
+  }
+
+  debugError("The server did not release the lock on '%s'.", lockFile);
+  return FALSE;
+} // waitForLockRelease
+
+
+// ----------------------------------------------------
 // Function called when we want to stop the server.
 // This code is called by the stop-ds.bat batch file to stop the server
 // in windows.
@@ -431,13 +527,14 @@ int start(const char* instanceDir, char* argv[])
 // sets the pid file to be deleted on the exit of the process
 // the file is not always deleted.
 //
-// Returns 0 if the instance could be stopped using the
-// pid stored in a file of the server installation and
-// -1 otherwise.
+// Returns 0 if the server no longer holds the server lock (the process
+// found in the pid file, if any, was killed and the lock was released)
+// and -1 otherwise.
 // ----------------------------------------------------
 int stop(const char* instanceDir)
 {
   int returnCode = -1;
+  BOOL mayHaveStopped = FALSE;
 
   int childPid;
 
@@ -447,15 +544,33 @@ int stop(const char* instanceDir)
 
   if (childPid != 0)
   {
-    if (killProcess(childPid))
-    {
-      returnCode = 0;
-      deletePidFile(instanceDir);
-    }
+    mayHaveStopped = killProcess(childPid);
   }
   else
   {
-    debug("Could not stop the server running at root '%s' because the pid could not be located.", instanceDir);
+    // The pid file is typically missing because the server has already
+    // stopped (or is stopping right now): the lock probe below gives the
+    // definitive answer.
+    debug("Could not locate the pid of the server running at root '%s': relying on the server lock alone.", instanceDir);
+    mayHaveStopped = TRUE;
+  }
+
+  if (mayHaveStopped)
+  {
+    if (waitForLockRelease(instanceDir))
+    {
+      returnCode = 0;
+      if (childPid != 0)
+      {
+        deletePidFile(instanceDir);
+      }
+    }
+    else
+    {
+      char * msg = "The server at '%s' is still running: it did not release the server lock.\n";
+      debugError(msg, instanceDir);
+      fprintf(stderr, msg, instanceDir);
+    }
   }
 
   return returnCode;
@@ -587,17 +702,31 @@ int main(int argc, char* argv[])
 
   subcommand = argv[1];
 
-  if (strcmp(subcommand, "start") == 0)
+  if ((strcmp(subcommand, "start") == 0) || (strcmp(subcommand, "stop") == 0))
   {
-    instanceDir = argv[2];
-    argv += 3;
-    returnCode = start(instanceDir, argv);
-  }
-  else if (strcmp(subcommand, "stop") == 0)
-  {
-    instanceDir = argv[2];
-    argv += 3;
-    returnCode = stop(instanceDir);
+    // Work on the canonical form of the instance directory so that the
+    // file names derived from it (such as the pid file) are unambiguous.
+    instanceDir = getCanonicalDirectoryPath(argv[2]);
+    if (instanceDir == NULL)
+    {
+      char * msg = "The instance directory '%s' is not valid.\n";
+      debugError(msg, argv[2]);
+      fprintf(stderr, msg, argv[2]);
+      returnCode = -1;
+    }
+    else
+    {
+      argv += 3;
+      if (strcmp(subcommand, "start") == 0)
+      {
+        returnCode = start(instanceDir, argv);
+      }
+      else
+      {
+        returnCode = stop(instanceDir);
+      }
+      free(instanceDir);
+    }
   }
   else if (strcmp(subcommand, "launch") == 0)
   {

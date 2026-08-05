@@ -141,7 +141,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	@Test
 	public void testCursorCrossesFetchSizeBatches() throws Exception {
 		System.setProperty("org.openidentityplatform.opendj.jdbc.fetchsize", "2");
-		final Storage storage = new Storage(createBackendCfg(), null);
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
 		final TreeName tree = new TreeName("testCursorBatch", "tree");
 		try {
 			storage.open(AccessMode.READ_WRITE);

@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -146,7 +147,7 @@ public class LoginPanel extends StatusGenericPanel
     boolean dnInvalid = false;
     boolean pwdInvalid = false;
 
-    if ("".equals(dn.getText().trim()))
+    if (dn.getText().trim().isEmpty())
     {
       dnInvalid = true;
       errors.add(INFO_EMPTY_DIRECTORY_MANAGER_DN.get());

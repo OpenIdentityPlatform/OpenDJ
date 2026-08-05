@@ -105,6 +105,42 @@
   </context-param>
 -->
 
+  <context-param>
+    <description>Maximum number of batchRequest elements accepted per SOAP
+    body. Every batchRequest element is executed over its own LDAP connection
+    and bind, and password verification is deliberately expensive, so a single
+    small POST holding many batchRequest elements would amplify into many
+    binds. DSMLv2 describes a single batchRequest per SOAP body; raise this cap
+    only if your clients really send more. Excess elements are rejected with a
+    notAttempted errorResponse.</description>
+    <param-name>ldap.dsml.batchrequests.max</param-name>
+    <param-value>1</param-value>
+  </context-param>
+
+  <context-param>
+    <description>Maximum size in bytes of an accepted request body. The SOAP
+    message is parsed into memory, so an unbounded body is an unbounded
+    allocation. Oversized requests are rejected with a notAttempted
+    errorResponse.</description>
+    <param-name>ldap.dsml.request.maxsize</param-name>
+    <param-value>10485760</param-value>
+  </context-param>
+
+  <context-param>
+    <description>Maximum number of operations accepted in one batchRequest.
+    A compare on an attribute stored under a salted password scheme (PBKDF2,
+    bcrypt, ...) costs a full password verification, so an unbounded batch
+    lets a single POST buy an unbounded amount of CPU. Large batches are a
+    designed use of DSMLv2 (bulk provisioning), so the default is generous;
+    raise it if your clients really send more. A batchRequest holding more
+    operations is rejected as a whole with a notAttempted errorResponse,
+    before anything is executed. Note that a single POST may hold up to
+    ldap.dsml.batchrequests.max batchRequest elements, each allowed this many
+    operations.</description>
+    <param-name>ldap.dsml.batchrequest.operations.max</param-name>
+    <param-value>10000</param-value>
+  </context-param>
+
 <!-- Add an extra <context-param> like the one below for each extended operation
      that is known to return a string in the LDAP response. -->
   <context-param>

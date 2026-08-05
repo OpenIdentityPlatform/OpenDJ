@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -328,7 +329,7 @@ public final class AddressMask {
      */
     private void processHost(final String rule) {
         // Note that '*' is valid in host rule
-        final String[] s = rule.split("^[0-9a-zA-z-.*]+");
+        final String[] s = rule.split("^[0-9a-zA-Z_.*-]+");
         if (s.length > 0) {
             throw genericDecodeError();
         }
@@ -346,7 +347,7 @@ public final class AddressMask {
      */
     private void processHostPattern(final String rule) {
         // quick check for invalid chars like " "
-        final String[] s = rule.split("^[0-9a-zA-z-.]+");
+        final String[] s = rule.split("^[0-9a-zA-Z_.-]+");
         if (s.length > 0) {
             throw genericDecodeError();
         }

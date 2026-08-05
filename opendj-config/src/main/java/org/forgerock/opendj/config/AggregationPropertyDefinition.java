@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.config;
 
@@ -256,13 +257,13 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             } catch (ConfigException e) {
                 // The condition could not be evaluated.
                 debugLogger.trace("Unable to perform post add", e);
-                LocalizableMessage message =
+                LocalizableMessage errorMessage =
                     ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.get(mo.getManagedObjectDefinition()
                         .getUserFriendlyName(), mo.getDN(), getExceptionMessage(e));
                 LocalizedLogger logger =
                     LocalizedLogger.getLocalizedLogger(ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.resourceName());
-                logger.error(message);
-                unacceptableReasons.add(message);
+                logger.error(errorMessage);
+                unacceptableReasons.add(errorMessage);
                 return false;
             }
         }

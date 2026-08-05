@@ -24,6 +24,7 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * Portions Copyright 2026 3A Systems, LLC.
  *
  */
 
@@ -195,6 +196,18 @@ public class BCryptTest extends ExtensionsTestCase {
     @Test(dataProvider = "BadPasswords")
     public void checkPw_Failure(String plain, String hashedValue) {
         assertFalse(BCrypt.checkpw(plain, hashedValue));
+    }
+
+    /**
+     * A stored password whose salt holds a character beyond the base64 decoding table
+     * must fail with the IllegalArgumentException that
+     * BcryptPasswordStorageScheme.passwordMatches() catches, and not with an
+     * ArrayIndexOutOfBoundsException escaping into bind processing.
+     */
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void checkPwRejectsSaltCharBeyondDecodingTable() {
+        // U+0080 is the first character past the end of the 128 entry index_64 table.
+        BCrypt.checkpw("secret", "$2a$10$" + ((char) 0x80) + "aaaaaaaaaaaaaaaaaaaaa");
     }
 
     /**

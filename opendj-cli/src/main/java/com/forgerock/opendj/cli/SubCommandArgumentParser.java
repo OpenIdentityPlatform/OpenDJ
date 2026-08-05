@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2018-2024 3A Systems, LLC.
+ * Portions Copyright 2018-2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -63,8 +63,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
     private final Map<Character, Argument> globalShortIDMap = new HashMap<>();
     /** The set of global arguments defined for this parser, referenced by long ID. */
     private final Map<String, Argument> globalLongIDMap = new HashMap<>();
-    /** The set of global arguments defined for this parser, referenced by argument name. */
-    private final Map<String, Argument> globalArgumentMap = new HashMap<>();
     /** The total set of global arguments defined for this parser. */
     private final List<Argument> globalArgumentList = new LinkedList<>();
     /** The set of subcommands defined for this parser, referenced by subcommand name. */
@@ -98,7 +96,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      * @return <CODE>true</CODE> if a global argument exists with the specified name, or <CODE>false</CODE> if not.
      */
     public boolean hasGlobalArgument(String argumentName) {
-        return globalArgumentMap.containsKey(argumentName);
+        return getGlobalArgumentForLongID(formatLongIdentifier(argumentName)) != null;
     }
 
     /**
@@ -199,9 +197,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     public void addGlobalArgument(Argument argument, ArgumentGroup group) throws ArgumentException {
         String longID = argument.getLongIdentifier();
-        if (globalArgumentMap.containsKey(longID)) {
-            throw new ArgumentException(ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_NAME.get(longID));
-        }
         for (SubCommand s : subCommands.values()) {
             if (s.getArgumentForLongIdentifier(longID) != null) {
                 throw new ArgumentException(ERR_SUBCMDPARSER_GLOBAL_ARG_NAME_SUBCMD_CONFLICT.get(
@@ -226,11 +221,9 @@ public class SubCommandArgumentParser extends ArgumentParser {
             }
         }
 
-        if (!longArgumentsCaseSensitive()) {
-            longID = toLowerCase(longID);
-            if (globalLongIDMap.containsKey(longID)) {
-                throw new ArgumentException(ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_LONG_ID.get(longID));
-            }
+        longID = formatLongIdentifier(longID);
+        if (globalLongIDMap.containsKey(longID)) {
+            throw new ArgumentException(ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_LONG_ID.get(longID));
         }
 
         for (SubCommand s : subCommands.values()) {
@@ -325,7 +318,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
     @Override
     public void parseArguments(String[] rawArguments, Properties argumentProperties) throws ArgumentException {
         this.subCommand = null;
-        final ArrayList<String> trailingArguments = getTrailingArguments();
+        final List<String> trailingArguments = trailingArguments();
         trailingArguments.clear();
         setUsageOrVersionDisplayed(false);
 

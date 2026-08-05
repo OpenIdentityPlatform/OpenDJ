@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.plugins.profiler;
 
@@ -214,11 +215,10 @@ public class ProfileViewer
    */
   public void processDataFile(String filename) throws IOException
   {
-    // Try to open the file for reading.
-    ASN1Reader reader = ASN1.getReader(new FileInputStream(filename));
-
-
-    try
+    // Both resources are declared here so that the file stream is closed as well if the reader
+    // cannot be created around it.
+    try (FileInputStream fileStream = new FileInputStream(filename);
+         ASN1Reader reader = ASN1.getReader(fileStream))
     {
       // The first element in the file must be a sequence with the header
       // information.
@@ -272,10 +272,6 @@ public class ProfileViewer
 
         existingFrame.recurseSubFrames(stack, pos-1, count, stacksByMethod);
       }
-    }
-    finally
-    {
-      close(reader);
     }
   }
 

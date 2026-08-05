@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -234,7 +235,7 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
         }
 
         final String description = attrType.getDescription();
-        if (description != null && !"".equals(description)) {
+        if (description != null && !description.isEmpty()) {
             jsonSchema.put("title", description);
         }
         putWritabilityProperties(jsonSchema);

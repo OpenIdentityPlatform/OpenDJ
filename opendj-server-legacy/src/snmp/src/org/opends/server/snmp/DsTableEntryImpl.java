@@ -13,7 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014 ForgeRock AS.
- * Portions Copyright 2024 3A Systems, LLC.
+ * Portions Copyright 2024-2026 3A Systems, LLC.
  */
 package org.opends.server.snmp;
 
@@ -73,13 +73,14 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
         super(mib);
         this.server = server;
         this.monitor = SNMPMonitor.getMonitor(server);
-        this.applIndex = new Integer(index);
+        this.applIndex = Integer.valueOf(index);
     }
 
     /**
      * Getter for the "DsServerType" variable.
      * @return a Byte[] representing the Ds Server Type
      */
+    @Override
     public Byte[] getDsServerType() {
         try {
             String value1 = (String) this.monitor.getAttribute(
@@ -144,7 +145,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
                 Object value = this.monitor.getAttribute(name,
                         "ds-backend-entry-count");
                 if (value != null && value instanceof String) {
-                    result = result + new Long((String) value);
+                    result = result + Long.valueOf((String) value);
                 }else if (value != null && value instanceof Long) {
                     result = result + (Long)value;
                 }
@@ -169,6 +170,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
      * Gets the object of the entry.
      * @return ObjectName of the entry
      */
+    @Override
     public ObjectName getObjectName() {
         if (this.entryName == null) {
             try {
