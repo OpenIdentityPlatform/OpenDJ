@@ -18,12 +18,10 @@ package org.opends.server.replication.server.changelog.file;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import org.assertj.core.api.SoftAssertions;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
@@ -35,7 +33,6 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
-import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
@@ -48,6 +45,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
+import static org.opends.server.replication.server.changelog.file.FileChangelogTestFixtures.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
@@ -58,8 +56,6 @@ import static org.testng.Assert.*;
 public class FileReplicaDBTest extends ReplicationTestCase
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-  private final String cipherTransformation = "AES/CBC/PKCS5Padding";
-  private final int keyLength = 128;
   private DN TEST_ROOT_DN;
 
   /**
@@ -108,16 +104,12 @@ public class FileReplicaDBTest extends ReplicationTestCase
     RecordParser<CSN, UpdateMsg> parser = FileReplicaDB.newReplicaDBParser(cryptoSuite);
 
     ByteString data1 = parser.encodeRecord(Record.from(msg.getCSN(), msg));
-    cryptoSuite.newParameters(cipherTransformation, keyLength, !confidential);
+    cryptoSuite.newParameters(CIPHER_TRANSFORMATION, KEY_LENGTH, !confidential);
     ByteString data2 = parser.encodeRecord(Record.from(msg.getCSN(), msg));
 
     assertFalse(data1.equals(data2));
   }
 
-  private CryptoSuite createCryptoSuite(boolean confidential)
-  {
-    return getServerContext().getCryptoManager().newCryptoSuite(cipherTransformation, keyLength, confidential);
-  }
   @Test
   public void testDomainDNWithForwardSlashes() throws Exception
   {
@@ -378,7 +370,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
     {
       TestCaseUtils.startServer();
       replicationServer = configureReplicationServer(100000, 10);
-      testRoot = createCleanDir();
+      testRoot = createCleanDir("FileReplicaDB");
       dbEnv = new ReplicationEnvironment(testRoot.getPath(), replicationServer, TimeService.SYSTEM);
       replicaDB = new FileReplicaDB(1, TEST_ROOT_DN, replicationServer, createCryptoSuite(false), dbEnv);
 
@@ -536,7 +528,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
       TestCaseUtils.startServer();
       replicationServer = configureReplicationServer(100000, 10);
 
-      testRoot = createCleanDir();
+      testRoot = createCleanDir("FileReplicaDB");
       dbEnv = new ReplicationEnvironment(testRoot.getPath(), replicationServer, TimeService.SYSTEM);
       replicaDB = new FileReplicaDB(1, TEST_ROOT_DN, replicationServer, createCryptoSuite(false), dbEnv);
 
@@ -648,31 +640,10 @@ public class FileReplicaDBTest extends ReplicationTestCase
     assertEquals(replicaDB.getNumberRecords(), expectedNbRecords);
   }
 
-  private ReplicationServer configureReplicationServer(int windowSize, int queueSize)
-      throws IOException, ConfigException
-  {
-    final int changelogPort = findFreePort();
-    ReplServerFakeConfiguration replServerFakeCfg =
-        new ReplServerFakeConfiguration(changelogPort, null, 0, 2, queueSize, windowSize, null);
-    return new ReplicationServer(replServerFakeCfg);
-  }
-
   private FileReplicaDB newReplicaDB(ReplicationServer rs) throws Exception
   {
     final FileChangelogDB changelogDB = (FileChangelogDB) rs.getChangelogDB();
     return changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, 1, rs).getFirst();
-  }
-
-  private File createCleanDir() throws IOException
-  {
-    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot
-            + File.separator + "build");
-    path = path + File.separator + "unit-tests" + File.separator + "FileReplicaDB";
-    final File testRoot = new File(path);
-    TestCaseUtils.deleteDirectory(testRoot);
-    testRoot.mkdirs();
-    return testRoot;
   }
 
   private void assertFoundInOrder(FileReplicaDB replicaDB, CSN... csns) throws Exception

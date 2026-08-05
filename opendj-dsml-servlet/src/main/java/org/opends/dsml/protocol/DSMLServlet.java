@@ -130,6 +130,7 @@ public class DSMLServlet extends HttpServlet {
   private static final String DEREF_ANYURI_MAXSIZE = "ldap.dsml.dereference.anyuri.maxsize";
   private static final String MAX_BATCH_REQUESTS = "ldap.dsml.batchrequests.max";
   private static final String REQUEST_MAXSIZE = "ldap.dsml.request.maxsize";
+  private static final String MAX_OPERATIONS = "ldap.dsml.batchrequest.operations.max";
 
   /**
    * A SOAP body carries a single batchRequest element by default, as DSMLv2
@@ -138,6 +139,14 @@ public class DSMLServlet extends HttpServlet {
   private static final long DEFAULT_MAX_BATCH_REQUESTS = 1;
   /** Default cap on the size of an accepted request body, in bytes. */
   private static final long DEFAULT_REQUEST_MAXSIZE = 10 * 1024 * 1024;
+  /**
+   * Default cap on the number of operations accepted in one batchRequest.
+   * Large batches are a designed use of DSMLv2 (bulk provisioning), so the
+   * default is generous; it exists because a compare on an attribute stored
+   * under a salted password scheme costs a full password verification, so an
+   * unbounded batch would let a single POST buy an unbounded amount of CPU.
+   */
+  private static final long DEFAULT_MAX_OPERATIONS = 10000;
   private static final long serialVersionUID = -3748022009593442973L;
   private static final AtomicInteger nextMessageID = new AtomicInteger(1);
 
@@ -170,6 +179,7 @@ public class DSMLServlet extends HttpServlet {
   private Boolean useHTTPAuthzID;
   private long maxBatchRequests;
   private long requestMaxSize;
+  private long maxOperations;
   private final Set<String> exopStrings = new HashSet<>();
 
   /**
@@ -240,12 +250,14 @@ public class DSMLServlet extends HttpServlet {
       }
 
       // Every batchRequest element of a SOAP body is executed over its own
-      // connection and bind, and password verification is deliberately
-      // expensive: cap how many binds a single POST may fan out into, and how
-      // much memory its body may claim, so that a small request cannot buy
-      // unbounded work.
+      // connection and bind, password verification is deliberately expensive,
+      // and a compare on a password attribute costs one too: cap how many
+      // binds a single POST may fan out into, how much memory its body may
+      // claim, and how many operations one batchRequest may hold, so that a
+      // small request cannot buy unbounded work.
       maxBatchRequests = positiveValue(config, MAX_BATCH_REQUESTS, DEFAULT_MAX_BATCH_REQUESTS);
       requestMaxSize = positiveValue(config, REQUEST_MAXSIZE, DEFAULT_REQUEST_MAXSIZE);
+      maxOperations = positiveValue(config, MAX_OPERATIONS, DEFAULT_MAX_OPERATIONS);
 
       if(jaxbContext==null)
       {
@@ -654,6 +666,22 @@ public class DSMLServlet extends HttpServlet {
             boolean authzInBind = false;
             boolean authzInControl = false;
             batchRequest = batchRequestElement.getValue();
+
+            if ( batchRequest.getBatchRequests().size() > maxOperations ) {
+              // A compare on an attribute stored under a salted password scheme
+              // costs a full password verification, so the number of operations
+              // one batchRequest may hold is capped (MAX_OPERATIONS). The batch
+              // is refused as a whole before the gateway even connects: a
+              // provisioning batch applied halfway is worse than one not
+              // attempted. The configured value is not echoed to the
+              // unauthenticated client.
+              elementResponse.setRequestID(batchRequest.getRequestID());
+              elementResponses.add(createErrorResponse(objFactory,
+                  new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
+                      LocalizableMessage.raw("The batchRequest holds more operations than the"
+                          + " configured maximum: none were attempted."))));
+              continue;
+            }
 
             // The connection options are shared by all the batch requests of this
             // SOAP body, so the authzid of the previous one must not survive into
