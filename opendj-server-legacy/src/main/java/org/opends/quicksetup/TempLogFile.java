@@ -85,7 +85,7 @@ public class TempLogFile
     }
     ErrorLogPublisher startupErrorLogPublisher = TextErrorLogPublisher.getServerStartupTextErrorPublisher(writer);
     ErrorLogger.getInstance().addLogPublisher(startupErrorLogPublisher);
-    DebugLogPublisher startupDebugLogPublisher = DebugLogger.getInstance().addPublisherIfRequired(writer);
+    DebugLogger.getInstance().addPublisherIfRequired(writer);
 
     localizedLogger.info(LocalizableMessage.raw("QuickSetup application launched " + DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG).format(new Date()), null));
   }

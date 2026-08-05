@@ -14,6 +14,7 @@
  * Portions Copyright 2014 The Apache Software Foundation
  * Copyright 2015-2016 ForgeRock AS.
  * Portions Copyright 2023-2026 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -3123,7 +3124,8 @@ final class OnDiskMergeImporter
       {
         for (int i = 0; i < nbBuffer; i++)
         {
-          pool.offer(new MemoryBuffer(allocateDirect
+          // The queue is created with room for exactly nbBuffer elements, so add() cannot refuse.
+          pool.add(new MemoryBuffer(allocateDirect
                           ? ByteBuffer.allocateDirect(bufferSize)
                           : ByteBuffer.allocate(bufferSize)));
         }

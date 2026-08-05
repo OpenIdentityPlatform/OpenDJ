@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -218,9 +219,9 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     lock.writeLock().lock();
     try
     {
-      if (!removeSubEntry(dn2SubEntry, entry))
+      if (!removeSubentryFrom(dn2SubEntry, entry))
       {
-        removeSubEntry(dn2CollectiveSubEntry, entry);
+        removeSubentryFrom(dn2CollectiveSubEntry, entry);
       }
     }
     finally
@@ -229,7 +230,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
   }
 
-  private boolean removeSubEntry(Map<DN, List<SubEntry>> subEntryMap, Entry entry)
+  private boolean removeSubentryFrom(Map<DN, List<SubEntry>> subEntryMap, Entry entry)
   {
     Iterator<List<SubEntry>> subEntryListsIt = subEntryMap.values().iterator();
     while (subEntryListsIt.hasNext())

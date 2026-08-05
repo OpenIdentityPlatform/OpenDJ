@@ -255,7 +255,7 @@ public class NewSchemaElementsTask extends Task
       List<AttributeType> attrs = schemaElementsToAttributeTypes(get(mapAttrs, fileName));
       List<ObjectClass> ocs = schemaElementsToObjectClasses(get(mapClasses, fileName));
 
-      if ("".equals(fileName))
+      if (fileName.isEmpty())
       {
         fileName = null;
       }
