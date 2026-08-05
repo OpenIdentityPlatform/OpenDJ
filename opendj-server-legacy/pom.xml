@@ -31,20 +31,6 @@
   </description>
   <inceptionYear>2010</inceptionYear>
 
-  <repositories>
-    <repository>
-      <id>oracle-repository</id>
-      <name>Oracle Maven Repository</name>
-      <url>http://download.oracle.com/maven</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
-
   <properties>
     <!-- General server-wide properties -->
     <docgen.dir>${project.build.directory}/docgen</docgen.dir>
@@ -265,7 +251,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.7.11</version>
+      <version>42.7.12</version>
     </dependency>
     <dependency>
       <groupId>org.testng</groupId>
@@ -1288,14 +1274,23 @@
                     <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>
                     <org.opends.test.copyClassesToTestPackage>false</org.opends.test.copyClassesToTestPackage>
                     <org.opends.test.timeout>600000</org.opends.test.timeout><!--15 mins-->
-                    <org.opends.test.trace.pattern>(org\.opends\.server\.replication\.service\..*)|(org\.opends\.server\.replication\.GenerationIdTest)|(org\.opends\.server\.types.\HostPortTest)</org.opends.test.trace.pattern>
+                    <!-- Matched against the name of the test class, see org.opends.server.TestListener.onStart(). -->
+                    <org.opends.test.trace.pattern>(org\.opends\.server\.replication\.service\..*)|(org\.opends\.server\.replication\.GenerationIdTest)|(org\.opends\.server\.types\.HostPortTest)|(org\.openidentityplatform\.opendj\.AliasTestCase)</org.opends.test.trace.pattern>
                   </systemPropertyVariables>
                   <argLine>@{argLine}</argLine>
 	          	  <reuseForks>false</reuseForks>
 	          	  <forkCount>1</forkCount>
 	          	  <parallel>none</parallel>
 	          	  <runOrder>alphabetical</runOrder>
-	          	  <rerunFailingTestsCount>3</rerunFailingTestsCount>
+	          	  <!--
+	          	    No <rerunFailingTestsCount> here on purpose. These tests run with the TestNG
+	          	    provider, which ignores that option: up to and including surefire/failsafe 3.5.x
+	          	    it is implemented by the JUnit 4/5 providers only (SUREFIRE-2134 is still open).
+	          	    Nothing was ever rerun here - neither plain @Test methods nor @DataProvider
+	          	    driven ones - so the setting only looked like a safety net, see issue #801.
+	          	    It starts working with surefire 3.6.0, where TestNG is executed through the
+	          	    unified JUnit Platform provider; moving to it is a migration of its own.
+	          	  -->
                 </configuration>
               </execution>
             </executions>

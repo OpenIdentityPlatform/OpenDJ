@@ -26,30 +26,22 @@ public enum EnumEvalResult {
     /**
      * This enumeration is returned when the result of the evaluation is TRUE.
      */
-    TRUE(0),
+    TRUE,
     /**
      * This enumeration is returned when the result of the evaluation is FALSE.
      */
-    FALSE(1),
+    FALSE,
     /**
      * This enumeration is returned when the result of the evaluation is FAIL.
      * This should only be returned when a system failure occurred.
      */
-    FAIL(2),
+    FAIL,
     /**
      * This is an internal enumeration used during evaluation of bind rule when
      * internal processing of the evaluation is undefined. It is never returned
      * back as a result of the evaluation.
      */
-    ERR(3);
-
-    /**
-     * Create a new enumeration type for the specified result value.
-     * @param v The value of the result.
-     */
-    EnumEvalResult(int v) {
-    }
-
+    ERR;
     /**
      * The method tries to determine if the result was undefined, and if so
      * it returns an FAIL enumeration. If the result was not undefined (the

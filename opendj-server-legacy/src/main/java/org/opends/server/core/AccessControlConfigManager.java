@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -378,7 +379,7 @@ public final class AccessControlConfigManager
            definition.getJavaClassPropertyDefinition();
       Class<? extends AccessControlHandler> providerClass =
            propertyDefinition.loadClass(className, AccessControlHandler.class);
-      AccessControlHandler<T> provider = providerClass.newInstance();
+      AccessControlHandler<T> provider = providerClass.getDeclaredConstructor().newInstance();
 
       if (configuration != null)
       {

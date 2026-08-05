@@ -23,6 +23,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Nothing in this workflow writes back to the repository: the docker jobs push to
+# the local registry service, not to a remote one.
+permissions:
+  contents: read
+
 jobs:
   build-maven:
     runs-on: ${{ matrix.os }}
@@ -69,7 +74,7 @@ jobs:
          restore-keys: ${{ runner.os }}-m2-repository
     - name: Setup MSVC Developer Command Prompt (x86)
       if: runner.os == 'Windows'
-      uses: ilammy/msvc-dev-cmd@v1
+      uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
       env:
         # Opt in to Node.js 24 for this action, which still ships on Node.js 20.
         # See https://github.com/ilammy/msvc-dev-cmd/issues/99
@@ -287,6 +292,21 @@ jobs:
     - name: Test on Windows
       if: runner.os == 'Windows'
       run:   |
+        # Verify a stop took effect before moving on: wait until the server
+        # releases the exclusive byte-range lock it holds on locks\server.lock.
+        # The explicit Lock(0, 1) probe is required: a byte-range lock does not
+        # prevent opening the file, so a bare Open() would always succeed.
+        function Wait-ServerStopped($lockFile) {
+          $lockFile = Join-Path $PWD $lockFile
+          for ($i = 0; $i -lt 30; $i++) {
+            if (-not (Test-Path $lockFile)) { return }
+            try {
+              $fs = [System.IO.File]::Open($lockFile, 'Open', 'ReadWrite', 'ReadWrite')
+              try { $fs.Lock(0, 1); $fs.Unlock(0, 1); return } finally { $fs.Close() }
+            } catch { Start-Sleep -Seconds 2 }
+          }
+          throw "The server still holds the lock on ${lockFile}: the stop did not take effect"
+        }
         set OPENDJ_JAVA_ARGS="-server -Xmx512m"
         opendj-server-legacy\target\package\opendj\setup.bat -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --sampleData 5000 --cli --acceptLicense --no-prompt
         opendj-server-legacy\target\package\opendj\bat\status.bat --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --trustAll
@@ -325,6 +345,8 @@ jobs:
         opendj-server-legacy\target\package\opendj\bat\dsconfig.bat create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll
         opendj-server-legacy\target\package\opendj\bat\makeldif.bat -o test.ldif -c suffix=dc=example2,dc=com opendj-server-legacy\target\package\opendj\config\MakeLDIF\example.template
         opendj-server-legacy\target\package\opendj\bat\stop-ds.bat
+        if ($LASTEXITCODE -ne 0) { throw "stop-ds.bat failed with exit code $LASTEXITCODE" }
+        Wait-ServerStopped 'opendj-server-legacy\target\package\opendj\locks\server.lock'
         echo "4.9.9.0" > opendj-server-legacy\target\package\opendj\config\buildinfo
         opendj-server-legacy\target\package\opendj\upgrade.bat
         opendj-server-legacy\target\package\opendj\bat\import-ldif.bat --offline --ldifFile test.ldif --backendID=example2
@@ -333,6 +355,8 @@ jobs:
         opendj-server-legacy\target\package\opendj\bat\rebuild-index.bat --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "10000"
         opendj-server-legacy\target\package\opendj\bat\stop-ds.bat
+        if ($LASTEXITCODE -ne 0) { throw "stop-ds.bat failed with exit code $LASTEXITCODE" }
+        Wait-ServerStopped 'opendj-server-legacy\target\package\opendj\locks\server.lock'
         opendj-server-legacy\target\package\opendj\bat\windows-service.bat --enableService
         net start "OpenDJ Server"
         if ($LASTEXITCODE -ne 0) { throw "net start 'OpenDJ Server' failed with exit code $LASTEXITCODE" }
@@ -389,16 +413,16 @@ jobs:
           echo "release_version=$git_version_last" >> $GITHUB_ENV
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: |
             localhost:5000/${{ github.repository }}
           tags: |
             type=raw,value=${{ env.release_version }}
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
         with:
           driver-opts: network=host
       - name: Prepare Dockerfile
@@ -408,7 +432,7 @@ jobs:
           cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
           sed -i -E '/^#COPY opendj/s/^#//' ./opendj-packages/opendj-docker/Dockerfile
       - name: Build image (default)
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: ./opendj-packages/opendj-docker
           file: ./opendj-packages/opendj-docker/Dockerfile
@@ -508,7 +532,7 @@ jobs:
           echo "release_version=$git_version_last" >> $GITHUB_ENV
       - name: Docker meta 
         id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: |
             localhost:5000/${{ github.repository }}
@@ -516,9 +540,9 @@ jobs:
             type=raw,value=alpine
             type=raw,value=${{ env.release_version }}-alpine
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
         with:
           driver-opts: network=host
       - name: Prepare Dockerfile
@@ -528,7 +552,7 @@ jobs:
           cp ./opendj-server-legacy/target/package/opendj-*.zip ./opendj-packages/opendj-docker
           sed -i -E '/^#COPY opendj/s/^#//' ./opendj-packages/opendj-docker/Dockerfile-alpine
       - name: Build image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: ./opendj-packages/opendj-docker
           file: ./opendj-packages/opendj-docker/Dockerfile-alpine

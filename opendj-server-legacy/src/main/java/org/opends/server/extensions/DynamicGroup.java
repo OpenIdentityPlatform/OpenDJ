@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -257,7 +258,7 @@ public class DynamicGroup
   public MemberList getMembers()
          throws DirectoryException
   {
-    return new DynamicGroupMemberList(groupEntryDN, memberURLs);
+    return new DynamicGroupMemberList(groupEntryDN, memberURLs).start();
   }
 
   @Override
@@ -267,12 +268,12 @@ public class DynamicGroup
   {
     if (baseDN == null && filter == null)
     {
-      return new DynamicGroupMemberList(groupEntryDN, memberURLs);
+      return new DynamicGroupMemberList(groupEntryDN, memberURLs).start();
     }
     else
     {
       return new DynamicGroupMemberList(groupEntryDN, memberURLs, baseDN, scope,
-                                        filter);
+                                        filter).start();
     }
   }
 

@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -112,14 +113,16 @@ public class JDKLogging
     @Override
     public void publish(LogRecord record)
     {
-      if (getFormatter() == null)
+      // These calls resolve to Handler's own formatter, not to the enclosing
+      // JDKLogging.getFormatter(); qualify them so that is unambiguous.
+      if (super.getFormatter() == null)
       {
-        setFormatter(new SimpleFormatter());
+        super.setFormatter(new SimpleFormatter());
       }
 
       try
       {
-        String message = getFormatter().format(record);
+        String message = super.getFormatter().format(record);
         if (record.getLevel().intValue() >= Level.WARNING.intValue())
         {
           err.write(message.getBytes());

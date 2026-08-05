@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.types;
 
@@ -22,6 +23,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -289,7 +291,7 @@ public final class BackupDirectory
     // Rename the new descriptor file to match the previous one.
     try
     {
-      newDescriptorFile.renameTo(descriptorFile);
+      renameFile(newDescriptorFile, descriptorFile);
     }
     catch (Exception e)
     {
@@ -307,7 +309,7 @@ public final class BackupDirectory
     {
       try
       {
-        dir.mkdirs();
+        Files.createDirectories(dir.toPath());
       }
       catch (Exception e)
       {
@@ -328,24 +330,11 @@ public final class BackupDirectory
     {
       String savedDescriptorFilePath = descriptorFilePath + ".save";
       File savedDescriptorFile = new File(savedDescriptorFilePath);
-      if (savedDescriptorFile.exists())
-      {
-        try
-        {
-          savedDescriptorFile.delete();
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-          LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_DELETE_SAVED_DESCRIPTOR.get(
-              savedDescriptorFilePath, getExceptionMessage(e), descriptorFilePath, descriptorFilePath);
-          throw new IOException(message.toString());
-        }
-      }
 
       try
       {
-        descriptorFile.renameTo(savedDescriptorFile);
+        // renameFile() deletes an existing target and reports a failure to do so.
+        renameFile(descriptorFile, savedDescriptorFile);
       }
       catch (Exception e)
       {

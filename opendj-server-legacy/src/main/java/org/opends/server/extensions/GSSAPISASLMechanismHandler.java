@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -207,9 +208,12 @@ public class GSSAPISASLMechanismHandler extends
       {
         if (loginContext == null)
         {
-          loginContext = new LoginContext(
+          // Only publish the login context once the login has completed, otherwise another thread
+          // could obtain it through the unsynchronized check above before it is usable.
+          final LoginContext newLoginContext = new LoginContext(
                 GSSAPISASLMechanismHandler.class.getName(), this);
-          loginContext.login();
+          newLoginContext.login();
+          loginContext = newLoginContext;
         }
       }
     }

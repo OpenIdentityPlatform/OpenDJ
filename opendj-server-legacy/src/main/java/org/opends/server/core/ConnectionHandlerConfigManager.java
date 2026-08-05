@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -306,7 +307,7 @@ public class ConnectionHandlerConfigManager implements
       @SuppressWarnings("rawtypes")
       Class<? extends ConnectionHandler> theClass =
           pd.loadClass(className, ConnectionHandler.class);
-      ConnectionHandler<T> connectionHandler = theClass.newInstance();
+      ConnectionHandler<T> connectionHandler = theClass.getDeclaredConstructor().newInstance();
 
       connectionHandler.initializeConnectionHandler(serverContext, config);
 
@@ -334,7 +335,7 @@ public class ConnectionHandlerConfigManager implements
         @SuppressWarnings("rawtypes")
         Class<? extends ConnectionHandler> theClass =
             pd.loadClass(className, ConnectionHandler.class);
-        connectionHandler = theClass.newInstance();
+        connectionHandler = theClass.getDeclaredConstructor().newInstance();
       }
 
       return connectionHandler.isConfigurationAcceptable(config, unacceptableReasons);

@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -121,11 +122,21 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
   {
     this.changelogDB = changelogDB;
     log = replicationEnv.getOrCreateCNIndexDB();
-    final ChangeNumberIndexRecord newestRecord = readLastRecord();
-    newestChangeNumber = getChangeNumber(newestRecord);
-    // initialization of the lastGeneratedChangeNumber from the DB content
-    // if DB is empty => last record does not exist => default to 0
-    lastGeneratedChangeNumber = new AtomicLong(newestChangeNumber);
+    try
+    {
+      final ChangeNumberIndexRecord newestRecord = readLastRecord();
+      newestChangeNumber = getChangeNumber(newestRecord);
+      // initialization of the lastGeneratedChangeNumber from the DB content
+      // if DB is empty => last record does not exist => default to 0
+      lastGeneratedChangeNumber = new AtomicLong(newestChangeNumber);
+    }
+    catch (ChangelogException | RuntimeException e)
+    {
+      // This instance never escapes the failed constructor, so nobody could ever call shutdown()
+      // to release the reference taken on the log by getOrCreateCNIndexDB().
+      log.close();
+      throw e;
+    }
 
     // Monitoring registration
     DirectoryServer.deregisterMonitorProvider(dbMonitor);

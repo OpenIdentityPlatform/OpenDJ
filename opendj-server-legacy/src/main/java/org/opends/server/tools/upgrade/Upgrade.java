@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.upgrade;
 
@@ -608,6 +609,17 @@ public final class Upgrade
     );
     register("4.0.0", moveSubordinateBaseDnToGlobalConfiguration());
     register("4.0.0", removeTools("ldif-diff", "make-ldif", "dsjavaproperties"));
+
+    /*
+     * See issue #746. Builds before #661 (fixed in 5.1.2) shipped a duplicate
+     * org.openidentityplatform.opendj.opendj-server-legacy.jar alongside opendj.jar in lib/.
+     * When upgrading by unzipping a 5.1.2+ archive over such an installation, that jar is no
+     * longer part of the archive so it is neither overwritten nor removed. As the launcher builds
+     * the classpath with the lib/* wildcard, the stale jar makes the runtime report the old
+     * binary version and refuse to start with a version-mismatch error. Delete the leftover.
+     */
+    register("5.1.2",
+        deleteFile(new File(libDirectory, "org.openidentityplatform.opendj.opendj-server-legacy.jar")));
 
     /* All upgrades will refresh the server configuration schema and generate a new upgrade folder. */
     registerLast(

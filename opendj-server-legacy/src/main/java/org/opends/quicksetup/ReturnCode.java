@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup;
 
@@ -74,5 +75,10 @@ public class ReturnCode {
    */
   public int getReturnCode() {
     return code;
+  }
+
+  @Override
+  public String toString() {
+    return "ReturnCode(" + code + ")";
   }
 }

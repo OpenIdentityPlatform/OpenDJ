@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.plugins;
 
@@ -239,6 +240,9 @@ public final class PasswordPolicyImportPlugin
 
       case USER_PASSWORD:
         userPWTypes.add(t);
+        break;
+      default:
+        // No action needed for the remaining values.
         break;
       }
     }

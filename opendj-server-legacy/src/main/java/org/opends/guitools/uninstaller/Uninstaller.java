@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.uninstaller;
 
@@ -1578,6 +1579,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             stopProcessing = true;
           }
         }
+        break;
+      default:
+        // No action needed for the remaining values.
+        break;
       }
       exceptionMsgs.add(getMessage(e));
     }

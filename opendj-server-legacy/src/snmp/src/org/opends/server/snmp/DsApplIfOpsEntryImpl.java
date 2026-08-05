@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.snmp;
 
@@ -76,8 +77,8 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
     super(mib);
     this.server = server;
     this.connectionHandlerName = connectionHandlerObjectName;
-    this.ApplIndex = new Integer(applIndex);
-    this.DsApplIfProtocolIndex = new Integer(connectionHandlerIndex);
+    this.ApplIndex = Integer.valueOf(applIndex);
+    this.DsApplIfProtocolIndex = Integer.valueOf(connectionHandlerIndex);
     this.monitor = SNMPMonitor.getMonitor(server);
   }
 
@@ -85,9 +86,16 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    * Getter for the "DsApplIfProtocol" variable.
    * @return an OID representing the connection handler:port
    */
+  @Override
   public String getDsApplIfProtocol() {
-      String portNumber = (String)this.monitor.getAttribute
-              (this.connectionHandlerName, "ds-connectionhandler-listener");
+      Object listener = this.monitor.getAttribute(
+              this.connectionHandlerName, "ds-connectionhandler-listener");
+      if (listener instanceof Object[]) {
+          // A connection handler with several listen addresses reports them as an array.
+          Object[] listeners = (Object[]) listener;
+          listener = listeners.length > 0 ? listeners[0] : null;
+      }
+      String portNumber = listener != null ? String.valueOf(listener) : null;
       if (portNumber==null) {
           return this.DsApplIfProtocol;
       }
@@ -96,8 +104,34 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
           if (index==-1) {
               return this.DsApplIfProtocol;
           }
-          return  new String("1.3.6.1..27.3.") + portNumber.substring(index+1);
+          return  "1.3.6.1..27.3." + portNumber.substring(index+1);
       }
+  }
+
+  /**
+   * Returns the value of the provided connection handler statistic as a
+   * counter, or zero if the statistic is not available or does not hold a
+   * number.
+   *
+   * @param statisticName the name of the connection handler statistic
+   * @return the counter value of the statistic
+   */
+  private Long getCounter32Statistic(String statisticName) {
+    if (stats == null) {
+      stats = this.monitor.getConnectionHandlerStatistics(
+              connectionHandlerName);
+    }
+    if (stats == null) {
+      return 0L;
+    }
+    try {
+      long value = Long.parseLong(
+              String.valueOf(this.monitor.getAttribute(stats, statisticName)));
+      return SNMPMonitor.counter32Value(value);
+    } catch (NumberFormatException e) {
+      // The statistic is not available or is not a number.
+      return 0L;
+    }
   }
 
   /**
@@ -106,17 +140,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    */
   @Override
   public Long getDsApplIfSearchOps() {
-    if (stats == null) {
-      stats = this.monitor.getConnectionHandlerStatistics(
-              connectionHandlerName);
-    }
-    if (stats != null) {
-      long value = Long.parseLong((String) this.monitor.getAttribute(stats,
-              "searchRequests"));
-      return SNMPMonitor.counter32Value(value);
-    } else {
-      return 0L;
-    }
+    return getCounter32Statistic("searchRequests");
   }
 
   /**
@@ -125,17 +149,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    */
   @Override
   public Long getDsApplIfOneLevelSearchOps() {
-    if (stats == null) {
-      stats = this.monitor.getConnectionHandlerStatistics(
-              connectionHandlerName);
-    }
-    if (stats != null) {
-      long value = Long.parseLong((String) this.monitor.getAttribute(stats,
-              "searchOneRequests"));
-      return SNMPMonitor.counter32Value(value);
-    } else {
-      return 0L;
-    }
+    return getCounter32Statistic("searchOneRequests");
   }
 
   /**
@@ -144,17 +158,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    */
   @Override
   public Long getDsApplIfWholeSubtreeSearchOps() {
-    if (stats == null) {
-      stats = this.monitor.getConnectionHandlerStatistics(
-              connectionHandlerName);
-    }
-    if (stats != null) {
-      long value = Long.parseLong((String) this.monitor.getAttribute(stats,
-              "searchSubRequests"));
-      return SNMPMonitor.counter32Value(value);
-    } else {
-      return 0L;
-    }
+    return getCounter32Statistic("searchSubRequests");
   }
 
   /**
@@ -163,17 +167,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    */
   @Override
   public Long getDsApplIfModifyRDNOps() {
-    if (stats == null) {
-      stats = this.monitor.getConnectionHandlerStatistics(
-              connectionHandlerName);
-    }
-    if (stats != null) {
-      long value = Long.parseLong((String) this.monitor.getAttribute(
-              stats, "modifyDNRequests"));
-      return SNMPMonitor.counter32Value(value);
-    } else {
-      return 0L;
-    }
+    return getCounter32Statistic("modifyDNRequests");
   }
 
   /**
@@ -182,17 +176,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    */
   @Override
   public Long getDsApplIfModifyEntryOps() {
-    if (stats == null) {
-      stats = this.monitor.getConnectionHandlerStatistics(
-              connectionHandlerName);
-    }
-    if (stats != null) {
-      long value = Long.parseLong((String) this.monitor.getAttribute(
-              stats, "modifyRequests"));
-      return SNMPMonitor.counter32Value(value);
-    } else {
-      return 0L;
-    }
+    return getCounter32Statistic("modifyRequests");
   }
 
   /**
@@ -201,17 +185,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    */
   @Override
   public Long getDsApplIfRemoveEntryOps() {
-    if (stats == null) {
-      stats = this.monitor.getConnectionHandlerStatistics(
-              connectionHandlerName);
-    }
-    if (stats != null) {
-      long value = Long.parseLong((String) this.monitor.getAttribute(
-              stats, "deleteRequests"));
-      return SNMPMonitor.counter32Value(value);
-    } else {
-      return 0L;
-    }
+    return getCounter32Statistic("deleteRequests");
   }
 
   /**
@@ -220,17 +194,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    */
   @Override
   public Long getDsApplIfAddEntryOps() {
-    if (stats == null) {
-      stats = this.monitor.getConnectionHandlerStatistics(
-              connectionHandlerName);
-    }
-    if (stats != null) {
-      long value = Long.parseLong((String) this.monitor.getAttribute(
-              stats, "addRequests"));
-      return SNMPMonitor.counter32Value(value);
-    } else {
-      return 0L;
-    }
+    return getCounter32Statistic("addRequests");
   }
 
   /**
@@ -239,17 +203,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    */
   @Override
   public Long getDsApplIfCompareOps() {
-    if (stats == null) {
-      stats = this.monitor.getConnectionHandlerStatistics(
-              connectionHandlerName);
-    }
-    if (stats != null) {
-      long value = Long.parseLong((String) this.monitor.getAttribute(
-              stats, "compareRequests"));
-      return SNMPMonitor.counter32Value(value);
-    } else {
-      return 0L;
-    }
+    return getCounter32Statistic("compareRequests");
   }
 
   /**
@@ -272,17 +226,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    */
   @Override
   public Long getDsApplIfOutBytes() {
-    if (stats == null) {
-      stats = this.monitor.getConnectionHandlerStatistics(
-              connectionHandlerName);
-    }
-    if (stats != null) {
-      long value = Long.parseLong((String) this.monitor.getAttribute(
-              stats, "bytesWritten"));
-      return SNMPMonitor.counter32Value(value);
-    } else {
-      return 0L;
-    }
+    return getCounter32Statistic("bytesWritten");
   }
 
   /**
@@ -291,17 +235,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    */
   @Override
   public Long getDsApplIfInBytes() {
-    if (stats == null) {
-      stats = this.monitor.getConnectionHandlerStatistics(
-              connectionHandlerName);
-    }
-    if (stats != null) {
-      long value = Long.parseLong((String) this.monitor.getAttribute(
-              stats, "bytesRead"));
-      return SNMPMonitor.counter32Value(value);
-    } else {
-      return 0L;
-    }
+    return getCounter32Statistic("bytesRead");
   }
 
   /**
@@ -326,6 +260,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    * Returns the ObjectName of the SNMP entry MBean.
    * @return ObjectName of the entry
    */
+  @Override
   public ObjectName getObjectName() {
     if (this.entryName == null) {
       try {

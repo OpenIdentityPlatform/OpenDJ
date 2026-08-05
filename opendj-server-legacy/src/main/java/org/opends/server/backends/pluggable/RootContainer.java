@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2026 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -230,7 +230,8 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
       }
     }
 
-    nextEntryID = new AtomicLong(highestID.longValue() + 1);
+    // highestID is null when there was no base DN to open, in which case numbering starts at 1.
+    nextEntryID = new AtomicLong(highestID != null ? highestID.longValue() + 1 : 1);
   }
 
   /**

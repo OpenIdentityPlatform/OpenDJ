@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools;
 
@@ -371,7 +372,7 @@ public class StopDS
 
     if (checkStoppability.isPresent())
     {
-      System.exit(checkStoppability(argParser, out, err));
+      System.exit(checkStoppability(argParser, out));
     }
 
     // If both a bind password and bind password file were provided, then return
@@ -640,12 +641,10 @@ public class StopDS
    * on the different parameters passed.
    * @param argParser the ArgumentParser with the arguments already parsed.
    * @param out the print stream to use for standard output.
-   * @param err the print stream to use for standard error.
    * @return the error code that we return when we are checking the stoppability
    * of the server.
    */
-  private static int checkStoppability(ArgumentParser argParser,
-                                       PrintStream out, PrintStream err)
+  private static int checkStoppability(ArgumentParser argParser, PrintStream out)
   {
     int returnValue;
     boolean isServerRunning;

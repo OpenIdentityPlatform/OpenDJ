@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -112,8 +113,18 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     if (isWriteEnabled)
     {
       ensureLogFileIsValid(parser);
-      writer = BlockLogWriter.newWriter(new LogWriter(logfile), parser);
-      initializeNewestRecord();
+      final LogWriter logWriter = new LogWriter(logfile);
+      try
+      {
+        writer = BlockLogWriter.newWriter(logWriter, parser);
+        initializeNewestRecord();
+      }
+      catch (ChangelogException | RuntimeException e)
+      {
+        // The writer is not reachable from a half-constructed log file, so close it here.
+        StaticUtils.close(logWriter);
+        throw e;
+      }
     }
     else
     {
@@ -188,9 +199,9 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   {
     try
     {
-      if (!logfile.exists())
+      if (!logfile.createNewFile())
       {
-        logfile.createNewFile();
+        logger.trace("Log file %s already exists", logfile.getPath());
       }
     }
     catch (IOException e)
@@ -385,8 +396,6 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    * Returns the newest (last) record from this log.
    *
    * @return the newest record, which may be {@code null}
-   * @throws ChangelogException
-   *           If an error occurs while retrieving the record.
    */
   Record<K, V> getNewestRecord()
   {

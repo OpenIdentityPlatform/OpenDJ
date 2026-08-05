@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -156,5 +157,61 @@ public final class TestSubCommandArgumentParserTestCase extends CliTestCase {
         final StringBuilder buffer = new StringBuilder();
         SubCommandArgumentParser.indentAndWrap(indent, buffer, wrapColumn, LocalizableMessage.raw(text));
         Assertions.assertThat(buffer.toString()).isEqualTo(expected);
+    }
+
+    private static SubCommandArgumentParser newParser(final boolean longArgumentsCaseSensitive) {
+        return new SubCommandArgumentParser(TestSubCommandArgumentParserTestCase.class.getName(),
+                LocalizableMessage.raw("test description"), longArgumentsCaseSensitive);
+    }
+
+    private static Argument booleanArg(final String longID) throws ArgumentException {
+        return BooleanArgument.builder(longID).description(LocalizableMessage.raw(longID)).buildArgument();
+    }
+
+    /** A registered global argument must be discoverable by its long identifier. */
+    @Test
+    public void testHasGlobalArgument() throws Exception {
+        final SubCommandArgumentParser caseInsensitive = newParser(false);
+        caseInsensitive.addGlobalArgument(booleanArg("globalArg"));
+        Assertions.assertThat(caseInsensitive.hasGlobalArgument("globalArg")).isTrue();
+        Assertions.assertThat(caseInsensitive.hasGlobalArgument("GLOBALARG")).isTrue();
+        Assertions.assertThat(caseInsensitive.hasGlobalArgument("otherArg")).isFalse();
+
+        final SubCommandArgumentParser caseSensitive = newParser(true);
+        caseSensitive.addGlobalArgument(booleanArg("globalArg"));
+        Assertions.assertThat(caseSensitive.hasGlobalArgument("globalArg")).isTrue();
+        Assertions.assertThat(caseSensitive.hasGlobalArgument("GLOBALARG")).isFalse();
+    }
+
+    /** Two global arguments sharing a long identifier must be rejected, whatever the case sensitivity. */
+    @Test
+    public void testDuplicateGlobalArgumentIsRejected() throws Exception {
+        for (final boolean caseSensitive : new boolean[] { false, true }) {
+            final SubCommandArgumentParser aParser = newParser(caseSensitive);
+            aParser.addGlobalArgument(booleanArg("globalArg"));
+            try {
+                aParser.addGlobalArgument(booleanArg("globalArg"));
+                Assert.fail("A duplicate global argument should have been rejected "
+                        + "(longArgumentsCaseSensitive=" + caseSensitive + ")");
+            } catch (final ArgumentException expected) {
+                // Expected.
+            }
+        }
+    }
+
+    /** A sub-command argument must not shadow a global argument. */
+    @Test
+    public void testSubCommandArgumentConflictingWithGlobalIsRejected() throws Exception {
+        final SubCommandArgumentParser aParser = newParser(false);
+        aParser.addGlobalArgument(booleanArg("globalArg"));
+
+        final SubCommand subCommand =
+                new SubCommand(aParser, "a-sub-command", LocalizableMessage.raw("a-sub-command"));
+        try {
+            subCommand.addArgument(booleanArg("globalArg"));
+            Assert.fail("A sub-command argument conflicting with a global argument should have been rejected");
+        } catch (final ArgumentException expected) {
+            // Expected.
+        }
     }
 }

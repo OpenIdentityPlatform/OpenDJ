@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -2134,6 +2135,9 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
     case LAUNCH_PERIODICALLY:
       args.add("--recurringTask");
       args.add(schedule.getCronValue());
+      break;
+    default:
+      // No action needed for the remaining values.
       break;
     }
     return args;

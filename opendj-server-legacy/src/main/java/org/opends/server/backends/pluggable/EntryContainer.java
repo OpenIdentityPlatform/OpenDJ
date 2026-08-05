@@ -1120,7 +1120,7 @@ public class EntryContainer
   {
     Attribute attr = Attributes.create(ATTR_DEBUG_SEARCH_INDEX, debugBuffer.toString());
     Entry entry = new Entry(DN.valueOf("cn=debugsearch"), null, null, null);
-    entry.addAttribute(attr, new ArrayList<ByteString>());
+    entry.addAttribute(attr);
     return entry;
   }
 

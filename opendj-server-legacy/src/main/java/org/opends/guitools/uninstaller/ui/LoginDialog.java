@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.uninstaller.ui;
 
@@ -458,13 +459,13 @@ public class LoginDialog extends JDialog
 
             String uid = tfUid.getText();
             ArrayList<LocalizableMessage> possibleCauses = new ArrayList<>();
-            if ("".equals(uid.trim()))
+            if (uid.trim().isEmpty())
             {
               uidInvalid = true;
               possibleCauses.add(INFO_EMPTY_ADMINISTRATOR_UID.get());
             }
 
-            if ("".equals(tfPwd.getText()))
+            if (tfPwd.getText().isEmpty())
             {
               pwdInvalid = true;
               possibleCauses.add(INFO_EMPTY_PWD.get());

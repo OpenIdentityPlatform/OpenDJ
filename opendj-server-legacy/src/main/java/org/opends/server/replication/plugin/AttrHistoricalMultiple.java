@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -329,6 +330,9 @@ public class AttrHistoricalMultiple extends AttrHistorical
 
     case INCREMENT:
       /* FIXME : we should update CSN */
+      break;
+    default:
+      // No action needed for the remaining values.
       break;
     }
   }

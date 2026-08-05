@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -857,10 +858,7 @@ final class PropertyValueEditor {
                     @Override
                     public MenuResult<Boolean> invoke(ConsoleApplication app) throws ClientException {
                         app.println();
-                        SortedSet<T> previousValues = new TreeSet<>(currentValues);
                         readPropertyValues(app, mo.getManagedObjectDefinition(), d, currentValues);
-                        SortedSet<T> addedValues = new TreeSet<>(currentValues);
-                        addedValues.removeAll(previousValues);
                         isLastChoiceReset = false;
                         return MenuResult.success(false);
                     }
