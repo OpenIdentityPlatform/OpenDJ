@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -170,7 +171,6 @@ public class ManageTasksPanel extends StatusGenericPanel
 
   /**
    * Creates the components and lays them in the panel.
-   * @param gbc the grid bag constraints to be used.
    */
   private void createLayout()
   {

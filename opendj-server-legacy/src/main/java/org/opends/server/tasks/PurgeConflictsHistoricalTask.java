@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tasks;
 
@@ -123,18 +124,20 @@ public class PurgeConflictsHistoricalTask extends Task
   @Override
   protected TaskState runTask()
   {
-    Boolean purgeCompletedInTime = false;
+    boolean purgeCompletedInTime = false;
     logger.trace("PurgeConflictsHistoricalTask is starting on domain: %s max duration (sec): %d",
         domain.getBaseDN(), purgeTaskMaxDurationInSec);
     try
     {
-      replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_COMPLETED_IN_TIME, purgeCompletedInTime.toString());
+      replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_COMPLETED_IN_TIME,
+          String.valueOf(purgeCompletedInTime));
 
       // launch the task
-      domain.purgeConflictsHistorical(this, TimeThread.getTime() + purgeTaskMaxDurationInSec*1000);
+      domain.purgeConflictsHistorical(this, TimeThread.getTime() + purgeTaskMaxDurationInSec * 1000L);
 
       purgeCompletedInTime = true;
-      replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_COMPLETED_IN_TIME, purgeCompletedInTime.toString());
+      replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_COMPLETED_IN_TIME,
+          String.valueOf(purgeCompletedInTime));
 
       initState =  TaskState.COMPLETED_SUCCESSFULLY;
     }

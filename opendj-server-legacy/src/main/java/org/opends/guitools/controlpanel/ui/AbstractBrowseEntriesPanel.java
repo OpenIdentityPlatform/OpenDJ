@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -1561,7 +1562,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
    * left. The class simply handles this particular case to not to have that
    * inset for the 'All Base DNs' item.
    */
-  private class CustomComboBoxCellRenderer extends CustomListCellRenderer
+  private static class CustomComboBoxCellRenderer extends CustomListCellRenderer
   {
     private final LocalizableMessage ALL_BASE_DNS_STRING = INFO_CTRL_PANEL_ALL_BASE_DNS.get();
 

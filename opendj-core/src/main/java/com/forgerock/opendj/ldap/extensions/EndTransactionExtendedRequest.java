@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2025 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.ldap.extensions;
 
@@ -28,8 +29,6 @@ import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
 import org.forgerock.util.Reject;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
@@ -153,15 +152,19 @@ public class EndTransactionExtendedRequest extends AbstractExtendedRequest<EndTr
                             reader.readStartSequence();
                             while (reader.hasNextElement() && reader.peekType() == ASN1.UNIVERSAL_SEQUENCE_TYPE) {
                                 reader.readStartSequence();
-                                final long messageId = reader.readInteger();
-                                final List<Control> controls = new ArrayList<>();
+                                /*
+                                 * TODO: report these updatesControls through
+                                 * EndTransactionExtendedResult.success(messageID, responses). Rebuilding a Control
+                                 * from the wire is not possible yet: getValue() writes each control as its value
+                                 * alone, without its OID and criticality, so both sides have to be completed
+                                 * together. Until then the entries are read to consume them and dropped.
+                                 */
+                                reader.readInteger();
                                 reader.readStartSequence();
                                 while (reader.hasNextElement() && reader.peekType() == ASN1.UNIVERSAL_OCTET_STRING_TYPE) {
-                                    final ByteString controlEncoded = reader.readOctetString();
-                                    //TODO decode Control
+                                    reader.readOctetString();
                                 }
                                 reader.readEndSequence();
-                                //newResult.success(messageId, controls.toArray(new Control[]{}));
                                 reader.readEndSequence();
                             }
                             reader.readEndSequence();

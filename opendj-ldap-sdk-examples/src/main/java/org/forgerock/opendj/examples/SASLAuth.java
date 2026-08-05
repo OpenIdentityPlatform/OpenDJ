@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 /**
@@ -22,8 +23,9 @@
  */
 package org.forgerock.opendj.examples;
 
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_USE_STARTTLS;
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_USE_STARTTLS;
 
 
 import java.security.GeneralSecurityException;
@@ -141,7 +143,7 @@ public final class SASLAuth {
         }
 
         host = args[0];
-        port = Integer.parseInt(args[1]);
+        port = parsePort(args[1]);
 
         if (args.length == 5) {
             authzid = args[2];

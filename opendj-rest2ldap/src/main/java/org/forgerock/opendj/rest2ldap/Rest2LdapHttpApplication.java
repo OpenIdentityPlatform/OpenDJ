@@ -13,6 +13,7 @@
  *
  * Copyright 2015-2016 ForgeRock AS.
  * Portions Copyright 2017 Rosie Applications, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -176,10 +177,10 @@ public class Rest2LdapHttpApplication implements HttpApplication {
     public Rest2LdapHttpApplication() {
         try {
             // The null check is required for unit test mocks because the resource does not exist.
-            final URL configUrl = getClass().getResource("/config.json");
+            final URL configUrl = Rest2LdapHttpApplication.class.getResource("/config.json");
             this.configDirectory = configUrl != null ? new File(configUrl.toURI()).getParentFile() : null;
         } catch (final URISyntaxException e) {
-            throw new IllegalStateException(""+getClass().getResource("/config.json"),e);
+            throw new IllegalStateException("" + Rest2LdapHttpApplication.class.getResource("/config.json"), e);
         }
         this.schema = Schema.getDefaultSchema();
     }

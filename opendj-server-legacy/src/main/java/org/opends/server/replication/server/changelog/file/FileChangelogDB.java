@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -20,6 +21,7 @@ import static org.opends.server.replication.server.changelog.api.DBCursor.Positi
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -74,8 +76,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
    * <ol>
    * <li>first get the domainMap</li>
    * <li>synchronized on the domainMap</li>
-   * <li>remove the domainMap</li>
-   * <li>then check it's not null</li>
+   * <li>remove the domainMap, but only if it is still the mapped value</li>
    * <li>then close all inside</li>
    * </ol>
    * When creating a replicaDB, synchronize on the domainMap to avoid
@@ -144,10 +145,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     final File dbDirectory = getFileForPath(dbDirName);
     try
     {
-      if (!dbDirectory.exists())
-      {
-        dbDirectory.mkdir();
-      }
+      Files.createDirectories(dbDirectory.toPath());
       return dbDirectory;
     }
     catch (Exception e)
@@ -278,7 +276,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   }
 
   @Override
-  public void initializeDB()
+  public void initializeDB() throws ChangelogException
   {
     try
     {
@@ -293,8 +291,12 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
     catch (ChangelogException e)
     {
+      // A changelog which could not be read leaves this DB unusable, and every shape of that
+      // failure surfaces much later and somewhere else (issue #802). Not logged here: the
+      // caller reports the failure, logging it once.
       logger.traceException(e);
-      logger.error(ERR_COULD_NOT_READ_DB, this.dbDirectory.getAbsolutePath(), e.getLocalizedMessage());
+      throw new ChangelogException(
+          ERR_COULD_NOT_READ_DB.get(this.dbDirectory.getAbsolutePath(), e.getLocalizedMessage()), e);
     }
   }
 
@@ -505,7 +507,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     ChangelogException firstException = null;
 
     // 1- clear the replica DBs
-    Map<Integer, FileReplicaDB> domainMap = domainToReplicaDBs.get(baseDN);
+    final Map<Integer, FileReplicaDB> domainMap = domainToReplicaDBs.get(baseDN);
     if (domainMap != null)
     {
       final ChangeNumberIndexer indexer = this.cnIndexer.get();
@@ -515,7 +517,15 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       }
       synchronized (domainMap)
       {
-        domainMap = domainToReplicaDBs.remove(baseDN);
+        // shutdownDB(), clearDB() or a concurrent removeDomain() may have unmapped this
+        // domainMap before this monitor was acquired: only remove the instance the monitor
+        // was taken on, and never a domainMap concurrently recreated for the same baseDN.
+        // Replica DBs another remover already visited are cleared and shut down again below,
+        // which is harmless: both operations are no-ops the second time.
+        if (domainToReplicaDBs.get(baseDN) == domainMap)
+        {
+          domainToReplicaDBs.remove(baseDN);
+        }
         for (FileReplicaDB replicaDB : domainMap.values())
         {
           try
@@ -592,7 +602,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       final ChangelogDBPurger currentPurger = cnPurger.get();
       synchronized (currentPurger)
       {
-        currentPurger.notify();
+        currentPurger.notifyAll();
       }
     }
   }
@@ -983,7 +993,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 
     private void tracePurgeDetails(final CSN purgeCSN, final CSN oldestNotPurgedCSN, final long sleepTime)
     {
-      if (purgeCSN.equals(oldestNotPurgedCSN.toStringUI()))
+      if (purgeCSN.equals(oldestNotPurgedCSN))
       {
         logger.trace("Purged up to %s. "
             + "now sleeping until next purge during %s",
@@ -1016,7 +1026,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       super.initiateShutdown();
       synchronized (this)
       {
-        notify(); // wake up the purger thread for faster shutdown
+        notifyAll(); // wake up the purger thread for faster shutdown
       }
     }
   }

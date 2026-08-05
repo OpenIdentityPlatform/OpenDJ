@@ -14,6 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2009 Parametric Technology Corporation (PTC)
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.crypto;
 
@@ -312,7 +313,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
 
     // Requested encryption cipher validation.
     String requestedCipherTransformation = cfg.getCipherTransformation();
-    Integer requestedCipherTransformationKeyLengthBits = cfg.getCipherKeyLength();
+    int requestedCipherTransformationKeyLengthBits = cfg.getCipherKeyLength();
     if (! requestedCipherTransformation.equals(
             this.preferredCipherTransformation) ||
         requestedCipherTransformationKeyLengthBits !=
@@ -341,7 +342,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
 
     // Requested MAC algorithm validation.
     String requestedMACAlgorithm = cfg.getMacAlgorithm();
-    Integer requestedMACAlgorithmKeyLengthBits = cfg.getMacKeyLength();
+    int requestedMACAlgorithmKeyLengthBits = cfg.getMacKeyLength();
     if (!requestedMACAlgorithm.equals(this.preferredMACAlgorithm) ||
          requestedMACAlgorithmKeyLengthBits !=
               this.preferredMACAlgorithmKeyLengthBits)
@@ -597,14 +598,14 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
 
         // Add the key ID attribute.
         final Attribute keyIDAttr = Attributes.create(attrKeyID, distinguishedValue);
-        entry.addAttribute(keyIDAttr, new ArrayList<ByteString>(0));
+        entry.addAttribute(keyIDAttr);
 
         // Add the public key certificate attribute.
         AttributeBuilder builder = new AttributeBuilder(attrPublicKeyCertificate);
         builder.setOption("binary");
         builder.add(ByteString.wrap(instanceKeyCertificate));
         final Attribute certificateAttr = builder.toAttribute();
-        entry.addAttribute(certificateAttr, new ArrayList<ByteString>(0));
+        entry.addAttribute(certificateAttr);
 
         AddOperation addOperation = icc.processAdd(entry);
         if (ResultCode.SUCCESS != addOperation.getResultCode()) {

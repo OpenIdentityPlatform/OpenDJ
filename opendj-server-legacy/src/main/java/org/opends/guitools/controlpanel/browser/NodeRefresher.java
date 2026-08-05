@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.browser;
 
@@ -460,7 +461,7 @@ public class NodeRefresher extends AbstractNodeTask {
         }
         conn = connectionPool.getConnection(url);
         remoteDn = DN.valueOf(url.getRawBaseDN());
-        if (remoteDn == null || "".equals(remoteDn))
+        if (remoteDn.isRootDN())
         {
           /* The referral has not a target DN specified: we
              have to use the DN of the entry that contains the

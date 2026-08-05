@@ -105,6 +105,27 @@
   </context-param>
 -->
 
+  <context-param>
+    <description>Maximum number of batchRequest elements accepted per SOAP
+    body. Every batchRequest element is executed over its own LDAP connection
+    and bind, and password verification is deliberately expensive, so a single
+    small POST holding many batchRequest elements would amplify into many
+    binds. DSMLv2 describes a single batchRequest per SOAP body; raise this cap
+    only if your clients really send more. Excess elements are rejected with a
+    notAttempted errorResponse.</description>
+    <param-name>ldap.dsml.batchrequests.max</param-name>
+    <param-value>1</param-value>
+  </context-param>
+
+  <context-param>
+    <description>Maximum size in bytes of an accepted request body. The SOAP
+    message is parsed into memory, so an unbounded body is an unbounded
+    allocation. Oversized requests are rejected with a notAttempted
+    errorResponse.</description>
+    <param-name>ldap.dsml.request.maxsize</param-name>
+    <param-value>10485760</param-value>
+  </context-param>
+
 <!-- Add an extra <context-param> like the one below for each extended operation
      that is known to return a string in the LDAP response. -->
   <context-param>

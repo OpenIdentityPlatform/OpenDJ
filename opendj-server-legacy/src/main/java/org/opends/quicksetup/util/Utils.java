@@ -166,40 +166,42 @@ public class Utils
       final Process process = pb.start();
       logger.info(LocalizableMessage.raw("launching " + args + " with env: " + env));
       InputStream is = process.getInputStream();
-      BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-      String line;
       boolean errorDetected = false;
-      while (null != (line = reader.readLine()))
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(is)))
       {
-        logger.info(LocalizableMessage.raw("The output: " + line));
-        if (line.contains("ERROR:  The detected Java version"))
+        String line;
+        while (null != (line = reader.readLine()))
         {
-          if (isWindows())
+          logger.info(LocalizableMessage.raw("The output: " + line));
+          if (line.contains("ERROR:  The detected Java version"))
           {
-            // If we are running windows, the process get blocked waiting for
-            // user input.  Just wait for a certain time to print the output
-            // in the logger and then kill the process.
-            Thread t = new Thread(new Runnable()
+            if (isWindows())
             {
-              @Override
-              public void run()
+              // If we are running windows, the process get blocked waiting for
+              // user input.  Just wait for a certain time to print the output
+              // in the logger and then kill the process.
+              Thread t = new Thread(new Runnable()
               {
-                try
+                @Override
+                public void run()
                 {
-                  Thread.sleep(3000);
-                  // To see if the process is over, call the exitValue method.
-                  // If it is not over, a IllegalThreadStateException.
-                  process.exitValue();
+                  try
+                  {
+                    Thread.sleep(3000);
+                    // To see if the process is over, call the exitValue method.
+                    // If it is not over, a IllegalThreadStateException.
+                    process.exitValue();
+                  }
+                  catch (Throwable t)
+                  {
+                    process.destroy();
+                  }
                 }
-                catch (Throwable t)
-                {
-                  process.destroy();
-                }
-              }
-            });
-            t.start();
+              });
+              t.start();
+            }
+            errorDetected = true;
           }
-          errorDetected = true;
         }
       }
       process.waitFor();
@@ -1083,7 +1085,7 @@ public class Utils
     try
     {
       Class<?> c = Class.forName(Utils.CUSTOMIZATION_CLASS_NAME);
-      Object obj = c.newInstance();
+      Object obj = c.getDeclaredConstructor().newInstance();
       return valueClass.cast(c.getField(fieldName).get(obj));
     }
     catch (Exception ignored)
@@ -1835,6 +1837,35 @@ public class Utils
 
     cmdLines.add(cmdReplicationServer);
     return cmdLines;
+  }
+
+  /**
+   * Returns the number held by the provided field value, or the provided default value if it does
+   * not hold a number.
+   * <p>
+   * The panels validate their fields before using their values, so the default value is only
+   * returned when a field has not been validated beforehand.
+   *
+   * @param value
+   *          the value to be parsed, which may be {@code null}
+   * @param defaultValue
+   *          the value to return when {@code value} does not hold a number
+   * @return the number held by the provided value
+   */
+  public static int parseIntOrDefault(String value, int defaultValue)
+  {
+    if (value == null)
+    {
+      return defaultValue;
+    }
+    try
+    {
+      return Integer.parseInt(value.trim());
+    }
+    catch (NumberFormatException e)
+    {
+      return defaultValue;
+    }
   }
 }
 

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.admin;
 
@@ -199,7 +200,7 @@ public final class AdministrationDataSync
   /**
    * Gets an attribute value from an entry.
    *
-   * @param DN
+   * @param baseDN
    *          The DN of the entry.
    * @param attrName
    *          The attribute name.

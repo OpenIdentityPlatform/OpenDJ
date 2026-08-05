@@ -12,9 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
+
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 
 import java.io.IOException;
 
@@ -59,7 +62,7 @@ public final class ShortLife {
             System.exit(1);
         }
         String host = args[0];
-        int port = Integer.parseInt(args[1]);
+        int port = parsePort(args[1]);
 
         // User credentials of a "Directory Administrators" group member.
         // Kirsten Vaughan is authorized to create, update, and delete
