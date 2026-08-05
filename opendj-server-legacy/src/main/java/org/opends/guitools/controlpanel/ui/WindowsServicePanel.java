@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -249,7 +250,7 @@ public class WindowsServicePanel extends StatusGenericPanel
   }
 
   /** The task in charge of updating the windows service configuration. */
-  private class WindowsServiceTask extends Task
+  private static class WindowsServiceTask extends Task
   {
     private Set<String> backendSet;
     private boolean enableService;

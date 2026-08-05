@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -326,7 +327,7 @@ public class TrustManagerProviderConfigManager
            definition.getJavaClassPropertyDefinition();
       Class<? extends TrustManagerProvider> providerClass =
            propertyDefinition.loadClass(className, TrustManagerProvider.class);
-      TrustManagerProvider<T> provider = providerClass.newInstance();
+      TrustManagerProvider<T> provider = providerClass.getDeclaredConstructor().newInstance();
 
       if (initialize)
       {

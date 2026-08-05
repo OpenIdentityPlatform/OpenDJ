@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -345,6 +346,14 @@ public class ByteSequenceReaderTest extends SdkTestCase {
 
         // Any more skips should result in IOB exception.
         reader.skip(1);
+    }
+
+    @Test(dataProvider = "readerProvider", expectedExceptions = IndexOutOfBoundsException.class)
+    public void testSkipOverflow(ByteSequenceReader reader, byte[] ba) {
+        reader.rewind();
+        reader.skip(ba.length);
+        // pos + Integer.MAX_VALUE overflows int; must throw, not wrap around.
+        reader.skip(Integer.MAX_VALUE);
     }
 
     @Test(dataProvider = "readerProvider")

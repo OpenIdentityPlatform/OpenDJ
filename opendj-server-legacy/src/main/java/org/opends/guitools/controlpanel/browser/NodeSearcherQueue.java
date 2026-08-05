@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.browser;
 
@@ -37,8 +38,8 @@ class NodeSearcherQueue implements Runnable {
   private final String name;
   private final List<AbstractNodeTask> waitingQueue = new ArrayList<>();
   private final Map<BasicNode, AbstractNodeTask> workingList = new HashMap<>();
-  private final Map<BasicNode, BasicNode> cancelList = new HashMap<>();
   private final ThreadGroup threadGroup;
+  private final List<Thread> threads = new ArrayList<>();
 
 
   /**
@@ -53,8 +54,23 @@ class NodeSearcherQueue implements Runnable {
     for (int i = 0; i < threadCount; i++) {
       Thread t = new Thread(threadGroup, this, name + "[" + i + "]");
       t.setPriority(Thread.MIN_PRIORITY);
+      threads.add(t);
+    }
+  }
+
+  /**
+   * Starts the threads consuming this queue.
+   * <p>
+   * The threads are not started by the constructor so that {@code this} is not published to them
+   * before construction has completed.
+   *
+   * @return this queue
+   */
+  public NodeSearcherQueue start() {
+    for (Thread t : threads) {
       t.start();
     }
+    return this;
   }
 
   /**
@@ -83,7 +99,7 @@ class NodeSearcherQueue implements Runnable {
       throw new IllegalArgumentException("null argument");
     }
     waitingQueue.add(nodeTask);
-    notify();
+    notifyAll();
 //    System.out.println("Queued " + nodeTask + " in " + _name);
   }
 
@@ -111,10 +127,9 @@ class NodeSearcherQueue implements Runnable {
     // Mark the on-going task as cancelled
     AbstractNodeTask task = workingList.get(node);
     if (task != null) {
-      cancelList.put(node, node);
       task.cancel();
     }
-    notify();
+    notifyAll();
   }
 
   /**
@@ -134,10 +149,7 @@ class NodeSearcherQueue implements Runnable {
     waitingQueue.clear();
     for (Map.Entry<BasicNode, AbstractNodeTask> entry : workingList.entrySet())
     {
-      BasicNode node = entry.getKey();
-      AbstractNodeTask task = entry.getValue();
-      cancelList.put(node, node);
-      task.cancel();
+      entry.getValue().cancel();
     }
   }
 
@@ -201,8 +213,7 @@ class NodeSearcherQueue implements Runnable {
       throw new IllegalArgumentException("null argument");
     }
     workingList.remove(task.getNode());
-    cancelList.remove(task.getNode());
-    notify();
+    notifyAll();
 //    System.out.println("Flushed " + task + " from " + _name);
   }
 

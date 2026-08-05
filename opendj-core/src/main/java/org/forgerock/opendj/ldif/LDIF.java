@@ -822,7 +822,7 @@ public final class LDIF {
     public static String toLDIF(final ChangeRecord change) {
         try (final StringWriter writer = new StringWriter();
              final LDIFChangeRecordWriter ldifWriter = new LDIFChangeRecordWriter(writer)) {
-            ldifWriter.writeChangeRecord(change).toString();
+            ldifWriter.writeChangeRecord(change);
             ldifWriter.flush();
             return writer.toString();
         } catch (IOException e) {

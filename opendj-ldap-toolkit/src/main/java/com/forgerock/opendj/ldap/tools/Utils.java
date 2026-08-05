@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  * Portions copyright 2014-2016 ForgeRock AS.
  * Portions copyright 2022-2024 3A Systems,LLC.
  */
@@ -182,6 +183,9 @@ final class Utils {
         case CHANGE_AFTER_RESET:
             app.println(INFO_BIND_MUST_CHANGE_PASSWORD.get());
             break;
+        default:
+          // No action needed for the remaining values.
+          break;
         }
     }
 

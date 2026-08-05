@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -59,43 +60,43 @@ public final class TextHTTPAccessLogPublisher extends
     // @formatter:off
     // Extended log format standard fields
     ELF_C_IP("c-ip")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getClientAddress (); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getClientAddress (); } },
     ELF_C_PORT("c-port")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getClientPort(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getClientPort(); } },
     ELF_CS_HOST("cs-host")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getClientHost(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getClientHost(); } },
     ELF_CS_METHOD("cs-method")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getMethod(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getMethod(); } },
     ELF_CS_URI("cs-uri")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getUri().toString(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getUri().toString(); } },
     ELF_CS_URI_STEM("cs-uri-stem")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getUri().getRawPath(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getUri().getRawPath(); } },
     ELF_CS_URI_QUERY("cs-uri-query")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getUri().getRawQuery(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getUri().getRawQuery(); } },
     ELF_CS_USER_AGENT("cs(User-Agent)")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getUserAgent(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getUserAgent(); } },
     ELF_CS_USERNAME("cs-username")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getAuthUser(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getAuthUser(); } },
     ELF_CS_VERSION("cs-version")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getProtocol(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getProtocol(); } },
     ELF_S_COMPUTERNAME("s-computername")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getServerHost(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getServerHost(); } },
     ELF_S_IP("s-ip")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getServerAddress(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getServerAddress(); } },
     ELF_S_PORT("s-port")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getServerPort(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getServerPort(); } },
     ELF_SC_STATUS("sc-status")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getStatusCode(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getStatusCode(); } },
 
     // Application specific fields (eXtensions)
     X_CONNECTION_ID("x-connection-id")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getConnectionID(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getConnectionID(); } },
     X_DATETIME("x-datetime")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return getUserDefinedTime(tsf); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return getUserDefinedTime(tsf); } },
     X_ETIME("x-etime")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getTotalProcessingTime(); } },
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getTotalProcessingTime(); } },
     X_TRANSACTION_ID("x-transaction-id")
-            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getTransactionId(); } };
+            { @Override Object valueOf(HTTPRequestInfo i, String tsf) { return i.getTransactionId(); } };
     // @formatter:on
 
     private final String name;
@@ -275,7 +276,7 @@ public final class TextHTTPAccessLogPublisher extends
   private AsynchronousTextWriter newAsyncWriter(MultifileTextWriter mfWriter, FileBasedHTTPAccessLogPublisherCfg config)
   {
     String name = "Asynchronous Text Writer for " + config.dn();
-    return new AsynchronousTextWriter(name, config.getQueueSize(), config.isAutoFlush(), mfWriter);
+    return new AsynchronousTextWriter(name, config.getQueueSize(), config.isAutoFlush(), mfWriter).start();
   }
 
   private LocalizableMessage setLogFormatFields(String logFormat)
@@ -335,6 +336,9 @@ public final class TextHTTPAccessLogPublisher extends
       {
         theWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
       }
+
+      // Rotation only starts once the policies above are registered.
+      theWriter.start();
 
       if (cfg.isAsynchronous())
       {

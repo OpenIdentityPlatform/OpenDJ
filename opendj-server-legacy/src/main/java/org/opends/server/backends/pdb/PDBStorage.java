@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pdb;
 
@@ -758,7 +759,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   }
 
   /** No operation storage faking database files are present and empty. */
-  private final class ReadOnlyEmptyStorageImpl implements StorageImpl
+  private static final class ReadOnlyEmptyStorageImpl implements StorageImpl
   {
     @Override
     public void close() throws IOException

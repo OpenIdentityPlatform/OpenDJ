@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui.components;
 
@@ -278,7 +279,7 @@ public class CustomTree extends JTree
   }
 
   @Override
-  public void addMouseListener(MouseListener mouseListener)
+  public synchronized void addMouseListener(MouseListener mouseListener)
   {
     super.addMouseListener(mouseListener);
     if (mouseListeners == null)
@@ -289,7 +290,7 @@ public class CustomTree extends JTree
   }
 
   @Override
-  public void removeMouseListener(MouseListener mouseListener)
+  public synchronized void removeMouseListener(MouseListener mouseListener)
   {
     super.removeMouseListener(mouseListener);
     mouseListeners.remove(mouseListener);

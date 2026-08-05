@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.plugins.profiler;
 import static org.opends.messages.PluginMessages.*;
@@ -351,6 +352,9 @@ public final class ProfilerPlugin
             profilerThread = null;
           }
         }
+        break;
+      default:
+        // No action needed for the remaining values.
         break;
     }
 

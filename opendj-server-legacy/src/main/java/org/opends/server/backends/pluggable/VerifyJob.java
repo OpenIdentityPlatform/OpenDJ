@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -118,7 +119,6 @@ class VerifyJob
   /**
    * Verify the backend.
    *
-   * @param rootContainer The root container that holds the entries to verify.
    * @return The error count.
    * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If an error occurs while verifying the backend.
@@ -845,8 +845,8 @@ class VerifyJob
   /**
    * Construct a printable string from a raw key value.
    *
-   * @param indexName
-   *          The name of the index tree containing the key value.
+   * @param index
+   *          The index tree containing the key value.
    * @param key
    *          The bytes of the key.
    * @return A string that may be logged or printed.

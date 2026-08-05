@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -207,8 +208,7 @@ public class PatternRDN
    * Determine whether a value pattern matches a given attribute-value pair.
    * @param pattern The value pattern where each element of the list is a
    *                substring of the pattern appearing between wildcards.
-   * @param type The attribute type of the attribute-value pair.
-   * @param value The value of the attribute-value pair.
+   * @param ava The attribute-value pair.
    * @return true if the value pattern matches the attribute-value pair.
    */
   private boolean matchValuePattern(List<ByteString> pattern, AVA ava)

@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -20,6 +21,7 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -452,7 +454,7 @@ public final class FractionalLDIFImportPlugin
       // Now flush attribute values into entry
       if (somethingToFlush)
       {
-        List<ByteString> duplicateValues = new ArrayList<>();
+        Collection<ByteString> duplicateValues = new ArrayList<>();
         entry.addAttribute(attrBuilder.toAttribute(), duplicateValues);
       }
     }

@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.dsreplication;
 
@@ -1266,8 +1267,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   static int getDefaultValue(IntegerArgument arg)
   {
-    String v = arg.getDefaultValue();
-    return v != null ? Integer.parseInt(v) : -1;
+    return arg.getDefaultIntValue(-1);
   }
 
   /**

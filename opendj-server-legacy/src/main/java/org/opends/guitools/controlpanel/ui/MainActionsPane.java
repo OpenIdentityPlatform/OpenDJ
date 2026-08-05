@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -272,7 +273,7 @@ public class MainActionsPane extends StatusGenericPanel
         action.setAssociatedPanel(classes.get(classIndex));
         classIndex ++;
 
-        category.getActions().add(action);
+        category.addAction(action);
       }
       categories.add(category);
     }
