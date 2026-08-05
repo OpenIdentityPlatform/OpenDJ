@@ -52,7 +52,9 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -611,6 +613,10 @@ public class InitOnLineTest extends ReplicationTestCase
           server2ID, 100, getReplServerPort(replServer1ID), 10000);
       }
 
+      // The export is rejected when the InitializeRequestMsg arrives before
+      // the local domain sees DS2 in its topology view (issue #841)
+      waitForRemoteReplicas(server2ID);
+
       InitializeRequestMsg initMsg = new InitializeRequestMsg(baseDN, server2ID, server1ID, 100);
       server2.publish(initMsg);
 
@@ -1074,14 +1080,27 @@ public class InitOnLineTest extends ReplicationTestCase
   private void waitForInitializeTargetMsg(String testCase,
       ReplicationBroker server) throws Exception
   {
-    ReplicationMsg msgrcv;
-    do
+    // Fail fast when the initialization is lost or failed: looping until the
+    // TestNG method timeout would leave the replication servers (and their
+    // ports) running for the remaining tests of the class (issue #841).
+    final long deadline = System.currentTimeMillis() + 60000;
+    while (true)
     {
-      msgrcv = server.receive();
+      ReplicationMsg msgrcv = server.receive();
       log(testCase + " " + server.getServerId() + " receives " + msgrcv);
+      if (msgrcv instanceof InitializeTargetMsg)
+      {
+        return;
+      }
+      if (msgrcv == null || msgrcv instanceof ErrorMsg)
+      {
+        fail(testCase + ": waiting for InitializeTargetMsg, received " + msgrcv);
+      }
+      if (System.currentTimeMillis() > deadline)
+      {
+        fail(testCase + ": no InitializeTargetMsg received within 60s, last received " + msgrcv);
+      }
     }
-    while (!(msgrcv instanceof InitializeTargetMsg));
-    Assertions.assertThat(msgrcv).isInstanceOf(InitializeTargetMsg.class);
   }
 
   @Test(enabled=true)
@@ -1122,6 +1141,13 @@ public class InitOnLineTest extends ReplicationTestCase
           server3ID, 100, getReplServerPort(replServer3ID),
           10000, replServer1.getGenerationId(baseDN));
       }
+
+      // Wait for the local domain to see DS3 in its topology view before S3
+      // requests the initialization: the InitializeRequestMsg can outrun the
+      // TopologyMsg propagation (RS3 -> RS1 -> DS1), in which case the export
+      // is rejected with "the remote directory server DS(3) is unknown" and
+      // S3 never receives the InitializeTargetMsg (issue #841).
+      waitForRemoteReplicas(server3ID);
 
       // S3 sends init request
       log(testCase + " server 3 Will send reqinit to " + server1ID);
@@ -1359,6 +1385,14 @@ public class InitOnLineTest extends ReplicationTestCase
 
   private void afterTest(String testCase) throws Exception
   {
+    if (releasedByAfterMethod)
+    {
+      // this is the abandoned thread of a timed out test method, unblocked by
+      // releaseLeakedReplicationServers: the shared state was already
+      // neutralised and cleaned on the main thread, running the cleanup below
+      // concurrently would wreck the currently running test method
+      return;
+    }
     // Check that the domain has completed the import/export task.
     boolean ieStillRunning = false;
     if (replDomain != null)
@@ -1400,6 +1434,71 @@ public class InitOnLineTest extends ReplicationTestCase
     log("Successfully cleaned " + testCase);
 
     assertFalse(ieStillRunning, "ReplicationDomain: Import/Export is not expected to be running");
+  }
+
+  /**
+   * Set when releaseLeakedReplicationServers cleaned up after a timed out
+   * test method: closing the leaked sessions unblocks the abandoned test
+   * thread, whose own finally{afterTest()} must then become a no-op instead
+   * of cleaning up the next test method. Written on the main thread before
+   * anything can wake the abandoned thread, read on afterTest's first line.
+   */
+  private volatile boolean releasedByAfterMethod;
+
+  @BeforeMethod(alwaysRun = true)
+  public void resetReleasedByAfterMethod()
+  {
+    releasedByAfterMethod = false;
+  }
+
+  /**
+   * Releases what a timed out test method left behind: TestNG abandons the
+   * test thread on a thread timeout, the finally block of the test never
+   * completes, and the domain config entry and the listen ports (cached in
+   * replServerPort) would otherwise poison the remaining tests of the class
+   * (issue #841). Successful tests clean up in afterTest, which nulls every
+   * field checked here. Runs on the main thread - TestNG still runs
+   * configuration methods after a thread timeout.
+   */
+  @AfterMethod(alwaysRun = true)
+  public void releaseLeakedReplicationServers()
+  {
+    if (replServer1 == null && replServer2 == null && replServer3 == null
+        && server2 == null && server3 == null && replDomain == null)
+    {
+      // the test method cleaned up after itself
+      return;
+    }
+    log("Releasing the replication servers leaked by a timed out test");
+    // Neutralise the shared state *before* anything can wake the abandoned
+    // test thread: stopping its broker unblocks receive(), and its own
+    // finally{afterTest()} would otherwise clean up the *next* test.
+    releasedByAfterMethod = true;
+    final ReplicationBroker b2 = server2, b3 = server3;
+    final ReplicationServer rs1 = replServer1, rs2 = replServer2, rs3 = replServer3;
+    server2 = server3 = null;
+    replServer1 = replServer2 = replServer3 = null;
+    replDomain = null;
+    Arrays.fill(replServerPort, 0);
+    // best effort: throwing from an @AfterMethod would skip the rest of the
+    // class (configfailurepolicy=skip), which is worse than the leak
+    try
+    {
+      super.cleanConfigEntries();
+    }
+    catch (Throwable t)
+    {
+      log("Failed to remove the leaked domain configuration: " + t);
+    }
+    try
+    {
+      stop(b2, b3);
+      remove(rs1, rs2, rs3);
+    }
+    catch (Throwable t)
+    {
+      log("Failed to release the leaked replication servers: " + t);
+    }
   }
 
   /**

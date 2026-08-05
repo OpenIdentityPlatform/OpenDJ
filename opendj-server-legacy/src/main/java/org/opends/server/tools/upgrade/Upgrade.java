@@ -79,6 +79,25 @@ public final class Upgrade
   private static final NavigableMap<BuildVersion, List<UpgradeTask>> TASKS = new TreeMap<>();
   private static final List<UpgradeTask> MANDATORY_TASKS = new LinkedList<>();
 
+  /* Payloads of the issue #851 upgrade task, mirroring the fresh-install config.ldif template.
+   * Package-private so UpgradeUtilsTestCase applies exactly what the task applies. */
+  static final String[] START_TRANSACTION_HANDLER_ENTRY = {
+      "dn: cn=Start Transaction,cn=Extended Operations,cn=config",
+      "objectClass: top",
+      "objectClass: ds-cfg-extended-operation-handler",
+      "objectClass: ds-cfg-start-transaction-extended-operation-handler",
+      "cn: Start Transaction",
+      "ds-cfg-java-class: org.opends.server.extensions.StartTransactionExtendedOperation",
+      "ds-cfg-enabled: true" };
+  static final String[] END_TRANSACTION_HANDLER_ENTRY = {
+      "dn: cn=End Transaction,cn=Extended Operations,cn=config",
+      "objectClass: top",
+      "objectClass: ds-cfg-extended-operation-handler",
+      "objectClass: ds-cfg-end-transaction-extended-operation-handler",
+      "cn: End Transaction",
+      "ds-cfg-java-class: org.opends.server.extensions.EndTransactionExtendedOperation",
+      "ds-cfg-enabled: true" };
+
   static
   {
     // @formatter:off
@@ -609,6 +628,15 @@ public final class Upgrade
     );
     register("4.0.0", moveSubordinateBaseDnToGlobalConfiguration());
     register("4.0.0", removeTools("ldif-diff", "make-ldif", "dsjavaproperties"));
+
+    /* See issue #851: RFC 5805 LDAP transactions (#462, shipped in 4.10.0) added these entries to
+     * the fresh-install config.ldif template only, leaving upgraded instances without them.
+     * Keyed at 5.2.0 (the release shipping this task) rather than 4.10.0 so that instances already
+     * upgraded to 4.10.0-5.1.x without the entries are healed too; addConfigEntry is idempotent. */
+    register("5.2.0",
+        addConfigEntry(INFO_UPGRADE_TASK_ADD_TRANSACTION_EXTENDED_OPERATIONS.get(),
+            START_TRANSACTION_HANDLER_ENTRY),
+        addConfigEntry(END_TRANSACTION_HANDLER_ENTRY));
 
     /*
      * See issue #746. Builds before #661 (fixed in 5.1.2) shipped a duplicate

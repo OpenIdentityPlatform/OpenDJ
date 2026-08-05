@@ -1469,30 +1469,78 @@ public abstract class ReplicationDomain
     // subsequent total update as a simultaneous import/export.
     final Map<Integer, DSInfo> replicaInfos = getReplicaInfos();
     final DSInfo targetDsi;
-    if (serverToInitialize == RoutableMsg.ALL_SERVERS)
+    final ImportExportContext ieCtx;
+    final long entryCount;
+    try
     {
-      if (replicaInfos.isEmpty())
+      if (serverToInitialize == RoutableMsg.ALL_SERVERS)
       {
-        throw new DirectoryException(UNWILLING_TO_PERFORM,
-            ERR_FULL_UPDATE_NO_REMOTES.get(getBaseDN(), getServerId()));
+        if (replicaInfos.isEmpty())
+        {
+          throw new DirectoryException(UNWILLING_TO_PERFORM,
+              ERR_FULL_UPDATE_NO_REMOTES.get(getBaseDN(), getServerId()));
+        }
+        targetDsi = null;
       }
-      targetDsi = null;
+      else
+      {
+        targetDsi = getDsInfoOrNull(replicaInfos.values(), serverToInitialize);
+        if (targetDsi == null)
+        {
+          throw new DirectoryException(UNWILLING_TO_PERFORM,
+              ERR_FULL_UPDATE_MISSING_REMOTE.get(getBaseDN(), getServerId(), serverToInitialize));
+        }
+      }
+
+      // countEntries() would otherwise first be called by
+      // initializeRemote(ieCtx, ...) outside the region that reports the
+      // failure to the requester: probe it here so a backend that cannot be
+      // exported is notified like any other rejection.
+      entryCount = countEntries();
+
+      ieCtx = acquireIEContext(false);
     }
-    else
+    catch (DirectoryException de)
     {
-      targetDsi = getDsInfoOrNull(replicaInfos.values(), serverToInitialize);
-      if (targetDsi == null)
+      if (initTask == null
+          && serverToInitialize != RoutableMsg.ALL_SERVERS
+          && serverRunningTheTask != getServerId())
       {
-        throw new DirectoryException(UNWILLING_TO_PERFORM,
-            ERR_FULL_UPDATE_MISSING_REMOTE.get(getBaseDN(), getServerId(), serverToInitialize));
+        /*
+        The export was requested by the remote server itself (the
+        ExportTask contract: no local task and the requester is the
+        target), which has acquired an import context and is now waiting
+        for the InitializeTargetMsg: without a reply it would wait forever
+        (e.g. when this request raced the topology propagation and the
+        requester is not in our replicas view yet). Best effort: the
+        requester may not even be routable in that very case - the
+        replication server then bounces the notification back as an
+        ErrorMsg(ERR_NO_REACHABLE_PEER) applied to whatever import/export
+        context is live here (ErrorMsg carries no correlation id) - and
+        when the session is down the requester detects the disconnection
+        instead.
+        */
+        logger.info(NOTE_FULL_UPDATE_REMOTE_REQUEST_REJECTED,
+            getBaseDN(), getServerId(), serverToInitialize, de.getMessageObject());
+        try
+        {
+          if (broker.isConnected())
+          {
+            broker.publish(new ErrorMsg(serverToInitialize, de.getMessageObject()));
+          }
+        }
+        catch (Exception e)
+        {
+          // Ignore the failure raised while notifying the root failure
+        }
       }
+      throw de;
     }
 
-    final ImportExportContext ieCtx = acquireIEContext(false);
     try
     {
       initializeRemote(ieCtx, replicaInfos, targetDsi, serverToInitialize,
-          serverRunningTheTask, initTask, initWindow);
+          serverRunningTheTask, initTask, initWindow, entryCount);
     }
     finally
     {
@@ -1505,17 +1553,18 @@ public abstract class ReplicationDomain
 
   /**
    * Performs the remote initialization with the import/export context already
-   * acquired - and released - by the caller.
+   * acquired - and released - by the caller, which also counted the entries
+   * to export while validating the request.
    */
   private void initializeRemote(ImportExportContext ieCtx,
       Map<Integer, DSInfo> replicaInfos, DSInfo targetDsi,
       int serverToInitialize, int serverRunningTheTask, Task initTask,
-      int initWindow) throws DirectoryException
+      int initWindow, long entryCount) throws DirectoryException
   {
     if (serverToInitialize == RoutableMsg.ALL_SERVERS)
     {
       logger.info(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START_ALL,
-          countEntries(), getBaseDN(), getServerId());
+          entryCount, getBaseDN(), getServerId());
 
       ieCtx.startList.addAll(replicaInfos.keySet());
 
@@ -1529,7 +1578,7 @@ public abstract class ReplicationDomain
     }
     else
     {
-      logger.info(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START, countEntries(),
+      logger.info(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START, entryCount,
           getBaseDN(), getServerId(), serverToInitialize);
 
       ieCtx.startList.add(serverToInitialize);
@@ -1550,7 +1599,7 @@ public abstract class ReplicationDomain
         {
           ieCtx.initializeTask = initTask;
         }
-        ieCtx.initializeCounters(countEntries());
+        ieCtx.initializeCounters(entryCount);
         ieCtx.msgCnt = 0;
         ieCtx.initNumLostConnections = broker.getNumLostConnections();
         ieCtx.initWindow = initWindow;
