@@ -12,11 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 import static org.forgerock.util.Utils.closeSilently;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
@@ -80,7 +83,7 @@ public final class UseSchemaAsync {
 
         // Parse command line arguments.
         final String host         = args[0];
-        final int    port         = Integer.parseInt(args[1]);
+        final int    port         = parsePort(args[1]);
         final String bindDn       = args[2];
         final char[] bindPassword = args[3].toCharArray();
 

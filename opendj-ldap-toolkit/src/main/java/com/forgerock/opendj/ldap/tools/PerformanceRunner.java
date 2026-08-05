@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -128,14 +129,14 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         @Override
         public void run() {
             Promise<?, LdapException> promise;
-            Connection connection;
+            Connection connectionToUse;
             final double targetTimeMs = 1000.0 / (targetThroughput / (double) (numThreads * numConnections));
             double sleepTimeMs = 0;
 
             while (!stopRequested && !localStopRequested
                     && (maxIterations <= 0 || count < maxIterations)) {
                 try {
-                    connection = getConnectionToUse();
+                    connectionToUse = getConnectionToUse();
                 } catch (final InterruptedException e) {
                     // Ignore and check stop requested
                     continue;
@@ -145,7 +146,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 }
 
                 long startTimeNs = System.nanoTime();
-                promise = performOperation(connection, dataSources.get(), startTimeNs);
+                promise = performOperation(connectionToUse, dataSources.get(), startTimeNs);
                 statsThread.incrementOperationCount();
                 try {
                     promise.getOrThrow();
@@ -160,8 +161,8 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                     }
                     // Ignore. Handled by result handler
                 } finally {
-                    if (this.connection == null) {
-                        connection.close();
+                    if (connection == null) {
+                        connectionToUse.close();
                     }
                 }
 
@@ -481,13 +482,18 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
     double[] getPercentiles() {
         if (percentilesArgument.isPresent()) {
-            double[] percentiles = new double[percentilesArgument.getValues().size()];
-            int index = 0;
-            for (final String percentile : percentilesArgument.getValues()) {
-                percentiles[index++] = Double.parseDouble(percentile);
+            try {
+                final double[] percentiles = new double[percentilesArgument.getValues().size()];
+                int index = 0;
+                for (final String percentile : percentilesArgument.getValues()) {
+                    percentiles[index++] = Double.parseDouble(percentile);
+                }
+                Arrays.sort(percentiles);
+                return percentiles;
+            } catch (final NumberFormatException e) {
+                // The argument parser only accepts integers in the [0, 100] range, so this cannot
+                // happen. Fall back to the default percentiles rather than failing the run.
             }
-            Arrays.sort(percentiles);
-            return percentiles;
         }
 
         return DEFAULT_PERCENTILES;

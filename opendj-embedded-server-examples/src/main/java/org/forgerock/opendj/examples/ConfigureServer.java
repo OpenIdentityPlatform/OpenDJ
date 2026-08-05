@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
@@ -55,7 +56,7 @@ public final class ConfigureServer {
         }
         final String serverRootDir = args[0];
         final String newBaseDn = args[1];
-        final int ldapPort = args.length > 2 ? Integer.parseInt(args[2]) : 1500;
+        final int ldapPort = args.length > 2 ? parsePort(args[2]) : 1500;
 
         EmbeddedDirectoryServer server =
                 manageEmbeddedDirectoryServer(
@@ -79,6 +80,22 @@ public final class ConfigureServer {
             System.out.println("The base Dn of the user backend has been set to: " + newBaseDn);
         } catch (AdminException | IOException | EmbeddedDirectoryServerException e) {
             System.err.println("A problem occured when reading/updating configuration: " + e.toString());
+        }
+    }
+
+    /**
+     * Returns the port number held by the provided command line argument.
+     * <p>
+     * Like the other command line argument checks of this example, a value which is not a port
+     * number is reported on standard error and stops the example.
+     */
+    private static int parsePort(final String arg) {
+        try {
+            return Integer.parseInt(arg);
+        } catch (final NumberFormatException e) {
+            System.err.println("Invalid port number: " + arg);
+            System.exit(1);
+            return -1; // Never reached: System.exit() does not return.
         }
     }
 

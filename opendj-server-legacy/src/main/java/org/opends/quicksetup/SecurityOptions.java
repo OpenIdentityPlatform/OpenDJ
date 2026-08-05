@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup;
 
@@ -383,7 +384,7 @@ public class SecurityOptions
    * @param enableSSL whether to enable SSL or not.
    * @param enableStartTLS whether to enable StartTLS or not.
    * @param sslPort the LDAPS port number.
-   * @param aliasToUse the name of the alias to be used.
+   * @param aliasesToUse the names of the aliases to be used.
    */
   private static void updateCertificateOptions(SecurityOptions ops,
       boolean enableSSL, boolean enableStartTLS, int sslPort, Collection<String> aliasesToUse)

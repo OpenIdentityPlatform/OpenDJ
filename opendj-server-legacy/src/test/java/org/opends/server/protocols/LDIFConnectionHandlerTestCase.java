@@ -22,6 +22,9 @@ package org.opends.server.protocols;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -326,6 +329,123 @@ public class LDIFConnectionHandlerTestCase
       assertFalse(newFile.exists());
       assertTrue(appliedFound);
       assertTrue(errorsFound);
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tempDir);
+    }
+  }
+
+
+
+  /**
+   * Tests that the path selected for the applied and errors-encountered files
+   * skips the names which are already taken and stops at the first free one.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testSelectUnusedPath()
+         throws Exception
+  {
+    File tempDir = TestCaseUtils.createTemporaryDirectory("testSelectUnusedPath");
+
+    try
+    {
+      String basePath = new File(tempDir,
+           "test.ldif.errors-encountered.20260803120000Z").getPath();
+
+      // No file exists at the base path, so it is used as-is.
+      assertEquals(LDIFConnectionHandler.selectUnusedPath(basePath), basePath);
+
+      // The base path is taken, so ".2" is appended.
+      assertTrue(new File(basePath).createNewFile());
+      assertEquals(LDIFConnectionHandler.selectUnusedPath(basePath),
+                   basePath + ".2");
+
+      // The base path and several numbered variants are taken, so the first
+      // free variant is picked, with exactly one suffix appended.
+      assertTrue(new File(basePath + ".2").createNewFile());
+      assertTrue(new File(basePath + ".3").createNewFile());
+      assertEquals(LDIFConnectionHandler.selectUnusedPath(basePath),
+                   basePath + ".4");
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tempDir);
+    }
+  }
+
+
+
+  /**
+   * Tests that an unparseable LDIF file is renamed out of the way even when
+   * the errors-encountered name is already taken.  The name-picking loop used
+   * to hang forever in that case (issue #828).
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testUnparseableLDIFErrorsNameTaken()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(false);
+
+    File tempDir =
+         TestCaseUtils.createTemporaryDirectory("testErrorsNameTaken");
+
+    TestCaseUtils.dsconfig(
+      "set-connection-handler-prop",
+      "--handler-name", "LDIF Connection Handler",
+      "--set", "ldif-directory:" + tempDir.getAbsolutePath(),
+      "--set", "enabled:true");
+
+    try
+    {
+      // Occupy every errors-encountered name the handler may pick while this
+      // test runs, so that it has to fall back to a numbered variant.
+      SimpleDateFormat timestampFormat =
+           new SimpleDateFormat("yyyyMMddHHmmss'Z'");
+      timestampFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+      long now = System.currentTimeMillis();
+      for (long t = now - 5000L; t <= now + 30000L; t += 1000L)
+      {
+        assertTrue(new File(tempDir, "testTaken.ldif.errors-encountered." +
+             timestampFormat.format(new Date(t))).createNewFile());
+      }
+
+      String path = TestCaseUtils.createTempFile(
+        "unparseable");
+
+      File tempFile = new File(path);
+      File newFile = new File(tempDir, "testTaken.ldif");
+      assertTrue(tempFile.renameTo(newFile));
+
+      boolean numberedErrorsFound = false;
+      long stopTime  = System.currentTimeMillis() + 20000L;
+      while (System.currentTimeMillis() < stopTime)
+      {
+        if (! newFile.exists())
+        {
+          // The file should have been renamed to the first numbered variant
+          // of the errors-encountered name which was already taken.
+          for (File f : tempDir.listFiles())
+          {
+            if (f.getName().startsWith("testTaken.ldif.errors-encountered.") &&
+                f.getName().endsWith(".2"))
+            {
+              numberedErrorsFound = true;
+            }
+          }
+
+          break;
+        }
+
+        Thread.sleep(10);
+      }
+
+      assertFalse(newFile.exists());
+      assertTrue(numberedErrorsFound);
     }
     finally
     {

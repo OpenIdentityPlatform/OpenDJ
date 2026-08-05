@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldif;
 
@@ -1322,7 +1323,7 @@ abstract class TemplateTag {
         }
 
         private void initialize(String[] arguments, int lineNumber) throws DecodeException {
-            if (arguments.length < 0 || arguments.length > 2) {
+            if (arguments.length > 2) {
                 throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
                         getName(), lineNumber, 0, 2, arguments.length));
             }

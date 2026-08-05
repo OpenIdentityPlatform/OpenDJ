@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools;
 
@@ -270,25 +271,27 @@ public class ConfigureWindowsService
     {
       String serviceName = null;
       Process p = Runtime.getRuntime().exec(cmd);
-      BufferedReader stdout = new BufferedReader(new InputStreamReader(p.getInputStream()));
-      boolean processDone = false;
-      String s;
-      while (!processDone)
+      try (BufferedReader stdout = new BufferedReader(new InputStreamReader(p.getInputStream())))
       {
-        try
+        boolean processDone = false;
+        String s;
+        while (!processDone)
         {
-          p.exitValue();
-          processDone = true;
-        }
-        catch (Throwable t)
-        {
-        }
-        while ((s = stdout.readLine()) != null)
-        {
-          serviceName = s;
-          if (serviceName.trim().length() == 0)
+          try
           {
-            serviceName = null;
+            p.exitValue();
+            processDone = true;
+          }
+          catch (Throwable t)
+          {
+          }
+          while ((s = stdout.readLine()) != null)
+          {
+            serviceName = s;
+            if (serviceName.trim().length() == 0)
+            {
+              serviceName = null;
+            }
           }
         }
       }
@@ -608,25 +611,26 @@ public class ConfigureWindowsService
     {
       int resultCode = -1;
       Process process = new ProcessBuilder(cmd).start();
-      BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-      boolean processDone = false;
-      String s;
-      while (!processDone)
+      try (BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream())))
       {
-        try
+        boolean processDone = false;
+        String s;
+        while (!processDone)
         {
-          resultCode = process.exitValue();
-          processDone = true;
-        }
-        catch (Throwable t)
-        {
-        }
-        while ((s = stdout.readLine()) != null)
-        {
-          if (s.trim().length() != 0)
+          try
           {
-            serviceName = s;
+            resultCode = process.exitValue();
+            processDone = true;
+          }
+          catch (Throwable t)
+          {
+          }
+          while ((s = stdout.readLine()) != null)
+          {
+            if (s.trim().length() != 0)
+            {
+              serviceName = s;
+            }
           }
         }
       }

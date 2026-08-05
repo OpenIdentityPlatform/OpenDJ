@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -202,7 +203,7 @@ public class BackendStat
   }
 
   /** Statistics collector. */
-  private class TreeStats
+  private static class TreeStats
   {
     private final long count;
     private final long totalKeySize;

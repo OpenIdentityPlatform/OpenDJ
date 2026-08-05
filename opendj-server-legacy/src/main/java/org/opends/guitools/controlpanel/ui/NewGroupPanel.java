@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -343,17 +344,17 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     dynamicGroup.addActionListener(actionListener);
     virtualGroup.addActionListener(actionListener);
 
-    JLabel[] labels = {lName, lDescription, lMembers};
+    JLabel[] layoutLabels = {lName, lDescription, lMembers};
     Component[] comps = {name, description, staticGroup};
     Component[] inlineHelp = {null, null, null};
 
-    for (i=0 ; i< labels.length; i++)
+    for (i=0 ; i< layoutLabels.length; i++)
     {
       gbc.insets.left = 0;
       gbc.weightx = 0.0;
       gbc.gridx = 0;
       gbc.gridwidth = 1;
-      add(labels[i], gbc);
+      add(layoutLabels[i], gbc);
       gbc.insets.left = 10;
       gbc.weightx = 1.0;
       gbc.gridx = 1;

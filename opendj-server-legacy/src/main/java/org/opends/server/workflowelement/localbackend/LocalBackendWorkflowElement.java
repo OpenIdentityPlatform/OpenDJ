@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -711,6 +712,10 @@ public class LocalBackendWorkflowElement
       {
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, errorMsg.get(entryDN));
       }
+      break;
+    default:
+      // No action needed for the remaining values.
+      break;
     }
   }
 
@@ -760,8 +765,6 @@ public class LocalBackendWorkflowElement
    *
    * @param searchOp
    *          the search operation to execute
-   * @param baseDN
-   *          base DN to search
    * @throws CanceledOperationException
    *           if this operation should be canceled.
    */

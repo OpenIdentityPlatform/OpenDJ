@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -38,7 +39,9 @@ public class AddressMaskTestCase extends SdkTestCase {
     public Object[][] validData() {
         return new Object[][] { { "129.34.55.67" }, { "129.*.78.55" }, { ".central.sun.com" },
             { "foo.central.sun.com" }, { "foo.*.sun.*" }, { "128.*.*.*" }, { "129.45.23.67/22" },
-            { "128.33.23.21/32" }, { "*.*.*.*" }, { "129.45.67.34/0" }, { "foo.com" }, { "foo" } };
+            { "128.33.23.21/32" }, { "*.*.*.*" }, { "129.45.67.34/0" }, { "foo.com" }, { "foo" },
+            // Underscores appear in real deployments and stay accepted.
+            { "my_host.example.com" }, { ".my_domain.com" } };
     }
 
     @DataProvider(name = "invalidRules")
@@ -47,7 +50,14 @@ public class AddressMaskTestCase extends SdkTestCase {
             { "129.56.78.90/2000" }, { "677.777.AG.BC" }, { "/34" }, { "234.12.12.*/31" },
             { "234.12.12.90/" }, { "129.34.56.78/-100" }, { "129" }, { "129.34.-90.67" },
             { "129.**.56.67" }, { "foo bar.com" }, { "12foo.example.com" }, { "123.45." },
-            { ".central.sun day.com" }, { "129.34.45.45/4/3/" } };
+            { ".central.sun day.com" }, { "129.34.45.45/4/3/" },
+            /*
+             * The characters between 'Z' and 'a' used to slip through the host and host
+             * pattern validators, which spelled the letter range as A-z instead of A-Z.
+             */
+            { "foo[bar.com" }, { "foo\\bar.com" }, { "foo]bar.com" }, { "foo^bar.com" },
+            { "foo`bar.com" }, { ".foo[bar.com" }, { ".foo\\bar.com" }, { ".foo]bar.com" },
+            { ".foo^bar.com" }, { ".foo`bar.com" } };
     }
 
     @DataProvider(name = "toStringRule")

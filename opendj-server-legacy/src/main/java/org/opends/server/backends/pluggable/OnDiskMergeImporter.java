@@ -14,6 +14,7 @@
  * Portions Copyright 2014 The Apache Software Foundation
  * Copyright 2015-2016 ForgeRock AS.
  * Portions Copyright 2023-2026 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -38,6 +39,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.Files;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -425,7 +427,7 @@ final class OnDiskMergeImporter
 
     private File exportBranches(List<DN> includeBranches, List<DN> excludeBranches) throws Exception
     {
-      final File migrationFile = File.createTempFile("import-migration-", ".ldif");
+      final File migrationFile = Files.createTempFile("import-migration-", ".ldif").toFile();
       final LDIFExportConfig exportConfig =
           new LDIFExportConfig(migrationFile.getAbsolutePath(), ExistingFileBehavior.OVERWRITE);
       exportConfig.setIncludeBranches(includeBranches);
@@ -1250,10 +1252,8 @@ final class OnDiskMergeImporter
     try (final PhaseTwoProgressReporter progressReporter = new PhaseTwoProgressReporter())
     {
       final List<Callable<Void>> tasks = new ArrayList<>();
-      final Set<String> importedBaseDNs = new HashSet<>();
       for (Map.Entry<TreeName, Chunk> treeChunk : transaction.getChunks().entrySet())
       {
-        importedBaseDNs.add(treeChunk.getKey().getBaseDN());
         tasks.add(importStrategy.newPhaseTwoTask(treeChunk.getKey(), treeChunk.getValue(), progressReporter));
       }
       invokeParallel(phase2ThreadNameTemplate, tasks);
@@ -3124,7 +3124,8 @@ final class OnDiskMergeImporter
       {
         for (int i = 0; i < nbBuffer; i++)
         {
-          pool.offer(new MemoryBuffer(allocateDirect
+          // The queue is created with room for exactly nbBuffer elements, so add() cannot refuse.
+          pool.add(new MemoryBuffer(allocateDirect
                           ? ByteBuffer.allocateDirect(bufferSize)
                           : ByteBuffer.allocate(bufferSize)));
         }

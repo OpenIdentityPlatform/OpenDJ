@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -315,7 +316,7 @@ public class DeleteEntryTask extends Task
       while (entryDNs.hasNext())
       {
         SearchResultEntry sr = entryDNs.readEntry();
-        if (!sr.getName().equals(""))
+        if (!sr.getName().isRootDN())
         {
           deleteSubtreeRecursively(conn, sr.getName(), null, toNotify);
         }

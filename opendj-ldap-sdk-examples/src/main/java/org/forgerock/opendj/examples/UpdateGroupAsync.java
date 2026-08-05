@@ -12,10 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 import static org.forgerock.util.Utils.closeSilently;
+
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
@@ -83,7 +86,7 @@ public final class UpdateGroupAsync {
             printUsage();
         }
         final String host              = args[0];
-        final int port                 = Integer.parseInt(args[1]);
+        final int port                 = parsePort(args[1]);
         final String groupDn           = args[2];
         final String memberDn          = args[3];
         final ModificationType modType = getModificationType(args[4]);

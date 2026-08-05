@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -52,19 +53,6 @@ public class ErrorLogAccountStatusNotificationHandler
           <ErrorLogAccountStatusNotificationHandlerCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /**
-   * The set of names for the account status notification types that may be
-   * logged by this notification handler.
-   */
-  private static final HashSet<String> NOTIFICATION_TYPE_NAMES = new HashSet<>();
-  static
-  {
-    for (AccountStatusNotificationType t : AccountStatusNotificationType.values())
-    {
-      NOTIFICATION_TYPE_NAMES.add(t.getName());
-    }
-  }
 
   /** The DN of the configuration entry for this notification handler. */
   private DN configEntryDN;

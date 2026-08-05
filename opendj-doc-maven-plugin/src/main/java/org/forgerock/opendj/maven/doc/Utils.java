@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.maven.doc;
 
@@ -75,11 +76,15 @@ public final class Utils {
      * @throws IOException  Failed to make the copy.
      */
     static void copyFile(File original, File copy) throws IOException {
-        copyInputStreamToFile(new FileInputStream(original), copy);
+        try (InputStream input = new FileInputStream(original)) {
+            copyInputStreamToFile(input, copy);
+        }
     }
 
     /**
      * Copies the content of the original input stream to the copy.
+     * <p>
+     * The original input stream is closed on return, whether the copy succeeded or not.
      * @param original      The original input stream.
      * @param copy          The copy.
      * @throws IOException  Failed to make the copy.
@@ -88,12 +93,14 @@ public final class Utils {
         if (original == null) {
             throw new IOException("Could not read input to copy.");
         }
-        createFile(copy);
-        try (OutputStream outputStream = new FileOutputStream(copy)) {
-            int bytesRead;
-            byte[] buffer = new byte[4096];
-            while ((bytesRead = original.read(buffer)) > 0) {
-                outputStream.write(buffer, 0, bytesRead);
+        try {
+            createFile(copy);
+            try (OutputStream outputStream = new FileOutputStream(copy)) {
+                int bytesRead;
+                byte[] buffer = new byte[4096];
+                while ((bytesRead = original.read(buffer)) > 0) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
             }
         } finally {
             closeSilently(original);

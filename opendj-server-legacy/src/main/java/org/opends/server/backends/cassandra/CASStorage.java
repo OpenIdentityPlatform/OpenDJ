@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2023-2024 3A Systems, LLC.
+ * Copyright 2023-2026 3A Systems, LLC.
  */
 package org.opends.server.backends.cassandra;
 
@@ -66,13 +66,13 @@ import com.datastax.oss.driver.api.core.cql.Statement;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 
-public class Storage implements org.opends.server.backends.pluggable.spi.Storage, ConfigurationChangeListener<CASBackendCfg>{
+public class CASStorage implements org.opends.server.backends.pluggable.spi.Storage, ConfigurationChangeListener<CASBackendCfg>{
 	
 	private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 	private CASBackendCfg config;
 	
-	public Storage(CASBackendCfg cfg, ServerContext serverContext) {
+	public CASStorage(CASBackendCfg cfg, ServerContext serverContext) {
 		this.config = cfg;
 		cfg.addCASChangeListener(this);
 	}
@@ -123,7 +123,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		this.accessMode=accessMode;
 		session=CqlSession.builder()
 			.withApplicationName("OpenDJ "+getKeyspaceName()+"."+config.getBackendId())
-			.withConfigLoader(DriverConfigLoader.fromDefaults(Storage.class.getClassLoader()))
+			.withConfigLoader(DriverConfigLoader.fromDefaults(CASStorage.class.getClassLoader()))
 			.build();
 		if (AccessMode.READ_WRITE.equals(accessMode)) {
 			execute(prepared.get("CREATE KEYSPACE IF NOT EXISTS "+getKeyspaceName()+" WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'};").bind().setExecutionProfileName(profile));
@@ -147,11 +147,11 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	}
 
 	String getKeyspaceName() {
-		return "\""+System.getProperty("keyspace",config.getDBDirectory()).replaceAll("[^a-zA-z0-9_]", "_")+"\"";
+		return "\""+System.getProperty("keyspace",config.getDBDirectory()).replaceAll("[^a-zA-Z0-9_]", "_")+"\"";
 	}
 	
 	String getTableName() {
-		return getKeyspaceName()+".\""+config.getBackendId().replaceAll("[^a-zA-z0-9_]", "_")+"\"";
+		return getKeyspaceName()+".\""+config.getBackendId().replaceAll("[^a-zA-Z0-9_]", "_")+"\"";
 	}
 	
 	@Override
@@ -450,7 +450,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		@Override
 		public void close() {
 			if (!isOpen) {
-				Storage.this.close();
+				CASStorage.this.close();
 			}
 		}
 		

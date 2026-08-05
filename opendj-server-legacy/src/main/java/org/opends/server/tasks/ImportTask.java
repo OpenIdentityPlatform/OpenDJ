@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tasks;
 
@@ -327,6 +328,15 @@ public class ImportTask extends Task
       }
     }
 
+    if (backend == null)
+    {
+      // Unreachable as long as the checks above hold: a null backend ID implies at least one
+      // include branch, and every include branch either resolves to a backend or is rejected.
+      // The guard mirrors the one in runTask() and keeps the dereference below safe.
+      LocalizableMessage message = ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID.get();
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    }
+
     // Make sure the selected backend will handle all the include branches
     defaultIncludeBranches = new ArrayList<>(backend.getBaseDNs());
 
@@ -473,6 +483,15 @@ public class ImportTask extends Task
           }
         }
       }
+    }
+
+    if (backend == null)
+    {
+      // Unlike initializeTask(), this method does not reject an include branch which resolves to no
+      // backend, so none of them having resolved leaves nothing to import into. The message of the
+      // backend ID case is reused here rather than adding a new one for a malformed task.
+      logger.error(ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID);
+      return TaskState.STOPPED_BY_ERROR;
     }
 
     // Find backends with subordinate base DNs that should be excluded from the import.

@@ -13,11 +13,14 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.quicksetup.util;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -33,18 +36,24 @@ public abstract class OutputReader {
    */
   public abstract void processLine(String line);
 
+  private final Thread thread;
+
   /**
    * The protected constructor.
+   * <p>
+   * The stream is consumed until end of stream and then closed by this reader's thread, which is
+   * only launched by {@link #start()}. Wrapping the stream is done by that thread as well, so that
+   * this reader is the sole owner of every resource built on top of the stream.
    *
-   * @param reader  the BufferedReader of the stop process.
+   * @param stream  the output stream of the process to read.
    */
-  public OutputReader(final BufferedReader reader) {
-    Thread t = new Thread(new Runnable() {
+  public OutputReader(final InputStream stream) {
+    thread = new Thread(new Runnable() {
       @Override
       public void run() {
-        try {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(stream))) {
           String line;
-          while (null != (line = reader.readLine())) {
+          while (null != (line = in.readLine())) {
             processLine(line);
           }
         } catch (Throwable t) {
@@ -52,6 +61,18 @@ public abstract class OutputReader {
         }
       }
     });
-    t.start();
+  }
+
+  /**
+   * Starts consuming the reader in a background thread.
+   * <p>
+   * The thread is not started by the constructor so that {@code this} does not escape before
+   * construction of the subclass has completed.
+   *
+   * @return this reader
+   */
+  public OutputReader start() {
+    thread.start();
+    return this;
   }
 }
