@@ -13,12 +13,13 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2010-2016 ForgeRock AS.
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.Random;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Base64;
@@ -59,6 +60,13 @@ public class SaltedSHA1PasswordStorageScheme
   /** The number of bytes of random data to use as the salt when generating the hashes. */
   private static final int NUM_SALT_BYTES = 8;
 
+  /**
+   * Source of randomness for the offline encoding, which has no access to the server's
+   * crypto manager. A single instance is shared because {@code SecureRandom} is thread-safe
+   * and reseeding it for every password would weaken it.
+   */
+  private static final SecureRandom OFFLINE_RANDOM = new SecureRandom();
+
   /** The number of bytes SHA algorithm produces. */
   private static final int SHA1_LENGTH = 20;
 
@@ -69,7 +77,7 @@ public class SaltedSHA1PasswordStorageScheme
   private Object digestLock;
 
   /** The secure random number generator to use to generate the salt values. */
-  private Random random;
+  private SecureRandom random;
 
   /**
    * Creates a new instance of this password storage scheme.  Note that no
@@ -99,7 +107,7 @@ public class SaltedSHA1PasswordStorageScheme
     }
 
     digestLock = new Object();
-    random     = new Random();
+    random     = new SecureRandom();
   }
 
   @Override
@@ -422,7 +430,7 @@ public class SaltedSHA1PasswordStorageScheme
          throws DirectoryException
   {
     byte[] saltBytes = new byte[NUM_SALT_BYTES];
-    new Random().nextBytes(saltBytes);
+    OFFLINE_RANDOM.nextBytes(saltBytes);
 
     byte[] passwordPlusSalt = new byte[passwordBytes.length + NUM_SALT_BYTES];
     System.arraycopy(passwordBytes, 0, passwordPlusSalt, 0,

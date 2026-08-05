@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2024 3A Systems, LLC.
+ * Copyright 2024-2026 3A Systems, LLC.
  */
 package org.opends.server.backends.jdbc;
 
@@ -23,9 +23,9 @@ import org.opends.server.core.ServerContext;
 public class Backend extends BackendImpl<JDBCBackendCfg>{
 	
 	  @Override
-	  protected Storage configureStorage(JDBCBackendCfg cfg, ServerContext serverContext) throws ConfigException
+	  protected JDBCStorage configureStorage(JDBCBackendCfg cfg, ServerContext serverContext) throws ConfigException
 	  {
-	    return new Storage(cfg, serverContext);
+	    return new JDBCStorage(cfg, serverContext);
 	  }
 
 }

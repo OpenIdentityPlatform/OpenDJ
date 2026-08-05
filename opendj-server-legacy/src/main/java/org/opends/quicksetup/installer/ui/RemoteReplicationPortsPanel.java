@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.installer.ui;
 
@@ -111,7 +112,6 @@ implements Comparator<ServerDescriptor>
     {
       for (Map.Entry<String, JLabel> entry : hmLabels.entrySet())
       {
-        String id = entry.getKey();
         UIFactory.setTextStyle(entry.getValue(),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
       }

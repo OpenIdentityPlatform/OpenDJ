@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -702,13 +703,14 @@ public final class ObjectClass extends AbstractSchemaElement {
     /**
      * Returns whether this object class is a placeholder,
      * i.e. a dummy object class that does not exist in the schema.
+     * <p>
+     * This is the only way of telling apart an object class read from the schema from the
+     * placeholder a non-strict schema returns for an unknown object class, short of asking the
+     * schema again with {@link Schema#hasObjectClass(String)}.
      *
      * @return {@code true} if this object class is a placeholder,
      *         {@code false} otherwise
-     * @deprecated This method may be removed at any time
-     * @since OPENDJ-2987 Migrate ObjectClass
      */
-    @Deprecated
     public boolean isPlaceHolder() {
         return isPlaceHolder;
     }

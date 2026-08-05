@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -184,7 +185,7 @@ final class InetAddressValidator {
                     if (!inet6Address.endsWith(octet)) {
                         return false;
                     }
-                    if (index > octets.length - 1 || index > 6) {  // CHECKSTYLE IGNORE MagicNumber
+                    if (index > 6) {  // CHECKSTYLE IGNORE MagicNumber
                         // IPV4 occupies last two octets
                         return false;
                     }

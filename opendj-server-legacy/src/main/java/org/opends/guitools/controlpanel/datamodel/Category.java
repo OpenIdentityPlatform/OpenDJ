@@ -13,11 +13,14 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 
@@ -30,7 +33,7 @@ import org.forgerock.i18n.LocalizableMessage;
 public class Category
 {
   private LocalizableMessage name;
-  private ArrayList<Action> actions = new ArrayList<>();
+  private final List<Action> actions = new ArrayList<>();
 
   /**
    * Returns the name of the category.
@@ -52,10 +55,19 @@ public class Category
 
   /**
    * Returns the actions associated with this category.
-   * @return the actions associated with this category.
+   * @return an unmodifiable view of the actions associated with this category.
    */
-  public ArrayList<Action> getActions()
+  public List<Action> getActions()
   {
-    return actions;
+    return Collections.unmodifiableList(actions);
+  }
+
+  /**
+   * Adds an action to this category.
+   * @param action the action to add.
+   */
+  public void addAction(Action action)
+  {
+    actions.add(action);
   }
 }

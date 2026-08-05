@@ -280,13 +280,14 @@ public interface Connection extends Closeable {
      * Registers the provided connection event listener so that it will be
      * notified when this connection is closed by the application, receives an
      * unsolicited notification, or experiences a fatal error.
+     * <p>
+     * A listener registered once this connection has already failed and/or been
+     * closed is notified of the events it has missed before this method
+     * returns.
      *
      * @param listener
      *            The listener which wants to be notified when events occur on
      *            this connection.
-     * @throws IllegalStateException
-     *             If this connection has already been closed, i.e. if
-     *             {@code isClosed() == true}.
      * @throws NullPointerException
      *             If the {@code listener} was {@code null}.
      */

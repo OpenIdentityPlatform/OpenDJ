@@ -13,8 +13,11 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
+
+import java.net.ServerSocket;
 
 import org.opends.server.api.DirectoryThread;
 
@@ -30,25 +33,30 @@ public class ReplicationServerListenThread extends DirectoryThread
    */
   private final ReplicationServer server;
 
+  /** The socket this thread accepts connections on, and whose closing stops it. */
+  private final ServerSocket listenSocket;
+
   /**
    * Creates a new instance of this directory thread with the
    * specified name.
    *
    * @param  server      The ReplicationServer that will be called to
    *                     handle the connections.
+   * @param  listenSocket The bound socket this thread will accept connections on.
    */
-  public ReplicationServerListenThread(ReplicationServer server)
+  public ReplicationServerListenThread(ReplicationServer server, ServerSocket listenSocket)
   {
     super("Replication server RS(" + server.getServerId()
         + ") connection listener on port "
-        + server.getReplicationPort());
+        + listenSocket.getLocalPort());
     this.server = server;
+    this.listenSocket = listenSocket;
   }
 
   /** {@inheritDoc} */
   @Override
   public void run()
   {
-    server.runListen();
+    server.runListen(listenSocket);
   }
 }

@@ -13,10 +13,12 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 import static org.forgerock.opendj.ldap.Connections.newCachedConnectionPool;
 import static org.forgerock.opendj.ldap.LDAPListener.*;
 import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
@@ -384,11 +386,11 @@ public final class RewriterProxy {
         }
 
         final String localAddress = args[0];
-        final int localPort = Integer.parseInt(args[1]);
+        final int localPort = parsePort(args[1]);
         final String proxyDN = args[2];
         final String proxyPassword = args[3];
         final String remoteAddress = args[4];
-        final int remotePort = Integer.parseInt(args[5]);
+        final int remotePort = parsePort(args[5]);
 
         // Create connection factories.
         final Options factoryOptions = Options.defaultOptions()

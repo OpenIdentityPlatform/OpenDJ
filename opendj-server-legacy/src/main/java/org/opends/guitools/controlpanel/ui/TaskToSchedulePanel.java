@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -49,6 +50,7 @@ import org.opends.guitools.controlpanel.ui.components.NumericLimitedSizeDocument
 import org.opends.guitools.controlpanel.ui.components.TimeDocumentFilter;
 import org.opends.guitools.controlpanel.ui.renderer.NoLeftInsetCategoryComboBoxRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.quicksetup.util.Utils;
 import org.opends.server.backends.task.RecurringTask;
 
 /** The panel that allows the user to specify when a task will be launched. */
@@ -351,7 +353,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
 
     int previousErrorNumber = errorMessages.size();
 
-    int y = Integer.parseInt(year.getSelectedItem().toString());
+    int y = Utils.parseIntOrDefault(year.getSelectedItem().toString(), -1);
     int d = -1;
     int m = month.getSelectedIndex();
     int[] h = {-1};

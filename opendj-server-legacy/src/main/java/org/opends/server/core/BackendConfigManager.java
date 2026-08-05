@@ -238,7 +238,7 @@ public class BackendConfigManager implements
         Backend<? extends BackendCfg> backend;
         try
         {
-          backend = loadBackendClass(className).newInstance();
+          backend = loadBackendClass(className).getDeclaredConstructor().newInstance();
         }
         catch (Exception e)
         {
@@ -784,7 +784,7 @@ public class BackendConfigManager implements
           return false;
         }
 
-        Backend<BackendCfg> b = backendClass.newInstance();
+        Backend<BackendCfg> b = backendClass.getDeclaredConstructor().newInstance();
         if (! b.isConfigurationAcceptable(configEntry, unacceptableReason, serverContext))
         {
           return false;
@@ -877,7 +877,7 @@ public class BackendConfigManager implements
       {
         try
         {
-          backend = loadBackendClass(className).newInstance();
+          backend = loadBackendClass(className).getDeclaredConstructor().newInstance();
         }
         catch (Exception e)
         {
@@ -955,7 +955,7 @@ public class BackendConfigManager implements
     Backend<BackendCfg> backend;
     try
     {
-      backend = loadBackendClass(className).newInstance();
+      backend = loadBackendClass(className).getDeclaredConstructor().newInstance();
     }
     catch (Exception e)
     {
@@ -1019,7 +1019,7 @@ public class BackendConfigManager implements
       Backend<? extends BackendCfg> backend;
       try
       {
-        backend = loadBackendClass(className).newInstance();
+        backend = loadBackendClass(className).getDeclaredConstructor().newInstance();
       }
       catch (Exception e)
       {

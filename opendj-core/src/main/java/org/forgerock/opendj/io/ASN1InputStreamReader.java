@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.io;
 
@@ -145,10 +146,14 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
 
         // Ignore all unused trailing components.
         final SizeLimitInputStream subSq = (SizeLimitInputStream) in;
-        if (subSq.getSizeLimit() - subSq.getBytesRead() > 0) {
-            logger.trace("Ignoring %d unused trailing bytes in ASN.1 SEQUENCE",
-                    subSq.getSizeLimit() - subSq.getBytesRead());
-            subSq.skip(subSq.getSizeLimit() - subSq.getBytesRead());
+        final long unusedBytes = subSq.getSizeLimit() - subSq.getBytesRead();
+        if (unusedBytes > 0) {
+            logger.trace("Ignoring %d unused trailing bytes in ASN.1 SEQUENCE", unusedBytes);
+            if (skipFully(subSq, unusedBytes) != unusedBytes) {
+                // The remaining components could not be skipped, so the reader would be left
+                // positioned in the middle of the sequence.
+                throw DecodeException.fatalError(ERR_ASN1_SKIP_TRUNCATED_VALUE.get(unusedBytes));
+            }
         }
 
         logger.trace("READ ASN.1 END SEQUENCE");
@@ -385,13 +390,43 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         // Read the header if haven't done so already
         peekLength();
 
-        final long bytesSkipped = in.skip(peekLength);
+        final long bytesSkipped = skipFully(in, peekLength);
         if (bytesSkipped != peekLength) {
             final LocalizableMessage message = ERR_ASN1_SKIP_TRUNCATED_VALUE.get(peekLength);
             throw DecodeException.fatalError(message);
         }
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return this;
+    }
+
+    /**
+     * Skips the requested number of bytes, retrying as needed since {@link InputStream#skip} is
+     * allowed to skip fewer bytes than requested even when the end of the stream has not been
+     * reached.
+     *
+     * @param stream
+     *            The stream to skip bytes from.
+     * @param length
+     *            The number of bytes to skip.
+     * @return The number of bytes actually skipped, which is smaller than {@code length} only if the
+     *         end of the stream was reached.
+     * @throws IOException
+     *             If an error occurs while skipping bytes.
+     */
+    private static long skipFully(final InputStream stream, final long length) throws IOException {
+        long remaining = length;
+        while (remaining > 0) {
+            final long skipped = stream.skip(remaining);
+            if (skipped > 0) {
+                remaining -= skipped;
+            } else if (stream.read() < 0) {
+                // End of stream reached: no more bytes can be skipped.
+                break;
+            } else {
+                remaining--;
+            }
+        }
+        return length - remaining;
     }
 
     /**

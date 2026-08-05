@@ -13,24 +13,18 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.authorization.dseecompat;
 
 /** This class provides an enumeration of the allowed authmethod types. */
 enum EnumAuthMethod {
     /** The enumeration type when the bind rule has specified authentication of none. */
-    AUTHMETHOD_NONE          ("none"),
+    AUTHMETHOD_NONE,
     /** The enumeration type when the bind rule has specified authentication of simple. */
-    AUTHMETHOD_SIMPLE        ("simple"),
+    AUTHMETHOD_SIMPLE,
     /** The enumeration type when the bind rule has specified authentication of ssl client auth. */
-    AUTHMETHOD_SSL           ("ssl"),
+    AUTHMETHOD_SSL,
     /** The enumeration type when the bind rule has specified authentication of a sasl mechanism. */
-    AUTHMETHOD_SASL          ("sasl");
-
-    /**
-     * Creates a new enumeration type for this authmethod.
-     * @param authmethod The authemethod name.
-     */
-    EnumAuthMethod (String authmethod){
-    }
+    AUTHMETHOD_SASL;
 }

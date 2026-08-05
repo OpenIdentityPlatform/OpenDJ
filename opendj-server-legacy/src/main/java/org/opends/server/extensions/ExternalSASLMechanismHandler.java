@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -278,6 +279,9 @@ public class ExternalSASLMechanismHandler
             return;
           }
         }
+      default:
+        // No action needed for the remaining values.
+        break;
     }
 
 

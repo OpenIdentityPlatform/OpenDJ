@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2010-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.ldap;
 
@@ -678,7 +679,11 @@ public final class LDAPClientConnection extends ClientConnection implements
     // if operation processing encounters a run-time exception after sending the
     // response: the worker thread exception handling code will attempt to send
     // an error result to the client indicating that a problem occurred.
-    if (removeOperationInProgress(operation.getMessageID()))
+    // A persistent search is the other way around: its search operation is no longer in progress
+    // once the search phase is over, and yet it still owes the client a response if the server
+    // terminates it.
+    if (removeOperationInProgress(operation.getMessageID())
+        || hasPersistentSearch(operation.getMessageID()))
     {
       LDAPMessage message = operationToResponseLDAPMessage(operation);
       if (message != null)

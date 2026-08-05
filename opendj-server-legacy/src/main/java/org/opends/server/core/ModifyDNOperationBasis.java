@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -90,6 +91,12 @@ public class ModifyDNOperationBasis
 
   /** The new entry DN. */
   private DN newDN;
+
+  /**
+   * Indicates whether the new entry DN has already been computed. The computation does not always
+   * yield a DN, and its failure is recorded on the operation, so it must not be repeated.
+   */
+  private boolean newDNComputed;
 
   /**
    * Creates a new modify DN operation with the provided information.
@@ -188,6 +195,9 @@ public class ModifyDNOperationBasis
     this.rawEntryDN = rawEntryDN;
 
     entryDN = null;
+    // The new DN is derived from the entry DN, so a failed computation must be allowed to run
+    // again. Any DN already computed is left in place, as it was before this flag existed.
+    newDNComputed = false;
   }
 
   @Override
@@ -228,6 +238,7 @@ public class ModifyDNOperationBasis
 
     newRDN = null;
     newDN = null;
+    newDNComputed = false;
   }
 
   @Override
@@ -275,6 +286,7 @@ public class ModifyDNOperationBasis
 
     newSuperior = null;
     newDN = null;
+    newDNComputed = false;
   }
 
   @Override
@@ -510,17 +522,22 @@ public class ModifyDNOperationBasis
   @Override
   public DN getNewDN()
   {
-    if (newDN == null)
+    if (newDN == null && !newDNComputed)
     {
+      newDNComputed = true;
+
       // Construct the new DN to use for the entry.
-      DN parentDN = null;
+      DN parentDN;
       if (getNewSuperior() == null)
       {
-        if (getEntryDN() != null)
+        if (getEntryDN() == null)
         {
-          parentDN = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
-              .getParentDNInSuffix(entryDN);
+          // The raw DN could not be parsed and INVALID_DN_SYNTAX has already been recorded for it,
+          // so leave that diagnosis in place rather than replacing it with a less precise one.
+          return null;
         }
+        parentDN = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+            .getParentDNInSuffix(entryDN);
       }
       else
       {
@@ -531,6 +548,11 @@ public class ModifyDNOperationBasis
       {
         setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         appendErrorMessage(ERR_MODDN_NO_PARENT.get(entryDN));
+        if (parentDN == null)
+        {
+          // Without a parent there is no new DN to build; the error set above is the outcome.
+          return null;
+        }
       }
       newDN = parentDN.child(getNewRDN());
     }

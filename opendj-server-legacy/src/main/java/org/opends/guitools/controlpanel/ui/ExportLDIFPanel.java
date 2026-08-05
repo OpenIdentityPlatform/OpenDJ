@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -331,7 +332,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     }
 
     String ldifPath = file.getText();
-    if (ldifPath == null || ldifPath.trim().equals(""))
+    if (ldifPath == null || ldifPath.trim().isEmpty())
     {
       errors.add(INFO_NO_LDIF_PATH.get());
       setPrimaryInvalid(lFile);

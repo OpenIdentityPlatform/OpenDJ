@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -132,7 +133,7 @@ public final class MemoryQuota
    */
   public long memPercentToBytes(int percent)
   {
-    return (reservableMemory * percent / 100) * ONE_MEGABYTE;
+    return ((long) reservableMemory * percent / 100) * ONE_MEGABYTE;
   }
 
   /**
