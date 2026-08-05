@@ -37,15 +37,15 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
   private final ReplicationDomainDB domainDB;
   private final ConcurrentSkipListMap<DN, ServerState> newDomains = new ConcurrentSkipListMap<>();
   /**
-   * The domains this cursor already iterates over, so that announcing a domain a second time is a
-   * no-op: a second cursor over the same domain would either leak unclosed - the cursor tree of
-   * {@link CompositeDBCursor} collapses cursors comparing equal - or deliver every change twice.
-   * A domain may be announced again after the empty domainMap of a failed replica DB creation was
-   * dropped, while this cursor still iterates over it.
+   * The domains this cursor already iterates over, so that a second announcement of a domain is
+   * discarded at incorporation: a second cursor over the same domain would either leak unclosed
+   * - the cursor tree of {@link CompositeDBCursor} collapses cursors comparing equal - or
+   * deliver every change twice. A domain may be announced again after the empty domainMap of a
+   * failed replica DB creation was dropped, while this cursor still iterates over it.
    * <p>
-   * Only ever mutated from the thread iterating this cursor - {@link #incorporateNewCursors()},
-   * {@link #removeDomain(DN)} and {@link #close()} all run on it - and read by the threads
-   * announcing domains.
+   * Added to and removed from on the thread iterating this cursor - {@link #incorporateNewCursors()}
+   * and {@link #removeDomain(DN)} run on it - read by the threads announcing domains, and
+   * cleared by {@link #close()}, which an ending ECL session may call from another thread.
    */
   private final ConcurrentSkipListSet<DN> incorporatedDomains = new ConcurrentSkipListSet<>();
   private final CursorOptions options;
@@ -67,8 +67,9 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
    * Adds a replication domain for this cursor to iterate over. Added cursors
    * will be created and iterated over on the next call to {@link #next()}.
    * <p>
-   * A no-op for a domain this cursor already iterates over: new replica DBs of such a domain
-   * reach it through {@link DomainDBCursor#addReplicaDB(int, org.opends.server.replication.common.CSN)}.
+   * Announcing a domain this cursor already iterates over has no effect: the announcement is
+   * discarded when cursors are incorporated, and new replica DBs of such a domain reach it
+   * through {@link DomainDBCursor#addReplicaDB(int, org.opends.server.replication.common.CSN)}.
    *
    * @param baseDN
    *          the replication domain's baseDN
@@ -77,10 +78,10 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
    */
   public void addDomain(DN baseDN, ServerState startAfterState)
   {
-    if (!incorporatedDomains.contains(baseDN))
-    {
-      newDomains.put(baseDN, startAfterState != null ? startAfterState : new ServerState());
-    }
+    // incorporateNewCursors() discards announcements of domains this cursor already iterates
+    // over: checking incorporatedDomains here would be a check-then-act against removeDomain()
+    // on the cursor's thread, able to drop an announcement the removal no longer covers
+    newDomains.put(baseDN, startAfterState != null ? startAfterState : new ServerState());
   }
 
   /** {@inheritDoc} */
@@ -93,9 +94,8 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
       final Entry<DN, ServerState> entry = iter.next();
       final DN baseDN = entry.getKey();
       final ServerState serverState = entry.getValue();
-      // the check in addDomain() is only a fast path: an announcement racing an incorporation of
-      // the same domain can still queue it a second time, so incorporation itself must ignore
-      // domains this cursor already iterates over
+      // discard the announcement of a domain this cursor already iterates over: this is the only
+      // thread adding to and removing from incorporatedDomains, so the check cannot race them
       if (!incorporatedDomains.contains(baseDN))
       {
         final DBCursor<UpdateMsg> domainDBCursor = domainDB.getCursorFrom(baseDN, serverState, options);

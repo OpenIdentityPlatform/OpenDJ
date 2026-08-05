@@ -476,6 +476,10 @@ public class FileChangelogDBTest extends ReplicationTestCase
    * cursors comparing equal - or deliver every change twice, which kills the
    * {@code ChangeNumberIndexer} thread with the {@code IllegalStateException} its cookie update
    * throws on a replayed change.
+   * <p>
+   * This covers the drop path only: the {@code removeDomain()} path never re-announces a domain
+   * to a cursor which still holds it - the cursor drops the domain, through
+   * {@code indexer.clear()}, before the domain is unmapped.
    */
   @Test
   public void announcingADomainTwiceToALiveCursorMustNotOpenASecondDomainCursor() throws Exception

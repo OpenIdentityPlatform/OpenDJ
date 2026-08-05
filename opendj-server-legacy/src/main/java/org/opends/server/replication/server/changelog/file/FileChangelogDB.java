@@ -320,8 +320,8 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
         // so this equality based remove provably drops this domainMap and no other.
         // Unlike removeDomain(), this path clears no ChangeNumberIndexer state, and a later
         // creation broadcasts addDomain() anew to multi domain cursors which already incorporated
-        // the domain: that second announcement is a no-op, MultiDomainDBCursor.addDomain()
-        // ignores domains its cursor already iterates over.
+        // the domain: MultiDomainDBCursor discards such an announcement when it incorporates new
+        // cursors, so no second cursor is opened over the domain.
         if (domainMap.isEmpty())
         {
           domainToReplicaDBs.remove(baseDN, domainMap);
@@ -454,12 +454,16 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       final ConcurrentMap<Integer, FileReplicaDB> domainMap = entry.getValue();
       synchronized (domainMap)
       {
-        // Follow the removal protocol documented on domainToReplicaDBs: unmap the domainMap under
-        // its own monitor, and only while it is still the mapped value. An iterator based remove
-        // is unconditional by key and would drop whatever map is under the baseDN when it runs,
-        // e.g. the fresh map of a creation which started after the shutdown flag was flipped -
-        // that creation observes the flag and cleans its own map up instead.
-        domainToReplicaDBs.remove(entry.getKey(), domainMap);
+        // Follow the removal protocol documented on domainToReplicaDBs: unmap only the domainMap
+        // instance the monitor was taken on. The check is identity based, like removeDomain()'s:
+        // an equality based remove could still drop a map whose monitor is not held, since two
+        // empty maps are equal and removeDomain() plus a fresh creation may have swapped one for
+        // another since this iterator read its entry. Replica DBs another remover already visited
+        // are shut down again below, which is harmless: shutdown is a no-op the second time.
+        if (domainToReplicaDBs.get(entry.getKey()) == domainMap)
+        {
+          domainToReplicaDBs.remove(entry.getKey());
+        }
         for (FileReplicaDB replicaDB : domainMap.values())
         {
           replicaDB.shutdown();
