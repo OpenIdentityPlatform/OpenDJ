@@ -12,10 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.DN;
@@ -45,6 +48,8 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
   private MultiDomainDBCursor multiDomainCursor;
   private ECLMultiDomainDBCursor eclCursor;
   private final Set<DN> eclEnabledDomains = new HashSet<>();
+  /** The long-lived cursor of each domain announced to {@link #multiDomainCursor}. */
+  private final Map<DN, SequentialDBCursor> domainCursors = new HashMap<>();
   private ECLEnabledDomainPredicate predicate = new ECLEnabledDomainPredicate()
   {
     @Override
@@ -61,6 +66,9 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
     options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
     multiDomainCursor = new MultiDomainDBCursor(domainDB, options);
     eclCursor = new ECLMultiDomainDBCursor(predicate, multiDomainCursor);
+    // one test class instance runs all the methods: the domains announced to the previous
+    // method's multiDomainCursor must not be mistaken for domains this one iterates over
+    domainCursors.clear();
   }
 
   @AfterMethod
@@ -185,6 +193,18 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
 
   private void addDomainCursorToCursor(DN baseDN, SequentialDBCursor cursor) throws ChangelogException
   {
+    final SequentialDBCursor existing = domainCursors.get(baseDN);
+    if (existing != null)
+    {
+      // already known to the cursor: its long-lived per-domain cursor receives the new changes,
+      // exactly as DomainDBCursor.addReplicaDB() does in production
+      for (UpdateMsg msg : cursor.drain())
+      {
+        existing.add(msg);
+      }
+      return;
+    }
+    domainCursors.put(baseDN, cursor);
     final ServerState state = new ServerState();
     when(domainDB.getCursorFrom(baseDN, state, options)).thenReturn(cursor);
     multiDomainCursor.addDomain(baseDN, state);

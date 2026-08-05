@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -346,7 +347,7 @@ public class PasswordStorageSchemeConfigManager
       PasswordStorageSchemeCfgDefn definition = PasswordStorageSchemeCfgDefn.getInstance();
       propertyDefinition = definition.getJavaClassPropertyDefinition();
       schemeClass = propertyDefinition.loadClass(className, PasswordStorageScheme.class);
-      PasswordStorageScheme<T> passwordStorageScheme = schemeClass.newInstance();
+      PasswordStorageScheme<T> passwordStorageScheme = schemeClass.getDeclaredConstructor().newInstance();
 
       if (initialize)
       {

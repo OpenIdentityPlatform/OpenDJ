@@ -14,7 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2013 Manuel Gaupp
- * Portions Copyright 2018-2025 3A Systems, LLC
+ * Portions Copyright 2018-2026 3A Systems, LLC
  */
 package org.opends.server;
 
@@ -51,6 +51,7 @@ import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.net.BindException;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -68,6 +69,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.LogManager;
@@ -119,6 +121,7 @@ import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFReader;
+import org.opends.server.util.TestTimer;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
@@ -327,6 +330,7 @@ public final class TestCaseUtils {
       setupLoggers();
       writeBuildInfoFile();
       server.start();
+      waitForLdapListener();
       assertTrue(InvocationCounterPlugin.startupCalled());
       // Save config.ldif for when we restart the server
       backupServerConfigLdif();
@@ -607,6 +611,7 @@ public final class TestCaseUtils {
       restoreServerConfigLdif();
 
       server.start();
+      waitForLdapListener();
 
       clearJEBackends();
       initializeTestBackend(true);
@@ -623,6 +628,38 @@ public final class TestCaseUtils {
       e.printStackTrace(originalSystemErr);
       throw e;
     }
+  }
+
+  /**
+   * Waits until the LDAP connection handler actually accepts TCP connections.
+   * {@code LDAPConnectionHandler.start()} may return before the listen
+   * channel is bound (e.g. after an early wakeup of its wait-for-listen
+   * handshake), so the very first connection made right after a server
+   * (re)start could otherwise be refused.
+   */
+  private static void waitForLdapListener() throws Exception
+  {
+    new TestTimer.Builder()
+        .maxSleep(10, TimeUnit.SECONDS)
+        .sleepTimes(100, TimeUnit.MILLISECONDS)
+        .toTimer()
+        .repeatUntilSuccess(new TestTimer.CallableVoid()
+        {
+          @Override
+          public void call() throws Exception
+          {
+            try (Socket s = new Socket())
+            {
+              s.connect(new InetSocketAddress("127.0.0.1", getServerLdapPort()), 500);
+            }
+            catch (IOException e)
+            {
+              // repeatUntilSuccess() only retries on assertion errors.
+              throw new AssertionError("LDAP port " + getServerLdapPort()
+                  + " is not accepting connections yet", e);
+            }
+          }
+        });
   }
 
   /**
@@ -796,13 +833,70 @@ public final class TestCaseUtils {
         sockets[i] = bindFreePort();
         ports[i] = sockets[i].getLocalPort();
       }
-      close(sockets);
       return ports;
     }
     finally
     {
-      
+      // Close them all, including when an allocation failed halfway: a socket which stays bound
+      // holds its port in listen state, and bindFreePort() hands out each number only once.
+      close(sockets);
     }
+  }
+
+  /**
+   * Asserts that the given local port accepts connections right now, without any retry loop.
+   * <p>
+   * Intended for connection handler tests: a handler start method must not return before its listen
+   * port is open. When the port is closed this method tells the two possible causes apart, because a
+   * plain connection failure cannot distinguish them: the handler may never have managed to bind at
+   * all, or its start method may have returned too early.
+   *
+   * @param port
+   *          the port the connection handler under test is supposed to be listening on
+   * @throws IOException
+   *           if the connection fails for a reason other than the port being closed
+   */
+  public static void assertPortIsAcceptingConnections(int port) throws IOException
+  {
+    try
+    {
+      connectTo(port);
+    }
+    catch (ConnectException e)
+    {
+      // Give the handler thread the extra time it should not have needed. If the port opens now, the
+      // handler can bind and the start method simply returned too early, which is the regression this
+      // check is about. If it never opens, the test failed for an unrelated reason.
+      assertTrue(waitForPortToOpen(port), "the connection handler never opened port " + port);
+      fail("the connection handler start method returned before port " + port + " was open");
+    }
+  }
+
+  private static void connectTo(int port) throws IOException
+  {
+    try (Socket socket = new Socket())
+    {
+      socket.connect(new InetSocketAddress("127.0.0.1", port), 1000);
+    }
+  }
+
+  private static boolean waitForPortToOpen(int port)
+  {
+    final long deadline = System.currentTimeMillis() + 10000;
+    do
+    {
+      try
+      {
+        connectTo(port);
+        return true;
+      }
+      catch (IOException ignored)
+      {
+        sleep(100);
+      }
+    }
+    while (System.currentTimeMillis() < deadline);
+    return false;
   }
 
   /**

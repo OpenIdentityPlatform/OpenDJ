@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
@@ -61,9 +62,9 @@ public final class SetupServer {
         final String serverRootDir = args[i++];
         final String baseDn = (args.length > i) ? args[i++] : "o=example";
         final String backendType = (args.length > i) ? args[i++] : "pdb";
-        final int ldapPort = (args.length > i) ? Integer.parseInt(args[i++]) : 1500;
-        final int adminPort = (args.length > i) ? Integer.parseInt(args[i++]) : 4500;
-        final int jmxPort = (args.length > i) ? Integer.parseInt(args[i++]) : 1600;
+        final int ldapPort = (args.length > i) ? parsePort(args[i++]) : 1500;
+        final int adminPort = (args.length > i) ? parsePort(args[i++]) : 4500;
+        final int jmxPort = (args.length > i) ? parsePort(args[i++]) : 1600;
 
         performSetup(openDJArchive, serverRootDir, baseDn, backendType, ldapPort, adminPort, jmxPort);
     }
@@ -92,6 +93,22 @@ public final class SetupServer {
                     .baseDn(baseDn)
                     .backendType(backendType)
                     .jmxPort(jmxPort));
+    }
+
+    /**
+     * Returns the port number held by the provided command line argument.
+     * <p>
+     * Like the other command line argument checks of this example, a value which is not a port
+     * number is reported on standard error and stops the example.
+     */
+    private static int parsePort(final String arg) {
+        try {
+            return Integer.parseInt(arg);
+        } catch (final NumberFormatException e) {
+            System.err.println("Invalid port number: " + arg);
+            System.exit(1);
+            return -1; // Never reached: System.exit() does not return.
+        }
     }
 
     private SetupServer() {

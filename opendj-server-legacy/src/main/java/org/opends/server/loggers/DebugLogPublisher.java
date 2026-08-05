@@ -13,13 +13,13 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.server.config.server.DebugLogPublisherCfg;
@@ -42,20 +42,30 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
   /** The default global settings key. */
   private static final String GLOBAL= "_global";
 
-  /** The map of class names to their trace settings. */
-  private Map<String,TraceSettings> classTraceSettings;
+  /**
+   * The map of class names to their trace settings.
+   * <p>
+   * The getters below read this map without any lock, so it is concurrent and
+   * created eagerly, which makes it safely published to every reader. Updates
+   * rely on the atomic operations of the map rather than on locking.
+   */
+  private final Map<String,TraceSettings> classTraceSettings = new ConcurrentHashMap<>();
 
-  /** The map of class names to their method trace settings. */
-  private Map<String,Map<String,TraceSettings>> methodTraceSettings;
+  /**
+   * The map of class names to their method trace settings.
+   * <p>
+   * Concurrent for the same reason as {@link #classTraceSettings}. The nested maps
+   * are concurrent as well: {@link DebugTracer} keeps the one returned by
+   * {@link #getMethodSettings(String)} and iterates it while another thread may be
+   * reconfiguring the publisher.
+   */
+  private final Map<String,Map<String,TraceSettings>> methodTraceSettings = new ConcurrentHashMap<>();
 
 
 
   /** Construct a default configuration where the global scope will only log at the ERROR level. */
   protected DebugLogPublisher()
   {
-    classTraceSettings = null;
-    methodTraceSettings = null;
-
     //Set the global settings so that nothing is logged.
     addTraceSettings(null, TraceSettings.DISABLED);
   }
@@ -80,13 +90,13 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    * @param  className  The fully-qualified name of the class for
    *                    which to get the trace levels.
    *
-   *@return  An unmodifiable map of trace levels keyed by method name,
-   *         or {@code null} if no method-level tracing is configured
-   *         for the scope.
+   *@return  A live, concurrent map of trace levels keyed by method
+   *         name, or {@code null} if no method-level tracing is
+   *         configured for the scope.
    */
   final Map<String, TraceSettings> getMethodSettings(String className)
   {
-    return methodTraceSettings != null ? methodTraceSettings.get(className) : null;
+    return methodTraceSettings.get(className);
   }
 
   /**
@@ -99,36 +109,32 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    */
   final TraceSettings getClassSettings(String className)
   {
-    TraceSettings settings = null;
-    if (classTraceSettings != null)
+    // Find most specific trace setting
+    // which covers this fully qualified class name
+    // Search up the hierarchy for a match.
+    String searchName = className;
+    TraceSettings settings = classTraceSettings.get(searchName);
+    while (settings == null && searchName != null)
     {
-      // Find most specific trace setting
-      // which covers this fully qualified class name
-      // Search up the hierarchy for a match.
-      String searchName = className;
-      settings = classTraceSettings.get(searchName);
-      while (settings == null && searchName != null)
+      int clipPoint = searchName.lastIndexOf('$');
+      if (clipPoint == -1)
       {
-        int clipPoint = searchName.lastIndexOf('$');
-        if (clipPoint == -1)
-        {
-          clipPoint = searchName.lastIndexOf('.');
-        }
-        if (clipPoint != -1)
-        {
-          searchName = searchName.substring(0, clipPoint);
-          settings = classTraceSettings.get(searchName);
-        }
-        else
-        {
-          searchName = null;
-        }
+        clipPoint = searchName.lastIndexOf('.');
       }
-      // Try global settings
-      // only if no specific target is defined
-      if (settings == null && classTraceSettings.size()==1) {
-        settings = classTraceSettings.get(GLOBAL);
+      if (clipPoint != -1)
+      {
+        searchName = searchName.substring(0, clipPoint);
+        settings = classTraceSettings.get(searchName);
       }
+      else
+      {
+        searchName = null;
+      }
+    }
+    // Try global settings
+    // only if no specific target is defined
+    if (settings == null && classTraceSettings.size()==1) {
+      settings = classTraceSettings.get(GLOBAL);
     }
     return settings == null ? TraceSettings.DISABLED : settings;
   }
@@ -146,6 +152,10 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    *                   {@code null} to set the trace settings for the
    *                   global scope.
    * @param  settings  The trace settings for the specified scope.
+   *                   Must not be {@code null}.
+   * @throws NullPointerException  If {@code settings} is {@code null}: the trace
+   *                   settings are held in concurrent maps, which do not accept
+   *                   null values.
    */
   public final void addTraceSettings(String scope, TraceSettings settings)
   {
@@ -182,21 +192,14 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
     {
       String methodName = scope.substring(methodPt + 1);
       scope = scope.substring(0, methodPt);
-      if (methodTraceSettings != null)
+      Map<String, TraceSettings> methodLevels = methodTraceSettings.get(scope);
+      if (methodLevels != null)
       {
-        Map<String, TraceSettings> methodLevels =
-            methodTraceSettings.get(scope);
-        if (methodLevels != null)
-        {
-          return methodLevels.containsKey(methodName);
-        }
+        return methodLevels.containsKey(methodName);
       }
+      return false;
     }
-    else if (classTraceSettings != null)
-    {
-      return classTraceSettings.containsKey(scope);
-    }
-    return false;
+    return classTraceSettings.containsKey(scope);
   }
 
 
@@ -215,41 +218,27 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    */
   final TraceSettings removeTraceSettings(String scope)
   {
-    TraceSettings removedSettings = null;
     if (scope == null) {
-      if(classTraceSettings != null)
+      return classTraceSettings.remove(GLOBAL);
+    }
+    int methodPt= scope.lastIndexOf('#');
+    if (methodPt == -1) {
+      return classTraceSettings.remove(scope);
+    }
+    final String methodName= scope.substring(methodPt+1);
+    // Drop the enclosing map once its last method setting is gone. This must be
+    // atomic with respect to setMethodSettings(), which computes on the same key,
+    // otherwise a concurrently added setting could be discarded along with the map.
+    final TraceSettings[] removedSettings = new TraceSettings[1];
+    methodTraceSettings.compute(scope.substring(0, methodPt), (className, methodLevels) -> {
+      if (methodLevels == null)
       {
-        removedSettings =  classTraceSettings.remove(GLOBAL);
+        return null;
       }
-    }
-    else {
-      int methodPt= scope.lastIndexOf('#');
-      if (methodPt != -1) {
-        String methodName= scope.substring(methodPt+1);
-        scope= scope.substring(0, methodPt);
-        if(methodTraceSettings != null)
-        {
-          Map<String, TraceSettings> methodLevels =
-              methodTraceSettings.get(scope);
-          if(methodLevels != null)
-          {
-            removedSettings = methodLevels.remove(methodName);
-            if(methodLevels.isEmpty())
-            {
-              methodTraceSettings.remove(scope);
-            }
-          }
-        }
-      }
-      else {
-        if(classTraceSettings != null)
-        {
-          removedSettings =  classTraceSettings.remove(scope);
-        }
-      }
-    }
-
-    return removedSettings;
+      removedSettings[0] = methodLevels.remove(methodName);
+      return methodLevels.isEmpty() ? null : methodLevels;
+    });
+    return removedSettings[0];
   }
 
   /**
@@ -258,12 +247,8 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    * @param  className  The class name.
    * @param  settings   The trace settings for the class.
    */
-  private final synchronized void setClassSettings(String className, TraceSettings settings)
+  private void setClassSettings(String className, TraceSettings settings)
   {
-    if (classTraceSettings == null)
-    {
-      classTraceSettings = new HashMap<>();
-    }
     classTraceSettings.put(className, settings);
   }
 
@@ -276,19 +261,14 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    * @param  methodName  The method name.
    * @param  settings    The trace settings for the method.
    */
-  private final synchronized void setMethodSettings(String className,
-      String methodName, TraceSettings settings)
+  private void setMethodSettings(String className, String methodName, TraceSettings settings)
   {
-    if (methodTraceSettings == null) {
-      methodTraceSettings = new HashMap<>();
-    }
-    Map<String, TraceSettings> methodLevels = methodTraceSettings.get(className);
-    if (methodLevels == null)
-    {
-      methodLevels = new TreeMap<>();
-      methodTraceSettings.put(className, methodLevels);
-    }
-    methodLevels.put(methodName, settings);
+    // Create the enclosing map and add the setting atomically, see removeTraceSettings().
+    methodTraceSettings.compute(className, (name, methodLevels) -> {
+      Map<String, TraceSettings> levels = methodLevels != null ? methodLevels : new ConcurrentHashMap<>();
+      levels.put(methodName, settings);
+      return levels;
+    });
   }
 
 

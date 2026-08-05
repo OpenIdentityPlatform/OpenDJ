@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends;
 
@@ -279,25 +280,13 @@ public class LDIFBackend
       throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), m);
     }
 
-    if (tempFile.exists())
-    {
-      // Rename the existing "live" file out of the way and move the new file
-      // into place.
-      try
-      {
-        oldFile.delete();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-    }
-
+    // Rename the existing "live" file out of the way and move the new file into place.
+    // renameFile() deletes an existing ".old" file and reports a failure to do so.
     try
     {
       if (ldifFile.exists())
       {
-        ldifFile.renameTo(oldFile);
+        renameFile(ldifFile, oldFile);
       }
     }
     catch (Exception e)
@@ -307,7 +296,7 @@ public class LDIFBackend
 
     try
     {
-      tempFile.renameTo(ldifFile);
+      renameFile(tempFile, ldifFile);
     }
     catch (Exception e)
     {
@@ -366,12 +355,7 @@ public class LDIFBackend
 
     try
     {
-      if (entryMap != null)
-      {
-        return entryMap.size();
-      }
-
-      return -1;
+      return entryMap.size();
     }
     finally
     {

@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.api;
 
@@ -29,8 +30,13 @@ public interface ChangelogDB
    * Initializes the replication database by reading its previous state and
    * building the relevant ReplicaDBs according to the previous state. This
    * method must be called once before using the ChangelogDB.
+   *
+   * @throws ChangelogException
+   *           If the previous state could not be read. The database is then
+   *           unusable, possibly half open, and the caller must release it by
+   *           calling {@link #shutdownDB()}.
    */
-  void initializeDB();
+  void initializeDB() throws ChangelogException;
 
   /**
    * Sets the purge delay for the replication database. Can be called while the

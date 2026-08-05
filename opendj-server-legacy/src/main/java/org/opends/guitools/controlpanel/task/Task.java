@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -816,6 +817,9 @@ public abstract class Task
         break;
       case DELETE:
         sb.append("delete: ").append(attrDesc).append("<br>");
+        break;
+      default:
+        // No action needed for the remaining values.
         break;
       }
 

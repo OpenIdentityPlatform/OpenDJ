@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -571,15 +572,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
   {
     if (OBJECTCLASS_ATTRIBUTE_TYPE_NAME.equalsIgnoreCase(attr))
     {
-      int nOcs = 0;
-      for (ByteString v : values)
-      {
-        if (!"top".equals(v))
-        {
-          nOcs++;
-        }
-      }
-      return nOcs > 1 ? GridBagConstraints.NORTHWEST : GridBagConstraints.WEST;
+      return countObjectClassesBesidesTop(values) > 1 ? GridBagConstraints.NORTHWEST : GridBagConstraints.WEST;
     }
     else if (isSingleValue(attr))
     {
@@ -593,6 +586,26 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     {
       return GridBagConstraints.NORTHWEST;
     }
+  }
+
+  /**
+   * Returns the number of object classes of an entry, not counting {@code top}.
+   *
+   * @param values the values of the object class attribute of the entry.
+   * @return the number of object classes, not counting {@code top}.
+   */
+  static int countObjectClassesBesidesTop(List<ByteString> values)
+  {
+    int nOcs = 0;
+    for (ByteString v : values)
+    {
+      // Object class values are case insensitive.
+      if (!OC_TOP.equalsIgnoreCase(v.toString()))
+      {
+        nOcs++;
+      }
+    }
+    return nOcs;
   }
 
   private int anchor1(List<ByteString> values)
@@ -693,7 +706,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
     // Handle the root entry separately: most of its attributes are operational
     // so we filter a list of hardcoded attributes.
-    boolean isRootEntry = "".equals(sr.getName());
+    boolean isRootEntry = sr.getName().isRootDN();
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (isRootEntry)
     {
@@ -984,7 +997,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
       else if (isConfirmPassword(attrName) || isPassword(attrName))
       {
         JPasswordField pf = Utilities.createPasswordField();
-        if (!"".equals(v))
+        if (!v.isEmpty())
         {
           pf.setText(getPasswordStringValue(getAttributeForConfirmPasswordKey(attrName), v));
         }

@@ -13,15 +13,19 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 #include "common.h"
 #include "service.h"
+#include <direct.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <io.h>
+#include <share.h>
 #include <stdio.h>
 #include <sys/locking.h>
+#include <sys/stat.h>
 #include <time.h>
 
 BOOL DEBUG = TRUE;
@@ -112,7 +116,7 @@ PROCESS_INFORMATION* procInfo)
     debug("createBatchFileChildProcess: the batch file path is too long.");
 	return FALSE;
   }
-  sprintf(command, "/c %s", batchFile);
+  _snprintf(command, COMMAND_SIZE, "/c %s", batchFile);
   debug("createBatchFileChildProcess: Attempting to create child process '%s' background=%d.",
 	  command,
       background);
@@ -258,8 +262,9 @@ void debugInner(BOOL isError, const char *msg, va_list ap)
   // The file containing the log.
   char * logFile;
   FILE *fp;
+  int fd;
 	time_t rawtime;
-  struct tm * timeinfo;
+  struct tm timeinfo;
   char formattedTime[100];
   
   if (noMessageLogged)
@@ -272,12 +277,28 @@ void debugInner(BOOL isError, const char *msg, va_list ap)
 
   // Time-stamp
   time(&rawtime);
-  timeinfo = localtime(&rawtime);
-  strftime(formattedTime, 100, "%Y/%m/%d %H:%M:%S", timeinfo);
+  localtime_s(&timeinfo, &rawtime);
+  strftime(formattedTime, 100, "%Y/%m/%d %H:%M:%S", &timeinfo);
   
   logFile = getDebugLogFileName();
   deleteIfLargerThan(logFile, MAX_DEBUG_LOG_SIZE);
-  if ((fp = fopen(logFile, "a")) != NULL)
+  // The CodeQL query cpp/world-writable-file-creation models POSIX creation
+  // modes, which do not exist on Windows: the file's ACL is inherited from
+  // the parent directory regardless of the pmode argument.  Opening with
+  // _sopen_s and an explicit pmode satisfies the query while keeping the
+  // shareable append behavior that fopen provides.
+  fp = NULL;
+  fd = -1;
+  if ((_sopen_s(&fd, logFile, _O_WRONLY | _O_APPEND | _O_CREAT | _O_TEXT,
+      _SH_DENYNO, _S_IREAD | _S_IWRITE) == 0) && (fd != -1))
+  {
+    fp = _fdopen(fd, "a");
+    if (fp == NULL)
+    {
+      _close(fd);
+    }
+  }
+  if (fp != NULL)
   {
     fprintf(fp, "%s: (pid=%d)  ", formattedTime, currentProcessPid);
     if (isError) 
@@ -310,16 +331,13 @@ char * getDebugLogFileName()
   char execName [MAX_PATH];
   char * lastSlash;
   char logpath[MAX_PATH];
-  char * temp;  
-  FILE *file; 
 
-  if (logFile != NULL) 
+  if (logFile != NULL)
   {
     return logFile;
   }
-  temp = getenv("TEMP");
-  
-  // Get the name of the executable.  
+
+  // Get the name of the executable.
   GetModuleFileName (
     NULL,
     execName,
@@ -339,18 +357,36 @@ char * getDebugLogFileName()
   strcpy(logpath, execName); 
   strcat(logpath, "\\logs\\"); 
   
-  // If the log folder doesn's exist in the instance path
+  // If the log folder doesn't exist in the instance path
   // we create the log file in the temp directory.
-  if (isExistingDirectory(logpath)) 
+  if (isExistingDirectory(logpath))
   {
-    sprintf(path, "%s\\logs\\%s", execName, DEBUG_LOG_NAME);
-  } else {
-    strcat(temp, "\\logs\\");
-    mkdir(temp);
-    strcat(temp, DEBUG_LOG_NAME);
-    file = fopen(temp,"a+");
-    fclose(file);
-    sprintf(path, "%s", temp);
+    _snprintf(path, MAX_PATH, "%s\\logs\\%s", execName, DEBUG_LOG_NAME);
+    path[MAX_PATH - 1] = '\0';
+  }
+  else
+  {
+    // Fall back to the OS temp directory.  Use GetTempPath (a trusted OS API
+    // that resolves the TMP/TEMP/USERPROFILE locations) rather than
+    // getenv("TEMP"), whose buffer must not be extended in place.
+    char tempDir[MAX_PATH];
+    DWORD tempLen = GetTempPath(MAX_PATH, tempDir);
+    if ((tempLen > 0) && (tempLen < MAX_PATH))
+    {
+      // GetTempPath returns a path that already ends with a backslash.
+      char tempLogDir[MAX_PATH];
+      _snprintf(tempLogDir, MAX_PATH, "%slogs\\", tempDir);
+      tempLogDir[MAX_PATH - 1] = '\0';
+      _mkdir(tempLogDir);
+      _snprintf(path, MAX_PATH, "%s%s", tempLogDir, DEBUG_LOG_NAME);
+      path[MAX_PATH - 1] = '\0';
+    }
+    else
+    {
+      // Could not determine a temp directory: fall back to the log file name.
+      _snprintf(path, MAX_PATH, "%s", DEBUG_LOG_NAME);
+      path[MAX_PATH - 1] = '\0';
+    }
   }
 
   logFile = _strdup(path);
@@ -415,6 +451,60 @@ BOOL isExistingDirectory(char * fileName)
 {
   DWORD str = GetFileAttributes(fileName);
 
-  return (str != INVALID_FILE_ATTRIBUTES && 
+  return (str != INVALID_FILE_ATTRIBUTES &&
          (str & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+// ---------------------------------------------------------------
+// See common.h for the contract of this function.
+// ---------------------------------------------------------------
+BOOL isSafePath(const char* path)
+{
+  return (path != NULL) && (strstr(path, "..") == NULL);
+}
+
+// ---------------------------------------------------------------
+// See common.h for the contract of this function.
+// ---------------------------------------------------------------
+char* getCanonicalDirectoryPath(const char* path)
+{
+  char canonical[MAX_PATH];
+  DWORD length;
+
+  if (path == NULL)
+  {
+    return NULL;
+  }
+
+  // "C:" is drive-relative: it would resolve to the current directory on
+  // that drive rather than to its root.
+  if ((strlen(path) == 2) && (path[1] == ':'))
+  {
+    debugError("The path '%s' is drive-relative.", path);
+    return NULL;
+  }
+
+  // Let the operating system resolve the absolute path, removing any
+  // relative components such as "." and "..".
+  length = GetFullPathName(path, MAX_PATH, canonical, NULL);
+  if (length == 0)
+  {
+    debugError("Could not resolve the path '%s'.  Last error = %d.",
+        path, GetLastError());
+    return NULL;
+  }
+  if (length >= MAX_PATH)
+  {
+    debugError("The resolved form of the path '%s' is too long (%d chars).",
+        path, length);
+    return NULL;
+  }
+
+  if (!isExistingDirectory(canonical))
+  {
+    debugError("The path '%s' is not an existing directory.", canonical);
+    return NULL;
+  }
+
+  return _strdup(canonical);
 }

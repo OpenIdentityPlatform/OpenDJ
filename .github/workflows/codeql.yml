@@ -102,7 +102,7 @@ jobs:
       # --- C/C++ manual build (Windows native executables) -----------------
       - name: Setup MSVC Developer Command Prompt (x86)
         if: matrix.language == 'c-cpp'
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
         env:
           # Opt in to Node.js 24 for this action, which still ships on Node.js 20.
           # See https://github.com/ilammy/msvc-dev-cmd/issues/99

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.installer;
 
@@ -550,6 +551,9 @@ public class Installer extends GuiApplication
       case IMPORT_AUTOMATICALLY_GENERATED_DATA:
         steps.add(InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED);
         break;
+      default:
+        // No action needed for the remaining values.
+        break;
       }
     }
 
@@ -591,7 +595,7 @@ public class Installer extends GuiApplication
     int cumulatedTime = 0;
     for (InstallProgressStep s : steps)
     {
-      Integer statusTime = s.getRelativeDuration();
+      int statusTime = s.getRelativeDuration();
       hmRatio.put(s, (100 * cumulatedTime) / totalTime);
       cumulatedTime += statusTime;
     }
@@ -928,6 +932,9 @@ public class Installer extends GuiApplication
         return new ProgressPanel(this);
       case FINISHED:
         return new FinishedPanel(this);
+      default:
+        // No action needed for the remaining values.
+        break;
       }
     }
     return null;
@@ -2676,7 +2683,7 @@ public class Installer extends GuiApplication
             {
               throw new ApplicationException(ReturnCode.APPLICATION_ERROR, pnfe.getMessageObject(), null);
             }
-            StaticUtils.sleep((5 - nTries) * 3000);
+            StaticUtils.sleep((5 - nTries) * 3000L);
           }
           nTries--;
         }
@@ -3319,7 +3326,7 @@ public class Installer extends GuiApplication
 
       if (errorMsgs.isEmpty())
       {
-        port = Integer.parseInt(sPort);
+        port = Utils.parseIntOrDefault(sPort, -1);
         // Try to connect
         boolean[] globalAdmin = { hasGlobalAdministrators };
         DN[] effectiveDn = { dn };
@@ -3357,7 +3364,7 @@ public class Installer extends GuiApplication
     if (errorMsgs.isEmpty())
     {
       AuthenticationData auth = new AuthenticationData();
-      auth.setHostPort(new HostPort("".equals(host) ? null : host, port != null ? port : 0));
+      auth.setHostPort(new HostPort(host.isEmpty() ? null : host, port != null ? port : 0));
       auth.setDn(dn);
       auth.setPwd(pwd);
       auth.setUseSecureConnection(true);
@@ -3872,7 +3879,7 @@ public class Installer extends GuiApplication
     boolean fieldIsValid = true;
     final List<LocalizableMessage> localErrorMsgs = new LinkedList<>();
     final String nEntries = ui.getFieldStringValue(FieldName.NUMBER_ENTRIES);
-    if (nEntries == null || "".equals(nEntries.trim()))
+    if (nEntries == null || nEntries.trim().isEmpty())
     {
       localErrorMsgs.add(INFO_NO_NUMBER_ENTRIES.get());
       fieldIsValid = false;
@@ -3900,7 +3907,7 @@ public class Installer extends GuiApplication
     ui.displayFieldInvalid(FieldName.NUMBER_ENTRIES, !fieldIsValid);
     if (validBaseDn && localErrorMsgs.isEmpty())
     {
-      return NewSuffixOptions.createAutomaticallyGenerated(baseDn, Integer.parseInt(nEntries));
+      return NewSuffixOptions.createAutomaticallyGenerated(baseDn, Utils.parseIntOrDefault(nEntries, 0));
     }
     errorMsgs.addAll(localErrorMsgs);
 

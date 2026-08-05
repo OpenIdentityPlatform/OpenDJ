@@ -130,7 +130,7 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
        */
       if (msgQueue.isEmpty())
       {
-        msgQueue.notify();
+        msgQueue.notifyAll();
       }
 
       msgQueue.add(update);
@@ -644,7 +644,6 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     synchronized (msgQueue)
     {
       msgQueue.clear();
-      msgQueue.notify();
       msgQueue.notifyAll();
     }
 

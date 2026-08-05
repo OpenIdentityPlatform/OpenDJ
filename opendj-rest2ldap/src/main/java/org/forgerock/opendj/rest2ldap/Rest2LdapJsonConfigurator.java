@@ -318,8 +318,7 @@ public final class Rest2LdapJsonConfigurator {
             return configureCollectionSubResource(
                 config, resourceId, urlTemplate, dnTemplate, isReadOnly);
         } else {
-            return configureSingletonSubResource(
-                config, resourceId, urlTemplate, dnTemplate, isReadOnly);
+            return configureSingletonSubResource(resourceId, urlTemplate, dnTemplate, isReadOnly);
         }
     }
 
@@ -372,8 +371,7 @@ public final class Rest2LdapJsonConfigurator {
         }
     }
 
-    private static SubResource configureSingletonSubResource(final JsonValue config,
-                                                             final String resourceId,
+    private static SubResource configureSingletonSubResource(final String resourceId,
                                                              final String urlTemplate,
                                                              final String dnTemplate,
                                                              final Boolean isReadOnly) {

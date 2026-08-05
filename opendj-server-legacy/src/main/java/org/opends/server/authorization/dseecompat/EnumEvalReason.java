@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -28,36 +29,30 @@ public enum EnumEvalReason {
   /**
    * There are aren't any allow ACIs.
    */
-  NO_ALLOW_ACIS(0),
+  NO_ALLOW_ACIS,
 
   /**
    * An deny ACI either evaluated to FAIL or to TRUE.
    */
-  EVALUATED_DENY_ACI(1),
+  EVALUATED_DENY_ACI,
 
   /**
    * An allow  evaluated to true.
    */
-  EVALUATED_ALLOW_ACI(2),
+  EVALUATED_ALLOW_ACI,
 
   /**
    * None of the allow and deny ACIs evaluated to true.
    */
-  NO_MATCHED_ALLOWS_ACIS(3),
+  NO_MATCHED_ALLOWS_ACIS,
 
   /**
    * No specific reason could be determined.
    */
-  NO_REASON(4),
+  NO_REASON,
 
   /**
    * The authorization DN has bypass-acl privileges.
    */
-  SKIP_ACI(5);
-
-  /**
-   * Create a new enumeration type for the specified result value.
-   * @param v The value of the result.
-   */
-  EnumEvalReason(int v) {}
+  SKIP_ACI;
 }

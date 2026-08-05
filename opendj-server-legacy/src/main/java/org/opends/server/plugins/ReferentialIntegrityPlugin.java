@@ -550,7 +550,7 @@ public class ReferentialIntegrityPlugin
    * entries under it contain references to the deleted entry DN that need
    * to be removed.
    *
-   * @param entryDN  The DN of the deleted entry.
+   * @param deleteDNset  The DNs of the deleted entries.
    *
    * @param log Set to <code>true</code> if the DN should be written to a log
    *            file so that the background thread can process the change at
@@ -755,9 +755,9 @@ public class ReferentialIntegrityPlugin
 
     try
     {
-      if(!logFile.exists())
+      if(!logFile.createNewFile())
       {
-        logFile.createNewFile();
+        logger.trace("Referential integrity update log file %s already exists", logFileName);
       }
     }
     catch (IOException io)
@@ -807,7 +807,7 @@ public class ReferentialIntegrityPlugin
    * Write the specified entry DNs to the log file.
    * These entry DNs are related to a delete operation.
    *
-   * @param deletedEntryDN The DN of the deleted entry.
+   * @param deleteDNset The DNs of the deleted entries.
    */
   private void writeLog(Set<DN> deleteDNset) {
     synchronized(logFile)
@@ -865,8 +865,9 @@ public class ReferentialIntegrityPlugin
             }
           }
         }
-        logFile.delete();
-        logFile.createNewFile();
+        if (!logFile.delete() || !logFile.createNewFile()) {
+          logger.error(ERR_PLUGIN_REFERENT_CANNOT_REPLACE_LOGFILE, logFileName);
+        }
       } catch (IOException io) {
         logger.error(ERR_PLUGIN_REFERENT_REPLACE_LOGFILE, io.getMessage());
       }
