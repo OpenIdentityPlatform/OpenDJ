@@ -610,6 +610,26 @@ public final class Upgrade
     register("4.0.0", moveSubordinateBaseDnToGlobalConfiguration());
     register("4.0.0", removeTools("ldif-diff", "make-ldif", "dsjavaproperties"));
 
+    /* See issue #851: RFC 5805 LDAP transactions (#462) added these entries to the fresh-install
+     * config.ldif template only, leaving upgraded instances without them. */
+    register("4.10.0",
+        addConfigEntry(INFO_UPGRADE_TASK_ADD_TRANSACTION_EXTENDED_OPERATIONS.get(),
+            "dn: cn=Start Transaction,cn=Extended Operations,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-extended-operation-handler",
+            "objectClass: ds-cfg-start-transaction-extended-operation-handler",
+            "cn: Start Transaction",
+            "ds-cfg-java-class: org.opends.server.extensions.StartTransactionExtendedOperation",
+            "ds-cfg-enabled: true"),
+        addConfigEntry(
+            "dn: cn=End Transaction,cn=Extended Operations,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-extended-operation-handler",
+            "objectClass: ds-cfg-end-transaction-extended-operation-handler",
+            "cn: End Transaction",
+            "ds-cfg-java-class: org.opends.server.extensions.EndTransactionExtendedOperation",
+            "ds-cfg-enabled: true"));
+
     /*
      * See issue #746. Builds before #661 (fixed in 5.1.2) shipped a duplicate
      * org.openidentityplatform.opendj.opendj-server-legacy.jar alongside opendj.jar in lib/.
