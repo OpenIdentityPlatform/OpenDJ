@@ -43,13 +43,13 @@ import java.util.*;
 import static org.opends.server.backends.pluggable.spi.StorageUtils.addErrorMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
-public class Storage implements org.opends.server.backends.pluggable.spi.Storage, ConfigurationChangeListener<JDBCBackendCfg>{
+public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Storage, ConfigurationChangeListener<JDBCBackendCfg>{
 	
 	private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 	private JDBCBackendCfg config;
 
-	public Storage(JDBCBackendCfg cfg, ServerContext serverContext) {
+	public JDBCStorage(JDBCBackendCfg cfg, ServerContext serverContext) {
 		this.config = cfg;
 		cfg.addJDBCChangeListener(this);
 	}
@@ -389,8 +389,8 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 					statement.setBytes(3, value.toByteArray());
 					return (execute(statement) == 1 && statement.getUpdateCount() > 0);
 				}
-			}else if (driverName.contains("microsoft")) { //ANSI MERGE with ;
-				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " old using (select ? h,? k,? v) new on (old.h=new.h and old.k=new.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v);")) {
+			}else if (driverName.contains("microsoft")) { //ANSI MERGE with ; WITH (HOLDLOCK) makes the upsert atomic: without it SQL Server MERGE can race two concurrent NOT MATCHED inserts of the same key into a PRIMARY KEY violation. UPDLOCK is required on top of it: with HOLDLOCK alone the search phase takes a shared lock that the WHEN MATCHED update then has to convert to an exclusive one, so two concurrent upserts of the same key deadlock on the conversion; an update lock is taken right away and makes the second transaction wait instead
+				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " WITH (HOLDLOCK, UPDLOCK) old using (select ? h,? k,? v) new on (old.h=new.h and old.k=new.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v);")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
@@ -649,7 +649,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				throw new StorageRuntimeException(e);
 			}
 			if (!isOpen) {
-				Storage.this.close();
+				JDBCStorage.this.close();
 			}
 		}
 		

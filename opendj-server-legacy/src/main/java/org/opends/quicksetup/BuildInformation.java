@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup;
 
@@ -61,6 +62,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
     ProcessBuilder pb = new ProcessBuilder(args);
     InputStream is = null;
     OutputStream out = null;
+    BufferedReader reader = null;
     final boolean[] done = {false};
     try {
       Map<String, String> env = pb.environment();
@@ -100,7 +102,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
         });
         t.start();
       }
-      BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+      reader = new BufferedReader(new InputStreamReader(is));
       String line = reader.readLine();
       bi.values.put(NAME, line);
       StringBuilder sb = new StringBuilder();
@@ -154,7 +156,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
 
     } finally {
       done[0] = true;
-      StaticUtils.close(is, out);
+      StaticUtils.close(reader, is, out);
     }
 
     // Make sure we got values for important properties that are used
@@ -273,7 +275,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
    * @return String representing the major version
    */
   public Integer getMajorVersion() {
-    return Integer.valueOf(values.get(MAJOR_VERSION));
+    return getVersionNumber(MAJOR_VERSION);
   }
 
   /**
@@ -282,7 +284,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
    * @return String representing the minor version
    */
   public Integer getMinorVersion() {
-    return Integer.valueOf(values.get(MINOR_VERSION));
+    return getVersionNumber(MINOR_VERSION);
   }
 
   /**
@@ -291,7 +293,24 @@ public class BuildInformation implements Comparable<BuildInformation> {
    * @return String representing the point version
    */
   public Integer getPointVersion() {
-    return Integer.valueOf(values.get(POINT_VERSION));
+    return getVersionNumber(POINT_VERSION);
+  }
+
+  /**
+   * Returns the number held by the provided version property, or zero if the
+   * build information does not hold a number for it.
+   *
+   * @param versionProperty the name of the version property
+   * @return the number held by the property
+   */
+  private Integer getVersionNumber(String versionProperty) {
+    try {
+      return Integer.valueOf(values.get(versionProperty));
+    } catch (NumberFormatException e) {
+      // The build information does not hold a version number: treat it as unknown
+      // rather than failing the version comparison with a runtime exception.
+      return 0;
+    }
   }
 
   /**

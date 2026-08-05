@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
@@ -27,6 +28,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -149,7 +151,7 @@ public class SetupUtils
       int numEntries)
          throws IOException
   {
-    File templateFile = File.createTempFile("opendj-install", ".template");
+    File templateFile = Files.createTempFile("opendj-install", ".template").toFile();
     templateFile.deleteOnExit();
 
     LinkedList<String> lines = new LinkedList<>();

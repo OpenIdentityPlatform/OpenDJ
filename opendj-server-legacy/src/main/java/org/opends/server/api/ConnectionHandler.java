@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.api;
 
@@ -23,6 +24,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
@@ -52,6 +54,20 @@ public abstract class ConnectionHandler
 {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /**
+   * Maximum time a {@code start()} implementation waits for its handler thread
+   * to attempt to open the listen socket. The wait is bounded so that a handler
+   * thread dying before it reaches the listen code cannot hang the whole server
+   * startup.
+   * <p>
+   * {@code DirectoryServer.startConnectionHandlers()} starts the handlers one
+   * after another, so the worst case for a start is this value multiplied by
+   * the number of configured handlers. It is therefore kept far below the
+   * {@code start-ds} timeout ({@code DirectoryServer.DEFAULT_TIMEOUT}, 200
+   * seconds), which is generous for a {@code bind()}.
+   */
+  protected static final long LISTEN_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(15);
 
   /** The monitor associated with this connection handler. */
   private ConnectionHandlerMonitor monitor;

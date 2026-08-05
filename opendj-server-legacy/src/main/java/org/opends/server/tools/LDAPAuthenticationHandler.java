@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools;
 
@@ -28,6 +29,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.PrivilegedExceptionAction;
 import java.security.SecureRandom;
@@ -391,7 +393,7 @@ public class LDAPAuthenticationHandler
     case SASL_MECHANISM_EXTERNAL:
       return doSASLExternal(bindDN, saslProperties, requestControls, responseControls);
     case SASL_MECHANISM_GSSAPI:
-      return doSASLGSSAPI(bindDN, bindPassword, saslProperties, requestControls, responseControls);
+      return doSASLGSSAPI(bindDN, bindPassword, saslProperties);
     case SASL_MECHANISM_PLAIN:
       return doSASLPlain(bindDN, bindPassword, saslProperties, requestControls, responseControls);
     default:
@@ -1745,10 +1747,6 @@ public class LDAPAuthenticationHandler
    *                           to process the SASL bind.  SASL EXTERNAL does not
    *                           take any properties, so this should be empty or
    *                           <CODE>null</CODE>.
-   * @param  requestControls   The set of controls to include the request to the
-   *                           server.
-   * @param  responseControls  A list to hold the set of controls included in
-   *                           the response from the server.
    *
    * @return  A message providing additional information about the bind if
    *          appropriate, or <CODE>null</CODE> if there is no special
@@ -1762,9 +1760,7 @@ public class LDAPAuthenticationHandler
    */
   private String doSASLGSSAPI(ByteSequence bindDN,
                      ByteSequence bindPassword,
-                     Map<String,List<String>> saslProperties,
-                     List<Control> requestControls,
-                     List<Control> responseControls)
+                     Map<String,List<String>> saslProperties)
          throws ClientException, LDAPException
   {
     String kdc     = null;
@@ -1892,7 +1888,7 @@ public class LDAPAuthenticationHandler
     String configFileName;
     try
     {
-      File tempFile = File.createTempFile("login", "conf");
+      File tempFile = Files.createTempFile("login", "conf").toFile();
       configFileName = tempFile.getAbsolutePath();
       tempFile.deleteOnExit();
       try (BufferedWriter w = new BufferedWriter(new FileWriter(tempFile, false))) {

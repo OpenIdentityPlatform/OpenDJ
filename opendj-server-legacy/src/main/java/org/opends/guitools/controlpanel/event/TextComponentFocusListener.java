@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -39,7 +40,7 @@ public class TextComponentFocusListener implements FocusListener
   @Override
   public void focusGained(FocusEvent e)
   {
-    if (tf.getText() == null || "".equals(tf.getText()))
+    if (tf.getText() == null || tf.getText().isEmpty())
     {
       tf.setText(" ");
       tf.selectAll();

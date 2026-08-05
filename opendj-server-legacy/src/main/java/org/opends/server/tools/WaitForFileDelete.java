@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools;
 
@@ -287,9 +288,11 @@ public class WaitForFileDelete extends ConsoleApplication
     }
     // Figure out when to stop waiting.
     long stopWaitingTime;
+    int timeoutSeconds;
     try
     {
-      long timeoutMillis = 1000L * Integer.parseInt(timeout.getValue());
+      timeoutSeconds = Integer.parseInt(timeout.getValue());
+      long timeoutMillis = 1000L * timeoutSeconds;
       if (timeoutMillis > 0)
       {
         stopWaitingTime = System.currentTimeMillis() + timeoutMillis;
@@ -302,6 +305,7 @@ public class WaitForFileDelete extends ConsoleApplication
     catch (Exception e)
     {
       // This shouldn't happen, but if it does then ignore it.
+      timeoutSeconds = 60;
       stopWaitingTime = System.currentTimeMillis() + 60000;
     }
 
@@ -357,9 +361,7 @@ public class WaitForFileDelete extends ConsoleApplication
 
     if (targetFile.exists())
     {
-      println(ERR_TIMEOUT_DURING_STARTUP.get(
-          Integer.parseInt(timeout.getValue()),
-          timeout.getLongIdentifier()));
+      println(ERR_TIMEOUT_DURING_STARTUP.get(timeoutSeconds, timeout.getLongIdentifier()));
       return EXIT_CODE_TIMEOUT;
     }
     else

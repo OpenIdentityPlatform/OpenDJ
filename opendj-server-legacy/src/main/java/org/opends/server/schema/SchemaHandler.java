@@ -748,7 +748,7 @@ public final class SchemaHandler
     {
       final ClassPropertyDefinition propertyDef = SchemaProviderCfgDefn.getInstance().getJavaClassPropertyDefinition();
       final Class<? extends SchemaProvider> providerClass = propertyDef.loadClass(className, SchemaProvider.class);
-      final SchemaProvider<T> provider = providerClass.newInstance();
+      final SchemaProvider<T> provider = providerClass.getDeclaredConstructor().newInstance();
 
       if (initialize)
       {

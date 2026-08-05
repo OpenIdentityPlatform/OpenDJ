@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.config.client;
 
@@ -99,7 +100,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
      * @return Returns the first exception that caused this exception.
      */
     @Override
-    public PropertyException getCause() {
+    public synchronized PropertyException getCause() {
         return causes.iterator().next();
     }
 

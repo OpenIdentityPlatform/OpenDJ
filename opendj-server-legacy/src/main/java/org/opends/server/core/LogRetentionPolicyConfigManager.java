@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -183,13 +184,13 @@ public class LogRetentionPolicyConfigManager implements
       Class<? extends RetentionPolicy> theClass =
           pd.loadClass(className, RetentionPolicy.class);
       // Explicitly cast to check that implementation implements the correct interface.
-      RetentionPolicy<?> retentionPolicy = theClass.newInstance();
+      RetentionPolicy<?> retentionPolicy = theClass.getDeclaredConstructor().newInstance();
       // next line is here to ensure that eclipse does not remove the cast in the line above
       retentionPolicy.hashCode();
       return true;
     } catch (Exception e) {
       unacceptableReasons.add(
-          ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(className, config.dn(), e));
+          ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(className, config.dn(), stackTraceToSingleLineString(e)));
       return false;
     }
   }
@@ -202,12 +203,12 @@ public class LogRetentionPolicyConfigManager implements
     try {
       Class<? extends RetentionPolicy> theClass =
           pd.loadClass(className, RetentionPolicy.class);
-      RetentionPolicy<LogRetentionPolicyCfg> retentionPolicy = theClass.newInstance();
+      RetentionPolicy<LogRetentionPolicyCfg> retentionPolicy = theClass.getDeclaredConstructor().newInstance();
       retentionPolicy.initializeLogRetentionPolicy(config);
       return retentionPolicy;
     } catch (Exception e) {
       LocalizableMessage message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(
-          className, config.dn(), e);
+          className, config.dn(), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     }
   }

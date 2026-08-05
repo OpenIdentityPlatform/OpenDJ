@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -96,8 +98,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
     ProgressDialog progressDialog = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this), getTitle(), getInfo());
-    @SuppressWarnings("deprecation")
-    Object[] backends = list.getSelectedValues();
+    List<?> backends = list.getSelectedValuesList();
     ArrayList<BackendDescriptor> backendsToDelete = new ArrayList<>();
     for (Object o : backends)
     {

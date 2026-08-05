@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -62,7 +63,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
     ServerShutdownListener
 {
   /** Helper class for each requestor for use with cn=monitor reporting and users of a specific mountpoint. */
-  private class MonitoredDirectory extends MonitorProvider<MonitorProviderCfg>
+  private static class MonitoredDirectory extends MonitorProvider<MonitorProviderCfg>
   {
     private volatile File directory;
     private volatile long lowThreshold;
@@ -144,7 +145,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
    * Helper class for building temporary list of handlers to notify on threshold hits.
    * One object per directory per state will hold all the handlers matching directory and state.
    */
-  private class HandlerNotifier {
+  private static class HandlerNotifier {
     private File directory;
     private int state;
     /** Printable list of handlers names, for reporting backend names in alert messages. */

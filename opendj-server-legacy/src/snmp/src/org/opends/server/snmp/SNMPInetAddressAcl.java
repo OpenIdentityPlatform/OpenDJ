@@ -87,6 +87,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
      * Gets the name of the acl.
      * @return the name of the acl as a String
      */
+    @Override
     public String getName() {
         return "OpenDS";
     }
@@ -94,6 +95,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean checkReadPermission(InetAddress address) {
         if (this.allManagers) {
             return true;
@@ -110,6 +112,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean checkReadPermission(InetAddress address, String community) {
         if ((this.checkReadPermission(address)) &&
                 (this.checkCommunity(community))) {
@@ -122,6 +125,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean checkCommunity(String community) {
         return this.communities.equals(community);
     }
@@ -129,6 +133,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean checkWritePermission(InetAddress address) {
         // WRITE Access are always denied
         return false;
@@ -137,6 +142,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean checkWritePermission(InetAddress address, String community) {
         // WRITE Access are always denied
         return false;
@@ -146,6 +152,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
      * {@inheritDoc}
      * @return the list of traps destinations
      */
+    @Override
     public Enumeration getTrapDestinations() {
         Vector<InetAddress> tempDests = new Vector<InetAddress>();
         for (String dest : this.trapsDestinations) {
@@ -161,6 +168,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
      * {@inheritDoc}
      * @return the list of communities
      */
+    @Override
     public Enumeration getTrapCommunities(InetAddress address) {
         Vector<String> trapCommunities = new Vector<String>();
         trapCommunities.add(this.trapsCommunity);
@@ -171,6 +179,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
      * {@inheritDoc}
      * @return an empty enumeration
      */
+    @Override
     public Enumeration getInformDestinations() {
         Vector<String> informDests = new Vector<String>();
         return informDests.elements();
@@ -180,6 +189,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
      * {@inheritDoc}
      * @return an empty enumeration
      */
+    @Override
     public Enumeration getInformCommunities(InetAddress address) {
         Vector<String> informCommunities = new Vector<String>();
         return informCommunities.elements();

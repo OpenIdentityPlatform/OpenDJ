@@ -13,10 +13,12 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldif;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -225,7 +227,7 @@ final class TemplateFile {
 
         for (final Class<?> c : defaultTagClasses) {
             try {
-                final TemplateTag t = (TemplateTag) c.newInstance();
+                final TemplateTag t = (TemplateTag) c.getDeclaredConstructor().newInstance();
                 registeredTags.put(t.getName().toLowerCase(), t);
             } catch (Exception e) {
                 // this is a programming error
@@ -490,7 +492,7 @@ final class TemplateFile {
 
         TemplateTag tag;
         try {
-            tag = (TemplateTag) tagClass.newInstance();
+            tag = (TemplateTag) tagClass.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             final LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_TAG.get(className);
             throw DecodeException.fatalError(message, e);
@@ -1070,10 +1072,10 @@ final class TemplateFile {
 
         TemplateTag newTag;
         try {
-            newTag = tag.getClass().newInstance();
+            newTag = tag.getClass().getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_NEW_TAG.get(
-                    tagName, lineNumber + 1, String.valueOf(e)), e);
+                    tagName, lineNumber + 1, getExceptionMessage(e)), e);
         }
 
         if (branch == null) {

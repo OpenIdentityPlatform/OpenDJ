@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -42,6 +43,7 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -246,11 +248,14 @@ public final class Base64 extends ToolConsoleApplication {
             dataToDecode = encodedDataArg.getValue();
         } else {
             final boolean readFromFile = encodedDataFilePathArg.isPresent();
+            Reader source = null;
             BufferedReader reader = null;
             final String encodedDataFilePath = encodedDataFilePathArg.getValue();
             try {
-                reader = new BufferedReader(readFromFile ? new FileReader(encodedDataFilePath)
-                                                         : new InputStreamReader(System.in));
+                // Only a file is closed below; System.in belongs to the caller.
+                source = readFromFile ? new FileReader(encodedDataFilePath)
+                                      : new InputStreamReader(System.in);
+                reader = new BufferedReader(source);
                 final StringBuilder buffer = new StringBuilder();
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -270,7 +275,7 @@ public final class Base64 extends ToolConsoleApplication {
                                        ERR_BASE64_CANNOT_READ_ENCODED_DATA.get(getExceptionMessage(e)));
             } finally {
                 if (readFromFile) {
-                    closeSilently(reader);
+                    closeSilently(reader, source);
                 }
             }
         }

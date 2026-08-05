@@ -12,9 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2012-2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
+
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 
 import java.util.Collection;
 
@@ -72,7 +75,7 @@ public final class UpdateGroup {
             printUsage();
         }
         final String host = args[0];
-        final int port = Integer.parseInt(args[1]);
+        final int port = parsePort(args[1]);
         final String groupDN = args[2];
         final String memberDN = args[3];
         final ModificationType modType = getModificationType(args[4]);

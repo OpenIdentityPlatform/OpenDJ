@@ -108,6 +108,13 @@ The following steps describe how to upgrade OpenDJ directory server installed fr
 . (Optional) If you have not already backed up the current OpenDJ server, make a back up copy of the directory where OpenDJ is installed.
 
 . Unpack the new files from the .zip delivery over the current server files.
++
+[NOTE]
+======
+When upgrading from a release before 5.1.2, first delete the stale `lib/org.openidentityplatform.opendj.opendj-server-legacy.jar` file (or clean out the `lib/` directory) before unpacking the new `.zip`.
+
+That file is a duplicate library that shipped in older distributions and is no longer part of the delivery, so unpacking the new archive over the existing installation neither overwrites nor removes it. Because the server builds its classpath from `lib/*`, the leftover jar makes the runtime report the old binary version, and the server fails to start after the upgrade with an error such as `The OpenDJ binary version '5.1.1...' does not match the installed version '5.1.2...'. Please run upgrade before continuing`.
+======
 
 . Run the `upgrade` command, described in xref:../reference/admin-tools-ref.adoc#upgrade-1[upgrade(1)] in the __Reference__, to bring OpenDJ configuration and application data up to date with the new binary and script files that you copied over the current server files.
 +
