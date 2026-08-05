@@ -13,6 +13,7 @@
  *
  * Copyright 2016 ForgeRock AS.
  * Portions Copyright 2017 Rosie Applications, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -317,6 +318,7 @@ public final class SubResourceCollection extends SubResource {
         return router;
     }
 
+    @Override
     Promise<RoutingContext, ResourceException> route(final Context context) {
         final Connection conn = context.asContext(AuthenticatedConnectionContext.class).getConnection();
         final SearchRequest searchRequest = namingStrategy.createSearchRequest(dnFrom(context), idFrom(context));

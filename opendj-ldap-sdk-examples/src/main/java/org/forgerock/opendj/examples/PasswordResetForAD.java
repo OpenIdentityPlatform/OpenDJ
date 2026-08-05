@@ -12,10 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 
 import org.forgerock.opendj.ldap.Connection;
@@ -67,7 +69,7 @@ public final class PasswordResetForAD {
             System.exit(1);
         }
         final String host = args[0];
-        final int port = Integer.parseInt(args[1]);
+        final int port = parsePort(args[1]);
         final String mode = args[2];
         final String bindDN = args[3];
         final String bindPassword = args[4];

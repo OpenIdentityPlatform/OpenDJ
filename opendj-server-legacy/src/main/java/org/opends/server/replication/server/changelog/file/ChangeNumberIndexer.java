@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -221,7 +222,7 @@ public class ChangeNumberIndexer extends DirectoryThread
     {
       synchronized (this)
       {
-        notify();
+        notifyAll();
       }
     }
   }
@@ -364,7 +365,7 @@ public class ChangeNumberIndexer extends DirectoryThread
     super.initiateShutdown();
     synchronized (this)
     {
-      notify();
+      notifyAll();
     }
   }
 
@@ -590,7 +591,7 @@ public class ChangeNumberIndexer extends DirectoryThread
       // wait until clear() has been done by thread, always waking it up
       synchronized (this)
       {
-        notify();
+        notifyAll();
       }
       // ensures thread wait that this thread's state is cleaned up
       Thread.yield();

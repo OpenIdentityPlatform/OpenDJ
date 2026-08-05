@@ -77,6 +77,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -172,8 +173,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   {
     super.setUp();
 
-    replServerPort = findFreePort();
-
     // Create base dns for each tested modes
     addEntry("dn: " + SAFE_DATA_DN,
         "objectClass: top",
@@ -184,6 +183,19 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     addEntry("dn: " + NOT_ASSURED_DN,
         "objectClass: top",
         "objectClass: organizationalUnit");
+  }
+
+  /**
+   * Allocates the listen port of the fake replication server, for one invocation only: each of them
+   * starts a fake replication server again, and a port which is bound again and again is exposed,
+   * for the whole time it is not bound, to anything in this JVM which may take it in the meantime.
+   * Both the fake replication server and the domain configuration entry which points at it are
+   * created by the test method itself, hence after this.
+   */
+  @BeforeMethod
+  public void findReplicationServerPort() throws IOException
+  {
+    replServerPort = findFreePort();
   }
 
   /** Add an entry in the database. */

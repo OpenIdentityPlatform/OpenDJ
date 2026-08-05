@@ -19,6 +19,7 @@ package org.opends.server.admin.doc;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -98,7 +99,7 @@ public class ConfigGuideGeneration {
    *
    * Properties:
    * GenerationDir - The directory where the doc is generated
-   *              (default is /var/tmp/[CONFIG_GUIDE_DIR&gt;])
+   *              (default is a fresh temporary directory, printed on startup)
    * LdapMapping - Presence means that the LDAP mapping section is to be
    *               generated (default is no)
    * OpenDJWiki - The URL of the OpenDJ Wiki
@@ -112,14 +113,14 @@ public class ConfigGuideGeneration {
   public static void main(String[] args) {
     Properties properties = System.getProperties();
     generationDir = properties.getProperty("GenerationDir");
-    if (generationDir == null) {
-      // Default dir is prefixed by the system-dependent default temporary dir
-      generationDir = System.getProperty("java.io.tmpdir") + File.separator +
-        CONFIG_GUIDE_DIR;
-    }
-    // Create new dir if necessary
     try {
-      new File(generationDir).mkdir();
+      if (generationDir == null) {
+        // Default dir is a fresh temporary dir, only accessible by the current user
+        generationDir = Files.createTempDirectory(CONFIG_GUIDE_DIR).toString();
+      } else {
+        // Create new dir if necessary
+        Files.createDirectories(new File(generationDir).toPath());
+      }
     } catch (Exception e) {
       e.printStackTrace();
       System.exit(1);
@@ -226,7 +227,7 @@ public class ConfigGuideGeneration {
   }
 
   private boolean isRoot(String name) {
-    return name.equals("");
+    return name.isEmpty();
   }
 
   /**
@@ -717,7 +718,7 @@ public class ConfigGuideGeneration {
       } else if (actionType == Type.NONE) {
         actionStr = "None";
       }
-      String dot = actionStr.equals("") ? "" : ". ";
+      String dot = actionStr.isEmpty() ? "" : ". ";
       action = actionStr +
         ((synopsis != null) ? dot + synopsis : "");
     }
@@ -1044,7 +1045,7 @@ public class ConfigGuideGeneration {
     RelationDefinition rel = relList.get(mo.getName());
     if (rel != null) {
       String baseDn = ldapProfile.getRelationRDNSequence(rel);
-      if (!baseDn.equals("")) {
+      if (!baseDn.isEmpty()) {
         return baseDn;
       } else {
         // Check the parent relation

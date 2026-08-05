@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.util.Reject;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
@@ -41,7 +43,7 @@ class AsynchronousTextWriter
 
   private String name;
   private AtomicBoolean stopRequested;
-  private WriterThread writerThread;
+  private final WriterThread writerThread;
 
   private boolean autoFlush;
 
@@ -59,17 +61,29 @@ class AsynchronousTextWriter
   {
     this.name = name;
     this.autoFlush = autoFlush;
-    this.writer = writer;
+    this.writer = Reject.checkNotNull(writer);
 
     this.queue = new LinkedBlockingQueue<>(capacity);
     this.capacity = capacity;
-    this.writerThread = null;
     this.stopRequested = new AtomicBoolean(false);
 
     writerThread = new WriterThread();
-    writerThread.start();
 
     DirectoryServer.registerShutdownListener(this);
+  }
+
+  /**
+   * Starts the background thread which publishes the queued log records.
+   * <p>
+   * The thread is not started by the constructor so that {@code this} is not published to it before
+   * construction has completed.
+   *
+   * @return this writer
+   */
+  AsynchronousTextWriter start()
+  {
+    writerThread.start();
+    return this;
   }
 
   /**
@@ -145,21 +159,18 @@ class AsynchronousTextWriter
   @Override
   public void writeRecord(String record)
   {
-    // No writer?  Off to the bit bucket.
-    if (writer != null) {
-      while (!stopRequested.get())
+    while (!stopRequested.get())
+    {
+      // Put request on queue for writer
+      try
       {
-        // Put request on queue for writer
-        try
-        {
-          queue.put(record);
-          break;
-        }
-        catch(InterruptedException e)
-        {
-          // We expect this to happen. Just ignore it and hopefully
-          // drop out in the next try.
-        }
+        queue.put(record);
+        break;
+      }
+      catch(InterruptedException e)
+      {
+        // We expect this to happen. Just ignore it and hopefully
+        // drop out in the next try.
       }
     }
   }
@@ -217,7 +228,7 @@ class AsynchronousTextWriter
     stopRequested.set(true);
 
     // Wait for publisher thread to terminate
-    while (writerThread != null && writerThread.isAlive()) {
+    while (writerThread.isAlive()) {
       try {
         // Interrupt the thread if its blocking
         writerThread.interrupt();
@@ -237,7 +248,7 @@ class AsynchronousTextWriter
     }
 
     // Shutdown the wrapped writer.
-    if (shutdownWrapped && writer != null)
+    if (shutdownWrapped)
     {
       writer.shutdown();
     }

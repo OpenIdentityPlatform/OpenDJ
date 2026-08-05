@@ -13,10 +13,12 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  * Portions copyright 2024-2025 3A Systems,LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -628,7 +630,7 @@ public class LocalBackendModifyDNOperation
               ERR_MODDN_OLD_RDN_ATTR_IS_NO_USER_MOD.get(entryDN, a.getAttributeDescription()));
         }
 
-        List<ByteString> missingValues = new LinkedList<>();
+        Collection<ByteString> missingValues = new LinkedList<>();
         newEntry.removeAttribute(a, missingValues);
 
         if (missingValues.isEmpty())
@@ -647,7 +649,7 @@ public class LocalBackendModifyDNOperation
           ava.getAttributeName(),
           ava.getAttributeValue());
 
-      List<ByteString> duplicateValues = new LinkedList<>();
+      Collection<ByteString> duplicateValues = new LinkedList<>();
       newEntry.addAttribute(a, duplicateValues);
 
       if (duplicateValues.isEmpty())
@@ -722,12 +724,12 @@ public class LocalBackendModifyDNOperation
       switch (m.getModificationType().asEnum())
       {
         case ADD:
-          List<ByteString> duplicateValues = new LinkedList<>();
+          Collection<ByteString> duplicateValues = new LinkedList<>();
           newEntry.addAttribute(a, duplicateValues);
           break;
 
         case DELETE:
-          List<ByteString> missingValues = new LinkedList<>();
+          Collection<ByteString> missingValues = new LinkedList<>();
           newEntry.removeAttribute(a, missingValues);
           break;
 
@@ -737,6 +739,9 @@ public class LocalBackendModifyDNOperation
 
         case INCREMENT:
           newEntry.incrementAttribute(a);
+          break;
+        default:
+          // No action needed for the remaining values.
           break;
       }
     }

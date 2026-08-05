@@ -66,12 +66,14 @@ public class SNMPUserAcl implements UserAcl {
     }
 
     /** {@inheritDoc} */
+    @Override
     public String getName() {
         // ACL Name
         return "OpenDS";
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean checkReadPermission(String user) {
         // Test if clone user
         if (user.equals(DEFAULT_USER) || user.equals(ADMIN_USER)) {
@@ -85,6 +87,7 @@ public class SNMPUserAcl implements UserAcl {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean checkReadPermission(String user, String contextName,
             int securityLevel) {
         // Special check for the defaultUser
@@ -104,6 +107,7 @@ public class SNMPUserAcl implements UserAcl {
      * {@inheritDoc}
      * @return true if the context is correct, false otherwise.
      */
+    @Override
     public boolean checkContextName(String contextName) {
         return this.contextName.equals(contextName);
     }
@@ -113,11 +117,13 @@ public class SNMPUserAcl implements UserAcl {
      * @param user to check the write permission.
      * @return true if the user has the write permission, false otherwise.
      */
+    @Override
     public boolean checkWritePermission(String user) {
         return user.equals(ADMIN_USER);
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean checkWritePermission(String user, String contextName,
             int securityLevel) {
         return checkWritePermission(user)

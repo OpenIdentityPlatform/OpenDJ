@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -269,7 +270,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
      * A connection factory which caches its online/offline state in order to
      * avoid unnecessary connection attempts when it is known to be offline.
      */
-    private final class MonitoredConnectionFactory implements ConnectionFactory
+    private static final class MonitoredConnectionFactory implements ConnectionFactory
     {
       private final ConnectionFactory factory;
 

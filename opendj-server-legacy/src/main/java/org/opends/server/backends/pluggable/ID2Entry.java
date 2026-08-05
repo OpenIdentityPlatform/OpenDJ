@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -31,6 +32,8 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.InflaterOutputStream;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
@@ -259,36 +262,55 @@ class ID2Entry extends AbstractTree
         {
           return Entry.decode(reader, compressedSchema);
         }
-        InputStream is = reader.asInputStream();
-        if ((format & ENCRYPT_ENTRY) == ENCRYPT_ENTRY)
+        try (InputStream entryStream = newEntryInputStream(reader, format))
         {
-          is = getCryptoManager().getCipherInputStream(is);
-        }
-        if ((format & COMPRESS_ENTRY) == COMPRESS_ENTRY)
-        {
-          is = new InflaterInputStream(is);
-        }
-        byte[] data = new byte[encodedEntryLen];
-        int readBytes;
-        int position = 0;
-        int leftToRead = encodedEntryLen;
-        // CipherInputStream does not read more than block size...
-        do
-        {
-          if ((readBytes = is.read(data, position, leftToRead)) == -1 )
+          byte[] data = new byte[encodedEntryLen];
+          int readBytes;
+          int position = 0;
+          int leftToRead = encodedEntryLen;
+          // CipherInputStream does not read more than block size...
+          do
           {
-            throw DecodeException.error(ERR_CANNOT_DECODE_ENTRY.get());
-          }
-          position += readBytes;
-          leftToRead -= readBytes;
-        } while (leftToRead > 0 && readBytes > 0);
-        return Entry.decode(ByteString.wrap(data).asReader(), compressedSchema);
+            if ((readBytes = entryStream.read(data, position, leftToRead)) == -1 )
+            {
+              throw DecodeException.error(ERR_CANNOT_DECODE_ENTRY.get());
+            }
+            position += readBytes;
+            leftToRead -= readBytes;
+          } while (leftToRead > 0 && readBytes > 0);
+          return Entry.decode(ByteString.wrap(data).asReader(), compressedSchema);
+        }
       }
       catch (CryptoManagerException cme)
       {
         logger.traceException(cme);
         throw DecodeException.error(cme.getMessageObject());
       }
+    }
+
+    /**
+     * Returns the stream to read the encoded entry from, decorated as mandated by the format.
+     * <p>
+     * The returned stream owns the streams it wraps, so closing it closes the whole chain.
+     *
+     * @param reader the reader positioned at the start of the encoded entry.
+     * @param format the format byte of the encoded entry.
+     * @return the stream to read the encoded entry from.
+     * @throws CryptoManagerException If the cipher input stream cannot be created.
+     */
+    private static InputStream newEntryInputStream(ByteSequenceReader reader, int format)
+        throws CryptoManagerException
+    {
+      InputStream is = reader.asInputStream();
+      if ((format & ENCRYPT_ENTRY) == ENCRYPT_ENTRY)
+      {
+        is = getCryptoManager().getCipherInputStream(is);
+      }
+      if ((format & COMPRESS_ENTRY) == COMPRESS_ENTRY)
+      {
+        is = new InflaterInputStream(is);
+      }
+      return is;
     }
 
     private ByteString encode(Entry entry, DataConfig dataConfig) throws DirectoryException
@@ -536,7 +558,27 @@ class ID2Entry extends AbstractTree
   @Override
   public ByteString generateKey(String data)
   {
-    EntryID entryID = new EntryID(Long.parseLong(data));
-    return entryID.toByteString();
+    return new EntryID(parseEntryID(data)).toByteString();
+  }
+
+  /**
+   * Returns the entry ID held by the provided string.
+   *
+   * @param data
+   *          The string representation of an entry ID
+   * @return the parsed entry ID
+   * @throws LocalizedIllegalArgumentException
+   *           If the provided string does not hold an entry ID
+   */
+  static long parseEntryID(String data)
+  {
+    try
+    {
+      return Long.parseLong(data);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new LocalizedIllegalArgumentException(LocalizableMessage.raw("Invalid entry ID: \"%s\"", data));
+    }
   }
 }

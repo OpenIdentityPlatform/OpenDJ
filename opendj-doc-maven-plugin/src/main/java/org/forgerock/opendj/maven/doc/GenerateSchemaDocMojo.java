@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.maven.doc;
 
@@ -87,7 +88,7 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
             CoreSchemaSupportedLocales.getJvmSupportedLocaleNamesToOids();
 
     /** Container for documentation regarding a locale. */
-    private class LocaleDoc {
+    private static class LocaleDoc {
         String tag;
         String language;
         String oid;

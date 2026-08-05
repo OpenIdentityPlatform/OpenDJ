@@ -28,7 +28,9 @@ import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.forgerock.util.Options.defaultOptions;
 import static org.mockito.Mockito.mock;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
@@ -187,6 +189,18 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         }
     }
 
+    /**
+     * Binds a server socket on a free loopback port and keeps it bound so that the port cannot be
+     * handed out again to a listener which is created later. The socket must be closed before
+     * connection attempts which expect a connection failure are performed against its address.
+     */
+    private static ServerSocket reserveSocketAddress() throws IOException {
+        final ServerSocket socket = new ServerSocket();
+        socket.setReuseAddress(true);
+        socket.bind(loopbackWithDynamicPort());
+        return socket;
+    }
+
     /** Disables logging before the tests. */
     @BeforeClass
     public void disableLogging() {
@@ -285,14 +299,19 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                         onlineServerConnectionFactory));
         final InetSocketAddress onlineAddr = onlineServerListener.firstSocketAddress();
 
+        // Reserve the offline server ports, keeping them bound until the proxy listener is
+        // created: a port released too early could be handed out to the proxy listener itself,
+        // making the load balancer connect back to the proxy instead of the online server.
+        final ServerSocket offlineServerSocket1 = reserveSocketAddress();
+        final ServerSocket offlineServerSocket2 = reserveSocketAddress();
         try {
             // Connection pool and load balancing tests.
-            InetSocketAddress offlineAddress1 = findFreeSocketAddress();
+            InetSocketAddress offlineAddress1 = (InetSocketAddress) offlineServerSocket1.getLocalSocketAddress();
             final ConnectionFactory offlineServer1 =
                     Connections.newNamedConnectionFactory(new LDAPConnectionFactory(
                             offlineAddress1.getHostName(),
                             offlineAddress1.getPort()), "offline1");
-            InetSocketAddress offlineAddress2 = findFreeSocketAddress();
+            InetSocketAddress offlineAddress2 = (InetSocketAddress) offlineServerSocket2.getLocalSocketAddress();
             final ConnectionFactory offlineServer2 =
                     Connections.newNamedConnectionFactory(new LDAPConnectionFactory(
                             offlineAddress2.getHostName(),
@@ -329,11 +348,15 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                     new ServerConnectionFactoryAdapter(Options.defaultOptions().get(LDAP_DECODE_OPTIONS),
                             proxyServerConnectionFactory));
             final InetSocketAddress proxyAddr = proxyListener.firstSocketAddress();
+            // Release the reserved ports now that every listener is bound: connection attempts
+            // to the offline addresses must fail with a connection error.
+            offlineServerSocket1.close();
+            offlineServerSocket2.close();
+            final LDAPConnectionFactory proxyClientFactory =
+                    new LDAPConnectionFactory(proxyAddr.getHostName(), proxyAddr.getPort());
             try {
                 // Connect and close.
-                final Connection connection =
-                        new LDAPConnectionFactory(proxyAddr.getHostName(),
-                            proxyAddr.getPort()).getConnection();
+                final Connection connection = proxyClientFactory.getConnection();
 
                 assertThat(proxyServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
                 assertThat(onlineServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
@@ -343,9 +366,13 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
 
                 proxyServerConnection.isClosed.await();
             } finally {
+                proxyClientFactory.close();
+                loadBalancer.close();
                 proxyListener.close();
             }
         } finally {
+            offlineServerSocket1.close();
+            offlineServerSocket2.close();
             onlineServerListener.close();
         }
     }
@@ -368,14 +395,19 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                         onlineServerConnectionFactory));
         final InetSocketAddress onlineServerAddr = onlineServerListener.firstSocketAddress();
 
+        // Reserve the offline server ports, keeping them bound until the proxy listener is
+        // created: a port released too early could be handed out to the proxy listener itself,
+        // making the load balancer connect back to the proxy instead of the online server.
+        final ServerSocket offlineServerSocket1 = reserveSocketAddress();
+        final ServerSocket offlineServerSocket2 = reserveSocketAddress();
         try {
             // Connection pool and load balancing tests.
-            InetSocketAddress offlineAddress1 = findFreeSocketAddress();
+            InetSocketAddress offlineAddress1 = (InetSocketAddress) offlineServerSocket1.getLocalSocketAddress();
             final ConnectionFactory offlineServer1 =
                     Connections.newNamedConnectionFactory(
                             new LDAPConnectionFactory(offlineAddress1.getHostName(),
                                     offlineAddress1.getPort()), "offline1");
-            InetSocketAddress offlineAddress2 = findFreeSocketAddress();
+            InetSocketAddress offlineAddress2 = (InetSocketAddress) offlineServerSocket2.getLocalSocketAddress();
             final ConnectionFactory offlineServer2 =
                     Connections.newNamedConnectionFactory(
                             new LDAPConnectionFactory(offlineAddress2.getHostName(),
@@ -421,11 +453,15 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                             proxyServerConnectionFactory));
             final InetSocketAddress proxyAddr = (InetSocketAddress) proxyListener.firstSocketAddress();
 
+            // Release the reserved ports now that every listener is bound: connection attempts
+            // to the offline addresses must fail with a connection error.
+            offlineServerSocket1.close();
+            offlineServerSocket2.close();
+            final LDAPConnectionFactory proxyClientFactory =
+                    new LDAPConnectionFactory(proxyAddr.getHostName(), proxyAddr.getPort());
             try {
                 // Connect, bind, and close.
-                final Connection connection =
-                        new LDAPConnectionFactory(proxyAddr.getHostName(),
-                            proxyAddr.getPort()).getConnection();
+                final Connection connection = proxyClientFactory.getConnection();
                 try {
                     connection.bind("cn=test", "password".toCharArray());
 
@@ -439,9 +475,13 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                 // Wait for connect/close to complete.
                 proxyServerConnection.isClosed.await();
             } finally {
+                proxyClientFactory.close();
+                loadBalancer.close();
                 proxyListener.close();
             }
         } finally {
+            offlineServerSocket1.close();
+            offlineServerSocket2.close();
             onlineServerListener.close();
         }
     }

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup;
 
@@ -194,7 +195,7 @@ public class SplashScreen extends Window
     try
     {
       quickSetupClass = Class.forName("org.opends.quicksetup.ui.QuickSetup");
-      quickSetup = quickSetupClass.newInstance();
+      quickSetup = quickSetupClass.getDeclaredConstructor().newInstance();
       quickSetupClass.getMethod("initialize", new Class[] { TempLogFile.class, String[].class })
                      .invoke(quickSetup, tempLogFile, args);
     } catch (Exception e)

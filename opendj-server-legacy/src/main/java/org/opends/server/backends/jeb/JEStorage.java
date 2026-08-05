@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.jeb;
 
@@ -522,7 +523,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   }
 
   /** JE read-only implementation of {@link WriteableTransaction} interface. */
-  private final class ReadOnlyTransactionImpl implements WriteableTransaction
+  private static final class ReadOnlyTransactionImpl implements WriteableTransaction
   {
     private final WriteableTransactionImpl delegate;
 
@@ -585,7 +586,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   }
 
   /** No operation storage transaction faking database files are present and empty. */
-  private final class ReadOnlyEmptyTransactionImpl implements WriteableTransaction
+  private static final class ReadOnlyEmptyTransactionImpl implements WriteableTransaction
   {
     @Override
     public void openTree(TreeName name, boolean createOnDemand)

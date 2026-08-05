@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
- * Portions Copyright 2025 3A Systems, LLC.
+ * Portions Copyright 2025-2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.ldap;
 
@@ -124,6 +124,57 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     LDAPConnectionHandler2 LDAPSConnHandler = getLDAPHandlerInstance(LDAPHandlerEntry);
     LDAPSConnHandler.finalizeConnectionHandler(reasonMsg);
     LDAPConnHandler.processServerShutdown(reasonMsg);
+  }
+
+  /**
+   * The start method must not return before the handler thread has attempted to
+   * open the listen port, otherwise a client connecting right after the server
+   * startup can be refused.
+   *
+   * @throws Exception if the handler cannot be instantiated or started.
+   */
+  @Test
+  public void testStartWaitsForListenPort() throws Exception {
+    Entry handlerEntry = TestCaseUtils.makeEntry(
+        "dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-connection-handler",
+        "objectClass: ds-cfg-ldap-connection-handler",
+        "cn: LDAP Connection Handler",
+        "ds-cfg-java-class: org.forgerock.opendj.reactive.LDAPConnectionHandler2",
+        "ds-cfg-enabled: true",
+        "ds-cfg-listen-address: 127.0.0.1",
+        "ds-cfg-accept-backlog: 128",
+        "ds-cfg-allow-ldap-v2: false",
+        "ds-cfg-keep-stats: false",
+        "ds-cfg-use-tcp-keep-alive: true",
+        "ds-cfg-use-tcp-no-delay: true",
+        "ds-cfg-allow-tcp-reuse-address: true",
+        "ds-cfg-send-rejection-notice: true",
+        "ds-cfg-max-request-size: 5 megabytes",
+        "ds-cfg-num-request-handlers: 2",
+        "ds-cfg-allow-start-tls: false",
+        "ds-cfg-use-ssl: false",
+        "ds-cfg-ssl-client-auth-policy: optional",
+        "ds-cfg-ssl-cert-nickname: server-cert",
+        "ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config",
+        "ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config");
+    LDAPConnectionHandler2 handler = getLDAPHandlerInstance(handlerEntry);
+    int listenPort = handler.getListeners().iterator().next().getPort();
+    try
+    {
+      handler.start();
+
+      // No retry loop here on purpose: once start() has returned, the port must already be open.
+      TestCaseUtils.assertPortIsAcceptingConnections(listenPort);
+    }
+    finally
+    {
+      handler.processServerShutdown(reasonMsg);
+      handler.finalizeConnectionHandler(reasonMsg);
+      handler.join(10000);
+      assertFalse(handler.isAlive(), "the connection handler thread is still running");
+    }
   }
 
   /**

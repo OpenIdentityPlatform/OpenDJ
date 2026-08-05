@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -540,7 +541,7 @@ public class ArgumentParser implements ToolRefDocContainer {
      * A supplement to the description for all subcommands of this tool,
      * intended for use in generated reference documentation.
      */
-    private class DocSubcommandDescriptionSupplement implements DocDescriptionSupplement {
+    private static class DocSubcommandDescriptionSupplement implements DocDescriptionSupplement {
         /** A supplement to the description intended for use in generated reference documentation. */
         private LocalizableMessage docDescriptionSupplement;
 
@@ -581,10 +582,20 @@ public class ArgumentParser implements ToolRefDocContainer {
      * Retrieves the set of unnamed trailing arguments that were provided on the
      * command line.
      *
-     * @return The set of unnamed trailing arguments that were provided on the
+     * @return A copy of the set of unnamed trailing arguments that were provided on the
      *         command line.
      */
     public ArrayList<String> getTrailingArguments() {
+        return new ArrayList<>(trailingArguments);
+    }
+
+    /**
+     * Returns the live list of unnamed trailing arguments, so that a sub-class parsing the
+     * command line can fill it in. Unlike {@link #getTrailingArguments()}, this does not copy.
+     *
+     * @return The list of unnamed trailing arguments held by this parser.
+     */
+    List<String> trailingArguments() {
         return trailingArguments;
     }
 

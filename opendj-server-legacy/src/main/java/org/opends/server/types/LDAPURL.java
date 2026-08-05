@@ -478,7 +478,7 @@ public final class LDAPURL
     }
 
     SearchScope scope;
-    if (scopeString.equals(""))
+    if (scopeString.isEmpty())
     {
       scope = DEFAULT_SEARCH_SCOPE;
     }
@@ -539,7 +539,7 @@ public final class LDAPURL
     SearchFilter filter;
     if (fullyDecode)
     {
-      if (filterString.equals(""))
+      if (filterString.isEmpty())
       {
         filter = DEFAULT_SEARCH_FILTER;
       }
@@ -1479,6 +1479,9 @@ public final class LDAPURL
         break;
       case SUBORDINATES:
         buffer.append("subordinate");
+        break;
+      default:
+        // No action needed for the remaining values.
         break;
     }
 

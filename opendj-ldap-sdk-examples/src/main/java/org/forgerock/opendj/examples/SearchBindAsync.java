@@ -12,11 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 import static org.forgerock.util.Utils.closeSilently;
+
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
@@ -80,7 +83,7 @@ public final class SearchBindAsync {
             System.exit(1);
         }
         final String host   = args[0];
-        final int    port   = Integer.parseInt(args[1]);
+        final int    port   = parsePort(args[1]);
         final String baseDn = args[2];
 
         // Prompt for email address and password.

@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup;
 
@@ -22,6 +23,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Set;
 
@@ -93,16 +95,16 @@ public abstract class Application implements ProgressNotifier, Runnable {
       Class<?> appClass = null;
       try {
         appClass = Class.forName(appClassName);
-        app = (GuiApplication) appClass.newInstance();
+        app = (GuiApplication) appClass.getDeclaredConstructor().newInstance();
       } catch (ClassNotFoundException e) {
         logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
         String msg = "Application class " + appClass + " not found";
         throw new RuntimeException(msg, e);
-      } catch (IllegalAccessException e) {
+      } catch (IllegalAccessException | NoSuchMethodException e) {
         logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
         String msg = "Could not access class " + appClass;
         throw new RuntimeException(msg, e);
-      } catch (InstantiationException e) {
+      } catch (InstantiationException | InvocationTargetException e) {
         logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
         String msg = "Error instantiating class " + appClass;
         throw new RuntimeException(msg, e);
@@ -799,9 +801,12 @@ public abstract class Application implements ProgressNotifier, Runnable {
   /** Class used to add points periodically to the end of the logs. */
   protected class PointAdder implements Runnable
   {
-    private Thread t;
-    private boolean stopPointAdder;
-    private boolean pointAdderStopped;
+    /** Written by start() and read by stop(), hence volatile. */
+    private volatile Thread t;
+    /** Written by stop() and read by the point adder thread, hence volatile. */
+    private volatile boolean stopPointAdder;
+    /** Written by the point adder thread and read by stop(), hence volatile. */
+    private volatile boolean pointAdderStopped;
 
     /** Default constructor. */
     public PointAdder()
@@ -825,21 +830,31 @@ public abstract class Application implements ProgressNotifier, Runnable {
       t.start();
     }
 
-    /** Stops the PointAdder: points are no longer added at the end of the logs periodically. */
-    public synchronized void stop()
+    /**
+     * Stops the PointAdder: points are no longer added at the end of the logs periodically.
+     * <p>
+     * Calling this method on a PointAdder that was never started is a no-op.
+     */
+    public void stop()
     {
       stopPointAdder = true;
+      final Thread thread = t;
+      if (thread == null)
+      {
+        return;
+      }
       while (!pointAdderStopped)
       {
+        thread.interrupt();
         try
         {
-          t.interrupt();
           // To allow the thread to set the boolean.
           Thread.sleep(100);
         }
-        catch (Throwable t)
+        catch (InterruptedException e)
         {
-          // do nothing
+          Thread.currentThread().interrupt();
+          break;
         }
       }
     }
