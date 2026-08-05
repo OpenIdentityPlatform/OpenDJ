@@ -406,14 +406,17 @@ public class DSMLServlet extends HttpServlet {
         is.mark(65536);
       }
 
-      // Create response in the beginning as it might be used if the parsing
-      // fails.
+      // This prologue batchResponse answers everything detected before the
+      // SOAP body is walked (credentials errors, unparseable XML): those
+      // errors are built before any batchRequest is known. Each batchRequest
+      // of the body gets a batchResponse of its own, collected in responses
+      // below.
       ObjectFactory objFactory = new ObjectFactory();
-      BatchResponse batchResponse = objFactory.createBatchResponse();
-      List<JAXBElement<?>> batchResponses = batchResponse.getBatchResponses();
+      BatchResponse prologueResponse = objFactory.createBatchResponse();
+      List<JAXBElement<?>> prologueResponses = prologueResponse.getBatchResponses();
 
-      // Thi sis only used for building the response
-      Document doc = createSafeDocument();
+      // One batchResponse per batchRequest of the SOAP body, in request order.
+      List<BatchResponse> responses = new ArrayList<>();
 
       MessageFactory messageFactory = null;
       String messageContentType = null;
@@ -428,7 +431,7 @@ public class DSMLServlet extends HttpServlet {
         }
         catch(SSLConnectionException e)
         {
-          batchResponses.add(
+          prologueResponses.add(
             createErrorResponse(objFactory,
               new LDAPException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
                 LocalizableMessage.raw(
@@ -493,7 +496,7 @@ public class DSMLServlet extends HttpServlet {
             // user/DN:password parsing error. Keep reading the headers: the
             // Content-Type may still be ahead, and it decides which SOAP
             // version the error is reported with.
-            batchResponses.add(
+            prologueResponses.add(
               createErrorResponse(objFactory,
                     new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
                     LocalizableMessage.raw(ex.getMessage()))));
@@ -517,7 +520,7 @@ public class DSMLServlet extends HttpServlet {
           }
           else
           {
-            batchResponses.add(
+            prologueResponses.add(
                 createErrorResponse(objFactory,
                       new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
                       LocalizableMessage.raw("Invalid configured credentials."))));
@@ -531,19 +534,19 @@ public class DSMLServlet extends HttpServlet {
       } else {
         // otherwise if DN or password is null, send back an error
         if (((!authenticationIsID && bindDN == null) || bindPassword == null)
-           && batchResponses.isEmpty()) {
-          batchResponses.add(
+           && prologueResponses.isEmpty()) {
+          prologueResponses.add(
                 createErrorResponse(objFactory,
                       new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
                       LocalizableMessage.raw("Unable to retrieve credentials."))));
         }
       }
 
-      if ( batchResponses.isEmpty() && req.getContentLengthLong() > requestMaxSize ) {
+      if ( prologueResponses.isEmpty() && req.getContentLengthLong() > requestMaxSize ) {
         // The declared size already exceeds the cap: reject the request before
         // anything reads the stream — the malformed Content-Type fallback below
         // SAX-parses the whole body to recover the requestID.
-        batchResponses.add(createErrorResponse(objFactory, requestSizeExceeded()));
+        prologueResponses.add(createErrorResponse(objFactory, requestSizeExceeded()));
       }
 
       if ( messageFactory == null ) {
@@ -560,36 +563,36 @@ public class DSMLServlet extends HttpServlet {
         {
           throw new ServletException(e.getMessage());
         }
-        if ( batchResponses.isEmpty() ) {
+        if ( prologueResponses.isEmpty() ) {
           // Nothing has been read from the stream yet, so the SAX pass can still
           // recover the requestID and let the client correlate the reply.
-          batchResponses.add(
+          prologueResponses.add(
               createXMLParsingErrorResponse(is,
                                             objFactory,
-                                            batchResponse,
+                                            prologueResponse,
                                             "Content-Type does not match SOAP 1.1 or SOAP 1.2"));
         }
       }
 
       // if an error already occurred, the list is not empty
-      if ( batchResponses.isEmpty() ) {
+      if ( prologueResponses.isEmpty() ) {
         try {
           SOAPMessage message = messageFactory.createMessage(mimeHeaders, is);
           soapBody = message.getSOAPBody();
         } catch (SOAPException ex) {
           // SOAP was unable to parse XML successfully
-          batchResponses.add(cappedStream.isLimitExceeded()
+          prologueResponses.add(cappedStream.isLimitExceeded()
               ? createErrorResponse(objFactory, requestSizeExceeded())
               : createXMLParsingErrorResponse(is,
                                               objFactory,
-                                              batchResponse,
+                                              prologueResponse,
                                               String.valueOf(ex.getCause())));
         } catch (IOException ex) {
           if ( ! cappedStream.isLimitExceeded() ) {
             throw ex;
           }
           // The body streamed past the cap: chunked, or a lying Content-Length.
-          batchResponses.add(createErrorResponse(objFactory, requestSizeExceeded()));
+          prologueResponses.add(createErrorResponse(objFactory, requestSizeExceeded()));
         }
       }
 
@@ -607,28 +610,45 @@ public class DSMLServlet extends HttpServlet {
             // (MAX_BATCH_REQUESTS), before the element is even schema-validated.
             // The cap is counted over all the elements of the body, whatever
             // their type, and its configured value is not echoed to the
-            // unauthenticated client.
-            batchResponses.add(createErrorResponse(objFactory,
-                new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
-                    LocalizableMessage.raw("The SOAP body holds more elements than the configured"
-                        + " maximum: the remaining elements were not attempted."))));
+            // unauthenticated client. The error joins the last answered
+            // batchResponse rather than forming a root of its own: DSMLv2
+            // expects a single batchResponse per SOAP body, and under the
+            // default cap of one a separate root would give every default
+            // deployment a two-root reply. The cap is validated positive, so
+            // at least one element was answered before it could be exceeded.
+            responses.get(responses.size() - 1).getBatchResponses().add(
+                createErrorResponse(objFactory,
+                    new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
+                        LocalizableMessage.raw("The SOAP body holds more elements than the configured"
+                            + " maximum: the remaining elements were not attempted."))));
             break;
           }
           // Parse and unmarshall the SOAP object - the implementation prevents the use of a
           // DOCTYPE and xincludes, so should be safe. There is no way to configure a more
           // restrictive parser.
           SOAPElement se = (SOAPElement) obj;
+
+          // Each batchRequest of the SOAP body is answered with its own
+          // batchResponse: a shared one would merge the elements of every
+          // batch request and keep only the last requestID.
+          BatchResponse elementResponse = objFactory.createBatchResponse();
+          List<JAXBElement<?>> elementResponses =
+              elementResponse.getBatchResponses();
+          responses.add(elementResponse);
+
           JAXBElement<BatchRequest> batchRequestElement = null;
           try {
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             unmarshaller.setSchema(schema);
             batchRequestElement = unmarshaller.unmarshal(se, BatchRequest.class);
           } catch (JAXBException e) {
-            // schema validation failed
-            batchResponses.add(createXMLParsingErrorResponse(is,
-                                                         objFactory,
-                                                         batchResponse,
-                                                         String.valueOf(e)));
+            // schema validation failed. The requestID is read from the element
+            // itself: the SAX pass of createXMLParsingErrorResponse() would
+            // recover the one of the first batchRequest of the body.
+            String requestID = se.getAttribute("requestID");
+            elementResponse.setRequestID(requestID.isEmpty() ? null : requestID);
+            elementResponses.add(
+                createMalformedRequestError(objFactory, String.valueOf(e)));
           }
           if ( batchRequestElement != null ) {
             boolean authzInBind = false;
@@ -658,7 +678,7 @@ public class DSMLServlet extends HttpServlet {
               }
             }
             // set requestID in response
-            batchResponse.setRequestID(batchRequest.getRequestID());
+            elementResponse.setRequestID(batchRequest.getRequestID());
             org.opends.server.types.Control proxyAuthzControl = null;
 
             boolean connected = false;
@@ -681,13 +701,13 @@ public class DSMLServlet extends HttpServlet {
                   ResultCode code = ResultCodeFactory.create(objFactory,
                       LDAPResultCode.SUCCESS);
                   authResponse.setResultCode(code);
-                  batchResponses.add(
+                  elementResponses.add(
                       objFactory.createBatchResponseAuthResponse(authResponse));
                 }
                 connected = true;
               } catch (LDAPConnectionException e) {
                 // if connection failed, return appropriate error response
-                batchResponses.add(createErrorResponse(objFactory, e));
+                elementResponses.add(createErrorResponse(objFactory, e));
               }
               if ( connected ) {
                 List<DsmlMessage> list = batchRequest.getBatchRequests();
@@ -698,7 +718,7 @@ public class DSMLServlet extends HttpServlet {
                     // an abandon request does not produce any response element
                     continue;
                   }
-                  batchResponses.add(result);
+                  elementResponses.add(result);
                   // evaluate response to check if an error occurred
                   Object o = result.getValue();
                   if ( o instanceof ErrorResponse ) {
@@ -726,9 +746,24 @@ public class DSMLServlet extends HttpServlet {
         }
       }
       try {
+        if ( !prologueResponses.isEmpty() || responses.isEmpty() ) {
+          // An error was detected before the SOAP body was walked, or the body
+          // holds no batchRequest at all: reply with the prologue batchResponse.
+          // The guards above keep both lists from being populated at once
+          // today; prepending keeps the prologue errors visible even if a
+          // future edit changes that.
+          responses.add(0, prologueResponse);
+        }
         Marshaller marshaller = jaxbContext.createMarshaller();
-        marshaller.marshal(objFactory.createBatchResponse(batchResponse), doc);
-        sendResponse(doc, messageFactory, messageContentType, res);
+        List<Document> docs = new ArrayList<>(responses.size());
+        for (BatchResponse response : responses) {
+          // A DOM document has a single root element, so each batchResponse of
+          // the reply is marshalled into a document of its own.
+          Document doc = createSafeDocument();
+          marshaller.marshal(objFactory.createBatchResponse(response), doc);
+          docs.add(doc);
+        }
+        sendResponse(docs, messageFactory, messageContentType, res);
       } catch (Exception e) {
         // The client gets an empty response: at least make the cause visible.
         getServletContext().log("Unable to send the DSML response", e);
@@ -787,7 +822,6 @@ public class DSMLServlet extends HttpServlet {
                                                     ObjectFactory objFactory,
                                                     BatchResponse batchResponse,
                                                     String parserErrorMessage) {
-    ErrorResponse errorResponse = objFactory.createErrorResponse();
     DSMLContentHandler contentHandler = new DSMLContentHandler();
 
     try
@@ -803,13 +837,27 @@ public class DSMLServlet extends HttpServlet {
     {
       // ignore
     }
-    if ( parserErrorMessage!= null ) {
-      errorResponse.setMessage(parserErrorMessage);
-    }
     batchResponse.setRequestID(contentHandler.requestID);
 
-    errorResponse.setType(MALFORMED_REQUEST);
+    return createMalformedRequestError(objFactory, parserErrorMessage);
+  }
 
+  /**
+   * Returns an error response of type 'malformed request' carrying the given
+   * message, or none if it is {@code null}.
+   *
+   * @param objFactory the object factory
+   * @param message the error message, may be {@code null}
+   *
+   * @return a JAXBElement that contains an ErrorResponse
+   */
+  private JAXBElement<ErrorResponse> createMalformedRequestError(
+      ObjectFactory objFactory, String message) {
+    ErrorResponse errorResponse = objFactory.createErrorResponse();
+    if ( message != null ) {
+      errorResponse.setMessage(message);
+    }
+    errorResponse.setType(MALFORMED_REQUEST);
     return objFactory.createBatchResponseErrorResponse(errorResponse);
   }
 
@@ -974,7 +1022,8 @@ public class DSMLServlet extends HttpServlet {
    * Send a response back to the client. This could be either a SOAP fault
    * or a correct DSML response.
    *
-   * @param doc   The document to include in the response.
+   * @param docs  The documents to include in the response, one per
+   *              batchResponse element of the reply.
    * @param messageFactory  The SOAP message factory.
    * @param contentType  The MIME content type to send appropriate for the MessageFactory
    * @param res   Information about the HTTP response to the client.
@@ -982,7 +1031,8 @@ public class DSMLServlet extends HttpServlet {
    * @throws IOException   If an error occurs while interacting with the client.
    * @throws SOAPException If an encoding or decoding error occurs.
    */
-  private void sendResponse(Document doc, MessageFactory messageFactory, String contentType, HttpServletResponse res)
+  private void sendResponse(List<Document> docs, MessageFactory messageFactory, String contentType,
+      HttpServletResponse res)
     throws IOException, SOAPException {
 
     SOAPMessage reply = messageFactory.createMessage();
@@ -992,7 +1042,9 @@ public class DSMLServlet extends HttpServlet {
 
     res.setHeader("Content-Type", contentType);
 
-    replyBody.addDocument(doc);
+    for (Document doc : docs) {
+      replyBody.addDocument(doc);
+    }
 
     reply.saveChanges();
 
