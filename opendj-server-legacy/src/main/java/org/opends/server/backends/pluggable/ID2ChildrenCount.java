@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -129,7 +130,7 @@ final class ID2ChildrenCount extends AbstractTree
   @Override
   public ByteString generateKey(String data)
   {
-    return new EntryID(Long.parseLong(data)).toByteString();
+    return new EntryID(ID2Entry.parseEntryID(data)).toByteString();
   }
 
   /**

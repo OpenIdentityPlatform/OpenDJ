@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
- * Portions Copyrighted 2026 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
@@ -22,6 +22,7 @@ import static org.testng.Assert.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -34,8 +35,11 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
@@ -1098,6 +1102,71 @@ public final class TestStaticUtils extends UtilTestCase {
         throw new SkipException("TCP self-connect not supported by this OS: " + e);
       }
       Assert.assertTrue(StaticUtils.isSelfConnection(socket));
+    }
+  }
+
+  /**
+   * {@link StaticUtils#extractZipArchive} must reject archive entries which
+   * resolve outside of the target directory (zip slip) and must not write any
+   * file outside of it.
+   */
+  @Test
+  public void testExtractZipArchiveRejectsZipSlipEntries() throws Exception
+  {
+    File tempDir = TestCaseUtils.createTemporaryDirectory("zipslip");
+    File zipFile = new File(tempDir, "malicious.zip");
+    try (ZipOutputStream zipOutput = new ZipOutputStream(new FileOutputStream(zipFile)))
+    {
+      zipOutput.putNextEntry(new ZipEntry("../evil.txt"));
+      zipOutput.write(StaticUtils.getBytes("evil"));
+      zipOutput.closeEntry();
+    }
+    File targetDirectory = new File(tempDir, "target");
+    Assert.assertTrue(targetDirectory.mkdirs());
+
+    try
+    {
+      StaticUtils.extractZipArchive(zipFile, targetDirectory,
+          Collections.<String> emptyList(), Collections.<String> emptyList());
+      Assert.fail("Expected extractZipArchive to reject a zip entry escaping the target directory");
+    }
+    catch (IOException expected)
+    {
+      // expected
+    }
+    Assert.assertFalse(new File(tempDir, "evil.txt").exists());
+  }
+
+  /**
+   * {@link StaticUtils#extractZipArchive} must accept a relative target
+   * directory: EmbeddedDirectoryServer passes the parent of a relative server
+   * root, e.g. {@code .} for a server root of {@code ./opendj}.
+   */
+  @Test
+  public void testExtractZipArchiveSupportsRelativeTargetDirectory() throws Exception
+  {
+    File tempDir = TestCaseUtils.createTemporaryDirectory("zipslip-relative");
+    File zipFile = new File(tempDir, "archive.zip");
+    String rootName = "zipslip-relative-extract-" + System.nanoTime();
+    try (ZipOutputStream zipOutput = new ZipOutputStream(new FileOutputStream(zipFile)))
+    {
+      zipOutput.putNextEntry(new ZipEntry(rootName + "/"));
+      zipOutput.closeEntry();
+      zipOutput.putNextEntry(new ZipEntry(rootName + "/README"));
+      zipOutput.write(StaticUtils.getBytes("content"));
+      zipOutput.closeEntry();
+    }
+
+    File extractedRoot = new File(rootName);
+    try
+    {
+      StaticUtils.extractZipArchive(zipFile, new File("."),
+          Collections.<String> emptyList(), Collections.<String> emptyList());
+      Assert.assertTrue(new File(extractedRoot, "README").exists());
+    }
+    finally
+    {
+      StaticUtils.recursiveDelete(extractedRoot);
     }
   }
 }

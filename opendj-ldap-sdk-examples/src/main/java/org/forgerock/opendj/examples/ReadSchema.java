@@ -13,9 +13,12 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
+
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
@@ -52,7 +55,7 @@ public final class ReadSchema {
 
         // Parse command line arguments.
         final String hostName = args[0];
-        final int port = Integer.parseInt(args[1]);
+        final int port = parsePort(args[1]);
         final String userName = args[2];
         final String password = args[3];
 

@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -516,6 +517,10 @@ public class BindOperationBasis
           {
             bindDN = actualRootDN;
           }
+          break;
+        default:
+          // No action needed for the remaining values.
+          break;
       }
 
       workflowExecuted = execute(this, bindDN);

@@ -13,11 +13,13 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.swing.Box;
@@ -157,8 +159,9 @@ class RootMonitoringPanel extends GeneralMonitoringPanel
       {
         String start = firstValueAsString(sr, START_DATE.getAttributeName());
         String current = firstValueAsString(sr, CURRENT_DATE.getAttributeName());
-        Date startTime = ConfigFromConnection.utcParser.parse(start);
-        Date currentTime = ConfigFromConnection.utcParser.parse(current);
+        SimpleDateFormat utcParser = ConfigFromConnection.newUtcParser();
+        Date startTime = utcParser.parse(start);
+        Date currentTime = utcParser.parse(current);
 
         long upSeconds = (currentTime.getTime() - startTime.getTime()) / 1000;
         long upDays = upSeconds / 86400;

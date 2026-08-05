@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -158,7 +159,7 @@ public class DeleteIndexTask extends Task
             {
               final List<String> args = getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments(index));
               args.removeAll(getConfigCommandLineArguments());
-              printEquivalentCommandLine(getConfigCommandLineName(index), args,
+              printEquivalentCommandLine(getConfigCommandLineName(), args,
                   INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_INDEX.get());
             }
           });
@@ -302,12 +303,10 @@ public class DeleteIndexTask extends Task
    * Returns the path of the command line to be used to delete the specified
    * index.
    *
-   * @param index
-   *          the index to be deleted.
    * @return the path of the command line to be used to delete the specified
    *         index.
    */
-  private String getConfigCommandLineName(AbstractIndexDescriptor index)
+  private String getConfigCommandLineName()
   {
     if (isServerRunning())
     {

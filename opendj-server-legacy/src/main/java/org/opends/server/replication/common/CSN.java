@@ -13,12 +13,15 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.common;
 
 import java.io.Serializable;
 import java.util.Date;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
@@ -71,6 +74,8 @@ public class CSN implements Serializable, Comparable<CSN>
    * @param s
    *          The string to be parsed.
    * @return The parsed CSN.
+   * @throws LocalizedIllegalArgumentException
+   *           If the provided string is not a valid {@link #toString()} representation of a CSN
    * @see #toString()
    */
   public static CSN valueOf(String s)
@@ -101,17 +106,26 @@ public class CSN implements Serializable, Comparable<CSN>
    *
    * @param str
    *          the string from which to create a {@link CSN}
+   * @throws LocalizedIllegalArgumentException
+   *           If the provided string is not a valid {@link #toString()} representation of a CSN
    */
   public CSN(String str)
   {
-    String temp = str.substring(0, 16);
-    timeStamp = Long.parseLong(temp, 16);
+    if (str == null || str.length() < STRING_ENCODING_LENGTH)
+    {
+      throw new LocalizedIllegalArgumentException(LocalizableMessage.raw("Invalid CSN: \"%s\"", str));
+    }
 
-    temp = str.substring(16, 20);
-    serverId = Integer.parseInt(temp, 16);
-
-    temp = str.substring(20, 28);
-    seqnum = Integer.parseInt(temp, 16);
+    try
+    {
+      timeStamp = Long.parseLong(str.substring(0, 16), 16);
+      serverId = Integer.parseInt(str.substring(16, 20), 16);
+      seqnum = Integer.parseInt(str.substring(20, STRING_ENCODING_LENGTH), 16);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new LocalizedIllegalArgumentException(LocalizableMessage.raw("Invalid CSN: \"%s\"", str));
+    }
   }
 
   /**
@@ -319,11 +333,11 @@ public class CSN implements Serializable, Comparable<CSN>
     }
     else if (csn1.seqnum != csn2.seqnum)
     {
-      return csn1.seqnum - csn2.seqnum;
+      return Integer.compare(csn1.seqnum, csn2.seqnum);
     }
     else
     {
-      return csn1.serverId - csn2.serverId;
+      return Integer.compare(csn1.serverId, csn2.serverId);
     }
   }
 

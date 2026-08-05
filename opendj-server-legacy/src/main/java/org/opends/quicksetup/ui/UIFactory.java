@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.ui;
 
@@ -1164,11 +1165,19 @@ public class UIFactory
   {
     String s = String.valueOf(l);
     String[] colors = s.split(",");
-    int r = Integer.parseInt(colors[0].trim());
-    int g = Integer.parseInt(colors[1].trim());
-    int b = Integer.parseInt(colors[2].trim());
+    try
+    {
+      int r = Integer.parseInt(colors[0].trim());
+      int g = Integer.parseInt(colors[1].trim());
+      int b = Integer.parseInt(colors[2].trim());
 
-    return new Color(r, g, b);
+      return new Color(r, g, b);
+    }
+    catch (NumberFormatException | IndexOutOfBoundsException e)
+    {
+      logger.warn(LocalizableMessage.raw("Invalid color definition \"%s\", using black instead", s));
+      return Color.BLACK;
+    }
   }
 
   /**
@@ -1479,7 +1488,7 @@ class TextFieldFocusListener implements FocusListener
   @Override
   public void focusGained(FocusEvent e)
   {
-    if (tf.getText() == null || "".equals(tf.getText()))
+    if (tf.getText() == null || tf.getText().isEmpty())
     {
       tf.setText(" ");
       tf.selectAll();

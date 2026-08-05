@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.schema;
 
@@ -40,6 +41,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -289,7 +291,7 @@ class SchemaFilesWriter
           matchingRuleUses, ldapSyntaxes);
 
       File upgradeDirectory = getUpgradeDirectory();
-      upgradeDirectory.mkdir();
+      Files.createDirectories(upgradeDirectory.toPath());
       File concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
       concatFilePath = concatFile.getAbsolutePath();
 
@@ -311,11 +313,7 @@ class SchemaFilesWriter
         writeLines(writer, ATTR_LDAP_SYNTAXES, ldapSyntaxes);
       }
 
-      if (concatFile.exists())
-      {
-        concatFile.delete();
-      }
-      tempFile.renameTo(concatFile);
+      renameFile(tempFile, concatFile);
     }
     catch (Exception e)
     {
@@ -725,7 +723,7 @@ class SchemaFilesWriter
     }
 
     // Create a temporary file to which we can write the schema entry.
-    File tempFile = File.createTempFile(schemaFile, "temp");
+    File tempFile = Files.createTempFile(schemaFile, "temp").toFile();
     LDIFExportConfig exportConfig =
          new LDIFExportConfig(tempFile.getAbsolutePath(),
                               ExistingFileBehavior.OVERWRITE);
@@ -838,8 +836,6 @@ class SchemaFilesWriter
    * Adds the definition for the specified attribute type to the provided set of attribute values,
    * recursively adding superior types as appropriate.
    *
-   * @param schema
-   *          The schema containing the attribute type.
    * @param schemaFile
    *          The schema file with which the attribute type is associated.
    * @param attributeType
@@ -927,8 +923,6 @@ class SchemaFilesWriter
    * Adds the definition for the specified DIT structure rule to the provided set of attribute
    * values, recursively adding superior rules as appropriate.
    *
-   * @param schema
-   *          The schema containing the DIT structure rule.
    * @param schemaFile
    *          The schema file with which the DIT structure rule is associated.
    * @param ditStructureRule
@@ -1064,11 +1058,23 @@ class SchemaFilesWriter
     // files.  If this fails, then try to restore the originals.
     try
     {
+      boolean posixSupported = schemaInstanceDir.toPath().getFileSystem()
+          .supportedFileAttributeViews().contains("posix");
       for (int i=0; i < installedFileList.size(); i++)
       {
         File installedFile = installedFileList.get(i);
         File tempFile      = tempFileList.get(i);
+        // The temporary file was created with owner-only permissions and Files.copy
+        // propagates the source permissions, so preserve the permissions of the
+        // previously installed schema file.
+        Set<PosixFilePermission> previousPermissions = posixSupported && installedFile.exists()
+            ? Files.getPosixFilePermissions(installedFile.toPath())
+            : null;
         Files.copy(tempFile.toPath(), installedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        if (previousPermissions != null)
+        {
+          Files.setPosixFilePermissions(installedFile.toPath(), previousPermissions);
+        }
       }
     }
     catch (Exception e)

@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.upgrade;
 
@@ -23,6 +24,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -54,6 +56,7 @@ import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.forgerock.util.Reject;
+import org.forgerock.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.ChangeOperationType;
 import org.opends.server.util.SchemaUtils;
@@ -304,8 +307,18 @@ final class UpgradeUtils
   {
     final Schema schema = getUpgradeSchema();
     final File configFile = new File(configDirectory, CURRENT_CONFIG_FILE_NAME);
-    final LDIFEntryReader entryReader = new LDIFEntryReader(new FileInputStream(configFile)).setSchema(schema);
-    return LDIF.search(entryReader, searchRequest, schema);
+    final FileInputStream configStream = new FileInputStream(configFile);
+    try
+    {
+      // Ownership of the stream passes to the returned reader, which the caller must close.
+      final LDIFEntryReader entryReader = new LDIFEntryReader(configStream).setSchema(schema);
+      return LDIF.search(entryReader, searchRequest, schema);
+    }
+    catch (RuntimeException e)
+    {
+      Utils.closeSilently(configStream);
+      throw e;
+    }
   }
 
   /**
@@ -333,8 +346,10 @@ final class UpgradeUtils
 
     int changeCount = 0;
     final Schema schema = getUpgradeSchema();
-    try (LDIFEntryReader entryReader = new LDIFEntryReader(new FileInputStream(configFile)).setSchema(schema);
-        LDIFEntryWriter writer = new LDIFEntryWriter(new FileOutputStream(copyConfig)))
+    try (FileInputStream configStream = new FileInputStream(configFile);
+        LDIFEntryReader entryReader = new LDIFEntryReader(configStream).setSchema(schema);
+        FileOutputStream copyStream = new FileOutputStream(copyConfig);
+        LDIFEntryWriter writer = new LDIFEntryWriter(copyStream))
     {
       writer.setWrapColumn(80);
 
@@ -360,6 +375,9 @@ final class UpgradeUtils
           {
             ldifDNs.add(DN.valueOf(removeDnPrefix(dnLine)));
           }
+          break;
+        default:
+          // No action needed for the remaining values.
           break;
         }
       }
@@ -665,17 +683,14 @@ final class UpgradeUtils
     {
       logger.debug(LocalizableMessage.raw("Parent file of %s doesn't exist", destination.getPath()));
 
-      parentDirectory.mkdirs();
+      Files.createDirectories(parentDirectory.toPath());
 
       logger.debug(LocalizableMessage.raw("Parent directory %s created.", parentDirectory.getPath()));
-    }
-    if (!destination.exists())
-    {
-      destination.createNewFile();
     }
 
     logger.debug(LocalizableMessage.raw("Writing entries in %s.", destination.getAbsolutePath()));
 
+    // The destination file is created by the output stream below if it does not exist yet.
     try (LDIFEntryWriter writer = new LDIFEntryWriter(new FileOutputStream(destination)))
     {
       writer.writeEntry(theNewSchemaEntry);

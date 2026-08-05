@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.installer;
 
@@ -32,7 +33,7 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -150,8 +151,7 @@ public class InstallerHelper {
     try
     {
       process = processBuilder.start();
-      final BufferedReader err = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-      new OutputReader(err)
+      new OutputReader(process.getErrorStream())
       {
         @Override
         public void processLine(final String line)
@@ -160,10 +160,9 @@ public class InstallerHelper {
           application.notifyListeners(LocalizableMessage.raw(line));
           application.notifyListeners(application.getLineBreak());
         }
-      };
+      }.start();
 
-      final BufferedReader out = new BufferedReader(new InputStreamReader(process.getInputStream()));
-      new OutputReader(out)
+      new OutputReader(process.getInputStream())
       {
         @Override
         public void processLine(final String line)
@@ -172,7 +171,7 @@ public class InstallerHelper {
           application.notifyListeners(LocalizableMessage.raw(line));
           application.notifyListeners(application.getLineBreak());
         }
-      };
+      }.start();
 
       return process.waitFor();
     }
@@ -180,8 +179,10 @@ public class InstallerHelper {
     {
       if (process != null)
       {
-        closeProcessStream(process.getErrorStream(), "error");
-        closeProcessStream(process.getOutputStream(), "output");
+        // The error and output streams of the process are owned by the readers started above,
+        // which close them once drained. Only the stream writing to the standard input of the
+        // process, which is never used here, is left to close.
+        closeProcessStream(process.getOutputStream(), "input");
       }
     }
   }
@@ -272,7 +273,7 @@ public class InstallerHelper {
     File ldifFile;
     try
     {
-      ldifFile = File.createTempFile("opendj-base-entry", ".ldif");
+      ldifFile = Files.createTempFile("opendj-base-entry", ".ldif").toFile();
       ldifFile.deleteOnExit();
     } catch (IOException ioe)
     {
@@ -976,17 +977,6 @@ public class InstallerHelper {
         writer.write(getJavaArgPropertyForScript(scriptName) + "=" + argument);
       }
     }
-
-    String libDir = Utils.getPath(
-        Utils.getInstancePathFromInstallPath(installPath), LIBRARIES_PATH_RELATIVE);
-    // Create directory if it doesn't exist yet
-    File fLib = new File(libDir);
-    if (!fLib.exists())
-    {
-      fLib.mkdir();
-    }
-//    final String destinationFile = Utils.getPath(libDir, isWindows() ? SET_JAVA_PROPERTIES_FILE_WINDOWS
-//                                                                     : SET_JAVA_PROPERTIES_FILE_UNIX);
   }
 
   /**

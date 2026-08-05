@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -101,6 +102,25 @@ public final class IntegerArgument extends Argument {
             final LocalizableMessage message =
                     ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND.get(builder.longIdentifier, lowerBound, upperBound);
             throw new ArgumentException(message);
+        }
+    }
+
+    /**
+     * Returns the default value of this argument as an int.
+     * <p>
+     * The default value of an integer argument is always built from an {@code int}, so the only
+     * reason for this method to return the fallback value is that this argument has no default
+     * value at all.
+     *
+     * @param fallbackValue
+     *            The value to return if this argument does not have a default value.
+     * @return The default value of this argument, or {@code fallbackValue} if it does not have one.
+     */
+    public int getDefaultIntValue(final int fallbackValue) {
+        try {
+            return Integer.parseInt(getDefaultValue());
+        } catch (final NumberFormatException e) {
+            return fallbackValue;
         }
     }
 

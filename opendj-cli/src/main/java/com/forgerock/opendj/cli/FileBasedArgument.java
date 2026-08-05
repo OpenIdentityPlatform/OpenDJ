@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -105,6 +106,9 @@ public final class FileBasedArgument extends Argument {
     /**
      * Retrieves a map between the filenames specified on the command line and
      * the first lines read from those files.
+     * <p>
+     * The returned map is the live one: the tools building an equivalent command line add
+     * entries to it, so that a password read interactively is displayed as a password file.
      *
      * @return A map between the filenames specified on the command line and the
      *         first lines read from those files.

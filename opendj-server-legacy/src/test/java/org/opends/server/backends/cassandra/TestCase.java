@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2023 3A Systems, LLC.
+ * Copyright 2023-2026 3A Systems, LLC.
  */
 package org.opends.server.backends.cassandra;
 
@@ -51,7 +51,7 @@ public class TestCase extends PluggableBackendImplTestCase<CASBackendCfg> {
 
 		//test allow cassandra
 		try(CqlSession session=CqlSession.builder()
-				.withConfigLoader(DriverConfigLoader.fromDefaults(Storage.class.getClassLoader()))
+				.withConfigLoader(DriverConfigLoader.fromDefaults(CASStorage.class.getClassLoader()))
 				.build()){
 			session.close();
 		}catch (AllNodesFailedException e) {

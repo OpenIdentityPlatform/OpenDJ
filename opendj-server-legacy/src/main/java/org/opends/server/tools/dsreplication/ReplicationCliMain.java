@@ -14,6 +14,7 @@
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2012 profiq s.r.o.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.dsreplication;
 
@@ -46,6 +47,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -364,7 +366,7 @@ public class ReplicationCliMain extends ConsoleApplication
     try
     {
       ControlPanelLog.initLogFileHandler(
-          File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX));
+          Files.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX).toFile());
     } catch (Throwable t) {
       System.err.println("Unable to initialize log");
       t.printStackTrace();
@@ -804,7 +806,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else
     {
-      initializeWithArgParser(uData);
+      initializeWithArgParserForSourceServer(uData);
       return initializeAllReplication(uData);
     }
   }
@@ -832,7 +834,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else
     {
-      initializeWithArgParser(uData);
+      initializeWithArgParserForSourceServer(uData);
       return preExternalInitialization(uData);
     }
   }
@@ -860,7 +862,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else
     {
-      initializeWithArgParser(uData);
+      initializeWithArgParserForSourceServer(uData);
       return postExternalInitialization(uData);
     }
   }
@@ -2672,7 +2674,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean promptIfRequired(InitializeAllReplicationUserData uData)
   {
-    ConnectionWrapper conn = getConnection(uData);
+    ConnectionWrapper conn = getConnectionToSourceServer(uData);
     if (conn == null)
     {
       return false;
@@ -2734,7 +2736,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean promptIfRequiredForPreOrPost(MonoServerReplicationUserData uData)
   {
-    ConnectionWrapper conn = getConnection(uData);
+    ConnectionWrapper conn = getConnectionToSourceServer(uData);
     if (conn == null)
     {
       return false;
@@ -2752,7 +2754,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private ConnectionWrapper getConnection(MonoServerReplicationUserData uData)
+  private ConnectionWrapper getConnectionToSourceServer(MonoServerReplicationUserData uData)
   {
     // Try to connect to the server.
     while (true)
@@ -2807,7 +2809,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean promptIfRequired(StatusReplicationUserData uData) throws ReplicationCliException
   {
-    ConnectionWrapper conn = getConnection(uData);
+    ConnectionWrapper conn = getConnectionToSourceServer(uData);
     if (conn == null)
     {
       return false;
@@ -3103,11 +3105,15 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Initializes the contents of the provided user data object with what was
-   * provided in the command-line without prompting to the user.
+   * Initializes the contents of the provided user data object of a subcommand which operates on a
+   * single server with what was provided in the command-line without prompting to the user.
+   * <p>
+   * The subcommands which need more than the source server, or other arguments, have their own
+   * overload taking their own user data type.
+   *
    * @param uData the user data object to be initialized.
    */
-  private void initializeWithArgParser(MonoServerReplicationUserData uData)
+  private void initializeWithArgParserForSourceServer(MonoServerReplicationUserData uData)
   {
     initialize(uData);
 
@@ -6567,7 +6573,7 @@ public class ReplicationCliMain extends ConsoleApplication
       public void progressUpdate(ProgressUpdateEvent ev)
       {
         LocalizableMessage newLogDetails = ev.getNewLogs();
-        if (newLogDetails != null && !"".equals(newLogDetails.toString().trim()))
+        if (newLogDetails != null && !newLogDetails.toString().trim().isEmpty())
         {
           print(newLogDetails);
           println();
@@ -6593,7 +6599,7 @@ public class ReplicationCliMain extends ConsoleApplication
               ERR_REPLICATION_INITIALIZING_TRIES_COMPLETED.get(
                   pnfe.getMessageObject()), INITIALIZING_TRIES_COMPLETED, pnfe);
         }
-        sleepCatchInterrupt((5 - nTries) * 3000);
+        sleepCatchInterrupt((5 - nTries) * 3000L);
       }
       catch (ApplicationException ae)
       {
@@ -6646,7 +6652,7 @@ public class ReplicationCliMain extends ConsoleApplication
               ERR_REPLICATION_INITIALIZING_TRIES_COMPLETED.get(
                   pnfe.getMessageObject()), INITIALIZING_TRIES_COMPLETED, pnfe);
         }
-        sleepCatchInterrupt((5 - nTries) * 3000);
+        sleepCatchInterrupt((5 - nTries) * 3000L);
       }
       catch (ClientException ae)
       {

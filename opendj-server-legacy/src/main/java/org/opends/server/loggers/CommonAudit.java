@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -255,7 +256,7 @@ public class CommonAudit
    */
   public void removePublisher(LogPublisherCfg config) throws ConfigException
   {
-    logger.trace(String.format("Shutting down common audit for configuration entry:", config.dn()));
+    logger.trace(String.format("Shutting down common audit for configuration entry: %s", config.dn()));
     String normalizedName = getConfigNormalizedName(config);
     try
     {
@@ -357,7 +358,7 @@ public class CommonAudit
       throws IOException, AuditException, ConfigException
   {
     final JsonValue jsonConfig;
-    try (InputStream input = getClass().getResourceAsStream(AUDIT_SERVICE_JSON_CONFIGURATION_FILE))
+    try (InputStream input = CommonAudit.class.getResourceAsStream(AUDIT_SERVICE_JSON_CONFIGURATION_FILE))
     {
       jsonConfig = AuditJsonConfig.getJson(input);
     }
@@ -518,7 +519,6 @@ public class CommonAudit
       jsonConfig.setLogDirectory(logDirectory.getAbsolutePath());
       jsonConfig.setName(publisher.getName());
       jsonConfig.setTopics(Collections.singleton(publisher.getCommonAuditTopic()));
-      addJsonHandlerBufferingConfig(config, jsonConfig);
       addHandlerRetentionConfig(publisher, config, jsonConfig);
       addHandlerRotationConfig(publisher, config, jsonConfig);
 
@@ -528,12 +528,6 @@ public class CommonAudit
     {
       throw new ConfigException(ERR_COMMON_AUDIT_FILE_BASED_HANDLER_CREATION.get(publisher.getDn(), e), e);
     }
-  }
-
-  private void addJsonHandlerBufferingConfig(JsonConfigData config, JsonAuditEventHandlerConfiguration auditConfig)
-  {
-    JsonAuditEventHandlerConfiguration.EventBufferingConfiguration jsonBufferingConfig =
-        new JsonAuditEventHandlerConfiguration.EventBufferingConfiguration();
   }
 
   private void addHandlerRotationConfig(PublisherConfig publisher, HandlerConfigData config,

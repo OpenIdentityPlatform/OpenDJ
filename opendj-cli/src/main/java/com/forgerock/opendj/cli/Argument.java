@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -374,6 +375,9 @@ public abstract class Argument implements DocDescriptionSupplement {
 
     /**
      * Retrieves the set of string values for this argument.
+     * <p>
+     * The returned list is the live one: {@code ListBackends} removes the backend identifiers it
+     * could not resolve from it, and {@code InstallDS} adds the default base DN to it.
      *
      * @return The set of string values for this argument.
      */

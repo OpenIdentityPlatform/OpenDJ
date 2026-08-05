@@ -12,7 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
+
+#ifndef OPENDJ_WINDOWS_COMMON_H
+#define OPENDJ_WINDOWS_COMMON_H
 
 // Just some functions and constants to be used by winlauncher.c
 // and service.c
@@ -32,3 +36,16 @@ void debugError(const char *msg, ...);
 void updateDebugFlag(char* argv[], int argc);
 BOOL waitForProcess(PROCESS_INFORMATION* procInfo, DWORD waitTime,
   DWORD* exitCode);
+
+// Returns TRUE if the given path is non-NULL and does not contain a
+// parent-directory reference ("..") that could be used for path traversal.
+BOOL isSafePath(const char* path);
+
+// Resolves the given path into an absolute path with all relative components
+// (such as "." and "..") removed, and checks that it is an existing
+// directory.  Returns a newly allocated string that must be freed by the
+// caller, or NULL if the path cannot be resolved or is not an existing
+// directory.
+char* getCanonicalDirectoryPath(const char* path);
+
+#endif // OPENDJ_WINDOWS_COMMON_H

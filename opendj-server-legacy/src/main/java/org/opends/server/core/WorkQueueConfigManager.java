@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 import java.util.List;
@@ -79,7 +80,7 @@ public class WorkQueueConfigManager
 
     try
     {
-      WorkQueue workQueue = workQueueClass.newInstance();
+      WorkQueue workQueue = workQueueClass.getDeclaredConstructor().newInstance();
 
       workQueue.initializeWorkQueue(workQueueConfig);
 

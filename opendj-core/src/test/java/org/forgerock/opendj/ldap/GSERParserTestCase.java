@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2014 Manuel Gaupp
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -165,7 +166,9 @@ public class GSERParserTestCase extends SdkTestCase {
             {"", false},
             {"0xFF", false},
             {"NULL", false},
-            {"Not a Number", false}
+            {"Not a Number", false},
+            {"2147483648", false},
+            {"99999999999", false}
         };
     }
 

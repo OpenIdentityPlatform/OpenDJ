@@ -18,6 +18,7 @@
 package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
 import static com.forgerock.opendj.cli.CliConstants.DEFAULT_LDAP_PORT;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.getHostNameForLdapUrl;
@@ -140,6 +141,9 @@ public final class ConnectionFactoryProvider {
     /** If this connection should be an admin connection. */
     private boolean isAdminConnection;
 
+    /** The port to use when the port argument has no default value. */
+    private final int defaultPort;
+
     /**
      * Default constructor to create a connection factory designed for use with command line tools,
      * adding basic LDAP connection arguments to the specified parser (e.g: hostname, bindname...etc).
@@ -177,6 +181,7 @@ public final class ConnectionFactoryProvider {
             final ConsoleApplication app, final String defaultBindDN, final int defaultPort,
             final boolean alwaysSSL) throws ArgumentException {
         this.app = app;
+        this.defaultPort = defaultPort;
 
         useSSLArg = useSSLArgument();
         if (!alwaysSSL) {
@@ -261,10 +266,14 @@ public final class ConnectionFactoryProvider {
             try {
                 return connectTimeOut.getIntValue();
             } catch (ArgumentException e) {
-                return Integer.valueOf(connectTimeOut.getDefaultValue());
+                return getDefaultConnectTimeout();
             }
         }
-        return Integer.valueOf(connectTimeOut.getDefaultValue());
+        return getDefaultConnectTimeout();
+    }
+
+    private int getDefaultConnectTimeout() {
+        return connectTimeOut.getDefaultIntValue(DEFAULT_LDAP_CONNECT_TIMEOUT);
     }
 
 
@@ -311,18 +320,22 @@ public final class ConnectionFactoryProvider {
             try {
                 return portArg.getIntValue();
             } catch (ArgumentException e) {
-                return Integer.valueOf(portArg.getDefaultValue());
+                return getDefaultPort();
             }
         } else if (app.isInteractive()) {
             final LocalizableMessage portMsg =
                     isAdminConnection ? INFO_DESCRIPTION_ADMIN_PORT.get() : INFO_DESCRIPTION_PORT.get();
-            int value = app.askPort(portMsg, Integer.valueOf(portArg.getDefaultValue()), logger);
+            int value = app.askPort(portMsg, getDefaultPort(), logger);
             app.println();
             portArg.addValue(Integer.toString(value));
             portArg.setPresent(true);
             return value;
         }
-        return Integer.valueOf(portArg.getDefaultValue());
+        return getDefaultPort();
+    }
+
+    private int getDefaultPort() {
+        return portArg.getDefaultIntValue(defaultPort);
     }
 
     /**

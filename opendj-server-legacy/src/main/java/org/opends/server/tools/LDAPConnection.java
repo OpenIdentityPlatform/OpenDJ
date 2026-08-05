@@ -348,6 +348,9 @@ public class LDAPConnection
               case CHANGE_AFTER_RESET:
                 out.println(INFO_BIND_MUST_CHANGE_PASSWORD.get());
                 break;
+              default:
+                // No action needed for the remaining values.
+                break;
             }
           }
 
@@ -440,10 +443,10 @@ public class LDAPConnection
       {
         try
         {
-        	final Socket s=new Socket();
-        	s.setReuseAddress(true);
-        	s.bind( new InetSocketAddress(inetAddress, portNumber));
-        	return s;
+          final Socket s = new Socket();
+          s.setReuseAddress(true);
+          s.connect(new InetSocketAddress(inetAddress, portNumber));
+          return s;
         }
         catch (ConnectException ce2)
         {
