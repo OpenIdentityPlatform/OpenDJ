@@ -14,6 +14,7 @@
  * Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2014 Manuel Gaupp
  * Portions copyright 2016 Matthew Stevenson
+ * Portions Copyrighted 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.ldif;
@@ -1161,6 +1162,100 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
                 "dn: ou=Product Development, dc=airius, dc=com",
                 "control: 1.2.3.4 0 value",
+                "changetype: add",
+                "objectClass: top",
+                "objectClass: organization",
+                "o: testing"
+        );
+        // @formatter:on
+
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        // Read the record
+        reader.readChangeRecord();
+        reader.close();
+    }
+
+    /**
+     * Test to read a record containing a control with a malformed OID
+     * (non-digit inside an arc). Must throw an error.
+     *
+     * @throws Exception
+     */
+    @Test(expectedExceptions = DecodeException.class)
+    public void testParseChangeRecordEntryWithMalformedControlOID() throws Exception {
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                "dn: ou=Product Development, dc=airius, dc=com",
+                "control: 1a2.3 true :cn",
+                "changetype: add",
+                "objectClass: top",
+                "objectClass: organization",
+                "o: testing"
+        );
+        // @formatter:on
+
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        // Read the record
+        reader.readChangeRecord();
+        reader.close();
+    }
+
+    /**
+     * Test to read a record containing a control whose OID has thousands of
+     * arcs. Must parse without StackOverflowError.
+     *
+     * @throws Exception
+     */
+    @Test(timeOut = 10000)
+    public void testParseChangeRecordEntryWithLongControlOID() throws Exception {
+
+        final StringBuilder oid = new StringBuilder("1");
+        for (int i = 0; i < 3000; i++) {
+            oid.append(".1");
+        }
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                "dn: ou=Product Development, dc=airius, dc=com",
+                "control: " + oid,
+                "changetype: add",
+                "objectClass: top",
+                "objectClass: organization",
+                "o: testing"
+        );
+        // @formatter:on
+
+        reader.setSchema(Schema.getDefaultSchema());
+        reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
+        final ChangeRecord record = reader.readChangeRecord();
+        assertThat(record).isInstanceOf(AddRequest.class);
+        assertThat(record.getControls().get(0).getOID()).isEqualTo(oid.toString());
+        reader.close();
+    }
+
+    /**
+     * Test to read a record containing an invalid control followed by tens of
+     * thousands of spaces. Must throw an error without catastrophic regex
+     * backtracking.
+     *
+     * @throws Exception
+     */
+    @Test(expectedExceptions = DecodeException.class, timeOut = 10000)
+    public void testParseChangeRecordEntryWithControlTrailingWhitespace() throws Exception {
+
+        final StringBuilder control = new StringBuilder("control: 1");
+        for (int i = 0; i < 60000; i++) {
+            control.append(' ');
+        }
+        control.append('x');
+
+        // @formatter:off
+        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                "dn: ou=Product Development, dc=airius, dc=com",
+                control.toString(),
                 "changetype: add",
                 "objectClass: top",
                 "objectClass: organization",

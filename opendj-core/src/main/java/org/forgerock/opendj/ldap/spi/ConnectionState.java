@@ -12,11 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.spi;
 
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.LdapException;
@@ -245,8 +246,15 @@ public final class ConnectionState {
     /** Whether the connection has failed due to a disconnect notification. */
     private boolean failedDueToDisconnect;
 
-    /** Registered event listeners. */
-    private final List<ConnectionEventListener> listeners = new LinkedList<>();
+    /**
+     * Registered event listeners. Copy on write because a listener is allowed
+     * to register or, more commonly, de-register itself while it is being
+     * notified: the notification methods are re-entrant on this object's
+     * monitor, so any other list implementation would have the notification
+     * loop either skip the remaining listeners or fail with a
+     * {@link java.util.ConcurrentModificationException}.
+     */
+    private final List<ConnectionEventListener> listeners = new CopyOnWriteArrayList<>();
 
     /** Internal state implementation. */
     private volatile State state = State.VALID;
@@ -260,13 +268,14 @@ public final class ConnectionState {
      * Registers the provided connection event listener so that it will be
      * notified when this connection is closed by the application, receives an
      * unsolicited notification, or experiences a fatal error.
+     * <p>
+     * A listener registered once the connection has already failed and/or been
+     * closed is notified of the events it has missed before this method
+     * returns.
      *
      * @param listener
      *            The listener which wants to be notified when events occur on
      *            this connection.
-     * @throws IllegalStateException
-     *             If this connection has already been closed, i.e. if
-     *             {@code isClosed() == true}.
      * @throws NullPointerException
      *             If the {@code listener} was {@code null}.
      */

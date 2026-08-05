@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools;
 
@@ -174,6 +175,9 @@ public class LDAPConnectionOptions
 
   /**
    * Get the SASL options used for authentication.
+   * <p>
+   * The returned map is the live set of properties: callers may add or remove properties
+   * through it, as the DSML gateway does when it drops the authorization identity.
    *
    * @return  The SASL options used for authentication.
    */

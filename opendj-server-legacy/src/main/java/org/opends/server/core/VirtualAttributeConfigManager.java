@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -422,7 +423,7 @@ public class VirtualAttributeConfigManager
       Class<? extends VirtualAttributeProvider> providerClass =
            propertyDefinition.loadClass(className,
                                         VirtualAttributeProvider.class);
-      VirtualAttributeProvider provider = providerClass.newInstance();
+      VirtualAttributeProvider provider = providerClass.getDeclaredConstructor().newInstance();
 
       if (initialize)
       {

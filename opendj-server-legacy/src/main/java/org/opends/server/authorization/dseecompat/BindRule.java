@@ -415,6 +415,10 @@ public class BindRule {
                 throw new AciException(
                     WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD_OPERATOR_COMBO.get(keyword, op));
             }
+            break;
+        default:
+          // No action needed for the remaining values.
+          break;
         }
     }
 
@@ -525,11 +529,9 @@ public class BindRule {
      *          should be appended.
      */
     public final void toString(StringBuilder buffer) {
-        if (this.keywordRuleMap != null) {
-            for (KeywordBindRule rule : this.keywordRuleMap.values()) {
-                rule.toString(buffer);
-                buffer.append(";");
-            }
+        for (KeywordBindRule rule : this.keywordRuleMap.values()) {
+            rule.toString(buffer);
+            buffer.append(";");
         }
     }
 }

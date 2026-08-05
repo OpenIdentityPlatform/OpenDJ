@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.ldap;
@@ -163,13 +164,19 @@ public final class AttributeFilter {
                  * requested by the user.
                  */
                 return new Iterable<Attribute>() {
-                    private boolean hasNextMustIterate = true;
-                    private final Iterator<Attribute> iterator = entry.getAllAttributes().iterator();
-                    private Attribute next = null;
-
                     @Override
                     public Iterator<Attribute> iterator() {
+                        /*
+                         * The iteration state belongs to the iterator, not to this Iterable:
+                         * keeping it here is what allows the Iterable to be iterated more than
+                         * once, including by the toString() below.
+                         */
                         return new Iterator<Attribute>() {
+                            private boolean hasNextMustIterate = true;
+                            private final Iterator<Attribute> iterator =
+                                    entry.getAllAttributes().iterator();
+                            private Attribute next;
+
                             @Override
                             public boolean hasNext() {
                                 if (hasNextMustIterate) {

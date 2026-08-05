@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -183,7 +184,7 @@ public final class GenerateConfigMojo extends AbstractMojo {
         } else if (!isXMLPackageDirectoryValid()) {
             throw new MojoExecutionException("The XML definition directory \""
                     + getXMLPackageDirectory() + "\" does not exist.");
-        } else if (getClass().getResource(getStylesheetDirectory()) == null) {
+        } else if (GenerateConfigMojo.class.getResource(getStylesheetDirectory()) == null) {
             throw new MojoExecutionException("The XSLT stylesheet directory \""
                     + getStylesheetDirectory() + "\" does not exist.");
         }
@@ -245,6 +246,16 @@ public final class GenerateConfigMojo extends AbstractMojo {
         createTransformTask(inputFactory, output, stylesheet, executor, parameters);
     }
 
+    /** Resolves a file name against an output directory, refusing names which escape it. */
+    private static String safeOutputPath(final String outputDir, final String fileName) throws IOException {
+        final Path outputDirPath = new File(outputDir).toPath().toAbsolutePath().normalize();
+        final Path outputFile = outputDirPath.resolve(fileName).normalize();
+        if (!outputFile.startsWith(outputDirPath)) {
+            throw new IOException("File name '" + fileName + "' is outside of the output directory");
+        }
+        return outputFile.toString();
+    }
+
     private void executeTransformXMLDefinitions() throws Exception {
         getLog().info("Transforming XML definitions...");
 
@@ -282,24 +293,24 @@ public final class GenerateConfigMojo extends AbstractMojo {
 
             for (final Map.Entry<String, StreamSourceFactory> entry : componentDescriptors
                     .entrySet()) {
-                final String meta = metaDir + entry.getKey() + "CfgDefn.java";
+                final String meta = safeOutputPath(metaDir, entry.getKey() + "CfgDefn.java");
                 createTransformTask(entry.getValue(), meta, stylesheetMetaJava, parallelExecutor);
 
-                final String server = serverDir + entry.getKey() + "Cfg.java";
+                final String server = safeOutputPath(serverDir, entry.getKey() + "Cfg.java");
                 createTransformTask(entry.getValue(), server, stylesheetServerJava,
                         parallelExecutor);
 
-                final String client = clientDir + entry.getKey() + "CfgClient.java";
+                final String client = safeOutputPath(clientDir, entry.getKey() + "CfgClient.java");
                 createTransformTask(entry.getValue(), client, stylesheetClientJava,
                         parallelExecutor);
 
-                final String ldap = ldapProfileDir + entry.getKey() + "CfgDefn.properties";
+                final String ldap = safeOutputPath(ldapProfileDir, entry.getKey() + "CfgDefn.properties");
                 createTransformTask(entry.getValue(), ldap, stylesheetProfileLDAP, parallelExecutor);
 
-                final String cli = cliProfileDir + entry.getKey() + "CfgDefn.properties";
+                final String cli = safeOutputPath(cliProfileDir, entry.getKey() + "CfgDefn.properties");
                 createTransformTask(entry.getValue(), cli, stylesheetProfileCLI, parallelExecutor);
 
-                final String i18n = i18nDir + entry.getKey() + "CfgDefn.properties";
+                final String i18n = safeOutputPath(i18nDir, entry.getKey() + "CfgDefn.properties");
                 createTransformTask(entry.getValue(), i18n, stylesheetMessages, parallelExecutor);
 
                 createTransformTask(entry.getValue(), manifest, stylesheetManifest,
@@ -324,7 +335,7 @@ public final class GenerateConfigMojo extends AbstractMojo {
                         }
                     }
                 };
-                final String profile = javaDir + "/" + entry.getKey() + "/package-info.java";
+                final String profile = safeOutputPath(javaDir, entry.getKey() + "/package-info.java");
                 createTransformTask(sourceFactory, profile, entry.getValue(), parallelExecutor,
                         "type", entry.getKey());
             }
@@ -428,7 +439,7 @@ public final class GenerateConfigMojo extends AbstractMojo {
     private Templates loadStylesheet(final String stylesheet)
             throws TransformerConfigurationException {
         final Source xslt =
-                new StreamSource(getClass().getResourceAsStream(
+                new StreamSource(GenerateConfigMojo.class.getResourceAsStream(
                         getStylesheetDirectory() + "/" + stylesheet));
         return stylesheetFactory.newTemplates(xslt);
     }

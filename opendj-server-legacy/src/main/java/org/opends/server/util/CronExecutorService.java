@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
@@ -90,8 +91,11 @@ public class CronExecutorService implements ScheduledExecutorService
     @Override
     public boolean cancel(boolean mayInterruptIfRunning)
     {
-      return schedulerFuture.cancel(mayInterruptIfRunning)
-          | (executorFuture != null && executorFuture.cancel(mayInterruptIfRunning));
+      // Both futures must be cancelled, so neither call may be short circuited.
+      final boolean schedulerCancelled = schedulerFuture.cancel(mayInterruptIfRunning);
+      final boolean executorCancelled =
+          executorFuture != null && executorFuture.cancel(mayInterruptIfRunning);
+      return schedulerCancelled || executorCancelled;
     }
 
     @Override
@@ -351,7 +355,10 @@ public class CronExecutorService implements ScheduledExecutorService
   @Override
   public boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException
   {
-    return cronScheduler.awaitTermination(timeout, unit) & cronExecutorService.awaitTermination(timeout, unit);
+    // Both services must be awaited, so neither call may be short circuited.
+    final boolean schedulerTerminated = cronScheduler.awaitTermination(timeout, unit);
+    final boolean executorTerminated = cronExecutorService.awaitTermination(timeout, unit);
+    return schedulerTerminated && executorTerminated;
   }
 
   @Override

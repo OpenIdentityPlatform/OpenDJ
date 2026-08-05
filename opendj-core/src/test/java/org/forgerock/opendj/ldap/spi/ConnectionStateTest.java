@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.spi;
 
@@ -240,6 +241,71 @@ public class ConnectionStateTest extends LDAPTestCase {
         assertThat(state.isValid()).isTrue();
         assertThat(state.isClosed()).isFalse();
         assertThat(state.getConnectionError()).isNull();
+    }
+
+    /**
+     * Tests that a listener de-registering itself while being notified of the close, a common idiom, neither skips
+     * the remaining listeners nor breaks out of the notification loop.
+     */
+    @Test
+    public void testSelfDeregisteringListenerDuringClose() {
+        final ConnectionState state = new ConnectionState();
+        final ConnectionEventListener selfDeregistering = mock(ConnectionEventListener.class);
+        doAnswer(new Answer<Void>() {
+            @Override
+            public Void answer(final InvocationOnMock invocation) {
+                state.removeConnectionEventListener(selfDeregistering);
+                return null;
+            }
+        }).when(selfDeregistering).handleConnectionClosed();
+
+        final ConnectionEventListener listener2 = mock(ConnectionEventListener.class);
+        final ConnectionEventListener listener3 = mock(ConnectionEventListener.class);
+        final ConnectionEventListener listener4 = mock(ConnectionEventListener.class);
+        state.addConnectionEventListener(selfDeregistering);
+        state.addConnectionEventListener(listener2);
+        state.addConnectionEventListener(listener3);
+        state.addConnectionEventListener(listener4);
+
+        assertThat(state.notifyConnectionClosed()).isTrue();
+
+        assertThat(state.isClosed()).isTrue();
+        verify(selfDeregistering).handleConnectionClosed();
+        verify(listener2).handleConnectionClosed();
+        verify(listener3).handleConnectionClosed();
+        verify(listener4).handleConnectionClosed();
+    }
+
+    /**
+     * Tests that a listener de-registering itself while being notified of an error does not prevent the remaining
+     * listeners from being notified.
+     */
+    @Test
+    public void testSelfDeregisteringListenerDuringError() {
+        final ConnectionState state = new ConnectionState();
+        final ConnectionEventListener selfDeregistering = mock(ConnectionEventListener.class);
+        doAnswer(new Answer<Void>() {
+            @Override
+            public Void answer(final InvocationOnMock invocation) {
+                state.removeConnectionEventListener(selfDeregistering);
+                return null;
+            }
+        }).when(selfDeregistering).handleConnectionError(false, ERROR);
+
+        final ConnectionEventListener listener2 = mock(ConnectionEventListener.class);
+        final ConnectionEventListener listener3 = mock(ConnectionEventListener.class);
+        final ConnectionEventListener listener4 = mock(ConnectionEventListener.class);
+        state.addConnectionEventListener(selfDeregistering);
+        state.addConnectionEventListener(listener2);
+        state.addConnectionEventListener(listener3);
+        state.addConnectionEventListener(listener4);
+
+        assertThat(state.notifyConnectionError(false, ERROR)).isTrue();
+
+        verify(selfDeregistering).handleConnectionError(false, ERROR);
+        verify(listener2).handleConnectionError(false, ERROR);
+        verify(listener3).handleConnectionError(false, ERROR);
+        verify(listener4).handleConnectionError(false, ERROR);
     }
 
     /**

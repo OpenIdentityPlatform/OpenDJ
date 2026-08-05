@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.maven.doc;
 
@@ -32,6 +33,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
@@ -47,7 +49,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.forgerock.i18n.LocalizableMessage;
 
 /** Generates an XML file of log messages found in properties files. */
 @Mojo(name = "generate-xml-messages-doc", defaultPhase = PRE_SITE)
@@ -69,34 +70,6 @@ public class GenerateMessageFileMojo extends AbstractMojo {
     /** A list which contains all file names, the extension is not needed. */
     @Parameter(required = true)
     private List<String> messageFileNames;
-    /** One-line descriptions for log reference categories. */
-    private static final Map<String, LocalizableMessage> CATEGORY_DESCRIPTIONS = new HashMap<>();
-    static {
-        CATEGORY_DESCRIPTIONS.put("ACCESS_CONTROL", CATEGORY_ACCESS_CONTROL.get());
-        CATEGORY_DESCRIPTIONS.put("ADMIN", CATEGORY_ADMIN.get());
-        CATEGORY_DESCRIPTIONS.put("ADMIN_TOOL", CATEGORY_ADMIN_TOOL.get());
-        CATEGORY_DESCRIPTIONS.put("AUDIT", CATEGORY_AUDIT.get());
-        CATEGORY_DESCRIPTIONS.put("BACKEND", CATEGORY_BACKEND.get());
-        CATEGORY_DESCRIPTIONS.put("CONFIG", CATEGORY_CONFIG.get());
-        CATEGORY_DESCRIPTIONS.put("CORE", CATEGORY_CORE.get());
-        CATEGORY_DESCRIPTIONS.put("DSCONFIG", CATEGORY_DSCONFIG.get());
-        CATEGORY_DESCRIPTIONS.put("EXTENSIONS", CATEGORY_EXTENSIONS.get());
-        CATEGORY_DESCRIPTIONS.put("JVM", CATEGORY_JVM.get());
-        CATEGORY_DESCRIPTIONS.put("LOG", CATEGORY_LOG.get());
-        CATEGORY_DESCRIPTIONS.put("PLUGIN", CATEGORY_PLUGIN.get());
-        CATEGORY_DESCRIPTIONS.put("PROTOCOL", CATEGORY_PROTOCOL.get());
-        CATEGORY_DESCRIPTIONS.put("QUICKSETUP", CATEGORY_QUICKSETUP.get());
-        CATEGORY_DESCRIPTIONS.put("RUNTIME_INFORMATION", CATEGORY_RUNTIME_INFORMATION.get());
-        CATEGORY_DESCRIPTIONS.put("SCHEMA", CATEGORY_SCHEMA.get());
-        CATEGORY_DESCRIPTIONS.put("SDK", CATEGORY_SDK.get());
-        CATEGORY_DESCRIPTIONS.put("SYNC", CATEGORY_SYNC.get());
-        CATEGORY_DESCRIPTIONS.put("TASK", CATEGORY_TASK.get());
-        CATEGORY_DESCRIPTIONS.put("THIRD_PARTY", CATEGORY_THIRD_PARTY.get());
-        CATEGORY_DESCRIPTIONS.put("TOOLS", CATEGORY_TOOLS.get());
-        CATEGORY_DESCRIPTIONS.put("USER_DEFINED", CATEGORY_USER_DEFINED.get());
-        CATEGORY_DESCRIPTIONS.put("UTIL", CATEGORY_UTIL.get());
-        CATEGORY_DESCRIPTIONS.put("VERSION", CATEGORY_VERSION.get());
-    }
 
     /** Message giving formatting rules for string keys. */
     public static final String KEY_FORM_MSG = ".\n\nOpenDJ message property keys must be of the form\n\n"
@@ -173,16 +146,26 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         }
 
         /**
-         * Compare message entries by unique identifier.
+         * Compare message entries by ordinal, then by unique identifier.
+         * <p>
+         * Entries are held in a {@code TreeSet}, so this must be a total order:
+         * returning 0 for entries that are not the same message drops them from
+         * the log reference. Entries without an ordinal sort first, as they do
+         * in {@link MessagePropertyKey#compareTo(MessagePropertyKey)}.
          *
          * @return See {@link java.lang.Comparable#compareTo(Object)}.
          */
         @Override
         public int compareTo(MessageRefEntry mre) {
-            if (this.ordinal != null && mre.ordinal != null) {
-                return this.ordinal.compareTo(mre.ordinal);
+            if (Objects.equals(ordinal, mre.ordinal)) {
+                return xmlId.compareTo(mre.xmlId);
+            } else if (ordinal == null) {
+                return -1;
+            } else if (mre.ordinal == null) {
+                return 1;
+            } else {
+                return ordinal.compareTo(mre.ordinal);
             }
-            return 0;
         }
     }
 
@@ -273,12 +256,14 @@ public class GenerateMessageFileMojo extends AbstractMojo {
 
         @Override
         public int compareTo(MessagePropertyKey k) {
-            if (ordinal == k.ordinal) {
+            if (Objects.equals(ordinal, k.ordinal)) {
                 return description.compareTo(k.description);
-            } else if (ordinal != null && k.ordinal != null) {
-                return ordinal.compareTo(k.ordinal);
+            } else if (ordinal == null) {
+                return -1;
+            } else if (k.ordinal == null) {
+                return 1;
             } else {
-                return 0;
+                return ordinal.compareTo(k.ordinal);
             }
         }
     }

@@ -384,10 +384,26 @@ public final class Utils {
      */
     public static void checkJavaVersion() throws ClientException {
         final String version = System.getProperty("java.specification.version");
-        if (Float.valueOf(version) < CliConstants.MINIMUM_JAVA_VERSION) {
+        if (getJavaSpecificationVersion(version) < CliConstants.MINIMUM_JAVA_VERSION) {
             final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
             throw new ClientException(ReturnCode.JAVA_VERSION_INCOMPATIBLE,
                     ERR_INCOMPATIBLE_JAVA_VERSION.get(CliConstants.MINIMUM_JAVA_VERSION, version, javaBin), null);
+        }
+    }
+
+    /**
+     * Returns the provided java specification version as a number, or zero if it does not hold one,
+     * in which case the java version is reported as incompatible rather than failing the check with
+     * a runtime exception.
+     */
+    private static float getJavaSpecificationVersion(final String version) {
+        if (version == null) {
+            return 0;
+        }
+        try {
+            return Float.parseFloat(version);
+        } catch (final NumberFormatException e) {
+            return 0;
         }
     }
 

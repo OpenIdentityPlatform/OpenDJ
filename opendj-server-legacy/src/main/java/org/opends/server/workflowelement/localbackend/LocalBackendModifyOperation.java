@@ -13,11 +13,13 @@
  *
  * Copyright 2008-2011 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2024-2025 3A Systems,LLC.
+ * Portions Copyright 2024-2026 3A Systems,LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -951,6 +953,9 @@ public class LocalBackendModifyOperation
     case INCREMENT:
       processIncrementModification(attr);
       break;
+    default:
+      // No action needed for the remaining values.
+      break;
     }
   }
 
@@ -1182,7 +1187,7 @@ public class LocalBackendModifyOperation
 
     // Add the provided attribute or merge an existing attribute with
     // the values of the new attribute. If there are any duplicates, then fail.
-    List<ByteString> duplicateValues = new LinkedList<>();
+    Collection<ByteString> duplicateValues = new LinkedList<>();
     modifiedEntry.addAttribute(attr, duplicateValues);
     if (!duplicateValues.isEmpty() && !permissiveModify)
     {
@@ -1234,6 +1239,9 @@ public class LocalBackendModifyOperation
           setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
           logger.error(msg);
           invalidReason = new LocalizableMessageBuilder();
+          break;
+        default:
+          // No action needed for the remaining values.
           break;
         }
       }
@@ -1294,7 +1302,7 @@ public class LocalBackendModifyOperation
     // Remove the specified attribute values or the entire attribute from the value.
     // If there are any specified values that were not present, then fail.
     // If the RDN attribute value would be removed, then fail.
-    List<ByteString> missingValues = new LinkedList<>();
+    Collection<ByteString> missingValues = new LinkedList<>();
     boolean attrExists = modifiedEntry.removeAttribute(attr, missingValues);
 
     AttributeDescription attrDesc = attr.getAttributeDescription();

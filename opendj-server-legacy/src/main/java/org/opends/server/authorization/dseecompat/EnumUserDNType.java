@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -33,26 +34,20 @@ enum EnumUserDNType {
          * The enumeration type when the "userdn" URL contains only a DN (no
          * filter or scope) and that DN has no pattern.
          */
-        DN(0),
+        DN,
         /**
          * The enumeration type when the "userdn" URL contains only a DN (no
          * filter or scope) and that DN has a substring pattern.
          */
-        DNPATTERN(1),
+        DNPATTERN,
         /** The enumeration type when the "userdn" URL has the value of: "ldap:///all". */
-        ALL(2),
+        ALL,
         /** The enumeration type when the "userdn" URL has the value of: "ldap:///parent". */
-        PARENT(3),
+        PARENT,
         /** The enumeration type when the "userdn" URL has the value of: "ldap:///self". */
-        SELF(4),
+        SELF,
         /** The enumeration type when the "userdn" URL has the value of: "ldap:///anyone". */
-        ANYONE(5),
+        ANYONE,
         /** The enumeration type when the "userdn" URL is contains a DN (suffix), a scope and a filter. */
-        URL(6);
-
-        /**
-         * Constructor taking an integer value.
-         * @param v Integer value.
-         */
-        EnumUserDNType(int v) {}
+        URL;
 }

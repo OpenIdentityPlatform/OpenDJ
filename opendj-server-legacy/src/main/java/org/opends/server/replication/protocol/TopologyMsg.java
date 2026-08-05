@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -69,25 +70,25 @@ public class TopologyMsg extends ReplicationMsg
 
     // Read the DS info entries, first read number of them
     int nDsInfo = scanner.nextByte();
-    final Map<Integer, DSInfo> replicaInfos = new HashMap<>(Math.max(0, nDsInfo));
+    final Map<Integer, DSInfo> newReplicaInfos = new HashMap<>(Math.max(0, nDsInfo));
     while (nDsInfo > 0 && !scanner.isEmpty())
     {
       final DSInfo dsInfo = nextDSInfo(scanner, version);
-      replicaInfos.put(dsInfo.getDsId(), dsInfo);
+      newReplicaInfos.put(dsInfo.getDsId(), dsInfo);
       nDsInfo--;
     }
 
     // Read the RS info entries
     int nRsInfo = scanner.nextByte();
-    final List<RSInfo> rsInfos = new ArrayList<>(Math.max(0, nRsInfo));
+    final List<RSInfo> newRsInfos = new ArrayList<>(Math.max(0, nRsInfo));
     while (nRsInfo > 0 && !scanner.isEmpty())
     {
-      rsInfos.add(nextRSInfo(scanner, version));
+      newRsInfos.add(nextRSInfo(scanner, version));
       nRsInfo--;
     }
 
-    this.replicaInfos = Collections.unmodifiableMap(replicaInfos);
-    this.rsInfos = Collections.unmodifiableList(rsInfos);
+    this.replicaInfos = Collections.unmodifiableMap(newReplicaInfos);
+    this.rsInfos = Collections.unmodifiableList(newRsInfos);
   }
 
   private DSInfo nextDSInfo(ByteArrayScanner scanner, short version)
@@ -271,7 +272,7 @@ public class TopologyMsg extends ReplicationMsg
       + "CONNECTED RS SERVERS:"
       + "\n--------------------\n"
       + rsStr
-      + ("".equals(rsStr) ? "----------------------------\n" : "");
+      + (rsStr.isEmpty() ? "----------------------------\n" : "");
   }
 
   /**

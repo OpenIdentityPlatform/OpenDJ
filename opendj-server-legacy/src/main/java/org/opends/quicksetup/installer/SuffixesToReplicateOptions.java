@@ -13,9 +13,11 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.installer;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -46,10 +48,10 @@ public class SuffixesToReplicateOptions
     REPLICATE_WITH_EXISTING_SUFFIXES
   }
 
-  private Type type;
-  private Set<SuffixDescriptor> availableSuffixes;
-  private Set<SuffixDescriptor> suffixesToReplicate;
-  private Map<String, BackendTypeUIAdapter> backendsToReplicate;
+  private final Type type;
+  private final Set<SuffixDescriptor> availableSuffixes;
+  private final Set<SuffixDescriptor> suffixesToReplicate;
+  private final Map<String, BackendTypeUIAdapter> backendsToReplicate;
 
   /**
    * Constructor for the SuffixesToReplicateOptions object.
@@ -84,9 +86,9 @@ public class SuffixesToReplicateOptions
       Set<SuffixDescriptor> suffixesToReplicate, Map<String, BackendTypeUIAdapter> backendsToReplicate)
   {
     this.type = type;
-    this.availableSuffixes = new LinkedHashSet<>(availableSuffixes);
-    this.suffixesToReplicate = new LinkedHashSet<>(suffixesToReplicate);
-    this.backendsToReplicate = new HashMap<>(backendsToReplicate);
+    this.availableSuffixes = Collections.unmodifiableSet(new LinkedHashSet<>(availableSuffixes));
+    this.suffixesToReplicate = Collections.unmodifiableSet(new LinkedHashSet<>(suffixesToReplicate));
+    this.backendsToReplicate = Collections.unmodifiableMap(new HashMap<>(backendsToReplicate));
   }
 
   /**
@@ -103,7 +105,7 @@ public class SuffixesToReplicateOptions
   /**
    * Returns the set of suffixes available for replication.
    *
-   * @return the set of suffixes available for replication.
+   * @return an unmodifiable set of the suffixes available for replication.
    */
   public Set<SuffixDescriptor> getAvailableSuffixes()
   {
@@ -113,7 +115,7 @@ public class SuffixesToReplicateOptions
   /**
    * The set of suffixes that we must replicate with.
    *
-   * @return the set of suffixes that we must replicate with.
+   * @return an unmodifiable set of the suffixes that we must replicate with.
    */
   public Set<SuffixDescriptor> getSuffixes()
   {
@@ -123,7 +125,7 @@ public class SuffixesToReplicateOptions
   /**
    * Returns a map which associate backend names and backend types.
    *
-   * @return A map which associate backend names and backend types.
+   * @return an unmodifiable map which associate backend names and backend types.
    */
   public Map<String, BackendTypeUIAdapter> getSuffixBackendTypes()
   {
