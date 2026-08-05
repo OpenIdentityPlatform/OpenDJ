@@ -3364,7 +3364,7 @@ public class Installer extends GuiApplication
     if (errorMsgs.isEmpty())
     {
       AuthenticationData auth = new AuthenticationData();
-      auth.setHostPort(new HostPort("".equals(host) ? null : host, port != null ? port : 0));
+      auth.setHostPort(new HostPort(host.isEmpty() ? null : host, port != null ? port : 0));
       auth.setDn(dn);
       auth.setPwd(pwd);
       auth.setUseSecureConnection(true);

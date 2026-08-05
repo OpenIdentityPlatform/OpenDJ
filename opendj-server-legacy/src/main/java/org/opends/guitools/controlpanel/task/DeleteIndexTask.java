@@ -303,8 +303,6 @@ public class DeleteIndexTask extends Task
    * Returns the path of the command line to be used to delete the specified
    * index.
    *
-   * @param index
-   *          the index to be deleted.
    * @return the path of the command line to be used to delete the specified
    *         index.
    */
