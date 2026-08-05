@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -389,7 +390,7 @@ public class PluginConfigManager
            definition.getJavaClassPropertyDefinition();
       Class<? extends DirectoryServerPlugin> pluginClass =
            propertyDefinition.loadClass(className, DirectoryServerPlugin.class);
-      DirectoryServerPlugin<T> plugin = pluginClass.newInstance();
+      DirectoryServerPlugin<T> plugin = pluginClass.getDeclaredConstructor().newInstance();
 
       if (initialize)
       {

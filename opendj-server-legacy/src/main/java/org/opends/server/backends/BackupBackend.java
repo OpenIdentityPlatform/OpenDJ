@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends;
 
@@ -110,7 +111,7 @@ public class BackupBackend
    * To avoid parsing and reparsing the contents of backup.info files, we
    * cache the BackupDirectory for each directory using this class.
    */
-  private class CachedBackupDirectory
+  private static class CachedBackupDirectory
   {
     /** The path to the 'bak' directory. */
     private final String directoryPath;

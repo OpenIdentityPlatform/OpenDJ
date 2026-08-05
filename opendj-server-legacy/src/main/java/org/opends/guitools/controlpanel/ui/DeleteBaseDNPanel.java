@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -25,10 +26,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -142,13 +143,7 @@ class DeleteBaseDNPanel extends StatusGenericPanel
         @Override
         public void run()
         {
-          @SuppressWarnings("deprecation")
-          Object[] s = list.getSelectedValues();
-          Set<Object> selected = new HashSet<>();
-          if (s != null)
-          {
-            Collections.addAll(selected, s);
-          }
+          Set<Object> selected = new HashSet<>(list.getSelectedValuesList());
           final DefaultListModel model = (DefaultListModel)list.getModel();
           model.clear();
           SortedSet<Integer> indices = new TreeSet<>();
@@ -333,8 +328,7 @@ class DeleteBaseDNPanel extends StatusGenericPanel
     ProgressDialog progressDialog = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this), getTitle(), getInfo());
-    @SuppressWarnings("deprecation")
-    Object[] dns = list.getSelectedValues();
+    List<?> dns = list.getSelectedValuesList();
     ArrayList<BaseDNDescriptor> baseDNsToDelete = new ArrayList<>();
     for (Object o : dns)
     {

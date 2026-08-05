@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -546,6 +547,22 @@ public class MemoryBackendTestCase extends SdkTestCase {
         cookie = control.getCookie();
         assertThat(cookie).isNotNull();
         assertThat(cookie.isEmpty()).isTrue();
+    }
+
+    @Test
+    public void testSearchPagedResultsForgedCookie() throws Exception {
+        final Connection connection = getConnection();
+        final SearchRequest search =
+                Requests.newSearchRequest("ou=people,dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
+                        "(uid=*)");
+        search.addControl(
+                SimplePagedResultsControl.newControl(true, 2, ByteString.valueOfUtf8("forged")));
+        try {
+            connection.search(search, new ArrayList<SearchResultEntry>());
+            TestCaseUtils.failWasExpected(LdapException.class);
+        } catch (LdapException e) {
+            assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.PROTOCOL_ERROR);
+        }
     }
 
     @Test

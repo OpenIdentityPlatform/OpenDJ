@@ -234,7 +234,7 @@ public class EntryHistorical
     mods.add(new Modification(ModificationType.REPLACE, attr));
     // - update the already modified entry
     modifiedEntry.removeAttribute(attr.getAttributeDescription().getAttributeType());
-    modifiedEntry.addAttribute(attr, null);
+    modifiedEntry.addAttribute(attr);
   }
 
   /**

@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -351,12 +352,12 @@ public final class TrustManagers {
                 } catch (final CertificateExpiredException e) {
                     logger.warn(LocalizableMessage.raw(
                             "Refusing to trust security certificate \'%s\' because it expired on %s",
-                            c.getSubjectDN().getName(), c.getNotAfter()));
+                            c.getSubjectX500Principal().getName(), c.getNotAfter()));
                     throw e;
                 } catch (final CertificateNotYetValidException e) {
                     logger.warn(LocalizableMessage.raw(
                             "Refusing to trust security  certificate \'%s\' because it is not valid until %s",
-                            c.getSubjectDN().getName(), c.getNotBefore()));
+                            c.getSubjectX500Principal().getName(), c.getNotBefore()));
                     throw e;
                 }
             }

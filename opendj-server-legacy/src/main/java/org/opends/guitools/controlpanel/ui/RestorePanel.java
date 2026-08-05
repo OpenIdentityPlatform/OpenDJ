@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -248,14 +249,14 @@ class RestorePanel extends BackupListPanel implements BackupCreatedListener
     else
     {
       String parentPath = parentDirectory.getText();
-      if (parentPath == null || parentPath.trim().equals(""))
+      if (parentPath == null || parentPath.trim().isEmpty())
       {
         errors.add(ERR_CTRL_PANEL_NO_BACKUP_PATH_PROVIDED.get());
         setPrimaryInvalid(lPath);
       }
 
       String id = backupID.getText();
-      if (id == null || id.trim().equals(""))
+      if (id == null || id.trim().isEmpty())
       {
         errors.add(ERR_CTRL_PANEL_NO_BACKUP_ID_PROVIDED.get());
         setPrimaryInvalid(lBackupID);

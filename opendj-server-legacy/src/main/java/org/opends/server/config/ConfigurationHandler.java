@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
- * Portions Copyright 2025 3A Systems,LLC
+ * Portions Copyright 2025-2026 3A Systems, LLC.
  */
 package org.opends.server.config;
 
@@ -817,25 +817,14 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     }
 
     // If a ".startok" file already exists, then move it to an ".old" file.
+    // renameFile() deletes an existing ".old" file and reports a failure to do so.
     File oldFile = new File(oldFilePath);
-    try
-    {
-      if (oldFile.exists())
-      {
-        oldFile.delete();
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-    }
-
     File startOKFile = new File(startOKFilePath);
     try
     {
       if (startOKFile.exists())
       {
-        startOKFile.renameTo(oldFile);
+        renameFile(startOKFile, oldFile);
       }
     }
     catch (Exception e)
@@ -846,7 +835,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     // Rename the temp file to the ".startok" file.
     try
     {
-      tempFile.renameTo(startOKFile);
+      renameFile(tempFile, startOKFile);
     }
     catch (Exception e)
     {
@@ -1405,7 +1394,8 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
   {
     byte[] buffer = new byte[8192];
     try(FileInputStream inputStream = new FileInputStream(configFile);
-        GZIPOutputStream outputStream = new GZIPOutputStream(new FileOutputStream(archiveFile)))
+        FileOutputStream archiveStream = new FileOutputStream(archiveFile);
+        GZIPOutputStream outputStream = new GZIPOutputStream(archiveStream))
     {
       int bytesRead = inputStream.read(buffer);
       while (bytesRead > 0)
@@ -1608,20 +1598,12 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
 
     // Move the current config file out of the way and replace it with the updated version.
     File oldSource = new File(sourceFile.getAbsolutePath() + ".prechanges");
-    if (oldSource.exists())
-    {
-      oldSource.delete();
-    }
-    sourceFile.renameTo(oldSource);
-    new File(tempFilePath).renameTo(sourceFile);
+    renameFile(sourceFile, oldSource);
+    renameFile(new File(tempFilePath), sourceFile);
 
     // Move the changes file out of the way so it doesn't get applied again.
     File newChanges = new File(changesFile.getAbsolutePath() + ".applied");
-    if (newChanges.exists())
-    {
-      newChanges.delete();
-    }
-    changesFile.renameTo(newChanges);
+    renameFile(changesFile, newChanges);
   }
 
   private void applyConfigChangesIfNeeded(File configFileToUse) throws InitializationException

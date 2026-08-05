@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.util.cli;
 
@@ -26,9 +27,12 @@ import com.forgerock.opendj.cli.ConsoleApplication;
 public class PointAdder implements Runnable
 {
   private final ConsoleApplication app;
-  private Thread t;
-  private boolean stopPointAdder;
-  private boolean pointAdderStopped;
+  /** Written by start() and read by stop(), hence volatile. */
+  private volatile Thread t;
+  /** Written by stop() and read by the point adder thread, hence volatile. */
+  private volatile boolean stopPointAdder;
+  /** Written by the point adder thread and read by stop(), hence volatile. */
+  private volatile boolean pointAdderStopped;
   private final long periodTime;
   private final ProgressMessageFormatter formatter;
 
@@ -78,20 +82,33 @@ public class PointAdder implements Runnable
     t.start();
   }
 
-  /** Stops the PointAdder: points are no longer added at the end of the logs periodically. */
-  public synchronized void stop()
+  /**
+   * Stops the PointAdder: points are no longer added at the end of the logs periodically.
+   * <p>
+   * Calling this method on a PointAdder that was never started is a no-op: callers commonly
+   * create the PointAdder before the code path that starts it and stop it from a
+   * {@code finally} block.
+   */
+  public void stop()
   {
     stopPointAdder = true;
+    final Thread thread = t;
+    if (thread == null)
+    {
+      return;
+    }
     while (!pointAdderStopped)
     {
+      thread.interrupt();
       try
       {
-        t.interrupt();
         // To allow the thread to set the boolean.
         Thread.sleep(100);
       }
-      catch (Throwable t)
+      catch (InterruptedException e)
       {
+        Thread.currentThread().interrupt();
+        break;
       }
     }
   }

@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -67,7 +68,11 @@ public class GeneralizedTimeTest extends SdkTestCase {
             { "2006122a235959Z" }, { "20060031235959Z" }, { "20061331235959Z" },
             { "20062231235959Z" }, { "20061232235959Z" }, { "2006123123595aZ" },
             { "200a1231235959Z" }, { "2006j231235959Z" }, { "200612-1235959Z" },
-            { "20061231#35959Z" }, { "2006" }, };
+            { "20061231#35959Z" }, { "2006" },
+            // Double.parseDouble rounds 17 nines up to exactly 1.0.
+            { "20240101000000.99999999999999999Z" },
+            // 16 nines stay below 1.0 but scale and round to 1000 milliseconds.
+            { "20240101000000.9999999999999999Z" }, };
     }
 
     @Test

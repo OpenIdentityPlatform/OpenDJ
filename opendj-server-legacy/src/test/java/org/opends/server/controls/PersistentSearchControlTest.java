@@ -47,6 +47,7 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.util.Utils;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.PersistentSearch;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -557,8 +558,29 @@ public class PersistentSearchControlTest extends ControlsTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 11);
-    //cancel the persisting persistent search.
-    search.cancel(new CancelRequest(true,LocalizableMessage.EMPTY));
+    try
+    {
+      assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 11);
+    }
+    finally
+    {
+      // Cancel the persistent search itself: search.cancel() only records a cancellation request
+      // for the operation, which nothing acts upon now that the thread running it is gone, so the
+      // persistent search would stay registered and keep holding the limit set above against
+      // whatever runs next in this JVM (a failing test class is rerun in it).
+      for (PersistentSearch psearch : search.getClientConnection().getPersistentSearches())
+      {
+        if (psearch.getMessageID() == search.getMessageID())
+        {
+          psearch.cancel();
+        }
+      }
+      search.cancel(new CancelRequest(true, LocalizableMessage.EMPTY));
+
+      //Restore the limit configured for the tests.
+      ModifyRequest restoreRequest = newModifyRequest("cn=config")
+          .addModification(ModificationType.REPLACE, "ds-cfg-max-psearches", "-1");
+      assertEquals(getRootConnection().processModify(restoreRequest).getResultCode(), ResultCode.SUCCESS);
+    }
   }
 }

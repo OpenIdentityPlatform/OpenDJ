@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -84,7 +85,7 @@ public class ClickTooltipDisplayer extends MouseAdapter
           int x = event.getPoint().x - rect.x;
           int y = event.getPoint().y - rect.y;
           MouseEvent tEv = new MouseEvent(table, event.getID(),
-              event.getWhen(), event.getModifiers(), x, y,
+              event.getWhen(), event.getModifiersEx(), x, y,
               event.getClickCount(), event.isPopupTrigger(), event.getButton());
           toolTipText = ((JComponent)comp).getToolTipText(tEv);
         }

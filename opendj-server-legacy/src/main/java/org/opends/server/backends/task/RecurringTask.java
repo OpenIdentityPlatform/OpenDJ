@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.task;
 
@@ -189,7 +190,7 @@ public class RecurringTask
     // Make sure that the specified class can be instantiated as a task.
     try
     {
-      task = (Task) taskClass.newInstance();
+      task = (Task) taskClass.getDeclaredConstructor().newInstance();
     }
     catch (Exception e)
     {
@@ -332,7 +333,7 @@ public class RecurringTask
 
     try {
       // Make a regular task iteration from this recurring task.
-      nextTask = task.getClass().newInstance();
+      nextTask = task.getClass().getDeclaredConstructor().newInstance();
       Entry nextTaskEntry = recurringTaskEntry.duplicate(false);
       SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
       String nextTaskID = task.getTaskID() + "-" + df.format(nextTaskDate);

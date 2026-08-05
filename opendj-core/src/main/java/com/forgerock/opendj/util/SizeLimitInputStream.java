@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.util;
 
@@ -130,7 +131,12 @@ public class SizeLimitInputStream extends InputStream {
             n = readLimit - bytesRead;
         }
 
-        bytesRead += n;
-        return parentStream.skip(n);
+        // The parent stream is allowed to skip fewer bytes than requested, so only account for the
+        // bytes which were actually skipped.
+        final long skipped = parentStream.skip(n);
+        if (skipped > 0) {
+            bytesRead += (int) skipped;
+        }
+        return skipped;
     }
 }

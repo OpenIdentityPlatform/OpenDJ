@@ -13,7 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2025 3A Systems,LLC.
+ * Portions Copyright 2025-2026 3A Systems,LLC.
  */
 package org.opends.server.replication.service;
 
@@ -40,6 +40,8 @@ import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.protocol.ErrorMsg;
+import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
@@ -453,6 +455,156 @@ public class ReplicationDomainTest extends ReplicationTestCase
     {
       disable(domain1, domain2);
       remove(replServer1, replServer2);
+    }
+  }
+
+  /**
+   * When an export requested by a remote replica cannot start (there is no
+   * local task reporting the failure), the requester keeps waiting for the
+   * InitializeTargetMsg: the exporter must send an ErrorMsg back, otherwise
+   * the requester waits forever (issue #841).
+   */
+  @Test(enabled=true)
+  public void remotelyRequestedExportFailureNotifiesRequester() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer = null;
+    FakeReplicationDomain domain1 = null;
+    ReplicationBroker broker2 = null;
+    Thread firstExport = null;
+
+    try
+    {
+      int replServerPort = TestCaseUtils.findFreePort();
+      replServer = createReplicationServer(11, replServerPort,
+          "remoteExportFailureNotifiesRequesterDb", 100);
+      SortedSet<String> servers = newTreeSet("localhost:" + replServerPort);
+
+      String exportedData = buildExportedData(100);
+      domain1 = new FakeReplicationDomain(
+          testService, 1, servers, 0, exportedData, null, 100);
+
+      broker2 = openReplicationSession(testService, 2, 100, replServerPort,
+          10000, domain1.getGenerationID());
+
+      final FakeReplicationDomain exporter = domain1;
+      TestTimer timer = new TestTimer.Builder()
+          .maxSleep(30, SECONDS)
+          .sleepTimes(100, MILLISECONDS)
+          .toTimer();
+      timer.repeatUntilSuccess(() -> assertTrue(exporter.getReplicaInfos().containsKey(2),
+          "DS(2) is not known to the exporting domain"));
+
+      // Occupy the import/export context of the exporter: broker2 never
+      // enters the full update status, so this export stays in
+      // waitForRemoteStartOfInit until broker2 disconnects in the finally
+      firstExport = new Thread(() -> {
+        try
+        {
+          exporter.initializeRemote(2, 2, NO_INIT_TASK, 100);
+        }
+        catch (DirectoryException expected)
+        {
+          // broker2 never plays the importer role
+        }
+      });
+      firstExport.start();
+      TestTimer ieRunningTimer = new TestTimer.Builder()
+          .maxSleep(30, SECONDS)
+          .sleepTimes(100, MILLISECONDS)
+          .toTimer();
+      ieRunningTimer.repeatUntilSuccess(() -> assertTrue(exporter.ieRunning(),
+          "the first export did not acquire the import/export context"));
+
+      // A second remotely requested export is rejected...
+      try
+      {
+        domain1.initializeRemote(2, 2, NO_INIT_TASK, 100);
+        fail("Expected the simultaneous export to be rejected");
+      }
+      catch (DirectoryException expected)
+      {
+        assertEquals(expected.getMessageObject().toString(),
+            ERR_SIMULTANEOUS_IMPORT_EXPORT_REJECTED.get().toString());
+      }
+
+      // ...and the requester is notified instead of waiting forever
+      final long deadline = System.currentTimeMillis() + 30000;
+      while (true)
+      {
+        ReplicationMsg msg = broker2.receive();
+        if (msg instanceof ErrorMsg)
+        {
+          assertEquals(((ErrorMsg) msg).getDetails().toString(),
+              ERR_SIMULTANEOUS_IMPORT_EXPORT_REJECTED.get().toString());
+          break;
+        }
+        assertNotNull(msg, "connection closed while waiting for the ErrorMsg");
+        assertFalse(System.currentTimeMillis() > deadline,
+            "no ErrorMsg received within 30s, last received " + msg);
+      }
+    }
+    finally
+    {
+      stop(broker2);
+      boolean firstExportStillRunning = false;
+      if (firstExport != null)
+      {
+        // losing broker2 empties the exporter start list and ends the export
+        firstExport.join(30000);
+        firstExportStillRunning = firstExport.isAlive();
+      }
+      disable(domain1);
+      remove(replServer);
+      // asserted only after the cleanup above: failing before it would leak
+      // the domain and the replication server port into the following tests
+      assertFalse(firstExportStillRunning, "the first export did not terminate");
+    }
+  }
+
+  /**
+   * A total update requested by a remote replica that is not (yet) in the
+   * exporter's topology view - the request raced the TopologyMsg propagation,
+   * the actual issue #841 trigger - must be rejected without leaving the
+   * import/export context acquired. The ErrorMsg sent back cannot be asserted
+   * here: the replication server does not route messages to a replica it does
+   * not know about, and a requester that is connected yet still unknown to
+   * the exporter is exactly the race this rejection guards against.
+   */
+  @Test(enabled=true)
+  public void remotelyRequestedExportForUnknownReplicaIsRejected() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer = null;
+    FakeReplicationDomain domain1 = null;
+
+    try
+    {
+      int replServerPort = TestCaseUtils.findFreePort();
+      replServer = createReplicationServer(12, replServerPort,
+          "remoteExportUnknownReplicaDb", 100);
+      SortedSet<String> servers = newTreeSet("localhost:" + replServerPort);
+
+      domain1 = new FakeReplicationDomain(
+          testService, 1, servers, 0, buildExportedData(10), null, 100);
+
+      try
+      {
+        domain1.initializeRemote(2, 2, NO_INIT_TASK, 100);
+        fail("Expected the export requested by an unknown replica to be rejected");
+      }
+      catch (DirectoryException expected)
+      {
+        assertEquals(expected.getMessageObject().toString(),
+            ERR_FULL_UPDATE_MISSING_REMOTE.get(testService, 1, 2).toString());
+      }
+      assertFalse(domain1.ieRunning(),
+          "the rejected export must not leave the import/export context acquired");
+    }
+    finally
+    {
+      disable(domain1);
+      remove(replServer);
     }
   }
 

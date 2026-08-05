@@ -14,6 +14,7 @@ rem information: "Portions Copyright [year] [name of copyright owner]".
 rem
 rem Copyright 2006-2010 Sun Microsystems, Inc.
 rem Portions Copyright 2011-2014 ForgeRock AS.
+rem Portions Copyright 2026 3A Systems, LLC.
 
 setlocal
 
@@ -93,12 +94,19 @@ goto writeLastLine
 :stopUsingSystemCall
 echo %SCRIPT%: stop using system call >> %LOG%
 "%INSTALL_ROOT%\lib\winlauncher.exe" stop "%INSTANCE_ROOT%"
+if not %errorlevel% == 0 (
+  echo %SCRIPT%: winlauncher stop failed with error %errorlevel% >> %LOG%
+  exit /B %errorlevel%
+)
 goto end
 
 :restartUsingSystemCall
 echo %SCRIPT%: restart using system call >> %LOG%
 "%INSTALL_ROOT%\lib\winlauncher.exe" stop "%INSTANCE_ROOT%"
-if not %errorlevel% == 0 goto end
+if not %errorlevel% == 0 (
+  echo %SCRIPT%: winlauncher stop failed with error %errorlevel% >> %LOG%
+  exit /B %errorlevel%
+)
 goto startUsingSystemCall
 
 :stopUsingProtocol

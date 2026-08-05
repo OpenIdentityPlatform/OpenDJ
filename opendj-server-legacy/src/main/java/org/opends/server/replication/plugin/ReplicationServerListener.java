@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -56,14 +57,27 @@ public class ReplicationServerListener
       ReplicationSynchronizationProviderCfg configuration,
       DSRSShutdownSync dsrsShutdownSync) throws ConfigException
   {
-    configuration.addReplicationServerAddListener(this);
-    configuration.addReplicationServerDeleteListener(this);
-
     this.dsrsShutdownSync = dsrsShutdownSync;
     if (configuration.hasReplicationServer())
     {
       final ReplicationServerCfg cfg = configuration.getReplicationServer();
+      // Registered only once the replication server exists: the listeners are held by the
+      // server wide configuration repository and keyed by DN, so a listener registered by
+      // a listener which is then discarded would be leaked until the server is restarted.
       replicationServer = new ReplicationServer(cfg, dsrsShutdownSync);
+    }
+
+    try
+    {
+      configuration.addReplicationServerAddListener(this);
+      configuration.addReplicationServerDeleteListener(this);
+    }
+    catch (ConfigException e)
+    {
+      // This listener is not returned to MultimasterReplication, which is what stops the
+      // replication server: nothing would ever shut down the one just created.
+      shutdown();
+      throw e;
     }
   }
 
@@ -78,9 +92,11 @@ public class ReplicationServerListener
     }
     catch (ConfigException e)
     {
-      // we should never get to this point because the configEntry has
-      // already been validated in configAddisAcceptable
+      // The configEntry has already been validated in configAddisAcceptable, but the
+      // listen port may have been taken since then: report why the creation failed. The
+      // message is logged by the configuration handler, which reports the result.
       ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+      ccr.addMessage(e.getMessageObject());
     }
     return ccr;
   }
