@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -125,6 +126,9 @@ public class TextErrorLogPublisher
       {
         writer.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
       }
+
+      // Rotation only starts once the policies above are registered.
+      writer.start();
 
       if(config.isAsynchronous())
       {
@@ -396,7 +400,7 @@ public class TextErrorLogPublisher
   private AsynchronousTextWriter newAsyncWriter(MultifileTextWriter mfWriter, FileBasedErrorLogPublisherCfg config)
   {
     String name = "Asynchronous Text Writer for " + config.dn();
-    return new AsynchronousTextWriter(name, config.getQueueSize(), config.isAutoFlush(), mfWriter);
+    return new AsynchronousTextWriter(name, config.getQueueSize(), config.isAutoFlush(), mfWriter).start();
   }
 
   private void setDefaultSeverities(Set<ErrorLogPublisherCfgDefn.DefaultSeverity> defSevs)

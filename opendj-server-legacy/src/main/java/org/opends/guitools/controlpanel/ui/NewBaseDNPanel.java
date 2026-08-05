@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -28,6 +29,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -646,7 +648,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     if (importDataFromLDIF.isSelected())
     {
       String ldifPath = path.getText();
-      if (ldifPath == null || "".equals(ldifPath.trim()))
+      if (ldifPath == null || ldifPath.trim().isEmpty())
       {
         errors.add(INFO_NO_LDIF_PATH.get());
         setSecondaryInvalid(lPath);
@@ -733,7 +735,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
       else if (importAutomaticallyGenerated.isSelected())
       {
-        int nEntries = Integer.parseInt(numberOfEntries.getText().trim());
+        int nEntries = Utils.parseIntOrDefault(numberOfEntries.getText(), 0);
         if (nEntries < 500)
         {
           return 30;
@@ -1162,7 +1164,8 @@ public class NewBaseDNPanel extends StatusGenericPanel
             }
           });
 
-          final File templateFile = SetupUtils.createTemplateFile(newBaseDN, Integer.parseInt(nEntries));
+          final File templateFile =
+              SetupUtils.createTemplateFile(newBaseDN, Utils.parseIntOrDefault(nEntries, 0));
           if (!isLocal())
           {
             try
@@ -1239,7 +1242,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       final TemplateFile generator = new TemplateFile(resourceDir.getAbsolutePath(), new Random(0));
       generator.parse(templateFile.getAbsolutePath(), Collections.<LocalizableMessage>emptyList());
 
-      final File tempFile = File.createTempFile("opendj-control-panel", ".ldif");
+      final File tempFile = Files.createTempFile("opendj-control-panel", ".ldif").toFile();
       tempFile.deleteOnExit();
       final String generatedLdifFilePath = tempFile.getAbsolutePath();
 

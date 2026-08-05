@@ -1142,6 +1142,21 @@ public class Entry
 
 
   /**
+   * Ensures that this entry contains the provided attribute and its
+   * values, ignoring any duplicate value.
+   *
+   * @param attribute
+   *          The attribute to add or merge with this entry.
+   * @see #addAttribute(Attribute, Collection)
+   */
+  public void addAttribute(Attribute attribute)
+  {
+    setAttribute(attribute, null, false /* merge */);
+  }
+
+
+
+  /**
    * Puts the provided attribute into this entry. If an attribute with
    * the provided type and options already exists, then it will be
    * replaced. If the provided attribute is empty then any existing
@@ -1549,7 +1564,7 @@ public class Entry
     switch (mod.getModificationType().asEnum())
     {
     case ADD:
-      List<ByteString> duplicateValues = new LinkedList<>();
+      Collection<ByteString> duplicateValues = new LinkedList<>();
       addAttribute(a, duplicateValues);
       if (!duplicateValues.isEmpty() && !relaxConstraints)
       {
@@ -1559,7 +1574,7 @@ public class Entry
       break;
 
     case DELETE:
-      List<ByteString> missingValues = new LinkedList<>();
+      Collection<ByteString> missingValues = new LinkedList<>();
       removeAttribute(a, missingValues);
       if (!missingValues.isEmpty() && !relaxConstraints)
       {
@@ -3468,7 +3483,7 @@ public class Entry
     {
       // The first byte must be the entry version.  If it's not one
       // we recognize, then that's an error.
-      Byte version = entryBuffer.readByte();
+      byte version = entryBuffer.readByte();
       if (version != 0x03 && version != 0x02 && version != 0x01)
       {
         LocalizableMessage message = ERR_ENTRY_DECODE_UNRECOGNIZED_VERSION.get(

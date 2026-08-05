@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.types;
 
@@ -195,31 +196,24 @@ public final class LDIFExportConfig extends OperationConfig
         case APPEND:
           // Create new file if it doesn't exist ensuring that we can
           // set its permissions.
-          if (!f.exists())
-          {
-            f.createNewFile();
-            mustSetPermissions = true;
-          }
+          mustSetPermissions = f.createNewFile();
           ldifOutputStream = new FileOutputStream(ldifFile, true);
           break;
         case OVERWRITE:
           // Create new file if it doesn't exist ensuring that we can
           // set its permissions.
-          if (!f.exists())
-          {
-            f.createNewFile();
-            mustSetPermissions = true;
-          }
+          mustSetPermissions = f.createNewFile();
           ldifOutputStream = new FileOutputStream(ldifFile, false);
           break;
         case FAIL:
-          if (f.exists())
+          // Create new file ensuring that we can set its permissions. The creation is
+          // atomic, hence it also fails if the file was created by someone else in
+          // the mean time.
+          if (!f.createNewFile())
           {
             LocalizableMessage message = ERR_LDIF_FILE_EXISTS.get(ldifFile);
             throw new IOException(message.toString());
           }
-          // Create new file ensuring that we can set its permissions.
-          f.createNewFile();
           mustSetPermissions = true;
           ldifOutputStream = new FileOutputStream(ldifFile);
           break;

@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -432,7 +433,7 @@ implements EntryReadListener
   /**
    * Returns <CODE>true</CODE> if the provided DN corresponds to a read-only
    * entry and <CODE>false</CODE> otherwise.
-   * @param sDn the DN of the entry.
+   * @param dn the DN of the entry.
    * @return <CODE>true</CODE> if the provided DN corresponds to a read-only
    * entry and <CODE>false</CODE> otherwise.
    */

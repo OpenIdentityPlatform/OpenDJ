@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -263,7 +264,7 @@ public final class PromptingTrustManager implements X509TrustManager {
 
         for (final X509Certificate aChain : chain) {
             try {
-                final String alias = aChain.getSubjectDN().getName();
+                final String alias = aChain.getSubjectX500Principal().getName();
                 inMemoryTrustStore.setCertificateEntry(alias, aChain);
                 if (permanent) {
                     onDiskTrustStore.setCertificateEntry(alias, aChain);
@@ -302,14 +303,14 @@ public final class PromptingTrustManager implements X509TrustManager {
         for (final X509Certificate element : chain) {
             // Certificate DN
             app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_USER_DN.get(element
-                    .getSubjectDN().toString()));
+                    .getSubjectX500Principal().toString()));
 
             // certificate validity
             app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_VALIDITY.get(element
                     .getNotBefore().toString(), element.getNotAfter().toString()));
 
             // certificate Issuer
-            app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_ISSUER.get(element.getIssuerDN()
+            app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_ISSUER.get(element.getIssuerX500Principal()
                     .toString()));
 
             app.println();

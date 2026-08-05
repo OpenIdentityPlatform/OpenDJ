@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -206,6 +207,13 @@ public class ByteArrayTest extends DirectoryServerTestCase
   public void testByteArrayScanner_nextCSNUTF8_throwsExceptionWhenInvalidCSN() throws Exception
   {
     new ByteArrayScanner(new byte[] { 1, 0 }).nextCSNUTF8();
+  }
+
+  @Test(expectedExceptions = DataFormatException.class)
+  public void testByteArrayScanner_nextCSNUTF8_throwsExceptionWhenNonHexCSN() throws Exception
+  {
+    final byte[] bytes = new ByteArrayBuilder().appendString("000000000001zabc002d0000007b").toByteArray();
+    new ByteArrayScanner(bytes).nextCSNUTF8();
   }
 
   @Test(expectedExceptions = DataFormatException.class)

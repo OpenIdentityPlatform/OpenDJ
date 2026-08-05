@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -83,6 +84,16 @@ class MultifileTextWriter
   private long totalFilesRotated;
   private long totalFilesCleaned;
 
+  /**
+   * Set when the current file could not be renamed by {@link #rotate()} and cleared as soon as a
+   * rotation succeeds again. While it is set, size based rotations are not triggered from
+   * {@link #writeRecord(String)} and the failure is not logged again: the rotation is only retried
+   * from the {@code RotaterThread}, once per interval.
+   */
+  private boolean rotationFailed;
+  /** Same latch as {@link #rotationFailed}, for the log files a retention policy cannot delete. */
+  private boolean cleanupFailed;
+
   /** The underlying output stream. */
   private MeteredStream outputStream;
   /** The underlying buffered writer using the output stream. */
@@ -134,9 +145,22 @@ class MultifileTextWriter
     this.stopRequested = false;
 
     rotaterThread = new RotaterThread(this);
-    rotaterThread.start();
 
     DirectoryServer.registerShutdownListener(this);
+  }
+
+  /**
+   * Starts the background thread which rotates and retains the log files.
+   * <p>
+   * The thread is not started by the constructor so that {@code this} is not published to it before
+   * construction has completed.
+   *
+   * @return this writer
+   */
+  MultifileTextWriter start()
+  {
+    rotaterThread.start();
+    return this;
   }
 
   /**
@@ -158,12 +182,7 @@ class MultifileTextWriter
                                int bufferSize)
       throws IOException, DirectoryException
   {
-    // Create new file if it doesn't exist
-    if(!file.exists())
-    {
-      file.createNewFile();
-    }
-
+    // The file is created by the output stream below if it does not exist yet.
     FileOutputStream stream = new FileOutputStream(file, append);
     outputStream = new MeteredStream(stream, file.length());
 
@@ -412,17 +431,28 @@ class MultifileTextWriter
             File[] files =
                 retentionPolicy.deleteFiles(writer.getNamingPolicy());
 
+            int cleanedCount = 0;
             for(File file : files)
             {
-              file.delete();
-              totalFilesCleaned++;
-              logger.trace("%s cleaned up log file %s", retentionPolicy, file);
+              if (file.delete())
+              {
+                cleanedCount++;
+                totalFilesCleaned++;
+                cleanupFailed = false;
+                logger.trace("%s cleaned up log file %s", retentionPolicy, file);
+              }
+              else if (!cleanupFailed)
+              {
+                // Only report the first failure: the same files are returned on every interval.
+                cleanupFailed = true;
+                logger.warn(WARN_LOGGER_ERROR_DELETING_FILE, file, retentionPolicy);
+              }
             }
 
-            if(files.length > 0)
+            if(cleanedCount > 0)
             {
               lastCleanTime = TimeThread.getCalendar();
-              lastCleanCount = files.length;
+              lastCleanCount = cleanedCount;
             }
           }
           catch(DirectoryException de)
@@ -540,7 +570,9 @@ class MultifileTextWriter
 
     synchronized(this)
     {
-      if(sizeLimit > 0 && outputStream.written + size + 1 >= sizeLimit)
+      // Once a rotation has failed the file stays over the size limit, so rotating it again for
+      // every single record would only repeat the failure. Leave the retry to the RotaterThread.
+      if(sizeLimit > 0 && !rotationFailed && outputStream.written + size + 1 >= sizeLimit)
       {
         rotate();
       }
@@ -576,9 +608,12 @@ class MultifileTextWriter
   }
 
   /**
-   * Tries to rotate the log files. If the new log file already exists, it
-   * tries to rename the file. On failure, all subsequent log write requests
-   * will throw exceptions.
+   * Tries to rotate the log files by renaming the current file to the name provided by the naming
+   * policy. When the rename fails, the current file is kept and appended to rather than truncated,
+   * the failure is reported once and the rotation is retried on the next interval.
+   * <p>
+   * Note that {@code File.renameTo} silently replaces the target on most platforms, so a rotation
+   * happening within the same second as a previous one overwrites the file it just rotated.
    */
   private synchronized void rotate()
   {
@@ -595,11 +630,17 @@ class MultifileTextWriter
 
     File currentFile = namingPolicy.getInitialName();
     File newFile = namingPolicy.getNextName();
-    currentFile.renameTo(newFile);
+    final boolean renamed = currentFile.renameTo(newFile);
+    // The latch must be set before the writer is re-opened: constructWriter() logs warnings of its
+    // own, and when this writer backs the error log they come straight back into writeRecord() on
+    // this thread, where they must not trigger another rotation attempt.
+    final boolean report = !renamed && !rotationFailed;
+    rotationFailed = !renamed;
 
     try
     {
-      constructWriter(currentFile, filePermissions, encoding, append,
+      // If the file could not be rotated then keep appending to it rather than truncating it.
+      constructWriter(currentFile, filePermissions, encoding, append || !renamed,
                       bufferSize);
     }
     catch (Exception e)
@@ -608,9 +649,18 @@ class MultifileTextWriter
       errorHandler.handleOpenError(currentFile, e);
     }
 
-    logger.trace("Log file %s rotated and renamed to %s", currentFile, newFile);
-    totalFilesRotated++;
-    lastRotationTime = TimeThread.getCalendar();
+    if (renamed)
+    {
+      logger.trace("Log file %s rotated and renamed to %s", currentFile, newFile);
+      totalFilesRotated++;
+      lastRotationTime = TimeThread.getCalendar();
+    }
+    else if (report)
+    {
+      logger.error(ERR_LOGGER_ERROR_ROTATING_FILE, currentFile, newFile);
+    }
+    // lastRotationTime is left untouched on failure so that a time based policy keeps asking for a
+    // rotation on every interval instead of waiting for a whole new period.
   }
 
   @Override

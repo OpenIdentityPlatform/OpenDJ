@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
+ * Portions Copyright 2026 3A Systems, LLC.
  * Portions copyright 2011-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
@@ -334,7 +335,7 @@ public final class NameForm extends AbstractSchemaElement {
         if (builder.structuralObjectClassOID == null || builder.structuralObjectClassOID.isEmpty()) {
             throw new IllegalArgumentException("A structural class OID must be specified.");
         }
-        if (builder.requiredAttributes == null || builder.requiredAttributes.isEmpty()) {
+        if (builder.requiredAttributes.isEmpty()) {
             throw new IllegalArgumentException("Required attribute must be specified.");
         }
 

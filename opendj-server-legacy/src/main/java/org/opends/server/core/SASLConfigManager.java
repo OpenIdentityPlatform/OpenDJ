@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -317,7 +318,7 @@ public class SASLConfigManager implements
            definition.getJavaClassPropertyDefinition();
       Class<? extends SASLMechanismHandler> handlerClass =
            propertyDefinition.loadClass(className, SASLMechanismHandler.class);
-      SASLMechanismHandler handler = handlerClass.newInstance();
+      SASLMechanismHandler handler = handlerClass.getDeclaredConstructor().newInstance();
 
       if (initialize)
       {
