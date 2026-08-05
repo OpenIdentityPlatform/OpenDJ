@@ -126,6 +126,21 @@
     <param-value>10485760</param-value>
   </context-param>
 
+  <context-param>
+    <description>Maximum number of operations accepted in one batchRequest.
+    A compare on an attribute stored under a salted password scheme (PBKDF2,
+    bcrypt, ...) costs a full password verification, so an unbounded batch
+    lets a single POST buy an unbounded amount of CPU. Large batches are a
+    designed use of DSMLv2 (bulk provisioning), so the default is generous;
+    raise it if your clients really send more. A batchRequest holding more
+    operations is rejected as a whole with a notAttempted errorResponse,
+    before anything is executed. Note that a single POST may hold up to
+    ldap.dsml.batchrequests.max batchRequest elements, each allowed this many
+    operations.</description>
+    <param-name>ldap.dsml.batchrequest.operations.max</param-name>
+    <param-value>10000</param-value>
+  </context-param>
+
 <!-- Add an extra <context-param> like the one below for each extended operation
      that is known to return a string in the LDAP response. -->
   <context-param>
