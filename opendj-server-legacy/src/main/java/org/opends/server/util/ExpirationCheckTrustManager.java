@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
@@ -92,13 +93,13 @@ public final class ExpirationCheckTrustManager
       catch (CertificateExpiredException cee)
       {
         logger.error(ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_EXPIRED,
-            c.getSubjectDN().getName(), c.getNotAfter());
+            c.getSubjectX500Principal().getName(), c.getNotAfter());
         throw cee;
       }
       catch (CertificateNotYetValidException cnyve)
       {
         logger.error(ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_NOT_YET_VALID,
-            c.getSubjectDN().getName(), c.getNotBefore());
+            c.getSubjectX500Principal().getName(), c.getNotBefore());
         throw cnyve;
       }
     }
@@ -134,13 +135,13 @@ public final class ExpirationCheckTrustManager
       catch (CertificateExpiredException cee)
       {
         logger.error(ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_EXPIRED,
-            c.getSubjectDN().getName(), c.getNotAfter());
+            c.getSubjectX500Principal().getName(), c.getNotAfter());
         throw cee;
       }
       catch (CertificateNotYetValidException cnyve)
       {
         logger.error(ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_NOT_YET_VALID,
-            c.getSubjectDN().getName(), c.getNotBefore());
+            c.getSubjectX500Principal().getName(), c.getNotBefore());
         throw cnyve;
       }
     }

@@ -13,11 +13,11 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
@@ -35,6 +35,7 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.spi.BindResultLdapPromiseImpl;
+import org.forgerock.opendj.ldap.spi.ConnectionState;
 import org.forgerock.opendj.ldap.spi.ExtendedResultLdapPromiseImpl;
 import org.forgerock.opendj.ldap.spi.ResultLdapPromiseImpl;
 import org.forgerock.opendj.ldap.spi.SearchResultLdapPromiseImpl;
@@ -49,7 +50,20 @@ import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
  */
 final class InternalConnection extends AbstractAsynchronousConnection {
     private final ServerConnection<Integer> serverConnection;
-    private final List<ConnectionEventListener> listeners = new CopyOnWriteArrayList<>();
+    /**
+     * Tracks whether this connection has been closed and notifies the registered
+     * connection event listeners when it is.
+     * <p>
+     * An internal connection has no transport, so it can never fail nor receive
+     * an unsolicited notification: closure by the application is the only event
+     * its listeners can observe.
+     */
+    private final ConnectionState state = new ConnectionState();
+    /**
+     * Guards the hand-over to the server connection so that it happens exactly
+     * once, even if notifying the listeners fails.
+     */
+    private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicInteger messageID = new AtomicInteger();
 
     /**
@@ -82,7 +96,7 @@ final class InternalConnection extends AbstractAsynchronousConnection {
     @Override
     public void addConnectionEventListener(final ConnectionEventListener listener) {
         Reject.ifNull(listener);
-        listeners.add(listener);
+        state.addConnectionEventListener(listener);
     }
 
     @Override
@@ -97,8 +111,21 @@ final class InternalConnection extends AbstractAsynchronousConnection {
 
     @Override
     public void close(final UnbindRequest request, final String reason) {
-        final int i = messageID.getAndIncrement();
-        serverConnection.handleConnectionClosed(i, request);
+        // Closing an already closed connection has no effect.
+        if (isClosed.compareAndSet(false, true)) {
+            try {
+                state.notifyConnectionClosed();
+            } finally {
+                /*
+                 * A listener throwing an exception must not prevent the server
+                 * connection from releasing its resources: for an internal
+                 * connection this is the only cleanup there is, and a second
+                 * close() would be a no-op.
+                 */
+                final int i = messageID.getAndIncrement();
+                serverConnection.handleConnectionClosed(i, request);
+            }
+        }
     }
 
     @Override
@@ -133,14 +160,12 @@ final class InternalConnection extends AbstractAsynchronousConnection {
 
     @Override
     public boolean isClosed() {
-        // FIXME: this should be true after close has been called.
-        return false;
+        return state.isClosed();
     }
 
     @Override
     public boolean isValid() {
-        // FIXME: this should be false if this connection is disconnected.
-        return true;
+        return state.isValid();
     }
 
     @Override
@@ -166,7 +191,7 @@ final class InternalConnection extends AbstractAsynchronousConnection {
     @Override
     public void removeConnectionEventListener(final ConnectionEventListener listener) {
         Reject.ifNull(listener);
-        listeners.remove(listener);
+        state.removeConnectionEventListener(listener);
     }
 
     @Override

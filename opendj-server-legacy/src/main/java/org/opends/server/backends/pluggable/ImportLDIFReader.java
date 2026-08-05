@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -211,7 +212,7 @@ final class ImportLDIFReader extends LDIFReader
     {
       if (logger.isTraceEnabled())
       {
-        logger.trace("Skipping entry %s because reading" + "its attributes failed.", entryDN);
+        logger.trace("Skipping entry %s because reading its attributes failed.", entryDN);
       }
       logToSkipWriter(lines, ERR_LDIF_READ_ATTR_SKIP.get(entryDN, e.getMessage()));
       return null;

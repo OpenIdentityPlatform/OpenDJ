@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.reactive;
 
@@ -188,6 +189,13 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
      * to process requests before returning.
      */
     private final Object waitListen = new Object();
+
+    /**
+     * Condition predicate for {@link #waitListen}: set once the handler thread has attempted to open the listen socket
+     * (successfully or not). Guarded by the {@link #waitListen} monitor; protects the start method against spurious
+     * wakeups.
+     */
+    private boolean listenAttempted;
 
     /** The friendly name of this connection handler. */
     private String friendlyName;
@@ -679,6 +687,38 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     }
 
     /**
+     * {@inheritDoc}
+     * <p>
+     * Deliberately left unsynchronized, unlike the overridden {@link Thread#start()}: the state this method touches is
+     * guarded by the {@link #waitListen} monitor, and holding the thread's own monitor across {@code waitListen.wait()}
+     * would block {@link Thread#join()}.
+     */
+    @Override
+    public void start() {
+        // The Directory Server start process should only return when the connection handler port is fully opened
+        // and working. The start method therefore needs to wait for the created thread.
+        synchronized (waitListen) {
+            super.start();
+
+            final long deadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(LISTEN_TIMEOUT_MS);
+            try {
+                while (!listenAttempted) {
+                    final long remainingMs = TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime());
+                    if (remainingMs <= 0) {
+                        logger.error(ERR_CONNHANDLER_TIMEOUT_WAITING_FOR_LISTENER, handlerName,
+                                TimeUnit.MILLISECONDS.toSeconds(LISTEN_TIMEOUT_MS));
+                        break;
+                    }
+                    waitListen.wait(remainingMs);
+                }
+            } catch (InterruptedException e) {
+                // If something interrupted the start its probably better to return ASAP.
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    /**
      * Operates in a loop, accepting new connections and ensuring that requests on those connections are handled
      * properly.
      */
@@ -701,7 +741,8 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                     // so notify here to allow the server startup to complete.
                     synchronized (waitListen) {
                         starting = false;
-                        waitListen.notify();
+                        listenAttempted = true;
+                        waitListen.notifyAll();
                     }
                 }
 
@@ -716,12 +757,6 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
             }
 
             try {
-                // At this point, the connection Handler either started correctly or failed
-                // to start but the start process should be notified and resume its work in any cases.
-                synchronized (waitListen) {
-                    waitListen.notify();
-                }
-
                 // If we have gotten here, then we are about to start listening
                 // for the first time since startup or since we were previously disabled.
                 startListener();
@@ -748,6 +783,13 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                     this.enabled = false;
                 } else {
                     lastIterationFailed = true;
+                }
+            } finally {
+                // At this point, the connection handler either started listening or failed to do so,
+                // but the start process should be notified and resume its work in any cases.
+                synchronized (waitListen) {
+                    listenAttempted = true;
+                    waitListen.notifyAll();
                 }
             }
         }

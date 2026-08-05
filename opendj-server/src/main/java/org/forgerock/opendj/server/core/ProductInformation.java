@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.server.core;
 
@@ -43,7 +44,7 @@ public final class ProductInformation {
 
     private ProductInformation(final String productName) {
         final String resourceName = "/META-INF/product/" + productName + ".properties";
-        final InputStream stream = getClass().getResourceAsStream(resourceName);
+        final InputStream stream = ProductInformation.class.getResourceAsStream(resourceName);
 
         if (stream == null) {
             throw new MissingResourceException("Can't find product information " + resourceName,
@@ -265,7 +266,7 @@ public final class ProductInformation {
      * @return The build number for the Directory Server.
      */
     public int versionBuildNumber() {
-        return Integer.valueOf(properties.getProperty("version.build"));
+        return intProperty("version.build");
     }
 
     /**
@@ -294,7 +295,7 @@ public final class ProductInformation {
      * @return The major version number for the Directory Server.
      */
     public int versionMajorNumber() {
-        return Integer.valueOf(properties.getProperty("version.major"));
+        return intProperty("version.major");
     }
 
     /**
@@ -303,7 +304,7 @@ public final class ProductInformation {
      * @return The minor version number for the Directory Server.
      */
     public int versionMinorNumber() {
-        return Integer.valueOf(properties.getProperty("version.minor"));
+        return intProperty("version.minor");
     }
 
     /**
@@ -312,7 +313,7 @@ public final class ProductInformation {
      * @return The point version number for the Directory Server.
      */
     public int versionPointNumber() {
-        return Integer.valueOf(properties.getProperty("version.point"));
+        return intProperty("version.point");
     }
 
     /**
@@ -342,5 +343,25 @@ public final class ProductInformation {
      */
     public String versionRevision() {
         return properties.getProperty("scm.revision");
+    }
+
+    /**
+     * Returns the value of a numeric property of the product information.
+     *
+     * @param key
+     *            The name of the property to read.
+     * @return The value of the property.
+     * @throws MissingResourceException
+     *             If the property is absent or is not a number, which means the bundled product
+     *             information is not the one this class was built against.
+     */
+    private int intProperty(final String key) {
+        final String value = properties.getProperty(key);
+        try {
+            return Integer.parseInt(value);
+        } catch (final NumberFormatException e) {
+            throw new MissingResourceException("Product information holds '" + value + "' for " + key
+                    + ", which is not a number", ProductInformation.class.getName(), key);
+        }
     }
 }

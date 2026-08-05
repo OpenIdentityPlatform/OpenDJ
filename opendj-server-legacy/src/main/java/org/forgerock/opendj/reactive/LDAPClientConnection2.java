@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2010-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.reactive;
 
@@ -405,7 +406,11 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         // if operation processing encounters a run-time exception after sending the
         // response: the worker thread exception handling code will attempt to send
         // an error result to the client indicating that a problem occurred.
-        if (removeOperationInProgress(operation.getMessageID())) {
+        // A persistent search is the other way around: its search operation is no longer in
+        // progress once the search phase is over, and yet it still owes the client a response if
+        // the server terminates it.
+        if (removeOperationInProgress(operation.getMessageID())
+                || hasPersistentSearch(operation.getMessageID())) {
             final Response response = operationToResponse(operation);
             final FlowableEmitter<Response> out = getAttachedEmitter(operation);
             if (response != null) {
@@ -1679,7 +1684,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
     }
 
     /** Upstream -> BlockingBackpressureSubscription -> Downstream. */
-    private final class BlockingBackpressureSubscription implements Subscription, Processor<Response, Response> {
+    private static final class BlockingBackpressureSubscription implements Subscription, Processor<Response, Response> {
         private final AtomicLong pendingRequests = new AtomicLong();
         private final AtomicInteger missedDrain = new AtomicInteger();
         private final BlockingQueue<Response> queue = new LinkedBlockingQueue<>(32);

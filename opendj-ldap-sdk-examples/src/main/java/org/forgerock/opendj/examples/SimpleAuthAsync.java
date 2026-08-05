@@ -12,14 +12,16 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_USE_STARTTLS;
 import static org.forgerock.opendj.ldap.TrustManagers.checkHostName;
 import static org.forgerock.util.Utils.closeSilently;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_USE_STARTTLS;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
@@ -218,7 +220,7 @@ public final class SimpleAuthAsync {
         }
 
         host = args[0];
-        port = Integer.parseInt(args[1]);
+        port = parsePort(args[1]);
         bindDN = args[2];
         bindPassword = args[3];
 

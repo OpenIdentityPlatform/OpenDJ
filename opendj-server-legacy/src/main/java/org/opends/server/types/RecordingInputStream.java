@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.types;
 
@@ -99,13 +100,13 @@ public class RecordingInputStream extends InputStream
 
   /** {@inheritDoc} */
   @Override
-  public void mark(int i) {
+  public synchronized void mark(int i) {
     parentStream.mark(i);
   }
 
   /** {@inheritDoc} */
   @Override
-  public void reset() throws IOException {
+  public synchronized void reset() throws IOException {
     parentStream.reset();
   }
 

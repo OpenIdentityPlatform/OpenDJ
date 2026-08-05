@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.maven.doc;
 
@@ -151,7 +152,7 @@ public class GenerateConfigurationReferenceMojo extends AbstractMojo {
      */
     private void copyResources() throws IOException {
         for (String file : resourceFiles) {
-            InputStream original = this.getClass().getResourceAsStream("/config-ref/" + file);
+            InputStream original = GenerateConfigurationReferenceMojo.class.getResourceAsStream("/config-ref/" + file);
             File copy = new File(outputDirectory, file);
             copyInputStreamToFile(original, copy);
         }

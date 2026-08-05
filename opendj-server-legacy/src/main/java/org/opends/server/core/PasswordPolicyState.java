@@ -2012,7 +2012,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   /**
    * Get the broken-down components of the given password value.
    *
-   * @param  usesAuthPasswordSyntax  true if the value is an authPassword.
    * @param  v  The encoded password value to break down.
    *
    * @return An array of components.
@@ -2597,17 +2596,17 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     if (historyDuration > 0L)
     {
       long minAgeToKeep = currentTime - 1000L * historyDuration;
-      Iterator<Long> iterator = historyMap.keySet().iterator();
+      Iterator<Map.Entry<Long, ByteString>> iterator = historyMap.entrySet().iterator();
       LinkedHashSet<ByteString> removeValues = new LinkedHashSet<>();
       while (iterator.hasNext())
       {
-        long timestamp = iterator.next();
-        if (timestamp >= minAgeToKeep)
+        Map.Entry<Long, ByteString> historyEntry = iterator.next();
+        if (historyEntry.getKey() >= minAgeToKeep)
         {
           break;
         }
 
-        ByteString v = historyMap.get(timestamp);
+        ByteString v = historyEntry.getValue();
         removeValues.add(v);
         iterator.remove();
 
@@ -2700,8 +2699,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       if (logger.isTraceEnabled())
       {
-        logger.trace("Unable to generate a new password for user %s because no password generator has been defined" +
-            "in the associated password policy.", userDNString);
+        logger.trace("Unable to generate a new password for user %s because no password generator has been defined "
+            + "in the associated password policy.", userDNString);
       }
 
       return null;

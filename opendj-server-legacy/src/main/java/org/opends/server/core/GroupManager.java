@@ -413,7 +413,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
            definition.getJavaClassPropertyDefinition();
       Class<? extends Group> groupClass =
            propertyDefinition.loadClass(className, Group.class);
-      Group group = groupClass.newInstance();
+      Group group = groupClass.getDeclaredConstructor().newInstance();
 
       if (initialize)
       {

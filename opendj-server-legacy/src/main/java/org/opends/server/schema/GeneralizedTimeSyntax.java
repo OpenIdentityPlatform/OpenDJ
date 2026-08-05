@@ -14,6 +14,7 @@
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2009 D. J. Hagberg, Millibits Consulting, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.schema;
 
@@ -1199,11 +1200,11 @@ outerLoop:
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
-    Double fractionValue = Double.parseDouble(fractionBuffer.toString());
-    long additionalMilliseconds = Math.round(fractionValue * multiplier);
-
     try
     {
+      double fractionValue = Double.parseDouble(fractionBuffer.toString());
+      long additionalMilliseconds = Math.round(fractionValue * multiplier);
+
       GregorianCalendar calendar = new GregorianCalendar();
       calendar.setLenient(false);
       calendar.setTimeZone(timeZone);

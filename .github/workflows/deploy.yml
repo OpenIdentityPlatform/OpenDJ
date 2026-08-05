@@ -24,6 +24,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: false
 
+# contents: write is required to push the generated documentation to the project wiki
+# with github.token. The doc site push uses a separate PAT, not this token.
+permissions:
+  contents: write
+
 jobs:
   package-deploy-maven:
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event=='push'}}

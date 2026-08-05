@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -148,6 +149,9 @@ public class UserAttr implements KeywordBindRule {
                   //a message if it is seen in the expression.
                   throw new AciException(WARN_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED.get(expression));
                 }
+                default:
+                  // No action needed for the remaining values.
+                  break;
          }
          return new UserAttr(vals[0], vals[1], userAttrType, type);
     }

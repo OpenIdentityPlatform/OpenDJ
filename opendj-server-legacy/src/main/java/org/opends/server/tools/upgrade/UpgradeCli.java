@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.upgrade;
 
@@ -24,7 +25,6 @@ import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
 import static org.opends.server.tools.upgrade.Upgrade.*;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -79,7 +79,7 @@ public final class UpgradeCli extends ConsoleApplication implements
   /** Flag indicating whether the global arguments have already been initialized. */
   private boolean globalArgumentsInitialized;
 
-  private UpgradeCli(InputStream in, OutputStream out, OutputStream err)
+  private UpgradeCli(OutputStream out, OutputStream err)
   {
     super(new PrintStream(out), new PrintStream(err));
     this.parser =
@@ -124,7 +124,7 @@ public final class UpgradeCli extends ConsoleApplication implements
   public static int main(String[] args, boolean initializeServer,
       OutputStream outStream, OutputStream errStream)
   {
-    final UpgradeCli app = new UpgradeCli(System.in, outStream, errStream);
+    final UpgradeCli app = new UpgradeCli(outStream, errStream);
 
     // Run the application.
     return app.run(args, initializeServer);

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -312,7 +313,7 @@ public class AlertHandlerConfigManager
            definition.getJavaClassPropertyDefinition();
       Class<? extends AlertHandler> handlerClass =
            propertyDefinition.loadClass(className, AlertHandler.class);
-      AlertHandler handler = handlerClass.newInstance();
+      AlertHandler handler = handlerClass.getDeclaredConstructor().newInstance();
 
       if (initialize)
       {

@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -43,7 +44,10 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.browser.ConnectionWithControls;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
@@ -342,33 +346,48 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
   @Override
   protected String getLDIF()
   {
-    String dn = this.dn.getText();
+    return getLDIF(entryToDuplicate, dn.getText(), rdnAttribute, new String(password.getPassword()),
+        getInfo().getServerDescriptor().getSchema());
+  }
+
+  /**
+   * Returns the LDIF representation of the duplicated entry.
+   *
+   * @param entryToDuplicate the entry that is being duplicated.
+   * @param dn the DN of the new entry.
+   * @param rdnAttribute the name of the attribute used in the RDN of the entry being duplicated.
+   * @param password the password typed by the user, empty if the user typed none.
+   * @param schema the schema of the server, {@code null} if it could not be read.
+   * @return the LDIF representation of the duplicated entry.
+   */
+  static String getLDIF(Entry entryToDuplicate, String dn, String rdnAttribute, String password, Schema schema)
+  {
     StringBuilder sb = new StringBuilder();
     sb.append("dn: ").append(dn);
     for (Attribute attr : entryToDuplicate.getAllAttributes())
     {
       AttributeDescription attrDesc = attr.getAttributeDescription();
       String attrName = attr.getAttributeDescriptionAsString();
-      if (attrDesc.equals(getUserPasswordAttributeType()))
+      if (attrDesc.getAttributeType().equals(getUserPasswordAttributeType()))
       {
-        sb.append("\n");
-        String pwd = new String(password.getPassword());
-        if (!pwd.isEmpty())
+        // The password is optional: the original password must not be copied and no line at all
+        // must be written when the user typed none.  Writing an empty line would terminate the
+        // LDIF record and silently drop every attribute that comes after this one.
+        if (!password.isEmpty())
         {
-          sb.append(attrName).append(": ").append(pwd);
+          sb.append("\n").append(attrName).append(": ").append(password);
         }
       }
       else if (!attrName.equalsIgnoreCase(rdnAttribute))
       {
-        if (!ViewEntryPanel.isEditable(attrDesc,
-            getInfo().getServerDescriptor().getSchema()))
+        if (!ViewEntryPanel.isEditable(attrDesc, schema))
         {
           continue;
         }
         for (ByteString value : attr)
         {
           sb.append("\n");
-          if (isBinary(attrName))
+          if (Utilities.hasBinarySyntax(attrName, schema))
           {
             sb.append(attrName).append(":: ").append(value.toBase64String());
           }
@@ -392,7 +411,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
           for (ByteString value : attr)
           {
             sb.append("\n");
-            if (oldValue.equals(value))
+            if (isRDNValue(attrDesc, value, oldValue))
             {
               sb.append(attrName).append(": ").append(newValue);
             }
@@ -407,7 +426,33 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     return sb.toString();
   }
 
-  private String getFirstValue(DN dn)
+  /**
+   * Returns whether the provided value is the value the RDN of the entry being duplicated asserts.
+   * <p>
+   * The attributes used in an RDN usually have a case insensitive equality matching rule
+   * ({@code cn}, {@code ou} or {@code uid} for instance) and the value stored in the entry may
+   * therefore differ from the value written in the DN.  The comparison must consequently be done
+   * through the equality matching rule of the attribute and not with {@link String#equals(Object)}.
+   */
+  private static boolean isRDNValue(AttributeDescription attrDesc, ByteString value, String rdnValue)
+  {
+    MatchingRule equalityMatchingRule = attrDesc.getAttributeType().getEqualityMatchingRule();
+    if (equalityMatchingRule != null)
+    {
+      try
+      {
+        return equalityMatchingRule.normalizeAttributeValue(value)
+            .equals(equalityMatchingRule.normalizeAttributeValue(ByteString.valueOfUtf8(rdnValue)));
+      }
+      catch (DecodeException e)
+      {
+        // The values cannot be normalized: fall back to the case insensitive comparison below.
+      }
+    }
+    return rdnValue.equalsIgnoreCase(value.toString());
+  }
+
+  private static String getFirstValue(DN dn)
   {
     return dn.rdn().getFirstAVA().getAttributeValue().toString();
   }

@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -52,6 +53,7 @@ import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.quicksetup.util.Utils;
 import org.forgerock.opendj.ldap.schema.Schema;
 
 /** Panel that appears when the user defines a new index. */
@@ -120,7 +122,6 @@ public class NewIndexPanel extends AbstractIndexPanel
       BackendDescriptor backend = getBackendByID(backendName.getText());
 
       TreeSet<String> standardAttrNames = new TreeSet<>();
-      TreeSet<String> configurationAttrNames = new TreeSet<>();
       TreeSet<String> customAttrNames = new TreeSet<>();
       for (AttributeType attr : schema.getAttributeTypes())
       {
@@ -131,12 +132,9 @@ public class NewIndexPanel extends AbstractIndexPanel
           {
             standardAttrNames.add(name);
           }
-          else if (Utilities.isConfiguration(attr))
+          else if (!Utilities.isConfiguration(attr))
           {
-            configurationAttrNames.add(name);
-          }
-          else
-          {
+            // Configuration attributes are not offered for indexing.
             customAttrNames.add(name);
           }
         }
@@ -342,7 +340,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       super(info, dlg);
       backendSet.add(backendName.getText());
       attributeName = getAttributeName();
-      entryLimitValue = Integer.parseInt(entryLimit.getText());
+      entryLimitValue = Utils.parseIntOrDefault(entryLimit.getText(), DEFAULT_ENTRY_LIMIT);
       indexTypes = getTypes();
     }
 

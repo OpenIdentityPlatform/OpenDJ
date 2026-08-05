@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -45,14 +46,14 @@ implements Comparator<BaseDNDescriptor>
   private boolean displayReplicationInformation;
 
   /** Key value to identify the case of a value not available because the server is down. */
-  public static String NOT_AVAILABLE_SERVER_DOWN = "NOT_AVAILABLE_SERVER_DOWN";
+  public static final String NOT_AVAILABLE_SERVER_DOWN = "NOT_AVAILABLE_SERVER_DOWN";
 
   /** Key value to identify the case of a value not available because authentication is required. */
-  public static String NOT_AVAILABLE_AUTHENTICATION_REQUIRED =
+  public static final String NOT_AVAILABLE_AUTHENTICATION_REQUIRED =
     "NOT_AVAILABLE_AUTHENTICATION_REQUIRED";
 
   /** Key value to identify the case of a value not available. */
-  public static String NOT_AVAILABLE = "NOT_AVAILABLE";
+  public static final String NOT_AVAILABLE = "NOT_AVAILABLE";
 
   /**
    * Constructor for this table model.

@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -455,7 +456,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     }
 
     String ldifPath = file.getText();
-    if (ldifPath == null || "".equals(ldifPath.trim()))
+    if (ldifPath == null || ldifPath.trim().isEmpty())
     {
       errors.add(INFO_NO_LDIF_PATH.get());
       setPrimaryInvalid(lFile);
@@ -487,7 +488,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     if (writeRejects.isSelected())
     {
       String rejectPath = rejectsFile.getText();
-      if (rejectPath == null || "".equals(rejectPath.trim()))
+      if (rejectPath == null || rejectPath.trim().isEmpty())
       {
         errors.add(ERR_CTRL_PANEL_REJECTS_FILE_REQUIRED.get());
         setPrimaryInvalid(lRejectsFile);
@@ -503,7 +504,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     if (writeSkips.isSelected())
     {
       String skipPath = skipsFile.getText();
-      if (skipPath == null || "".equals(skipPath.trim()))
+      if (skipPath == null || skipPath.trim().isEmpty())
       {
         errors.add(ERR_CTRL_PANEL_SKIPS_FILE_REQUIRED.get());
         setPrimaryInvalid(lSkipsFile);
