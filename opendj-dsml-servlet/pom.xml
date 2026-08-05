@@ -108,6 +108,20 @@
     </dependencies>
 
     <build><finalName>${project.groupId}.${project.artifactId}</finalName>
+        <testResources>
+            <testResource>
+                <directory>${basedir}/src/test/resources</directory>
+            </testResource>
+            <!-- The servlet loads the DSMLv2 schema from /resources/DSMLv2.xsd: the war
+                 packages it under WEB-INF/classes, the tests need it on their classpath -->
+            <testResource>
+                <targetPath>resources</targetPath>
+                <directory>${basedir}/resources/schema</directory>
+                <includes>
+                    <include>DSMLv2.xsd</include>
+                </includes>
+            </testResource>
+        </testResources>
         <plugins>
             <!-- Parse version to generate properties (major.version, minor.version, ...) -->
             <plugin>

@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui.renderer;
 
@@ -38,15 +39,15 @@ public class BaseDNCellRenderer extends CustomCellRenderer
   public Component getTableCellRendererComponent(JTable table, Object value,
       boolean isSelected, boolean hasFocus, int row, int column) {
     String text = (String)value;
-    if (text == BaseDNTableModel.NOT_AVAILABLE)
+    if (BaseDNTableModel.NOT_AVAILABLE.equals(text))
     {
       Utilities.setNotAvailable(this);
     }
-    else if (text == BaseDNTableModel.NOT_AVAILABLE_AUTHENTICATION_REQUIRED)
+    else if (BaseDNTableModel.NOT_AVAILABLE_AUTHENTICATION_REQUIRED.equals(text))
     {
       Utilities.setNotAvailableBecauseAuthenticationIsRequired(this);
     }
-    else if (text == BaseDNTableModel.NOT_AVAILABLE_SERVER_DOWN)
+    else if (BaseDNTableModel.NOT_AVAILABLE_SERVER_DOWN.equals(text))
     {
       Utilities.setNotAvailableBecauseServerIsDown(this);
     }

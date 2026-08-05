@@ -14,6 +14,7 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2025-2026 3A Systems LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.service;
 
@@ -885,11 +886,11 @@ public abstract class ReplicationDomain
       if (initReqMsg != null)
       {
         // Do this work in a thread to allow replay thread continue working
-        ExportThread exportThread = new ExportThread(
+        ExportTask exportTask = new ExportTask(
             initReqMsg.getSenderID(), initReqMsg.getInitWindow());
         exportThreadPool.execute(() -> {
-          Thread.currentThread().setName(exportThread.getName());
-          exportThread.run();
+          Thread.currentThread().setName(exportTask.getName());
+          exportTask.run();
         });
       }
     }
@@ -953,7 +954,7 @@ public abstract class ReplicationDomain
     {
       synchronized (update)
       {
-        update.notify();
+        update.notifyAll();
       }
 
       // Analyze status of embedded in the ack to see if everything went well
@@ -1039,20 +1040,23 @@ public abstract class ReplicationDomain
    */
 
   /**
-   * This thread is launched when we want to export data to another server.
+   * This task is submitted to the export thread pool when we want to export data to another
+   * server.
    *
    * When a task is created locally (so this local server is the initiator)
    * of the export (Example: dsreplication initialize-all),
-   * this thread is NOT used but the task thread is running the export instead).
+   * this task is NOT used but the task thread is running the export instead).
    */
-  private class ExportThread extends DirectoryThread
+  private class ExportTask implements Runnable
   {
     /** Id of server that will be initialized. */
     private final int serverIdToInitialize;
     private final int initWindow;
+    /** Name given to the pool thread which runs this task. */
+    private final String name;
 
     /**
-     * Constructor for the ExportThread.
+     * Constructor for the ExportTask.
      *
      * @param serverIdToInitialize
      *          serverId of server that will receive entries
@@ -1060,12 +1064,22 @@ public abstract class ReplicationDomain
      *          The value of the initialization window for flow control between
      *          the importer and the exporter.
      */
-    public ExportThread(int serverIdToInitialize, int initWindow)
+    public ExportTask(int serverIdToInitialize, int initWindow)
     {
-      super("Export thread from serverId=" + getServerId() + " to serverId="
-          + serverIdToInitialize);
+      this.name = "Export thread from serverId=" + getServerId() + " to serverId="
+          + serverIdToInitialize;
       this.serverIdToInitialize = serverIdToInitialize;
       this.initWindow = initWindow;
+    }
+
+    /**
+     * Returns the name of this task, used to name the thread running it.
+     *
+     * @return the name of this task
+     */
+    public String getName()
+    {
+      return name;
     }
 
     @Override
@@ -2401,7 +2415,7 @@ public abstract class ReplicationDomain
         logger.trace("[IE] Domain=" + this
           + " ends initialization with exception=" + ieCtx.getException()
           + " connected=" + broker.isConnected()
-          + " task=" + initFromTask
+          + " task=" + (initFromTask != null ? initFromTask.getTaskEntryDN() : null)
           + " attempt=" + ieCtx.attemptCnt);
       }
 

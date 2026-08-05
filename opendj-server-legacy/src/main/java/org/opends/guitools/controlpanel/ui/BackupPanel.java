@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -371,7 +372,7 @@ public class BackupPanel extends BackupListPanel
     }
 
     String parentPath = parentDirectory.getText();
-    if (parentPath == null || parentPath.trim().equals(""))
+    if (parentPath == null || parentPath.trim().isEmpty())
     {
       errors.add(ERR_CTRL_PANEL_NO_BACKUP_PATH_PROVIDED.get());
       setPrimaryInvalid(lPath);
@@ -391,7 +392,7 @@ public class BackupPanel extends BackupListPanel
       }
     }
     String dir = backupID.getText();
-    if (dir == null || dir.trim().equals(""))
+    if (dir == null || dir.trim().isEmpty())
     {
       errors.add(ERR_CTRL_PANEL_NO_BACKUP_ID_PROVIDED.get());
       setPrimaryInvalid(lBackupID);
@@ -422,7 +423,7 @@ public class BackupPanel extends BackupListPanel
       else
       {
         String parentID = parentBackupID.getText();
-        if (parentID == null || parentID.trim().equals(""))
+        if (parentID == null || parentID.trim().isEmpty())
         {
           errors.add(ERR_CTRL_PANEL_NO_PARENT_BACKUP_ID_PROVIDED.get());
           setPrimaryInvalid(lParentID);

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.task;
 
@@ -102,7 +103,7 @@ public class TaskThread extends DirectoryThread
 
     synchronized (notifyLock)
     {
-      notifyLock.notify();
+      notifyLock.notifyAll();
     }
   }
 

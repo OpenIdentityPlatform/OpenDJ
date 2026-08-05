@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -501,7 +502,7 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
 
   private Pair<Long,TimeUnit> getExecutionTime(final Operation operation)
   {
-    Long etime = operation.getProcessingNanoTime();
+    long etime = operation.getProcessingNanoTime();
     // if not configured for nanos, use millis
     return etime <= -1 ?
         Pair.of(operation.getProcessingTime(), TimeUnit.MILLISECONDS) :

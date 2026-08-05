@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
+#
+# Portions Copyright 2026 3A Systems, LLC.
+#
 
 require 'fileutils'
 
@@ -471,7 +474,6 @@ class Replace
       (0..replacements.size-1).step(2).each { |index|
         pattern, replace = replacements[index], replacements[index+1]
         replace = replace.gsub('{CLASSNAME}', classname(file))
-        is_replaced = true
         #while is_replaced
           #puts "pattern: " + pattern.to_s
           is_replaced = contents.gsub!(pattern, replace)

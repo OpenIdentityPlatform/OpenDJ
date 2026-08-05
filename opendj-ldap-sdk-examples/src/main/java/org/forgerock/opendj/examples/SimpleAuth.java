@@ -12,10 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.examples.ExampleUtils.parsePort;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 
 import java.io.File;
@@ -269,7 +271,7 @@ public final class SimpleAuth {
         }
 
         host = args[0];
-        port = Integer.parseInt(args[1]);
+        port = parsePort(args[1]);
         bindDN = args[2];
         bindPassword = args[3];
 

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.makeldif;
 
@@ -185,7 +186,7 @@ public class TemplateFile
     {
       try
       {
-        Tag t = (Tag) c.newInstance();
+        Tag t = (Tag) c.getDeclaredConstructor().newInstance();
         registeredTags.put(toLowerCase(t.getName()), t);
       }
       catch (Exception e)
@@ -437,7 +438,7 @@ public class TemplateFile
         Tag tag;
         try
         {
-          tag = (Tag) tagClass.newInstance();
+          tag = (Tag) tagClass.getDeclaredConstructor().newInstance();
         }
         catch (Exception e)
         {
@@ -1225,11 +1226,12 @@ public class TemplateFile
     Tag newTag;
     try
     {
-      newTag = t.getClass().newInstance();
+      newTag = t.getClass().getDeclaredConstructor().newInstance();
     }
     catch (Exception e)
     {
-      throw new MakeLDIFException(ERR_MAKELDIF_CANNOT_INSTANTIATE_NEW_TAG.get(tagName, lineNumber, e), e);
+      throw new MakeLDIFException(ERR_MAKELDIF_CANNOT_INSTANTIATE_NEW_TAG.get(tagName, lineNumber,
+          getExceptionMessage(e)), e);
     }
 
     if (branch == null)

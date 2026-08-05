@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.tasks;
 
@@ -320,8 +321,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
       }
       return 0;
     } catch (LDAPConnectionException e) {
-      if (isWrongPortException(e,
-          Integer.valueOf(argParser.getArguments().getPort())))
+      if (isWrongPortException(e, getPortNumber()))
       {
         printWrappedText(err, ERR_TASK_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(
             argParser.getArguments().getHostName(), argParser.getArguments().getPort()));
@@ -358,6 +358,23 @@ public abstract class TaskTool implements TaskScheduleInformation {
           // Ignore.
         }
       }
+    }
+  }
+
+  /**
+   * Returns the port this tool tried to connect to, or {@code -1} if the port argument does not
+   * hold a number, in which case the connection failure cannot be a wrong port one.
+   * @return the port this tool tried to connect to.
+   */
+  private int getPortNumber()
+  {
+    try
+    {
+      return Integer.parseInt(argParser.getArguments().getPort());
+    }
+    catch (NumberFormatException e)
+    {
+      return -1;
     }
   }
 

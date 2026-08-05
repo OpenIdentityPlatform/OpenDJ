@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -162,7 +163,7 @@ public class EntryDNVirtualAttributeProvider
    * to make the determination.
    *
    * @param  attributeType  The attribute type used to hold the entryDN value.
-   * @param  searchFilter   The search filter for which to make the
+   * @param  filter         The search filter for which to make the
    *                        determination.
    * @param  depth          The current recursion depth for this processing.
    *
@@ -282,6 +283,9 @@ public class EntryDNVirtualAttributeProvider
             logger.traceException(e);
           }
         }
+        break;
+      default:
+        // No action needed for the remaining values.
         break;
     }
   }

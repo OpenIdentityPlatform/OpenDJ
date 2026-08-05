@@ -34,8 +34,8 @@ package org.opends.server.extensions;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -82,6 +82,12 @@ final class Sha2Crypt {
           "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
       /**
+       * Source of randomness used to generate salts. A single shared instance is used because
+       * {@code SecureRandom} is thread-safe and reseeding it for every value would weaken it.
+       */
+      private static final SecureRandom SALT_RANDOM = new SecureRandom();
+
+      /**
        * Base64 like conversion of bytes to ASCII chars.
        *
        * @param b2
@@ -120,8 +126,7 @@ final class Sha2Crypt {
       static String getRandomSalt(int num) {
           StringBuilder saltString = new StringBuilder();
           for (int i = 1; i <= num; i++) {
-              saltString.append(B64T.charAt(new Random().
-                  nextInt(B64T.length())));
+              saltString.append(B64T.charAt(SALT_RANDOM.nextInt(B64T.length())));
           }
           return saltString.toString();
       }

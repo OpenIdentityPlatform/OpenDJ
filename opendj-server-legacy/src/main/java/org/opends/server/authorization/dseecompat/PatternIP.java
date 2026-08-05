@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -386,17 +387,17 @@ public class PatternIP {
      */
     public EnumEvalResult evaluate(InetAddress remoteAddr) {
         EnumEvalResult matched=EnumEvalResult.FALSE;
-        IPType ipType=IPType.IPv4;
+        IPType remoteIpType=IPType.IPv4;
         byte[] addressBytes=remoteAddr.getAddress();
         if(remoteAddr instanceof Inet6Address) {
-            ipType=IPType.IPv6;
+            remoteIpType=IPType.IPv6;
             Inet6Address addr6 = (Inet6Address) remoteAddr;
             addressBytes= addr6.getAddress();
             if(addr6.isIPv4CompatibleAddress()) {
-                ipType=IPType.IPv4;
+                remoteIpType=IPType.IPv4;
             }
         }
-        if(ipType != this.ipType) {
+        if(remoteIpType != ipType) {
             return EnumEvalResult.FALSE;
         }
         if(matchAddress(addressBytes)) {

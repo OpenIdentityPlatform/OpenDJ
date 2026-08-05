@@ -13,11 +13,13 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -311,21 +313,8 @@ public final class LDIFConnectionHandler
     importConfig.setInvokeImportPlugins(false);
     importConfig.setValidateSchema(true);
 
-    String outputPath = inputPath + ".applied." + TimeThread.getGMTTime();
-    if (new File(outputPath).exists())
-    {
-      int i=2;
-      while (true)
-      {
-        if (! new File(outputPath + "." + i).exists())
-        {
-          outputPath = outputPath + "." + i;
-          break;
-        }
-
-        i++;
-      }
-    }
+    String outputPath = selectUnusedPath(inputPath + ".applied." +
+                                         TimeThread.getGMTTime());
 
     LDIFExportConfig exportConfig =
          new LDIFExportConfig(outputPath, ExistingFileBehavior.APPEND);
@@ -470,21 +459,8 @@ public final class LDIFConnectionHandler
 
     if (errorEncountered || !fullyProcessed)
     {
-      String renamedPath = inputPath + ".errors-encountered." +
-                           TimeThread.getGMTTime();
-      if (new File(renamedPath).exists())
-      {
-        int i=2;
-        while (true)
-        {
-          if (! new File(renamedPath + "." + i).exists())
-          {
-            renamedPath = renamedPath + "." + i;
-          }
-
-          i++;
-        }
-      }
+      String renamedPath = selectUnusedPath(inputPath + ".errors-encountered." +
+                                            TimeThread.getGMTTime());
 
       try
       {
@@ -493,7 +469,7 @@ public final class LDIFConnectionHandler
           logger.trace("Renaming source file to " + renamedPath);
         }
 
-        ldifFile.renameTo(new File(renamedPath));
+        renameFile(ldifFile, new File(renamedPath));
       }
       catch (Exception e)
       {
@@ -515,7 +491,7 @@ public final class LDIFConnectionHandler
           logger.trace("Deleting source file");
         }
 
-        ldifFile.delete();
+        Files.delete(ldifFile.toPath());
       }
       catch (Exception e)
       {
@@ -528,6 +504,28 @@ public final class LDIFConnectionHandler
                              ALERT_TYPE_LDIF_CONNHANDLER_IO_ERROR, m);
       }
     }
+  }
+
+
+
+  /**
+   * Returns the provided path if no file exists at it.  Otherwise, appends
+   * ".2", ".3", ... to the provided path and returns the first resulting path
+   * at which no file exists.
+   *
+   * @param  basePath  The desired path for the file.
+   *
+   * @return  The first path at which no file exists.
+   */
+  static String selectUnusedPath(String basePath)
+  {
+    String path = basePath;
+    for (int i=2; new File(path).exists(); i++)
+    {
+      path = basePath + "." + i;
+    }
+
+    return path;
   }
 
 
