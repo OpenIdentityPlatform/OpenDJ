@@ -618,7 +618,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
                 }
               });
             }
-            catch (Throwable t)
+            catch (Throwable th)
             {
               entryReader = null;
             }

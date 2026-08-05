@@ -43,13 +43,13 @@ import java.util.*;
 import static org.opends.server.backends.pluggable.spi.StorageUtils.addErrorMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
-public class Storage implements org.opends.server.backends.pluggable.spi.Storage, ConfigurationChangeListener<JDBCBackendCfg>{
+public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Storage, ConfigurationChangeListener<JDBCBackendCfg>{
 	
 	private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 	private JDBCBackendCfg config;
 
-	public Storage(JDBCBackendCfg cfg, ServerContext serverContext) {
+	public JDBCStorage(JDBCBackendCfg cfg, ServerContext serverContext) {
 		this.config = cfg;
 		cfg.addJDBCChangeListener(this);
 	}
@@ -649,7 +649,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 				throw new StorageRuntimeException(e);
 			}
 			if (!isOpen) {
-				Storage.this.close();
+				JDBCStorage.this.close();
 			}
 		}
 		

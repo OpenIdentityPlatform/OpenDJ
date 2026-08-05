@@ -13,9 +13,11 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.IllegalFormatException;
 import java.util.Iterator;
@@ -96,26 +98,9 @@ class DebugMessageFormatter
     else if (arg instanceof Object[]) {
       decoratedArg= decorateArrayArg((Object[])arg);
     }
-    else if (arg instanceof boolean[]) {
-      decoratedArg = decorateArrayArg((boolean[])arg);
-    }
-    else if (arg instanceof byte[]) {
-      decoratedArg = decorateArrayArg((byte[])arg);
-    }
-    else if (arg instanceof char[]) {
-      decoratedArg = decorateArrayArg((char[])arg);
-    }
-    else if (arg instanceof double[]) {
-      decoratedArg = decorateArrayArg((double[])arg);
-    }
-    else if (arg instanceof float[]) {
-      decoratedArg = decorateArrayArg((float[])arg);
-    }
-    else if (arg instanceof int[]) {
-      decoratedArg = decorateArrayArg((int[])arg);
-    }
-    else if (arg instanceof long[]) {
-      decoratedArg = decorateArrayArg((long[])arg);
+    else if (arg != null && arg.getClass().isArray()) {
+      // Any array of a primitive type. Its elements need no decoration of their own.
+      decoratedArg = decoratePrimitiveArrayArg(arg);
     }
 
     return decoratedArg;
@@ -126,112 +111,17 @@ class DebugMessageFormatter
     return decorateListArg(Arrays.asList(array));
   }
 
-  private static String decorateArrayArg(boolean[] array)
+  private static String decoratePrimitiveArrayArg(Object array)
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
-    for (int i= 0; i < array.length; i++) {
+    int length= Array.getLength(array);
+    for (int i= 0; i < length; i++) {
       if (i > 0)
       {
         buffer.append(", ");
       }
-      buffer.append(array[i]);
-    }
-    buffer.append(" ]");
-
-    return buffer.toString();
-  }
-
-  private static String decorateArrayArg(byte[] array)
-  {
-    StringBuilder buffer= new StringBuilder();
-    buffer.append("[ ");
-    for (int i= 0; i < array.length; i++) {
-      if (i > 0)
-      {
-        buffer.append(", ");
-      }
-      buffer.append(array[i]);
-    }
-    buffer.append(" ]");
-
-    return buffer.toString();
-  }
-
-  private static String decorateArrayArg(char[] array)
-  {
-    StringBuilder buffer= new StringBuilder();
-    buffer.append("[ ");
-    for (int i= 0; i < array.length; i++) {
-      if (i > 0)
-      {
-        buffer.append(", ");
-      }
-      buffer.append(array[i]);
-    }
-    buffer.append(" ]");
-
-    return buffer.toString();
-  }
-
-  private static String decorateArrayArg(double[] array)
-  {
-    StringBuilder buffer= new StringBuilder();
-    buffer.append("[ ");
-    for (int i= 0; i < array.length; i++) {
-      if (i > 0)
-      {
-        buffer.append(", ");
-      }
-      buffer.append(array[i]);
-    }
-    buffer.append(" ]");
-
-    return buffer.toString();
-  }
-
-  private static String decorateArrayArg(float[] array)
-  {
-    StringBuilder buffer= new StringBuilder();
-    buffer.append("[ ");
-    for (int i= 0; i < array.length; i++) {
-      if (i > 0)
-      {
-        buffer.append(", ");
-      }
-      buffer.append(array[i]);
-    }
-    buffer.append(" ]");
-
-    return buffer.toString();
-  }
-
-  private static String decorateArrayArg(int[] array)
-  {
-    StringBuilder buffer= new StringBuilder();
-    buffer.append("[ ");
-    for (int i= 0; i < array.length; i++) {
-      if (i > 0)
-      {
-        buffer.append(", ");
-      }
-      buffer.append(array[i]);
-    }
-    buffer.append(" ]");
-
-    return buffer.toString();
-  }
-
-  private static String decorateArrayArg(long[] array)
-  {
-    StringBuilder buffer= new StringBuilder();
-    buffer.append("[ ");
-    for (int i= 0; i < array.length; i++) {
-      if (i > 0)
-      {
-        buffer.append(", ");
-      }
-      buffer.append(array[i]);
+      buffer.append(Array.get(array, i));
     }
     buffer.append(" ]");
 
