@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 package org.opends.server.protocols.ldap;
 
@@ -20,7 +21,7 @@ import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -57,64 +58,67 @@ import org.opends.server.types.OperationType;
 public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
 {
 
-  // The statistics maintained by this class.
-  private AtomicLong abandonRequests = new AtomicLong(0);
-  private AtomicLong addRequests = new AtomicLong(0);
-  private AtomicLong bindRequests = new AtomicLong(0);
-  private AtomicLong addResponses = new AtomicLong(0);
-  private AtomicLong bindResponses = new AtomicLong(0);
-  private AtomicLong bytesRead = new AtomicLong(0);
-  private AtomicLong bytesWritten = new AtomicLong(0);
-  private AtomicLong compareRequests = new AtomicLong(0);
-  private AtomicLong compareResponses = new AtomicLong(0);
-  private AtomicLong connectionsClosed = new AtomicLong(0);
-  private AtomicLong connectionsEstablished = new AtomicLong(0);
-  private AtomicLong deleteRequests = new AtomicLong(0);
-  private AtomicLong deleteResponses = new AtomicLong(0);
-  private AtomicLong extendedRequests = new AtomicLong(0);
-  private AtomicLong extendedResponses = new AtomicLong(0);
-  private AtomicLong messagesRead = new AtomicLong(0);
-  private AtomicLong messagesWritten = new AtomicLong(0);
-  private AtomicLong modifyRequests = new AtomicLong(0);
-  private AtomicLong modifyResponses = new AtomicLong(0);
-  private AtomicLong modifyDNRequests = new AtomicLong(0);
-  private AtomicLong modifyDNResponses = new AtomicLong(0);
-  private AtomicLong operationsAbandoned = new AtomicLong(0);
-  private AtomicLong operationsCompleted = new AtomicLong(0);
-  private AtomicLong operationsInitiated = new AtomicLong(0);
-  private AtomicLong searchRequests = new AtomicLong(0);
-  private AtomicLong searchOneRequests = new AtomicLong(0);
-  private AtomicLong searchSubRequests = new AtomicLong(0);
-  private AtomicLong searchResultEntries = new AtomicLong(0);
-  private AtomicLong searchResultReferences = new AtomicLong(0);
-  private AtomicLong searchResultsDone = new AtomicLong(0);
-  private AtomicLong unbindRequests = new AtomicLong(0);
+  // The statistics maintained by this class. These counters are updated for
+  // every LDAP message on every connection of the handler, so they use
+  // LongAdder: under concurrency striped cells avoid all worker threads
+  // CAS-ing the same cache line, and reads (monitoring only) pay the cost.
+  private final LongAdder abandonRequests = new LongAdder();
+  private final LongAdder addRequests = new LongAdder();
+  private final LongAdder bindRequests = new LongAdder();
+  private final LongAdder addResponses = new LongAdder();
+  private final LongAdder bindResponses = new LongAdder();
+  private final LongAdder bytesRead = new LongAdder();
+  private final LongAdder bytesWritten = new LongAdder();
+  private final LongAdder compareRequests = new LongAdder();
+  private final LongAdder compareResponses = new LongAdder();
+  private final LongAdder connectionsClosed = new LongAdder();
+  private final LongAdder connectionsEstablished = new LongAdder();
+  private final LongAdder deleteRequests = new LongAdder();
+  private final LongAdder deleteResponses = new LongAdder();
+  private final LongAdder extendedRequests = new LongAdder();
+  private final LongAdder extendedResponses = new LongAdder();
+  private final LongAdder messagesRead = new LongAdder();
+  private final LongAdder messagesWritten = new LongAdder();
+  private final LongAdder modifyRequests = new LongAdder();
+  private final LongAdder modifyResponses = new LongAdder();
+  private final LongAdder modifyDNRequests = new LongAdder();
+  private final LongAdder modifyDNResponses = new LongAdder();
+  private final LongAdder operationsAbandoned = new LongAdder();
+  private final LongAdder operationsCompleted = new LongAdder();
+  private final LongAdder operationsInitiated = new LongAdder();
+  private final LongAdder searchRequests = new LongAdder();
+  private final LongAdder searchOneRequests = new LongAdder();
+  private final LongAdder searchSubRequests = new LongAdder();
+  private final LongAdder searchResultEntries = new LongAdder();
+  private final LongAdder searchResultReferences = new LongAdder();
+  private final LongAdder searchResultsDone = new LongAdder();
+  private final LongAdder unbindRequests = new LongAdder();
 
 
   /** The instance name for this monitor provider instance. */
   private final String instanceName;
 
   // Monitor Objects : for Operations (count and time)
-  private AtomicLong addOperationCount = new AtomicLong(0);
-  private AtomicLong addOperationTime = new AtomicLong(0);
-  private AtomicLong searchOperationCount = new AtomicLong(0);
-  private AtomicLong searchOperationTime = new AtomicLong(0);
-  private AtomicLong delOperationCount = new AtomicLong(0);
-  private AtomicLong delOperationTime = new AtomicLong(0);
-  private AtomicLong bindOperationCount = new AtomicLong(0);
-  private AtomicLong bindOperationTime = new AtomicLong(0);
-  private AtomicLong unbindOperationCount = new AtomicLong(0);
-  private AtomicLong unbindOperationTime = new AtomicLong(0);
-  private AtomicLong compOperationCount = new AtomicLong(0);
-  private AtomicLong compOperationTime = new AtomicLong(0);
-  private AtomicLong modOperationCount = new AtomicLong(0);
-  private AtomicLong modOperationTime = new AtomicLong(0);
-  private AtomicLong moddnOperationCount = new AtomicLong(0);
-  private AtomicLong moddnOperationTime = new AtomicLong(0);
-  private AtomicLong abandonOperationCount = new AtomicLong(0);
-  private AtomicLong abandonOperationTime = new AtomicLong(0);
-  private AtomicLong extOperationCount = new AtomicLong(0);
-  private AtomicLong extOperationTime = new AtomicLong(0);
+  private final LongAdder addOperationCount = new LongAdder();
+  private final LongAdder addOperationTime = new LongAdder();
+  private final LongAdder searchOperationCount = new LongAdder();
+  private final LongAdder searchOperationTime = new LongAdder();
+  private final LongAdder delOperationCount = new LongAdder();
+  private final LongAdder delOperationTime = new LongAdder();
+  private final LongAdder bindOperationCount = new LongAdder();
+  private final LongAdder bindOperationTime = new LongAdder();
+  private final LongAdder unbindOperationCount = new LongAdder();
+  private final LongAdder unbindOperationTime = new LongAdder();
+  private final LongAdder compOperationCount = new LongAdder();
+  private final LongAdder compOperationTime = new LongAdder();
+  private final LongAdder modOperationCount = new LongAdder();
+  private final LongAdder modOperationTime = new LongAdder();
+  private final LongAdder moddnOperationCount = new LongAdder();
+  private final LongAdder moddnOperationTime = new LongAdder();
+  private final LongAdder abandonOperationCount = new LongAdder();
+  private final LongAdder abandonOperationTime = new LongAdder();
+  private final LongAdder extOperationCount = new LongAdder();
+  private final LongAdder extOperationTime = new LongAdder();
 
   /**
    * Creates a new instance of this class with the specified parent.
@@ -168,77 +172,77 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
      *        OC_MONITOR_CONNHANDLERSTATS
      */
     final MonitorData attrs = new MonitorData(31 + 10 * 2);
-    attrs.add("connectionsEstablished", connectionsEstablished);
-    attrs.add("connectionsClosed", connectionsClosed);
-    attrs.add("bytesRead", bytesRead);
-    attrs.add("bytesWritten", bytesWritten);
-    attrs.add("ldapMessagesRead", messagesRead);
-    attrs.add("ldapMessagesWritten", messagesWritten);
-    attrs.add("operationsAbandoned", operationsAbandoned);
-    attrs.add("operationsInitiated", operationsInitiated);
-    attrs.add("operationsCompleted", operationsCompleted);
-    attrs.add("abandonRequests", abandonRequests);
-    attrs.add("addRequests", addRequests);
-    attrs.add("addResponses", addResponses);
-    attrs.add("bindRequests", bindRequests);
-    attrs.add("bindResponses", bindResponses);
-    attrs.add("compareRequests", compareRequests);
-    attrs.add("compareResponses", compareResponses);
-    attrs.add("deleteRequests", deleteRequests);
-    attrs.add("deleteResponses", deleteResponses);
-    attrs.add("extendedRequests", extendedRequests);
-    attrs.add("extendedResponses", extendedResponses);
-    attrs.add("modifyRequests", modifyRequests);
-    attrs.add("modifyResponses", modifyResponses);
-    attrs.add("modifyDNRequests", modifyDNRequests);
-    attrs.add("modifyDNResponses", modifyDNResponses);
-    attrs.add("searchRequests", searchRequests);
-    attrs.add("searchOneRequests", searchOneRequests);
-    attrs.add("searchSubRequests", searchSubRequests);
-    attrs.add("searchResultEntries", searchResultEntries);
-    attrs.add("searchResultReferences", searchResultReferences);
-    attrs.add("searchResultsDone", searchResultsDone);
-    attrs.add("unbindRequests", unbindRequests);
+    attrs.add("connectionsEstablished", connectionsEstablished.sum());
+    attrs.add("connectionsClosed", connectionsClosed.sum());
+    attrs.add("bytesRead", bytesRead.sum());
+    attrs.add("bytesWritten", bytesWritten.sum());
+    attrs.add("ldapMessagesRead", messagesRead.sum());
+    attrs.add("ldapMessagesWritten", messagesWritten.sum());
+    attrs.add("operationsAbandoned", operationsAbandoned.sum());
+    attrs.add("operationsInitiated", operationsInitiated.sum());
+    attrs.add("operationsCompleted", operationsCompleted.sum());
+    attrs.add("abandonRequests", abandonRequests.sum());
+    attrs.add("addRequests", addRequests.sum());
+    attrs.add("addResponses", addResponses.sum());
+    attrs.add("bindRequests", bindRequests.sum());
+    attrs.add("bindResponses", bindResponses.sum());
+    attrs.add("compareRequests", compareRequests.sum());
+    attrs.add("compareResponses", compareResponses.sum());
+    attrs.add("deleteRequests", deleteRequests.sum());
+    attrs.add("deleteResponses", deleteResponses.sum());
+    attrs.add("extendedRequests", extendedRequests.sum());
+    attrs.add("extendedResponses", extendedResponses.sum());
+    attrs.add("modifyRequests", modifyRequests.sum());
+    attrs.add("modifyResponses", modifyResponses.sum());
+    attrs.add("modifyDNRequests", modifyDNRequests.sum());
+    attrs.add("modifyDNResponses", modifyDNResponses.sum());
+    attrs.add("searchRequests", searchRequests.sum());
+    attrs.add("searchOneRequests", searchOneRequests.sum());
+    attrs.add("searchSubRequests", searchSubRequests.sum());
+    attrs.add("searchResultEntries", searchResultEntries.sum());
+    attrs.add("searchResultReferences", searchResultReferences.sum());
+    attrs.add("searchResultsDone", searchResultsDone.sum());
+    attrs.add("unbindRequests", unbindRequests.sum());
 
     // adds
-    attrs.add("ds-mon-add-operations-total-count", addOperationCount);
-    attrs.add("ds-mon-resident-time-add-operations-total-time", addOperationTime);
+    attrs.add("ds-mon-add-operations-total-count", addOperationCount.sum());
+    attrs.add("ds-mon-resident-time-add-operations-total-time", addOperationTime.sum());
 
     // search
-    attrs.add("ds-mon-search-operations-total-count", searchOperationCount);
-    attrs.add("ds-mon-resident-time-search-operations-total-time", searchOperationTime);
+    attrs.add("ds-mon-search-operations-total-count", searchOperationCount.sum());
+    attrs.add("ds-mon-resident-time-search-operations-total-time", searchOperationTime.sum());
 
     // bind
-    attrs.add("ds-mon-bind-operations-total-count", bindOperationCount);
-    attrs.add("ds-mon-resident-time-bind-operations-total-time", bindOperationTime);
+    attrs.add("ds-mon-bind-operations-total-count", bindOperationCount.sum());
+    attrs.add("ds-mon-resident-time-bind-operations-total-time", bindOperationTime.sum());
 
     // unbind
-    attrs.add("ds-mon-unbind-operations-total-count", unbindOperationCount);
-    attrs.add("ds-mon-resident-time-unbind-operations-total-time", unbindOperationTime);
+    attrs.add("ds-mon-unbind-operations-total-count", unbindOperationCount.sum());
+    attrs.add("ds-mon-resident-time-unbind-operations-total-time", unbindOperationTime.sum());
 
     // compare
-    attrs.add("ds-mon-compare-operations-total-count", compOperationCount);
-    attrs.add("ds-mon-resident-time-compare-operations-total-time", compOperationTime);
+    attrs.add("ds-mon-compare-operations-total-count", compOperationCount.sum());
+    attrs.add("ds-mon-resident-time-compare-operations-total-time", compOperationTime.sum());
 
     // del
-    attrs.add("ds-mon-delete-operations-total-count", delOperationCount);
-    attrs.add("ds-mon-resident-time-delete-operations-total-time", delOperationTime);
+    attrs.add("ds-mon-delete-operations-total-count", delOperationCount.sum());
+    attrs.add("ds-mon-resident-time-delete-operations-total-time", delOperationTime.sum());
 
     // mod
-    attrs.add("ds-mon-mod-operations-total-count", modOperationCount);
-    attrs.add("ds-mon-resident-time-mod-operations-total-time", modOperationTime);
+    attrs.add("ds-mon-mod-operations-total-count", modOperationCount.sum());
+    attrs.add("ds-mon-resident-time-mod-operations-total-time", modOperationTime.sum());
 
     // moddn
-    attrs.add("ds-mon-moddn-operations-total-count", moddnOperationCount);
-    attrs.add("ds-mon-resident-time-moddn-operations-total-time", moddnOperationTime);
+    attrs.add("ds-mon-moddn-operations-total-count", moddnOperationCount.sum());
+    attrs.add("ds-mon-resident-time-moddn-operations-total-time", moddnOperationTime.sum());
 
     // abandon
-    attrs.add("ds-mon-abandon-operations-total-count", abandonOperationCount);
-    attrs.add("ds-mon-resident-time-abandon-operations-total-time", abandonOperationTime);
+    attrs.add("ds-mon-abandon-operations-total-count", abandonOperationCount.sum());
+    attrs.add("ds-mon-resident-time-abandon-operations-total-time", abandonOperationTime.sum());
 
     // extended
-    attrs.add("ds-mon-extended-operations-total-count", extOperationCount);
-    attrs.add("ds-mon-resident-time-extended-operations-total-time", extOperationTime);
+    attrs.add("ds-mon-extended-operations-total-count", extOperationCount.sum());
+    attrs.add("ds-mon-resident-time-extended-operations-total-time", extOperationTime.sum());
 
     return attrs;
   }
@@ -246,58 +250,58 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   /** Clears any statistical information collected to this point. */
   public void clearStatistics()
   {
-      abandonRequests.set(0);
-      addRequests.set(0);
-      addResponses.set(0);
-      bindRequests.set(0);
-      bindResponses.set(0);
-      bytesRead.set(0);
-      bytesWritten.set(0);
-      compareRequests.set(0);
-      compareResponses.set(0);
-      connectionsClosed.set(0);
-      connectionsEstablished.set(0);
-      deleteRequests.set(0);
-      deleteResponses.set(0);
-      extendedRequests.set(0);
-      extendedResponses.set(0);
-      messagesRead.set(0);
-      messagesWritten.set(0);
-      modifyRequests.set(0);
-      modifyResponses.set(0);
-      modifyDNRequests.set(0);
-      modifyDNResponses.set(0);
-      operationsAbandoned.set(0);
-      operationsCompleted.set(0);
-      operationsInitiated.set(0);
-      searchRequests.set(0);
-      searchOneRequests.set(0);
-      searchSubRequests.set(0);
-      searchResultEntries.set(0);
-      searchResultReferences.set(0);
-      searchResultsDone.set(0);
-      unbindRequests.set(0);
+      abandonRequests.reset();
+      addRequests.reset();
+      addResponses.reset();
+      bindRequests.reset();
+      bindResponses.reset();
+      bytesRead.reset();
+      bytesWritten.reset();
+      compareRequests.reset();
+      compareResponses.reset();
+      connectionsClosed.reset();
+      connectionsEstablished.reset();
+      deleteRequests.reset();
+      deleteResponses.reset();
+      extendedRequests.reset();
+      extendedResponses.reset();
+      messagesRead.reset();
+      messagesWritten.reset();
+      modifyRequests.reset();
+      modifyResponses.reset();
+      modifyDNRequests.reset();
+      modifyDNResponses.reset();
+      operationsAbandoned.reset();
+      operationsCompleted.reset();
+      operationsInitiated.reset();
+      searchRequests.reset();
+      searchOneRequests.reset();
+      searchSubRequests.reset();
+      searchResultEntries.reset();
+      searchResultReferences.reset();
+      searchResultsDone.reset();
+      unbindRequests.reset();
 
-      addOperationCount.set(0);
-      addOperationTime.set(0);
-      searchOperationCount.set(0);
-      searchOperationTime.set(0);
-      delOperationCount.set(0);
-      delOperationTime.set(0);
-      bindOperationCount.set(0);
-      bindOperationTime.set(0);
-      unbindOperationCount.set(0);
-      unbindOperationTime.set(0);
-      compOperationCount.set(0);
-      compOperationTime.set(0);
-      modOperationCount.set(0);
-      modOperationTime.set(0);
-      moddnOperationCount.set(0);
-      moddnOperationTime.set(0);
-      abandonOperationCount.set(0);
-      abandonOperationTime.set(0);
-      extOperationCount.set(0);
-      extOperationTime.set(0);
+      addOperationCount.reset();
+      addOperationTime.reset();
+      searchOperationCount.reset();
+      searchOperationTime.reset();
+      delOperationCount.reset();
+      delOperationTime.reset();
+      bindOperationCount.reset();
+      bindOperationTime.reset();
+      unbindOperationCount.reset();
+      unbindOperationTime.reset();
+      compOperationCount.reset();
+      compOperationTime.reset();
+      modOperationCount.reset();
+      modOperationTime.reset();
+      moddnOperationCount.reset();
+      moddnOperationTime.reset();
+      abandonOperationCount.reset();
+      abandonOperationTime.reset();
+      extOperationCount.reset();
+      extOperationTime.reset();
   }
 
   /**
@@ -306,13 +310,13 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public void updateConnect()
   {
-    connectionsEstablished.getAndIncrement();
+    connectionsEstablished.increment();
   }
 
   /** Updates the appropriate set of counters to indicate that a connection has been closed. */
   public void updateDisconnect()
   {
-      connectionsClosed.getAndIncrement();
+      connectionsClosed.increment();
   }
 
   /**
@@ -324,7 +328,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public void updateBytesRead(int bytesRead)
   {
-     this.bytesRead.getAndAdd(bytesRead);
+     this.bytesRead.add(bytesRead);
   }
 
   /**
@@ -336,7 +340,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public void updateBytesWritten(int bytesWritten)
   {
-     this.bytesWritten.getAndAdd(bytesWritten);
+     this.bytesWritten.add(bytesWritten);
   }
 
   /**
@@ -348,37 +352,37 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public void updateMessageRead(LDAPMessage message)
   {
-      messagesRead.getAndIncrement();
-      operationsInitiated.getAndIncrement();
+      messagesRead.increment();
+      operationsInitiated.increment();
 
       switch (message.getProtocolOp().getType())
       {
       case OP_TYPE_ABANDON_REQUEST:
-        abandonRequests.getAndIncrement();
+        abandonRequests.increment();
         break;
       case OP_TYPE_ADD_REQUEST:
-        addRequests.getAndIncrement();
+        addRequests.increment();
         break;
       case OP_TYPE_BIND_REQUEST:
-        bindRequests.getAndIncrement();
+        bindRequests.increment();
         break;
       case OP_TYPE_COMPARE_REQUEST:
-        compareRequests.getAndIncrement();
+        compareRequests.increment();
         break;
       case OP_TYPE_DELETE_REQUEST:
-        deleteRequests.getAndIncrement();
+        deleteRequests.increment();
         break;
       case OP_TYPE_EXTENDED_REQUEST:
-        extendedRequests.getAndIncrement();
+        extendedRequests.increment();
         break;
       case OP_TYPE_MODIFY_REQUEST:
-        modifyRequests.getAndIncrement();
+        modifyRequests.increment();
         break;
       case OP_TYPE_MODIFY_DN_REQUEST:
-        modifyDNRequests.getAndIncrement();
+        modifyDNRequests.increment();
         break;
       case OP_TYPE_SEARCH_REQUEST:
-        searchRequests.getAndIncrement();
+        searchRequests.increment();
         SearchRequestProtocolOp s = (SearchRequestProtocolOp)message
             .getProtocolOp();
         switch (s.getScope().asEnum())
@@ -388,17 +392,17 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
             // this value can be derived from the others
             break;
         case SINGLE_LEVEL:
-            searchOneRequests.getAndIncrement();
+            searchOneRequests.increment();
             break;
         case WHOLE_SUBTREE:
-            searchSubRequests.getAndIncrement();
+            searchSubRequests.increment();
             break;
         default:
             break;
         }
         break;
       case OP_TYPE_UNBIND_REQUEST:
-        unbindRequests.getAndIncrement();
+        unbindRequests.increment();
         break;
       }
   }
@@ -413,52 +417,52 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    *          The message id that was written to the client
    */
   public void updateMessageWritten(byte messageType, int messageId) {
-      messagesWritten.getAndIncrement();
+      messagesWritten.increment();
       switch (messageType)
       {
       case OP_TYPE_ADD_RESPONSE:
-        addResponses.getAndIncrement();
-        operationsCompleted.getAndIncrement();
+        addResponses.increment();
+        operationsCompleted.increment();
         break;
       case OP_TYPE_BIND_RESPONSE:
-        bindResponses.getAndIncrement();
-        operationsCompleted.getAndIncrement();
+        bindResponses.increment();
+        operationsCompleted.increment();
         break;
       case OP_TYPE_COMPARE_RESPONSE:
-        compareResponses.getAndIncrement();
-        operationsCompleted.getAndIncrement();
+        compareResponses.increment();
+        operationsCompleted.increment();
         break;
       case OP_TYPE_DELETE_RESPONSE:
-        deleteResponses.getAndIncrement();
-        operationsCompleted.getAndIncrement();
+        deleteResponses.increment();
+        operationsCompleted.increment();
         break;
       case OP_TYPE_EXTENDED_RESPONSE:
-        extendedResponses.getAndIncrement();
+        extendedResponses.increment();
 
         // We don't want to include unsolicited notifications as
         // "completed" operations.
         if (messageId > 0)
         {
-          operationsCompleted.getAndIncrement();
+          operationsCompleted.increment();
         }
         break;
       case OP_TYPE_MODIFY_RESPONSE:
-        modifyResponses.getAndIncrement();
-        operationsCompleted.getAndIncrement();
+        modifyResponses.increment();
+        operationsCompleted.increment();
         break;
       case OP_TYPE_MODIFY_DN_RESPONSE:
-        modifyDNResponses.getAndIncrement();
-        operationsCompleted.getAndIncrement();
+        modifyDNResponses.increment();
+        operationsCompleted.increment();
         break;
       case OP_TYPE_SEARCH_RESULT_ENTRY:
-        searchResultEntries.getAndIncrement();
+        searchResultEntries.increment();
         break;
       case OP_TYPE_SEARCH_RESULT_REFERENCE:
-        searchResultReferences.getAndIncrement();
+        searchResultReferences.increment();
         break;
       case OP_TYPE_SEARCH_RESULT_DONE:
-        searchResultsDone.getAndIncrement();
-        operationsCompleted.getAndIncrement();
+        searchResultsDone.increment();
+        operationsCompleted.increment();
         break;
       }
   }
@@ -481,7 +485,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public void updateAbandonedOperation()
   {
-      operationsAbandoned.getAndIncrement();
+      operationsAbandoned.increment();
   }
 
   /**
@@ -493,7 +497,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getConnectionsEstablished()
   {
-    return connectionsEstablished.get();
+    return connectionsEstablished.sum();
   }
 
   /**
@@ -503,7 +507,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getConnectionsClosed()
   {
-    return connectionsClosed.get();
+    return connectionsClosed.sum();
   }
 
   /**
@@ -513,7 +517,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getBytesRead()
   {
-      return bytesRead.get();
+      return bytesRead.sum();
   }
 
   /**
@@ -523,7 +527,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getBytesWritten()
   {
-      return bytesWritten.get();
+      return bytesWritten.sum();
   }
 
   /**
@@ -535,7 +539,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getMessagesRead()
   {
-    return messagesRead.get();
+    return messagesRead.sum();
   }
 
   /**
@@ -547,7 +551,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getMessagesWritten()
   {
-   return messagesWritten.get();
+   return messagesWritten.sum();
   }
 
   /**
@@ -559,7 +563,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getOperationsInitiated()
   {
-    return operationsInitiated.get();
+    return operationsInitiated.sum();
   }
 
   /**
@@ -571,7 +575,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getOperationsCompleted()
   {
-      return operationsCompleted.get();
+      return operationsCompleted.sum();
   }
 
   /**
@@ -583,7 +587,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getOperationsAbandoned()
   {
-      return operationsAbandoned.get();
+      return operationsAbandoned.sum();
   }
 
   /**
@@ -593,7 +597,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getAbandonRequests()
   {
-      return abandonRequests.get();
+      return abandonRequests.sum();
   }
 
   /**
@@ -603,7 +607,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getAddRequests()
   {
-      return addRequests.get();
+      return addRequests.sum();
   }
 
   /**
@@ -613,7 +617,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getAddResponses()
   {
-      return addResponses.get();
+      return addResponses.sum();
   }
 
   /**
@@ -623,7 +627,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getBindRequests()
   {
-      return bindRequests.get();
+      return bindRequests.sum();
   }
 
   /**
@@ -633,7 +637,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getBindResponses()
   {
-      return bindResponses.get();
+      return bindResponses.sum();
   }
 
   /**
@@ -643,7 +647,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getCompareRequests()
   {
-      return compareRequests.get();
+      return compareRequests.sum();
   }
 
   /**
@@ -653,7 +657,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getCompareResponses()
   {
-      return compareResponses.get();
+      return compareResponses.sum();
   }
 
   /**
@@ -663,7 +667,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getDeleteRequests()
   {
-      return deleteRequests.get();
+      return deleteRequests.sum();
   }
 
   /**
@@ -673,7 +677,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getDeleteResponses()
   {
-      return deleteResponses.get();
+      return deleteResponses.sum();
   }
 
   /**
@@ -683,7 +687,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getExtendedRequests()
   {
-      return extendedRequests.get();
+      return extendedRequests.sum();
   }
 
   /**
@@ -693,7 +697,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getExtendedResponses()
   {
-      return extendedResponses.get();
+      return extendedResponses.sum();
   }
 
   /**
@@ -703,7 +707,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getModifyRequests()
   {
-      return modifyRequests.get();
+      return modifyRequests.sum();
   }
 
   /**
@@ -713,7 +717,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getModifyResponses()
   {
-      return modifyResponses.get();
+      return modifyResponses.sum();
   }
 
   /**
@@ -723,7 +727,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getModifyDNRequests()
   {
-      return modifyDNRequests.get();
+      return modifyDNRequests.sum();
   }
 
   /**
@@ -733,7 +737,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getModifyDNResponses()
   {
-      return modifyDNResponses.get();
+      return modifyDNResponses.sum();
   }
 
   /**
@@ -743,7 +747,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getSearchRequests()
   {
-      return searchRequests.get();
+      return searchRequests.sum();
   }
 
   /**
@@ -753,7 +757,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getSearchOneRequests()
   {
-      return searchOneRequests.get();
+      return searchOneRequests.sum();
   }
 
   /**
@@ -763,7 +767,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getSearchSubRequests()
   {
-      return searchSubRequests.get();
+      return searchSubRequests.sum();
   }
 
   /**
@@ -773,7 +777,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getSearchResultEntries()
   {
-      return searchResultEntries.get();
+      return searchResultEntries.sum();
   }
 
   /**
@@ -784,7 +788,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getSearchResultReferences()
   {
-      return searchResultReferences.get();
+      return searchResultReferences.sum();
   }
 
   /**
@@ -796,7 +800,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getSearchResultsDone()
   {
-      return searchResultsDone.get();
+      return searchResultsDone.sum();
   }
 
   /**
@@ -806,7 +810,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getUnbindRequests()
   {
-      return unbindRequests.get();
+      return unbindRequests.sum();
   }
 
   /**
@@ -817,44 +821,44 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
 
   public void updateOperationMonitoringData(OperationType type, long time) {
       if (type.equals(OperationType.ADD)) {
-          addOperationCount.getAndIncrement();
-          addOperationTime.getAndAdd(time);
+          addOperationCount.increment();
+          addOperationTime.add(time);
       }
       else if (type.equals(OperationType.SEARCH)) {
-          searchOperationCount.getAndIncrement();
-          searchOperationTime.getAndAdd(time);
+          searchOperationCount.increment();
+          searchOperationTime.add(time);
       }
       else if (type.equals(OperationType.ABANDON)) {
-          abandonOperationCount.getAndIncrement();
-          abandonOperationTime.getAndAdd(time);
+          abandonOperationCount.increment();
+          abandonOperationTime.add(time);
       }
       else if (type.equals(OperationType.BIND)) {
-          bindOperationCount.getAndIncrement();
-          bindOperationTime.getAndAdd(time);
+          bindOperationCount.increment();
+          bindOperationTime.add(time);
       }
       else if (type.equals(OperationType.UNBIND)) {
-          unbindOperationCount.getAndIncrement();
-          unbindOperationTime.getAndAdd(time);
+          unbindOperationCount.increment();
+          unbindOperationTime.add(time);
       }
       else if (type.equals(OperationType.COMPARE)) {
-          compOperationCount.getAndIncrement();
-          compOperationTime.getAndAdd(time);
+          compOperationCount.increment();
+          compOperationTime.add(time);
       }
       else if (type.equals(OperationType.DELETE)) {
-          delOperationCount.getAndIncrement();
-          delOperationTime.getAndAdd(time);
+          delOperationCount.increment();
+          delOperationTime.add(time);
       }
       else if (type.equals(OperationType.EXTENDED)) {
-          extOperationCount.getAndIncrement();
-          extOperationTime.getAndAdd(time);
+          extOperationCount.increment();
+          extOperationTime.add(time);
       }
       else if (type.equals(OperationType.MODIFY)) {
-          modOperationCount.getAndIncrement();
-          modOperationTime.getAndAdd(time);
+          modOperationCount.increment();
+          modOperationTime.add(time);
       }
       else if (type.equals(OperationType.MODIFY_DN)) {
-          moddnOperationCount.getAndIncrement();
-          moddnOperationTime.getAndAdd(time);
+          moddnOperationCount.increment();
+          moddnOperationTime.add(time);
       }
   }
 }
