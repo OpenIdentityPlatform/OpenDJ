@@ -164,6 +164,10 @@ jobs:
     name: Windows MSI release
     runs-on: 'windows-latest'
     continue-on-error: true
+    # contents: write is required by action-gh-release to attach the MSI to the release;
+    # the workflow-level default above is contents: read.
+    permissions:
+      contents: write
     needs:
       - release-maven
     steps:

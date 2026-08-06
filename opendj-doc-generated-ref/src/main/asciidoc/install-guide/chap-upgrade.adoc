@@ -70,7 +70,7 @@ To move to a newer version, edit the `default.java-home` setting in the `opendj/
 
 . Download the latest release from the link:https://github.com/OpenIdentityPlatform/OpenDJ/releases[GitHub, window=\_blank] site.
 
-. (Optional)  If you are upgrading OpenDJ directory server on Windows, and OpenDJ is registered as a Windows service, disable OpenDJ as a Windows service before upgrade, as in the following example:
+. (Optional)  If you are upgrading OpenDJ directory server installed from the cross-platform (.zip) delivery on Windows, and OpenDJ is registered as a Windows service, disable OpenDJ as a Windows service before upgrade, as in the following example:
 +
 
 [source, console]
@@ -79,6 +79,8 @@ C:\path\to\opendj\bat> windows-service.bat --disableService
 ----
 +
 After upgrade, you can enable OpenDJ as a Windows service again.
++
+This step does not apply to servers installed from the `.msi` package: the installer manages the `OpenDJ Server` service itself (see xref:#upgrade-msi["To Upgrade the Windows MSI Installation"]), and `windows-service.bat --disableService` refuses to remove the installer-managed service.
 
 . Make sure you perform a full backup of your current OpenDJ installation to revert if the upgrade fails.
 +

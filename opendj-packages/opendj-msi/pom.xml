@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -32,9 +33,10 @@
         This module contains configuration and generic plugin call to build OpenDJ MSI packages.
     </description>
 
-    <!-- The MSI is built with the cross-platform WiX v5 .NET tool (no wine), so the module is
-         built on every OS where opendj-msi is included (controlled by the opendj-packages
-         distribution-{windows,mac,unix} profiles). -->
+    <!-- The MSI is built with the WiX v5 .NET tool on Windows only (WiX's build task
+         P/Invokes msi.dll): the module is pulled in by the opendj-packages
+         distribution-windows-msi profile, which also requires the wix tool to be
+         installed. -->
     <modules>
         <module>opendj-msi-standard</module>
     </modules>

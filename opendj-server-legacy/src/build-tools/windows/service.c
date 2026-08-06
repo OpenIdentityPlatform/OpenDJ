@@ -1040,14 +1040,32 @@ static void normalizeInstanceDir(char* dir)
 }  // normalizeInstanceDir
 
 // ----------------------------------------------------
+// Expands 8.3 short-name components (e.g. PROGRA~1) so that the short
+// and long spellings of the same existing path compare equal. When the
+// path cannot be resolved (for example it no longer exists) it is left
+// untouched.
+// ----------------------------------------------------
+
+static void expandLongPath(char* path)
+{
+  char expanded[COMMAND_SIZE];
+  DWORD len = GetLongPathName(path, expanded, COMMAND_SIZE);
+  if ((len > 0) && (len < COMMAND_SIZE))
+  {
+    strcpy(path, expanded);
+  }
+}  // expandLongPath
+
+// ----------------------------------------------------
 // Tells whether two service command lines refer to the same server
 // instance. The strings cannot be compared verbatim because every
 // writer quotes differently: this executable and the java tools write
 // '"<root>\lib\opendj_service.exe" start "<root>"' while the MSI
 // ServiceInstall writes the executable unquoted (when the path has no
 // spaces) and the instance dir with a trailing backslash. Instead the
-// executable path, the subcommand and the normalized instance dir are
-// compared token by token, case-insensitively.
+// executable path, the subcommand and the normalized instance dir
+// (both expanded from 8.3 short names) are compared token by token,
+// case-insensitively.
 // ----------------------------------------------------
 
 static BOOL serviceCmdsMatch(const char* cmd1, const char* cmd2)
@@ -1069,8 +1087,13 @@ static BOOL serviceCmdsMatch(const char* cmd1, const char* cmd2)
   p2 = nextCmdToken(p2, sub2, COMMAND_SIZE);
   nextCmdToken(p2, dir2, COMMAND_SIZE);
 
+  expandLongPath(exe1);
+  expandLongPath(exe2);
+
   normalizeInstanceDir(dir1);
   normalizeInstanceDir(dir2);
+  expandLongPath(dir1);
+  expandLongPath(dir2);
 
   return (_stricmp(exe1, exe2) == 0)
       && (_stricmp(sub1, sub2) == 0)
@@ -2635,7 +2658,21 @@ int removeService()
     code = getServiceName(cmdToRun, serviceName);
     if (code == SERVICE_RETURN_OK)
     {
-      returnCode = removeServiceWithServiceName(serviceName);
+      if (_stricmp(serviceName, MSI_SERVICE_NAME) == 0)
+      {
+        // The MSI-managed service belongs to the installer: deleting it here
+        // would leave msiexec /x targeting a key that no longer exists, and a
+        // later --enableService would re-create it under a different key.
+        fprintf(stdout,
+        "The service is managed by the OpenDJ installer (MSI) "
+        "and is removed when the package is uninstalled.\n");
+        debug("Refusing to remove the MSI-managed service '%s'.", serviceName);
+        returnCode = 3;
+      }
+      else
+      {
+        returnCode = removeServiceWithServiceName(serviceName);
+      }
     }
     else
     {

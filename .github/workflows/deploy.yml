@@ -26,8 +26,11 @@ concurrency:
 
 # contents: write is required to push the generated documentation to the project wiki
 # with github.token. The doc site push uses a separate PAT, not this token.
+# actions: read is required to download the MSI artifact from the triggering Build run
+# (a permissions block sets every unlisted scope to none).
 permissions:
   contents: write
+  actions: read
 
 jobs:
   package-deploy-maven:

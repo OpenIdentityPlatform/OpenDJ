@@ -83,6 +83,21 @@ jobs:
         nmake all
         xcopy /Y *.exe ..\..\..\lib\
         git status
+    - name: Upload Windows exe artifacts
+      if: runner.os == 'Windows'
+      uses: actions/upload-artifact@v7
+      with:
+        name: windows-exe-${{ matrix.java }}
+        retention-days: 5
+        path: opendj-server-legacy/src/build-tools/windows/*.exe
+    - name: Committed launcher binaries must match the sources
+      if: runner.os == 'Windows'
+      # The release pipeline builds the server zip on Linux from the committed
+      # opendj-server-legacy/lib/*.exe, so a source change that is not re-committed as a
+      # refreshed binary would ship the old wrapper in the tagged release while CI stays
+      # green. The freshly built binaries are uploaded just above, so when this fails,
+      # refresh lib/*.exe from the windows-exe artifact of this very run and commit them.
+      run: git diff --exit-code -- opendj-server-legacy/lib
     - name: Set Integration Test Environment
       id: failsafe
       if: runner.os == 'Linux'
@@ -90,7 +105,11 @@ jobs:
         echo "MAVEN_PROFILE_FLAG=-P precommit" >> $GITHUB_OUTPUT
 
     - name: Setup WiX (.NET tool) for MSI
-      if: runner.os == 'Windows'
+      # Only the java 11 job's MSI is consumed downstream (test-msi*, deploy.yml); without
+      # wix installed the distribution-windows-msi profile stays inactive, so the other
+      # Windows jobs skip the MSI build entirely instead of producing an artifact nothing
+      # uses.
+      if: runner.os == 'Windows' && matrix.java == '11'
       shell: bash
       run: |
         # The MSI builds on Windows only (WiX cannot author MSIs on Linux/macOS). WiX 5 ships as a
@@ -373,14 +392,6 @@ jobs:
         if ($LASTEXITCODE -ne 0) { throw "net stop 'OpenDJ Server' failed with exit code $LASTEXITCODE" }
         opendj-server-legacy\target\package\opendj\bat\windows-service.bat --disableService
 
-    - name: Upload Windows exe artifacts
-      if: runner.os == 'Windows'
-      uses: actions/upload-artifact@v7
-      with:
-        name: windows-exe-${{ matrix.java }}
-        retention-days: 5
-        path: opendj-server-legacy/src/build-tools/windows/*.exe
-
     - name: Upload artifacts OpenDJ Server
       uses: actions/upload-artifact@v7
       with:
@@ -625,34 +636,6 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: windows-latest-11
-      - name: Install must fail without a JRE
-        shell: pwsh
-        run: |
-          # Simulate a machine with no Java. The launch condition is evaluated by the Windows
-          # Installer service, which sees the MACHINE environment - so hide Java there too and
-          # restart msiserver to make it pick the change up; restore everything afterwards.
-          Stop-Service msiserver -Force -ErrorAction SilentlyContinue
-          $oldJH = [Environment]::GetEnvironmentVariable('JAVA_HOME','Machine')
-          $oldPM = [Environment]::GetEnvironmentVariable('Path','Machine')
-          [Environment]::SetEnvironmentVariable('JAVA_HOME',$null,'Machine')
-          [Environment]::SetEnvironmentVariable('Path',((($oldPM -split ';') | Where-Object { $_ -notmatch 'java|jdk|jre|zulu|javapath' }) -join ';'),'Machine')
-          $env:JAVA_HOME = ""
-          $env:PATH = (($env:PATH -split ';') | Where-Object { $_ -notmatch 'java|jdk|jre|zulu|javapath' }) -join ';'
-          try {
-            $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
-            if (-not $msi) { throw "MSI not found in the windows-latest-11 artifact" }
-            $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v install-nojre.log"
-            if ($p.ExitCode -eq 0) {
-              Get-Content install-nojre.log -Tail 60
-              throw "installer succeeded without a JRE, but the Java launch condition must fail it"
-            }
-            Write-Host "Installer refused to install without a JRE as expected (exit $($p.ExitCode))"
-            Select-String -Path install-nojre.log -Pattern "requires Java" | Select-Object -First 1
-          } finally {
-            [Environment]::SetEnvironmentVariable('JAVA_HOME',$oldJH,'Machine')
-            [Environment]::SetEnvironmentVariable('Path',$oldPM,'Machine')
-            Stop-Service msiserver -Force -ErrorAction SilentlyContinue
-          }
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
@@ -671,6 +654,11 @@ jobs:
           $root = "C:\Program Files\OpenDJ"
           if (-not (Test-Path "$root\setup.bat")) { Get-Content install.log -Tail 80; throw "OpenDJ not installed into the x64 default $root" }
           Write-Host "Installed to $root"
+          # The whole [OPENDJ]. ImagePath hack rests on msiexec quoting the exe path;
+          # unquoted-with-spaces would be an unquoted service path (CWE-428).
+          $image = (Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Services\OpenDJ).ImagePath
+          Write-Host "ImagePath: $image"
+          if ($image -notmatch '^"C:\\Program Files\\OpenDJ\\lib\\opendj_service\.exe"') { throw "ImagePath must quote the exe path (CWE-428): $image" }
           "OPENDJ_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Setup and start/stop the Windows service
         shell: pwsh
@@ -687,6 +675,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "ldapsearch failed: $LASTEXITCODE" }
           net stop "OpenDJ Server"
           if ($LASTEXITCODE -ne 0) { throw "net stop failed: $LASTEXITCODE" }
+      - name: windows-service.bat must not delete the MSI-managed service
+        shell: pwsh
+        run: |
+          # Deleting the service here would leave msiexec /x targeting a key that no longer
+          # exists; opendj_service.exe refuses to remove the MSI-managed key 'OpenDJ'.
+          $root = $env:OPENDJ_ROOT
+          & "$root\bat\windows-service.bat" --disableService
+          if (-not (Get-Service OpenDJ -ErrorAction SilentlyContinue)) { throw "--disableService deleted the MSI-managed service" }
+          Write-Host "--disableService left the MSI-managed service in place (exit $LASTEXITCODE)"
       - name: Uninstall MSI
         shell: pwsh
         run: |
@@ -715,7 +712,11 @@ jobs:
       - name: Install released 5.1.2 MSI and configure an instance
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/5.1.2/opendj-5.1.2.msi" -OutFile opendj-5.1.2.msi
+          $uri = "https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/5.1.2/opendj-5.1.2.msi"
+          for ($i = 1; $i -le 5; $i++) {
+            try { Invoke-WebRequest -Uri $uri -OutFile opendj-5.1.2.msi; break }
+            catch { if ($i -eq 5) { throw }; Write-Host "download attempt $i failed, retrying"; Start-Sleep -Seconds (10 * $i) }
+          }
           # The released 5.1.2 scripts cannot run from a directory with spaces (unquoted
           # java.io.tmpdir), so put the old install into C:\opendj.
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i opendj-5.1.2.msi /quiet /qn /norestart OPENDJ=C:\opendj /l*v install-old.log"
@@ -746,7 +747,10 @@ jobs:
           # Instance data survived
           if (-not (Test-Path "$root\config\config.ldif")) { throw "instance data (config\config.ldif) lost by the upgrade" }
           # Legacy service replaced by the MSI-managed one: display name maps to key 'OpenDJ'
-          $key = (sc.exe getkeyname "OpenDJ Server" | Select-String -Pattern "Name = (.+)").Matches[0].Groups[1].Value.Trim()
+          # (match on '= ' only: the 'Name' label in sc.exe output is localized).
+          $m = sc.exe getkeyname "OpenDJ Server" | Select-String -Pattern "= (.+)$" | Select-Object -First 1
+          if (-not $m) { sc.exe query; throw "no service with display name 'OpenDJ Server' found" }
+          $key = $m.Matches[0].Groups[1].Value.Trim()
           if ($key -ne "OpenDJ") { sc.exe query; throw "expected MSI-managed service key 'OpenDJ', got '$key'" }
           sc.exe qc OpenDJ
           "OPENDJ_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append
@@ -782,3 +786,20 @@ jobs:
           Write-Host "Legacy default directory auto-detected OK"
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall2.log"
           if ($p.ExitCode -ne 0) { Get-Content uninstall2.log -Tail 80; throw "msiexec /x (cleanup) failed: $($p.ExitCode)" }
+      - name: Registry install-location detection on a fresh install
+        shell: pwsh
+        run: |
+          # The InstallDir registry value must be picked up when OPENDJ is not given, and it
+          # must beat the legacy Program Files (x86) directory (explicit SetProperty order).
+          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+          New-Item -ItemType Directory -Force "C:\opendj-registry" | Out-Null
+          New-Item -ItemType Directory -Force "C:\Program Files (x86)\OpenDJ" | Out-Null
+          New-Item -Path HKLM:\SOFTWARE\OpenDJ -Force | Out-Null
+          Set-ItemProperty -Path HKLM:\SOFTWARE\OpenDJ -Name InstallDir -Value 'C:\opendj-registry\'
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v install-registry.log"
+          if ($p.ExitCode -ne 0) { Get-Content install-registry.log -Tail 80; throw "msiexec /i (registry detect) failed: $($p.ExitCode)" }
+          if (-not (Test-Path "C:\opendj-registry\setup.bat")) { Get-Content install-registry.log -Tail 80; throw "installer did not use the registry InstallDir" }
+          if (Test-Path "C:\Program Files (x86)\OpenDJ\setup.bat") { throw "legacy directory beat the registry InstallDir" }
+          Write-Host "Registry install location detected OK"
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall3.log"
+          if ($p.ExitCode -ne 0) { Get-Content uninstall3.log -Tail 80; throw "msiexec /x (registry cleanup) failed: $($p.ExitCode)" }

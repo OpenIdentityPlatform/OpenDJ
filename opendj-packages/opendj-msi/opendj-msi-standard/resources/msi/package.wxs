@@ -26,47 +26,47 @@
     <SummaryInformation Description="Open Identity Platform Community products"
                         Manufacturer="Open Identity Platform Community"/>
 
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
+    <!-- AllowSameVersionUpgrades: a rebuilt MSI at the same 3-part version must still be
+         detected as an upgrade (hotfix re-release), not produce a second ARP entry.
+         Schedule stays at the afterInstallValidate default (remove the old product first):
+         the late afterInstallExecute variant requires matching component GUIDs for matching
+         paths, which the auto-generated GUIDs of the old WiX3 x86 package cannot guarantee -
+         a late RemoveExistingProducts would then delete freshly installed files. Removing
+         the old product early is safe here because instance data (config, db, logs) is not
+         part of any component set. -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+                  AllowSameVersionUpgrades="yes"/>
     <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
 
     <Property Id="ARPHELPLINK" Value="https://github.com/OpenIdentityPlatform/OpenDJ/wiki"/>
 
     <!-- Upgrade path detection: install over an existing OpenDJ instead of the default.
-         Order matters - the last successful search wins: the registry value written by this
-         package (custom paths, new installs) beats the legacy x86 default directory
-         ([ProgramFilesFolder] is Program Files (x86) in an x64 package). The result is applied
-         only when OPENDJ was not set explicitly (command line / UI). -->
-    <Property Id="OPENDJ_DETECTED" Secure="yes">
-      <DirectorySearch Id="LegacyX86InstallDir" Path="[ProgramFilesFolder]$(var.name)"/>
+         Two separate searches with explicit SetProperty ordering (AppSearch row order is
+         formally undefined): the registry value written by this package (custom paths, new
+         installs) beats the legacy x86 default directory ([ProgramFilesFolder] is
+         Program Files (x86) in an x64 package). The legacy-directory fallback applies to
+         fresh installs only; the registry SetProperty is deliberately unconditional
+         (Remember Property pattern) so maintenance and uninstall resolve the real location.
+         Both results apply only when OPENDJ was not set explicitly (command line / UI). -->
+    <Property Id="OPENDJ_REG" Secure="yes">
       <RegistrySearch Id="InstallDirRegistrySearch" Root="HKLM" Key="SOFTWARE\$(var.name)"
                       Name="InstallDir" Type="directory"/>
     </Property>
-    <SetProperty Id="OPENDJ" After="AppSearch" Sequence="both" Value="[OPENDJ_DETECTED]"
-                 Condition="OPENDJ_DETECTED AND NOT OPENDJ"/>
-
-    <!-- The server needs a JRE (11+) which this package does not ship: refuse to install when
-         none is detectable. Signals: %JAVA_HOME%\bin\java.exe, or java-looking entries on PATH
-         (an MSI cannot scan PATH for java.exe, so this is a substring heuristic).
-         'Installed' keeps repair/uninstall working. -->
-    <Property Id="JAVAHOME_JAVA">
-      <DirectorySearch Id="JavaHomeEnvDir" Path="[%JAVA_HOME]" Depth="0">
-        <DirectorySearch Id="JavaHomeBinDir" Path="bin" Depth="0">
-          <FileSearch Id="JavaHomeJavaExe" Name="java.exe"/>
-        </DirectorySearch>
-      </DirectorySearch>
+    <Property Id="OPENDJ_LEGACY" Secure="yes">
+      <DirectorySearch Id="LegacyX86InstallDir" Path="[ProgramFilesFolder]$(var.name)"/>
     </Property>
-    <Launch Condition="Installed OR JAVAHOME_JAVA OR (%PATH ~&gt;&lt; &quot;java&quot;) OR (%PATH ~&gt;&lt; &quot;jdk&quot;) OR (%PATH ~&gt;&lt; &quot;jre&quot;) OR (%PATH ~&gt;&lt; &quot;zulu&quot;)"
-            Message="[ProductName] requires Java (JRE 11 or later), which is not installed by this package. Install a JRE, for example Eclipse Temurin from https://adoptium.net, or set the JAVA_HOME environment variable to your Java installation, or make sure the java executable is on the PATH, then run the installer again."/>
+    <SetProperty Id="OPENDJ" Action="SetOpendjFromLegacyDir" After="AppSearch" Sequence="both"
+                 Value="[OPENDJ_LEGACY]"
+                 Condition="NOT Installed AND OPENDJ_LEGACY AND NOT OPENDJ"/>
+    <SetProperty Id="OPENDJ" Action="SetOpendjFromRegistry" After="SetOpendjFromLegacyDir"
+                 Sequence="both" Value="[OPENDJ_REG]" Condition="OPENDJ_REG AND NOT OPENDJ"/>
 
-    <!-- The legacy windows-service.bat service is registered with key name = display name =
-         "OpenDJ Server" (not MSI-managed). It points at the old install and its display name
-         collides with the ServiceInstall below, so drop it before InstallServices. -->
-    <CustomAction Id="RemoveLegacyService" Directory="OPENDJ"
-                  ExeCommand="cmd.exe /c (net stop &quot;OpenDJ Server&quot; &amp; sc delete &quot;OpenDJ Server&quot;)"
-                  Execute="deferred" Impersonate="no" Return="ignore"/>
-    <InstallExecuteSequence>
-      <Custom Action="RemoveLegacyService" Before="InstallServices" Condition="NOT Installed"/>
-    </InstallExecuteSequence>
+    <!-- The docs tell users to pass OPENDJ on the msiexec command line, so it must survive
+         into the elevated server context. -->
+    <Property Id="OPENDJ" Secure="yes"/>
+
+    <!-- ARP/winget/SCCM report the install location from ARPINSTALLLOCATION. -->
+    <SetProperty Id="ARPINSTALLLOCATION" Value="[OPENDJ]" After="CostFinalize" Sequence="execute"/>
 
     <!-- UI customization -->
     <WixVariable Id="WixUIBannerBmp" Value="opendjbanner.bmp"/>
@@ -137,6 +137,23 @@
                       Arguments="start &quot;[OPENDJ].&quot;" Vital="no"/>
       <ServiceControl Id="OpenDJServiceControl" Name="OpenDJ"
                       Stop="both" Remove="uninstall" Wait="yes"/>
+      <!-- The legacy windows-service.bat service (key name = display name = "OpenDJ Server";
+           customized/localized installs may differ, e.g. "OpenDS" on ko/zh_TW) points at the
+           old install and its display name collides with the ServiceInstall above. MSI's own
+           StopServices/DeleteServices can control a service this package does not install,
+           so drop it there - no custom action, no rollback gap, right instance semantics
+           (a failure to stop fails the install instead of silently proceeding). -->
+      <ServiceControl Id="RemoveLegacyOpenDJServer" Name="OpenDJ Server"
+                      Stop="install" Remove="install" Wait="yes"/>
+      <!-- Event-log source for the service key: without these values every event the wrapper
+           reports renders as "The description for Event ID ... cannot be found." They mirror
+           what createRegistryKey in service.c writes for windows-service.bat installs. -->
+      <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\OpenDJ">
+        <RegistryValue Name="EventMessageFile" Type="expandable" Value="[OPENDJ_LIB]opendj_service.exe"/>
+        <RegistryValue Name="CategoryMessageFile" Type="expandable" Value="[OPENDJ_LIB]opendj_service.exe"/>
+        <RegistryValue Name="TypesSupported" Type="integer" Value="7"/>
+        <RegistryValue Name="CategoryCount" Type="integer" Value="1"/>
+      </RegistryKey>
     </Component>
 
     <!-- Remember the install location so upgrades land in the same directory. -->
@@ -163,7 +180,15 @@
       <ComponentGroupRef Id="OpenDJEmptyDirs"/>
     </Feature>
 
-    <!-- WixUI_InstallDir; the license is shown only by setup, not by this installer. -->
+    <!-- WixUI_InstallDir with LicenseAgreementDlg skipped: the CDDL license is shown and
+         accepted by setup, and the stock dialog would otherwise display WiX's placeholder
+         License.rtf (Lorem ipsum) because WixUILicenseRtf is a build-time default. -->
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="OPENDJ"/>
+    <UI>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg"
+               Order="99" Condition="NOT Installed"/>
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg"
+               Order="99" Condition="NOT Installed"/>
+    </UI>
   </Package>
 </Wix>
