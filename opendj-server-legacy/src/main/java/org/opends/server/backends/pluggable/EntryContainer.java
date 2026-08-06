@@ -236,7 +236,7 @@ public class EntryContainer
     {
       final ConfigChangeResult ccr = new ConfigChangeResult();
 
-      exclusiveLock.lock();
+      EntryContainer.this.lock();
       try
       {
         storage.write(new WriteOperation()
@@ -256,7 +256,7 @@ public class EntryContainer
       }
       finally
       {
-        exclusiveLock.unlock();
+        EntryContainer.this.unlock();
       }
 
       return ccr;
@@ -318,7 +318,7 @@ public class EntryContainer
     public ConfigChangeResult applyConfigurationDelete(final BackendVLVIndexCfg cfg)
     {
       final ConfigChangeResult ccr = new ConfigChangeResult();
-      exclusiveLock.lock();
+      EntryContainer.this.lock();
       try
       {
         storage.write(new WriteOperation()
@@ -337,7 +337,7 @@ public class EntryContainer
       }
       finally
       {
-        exclusiveLock.unlock();
+        EntryContainer.this.unlock();
       }
       return ccr;
     }
@@ -347,6 +347,73 @@ public class EntryContainer
   private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
   final Lock sharedLock = lock.readLock();
   final Lock exclusiveLock = lock.writeLock();
+
+  /**
+   * Striped count of in-flight lock-free shared accesses. Every operation
+   * (search, bind, compare, modify, ...) enters the entry container through
+   * {@link #beginSharedAccess()}, so acquiring even the read side of the
+   * ReentrantReadWriteLock becomes a cross-core hotspot under load: each
+   * acquire and release CAS-es the single lock state word. The hot paths
+   * register through this striped counter instead and only fall back to
+   * waiting when an exclusive locker has closed the gate; exclusive lockers
+   * (rare structural changes: index removal, configuration changes, close)
+   * close the gate through {@link #lock()} and drain in-flight accesses. The
+   * drain relies on {@link StripedCounter#sum()} never under-counting to a
+   * false zero, which is why this is not a LongAdder — see StripedCounter.
+   */
+  private final StripedCounter sharedAccessCount = new StripedCounter();
+  /** True while an exclusive locker has closed the gate for lock-free shared access. */
+  private volatile boolean exclusiveAccessPending;
+  /** Monitor used to park shared accessors while the gate is closed. */
+  private final Object sharedAccessMonitor = new Object();
+
+  /**
+   * Begins a lock-free shared access to this entry container. Must be paired
+   * with {@link #endSharedAccess()} in a finally block on the same thread.
+   * Equivalent to acquiring {@link #sharedLock}, but scales with the number
+   * of cores.
+   */
+  void beginSharedAccess()
+  {
+    boolean interrupted = false;
+    for (;;)
+    {
+      sharedAccessCount.increment();
+      if (!exclusiveAccessPending)
+      {
+        break;
+      }
+      // An exclusive locker is active or draining: back out and wait.
+      sharedAccessCount.decrement();
+      synchronized (sharedAccessMonitor)
+      {
+        while (exclusiveAccessPending)
+        {
+          try
+          {
+            sharedAccessMonitor.wait();
+          }
+          catch (InterruptedException e)
+          {
+            interrupted = true;
+          }
+        }
+      }
+    }
+    if (interrupted)
+    {
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  /**
+   * Ends a lock-free shared access to this entry container. Must be called by
+   * the thread that did the paired {@link #beginSharedAccess()}.
+   */
+  void endSharedAccess()
+  {
+    sharedAccessCount.decrement();
+  }
 
   EntryContainer(DN baseDN, String backendID, PluggableBackendCfg config, Storage storage, RootContainer rootContainer,
       ServerContext serverContext) throws ConfigException
@@ -2412,7 +2479,7 @@ public class EntryContainer
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-    exclusiveLock.lock();
+    EntryContainer.this.lock();
     try
     {
       storage.write(new WriteOperation()
@@ -2436,7 +2503,7 @@ public class EntryContainer
     }
     finally
     {
-      exclusiveLock.unlock();
+      EntryContainer.this.unlock();
     }
 
     return ccr;
@@ -2731,15 +2798,44 @@ public class EntryContainer
     searchOp.addResponseControl(new VLVResponseControl(targetPosition, contentCount, vlvResultCode));
   }
 
-  /** Get the exclusive lock. */
+  /**
+   * Get the exclusive lock: acquires the write lock (excluding legacy
+   * sharedLock readers), closes the gate for lock-free shared accessors and
+   * drains the in-flight ones.
+   */
   void lock()
   {
     exclusiveLock.lock();
+    exclusiveAccessPending = true;
+    // The drain must not be abandoned on interrupt: returning early would let
+    // the exclusive caller run concurrently with in-flight shared accesses.
+    // Exclusive lockers are rare, so sleep-polling is an acceptable trade-off.
+    boolean interrupted = false;
+    while (sharedAccessCount.sum() != 0)
+    {
+      try
+      {
+        Thread.sleep(1);
+      }
+      catch (InterruptedException e)
+      {
+        interrupted = true;
+      }
+    }
+    if (interrupted)
+    {
+      Thread.currentThread().interrupt();
+    }
   }
 
-  /** Unlock the exclusive lock. */
+  /** Unlock the exclusive lock and reopen the gate for lock-free shared accessors. */
   void unlock()
   {
+    exclusiveAccessPending = false;
+    synchronized (sharedAccessMonitor)
+    {
+      sharedAccessMonitor.notifyAll();
+    }
     exclusiveLock.unlock();
   }
 
