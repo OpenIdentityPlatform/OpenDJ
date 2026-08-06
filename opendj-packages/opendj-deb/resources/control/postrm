@@ -28,10 +28,11 @@ if [ "$1" = "remove" ] ; then
 fi
 
 if [ "$1" = "remove" ] || [ "$1" = "purge" ] ; then
+    # postinst registers the rc links unconditionally, so drop them on every
+    # host - a booted systemd is orthogonal to their existence.
+    update-rc.d opendj remove >/dev/null 2>&1 || true
     if [ -d /run/systemd/system ] ; then
         systemctl --system daemon-reload >/dev/null 2>&1 || true
-    else
-        update-rc.d opendj remove >/dev/null 2>&1 || true
     fi
 fi
 

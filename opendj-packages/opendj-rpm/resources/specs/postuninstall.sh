@@ -27,7 +27,9 @@ fi
 
 if [ "$1" = "0" ] ; then
     echo "Post Uninstall - uninstall"
-    echo "OpenDJ successfully removed."
+    echo "OpenDJ package removed. Server data (config, db, changelogDb, logs)"
+    echo "and the opendj system account are kept; remove them manually if they"
+    echo "are no longer needed."
 elif [ "$1" = "1" ] ; then
     echo "Post Uninstall - upgrade uninstall"
 fi

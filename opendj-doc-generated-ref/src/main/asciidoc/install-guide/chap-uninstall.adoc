@@ -124,8 +124,6 @@ Stopping Server...
 [03/Jun/2013:10:00:49 +0200] category=CORE severity=NOTICE
  msgID=458955 msg=The Directory Server is now stopped
 
-*OpenDJ successfully removed
-
 $
 ----
 +
@@ -151,7 +149,9 @@ Stopping Server...
 [03/Jun/2013:10:42:46 +0200] category=CORE severity=NOTICE
  msgID=458955 msg=The Directory Server is now stopped
 Post Uninstall - uninstall
-OpenDJ successfully removed.
+OpenDJ package removed. Server data (config, db, changelogDb, logs)
+and the opendj system account are kept; remove them manually if they
+are no longer needed.
 #
 ----
 +

@@ -63,19 +63,39 @@ fi
 # LOCKFILE is used by the service subsystem to know whether the opendj service is started and act upon it
 
 
-# Optional admin overrides (OPENDJ_JAVA_HOME / OPENDJ_JAVA_BIN / OPENDJ_JAVA_ARGS).
-# Exported so they survive the runuser switch to the service account in run_as().
-[ -r /etc/default/opendj ] && . /etc/default/opendj
-[ -r /etc/sysconfig/opendj ] && . /etc/sysconfig/opendj
-export OPENDJ_JAVA_HOME OPENDJ_JAVA_BIN OPENDJ_JAVA_ARGS
+# Optional admin overrides (OPENDJ_JAVA_HOME / OPENDJ_JAVA_BIN / OPENDJ_JAVA_ARGS),
+# exported so they survive the runuser switch to the service account in run_as().
+# The same files feed systemd's EnvironmentFile=, whose syntax is not shell (no
+# expansion, optional quotes) - so extract the known keys instead of sourcing.
+for _envfile in /etc/default/opendj /etc/sysconfig/opendj ; do
+    [ -r "$_envfile" ] || continue
+    for _key in OPENDJ_JAVA_HOME OPENDJ_JAVA_BIN OPENDJ_JAVA_ARGS ; do
+        _val=`sed -n "s/^$_key=//p" "$_envfile" | tail -n 1 \
+            | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'\$/\1/"`
+        [ -n "$_val" ] && export "$_key=$_val"
+    done
+done
 
 # Sets the script vars
 INSTALL_ROOT="/opt/opendj"
 export INSTALL_ROOT
 DAEMON=opendj
 
+# The instance root may have been relocated with instance.loc (split layout):
+# resolve it the way the server scripts (_script-util.sh) do.
+INSTANCE_ROOT="$INSTALL_ROOT"
+if [ -f /etc/opendj/instance.loc ] ; then
+    read INSTANCE_ROOT < /etc/opendj/instance.loc
+elif [ -f "$INSTALL_ROOT/instance.loc" ] ; then
+    read _loc < "$INSTALL_ROOT/instance.loc"
+    case "$_loc" in
+        /*) INSTANCE_ROOT=$_loc ;;
+        *)  INSTANCE_ROOT=$INSTALL_ROOT/$_loc ;;
+    esac
+fi
+
 # Original PID file
-ORIGINPIDFILE=/opt/opendj/logs/server.pid
+ORIGINPIDFILE=$INSTANCE_ROOT/logs/server.pid
 
 # Pid file is a symlink to /opt/opendj/log/server.pid
 # /run is the canonical location (/var/run is a compatibility symlink to it).
@@ -105,18 +125,16 @@ test -x "$INSTALL_ROOT/bin/start-ds" || exit 5
 # Recreates the symlink if needed (/var/run is deleted after reboot (eg. debian)).
 test -h "$PIDFILE" || ln -s $ORIGINPIDFILE $PIDFILE
 
+# Succeeds when the instance has been configured with setup. Keyed on
+# buildinfo + config.ldif, not on archived-configs (which can legitimately be
+# empty) - otherwise the runlevel K-script would skip stopping a live server.
 instance_configured() {
-  if [ -f $INSTALL_ROOT/config/buildinfo ] && [ "$(ls -A $INSTALL_ROOT/config/archived-configs)" ] ; then
-      return 1
-  fi
-
-  return 0
+    [ -f "$INSTANCE_ROOT/config/buildinfo" ] && [ -f "$INSTANCE_ROOT/config/config.ldif" ]
 }
 
 # Starts the server and creates pid file.
 start() {
-    instance_configured
-    if [ $? = 0 ] ; then
+    if ! instance_configured ; then
         echo "Instance is not configured. Please run $INSTALL_ROOT/setup"
         return 1
     fi
@@ -142,8 +160,7 @@ start() {
 
 # Stops the server and removes pid file.
 stop() {
-    instance_configured
-    if [ $? = 0 ] ; then
+    if ! instance_configured ; then
         echo "Instance is not configured. Please run $INSTALL_ROOT/setup"
         return 1
     fi
@@ -171,8 +188,7 @@ stop() {
 
 # Displays the service status
 status() {
-    instance_configured
-    if [ $? = 0 ] ; then
+    if ! instance_configured ; then
         echo "Instance is not configured. Please run $INSTALL_ROOT/setup"
         return 1
     fi
@@ -195,8 +211,7 @@ case "$1" in
         stop
     ;;
     restart)
-        instance_configured
-        if [ $? = 0 ] ; then
+        if ! instance_configured ; then
             echo "Instance is not configured. Please run $INSTALL_ROOT/setup"
             exit 1
         else

@@ -157,10 +157,10 @@
                             <require>java-headless &gt;= 1:11</require>
                             <!-- postinstall runs the upgrade tool and the server via runuser. -->
                             <require>util-linux</require>
-                            <!-- postinstall registers the service via /sbin/chkconfig on non-systemd hosts. -->
-                            <require>chkconfig</require>
-                            <!-- /etc/init.d/opendj sources /etc/init.d/functions on RedHat-family. -->
-                            <require>initscripts</require>
+                            <!-- No hard chkconfig/initscripts dependency: systemd hosts do not
+                                 need them (and RHEL 10 drops SysV support), the scriptlets
+                                 guard every chkconfig call, and the init script falls back to
+                                 a self-contained mode without /etc/init.d/functions. -->
                         </requires>
                         <!-- preinstall creates the dedicated opendj service user/group, so
                              shadow-utils must be present before the payload is unpacked.

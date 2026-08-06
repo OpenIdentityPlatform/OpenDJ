@@ -21,6 +21,23 @@
 
 set -e
 
+# The instance root may have been relocated with instance.loc (split layout):
+# resolve it the way the server scripts (_script-util.sh) do. Empty-file reads
+# are tolerated; the result then simply fails the file checks below.
+resolve_instance_root() {
+    INSTANCE_ROOT=${deb.prefix}
+    if [ -f /etc/opendj/instance.loc ] ; then
+        read INSTANCE_ROOT < /etc/opendj/instance.loc || true
+    elif [ -f ${deb.prefix}/instance.loc ] ; then
+        read _loc < ${deb.prefix}/instance.loc || true
+        case "$_loc" in
+            /*) INSTANCE_ROOT=$_loc ;;
+            *)  INSTANCE_ROOT=${deb.prefix}/$_loc ;;
+        esac
+    fi
+}
+resolve_instance_root
+
 # Create the dedicated system user/group that runs the service.
 if ! getent group opendj >/dev/null; then
     addgroup --system opendj
@@ -31,24 +48,33 @@ if ! getent passwd opendj >/dev/null; then
         --gecos "OpenDJ Directory Server" opendj
 fi
 
-# Own the installation tree with the service account. On upgrade this also
-# migrates installations that were previously owned by root. Do not abort the
-# configure step on a partial failure - a real problem surfaces on start.
+# Own the installation tree - and a split-layout instance - with the service
+# account. On upgrade this also migrates installations that were previously
+# owned by root. Do not abort the configure step on a partial failure - a real
+# problem surfaces on start.
 chown -R opendj:opendj ${deb.prefix} || true
+if [ "$INSTANCE_ROOT" != "${deb.prefix}" ] && [ -d "$INSTANCE_ROOT" ] ; then
+    chown -R opendj:opendj "$INSTANCE_ROOT" || true
+fi
 
 # Honour the documented admin overrides (OPENDJ_JAVA_HOME / OPENDJ_JAVA_BIN /
 # OPENDJ_JAVA_ARGS) for the upgrade tool and the restart below, exactly as the
-# service itself does via EnvironmentFile=.
+# service itself does via EnvironmentFile=. systemd's EnvironmentFile syntax
+# is not shell (no expansion, optional quotes), so extract the known keys
+# instead of sourcing the file.
 if [ -r /etc/default/opendj ] ; then
-    . /etc/default/opendj || true
-    export OPENDJ_JAVA_HOME OPENDJ_JAVA_BIN OPENDJ_JAVA_ARGS
+    for _key in OPENDJ_JAVA_HOME OPENDJ_JAVA_BIN OPENDJ_JAVA_ARGS ; do
+        _val=$(sed -n "s/^$_key=//p" /etc/default/opendj | tail -n 1 \
+            | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'\$/\1/")
+        [ -n "$_val" ] && export "$_key=$_val" || true
+    done
 fi
 
 # Register the service. deb-systemd-helper and update-rc.d only manage
 # symlinks/state, so they intentionally run without a booted-systemd gate and
 # work in chroots/containers too. deb-systemd-helper records the enable state:
-# an admin's "systemctl disable" survives upgrades. The unit's
-# ConditionPathExists keeps an unconfigured instance from failing at boot.
+# an admin's "systemctl disable" survives upgrades. The unit's start condition
+# keeps an unconfigured instance from failing at boot.
 if command -v deb-systemd-helper >/dev/null 2>&1 ; then
     deb-systemd-helper unmask opendj.service >/dev/null 2>&1 || true
     if deb-systemd-helper --quiet was-enabled opendj.service ; then
@@ -64,25 +90,30 @@ fi
 
 # Upgrade mode.
 if [ "$1" = "configure" ] && [ -n "$2" ] ; then
-    if [ -f ${deb.prefix}/config/buildinfo ] && [ -f ${deb.prefix}/config/config.ldif ] ; then
+    if [ -f "$INSTANCE_ROOT/config/buildinfo" ] && [ -f "$INSTANCE_ROOT/config/config.ldif" ] ; then
         echo "*Starting upgrade..."
         if runuser -u opendj -- ${deb.prefix}/upgrade -n --force --acceptLicense ; then
             # Restart only if the server was running before the upgrade
             # (preinst recorded this via the status flag).
-            if [ -f ${deb.prefix}/logs/status ] ; then
+            if [ -f "$INSTANCE_ROOT/logs/status" ] ; then
                 echo "*Restarting server..."
                 STARTED=0
                 if [ -d /run/systemd/system ] ; then
-                    deb-systemd-invoke start opendj.service && STARTED=1 || true
+                    deb-systemd-invoke start opendj.service || true
+                    # policy-rc.d may deny the start and still exit 0: trust
+                    # the observable unit state, not the exit code.
+                    if systemctl is-active --quiet opendj.service ; then
+                        STARTED=1
+                    fi
                 else
                     runuser -u opendj -- ${deb.prefix}/bin/start-ds && STARTED=1 || true
                 fi
                 if [ "$STARTED" = 1 ] ; then
-                    rm -f ${deb.prefix}/logs/status
+                    rm -f "$INSTANCE_ROOT/logs/status"
                 else
                     # Keep the status flag so a later "dpkg-reconfigure opendj"
                     # (or the next upgrade) retries the restart.
-                    echo "Server restart failed; see the logs under ${deb.prefix}/logs and start the service manually."
+                    echo "Server restart failed; see the logs under $INSTANCE_ROOT/logs and start the service manually."
                 fi
             fi
         else

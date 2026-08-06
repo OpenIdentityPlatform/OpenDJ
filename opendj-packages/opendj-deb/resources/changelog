@@ -1,4 +1,4 @@
-opendj (5.2.0) UNRELEASED; urgency=medium
+opendj (5.2.0-1) unstable; urgency=medium
 
   * Modernize Debian and RPM packaging: systemd service unit, dedicated opendj
     service account, package upgrade/install tests in CI (#663). This stanza
@@ -7,7 +7,7 @@ opendj (5.2.0) UNRELEASED; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Thu, 06 Aug 2026 12:00:00 +0000
 
-opendj (5.1.2) unstable; urgency=medium
+opendj (5.1.2-1) unstable; urgency=medium
 
   * Add an OpenDJ vs OpenLDAP LDAP benchmark GitHub Action
   * CVE-2026-62366 OpenDJ Unauthenticated stack exhaustion when decoding an
@@ -92,7 +92,7 @@ opendj (5.1.2) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Fri, 17 Jul 2026 14:34:15 +0000
 
-opendj (5.1.1) unstable; urgency=medium
+opendj (5.1.1-1) unstable; urgency=medium
 
   * CVE-2026-46495 OpenDJ Unauthenticated RCE via Java Deserialization in JMX
     RMI
@@ -114,7 +114,7 @@ opendj (5.1.1) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Thu, 11 Jun 2026 19:19:48 +0000
 
-opendj (5.1.0) unstable; urgency=medium
+opendj (5.1.0-1) unstable; urgency=medium
 
   * [#72] Fix infinite loop in doStopApplication() on Windows service stop
   * [#259] fix: retry loop for Windows Service start race condition (issue
@@ -153,7 +153,7 @@ opendj (5.1.0) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 15 Apr 2026 08:40:44 +0000
 
-opendj (5.0.4) unstable; urgency=medium
+opendj (5.0.4-1) unstable; urgency=medium
 
   * CVE-2025-24970 SslHandler doesn't correctly validate packets which can
     lead to native crash when using native SSLEngine
@@ -170,7 +170,7 @@ opendj (5.0.4) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Mon, 23 Mar 2026 20:24:28 +0000
 
-opendj (5.0.3) unstable; urgency=medium
+opendj (5.0.3-1) unstable; urgency=medium
 
   * CVE-2026-1225 Logback allows an attacker to instantiate classes already
     present on the class path
@@ -180,7 +180,7 @@ opendj (5.0.3) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 04 Feb 2026 06:46:31 +0000
 
-opendj (5.0.2) unstable; urgency=medium
+opendj (5.0.2-1) unstable; urgency=medium
 
   * [#575] FIX unable to install: UnsatisfiedLinkError: /tmp/bc-fips
   * [#577] Windows upgrading with Upgrade.bat: an error with "" unexpected
@@ -189,7 +189,7 @@ opendj (5.0.2) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 25 Nov 2025 08:39:22 +0000
 
-opendj (5.0.1) unstable; urgency=medium
+opendj (5.0.1-1) unstable; urgency=medium
 
   * Update target JDK to 11 and move to JakartaEE 9
   * Add support LTS JDK 25
@@ -213,7 +213,7 @@ opendj (5.0.1) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Sat, 08 Nov 2025 19:43:23 +0000
 
-opendj (4.10.2) unstable; urgency=medium
+opendj (4.10.2-1) unstable; urgency=medium
 
   * CVE-2025-9092 CVE-2025-9340 CVE-2025-9341 Uncontrolled Resource
     Consumption vulnerability
@@ -228,7 +228,7 @@ opendj (4.10.2) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Thu, 04 Sep 2025 15:49:55 +0000
 
-opendj (4.10.1) unstable; urgency=medium
+opendj (4.10.1-1) unstable; urgency=medium
 
   * [#529] FIX jdbc connection deadlock
   * [#530] Fixed error when creating a backend for BASE_DN with OU in Docker
@@ -236,7 +236,7 @@ opendj (4.10.1) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 05 Aug 2025 16:47:18 +0000
 
-opendj (4.10.0) unstable; urgency=medium
+opendj (4.10.0-1) unstable; urgency=medium
 
   * [#462] RFC5805 Lightweight Directory Access Protocol (LDAP) Transactions
   * CVE-2025-49146 pgjdbc Client Allows Fallback to Insecure Authentication
@@ -255,7 +255,7 @@ opendj (4.10.0) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 15 Jul 2025 14:28:53 +0000
 
-opendj (4.9.4) unstable; urgency=medium
+opendj (4.9.4-1) unstable; urgency=medium
 
   * Configure backend type for Docker
   * Docs: update OpenDJ release version to 4.9.3
@@ -277,7 +277,7 @@ opendj (4.9.4) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 23 Apr 2025 14:31:19 +0000
 
-opendj (4.9.3) unstable; urgency=medium
+opendj (4.9.3-1) unstable; urgency=medium
 
   * CVE-2025-27497 Fix Denial of Service (Dos) using alias loop ()
   * [#477] Change permission config.ldif.startok to owner ()
@@ -288,7 +288,7 @@ opendj (4.9.3) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 05 Mar 2025 10:11:22 +0000
 
-opendj (4.9.2) unstable; urgency=medium
+opendj (4.9.2-1) unstable; urgency=medium
 
   * [#465] Fix custom library loading when put to the lib directory
   * [#463] Disable warning message on downstream closed
@@ -302,7 +302,7 @@ opendj (4.9.2) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 04 Feb 2025 16:21:39 +0000
 
-opendj (4.9.1) unstable; urgency=medium
+opendj (4.9.1-1) unstable; urgency=medium
 
   * [#460] Clear unused path info after backupConfig (memory pleasure)
   * jdbc: make connection short-lived
@@ -310,7 +310,7 @@ opendj (4.9.1) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Mon, 20 Jan 2025 08:49:34 +0000
 
-opendj (4.9.0) unstable; urgency=medium
+opendj (4.9.0-1) unstable; urgency=medium
 
   * Store LDAPv3 database in SQL JDBC database
   * CVE-2024-12798 CVE-2024-12801 logback-core Expression Language Injection,
@@ -320,7 +320,7 @@ opendj (4.9.0) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Thu, 26 Dec 2024 08:36:50 +0000
 
-opendj (4.8.2) unstable; urgency=medium
+opendj (4.8.2-1) unstable; urgency=medium
 
   * [#438] FIX import-ldif --offline "import has been aborted because the
     entry does not have a parent entry"
@@ -335,7 +335,7 @@ opendj (4.8.2) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 12 Nov 2024 09:02:28 +0000
 
-opendj (4.8.1) unstable; urgency=medium
+opendj (4.8.1-1) unstable; urgency=medium
 
   * [#393] FIX DIT SUP delimiter
   * [#392] FIX RootDSE Entry allow user objectClass
@@ -373,7 +373,7 @@ opendj (4.8.1) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Thu, 17 Oct 2024 14:55:25 +0000
 
-opendj (4.8.0) unstable; urgency=medium
+opendj (4.8.0-1) unstable; urgency=medium
 
   * Switch docker to last LTS JRE 21
   * Add JDK 22 support
@@ -388,7 +388,7 @@ opendj (4.8.0) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Mon, 09 Sep 2024 11:26:09 +0000
 
-opendj (4.7.0) unstable; urgency=medium
+opendj (4.7.0-1) unstable; urgency=medium
 
   * [#204] ADD LDAP Relax Rules Control
   * [#287] ADD alias dereferencing for search requests
@@ -405,7 +405,7 @@ opendj (4.7.0) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Thu, 08 Aug 2024 08:24:48 +0000
 
-opendj (4.6.5) unstable; urgency=medium
+opendj (4.6.5-1) unstable; urgency=medium
 
   * compress webhelp, xhtml and html docs after build
   * add missing docs
@@ -420,7 +420,7 @@ opendj (4.6.5) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 16 Jul 2024 17:31:29 +0000
 
-opendj (4.6.4) unstable; urgency=medium
+opendj (4.6.4-1) unstable; urgency=medium
 
   * Embedded OpenDJ module initial commit
   * Bump ch.qos.logback:logback-core from 1.2.11 to 1.2.13 in /opendj-embedded
@@ -435,7 +435,7 @@ opendj (4.6.4) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 26 Jun 2024 07:56:13 +0000
 
-opendj (4.6.3) unstable; urgency=medium
+opendj (4.6.3-1) unstable; urgency=medium
 
   * ADD build test with memory pressure
   * Update Docker jre 17->19
@@ -449,7 +449,7 @@ opendj (4.6.3) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 07 May 2024 17:54:49 +0000
 
-opendj (4.6.2) unstable; urgency=medium
+opendj (4.6.2-1) unstable; urgency=medium
 
   * FIX CLIENT_SIDE_NO_RESULTS_RETURNED in hasNext()
   * update org.openidentityplatform.commons to 2.1.2-SNAPSHOT
@@ -461,7 +461,7 @@ opendj (4.6.2) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 17 Jan 2024 12:17:40 +0000
 
-opendj (4.6.1) unstable; urgency=medium
+opendj (4.6.1-1) unstable; urgency=medium
 
   * Allow store LDAP catalog data in CASSANDRA noSQL cluster --backendType cas
     (ldapv3 to cassandra)
@@ -476,7 +476,7 @@ opendj (4.6.1) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Thu, 26 Oct 2023 09:46:54 +0000
 
-opendj (4.5.9) unstable; urgency=medium
+opendj (4.5.9-1) unstable; urgency=medium
 
   * Generate SHA256WithRSA certificate as default
   * convert JMX metrics to appropriate type #293
@@ -487,13 +487,13 @@ opendj (4.5.9) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Fri, 22 Sep 2023 07:10:00 +0000
 
-opendj (4.5.6) unstable; urgency=medium
+opendj (4.5.6-1) unstable; urgency=medium
 
   * FIX unused trailing bytes in ASN.1 SEQUENCE
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 30 Aug 2023 09:28:52 +0000
 
-opendj (4.5.5) unstable; urgency=medium
+opendj (4.5.5-1) unstable; urgency=medium
 
   * FIX build with Installation failure for grub-efi-amd64-signed on ubuntu-
     latest
@@ -510,7 +510,7 @@ opendj (4.5.5) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Thu, 20 Jul 2023 09:50:13 +0000
 
-opendj (4.5.4) unstable; urgency=medium
+opendj (4.5.4-1) unstable; urgency=medium
 
   * BUILD java: [ '8','11','17','19'] + fix install wine32:i386 without
     conflicts
@@ -519,7 +519,7 @@ opendj (4.5.4) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Fri, 09 Dec 2022 10:41:35 +0000
 
-opendj (4.5.3) unstable; urgency=medium
+opendj (4.5.3-1) unstable; urgency=medium
 
   * Create target directory before copying custom schema
   * Copy ldif configs to the correct template directory
@@ -528,7 +528,7 @@ opendj (4.5.3) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 30 Nov 2022 09:40:42 +0000
 
-opendj (4.5.1) unstable; urgency=medium
+opendj (4.5.1-1) unstable; urgency=medium
 
   * update commons version to 2.0.16-SNAPSHOT
   * 'find' command is missing in the 4.5.0 docker image #242
@@ -541,13 +541,13 @@ opendj (4.5.1) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 02 Aug 2022 11:04:58 +0000
 
-opendj (4.5.0) unstable; urgency=medium
+opendj (4.5.0-1) unstable; urgency=medium
 
   * Switch base docker image to Java 17
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 01 Jun 2022 10:54:55 +0000
 
-opendj (4.4.15) unstable; urgency=medium
+opendj (4.4.15-1) unstable; urgency=medium
 
   * Add alpine platforms linux/s390x, linux/386, linux/arm/v7, linux/arm/v6,
     linux/ppc64le
@@ -566,7 +566,7 @@ opendj (4.4.15) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 01 Jun 2022 06:49:30 +0000
 
-opendj (4.4.14) unstable; urgency=medium
+opendj (4.4.14-1) unstable; urgency=medium
 
   * add docker test
   * Release multi-platform Docker images
@@ -575,7 +575,7 @@ opendj (4.4.14) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Mon, 02 May 2022 19:11:25 +0000
 
-opendj (4.4.13) unstable; urgency=medium
+opendj (4.4.13-1) unstable; urgency=medium
 
   * FIX OpenDJ setup failure
   * Add FIPS support
@@ -602,238 +602,238 @@ opendj (4.4.13) unstable; urgency=medium
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Fri, 22 Apr 2022 21:42:56 +0000
 
-opendj (4.4.11) unstable; urgency=medium
+opendj (4.4.11-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.11
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Mon, 21 Jun 2021 12:11:50 +0000
 
-opendj (4.4.10) unstable; urgency=medium
+opendj (4.4.10-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.10
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Mon, 08 Feb 2021 12:09:47 +0000
 
-opendj (4.4.9) unstable; urgency=medium
+opendj (4.4.9-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.9
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 30 Dec 2020 13:11:33 +0000
 
-opendj (4.4.8) unstable; urgency=medium
+opendj (4.4.8-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.8
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 10 Nov 2020 15:01:48 +0000
 
-opendj (4.4.7) unstable; urgency=medium
+opendj (4.4.7-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.7
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 09 Sep 2020 18:41:03 +0000
 
-opendj (4.4.6) unstable; urgency=medium
+opendj (4.4.6-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.6
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Thu, 11 Jun 2020 10:34:37 +0000
 
-opendj (4.4.5) unstable; urgency=medium
+opendj (4.4.5-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.5
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 10 Mar 2020 18:32:09 +0000
 
-opendj (4.4.4) unstable; urgency=medium
+opendj (4.4.4-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.4
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Fri, 21 Feb 2020 10:07:17 +0000
 
-opendj (4.4.3) unstable; urgency=medium
+opendj (4.4.3-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.3
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Mon, 29 Jul 2019 12:46:28 +0000
 
-opendj (4.4.2) unstable; urgency=medium
+opendj (4.4.2-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.2
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Mon, 29 Apr 2019 18:00:35 +0000
 
-opendj (4.4.1) unstable; urgency=medium
+opendj (4.4.1-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.1
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Sun, 10 Mar 2019 17:15:42 +0000
 
-opendj (4.3.5) unstable; urgency=medium
+opendj (4.3.5-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.5
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Mon, 04 Mar 2019 19:44:44 +0000
 
-opendj (4.3.4) unstable; urgency=medium
+opendj (4.3.4-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.4
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Sun, 17 Feb 2019 18:38:19 +0000
 
-opendj (4.3.3) unstable; urgency=medium
+opendj (4.3.3-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.3
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Fri, 08 Feb 2019 09:15:48 +0000
 
-opendj (4.3.2) unstable; urgency=medium
+opendj (4.3.2-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.2
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 29 Jan 2019 16:23:25 +0000
 
-opendj (4.3.1) unstable; urgency=medium
+opendj (4.3.1-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.1
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Mon, 10 Dec 2018 13:19:19 +0000
 
-opendj (4.2.5) unstable; urgency=medium
+opendj (4.2.5-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.5
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Fri, 26 Oct 2018 20:44:31 +0000
 
-opendj (4.2.4) unstable; urgency=medium
+opendj (4.2.4-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.4
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Thu, 18 Oct 2018 11:54:57 +0000
 
-opendj (4.2.3) unstable; urgency=medium
+opendj (4.2.3-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.3
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 17 Oct 2018 09:17:53 +0000
 
-opendj (4.2.2) unstable; urgency=medium
+opendj (4.2.2-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.2
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Mon, 08 Oct 2018 14:04:29 +0000
 
-opendj (4.2.1) unstable; urgency=medium
+opendj (4.2.1-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.1
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Fri, 05 Oct 2018 20:50:10 +0000
 
-opendj (4.1.10) unstable; urgency=medium
+opendj (4.1.10-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.10
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 30 May 2018 21:12:00 +0000
 
-opendj (4.1.9) unstable; urgency=medium
+opendj (4.1.9-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.9
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Fri, 25 May 2018 05:03:41 +0000
 
-opendj (4.1.8) unstable; urgency=medium
+opendj (4.1.8-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.8
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Sat, 12 May 2018 03:36:28 +0000
 
-opendj (4.1.7) unstable; urgency=medium
+opendj (4.1.7-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.7
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 01 May 2018 09:49:37 +0000
 
-opendj (4.1.6) unstable; urgency=medium
+opendj (4.1.6-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.6
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 10 Apr 2018 15:40:59 +0000
 
-opendj (4.1.5) unstable; urgency=medium
+opendj (4.1.5-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.5
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 06 Mar 2018 18:34:23 +0000
 
-opendj (4.1.4) unstable; urgency=medium
+opendj (4.1.4-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.4
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Sat, 03 Mar 2018 09:32:59 +0000
 
-opendj (4.1.3) unstable; urgency=medium
+opendj (4.1.3-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.3
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 28 Feb 2018 11:55:36 +0000
 
-opendj (4.1.2) unstable; urgency=medium
+opendj (4.1.2-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.2
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Wed, 28 Feb 2018 10:44:28 +0000
 
-opendj (4.1.1) unstable; urgency=medium
+opendj (4.1.1-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.1
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Fri, 23 Feb 2018 11:58:58 +0000
 
-opendj (4.0.3) unstable; urgency=medium
+opendj (4.0.3-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.0.3
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Tue, 20 Feb 2018 14:19:55 +0000
 
-opendj (4.0.2) unstable; urgency=medium
+opendj (4.0.2-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.0.2
 
  -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Fri, 16 Feb 2018 16:56:23 +0000
 
-opendj (4.0.1) unstable; urgency=medium
+opendj (4.0.1-1) unstable; urgency=medium
 
   * See release notes:
     https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.0.1

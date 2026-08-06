@@ -15,13 +15,16 @@
 #
 # Environment overrides for the OpenDJ service.
 #
-# This file is sourced by the systemd unit (EnvironmentFile=), by the SysV
-# init script and by the package maintainer scripts (package upgrade/restart).
+# This file is read by the systemd unit (EnvironmentFile=) and parsed by the
+# SysV init script and the package maintainer scripts (package upgrade and
+# restart). It is NOT sourced as shell: only the three OPENDJ_* keys below are
+# recognized, written as KEY=value on a single line (no export, no variable
+# expansion); optional surrounding quotes are stripped by every consumer.
 # By default everything is commented out and the server uses the first java
 # found on the PATH (the package's JRE dependency guarantees one), unless the
 # administrator sets default.java-home in config/java.properties.
 #
-# Uncomment to override the JRE used by the service (one line, no export):
+# Uncomment to override the JRE used by the service:
 #   - OPENDJ_JAVA_HOME: a JAVA_HOME directory (its bin/java is used)
 #   - OPENDJ_JAVA_BIN : a direct path to the java binary (takes precedence)
 # Using the stable /usr alternatives symlink survives Java upgrades:
@@ -30,6 +33,6 @@
 #OPENDJ_JAVA_BIN=/usr/bin/java
 #
 # JVM args for the server. Note: when set, this REPLACES the java-args
-# configured in config/java.properties (it does not extend them). Keep the
-# value quoted so the SysV init script can source this file safely:
+# configured in config/java.properties (it does not extend them). Quotes are
+# optional but keep values with spaces readable:
 #OPENDJ_JAVA_ARGS="-server -Xmx2g"

@@ -89,7 +89,8 @@ for rel in releases:
     ]
 
     # --- Debian stanza ---
-    deb = ["opendj (%s) unstable; urgency=medium" % ver, ""]
+    # "-1" is the package revision the control file declares (deb.release).
+    deb = ["opendj (%s-1) unstable; urgency=medium" % ver, ""]
     for b in bullets:
         wrapped = textwrap.fill(b, width=78, initial_indent="  * ",
                                 subsequent_indent="    ")
@@ -103,7 +104,7 @@ for rel in releases:
 
     # --- RPM stanza ---
     rpm_date = "%s %s %2d %d" % (DOW[dt.weekday()], MON[dt.month - 1], dt.day, dt.year)
-    rpm = ["* %s %s - %s" % (rpm_date, MAINTAINER, ver)]
+    rpm = ["* %s %s - %s-1" % (rpm_date, MAINTAINER, ver)]
     for b in bullets:
         rpm.append(textwrap.fill(b, width=78, initial_indent="- ",
                                  subsequent_indent="  "))

@@ -17,27 +17,63 @@
 
 set -e
 
+# The instance root may have been relocated with instance.loc (split layout):
+# resolve it the way the server scripts (_script-util.sh) do. Empty-file reads
+# are tolerated; the result then simply fails the file checks below.
+resolve_instance_root() {
+    INSTANCE_ROOT=${deb.prefix}
+    if [ -f /etc/opendj/instance.loc ] ; then
+        read INSTANCE_ROOT < /etc/opendj/instance.loc || true
+    elif [ -f ${deb.prefix}/instance.loc ] ; then
+        read _loc < ${deb.prefix}/instance.loc || true
+        case "$_loc" in
+            /*) INSTANCE_ROOT=$_loc ;;
+            *)  INSTANCE_ROOT=${deb.prefix}/$_loc ;;
+        esac
+    fi
+}
+
 # Pre installation script.
 if [ "$1" = "upgrade" ] ; then
-    # Stop the server if it is running - keyed on the PID file, not on
+    resolve_instance_root
+    # Stop the server if it is running - keyed on a live PID, not on
     # archived-configs, so a freshly set-up instance that was never upgraded
-    # before is stopped too.
-    if [ -x ${deb.prefix}/bin/stop-ds ] && [ -f ${deb.prefix}/logs/server.pid ] ; then
+    # before is stopped too (and a stale pid file does not block the upgrade).
+    SERVER_PID=$(cat "$INSTANCE_ROOT/logs/server.pid" 2>/dev/null || true)
+    if [ -x ${deb.prefix}/bin/stop-ds ] && [ -n "$SERVER_PID" ] && [ -d "/proc/$SERVER_PID" ] ; then
         # Record that it was running so postinst restarts it after the upgrade.
-        touch ${deb.prefix}/logs/status
+        touch "$INSTANCE_ROOT/logs/status"
         echo "*Stopping OpenDJ server..."
         if [ -d /run/systemd/system ] ; then
             deb-systemd-invoke stop opendj.service || true
         fi
-        # Run the tree's own script as the tree owner, never as root: the tree
-        # is opendj-writable on installs with the dedicated service account
-        # (old root-owned installs keep running the script as root).
-        OWNER=$(stat -c %U ${deb.prefix}/bin/stop-ds 2>/dev/null || echo root)
-        if [ "$OWNER" != root ] && command -v runuser >/dev/null 2>&1 ; then
-            runuser -u "$OWNER" -- ${deb.prefix}/bin/stop-ds || true
-        else
-            ${deb.prefix}/bin/stop-ds || true
+        if [ -d "/proc/$SERVER_PID" ] ; then
+            # Run the tree's own script as the owner of the server *process*
+            # (the owner of the files says nothing about who started the
+            # server), so the stop is neither an EPERM kill nor a root
+            # execution of an opendj-writable script.
+            OWNER=$(stat -c %U "/proc/$SERVER_PID" 2>/dev/null || echo root)
+            if [ "$OWNER" != root ] && command -v runuser >/dev/null 2>&1 ; then
+                runuser -u "$OWNER" -- ${deb.prefix}/bin/stop-ds || true
+            else
+                ${deb.prefix}/bin/stop-ds || true
+            fi
         fi
+        # The stop errors above are deliberately swallowed, but the new payload
+        # must not be unpacked over a live JVM: verify the stop happened.
+        for _i in 1 2 3 4 5 6 7 8 9 10 ; do
+            [ -d "/proc/$SERVER_PID" ] || break
+            sleep 2
+        done
+        if [ -d "/proc/$SERVER_PID" ] ; then
+            echo "Unable to stop the running OpenDJ server (pid $SERVER_PID); stop it manually and retry the upgrade." >&2
+            exit 1
+        fi
+    else
+        # Not running: drop the restart flag a previously failed restart may
+        # have left behind, so this upgrade does not start a server the
+        # administrator deliberately stopped.
+        rm -f "$INSTANCE_ROOT/logs/status"
     fi
 fi
 echo
