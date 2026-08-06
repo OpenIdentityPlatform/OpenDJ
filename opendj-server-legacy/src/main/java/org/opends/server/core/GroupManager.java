@@ -678,6 +678,23 @@ public class GroupManager extends InternalDirectoryServerPlugin
       return;
     }
 
+    // Fast path: this hook runs for every delete, but almost no deleted
+    // entries have a group registered at or below them. Check with the read
+    // lock first instead of serializing all delete threads on the exclusive
+    // lock (same pattern as SubentryManager.doPostDelete).
+    lock.readLock().lock();
+    try
+    {
+      if (!groupInstances.containsSubtree(entry.getName()))
+      {
+        return;
+      }
+    }
+    finally
+    {
+      lock.readLock().unlock();
+    }
+
     lock.writeLock().lock();
     try
     {
