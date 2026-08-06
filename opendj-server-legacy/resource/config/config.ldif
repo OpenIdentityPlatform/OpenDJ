@@ -14,7 +14,7 @@
 # Portions Copyright 2012-2014 Manuel Gaupp
 # Portions Copyright 2010-2016 ForgeRock AS.
 # Portions copyright 2015 Edan Idzerda
-# Portions Copyright 2025 3A Systems, LLC.
+# Portions Copyright 2025-2026 3A Systems, LLC.
 
 # This file contains the primary Directory Server configuration.  It must not
 # be directly edited while the server is online.  The server configuration
@@ -805,13 +805,18 @@ ds-cfg-log-file: logs/debug
 ds-cfg-log-file-permissions: 640
 ds-cfg-asynchronous: false
 
+# The JSON access logger is disabled by default: it duplicates the File-Based
+# Access Logger above (every operation is logged twice), and its bounded write
+# queue is a measurable contention point on the operation hot path under load.
+# Enable it with dsconfig if JSON-formatted (common-audit) access logs are
+# needed, and consider disabling the text access logger in that case.
 dn: cn=Json File-Based Access Logger,cn=Loggers,cn=config
 objectClass: ds-cfg-log-publisher
 objectClass: ds-cfg-access-log-publisher
 objectClass: top
 objectClass: ds-cfg-json-file-access-log-publisher
 cn: Json File-Based Access Logger
-ds-cfg-enabled: true
+ds-cfg-enabled: false
 ds-cfg-java-class: org.opends.server.loggers.JsonFileAccessLogPublisher
 ds-cfg-log-directory: logs
 ds-cfg-rotation-policy: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
