@@ -615,6 +615,7 @@ jobs:
     needs: build-maven
     runs-on: 'ubuntu-latest'
     steps:
+      - uses: actions/checkout@v6
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
@@ -631,24 +632,26 @@ jobs:
             apt-get install -y lintian
             lintian --info --no-tag-display-limit "$DEB" || true
             dpkg-deb -I "$DEB"
-            dpkg-deb -c "$DEB" | grep -E "lib/systemd/system/opendj.service|etc/init.d/opendj"
+            # Both service files must be present (two greps: a single alternation
+            # would pass with either one missing).
+            dpkg-deb -c "$DEB" | grep "lib/systemd/system/opendj.service"
+            dpkg-deb -c "$DEB" | grep "etc/init.d/opendj"
+            # /etc/default/opendj must be a real conffile, so admin edits survive
+            # upgrades and the file survives "apt remove".
+            dpkg-deb -e "$DEB" /tmp/ctrl
+            grep -qx "/etc/default/opendj" /tmp/ctrl/conffiles
             apt-get install -y "./$DEB"
             id opendj
             test "$(stat -c %U /opt/opendj)" = opendj
-            # No JAVA_HOME and no "which" in this clean container: Java must resolve
-            # from config/java.properties (default.java-home set by postinst).
+            # No JAVA_HOME in this clean container: Java resolves from the PATH
+            # java that the package JRE dependency pulled in.
             runuser -u opendj -- /opt/opendj/setup --cli --no-prompt --acceptLicense --doNotStart \
               --rootUserDN "cn=Directory Manager" --rootUserPassword password \
               --hostname localhost --ldapPort 1389 --adminConnectorPort 4444 \
               --baseDN dc=example,dc=com --addBaseEntry
             /etc/init.d/opendj start
-            OK=0
-            for i in $(seq 1 20); do
-              if /opt/opendj/bin/ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -w password -b "dc=example,dc=com" -s base "(objectClass=*)" 1.1 >/dev/null 2>&1; then OK=1; break; fi
-              sleep 3
-            done
+            bash .github/scripts/wait-for-ldap.sh 1389
             /etc/init.d/opendj status
-            test "$OK" = 1
             /etc/init.d/opendj stop
             apt-get purge -y opendj
           '
@@ -659,29 +662,36 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y "$PWD/$DEB"
           test "$(stat -c '%U' /opt/opendj)" = opendj
-          # sudo/runuser/systemd strip JAVA_HOME -> also relies on config/java.properties
+          # postinst must have enabled the unit; do not enable by hand here or
+          # the postinst registration would go untested.
+          sudo systemctl is-enabled --quiet opendj
+          # Before setup the unit's ConditionPathExists must keep it from
+          # start-bursting: "start" succeeds but no process may appear.
+          sudo systemctl start opendj
+          sleep 2
+          if sudo systemctl is-failed --quiet opendj; then echo "unit failed before setup"; exit 1; fi
+          # sudo/runuser/systemd strip JAVA_HOME -> the service uses the PATH java.
           sudo runuser -u opendj -- /opt/opendj/setup --cli --no-prompt --acceptLicense --doNotStart \
             --rootUserDN "cn=Directory Manager" --rootUserPassword password \
             --hostname localhost --ldapPort 1389 --adminConnectorPort 4444 \
             --baseDN dc=example,dc=com --addBaseEntry
-          sudo systemctl enable --now opendj
-          OK=0
-          for i in $(seq 1 20); do
-            if /opt/opendj/bin/ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -w password -b "dc=example,dc=com" -s base "(objectClass=*)" 1.1 >/dev/null 2>&1; then OK=1; break; fi
-            sleep 3
-          done
+          sudo systemctl start opendj
+          bash .github/scripts/wait-for-ldap.sh 1389
           sudo systemctl is-active --quiet opendj
-          test "$OK" = 1
           echo "OpenDJ is active under systemd"
           sudo systemctl stop opendj
           sleep 3
           if sudo systemctl is-active --quiet opendj; then echo "still active"; exit 1; fi
           sudo apt-get purge -y opendj
 
+  # Known coverage limit: the container has no booted systemd (/run/systemd/system
+  # is absent), so only the SysV/chkconfig path of the scriptlets is exercised
+  # here; the systemd path is covered by the deb live-systemd job on the runner.
   test-rpm:
     needs: build-maven
     runs-on: 'ubuntu-latest'
     steps:
+      - uses: actions/checkout@v6
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
@@ -693,23 +703,24 @@ jobs:
             set -e
             RPM=$(ls opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm | head -1)
             echo "Found $RPM"
+            # Both service files must be shipped.
+            rpm -qlp "$RPM" | grep "^/usr/lib/systemd/system/opendj.service$"
+            rpm -qlp "$RPM" | grep "^/etc/init.d/opendj$"
+            # The %pre user-creation dependency must be declared for minimal images.
+            rpm -qp --requires "$RPM" | grep "shadow-utils"
             # No manual dependencies: the package must pull everything itself (Requires).
             dnf install -y "$RPM"
             id opendj
             test "$(stat -c %U /opt/opendj)" = opendj
-            # Java must come from config/java.properties (no JAVA_HOME and no "which" here)
+            # No JAVA_HOME here: Java resolves from the PATH java pulled in by
+            # the java-headless dependency.
             runuser -u opendj -- /opt/opendj/setup --cli --no-prompt --acceptLicense --doNotStart \
               --rootUserDN "cn=Directory Manager" --rootUserPassword password \
               --hostname localhost --ldapPort 1389 --adminConnectorPort 4444 \
               --baseDN dc=example,dc=com --addBaseEntry
             /etc/init.d/opendj start
-            OK=0
-            for i in $(seq 1 20); do
-              if /opt/opendj/bin/ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -w password -b "dc=example,dc=com" -s base "(objectClass=*)" 1.1 >/dev/null 2>&1; then OK=1; break; fi
-              sleep 3
-            done
+            bash .github/scripts/wait-for-ldap.sh 1389
             /etc/init.d/opendj status
-            test "$OK" = 1
             /etc/init.d/opendj stop
             rpm -e opendj
           '
@@ -721,13 +732,18 @@ jobs:
     needs: build-maven
     runs-on: 'ubuntu-latest'
     steps:
+      - uses: actions/checkout@v6
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
           name: ubuntu-latest-11
       - name: Download released 5.1.2 deb
         shell: bash
-        run: curl -fsSL -o opendj-5.1.2.deb https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/5.1.2/opendj_5.1.2-1_all.deb
+        run: |
+          curl -fsSL -o opendj-5.1.2.deb https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/5.1.2/opendj_5.1.2-1_all.deb
+          # Pin the upgrade source: a retagged release asset must fail loudly here,
+          # not surface as an unrelated upgrade-job failure.
+          echo "8f7f8bdd526b2d63eaef0621545be6aa55749cb60200d3bc2a2849d9ab69eb59  opendj-5.1.2.deb" | sha256sum -c -
       - name: Upgrade 5.1.2 -> new deb (debian:12 container)
         shell: bash
         run: |
@@ -745,12 +761,7 @@ jobs:
               --hostname localhost --ldapPort 1389 --adminConnectorPort 4444 \
               --baseDN dc=example,dc=com --addBaseEntry
             /etc/init.d/opendj start
-            OK=0
-            for i in $(seq 1 20); do
-              if /opt/opendj/bin/ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -w password -b "dc=example,dc=com" -s base "(objectClass=*)" 1.1 >/dev/null 2>&1; then OK=1; break; fi
-              sleep 3
-            done
-            test "$OK" = 1
+            bash .github/scripts/wait-for-ldap.sh 1389
             # Leave the server RUNNING: the new package must stop it, upgrade and restart it.
             apt-get install -y "./$NEW"
             id opendj
@@ -758,12 +769,7 @@ jobs:
             test -f /opt/opendj/config/config.ldif
             # The package restarted the server; the pre-upgrade data must be served again,
             # now by the dedicated user.
-            OK=0
-            for i in $(seq 1 20); do
-              if /opt/opendj/bin/ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -w password -b "dc=example,dc=com" -s base "(objectClass=*)" 1.1 >/dev/null 2>&1; then OK=1; break; fi
-              sleep 3
-            done
-            test "$OK" = 1
+            bash .github/scripts/wait-for-ldap.sh 1389
             test "$(stat -c %U /proc/$(cat /opt/opendj/logs/server.pid))" = opendj
             /etc/init.d/opendj stop
             apt-get purge -y opendj
@@ -773,13 +779,18 @@ jobs:
     needs: build-maven
     runs-on: 'ubuntu-latest'
     steps:
+      - uses: actions/checkout@v6
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
           name: ubuntu-latest-11
       - name: Download released 5.1.2 rpm
         shell: bash
-        run: curl -fsSL -o opendj-5.1.2.rpm https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/5.1.2/opendj-5.1.2-1.noarch.rpm
+        run: |
+          curl -fsSL -o opendj-5.1.2.rpm https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/5.1.2/opendj-5.1.2-1.noarch.rpm
+          # Pin the upgrade source: a retagged release asset must fail loudly here,
+          # not surface as an unrelated upgrade-job failure.
+          echo "9622ef7c3292f0c156c96029a647ca704064aa93b567e5608734fe07d224ec58  opendj-5.1.2.rpm" | sha256sum -c -
       - name: Upgrade 5.1.2 -> new rpm (Rocky Linux 9 container)
         shell: bash
         run: |
@@ -797,12 +808,7 @@ jobs:
               --hostname localhost --ldapPort 1389 --adminConnectorPort 4444 \
               --baseDN dc=example,dc=com --addBaseEntry
             /etc/init.d/opendj start
-            OK=0
-            for i in $(seq 1 20); do
-              if /opt/opendj/bin/ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -w password -b "dc=example,dc=com" -s base "(objectClass=*)" 1.1 >/dev/null 2>&1; then OK=1; break; fi
-              sleep 3
-            done
-            test "$OK" = 1
+            bash .github/scripts/wait-for-ldap.sh 1389
             # Leave the server RUNNING: the new package must stop it, upgrade and restart it.
             dnf install -y "./$NEW"
             id opendj
@@ -810,12 +816,7 @@ jobs:
             test -f /opt/opendj/config/config.ldif
             # The package restarted the server; the pre-upgrade data must be served again,
             # now by the dedicated user.
-            OK=0
-            for i in $(seq 1 20); do
-              if /opt/opendj/bin/ldapsearch -h localhost -p 1389 -D "cn=Directory Manager" -w password -b "dc=example,dc=com" -s base "(objectClass=*)" 1.1 >/dev/null 2>&1; then OK=1; break; fi
-              sleep 3
-            done
-            test "$OK" = 1
+            bash .github/scripts/wait-for-ldap.sh 1389
             test "$(stat -c %U /proc/$(cat /opt/opendj/logs/server.pid))" = opendj
             /etc/init.d/opendj stop
             rpm -e opendj

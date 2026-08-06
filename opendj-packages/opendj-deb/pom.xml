@@ -181,10 +181,12 @@
                                         </mapper>
                                     </data>
 
-                                    <!-- Service environment override (jdeb auto-marks files under /etc as conffiles) -->
+                                    <!-- Service environment override. jdeb marks conffiles only via this
+                                         explicit flag; it never infers them from an /etc destination. -->
                                     <data>
                                         <src>${env.file.location}</src>
                                         <type>file</type>
+                                        <conffile>true</conffile>
                                         <mapper>
                                             <type>perm</type>
                                             <prefix>/etc/default</prefix>

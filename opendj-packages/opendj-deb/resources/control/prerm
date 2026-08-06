@@ -18,14 +18,23 @@
 set -e
 # Pre rm script.
 
-# Stop the service before the package files are removed.
-if [ "$1" = "remove" ] || [ "$1" = "deconfigure" ] ; then
+# Stop the service before the package files are removed. Act on "remove" only:
+# "deconfigure" is a temporary state while dpkg unpacks an unrelated package,
+# and nothing would restart the server afterwards.
+if [ "$1" = "remove" ] ; then
     if [ -d /run/systemd/system ] ; then
         deb-systemd-invoke stop opendj.service || true
     fi
-    if [ -x ${deb.prefix}/bin/stop-ds ] && [ -f ${deb.prefix}/config/buildinfo ] \
-       && [ "$(ls -A ${deb.prefix}/config/archived-configs 2>/dev/null)" ] ; then
-        ${deb.prefix}/bin/stop-ds || true
+    # Stop a still-running instance directly (non-systemd hosts) - keyed on the
+    # PID file, so an instance that was never upgraded is stopped too. Run the
+    # tree's own script as the tree owner, never as root.
+    if [ -x ${deb.prefix}/bin/stop-ds ] && [ -f ${deb.prefix}/logs/server.pid ] ; then
+        OWNER=$(stat -c %U ${deb.prefix}/bin/stop-ds 2>/dev/null || echo root)
+        if [ "$OWNER" != root ] && command -v runuser >/dev/null 2>&1 ; then
+            runuser -u "$OWNER" -- ${deb.prefix}/bin/stop-ds || true
+        else
+            ${deb.prefix}/bin/stop-ds || true
+        fi
     fi
 fi
 

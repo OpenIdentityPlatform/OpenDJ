@@ -1,9 +1,25 @@
+#
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions copyright [year] [name of copyright owner]".
+#
+# Copyright 2026 3A Systems, LLC.
+#
 # Environment overrides for the OpenDJ service.
 #
-# This file is sourced by the systemd unit (EnvironmentFile=) and by the SysV
-# init script. By default everything is commented out and the server resolves
-# Java from its config/java.properties (default.java-home), which the package
-# points at the system default JRE at install time.
+# This file is sourced by the systemd unit (EnvironmentFile=), by the SysV
+# init script and by the package maintainer scripts (package upgrade/restart).
+# By default everything is commented out and the server uses the first java
+# found on the PATH (the package's JRE dependency guarantees one), unless the
+# administrator sets default.java-home in config/java.properties.
 #
 # Uncomment to override the JRE used by the service (one line, no export):
 #   - OPENDJ_JAVA_HOME: a JAVA_HOME directory (its bin/java is used)
@@ -13,5 +29,7 @@
 #OPENDJ_JAVA_HOME=/usr/lib/jvm/default-java
 #OPENDJ_JAVA_BIN=/usr/bin/java
 #
-# Extra JVM args for the server:
-#OPENDJ_JAVA_ARGS=-server -Xmx2g
+# JVM args for the server. Note: when set, this REPLACES the java-args
+# configured in config/java.properties (it does not extend them). Keep the
+# value quoted so the SysV init script can source this file safely:
+#OPENDJ_JAVA_ARGS="-server -Xmx2g"

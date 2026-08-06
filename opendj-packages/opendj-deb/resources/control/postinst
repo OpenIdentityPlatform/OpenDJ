@@ -32,43 +32,58 @@ if ! getent passwd opendj >/dev/null; then
 fi
 
 # Own the installation tree with the service account. On upgrade this also
-# migrates installations that were previously owned by root.
-chown -R opendj:opendj ${deb.prefix}
+# migrates installations that were previously owned by root. Do not abort the
+# configure step on a partial failure - a real problem surfaces on start.
+chown -R opendj:opendj ${deb.prefix} || true
 
-# Pin Java for the service via OpenDJ's own config, using a STABLE symlink (not a
-# version-specific path) so a JRE upgrade/reinstall does not break the service.
-# Only touch the shipped placeholder, never an admin-edited value.
-JAVA_PROPS=${deb.prefix}/config/java.properties
-JH=/usr/lib/jvm/default-java
-[ -x "$JH/bin/java" ] || JH=$(dirname "$(dirname "$(command -v java 2>/dev/null)")" 2>/dev/null)
-if [ -n "$JH" ] && [ -x "$JH/bin/java" ] && grep -q '^default.java-home=\$JAVA_HOME' "$JAVA_PROPS" 2>/dev/null ; then
-    sed -i "s|^default.java-home=.*|default.java-home=$JH|" "$JAVA_PROPS"
+# Honour the documented admin overrides (OPENDJ_JAVA_HOME / OPENDJ_JAVA_BIN /
+# OPENDJ_JAVA_ARGS) for the upgrade tool and the restart below, exactly as the
+# service itself does via EnvironmentFile=.
+if [ -r /etc/default/opendj ] ; then
+    . /etc/default/opendj || true
+    export OPENDJ_JAVA_HOME OPENDJ_JAVA_BIN OPENDJ_JAVA_ARGS
 fi
 
-# Register the service: prefer systemd, fall back to SysV init.
+# Register the service. deb-systemd-helper and update-rc.d only manage
+# symlinks/state, so they intentionally run without a booted-systemd gate and
+# work in chroots/containers too. deb-systemd-helper records the enable state:
+# an admin's "systemctl disable" survives upgrades. The unit's
+# ConditionPathExists keeps an unconfigured instance from failing at boot.
+if command -v deb-systemd-helper >/dev/null 2>&1 ; then
+    deb-systemd-helper unmask opendj.service >/dev/null 2>&1 || true
+    if deb-systemd-helper --quiet was-enabled opendj.service ; then
+        deb-systemd-helper enable opendj.service >/dev/null 2>&1 || true
+    else
+        deb-systemd-helper update-state opendj.service >/dev/null 2>&1 || true
+    fi
+fi
+update-rc.d opendj defaults >/dev/null 2>&1 || true
 if [ -d /run/systemd/system ] ; then
     systemctl --system daemon-reload >/dev/null 2>&1 || true
-    deb-systemd-helper enable opendj.service >/dev/null 2>&1 || true
-else
-    update-rc.d opendj defaults >/dev/null 2>&1 || true
 fi
 
 # Upgrade mode.
 if [ "$1" = "configure" ] && [ -n "$2" ] ; then
-    # For safety, check the buildinfo file too.
-    if [ -f ${deb.prefix}/config/buildinfo ] ; then
+    if [ -f ${deb.prefix}/config/buildinfo ] && [ -f ${deb.prefix}/config/config.ldif ] ; then
         echo "*Starting upgrade..."
         if runuser -u opendj -- ${deb.prefix}/upgrade -n --force --acceptLicense ; then
             # Restart only if the server was running before the upgrade
             # (preinst recorded this via the status flag).
             if [ -f ${deb.prefix}/logs/status ] ; then
                 echo "*Restarting server..."
+                STARTED=0
                 if [ -d /run/systemd/system ] ; then
-                    deb-systemd-invoke start opendj.service || true
+                    deb-systemd-invoke start opendj.service && STARTED=1 || true
                 else
-                    runuser -u opendj -- ${deb.prefix}/bin/start-ds || true
+                    runuser -u opendj -- ${deb.prefix}/bin/start-ds && STARTED=1 || true
                 fi
-                rm -f ${deb.prefix}/logs/status
+                if [ "$STARTED" = 1 ] ; then
+                    rm -f ${deb.prefix}/logs/status
+                else
+                    # Keep the status flag so a later "dpkg-reconfigure opendj"
+                    # (or the next upgrade) retries the restart.
+                    echo "Server restart failed; see the logs under ${deb.prefix}/logs and start the service manually."
+                fi
             fi
         else
             # Upgrade failed - may require manual user interaction. Do not fail
@@ -77,8 +92,10 @@ if [ "$1" = "configure" ] && [ -n "$2" ] ; then
             exit 0
         fi
     else
-        echo "Invalid installation, could not find the build info file."
-        exit 1
+        # Package files are in place but setup has never been run, so there is
+        # nothing to migrate. Same behaviour as the RPM package - do not fail
+        # the dpkg transaction after the new tree has been unpacked.
+        echo "Instance is not configured."
     fi
 fi
 

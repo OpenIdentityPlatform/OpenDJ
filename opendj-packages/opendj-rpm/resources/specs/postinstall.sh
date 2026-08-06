@@ -21,45 +21,52 @@
 
 # $1 is 1 for an initial installation and 2 for an upgrade.
 
-# Ensure the service account exists and owns the install tree (also migrates
-# installations that were previously owned by root on upgrade).
-getent group opendj >/dev/null || groupadd -r opendj
-getent passwd opendj >/dev/null || \
-    useradd -r -g opendj -d "%{_prefix}" -s /sbin/nologin -c "OpenDJ Directory Server" opendj
+# Own the install tree with the service account (the account itself is created
+# in %pre, before the payload lands). On upgrade this also migrates
+# installations that were previously owned by root.
 chown -R opendj:opendj "%{_prefix}" || true
 
-# Pin Java for the service via OpenDJ's own config, using a STABLE symlink (not a
-# version-specific path) so a JRE upgrade/reinstall does not break the service.
-# Only touch the shipped placeholder, never an admin-edited value.
-JAVA_PROPS="%{_prefix}"/config/java.properties
-JH=/usr/lib/jvm/jre
-[ -x "$JH/bin/java" ] || JH=$(dirname "$(dirname "$(command -v java 2>/dev/null)")" 2>/dev/null)
-if [ -n "$JH" ] && [ -x "$JH/bin/java" ] && grep -q '^default.java-home=\$JAVA_HOME' "$JAVA_PROPS" 2>/dev/null ; then
-    sed -i "s|^default.java-home=.*|default.java-home=$JH|" "$JAVA_PROPS"
+# Honour the documented admin overrides (OPENDJ_JAVA_HOME / OPENDJ_JAVA_BIN /
+# OPENDJ_JAVA_ARGS) for the upgrade tool and the restart below, exactly as the
+# service itself does via EnvironmentFile=.
+if [ -r /etc/sysconfig/opendj ] ; then
+    . /etc/sysconfig/opendj || true
+    export OPENDJ_JAVA_HOME OPENDJ_JAVA_BIN OPENDJ_JAVA_ARGS
 fi
 
-# Register the service: prefer systemd, fall back to chkconfig/SysV.
+# Register the service. Enable only on initial install, so an admin's
+# "systemctl disable" survives upgrades ("dnf update" must not re-enable).
+# systemctl enable works without a booted systemd (chroot/image builds); the
+# unit's ConditionPathExists keeps an unconfigured instance from failing at
+# boot. chkconfig --add is idempotent and keeps the SysV fallback registered.
+if [ "$1" = "1" ] && command -v systemctl >/dev/null 2>&1 ; then
+    systemctl enable opendj.service >/dev/null 2>&1 || true
+fi
+/sbin/chkconfig --add opendj >/dev/null 2>&1 || true
 if [ -d /run/systemd/system ] ; then
     systemctl daemon-reload >/dev/null 2>&1 || true
-    systemctl enable opendj.service >/dev/null 2>&1 || true
-else
-    /sbin/chkconfig --add opendj || true
 fi
 
 if [ "$1" = "2" ] ; then
     echo "Post Install - upgrade install"
     # Only if the instance has been configured.
-    if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs 2>/dev/null)" ] ; then
+    if [ -e "%{_prefix}"/config/buildinfo ] && [ -f "%{_prefix}"/config/config.ldif ] ; then
         if runuser -u opendj -- "%{_prefix}"/upgrade -n --force --acceptLicense ; then
             # If upgrade is ok, check the server status flag for restart.
             if [ -f "%{_prefix}"/logs/status ] ; then
                 echo "Restarting server..."
+                STARTED=0
                 if [ -d /run/systemd/system ] ; then
-                    systemctl start opendj.service || true
+                    systemctl start opendj.service && STARTED=1 || true
                 else
-                    runuser -u opendj -- "%{_prefix}"/bin/start-ds || true
+                    runuser -u opendj -- "%{_prefix}"/bin/start-ds && STARTED=1 || true
                 fi
-                rm -f "%{_prefix}"/logs/status
+                if [ "$STARTED" = 1 ] ; then
+                    rm -f "%{_prefix}"/logs/status
+                else
+                    # Keep the status flag so the next upgrade retries the restart.
+                    echo "Server restart failed; see the logs under %{_prefix}/logs and start the service manually."
+                fi
             fi
         else
             # Upgrade failed; may need manual interaction. Do not fail the transaction.

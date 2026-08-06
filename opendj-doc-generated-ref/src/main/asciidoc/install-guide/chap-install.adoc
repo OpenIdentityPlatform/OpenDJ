@@ -448,15 +448,16 @@ The package creates a dedicated `opendj` system user; the files under `/opt/open
 +
 To pin or override the Java runtime used by the service, set `OPENDJ_JAVA_HOME` (or `OPENDJ_JAVA_ARGS`) in `/etc/default/opendj`.
 
-. Configure OpenDJ directory server by running `setup` as the `opendj` user (the account that owns the files and runs the service):
+. Configure OpenDJ directory server by running `setup` as the `opendj` user (the account that owns the files and runs the service). Pass `--doNotStart` so that the server is started by systemd rather than by `setup` itself, then start the service:
 +
 
 [source, console]
 ----
-$ sudo -u opendj /opt/opendj/setup --cli
+$ sudo -u opendj /opt/opendj/setup --cli --doNotStart
 ...
 To see basic server configuration status and configuration you can launch
  /opt/opendj/bin/status
+$ sudo systemctl start opendj
 ----
 
 . (Optional)  Check OpenDJ directory server status:
@@ -527,7 +528,6 @@ Password:
 [source, console, subs="attributes"]
 ----
 # dnf install ./opendj-{opendj-version}-1.noarch.rpm
-Pre Install - initial install
 Post Install - initial install
 ----
 +
@@ -537,15 +537,16 @@ The package creates a dedicated `opendj` system user; the files under `/opt/open
 +
 To pin or override the Java runtime used by the service, set `OPENDJ_JAVA_HOME` (or `OPENDJ_JAVA_ARGS`) in `/etc/sysconfig/opendj`.
 
-. Configure OpenDJ directory server by running `setup` as the `opendj` user (the account that owns the files and runs the service):
+. Configure OpenDJ directory server by running `setup` as the `opendj` user (the account that owns the files and runs the service). Pass `--doNotStart` so that the server is started by systemd rather than by `setup` itself, then start the service:
 +
 
 [source, console]
 ----
-# runuser -u opendj -- /opt/opendj/setup --cli
+# runuser -u opendj -- /opt/opendj/setup --cli --doNotStart
 ...
 To see basic server configuration status and configuration you can launch
  /opt/opendj/bin/status
+# systemctl start opendj
 ----
 
 . (Optional)  Check OpenDJ directory server status:

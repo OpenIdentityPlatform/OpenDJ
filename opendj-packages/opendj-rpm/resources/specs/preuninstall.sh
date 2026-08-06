@@ -28,9 +28,16 @@ if [ "$1" = "0" ] ; then
         systemctl stop opendj.service >/dev/null 2>&1 || true
         systemctl disable opendj.service >/dev/null 2>&1 || true
     fi
-    if [ -x "%{_prefix}"/bin/stop-ds ] && [ -e "%{_prefix}"/config/buildinfo ] \
-       && [ "$(ls -A "%{_prefix}"/config/archived-configs 2>/dev/null)" ] ; then
-        "%{_prefix}"/bin/stop-ds || true
+    # Stop a still-running instance directly (non-systemd hosts) - keyed on
+    # the PID file, so an instance that was never upgraded is stopped too.
+    # Run the tree's own script as the tree owner, never as root.
+    if [ -x "%{_prefix}"/bin/stop-ds ] && [ -f "%{_prefix}"/logs/server.pid ] ; then
+        OWNER=$(stat -c '%%U' "%{_prefix}"/bin/stop-ds 2>/dev/null || echo root)
+        if [ "$OWNER" != root ] && command -v runuser >/dev/null 2>&1 ; then
+            runuser -u "$OWNER" -- "%{_prefix}"/bin/stop-ds || true
+        else
+            "%{_prefix}"/bin/stop-ds || true
+        fi
     fi
     if [ -e /etc/init.d/opendj ] ; then
         /sbin/chkconfig --del opendj || true

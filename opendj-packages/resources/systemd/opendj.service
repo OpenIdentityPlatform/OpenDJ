@@ -18,6 +18,9 @@ Description=OpenDJ LDAPv3 Directory Server
 Documentation=https://github.com/OpenIdentityPlatform/OpenDJ
 After=network-online.target
 Wants=network-online.target
+# Do not attempt to start (and burst-fail) until the instance has been
+# configured with /opt/opendj/setup.
+ConditionPathExists=/opt/opendj/config/config.ldif
 
 [Service]
 Type=simple
@@ -26,7 +29,6 @@ Group=opendj
 # Allow the non-root service to bind privileged ports (e.g. LDAP 389, LDAPS 636).
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE
-Environment=INSTALL_ROOT=/opt/opendj
 # Optional admin overrides (OPENDJ_JAVA_HOME / OPENDJ_JAVA_BIN / OPENDJ_JAVA_ARGS).
 # The leading "-" makes the file optional; deb ships /etc/default, rpm /etc/sysconfig.
 EnvironmentFile=-/etc/default/opendj
@@ -36,7 +38,6 @@ ExecStart=/opt/opendj/bin/start-ds --nodetach --quiet
 ExecStop=/opt/opendj/bin/stop-ds --quiet
 Restart=on-failure
 RestartSec=5
-TimeoutStartSec=180
 LimitNOFILE=65536
 
 [Install]

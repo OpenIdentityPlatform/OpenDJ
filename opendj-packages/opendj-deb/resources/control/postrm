@@ -18,6 +18,15 @@
 set -e
 # Post rm script. Package files are removed automatically by the package manager.
 
+if [ "$1" = "remove" ] ; then
+    # Mask the removed unit (as dh_installsystemd does): the enable symlink
+    # deliberately survives "remove" so the state is restored on re-install,
+    # and the mask keeps systemd from logging it as dangling on every boot.
+    if command -v deb-systemd-helper >/dev/null 2>&1 ; then
+        deb-systemd-helper mask opendj.service >/dev/null 2>&1 || true
+    fi
+fi
+
 if [ "$1" = "remove" ] || [ "$1" = "purge" ] ; then
     if [ -d /run/systemd/system ] ; then
         systemctl --system daemon-reload >/dev/null 2>&1 || true
@@ -31,7 +40,9 @@ if [ "$1" = "purge" ] ; then
         deb-systemd-helper purge opendj.service >/dev/null 2>&1 || true
         deb-systemd-helper unmask opendj.service >/dev/null 2>&1 || true
     fi
-    echo "*OpenDJ successfully removed"
+    echo "*OpenDJ package removed. Server data under ${deb.prefix} (config, db,"
+    echo " changelogDb, logs) and the opendj system account are kept; remove"
+    echo " them manually if they are no longer needed."
 fi
 
 echo

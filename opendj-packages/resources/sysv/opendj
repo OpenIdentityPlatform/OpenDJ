@@ -93,7 +93,9 @@ run_as() {
     elif command -v runuser >/dev/null 2>&1 ; then
         runuser -u "$RUNASUSER" -- "$@"
     else
-        su -s /bin/sh "$RUNASUSER" -c "$(while [ "$#" -gt 0 ]; do printf '%s ' "$1"; shift; done)"
+        # Pass the argv through untouched: $1 becomes $0 of the -c script,
+        # the rest arrive as "$@", so arguments with spaces survive.
+        su -s /bin/sh "$RUNASUSER" -c 'exec "$0" "$@"' "$@"
     fi
 }
 

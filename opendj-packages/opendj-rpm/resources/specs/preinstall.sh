@@ -27,15 +27,23 @@ getent passwd opendj >/dev/null || \
     useradd -r -g opendj -d "%{_prefix}" -s /sbin/nologin -c "OpenDJ Directory Server" opendj
 
 if [ "$1" = "2" ] ; then
-    # Upgrade: stop a running, configured instance and record state for restart.
-    if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs 2>/dev/null)" ] ; then
+    # Upgrade: stop the server if it is running - keyed on the PID file, not
+    # on archived-configs, so a freshly set-up instance is stopped too.
+    if [ -x "%{_prefix}"/bin/stop-ds ] && [ -f "%{_prefix}"/logs/server.pid ] ; then
         echo "Pre Install - upgrade install"
-        if [ -f "%{_prefix}"/logs/server.pid ] ; then
-            touch "%{_prefix}"/logs/status
-        fi
+        # Record that it was running so %post restarts it after the upgrade.
+        touch "%{_prefix}"/logs/status
         if [ -d /run/systemd/system ] ; then
             systemctl stop opendj.service >/dev/null 2>&1 || true
         fi
-        [ -x "%{_prefix}"/bin/stop-ds ] && "%{_prefix}"/bin/stop-ds || true
+        # Run the tree's own script as the tree owner, never as root: the tree
+        # is opendj-writable on installs with the dedicated service account
+        # (old root-owned installs keep running the script as root).
+        OWNER=$(stat -c '%%U' "%{_prefix}"/bin/stop-ds 2>/dev/null || echo root)
+        if [ "$OWNER" != root ] && command -v runuser >/dev/null 2>&1 ; then
+            runuser -u "$OWNER" -- "%{_prefix}"/bin/stop-ds || true
+        else
+            "%{_prefix}"/bin/stop-ds || true
+        fi
     fi
 fi

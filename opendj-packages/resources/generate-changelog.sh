@@ -125,7 +125,8 @@ RPM_PREAMBLE = """#
 # Header, with the fields enclosed by brackets [] replaced by your own identifying
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
-# Copyright 2013-2026 ForgeRock AS and Open Identity Platform Community.
+# Copyright 2013-2015 ForgeRock AS.
+# Portions Copyright 2026 3A Systems, LLC.
 
 # =============================
 # opendj rpm package changelog

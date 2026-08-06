@@ -155,8 +155,6 @@
                         <requires>
                             <!-- The server needs a JRE (11+) at run time. -->
                             <require>java-headless &gt;= 1:11</require>
-                            <!-- _script-util.sh locates java via "which java". -->
-                            <require>which</require>
                             <!-- postinstall runs the upgrade tool and the server via runuser. -->
                             <require>util-linux</require>
                             <!-- postinstall registers the service via /sbin/chkconfig on non-systemd hosts. -->
@@ -164,10 +162,13 @@
                             <!-- /etc/init.d/opendj sources /etc/init.d/functions on RedHat-family. -->
                             <require>initscripts</require>
                         </requires>
-                        <requiresPre>
-                            <!-- preinstall creates the dedicated opendj service user/group. -->
-                            <require>shadow-utils</require>
-                        </requiresPre>
+                        <!-- preinstall creates the dedicated opendj service user/group, so
+                             shadow-utils must be present before the payload is unpacked.
+                             The plugin has no requiresPre parameter; prereqs emits PreReq:,
+                             which rpm >= 4.8 treats as Requires(pre,preun). -->
+                        <prereqs>
+                            <prereq>shadow-utils</prereq>
+                        </prereqs>
                         <description>
                             ${rpm.description.header}
                             OpenDJ is an LDAPv3 compliant directory service, developed for the Java

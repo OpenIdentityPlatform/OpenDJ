@@ -1,3 +1,97 @@
+opendj (5.2.0) UNRELEASED; urgency=medium
+
+  * Modernize Debian and RPM packaging: systemd service unit, dedicated opendj
+    service account, package upgrade/install tests in CI (#663). This stanza
+    is replaced by the release notes when generate-changelog.sh is re-run at
+    release time.
+
+ -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Thu, 06 Aug 2026 12:00:00 +0000
+
+opendj (5.1.2) unstable; urgency=medium
+
+  * Add an OpenDJ vs OpenLDAP LDAP benchmark GitHub Action
+  * CVE-2026-62366 OpenDJ Unauthenticated stack exhaustion when decoding an
+    LDAP search filter (DoS)
+  * CVE-2026-62373 OpenDJ JMX MBean-argument deserialization without a serial
+    filter
+  * CVE-2026-62375 OpenDJ Unbounded VLV offset array allocation leading to
+    memory-exhaustion DoS
+  * GHSA-68r5-9hpg-7qw9 OpenDJ unauthenticated SSRF, local file read and
+    unbounded-read DoS in the DSMLv2 gateway
+  * GHSA-p279-2cqp-84jg SASL PLAIN authzid bypassing the proxy ACI scope check
+  * CI: full Java matrix on ubuntu only; macOS/Windows build with Java 11 and
+    26
+  * Modernizes the OpenDJ Docker images and broadens their multi-architecture
+    build matrix.
+  * Benchmark the built Docker image against the released one
+  * Stabilize Oracle JDBC backend test on CI
+  * Log JMX RMI connector startup failure at error level
+  * Docs: add missing tools references
+  * CI: dump OpenDJ container logs when Docker image smoke tests fail
+  * Refactor file deletion logic to combine null check and length check.
+  * Add CI smoke tests for the addrate/authrate/modrate/searchrate tools
+  * Fix duplicate SNMP connection handler entries in packaged config.ldif
+  * Fix duplicate opendj-server-legacy classes in distribution lib/
+  * Add CI install-test for the Windows MSI + document MSI
+    install/upgrade/uninstall
+  * [#665] Fix StackOverflowError while parsing long ACI with repetitive
+    targets
+  * [#693] Fix Windows scripts for install paths with spaces and parentheses
+  * Fix two broken AciTests cases and enable the suite in the default build
+  * [#673] Fix ArrayIndexOutOfBoundsException on truncated percent-encoding in
+    LDAP URLs
+  * Declare the deb/rpm runtime dependencies (java, which, chkconfig)
+  * [#697] Fix global idle-time-limit having no effect on client connections
+  * Fix embedded server rebuildIndex failing with Connect Error
+  * Fix and enable broken tests from the slow group
+  * [#696] Fix embedded server setup failing with "Time service not started"
+  * Revive the quicksetup test suite
+  * Fix and enable the replication StressTest
+  * Remove the unfixable testStateMachineFull and fix the dead replay pool
+  * Fix ACI grouped bind rule wrongly rejected when a value contains
+    parentheses
+  * Enable the remaining slow-group tests in the default build
+  * Include *TestSuite classes in the failsafe run
+  * Enable the SNMP tests in the default build
+  * Fix and enable the AlternateRootDN ACI test
+  * [#709] Enable disabled and invisible tests across the sibling modules
+  * [#712] Fix StringIndexOutOfBoundsException on blank bind rule in ACI
+  * CVE-2026-9828 QOS.CH Sarl logback logback-core has a deserialization of
+    untrusted data vulnerability
+  * ci: add "Benchmark PDB vs JE" step to build-docker
+  * Add concurrency groups to GitHub Actions workflows
+  * [#695] Fix race in TraditionalWorkQueue.isIdle()
+  * [#690] Fix finalizeWorkQueue never cancelling queued operations
+  * [#692] Restore partial import semantics for include/exclude branches
+  * Restrict Unix integration-test steps to Linux only
+  * ci: add CodeQL code scanning workflow
+  * [#719] Fix NullPointerException decoding an ACI bind rule with a missing
+    and/or operand
+  * CVE-2026-10532 Logback vulnerable to Object Injection through
+    HardenedObjectInputStream modules
+  * [#728] Reject TCP self-connects in replication connect paths
+  * Fix flaky BindOperationTestCase subtree auth-info tests
+  * [#730] Fix import/export context leak on failed initializeRemote
+    validation
+  * Fix intermittent GenerationIdTest.testMultiRS by re-advertising genId on
+    change
+  * [#710] Fix replication catch-up re-sending updates with the original
+    assured flag
+  * [#726] Reject malformed bracketed IPv6 hosts in HostPort
+  * Enable Javadoc doclint (all,-missing) and fail on warnings
+  * [#735] Do not roll back a concurrently adopted generation ID on aborted
+    handshake
+  * [#737] Fix cn=changelog search failing when aliases are dereferenced
+  * [#738] Fix dereferencing an alias that points into another backend
+  * Harden opendj-docker apt step: force IPv4 + retries
+  * [#739] Fix alias dereferencing dropping entries and accumulating DNs
+  * [#744] Fix flaky ChangelogBackendTestCase: keep generated CSN batches
+    monotonic
+  * Bump org.openidentityplatform.commons to 3.1.2
+  * [#708] Fix OutOfMemory during replication initialize with JDBC backend
+
+ -- Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>  Fri, 17 Jul 2026 14:34:15 +0000
+
 opendj (5.1.1) unstable; urgency=medium
 
   * CVE-2026-46495 OpenDJ Unauthenticated RCE via Java Deserialization in JMX

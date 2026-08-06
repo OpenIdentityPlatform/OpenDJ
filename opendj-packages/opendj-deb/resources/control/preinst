@@ -19,17 +19,25 @@ set -e
 
 # Pre installation script.
 if [ "$1" = "upgrade" ] ; then
-    # Only act if the instance has been configured.
-    if [ -f ${deb.prefix}/config/buildinfo ] && [ "$(ls -A ${deb.prefix}/config/archived-configs 2>/dev/null)" ] ; then
-        # If the server is running before the upgrade, record it so postinst can restart it.
-        if [ -f ${deb.prefix}/logs/server.pid ] ; then
-            touch ${deb.prefix}/logs/status
-        fi
+    # Stop the server if it is running - keyed on the PID file, not on
+    # archived-configs, so a freshly set-up instance that was never upgraded
+    # before is stopped too.
+    if [ -x ${deb.prefix}/bin/stop-ds ] && [ -f ${deb.prefix}/logs/server.pid ] ; then
+        # Record that it was running so postinst restarts it after the upgrade.
+        touch ${deb.prefix}/logs/status
         echo "*Stopping OpenDJ server..."
         if [ -d /run/systemd/system ] ; then
             deb-systemd-invoke stop opendj.service || true
         fi
-        [ -x ${deb.prefix}/bin/stop-ds ] && ${deb.prefix}/bin/stop-ds || true
+        # Run the tree's own script as the tree owner, never as root: the tree
+        # is opendj-writable on installs with the dedicated service account
+        # (old root-owned installs keep running the script as root).
+        OWNER=$(stat -c %U ${deb.prefix}/bin/stop-ds 2>/dev/null || echo root)
+        if [ "$OWNER" != root ] && command -v runuser >/dev/null 2>&1 ; then
+            runuser -u "$OWNER" -- ${deb.prefix}/bin/stop-ds || true
+        else
+            ${deb.prefix}/bin/stop-ds || true
+        fi
     fi
 fi
 echo
