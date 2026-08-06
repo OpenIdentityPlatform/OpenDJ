@@ -324,14 +324,14 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     for (DN baseDN : entryContainers.keySet())
     {
       EntryContainer ec = unregisterEntryContainer(baseDN);
-      ec.exclusiveLock.lock();
+      ec.lock();
       try
       {
         ec.close();
       }
       finally
       {
-        ec.exclusiveLock.unlock();
+        ec.unlock();
       }
     }
     config.removePluggableChangeListener(this);
