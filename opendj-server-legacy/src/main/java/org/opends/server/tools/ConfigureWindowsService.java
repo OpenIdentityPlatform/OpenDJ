@@ -97,6 +97,12 @@ public class ConfigureWindowsService
   private static final int SERVICE_MARKED_FOR_DELETION = 2;
   /** An error occurred disabling the service. */
   public static final int SERVICE_DISABLE_ERROR = 3;
+  /**
+   * The service is managed by the MSI package and was deliberately left
+   * untouched (it is removed when the package is uninstalled). Also returned
+   * by cleanupService for the same reason.
+   */
+  public static final int SERVICE_MSI_MANAGED = 4;
 
   /** Return codes for the method serviceState. */
   /** The service is enabled. */
@@ -486,6 +492,9 @@ public class ConfigureWindowsService
       case 3:
         printWrappedText(err, ERR_WINDOWS_SERVICE_DISABLE_ERROR.get());
         return SERVICE_DISABLE_ERROR;
+      case 4:
+        printWrappedText(out, INFO_WINDOWS_SERVICE_MSI_MANAGED.get());
+        return SERVICE_MSI_MANAGED;
       default:
         printWrappedText(err, ERR_WINDOWS_SERVICE_DISABLE_ERROR.get());
         return SERVICE_DISABLE_ERROR;
@@ -556,6 +565,9 @@ public class ConfigureWindowsService
       case 3:
         printWrappedText(err, ERR_WINDOWS_SERVICE_CLEANUP_ERROR.get(serviceName));
         return SERVICE_CLEANUP_ERROR;
+      case 4:
+        printWrappedText(out, INFO_WINDOWS_SERVICE_MSI_MANAGED.get());
+        return SERVICE_MSI_MANAGED;
       default:
         printWrappedText(err, ERR_WINDOWS_SERVICE_CLEANUP_ERROR.get(serviceName));
         return SERVICE_CLEANUP_ERROR;

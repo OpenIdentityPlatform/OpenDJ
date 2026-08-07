@@ -69,6 +69,30 @@
     <!-- ARP/winget/SCCM report the install location from ARPINSTALLLOCATION. -->
     <SetProperty Id="ARPINSTALLLOCATION" Value="[OPENDJ]" After="CostFinalize" Sequence="execute"/>
 
+    <!-- 5.1.x wrote no registry value, so an upgrade from a custom directory resolves
+         neither search: proceeding would install to the default while RemoveExistingProducts
+         empties the old tree. Refuse instead. Execute sequence only - in the interactive
+         wizard the user sees and confirms the directory in InstallDirDlg, which sets
+         OPENDJ. -->
+    <CustomAction Id="RequireDirOnCustomUpgrade"
+                  Error="An existing OpenDJ installation was detected, but its location could not be determined. Run the installer again with the installation directory passed explicitly: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot;"/>
+
+    <!-- With the afterInstallValidate schedule RemoveExistingProducts (~1401) runs before
+         StopServices (1900): a still-running legacy (windows-service.bat) service would
+         hold lib\*.jar while the old product's files are removed, queueing delayed deletes
+         that fire at the next boot. Stop it up front. Immediate action (deferred cannot be
+         sequenced before InstallInitialize); the full path prevents resolving net.exe from
+         the working directory; TARGETDIR always exists. -->
+    <CustomAction Id="StopLegacyServiceBeforeUpgrade" Directory="TARGETDIR"
+                  ExeCommand="&quot;[System64Folder]net.exe&quot; stop &quot;OpenDJ Server&quot;"
+                  Return="ignore"/>
+    <InstallExecuteSequence>
+      <Custom Action="RequireDirOnCustomUpgrade" After="SetOpendjFromLegacyDir"
+              Condition="WIX_UPGRADE_DETECTED AND NOT OPENDJ"/>
+      <Custom Action="StopLegacyServiceBeforeUpgrade" Before="RemoveExistingProducts"
+              Condition="WIX_UPGRADE_DETECTED"/>
+    </InstallExecuteSequence>
+
     <!-- UI customization -->
     <WixVariable Id="WixUIBannerBmp" Value="opendjbanner.bmp"/>
     <WixVariable Id="WixUIDialogBmp" Value="opendjdialog.bmp"/>
@@ -132,20 +156,21 @@
            its own service entry up (msiexec cannot write the canonical
            '"<root>\lib\opendj_service.exe" start "<root>"' form: it only quotes the exe
            when the path has spaces). -->
-      <ServiceInstall Id="OpenDJService" Name="OpenDJ" DisplayName="OpenDJ Server"
+      <!-- DisplayName deliberately equals the key name: the legacy windows-service.bat
+           naming loop starts at display name "OpenDJ Server" and checks key names only,
+           so any other display name here would make CreateService fail with
+           ERROR_DUPLICATE_SERVICE_NAME for every additional zip instance on the host.
+           A failed registration fails the install (Vital defaults to yes) instead of
+           reporting success with no service. -->
+      <ServiceInstall Id="OpenDJService" Name="OpenDJ" DisplayName="OpenDJ"
                       Description="OpenDJ LDAPv3 Directory Server" Type="ownProcess"
                       Start="auto" ErrorControl="normal"
-                      Arguments="start &quot;[OPENDJ].&quot;" Vital="no"/>
+                      Arguments="start &quot;[OPENDJ].&quot;"/>
+      <!-- Stop="uninstall" covers both msiexec /x and the RemoveExistingProducts-driven
+           upgrade (the old product's uninstall runs this row); "both" would also stop a
+           running production server on every repair, with no Start to bring it back. -->
       <ServiceControl Id="OpenDJServiceControl" Name="OpenDJ"
-                      Stop="both" Remove="uninstall" Wait="yes"/>
-      <!-- The legacy windows-service.bat service (key name = display name = "OpenDJ Server";
-           customized/localized installs may differ, e.g. "OpenDS" on ko/zh_TW) points at the
-           old install and its display name collides with the ServiceInstall above. MSI's own
-           StopServices/DeleteServices can control a service this package does not install,
-           so drop it there - no custom action, no rollback gap, right instance semantics
-           (a failure to stop fails the install instead of silently proceeding). -->
-      <ServiceControl Id="RemoveLegacyOpenDJServer" Name="OpenDJ Server"
-                      Stop="install" Remove="install" Wait="yes"/>
+                      Stop="uninstall" Remove="uninstall" Wait="yes"/>
       <!-- Event-log source for the service key: without these values every event the wrapper
            reports renders as "The description for Event ID ... cannot be found." They mirror
            what createRegistryKey in service.c writes for windows-service.bat installs. -->
@@ -155,6 +180,23 @@
         <RegistryValue Name="TypesSupported" Type="integer" Value="7"/>
         <RegistryValue Name="CategoryCount" Type="integer" Value="1"/>
       </RegistryKey>
+    </Component>
+
+    <!-- The legacy windows-service.bat service (key name = display name = "OpenDJ Server";
+         customized/localized installs may differ, e.g. "OpenDS" on ko/zh_TW) points at the
+         old install tree and would keep auto-starting it. MSI's own
+         StopServices/DeleteServices can control a service this package does not install,
+         so drop it there - no custom action, no rollback gap, and a failure to stop fails
+         the install instead of silently proceeding. Guarded by its own component: only
+         when an existing OpenDJ was detected (upgrade, or a detected install location) -
+         a fresh install on a host running an unrelated zip instance elsewhere must not
+         touch that instance's service. -->
+    <Component Id="RemoveLegacyServiceControl" Directory="OPENDJ"
+               Guid="3F2A9C41-7D28-4E0B-9B1D-6C54A0D2E7F3"
+               Condition="WIX_UPGRADE_DETECTED OR OPENDJ_LEGACY OR OPENDJ_REG">
+      <CreateFolder/>
+      <ServiceControl Id="RemoveLegacyOpenDJServer" Name="OpenDJ Server"
+                      Stop="install" Remove="install" Wait="yes"/>
     </Component>
 
     <!-- Remember the install location so upgrades land in the same directory. -->
@@ -175,6 +217,7 @@
 
     <Feature Id="All" Title="Server and tools" ConfigurableDirectory="OPENDJ">
       <ComponentRef Id="OpenDJServiceExe"/>
+      <ComponentRef Id="RemoveLegacyServiceControl"/>
       <ComponentRef Id="InstallDirRegistry"/>
       <ComponentGroupRef Id="OpenDJRoot"/>
       <ComponentGroupRef Id="OpenDJLib"/>

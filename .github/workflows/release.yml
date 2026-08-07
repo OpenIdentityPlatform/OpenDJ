@@ -98,6 +98,9 @@ jobs:
           name: release-server-zip
           retention-days: 1
           path: target/checkout/opendj-server-legacy/target/package/*.zip
+          # A missing zip means release-msi cannot build: fail this step (the job keeps
+          # going thanks to continue-on-error, but the loss is visible).
+          if-no-files-found: error
       - name: Release on GitHub
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
@@ -212,7 +215,10 @@ jobs:
       - name: Build the MSI (packaging only, no rebuild)
         env:
           MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
-        run: mvn --batch-mode --errors -DskipTests package -pl :opendj-msi-standard --file pom.xml
+        # -P: do not rely on the wix.exe file-activation of distribution-windows-msi -
+        # a path drift would otherwise yield "Could not find the selected project in
+        # the reactor", swallowed by the job's continue-on-error.
+        run: mvn --batch-mode --errors -DskipTests package -pl :opendj-msi-standard -Pdistribution-windows-msi --file pom.xml
       - name: Attach the MSI to the GitHub release
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:

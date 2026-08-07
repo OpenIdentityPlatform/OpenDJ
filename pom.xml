@@ -619,6 +619,12 @@
                     </executions>
                 </plugin>
 
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.6.3</version>
+                </plugin>
+
                 <!-- Retrieve the build timestamp and SCM revision number -->
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>

@@ -105,11 +105,11 @@
                 </executions>
             </plugin>
 
-            <!-- Build the x64 MSI with the WiX v5 .NET tool. -->
+            <!-- Build the x64 MSI with the WiX v5 .NET tool (exec-maven-plugin version
+                 managed in the root pom). -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.6.3</version>
                 <executions>
                     <execution>
                         <id>wix-build-msi</id>

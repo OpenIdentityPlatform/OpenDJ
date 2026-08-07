@@ -126,6 +126,9 @@ jobs:
         with:
          name: OpenDJ MSI Package
          path: windows-build/opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
+         # Make a silently-missing MSI visible: the step fails (job continues via
+         # continue-on-error) instead of warning and publishing nothing.
+         if-no-files-found: error
       - name: Upload artifacts OpenDJ Docker Packages
         uses: actions/upload-artifact@v7
         with:

@@ -2596,13 +2596,29 @@ int serviceState()
 // Returns 2 if the service was marked for deletion but is still in
 // use.
 // Returns 3 if an error occurred.
+// Returns 4 if the service is managed by the MSI package and was
+// deliberately left untouched.
 // ---------------------------------------------------------------
 int removeServiceWithServiceName(char *serviceName)
 {
   int returnCode = 0;
-  ServiceReturnCode code = serviceNameInUse(serviceName);
+  ServiceReturnCode code;
 
   debug("Removing service with name %s.", serviceName);
+
+  if (_stricmp(serviceName, MSI_SERVICE_NAME) == 0)
+  {
+    // The MSI-managed service belongs to the installer: deleting it here
+    // (remove or cleanup subcommand) would leave msiexec /x targeting a key
+    // that no longer exists. Callers map this code to an informational skip.
+    fprintf(stdout,
+    "The service is managed by the OpenDJ installer (MSI) "
+    "and is removed when the package is uninstalled.\n");
+    debug("Refusing to remove the MSI-managed service '%s'.", serviceName);
+    return 4;
+  }
+
+  code = serviceNameInUse(serviceName);
 
   if (code != SERVICE_IN_USE)
   {
@@ -2642,6 +2658,8 @@ int removeServiceWithServiceName(char *serviceName)
 // Returns 2 if the service was marked for deletion but is still in
 // use.
 // Returns 3 if an error occurred.
+// Returns 4 if the service is managed by the MSI package and was
+// deliberately left untouched.
 // ---------------------------------------------------------------
 int removeService()
 {
@@ -2658,21 +2676,7 @@ int removeService()
     code = getServiceName(cmdToRun, serviceName);
     if (code == SERVICE_RETURN_OK)
     {
-      if (_stricmp(serviceName, MSI_SERVICE_NAME) == 0)
-      {
-        // The MSI-managed service belongs to the installer: deleting it here
-        // would leave msiexec /x targeting a key that no longer exists, and a
-        // later --enableService would re-create it under a different key.
-        fprintf(stdout,
-        "The service is managed by the OpenDJ installer (MSI) "
-        "and is removed when the package is uninstalled.\n");
-        debug("Refusing to remove the MSI-managed service '%s'.", serviceName);
-        returnCode = 3;
-      }
-      else
-      {
-        returnCode = removeServiceWithServiceName(serviceName);
-      }
+      returnCode = removeServiceWithServiceName(serviceName);
     }
     else
     {
