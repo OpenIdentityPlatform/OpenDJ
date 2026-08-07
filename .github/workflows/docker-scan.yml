@@ -39,15 +39,21 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Scan openidentityplatform/opendj:${{ matrix.tag }} (Trivy)
+        # unlike the build.yml gate, unfixed CVEs are reported too: surfacing them in
+        # already-released images is the point of this workflow
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: openidentityplatform/opendj:${{ matrix.tag }}
           format: sarif
           output: trivy-${{ matrix.tag }}.sarif
           severity: CRITICAL,HIGH
-          ignore-unfixed: true
+          limit-severities-for-sarif: true
+          scanners: vuln
+          cache: false
       - name: Upload report to GitHub Security
         uses: github/codeql-action/upload-sarif@v4
+        # upload even if a preceding step failed, but not without a report to upload
+        if: ${{ always() && hashFiles(format('trivy-{0}.sarif', matrix.tag)) != '' }}
         with:
           sarif_file: trivy-${{ matrix.tag }}.sarif
           category: trivy-image-${{ matrix.tag }}
