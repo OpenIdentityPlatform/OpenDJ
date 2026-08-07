@@ -36,6 +36,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <localized.jars.classifier>i18n</localized.jars.classifier>
         <commons.version>3.1.2</commons.version>
+        <!-- Overrides the version pinned by org.openidentityplatform.commons:parent
+             (GHSA-r7wm-3cxj-wff9, CVE-2026-54512, CVE-2026-54513 are fixed in 2.18.8) -->
+        <jackson.version>2.18.9</jackson.version>
         <freemarker.version>2.3.34</freemarker.version>
         <metrics-core.version>4.2.30</metrics-core.version>
         <bc.fips.version>2.1.3</bc.fips.version>
@@ -151,6 +154,15 @@
 	</pluginRepositories>
     <dependencyManagement>
         <dependencies>
+        	<!-- Must be imported before org.openidentityplatform.commons:parent:
+        	     the first BOM that manages an artifact wins -->
+        	<dependency>
+        		<groupId>com.fasterxml.jackson</groupId>
+        		<artifactId>jackson-bom</artifactId>
+        		<version>${jackson.version}</version>
+        		<type>pom</type>
+        		<scope>import</scope>
+        	</dependency>
         	<dependency>
         		<groupId>org.openidentityplatform.commons</groupId>
         		<artifactId>parent</artifactId>
