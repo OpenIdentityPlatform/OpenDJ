@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC
  */
 /*
  * Copyright 2005 Sun Microsystems, Inc.  All rights reserved.
@@ -136,18 +137,26 @@ public final class Crypt
     int _iobuf[]  = new int[16];
   }
 
-  private final SubCrypt _crypt;
+  /**
+   * The working state of the algorithm. setkey(), encrypt() and _crypt() all
+   * scribble on these buffers (and _crypt() returns a reference to _iobuf),
+   * so a per-thread instance is used instead of a shared instance guarded by
+   * a lock: encrypting under a global lock serializes all concurrent {CRYPT}
+   * password operations.
+   */
+  private final ThreadLocal<SubCrypt> _crypt = ThreadLocal.withInitial(() -> {
+    SubCrypt c = new SubCrypt();
+    copy(e, c._E);
+    return c;
+  });
 
   /**
    * Constructor.
    */
   public Crypt() {
-    _crypt = new SubCrypt();
-
-    copy(e, _crypt._E);
   }
 
-  private void copy(byte[] src, int[] dest) {
+  private static void copy(byte[] src, int[] dest) {
     for (int i = 0; i < dest.length; i++) {
       dest[i] = src[i];
     }
@@ -158,7 +167,7 @@ public final class Crypt
    */
   private void setkey(int[] key)
   {
-    SubCrypt _c = _crypt;
+    SubCrypt _c = _crypt.get();
 
     /*
      * if (_c == null) { _cryptinit(); _c = __crypt; }
@@ -270,7 +279,7 @@ public final class Crypt
    */
   private final void encrypt(int block[], int edflag)
   {
-    SubCrypt _c = _crypt;
+    SubCrypt _c = _crypt.get();
 
     /*
      * First, permute the bits in the input
@@ -369,8 +378,6 @@ public final class Crypt
     }
   }
 
-  private Object digestLock = new Object();
-
   /**
    * Encode the supplied password in unix crypt form with the provided
    * salt.
@@ -382,11 +389,7 @@ public final class Crypt
    */
   public byte[] crypt(byte[] pw, byte[] salt)
   {
-    int[] r;
-    synchronized (digestLock)
-    {
-      r = _crypt(pw, salt);
-    }
+    int[] r = _crypt(pw, salt);
 
     //TODO: crypt always returns same size array?  So don't mess
     // around calculating the number of zeros at the end.
@@ -416,7 +419,7 @@ public final class Crypt
 
   private int[] _crypt(byte[] pw, byte[] salt)
   {
-    SubCrypt _c = _crypt;
+    SubCrypt _c = _crypt.get();
 
     Arrays.fill(_c._ablock, 0);
 

@@ -25,7 +25,8 @@ concurrency:
 
 # Nothing in this workflow writes back to the repository: the docker jobs push to
 # the local registry service, not to a remote one, and the other jobs only
-# publish artifacts through the actions API.
+# publish artifacts through the actions API. The docker jobs additionally get
+# security-events: write to upload Trivy scan results to code scanning.
 permissions:
   contents: read
 
@@ -419,6 +420,9 @@ jobs:
   build-docker:
     needs: build-maven
     runs-on: 'ubuntu-latest'
+    permissions:
+      contents: read
+      security-events: write
     services:
       registry:
         image: registry:3
@@ -437,6 +441,7 @@ jobs:
         run:   |
           export git_version_last="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)" ; echo "last release: $git_version_last"
           echo "release_version=$git_version_last" >> $GITHUB_ENV
+          echo "image_repository=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
@@ -491,6 +496,28 @@ jobs:
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_custom | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_custom 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword custom_password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
           docker kill test_custom
+      - name: Scan image for vulnerabilities (Trivy)
+        # trivy resolves the image from the local Docker daemon, so only the runner's
+        # linux/amd64 manifest is scanned; cache: false keeps the ~1GB trivy DBs from
+        # evicting the m2-repository caches out of the repo's 10GB actions-cache quota
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: localhost:5000/${{ env.image_repository }}:${{ env.release_version }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          limit-severities-for-sarif: true
+          ignore-unfixed: true
+          scanners: vuln
+          cache: false
+      - name: Upload Trivy report to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        # upload even if a preceding step failed, but not without a report to upload
+        if: ${{ always() && hashFiles('trivy-results.sarif') != '' }}
+        with:
+          sarif_file: trivy-results.sarif
+          # distinct from the docker-scan.yml categories, which track the published images
+          category: trivy-build-default
       - name: Cache JMeter
         uses: actions/cache@v5
         with:
@@ -538,6 +565,9 @@ jobs:
   build-docker-alpine:
     needs: build-maven
     runs-on: 'ubuntu-latest'
+    permissions:
+      contents: read
+      security-events: write
     services:
       registry:
         image: registry:3
@@ -556,6 +586,7 @@ jobs:
         run:   |
           export git_version_last="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)" ; echo "last release: $git_version_last"
           echo "release_version=$git_version_last" >> $GITHUB_ENV
+          echo "image_repository=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
       - name: Docker meta 
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
@@ -611,6 +642,28 @@ jobs:
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_custom | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_custom 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword custom_password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
           docker kill test_custom
+      - name: Scan image for vulnerabilities (Trivy)
+        # trivy resolves the image from the local Docker daemon, so only the runner's
+        # linux/amd64 manifest is scanned; cache: false keeps the ~1GB trivy DBs from
+        # evicting the m2-repository caches out of the repo's 10GB actions-cache quota
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: localhost:5000/${{ env.image_repository }}:${{ env.release_version }}-alpine
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          limit-severities-for-sarif: true
+          ignore-unfixed: true
+          scanners: vuln
+          cache: false
+      - name: Upload Trivy report to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        # upload even if a preceding step failed, but not without a report to upload
+        if: ${{ always() && hashFiles('trivy-results.sarif') != '' }}
+        with:
+          sarif_file: trivy-results.sarif
+          # distinct from the docker-scan.yml categories, which track the published images
+          category: trivy-build-alpine
       - name: Cache JMeter
         uses: actions/cache@v5
         with:
