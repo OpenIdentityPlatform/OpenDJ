@@ -640,13 +640,20 @@ opendj         0:off    1:off    2:on    3:on    4:on    5:on    6:off
 [#install-msi]
 .To Install With the Windows Installer (MSI)
 ====
-On Windows you can install OpenDJ directory server from the `.msi` package. The installer only copies the server files to disk: it does not configure or start a server, it does not register a Windows service, and it does not install a Java runtime.
+On Windows you can install OpenDJ directory server from the `.msi` package. The installer copies the server files to disk and registers the `OpenDJ` Windows service, but it does not configure or start a server (run `setup` first) and it does not install a Java runtime.
+
+[NOTE]
+======
+When the installer detects an existing OpenDJ installation (an upgrade, or a detected installation directory), it stops and removes a service registered by the legacy `windows-service.bat` command, replacing it with the installer-managed `OpenDJ` service. Because the service is registered with automatic start, Windows logs a start failure at every boot until the instance has been configured with `setup`.
+======
 
 . Make sure a supported Java runtime is available, as described in xref:#before-you-install["To Prepare For Installation"].
 +
-The installer does not check for Java. If your default Java environment is not appropriate, set `OPENDJ_JAVA_HOME` to the correct Java installation (or `OPENDJ_JAVA_BIN` to the absolute path of the `java` command), or make sure `java` is on the `PATH`, before you run `setup` or start the server.
+The installer itself does not check for or install Java, but `setup` and the server require it: install a JRE (for example link:https://adoptium.net[Eclipse Temurin, window=\_blank]) and set `JAVA_HOME` to your Java installation, or make sure the `java` executable is on the `PATH`. If your default Java environment is not the one OpenDJ should use, set `OPENDJ_JAVA_HOME` to the correct Java installation (or `OPENDJ_JAVA_BIN` to the absolute path of the `java` command) before you run `setup` or start the server.
 
 . Install the package, either with the GUI or silently:
++
+The package is not code-signed, so Windows SmartScreen or User Account Control may warn about an unrecognized publisher; choose to run the installer anyway.
 +
 * GUI: double-click `opendj-{opendj-version}.msi` and follow the wizard.
 +
@@ -658,9 +665,11 @@ The installer does not check for Java. If your default Java environment is not a
 C:\> msiexec /i opendj-{opendj-version}.msi /quiet OPENDJ="C:\opendj"
 ----
 +
-By default the package installs under `C:\Program Files\OpenDJ` (the 32-bit installer uses `C:\Program Files (x86)\OpenDJ` on 64-bit Windows).
+When `OPENDJ` is not given, the installer uses an existing OpenDJ installation directory when it detects one — the location recorded in the registry by a previous x64 package, or the legacy 32-bit default `C:\Program Files (x86)\OpenDJ` — and otherwise installs under `C:\Program Files\OpenDJ`.
++
+The service runs as `LocalSystem`. A directory created directly under the drive root (for example `C:\opendj`) is writable by all authenticated users by default, which would let a standard user replace the server scripts that the service runs. Prefer the default location under `Program Files`, or restrict the ACL of a custom installation directory.
 
-. Configure OpenDJ directory server by running the `setup` command, described in xref:../reference/admin-tools-ref.adoc#setup-1[setup(1)] in the __Reference__, from the installation directory. Use `setup.bat` for the GUI wizard or `setup.bat --cli` for the command-line:
+. Configure OpenDJ directory server by running the `setup` command, described in xref:../reference/admin-tools-ref.adoc#setup-1[setup(1)] in the __Reference__, from the installation directory. Use `setup.bat` for the GUI wizard or `setup.bat --cli` for the command-line. When OpenDJ is installed under `Program Files`, run the command from an elevated (run as Administrator) prompt — the server writes into its installation directory:
 +
 
 [source, console]
@@ -668,13 +677,12 @@ By default the package installs under `C:\Program Files\OpenDJ` (the 32-bit inst
 C:\path\to\opendj> setup.bat --cli
 ----
 
-. (Optional)  Register OpenDJ as a Windows service and start it. The MSI does not register the service; use the `windows-service` command:
+. Start the OpenDJ Windows service. The installer already registered it as `OpenDJ`; after configuring with `setup`, start it from an elevated prompt (it is not started automatically during installation):
 +
 
 [source, console]
 ----
-C:\path\to\opendj\bat> windows-service.bat --enableService
-C:\> net start "OpenDJ Server"
+C:\> net start OpenDJ
 ----
 
 ====

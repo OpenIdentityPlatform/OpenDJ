@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -55,7 +56,6 @@
                 <module>opendj-deb</module>
                 <module>opendj-rpm</module>
                 <module>opendj-svr4</module>
-                <module>opendj-msi</module>
     		 	<module>opendj-docker</module>
             </modules>
         </profile>
@@ -69,7 +69,6 @@
             </activation>
             <modules>
                 <module>opendj-svr4</module>
-                <module>opendj-msi</module>
                 <module>opendj-docker</module>
             </modules>
         </profile>
@@ -79,8 +78,24 @@
                 <os><family>windows</family></os>
             </activation>
             <modules>
-            	<module>opendj-msi</module>
     	 		<module>opendj-docker</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>distribution-windows-msi</id>
+            <!-- The MSI is built on Windows only (WiX's build task P/Invokes msi.dll, so
+                 Linux/macOS builds are impossible) and only when the WiX v5 .NET tool is
+                 actually installed - CI installs it (see the opendj-msi-standard module
+                 description for the full toolchain). Without the wix.exe guard a plain
+                 `mvn install` on a contributor's Windows machine would fail mid-reactor
+                 with "Cannot run program wix". Activate with -Pdistribution-windows-msi
+                 when wix is installed outside the dotnet global-tools directory. -->
+            <activation>
+                <os><family>windows</family></os>
+                <file><exists>${env.USERPROFILE}/.dotnet/tools/wix.exe</exists></file>
+            </activation>
+            <modules>
+            	<module>opendj-msi</module>
             </modules>
         </profile>
     </profiles>

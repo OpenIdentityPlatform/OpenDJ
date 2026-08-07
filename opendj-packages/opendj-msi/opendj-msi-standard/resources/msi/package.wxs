@@ -15,45 +15,224 @@
  ! Copyright 2013-2016 ForgeRock AS.
  ! Portions Copyright 2018-2026 3A Systems, LLC
  ! -->
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Codepage="1252" Language="1033" Manufacturer="Open Identity Platform Community"
-           Name="$(var.name) $(var.major).$(var.minor).$(var.point)" Version="$(var.major).$(var.minor).$(var.point)"
-           UpgradeCode="A3E82AC0-88E6-4DEE-9D8C-5AE3B7853274">
-    <Package Id="*" Comments="This package contains $(var.name) $(var.major).$(var.minor).$(var.point)."
-             Description="Open Identity Platform Community products" InstallerVersion="300" Languages="1033" Manufacturer="Open Identity Platform Community"
-             Platform="x86" Compressed="yes"/>
-    <Media Id="1" Cabinet="opendj.cab" DiskPrompt="Disk 1" EmbedCab="yes" CompressionLevel="none"/>
-    <Property Id="DiskPrompt" Value="$(var.name) $(var.major).$(var.minor).$(var.point) Installation"/>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package Name="$(var.name) $(var.major).$(var.minor).$(var.point)"
+           Manufacturer="Open Identity Platform Community"
+           Version="$(var.major).$(var.minor).$(var.point)"
+           UpgradeCode="A3E82AC0-88E6-4DEE-9D8C-5AE3B7853274"
+           Language="1033" Codepage="1252" InstallerVersion="500" Scope="perMachine">
 
-    <Property Id="ALLUSERS" Value="1"/>
+    <SummaryInformation Description="Open Identity Platform Community products"
+                        Manufacturer="Open Identity Platform Community"/>
+
+    <!-- AllowSameVersionUpgrades: a rebuilt MSI at the same 3-part version must still be
+         detected as an upgrade (hotfix re-release), not produce a second ARP entry.
+         Schedule stays at the afterInstallValidate default (remove the old product first):
+         the late afterInstallExecute variant requires matching component GUIDs for matching
+         paths, which the auto-generated GUIDs of the old WiX3 x86 package cannot guarantee -
+         a late RemoveExistingProducts would then delete freshly installed files. Removing
+         the old product early is safe here because instance data (config, db, logs) is not
+         part of any component set. -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+                  AllowSameVersionUpgrades="yes"/>
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
+
     <Property Id="ARPHELPLINK" Value="https://github.com/OpenIdentityPlatform/OpenDJ/wiki"/>
 
+    <!-- Upgrade path detection: install over an existing OpenDJ instead of the default.
+         Two separate searches with explicit SetProperty ordering (AppSearch row order is
+         formally undefined). Precedence: an explicit OPENDJ (command line / UI) always
+         wins; then the registry value written by this package (custom paths, new
+         installs); then the legacy x86 default directory ([ProgramFilesFolder] is
+         Program Files (x86) in an x64 package), fresh installs only. The registry action
+         runs FIRST: each action is guarded by NOT OPENDJ, so whichever runs earlier wins
+         and the registry has no NOT Installed guard (Remember Property pattern) so
+         maintenance and uninstall resolve the real location. -->
+    <Property Id="OPENDJ_REG" Secure="yes">
+      <RegistrySearch Id="InstallDirRegistrySearch" Root="HKLM" Key="SOFTWARE\$(var.name)"
+                      Name="InstallDir" Type="directory"/>
+    </Property>
+    <Property Id="OPENDJ_LEGACY" Secure="yes">
+      <DirectorySearch Id="LegacyX86InstallDir" Path="[ProgramFilesFolder]$(var.name)"/>
+    </Property>
+    <SetProperty Id="OPENDJ" Action="SetOpendjFromRegistry" After="AppSearch"
+                 Sequence="both" Value="[OPENDJ_REG]" Condition="OPENDJ_REG AND NOT OPENDJ"/>
+    <SetProperty Id="OPENDJ" Action="SetOpendjFromLegacyDir" After="SetOpendjFromRegistry"
+                 Sequence="both" Value="[OPENDJ_LEGACY]"
+                 Condition="NOT Installed AND OPENDJ_LEGACY AND NOT OPENDJ"/>
+
+    <!-- The docs tell users to pass OPENDJ on the msiexec command line, so it must survive
+         into the elevated server context. -->
+    <Property Id="OPENDJ" Secure="yes"/>
+
+    <!-- ARP/winget/SCCM report the install location from ARPINSTALLLOCATION. -->
+    <SetProperty Id="ARPINSTALLLOCATION" Value="[OPENDJ]" After="CostFinalize" Sequence="execute"/>
+
+    <!-- 5.1.x wrote no registry value, so an upgrade from a custom directory resolves
+         neither search: proceeding would install to the default while RemoveExistingProducts
+         empties the old tree. Refuse instead. Execute sequence only - in the interactive
+         wizard the user sees and confirms the directory in InstallDirDlg, which sets
+         OPENDJ. -->
+    <CustomAction Id="RequireDirOnCustomUpgrade"
+                  Error="An existing OpenDJ installation was detected, but its location could not be determined. Run the installer again with the installation directory passed explicitly: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot;"/>
+
+    <!-- With the afterInstallValidate schedule RemoveExistingProducts (~1401) runs before
+         StopServices (1900): a still-running legacy (windows-service.bat) service would
+         hold lib\*.jar while the old product's files are removed, queueing delayed deletes
+         that fire at the next boot. Stop it up front. Immediate action (deferred cannot be
+         sequenced before InstallInitialize); the full path prevents resolving net.exe from
+         the working directory; TARGETDIR always exists. -->
+    <CustomAction Id="StopLegacyServiceBeforeUpgrade" Directory="TARGETDIR"
+                  ExeCommand="&quot;[System64Folder]net.exe&quot; stop &quot;OpenDJ Server&quot;"
+                  Return="ignore"/>
+    <InstallExecuteSequence>
+      <Custom Action="RequireDirOnCustomUpgrade" After="SetOpendjFromLegacyDir"
+              Condition="WIX_UPGRADE_DETECTED AND NOT OPENDJ"/>
+      <Custom Action="StopLegacyServiceBeforeUpgrade" Before="RemoveExistingProducts"
+              Condition="WIX_UPGRADE_DETECTED"/>
+    </InstallExecuteSequence>
+
     <!-- UI customization -->
-    <WixVariable Id="WixUIBannerBmp" Value="opendjbanner.bmp" />
-    <WixVariable Id="WixUIDialogBmp" Value="opendjdialog.bmp" />
+    <WixVariable Id="WixUIBannerBmp" Value="opendjbanner.bmp"/>
+    <WixVariable Id="WixUIDialogBmp" Value="opendjdialog.bmp"/>
 
-    <!-- Upgrading -->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of $(var.name) is already installed."/>
-
-    <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFilesFolder" Name="PFiles">
-        <Directory Id="OPENDJ" Name="$(var.name)">
+    <!-- x64 install location: C:\Program Files\OpenDJ -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="OPENDJ" Name="$(var.name)">
+        <Directory Id="OPENDJ_LIB" Name="lib"/>
+        <!-- Empty instance directories: the <Files> harvest ships files only (heat had -ke),
+             so they must be created explicitly or the server cannot write its lock/pid files. -->
+        <Directory Id="DIR_BAK" Name="bak"/>
+        <Directory Id="DIR_CHANGELOGDB" Name="changelogDb"/>
+        <Directory Id="DIR_CLASSES" Name="classes"/>
+        <Directory Id="DIR_DB" Name="db"/>
+        <Directory Id="DIR_IMPORTTMP" Name="import-tmp"/>
+        <Directory Id="DIR_LDIF" Name="ldif"/>
+        <Directory Id="DIR_LOCKS" Name="locks"/>
+        <Directory Id="DIR_LOGS" Name="logs"/>
+        <Directory Id="DIR_TMP" Name="tmp"/>
+        <Directory Id="DIR_TEMPLATE" Name="template">
+          <Directory Id="DIR_TPL_BAK" Name="bak"/>
+          <Directory Id="DIR_TPL_CHANGELOGDB" Name="changelogDb"/>
+          <Directory Id="DIR_TPL_CLASSES" Name="classes"/>
+          <Directory Id="DIR_TPL_DB" Name="db"/>
+          <Directory Id="DIR_TPL_IMPORTTMP" Name="import-tmp"/>
+          <Directory Id="DIR_TPL_LDIF" Name="ldif"/>
+          <Directory Id="DIR_TPL_LOCKS" Name="locks"/>
+          <Directory Id="DIR_TPL_LOGS" Name="logs"/>
         </Directory>
       </Directory>
-    </Directory>
+    </StandardDirectory>
 
-    <Feature Id="All" Title="Server and tools" Level="1" ConfigurableDirectory="OPENDJ">
-      <ComponentGroupRef Id="all"/>
+    <ComponentGroup Id="OpenDJEmptyDirs">
+      <Component Id="CDirBak" Directory="DIR_BAK" Guid="7CA85932-ADB2-4089-B3BF-0E2DD4AC4E66"><CreateFolder/></Component>
+      <Component Id="CDirChangelogDb" Directory="DIR_CHANGELOGDB" Guid="E9C21C67-E4B6-482D-8C86-593EC14F9152"><CreateFolder/></Component>
+      <Component Id="CDirClasses" Directory="DIR_CLASSES" Guid="7656FD50-3581-4394-9818-FF1A0E87ADB3"><CreateFolder/></Component>
+      <Component Id="CDirDb" Directory="DIR_DB" Guid="F0E4603C-6402-484C-A274-217BA489CF54"><CreateFolder/></Component>
+      <Component Id="CDirImportTmp" Directory="DIR_IMPORTTMP" Guid="EA738740-FA59-474D-93F0-3DD45366AB46"><CreateFolder/></Component>
+      <Component Id="CDirLdif" Directory="DIR_LDIF" Guid="77580438-E14F-4268-B947-D5142F92AD6C"><CreateFolder/></Component>
+      <Component Id="CDirLocks" Directory="DIR_LOCKS" Guid="078CF9AE-1510-4B29-B719-02FAAE85D3AC"><CreateFolder/></Component>
+      <Component Id="CDirLogs" Directory="DIR_LOGS" Guid="2FF1ECAD-2E64-4629-92A5-4CA635DA3959"><CreateFolder/></Component>
+      <Component Id="CDirTmp" Directory="DIR_TMP" Guid="DECC581E-2F76-4C89-9F18-02EAD2F26173"><CreateFolder/></Component>
+      <Component Id="CDirTplBak" Directory="DIR_TPL_BAK" Guid="EB4F9340-5C24-42AC-A996-C95E7DC3C7A3"><CreateFolder/></Component>
+      <Component Id="CDirTplChangelogDb" Directory="DIR_TPL_CHANGELOGDB" Guid="B0598916-0D2C-4497-900C-5A534FADA852"><CreateFolder/></Component>
+      <Component Id="CDirTplClasses" Directory="DIR_TPL_CLASSES" Guid="C66CC1A0-996E-4BE5-9CFB-57A32F2C4F14"><CreateFolder/></Component>
+      <Component Id="CDirTplDb" Directory="DIR_TPL_DB" Guid="97CD56F6-402F-4721-AF1C-A23DA232D7E7"><CreateFolder/></Component>
+      <Component Id="CDirTplImportTmp" Directory="DIR_TPL_IMPORTTMP" Guid="4888F735-CFF5-426F-8593-1592F45C076D"><CreateFolder/></Component>
+      <Component Id="CDirTplLdif" Directory="DIR_TPL_LDIF" Guid="AA9F70A5-0F88-4A7C-8457-81201CC619BE"><CreateFolder/></Component>
+      <Component Id="CDirTplLocks" Directory="DIR_TPL_LOCKS" Guid="93F3CFA4-207C-4F08-9413-1831E7B1E50C"><CreateFolder/></Component>
+      <Component Id="CDirTplLogs" Directory="DIR_TPL_LOGS" Guid="7A4ABB8C-01D4-43BA-B85E-B0FAC14CBE75"><CreateFolder/></Component>
+    </ComponentGroup>
+
+    <!-- Windows service: opendj_service.exe is the SCM wrapper that runs bat\start-ds.bat.
+         Registered here, but NOT started during install (the instance must be configured by
+         setup.bat first). -->
+    <Component Id="OpenDJServiceExe" Directory="OPENDJ_LIB">
+      <File Id="opendj_service.exe" Source="$(var.serviceExe)" KeyPath="yes"/>
+      <!-- [OPENDJ] always ends with a backslash, which would escape the closing quote in
+           the ImagePath, so a dot is appended: "<root>\." parses cleanly and
+           serviceCmdsMatch in service.c normalizes it back to "<root>" when the exe looks
+           its own service entry up (msiexec cannot write the canonical
+           '"<root>\lib\opendj_service.exe" start "<root>"' form: it only quotes the exe
+           when the path has spaces). -->
+      <!-- DisplayName deliberately equals the key name: the legacy windows-service.bat
+           naming loop starts at display name "OpenDJ Server" and checks key names only,
+           so any other display name here would make CreateService fail with
+           ERROR_DUPLICATE_SERVICE_NAME for every additional zip instance on the host.
+           A failed registration fails the install (Vital defaults to yes) instead of
+           reporting success with no service. -->
+      <ServiceInstall Id="OpenDJService" Name="OpenDJ" DisplayName="OpenDJ"
+                      Description="OpenDJ LDAPv3 Directory Server" Type="ownProcess"
+                      Start="auto" ErrorControl="normal"
+                      Arguments="start &quot;[OPENDJ].&quot;"/>
+      <!-- Stop="uninstall" covers both msiexec /x and the RemoveExistingProducts-driven
+           upgrade (the old product's uninstall runs this row); "both" would also stop a
+           running production server on every repair, with no Start to bring it back. -->
+      <ServiceControl Id="OpenDJServiceControl" Name="OpenDJ"
+                      Stop="uninstall" Remove="uninstall" Wait="yes"/>
+      <!-- Event-log source for the service key: without these values every event the wrapper
+           reports renders as "The description for Event ID ... cannot be found." They mirror
+           what createRegistryKey in service.c writes for windows-service.bat installs. -->
+      <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\OpenDJ">
+        <RegistryValue Name="EventMessageFile" Type="expandable" Value="[OPENDJ_LIB]opendj_service.exe"/>
+        <RegistryValue Name="CategoryMessageFile" Type="expandable" Value="[OPENDJ_LIB]opendj_service.exe"/>
+        <RegistryValue Name="TypesSupported" Type="integer" Value="7"/>
+        <RegistryValue Name="CategoryCount" Type="integer" Value="1"/>
+      </RegistryKey>
+    </Component>
+
+    <!-- The legacy windows-service.bat service (key name = display name = "OpenDJ Server";
+         customized/localized installs may differ, e.g. "OpenDS" on ko/zh_TW) points at the
+         old install tree and would keep auto-starting it. MSI's own
+         StopServices/DeleteServices can control a service this package does not install,
+         so drop it there - no custom action, no rollback gap, and a failure to stop fails
+         the install instead of silently proceeding. Guarded by its own component: only
+         when an existing OpenDJ was detected (upgrade, or a detected install location) -
+         a fresh install on a host running an unrelated zip instance elsewhere must not
+         touch that instance's service. -->
+    <Component Id="RemoveLegacyServiceControl" Directory="OPENDJ"
+               Guid="3F2A9C41-7D28-4E0B-9B1D-6C54A0D2E7F3"
+               Condition="WIX_UPGRADE_DETECTED OR OPENDJ_LEGACY OR OPENDJ_REG">
+      <CreateFolder/>
+      <ServiceControl Id="RemoveLegacyOpenDJServer" Name="OpenDJ Server"
+                      Stop="install" Remove="install" Wait="yes"/>
+    </Component>
+
+    <!-- Remember the install location so upgrades land in the same directory. -->
+    <Component Id="InstallDirRegistry" Directory="OPENDJ">
+      <RegistryValue Root="HKLM" Key="SOFTWARE\$(var.name)" Name="InstallDir"
+                     Type="string" Value="[OPENDJ]" KeyPath="yes"/>
+    </Component>
+
+    <!-- Harvest the payload. Exclusions are already applied during staging (Ant), so each
+         <Files> needs only the Include attribute (WiX 5 requires it; no Exclude here):
+         stagingRoot has everything except lib; stagingLib has lib minus the service wrapper. -->
+    <ComponentGroup Id="OpenDJRoot" Directory="OPENDJ">
+      <Files Include="$(var.stagingRoot)\**"/>
+    </ComponentGroup>
+    <ComponentGroup Id="OpenDJLib" Directory="OPENDJ_LIB">
+      <Files Include="$(var.stagingLib)\**"/>
+    </ComponentGroup>
+
+    <Feature Id="All" Title="Server and tools" ConfigurableDirectory="OPENDJ">
+      <ComponentRef Id="OpenDJServiceExe"/>
+      <ComponentRef Id="RemoveLegacyServiceControl"/>
+      <ComponentRef Id="InstallDirRegistry"/>
+      <ComponentGroupRef Id="OpenDJRoot"/>
+      <ComponentGroupRef Id="OpenDJLib"/>
+      <ComponentGroupRef Id="OpenDJEmptyDirs"/>
     </Feature>
 
-    <!-- User interface -->
-    <Property Id="WIXUI_INSTALLDIR" Value="OPENDJ"/>
-    <UI Id="OpenDJ_Install">
-      <UIRef Id="WixUI_InstallDir"/>
-      <UIRef Id="WixUI_ErrorProgressText"/>
-      <!-- Don't show the license agreement in the install, just in setup -->
-      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">NOT Installed</Publish>
-      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Order="2" Value="WelcomeDlg">1</Publish>
+    <!-- WixUI_InstallDir with LicenseAgreementDlg skipped: the CDDL license is shown and
+         accepted by setup, and the stock dialog would otherwise display WiX's placeholder
+         License.rtf (Lorem ipsum) because WixUILicenseRtf is a build-time default. -->
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="OPENDJ"/>
+    <UI>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg"
+               Order="99" Condition="NOT Installed"/>
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg"
+               Order="99" Condition="NOT Installed"/>
     </UI>
-  </Product>
+  </Package>
 </Wix>
