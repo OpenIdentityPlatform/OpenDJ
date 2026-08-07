@@ -24,7 +24,8 @@ concurrency:
   cancel-in-progress: true
 
 # Nothing in this workflow writes back to the repository: the docker jobs push to
-# the local registry service, not to a remote one.
+# the local registry service, not to a remote one. The docker jobs additionally get
+# security-events: write to upload Trivy scan results to code scanning.
 permissions:
   contents: read
 
@@ -393,6 +394,9 @@ jobs:
   build-docker:
     needs: build-maven
     runs-on: 'ubuntu-latest'
+    permissions:
+      contents: read
+      security-events: write
     services:
       registry:
         image: registry:3
@@ -470,13 +474,19 @@ jobs:
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: localhost:5000/${{ env.image_repository }}:${{ env.release_version }}
-          format: table
+          format: sarif
+          output: trivy-results.sarif
           severity: CRITICAL,HIGH
           ignore-unfixed: true
-          exit-code: "1"
         env:
           # the registry service on localhost:5000 is plain HTTP
           TRIVY_INSECURE: "true"
+      - name: Upload Trivy report to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-results.sarif
+          # distinct from the docker-scan.yml categories, which track the published images
+          category: trivy-build-default
       - name: Cache JMeter
         uses: actions/cache@v5
         with:
@@ -524,6 +534,9 @@ jobs:
   build-docker-alpine:
     needs: build-maven
     runs-on: 'ubuntu-latest'
+    permissions:
+      contents: read
+      security-events: write
     services:
       registry:
         image: registry:3
@@ -602,13 +615,19 @@ jobs:
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: localhost:5000/${{ env.image_repository }}:${{ env.release_version }}-alpine
-          format: table
+          format: sarif
+          output: trivy-results.sarif
           severity: CRITICAL,HIGH
           ignore-unfixed: true
-          exit-code: "1"
         env:
           # the registry service on localhost:5000 is plain HTTP
           TRIVY_INSECURE: "true"
+      - name: Upload Trivy report to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-results.sarif
+          # distinct from the docker-scan.yml categories, which track the published images
+          category: trivy-build-alpine
       - name: Cache JMeter
         uses: actions/cache@v5
         with:
