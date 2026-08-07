@@ -42,12 +42,13 @@
 
     <!-- Upgrade path detection: install over an existing OpenDJ instead of the default.
          Two separate searches with explicit SetProperty ordering (AppSearch row order is
-         formally undefined): the registry value written by this package (custom paths, new
-         installs) beats the legacy x86 default directory ([ProgramFilesFolder] is
-         Program Files (x86) in an x64 package). The legacy-directory fallback applies to
-         fresh installs only; the registry SetProperty is deliberately unconditional
-         (Remember Property pattern) so maintenance and uninstall resolve the real location.
-         Both results apply only when OPENDJ was not set explicitly (command line / UI). -->
+         formally undefined). Precedence: an explicit OPENDJ (command line / UI) always
+         wins; then the registry value written by this package (custom paths, new
+         installs); then the legacy x86 default directory ([ProgramFilesFolder] is
+         Program Files (x86) in an x64 package), fresh installs only. The registry action
+         runs FIRST: each action is guarded by NOT OPENDJ, so whichever runs earlier wins
+         and the registry has no NOT Installed guard (Remember Property pattern) so
+         maintenance and uninstall resolve the real location. -->
     <Property Id="OPENDJ_REG" Secure="yes">
       <RegistrySearch Id="InstallDirRegistrySearch" Root="HKLM" Key="SOFTWARE\$(var.name)"
                       Name="InstallDir" Type="directory"/>
@@ -55,11 +56,11 @@
     <Property Id="OPENDJ_LEGACY" Secure="yes">
       <DirectorySearch Id="LegacyX86InstallDir" Path="[ProgramFilesFolder]$(var.name)"/>
     </Property>
-    <SetProperty Id="OPENDJ" Action="SetOpendjFromLegacyDir" After="AppSearch" Sequence="both"
-                 Value="[OPENDJ_LEGACY]"
-                 Condition="NOT Installed AND OPENDJ_LEGACY AND NOT OPENDJ"/>
-    <SetProperty Id="OPENDJ" Action="SetOpendjFromRegistry" After="SetOpendjFromLegacyDir"
+    <SetProperty Id="OPENDJ" Action="SetOpendjFromRegistry" After="AppSearch"
                  Sequence="both" Value="[OPENDJ_REG]" Condition="OPENDJ_REG AND NOT OPENDJ"/>
+    <SetProperty Id="OPENDJ" Action="SetOpendjFromLegacyDir" After="SetOpendjFromRegistry"
+                 Sequence="both" Value="[OPENDJ_LEGACY]"
+                 Condition="NOT Installed AND OPENDJ_LEGACY AND NOT OPENDJ"/>
 
     <!-- The docs tell users to pass OPENDJ on the msiexec command line, so it must survive
          into the elevated server context. -->

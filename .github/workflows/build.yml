@@ -680,10 +680,15 @@ jobs:
         run: |
           # Deleting the service here would leave msiexec /x targeting a key that no longer
           # exists; opendj_service.exe refuses to remove the MSI-managed key 'OpenDJ'.
+          # The refusal makes the bat exit non-zero, and the pwsh shell wrapper would turn
+          # that into a step failure - so capture it and finish with an explicit exit 0.
           $root = $env:OPENDJ_ROOT
           & "$root\bat\windows-service.bat" --disableService
+          $code = $LASTEXITCODE
+          if ($code -eq 0) { throw "--disableService reported success on an MSI-managed service" }
           if (-not (Get-Service OpenDJ -ErrorAction SilentlyContinue)) { throw "--disableService deleted the MSI-managed service" }
-          Write-Host "--disableService left the MSI-managed service in place (exit $LASTEXITCODE)"
+          Write-Host "--disableService refused as expected (exit $code) and left the service in place"
+          exit 0
       - name: Uninstall MSI
         shell: pwsh
         run: |
