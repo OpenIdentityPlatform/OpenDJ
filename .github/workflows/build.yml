@@ -725,11 +725,13 @@ jobs:
           if sudo systemctl is-failed --quiet opendj; then echo "unit failed before setup"; exit 1; fi
           # sudo/runuser/systemd strip JAVA_HOME -> the service uses the PATH java.
           # Privileged port 389: only AmbientCapabilities=CAP_NET_BIND_SERVICE lets
-          # the non-root service bind it - the very reason it can drop root.
+          # the non-root service bind it - the very reason it can drop root. setup
+          # itself runs via runuser WITHOUT that capability, so it must skip its
+          # own bind probe; the systemd start below performs the real 389 bind.
           sudo runuser -u opendj -- /opt/opendj/setup --cli --no-prompt --acceptLicense --doNotStart \
             --rootUserDN "cn=Directory Manager" --rootUserPassword password \
             --hostname localhost --ldapPort 389 --adminConnectorPort 4444 \
-            --baseDN dc=example,dc=com --addBaseEntry
+            --baseDN dc=example,dc=com --addBaseEntry --skipPortCheck
           sudo systemctl start opendj
           bash .github/scripts/wait-for-ldap.sh 389
           sudo systemctl is-active --quiet opendj
@@ -765,7 +767,13 @@ jobs:
             rpm -qlp "$RPM" | grep "^/etc/init.d/opendj$"
             # The %pre user-creation dependency must be declared for minimal images.
             rpm -qp --requires "$RPM" | grep "shadow-utils"
-            # No manual dependencies: the package must pull everything itself (Requires).
+            # A real EL9 host always has systemd, but the container image ships no
+            # systemctl at all - %post then (correctly) skips the enable in silence.
+            # Preinstall it as host infrastructure, deliberately NOT a package
+            # Requires, so the is-enabled assertion below tests the enable path.
+            dnf install -y systemd
+            # No further manual dependencies: the package must pull everything else
+            # itself (Requires).
             dnf install -y "$RPM"
             id opendj
             test "$(stat -c %U /opt/opendj)" = opendj
