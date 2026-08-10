@@ -28,14 +28,17 @@
 
     <!-- AllowSameVersionUpgrades: a rebuilt MSI at the same 3-part version must still be
          detected as an upgrade (hotfix re-release), not produce a second ARP entry.
-         Schedule stays at the afterInstallValidate default (remove the old product first):
-         the late afterInstallExecute variant requires matching component GUIDs for matching
-         paths, which the auto-generated GUIDs of the old WiX3 x86 package cannot guarantee -
-         a late RemoveExistingProducts would then delete freshly installed files. Removing
-         the old product early is safe here because instance data (config, db, logs) is not
-         part of any component set. -->
+         Schedule=afterInstallInitialize keeps RemoveExistingProducts early (the late
+         afterInstallExecute variant requires matching component GUIDs for matching paths,
+         which the auto-generated GUIDs of the old WiX3 x86 package cannot guarantee - a
+         late RemoveExistingProducts would then delete freshly installed files; removing
+         the old product early is safe here because instance data (config, db, logs) is
+         not part of any component set) while placing it after InstallInitialize, so the
+         deferred StopLegacyServiceBeforeUpgrade action below can be sequenced before it -
+         deferred actions cannot run before InstallInitialize, which the
+         afterInstallValidate default would require. -->
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."
-                  AllowSameVersionUpgrades="yes"/>
+                  AllowSameVersionUpgrades="yes" Schedule="afterInstallInitialize"/>
     <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
 
     <Property Id="ARPHELPLINK" Value="https://github.com/OpenIdentityPlatform/OpenDJ/wiki"/>
@@ -56,6 +59,18 @@
     <Property Id="OPENDJ_LEGACY" Secure="yes">
       <DirectorySearch Id="LegacyX86InstallDir" Path="[ProgramFilesFolder]$(var.name)"/>
     </Property>
+
+    <!-- Detect-only row for the WiX3-era releases: only those (x86, < 5.2.0) registered
+         the legacy "OpenDJ Server" windows-service.bat service that this package replaces.
+         WIX_UPGRADE_DETECTED alone cannot tell a legacy upgrade from a new-MSI-to-new-MSI
+         one, where "OpenDJ Server" can only belong to an unrelated zip instance. The
+         Maximum is pinned to the first WiX5/x64 release and must NOT track the package
+         version: with a moving bound every future upgrade would count as "legacy". -->
+    <Upgrade Id="A3E82AC0-88E6-4DEE-9D8C-5AE3B7853274">
+      <UpgradeVersion Minimum="0.0.0" IncludeMinimum="yes"
+                      Maximum="5.2.0" IncludeMaximum="no"
+                      OnlyDetect="yes" Property="LEGACY_MSI_DETECTED"/>
+    </Upgrade>
     <SetProperty Id="OPENDJ" Action="SetOpendjFromRegistry" After="AppSearch"
                  Sequence="both" Value="[OPENDJ_REG]" Condition="OPENDJ_REG AND NOT OPENDJ"/>
     <SetProperty Id="OPENDJ" Action="SetOpendjFromLegacyDir" After="SetOpendjFromRegistry"
@@ -71,27 +86,38 @@
 
     <!-- 5.1.x wrote no registry value, so an upgrade from a custom directory resolves
          neither search: proceeding would install to the default while RemoveExistingProducts
-         empties the old tree. Refuse instead. Execute sequence only - in the interactive
-         wizard the user sees and confirms the directory in InstallDirDlg, which sets
-         OPENDJ. -->
+         empties the old tree. Refuse instead - in BOTH sequences: in a full-UI session the
+         UI sequence's CostFinalize resolves the OPENDJ directory to the default before the
+         execute sequence runs, so an execute-only guard could never fire there (and
+         InstallDirDlg would show the default, not the existing install). -->
     <CustomAction Id="RequireDirOnCustomUpgrade"
                   Error="An existing OpenDJ installation was detected, but its location could not be determined. Run the installer again with the installation directory passed explicitly: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot;"/>
 
-    <!-- With the afterInstallValidate schedule RemoveExistingProducts (~1401) runs before
-         StopServices (1900): a still-running legacy (windows-service.bat) service would
-         hold lib\*.jar while the old product's files are removed, queueing delayed deletes
-         that fire at the next boot. Stop it up front. Immediate action (deferred cannot be
-         sequenced before InstallInitialize); the full path prevents resolving net.exe from
-         the working directory; TARGETDIR always exists. -->
+    <!-- RemoveExistingProducts runs before StopServices (1900): a still-running legacy
+         (windows-service.bat) service would hold lib\*.jar while the old product's files
+         are removed, queueing delayed deletes that fire at the next boot. Stop it up
+         front, deferred with no impersonation: an immediate action would run with the
+         launching user's token and fail access-denied on a UAC double-click install
+         (swallowed by Return="ignore"), while a deferred action runs elevated as
+         LocalSystem - which is also why MajorUpgrade schedules RemoveExistingProducts at
+         afterInstallInitialize above. The full path prevents resolving net.exe from the
+         working directory; Return="ignore" stays: the service may simply not be running.
+         Conditioned on LEGACY_MSI_DETECTED, not WIX_UPGRADE_DETECTED: on a
+         new-MSI-to-new-MSI upgrade "OpenDJ Server" can only be an unrelated zip
+         instance's service and must not be stopped. -->
     <CustomAction Id="StopLegacyServiceBeforeUpgrade" Directory="TARGETDIR"
                   ExeCommand="&quot;[System64Folder]net.exe&quot; stop &quot;OpenDJ Server&quot;"
-                  Return="ignore"/>
+                  Execute="deferred" Impersonate="no" Return="ignore"/>
     <InstallExecuteSequence>
       <Custom Action="RequireDirOnCustomUpgrade" After="SetOpendjFromLegacyDir"
               Condition="WIX_UPGRADE_DETECTED AND NOT OPENDJ"/>
       <Custom Action="StopLegacyServiceBeforeUpgrade" Before="RemoveExistingProducts"
-              Condition="WIX_UPGRADE_DETECTED"/>
+              Condition="LEGACY_MSI_DETECTED"/>
     </InstallExecuteSequence>
+    <InstallUISequence>
+      <Custom Action="RequireDirOnCustomUpgrade" After="SetOpendjFromLegacyDir"
+              Condition="WIX_UPGRADE_DETECTED AND NOT OPENDJ"/>
+    </InstallUISequence>
 
     <!-- UI customization -->
     <WixVariable Id="WixUIBannerBmp" Value="opendjbanner.bmp"/>
@@ -100,7 +126,13 @@
     <!-- x64 install location: C:\Program Files\OpenDJ -->
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="OPENDJ" Name="$(var.name)">
-        <Directory Id="OPENDJ_LIB" Name="lib"/>
+        <Directory Id="OPENDJ_LIB" Name="lib">
+          <!-- Custom extension jars land here. The payload ships snmp-mib2605.jar in it
+               today, so the harvest creates it anyway - the explicit component keeps the
+               directory (and startup free of WARN_ADMIN_NO_EXTENSIONS_DIR) even if that
+               jar ever leaves the package. -->
+          <Directory Id="DIR_LIB_EXTENSIONS" Name="extensions"/>
+        </Directory>
         <!-- Empty instance directories: the <Files> harvest ships files only (heat had -ke),
              so they must be created explicitly or the server cannot write its lock/pid files. -->
         <Directory Id="DIR_BAK" Name="bak"/>
@@ -135,6 +167,7 @@
       <Component Id="CDirLocks" Directory="DIR_LOCKS" Guid="078CF9AE-1510-4B29-B719-02FAAE85D3AC"><CreateFolder/></Component>
       <Component Id="CDirLogs" Directory="DIR_LOGS" Guid="2FF1ECAD-2E64-4629-92A5-4CA635DA3959"><CreateFolder/></Component>
       <Component Id="CDirTmp" Directory="DIR_TMP" Guid="DECC581E-2F76-4C89-9F18-02EAD2F26173"><CreateFolder/></Component>
+      <Component Id="CDirLibExtensions" Directory="DIR_LIB_EXTENSIONS" Guid="A2486768-4BD0-47B9-818B-8BDCA17F08CE"><CreateFolder/></Component>
       <Component Id="CDirTplBak" Directory="DIR_TPL_BAK" Guid="EB4F9340-5C24-42AC-A996-C95E7DC3C7A3"><CreateFolder/></Component>
       <Component Id="CDirTplChangelogDb" Directory="DIR_TPL_CHANGELOGDB" Guid="B0598916-0D2C-4497-900C-5A534FADA852"><CreateFolder/></Component>
       <Component Id="CDirTplClasses" Directory="DIR_TPL_CLASSES" Guid="C66CC1A0-996E-4BE5-9CFB-57A32F2C4F14"><CreateFolder/></Component>
@@ -160,11 +193,13 @@
            naming loop starts at display name "OpenDJ Server" and checks key names only,
            so any other display name here would make CreateService fail with
            ERROR_DUPLICATE_SERVICE_NAME for every additional zip instance on the host.
-           A failed registration fails the install (Vital defaults to yes) instead of
-           reporting success with no service. -->
+           Vital="yes" must be explicit - WiX 4/5 default Vital to no despite what the
+           schema prose says (wixtoolset/wix#5974) - so that a failed registration (e.g.
+           ERROR_SERVICE_MARKED_FOR_DELETE from a lingering handle on the old service)
+           fails the install with rollback instead of reporting success with no service. -->
       <ServiceInstall Id="OpenDJService" Name="OpenDJ" DisplayName="OpenDJ"
                       Description="OpenDJ LDAPv3 Directory Server" Type="ownProcess"
-                      Start="auto" ErrorControl="normal"
+                      Start="auto" ErrorControl="normal" Vital="yes"
                       Arguments="start &quot;[OPENDJ].&quot;"/>
       <!-- Stop="uninstall" covers both msiexec /x and the RemoveExistingProducts-driven
            upgrade (the old product's uninstall runs this row); "both" would also stop a
@@ -187,13 +222,19 @@
          old install tree and would keep auto-starting it. MSI's own
          StopServices/DeleteServices can control a service this package does not install,
          so drop it there - no custom action, no rollback gap, and a failure to stop fails
-         the install instead of silently proceeding. Guarded by its own component: only
-         when an existing OpenDJ was detected (upgrade, or a detected install location) -
-         a fresh install on a host running an unrelated zip instance elsewhere must not
-         touch that instance's service. -->
+         the install instead of silently proceeding. Guarded by its own component, and only
+         on evidence that the service belongs to the tree being replaced: an upgrade from a
+         WiX3-era release (LEGACY_MSI_DETECTED; a new-MSI-to-new-MSI upgrade must not
+         match - its own service is named "OpenDJ", so "OpenDJ Server" can only belong to
+         an unrelated zip instance), or a fresh install adopting the legacy x86 default
+         directory. OPENDJ_REG is deliberately NOT part of the condition: it reads the
+         value this package itself writes, which would make the condition permanently true
+         on any host after the first install. Transitive: maintenance re-evaluates the
+         condition (both signals are then gone), so the component leaves the install set
+         and a repair cannot re-run the removal against a zip instance registered later. -->
     <Component Id="RemoveLegacyServiceControl" Directory="OPENDJ"
-               Guid="3F2A9C41-7D28-4E0B-9B1D-6C54A0D2E7F3"
-               Condition="WIX_UPGRADE_DETECTED OR OPENDJ_LEGACY OR OPENDJ_REG">
+               Guid="3F2A9C41-7D28-4E0B-9B1D-6C54A0D2E7F3" Transitive="yes"
+               Condition="LEGACY_MSI_DETECTED OR (NOT Installed AND OPENDJ_LEGACY)">
       <CreateFolder/>
       <ServiceControl Id="RemoveLegacyOpenDJServer" Name="OpenDJ Server"
                       Stop="install" Remove="install" Wait="yes"/>
@@ -228,6 +269,7 @@
          accepted by setup, and the stock dialog would otherwise display WiX's placeholder
          License.rtf (Lorem ipsum) because WixUILicenseRtf is a build-time default. -->
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="OPENDJ"/>
+    <UIRef Id="WixUI_ErrorProgressText"/>
     <UI>
       <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg"
                Order="99" Condition="NOT Installed"/>

@@ -334,8 +334,12 @@ public class WindowsServicePanel extends StatusGenericPanel
         else
         {
           returnCode = ConfigureWindowsService.disableService(outPrintStream, errorPrintStream);
+          // SERVICE_MSI_MANAGED is an informational skip, not an error: the
+          // MSI-managed service belongs to the installer and is removed by
+          // msiexec /x (disableService already printed the explanation).
           if (returnCode != ConfigureWindowsService.SERVICE_ALREADY_DISABLED
-              && returnCode != ConfigureWindowsService.SERVICE_DISABLE_SUCCESS)
+              && returnCode != ConfigureWindowsService.SERVICE_DISABLE_SUCCESS
+              && returnCode != ConfigureWindowsService.SERVICE_MSI_MANAGED)
           {
             state = State.FINISHED_WITH_ERROR;
           }

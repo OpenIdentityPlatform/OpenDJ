@@ -1,0 +1,63 @@
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions copyright [year] [name of copyright owner]".
+#
+# Copyright 2026 3A Systems, LLC.
+
+# The committed opendj-server-legacy/lib/*.exe launchers are what Linux-built server
+# zips - and therefore tagged releases - ship, while the Windows CI jobs overwrite them
+# with freshly compiled ones before testing. Build's own comparison step is warning-only
+# so an MSVC toolchain bump on the runner image cannot take down the artifact consumers
+# (test-msi*, deploy.yml). This standalone workflow is the failing signal instead: it
+# triggers only when the native sources or the committed binaries change - exactly the
+# case where stale binaries must block a merge - and its conclusion gates nothing else.
+name: Native launchers
+
+on:
+  push:
+    branches: [ 'master' ]
+    paths:
+      - 'opendj-server-legacy/src/build-tools/windows/**'
+      - 'opendj-server-legacy/lib/*.exe'
+  pull_request:
+    paths:
+      - 'opendj-server-legacy/src/build-tools/windows/**'
+      - 'opendj-server-legacy/lib/*.exe'
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: 'windows-latest'
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup MSVC Developer Command Prompt (x86)
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+        env:
+          # Opt in to Node.js 24 for this action, which still ships on Node.js 20.
+          # See https://github.com/ilammy/msvc-dev-cmd/issues/99
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+        with:
+          arch: x86
+      - name: Build the native launchers from source
+        shell: cmd
+        run: |
+          cd opendj-server-legacy\src\build-tools\windows
+          nmake all || exit /b 1
+          xcopy /Y *.exe ..\..\..\lib\ || exit /b 1
+      - name: Committed launcher binaries must match the sources
+        shell: bash
+        run: |
+          if ! git diff --exit-code -- opendj-server-legacy/lib; then
+            echo "::error title=Stale launcher binaries::opendj-server-legacy/lib/*.exe do not match the sources. Refresh them from the windows-exe artifact of a Build run on this branch and commit them."
+            exit 1
+          fi

@@ -98,8 +98,11 @@ jobs:
       # refreshed binary would ship the old wrapper in the tagged release while CI stays
       # green. Warning-only: an MSVC toolchain bump on the runner image also changes the
       # bytes, and failing here would kill the artifact consumers (test-msi*, deploy.yml).
-      # The freshly built binaries are uploaded just above - refresh lib/*.exe from the
-      # windows-exe artifact of this very run and commit them.
+      # The failing signal lives in the standalone Native launchers workflow
+      # (check-native-launchers.yml), which triggers only when the native sources or the
+      # committed binaries change and gates nothing. The freshly built binaries are
+      # uploaded just above - refresh lib/*.exe from the windows-exe artifact of this
+      # very run and commit them.
       continue-on-error: true
       shell: bash
       run: |
@@ -720,6 +723,9 @@ jobs:
           $image = (Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Services\OpenDJ).ImagePath
           Write-Host "ImagePath: $image"
           if ($image -notmatch '^"C:\\Program Files\\OpenDJ\\lib\\opendj_service\.exe"') { throw "ImagePath must quote the exe path (CWE-428): $image" }
+          # Custom extension jars go into lib\extensions; the server warns on startup
+          # (WARN_ADMIN_NO_EXTENSIONS_DIR) when it is missing.
+          if (-not (Test-Path "$root\lib\extensions")) { throw "lib\extensions missing from the MSI install" }
           "OPENDJ_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Setup and start/stop the Windows service
         shell: pwsh

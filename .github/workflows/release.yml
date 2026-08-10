@@ -207,7 +207,10 @@ jobs:
       - name: Install the server zip into the local Maven repository
         shell: bash
         run: |
-          ZIP=$(ls server-zip/*.zip | head -1)
+          # The artifact carries both zips and the slim one sorts first ('-' < '.'), so
+          # filter it out: the slim zip lacks the JDBC/Cassandra backend drivers and the
+          # MSI must be packaged from the full server zip.
+          ZIP=$(ls server-zip/*.zip | grep -v -- '-slim\.zip$' | head -1)
           echo "Installing $ZIP as opendj-server-legacy:${{ github.event.inputs.releaseVersion }}:zip"
           mvn --batch-mode install:install-file -Dfile="$ZIP" \
             -DgroupId=org.openidentityplatform.opendj -DartifactId=opendj-server-legacy \

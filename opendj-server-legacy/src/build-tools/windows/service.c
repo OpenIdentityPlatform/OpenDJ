@@ -2589,6 +2589,94 @@ int serviceState()
 } // serviceState
 
 // ---------------------------------------------------------------
+// Tells whether the service with the given key name is genuinely
+// managed by the MSI package: the InstallDir value the package writes
+// to HKLM\SOFTWARE\OpenDJ exists and the service command points into
+// that directory. An orphaned service that merely reuses the "OpenDJ"
+// key name (rolled-back install, hand-run sc create) fails the check
+// and stays removable by the remove and cleanup subcommands.
+// ---------------------------------------------------------------
+static BOOL isMsiManagedService(char *serviceName)
+{
+  HKEY hKey;
+  char installDir[COMMAND_SIZE];
+  char token[COMMAND_SIZE];
+  char serviceDir[COMMAND_SIZE];
+  DWORD size = sizeof(installDir) - 1;
+  DWORD type = REG_NONE;
+  LONG result;
+  BOOL managed = FALSE;
+  ServiceDescriptor* serviceList = NULL;
+  int nbServices = -1;
+
+  if (_stricmp(serviceName, MSI_SERVICE_NAME) != 0)
+  {
+    return FALSE;
+  }
+
+  // KEY_WOW64_64KEY: the x64 package writes the 64-bit registry view and
+  // this executable is built 32-bit, so without the flag the lookup would
+  // be redirected to WOW6432Node and never find the value.
+  if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\OpenDJ", 0,
+      KEY_QUERY_VALUE | KEY_WOW64_64KEY, &hKey) != ERROR_SUCCESS)
+  {
+    debug("isMsiManagedService: no HKLM\\SOFTWARE\\OpenDJ key, "
+        "treating '%s' as orphaned.", serviceName);
+    return FALSE;
+  }
+  result = RegQueryValueEx(hKey, "InstallDir", NULL, &type,
+      (LPBYTE)installDir, &size);
+  RegCloseKey(hKey);
+  if ((result != ERROR_SUCCESS) ||
+      ((type != REG_SZ) && (type != REG_EXPAND_SZ)) || (size == 0))
+  {
+    debug("isMsiManagedService: no InstallDir value, "
+        "treating '%s' as orphaned.", serviceName);
+    return FALSE;
+  }
+  // RegQueryValueEx does not guarantee the terminating null.
+  installDir[size] = '\0';
+
+  if (getServiceList(&serviceList, &nbServices) == SERVICE_RETURN_OK)
+  {
+    if (nbServices > 0)
+    {
+      int i;
+      for (i = 0; i < nbServices; i++)
+      {
+        ServiceDescriptor curService = serviceList[i];
+        if ((curService.serviceName != NULL) &&
+            (_stricmp(curService.serviceName, serviceName) == 0) &&
+            (curService.cmdToRun != NULL))
+        {
+          // Third token of '<exe> start "<root>\."' is the instance dir.
+          const char* p = curService.cmdToRun;
+          p = nextCmdToken(p, token, COMMAND_SIZE);
+          p = nextCmdToken(p, token, COMMAND_SIZE);
+          nextCmdToken(p, serviceDir, COMMAND_SIZE);
+          normalizeInstanceDir(serviceDir);
+          expandLongPath(serviceDir);
+          normalizeInstanceDir(installDir);
+          expandLongPath(installDir);
+          managed = (_stricmp(serviceDir, installDir) == 0);
+          debug("isMsiManagedService: service dir '%s' vs InstallDir '%s' "
+              "-> %s.", serviceDir, installDir,
+              managed ? "MSI-managed" : "orphaned");
+          break;
+        }
+      }
+      free(serviceList);
+    }
+  }
+  else
+  {
+    debug("isMsiManagedService: could not get service list.");
+  }
+
+  return managed;
+}  // isMsiManagedService
+
+// ---------------------------------------------------------------
 // Function called to remove the service associated with a given
 // service name.
 // Returns 0 if the service was successfully removed.
@@ -2606,14 +2694,13 @@ int removeServiceWithServiceName(char *serviceName)
 
   debug("Removing service with name %s.", serviceName);
 
-  if (_stricmp(serviceName, MSI_SERVICE_NAME) == 0)
+  if (isMsiManagedService(serviceName))
   {
     // The MSI-managed service belongs to the installer: deleting it here
     // (remove or cleanup subcommand) would leave msiexec /x targeting a key
-    // that no longer exists. Callers map this code to an informational skip.
-    fprintf(stdout,
-    "The service is managed by the OpenDJ installer (MSI) "
-    "and is removed when the package is uninstalled.\n");
+    // that no longer exists. Callers map this code to an informational skip
+    // and print the localized message; nothing on stdout here or the user
+    // would see it twice.
     debug("Refusing to remove the MSI-managed service '%s'.", serviceName);
     return 4;
   }
