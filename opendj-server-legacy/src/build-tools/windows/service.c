@@ -1164,6 +1164,9 @@ ServiceReturnCode getServiceName(char* cmdToRun, char* serviceName)
   }
   else
   {
+    // Distinct from "no service matched": callers such as removeService must
+    // report an error instead of concluding the service does not exist.
+    returnValue = SERVICE_LIST_UNAVAILABLE;
     debug("getServiceName: could not get service list.");
   }
 
@@ -2640,6 +2643,22 @@ static BOOL isMsiManagedService(char *serviceName)
   }
   // RegQueryValueEx does not guarantee the terminating null.
   installDir[size] = '\0';
+  // The package writes REG_SZ; a hand-edited REG_EXPAND_SZ value would
+  // otherwise compare literally ('%ProgramFiles%...' vs the expanded path).
+  if (type == REG_EXPAND_SZ)
+  {
+    char expanded[COMMAND_SIZE];
+    DWORD n = ExpandEnvironmentStrings(installDir, expanded, sizeof(expanded));
+    if ((n == 0) || (n > sizeof(expanded)))
+    {
+      // Fail closed, as below: the reference directory cannot be resolved, so
+      // the entry cannot be proven orphaned.
+      debug("isMsiManagedService: could not expand InstallDir '%s', "
+          "treating '%s' as MSI-managed.", installDir, serviceName);
+      return TRUE;
+    }
+    strcpy(installDir, expanded);
+  }
 
   if (getServiceList(&serviceList, &nbServices) == SERVICE_RETURN_OK)
   {
@@ -2783,6 +2802,13 @@ int removeService()
     if (code == SERVICE_RETURN_OK)
     {
       returnCode = removeServiceWithServiceName(serviceName);
+    }
+    else if (code == SERVICE_LIST_UNAVAILABLE)
+    {
+      // The SCM could not be enumerated: "the service does not exist" cannot
+      // be proven, so report an error instead of the "already disabled"
+      // success the callers map exit code 1 to.
+      returnCode = 3;
     }
     else
     {

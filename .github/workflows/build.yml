@@ -141,6 +141,16 @@ jobs:
       env:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
       run: mvn --batch-mode --errors --update-snapshots verify --file pom.xml ${{ steps.failsafe.outputs.MAVEN_PROFILE_FLAG }}
+    - name: Validate the MSI (ICE)
+      # wix build runs no ICE validation (only MSBuild projects or an explicit validate
+      # do), so a green build alone proves the authoring compiles, not that it validates -
+      # e.g. the ICE63 rule about script-generating actions sequenced before
+      # RemoveExistingProducts would go unnoticed without this step.
+      if: runner.os == 'Windows' && matrix.java == '11'
+      shell: bash
+      run: |
+        msi=$(ls opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi)
+        wix msi validate "$msi"
     - name: Test on Unix
       if: runner.os == 'Linux'
       run:   |
@@ -816,13 +826,13 @@ jobs:
           $env:OPENDJ_JAVA_ARGS = "-server -Xmx512m"
           & "$root\setup.bat" -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --addBaseEntry --cli --acceptLicense --no-prompt --doNotStart
           if ($LASTEXITCODE -ne 0) { throw "setup.bat (5.1.2) failed: $LASTEXITCODE" }
-          # Register the LEGACY service the pre-MSI way and prove it works, then stop it.
+          # Register the LEGACY service the pre-MSI way, prove it works, and LEAVE IT
+          # RUNNING: the upgrade itself must stop it (StopLegacyServiceBeforeUpgrade runs
+          # elevated here) before CheckLegacyServiceStopped would otherwise refuse.
           & "$root\bat\windows-service.bat" --enableService
           if ($LASTEXITCODE -ne 0) { throw "windows-service --enableService failed: $LASTEXITCODE" }
           net start "OpenDJ Server"
           if ($LASTEXITCODE -ne 0) { throw "net start (5.1.2) failed: $LASTEXITCODE" }
-          net stop "OpenDJ Server"
-          if ($LASTEXITCODE -ne 0) { throw "net stop (5.1.2) failed: $LASTEXITCODE" }
       - name: Upgrade with the newly built MSI (no OPENDJ - location auto-detected)
         shell: pwsh
         run: |
@@ -860,6 +870,23 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "ldapsearch after upgrade failed: $LASTEXITCODE" }
           net stop OpenDJ
           if ($LASTEXITCODE -ne 0) { throw "net stop (upgraded) failed: $LASTEXITCODE" }
+      - name: Repair must not touch an unrelated instance's legacy-named service
+        shell: pwsh
+        run: |
+          # RemoveLegacyServiceControl is Transitive and both of its signals are gone in
+          # maintenance mode (FindRelatedProducts does not run there at all), so a repair
+          # must leave an "OpenDJ Server" registered by a zip instance AFTER the upgrade
+          # alone. This is the assertion review rounds 3-5 were about: the component
+          # condition was wrong twice and nothing in CI exercised it.
+          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+          sc.exe create "OpenDJ Server" binPath= "C:\zip-instance\lib\opendj_service.exe start ""C:\zip-instance.""" start= demand
+          if ($LASTEXITCODE -ne 0) { throw "sc create failed: $LASTEXITCODE" }
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" REINSTALL=ALL REINSTALLMODE=vomus /quiet /qn /norestart /l*v repair.log"
+          if ($p.ExitCode -ne 0) { Get-Content repair.log -Tail 80; throw "repair failed: $($p.ExitCode)" }
+          if (-not (Get-Service "OpenDJ Server" -ErrorAction SilentlyContinue)) { throw "repair deleted an unrelated instance's service" }
+          sc.exe delete "OpenDJ Server"
+          if ($LASTEXITCODE -ne 0) { throw "sc delete failed: $LASTEXITCODE" }
+          Write-Host "Repair left the unrelated 'OpenDJ Server' service in place"
       - name: Auto-detect the legacy default directory on a fresh install
         shell: pwsh
         run: |
@@ -912,3 +939,24 @@ jobs:
           Write-Host "Upgrade refused with guidance, original install untouched (exit $($p.ExitCode))"
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x opendj-5.1.2.msi /quiet /qn /norestart /l*v uninstall-custom.log"
           if ($p.ExitCode -ne 0) { Get-Content uninstall-custom.log -Tail 80; throw "msiexec /x (5.1.2 cleanup) failed: $($p.ExitCode)" }
+      - name: Fresh install elsewhere must not touch a legacy-named service it does not own
+        shell: pwsh
+        run: |
+          # A leftover Program Files (x86)\OpenDJ makes the legacy fresh-install disjunct
+          # of RemoveLegacyServiceControl true, but the ownership gate (the service's
+          # ImagePath must point into [OPENDJ]) has to keep the installer away from an
+          # "OpenDJ Server" registered by a zip instance when the install goes somewhere
+          # else entirely - the round-5 blocker scenario.
+          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+          Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force "C:\Program Files (x86)\OpenDJ" | Out-Null
+          sc.exe create "OpenDJ Server" binPath= "C:\zip-instance\lib\opendj_service.exe start ""C:\zip-instance.""" start= demand
+          if ($LASTEXITCODE -ne 0) { throw "sc create failed: $LASTEXITCODE" }
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" OPENDJ=C:\opendj-elsewhere /quiet /qn /norestart /l*v install-elsewhere.log"
+          if ($p.ExitCode -ne 0) { Get-Content install-elsewhere.log -Tail 80; throw "msiexec /i (elsewhere) failed: $($p.ExitCode)" }
+          if (-not (Test-Path "C:\opendj-elsewhere\setup.bat")) { throw "install did not land in C:\opendj-elsewhere" }
+          if (-not (Get-Service "OpenDJ Server" -ErrorAction SilentlyContinue)) { throw "fresh install elsewhere deleted an unrelated instance's service" }
+          sc.exe delete "OpenDJ Server"
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall-elsewhere.log"
+          if ($p.ExitCode -ne 0) { Get-Content uninstall-elsewhere.log -Tail 80; throw "msiexec /x (elsewhere cleanup) failed: $($p.ExitCode)" }
+          Write-Host "Fresh install elsewhere left the unrelated 'OpenDJ Server' service in place"
