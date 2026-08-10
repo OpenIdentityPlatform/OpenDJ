@@ -35,6 +35,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   compare:
     runs-on: 'windows-latest'
@@ -57,7 +61,10 @@ jobs:
       - name: Committed launcher binaries must match the sources
         shell: bash
         run: |
-          if ! git diff --exit-code -- opendj-server-legacy/lib; then
+          # git diff alone misses a brand-new launcher that was never git-added:
+          # status --porcelain reports modified and untracked files alike.
+          if [ -n "$(git status --porcelain -- opendj-server-legacy/lib)" ]; then
+            git status --porcelain -- opendj-server-legacy/lib
             echo "::error title=Stale launcher binaries::opendj-server-legacy/lib/*.exe do not match the sources. Refresh them from the windows-exe artifact of a Build run on this branch and commit them."
             exit 1
           fi

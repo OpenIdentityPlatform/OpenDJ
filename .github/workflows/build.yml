@@ -106,7 +106,10 @@ jobs:
       continue-on-error: true
       shell: bash
       run: |
-        if ! git diff --exit-code -- opendj-server-legacy/lib; then
+        # git diff alone misses a brand-new launcher that was never git-added:
+        # status --porcelain reports modified and untracked files alike.
+        if [ -n "$(git status --porcelain -- opendj-server-legacy/lib)" ]; then
+          git status --porcelain -- opendj-server-legacy/lib
           echo "::warning title=Stale launcher binaries::opendj-server-legacy/lib/*.exe differ from what this CI build produced (source change or MSVC toolchain bump). Refresh them from the windows-exe artifact of this run."
           exit 1
         fi

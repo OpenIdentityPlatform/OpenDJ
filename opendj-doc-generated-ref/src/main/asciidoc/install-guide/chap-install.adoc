@@ -644,7 +644,7 @@ On Windows you can install OpenDJ directory server from the `.msi` package. The 
 
 [NOTE]
 ======
-When the installer replaces a legacy OpenDJ installation (an upgrade from a pre-5.2.0 package, or a fresh install into a detected legacy default directory), it stops and removes the service registered by the legacy `windows-service.bat` command, replacing it with the installer-managed `OpenDJ` service. Services belonging to other server instances are not touched: upgrades between 5.2.0-or-later packages and repairs leave any `OpenDJ Server` service in place. Because the installer-managed service is registered with automatic start, Windows logs a start failure at every boot until the instance has been configured with `setup`.
+When the installer replaces a legacy OpenDJ installation (an upgrade from a pre-5.2.0 package, or a fresh install that adopts a detected legacy default directory on a host where no 5.2.0-or-later package has recorded its installation location), it stops and removes the service registered by the legacy `windows-service.bat` command, replacing it with the installer-managed `OpenDJ` service. Services belonging to other server instances are not touched: upgrades between 5.2.0-or-later packages and repairs leave any `OpenDJ Server` service in place. Because the installer-managed service is registered with automatic start, Windows logs a start failure at every boot until the instance has been configured with `setup`.
 ======
 
 . Make sure a supported Java runtime is available, as described in xref:#before-you-install["To Prepare For Installation"].

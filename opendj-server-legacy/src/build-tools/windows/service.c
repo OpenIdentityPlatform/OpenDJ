@@ -2594,7 +2594,11 @@ int serviceState()
 // to HKLM\SOFTWARE\OpenDJ exists and the service command points into
 // that directory. An orphaned service that merely reuses the "OpenDJ"
 // key name (rolled-back install, hand-run sc create) fails the check
-// and stays removable by the remove and cleanup subcommands.
+// and stays removable by the remove and cleanup subcommands. When the
+// SCM query fails, or the entry's command line cannot be read, the
+// service is treated as managed: wrongly deleting the MSI's own
+// service is worse than leaving an orphan to msiexec /x or a manual
+// 'sc delete'.
 // ---------------------------------------------------------------
 static BOOL isMsiManagedService(char *serviceName)
 {
@@ -2645,9 +2649,20 @@ static BOOL isMsiManagedService(char *serviceName)
       for (i = 0; i < nbServices; i++)
       {
         ServiceDescriptor curService = serviceList[i];
-        if ((curService.serviceName != NULL) &&
-            (_stricmp(curService.serviceName, serviceName) == 0) &&
-            (curService.cmdToRun != NULL))
+        if ((curService.serviceName == NULL) ||
+            (_stricmp(curService.serviceName, serviceName) != 0))
+        {
+          continue;
+        }
+        if (curService.cmdToRun == NULL)
+        {
+          // Fail closed: the entry exists but its command line could not be
+          // read, so it cannot be proven orphaned.
+          debug("isMsiManagedService: no command line for '%s', "
+              "treating it as MSI-managed.", serviceName);
+          managed = TRUE;
+          break;
+        }
         {
           // Third token of '<exe> start "<root>\."' is the instance dir.
           const char* p = curService.cmdToRun;
@@ -2662,15 +2677,19 @@ static BOOL isMsiManagedService(char *serviceName)
           debug("isMsiManagedService: service dir '%s' vs InstallDir '%s' "
               "-> %s.", serviceDir, installDir,
               managed ? "MSI-managed" : "orphaned");
-          break;
         }
+        break;
       }
       free(serviceList);
     }
   }
   else
   {
-    debug("isMsiManagedService: could not get service list.");
+    // Fail closed for the same reason as above: without the service list the
+    // entry cannot be proven orphaned.
+    debug("isMsiManagedService: could not get service list, "
+        "treating '%s' as MSI-managed.", serviceName);
+    managed = TRUE;
   }
 
   return managed;

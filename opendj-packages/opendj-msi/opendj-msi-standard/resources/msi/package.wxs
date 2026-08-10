@@ -33,10 +33,9 @@
          which the auto-generated GUIDs of the old WiX3 x86 package cannot guarantee - a
          late RemoveExistingProducts would then delete freshly installed files; removing
          the old product early is safe here because instance data (config, db, logs) is
-         not part of any component set) while placing it after InstallInitialize, so the
-         deferred StopLegacyServiceBeforeUpgrade action below can be sequenced before it -
-         deferred actions cannot run before InstallInitialize, which the
-         afterInstallValidate default would require. -->
+         not part of any component set) while placing it inside the installation
+         transaction: a failed upgrade rolls the removal back and restores the old
+         product, which the afterInstallValidate default does not. -->
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."
                   AllowSameVersionUpgrades="yes" Schedule="afterInstallInitialize"/>
     <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
@@ -93,21 +92,27 @@
     <CustomAction Id="RequireDirOnCustomUpgrade"
                   Error="An existing OpenDJ installation was detected, but its location could not be determined. Run the installer again with the installation directory passed explicitly: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot;"/>
 
-    <!-- RemoveExistingProducts runs before StopServices (1900): a still-running legacy
-         (windows-service.bat) service would hold lib\*.jar while the old product's files
-         are removed, queueing delayed deletes that fire at the next boot. Stop it up
-         front, deferred with no impersonation: an immediate action would run with the
-         launching user's token and fail access-denied on a UAC double-click install
-         (swallowed by Return="ignore"), while a deferred action runs elevated as
-         LocalSystem - which is also why MajorUpgrade schedules RemoveExistingProducts at
-         afterInstallInitialize above. The full path prevents resolving net.exe from the
-         working directory; Return="ignore" stays: the service may simply not be running.
+    <!-- RemoveExistingProducts removes the old product's files during the sequence pass,
+         long before the new product's StopServices (1900) executes in the script: a
+         still-running legacy (windows-service.bat) service would hold lib\*.jar while
+         they are removed, queueing delayed deletes that fire at the next boot. Stop it
+         up front with a best-effort IMMEDIATE action. A deferred action cannot help
+         here: it is only written into the installation script, which both breaks the
+         RemoveExistingProducts placement rule (ICE63: nothing script-generating between
+         InstallInitialize and RemoveExistingProducts) and would execute the stop only
+         after the old tree is already gone. Immediate runs with the invoking user's
+         token, so it covers elevated consoles, SCCM/SYSTEM and CI; a UAC double-click
+         gets access-denied, swallowed by Return="ignore" - the
+         RemoveLegacyServiceControl component below still stops and removes the service
+         elevated during script execution, so the only cost of a missed stop is old
+         files held until reboot. The full path prevents resolving net.exe from the
+         working directory; Return="ignore" also covers the service simply not running.
          Conditioned on LEGACY_MSI_DETECTED, not WIX_UPGRADE_DETECTED: on a
          new-MSI-to-new-MSI upgrade "OpenDJ Server" can only be an unrelated zip
          instance's service and must not be stopped. -->
     <CustomAction Id="StopLegacyServiceBeforeUpgrade" Directory="TARGETDIR"
                   ExeCommand="&quot;[System64Folder]net.exe&quot; stop &quot;OpenDJ Server&quot;"
-                  Execute="deferred" Impersonate="no" Return="ignore"/>
+                  Execute="immediate" Return="ignore"/>
     <InstallExecuteSequence>
       <Custom Action="RequireDirOnCustomUpgrade" After="SetOpendjFromLegacyDir"
               Condition="WIX_UPGRADE_DETECTED AND NOT OPENDJ"/>
@@ -226,15 +231,20 @@
          on evidence that the service belongs to the tree being replaced: an upgrade from a
          WiX3-era release (LEGACY_MSI_DETECTED; a new-MSI-to-new-MSI upgrade must not
          match - its own service is named "OpenDJ", so "OpenDJ Server" can only belong to
-         an unrelated zip instance), or a fresh install adopting the legacy x86 default
-         directory. OPENDJ_REG is deliberately NOT part of the condition: it reads the
-         value this package itself writes, which would make the condition permanently true
-         on any host after the first install. Transitive: maintenance re-evaluates the
-         condition (both signals are then gone), so the component leaves the install set
-         and a repair cannot re-run the removal against a zip instance registered later. -->
+         an unrelated zip instance), or a fresh install genuinely adopting the legacy x86
+         default directory. NOT OPENDJ_REG mirrors SetOpendjFromLegacyDir and is
+         essential: NOT Installed is also true during every major upgrade (each build
+         carries a new ProductCode), and on a host that came through a 5.1.x upgrade the
+         install root IS the legacy directory, so without the registry guard the second
+         disjunct would fire on every later 5.2.x-to-5.2.y upgrade and delete a zip
+         instance's service registered since. Once this package has recorded InstallDir,
+         "OpenDJ Server" can only be such an unrelated instance. Transitive: maintenance
+         re-evaluates the condition (all signals are then gone), so the component leaves
+         the install set and a repair cannot re-run the removal against a zip instance
+         registered later. -->
     <Component Id="RemoveLegacyServiceControl" Directory="OPENDJ"
                Guid="3F2A9C41-7D28-4E0B-9B1D-6C54A0D2E7F3" Transitive="yes"
-               Condition="LEGACY_MSI_DETECTED OR (NOT Installed AND OPENDJ_LEGACY)">
+               Condition="LEGACY_MSI_DETECTED OR (NOT Installed AND OPENDJ_LEGACY AND NOT OPENDJ_REG)">
       <CreateFolder/>
       <ServiceControl Id="RemoveLegacyOpenDJServer" Name="OpenDJ Server"
                       Stop="install" Remove="install" Wait="yes"/>
