@@ -214,7 +214,12 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     if (connectionSet != null)
     {
       Entry newEntry = null;
-      for (ClientConnection conn : connectionSet)
+      // updateAuthenticationInfo() re-registers the connection (remove + put),
+      // appending it back to the tail of the live set's hash-bin chain. A
+      // weakly-consistent iterator over the set itself would then meet the
+      // connection again and, with two or more connections in one bin,
+      // ping-pong between them forever (issue #857) - so iterate a snapshot.
+      for (ClientConnection conn : connectionSet.toArray(new ClientConnection[0]))
       {
         if (newEntry == null)
         {
