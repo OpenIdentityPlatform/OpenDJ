@@ -1371,9 +1371,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     switch (code) {
       case SERVICE_DISABLE_SUCCESS:
       case SERVICE_ALREADY_DISABLED:
-      // The MSI-managed service is removed by the Windows Installer package,
-      // not by this uninstaller: continue deleting the files.
-      case SERVICE_MSI_MANAGED:
         break;
       default:
         LocalizableMessage errorMessage = INFO_ERROR_DISABLING_WINDOWS_SERVICE.get(getInstallationPath());

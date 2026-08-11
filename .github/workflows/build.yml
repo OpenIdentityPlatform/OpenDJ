@@ -714,56 +714,67 @@ jobs:
           $root = "C:\Program Files\OpenDJ"
           if (-not (Test-Path "$root\setup.bat")) { Get-Content install.log -Tail 80; throw "OpenDJ not installed into the x64 default $root" }
           Write-Host "Installed to $root"
-          # The whole [OPENDJ]. ImagePath hack rests on msiexec quoting the exe path;
-          # unquoted-with-spaces would be an unquoted service path (CWE-428).
-          $image = (Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Services\OpenDJ).ImagePath
-          Write-Host "ImagePath: $image"
-          if ($image -notmatch '^"C:\\Program Files\\OpenDJ\\lib\\opendj_service\.exe"') { throw "ImagePath must quote the exe path (CWE-428): $image" }
+          # The package lays the files down and registers no service: enabling one stays
+          # the administrator's explicit step (windows-service.bat / setup), exactly as
+          # for the zip distribution, so start-ds.bat keeps starting the server directly.
+          if (Get-Service OpenDJ -ErrorAction SilentlyContinue) { throw "the package must not register a service of its own" }
+          if (Get-Service "OpenDJ Server" -ErrorAction SilentlyContinue) { throw "the package must not register a service of its own" }
+          # The SCM wrapper is harvested with the rest of lib; windows-service.bat needs it.
+          if (-not (Test-Path "$root\lib\opendj_service.exe")) { throw "lib\opendj_service.exe missing from the MSI install" }
           # Custom extension jars go into lib\extensions; the server warns on startup
           # (WARN_ADMIN_NO_EXTENSIONS_DIR) when it is missing.
           if (-not (Test-Path "$root\lib\extensions")) { throw "lib\extensions missing from the MSI install" }
           "OPENDJ_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append
-      - name: Setup and start/stop the Windows service
+      - name: Setup, then start and stop the server without a service
         shell: pwsh
         run: |
+          # An MSI install that was never asked for service mode must behave exactly like
+          # a zip one: start-ds.bat starts the server in this very session rather than
+          # dispatching to the SCM, and needs no elevation to do it.
           $root = $env:OPENDJ_ROOT
           $env:OPENDJ_JAVA_ARGS = "-server -Xmx512m"
           & "$root\setup.bat" -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --addBaseEntry --cli --acceptLicense --no-prompt --doNotStart
           if ($LASTEXITCODE -ne 0) { throw "setup.bat failed: $LASTEXITCODE" }
-          # The service is already registered by the MSI (WiX ServiceInstall, key and
-          # display name 'OpenDJ'); just start it.
-          net start OpenDJ
-          if ($LASTEXITCODE -ne 0) { throw "net start failed: $LASTEXITCODE" }
+          & "$root\bat\start-ds.bat"
+          if ($LASTEXITCODE -ne 0) { throw "start-ds.bat failed: $LASTEXITCODE" }
           for ($i=0; $i -lt 12; $i++) { try { $c = New-Object System.Net.Sockets.TcpClient('localhost', 1636); $c.Close(); break } catch { Start-Sleep -Seconds 5 } }
           & "$root\bat\ldapsearch.bat" --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
           if ($LASTEXITCODE -ne 0) { throw "ldapsearch failed: $LASTEXITCODE" }
-          net stop OpenDJ
+          & "$root\bat\stop-ds.bat"
+          if ($LASTEXITCODE -ne 0) { throw "stop-ds.bat failed: $LASTEXITCODE" }
+      - name: Enable, start, stop and disable the Windows service
+        shell: pwsh
+        run: |
+          # Service mode is opt-in and driven entirely by windows-service.bat, the same
+          # command the zip distribution uses. The service it registers takes the display
+          # name "OpenDJ Server" for the first instance on the host.
+          $root = $env:OPENDJ_ROOT
+          & "$root\bat\windows-service.bat" --enableService
+          if ($LASTEXITCODE -ne 0) { throw "--enableService failed: $LASTEXITCODE" }
+          if (-not (Get-Service -DisplayName "OpenDJ Server" -ErrorAction SilentlyContinue)) { sc.exe query; throw "--enableService did not register the service" }
+          net start "OpenDJ Server"
+          if ($LASTEXITCODE -ne 0) { throw "net start failed: $LASTEXITCODE" }
+          for ($i=0; $i -lt 12; $i++) { try { $c = New-Object System.Net.Sockets.TcpClient('localhost', 1636); $c.Close(); break } catch { Start-Sleep -Seconds 5 } }
+          & "$root\bat\ldapsearch.bat" --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
+          if ($LASTEXITCODE -ne 0) { throw "ldapsearch (as a service) failed: $LASTEXITCODE" }
+          net stop "OpenDJ Server"
           if ($LASTEXITCODE -ne 0) { throw "net stop failed: $LASTEXITCODE" }
-      - name: windows-service.bat must not delete the MSI-managed service
-        shell: pwsh
-        run: |
-          # Deleting the service here would leave msiexec /x targeting a key that no longer
-          # exists; opendj_service.exe refuses to remove the MSI-managed key 'OpenDJ'.
-          # The refusal makes the bat exit non-zero, and the pwsh shell wrapper would turn
-          # that into a step failure - so capture it and finish with an explicit exit 0.
-          $root = $env:OPENDJ_ROOT
           & "$root\bat\windows-service.bat" --disableService
-          $code = $LASTEXITCODE
-          if ($code -eq 0) { throw "--disableService reported success on an MSI-managed service" }
-          if (-not (Get-Service OpenDJ -ErrorAction SilentlyContinue)) { throw "--disableService deleted the MSI-managed service" }
-          Write-Host "--disableService refused as expected (exit $code) and left the service in place"
-          exit 0
-      - name: uninstall.bat works on an MSI install and leaves the service to msiexec
+          if ($LASTEXITCODE -ne 0) { throw "--disableService failed: $LASTEXITCODE" }
+          if (Get-Service -DisplayName "OpenDJ Server" -ErrorAction SilentlyContinue) { throw "--disableService left the service registered" }
+      - name: uninstall.bat disables the service it finds and removes the instance
         shell: pwsh
         run: |
-          # The uninstaller must treat the MSI-managed service as a skip (not an error),
-          # delete the instance files, and leave the service for msiexec /x to remove.
+          # Re-enable the service so the uninstaller exercises its disable path: nothing
+          # in the package owns the service, so removing it is the uninstaller's job.
           $root = $env:OPENDJ_ROOT
+          & "$root\bat\windows-service.bat" --enableService
+          if ($LASTEXITCODE -ne 0) { throw "--enableService failed: $LASTEXITCODE" }
           & "$root\uninstall.bat" --cli --remove-all --no-prompt --forceOnError --quiet
           if ($LASTEXITCODE -ne 0) { throw "uninstall.bat failed: $LASTEXITCODE" }
           if (Test-Path "$root\config\config.ldif") { throw "uninstall.bat did not remove the instance files" }
-          if (-not (Get-Service OpenDJ -ErrorAction SilentlyContinue)) { throw "uninstall.bat removed the MSI-managed service" }
-          Write-Host "uninstall.bat completed and left the MSI-managed service in place"
+          if (Get-Service -DisplayName "OpenDJ Server" -ErrorAction SilentlyContinue) { throw "uninstall.bat left the service registered" }
+          Write-Host "uninstall.bat removed the instance and disabled the service"
           exit 0
       - name: Uninstall MSI
         shell: pwsh
@@ -771,13 +782,13 @@ jobs:
           $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall.log"
           if ($p.ExitCode -ne 0) { Get-Content uninstall.log -Tail 80; throw "msiexec /x failed: $($p.ExitCode)" }
-          if (Get-Service OpenDJ -ErrorAction SilentlyContinue) { throw "service not removed by msiexec /x" }
+          if (Test-Path "$env:OPENDJ_ROOT\lib\opendj_service.exe") { throw "msiexec /x left the payload behind" }
           Write-Host "Uninstalled OK"
 
   # Upgrade path: released 5.1.2 x86 MSI (wine-built, WiX3) -> this build's x64 MSI.
   # Verifies the new installer detects the legacy Program Files (x86) install, keeps the
-  # instance data in place, replaces the windows-service.bat service with the MSI-managed
-  # one, and the upgraded server starts with the old data.
+  # instance data in place, stops the running service for the file replacement and leaves
+  # its registration alone, and that the upgraded server starts with the old data.
   test-msi-upgrade:
     needs: build-maven
     runs-on: 'windows-latest'
@@ -809,9 +820,9 @@ jobs:
           $env:OPENDJ_JAVA_ARGS = "-server -Xmx512m"
           & "$root\setup.bat" -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --addBaseEntry --cli --acceptLicense --no-prompt --doNotStart
           if ($LASTEXITCODE -ne 0) { throw "setup.bat (5.1.2) failed: $LASTEXITCODE" }
-          # Register the LEGACY service the pre-MSI way, prove it works, and LEAVE IT
-          # RUNNING: the upgrade itself must stop it (StopLegacyServiceBeforeUpgrade runs
-          # elevated here) before CheckLegacyServiceStopped would otherwise refuse.
+          # Register the service the pre-MSI way, prove it works, and LEAVE IT RUNNING:
+          # the upgrade itself must stop it (StopServiceBeforeUpgrade runs elevated here)
+          # before CheckServiceStopped would otherwise refuse.
           & "$root\bat\windows-service.bat" --enableService
           if ($LASTEXITCODE -ne 0) { throw "windows-service --enableService failed: $LASTEXITCODE" }
           net start "OpenDJ Server"
@@ -831,45 +842,56 @@ jobs:
           if (Test-Path "C:\Program Files\OpenDJ") { throw "upgrade unexpectedly installed into the x64 default dir" }
           # Instance data survived
           if (-not (Test-Path "$root\config\config.ldif")) { throw "instance data (config\config.ldif) lost by the upgrade" }
-          # Legacy service replaced by the MSI-managed one (key = display name = 'OpenDJ')
-          $svc = Get-Service OpenDJ -ErrorAction SilentlyContinue
-          if (-not $svc) { sc.exe query; throw "MSI-managed service 'OpenDJ' not registered" }
-          if ($svc.DisplayName -ne "OpenDJ") { throw "expected display name 'OpenDJ', got '$($svc.DisplayName)'" }
-          if (Get-Service -DisplayName "OpenDJ Server" -ErrorAction SilentlyContinue) { sc.exe query; throw "legacy service 'OpenDJ Server' still present after the upgrade" }
-          sc.exe qc OpenDJ
+          # The service registration is the administrator's, not the package's: the upgrade
+          # stopped it to free the jars, and must have left it registered and pointing at
+          # the same tree - the wrapper it names has just been replaced in place.
+          $svc = Get-Service -DisplayName "OpenDJ Server" -ErrorAction SilentlyContinue
+          if (-not $svc) { sc.exe query; throw "the upgrade unregistered the administrator's service" }
+          if ($svc.Status -ne "Stopped") { throw "the upgrade left the service $($svc.Status), expected Stopped" }
+          if (Get-Service OpenDJ -ErrorAction SilentlyContinue) { sc.exe query; throw "the package registered a service of its own" }
+          sc.exe qc "$($svc.Name)"
           "OPENDJ_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append
-      - name: Run upgrade.bat and start the upgraded server
+      - name: Run upgrade.bat and start the upgraded server through the service
         shell: pwsh
         run: |
           $root = $env:OPENDJ_ROOT
           $env:OPENDJ_JAVA_ARGS = "-server -Xmx512m"
           & "$root\upgrade.bat" --no-prompt --acceptLicense --force
           if ($LASTEXITCODE -ne 0) { throw "upgrade.bat failed: $LASTEXITCODE" }
-          net start OpenDJ
+          # The service registered before the upgrade still drives the refreshed tree.
+          net start "OpenDJ Server"
           if ($LASTEXITCODE -ne 0) { throw "net start (upgraded) failed: $LASTEXITCODE" }
           for ($i=0; $i -lt 12; $i++) { try { $c = New-Object System.Net.Sockets.TcpClient('localhost', 1636); $c.Close(); break } catch { Start-Sleep -Seconds 5 } }
           # The pre-upgrade data must still be served
           & "$root\bat\ldapsearch.bat" --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
           if ($LASTEXITCODE -ne 0) { throw "ldapsearch after upgrade failed: $LASTEXITCODE" }
-          net stop OpenDJ
+          net stop "OpenDJ Server"
           if ($LASTEXITCODE -ne 0) { throw "net stop (upgraded) failed: $LASTEXITCODE" }
-      - name: Repair must not touch an unrelated instance's legacy-named service
+      - name: Repair must leave the service registration alone
         shell: pwsh
         run: |
-          # RemoveLegacyServiceControl is Transitive and both of its signals are gone in
-          # maintenance mode (FindRelatedProducts does not run there at all), so a repair
-          # must leave an "OpenDJ Server" registered by a zip instance AFTER the upgrade
-          # alone. This is the assertion review rounds 3-5 were about: the component
-          # condition was wrong twice and nothing in CI exercised it.
+          # Nothing in the package controls a service, so a repair must not disturb the
+          # registration the administrator made - neither the one this upgrade inherited
+          # nor one belonging to an unrelated instance.
           $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
-          sc.exe create "OpenDJ Server" binPath= "C:\zip-instance\lib\opendj_service.exe start ""C:\zip-instance.""" start= demand
-          if ($LASTEXITCODE -ne 0) { throw "sc create failed: $LASTEXITCODE" }
+          $before = (Get-Service -DisplayName "OpenDJ Server").Name
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" REINSTALL=ALL REINSTALLMODE=vomus /quiet /qn /norestart /l*v repair.log"
           if ($p.ExitCode -ne 0) { Get-Content repair.log -Tail 80; throw "repair failed: $($p.ExitCode)" }
-          if (-not (Get-Service "OpenDJ Server" -ErrorAction SilentlyContinue)) { throw "repair deleted an unrelated instance's service" }
-          sc.exe delete "OpenDJ Server"
-          if ($LASTEXITCODE -ne 0) { throw "sc delete failed: $LASTEXITCODE" }
-          Write-Host "Repair left the unrelated 'OpenDJ Server' service in place"
+          $after = Get-Service -DisplayName "OpenDJ Server" -ErrorAction SilentlyContinue
+          if (-not $after) { throw "repair unregistered the service" }
+          if ($after.Name -ne $before) { throw "repair changed the service key name: $before -> $($after.Name)" }
+          Write-Host "Repair left the '$before' service in place"
+      - name: Disabling the service before uninstalling leaves no orphan
+        shell: pwsh
+        run: |
+          # msiexec /x removes the files it installed and nothing else - as the WiX3-era
+          # package did. Disabling the service is the administrator's step (the install
+          # guide says so, and uninstall.bat does it too); skipping it would leave an
+          # auto-start service pointing at a deleted tree.
+          $root = $env:OPENDJ_ROOT
+          & "$root\bat\windows-service.bat" --disableService
+          if ($LASTEXITCODE -ne 0) { throw "--disableService failed: $LASTEXITCODE" }
+          if (Get-Service -DisplayName "OpenDJ Server" -ErrorAction SilentlyContinue) { throw "--disableService left the service registered" }
       - name: Auto-detect the legacy default directory on a fresh install
         shell: pwsh
         run: |
@@ -877,7 +899,6 @@ jobs:
           # Clean up the previous scenario first.
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall1.log"
           if ($p.ExitCode -ne 0) { Get-Content uninstall1.log -Tail 80; throw "msiexec /x failed: $($p.ExitCode)" }
-          if (Get-Service OpenDJ -ErrorAction SilentlyContinue) { throw "service not removed by uninstall" }
           # An existing legacy default directory must be picked up when OPENDJ is not given.
           New-Item -ItemType Directory -Force "C:\Program Files (x86)\OpenDJ" | Out-Null
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v install-autodetect.log"
@@ -922,14 +943,13 @@ jobs:
           Write-Host "Upgrade refused with guidance, original install untouched (exit $($p.ExitCode))"
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x opendj-5.1.2.msi /quiet /qn /norestart /l*v uninstall-custom.log"
           if ($p.ExitCode -ne 0) { Get-Content uninstall-custom.log -Tail 80; throw "msiexec /x (5.1.2 cleanup) failed: $($p.ExitCode)" }
-      - name: Fresh install elsewhere must not touch a legacy-named service it does not own
+      - name: Fresh install must not touch a service registered by another instance
         shell: pwsh
         run: |
-          # A leftover Program Files (x86)\OpenDJ makes the legacy fresh-install disjunct
-          # of RemoveLegacyServiceControl true, but the ownership gate (the service's
-          # ImagePath must point into [OPENDJ]) has to keep the installer away from an
-          # "OpenDJ Server" registered by a zip instance when the install goes somewhere
-          # else entirely - the round-5 blocker scenario.
+          # A leftover Program Files (x86)\OpenDJ plus an "OpenDJ Server" belonging to a
+          # zip instance elsewhere: installing to a third directory must leave that
+          # registration completely alone. The package controls no service at all, so this
+          # holds by construction - the scenario guards against reintroducing one.
           $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
           Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force "C:\Program Files (x86)\OpenDJ" | Out-Null

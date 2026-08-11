@@ -62,30 +62,31 @@
     <Property Id="OPENDJ_LEGACY" Secure="yes">
       <DirectorySearch Id="LegacyX86InstallDir" Path="[ProgramFilesFolder]$(var.name)"/>
     </Property>
-    <!-- Ownership evidence for the legacy "OpenDJ Server" service: its ImagePath records
-         where it points ('"<root>\lib\opendj_service.exe" start "<root>"', written by
-         windows-service.bat as REG_SZ, which raw returns unmangled). Compared below with
-         a case-insensitive substring match (~><) against the resolved [OPENDJ]: only a
-         service that provably points into the tree being replaced may ever be stopped or
-         removed. Unset (no such service) fails every comparison, so both consumers then
-         correctly do nothing. The Services key is shared between registry views. -->
-    <Property Id="LEGACY_SVC_IMAGEPATH" Secure="yes">
-      <RegistrySearch Id="LegacySvcImagePathSearch" Root="HKLM"
+    <!-- Evidence that the "OpenDJ Server" service - the one windows-service.bat registers
+         for the FIRST instance on a host - belongs to the tree this install is about to
+         replace: its ImagePath records where it points
+         ('"<root>\lib\opendj_service.exe" start "<root>"'). Compared below with a
+         case-insensitive substring match (~><) against the resolved [OPENDJ], gating the
+         stop-and-verify pair: only a service that provably points into that tree is ever
+         acted on. Unset (no such service) fails the comparison, so the actions correctly
+         do nothing.
+         Type="raw" and substring rather than equality on purpose: CreateService stores
+         ImagePath as REG_EXPAND_SZ, which a raw search returns unexpanded and prefixed
+         with '#%', so neither an equality test nor the prefix operator (<<) would ever
+         match. The residual is that a bare directory name could also match a sibling
+         (C:\dj vs C:\dj2) when OPENDJ is passed on the command line without a trailing
+         backslash - accepted: the worst case is refusing an upgrade whose neighbouring
+         instance is running.
+         Additional instances get key names like "OpenDJ Server-2", which this search does
+         not see; upgrading such an instance while it runs falls back to the WiX3-era
+         behaviour (locked jars go to delete-on-reboot). The Services key is shared
+         between registry views. -->
+    <Property Id="OPENDJ_SVC_IMAGEPATH" Secure="yes">
+      <RegistrySearch Id="OpendjSvcImagePathSearch" Root="HKLM"
                       Key="SYSTEM\CurrentControlSet\Services\OpenDJ Server"
                       Name="ImagePath" Type="raw"/>
     </Property>
 
-    <!-- Detect-only row for the WiX3-era releases: only those (x86, < 5.2.0) registered
-         the legacy "OpenDJ Server" windows-service.bat service that this package replaces.
-         WIX_UPGRADE_DETECTED alone cannot tell a legacy upgrade from a new-MSI-to-new-MSI
-         one, where "OpenDJ Server" can only belong to an unrelated zip instance. The
-         Maximum is pinned to the first WiX5/x64 release and must NOT track the package
-         version: with a moving bound every future upgrade would count as "legacy". -->
-    <Upgrade Id="A3E82AC0-88E6-4DEE-9D8C-5AE3B7853274">
-      <UpgradeVersion Minimum="0.0.0" IncludeMinimum="yes"
-                      Maximum="5.2.0" IncludeMaximum="no"
-                      OnlyDetect="yes" Property="LEGACY_MSI_DETECTED"/>
-    </Upgrade>
     <SetProperty Id="OPENDJ" Action="SetOpendjFromRegistry" After="AppSearch"
                  Sequence="both" Value="[OPENDJ_REG]" Condition="OPENDJ_REG AND NOT OPENDJ"/>
     <SetProperty Id="OPENDJ" Action="SetOpendjFromLegacyDir" After="SetOpendjFromRegistry"
@@ -109,42 +110,45 @@
                   Error="An existing OpenDJ installation was detected, but its location could not be determined. Run the installer again with the installation directory passed explicitly: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot;"/>
 
     <!-- RemoveExistingProducts removes the old product's files during the sequence pass,
-         long before the new product's StopServices (1900) executes in the script: a
-         still-running legacy (windows-service.bat) service would hold lib\*.jar while
-         they are removed. Proceeding on a missed stop is NOT benign: the JVM opens jars
-         without FILE_SHARE_DELETE (hardcoded, JDK-8224794 is Won't Fix), so locked jars
-         cannot be renamed into Config.Msi and the nested uninstall degrades to
-         delete-on-reboot entries naming the original paths. So: a best-effort immediate
-         '"net.exe" stop' first, then an immediate check that REFUSES the upgrade while
-         "OpenDJ Server" is still running. Immediate actions impersonate the invoking
-         user (a deferred elevated stop cannot be used: it is only written into the
-         installation script, breaking the RemoveExistingProducts placement rule - ICE63
-         - and executing only after the old tree is gone), so the stop succeeds from an
-         elevated console / SCCM / SYSTEM / CI but fails access-denied under the filtered
-         token of a UAC double-click (swallowed by Return="ignore", which also covers the
-         service simply not running). Querying the state needs no elevation, so the check
-         works everywhere and turns the silent half-upgrade into a deterministic msiexec
-         failure (error 1722 naming CheckLegacyServiceStopped; guidance in the install
-         guide: stop the service or run the installer elevated). PowerShell instead of
-         'sc query | findstr': the exit code needs no parsing of localized output - and
-         no square brackets in the command, ExeCommand is a Formatted field. Full paths
-         prevent resolving the exes from the working directory. Both actions are gated on
-         LEGACY_MSI_DETECTED (not WIX_UPGRADE_DETECTED: on a new-MSI-to-new-MSI upgrade
-         "OpenDJ Server" can only be an unrelated zip instance's service) AND on the
-         ImagePath ownership evidence, like the component below. -->
-    <CustomAction Id="StopLegacyServiceBeforeUpgrade" Directory="TARGETDIR"
+         long before the new product's InstallFiles executes in the script: a server still
+         running as a service out of that tree would hold lib\*.jar while they are removed.
+         Proceeding on a missed stop is NOT benign: the JVM opens jars without
+         FILE_SHARE_DELETE (hardcoded, JDK-8224794 is Won't Fix), so locked jars cannot be
+         renamed into Config.Msi and the nested uninstall degrades to delete-on-reboot
+         entries naming the original paths. So: a best-effort immediate '"net.exe" stop'
+         first, then an immediate check that REFUSES the upgrade while the service is
+         still running. This package registers no service of its own - windows-service.bat
+         does, when the administrator asks - so the service is not ours to own, only to
+         insist is stopped; nothing here removes it, and an upgrade in place leaves it
+         registered and working against the refreshed tree.
+         Immediate actions impersonate the invoking user (a deferred elevated stop cannot
+         be used: it is only written into the installation script, breaking the
+         RemoveExistingProducts placement rule - ICE63 - and executing only after the old
+         tree is gone), so the stop succeeds from an elevated console / SCCM / SYSTEM / CI
+         but fails access-denied under the filtered token of a UAC double-click (swallowed
+         by Return="ignore", which also covers the service simply not running). Querying
+         the state needs no elevation, so the check works everywhere and turns the silent
+         half-upgrade into a deterministic msiexec failure (error 1722 naming
+         CheckServiceStopped; guidance in the install guide: stop the service or run
+         the installer elevated). PowerShell instead of 'sc query | findstr': the exit code
+         needs no parsing of localized output - and no square brackets in the command,
+         ExeCommand is a Formatted field. Full paths prevent resolving the exes from the
+         working directory. Gated on the ImagePath evidence alone: any upgrade over a tree
+         whose service is running has the locking problem, whether the installed product
+         came from a WiX3-era package or from this one. -->
+    <CustomAction Id="StopServiceBeforeUpgrade" Directory="TARGETDIR"
                   ExeCommand="&quot;[System64Folder]net.exe&quot; stop &quot;OpenDJ Server&quot;"
                   Execute="immediate" Return="ignore"/>
-    <CustomAction Id="CheckLegacyServiceStopped" Directory="TARGETDIR"
+    <CustomAction Id="CheckServiceStopped" Directory="TARGETDIR"
                   ExeCommand="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -NonInteractive -Command &quot;if ((Get-Service 'OpenDJ Server' -ErrorAction SilentlyContinue).Status -eq 'Running') { exit 1 }; exit 0&quot;"
                   Execute="immediate" Return="check"/>
     <InstallExecuteSequence>
       <Custom Action="RequireDirOnCustomUpgrade" After="SetOpendjFromLegacyDir"
               Condition="WIX_UPGRADE_DETECTED AND NOT OPENDJ"/>
-      <Custom Action="StopLegacyServiceBeforeUpgrade" Before="CheckLegacyServiceStopped"
-              Condition="LEGACY_MSI_DETECTED AND (LEGACY_SVC_IMAGEPATH ~&gt;&lt; OPENDJ)"/>
-      <Custom Action="CheckLegacyServiceStopped" Before="RemoveExistingProducts"
-              Condition="LEGACY_MSI_DETECTED AND (LEGACY_SVC_IMAGEPATH ~&gt;&lt; OPENDJ)"/>
+      <Custom Action="StopServiceBeforeUpgrade" Before="CheckServiceStopped"
+              Condition="WIX_UPGRADE_DETECTED AND (OPENDJ_SVC_IMAGEPATH ~&gt;&lt; OPENDJ)"/>
+      <Custom Action="CheckServiceStopped" Before="RemoveExistingProducts"
+              Condition="WIX_UPGRADE_DETECTED AND (OPENDJ_SVC_IMAGEPATH ~&gt;&lt; OPENDJ)"/>
     </InstallExecuteSequence>
     <InstallUISequence>
       <Custom Action="RequireDirOnCustomUpgrade" After="SetOpendjFromLegacyDir"
@@ -210,80 +214,6 @@
       <Component Id="CDirTplLogs" Directory="DIR_TPL_LOGS" Guid="7A4ABB8C-01D4-43BA-B85E-B0FAC14CBE75"><CreateFolder/></Component>
     </ComponentGroup>
 
-    <!-- Windows service: opendj_service.exe is the SCM wrapper that runs bat\start-ds.bat.
-         Registered here, but NOT started during install (the instance must be configured by
-         setup.bat first). -->
-    <Component Id="OpenDJServiceExe" Directory="OPENDJ_LIB">
-      <File Id="opendj_service.exe" Source="$(var.serviceExe)" KeyPath="yes"/>
-      <!-- [OPENDJ] always ends with a backslash, which would escape the closing quote in
-           the ImagePath, so a dot is appended: "<root>\." parses cleanly and
-           serviceCmdsMatch in service.c normalizes it back to "<root>" when the exe looks
-           its own service entry up (msiexec cannot write the canonical
-           '"<root>\lib\opendj_service.exe" start "<root>"' form: it only quotes the exe
-           when the path has spaces). -->
-      <!-- DisplayName deliberately equals the key name: the legacy windows-service.bat
-           naming loop starts at display name "OpenDJ Server" and checks key names only,
-           so any other display name here would make CreateService fail with
-           ERROR_DUPLICATE_SERVICE_NAME for every additional zip instance on the host.
-           Vital="yes" must be explicit - WiX 4/5 default Vital to no despite what the
-           schema prose says (wixtoolset/wix#5974) - so that a failed registration (e.g.
-           ERROR_SERVICE_MARKED_FOR_DELETE from a lingering handle on the old service)
-           fails the install with rollback instead of reporting success with no service. -->
-      <ServiceInstall Id="OpenDJService" Name="OpenDJ" DisplayName="OpenDJ"
-                      Description="OpenDJ LDAPv3 Directory Server" Type="ownProcess"
-                      Start="auto" ErrorControl="normal" Vital="yes"
-                      Arguments="start &quot;[OPENDJ].&quot;"/>
-      <!-- Stop="uninstall" covers both msiexec /x and the RemoveExistingProducts-driven
-           upgrade (the old product's uninstall runs this row); "both" would also stop a
-           running production server on every repair, with no Start to bring it back. -->
-      <ServiceControl Id="OpenDJServiceControl" Name="OpenDJ"
-                      Stop="uninstall" Remove="uninstall" Wait="yes"/>
-      <!-- Event-log source for the service key: without these values every event the wrapper
-           reports renders as "The description for Event ID ... cannot be found." They mirror
-           what createRegistryKey in service.c writes for windows-service.bat installs. -->
-      <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\OpenDJ">
-        <RegistryValue Name="EventMessageFile" Type="expandable" Value="[OPENDJ_LIB]opendj_service.exe"/>
-        <RegistryValue Name="CategoryMessageFile" Type="expandable" Value="[OPENDJ_LIB]opendj_service.exe"/>
-        <RegistryValue Name="TypesSupported" Type="integer" Value="7"/>
-        <RegistryValue Name="CategoryCount" Type="integer" Value="1"/>
-      </RegistryKey>
-    </Component>
-
-    <!-- The legacy windows-service.bat service (key name = display name = "OpenDJ Server";
-         customized/localized installs may differ, e.g. "OpenDS" on ko/zh_TW) points at the
-         old install tree and would keep auto-starting it. MSI's own
-         StopServices/DeleteServices can control a service this package does not install,
-         so drop it there - no custom action, no rollback gap, and a failure to stop fails
-         the install instead of silently proceeding. Guarded by its own component, and only
-         on PROOF that the service belongs to the tree being replaced - two conjuncts:
-         (1) a legacy-era signal: an upgrade from a WiX3-era release (LEGACY_MSI_DETECTED;
-         a new-MSI-to-new-MSI upgrade must not match - its own service is named "OpenDJ")
-         or a fresh install genuinely adopting the legacy x86 default directory
-         (NOT OPENDJ_REG mirrors SetOpendjFromLegacyDir and is essential: NOT Installed is
-         also true during every major upgrade, and on a host that came through a 5.1.x
-         upgrade the install root IS the legacy directory, so without the registry guard
-         this disjunct would fire on every later 5.2.x-to-5.2.y upgrade); AND
-         (2) ownership evidence: the service's own ImagePath must point into [OPENDJ],
-         the directory this install resolves to. Without (2), "OpenDJ Server" - the name
-         the FIRST zip instance on a host claims - would be deleted whenever a leftover
-         legacy directory exists, even when installing somewhere else entirely. [OPENDJ]
-         from the searches ends with a backslash, making the substring match a real
-         prefix test; an explicit command-line OPENDJ without one could prefix-match a
-         sibling directory (C:\dj vs C:\dj2) - accepted residual, a legacy signal must
-         also hold. Transitive: maintenance re-evaluates the condition and it is then
-         always false (FindRelatedProducts does not run at all in maintenance mode, so
-         LEGACY_MSI_DETECTED is unset, and Installed kills the second disjunct), so the
-         component leaves the install set and a repair cannot re-run the removal against
-         a zip instance registered later - asserted by the repair scenario in
-         test-msi-upgrade. -->
-    <Component Id="RemoveLegacyServiceControl" Directory="OPENDJ"
-               Guid="3F2A9C41-7D28-4E0B-9B1D-6C54A0D2E7F3" Transitive="yes"
-               Condition="(LEGACY_MSI_DETECTED OR (NOT Installed AND OPENDJ_LEGACY AND NOT OPENDJ_REG)) AND (LEGACY_SVC_IMAGEPATH ~&gt;&lt; OPENDJ)">
-      <CreateFolder/>
-      <ServiceControl Id="RemoveLegacyOpenDJServer" Name="OpenDJ Server"
-                      Stop="install" Remove="install" Wait="yes"/>
-    </Component>
-
     <!-- Remember the install location so upgrades land in the same directory. -->
     <Component Id="InstallDirRegistry" Directory="OPENDJ">
       <RegistryValue Root="HKLM" Key="SOFTWARE\$(var.name)" Name="InstallDir"
@@ -292,7 +222,9 @@
 
     <!-- Harvest the payload. Exclusions are already applied during staging (Ant), so each
          <Files> needs only the Include attribute (WiX 5 requires it; no Exclude here):
-         stagingRoot has everything except lib; stagingLib has lib minus the service wrapper. -->
+         stagingRoot has everything except lib; stagingLib has lib, opendj_service.exe
+         included - the package lays the wrapper down like any other file and registers no
+         service of its own; windows-service.bat does that when the administrator asks. -->
     <ComponentGroup Id="OpenDJRoot" Directory="OPENDJ">
       <Files Include="$(var.stagingRoot)\**"/>
     </ComponentGroup>
@@ -301,8 +233,6 @@
     </ComponentGroup>
 
     <Feature Id="All" Title="Server and tools" ConfigurableDirectory="OPENDJ">
-      <ComponentRef Id="OpenDJServiceExe"/>
-      <ComponentRef Id="RemoveLegacyServiceControl"/>
       <ComponentRef Id="InstallDirRegistry"/>
       <ComponentGroupRef Id="OpenDJRoot"/>
       <ComponentGroupRef Id="OpenDJLib"/>

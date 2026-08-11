@@ -43,10 +43,9 @@
         <msi.resources>${basedir}/resources/msi</msi.resources>
         <package.dir>${project.build.directory}/${product.name.lowercase}</package.dir>
         <!-- Exclusions are done here (Ant), not in WiX <Files> (which only takes Include in WiX 5):
-             stagingRoot = payload minus lib; stagingLib = lib minus the service wrapper. -->
+             stagingRoot = payload minus lib; stagingLib = lib minus the Unix scripts. -->
         <staging.root>${project.build.directory}/msi-staging</staging.root>
         <staging.lib>${project.build.directory}/msi-staging-lib</staging.lib>
-        <service.exe>${package.dir}/lib/opendj_service.exe</service.exe>
         <msi.file>${project.build.directory}/${product.name.lowercase}-${project.version}.msi</msi.file>
     </properties>
 
@@ -89,13 +88,11 @@
                                         <exclude name="**/*.sh"/>
                                     </fileset>
                                 </copy>
-                                <!-- lib minus the service wrapper (registered via an explicit
-                                     component in package.wxs) -> stagingLib -->
+                                <!-- lib (the Windows launchers included) -> stagingLib -->
                                 <delete dir="${staging.lib}"/>
                                 <mkdir dir="${staging.lib}"/>
                                 <copy toDir="${staging.lib}">
                                     <fileset dir="${package.dir}/lib">
-                                        <exclude name="opendj_service.exe"/>
                                         <exclude name="**/*.sh"/>
                                     </fileset>
                                 </copy>
@@ -132,7 +129,6 @@
                                 <argument>-d</argument><argument>point=${parsedVersion.incrementalVersion}</argument>
                                 <argument>-d</argument><argument>stagingRoot=${staging.root}</argument>
                                 <argument>-d</argument><argument>stagingLib=${staging.lib}</argument>
-                                <argument>-d</argument><argument>serviceExe=${service.exe}</argument>
                                 <argument>-o</argument><argument>${msi.file}</argument>
                             </arguments>
                         </configuration>

@@ -154,13 +154,6 @@ public abstract class Task
   /** The last exception encountered during the task execution. */
   protected Throwable lastException;
   /**
-   * Success summary and detail that replace the fixed messages the launching
-   * panel passed to launchOperation, for runs whose successful completion is
-   * an informational skip rather than the operation those messages describe.
-   */
-  private LocalizableMessage successSummaryOverride;
-  private LocalizableMessage successDetailOverride;
-  /**
    * The progress logs of the task.  Note that the user of StringBuffer is not
    * a bug, because of the way the contents of logs is updated, using
    * StringBuffer instead of StringBuilder is required.
@@ -321,39 +314,6 @@ public abstract class Task
   public Integer getReturnCode()
   {
     return returnCode;
-  }
-
-  /**
-   * Returns the success summary that replaces the one passed to
-   * launchOperation, or <CODE>null</CODE> to use the passed one.
-   * @return the success summary override.
-   */
-  public LocalizableMessage getSuccessSummaryOverride()
-  {
-    return successSummaryOverride;
-  }
-
-  /**
-   * Returns the success detail that accompanies the success summary override.
-   * Only used when {@link #getSuccessSummaryOverride()} is not
-   * <CODE>null</CODE>.
-   * @return the success detail override.
-   */
-  public LocalizableMessage getSuccessDetailOverride()
-  {
-    return successDetailOverride;
-  }
-
-  /**
-   * Sets the success summary and detail displayed instead of the ones passed
-   * to launchOperation when the task finishes successfully.
-   * @param summary the success summary override.
-   * @param detail the success detail override.
-   */
-  protected void setSuccessMessageOverride(LocalizableMessage summary, LocalizableMessage detail)
-  {
-    successSummaryOverride = summary;
-    successDetailOverride = detail;
   }
 
   /**

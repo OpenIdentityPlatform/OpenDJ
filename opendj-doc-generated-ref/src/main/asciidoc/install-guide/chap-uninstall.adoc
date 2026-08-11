@@ -162,9 +162,17 @@ Removing the package does not remove your data or configuration. You must remove
 [#uninstall-msi]
 .To Uninstall the Windows MSI Package
 ====
-Remove OpenDJ directory server installed from the `.msi` package like any other Windows program. Removing the package stops and removes the `OpenDJ` Windows service that it registered.
+Remove OpenDJ directory server installed from the `.msi` package like any other Windows program.
 
-* Uninstall the package, either through __Settings > Apps__ (or __Control Panel > Programs and Features__) by selecting OpenDJ and choosing Uninstall, or from the command-line:
+. If OpenDJ is registered as a Windows service, remove the service first — the package does not manage it and leaves the registration behind, pointing at files that are about to be deleted:
++
+
+[source, console]
+----
+C:\path\to\opendj\bat> windows-service.bat --disableService
+----
+
+. Uninstall the package, either through __Settings > Apps__ (or __Control Panel > Programs and Features__) by selecting OpenDJ and choosing Uninstall, or from the command-line:
 +
 
 [source, console, subs="attributes"]
@@ -172,7 +180,7 @@ Remove OpenDJ directory server installed from the `.msi` package like any other 
 C:\> msiexec /x opendj-{opendj-version}.msi /quiet
 ----
 +
-Uninstalling removes the files installed by the package. Your configured instance data under the installation directory (for example `config`, `db`, and `logs`) is not removed; delete the installation directory manually, or run `uninstall.bat` before removing the package, to remove all files. The `uninstall.bat` command leaves the `OpenDJ` service in place — the service belongs to the package and is removed by `msiexec /x`. Run `msiexec /x` promptly after `uninstall.bat`: until the package is removed, the auto-start service still points at the deleted files and Windows logs a service start failure if the host reboots in between.
+Uninstalling removes the files installed by the package. Your configured instance data under the installation directory (for example `config`, `db`, and `logs`) is not removed; delete the installation directory manually, or run `uninstall.bat` before removing the package, to remove all files. Running `uninstall.bat` also disables the Windows service if one is registered, which covers the first step above.
 
 ====
 

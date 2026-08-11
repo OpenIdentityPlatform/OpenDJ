@@ -966,141 +966,6 @@ ServiceReturnCode createServiceBinPath(char* serviceBinPath)
 } // createServiceBinPath
 
 // ----------------------------------------------------
-// Reads the next command line token starting at *p into out (at most
-// outSize - 1 characters). A token is either a run of non-blank
-// characters or a double-quoted string; quotes are treated as plain
-// delimiters without escape processing, so a trailing backslash-quote
-// sequence (as written by msiexec) leaves trailing backslashes on the
-// token, which normalizeInstanceDir strips. Returns the position right
-// after the token.
-// ----------------------------------------------------
-
-static const char* nextCmdToken(const char* p, char* out, int outSize)
-{
-  int i = 0;
-  while ((*p == ' ') || (*p == '\t'))
-  {
-    p++;
-  }
-  if (*p == '"')
-  {
-    p++;
-    while ((*p != '\0') && (*p != '"'))
-    {
-      if (i < (outSize - 1))
-      {
-        out[i++] = *p;
-      }
-      p++;
-    }
-    if (*p == '"')
-    {
-      p++;
-    }
-  }
-  else
-  {
-    while ((*p != '\0') && (*p != ' ') && (*p != '\t'))
-    {
-      if (i < (outSize - 1))
-      {
-        out[i++] = *p;
-      }
-      p++;
-    }
-  }
-  out[i] = '\0';
-  return p;
-}  // nextCmdToken
-
-// ----------------------------------------------------
-// Strips trailing backslashes and "\." path segments from an instance
-// dir so that "C:\opendj", "C:\opendj\" and "C:\opendj\." all compare
-// equal.
-// ----------------------------------------------------
-
-static void normalizeInstanceDir(char* dir)
-{
-  size_t len = strlen(dir);
-  BOOL changed = TRUE;
-  while (changed && (len > 0))
-  {
-    changed = FALSE;
-    if (dir[len - 1] == '\\')
-    {
-      dir[--len] = '\0';
-      changed = TRUE;
-    }
-    else if ((len > 1) && (dir[len - 1] == '.') && (dir[len - 2] == '\\'))
-    {
-      dir[--len] = '\0';
-      changed = TRUE;
-    }
-  }
-}  // normalizeInstanceDir
-
-// ----------------------------------------------------
-// Expands 8.3 short-name components (e.g. PROGRA~1) so that the short
-// and long spellings of the same existing path compare equal. When the
-// path cannot be resolved (for example it no longer exists) it is left
-// untouched.
-// ----------------------------------------------------
-
-static void expandLongPath(char* path)
-{
-  char expanded[COMMAND_SIZE];
-  DWORD len = GetLongPathName(path, expanded, COMMAND_SIZE);
-  if ((len > 0) && (len < COMMAND_SIZE))
-  {
-    strcpy(path, expanded);
-  }
-}  // expandLongPath
-
-// ----------------------------------------------------
-// Tells whether two service command lines refer to the same server
-// instance. The strings cannot be compared verbatim because every
-// writer quotes differently: this executable and the java tools write
-// '"<root>\lib\opendj_service.exe" start "<root>"' while the MSI
-// ServiceInstall writes the executable unquoted (when the path has no
-// spaces) and the instance dir with a trailing backslash. Instead the
-// executable path, the subcommand and the normalized instance dir
-// (both expanded from 8.3 short names) are compared token by token,
-// case-insensitively.
-// ----------------------------------------------------
-
-static BOOL serviceCmdsMatch(const char* cmd1, const char* cmd2)
-{
-  char exe1[COMMAND_SIZE];
-  char exe2[COMMAND_SIZE];
-  char sub1[COMMAND_SIZE];
-  char sub2[COMMAND_SIZE];
-  char dir1[COMMAND_SIZE];
-  char dir2[COMMAND_SIZE];
-  const char* p1 = cmd1;
-  const char* p2 = cmd2;
-
-  p1 = nextCmdToken(p1, exe1, COMMAND_SIZE);
-  p1 = nextCmdToken(p1, sub1, COMMAND_SIZE);
-  nextCmdToken(p1, dir1, COMMAND_SIZE);
-
-  p2 = nextCmdToken(p2, exe2, COMMAND_SIZE);
-  p2 = nextCmdToken(p2, sub2, COMMAND_SIZE);
-  nextCmdToken(p2, dir2, COMMAND_SIZE);
-
-  expandLongPath(exe1);
-  expandLongPath(exe2);
-
-  normalizeInstanceDir(dir1);
-  normalizeInstanceDir(dir2);
-  expandLongPath(dir1);
-  expandLongPath(dir2);
-
-  return (_stricmp(exe1, exe2) == 0)
-      && (_stricmp(sub1, sub2) == 0)
-      && (_stricmp(dir1, dir2) == 0);
-}  // serviceCmdsMatch
-
-// ----------------------------------------------------
 // Returns the service name that maps the command used to start the
 // product. All commands are supposed to be unique because they have
 // the instance dir as parameter.
@@ -1140,7 +1005,7 @@ ServiceReturnCode getServiceName(char* cmdToRun, char* serviceName)
         ServiceDescriptor curService = serviceList[i];
         if (curService.cmdToRun != NULL)
         {
-          if (serviceCmdsMatch(cmdToRun, curService.cmdToRun))
+          if (_stricmp(cmdToRun, curService.cmdToRun) == 0)
           {
             if (strlen(curService.serviceName) < MAX_SERVICE_NAME)
             {
@@ -2592,129 +2457,6 @@ int serviceState()
 } // serviceState
 
 // ---------------------------------------------------------------
-// Tells whether the service with the given key name is genuinely
-// managed by the MSI package: the InstallDir value the package writes
-// to HKLM\SOFTWARE\OpenDJ exists and the service command points into
-// that directory. An orphaned service that merely reuses the "OpenDJ"
-// key name (rolled-back install, hand-run sc create) fails the check
-// and stays removable by the remove and cleanup subcommands. When the
-// SCM query fails, or the entry's command line cannot be read, the
-// service is treated as managed: wrongly deleting the MSI's own
-// service is worse than leaving an orphan to msiexec /x or a manual
-// 'sc delete'.
-// ---------------------------------------------------------------
-static BOOL isMsiManagedService(char *serviceName)
-{
-  HKEY hKey;
-  char installDir[COMMAND_SIZE];
-  char token[COMMAND_SIZE];
-  char serviceDir[COMMAND_SIZE];
-  DWORD size = sizeof(installDir) - 1;
-  DWORD type = REG_NONE;
-  LONG result;
-  BOOL managed = FALSE;
-  ServiceDescriptor* serviceList = NULL;
-  int nbServices = -1;
-
-  if (_stricmp(serviceName, MSI_SERVICE_NAME) != 0)
-  {
-    return FALSE;
-  }
-
-  // KEY_WOW64_64KEY: the x64 package writes the 64-bit registry view and
-  // this executable is built 32-bit, so without the flag the lookup would
-  // be redirected to WOW6432Node and never find the value.
-  if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\OpenDJ", 0,
-      KEY_QUERY_VALUE | KEY_WOW64_64KEY, &hKey) != ERROR_SUCCESS)
-  {
-    debug("isMsiManagedService: no HKLM\\SOFTWARE\\OpenDJ key, "
-        "treating '%s' as orphaned.", serviceName);
-    return FALSE;
-  }
-  result = RegQueryValueEx(hKey, "InstallDir", NULL, &type,
-      (LPBYTE)installDir, &size);
-  RegCloseKey(hKey);
-  if ((result != ERROR_SUCCESS) ||
-      ((type != REG_SZ) && (type != REG_EXPAND_SZ)) || (size == 0))
-  {
-    debug("isMsiManagedService: no InstallDir value, "
-        "treating '%s' as orphaned.", serviceName);
-    return FALSE;
-  }
-  // RegQueryValueEx does not guarantee the terminating null.
-  installDir[size] = '\0';
-  // The package writes REG_SZ; a hand-edited REG_EXPAND_SZ value would
-  // otherwise compare literally ('%ProgramFiles%...' vs the expanded path).
-  if (type == REG_EXPAND_SZ)
-  {
-    char expanded[COMMAND_SIZE];
-    DWORD n = ExpandEnvironmentStrings(installDir, expanded, sizeof(expanded));
-    if ((n == 0) || (n > sizeof(expanded)))
-    {
-      // Fail closed, as below: the reference directory cannot be resolved, so
-      // the entry cannot be proven orphaned.
-      debug("isMsiManagedService: could not expand InstallDir '%s', "
-          "treating '%s' as MSI-managed.", installDir, serviceName);
-      return TRUE;
-    }
-    strcpy(installDir, expanded);
-  }
-
-  if (getServiceList(&serviceList, &nbServices) == SERVICE_RETURN_OK)
-  {
-    if (nbServices > 0)
-    {
-      int i;
-      for (i = 0; i < nbServices; i++)
-      {
-        ServiceDescriptor curService = serviceList[i];
-        if ((curService.serviceName == NULL) ||
-            (_stricmp(curService.serviceName, serviceName) != 0))
-        {
-          continue;
-        }
-        if (curService.cmdToRun == NULL)
-        {
-          // Fail closed: the entry exists but its command line could not be
-          // read, so it cannot be proven orphaned.
-          debug("isMsiManagedService: no command line for '%s', "
-              "treating it as MSI-managed.", serviceName);
-          managed = TRUE;
-          break;
-        }
-        {
-          // Third token of '<exe> start "<root>\."' is the instance dir.
-          const char* p = curService.cmdToRun;
-          p = nextCmdToken(p, token, COMMAND_SIZE);
-          p = nextCmdToken(p, token, COMMAND_SIZE);
-          nextCmdToken(p, serviceDir, COMMAND_SIZE);
-          normalizeInstanceDir(serviceDir);
-          expandLongPath(serviceDir);
-          normalizeInstanceDir(installDir);
-          expandLongPath(installDir);
-          managed = (_stricmp(serviceDir, installDir) == 0);
-          debug("isMsiManagedService: service dir '%s' vs InstallDir '%s' "
-              "-> %s.", serviceDir, installDir,
-              managed ? "MSI-managed" : "orphaned");
-        }
-        break;
-      }
-      free(serviceList);
-    }
-  }
-  else
-  {
-    // Fail closed for the same reason as above: without the service list the
-    // entry cannot be proven orphaned.
-    debug("isMsiManagedService: could not get service list, "
-        "treating '%s' as MSI-managed.", serviceName);
-    managed = TRUE;
-  }
-
-  return managed;
-}  // isMsiManagedService
-
-// ---------------------------------------------------------------
 // Function called to remove the service associated with a given
 // service name.
 // Returns 0 if the service was successfully removed.
@@ -2722,28 +2464,13 @@ static BOOL isMsiManagedService(char *serviceName)
 // Returns 2 if the service was marked for deletion but is still in
 // use.
 // Returns 3 if an error occurred.
-// Returns 4 if the service is managed by the MSI package and was
-// deliberately left untouched.
 // ---------------------------------------------------------------
 int removeServiceWithServiceName(char *serviceName)
 {
   int returnCode = 0;
-  ServiceReturnCode code;
+  ServiceReturnCode code = serviceNameInUse(serviceName);
 
   debug("Removing service with name %s.", serviceName);
-
-  if (isMsiManagedService(serviceName))
-  {
-    // The MSI-managed service belongs to the installer: deleting it here
-    // (remove or cleanup subcommand) would leave msiexec /x targeting a key
-    // that no longer exists. Callers map this code to an informational skip
-    // and print the localized message; nothing on stdout here or the user
-    // would see it twice.
-    debug("Refusing to remove the MSI-managed service '%s'.", serviceName);
-    return 4;
-  }
-
-  code = serviceNameInUse(serviceName);
 
   if (code != SERVICE_IN_USE)
   {
@@ -2783,8 +2510,6 @@ int removeServiceWithServiceName(char *serviceName)
 // Returns 2 if the service was marked for deletion but is still in
 // use.
 // Returns 3 if an error occurred.
-// Returns 4 if the service is managed by the MSI package and was
-// deliberately left untouched.
 // ---------------------------------------------------------------
 int removeService()
 {

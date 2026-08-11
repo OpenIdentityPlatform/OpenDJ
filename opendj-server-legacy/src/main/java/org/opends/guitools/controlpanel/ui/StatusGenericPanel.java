@@ -1744,13 +1744,8 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
         String summaryMsg;
         if (task.getState() == Task.State.FINISHED_SUCCESSFULLY)
         {
-          // A task can replace the fixed success messages when its successful
-          // completion is an informational skip (e.g. the windows-service task
-          // leaving an MSI-managed service in place).
-          final boolean override = task.getSuccessSummaryOverride() != null;
           summaryMsg =
-              Utilities.getFormattedSuccess(override ? task.getSuccessSummaryOverride() : successSummary,
-                  ColorAndFontConstants.errorTitleFont, override ? task.getSuccessDetailOverride() : successDetail,
+              Utilities.getFormattedSuccess(successSummary, ColorAndFontConstants.errorTitleFont, successDetail,
                   ColorAndFontConstants.defaultFont);
         }
         else

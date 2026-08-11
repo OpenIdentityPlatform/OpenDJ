@@ -38,8 +38,9 @@ SERVICE_PROGNAME=opendj_service.exe
 LAUNCHER_ADMINISTRATOR_PROGNAME=launcher_administrator.exe
 WINLAUNCHER_PROGNAME=winlauncher.exe
 # /Brepro makes the outputs reproducible (content-hash PE timestamps instead of the
-# build time), so CI can assert that the committed lib/*.exe match the sources with a
-# plain byte comparison.
+# build time). The Package/Deploy workflow commits these binaries back to the branch
+# whenever their bytes differ from the committed ones; without /Brepro every build
+# would differ and it would commit on every push.
 LINKER=link -nologo /machine:x86 /Brepro
 LIBS=advapi32.lib
 

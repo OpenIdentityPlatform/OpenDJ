@@ -19,7 +19,6 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.ToolMessages.INFO_WINDOWS_SERVICE_MSI_MANAGED;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -335,25 +334,13 @@ public class WindowsServicePanel extends StatusGenericPanel
         else
         {
           returnCode = ConfigureWindowsService.disableService(outPrintStream, errorPrintStream);
-          // SERVICE_MSI_MANAGED is an informational skip, not an error: the
-          // MSI-managed service belongs to the installer and is removed by
-          // msiexec /x (disableService already printed the explanation). The
-          // dialog summary must not claim the service was disabled, so the
-          // fixed success messages are replaced for that outcome.
           if (returnCode != ConfigureWindowsService.SERVICE_ALREADY_DISABLED
-              && returnCode != ConfigureWindowsService.SERVICE_DISABLE_SUCCESS
-              && returnCode != ConfigureWindowsService.SERVICE_MSI_MANAGED)
+              && returnCode != ConfigureWindowsService.SERVICE_DISABLE_SUCCESS)
           {
             state = State.FINISHED_WITH_ERROR;
           }
           else
           {
-            if (returnCode == ConfigureWindowsService.SERVICE_MSI_MANAGED)
-            {
-              setSuccessMessageOverride(
-                  INFO_CTRL_PANEL_WINDOWS_SERVICE_MSI_MANAGED_SUMMARY.get(),
-                  INFO_WINDOWS_SERVICE_MSI_MANAGED.get());
-            }
             state = State.FINISHED_SUCCESSFULLY;
           }
         }

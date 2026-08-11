@@ -59,13 +59,6 @@
 #define EVENT_LOG_KEY "SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\%s"
 
 // ----------------------------------------------------
-// Service key name registered by the MSI package (WiX ServiceInstall).
-// This service belongs to the installer: windows-service.bat must not
-// delete it, or msiexec /x is left targeting a key that no longer exists.
-// ----------------------------------------------------
-#define MSI_SERVICE_NAME "OpenDJ"
-
-// ----------------------------------------------------
 // Max size of the registry key
 // ----------------------------------------------------
 #define MAX_REGISTRY_KEY 512
