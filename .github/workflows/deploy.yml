@@ -52,6 +52,75 @@ jobs:
           fetch-depth: 0
           submodules: recursive
           ref: ${{ github.event.workflow_run.head_branch }}
+      # The committed opendj-server-legacy/lib/*.exe are what every Linux-built server zip
+      # ships - the snapshots this job publishes, and later the tagged releases and their
+      # Maven Central artifacts - while only a Windows job can rebuild them. Nothing used
+      # to make the two meet, so a native source change that was never re-committed as a
+      # refreshed binary shipped the old wrapper while CI stayed green (master carried such
+      # a gap for weeks). The triggering Build run compiled them from source already, so
+      # take its binaries and commit them here rather than rebuild.
+      #
+      # Here rather than in build.yml: this workflow already holds contents: write for the
+      # wiki push, so build-maven - which runs the whole Maven plugin tree - stays
+      # read-only, and it only runs at all once the Build succeeded on a push to a release
+      # branch. The cost is latency: the refresh lands after the full matrix, not minutes
+      # into it. Committing before the Maven steps below also means the snapshot zip this
+      # job publishes carries the fresh launchers.
+      #
+      # This only works because the Makefile passes /Brepro to both cl and link: the output
+      # is a function of the sources, not of the build time. Without it every run would
+      # produce different bytes and this would commit on every push. An MSVC toolchain bump
+      # on the runner image does change them, and that refresh commit is correct - the
+      # committed binary then matches what CI verifies. Pushes made with GITHUB_TOKEN do
+      # not start new workflow runs, so this cannot loop; a PAT would break that.
+      - name: Download the launchers built by the triggering Build run
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-exe-11
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/windows-exe
+      - name: Commit the rebuilt launchers
+        shell: bash
+        env:
+          # NOT github.ref: on a workflow_run event that is the default branch, not the
+          # branch the triggering run was for.
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          BUILT: ${{ runner.temp }}/windows-exe
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -e
+          if ! ls "$BUILT"/*.exe >/dev/null 2>&1; then
+            echo "::warning title=No launcher binaries from the Build run::windows-exe-11 could not be downloaded, leaving opendj-server-legacy/lib/*.exe as committed."
+            exit 0
+          fi
+          cp "$BUILT"/*.exe opendj-server-legacy/lib/
+          # status --porcelain, not diff: it reports a brand-new launcher that was never
+          # git-added just as well as a modified one.
+          if [ -z "$(git status --porcelain -- opendj-server-legacy/lib)" ]; then
+            echo "Committed launchers already match the sources."
+            exit 0
+          fi
+          git status --porcelain -- opendj-server-legacy/lib
+          git config user.name "Open Identity Platform Community"
+          git config user.email "open-identity-platform-opendj@googlegroups.com"
+          git add -- opendj-server-legacy/lib
+          git commit --quiet \
+            -m "Refresh the Windows native launchers" \
+            -m "Rebuilt from opendj-server-legacy/src/build-tools/windows for ${HEAD_SHA} by the Build workflow (run ${RUN_ID})."
+          # The checkout is of the branch, which may have moved on since the Build run:
+          # rebase onto its current tip. An identical refresh already there leaves an empty
+          # commit that rebase drops, and the push then has nothing to send.
+          git fetch --quiet origin "$BRANCH"
+          if ! git rebase --quiet FETCH_HEAD; then
+            git rebase --abort || true
+            echo "::error title=Could not refresh the launcher binaries::$BRANCH moved on and the rebuilt launchers conflict with it. Refresh opendj-server-legacy/lib/*.exe from the windows-exe-11 artifact of Build run ${RUN_ID} and commit them."
+            exit 1
+          fi
+          git push --quiet origin "HEAD:refs/heads/$BRANCH"
+          echo "Refreshed launchers pushed to $BRANCH."
       - name: Set up Java for publishing to Maven Central Repository OSS
         uses: actions/setup-java@v5
         with:

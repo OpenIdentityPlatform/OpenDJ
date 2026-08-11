@@ -84,6 +84,11 @@ jobs:
         nmake all || exit /b 1
         xcopy /Y *.exe ..\..\..\lib\ || exit /b 1
         git status
+    # Also the source of truth for the committed opendj-server-legacy/lib/*.exe: on a
+    # successful push build, deploy.yml downloads windows-exe-11 from this very run and
+    # commits its contents back to the branch. Nothing here compares them with what is
+    # committed - an MSVC toolchain bump on the runner image changes the bytes on its own,
+    # so a byte-for-byte gate would fire without a source change.
     - name: Upload Windows exe artifacts
       if: runner.os == 'Windows'
       uses: actions/upload-artifact@v7
@@ -91,28 +96,6 @@ jobs:
         name: windows-exe-${{ matrix.java }}
         retention-days: 5
         path: opendj-server-legacy/src/build-tools/windows/*.exe
-    - name: Committed launcher binaries must match the sources
-      if: runner.os == 'Windows'
-      # The release pipeline builds the server zip on Linux from the committed
-      # opendj-server-legacy/lib/*.exe, so a source change that is not re-committed as a
-      # refreshed binary would ship the old wrapper in the tagged release while CI stays
-      # green. Warning-only: an MSVC toolchain bump on the runner image also changes the
-      # bytes, and failing here would kill the artifact consumers (test-msi*, deploy.yml).
-      # The failing signal lives in the standalone Native launchers workflow
-      # (check-native-launchers.yml), which triggers only when the native sources or the
-      # committed binaries change and gates nothing. The freshly built binaries are
-      # uploaded just above - refresh lib/*.exe from the windows-exe artifact of this
-      # very run and commit them.
-      continue-on-error: true
-      shell: bash
-      run: |
-        # git diff alone misses a brand-new launcher that was never git-added:
-        # status --porcelain reports modified and untracked files alike.
-        if [ -n "$(git status --porcelain -- opendj-server-legacy/lib)" ]; then
-          git status --porcelain -- opendj-server-legacy/lib
-          echo "::warning title=Stale launcher binaries::opendj-server-legacy/lib/*.exe differ from what this CI build produced (source change or MSVC toolchain bump). Refresh them from the windows-exe artifact of this run."
-          exit 1
-        fi
     - name: Set Integration Test Environment
       id: failsafe
       if: runner.os == 'Linux'
