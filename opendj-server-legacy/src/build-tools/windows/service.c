@@ -2441,6 +2441,17 @@ int serviceState()
       returnCode = 0;
       debug("Service '%s' is enabled.", serviceName);
     }
+    else if (code == SERVICE_LIST_UNAVAILABLE)
+    {
+      // The SCM could not be enumerated, so whether a service is registered
+      // is simply unknown. Reporting "disabled" here would make the callers
+      // act on a lie: the uninstaller would skip disabling a registered
+      // service, the control panel would offer to enable one that already
+      // exists, and isRunningAsWindowsService would return false, letting
+      // stop-ds kill the JVM behind the SCM's back.
+      returnCode = 2;
+      debug("Could not determine the state of the service: no service list.");
+    }
     else
     {
       returnCode = 1;

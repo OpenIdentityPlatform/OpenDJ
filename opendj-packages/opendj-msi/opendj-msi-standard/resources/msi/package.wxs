@@ -62,6 +62,20 @@
     <Property Id="OPENDJ_LEGACY" Secure="yes">
       <DirectorySearch Id="LegacyX86InstallDir" Path="[ProgramFilesFolder]$(var.name)"/>
     </Property>
+    <!-- The two default locations, this time asked whether they actually hold a server
+         rather than merely exist. Used by the guards below, which must not act on a
+         leftover empty directory: OPENDJ_LEGACY above stays a bare existence test because
+         adopting an empty legacy directory on a fresh install is deliberate. -->
+    <Property Id="OPENDJ_X64DEFAULT" Secure="yes">
+      <DirectorySearch Id="X64DefaultInstallDir" Path="[ProgramFiles64Folder]$(var.name)">
+        <FileSearch Id="X64DefaultSetup" Name="setup.bat"/>
+      </DirectorySearch>
+    </Property>
+    <Property Id="OPENDJ_LEGACY_INSTALL" Secure="yes">
+      <DirectorySearch Id="LegacyX86InstallCheck" Path="[ProgramFilesFolder]$(var.name)">
+        <FileSearch Id="LegacyX86Setup" Name="setup.bat"/>
+      </DirectorySearch>
+    </Property>
     <!-- Evidence that the "OpenDJ Server" service - the one windows-service.bat registers
          for the FIRST instance on a host - belongs to the tree this install is about to
          replace: its ImagePath records where it points
@@ -100,14 +114,42 @@
     <!-- ARP/winget/SCCM report the install location from ARPINSTALLLOCATION. -->
     <SetProperty Id="ARPINSTALLLOCATION" Value="[OPENDJ]" After="CostFinalize" Sequence="execute"/>
 
-    <!-- 5.1.x wrote no registry value, so an upgrade from a custom directory resolves
-         neither search: proceeding would install to the default while RemoveExistingProducts
-         empties the old tree. Refuse instead - in BOTH sequences: in a full-UI session the
-         UI sequence's CostFinalize resolves the OPENDJ directory to the default before the
-         execute sequence runs, so an execute-only guard could never fire there (and
-         InstallDirDlg would show the default, not the existing install). -->
+    <!-- The directory this package installs into when nothing else resolves. Held as a
+         property so the guards below can compare against it: MSI conditions do not expand
+         [Directory] references inside string literals, SetProperty does. -->
+    <SetProperty Id="OPENDJ_DEFAULT" Value="[ProgramFiles64Folder]$(var.name)\"
+                 After="AppSearch" Sequence="both"/>
+
+    <!-- Two ways an upgrade can quietly destroy an installation, both refused rather than
+         performed. Scheduled after CostFinalize in the EXECUTE sequence only, which is the
+         one point where OPENDJ is final no matter how the installer was started: a full-UI
+         session resolves it in the UI sequence and passes it on, a silent one resolves it
+         here. Deliberately NOT in the UI sequence: a guard there fires before WelcomeDlg
+         and leaves a GUI-only administrator with nothing but a command line to retype,
+         even though WixUI_InstallDir ships the browse dialog that would have resolved it.
+
+         (1) The location cannot be determined. 5.1.x wrote no registry value, so an
+         upgrade from a custom directory resolves no search and OPENDJ falls back to the
+         default - proceeding would install a fresh server there while
+         RemoveExistingProducts empties the old tree, leaving config/db/logs stranded.
+         Refuse whenever the resolved directory IS that fallback and no server actually
+         lives in it; picking the real directory in InstallDirDlg (or passing OPENDJ) makes
+         the comparison fail and the install proceed.
+
+         (2) The upgrade would relocate. Passing OPENDJ=<somewhere else> over a detected
+         installation is not a move: RemoveExistingProducts empties the old tree while the
+         new one is installed elsewhere, so the instance data stays behind and any service
+         registration keeps pointing at deleted files. Refuse when a location IS known -
+         the value this package recorded, or a legacy default directory that really holds a
+         server - and the requested one is neither a prefix nor an extension of it (the
+         two-way substring test tolerates the trailing backslash that OPENDJ carries and a
+         command-line value may not; C:\dj vs C:\dj2 is the accepted residual). When OPENDJ
+         is not given at all, the SetProperty actions above have already set it to the
+         known location, so the comparison passes and nothing fires. -->
     <CustomAction Id="RequireDirOnCustomUpgrade"
-                  Error="An existing OpenDJ installation was detected, but its location could not be determined. Run the installer again with the installation directory passed explicitly: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot;"/>
+                  Error="An existing OpenDJ installation was detected, but its location could not be determined. Run the installer again and select the existing installation directory, or pass it explicitly: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot;"/>
+    <CustomAction Id="RefuseRelocatingUpgrade"
+                  Error="OpenDJ is already installed in a different directory, and this installer cannot move an existing installation: its configuration, database and logs would be left behind. Install into the existing directory, or uninstall the existing OpenDJ first."/>
 
     <!-- RemoveExistingProducts removes the old product's files during the sequence pass,
          long before the new product's InstallFiles executes in the script: a server still
@@ -143,17 +185,15 @@
                   ExeCommand="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -NonInteractive -Command &quot;if ((Get-Service 'OpenDJ Server' -ErrorAction SilentlyContinue).Status -eq 'Running') { exit 1 }; exit 0&quot;"
                   Execute="immediate" Return="check"/>
     <InstallExecuteSequence>
-      <Custom Action="RequireDirOnCustomUpgrade" After="SetOpendjFromLegacyDir"
-              Condition="WIX_UPGRADE_DETECTED AND NOT OPENDJ"/>
+      <Custom Action="RequireDirOnCustomUpgrade" After="CostFinalize"
+              Condition="WIX_UPGRADE_DETECTED AND (OPENDJ ~= OPENDJ_DEFAULT) AND NOT OPENDJ_X64DEFAULT"/>
+      <Custom Action="RefuseRelocatingUpgrade" After="RequireDirOnCustomUpgrade"
+              Condition="WIX_UPGRADE_DETECTED AND ((OPENDJ_REG AND NOT (OPENDJ_REG ~&gt;&lt; OPENDJ) AND NOT (OPENDJ ~&gt;&lt; OPENDJ_REG)) OR (NOT OPENDJ_REG AND OPENDJ_LEGACY_INSTALL AND NOT (OPENDJ_LEGACY ~&gt;&lt; OPENDJ) AND NOT (OPENDJ ~&gt;&lt; OPENDJ_LEGACY)))"/>
       <Custom Action="StopServiceBeforeUpgrade" Before="CheckServiceStopped"
               Condition="WIX_UPGRADE_DETECTED AND (OPENDJ_SVC_IMAGEPATH ~&gt;&lt; OPENDJ)"/>
       <Custom Action="CheckServiceStopped" Before="RemoveExistingProducts"
               Condition="WIX_UPGRADE_DETECTED AND (OPENDJ_SVC_IMAGEPATH ~&gt;&lt; OPENDJ)"/>
     </InstallExecuteSequence>
-    <InstallUISequence>
-      <Custom Action="RequireDirOnCustomUpgrade" After="SetOpendjFromLegacyDir"
-              Condition="WIX_UPGRADE_DETECTED AND NOT OPENDJ"/>
-    </InstallUISequence>
 
     <!-- UI customization -->
     <WixVariable Id="WixUIBannerBmp" Value="opendjbanner.bmp"/>

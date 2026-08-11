@@ -133,7 +133,12 @@ jobs:
       shell: bash
       run: |
         msi=$(ls opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi)
-        wix msi validate "$msi"
+        # ICE61 fires by design: AllowSameVersionUpgrades authors an UpgradeVersion row
+        # whose range includes the product's own version, which is exactly what makes a
+        # rebuilt hotfix at the same 3-part version upgrade rather than install alongside.
+        # Left unsuppressed it is permanent noise this step could not tell from a real
+        # regression.
+        wix msi validate -sice ICE61 "$msi"
     - name: Test on Unix
       if: runner.os == 'Linux'
       run:   |
@@ -932,8 +937,12 @@ jobs:
           # without OPENDJ used to relocate to the default while RemoveExistingProducts
           # emptied the old tree. The installer must refuse instead.
           $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
-          # No detection signals: remove the leftover legacy default directory.
+          # No detection signals at all - the guard under test is the one that fires when
+          # none resolves, so clear every one of them here rather than rely on the
+          # preceding step's uninstall having removed the registry value.
           Remove-Item -Recurse -Force "C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i opendj-5.1.2.msi /quiet /qn /norestart OPENDJ=C:\opendj-custom /l*v install-custom.log"
           if ($p.ExitCode -ne 0) { Get-Content install-custom.log -Tail 80; throw "msiexec /i (5.1.2 custom dir) failed: $($p.ExitCode)" }
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v upgrade-custom.log"
@@ -941,8 +950,40 @@ jobs:
           if (-not (Select-String -Path upgrade-custom.log -Pattern "passed explicitly" -Quiet)) { Get-Content upgrade-custom.log -Tail 60; throw "expected the explicit-OPENDJ guidance message in the log" }
           if (-not (Test-Path "C:\opendj-custom\setup.bat")) { throw "the refused upgrade damaged the original install" }
           Write-Host "Upgrade refused with guidance, original install untouched (exit $($p.ExitCode))"
-          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x opendj-5.1.2.msi /quiet /qn /norestart /l*v uninstall-custom.log"
-          if ($p.ExitCode -ne 0) { Get-Content uninstall-custom.log -Tail 80; throw "msiexec /x (5.1.2 cleanup) failed: $($p.ExitCode)" }
+          # ...and naming the directory makes the very same upgrade proceed. This is what
+          # a GUI administrator does by browsing to it in InstallDirDlg, which the refusal
+          # must leave reachable: it fires on the resolved directory, not on the absence
+          # of a command-line property.
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" OPENDJ=C:\opendj-custom /quiet /qn /norestart /l*v upgrade-custom-ok.log"
+          if ($p.ExitCode -ne 0) { Get-Content upgrade-custom-ok.log -Tail 120; throw "upgrade with an explicit OPENDJ must succeed: $($p.ExitCode)" }
+          if (-not (Test-Path "C:\opendj-custom\lib\opendj_service.exe")) { throw "the upgrade did not land in C:\opendj-custom" }
+          if (Test-Path "C:\Program Files\OpenDJ") { throw "the upgrade installed into the default directory as well" }
+          Write-Host "Upgrade into the named directory succeeded"
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall-custom.log"
+          if ($p.ExitCode -ne 0) { Get-Content uninstall-custom.log -Tail 80; throw "msiexec /x (custom cleanup) failed: $($p.ExitCode)" }
+          Remove-Item -Recurse -Force "C:\opendj-custom" -ErrorAction SilentlyContinue
+          Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
+      - name: An upgrade that would relocate the installation must refuse
+        shell: pwsh
+        run: |
+          # Passing a different OPENDJ over a detected installation is not a move:
+          # RemoveExistingProducts would empty the old tree while the new one is installed
+          # elsewhere, stranding config/db/logs (and any service registration) behind.
+          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+          Remove-Item -Recurse -Force "C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" OPENDJ=C:\opendj-a /quiet /qn /norestart /l*v install-a.log"
+          if ($p.ExitCode -ne 0) { Get-Content install-a.log -Tail 80; throw "msiexec /i (C:\opendj-a) failed: $($p.ExitCode)" }
+          if (-not (Test-Path "C:\opendj-a\setup.bat")) { throw "install did not land in C:\opendj-a" }
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" OPENDJ=C:\opendj-b /quiet /qn /norestart /l*v relocate.log"
+          if ($p.ExitCode -eq 0) { Get-Content relocate.log -Tail 120; throw "a relocating upgrade must be refused" }
+          if (-not (Select-String -Path relocate.log -Pattern "cannot move an existing installation" -Quiet)) { Get-Content relocate.log -Tail 60; throw "expected the relocation guidance message in the log" }
+          if (-not (Test-Path "C:\opendj-a\setup.bat")) { throw "the refused relocation damaged the original install" }
+          if (Test-Path "C:\opendj-b") { throw "the refused relocation still created C:\opendj-b" }
+          Write-Host "Relocating upgrade refused, original install untouched (exit $($p.ExitCode))"
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall-a.log"
+          if ($p.ExitCode -ne 0) { Get-Content uninstall-a.log -Tail 80; throw "msiexec /x (C:\opendj-a cleanup) failed: $($p.ExitCode)" }
+          Remove-Item -Recurse -Force "C:\opendj-a" -ErrorAction SilentlyContinue
+          Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
       - name: Fresh install must not touch a service registered by another instance
         shell: pwsh
         run: |
