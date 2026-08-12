@@ -2444,11 +2444,12 @@ int serviceState()
     else if (code == SERVICE_LIST_UNAVAILABLE)
     {
       // The SCM could not be enumerated, so whether a service is registered
-      // is simply unknown. Reporting "disabled" here would make the callers
-      // act on a lie: the uninstaller would skip disabling a registered
-      // service, the control panel would offer to enable one that already
-      // exists, and isRunningAsWindowsService would return false, letting
-      // stop-ds kill the JVM behind the SCM's back.
+      // is simply unknown; say so instead of answering "disabled". This only
+      // reaches --serviceState, which prints the error message and exits 2:
+      // the java callers of ConfigureWindowsService.serviceState() all test
+      // for SERVICE_STATE_ENABLED, so an unknown state still reads as "not
+      // enabled" to the uninstaller, the control panel and
+      // isRunningAsWindowsService.
       returnCode = 2;
       debug("Could not determine the state of the service: no service list.");
     }

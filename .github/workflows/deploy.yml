@@ -110,17 +110,30 @@ jobs:
           git commit --quiet \
             -m "Refresh the Windows native launchers" \
             -m "Rebuilt from opendj-server-legacy/src/build-tools/windows for ${HEAD_SHA} by the Build workflow (run ${RUN_ID})."
-          # The checkout is of the branch, which may have moved on since the Build run:
-          # rebase onto its current tip. An identical refresh already there leaves an empty
-          # commit that rebase drops, and the push then has nothing to send.
-          git fetch --quiet origin "$BRANCH"
-          if ! git rebase --quiet FETCH_HEAD; then
-            git rebase --abort || true
-            echo "::error title=Could not refresh the launcher binaries::$BRANCH moved on and the rebuilt launchers conflict with it. Refresh opendj-server-legacy/lib/*.exe from the windows-exe-11 artifact of Build run ${RUN_ID} and commit them."
-            exit 1
-          fi
-          git push --quiet origin "HEAD:refs/heads/$BRANCH"
-          echo "Refreshed launchers pushed to $BRANCH."
+          # The checkout is of the branch, which may have moved on since the Build run, and
+          # it can move again while we push: rebase onto the current tip and retry. An
+          # identical refresh already there leaves an empty commit that rebase drops, and
+          # the push then has nothing to send.
+          #
+          # This step runs before the Maven deploy, the package uploads and the wiki push,
+          # so it must not be the thing that costs them: a refresh that cannot be landed
+          # warns and lets the job carry on. The next push to this branch retries it, and
+          # nothing downstream depends on the committed binaries being current - the Build
+          # run that produced them compiled its own.
+          for attempt in 1 2 3; do
+            git fetch --quiet origin "$BRANCH"
+            if ! git rebase --quiet FETCH_HEAD; then
+              git rebase --abort || true
+              echo "::warning title=Could not refresh the launcher binaries::$BRANCH moved on and the rebuilt launchers conflict with it. Refresh opendj-server-legacy/lib/*.exe from the windows-exe-11 artifact of Build run ${RUN_ID} and commit them."
+              exit 0
+            fi
+            if git push --quiet origin "HEAD:refs/heads/$BRANCH"; then
+              echo "Refreshed launchers pushed to $BRANCH."
+              exit 0
+            fi
+            echo "$BRANCH moved while pushing - retrying ($attempt/3)."
+          done
+          echo "::warning title=Could not refresh the launcher binaries::$BRANCH kept moving under this job. Refresh opendj-server-legacy/lib/*.exe from the windows-exe-11 artifact of Build run ${RUN_ID} and commit them."
       - name: Set up Java for publishing to Maven Central Repository OSS
         uses: actions/setup-java@v5
         with:

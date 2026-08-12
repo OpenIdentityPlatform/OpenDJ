@@ -63,9 +63,10 @@
       <DirectorySearch Id="LegacyX86InstallDir" Path="[ProgramFilesFolder]$(var.name)"/>
     </Property>
     <!-- The two default locations, this time asked whether they actually hold a server
-         rather than merely exist. Used by the guards below, which must not act on a
-         leftover empty directory: OPENDJ_LEGACY above stays a bare existence test because
-         adopting an empty legacy directory on a fresh install is deliberate. -->
+         rather than merely exist. OPENDJ_LEGACY above stays a bare existence test only
+         because a fresh install may legitimately adopt an empty legacy directory; every
+         decision taken during an upgrade uses these instead, since "the directory is
+         there" says nothing about where the product being upgraded lives. -->
     <Property Id="OPENDJ_X64DEFAULT" Secure="yes">
       <DirectorySearch Id="X64DefaultInstallDir" Path="[ProgramFiles64Folder]$(var.name)">
         <FileSearch Id="X64DefaultSetup" Name="setup.bat"/>
@@ -103,9 +104,15 @@
 
     <SetProperty Id="OPENDJ" Action="SetOpendjFromRegistry" After="AppSearch"
                  Sequence="both" Value="[OPENDJ_REG]" Condition="OPENDJ_REG AND NOT OPENDJ"/>
+    <!-- NOT Installed is true during a major upgrade as well (the new ProductCode is not
+         installed yet), so on its own it does not mean "fresh install": a leftover empty
+         legacy directory would be adopted as the target while RemoveExistingProducts
+         empties the real one somewhere else. During an upgrade the directory therefore has
+         to prove it holds a server; on a fresh install mere existence still counts, which
+         is how an administrator pre-creates the location. -->
     <SetProperty Id="OPENDJ" Action="SetOpendjFromLegacyDir" After="SetOpendjFromRegistry"
                  Sequence="both" Value="[OPENDJ_LEGACY]"
-                 Condition="NOT Installed AND OPENDJ_LEGACY AND NOT OPENDJ"/>
+                 Condition="NOT Installed AND OPENDJ_LEGACY AND NOT OPENDJ AND (NOT WIX_UPGRADE_DETECTED OR OPENDJ_LEGACY_INSTALL)"/>
 
     <!-- The docs tell users to pass OPENDJ on the msiexec command line, so it must survive
          into the elevated server context. -->
@@ -118,6 +125,10 @@
          property so the guards below can compare against it: MSI conditions do not expand
          [Directory] references inside string literals, SetProperty does. -->
     <SetProperty Id="OPENDJ_DEFAULT" Value="[ProgramFiles64Folder]$(var.name)\"
+                 After="AppSearch" Sequence="both"/>
+    <!-- Same for the legacy default. Built here rather than compared against OPENDJ_LEGACY
+         so that both sides of the equality below are known to carry a trailing backslash. -->
+    <SetProperty Id="OPENDJ_LEGACY_DEFAULT" Value="[ProgramFilesFolder]$(var.name)\"
                  After="AppSearch" Sequence="both"/>
 
     <!-- Two ways an upgrade can quietly destroy an installation, both refused rather than
@@ -141,11 +152,16 @@
          new one is installed elsewhere, so the instance data stays behind and any service
          registration keeps pointing at deleted files. Refuse when a location IS known -
          the value this package recorded, or a legacy default directory that really holds a
-         server - and the requested one is neither a prefix nor an extension of it (the
-         two-way substring test tolerates the trailing backslash that OPENDJ carries and a
-         command-line value may not; C:\dj vs C:\dj2 is the accepted residual). When OPENDJ
-         is not given at all, the SetProperty actions above have already set it to the
-         known location, so the comparison passes and nothing fires. -->
+         server - and the requested one is not the same directory. Plain equality, not a
+         substring test: a two-way "one contains the other" would tolerate the trailing
+         backslash but also admit C:\opendj\v2 over a recorded C:\opendj, which is the very
+         relocation being guarded against. Both sides carry the backslash by construction -
+         CostFinalize resolves OPENDJ as a directory property, the registry value is the
+         resolved [OPENDJ] this package wrote, and the legacy side is built above rather
+         than read from a search. A hand-edited registry value without one is the accepted
+         residual: it refuses, and the message says what to do. When OPENDJ is not given at
+         all, the SetProperty actions above have already set it to the known location, so
+         the comparison passes and nothing fires. -->
     <CustomAction Id="RequireDirOnCustomUpgrade"
                   Error="An existing OpenDJ installation was detected, but its location could not be determined. Run the installer again and select the existing installation directory, or pass it explicitly: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot;"/>
     <CustomAction Id="RefuseRelocatingUpgrade"
@@ -188,7 +204,7 @@
       <Custom Action="RequireDirOnCustomUpgrade" After="CostFinalize"
               Condition="WIX_UPGRADE_DETECTED AND (OPENDJ ~= OPENDJ_DEFAULT) AND NOT OPENDJ_X64DEFAULT"/>
       <Custom Action="RefuseRelocatingUpgrade" After="RequireDirOnCustomUpgrade"
-              Condition="WIX_UPGRADE_DETECTED AND ((OPENDJ_REG AND NOT (OPENDJ_REG ~&gt;&lt; OPENDJ) AND NOT (OPENDJ ~&gt;&lt; OPENDJ_REG)) OR (NOT OPENDJ_REG AND OPENDJ_LEGACY_INSTALL AND NOT (OPENDJ_LEGACY ~&gt;&lt; OPENDJ) AND NOT (OPENDJ ~&gt;&lt; OPENDJ_LEGACY)))"/>
+              Condition="WIX_UPGRADE_DETECTED AND ((OPENDJ_REG AND (OPENDJ_REG ~&lt;&gt; OPENDJ)) OR (NOT OPENDJ_REG AND OPENDJ_LEGACY_INSTALL AND (OPENDJ_LEGACY_DEFAULT ~&lt;&gt; OPENDJ)))"/>
       <Custom Action="StopServiceBeforeUpgrade" Before="CheckServiceStopped"
               Condition="WIX_UPGRADE_DETECTED AND (OPENDJ_SVC_IMAGEPATH ~&gt;&lt; OPENDJ)"/>
       <Custom Action="CheckServiceStopped" Before="RemoveExistingProducts"
