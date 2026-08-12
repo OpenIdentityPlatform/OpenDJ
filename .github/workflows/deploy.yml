@@ -34,7 +34,14 @@ permissions:
 
 jobs:
   package-deploy-maven:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event=='push'}}
+    # head_repository states the trust boundary instead of leaving it to be re-derived.
+    # The checkout below takes its ref from the triggering run, and the branches filter
+    # above matches that run's head branch NAME - which a fork can also call master. What
+    # actually keeps the ref trusted is event=='push': a Build run for a pull request
+    # carries event 'pull_request', and a push to a fork runs the fork's own workflows,
+    # never ours. The repository check makes that explicit for the next reader, and for
+    # the next person tempted to relax the event condition.
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository }}
     runs-on: 'ubuntu-latest'
     steps:
       - name: Print github context
