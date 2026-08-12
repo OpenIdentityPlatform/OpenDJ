@@ -85,11 +85,17 @@
          fixed drive instead. That costs a handful of stat calls and cannot change a decision:
          every use of this property is paired with OpendjDirGiven, which is unset in exactly
          that case.
-         Private (mixed case) and not Secure, for the reason OpendjDirGiven is: a public
-         property survives the command line, so OpendjGivenInstall=1 next to a relocating
-         OPENDJ would switch the guard off - AppSearch only overwrites what it finds. Only
-         the client-side guard reads it, and private properties are visible there. -->
-    <Property Id="OpendjGivenInstall">
+         Public, because a search property has to be (WIX0012: AppSearch cannot fill a
+         private one) - so unlike OpendjDirGiven it CAN be handed in on the command line,
+         and AppSearch only overwrites what it finds. The guard below therefore does not
+         test it for truth: it requires the value to be the setup.bat inside the directory
+         that was named (OPENDJ_GIVEN_INSTALL ~>< OPENDJ, the search sets it to the full
+         path of the file found). OPENDJ_GIVEN_INSTALL=1 no longer says anything. That
+         makes it not a switch rather than a lock - a value spelled out as the path inside
+         the named directory would still pass, which is deliberate construction rather
+         than a slip. Not Secure: only the client-side guard reads it, so it has no reason
+         to reach the elevated server process. -->
+    <Property Id="OPENDJ_GIVEN_INSTALL">
       <DirectorySearch Id="GivenInstallCheck" Path="[OPENDJ]">
         <FileSearch Id="GivenSetup" Name="setup.bat"/>
       </DirectorySearch>
@@ -234,8 +240,11 @@
          a decoy in the legacy default is to name the real directory, and naming it made
          this branch refuse, leaving that installation with no upgrade path at all. The
          exception is deliberately narrow: it needs both OpendjDirGiven (the directory came
-         from the command line, not from a search or a dialog) and OpendjGivenInstall
-         (a setup.bat is there). Naming an empty or new directory is still refused, which
+         from the command line, not from a search or a dialog) and a setup.bat found INSIDE
+         that directory (OPENDJ_GIVEN_INSTALL holds its full path, so requiring the path to
+         contain the resolved OPENDJ is both the "a server is there" test and the reason a
+         hand-passed OPENDJ_GIVEN_INSTALL cannot stand in for one). Naming an empty or new
+         directory is still refused, which
          is what a relocation looks like, so the case CI exercises - 5.1.x in the legacy
          default, OPENDJ=C:\opendj-b - refuses exactly as before. It does NOT extend to the
          registry branch: a location this package recorded is authoritative, and an
@@ -353,7 +362,7 @@
       <Custom Action="RequireDirOnCustomUpgrade" After="CostFinalize"
               Condition="WIX_UPGRADE_DETECTED AND (OPENDJ ~= OPENDJ_DEFAULT) AND NOT OPENDJ_REG AND NOT OpendjDirGiven"/>
       <Custom Action="RefuseRelocatingUpgrade" After="RequireDirOnCustomUpgrade"
-              Condition="WIX_UPGRADE_DETECTED AND ((OPENDJ_REG AND (OPENDJ_REG ~&lt;&gt; OPENDJ)) OR (NOT OPENDJ_REG AND OPENDJ_LEGACY_INSTALL AND (OPENDJ_LEGACY_DEFAULT ~&lt;&gt; OPENDJ) AND NOT (OpendjDirGiven AND OpendjGivenInstall)))"/>
+              Condition="WIX_UPGRADE_DETECTED AND ((OPENDJ_REG AND (OPENDJ_REG ~&lt;&gt; OPENDJ)) OR (NOT OPENDJ_REG AND OPENDJ_LEGACY_INSTALL AND (OPENDJ_LEGACY_DEFAULT ~&lt;&gt; OPENDJ) AND NOT (OpendjDirGiven AND (OPENDJ_GIVEN_INSTALL ~&gt;&lt; OPENDJ))))"/>
       <Custom Action="StopServiceBeforeUpgrade" Before="CheckServiceStopped"
               Condition="WIX_UPGRADE_DETECTED AND (OPENDJ_SVC_IMAGEPATH ~&gt;&lt; OPENDJ)"/>
       <Custom Action="CheckServiceStopped" Before="CheckServerNotRunning"
