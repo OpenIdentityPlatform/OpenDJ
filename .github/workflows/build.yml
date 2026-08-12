@@ -237,6 +237,9 @@ jobs:
         rm -rf opendj-server-legacy/target/package/opendj/{config,db,changelogDb,logs,tmp}
     - name: Test replication
       if: runner.os == 'Linux'
+      # dsreplication enable can hang indefinitely; without a timeout a hang
+      # holds the runner until the 6-hour job limit. Normal duration is ~4 min.
+      timeout-minutes: 30
       run: |
         cp -r ./opendj-server-legacy/target/package/opendj ./opendj-server-legacy/target/package/opendj1
         cp -r ./opendj-server-legacy/target/package/opendj ./opendj-server-legacy/target/package/opendj2
