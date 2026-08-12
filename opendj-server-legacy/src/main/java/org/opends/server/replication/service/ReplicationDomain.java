@@ -13,8 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2025-2026 3A Systems LLC.
- * Portions Copyright 2026 3A Systems, LLC.
+ * Portions Copyright 2025-2026 3A Systems, LLC.
  */
 package org.opends.server.replication.service;
 
@@ -2479,24 +2478,47 @@ public abstract class ReplicationDomain
     }
 
     InitializeTask initFromTask = null;
-    int source = initTargetMsgReceived.getSenderID();
-    ImportExportContext ieCtx = importExportContext.get();
-    if (initTargetMsgReceived.getInitiatorID() == getServerId()
-        && (ieCtx == null || !ieCtx.markInitStartReceived()))
+    final int source = initTargetMsgReceived.getSenderID();
+    final ImportExportContext ieCtx;
+    if (initTargetMsgReceived.getInitiatorID() == getServerId())
+    {
+      ieCtx = importExportContext.get();
+      if (ieCtx == null || !ieCtx.markInitStartReceived())
+      {
+        /*
+        The stalled-request watchdog abandoned the initialization this message
+        answers (issue #861): its task already failed and its context is (about
+        to be) released. The entries following this message are discarded by
+        the listener until the exporter completes.
+        */
+        if (logger.isTraceEnabled())
+        {
+          logger.trace("[IE] Ignoring InitializeTargetMsg from server " + source
+              + " for domain " + getBaseDN()
+              + ": the initialization was abandoned as stalled");
+        }
+        return;
+      }
+    }
+    else
     {
       /*
-      The stalled-request watchdog abandoned the initialization this message
-      answers (issue #861): its task already failed and its context is (about
-      to be) released. The entries following this message are discarded by
-      the listener until the exporter completes.
+      The initTargetMsgReceived is for an import initiated by the remote
+      server. Test and set if no import already in progress
       */
-      if (logger.isTraceEnabled())
+      try
       {
-        logger.trace("[IE] Ignoring InitializeTargetMsg from server " + source
-            + " for domain " + getBaseDN()
-            + ": the initialization was abandoned as stalled");
+        ieCtx = acquireIEContext(true);
       }
-      return;
+      catch (DirectoryException e)
+      {
+        // A concurrent import/export owns the context: reject this
+        // initialization without touching that operation's context, and let
+        // the exporter know so that it does not export to a replica that
+        // will discard the entries
+        broker.publish(new ErrorMsg(requesterServerId, e.getMessageObject()));
+        return;
+      }
     }
     try
     {
@@ -2506,16 +2528,6 @@ public abstract class ReplicationDomain
 
       // Go into full update status
       setNewStatus(StatusMachineEvent.TO_FULL_UPDATE_STATUS_EVENT);
-
-      // Acquire an import context if no already done (and initialize).
-      if (initTargetMsgReceived.getInitiatorID() != getServerId())
-      {
-        /*
-        The initTargetMsgReceived is for an import initiated by the remote server.
-        Test and set if no import already in progress
-        */
-        ieCtx = acquireIEContext(true);
-      }
 
       // Initialize stuff
       ieCtx.importSource = source;
