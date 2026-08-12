@@ -301,29 +301,32 @@
          ImagePath evidence alone: any upgrade over a tree
          whose service is running has the locking problem, whether the installed product
          came from a WiX3-era package or from this one. -->
-    <!-- Restart Manager must not SHUT DOWN the holders, but it is still the only thing that
-         can find them. It runs at InstallValidate - before either action below - maps the
-         JVM holding lib\*.jar to the "OpenDJ Server" service, stops the service itself, and
-         RESTARTS it at the end of the installation: the freshly upgraded server comes up
-         against instance data upgrade.bat has not migrated yet, when the whole point of
-         leaving the service Stopped is that the install guide requires upgrade.bat before
-         the first start. It also disarms the starting-service refusal: RM stops a
-         StartPending service before CheckServiceStopped gets to see it, waving through the
-         very upgrade the check exists to refuse. msiexec /norestart is no defence - it
-         suppresses reboots, not RM restarts.
-         Hence DisableShutdown rather than Disable. Both send the package back to the
-         FilesInUse dialog, but Disable stops the installer using RM AT ALL, including for
-         detection, leaving only the legacy in-use scan - which finds applications with a
-         top-level window and therefore never finds a headless JVM. That is the whole of
-         this package's exposure for a server started by start-ds.bat rather than as a
-         service: no service key, so the ImagePath-gated pair below does not fire, and with
-         RM off nothing else would notice either. DisableShutdown keeps "The installer still
-         uses the Restart Manager to detect files in use by applications" while leaving the
-         shutting down - and the restarting - to us.
-         Detection alone does not refuse a /quiet upgrade, though: with no dialog to show,
-         in-use files just go to delete-on-reboot. CheckServerNotRunning below is what turns
-         that into an error, for both modes. -->
-    <Property Id="MSIRESTARTMANAGERCONTROL" Value="DisableShutdown"/>
+    <!-- Restart Manager would undo everything the actions below establish. It runs at
+         InstallValidate - before any of them - maps the JVM holding lib\*.jar to the
+         "OpenDJ Server" service, stops the service itself, and RESTARTS it at the end of
+         the installation: the freshly upgraded server comes up against instance data
+         upgrade.bat has not migrated yet, when the whole point of leaving the service
+         Stopped is that the install guide requires upgrade.bat before the first start.
+         It also disarms the starting-service refusal: RM stops a StartPending service
+         before CheckServiceStopped gets to see it, waving through the very upgrade the
+         check exists to refuse. msiexec /norestart is no defence - it suppresses reboots,
+         not RM restarts.
+         DisableShutdown is not a middle ground, and this is measured rather than reasoned:
+         it keeps RM's detection ("The installer still uses the Restart Manager to detect
+         files in use by applications") and was tried here for exactly that, but the restart
+         is not part of what it disables. The headline upgrade scenario came out of that run
+         with the service StartPending at the end of an otherwise successful install - the
+         installer restarts what the RM session listed, whether RM stopped it or the guards
+         did. So: Disable, and the detection goes with it.
+         What that costs is stated plainly, because it is the reason CheckServerNotRunning
+         below exists: with RM off the only in-use detection left is the legacy scan, which
+         finds applications with a top-level window and so never a headless JVM. A server
+         started by start-ds.bat has no service key either, so the ImagePath-gated pair
+         below does not fire for it. The lock check covers both modes instead, and covers
+         them in /quiet, where a FilesInUse dialog could not be shown anyway. What remains
+         uncovered is some OTHER process holding payload files - the WiX3-era behaviour,
+         which is where this package started. -->
+    <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <CustomAction Id="StopServiceBeforeUpgrade" Directory="TARGETDIR"
                   ExeCommand="&quot;[System64Folder]net.exe&quot; stop &quot;OpenDJ Server&quot;"
                   Execute="immediate" Return="ignore"/>
