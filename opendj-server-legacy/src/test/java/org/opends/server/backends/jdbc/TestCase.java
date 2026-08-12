@@ -16,6 +16,7 @@
 package org.opends.server.backends.jdbc;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
 import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
 import org.opends.server.backends.pluggable.spi.AccessMode;
@@ -135,6 +136,137 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 
 	private static ByteString value(int i) {
 		return ByteString.valueOfUtf8("value" + i);
+	}
+
+	/**
+	 * Forward repositioning inside the already-fetched batch must be served from the buffer without SQL,
+	 * and batch sizes must grow from "fetchsize.initial" to "fetchsize" on sequential reads (#860).
+	 */
+	@Test
+	public void testPositionToKeyOrNextServedFromBuffer() throws Exception {
+		System.setProperty("org.openidentityplatform.opendj.jdbc.fetchsize", "8");
+		System.setProperty("org.openidentityplatform.opendj.jdbc.fetchsize.initial", "2");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("testCursorBuffer", "tree");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					for (int i = 0; i < 40; i++) {
+						txn.put(tree, key(i), value(i));
+					}
+				}
+			});
+			storage.read(new ReadOperation<Void>() {
+				@Override
+				public Void run(ReadableTransaction txn) throws Exception {
+					try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(tree)) {
+						final JDBCStorage.CursorImpl impl = (JDBCStorage.CursorImpl) cursor;
+
+						assertTrue(cursor.next()); // fetch #1: initial batch of 2 (key00, key01)
+						assertEquals(cursor.getKey(), key(0));
+						assertEquals(impl.fetchCount, 1);
+						assertTrue(cursor.next()); // key01 is buffered
+						assertEquals(impl.fetchCount, 1);
+						assertTrue(cursor.next()); // fetch #2: grown batch of 8 (key02..key09)
+						assertEquals(cursor.getKey(), key(2));
+						assertEquals(impl.fetchCount, 2);
+
+						// forward repositioning within the fetched range must not run SQL
+						assertTrue(cursor.positionToKeyOrNext(key(5)));
+						assertEquals(cursor.getKey(), key(5));
+						assertEquals(cursor.getValue(), value(5));
+						assertEquals(impl.fetchCount, 2);
+						assertTrue(cursor.positionToKeyOrNext(ByteString.valueOfUtf8("key051"))); // between rows
+						assertEquals(cursor.getKey(), key(6));
+						assertEquals(impl.fetchCount, 2);
+						assertTrue(cursor.positionToKeyOrNext(key(9))); // last buffered row
+						assertEquals(cursor.getKey(), key(9));
+						assertEquals(impl.fetchCount, 2);
+
+						assertTrue(cursor.positionToKeyOrNext(key(20))); // fetch #3: beyond the buffer
+						assertEquals(cursor.getKey(), key(20));
+						assertEquals(impl.fetchCount, 3);
+						assertTrue(cursor.positionToKeyOrNext(key(1))); // fetch #4: backward
+						assertEquals(cursor.getKey(), key(1));
+						assertEquals(impl.fetchCount, 4);
+
+						// emulate DN2ID.ChildrenCursor: reposition to currentKey+0x01 for every row.
+						// Before the fix every reposition re-fetched a full batch: 38 fetches here.
+						final long fetchesBefore = impl.fetchCount;
+						int rows = 1; // standing on key01
+						while (cursor.positionToKeyOrNext(
+								new ByteStringBuilder().appendBytes(cursor.getKey()).appendByte(0x01).toByteString())) {
+							rows++;
+						}
+						assertEquals(rows, 39); // key01..key39
+						assertTrue(impl.fetchCount - fetchesBefore <= 8,
+								"sibling scan took " + (impl.fetchCount - fetchesBefore) + " fetches");
+					}
+					return null;
+				}
+			});
+		} finally {
+			System.clearProperty("org.openidentityplatform.opendj.jdbc.fetchsize");
+			System.clearProperty("org.openidentityplatform.opendj.jdbc.fetchsize.initial");
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/** Buffer-served repositioning relies on the database collating keys in unsigned byte order. */
+	@Test
+	public void testCursorKeyOrderIsUnsigned() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("testCursorOrder", "tree");
+		final ByteString low = ByteString.valueOfBytes(new byte[] { 0x7F });
+		final ByteString high = ByteString.valueOfBytes(new byte[] { (byte) 0x80, 0x01 });
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					txn.put(tree, low, value(1));
+					txn.put(tree, high, value(2));
+				}
+			});
+			storage.read(new ReadOperation<Void>() {
+				@Override
+				public Void run(ReadableTransaction txn) throws Exception {
+					try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(tree)) {
+						// with a signed collation 0x80 would sort before 0x7F and these would fail
+						assertTrue(cursor.next());
+						assertEquals(cursor.getKey(), low);
+						assertTrue(cursor.positionToKeyOrNext(ByteString.valueOfBytes(new byte[] { (byte) 0x80 })));
+						assertEquals(cursor.getKey(), high);
+						assertFalse(cursor.next());
+						assertTrue(cursor.positionToLastKey());
+						assertEquals(cursor.getKey(), high);
+					}
+					return null;
+				}
+			});
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
 	}
 
 	/** Cursor operations must keep working when the tree spans several "fetchsize" batches. */
