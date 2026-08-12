@@ -2449,7 +2449,11 @@ int serviceState()
       // the java callers of ConfigureWindowsService.serviceState() all test
       // for SERVICE_STATE_ENABLED, so an unknown state still reads as "not
       // enabled" to the uninstaller, the control panel and
-      // isRunningAsWindowsService.
+      // isRunningAsWindowsService - which is what the previous DISABLED answer
+      // already did for them, so nothing changes here except the message. The
+      // residual, unchanged and pre-existing: an uninstall that hits an
+      // unreadable SCM skips --disableService and leaves a registered service
+      // pointing at the tree it just removed.
       returnCode = 2;
       debug("Could not determine the state of the service: no service list.");
     }

@@ -29,10 +29,14 @@ function Wait-ServerStopped($lockFile) {
   if (-not [System.IO.Path]::IsPathRooted($lockFile)) { $lockFile = Join-Path $PWD $lockFile }
   for ($i = 0; $i -lt 30; $i++) {
     if (-not (Test-Path $lockFile)) { return }
+    # IOException only - that is what both a held byte-range lock and a sharing
+    # violation raise. A blanket catch would also swallow UnauthorizedAccessException,
+    # spin out the full minute on a permissions problem under Program Files and then
+    # report a lock that was never held; let anything else surface with its own message.
     try {
       $fs = [System.IO.File]::Open($lockFile, 'Open', 'ReadWrite', 'ReadWrite')
       try { $fs.Lock(0, 1); $fs.Unlock(0, 1); return } finally { $fs.Close() }
-    } catch { Start-Sleep -Seconds 2 }
+    } catch [System.IO.IOException] { Start-Sleep -Seconds 2 }
   }
   throw "The server still holds the lock on ${lockFile}: the stop did not take effect"
 }

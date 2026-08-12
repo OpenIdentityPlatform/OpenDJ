@@ -128,14 +128,29 @@ jobs:
           # nothing downstream depends on the committed binaries being current - the Build
           # run that produced them compiled its own.
           for attempt in 1 2 3; do
-            git fetch --quiet origin "$BRANCH"
+            # Guarded like everything else in this block: bare, it is the one command left
+            # that could still take the job down with it. The step runs under set -e with
+            # no continue-on-error, so a transient fetch failure would skip the Maven
+            # deploy, all eight artifact uploads, the MSI attachment and both documentation
+            # pushes over a refresh that is allowed to fail.
+            if ! git fetch --quiet origin "$BRANCH"; then
+              echo "::warning title=Could not refresh the launcher binaries::$BRANCH could not be fetched. Refresh opendj-server-legacy/lib/*.exe from the windows-exe-11 artifact of Build run ${RUN_ID} and commit them."
+              exit 0
+            fi
             if ! git rebase --quiet FETCH_HEAD; then
               git rebase --abort || true
               echo "::warning title=Could not refresh the launcher binaries::$BRANCH moved on and the rebuilt launchers conflict with it. Refresh opendj-server-legacy/lib/*.exe from the windows-exe-11 artifact of Build run ${RUN_ID} and commit them."
               exit 0
             fi
             if git push --quiet origin "HEAD:refs/heads/$BRANCH"; then
-              echo "Refreshed launchers pushed to $BRANCH."
+              # A refresh that already landed leaves the rebase with nothing to replay and
+              # the push with nothing to send, both of them silently successful: report
+              # what happened rather than claiming a push that was a no-op.
+              if [ "$(git rev-parse HEAD)" = "$(git rev-parse FETCH_HEAD)" ]; then
+                echo "The launchers committed on $BRANCH already match the rebuilt ones."
+              else
+                echo "Refreshed launchers pushed to $BRANCH."
+              fi
               exit 0
             fi
             echo "$BRANCH moved while pushing - retrying ($attempt/3)."

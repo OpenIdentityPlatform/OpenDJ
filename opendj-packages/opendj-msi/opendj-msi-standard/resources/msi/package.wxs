@@ -62,16 +62,12 @@
     <Property Id="OPENDJ_LEGACY" Secure="yes">
       <DirectorySearch Id="LegacyX86InstallDir" Path="[ProgramFilesFolder]$(var.name)"/>
     </Property>
-    <!-- The two default locations, this time asked whether they actually hold a server
-         rather than merely exist. OPENDJ_LEGACY above stays a bare existence test only
-         because a fresh install may legitimately adopt an empty legacy directory; every
-         decision taken during an upgrade uses these instead, since "the directory is
-         there" says nothing about where the product being upgraded lives. -->
-    <Property Id="OPENDJ_X64DEFAULT" Secure="yes">
-      <DirectorySearch Id="X64DefaultInstallDir" Path="[ProgramFiles64Folder]$(var.name)">
-        <FileSearch Id="X64DefaultSetup" Name="setup.bat"/>
-      </DirectorySearch>
-    </Property>
+    <!-- The legacy default location, this time asked whether it actually holds a server
+         rather than merely exists. OPENDJ_LEGACY above stays a bare existence test only
+         because a fresh install may legitimately adopt an empty legacy directory; the
+         decisions taken during an upgrade use this one instead, since "the directory is
+         there" says nothing about a product living in it. What it still cannot say is
+         WHICH product lives there - see the residual documented with the guards below. -->
     <Property Id="OPENDJ_LEGACY_INSTALL" Secure="yes">
       <DirectorySearch Id="LegacyX86InstallCheck" Path="[ProgramFilesFolder]$(var.name)">
         <FileSearch Id="LegacyX86Setup" Name="setup.bat"/>
@@ -102,6 +98,25 @@
                       Name="ImagePath" Type="raw"/>
     </Property>
 
+    <!-- Whether the target directory was NAMED rather than guessed: the answer the first
+         guard below accepts from an administrator whose old server really does live in
+         the default directory. Read before AppSearch, where OPENDJ can only hold what the
+         command line put there - the searches have not run, no SetProperty below has
+         fired, and CostFinalize has not yet resolved it as a directory property.
+         Sequence="first" is what keeps that true in a UI session: it runs in the UI
+         sequence, and in the execute sequence only when no UI sequence ran in the same
+         process (the msidbCustomActionTypeFirstSequence bit). Without it, a full-UI
+         install would set the property every time - CostFinalize and InstallDirDlg have
+         populated OPENDJ long before the execute sequence starts there - and the guard
+         would never fire in the wizard. It still does: a GUI session that names nothing
+         gets the refusal, with the browse dialog as its way out, which is the whole
+         reason these guards are not scheduled in the UI sequence.
+         Private (mixed case) on purpose: the installer neither accepts it from the
+         command line nor passes it to the server, so it cannot be used to switch the
+         guard off, and the guards are immediate actions running client-side, where the
+         property is visible. -->
+    <SetProperty Id="OpendjDirGiven" Before="AppSearch" Sequence="first"
+                 Value="1" Condition="OPENDJ"/>
     <SetProperty Id="OPENDJ" Action="SetOpendjFromRegistry" After="AppSearch"
                  Sequence="both" Value="[OPENDJ_REG]" Condition="OPENDJ_REG AND NOT OPENDJ"/>
     <!-- NOT Installed is true during a major upgrade as well (the new ProductCode is not
@@ -143,9 +158,27 @@
          upgrade from a custom directory resolves no search and OPENDJ falls back to the
          default - proceeding would install a fresh server there while
          RemoveExistingProducts empties the old tree, leaving config/db/logs stranded.
-         Refuse whenever the resolved directory IS that fallback and no server actually
-         lives in it; picking the real directory in InstallDirDlg (or passing OPENDJ) makes
-         the comparison fail and the install proceed.
+         Refuse whenever the resolved directory IS that fallback and nothing recorded a
+         location. The test is "nothing recorded it", not "no server is installed there":
+         a foreign OpenDJ tree in the default directory (a zip install, a manual copy)
+         satisfies a setup.bat search without being the product being upgraded, so keying
+         the guard on that let the decoy disarm it while RemoveExistingProducts gutted the
+         real installation elsewhere and InstallFiles landed on top of the stranger.
+         Selecting the real directory in InstallDirDlg, or passing OPENDJ, makes the
+         comparison fail and the install proceed as before; naming the DEFAULT directory
+         on the command line proceeds through OpendjDirGiven, which is the way out for an
+         old server that really does live there - 5.1.x installed into it recorded
+         nothing, so the package cannot tell that tree from the decoy on its own and has
+         to be told.
+
+         Residual: the same decoy in the LEGACY default directory is not detectable.
+         SetOpendjFromLegacyDir adopts it, so the resolved directory is neither the x64
+         default nor different from the legacy default, and neither guard fires. What
+         would separate the two - "this tree is the product being upgraded" - is precisely
+         what a registry-less 5.1.x never recorded, and refusing every registry-less
+         legacy-default upgrade would refuse the documented main upgrade path with it. The
+         install guide carries the workaround instead: pass OPENDJ explicitly when another
+         OpenDJ tree sits in the legacy default directory.
 
          (2) The upgrade would relocate. Passing OPENDJ=<somewhere else> over a detected
          installation is not a move: RemoveExistingProducts empties the old tree while the
@@ -174,8 +207,21 @@
          FILE_SHARE_DELETE (hardcoded, JDK-8224794 is Won't Fix), so locked jars cannot be
          renamed into Config.Msi and the nested uninstall degrades to delete-on-reboot
          entries naming the original paths. So: a best-effort immediate '"net.exe" stop'
-         first, then an immediate check that REFUSES the upgrade while the service is
-         still running. This package registers no service of its own - windows-service.bat
+         first, then a check that REFUSES the upgrade unless the service is provably gone
+         or Stopped.
+         That check polls instead of sampling the SCM once. net.exe returns the instant a
+         control cannot be accepted (ERROR_SERVICE_CANNOT_ACCEPT_CTRL in any pending
+         state), Return="ignore" eats the failure, and the state right then is StopPending
+         or StartPending - neither of which is 'Running', so a single "-eq Running" test
+         waved through precisely the cases the stop had not handled: an administrator who
+         followed the install guide and ran 'net stop' in another window, or a service
+         still starting, which service.c allows 300 s + a 30 s hint to finish while its
+         JVM holds lib\*.jar. So StopPending is waited out - up to 90 s, matching the
+         budget service.c itself allows a stop it is waiting on, and comfortably over the
+         ~61 s in which the stop worker resolves to STOPPED or RUNNING - and every other
+         state refuses immediately: once net.exe has returned, Running means the stop was
+         rejected or denied, and StartPending means a JVM is on its way up.
+         This package registers no service of its own - windows-service.bat
          does, when the administrator asks - so the service is not ours to own, only to
          insist is stopped; nothing here removes it, and an upgrade in place leaves it
          registered and working against the refreshed tree.
@@ -190,19 +236,21 @@
          CheckServiceStopped; guidance in the install guide: stop the service or run
          the installer elevated). PowerShell instead of 'sc query | findstr': the exit code
          needs no parsing of localized output - and no square brackets in the command,
-         ExeCommand is a Formatted field. Full paths prevent resolving the exes from the
-         working directory. Gated on the ImagePath evidence alone: any upgrade over a tree
+         ExeCommand is a Formatted field (the script blocks are safe there: a {} group
+         holding no [property] reference is passed through unchanged, braces included).
+         Full paths prevent resolving the exes from the working directory. Gated on the
+         ImagePath evidence alone: any upgrade over a tree
          whose service is running has the locking problem, whether the installed product
          came from a WiX3-era package or from this one. -->
     <CustomAction Id="StopServiceBeforeUpgrade" Directory="TARGETDIR"
                   ExeCommand="&quot;[System64Folder]net.exe&quot; stop &quot;OpenDJ Server&quot;"
                   Execute="immediate" Return="ignore"/>
     <CustomAction Id="CheckServiceStopped" Directory="TARGETDIR"
-                  ExeCommand="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -NonInteractive -Command &quot;if ((Get-Service 'OpenDJ Server' -ErrorAction SilentlyContinue).Status -eq 'Running') { exit 1 }; exit 0&quot;"
+                  ExeCommand="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -NonInteractive -Command &quot;$deadline = (Get-Date).AddSeconds(90); do { $svc = Get-Service 'OpenDJ Server' -ErrorAction SilentlyContinue; if (-not $svc -or $svc.Status -eq 'Stopped') { exit 0 }; if ($svc.Status -ne 'StopPending') { exit 1 }; Start-Sleep -Seconds 2 } while ((Get-Date) -lt $deadline); exit 1&quot;"
                   Execute="immediate" Return="check"/>
     <InstallExecuteSequence>
       <Custom Action="RequireDirOnCustomUpgrade" After="CostFinalize"
-              Condition="WIX_UPGRADE_DETECTED AND (OPENDJ ~= OPENDJ_DEFAULT) AND NOT OPENDJ_X64DEFAULT"/>
+              Condition="WIX_UPGRADE_DETECTED AND (OPENDJ ~= OPENDJ_DEFAULT) AND NOT OPENDJ_REG AND NOT OpendjDirGiven"/>
       <Custom Action="RefuseRelocatingUpgrade" After="RequireDirOnCustomUpgrade"
               Condition="WIX_UPGRADE_DETECTED AND ((OPENDJ_REG AND (OPENDJ_REG ~&lt;&gt; OPENDJ)) OR (NOT OPENDJ_REG AND OPENDJ_LEGACY_INSTALL AND (OPENDJ_LEGACY_DEFAULT ~&lt;&gt; OPENDJ)))"/>
       <Custom Action="StopServiceBeforeUpgrade" Before="CheckServiceStopped"

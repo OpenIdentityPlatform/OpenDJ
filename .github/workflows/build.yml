@@ -680,12 +680,46 @@ jobs:
           retention-days: 90
 
   test-msi:
-    needs: build-maven
+    # Deliberately not "needs: build-maven": that waits for the whole matrix, whose ubuntu
+    # legs run for about two hours, so any push landing inside that window cancels the run
+    # before this two-minute job has started - which is how the MSI work reached its eighth
+    # review round with no completed run behind it. The only input is the windows-latest-11
+    # artifact, published by the Windows leg after about fifteen minutes; wait for that.
     runs-on: 'windows-latest'
+    permissions:
+      contents: read
+      # Listing the run's artifacts and jobs, which the wait below polls.
+      actions: read
     steps:
       # Only for .github/scripts/wait-server-stopped.ps1, and it has to come first:
-      # checkout cleans the workspace the artifact is unpacked into.
+      # checkout cleans the workspace the artifact is unpacked into. Sparse because that
+      # one script is the entire reason for the checkout.
       - uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/scripts
+      - name: Wait for the Windows build artifact
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $deadline = (Get-Date).AddMinutes(45)
+          do {
+            $names = @(gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/artifacts" --jq '.artifacts[].name')
+            if ($names -contains 'windows-latest-11') { Write-Host 'windows-latest-11 is available'; exit 0 }
+            # Stop waiting the moment the leg that would publish it has finished without
+            # doing so, instead of sitting out the deadline. The job name is matched here
+            # rather than inside the jq filter: an argument carrying both spaces and
+            # double quotes has to survive PowerShell's native-command quoting to reach
+            # jq intact, and there is no reason to depend on that.
+            $legs = @(gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/jobs?per_page=100" --jq '.jobs[] | [.name, .conclusion] | @tsv')
+            $leg = $legs | Where-Object { $_ -like 'build-maven (windows-latest, 11)*' } | Select-Object -First 1
+            if ($leg) {
+              $conclusion = ($leg -split "`t")[1]
+              if ($conclusion) { throw "the Windows build leg finished as '$conclusion' without publishing windows-latest-11" }
+            }
+            Start-Sleep -Seconds 30
+          } while ((Get-Date) -lt $deadline)
+          throw 'windows-latest-11 was not published within 45 minutes'
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
@@ -788,9 +822,30 @@ jobs:
   # instance data in place, stops the running service for the file replacement and leaves
   # its registration alone, and that the upgraded server starts with the old data.
   test-msi-upgrade:
-    needs: build-maven
+    # Not "needs: build-maven", for the reason given on test-msi above.
     runs-on: 'windows-latest'
+    permissions:
+      contents: read
+      actions: read
     steps:
+      - name: Wait for the Windows build artifact
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $deadline = (Get-Date).AddMinutes(45)
+          do {
+            $names = @(gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/artifacts" --jq '.artifacts[].name')
+            if ($names -contains 'windows-latest-11') { Write-Host 'windows-latest-11 is available'; exit 0 }
+            $legs = @(gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/jobs?per_page=100" --jq '.jobs[] | [.name, .conclusion] | @tsv')
+            $leg = $legs | Where-Object { $_ -like 'build-maven (windows-latest, 11)*' } | Select-Object -First 1
+            if ($leg) {
+              $conclusion = ($leg -split "`t")[1]
+              if ($conclusion) { throw "the Windows build leg finished as '$conclusion' without publishing windows-latest-11" }
+            }
+            Start-Sleep -Seconds 30
+          } while ((Get-Date) -lt $deadline)
+          throw 'windows-latest-11 was not published within 45 minutes'
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
@@ -974,6 +1029,9 @@ jobs:
           New-Item -ItemType Directory -Force "C:\Program Files (x86)\OpenDJ" | Out-Null
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v upgrade-emptylegacy.log"
           if ($p.ExitCode -eq 0) { Get-Content upgrade-emptylegacy.log -Tail 120; throw "an upgrade with no determinable location must be refused, not routed to an empty legacy directory" }
+          # A non-zero exit code on its own only says msiexec failed; both neighbouring
+          # scenarios name the guard they are about, and so must this one.
+          if (-not (Select-String -Path upgrade-emptylegacy.log -Pattern "location could not be determined" -Quiet)) { Get-Content upgrade-emptylegacy.log -Tail 60; throw "expected the explicit-OPENDJ guidance message in the log" }
           if (Test-Path "C:\Program Files (x86)\OpenDJ\setup.bat") { throw "the upgrade installed into the empty legacy directory" }
           if (-not (Test-Path "C:\opendj-old\setup.bat")) { throw "the refused upgrade damaged the original install" }
           Write-Host "Empty legacy directory not adopted, upgrade refused (exit $($p.ExitCode))"
@@ -995,8 +1053,13 @@ jobs:
           # its native legacy default so both branches of the guard have something to
           # compare against.
           $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+          # Clear every location this scenario reasons about itself, rather than inheriting
+          # the previous step's teardown: the starting state is what the guard is judged
+          # against, so it belongs in the step that makes the judgement.
           Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
           Remove-Item -Recurse -Force "C:\Program Files\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\opendj-b" -ErrorAction SilentlyContinue
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i opendj-5.1.2.msi /quiet /qn /norestart /l*v install-old-legacy.log"
           if ($p.ExitCode -ne 0) { Get-Content install-old-legacy.log -Tail 80; throw "msiexec /i (5.1.2) failed: $($p.ExitCode)" }
           if (-not (Test-Path "C:\Program Files (x86)\OpenDJ\setup.bat")) { throw "5.1.2 did not install into the legacy default" }
@@ -1021,6 +1084,65 @@ jobs:
           if ($p.ExitCode -ne 0) { Get-Content uninstall-old-legacy.log -Tail 80; throw "msiexec /x (5.1.2 cleanup) failed: $($p.ExitCode)" }
           Remove-Item -Recurse -Force "C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue
           Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
+      - name: A stray OpenDJ tree in the default directory must not be adopted
+        shell: pwsh
+        run: |
+          # The product being upgraded is a 5.1.x in a custom directory, which recorded
+          # nothing, while some unrelated OpenDJ tree - a zip install, a copy - sits in the
+          # x64 default. A setup.bat existence test cannot tell the two apart, so a guard
+          # keyed on it stood down: RemoveExistingProducts gutted the real installation
+          # while InstallFiles landed on the stranger, and msiexec exited 0.
+          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+          Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\OpenDJ" -ErrorAction SilentlyContinue
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i opendj-5.1.2.msi /quiet /qn /norestart OPENDJ=C:\opendj-real /l*v install-old-real.log"
+          if ($p.ExitCode -ne 0) { Get-Content install-old-real.log -Tail 80; throw "msiexec /i (5.1.2 at C:\opendj-real) failed: $($p.ExitCode)" }
+          # The decoy: everything the installer is able to ask about a directory.
+          New-Item -ItemType Directory -Force "C:\Program Files\OpenDJ\lib" | Out-Null
+          Set-Content "C:\Program Files\OpenDJ\setup.bat" '@echo off'
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v upgrade-decoy.log"
+          if ($p.ExitCode -eq 0) { Get-Content upgrade-decoy.log -Tail 120; throw "an upgrade must not adopt a stray tree in the default directory" }
+          if (-not (Select-String -Path upgrade-decoy.log -Pattern "location could not be determined" -Quiet)) { Get-Content upgrade-decoy.log -Tail 60; throw "expected the explicit-OPENDJ guidance message in the log" }
+          if (Test-Path "C:\Program Files\OpenDJ\lib\opendj_service.exe") { throw "the refused upgrade installed into the stray tree" }
+          if (-not (Test-Path "C:\opendj-real\setup.bat")) { throw "the refused upgrade damaged the original install" }
+          # ...and naming the real directory gets the administrator through, decoy or not.
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" OPENDJ=C:\opendj-real /quiet /qn /norestart /l*v upgrade-decoy-ok.log"
+          if ($p.ExitCode -ne 0) { Get-Content upgrade-decoy-ok.log -Tail 120; throw "upgrade with an explicit OPENDJ must succeed: $($p.ExitCode)" }
+          if (-not (Test-Path "C:\opendj-real\lib\opendj_service.exe")) { throw "the upgrade did not land in C:\opendj-real" }
+          if (Test-Path "C:\Program Files\OpenDJ\lib\opendj_service.exe") { throw "the upgrade also installed into the stray tree" }
+          Write-Host "Stray default-directory tree ignored: refused, then upgraded where told"
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall-real.log"
+          if ($p.ExitCode -ne 0) { Get-Content uninstall-real.log -Tail 80; throw "msiexec /x (decoy cleanup) failed: $($p.ExitCode)" }
+          Remove-Item -Recurse -Force "C:\opendj-real" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
+      - name: An old server in the default directory upgrades once it is named
+        shell: pwsh
+        run: |
+          # The price of the scenario above: a 5.1.x that really does live in the x64
+          # default recorded nothing either, so the package cannot tell it from the decoy
+          # and refuses the silent upgrade that would have gone through before. What it
+          # must not do is dead-end - the directory is a configurable property, and naming
+          # it (which is also what browsing to it in the wizard amounts to) has to work.
+          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+          Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\OpenDJ" -ErrorAction SilentlyContinue
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i opendj-5.1.2.msi /quiet /qn /norestart OPENDJ=`"C:\Program Files\OpenDJ`" /l*v install-old-x64.log"
+          if ($p.ExitCode -ne 0) { Get-Content install-old-x64.log -Tail 80; throw "msiexec /i (5.1.2 at the x64 default) failed: $($p.ExitCode)" }
+          if (-not (Test-Path "C:\Program Files\OpenDJ\setup.bat")) { throw "5.1.2 did not install into C:\Program Files\OpenDJ" }
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v upgrade-x64-silent.log"
+          if ($p.ExitCode -eq 0) { Get-Content upgrade-x64-silent.log -Tail 120; throw "a silent upgrade with nothing recording the location must refuse" }
+          if (-not (Select-String -Path upgrade-x64-silent.log -Pattern "location could not be determined" -Quiet)) { Get-Content upgrade-x64-silent.log -Tail 60; throw "expected the explicit-OPENDJ guidance message in the log" }
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" OPENDJ=`"C:\Program Files\OpenDJ`" /quiet /qn /norestart /l*v upgrade-x64-named.log"
+          if ($p.ExitCode -ne 0) { Get-Content upgrade-x64-named.log -Tail 120; throw "the named upgrade into the default directory must succeed: $($p.ExitCode)" }
+          if (-not (Test-Path "C:\Program Files\OpenDJ\lib\opendj_service.exe")) { throw "the upgrade did not land in C:\Program Files\OpenDJ" }
+          Write-Host "Default-directory upgrade refused silently, accepted when named"
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall-x64.log"
+          if ($p.ExitCode -ne 0) { Get-Content uninstall-x64.log -Tail 80; throw "msiexec /x (x64 default cleanup) failed: $($p.ExitCode)" }
+          Remove-Item -Recurse -Force "C:\Program Files\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
       - name: Fresh install must not touch a service registered by another instance
         shell: pwsh
         run: |
@@ -1041,3 +1163,55 @@ jobs:
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall-elsewhere.log"
           if ($p.ExitCode -ne 0) { Get-Content uninstall-elsewhere.log -Tail 80; throw "msiexec /x (elsewhere cleanup) failed: $($p.ExitCode)" }
           Write-Host "Fresh install elsewhere left the unrelated 'OpenDJ Server' service in place"
+      - name: An upgrade must refuse while the service is still starting
+        shell: pwsh
+        run: |
+          # The SCM takes no controls in a pending state: StopServiceBeforeUpgrade's
+          # 'net stop' fails instantly with ERROR_SERVICE_CANNOT_ACCEPT_CTRL and
+          # Return="ignore" eats it. StartPending is not 'Running', so a check that
+          # sampled the state once waved the upgrade through with a JVM coming up on the
+          # tree being replaced - and the jars are unversioned, so the delete-on-reboot
+          # entries left behind by the nested uninstall name the paths the NEW jars
+          # occupy. Reproducible because the wrapper reports START_PENDING for as long as
+          # bat\start-ds.bat runs, which service.c gives 300 s.
+          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+          Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\OpenDJ" -ErrorAction SilentlyContinue
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i opendj-5.1.2.msi /quiet /qn /norestart /l*v install-old-pending.log"
+          if ($p.ExitCode -ne 0) { Get-Content install-old-pending.log -Tail 80; throw "msiexec /i (5.1.2) failed: $($p.ExitCode)" }
+          $root = "C:\Program Files (x86)\OpenDJ"
+          $env:OPENDJ_JAVA_ARGS = "-server -Xmx512m"
+          & "$root\setup.bat" -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --addBaseEntry --cli --acceptLicense --no-prompt --doNotStart
+          if ($LASTEXITCODE -ne 0) { throw "setup.bat (5.1.2) failed: $LASTEXITCODE" }
+          & "$root\bat\windows-service.bat" --enableService
+          if ($LASTEXITCODE -ne 0) { throw "windows-service --enableService failed: $LASTEXITCODE" }
+          # Hold the start open: the wrapper waits for this script, reporting START_PENDING
+          # the whole time. No JVM is needed - the guard is being asked about a service
+          # state, not about a lock.
+          Copy-Item "$root\bat\start-ds.bat" "$root\bat\start-ds.bat.orig"
+          Set-Content "$root\bat\start-ds.bat" "@echo off`r`nping -n 240 127.0.0.1 >nul"
+          sc.exe start "OpenDJ Server" | Out-Null
+          for ($i = 0; $i -lt 15; $i++) {
+            $st = (Get-Service "OpenDJ Server" -ErrorAction SilentlyContinue).Status
+            if ($st -eq 'StartPending') { break }
+            Start-Sleep -Seconds 1
+          }
+          $st = (Get-Service "OpenDJ Server" -ErrorAction SilentlyContinue).Status
+          if ($st -ne 'StartPending') { throw "expected the service to be StartPending, got '$st'" }
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v upgrade-pending.log"
+          if ($p.ExitCode -eq 0) { Get-Content upgrade-pending.log -Tail 120; throw "the upgrade must refuse while the service is starting" }
+          if (-not (Select-String -Path upgrade-pending.log -Pattern "CheckServiceStopped" -Quiet)) { Get-Content upgrade-pending.log -Tail 60; throw "the refusal must come from CheckServiceStopped" }
+          if (-not (Test-Path "$root\config\config.ldif")) { throw "the refused upgrade damaged the instance" }
+          if (-not (Test-Path "$root\setup.bat")) { throw "the refused upgrade damaged the installation" }
+          Write-Host "Upgrade refused while the service was StartPending (exit $($p.ExitCode))"
+          # Teardown: the wrapper is still sitting on the held-open start.
+          Stop-Process -Name opendj_service -Force -ErrorAction SilentlyContinue
+          Get-Process -Name PING -ErrorAction SilentlyContinue | Stop-Process -Force
+          Start-Sleep -Seconds 5
+          Move-Item -Force "$root\bat\start-ds.bat.orig" "$root\bat\start-ds.bat"
+          & "$root\bat\windows-service.bat" --disableService
+          if (Get-Service "OpenDJ Server" -ErrorAction SilentlyContinue) { sc.exe delete "OpenDJ Server" }
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x opendj-5.1.2.msi /quiet /qn /norestart /l*v uninstall-pending.log"
+          if ($p.ExitCode -ne 0) { Get-Content uninstall-pending.log -Tail 80; throw "msiexec /x (5.1.2 cleanup) failed: $($p.ExitCode)" }
+          Remove-Item -Recurse -Force "C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue
