@@ -27,6 +27,7 @@ import static org.testng.Assert.*;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -47,6 +48,7 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationDomain.ImportExportContext;
 import org.forgerock.opendj.ldap.DN;
+import org.opends.server.tasks.InitializeTask;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.TestTimer;
 import org.testng.annotations.DataProvider;
@@ -606,6 +608,154 @@ public class ReplicationDomainTest extends ReplicationTestCase
       disable(domain1);
       remove(replServer);
     }
+  }
+
+  /** InitializeTask double recording the completion reported by the domain. */
+  private static final class RecordingInitializeTask extends InitializeTask
+  {
+    private final CountDownLatch completed = new CountDownLatch(1);
+    private volatile DirectoryException failure;
+
+    @Override
+    public void updateTaskCompletionState(DirectoryException de)
+    {
+      failure = de;
+      completed.countDown();
+    }
+
+    DirectoryException waitForCompletion(long timeout, TimeUnit unit) throws InterruptedException
+    {
+      assertTrue(completed.await(timeout, unit), "the initialize task never completed");
+      return failure;
+    }
+  }
+
+  /**
+   * An ErrorMsg answering an initialization request can be created within the
+   * same millisecond as the requester's import/export context when the whole
+   * topology runs on one host: it must terminate the pending initialization
+   * instead of being discarded as stale (issue #861).
+   */
+  @Test(enabled=true)
+  public void errorMsgFromSameMillisecondTerminatesPendingInitialize() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer = null;
+    FakeReplicationDomain domain2 = null;
+    ReplicationBroker broker3 = null;
+
+    try
+    {
+      int replServerPort = TestCaseUtils.findFreePort();
+      replServer = createReplicationServer(13, replServerPort,
+          "sameMillisecondErrorMsgDb", 100);
+      SortedSet<String> servers = newTreeSet("localhost:" + replServerPort);
+
+      domain2 = new FakeReplicationDomain(
+          testService, 2, servers, 0, null, new StringBuffer(), 0);
+      broker3 = openReplicationSession(testService, 3, 100, replServerPort,
+          10000, domain2.getGenerationID());
+
+      waitTopologyKnowsReplica(domain2, 3);
+
+      RecordingInitializeTask task = new RecordingInitializeTask();
+      domain2.initializeFromRemote(3, task);
+      long startTime = domain2.getImportExportContext().getStartTime();
+
+      // strictly older than the context: still ignored as stale
+      ErrorMsg staleError = new ErrorMsg(3, 2, LocalizableMessage.raw("stale error"));
+      staleError.setCreationTime(startTime - 1);
+      broker3.publish(staleError);
+
+      // same millisecond as the context: must terminate the initialization
+      ErrorMsg currentError = new ErrorMsg(3, 2, LocalizableMessage.raw("current error"));
+      currentError.setCreationTime(startTime);
+      broker3.publish(currentError);
+
+      DirectoryException failure = task.waitForCompletion(30, TimeUnit.SECONDS);
+      assertNotNull(failure, "the initialization completed without an error");
+      assertEquals(failure.getMessageObject().toString(), "current error",
+          "the ErrorMsg timestamped before the context must stay ignored");
+      assertFalse(domain2.ieRunning(),
+          "the terminated initialization must release the import/export context");
+    }
+    finally
+    {
+      stop(broker3);
+      disable(domain2);
+      remove(replServer);
+    }
+  }
+
+  /**
+   * When the initialization request receives no answer at all - the publish
+   * was silently dropped or the answer was lost - the stalled-request watchdog
+   * must fail the task after the configured delay instead of letting it wait
+   * forever (issue #861).
+   */
+  @Test(enabled=true)
+  public void stalledInitializeFromRemoteIsAborted() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer = null;
+    FakeReplicationDomain domain2 = null;
+    ReplicationBroker broker3 = null;
+
+    try
+    {
+      int replServerPort = TestCaseUtils.findFreePort();
+      replServer = createReplicationServer(14, replServerPort,
+          "stalledInitializeRequestDb", 100);
+      SortedSet<String> servers = newTreeSet("localhost:" + replServerPort);
+
+      domain2 = new FakeReplicationDomain(
+          testService, 2, servers, 0, null, new StringBuffer(), 0);
+      // broker3 receives the InitializeRequestMsg and never answers it
+      broker3 = openReplicationSession(testService, 3, 100, replServerPort,
+          10000, domain2.getGenerationID());
+
+      waitTopologyKnowsReplica(domain2, 3);
+
+      RecordingInitializeTask task = new RecordingInitializeTask();
+      domain2.initializeFromRemote(3, task);
+
+      assertFalse(domain2.abortStalledInitializeFromRemote(60000),
+          "the initialization must not be aborted before the delay elapses");
+
+      final FakeReplicationDomain requester = domain2;
+      TestTimer abortTimer = new TestTimer.Builder()
+          .maxSleep(30, SECONDS)
+          .sleepTimes(10, MILLISECONDS)
+          .toTimer();
+      abortTimer.repeatUntilSuccess(() -> assertTrue(
+          requester.abortStalledInitializeFromRemote(50),
+          "the stalled initialization was never aborted"));
+
+      DirectoryException failure = task.waitForCompletion(30, TimeUnit.SECONDS);
+      assertNotNull(failure, "the stalled initialization must fail the task");
+      assertEquals(failure.getMessageObject().toString(),
+          ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(testService, 3).toString());
+      assertFalse(domain2.ieRunning(),
+          "the aborted initialization must release the import/export context");
+      assertFalse(domain2.abortStalledInitializeFromRemote(0),
+          "a second abort must be a no-op once the context is released");
+    }
+    finally
+    {
+      stop(broker3);
+      disable(domain2);
+      remove(replServer);
+    }
+  }
+
+  private void waitTopologyKnowsReplica(ReplicationDomain domain, int dsId) throws Exception
+  {
+    TestTimer timer = new TestTimer.Builder()
+        .maxSleep(30, SECONDS)
+        .sleepTimes(100, MILLISECONDS)
+        .toTimer();
+    timer.repeatUntilSuccess(() -> assertTrue(domain.getReplicaInfos().containsKey(dsId),
+        "DS(" + dsId + ") is not known to the domain"));
   }
 
   private String buildExportedData(final int ENTRYCOUNT)

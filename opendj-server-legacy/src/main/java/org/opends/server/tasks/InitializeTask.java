@@ -40,6 +40,14 @@ public class InitializeTask extends Task
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /**
+   * Delay after which the initialization is considered stalled when the
+   * request for entries has received no answer from the topology: the request
+   * or its response can be silently lost with no error reported back (issue
+   * #861), and no other mechanism bounds this wait.
+   */
+  private static final long INITIALIZE_START_TIMEOUT_MS = 2 * 60 * 1000L;
+
   private String domainString;
   private int  source;
   private LDAPReplicationDomain domain;
@@ -120,6 +128,7 @@ public class InitializeTask extends Task
           initStateLock.wait(1000);
           replaceAttributeValue(ATTR_TASK_INITIALIZE_LEFT, String.valueOf(left));
           replaceAttributeValue(ATTR_TASK_INITIALIZE_DONE, String.valueOf(total-left));
+          domain.abortStalledInitializeFromRemote(INITIALIZE_START_TIMEOUT_MS);
         }
       }
       replaceAttributeValue(ATTR_TASK_INITIALIZE_LEFT, String.valueOf(left));
