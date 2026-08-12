@@ -321,12 +321,26 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}catch (SQLException e) {
 						throw new StorageRuntimeException(e);
 					}
+				}else if (driverName.contains("oracle")) {
+					try {
+						// oracle has no "create index if not exists"; unquoted identifiers are stored in uppercase
+						if (!isExistsIndex(tableName.toUpperCase(),"k_"+tableName.substring("opendj_".length()))) {
+							try (final PreparedStatement statement=con.prepareStatement("create index k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)")){
+								execute(statement);
+								con.commit();
+							}
+						}
+					}catch (SQLException e) {
+						throw new StorageRuntimeException(e);
+					}
 				}
+				// mssql: k is varbinary(max), which cannot be an index key column - cursor batches stay unindexed there
 			}
 		}
 
 		boolean isExistsIndex(String tableName, String indexName) throws SQLException {
-			try (final ResultSet rs = con.getMetaData().getIndexInfo(null, null, tableName, false, false)) {
+			// approximate=true: with false the oracle driver runs ANALYZE on every call
+			try (final ResultSet rs = con.getMetaData().getIndexInfo(null, null, tableName, false, true)) {
 				while (rs.next()) {
 					if (indexName.equalsIgnoreCase(rs.getString("INDEX_NAME"))) {
 						return true;
@@ -449,13 +463,23 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 	}
 	
-	// Iterates in batches of "fetchsize" records via keyset pagination ("where k>? order by k limit n"):
+	static int compareKeys(byte[] key1, byte[] key2) {
+		return ByteString.wrap(key1).compareTo(key2, 0, key2.length);
+	}
+
+	// Iterates in batches via keyset pagination ("where k>? order by k limit n"):
 	// scrollable ResultSet is not an option, the postgres/mysql drivers materialize it entirely in memory.
-	private final class CursorImpl implements Cursor<ByteString, ByteString> {
+	// Batches start at "fetchsize.initial" and grow geometrically to "fetchsize" while the reads stay
+	// sequential: most cursors read only a few rows, and eagerly fetching the maximum made every
+	// repositioning transfer "fetchsize" rows over the network (#860).
+	final class CursorImpl implements Cursor<ByteString, ByteString> {
 		final Connection con;
 		final String tableName;
 		final boolean isReadOnly;
 		final int batchSize=Math.max(1,Integer.getInteger("org.openidentityplatform.opendj.jdbc.fetchsize",1000));
+		final int initialBatchSize=Math.min(batchSize,Math.max(1,Integer.getInteger("org.openidentityplatform.opendj.jdbc.fetchsize.initial",32)));
+		int nextBatchSize=initialBatchSize;
+		long fetchCount;
 		final String limitClause;
 
 		final ArrayDeque<byte[][]> buffer=new ArrayDeque<>();
@@ -472,7 +496,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				? " limit ?,?" : " offset ? rows fetch next ? rows only";
 		}
 
+		int adaptiveBatchSize() {
+			final int size=nextBatchSize;
+			nextBatchSize=Math.min(batchSize,size*4);
+			return size;
+		}
+
 		boolean fetchBatch(String condition, byte[] dbKey, long offset, boolean descending, int limit) {
+			fetchCount++;
 			buffer.clear();
 			try (final PreparedStatement statement=con.prepareStatement("select k,v from "+tableName
 					+(condition!=null?" where k"+condition+"?":"")
@@ -504,7 +535,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public boolean next() {
-			if (buffer.isEmpty() && !fetchBatch(currentKeyDb==null?null:">",currentKeyDb,0,false,batchSize)) {
+			if (buffer.isEmpty() && !fetchBatch(currentKeyDb==null?null:">",currentKeyDb,0,false,adaptiveBatchSize())) {
 				defined=false;
 				return false;
 			}
@@ -558,7 +589,23 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public boolean positionToKeyOrNext(ByteSequence key) {
-			if (fetchBatch(">=",real2db(key.toByteArray()),0,false,batchSize)) {
+			final byte[] target=real2db(key.toByteArray());
+			// Forward repositioning within the already-fetched range is served from the buffer: buffered
+			// rows are the contiguous sorted rows following the current one (byte order matches the
+			// database binary collation), so the first row >= target is guaranteed to be among them.
+			if (!buffer.isEmpty() && currentKeyDb!=null
+					&& compareKeys(target,currentKeyDb)>0
+					&& compareKeys(target,buffer.peekLast()[0])<=0) {
+				while (compareKeys(buffer.peek()[0],target)<0) {
+					buffer.poll();
+				}
+				advanceFromBuffer();
+				return true;
+			}
+			if (!buffer.isEmpty()) { // jumped outside the buffered range: random access, back to small batches
+				nextBatchSize=initialBatchSize;
+			}
+			if (fetchBatch(">=",target,0,false,adaptiveBatchSize())) {
 				advanceFromBuffer();
 				return true;
 			}
@@ -575,6 +622,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				try(final ResultSet rc=executeResultSet(statement)) {
 					if (rc.next()) {
 						buffer.clear();
+						nextBatchSize=initialBatchSize;
 						currentKeyDb=real2db(real);
 						currentKey=ByteString.wrap(real);
 						currentValue=ByteString.wrap(rc.getBytes("v"));
@@ -601,7 +649,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public boolean positionToIndex(int index) {
-			if (index>=0 && fetchBatch(null,null,index,false,batchSize)) {
+			if (!buffer.isEmpty()) { // absolute jump: random access, back to small batches
+				nextBatchSize=initialBatchSize;
+			}
+			if (index>=0 && fetchBatch(null,null,index,false,adaptiveBatchSize())) {
 				advanceFromBuffer();
 				return true;
 			}
