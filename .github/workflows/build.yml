@@ -1125,23 +1125,51 @@ jobs:
           # and refuses the silent upgrade that would have gone through before. What it
           # must not do is dead-end - the directory is a configurable property, and naming
           # it (which is also what browsing to it in the wizard amounts to) has to work.
+          #
+          # The old tree gets there by hand rather than through OPENDJ=: the released
+          # 5.1.x package is x86, and a 32-bit package cannot install into the 64-bit
+          # Program Files at all - Windows Installer resolves its [ProgramFilesFolder] to
+          # Program Files (x86) whatever the directory property says, so msiexec exits 0
+          # while the files land in the legacy default, which is a different scenario (one
+          # the legacy-directory search resolves on its own). Installing into a custom
+          # directory and moving the tree leaves exactly what this one needs: an
+          # upgradable 5.1.x registration, no recorded location, no legacy directory, and
+          # a real old server sitting in C:\Program Files\OpenDJ. That the registration is
+          # left pointing at the directory the move emptied costs nothing - no guard reads
+          # it, and RemoveExistingProducts tolerates the files being gone.
           $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
           Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
           Remove-Item -Recurse -Force "C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue
           Remove-Item -Recurse -Force "C:\Program Files\OpenDJ" -ErrorAction SilentlyContinue
-          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i opendj-5.1.2.msi /quiet /qn /norestart OPENDJ=`"C:\Program Files\OpenDJ`" /l*v install-old-x64.log"
-          if ($p.ExitCode -ne 0) { Get-Content install-old-x64.log -Tail 80; throw "msiexec /i (5.1.2 at the x64 default) failed: $($p.ExitCode)" }
-          if (-not (Test-Path "C:\Program Files\OpenDJ\setup.bat")) { throw "5.1.2 did not install into C:\Program Files\OpenDJ" }
+          Remove-Item -Recurse -Force "C:\opendj-x64src" -ErrorAction SilentlyContinue
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i opendj-5.1.2.msi /quiet /qn /norestart OPENDJ=C:\opendj-x64src /l*v install-old-x64.log"
+          if ($p.ExitCode -ne 0) { Get-Content install-old-x64.log -Tail 80; throw "msiexec /i (5.1.2 at C:\opendj-x64src) failed: $($p.ExitCode)" }
+          # Exit code 0 says msiexec ran, not that it put the files where it was told, and
+          # a directory it silently declined to use is worth naming in the failure.
+          if (-not (Test-Path "C:\opendj-x64src\setup.bat")) { Get-ChildItem "C:\Program Files\OpenDJ","C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue | Select-Object -First 5 -ExpandProperty FullName; Get-Content install-old-x64.log -Tail 80; throw "5.1.2 did not install into C:\opendj-x64src" }
+          Move-Item "C:\opendj-x64src" "C:\Program Files\OpenDJ"
+          if (-not (Test-Path "C:\Program Files\OpenDJ\setup.bat")) { throw "the 5.1.2 tree did not move into C:\Program Files\OpenDJ" }
+          # 5.1.x ships lib\opendj_service.exe itself, so the file cannot say whose tree
+          # this is; its content can. Both halves below are judged on the two things only
+          # the new package produces: this payload, and the InstallDir registry value.
+          $oldWrapper = (Get-FileHash "C:\Program Files\OpenDJ\lib\opendj_service.exe").Hash
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v upgrade-x64-silent.log"
           if ($p.ExitCode -eq 0) { Get-Content upgrade-x64-silent.log -Tail 120; throw "a silent upgrade with nothing recording the location must refuse" }
           if (-not (Select-String -Path upgrade-x64-silent.log -Pattern "location could not be determined" -Quiet)) { Get-Content upgrade-x64-silent.log -Tail 60; throw "expected the explicit-OPENDJ guidance message in the log" }
+          if (Test-Path HKLM:\SOFTWARE\OpenDJ) { throw "the refused upgrade registered an install location" }
+          if ((Get-FileHash "C:\Program Files\OpenDJ\lib\opendj_service.exe").Hash -ne $oldWrapper) { throw "the refused upgrade overwrote the old server" }
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" OPENDJ=`"C:\Program Files\OpenDJ`" /quiet /qn /norestart /l*v upgrade-x64-named.log"
           if ($p.ExitCode -ne 0) { Get-Content upgrade-x64-named.log -Tail 120; throw "the named upgrade into the default directory must succeed: $($p.ExitCode)" }
-          if (-not (Test-Path "C:\Program Files\OpenDJ\lib\opendj_service.exe")) { throw "the upgrade did not land in C:\Program Files\OpenDJ" }
+          if ((Get-FileHash "C:\Program Files\OpenDJ\lib\opendj_service.exe").Hash -eq $oldWrapper) { Get-Content upgrade-x64-named.log -Tail 120; throw "the upgrade did not land in C:\Program Files\OpenDJ" }
+          # The only OPENDJ in this workflow whose value carries spaces: what the package
+          # recorded proves it survived the command line and the elevation intact.
+          $recorded = (Get-ItemProperty -Path HKLM:\SOFTWARE\OpenDJ -Name InstallDir -ErrorAction SilentlyContinue).InstallDir
+          if ($recorded -notlike "C:\Program Files\OpenDJ*") { throw "the upgrade recorded '$recorded', not the directory it was told to use" }
           Write-Host "Default-directory upgrade refused silently, accepted when named"
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall-x64.log"
           if ($p.ExitCode -ne 0) { Get-Content uninstall-x64.log -Tail 80; throw "msiexec /x (x64 default cleanup) failed: $($p.ExitCode)" }
           Remove-Item -Recurse -Force "C:\Program Files\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\opendj-x64src" -ErrorAction SilentlyContinue
           Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
       - name: Fresh install must not touch a service registered by another instance
         shell: pwsh
