@@ -143,7 +143,11 @@ ServiceReturnCode openScm(DWORD accessRights, SC_HANDLE *scm)
   NULL,           // ServicesActive database
   accessRights    // desired rights
   );
-  if (scm == NULL)
+  // *scm, not scm: the latter is the address of the caller's variable and is never
+  // NULL, so the failure went unreported and callers saw SERVICE_RETURN_OK with a NULL
+  // handle.  The outcome was still an error - EnumServicesStatus and friends reject the
+  // NULL handle - but one attributed to the wrong call and without this message.
+  if (*scm == NULL)
   {
     debugError("Failed to open the Service Control Manager.  Last error = %d",
         GetLastError());

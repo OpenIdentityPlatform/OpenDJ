@@ -679,17 +679,62 @@ jobs:
           if-no-files-found: warn
           retention-days: 90
 
-  test-msi:
-    # Deliberately not "needs: build-maven": that waits for the whole matrix, whose ubuntu
-    # legs run for about two hours, so any push landing inside that window cancels the run
-    # before this two-minute job has started - which is how the MSI work reached its eighth
-    # review round with no completed run behind it. The only input is the windows-latest-11
-    # artifact, published by the Windows leg after about fifteen minutes; wait for that.
-    runs-on: 'windows-latest'
+  # The gate both MSI jobs wait on. Deliberately not "needs: build-maven": that waits for
+  # the whole matrix, whose ubuntu legs run for about two hours, so any push landing inside
+  # that window cancels the run before those two-minute jobs have started - which is how the
+  # MSI work reached its eighth review round with no completed run behind it. The only input
+  # they have is the windows-latest-11 artifact, so wait for exactly that.
+  #
+  # On ubuntu, and in a job of its own, for two reasons. A waiter on windows-latest holds a
+  # Windows runner from t=0 for the whole wait, competing for the capacity the leg it is
+  # waiting for needs - in run 31578978374 the windows-latest-11 leg sat in the queue for 38
+  # minutes while windows-latest-26 started within one. And the wait was duplicated
+  # verbatim in both jobs, with a 45-minute budget measured from t=0 that covered the leg's
+  # runtime but not its queue time: in that same run the artifact appeared at +52 minutes,
+  # so both jobs would have failed a perfectly healthy build.
+  wait-msi-artifact:
+    runs-on: 'ubuntu-latest'
+    # Well past any queue seen so far, and only reached if the Windows leg neither publishes
+    # nor finishes; the usual exits are the artifact appearing or the leg failing.
+    timeout-minutes: 130
     permissions:
       contents: read
       # Listing the run's artifacts and jobs, which the wait below polls.
       actions: read
+    steps:
+      - name: Wait for the Windows build artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          deadline=$(( $(date +%s) + 120 * 60 ))
+          while true; do
+            if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" \
+                 --jq '.artifacts[].name' | grep -qx 'windows-latest-11'; then
+              echo 'windows-latest-11 is available'
+              exit 0
+            fi
+            # Stop waiting the moment the leg that would publish it has finished without
+            # doing so, instead of sitting out the deadline.
+            # || true: a transient API error is a reason to poll again, not to fail the run.
+            conclusion=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs?per_page=100" \
+              --jq '.jobs[] | select(.name | startswith("build-maven (windows-latest, 11)")) | .conclusion' || true)
+            if [ -n "$conclusion" ] && [ "$conclusion" != "null" ]; then
+              echo "the Windows build leg finished as '$conclusion' without publishing windows-latest-11" >&2
+              exit 1
+            fi
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo 'windows-latest-11 was not published within 120 minutes' >&2
+              exit 1
+            fi
+            sleep 30
+          done
+
+  test-msi:
+    needs: wait-msi-artifact
+    runs-on: 'windows-latest'
+    permissions:
+      contents: read
     steps:
       # Only for .github/scripts/wait-server-stopped.ps1, and it has to come first:
       # checkout cleans the workspace the artifact is unpacked into. Sparse because that
@@ -697,29 +742,6 @@ jobs:
       - uses: actions/checkout@v6
         with:
           sparse-checkout: .github/scripts
-      - name: Wait for the Windows build artifact
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $deadline = (Get-Date).AddMinutes(45)
-          do {
-            $names = @(gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/artifacts" --jq '.artifacts[].name')
-            if ($names -contains 'windows-latest-11') { Write-Host 'windows-latest-11 is available'; exit 0 }
-            # Stop waiting the moment the leg that would publish it has finished without
-            # doing so, instead of sitting out the deadline. The job name is matched here
-            # rather than inside the jq filter: an argument carrying both spaces and
-            # double quotes has to survive PowerShell's native-command quoting to reach
-            # jq intact, and there is no reason to depend on that.
-            $legs = @(gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/jobs?per_page=100" --jq '.jobs[] | [.name, .conclusion] | @tsv')
-            $leg = $legs | Where-Object { $_ -like 'build-maven (windows-latest, 11)*' } | Select-Object -First 1
-            if ($leg) {
-              $conclusion = ($leg -split "`t")[1]
-              if ($conclusion) { throw "the Windows build leg finished as '$conclusion' without publishing windows-latest-11" }
-            }
-            Start-Sleep -Seconds 30
-          } while ((Get-Date) -lt $deadline)
-          throw 'windows-latest-11 was not published within 45 minutes'
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
@@ -822,30 +844,11 @@ jobs:
   # instance data in place, stops the running service for the file replacement and leaves
   # its registration alone, and that the upgraded server starts with the old data.
   test-msi-upgrade:
-    # Not "needs: build-maven", for the reason given on test-msi above.
+    needs: wait-msi-artifact
     runs-on: 'windows-latest'
     permissions:
       contents: read
-      actions: read
     steps:
-      - name: Wait for the Windows build artifact
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $deadline = (Get-Date).AddMinutes(45)
-          do {
-            $names = @(gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/artifacts" --jq '.artifacts[].name')
-            if ($names -contains 'windows-latest-11') { Write-Host 'windows-latest-11 is available'; exit 0 }
-            $legs = @(gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/jobs?per_page=100" --jq '.jobs[] | [.name, .conclusion] | @tsv')
-            $leg = $legs | Where-Object { $_ -like 'build-maven (windows-latest, 11)*' } | Select-Object -First 1
-            if ($leg) {
-              $conclusion = ($leg -split "`t")[1]
-              if ($conclusion) { throw "the Windows build leg finished as '$conclusion' without publishing windows-latest-11" }
-            }
-            Start-Sleep -Seconds 30
-          } while ((Get-Date) -lt $deadline)
-          throw 'windows-latest-11 was not published within 45 minutes'
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
@@ -1243,3 +1246,87 @@ jobs:
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x opendj-5.1.2.msi /quiet /qn /norestart /l*v uninstall-pending.log"
           if ($p.ExitCode -ne 0) { Get-Content uninstall-pending.log -Tail 80; throw "msiexec /x (5.1.2 cleanup) failed: $($p.ExitCode)" }
           Remove-Item -Recurse -Force "C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue
+      - name: A decoy in the legacy default must not block the documented workaround
+        shell: pwsh
+        run: |
+          # The mirror of "a stray OpenDJ tree in the default directory must not be adopted",
+          # with the stray tree in the LEGACY default instead - where the install guide says
+          # to pass OPENDJ, and where the relocation guard used to refuse that very command:
+          # the legacy directory holds A server, the named directory is not it, refuse. The
+          # installation then had no upgrade path at all, silent or named.
+          # Both halves are asserted here, because the exception that fixes it is narrow: the
+          # named directory has to hold a server. Naming an empty one is still a relocation.
+          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+          Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\opendj-b" -ErrorAction SilentlyContinue
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i opendj-5.1.2.msi /quiet /qn /norestart OPENDJ=C:\opendj-mine /l*v install-old-mine.log"
+          if ($p.ExitCode -ne 0) { Get-Content install-old-mine.log -Tail 80; throw "msiexec /i (5.1.2 at C:\opendj-mine) failed: $($p.ExitCode)" }
+          if (-not (Test-Path "C:\opendj-mine\setup.bat")) { Get-Content install-old-mine.log -Tail 80; throw "5.1.2 did not install into C:\opendj-mine" }
+          # The decoy: a zip installation, a copy, a decommissioned instance - anything a
+          # setup.bat search cannot tell from the product being upgraded.
+          New-Item -ItemType Directory -Force "C:\Program Files (x86)\OpenDJ\lib" | Out-Null
+          Set-Content "C:\Program Files (x86)\OpenDJ\setup.bat" '@echo off'
+          # Naming a directory that holds no server is still a relocation, decoy or not.
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" OPENDJ=C:\opendj-b /quiet /qn /norestart /l*v relocate-decoy.log"
+          if ($p.ExitCode -eq 0) { Get-Content relocate-decoy.log -Tail 120; throw "naming an empty directory is a relocation and must be refused" }
+          if (-not (Select-String -Path relocate-decoy.log -Pattern "cannot move an existing installation" -Quiet)) { Get-Content relocate-decoy.log -Tail 60; throw "expected the relocation guidance message in the log" }
+          if (Test-Path "C:\opendj-b") { throw "the refused relocation still created C:\opendj-b" }
+          # ...and naming the real one is the workaround the install guide prescribes.
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" OPENDJ=C:\opendj-mine /quiet /qn /norestart /l*v upgrade-mine.log"
+          if ($p.ExitCode -ne 0) { Get-Content upgrade-mine.log -Tail 120; throw "the documented workaround must upgrade the named installation: $($p.ExitCode)" }
+          if (-not (Test-Path "C:\opendj-mine\lib\opendj_service.exe")) { throw "the upgrade did not land in C:\opendj-mine" }
+          if (Test-Path "C:\Program Files (x86)\OpenDJ\lib\opendj_service.exe") { throw "the upgrade also installed into the decoy" }
+          Write-Host "Legacy-default decoy: empty target refused, named installation upgraded"
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall-mine.log"
+          if ($p.ExitCode -ne 0) { Get-Content uninstall-mine.log -Tail 80; throw "msiexec /x (decoy cleanup) failed: $($p.ExitCode)" }
+          Remove-Item -Recurse -Force "C:\opendj-mine" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
+      - name: An upgrade must refuse while a server runs without a service
+        shell: pwsh
+        run: |
+          # The mode this package ships by default: setup registers no service, so the
+          # server started by bat\start-ds.bat is a plain JVM holding lib\*.jar. There is no
+          # service key for the ImagePath-gated pair to match, and Restart Manager is not
+          # allowed to shut anything down, so CheckServerNotRunning - the byte-range lock on
+          # locks\server.lock - is the only thing standing between a running server and
+          # RemoveExistingProducts renaming its jars into delete-on-reboot entries.
+          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+          Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\OpenDJ" -ErrorAction SilentlyContinue
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i opendj-5.1.2.msi /quiet /qn /norestart /l*v install-old-running.log"
+          if ($p.ExitCode -ne 0) { Get-Content install-old-running.log -Tail 80; throw "msiexec /i (5.1.2) failed: $($p.ExitCode)" }
+          $root = "C:\Program Files (x86)\OpenDJ"
+          $env:OPENDJ_JAVA_ARGS = "-server -Xmx512m"
+          & "$root\setup.bat" -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --addBaseEntry --cli --acceptLicense --no-prompt --doNotStart
+          if ($LASTEXITCODE -ne 0) { throw "setup.bat (5.1.2) failed: $LASTEXITCODE" }
+          & "$root\bat\start-ds.bat"
+          if ($LASTEXITCODE -ne 0) { throw "start-ds.bat failed: $LASTEXITCODE" }
+          for ($i=0; $i -lt 12; $i++) { try { $c = New-Object System.Net.Sockets.TcpClient('localhost', 1636); $c.Close(); break } catch { Start-Sleep -Seconds 5 } }
+          if (Get-Service "OpenDJ Server" -ErrorAction SilentlyContinue) { throw "this scenario is about a server with NO service registered" }
+          # The headline auto-detected upgrade, which would otherwise proceed straight into
+          # the running server's tree.
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v upgrade-running.log"
+          if ($p.ExitCode -eq 0) { Get-Content upgrade-running.log -Tail 120; throw "the upgrade must refuse while a server is running out of the tree" }
+          if (-not (Select-String -Path upgrade-running.log -Pattern "CheckServerNotRunning" -Quiet)) { Get-Content upgrade-running.log -Tail 60; throw "the refusal must come from CheckServerNotRunning" }
+          if (-not (Test-Path "$root\config\config.ldif")) { throw "the refused upgrade damaged the instance" }
+          & "$root\bat\ldapsearch.bat" --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
+          if ($LASTEXITCODE -ne 0) { throw "the refused upgrade disturbed the running server" }
+          Write-Host "Upgrade refused while a non-service server was running (exit $($p.ExitCode))"
+          # Stopping it makes the very same upgrade proceed - and the 60 s grace inside the
+          # check is what absorbs the gap between stop-ds returning and the JVM releasing
+          # the lock, so no wait is needed here to keep this half honest.
+          & "$root\bat\stop-ds.bat"
+          if ($LASTEXITCODE -ne 0) { throw "stop-ds.bat failed: $LASTEXITCODE" }
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v upgrade-stopped.log"
+          if ($p.ExitCode -ne 0) { Get-Content upgrade-stopped.log -Tail 120; throw "the upgrade must proceed once the server is stopped: $($p.ExitCode)" }
+          if (-not (Test-Path "$root\lib\opendj_service.exe")) { throw "the upgrade did not land in $root" }
+          if (-not (Test-Path "$root\config\config.ldif")) { throw "the upgrade lost the instance data" }
+          Write-Host "The same upgrade proceeded once the server was stopped"
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/x `"$msi`" /quiet /qn /norestart /l*v uninstall-running.log"
+          if ($p.ExitCode -ne 0) { Get-Content uninstall-running.log -Tail 80; throw "msiexec /x (running-server cleanup) failed: $($p.ExitCode)" }
+          Remove-Item -Recurse -Force "C:\Program Files (x86)\OpenDJ" -ErrorAction SilentlyContinue
+          Remove-Item -Path HKLM:\SOFTWARE\OpenDJ -Recurse -Force -ErrorAction SilentlyContinue

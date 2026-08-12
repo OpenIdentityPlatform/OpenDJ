@@ -73,6 +73,27 @@
         <FileSearch Id="LegacyX86Setup" Name="setup.bat"/>
       </DirectorySearch>
     </Property>
+    <!-- The same question asked about the directory the ADMINISTRATOR named: does it hold a
+         server? AppSearch runs before every SetProperty below, so [OPENDJ] here can only be
+         what the command line put there - the same window OpendjDirGiven is read in, and the
+         reason this says "named" rather than "resolved". It is what separates a relocation
+         (the named directory is new or empty, and the instance data would be stranded) from
+         an upgrade of a server the searches cannot see (the named directory holds it), which
+         is the only distinction the second guard below is missing.
+         When OPENDJ is empty the path does not expand to a full path and, with no Parent and
+         the default depth of zero, the installer looks for setup.bat in the root of each
+         fixed drive instead. That costs a handful of stat calls and cannot change a decision:
+         every use of this property is paired with OpendjDirGiven, which is unset in exactly
+         that case.
+         Private (mixed case) and not Secure, for the reason OpendjDirGiven is: a public
+         property survives the command line, so OpendjGivenInstall=1 next to a relocating
+         OPENDJ would switch the guard off - AppSearch only overwrites what it finds. Only
+         the client-side guard reads it, and private properties are visible there. -->
+    <Property Id="OpendjGivenInstall">
+      <DirectorySearch Id="GivenInstallCheck" Path="[OPENDJ]">
+        <FileSearch Id="GivenSetup" Name="setup.bat"/>
+      </DirectorySearch>
+    </Property>
     <!-- Evidence that the "OpenDJ Server" service - the one windows-service.bat registers
          for the FIRST instance on a host - belongs to the tree this install is about to
          replace: its ImagePath records where it points
@@ -109,8 +130,16 @@
          install would set the property every time - CostFinalize and InstallDirDlg have
          populated OPENDJ long before the execute sequence starts there - and the guard
          would never fire in the wizard. It still does: a GUI session that names nothing
-         gets the refusal, with the browse dialog as its way out, which is the whole
-         reason these guards are not scheduled in the UI sequence.
+         gets the refusal, which is the whole reason these guards are not scheduled in the
+         UI sequence - browsing to the old server in InstallDirDlg makes the comparison
+         fail and the install proceed.
+         What the browse dialog canNOT do is confirm the default directory itself: this
+         property is read before AppSearch, InstallDirDlg runs far later and never sets it,
+         so a wizard that browses to [ProgramFiles64Folder]OpenDJ arrives at the guard with
+         exactly the values a "Next, Next, Install" session has. An old server that really
+         lives there therefore has one route only, the command line, and the refusal message
+         says so rather than promising a dialog that cannot help. Publishing the property
+         from InstallDirDlg would restore the promise and the data-loss path with it.
          Private (mixed case) on purpose: the installer neither accepts it from the
          command line nor passes it to the server, so it cannot be used to switch the
          guard off, and the guards are immediate actions running client-side, where the
@@ -169,16 +198,19 @@
          on the command line proceeds through OpendjDirGiven, which is the way out for an
          old server that really does live there - 5.1.x installed into it recorded
          nothing, so the package cannot tell that tree from the decoy on its own and has
-         to be told.
+         to be told. Only the command line: see OpendjDirGiven above for why the wizard
+         cannot confirm the default directory, and the message below for what it says
+         instead.
 
-         Residual: the same decoy in the LEGACY default directory is not detectable.
-         SetOpendjFromLegacyDir adopts it, so the resolved directory is neither the x64
-         default nor different from the legacy default, and neither guard fires. What
-         would separate the two - "this tree is the product being upgraded" - is precisely
-         what a registry-less 5.1.x never recorded, and refusing every registry-less
-         legacy-default upgrade would refuse the documented main upgrade path with it. The
-         install guide carries the workaround instead: pass OPENDJ explicitly when another
-         OpenDJ tree sits in the legacy default directory.
+         Residual: the same decoy in the LEGACY default directory is not detectable when
+         nothing is named. SetOpendjFromLegacyDir adopts it, so the resolved directory is
+         neither the x64 default nor different from the legacy default, and neither guard
+         fires. What would separate the two - "this tree is the product being upgraded" -
+         is precisely what a registry-less 5.1.x never recorded, and refusing every
+         registry-less legacy-default upgrade would refuse the documented main upgrade path
+         with it. The install guide carries the workaround instead: pass OPENDJ explicitly
+         when another OpenDJ tree sits in the legacy default directory - which guard (2)
+         below has to let through, and does.
 
          (2) The upgrade would relocate. Passing OPENDJ=<somewhere else> over a detected
          installation is not a move: RemoveExistingProducts empties the old tree while the
@@ -194,11 +226,29 @@
          than read from a search. A hand-edited registry value without one is the accepted
          residual: it refuses, and the message says what to do. When OPENDJ is not given at
          all, the SetProperty actions above have already set it to the known location, so
-         the comparison passes and nothing fires. -->
+         the comparison passes and nothing fires.
+
+         The legacy branch of (2) carries one exception, and it is the workaround the
+         residual of (1) prescribes: a named directory that HOLDS A SERVER is not a
+         relocation. Without it the two guards contradicted each other - the only way past
+         a decoy in the legacy default is to name the real directory, and naming it made
+         this branch refuse, leaving that installation with no upgrade path at all. The
+         exception is deliberately narrow: it needs both OpendjDirGiven (the directory came
+         from the command line, not from a search or a dialog) and OpendjGivenInstall
+         (a setup.bat is there). Naming an empty or new directory is still refused, which
+         is what a relocation looks like, so the case CI exercises - 5.1.x in the legacy
+         default, OPENDJ=C:\opendj-b - refuses exactly as before. It does NOT extend to the
+         registry branch: a location this package recorded is authoritative, and an
+         administrator who wants to move an installation it knows about can uninstall it
+         first. Residual: naming a directory that holds SOME OpenDJ tree while the product
+         being upgraded lives elsewhere now proceeds and strands that installation's data.
+         Directory evidence cannot tell the two apart at all, and between refusing the
+         documented workaround and trusting an explicit instruction, the explicit
+         instruction wins. -->
     <CustomAction Id="RequireDirOnCustomUpgrade"
-                  Error="An existing OpenDJ installation was detected, but its location could not be determined. Run the installer again and select the existing installation directory, or pass it explicitly: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot;"/>
+                  Error="An existing OpenDJ installation was detected, but its location could not be determined: 32-bit packages recorded none. Select the existing installation directory in the wizard, or pass it explicitly: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot;. If that installation is the default directory itself, the command line is the only way - the wizard cannot tell a confirmed default from an unchanged one."/>
     <CustomAction Id="RefuseRelocatingUpgrade"
-                  Error="OpenDJ is already installed in a different directory, and this installer cannot move an existing installation: its configuration, database and logs would be left behind. Install into the existing directory, or uninstall the existing OpenDJ first."/>
+                  Error="OpenDJ is already installed in a different directory, and this installer cannot move an existing installation: its configuration, database and logs would be left behind. Install into the existing directory, or uninstall the existing OpenDJ first. If the directory that was detected holds an unrelated OpenDJ tree - a Zip installation, a copy, a decommissioned instance - and the server you are upgrading is elsewhere, pass that server's directory on the command line: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot;."/>
 
     <!-- RemoveExistingProducts removes the old product's files during the sequence pass,
          long before the new product's InstallFiles executes in the script: a server still
@@ -242,35 +292,77 @@
          ImagePath evidence alone: any upgrade over a tree
          whose service is running has the locking problem, whether the installed product
          came from a WiX3-era package or from this one. -->
-    <!-- Restart Manager would undo everything the pair below establishes. It runs at
-         InstallValidate - before either action - maps the JVM holding lib\*.jar to the
-         "OpenDJ Server" service, stops the service itself, and RESTARTS it at the end of
-         the installation: the freshly upgraded server comes up against instance data
-         upgrade.bat has not migrated yet, when the whole point of leaving the service
-         Stopped is that the install guide requires upgrade.bat before the first start.
-         It also disarms the starting-service refusal: RM stops a StartPending service
-         before CheckServiceStopped gets to see it, waving through the very upgrade the
-         check exists to refuse. msiexec /norestart is no defence - it suppresses
-         reboots, not RM restarts. The service holder is handled deterministically by the
-         actions below, so RM contributes nothing here; any OTHER process holding payload
-         files falls back to the WiX3-era in-use behaviour, which is where this package
-         started. -->
-    <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
+    <!-- Restart Manager must not SHUT DOWN the holders, but it is still the only thing that
+         can find them. It runs at InstallValidate - before either action below - maps the
+         JVM holding lib\*.jar to the "OpenDJ Server" service, stops the service itself, and
+         RESTARTS it at the end of the installation: the freshly upgraded server comes up
+         against instance data upgrade.bat has not migrated yet, when the whole point of
+         leaving the service Stopped is that the install guide requires upgrade.bat before
+         the first start. It also disarms the starting-service refusal: RM stops a
+         StartPending service before CheckServiceStopped gets to see it, waving through the
+         very upgrade the check exists to refuse. msiexec /norestart is no defence - it
+         suppresses reboots, not RM restarts.
+         Hence DisableShutdown rather than Disable. Both send the package back to the
+         FilesInUse dialog, but Disable stops the installer using RM AT ALL, including for
+         detection, leaving only the legacy in-use scan - which finds applications with a
+         top-level window and therefore never finds a headless JVM. That is the whole of
+         this package's exposure for a server started by start-ds.bat rather than as a
+         service: no service key, so the ImagePath-gated pair below does not fire, and with
+         RM off nothing else would notice either. DisableShutdown keeps "The installer still
+         uses the Restart Manager to detect files in use by applications" while leaving the
+         shutting down - and the restarting - to us.
+         Detection alone does not refuse a /quiet upgrade, though: with no dialog to show,
+         in-use files just go to delete-on-reboot. CheckServerNotRunning below is what turns
+         that into an error, for both modes. -->
+    <Property Id="MSIRESTARTMANAGERCONTROL" Value="DisableShutdown"/>
     <CustomAction Id="StopServiceBeforeUpgrade" Directory="TARGETDIR"
                   ExeCommand="&quot;[System64Folder]net.exe&quot; stop &quot;OpenDJ Server&quot;"
                   Execute="immediate" Return="ignore"/>
     <CustomAction Id="CheckServiceStopped" Directory="TARGETDIR"
                   ExeCommand="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -NonInteractive -Command &quot;$deadline = (Get-Date).AddSeconds(90); do { $svc = Get-Service 'OpenDJ Server' -ErrorAction SilentlyContinue; if (-not $svc -or $svc.Status -eq 'Stopped') { exit 0 }; if ($svc.Status -ne 'StopPending') { exit 1 }; Start-Sleep -Seconds 2 } while ((Get-Date) -lt $deadline); exit 1&quot;"
                   Execute="immediate" Return="check"/>
+    <!-- The same refusal for a server that is simply RUNNING, service or not. A server
+         started by start-ds.bat holds lib\*.jar exactly as one started by the SCM does, and
+         it is the mode this package ships by default: it registers no service, so an
+         instance only ever becomes one when the administrator runs windows-service.bat.
+         The evidence is the exclusive byte-range lock the server holds on
+         locks\server.lock for as long as its JVM is up - the same probe
+         .github/scripts/wait-server-stopped.ps1 uses in CI, and the reason it exists:
+         #768 proved a zero exit code from stop-ds is not evidence that the JVM let go.
+         Inline rather than dot-sourced from that script, because this runs before
+         InstallFiles and the script is not part of the payload. The explicit Lock(0, 1) is
+         required: a byte-range lock does not prevent opening the file, so a bare open would
+         always succeed. No file, or no lock, and the upgrade proceeds.
+         Sixty seconds of grace, the same budget wait-server-stopped.ps1 allows: the SCM
+         reporting Stopped, or stop-ds returning, is not the moment the JVM releases the
+         lock, and CheckServiceStopped hands over at exactly that moment. There is no
+         pending state to read here, so a server that is genuinely up pays the whole minute
+         before the refusal - which is the right way round, since the alternative is
+         refusing an upgrade whose server did stop.
+         Anything but a plain IOException means the question could not be asked rather than
+         answered - a read-only handle under Program Files, the file gone between the test
+         and the open, both of which are subclasses - and lets the upgrade proceed. A held
+         byte-range lock and a sharing violation are the IOException itself. That is the same fail-open the
+         swallowed 'net stop' has, and for the same reason: an immediate action impersonates
+         the invoking user, who under the filtered token of a UAC double-click may not be
+         able to open a file the elevated install would replace happily. -->
+    <CustomAction Id="CheckServerNotRunning" Directory="TARGETDIR"
+                  ExeCommand="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -NonInteractive -Command &quot;$lock = '[OPENDJ]locks\server.lock'; $deadline = (Get-Date).AddSeconds(60); do { if (-not (Test-Path $lock)) { exit 0 }; try { $fs = New-Object System.IO.FileStream($lock, 'Open', 'ReadWrite', 'ReadWrite'); try { $fs.Lock(0, 1); $fs.Unlock(0, 1); exit 0 } finally { $fs.Close() } } catch { if ($_.Exception.GetType().FullName -ne 'System.IO.IOException') { exit 0 }; Start-Sleep -Seconds 2 } } while ((Get-Date) -lt $deadline); exit 1&quot;"
+                  Execute="immediate" Return="check"/>
     <InstallExecuteSequence>
       <Custom Action="RequireDirOnCustomUpgrade" After="CostFinalize"
               Condition="WIX_UPGRADE_DETECTED AND (OPENDJ ~= OPENDJ_DEFAULT) AND NOT OPENDJ_REG AND NOT OpendjDirGiven"/>
       <Custom Action="RefuseRelocatingUpgrade" After="RequireDirOnCustomUpgrade"
-              Condition="WIX_UPGRADE_DETECTED AND ((OPENDJ_REG AND (OPENDJ_REG ~&lt;&gt; OPENDJ)) OR (NOT OPENDJ_REG AND OPENDJ_LEGACY_INSTALL AND (OPENDJ_LEGACY_DEFAULT ~&lt;&gt; OPENDJ)))"/>
+              Condition="WIX_UPGRADE_DETECTED AND ((OPENDJ_REG AND (OPENDJ_REG ~&lt;&gt; OPENDJ)) OR (NOT OPENDJ_REG AND OPENDJ_LEGACY_INSTALL AND (OPENDJ_LEGACY_DEFAULT ~&lt;&gt; OPENDJ) AND NOT (OpendjDirGiven AND OpendjGivenInstall)))"/>
       <Custom Action="StopServiceBeforeUpgrade" Before="CheckServiceStopped"
               Condition="WIX_UPGRADE_DETECTED AND (OPENDJ_SVC_IMAGEPATH ~&gt;&lt; OPENDJ)"/>
-      <Custom Action="CheckServiceStopped" Before="RemoveExistingProducts"
+      <Custom Action="CheckServiceStopped" Before="CheckServerNotRunning"
               Condition="WIX_UPGRADE_DETECTED AND (OPENDJ_SVC_IMAGEPATH ~&gt;&lt; OPENDJ)"/>
+      <!-- No ImagePath gate: the lock says whether A server is running out of the tree
+           about to be replaced, which is the question, and the service check above has
+           already dealt with the SCM's half of it. -->
+      <Custom Action="CheckServerNotRunning" Before="RemoveExistingProducts"
+              Condition="WIX_UPGRADE_DETECTED"/>
     </InstallExecuteSequence>
 
     <!-- UI customization -->
