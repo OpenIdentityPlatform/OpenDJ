@@ -58,6 +58,7 @@ import org.opends.server.util.BackupManager;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
+import com.datastax.oss.driver.api.core.cql.BoundStatement;
 import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
@@ -292,30 +293,58 @@ public class CASStorage implements org.opends.server.backends.pluggable.spi.Stor
 		}
 	}
 	
-	private final class CursorImpl implements Cursor<ByteString, ByteString> {
+	// Iterates the (baseDN,indexId) partition in key order via the driver's paged ResultSet.
+	// A ResultSet can only be consumed once: rc.iterator() always returns the same iterator,
+	// so "restarting" it never rewinds. Every repositioning that cannot be served by moving
+	// forward within the already-fetched rows therefore runs a new server-side slice query
+	// on the "key" clustering column instead.
+	final class CursorImpl implements Cursor<ByteString, ByteString> {
 		final TreeName treeName;
 		final TransactionImpl tx;
+
+		long queryCount;
 
 		ResultSet rc;
 		Iterator<Row> iterator;
 		Row current=null;
-		
+		boolean closed=false;
+
 		public CursorImpl(TransactionImpl tx,TreeName treeName) {
 			this.treeName=treeName;
 			this.tx=tx;
-			rc=full();
-			iterator=rc.iterator();
+			//lazy: the first navigation decides which query to run, a seek must not pay for a partition scan
 		}
 
-		ResultSet full(){
-			return execute(
-				prepared.get("SELECT key,value FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId ORDER BY key").bind()
-					.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId())
-			);
+		ResultSet select(String condition,ByteSequence key){
+			if (closed) {
+				throw new IllegalStateException("cursor is closed");
+			}
+			queryCount++;
+			BoundStatement statement=prepared.get("SELECT key,value FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId"+condition).bind()
+				.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId());
+			if (key!=null) {
+				statement=statement.setByteBuffer("key", ByteBuffer.wrap(key.toByteArray()));
+			}
+			return execute(statement);
 		}
-		
+
+		boolean seek(ByteSequence key){
+			rc=select(" and key>=:key ORDER BY key",key);
+			iterator=rc.iterator();
+			if (iterator.hasNext()) {
+				current=iterator.next();
+				return true;
+			}
+			current=null;
+			return false;
+		}
+
 		@Override
 		public boolean next() {
+			if (iterator==null) {
+				rc=select(" ORDER BY key",null);
+				iterator=rc.iterator();
+			}
 			try {
 				current=iterator.next();
 				return true;
@@ -356,7 +385,8 @@ public class CASStorage implements org.opends.server.backends.pluggable.spi.Stor
 
 		@Override
 		public void close() {
-			iterator=null;
+			closed=true;
+			iterator=Collections.emptyIterator();
 			current=null;
 			rc=null;
 		}
@@ -364,62 +394,69 @@ public class CASStorage implements org.opends.server.backends.pluggable.spi.Stor
 
 		@Override
 		public boolean positionToKeyOrNext(ByteSequence key) {
-			if (!isDefined() || key.compareTo(getKey())<0) { //restart iterator
-				iterator=rc.iterator();
-			}
-			while (iterator.hasNext()) {
-				current=iterator.next();
-				if (key.compareTo(getKey())<=0) {
+			if (isDefined()) {
+				final int cmp=key.compareTo(getKey());
+				if (cmp==0) {
 					return true;
 				}
+				if (cmp>0) {
+					//rows already fetched by the driver are the sorted rows following the current one
+					//(blob clustering collates in unsigned byte order): serve forward repositioning
+					//from them without a new query
+					while (rc.getAvailableWithoutFetching()>0) {
+						current=iterator.next();
+						if (key.compareTo(getKey())<=0) {
+							return true;
+						}
+					}
+				}
 			}
-			current=null;
-			return false;
+			//undefined cursor, backward jump or a key beyond the fetched rows
+			return seek(key);
 		}
-		
+
 		@Override
 		public boolean positionToKey(ByteSequence key) {
-			if (!isDefined() || key.compareTo(getKey())<0) {  //restart iterator
-				iterator=rc.iterator();
-			}
 			if (isDefined() && key.compareTo(getKey())==0) {
 				return true;
 			}
-			while (iterator.hasNext()) {
-				current=iterator.next();
-				if (key.compareTo(getKey())==0) {
-					return true;
-				}
+			if (seek(key) && key.compareTo(getKey())==0) {
+				return true;
 			}
-			current=null;
+			current=null; //like jeb/pdb: a miss leaves the cursor undefined
 			return false;
 		}
 
-		
+
 		@Override
 		public boolean positionToLastKey() {
-			while (iterator.hasNext()) {
-				current=iterator.next();
-			}
-			if (current!=null) {
+			rc=select(" ORDER BY key DESC LIMIT 1",null);
+			iterator=rc.iterator();
+			if (iterator.hasNext()) {
+				current=iterator.next(); //nothing follows the last key: the iterator is exhausted
 				return true;
 			}
+			current=null;
 			return false;
 		}
 
 		@Override
 		public boolean positionToIndex(int index) {
-			iterator=rc.iterator();  //restart iterator
-			int ct=0;
-			while(iterator.hasNext()){
-				current=iterator.next();
-				if (ct==index) {
-					return true;
-				}
-				ct++;
+			if (index<0) {
+				current=null;
+				return false;
 			}
-			current=null;
-			return false;
+			//CQL has no offset clause: restart from the first row and skip
+			rc=select(" ORDER BY key",null);
+			iterator=rc.iterator();
+			for (int ct=0;ct<=index;ct++) {
+				if (!iterator.hasNext()) {
+					current=null;
+					return false;
+				}
+				current=iterator.next();
+			}
+			return true;
 		}
 	}
 	
