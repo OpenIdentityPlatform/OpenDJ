@@ -329,7 +329,8 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	@Test
 	public void testTreeNameStoredAsTableComment() throws Exception {
 		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
-		final TreeName tree = new TreeName("o=comment'test", "dn2id");
+		// a quote and a backslash in the tree name exercise the literal escaping (backslash is an escape character in mysql)
+		final TreeName tree = new TreeName("o=comment'te\\st", "dn2id");
 		try {
 			storage.open(AccessMode.READ_WRITE);
 			storage.write(new WriteOperation() {
@@ -419,9 +420,15 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		} else if (url.startsWith("jdbc:oracle")) {
 			// num_rows stays null until dbms_stats gathers statistics
 			sql = "select num_rows from user_tables where table_name='" + tableName.toUpperCase() + "'";
+		} else if (url.startsWith("jdbc:mysql")) {
+			// n_rows in the persistent stats table is refreshed by ANALYZE TABLE
+			sql = "select n_rows from mysql.innodb_table_stats where database_name=database() and table_name='" + tableName + "'";
+		} else if (url.startsWith("jdbc:sqlserver")) {
+			// last_updated stays null until the first UPDATE STATISTICS
+			sql = "select count(*) from sys.stats s cross apply sys.dm_db_stats_properties(s.object_id, s.stats_id) p"
+				+ " where s.object_id=object_id('" + tableName + "') and p.last_updated is not null";
 		} else {
-			// mysql/mssql maintain their estimates on their own: nothing distinguishable to assert
-			return;
+			throw new SkipException("no statistics query for " + url);
 		}
 		try (final Connection con = DriverManager.getConnection(url);
 			 final Statement st = con.createStatement();

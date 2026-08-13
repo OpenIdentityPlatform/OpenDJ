@@ -159,35 +159,100 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		return name;
 	}
 
+	private static final String[] NO_ARGS=new String[0];
+
+	static String driverNameOf(Connection con) {
+		return ((CachedConnection) con).parent.getClass().getName();
+	}
+
+	// The comment DDL takes no bind parameters, so the value is spliced into a single-quoted SQL
+	// literal: verify every quote in the escaped value is paired and thus cannot terminate the literal.
+	private static void requireQuotesPaired(String escaped) {
+		for (int i=0;i<escaped.length();i++) {
+			if (escaped.charAt(i)=='\'') {
+				if (i+1>=escaped.length() || escaped.charAt(i+1)!='\'') {
+					throw new IllegalArgumentException("unpaired quote in SQL literal: "+escaped);
+				}
+				i++;
+			}
+		}
+	}
+
 	// Table names are opaque SHA-224 hashes, so on the database side there is no way to tell
 	// which tree a table holds. Stamp each table with its tree name (visible in "\dt+" and the
 	// information schema) so database-level troubleshooting does not require recomputing hashes.
 	// The comment is a diagnostic aid: failing to store it must not fail the backend.
 	void commentTable(Connection con, TreeName treeName) {
 		final String tableName=getTableName(treeName);
-		final String comment=treeName.toString().replace("'","''");
-		final String driverName=((CachedConnection) con).parent.getClass().getName();
-		final String sql;
-		if (driverName.contains("mysql")) {
-			sql="alter table "+tableName+" comment '"+comment+"'";
-		}else if (driverName.contains("microsoft")) { // no COMMENT ON in t-sql: MS_Description extended property
-			sql="declare @s sysname = schema_name()"
-				+" if exists (select 1 from sys.extended_properties where major_id=object_id('"+tableName+"') and minor_id=0 and name='MS_Description')"
-				+" exec sys.sp_updateextendedproperty N'MS_Description', N'"+comment+"', N'SCHEMA', @s, N'TABLE', N'"+tableName+"'"
-				+" else"
-				+" exec sys.sp_addextendedproperty N'MS_Description', N'"+comment+"', N'SCHEMA', @s, N'TABLE', N'"+tableName+"'";
-		}else { // postgres, oracle and h2 all accept COMMENT ON TABLE
-			sql="comment on table "+tableName+" is '"+comment+"'";
-		}
-		try (final PreparedStatement statement=con.prepareStatement(sql)) {
-			executeAny(statement);
-			con.commit();
-		}catch (SQLException e) {
+		try {
+			final String treeComment=treeName.toString();
+			// comment statements are DDL (metadata lock on mysql, ddl lock on oracle) and openTree()
+			// runs on every backend open: only stamp when the stored comment is absent or stale
+			if (treeComment.equals(readStoredComment(con, tableName))) {
+				return;
+			}
+			final String sql;
+			final String[] args;
+			if (driverNameOf(con).contains("mysql")) { // ALTER TABLE takes no binds; backslash is an escape character in mysql literals
+				final String comment=treeComment.replace("\\","\\\\").replace("'","''");
+				requireQuotesPaired(comment);
+				sql="alter table "+tableName+" comment '"+comment+"'";
+				args=NO_ARGS;
+			}else if (driverNameOf(con).contains("microsoft")) { // no COMMENT ON in t-sql: MS_Description extended property (procedure arguments take binds)
+				sql="declare @s sysname = schema_name()"
+					+" if exists (select 1 from sys.extended_properties where class=1 and major_id=object_id(?) and minor_id=0 and name='MS_Description')"
+					+" exec sys.sp_updateextendedproperty N'MS_Description', ?, N'SCHEMA', @s, N'TABLE', ?"
+					+" else"
+					+" exec sys.sp_addextendedproperty N'MS_Description', ?, N'SCHEMA', @s, N'TABLE', ?";
+				args=new String[]{tableName, treeComment, tableName, treeComment, tableName};
+			}else { // postgres and oracle accept COMMENT ON TABLE (no binds in ddl); untested default for other engines
+				final String comment=treeComment.replace("'","''");
+				requireQuotesPaired(comment);
+				sql="comment on table "+tableName+" is '"+comment+"'";
+				args=NO_ARGS;
+			}
+			try (final PreparedStatement statement=con.prepareStatement(sql)) {
+				for (int i=0;i<args.length;i++) {
+					statement.setString(i+1,args[i]);
+				}
+				executeAny(statement);
+				con.commit();
+			}
+		}catch (SQLException|RuntimeException e) {
 			try {
 				con.rollback();
 			} catch (SQLException e2) {}
-			logger.trace(LocalizableMessage.raw("jdbc: unable to comment table %s with tree name %s: %s",
+			logger.debug(LocalizableMessage.raw("jdbc: unable to comment table %s with tree name %s: %s",
 				tableName, treeName, stackTraceToSingleLineString(e)));
+		}
+	}
+
+	// Returns the comment currently stored on the table, or null when there is none
+	// (or the dialect has no known readback: the caller then stamps unconditionally).
+	private String readStoredComment(Connection con, String tableName) throws SQLException {
+		final String driverName=driverNameOf(con);
+		final String sql;
+		final String arg;
+		if (driverName.contains("postgres")) {
+			sql="select obj_description(to_regclass(?), 'pg_class')";
+			arg=tableName;
+		}else if (driverName.contains("mysql")) {
+			sql="select table_comment from information_schema.tables where table_schema=database() and table_name=?";
+			arg=tableName;
+		}else if (driverName.contains("oracle")) {
+			sql="select comments from user_tab_comments where table_name=?";
+			arg=tableName.toUpperCase();
+		}else if (driverName.contains("microsoft")) {
+			sql="select cast(value as nvarchar(4000)) from sys.extended_properties where class=1 and major_id=object_id(?) and minor_id=0 and name='MS_Description'";
+			arg=tableName;
+		}else {
+			return null;
+		}
+		try (final PreparedStatement statement=con.prepareStatement(sql)) {
+			statement.setString(1,arg);
+			try (final ResultSet rs=executeResultSet(statement)) {
+				return rs.next() ? rs.getString(1) : null;
+			}
 		}
 	}
 
@@ -197,24 +262,47 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// Statistics upkeep is best-effort: a failure must not fail the import that produced the data,
 	// so failures are only logged - the return value makes them observable to tests.
 	boolean updateTableStatistics(Connection con) {
-		final String driverName=((CachedConnection) con).parent.getClass().getName();
+		final String driverName=driverNameOf(con);
+		final boolean postgres=driverName.contains("postgres");
+		final boolean mysql=driverName.contains("mysql");
+		final boolean oracle=driverName.contains("oracle");
+		final boolean microsoft=driverName.contains("microsoft");
+		if (!postgres && !mysql && !oracle && !microsoft) { // no portable statistics refresh for other engines
+			return true;
+		}
 		boolean allRefreshed=true;
 		for (final TreeName treeName : listTrees()) {
 			final String tableName=getTableName(treeName);
 			final String sql;
-			if (driverName.contains("postgres")) {
+			final String[] args;
+			if (postgres) {
 				sql="analyze "+tableName;
-			}else if (driverName.contains("mysql")) {
+				args=NO_ARGS;
+			}else if (mysql) {
 				sql="analyze table "+tableName;
-			}else if (driverName.contains("oracle")) {
-				sql="begin dbms_stats.gather_table_stats(user, '"+tableName.toUpperCase()+"'); end;";
-			}else if (driverName.contains("microsoft")) {
+				args=NO_ARGS;
+			}else if (oracle) {
+				sql="begin dbms_stats.gather_table_stats(user, ?); end;";
+				args=new String[]{tableName.toUpperCase()};
+			}else {
 				sql="update statistics "+tableName;
-			}else { // no portable statistics refresh for other engines
-				return allRefreshed;
+				args=NO_ARGS;
 			}
 			try (final PreparedStatement statement=con.prepareStatement(sql)) {
-				executeAny(statement);
+				for (int i=0;i<args.length;i++) {
+					statement.setString(i+1,args[i]);
+				}
+				if (mysql) { // mysql reports analyze problems as a result row, not an SQLException
+					try (final ResultSet rs=executeResultSet(statement)) {
+						while (rs.next()) {
+							if ("error".equalsIgnoreCase(rs.getString("Msg_type"))) {
+								throw new SQLException(rs.getString("Msg_text"));
+							}
+						}
+					}
+				}else {
+					executeAny(statement);
+				}
 				con.commit();
 			}catch (SQLException e) {
 				try {
@@ -475,6 +563,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					throw new StorageRuntimeException(e);
 				}
 			}
+			// forget the mapping so listTrees() consumers (updateTableStatistics) skip the dropped table
+			tree2table.invalidate(treeName);
 		}
 
 		@Override
