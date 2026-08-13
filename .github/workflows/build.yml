@@ -784,6 +784,12 @@ jobs:
           foreach ($property in @('OPENDJ', 'OPENDJ_GIVEN')) {
             if ($wxs -notmatch ('<Property Id="' + $property + '"[^>]*Secure="yes"')) { throw "$property must be Secure: the guards read it in the service, where a non-administrator's value is dropped otherwise" }
           }
+          # Sequence="first" is what keeps OPENDJ_GIVEN meaning "the directory was named":
+          # without it the action re-runs in the execute sequence of a full-UI install, where
+          # OPENDJ has long been resolved, and the guards' prefix test would be comparing a
+          # value with itself. Every msiexec call in this workflow is /qn, which runs no UI
+          # sequence, so nothing else here would notice it going.
+          if ($wxs -notmatch '<SetProperty Id="OPENDJ_GIVEN"[^>]*Sequence="first"') { throw 'OPENDJ_GIVEN must be captured with Sequence="first", or it stops meaning "named" in a full-UI install' }
           # CheckServerNotRunning, run exactly as msiexec runs it: the Formatted field
           # resolved - [\[] and [\]] are its escapes for literal brackets, [property]
           # references become their values - and handed to cmd.exe. Windows PowerShell 5.1 is
@@ -1080,6 +1086,17 @@ jobs:
           if (-not (Select-String -Path upgrade-custom.log -Pattern "location could not be determined" -Quiet)) { Get-Content upgrade-custom.log -Tail 60; throw "expected the explicit-OPENDJ guidance message in the log" }
           if (-not (Test-Path "C:\opendj-custom\setup.bat")) { throw "the refused upgrade damaged the original install" }
           Write-Host "Upgrade refused with guidance, original install untouched (exit $($p.ExitCode))"
+          # A named directory that is not the installation strands exactly as much data as
+          # naming none. With no registry value and no server in the legacy default, a typo
+          # used to satisfy this guard - the resolved directory is not the default - and the
+          # relocation guard had nothing to compare it against, so RemoveExistingProducts
+          # emptied C:\opendj-custom while the new tree landed one letter away.
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" OPENDJ=C:\opendj-custmo /quiet /qn /norestart /l*v upgrade-typo.log"
+          if ($p.ExitCode -ne 1603) { Get-Content upgrade-typo.log -Tail 120; throw "a named directory holding no server must be refused (expected 1603, got $($p.ExitCode))" }
+          if (-not (Select-String -Path upgrade-typo.log -Pattern "location could not be determined" -Quiet)) { Get-Content upgrade-typo.log -Tail 60; throw "expected the explicit-OPENDJ guidance message in the log" }
+          if (Test-Path "C:\opendj-custmo") { throw "the refused upgrade still created the mistyped directory" }
+          if (-not (Test-Path "C:\opendj-custom\setup.bat")) { throw "the refused upgrade damaged the original install" }
+          Write-Host "A mistyped target was refused, original install untouched (exit $($p.ExitCode))"
           # ...and naming the directory makes the very same upgrade proceed. This is what
           # a GUI administrator does by browsing to it in InstallDirDlg, which the refusal
           # must leave reachable: it fires on the resolved directory, not on the absence
@@ -1243,9 +1260,11 @@ jobs:
           # guards run - so it must not be usable as a switch. It holds the named path and
           # the guard requires the resolved directory to START WITH it: a flag-shaped value
           # disarms nothing, and a value that does pass has spelled out the directory, which
-          # is naming it.
+          # is naming it. It is not the only conjunct either - the target still has to hold a
+          # server - so even a matching prefix cannot stand in for that evidence.
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" OPENDJ_GIVEN=1 /quiet /qn /norestart /l*v upgrade-x64-switch.log"
-          if ($p.ExitCode -eq 0) { Get-Content upgrade-x64-switch.log -Tail 120; throw "OPENDJ_GIVEN=1 must not switch the guard off" }
+          if ($p.ExitCode -ne 1603) { Get-Content upgrade-x64-switch.log -Tail 120; throw "OPENDJ_GIVEN=1 must not switch the guard off (expected 1603, got $($p.ExitCode))" }
+          if (-not (Select-String -Path upgrade-x64-switch.log -Pattern "location could not be determined" -Quiet)) { Get-Content upgrade-x64-switch.log -Tail 60; throw "the refusal must still come from the same guard" }
           if ((Get-FileHash "C:\Program Files\OpenDJ\lib\opendj_service.exe").Hash -ne $oldWrapper) { throw "the upgrade that OPENDJ_GIVEN=1 let through overwrote the old server" }
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" OPENDJ=`"C:\Program Files\OpenDJ`" /quiet /qn /norestart /l*v upgrade-x64-named.log"
           if ($p.ExitCode -ne 0) { Get-Content upgrade-x64-named.log -Tail 120; throw "the named upgrade into the default directory must succeed: $($p.ExitCode)" }

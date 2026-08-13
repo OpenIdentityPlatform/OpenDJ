@@ -83,15 +83,15 @@
          full-UI session runs AppSearch twice: once in the client with the same command-line
          value, and again in the execute sequence, by which point OPENDJ has arrived from the
          client fully resolved. So the property means "the NAMED directory holds a server"
-         silently and "the TARGET directory holds a server" in the wizard. Both readings suit
-         the guard, which pairs it with OPENDJ_GIVEN - and OPENDJ_GIVEN passes only when the
-         resolved OPENDJ starts with the named path, so the two agree on which directory is
-         meant whenever the exception applies at all.
+         silently and "the TARGET directory holds a server" in the wizard, and both readings
+         are the question the guards ask: silently there is nothing but the command line to
+         aim an upgrade at a directory no search can see, and in the wizard the browse dialog
+         is that same instruction.
          When OPENDJ is empty the path does not expand to a full path and, with no Parent and
          the default depth of zero, the installer looks for setup.bat in the root of each
          fixed drive instead. That costs a handful of stat calls and cannot change a decision:
-         every use of this property is paired with OPENDJ_GIVEN, which is unset in exactly
-         that case.
+         the containment test below fails for a hit in a drive root, which is not inside the
+         directory being asked about.
          Public, because a search property has to be (WIX0012: AppSearch cannot fill a
          private one), so it CAN be handed in on the command line, and AppSearch only
          overwrites what it finds. The guard below therefore does not test it for truth: it
@@ -155,9 +155,10 @@
          guards in EVERY full-UI session, including one started with OPENDJ= on the command
          line, which is the single route this package's refusal messages and the install
          guide prescribe. The wizard therefore refused the documented workaround, and the
-         exception in guard (2) below could never apply. No CI scenario could see it: all 42
-         msiexec calls in build.yml are /qn, and the UI sequence is not processed below full
-         UI level.
+         exception in guard (2) below could never apply. No CI scenario could see it: every
+         msiexec call in build.yml is /qn, and the UI sequence is not processed below full
+         UI level - which is also why build.yml pins Sequence="first" by reading it out of
+         this file.
          Public means the command line can hand it in, so the value carries the weight rather
          than the presence: the guards require the resolved OPENDJ to START WITH it (~<< in
          the condition, not ~=: the captured value is the raw command-line string and the resolved
@@ -215,26 +216,44 @@
          and leaves a GUI-only administrator with nothing but a command line to retype,
          even though WixUI_InstallDir ships the browse dialog that would have resolved it.
 
-         (1) The location cannot be determined. 5.1.x wrote no registry value, so an
-         upgrade from a custom directory resolves no search and OPENDJ falls back to the
-         default - proceeding would install a fresh server there while
-         RemoveExistingProducts empties the old tree, leaving config/db/logs stranded.
-         Refuse whenever the resolved directory IS that fallback and nothing recorded a
-         location. The test is "nothing recorded it", not "no server is installed there":
-         a foreign OpenDJ tree in the default directory (a zip install, a manual copy)
-         satisfies a setup.bat search without being the product being upgraded, so keying
-         the guard on that let the decoy disarm it while RemoveExistingProducts gutted the
-         real installation elsewhere and InstallFiles landed on top of the stranger.
-         Selecting the real directory in InstallDirDlg, or passing OPENDJ, makes the
-         comparison fail and the install proceed as before; naming the DEFAULT directory
-         on the command line proceeds through OPENDJ_GIVEN, which is the way out for an
-         old server that really does live there - 5.1.x installed into it recorded
-         nothing, so the package cannot tell that tree from the decoy on its own and has
-         to be told. Only the command line: see OPENDJ_GIVEN above for why the wizard
-         cannot confirm the default directory, and the message below for what it says
-         instead. The command line does work WITH the wizard, which is what OPENDJ_GIVEN
-         being public and secure buys: msiexec /i opendj.msi OPENDJ="..." and then click
-         through the dialogs reaches this guard with the property intact.
+         (1) Nothing recorded where the old server lives, and the target cannot prove it is
+         that server. 5.1.x wrote no registry value, so an upgrade from a custom directory
+         resolves no search and OPENDJ falls back to the default - proceeding would install
+         a fresh server there while RemoveExistingProducts empties the old tree, leaving
+         config/db/logs stranded. A directory that WAS named loses exactly as much when it
+         is not the installation:
+
+             msiexec /i opendj.msi OPENDJ=C:\opendj-custmo /qn
+
+         over a server in C:\opendj-custom passed this guard while it only asked whether the
+         resolved directory was the default, and guard (2) has nothing to say either with no
+         registry value and no server in the legacy default - so one typo emptied one
+         directory and populated another, and the only thing that had ever refused it was an
+         unrelated tree happening to sit in the legacy default.
+         So the guard covers the registry-less, legacy-less case as a whole, and what lets an
+         upgrade through is directory evidence: [OPENDJ] holds a setup.bat, AND either it is
+         not the fallback default or it was named. The second half is what keeps a decoy from
+         disarming it - a foreign OpenDJ tree in the default directory (a zip install, a
+         manual copy) satisfies a setup.bat search without being the product being upgraded,
+         so evidence alone would let it through while RemoveExistingProducts gutted the real
+         installation elsewhere and InstallFiles landed on top of the stranger. Naming the
+         DEFAULT directory is the way out for an old server that really does live there:
+         5.1.x installed into it recorded nothing, so the package cannot tell that tree from
+         the decoy on its own and has to be told. Only the command line for THAT case: see
+         OPENDJ_GIVEN above for why the wizard cannot confirm the default directory, and the
+         message below for what it says instead. The command line does work WITH the wizard,
+         which is what OPENDJ_GIVEN being public and secure buys: msiexec /i opendj.msi
+         OPENDJ="..." and then click through the dialogs reaches this guard with the property
+         intact. Every other directory the wizard can reach now carries its own evidence:
+         browsing to the real installation proceeds, browsing to an empty directory is
+         refused like the typo above.
+         Evidence being a conjunct rather than an alternative is also what stops OPENDJ_GIVEN
+         from being handed in as a bypass: a prefix as short as "C" does match the resolved
+         path, but the directory still has to hold a server - and a target that holds one is
+         one this guard was going to let through anyway.
+         NOT OPENDJ_LEGACY_INSTALL is load-bearing rather than tidiness: a server in the
+         legacy default is the headline upgrade path, resolved with nothing named and nothing
+         recorded, and it is guard (2) that watches that one for relocation.
 
          Residual: the same decoy in the LEGACY default directory is not detectable when
          nothing is named. SetOpendjFromLegacyDir adopts it, so the resolved directory is
@@ -295,11 +314,11 @@
          secured ones reach it for a non-administrator. Every property named in the two
          conditions below is therefore public (WIX_UPGRADE_DETECTED, OPENDJ, OPENDJ_DEFAULT,
          OPENDJ_REG, OPENDJ_GIVEN, OPENDJ_LEGACY_INSTALL, OPENDJ_LEGACY_DEFAULT,
-         OPENDJ_GIVEN_INSTALL), and build.yml asserts that in the built MSI - a private
+         OPENDJ_GIVEN_INSTALL), and build.yml asserts that against this file - a private
          property here reads as empty and silently inverts a guard, which is exactly what
          happened to the OpendjDirGiven flag these conditions used to carry. -->
     <CustomAction Id="RequireDirOnCustomUpgrade"
-                  Error="An existing OpenDJ installation was detected, but its location could not be determined: 32-bit packages recorded none. Select the existing installation directory in the wizard, or pass it explicitly: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot;. If that installation is the default directory itself, the command line is the only way - the wizard cannot tell a confirmed default from an unchanged one."/>
+                  Error="An existing OpenDJ installation was detected, but its location could not be determined: 32-bit packages recorded none, and the directory this installation would use holds no OpenDJ server. Select the existing installation directory in the wizard, or pass it explicitly: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot; - and if a directory was given already, check it for a typo. If that installation is the default directory itself, the command line is the only way - the wizard cannot tell a confirmed default from an unchanged one."/>
     <CustomAction Id="RefuseRelocatingUpgrade"
                   Error="OpenDJ is already installed in a different directory, and this installer cannot move an existing installation: its configuration, database and logs would be left behind. Install into the existing directory, or uninstall the existing OpenDJ first. If the directory that was detected holds an unrelated OpenDJ tree - a Zip installation, a copy, a decommissioned instance - and the server you are upgrading is elsewhere, pass that server's directory on the command line: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot;."/>
 
@@ -414,8 +433,9 @@
          scenario that covers it passed on msiexec 3010 - the upgrade going through and
          deferring the locked jars to a reboot - instead of the 1603 a refusal produces. A
          typed catch matches on the inner exception; wait-server-stopped.ps1 has always had
-         it, and the copy inlined here had lost it. build.yml now runs this very command
-         against a real held lock, extracted from the built MSI.
+         it, and the copy inlined here had lost it. build.yml now takes this command out of
+         this file, resolves it the way msiexec resolves a Formatted field and runs it
+         against a real held lock.
          [\[] and [\]] are the Formatted-field escapes for literal brackets: ExeCommand
          resolves [property] references, so an unescaped [System.IO.IOException] would be
          substituted away, leaving two catch-all blocks and a script that fails to parse -
@@ -425,7 +445,7 @@
                   Execute="immediate" Return="check"/>
     <InstallExecuteSequence>
       <Custom Action="RequireDirOnCustomUpgrade" After="CostFinalize"
-              Condition="WIX_UPGRADE_DETECTED AND (OPENDJ ~= OPENDJ_DEFAULT) AND NOT OPENDJ_REG AND NOT (OPENDJ_GIVEN AND (OPENDJ ~&lt;&lt; OPENDJ_GIVEN))"/>
+              Condition="WIX_UPGRADE_DETECTED AND NOT OPENDJ_REG AND NOT OPENDJ_LEGACY_INSTALL AND NOT ((OPENDJ_GIVEN_INSTALL ~&gt;&lt; OPENDJ) AND ((OPENDJ ~&lt;&gt; OPENDJ_DEFAULT) OR (OPENDJ_GIVEN AND (OPENDJ ~&lt;&lt; OPENDJ_GIVEN))))"/>
       <Custom Action="RefuseRelocatingUpgrade" After="RequireDirOnCustomUpgrade"
               Condition="WIX_UPGRADE_DETECTED AND ((OPENDJ_REG AND (OPENDJ_REG ~&lt;&gt; OPENDJ)) OR (NOT OPENDJ_REG AND OPENDJ_LEGACY_INSTALL AND (OPENDJ_LEGACY_DEFAULT ~&lt;&gt; OPENDJ) AND NOT (OPENDJ_GIVEN AND (OPENDJ ~&lt;&lt; OPENDJ_GIVEN) AND (OPENDJ_GIVEN_INSTALL ~&gt;&lt; OPENDJ))))"/>
       <Custom Action="StopServiceBeforeUpgrade" Before="CheckServiceStopped"
