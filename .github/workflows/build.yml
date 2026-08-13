@@ -736,12 +736,14 @@ jobs:
     permissions:
       contents: read
     steps:
-      # Only for .github/scripts/wait-server-stopped.ps1, and it has to come first:
-      # checkout cleans the workspace the artifact is unpacked into. Sparse because that
-      # one script is the entire reason for the checkout.
+      # Only for .github/scripts/wait-server-stopped.ps1 and the MSI authoring the guard
+      # step below reads, and it has to come first: checkout cleans the workspace the
+      # artifact is unpacked into. Sparse because those two are the entire reason for it.
       - uses: actions/checkout@v6
         with:
-          sparse-checkout: .github/scripts
+          sparse-checkout: |
+            .github/scripts
+            opendj-packages/opendj-msi/opendj-msi-standard/resources/msi
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
@@ -761,47 +763,34 @@ jobs:
           # /qn scenario runs. The second is the inline PowerShell itself: the scenarios reach
           # it only through a ten-minute install and can then only look at msiexec's exit code,
           # so a guard that always exits 0 looks the same as one that never has to refuse.
-          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
-          if (-not $msi) { throw "MSI not found in the windows-latest-11 artifact" }
-          $installer = New-Object -ComObject WindowsInstaller.Installer
-          $db = $installer.GetType().InvokeMember('OpenDatabase', 'InvokeMethod', $null, $installer, @($msi, 0))
-          function Get-MsiRows($database, $sql, $columns) {
-            $view = $database.GetType().InvokeMember('OpenView', 'InvokeMethod', $null, $database, @($sql))
-            $view.GetType().InvokeMember('Execute', 'InvokeMethod', $null, $view, $null) | Out-Null
-            $rows = @()
-            while ($true) {
-              $record = $view.GetType().InvokeMember('Fetch', 'InvokeMethod', $null, $view, $null)
-              if (-not $record) { break }
-              $row = @()
-              for ($i = 1; $i -le $columns; $i++) { $row += $record.GetType().InvokeMember('StringData', 'GetProperty', $null, $record, @($i)) }
-              $rows += ,$row
-            }
-            $view.GetType().InvokeMember('Close', 'InvokeMethod', $null, $view, $null) | Out-Null
-            return ,$rows
-          }
-          $conditions = @{}
-          foreach ($row in Get-MsiRows $db 'SELECT `Action`, `Condition` FROM `InstallExecuteSequence`' 2) { $conditions[$row[0]] = $row[1] }
+          # Read from the authoring rather than from the built MSI's tables: wix copies both
+          # the sequence conditions and ExeCommand across verbatim, and it is test-msi-upgrade
+          # that judges the artifact - those scenarios now assert the refusal's own 1603 and
+          # "Return value 3" rather than any non-zero exit code.
+          $wxs = Get-Content -Raw opendj-packages/opendj-msi/opendj-msi-standard/resources/msi/package.wxs
+          $sequence = [regex]::Match($wxs, '(?s)<InstallExecuteSequence>(.*?)</InstallExecuteSequence>')
+          if (-not $sequence.Success) { throw "package.wxs has no InstallExecuteSequence" }
           foreach ($action in @('RequireDirOnCustomUpgrade', 'RefuseRelocatingUpgrade')) {
-            $condition = $conditions[$action]
-            if (-not $condition) { throw "$action is not scheduled in InstallExecuteSequence" }
+            $scheduled = [regex]::Match($sequence.Groups[1].Value, '(?s)<Custom Action="' + $action + '"(.*?)/>')
+            if (-not $scheduled.Success) { throw "$action is not scheduled in InstallExecuteSequence" }
+            $found = [regex]::Match($scheduled.Groups[1].Value, '(?s)Condition="([^"]*)"')
+            if (-not $found.Success) { throw "$action is scheduled without a condition" }
+            $condition = [System.Net.WebUtility]::HtmlDecode($found.Groups[1].Value)
             # Property names in these conditions are upper case, and so are AND/NOT: a
             # lower-case letter is a private property, which reads as empty in the service.
             if ($condition -cmatch '[a-z]') { throw "$action reads a private property, which never reaches the installer service: $condition" }
             Write-Host "$action : $condition"
           }
-          $secureRows = Get-MsiRows $db 'SELECT `Value` FROM `Property` WHERE `Property` = ''SecureCustomProperties''' 1
-          if (-not $secureRows.Count) { throw "SecureCustomProperties is not set at all" }
-          $secure = $secureRows[0][0] -split ';'
           foreach ($property in @('OPENDJ', 'OPENDJ_GIVEN')) {
-            if ($secure -notcontains $property) { throw "$property must be secure: the guards read it in the service, where a non-administrator's value is dropped otherwise" }
+            if ($wxs -notmatch ('<Property Id="' + $property + '"[^>]*Secure="yes"')) { throw "$property must be Secure: the guards read it in the service, where a non-administrator's value is dropped otherwise" }
           }
           # CheckServerNotRunning, run exactly as msiexec runs it: the Formatted field
           # resolved - [\[] and [\]] are its escapes for literal brackets, [property]
           # references become their values - and handed to cmd.exe. Windows PowerShell 5.1 is
           # what the command names, so that is what this exercises.
-          $targetRows = Get-MsiRows $db 'SELECT `Target` FROM `CustomAction` WHERE `Action` = ''CheckServerNotRunning''' 1
-          if (-not $targetRows.Count) { throw "the CheckServerNotRunning custom action is not in the MSI" }
-          $target = $targetRows[0][0]
+          $found = [regex]::Match($wxs, '(?s)<CustomAction Id="CheckServerNotRunning".*?ExeCommand="([^"]*)"')
+          if (-not $found.Success) { throw "CheckServerNotRunning has no ExeCommand" }
+          $target = [System.Net.WebUtility]::HtmlDecode($found.Groups[1].Value)
           $probeRoot = Join-Path $PWD 'guard-probe'
           New-Item -ItemType Directory -Force (Join-Path $probeRoot 'locks') | Out-Null
           $command = $target.Replace('[\[]', '[').Replace('[\]]', ']').Replace('[System64Folder]', "$env:SystemRoot\System32\").Replace('[OPENDJ]', "$probeRoot\")
