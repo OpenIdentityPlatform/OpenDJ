@@ -33,10 +33,20 @@
         This module contains configuration and generic plugin call to build OpenDJ MSI packages.
     </description>
 
+    <!-- Not published: the MSI is distributed through GitHub Releases and the Package/Deploy
+         artifact, and the Maven coordinate stays at its last published version (5.1.2). Both
+         MSI poms are nevertheless part of every reactor, because that is the only way the
+         release plugin keeps rewriting their versions - see the note in opendj-packages -
+         and a reactor module is deployed unless it says otherwise. Inherited by
+         opendj-msi-standard. -->
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <!-- The MSI is built with the WiX v5 .NET tool on Windows only (WiX's build task
-         P/Invokes msi.dll): the module is pulled in by the opendj-packages
-         distribution-windows-msi profile, which also requires the wix tool to be
-         installed. -->
+         P/Invokes msi.dll), which is what the distribution-windows-msi profile inside
+         opendj-msi-standard gates. The module list here is unconditional: everywhere else
+         the module simply builds nothing. -->
     <modules>
         <module>opendj-msi-standard</module>
     </modules>

@@ -56,6 +56,7 @@
                 <module>opendj-deb</module>
                 <module>opendj-rpm</module>
                 <module>opendj-svr4</module>
+                <module>opendj-msi</module>
     		 	<module>opendj-docker</module>
             </modules>
         </profile>
@@ -69,6 +70,7 @@
             </activation>
             <modules>
                 <module>opendj-svr4</module>
+                <module>opendj-msi</module>
                 <module>opendj-docker</module>
             </modules>
         </profile>
@@ -78,27 +80,24 @@
                 <os><family>windows</family></os>
             </activation>
             <modules>
+                <module>opendj-msi</module>
     	 		<module>opendj-docker</module>
             </modules>
         </profile>
-        <profile>
-            <id>distribution-windows-msi</id>
-            <!-- The MSI is built on Windows only (WiX's build task P/Invokes msi.dll, so
-                 Linux/macOS builds are impossible) and only when the WiX v5 .NET tool is
-                 actually installed - CI installs it (see the opendj-msi-standard module
-                 description for the full toolchain). Without the wix.exe guard a plain
-                 `mvn install` on a contributor's Windows machine would fail mid-reactor
-                 with "Cannot run program wix". Activate with -Pdistribution-windows-msi
-                 when wix is installed outside the dotnet global-tools directory. -->
-            <activation>
-                <os><family>windows</family></os>
-                <file><exists>${env.USERPROFILE}/.dotnet/tools/wix.exe</exists></file>
-            </activation>
-            <modules>
-            	<module>opendj-msi</module>
-            </modules>
-        </profile>
     </profiles>
+    <!-- opendj-msi stays in every module list, including the ones that cannot build an MSI:
+         maven-release-plugin only rewrites the versions of ${reactorProjects}, and release.yml
+         runs release:prepare on ubuntu-latest with no -P. Leaving the module out of the Linux
+         reactor - as an earlier revision of this PR did, gating it on Windows plus wix.exe -
+         freezes opendj-msi/pom.xml and opendj-msi-standard/pom.xml at the parent version they
+         happen to carry. Maven does not fail on that skew; it resolves the parent from the
+         repository instead, so the MSI module keeps building as the old version: it would
+         unpack the previous line's published snapshot instead of the server zip built beside
+         it, name the package after that version and hand parse-version the wrong numbers for
+         the ProductVersion the upgrade guards key on. What actually cannot run outside Windows
+         is the wix invocation, so that is what the toolchain profile in opendj-msi-standard
+         gates - the module itself is a no-op pom everywhere else. -->
+
 
     <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <pluginManagement>

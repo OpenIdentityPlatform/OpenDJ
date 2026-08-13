@@ -35,8 +35,9 @@
           set DOTNET_ROLL_FORWARD=Major
           dotnet tool install --global wix --version 5.0.2
           wix extension add -g WixToolset.UI.wixext/5.0.2
-        The module is activated by the opendj-packages distribution-windows-msi profile
-        only when %USERPROFILE%\.dotnet\tools\wix.exe exists.
+        The module itself is part of every reactor so that the release plugin keeps its
+        version in step with the rest of the build; the toolchain profile below is what
+        turns the MSI build on, and only when %USERPROFILE%\.dotnet\tools\wix.exe exists.
     </description>
 
     <properties>
@@ -51,6 +52,23 @@
 
     <dependencies>
     </dependencies>
+
+    <!-- Everything that needs Windows lives in this profile rather than in the module list
+         that pulls the project in: a module outside the reactor is a module the release
+         plugin cannot version-bump (see the note in opendj-packages/pom.xml). Off, the
+         module is a pom that builds nothing; on, it produces the MSI. The activation is the
+         one the packages pom used to carry - Windows plus an installed WiX v5 .NET tool,
+         both conditions required - so a plain `mvn install` on a contributor's Windows
+         machine without wix no longer fails mid-reactor with "Cannot run program wix".
+         Name it explicitly (-Pdistribution-windows-msi) when wix lives outside the dotnet
+         global-tools directory; release.yml does exactly that. -->
+    <profiles>
+      <profile>
+        <id>distribution-windows-msi</id>
+        <activation>
+            <os><family>windows</family></os>
+            <file><exists>${env.USERPROFILE}/.dotnet/tools/wix.exe</exists></file>
+        </activation>
     <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
             <!-- Unpacks the opendj-server-legacy distribution (unpack-archive execution inherited
@@ -160,4 +178,6 @@
             </plugin>
         </plugins>
     </build>
+      </profile>
+    </profiles>
 </project>
