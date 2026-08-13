@@ -21,6 +21,7 @@ import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
 import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
+import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -317,6 +318,118 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				});
 			} catch (Exception ignored) {}
 			storage.close();
+		}
+	}
+
+	/**
+	 * Each table must be stamped with the tree name it stores: table names are opaque SHA-224
+	 * hashes, so without the comment there is no way to tell the trees apart on the database
+	 * side (#859). The single quote in the base DN exercises the comment escaping.
+	 */
+	@Test
+	public void testTreeNameStoredAsTableComment() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("o=comment'test", "dn2id");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			assertEquals(readTableComment(storage.getTableName(tree)), tree.toString());
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	String readTableComment(String tableName) throws Exception {
+		final String url = getJdbcUrl();
+		final String sql;
+		if (url.startsWith("jdbc:postgresql")) {
+			sql = "select obj_description('" + tableName + "'::regclass, 'pg_class')";
+		} else if (url.startsWith("jdbc:mysql")) {
+			sql = "select table_comment from information_schema.tables where table_schema=database() and table_name='" + tableName + "'";
+		} else if (url.startsWith("jdbc:oracle")) {
+			sql = "select comments from user_tab_comments where table_name='" + tableName.toUpperCase() + "'";
+		} else if (url.startsWith("jdbc:sqlserver")) {
+			sql = "select cast(value as nvarchar(4000)) from sys.extended_properties where major_id=object_id('" + tableName + "') and minor_id=0 and name='MS_Description'";
+		} else {
+			throw new SkipException("no table comment query for " + url);
+		}
+		try (final Connection con = DriverManager.getConnection(url);
+			 final Statement st = con.createStatement();
+			 final ResultSet rs = st.executeQuery(sql)) {
+			return rs.next() ? rs.getString(1) : null;
+		}
+	}
+
+	/** A bulk import must refresh optimizer statistics: fresh tables were never analyzed (#859). */
+	@Test
+	public void testImportRefreshesTableStatistics() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("testImportAnalyze", "tree");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			try (final Importer importer = storage.startImport()) {
+				for (int i = 0; i < 40; i++) {
+					importer.put(tree, key(i), value(i));
+				}
+			}
+			assertTableStatisticsFresh(storage.getTableName(tree));
+			// import swallows statistics failures by design: assert directly that the
+			// dialect-specific refresh statement is accepted by this database
+			try (final Connection con = CachedConnection.getConnection(getJdbcUrl())) {
+				assertTrue(storage.updateTableStatistics(con), "statistics refresh reported failures");
+			}
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	void assertTableStatisticsFresh(String tableName) throws Exception {
+		final String url = getJdbcUrl();
+		final String sql;
+		if (url.startsWith("jdbc:postgresql")) {
+			// reltuples stays -1/0 until the first ANALYZE
+			sql = "select reltuples::bigint from pg_class where relname='" + tableName + "'";
+		} else if (url.startsWith("jdbc:oracle")) {
+			// num_rows stays null until dbms_stats gathers statistics
+			sql = "select num_rows from user_tables where table_name='" + tableName.toUpperCase() + "'";
+		} else {
+			// mysql/mssql maintain their estimates on their own: nothing distinguishable to assert
+			return;
+		}
+		try (final Connection con = DriverManager.getConnection(url);
+			 final Statement st = con.createStatement();
+			 final ResultSet rs = st.executeQuery(sql)) {
+			assertTrue(rs.next(), "table " + tableName + " not found");
+			final long rows = rs.getLong(1);
+			assertFalse(rs.wasNull(), "statistics were never gathered for " + tableName);
+			assertTrue(rows > 0, "statistics of " + tableName + " look stale: " + rows);
 		}
 	}
 

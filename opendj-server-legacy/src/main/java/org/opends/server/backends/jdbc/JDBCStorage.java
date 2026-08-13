@@ -88,6 +88,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		return statement.executeUpdate();
 	}
 
+	// unlike execute(), tolerates statements that return a result set ("analyze table" on mysql)
+	void executeAny(PreparedStatement statement) throws SQLException {
+		if (logger.isTraceEnabled()) {
+			logger.trace(LocalizableMessage.raw("jdbc: %s",statement));
+		}
+		statement.execute();
+	}
+
 	Connection getConnection() throws Exception {
 		return CachedConnection.getConnection(config.getDBDirectory());
 	}
@@ -149,6 +157,75 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			return name.toLowerCase();
 		}
 		return name;
+	}
+
+	// Table names are opaque SHA-224 hashes, so on the database side there is no way to tell
+	// which tree a table holds. Stamp each table with its tree name (visible in "\dt+" and the
+	// information schema) so database-level troubleshooting does not require recomputing hashes.
+	// The comment is a diagnostic aid: failing to store it must not fail the backend.
+	void commentTable(Connection con, TreeName treeName) {
+		final String tableName=getTableName(treeName);
+		final String comment=treeName.toString().replace("'","''");
+		final String driverName=((CachedConnection) con).parent.getClass().getName();
+		final String sql;
+		if (driverName.contains("mysql")) {
+			sql="alter table "+tableName+" comment '"+comment+"'";
+		}else if (driverName.contains("microsoft")) { // no COMMENT ON in t-sql: MS_Description extended property
+			sql="declare @s sysname = schema_name()"
+				+" if exists (select 1 from sys.extended_properties where major_id=object_id('"+tableName+"') and minor_id=0 and name='MS_Description')"
+				+" exec sys.sp_updateextendedproperty N'MS_Description', N'"+comment+"', N'SCHEMA', @s, N'TABLE', N'"+tableName+"'"
+				+" else"
+				+" exec sys.sp_addextendedproperty N'MS_Description', N'"+comment+"', N'SCHEMA', @s, N'TABLE', N'"+tableName+"'";
+		}else { // postgres, oracle and h2 all accept COMMENT ON TABLE
+			sql="comment on table "+tableName+" is '"+comment+"'";
+		}
+		try (final PreparedStatement statement=con.prepareStatement(sql)) {
+			executeAny(statement);
+			con.commit();
+		}catch (SQLException e) {
+			try {
+				con.rollback();
+			} catch (SQLException e2) {}
+			logger.trace(LocalizableMessage.raw("jdbc: unable to comment table %s with tree name %s: %s",
+				tableName, treeName, stackTraceToSingleLineString(e)));
+		}
+	}
+
+	// A bulk load leaves the optimizer statistics of freshly created tables stale (a table that
+	// was never analyzed can make the planner badly misestimate the "where k>? order by k" cursor
+	// batches - see OpenIdentityPlatform/OpenDJ#859), so refresh them once the data is in place.
+	// Statistics upkeep is best-effort: a failure must not fail the import that produced the data,
+	// so failures are only logged - the return value makes them observable to tests.
+	boolean updateTableStatistics(Connection con) {
+		final String driverName=((CachedConnection) con).parent.getClass().getName();
+		boolean allRefreshed=true;
+		for (final TreeName treeName : listTrees()) {
+			final String tableName=getTableName(treeName);
+			final String sql;
+			if (driverName.contains("postgres")) {
+				sql="analyze "+tableName;
+			}else if (driverName.contains("mysql")) {
+				sql="analyze table "+tableName;
+			}else if (driverName.contains("oracle")) {
+				sql="begin dbms_stats.gather_table_stats(user, '"+tableName.toUpperCase()+"'); end;";
+			}else if (driverName.contains("microsoft")) {
+				sql="update statistics "+tableName;
+			}else { // no portable statistics refresh for other engines
+				return allRefreshed;
+			}
+			try (final PreparedStatement statement=con.prepareStatement(sql)) {
+				executeAny(statement);
+				con.commit();
+			}catch (SQLException e) {
+				try {
+					con.rollback();
+				} catch (SQLException e2) {}
+				allRefreshed=false;
+				logger.warn(LocalizableMessage.raw("jdbc: unable to refresh statistics of table %s (tree %s): %s",
+					tableName, treeName, stackTraceToSingleLineString(e)));
+			}
+		}
+		return allRefreshed;
 	}
 
 	@Override
@@ -363,6 +440,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}
 				}
 				// mssql: k is varbinary(max), which cannot be an index key column - cursor batches stay unindexed there
+				commentTable(con, treeName);
 			}
 		}
 
@@ -723,6 +801,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		public void close() {
 			try {
 				con.commit();
+				updateTableStatistics(con);
 				con.close();
 			} catch (SQLException e) {
 				throw new StorageRuntimeException(e);
