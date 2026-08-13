@@ -751,6 +751,94 @@ jobs:
         with:
           java-version: '25'
           distribution: 'zulu'
+      - name: The upgrade guards must hold up on their own
+        shell: pwsh
+        run: |
+          # Two things no install scenario can see, both of which have already gone wrong here.
+          # The first is what a guard is allowed to READ: the execute sequence is processed in
+          # the installer service, so a private property set in the UI sequence is empty by the
+          # time the guard evaluates - which inverts it in exactly the full-UI sessions that no
+          # /qn scenario runs. The second is the inline PowerShell itself: the scenarios reach
+          # it only through a ten-minute install and can then only look at msiexec's exit code,
+          # so a guard that always exits 0 looks the same as one that never has to refuse.
+          $msi = (Get-ChildItem -Recurse -Filter *.msi -Path opendj-packages/opendj-msi | Select-Object -First 1).FullName
+          if (-not $msi) { throw "MSI not found in the windows-latest-11 artifact" }
+          $installer = New-Object -ComObject WindowsInstaller.Installer
+          $db = $installer.GetType().InvokeMember('OpenDatabase', 'InvokeMethod', $null, $installer, @($msi, 0))
+          function Get-MsiRows($database, $sql, $columns) {
+            $view = $database.GetType().InvokeMember('OpenView', 'InvokeMethod', $null, $database, @($sql))
+            $view.GetType().InvokeMember('Execute', 'InvokeMethod', $null, $view, $null) | Out-Null
+            $rows = @()
+            while ($true) {
+              $record = $view.GetType().InvokeMember('Fetch', 'InvokeMethod', $null, $view, $null)
+              if (-not $record) { break }
+              $row = @()
+              for ($i = 1; $i -le $columns; $i++) { $row += $record.GetType().InvokeMember('StringData', 'GetProperty', $null, $record, @($i)) }
+              $rows += ,$row
+            }
+            $view.GetType().InvokeMember('Close', 'InvokeMethod', $null, $view, $null) | Out-Null
+            return ,$rows
+          }
+          $conditions = @{}
+          foreach ($row in Get-MsiRows $db 'SELECT `Action`, `Condition` FROM `InstallExecuteSequence`' 2) { $conditions[$row[0]] = $row[1] }
+          foreach ($action in @('RequireDirOnCustomUpgrade', 'RefuseRelocatingUpgrade')) {
+            $condition = $conditions[$action]
+            if (-not $condition) { throw "$action is not scheduled in InstallExecuteSequence" }
+            # Property names in these conditions are upper case, and so are AND/NOT: a
+            # lower-case letter is a private property, which reads as empty in the service.
+            if ($condition -cmatch '[a-z]') { throw "$action reads a private property, which never reaches the installer service: $condition" }
+            Write-Host "$action : $condition"
+          }
+          $secureRows = Get-MsiRows $db 'SELECT `Value` FROM `Property` WHERE `Property` = ''SecureCustomProperties''' 1
+          if (-not $secureRows.Count) { throw "SecureCustomProperties is not set at all" }
+          $secure = $secureRows[0][0] -split ';'
+          foreach ($property in @('OPENDJ', 'OPENDJ_GIVEN')) {
+            if ($secure -notcontains $property) { throw "$property must be secure: the guards read it in the service, where a non-administrator's value is dropped otherwise" }
+          }
+          # CheckServerNotRunning, run exactly as msiexec runs it: the Formatted field
+          # resolved - [\[] and [\]] are its escapes for literal brackets, [property]
+          # references become their values - and handed to cmd.exe. Windows PowerShell 5.1 is
+          # what the command names, so that is what this exercises.
+          $targetRows = Get-MsiRows $db 'SELECT `Target` FROM `CustomAction` WHERE `Action` = ''CheckServerNotRunning''' 1
+          if (-not $targetRows.Count) { throw "the CheckServerNotRunning custom action is not in the MSI" }
+          $target = $targetRows[0][0]
+          $probeRoot = Join-Path $PWD 'guard-probe'
+          New-Item -ItemType Directory -Force (Join-Path $probeRoot 'locks') | Out-Null
+          $command = $target.Replace('[\[]', '[').Replace('[\]]', ']').Replace('[System64Folder]', "$env:SystemRoot\System32\").Replace('[OPENDJ]', "$probeRoot\")
+          Set-Content -Encoding Ascii -Path guard-probe.cmd -Value $command
+          Write-Host $command
+          function Invoke-Guard { (Start-Process cmd.exe -Wait -PassThru -ArgumentList '/c', 'guard-probe.cmd' -WorkingDirectory $PWD).ExitCode }
+          $lock = Join-Path $probeRoot 'locks\server.lock'
+          Remove-Item $lock -Force -ErrorAction SilentlyContinue
+          $rc = Invoke-Guard
+          if ($rc -ne 0) { throw "no lock file at all must let the upgrade proceed, got $rc" }
+          Set-Content -Path $lock -Value ''
+          $rc = Invoke-Guard
+          if ($rc -ne 0) { throw "an unlocked server.lock must let the upgrade proceed, got $rc" }
+          # A running server holds a mandatory byte-range lock over the whole file
+          # (LockFileManager: RandomAccessFile "rw" plus tryLock) and opens it shared, so the
+          # open succeeds by design and only the Lock call raises IOException - the exception
+          # PowerShell hands to the catch wrapped in a MethodInvocationException.
+          Set-Content -Path guard-holder.ps1 -Value @(
+            '$fs = [System.IO.File]::Open($env:GUARD_PROBE_LOCK, ''Open'', ''ReadWrite'', ''ReadWrite'')',
+            '$fs.Lock(0, [Int64]::MaxValue)',
+            'New-Item -ItemType File -Force -Path "$env:GUARD_PROBE_LOCK.held" | Out-Null',
+            'Start-Sleep -Seconds 300'
+          )
+          $env:GUARD_PROBE_LOCK = $lock
+          Remove-Item "$lock.held" -Force -ErrorAction SilentlyContinue
+          $holder = Start-Process pwsh -PassThru -ArgumentList '-NoProfile', '-File', 'guard-holder.ps1' -WorkingDirectory $PWD
+          for ($i = 0; $i -lt 30 -and -not (Test-Path "$lock.held"); $i++) { Start-Sleep -Seconds 1 }
+          if (-not (Test-Path "$lock.held")) { throw "the holder process never took the lock" }
+          $started = Get-Date
+          $rc = Invoke-Guard
+          $elapsed = [int]((Get-Date) - $started).TotalSeconds
+          Stop-Process -Id $holder.Id -Force -ErrorAction SilentlyContinue
+          if ($rc -ne 1) { throw "a held server.lock must refuse the upgrade (exit 1), got $rc after ${elapsed}s" }
+          # Refusing before the grace is up would mean the loop exited for some other reason.
+          if ($elapsed -lt 55) { throw "the refusal came after ${elapsed}s, so the 60 s grace was not polled through" }
+          Write-Host "CheckServerNotRunning: 0 with no lock file, 0 unlocked, 1 while held (after ${elapsed}s)"
+          Remove-Item -Recurse -Force $probeRoot, guard-probe.cmd, guard-holder.ps1 -ErrorAction SilentlyContinue
       - name: Install MSI (silent)
         shell: pwsh
         run: |
@@ -1161,6 +1249,15 @@ jobs:
           if (-not (Select-String -Path upgrade-x64-silent.log -Pattern "location could not be determined" -Quiet)) { Get-Content upgrade-x64-silent.log -Tail 60; throw "expected the explicit-OPENDJ guidance message in the log" }
           if (Test-Path HKLM:\SOFTWARE\OpenDJ) { throw "the refused upgrade registered an install location" }
           if ((Get-FileHash "C:\Program Files\OpenDJ\lib\opendj_service.exe").Hash -ne $oldWrapper) { throw "the refused upgrade overwrote the old server" }
+          # The signal that says "this directory was named" has to be public - a private
+          # property set in the UI sequence never reaches the installer service, where the
+          # guards run - so it must not be usable as a switch. It holds the named path and
+          # the guard requires the resolved directory to START WITH it: a flag-shaped value
+          # disarms nothing, and a value that does pass has spelled out the directory, which
+          # is naming it.
+          $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" OPENDJ_GIVEN=1 /quiet /qn /norestart /l*v upgrade-x64-switch.log"
+          if ($p.ExitCode -eq 0) { Get-Content upgrade-x64-switch.log -Tail 120; throw "OPENDJ_GIVEN=1 must not switch the guard off" }
+          if ((Get-FileHash "C:\Program Files\OpenDJ\lib\opendj_service.exe").Hash -ne $oldWrapper) { throw "the upgrade that OPENDJ_GIVEN=1 let through overwrote the old server" }
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" OPENDJ=`"C:\Program Files\OpenDJ`" /quiet /qn /norestart /l*v upgrade-x64-named.log"
           if ($p.ExitCode -ne 0) { Get-Content upgrade-x64-named.log -Tail 120; throw "the named upgrade into the default directory must succeed: $($p.ExitCode)" }
           if ((Get-FileHash "C:\Program Files\OpenDJ\lib\opendj_service.exe").Hash -eq $oldWrapper) { Get-Content upgrade-x64-named.log -Tail 120; throw "the upgrade did not land in C:\Program Files\OpenDJ" }
@@ -1231,8 +1328,14 @@ jobs:
           $st = (Get-Service "OpenDJ Server" -ErrorAction SilentlyContinue).Status
           if ($st -ne 'StartPending') { throw "expected the service to be StartPending, got '$st'" }
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v upgrade-pending.log"
-          if ($p.ExitCode -eq 0) { Get-Content upgrade-pending.log -Tail 120; throw "the upgrade must refuse while the service is starting" }
-          if (-not (Select-String -Path upgrade-pending.log -Pattern "CheckServiceStopped" -Quiet)) { Get-Content upgrade-pending.log -Tail 60; throw "the refusal must come from CheckServiceStopped" }
+          # A refusal from a Return="check" custom action is 1722 in the log and 1603 out of
+          # msiexec, and nothing else. "-ne 0" would also accept 3010 - which is the FAIL-OPEN
+          # outcome, the upgrade going through and leaving the files it could not replace to a
+          # reboot - so the exact code is what gets asserted. Same reasoning for the log: the
+          # action NAME appears whether it ran and passed, ran and failed, or was skipped by
+          # its condition, so the return value has to be part of the pattern.
+          if ($p.ExitCode -ne 1603) { Get-Content upgrade-pending.log -Tail 120; throw "the upgrade must refuse while the service is starting (expected 1603, got $($p.ExitCode))" }
+          if (-not (Select-String -Path upgrade-pending.log -Pattern "CheckServiceStopped\. Return value 3" -Quiet)) { Get-Content upgrade-pending.log -Tail 60; throw "the refusal must come from CheckServiceStopped" }
           if (-not (Test-Path "$root\config\config.ldif")) { throw "the refused upgrade damaged the instance" }
           if (-not (Test-Path "$root\setup.bat")) { throw "the refused upgrade damaged the installation" }
           Write-Host "Upgrade refused while the service was StartPending (exit $($p.ExitCode))"
@@ -1308,10 +1411,23 @@ jobs:
           for ($i=0; $i -lt 12; $i++) { try { $c = New-Object System.Net.Sockets.TcpClient('localhost', 1636); $c.Close(); break } catch { Start-Sleep -Seconds 5 } }
           if (Get-Service "OpenDJ Server" -ErrorAction SilentlyContinue) { throw "this scenario is about a server with NO service registered" }
           # The headline auto-detected upgrade, which would otherwise proceed straight into
-          # the running server's tree.
+          # the running server's tree. The refusal costs the full 60 s grace inside the
+          # check: a server that is genuinely up never releases the lock.
+          $pendingKey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager"
+          $pendingBefore = @((Get-ItemProperty -Path $pendingKey -Name PendingFileRenameOperations -ErrorAction SilentlyContinue).PendingFileRenameOperations)
           $p = Start-Process msiexec -Wait -PassThru -ArgumentList "/i `"$msi`" /quiet /qn /norestart /l*v upgrade-running.log"
-          if ($p.ExitCode -eq 0) { Get-Content upgrade-running.log -Tail 120; throw "the upgrade must refuse while a server is running out of the tree" }
-          if (-not (Select-String -Path upgrade-running.log -Pattern "CheckServerNotRunning" -Quiet)) { Get-Content upgrade-running.log -Tail 60; throw "the refusal must come from CheckServerNotRunning" }
+          # Exactly 1603 (custom action 1722), for the reason spelled out in the StartPending
+          # scenario above: 3010 is what a guard that fails open produces here, and "-ne 0"
+          # cannot tell the two apart. The action name alone cannot either - it is written to
+          # the log whether the action refused or waved the upgrade through.
+          if ($p.ExitCode -ne 1603) { Get-Content upgrade-running.log -Tail 120; throw "the upgrade must refuse while a server is running out of the tree (expected 1603, got $($p.ExitCode))" }
+          if (-not (Select-String -Path upgrade-running.log -Pattern "CheckServerNotRunning\. Return value 3" -Quiet)) { Get-Content upgrade-running.log -Tail 60; throw "the refusal must come from CheckServerNotRunning" }
+          # The signature of the fail-open, and the damage it does: RemoveExistingProducts
+          # cannot rename a jar the JVM holds, so it leaves a delete-on-reboot entry naming
+          # the path the new jar occupies. A refusal leaves none.
+          $pendingAfter = @((Get-ItemProperty -Path $pendingKey -Name PendingFileRenameOperations -ErrorAction SilentlyContinue).PendingFileRenameOperations)
+          $pendingNew = $pendingAfter | Where-Object { $_ -and $pendingBefore -notcontains $_ }
+          if ($pendingNew) { throw "the refused upgrade still scheduled files for delete-on-reboot: $($pendingNew -join '; ')" }
           if (-not (Test-Path "$root\config\config.ldif")) { throw "the refused upgrade damaged the instance" }
           & "$root\bat\ldapsearch.bat" --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
           if ($LASTEXITCODE -ne 0) { throw "the refused upgrade disturbed the running server" }

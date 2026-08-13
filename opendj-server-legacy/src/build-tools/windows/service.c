@@ -974,8 +974,10 @@ ServiceReturnCode createServiceBinPath(char* serviceBinPath)
 // product. All commands are supposed to be unique because they have
 // the instance dir as parameter.
 //
-// The functions returns SERVICE_RETURN_OK if we could get a service name
-// and SERVICE_RETURN_ERROR otherwise.
+// The functions returns SERVICE_RETURN_OK if we could get a service name,
+// SERVICE_LIST_UNAVAILABLE if the list of services could not be read at all -
+// which callers must not read as "no such service" - and SERVICE_RETURN_ERROR
+// when the list was read and held no match.
 // The serviceName buffer must be allocated OUTSIDE the function and its
 // minimum size must be of 256 (the maximum string length of a Service Name).
 // ----------------------------------------------------

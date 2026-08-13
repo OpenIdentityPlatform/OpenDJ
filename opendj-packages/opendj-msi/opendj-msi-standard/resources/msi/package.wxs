@@ -73,28 +73,35 @@
         <FileSearch Id="LegacyX86Setup" Name="setup.bat"/>
       </DirectorySearch>
     </Property>
-    <!-- The same question asked about the directory the ADMINISTRATOR named: does it hold a
-         server? AppSearch runs before every SetProperty below, so [OPENDJ] here can only be
-         what the command line put there - the same window OpendjDirGiven is read in, and the
-         reason this says "named" rather than "resolved". It is what separates a relocation
-         (the named directory is new or empty, and the instance data would be stranded) from
-         an upgrade of a server the searches cannot see (the named directory holds it), which
-         is the only distinction the second guard below is missing.
+    <!-- The same question asked about the directory this install is aimed at: does it hold a
+         server? It is what separates a relocation (the target is new or empty, and the
+         instance data would be stranded) from an upgrade of a server the searches cannot see
+         (the target holds it), which is the only distinction the second guard below is
+         missing.
+         AppSearch runs before every SetProperty below, so in a silent install [OPENDJ] here
+         is what the command line put there - the same window OPENDJ_GIVEN is captured in. A
+         full-UI session runs AppSearch twice: once in the client with the same command-line
+         value, and again in the execute sequence, by which point OPENDJ has arrived from the
+         client fully resolved. So the property means "the NAMED directory holds a server"
+         silently and "the TARGET directory holds a server" in the wizard. Both readings suit
+         the guard, which pairs it with OPENDJ_GIVEN - and OPENDJ_GIVEN passes only when the
+         resolved OPENDJ starts with the named path, so the two agree on which directory is
+         meant whenever the exception applies at all.
          When OPENDJ is empty the path does not expand to a full path and, with no Parent and
          the default depth of zero, the installer looks for setup.bat in the root of each
          fixed drive instead. That costs a handful of stat calls and cannot change a decision:
-         every use of this property is paired with OpendjDirGiven, which is unset in exactly
+         every use of this property is paired with OPENDJ_GIVEN, which is unset in exactly
          that case.
          Public, because a search property has to be (WIX0012: AppSearch cannot fill a
-         private one) - so unlike OpendjDirGiven it CAN be handed in on the command line,
-         and AppSearch only overwrites what it finds. The guard below therefore does not
-         test it for truth: it requires the value to be the setup.bat inside the directory
-         that was named (OPENDJ_GIVEN_INSTALL ~>< OPENDJ, the search sets it to the full
-         path of the file found). OPENDJ_GIVEN_INSTALL=1 no longer says anything. That
-         makes it not a switch rather than a lock - a value spelled out as the path inside
-         the named directory would still pass, which is deliberate construction rather
-         than a slip. Not Secure: only the client-side guard reads it, so it has no reason
-         to reach the elevated server process. -->
+         private one), so it CAN be handed in on the command line, and AppSearch only
+         overwrites what it finds. The guard below therefore does not test it for truth: it
+         requires the value to be the setup.bat inside the directory concerned
+         (OPENDJ_GIVEN_INSTALL ~>< OPENDJ, the search sets it to the full path of the file
+         found). OPENDJ_GIVEN_INSTALL=1 no longer says anything. That makes it not a switch
+         rather than a lock - a value spelled out as the path inside that directory would
+         still pass, which is deliberate construction rather than a slip. Not Secure because
+         it does not need to be: AppSearch re-runs in the execute sequence and fills it there,
+         so unlike OPENDJ_GIVEN it depends on no client-to-server transfer. -->
     <Property Id="OPENDJ_GIVEN_INSTALL">
       <DirectorySearch Id="GivenInstallCheck" Path="[OPENDJ]">
         <FileSearch Id="GivenSetup" Name="setup.bat"/>
@@ -125,33 +132,52 @@
                       Name="ImagePath" Type="raw"/>
     </Property>
 
-    <!-- Whether the target directory was NAMED rather than guessed: the answer the first
-         guard below accepts from an administrator whose old server really does live in
-         the default directory. Read before AppSearch, where OPENDJ can only hold what the
-         command line put there - the searches have not run, no SetProperty below has
-         fired, and CostFinalize has not yet resolved it as a directory property.
-         Sequence="first" is what keeps that true in a UI session: it runs in the UI
-         sequence, and in the execute sequence only when no UI sequence ran in the same
-         process (the msidbCustomActionTypeFirstSequence bit). Without it, a full-UI
-         install would set the property every time - CostFinalize and InstallDirDlg have
-         populated OPENDJ long before the execute sequence starts there - and the guard
-         would never fire in the wizard. It still does: a GUI session that names nothing
-         gets the refusal, which is the whole reason these guards are not scheduled in the
-         UI sequence - browsing to the old server in InstallDirDlg makes the comparison
-         fail and the install proceed.
-         What the browse dialog canNOT do is confirm the default directory itself: this
-         property is read before AppSearch, InstallDirDlg runs far later and never sets it,
-         so a wizard that browses to [ProgramFiles64Folder]OpenDJ arrives at the guard with
-         exactly the values a "Next, Next, Install" session has. An old server that really
-         lives there therefore has one route only, the command line, and the refusal message
-         says so rather than promising a dialog that cannot help. Publishing the property
-         from InstallDirDlg would restore the promise and the data-loss path with it.
-         Private (mixed case) on purpose: the installer neither accepts it from the
-         command line nor passes it to the server, so it cannot be used to switch the
-         guard off, and the guards are immediate actions running client-side, where the
-         property is visible. -->
-    <SetProperty Id="OpendjDirGiven" Before="AppSearch" Sequence="first"
-                 Value="1" Condition="OPENDJ"/>
+    <!-- The directory that was NAMED rather than guessed: the answer the first guard below
+         accepts from an administrator whose old server really does live in the default
+         directory. Captured before AppSearch, where OPENDJ can only hold what the command
+         line put there - the searches have not run, no SetProperty below has fired, and
+         CostFinalize has not yet resolved it as a directory property.
+         Sequence="first" is what keeps that true in a UI session: the action runs in the UI
+         sequence, and in the execute sequence only when no UI sequence ran at all (the
+         msidbCustomActionTypeFirstSequence bit). Without it, a full-UI install would set the
+         property every time - CostFinalize and InstallDirDlg have populated OPENDJ long
+         before the execute sequence starts there - and the guards would never fire in the
+         wizard.
+         Public and Secure, holding the named path rather than a flag. An earlier version of
+         this made it a PRIVATE property set to "1", on the reasoning that the guards are
+         immediate actions and therefore run client-side, where a private property is
+         visible. They do not: "the execute sequence table is processed in the installer
+         service" whenever the service is registered, which it is by default, and immediate
+         only means the action impersonates the invoking user inside that process. Private
+         properties "cannot [be set] in the user interface phase of the installation and then
+         pass[ed] ... to the execution phase", and Sequence="first" skips the action in the
+         execute sequence once the UI sequence has run - so a private flag was empty at the
+         guards in EVERY full-UI session, including one started with OPENDJ= on the command
+         line, which is the single route this package's refusal messages and the install
+         guide prescribe. The wizard therefore refused the documented workaround, and the
+         exception in guard (2) below could never apply. No CI scenario could see it: all 42
+         msiexec calls in build.yml are /qn, and the UI sequence is not processed below full
+         UI level.
+         Public means the command line can hand it in, so the value carries the weight rather
+         than the presence: the guards require the resolved OPENDJ to START WITH it (~<< in
+         the condition, not ~=: the captured value is the raw command-line string and the resolved
+         one is a directory property carrying a trailing backslash), the same construction
+         OPENDJ_GIVEN_INSTALL above uses. OPENDJ_GIVEN=1 switches nothing off - no resolved
+         path begins with "1" - and a value that does pass has spelled out the directory the
+         install resolved to, which is precisely what naming it on the command line does.
+         Starts-with rather than contains for the same reason: "1" appears inside plenty of
+         real paths, at the start of none.
+         What no property can do is confirm the DEFAULT directory from the wizard: this one is
+         read before AppSearch, InstallDirDlg runs far later and never sets it, so a session
+         that browses to [ProgramFiles64Folder]OpenDJ arrives at the guard with exactly the
+         values a "Next, Next, Install" session has. An old server that really lives there
+         therefore has one route only, the command line - which now works in the wizard as
+         well as silently - and the refusal message says so rather than promising a dialog
+         that cannot help. Publishing the property from InstallDirDlg would restore the
+         promise and the data-loss path with it. -->
+    <Property Id="OPENDJ_GIVEN" Secure="yes"/>
+    <SetProperty Id="OPENDJ_GIVEN" Before="AppSearch" Sequence="first"
+                 Value="[OPENDJ]" Condition="OPENDJ"/>
     <SetProperty Id="OPENDJ" Action="SetOpendjFromRegistry" After="AppSearch"
                  Sequence="both" Value="[OPENDJ_REG]" Condition="OPENDJ_REG AND NOT OPENDJ"/>
     <!-- NOT Installed is true during a major upgrade as well (the new ProductCode is not
@@ -201,12 +227,14 @@
          real installation elsewhere and InstallFiles landed on top of the stranger.
          Selecting the real directory in InstallDirDlg, or passing OPENDJ, makes the
          comparison fail and the install proceed as before; naming the DEFAULT directory
-         on the command line proceeds through OpendjDirGiven, which is the way out for an
+         on the command line proceeds through OPENDJ_GIVEN, which is the way out for an
          old server that really does live there - 5.1.x installed into it recorded
          nothing, so the package cannot tell that tree from the decoy on its own and has
-         to be told. Only the command line: see OpendjDirGiven above for why the wizard
+         to be told. Only the command line: see OPENDJ_GIVEN above for why the wizard
          cannot confirm the default directory, and the message below for what it says
-         instead.
+         instead. The command line does work WITH the wizard, which is what OPENDJ_GIVEN
+         being public and secure buys: msiexec /i opendj.msi OPENDJ="..." and then click
+         through the dialogs reaches this guard with the property intact.
 
          Residual: the same decoy in the LEGACY default directory is not detectable when
          nothing is named. SetOpendjFromLegacyDir adopts it, so the resolved directory is
@@ -239,7 +267,7 @@
          relocation. Without it the two guards contradicted each other - the only way past
          a decoy in the legacy default is to name the real directory, and naming it made
          this branch refuse, leaving that installation with no upgrade path at all. The
-         exception is deliberately narrow: it needs both OpendjDirGiven (the directory came
+         exception is deliberately narrow: it needs both OPENDJ_GIVEN (the directory came
          from the command line, not from a search or a dialog) and a setup.bat found INSIDE
          that directory (OPENDJ_GIVEN_INSTALL holds its full path, so requiring the path to
          contain the resolved OPENDJ is both the "a server is there" test and the reason a
@@ -253,7 +281,23 @@
          being upgraded lives elsewhere now proceeds and strands that installation's data.
          Directory evidence cannot tell the two apart at all, and between refusing the
          documented workaround and trusting an explicit instruction, the explicit
-         instruction wins. -->
+         instruction wins.
+         Second residual, and the reason the exception asks for OPENDJ_GIVEN rather than the
+         setup.bat evidence alone: in that decoy topology a wizard session that BROWSES to
+         the real directory is still refused, because browsing sets no property this guard
+         can read - InstallDirDlg runs long after the capture point above. It is the safe
+         half of the wizard's behaviour (nothing is installed and nothing is removed) and the
+         message names the command line, which now works in a wizard session too. Widening
+         the exception to "the target holds a server, however it was chosen" would cover it,
+         at the cost of letting a hand-passed OPENDJ_GIVEN_INSTALL stand alone. -->
+    <!-- Both guards ask about properties that must be visible in the EXECUTE sequence, which
+         is processed in the installer service: only public properties reach it, and only the
+         secured ones reach it for a non-administrator. Every property named in the two
+         conditions below is therefore public (WIX_UPGRADE_DETECTED, OPENDJ, OPENDJ_DEFAULT,
+         OPENDJ_REG, OPENDJ_GIVEN, OPENDJ_LEGACY_INSTALL, OPENDJ_LEGACY_DEFAULT,
+         OPENDJ_GIVEN_INSTALL), and build.yml asserts that in the built MSI - a private
+         property here reads as empty and silently inverts a guard, which is exactly what
+         happened to the OpendjDirGiven flag these conditions used to carry. -->
     <CustomAction Id="RequireDirOnCustomUpgrade"
                   Error="An existing OpenDJ installation was detected, but its location could not be determined: 32-bit packages recorded none. Select the existing installation directory in the wizard, or pass it explicitly: msiexec /i opendj.msi OPENDJ=&quot;C:\path\to\opendj&quot;. If that installation is the default directory itself, the command line is the only way - the wizard cannot tell a confirmed default from an unchanged one."/>
     <CustomAction Id="RefuseRelocatingUpgrade"
@@ -351,21 +395,39 @@
          pending state to read here, so a server that is genuinely up pays the whole minute
          before the refusal - which is the right way round, since the alternative is
          refusing an upgrade whose server did stop.
-         Anything but a plain IOException means the question could not be asked rather than
-         answered - a read-only handle under Program Files, the file gone between the test
-         and the open, both of which are subclasses - and lets the upgrade proceed. A held
-         byte-range lock and a sharing violation are the IOException itself. That is the same fail-open the
-         swallowed 'net stop' has, and for the same reason: an immediate action impersonates
-         the invoking user, who under the filtered token of a UAC double-click may not be
-         able to open a file the elevated install would replace happily. -->
+         A held byte-range lock and a sharing violation raise IOException, and only that is
+         retried; anything else means the question could not be asked rather than answered -
+         a read-only handle or a denied open under Program Files - and lets the upgrade
+         proceed. That is the same fail-open the swallowed 'net stop' has, and for the same
+         reason: an immediate action impersonates the invoking user, who under the filtered
+         token of a UAC double-click may not be able to open a file the elevated install
+         would replace happily. The file going away between the test and the open raises an
+         IOException subclass, so it costs one sleep before Test-Path lets the next pass out
+         at exit 0.
+         The typed 'catch [System.IO.IOException]' is load-bearing and has to be a TYPE, not
+         a name comparison: PowerShell wraps anything thrown out of a .NET method or
+         constructor in a MethodInvocationException, so inside a plain catch-all
+         $_.Exception is that wrapper and the real exception is its InnerException. An
+         earlier version of this action asked $_.Exception.GetType().FullName -ne
+         'System.IO.IOException' and so took the fail-open branch on EVERY exception,
+         including the held lock it exists to detect: the exit 1 was unreachable and the CI
+         scenario that covers it passed on msiexec 3010 - the upgrade going through and
+         deferring the locked jars to a reboot - instead of the 1603 a refusal produces. A
+         typed catch matches on the inner exception; wait-server-stopped.ps1 has always had
+         it, and the copy inlined here had lost it. build.yml now runs this very command
+         against a real held lock, extracted from the built MSI.
+         [\[] and [\]] are the Formatted-field escapes for literal brackets: ExeCommand
+         resolves [property] references, so an unescaped [System.IO.IOException] would be
+         substituted away, leaving two catch-all blocks and a script that fails to parse -
+         which this time would refuse every upgrade rather than none. -->
     <CustomAction Id="CheckServerNotRunning" Directory="TARGETDIR"
-                  ExeCommand="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -NonInteractive -Command &quot;$lock = '[OPENDJ]locks\server.lock'; $deadline = (Get-Date).AddSeconds(60); do { if (-not (Test-Path $lock)) { exit 0 }; try { $fs = New-Object System.IO.FileStream($lock, 'Open', 'ReadWrite', 'ReadWrite'); try { $fs.Lock(0, 1); $fs.Unlock(0, 1); exit 0 } finally { $fs.Close() } } catch { if ($_.Exception.GetType().FullName -ne 'System.IO.IOException') { exit 0 }; Start-Sleep -Seconds 2 } } while ((Get-Date) -lt $deadline); exit 1&quot;"
+                  ExeCommand="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -NonInteractive -Command &quot;$lock = '[OPENDJ]locks\server.lock'; $deadline = (Get-Date).AddSeconds(60); do { if (-not (Test-Path $lock)) { exit 0 }; try { $fs = New-Object System.IO.FileStream($lock, 'Open', 'ReadWrite', 'ReadWrite'); try { $fs.Lock(0, 1); $fs.Unlock(0, 1); exit 0 } finally { $fs.Close() } } catch [\[]System.IO.IOException[\]] { Start-Sleep -Seconds 2 } catch { exit 0 } } while ((Get-Date) -lt $deadline); exit 1&quot;"
                   Execute="immediate" Return="check"/>
     <InstallExecuteSequence>
       <Custom Action="RequireDirOnCustomUpgrade" After="CostFinalize"
-              Condition="WIX_UPGRADE_DETECTED AND (OPENDJ ~= OPENDJ_DEFAULT) AND NOT OPENDJ_REG AND NOT OpendjDirGiven"/>
+              Condition="WIX_UPGRADE_DETECTED AND (OPENDJ ~= OPENDJ_DEFAULT) AND NOT OPENDJ_REG AND NOT (OPENDJ_GIVEN AND (OPENDJ ~&lt;&lt; OPENDJ_GIVEN))"/>
       <Custom Action="RefuseRelocatingUpgrade" After="RequireDirOnCustomUpgrade"
-              Condition="WIX_UPGRADE_DETECTED AND ((OPENDJ_REG AND (OPENDJ_REG ~&lt;&gt; OPENDJ)) OR (NOT OPENDJ_REG AND OPENDJ_LEGACY_INSTALL AND (OPENDJ_LEGACY_DEFAULT ~&lt;&gt; OPENDJ) AND NOT (OpendjDirGiven AND (OPENDJ_GIVEN_INSTALL ~&gt;&lt; OPENDJ))))"/>
+              Condition="WIX_UPGRADE_DETECTED AND ((OPENDJ_REG AND (OPENDJ_REG ~&lt;&gt; OPENDJ)) OR (NOT OPENDJ_REG AND OPENDJ_LEGACY_INSTALL AND (OPENDJ_LEGACY_DEFAULT ~&lt;&gt; OPENDJ) AND NOT (OPENDJ_GIVEN AND (OPENDJ ~&lt;&lt; OPENDJ_GIVEN) AND (OPENDJ_GIVEN_INSTALL ~&gt;&lt; OPENDJ))))"/>
       <Custom Action="StopServiceBeforeUpgrade" Before="CheckServiceStopped"
               Condition="WIX_UPGRADE_DETECTED AND (OPENDJ_SVC_IMAGEPATH ~&gt;&lt; OPENDJ)"/>
       <Custom Action="CheckServiceStopped" Before="CheckServerNotRunning"
