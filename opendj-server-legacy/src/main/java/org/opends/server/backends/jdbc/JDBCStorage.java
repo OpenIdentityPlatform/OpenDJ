@@ -219,6 +219,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			}
 		});
 
+	/**
+	 * Returns the placeholder to compare against the {@code h} column, casting it where the driver would
+	 * otherwise bind a value of the wrong type.
+	 * <p>
+	 * The SQL Server driver sends {@link PreparedStatement#setString} parameters as NVARCHAR, and under a SQL
+	 * collation comparing the {@code char(128)} column against an NVARCHAR value converts the column instead of
+	 * the value: the primary key can no longer be sought, so every statement scans the whole table rather than
+	 * reading one row. The upsert runs that scan under HOLDLOCK, which range-locks the entire table instead of
+	 * the single key being written - the lock footprint that lets concurrent writers deadlock (error 1205).
+	 * Casting the parameter back to char keeps the comparison seekable.
+	 */
+	static String hashParam(Connection con) {
+		return ((CachedConnection) con).parent.getClass().getName().contains("microsoft") ? "cast(? as char(128))" : "?";
+	}
+
 	private class ReadableTransactionImpl implements ReadableTransaction {
 		final Connection con;
 		boolean isReadOnly=true;
@@ -229,7 +244,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
-			try (final PreparedStatement statement=con.prepareStatement("select v from "+getTableName(treeName)+" where h=? and k=?")){
+			try (final PreparedStatement statement=con.prepareStatement("select v from "+getTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
 				try(ResultSet rc=executeResultSet(statement)) {
@@ -403,8 +418,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					statement.setBytes(3, value.toByteArray());
 					return (execute(statement) == 1 && statement.getUpdateCount() > 0);
 				}
-			}else if (driverName.contains("microsoft")) { //ANSI MERGE with ; WITH (HOLDLOCK) makes the upsert atomic: without it SQL Server MERGE can race two concurrent NOT MATCHED inserts of the same key into a PRIMARY KEY violation. UPDLOCK is required on top of it: with HOLDLOCK alone the search phase takes a shared lock that the WHEN MATCHED update then has to convert to an exclusive one, so two concurrent upserts of the same key deadlock on the conversion; an update lock is taken right away and makes the second transaction wait instead
-				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " WITH (HOLDLOCK, UPDLOCK) old using (select ? h,? k,? v) new on (old.h=new.h and old.k=new.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v);")) {
+			}else if (driverName.contains("microsoft")) { //ANSI MERGE with ; WITH (HOLDLOCK) makes the upsert atomic: without it SQL Server MERGE can race two concurrent NOT MATCHED inserts of the same key into a PRIMARY KEY violation. UPDLOCK is required on top of it: with HOLDLOCK alone the search phase takes a shared lock that the WHEN MATCHED update then has to convert to an exclusive one, so two concurrent upserts of the same key deadlock on the conversion; an update lock is taken right away and makes the second transaction wait instead. h is cast back to char so that the join can seek the primary key instead of scanning the whole table under those locks, see hashParam()
+				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " WITH (HOLDLOCK, UPDLOCK) old using (select cast(? as char(128)) h,? k,? v) new on (old.h=new.h and old.k=new.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v);")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
@@ -453,7 +468,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public boolean delete(TreeName treeName, ByteSequence key) {
-			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName)+" where h=? and k=?")){
+			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
 				return (execute(statement)==1 && statement.getUpdateCount()>0);
@@ -572,7 +587,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (isReadOnly) {
 				throw new UnsupportedOperationException();
 			}
-			try (final PreparedStatement statement=con.prepareStatement("delete from "+tableName+" where h=? and k=?")){
+			try (final PreparedStatement statement=con.prepareStatement("delete from "+tableName+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(db2real(currentKeyDb))));
 				statement.setBytes(2,currentKeyDb);
 				execute(statement);
@@ -616,7 +631,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		@Override
 		public boolean positionToKey(ByteSequence key) {
 			final byte[] real=key.toByteArray();
-			try (final PreparedStatement statement=con.prepareStatement("select v from "+tableName+" where h=? and k=?")){
+			try (final PreparedStatement statement=con.prepareStatement("select v from "+tableName+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(real)));
 				statement.setBytes(2,real2db(real));
 				try(final ResultSet rc=executeResultSet(statement)) {
