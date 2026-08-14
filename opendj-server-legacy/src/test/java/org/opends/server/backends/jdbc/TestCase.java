@@ -40,6 +40,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -374,6 +375,136 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		}
 	}
 
+	void writeTableComment(String tableName, String comment) throws Exception {
+		final String url = getJdbcUrl();
+		final String sql;
+		if (url.startsWith("jdbc:postgresql") || url.startsWith("jdbc:oracle")) {
+			sql = "comment on table " + tableName + " is '" + comment + "'";
+		} else if (url.startsWith("jdbc:mysql")) {
+			sql = "alter table " + tableName + " comment '" + comment + "'";
+		} else if (url.startsWith("jdbc:sqlserver")) {
+			// exec arguments must be constants or variables: schema_name() cannot be passed inline
+			sql = "declare @s sysname = schema_name()"
+				+ " exec sys.sp_updateextendedproperty N'MS_Description', N'" + comment + "', N'SCHEMA', @s, N'TABLE', N'" + tableName + "'";
+		} else {
+			throw new SkipException("no table comment statement for " + url);
+		}
+		try (final Connection con = DriverManager.getConnection(url);
+			 final Statement st = con.createStatement()) {
+			st.execute(sql);
+		}
+	}
+
+	/**
+	 * Comment statements are DDL (a metadata lock on mysql, a ddl lock on oracle), so a table
+	 * whose stored comment already matches its tree name must not be re-stamped on subsequent
+	 * opens - while a stale comment must be refreshed.
+	 */
+	@Test
+	public void testCommentStampSkippedWhenAlreadyStored() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("o=commentSkip", "dn2id");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true); // stamps the freshly created table
+				}
+			});
+			assertEquals(readTableComment(storage.getTableName(tree)), tree.toString());
+			assertFalse(storage.commentTable(tree), "an up-to-date comment was re-stamped");
+			writeTableComment(storage.getTableName(tree), "stale");
+			assertTrue(storage.commentTable(tree), "a stale comment was not re-stamped");
+			assertEquals(readTableComment(storage.getTableName(tree)), tree.toString());
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * A failing comment stamp must never disturb the transaction that opened the tree: it used
+	 * to roll back the caller's connection, silently discarding writes pending in the same
+	 * transaction (the way DefaultIndex.afterOpen() writes the trusted flag between openTree() calls).
+	 */
+	@Test
+	public void testCommentFailureLeavesTransactionIntact() throws Exception {
+		final TreeName tree = new TreeName("o=commentFailure", "dn2id");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
+			@Override
+			String readStoredComment(Connection con, String tableName) throws SQLException {
+				throw new SQLException("injected comment readback failure");
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true); // create the table up front
+				}
+			});
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.put(tree, key(1), value(1)); // pending in this transaction...
+					txn.openTree(tree, true); // ...while the comment machinery fails
+				}
+			});
+			storage.read(new ReadOperation<Void>() {
+				@Override
+				public Void run(ReadableTransaction txn) throws Exception {
+					assertEquals(txn.read(tree, key(1)), value(1), "failing comment stamp discarded a pending write");
+					return null;
+				}
+			});
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/** deleteTree() must forget the tree: statistics refresh iterates known trees and must skip dropped tables. */
+	@Test
+	public void testDeleteTreeForgetsTree() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("o=deleteTree", "dn2id");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			assertTrue(storage.listTrees().contains(tree));
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.deleteTree(tree);
+				}
+			});
+			assertFalse(storage.listTrees().contains(tree), "deleteTree() left the tree in the tree-to-table cache");
+		} finally {
+			storage.close();
+		}
+	}
+
 	/** A bulk import must refresh optimizer statistics: fresh tables were never analyzed (#859). */
 	@Test
 	public void testImportRefreshesTableStatistics() throws Exception {
@@ -396,7 +527,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			// import swallows statistics failures by design: assert directly that the
 			// dialect-specific refresh statement is accepted by this database
 			try (final Connection con = CachedConnection.getConnection(getJdbcUrl())) {
-				assertTrue(storage.updateTableStatistics(con), "statistics refresh reported failures");
+				assertTrue(storage.updateTableStatistics(con, Collections.singleton(tree)), "statistics refresh reported failures");
 			}
 		} finally {
 			try {

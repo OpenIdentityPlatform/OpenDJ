@@ -39,6 +39,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.opends.server.backends.pluggable.spi.StorageUtils.addErrorMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -165,50 +166,68 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		return ((CachedConnection) con).parent.getClass().getName();
 	}
 
-	// The comment DDL takes no bind parameters, so the value is spliced into a single-quoted SQL
-	// literal: verify every quote in the escaped value is paired and thus cannot terminate the literal.
-	private static void requireQuotesPaired(String escaped) {
+	// Splices a value into a single-quoted SQL literal for the comment DDL, which takes no bind
+	// parameters: doubles every quote, and every backslash on dialects where backslash is an
+	// escape character inside literals. The scan of the escaped result is defence in depth: it
+	// re-verifies that no quote (or live backslash) is left unpaired and able to terminate the
+	// literal, so a regression in the escaping throws instead of reaching the database.
+	private static String sqlLiteral(String value, boolean backslashIsEscape) {
+		final String escaped=(backslashIsEscape?value.replace("\\","\\\\"):value).replace("'","''");
 		for (int i=0;i<escaped.length();i++) {
-			if (escaped.charAt(i)=='\'') {
-				if (i+1>=escaped.length() || escaped.charAt(i+1)!='\'') {
-					throw new IllegalArgumentException("unpaired quote in SQL literal: "+escaped);
+			final char c=escaped.charAt(i);
+			if (c=='\'' || (backslashIsEscape && c=='\\')) {
+				if (i+1>=escaped.length() || escaped.charAt(i+1)!=c) {
+					throw new IllegalArgumentException("unpaired "+c+" in SQL literal: "+escaped);
 				}
 				i++;
 			}
 		}
+		return "'"+escaped+"'";
 	}
 
 	// Table names are opaque SHA-224 hashes, so on the database side there is no way to tell
 	// which tree a table holds. Stamp each table with its tree name (visible in "\dt+" and the
 	// information schema) so database-level troubleshooting does not require recomputing hashes.
-	// The comment is a diagnostic aid: failing to store it must not fail the backend.
-	void commentTable(Connection con, TreeName treeName) {
+	// Runs on a dedicated pooled connection, never on the transaction that opened the tree:
+	// comment statements are DDL (an implicit commit on mysql and oracle), and a failing
+	// sp_addextendedproperty rolls the whole transaction back on sql server - either would
+	// corrupt work pending on the caller's connection (e.g. the trusted flag written by
+	// DefaultIndex.afterOpen()). Returns true when the comment was stamped; the comment is a
+	// diagnostic aid, so a failed attempt only returns false and must not fail the backend.
+	boolean commentTable(TreeName treeName) {
 		final String tableName=getTableName(treeName);
-		try {
+		try (final Connection con=getConnection()) {
+			final String driverName=driverNameOf(con);
+			final boolean postgres=driverName.contains("postgres");
+			final boolean mysql=driverName.contains("mysql");
+			final boolean oracle=driverName.contains("oracle");
+			final boolean microsoft=driverName.contains("microsoft");
+			if (!postgres && !mysql && !oracle && !microsoft) { // no comment syntax and readback known for other engines: leave the table unstamped
+				return false;
+			}
 			final String treeComment=treeName.toString();
 			// comment statements are DDL (metadata lock on mysql, ddl lock on oracle) and openTree()
 			// runs on every backend open: only stamp when the stored comment is absent or stale
 			if (treeComment.equals(readStoredComment(con, tableName))) {
-				return;
+				return false;
 			}
 			final String sql;
 			final String[] args;
-			if (driverNameOf(con).contains("mysql")) { // ALTER TABLE takes no binds; backslash is an escape character in mysql literals
-				final String comment=treeComment.replace("\\","\\\\").replace("'","''");
-				requireQuotesPaired(comment);
-				sql="alter table "+tableName+" comment '"+comment+"'";
+			if (mysql) { // ALTER TABLE takes no binds; backslash is an escape character in mysql literals
+				sql="alter table "+tableName+" comment "+sqlLiteral(treeComment,true);
 				args=NO_ARGS;
-			}else if (driverNameOf(con).contains("microsoft")) { // no COMMENT ON in t-sql: MS_Description extended property (procedure arguments take binds)
+			}else if (microsoft) { // no COMMENT ON in t-sql: MS_Description extended property (procedure arguments take binds)
 				sql="declare @s sysname = schema_name()"
 					+" if exists (select 1 from sys.extended_properties where class=1 and major_id=object_id(?) and minor_id=0 and name='MS_Description')"
 					+" exec sys.sp_updateextendedproperty N'MS_Description', ?, N'SCHEMA', @s, N'TABLE', ?"
 					+" else"
 					+" exec sys.sp_addextendedproperty N'MS_Description', ?, N'SCHEMA', @s, N'TABLE', ?";
 				args=new String[]{tableName, treeComment, tableName, treeComment, tableName};
-			}else { // postgres and oracle accept COMMENT ON TABLE (no binds in ddl); untested default for other engines
-				final String comment=treeComment.replace("'","''");
-				requireQuotesPaired(comment);
-				sql="comment on table "+tableName+" is '"+comment+"'";
+			}else if (postgres) { // no binds in ddl; the E'' form keeps backslash an escape character regardless of standard_conforming_strings
+				sql="comment on table "+tableName+" is E"+sqlLiteral(treeComment,true);
+				args=NO_ARGS;
+			}else { // oracle: no binds in ddl; backslash is never an escape character in oracle literals
+				sql="comment on table "+tableName+" is "+sqlLiteral(treeComment,false);
 				args=NO_ARGS;
 			}
 			try (final PreparedStatement statement=con.prepareStatement(sql)) {
@@ -218,18 +237,17 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				executeAny(statement);
 				con.commit();
 			}
-		}catch (SQLException|RuntimeException e) {
-			try {
-				con.rollback();
-			} catch (SQLException e2) {}
+			return true;
+		}catch (Exception e) { // CachedConnection.close() has rolled back whatever the failed attempt left pending
 			logger.debug(LocalizableMessage.raw("jdbc: unable to comment table %s with tree name %s: %s",
 				tableName, treeName, stackTraceToSingleLineString(e)));
+			return false;
 		}
 	}
 
-	// Returns the comment currently stored on the table, or null when there is none
-	// (or the dialect has no known readback: the caller then stamps unconditionally).
-	private String readStoredComment(Connection con, String tableName) throws SQLException {
+	// Returns the comment currently stored on the table, or null when there is none.
+	// Only called for the four dialects commentTable() recognizes.
+	String readStoredComment(Connection con, String tableName) throws SQLException {
 		final String driverName=driverNameOf(con);
 		final String sql;
 		final String arg;
@@ -246,7 +264,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			sql="select cast(value as nvarchar(4000)) from sys.extended_properties where class=1 and major_id=object_id(?) and minor_id=0 and name='MS_Description'";
 			arg=tableName;
 		}else {
-			return null;
+			throw new SQLException("no table comment readback for "+driverName);
 		}
 		try (final PreparedStatement statement=con.prepareStatement(sql)) {
 			statement.setString(1,arg);
@@ -259,9 +277,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// A bulk load leaves the optimizer statistics of freshly created tables stale (a table that
 	// was never analyzed can make the planner badly misestimate the "where k>? order by k" cursor
 	// batches - see OpenIdentityPlatform/OpenDJ#859), so refresh them once the data is in place.
-	// Statistics upkeep is best-effort: a failure must not fail the import that produced the data,
-	// so failures are only logged - the return value makes them observable to tests.
-	boolean updateTableStatistics(Connection con) {
+	// Only the trees the import actually wrote are refreshed: rebuild-index imports a few index
+	// trees, and gathering statistics of the whole backend on its behalf is a full scan per
+	// table on oracle. Statistics upkeep is best-effort: a failure must not fail the import that
+	// produced the data, so failures are only logged - the return value makes them observable to tests.
+	boolean updateTableStatistics(Connection con, Collection<TreeName> trees) {
 		final String driverName=driverNameOf(con);
 		final boolean postgres=driverName.contains("postgres");
 		final boolean mysql=driverName.contains("mysql");
@@ -271,7 +291,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			return true;
 		}
 		boolean allRefreshed=true;
-		for (final TreeName treeName : listTrees()) {
+		for (final TreeName treeName : trees) {
 			final String tableName=getTableName(treeName);
 			final String sql;
 			final String[] args;
@@ -344,6 +364,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				}
 			} catch (Exception e) {
 				throw new StorageRuntimeException(e);
+			}
+			// all tables are gone: forget the mappings so listTrees() consumers skip the dropped trees
+			for (final TreeName treeName : trees) {
+				tree2table.invalidate(treeName);
 			}
 		}
 		if (!isOpen) {
@@ -528,7 +552,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}
 				}
 				// mssql: k is varbinary(max), which cannot be an index key column - cursor batches stay unindexed there
-				commentTable(con, treeName);
+				commentTable(treeName);
 			}
 		}
 
@@ -866,9 +890,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		final Connection con;
 		final ReadableTransactionImpl txr;
 		final WriteableTransactionTransactionImpl txw;
+		// the trees this import wrote: close() refreshes the statistics of these and only these
+		final Set<TreeName> writtenTrees = ConcurrentHashMap.newKeySet();
 
 		final Boolean isOpen;
-		
+
 		public ImporterImpl() {
 			isOpen=getStorageStatus().isWorking();
 			if (!isOpen) {
@@ -890,25 +916,31 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		@Override
 		public void close() {
 			try {
-				con.commit();
-				updateTableStatistics(con);
-				con.close();
+				try {
+					con.commit();
+					updateTableStatistics(con, writtenTrees);
+				} finally { // the pooled connection must be returned even when the commit or a statistics statement throws
+					con.close();
+				}
 			} catch (SQLException e) {
 				throw new StorageRuntimeException(e);
-			}
-			if (!isOpen) {
-				JDBCStorage.this.close();
+			} finally {
+				if (!isOpen) {
+					JDBCStorage.this.close();
+				}
 			}
 		}
-		
+
 		@Override
 		public void clearTree(TreeName name) {
 			txw.clearTree(name);
+			writtenTrees.add(name);
 		}
-		
+
 		@Override
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
 			txw.put(treeName, key, value);
+			writtenTrees.add(treeName);
 		}
 		
 		@Override
