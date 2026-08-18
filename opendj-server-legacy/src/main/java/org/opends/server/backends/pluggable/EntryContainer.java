@@ -239,20 +239,23 @@ public class EntryContainer
       EntryContainer.this.lock();
       try
       {
-        storage.write(new WriteOperation()
+        // The write may be replayed by the storage, so the maps are updated outside of it: left inside, the second
+        // attempt would find nothing to delete and commit an empty transaction, reporting success for work that
+        // did not happen. The index may already be gone, since applyConfigurationAdd can fail after the config
+        // entry was persisted but before the index reached the map.
+        final AttributeIndex index = attrIndexMap.remove(cfg.getAttribute());
+        attrCryptoMap.remove(cfg.getAttribute());
+        if (index != null)
         {
-          @Override
-          public void run(WriteableTransaction txn) throws Exception
+          storage.write(new WriteOperation()
           {
-            // The write may be replayed by the storage, so the removal must tolerate having already happened.
-            final AttributeIndex index = attrIndexMap.remove(cfg.getAttribute());
-            if (index != null)
+            @Override
+            public void run(WriteableTransaction txn) throws Exception
             {
               index.closeAndDelete(txn);
             }
-            attrCryptoMap.remove(cfg.getAttribute());
-          }
-        });
+          });
+        }
       }
       catch (Exception de)
       {
@@ -326,19 +329,20 @@ public class EntryContainer
       EntryContainer.this.lock();
       try
       {
-        storage.write(new WriteOperation()
+        // Removed outside the write for the reason given in the index delete listener above: the write may be
+        // replayed, and a replay must still have the deletion to perform.
+        final VLVIndex vlvIndex = vlvIndexMap.remove(cfg.getName().toLowerCase());
+        if (vlvIndex != null)
         {
-          @Override
-          public void run(WriteableTransaction txn) throws Exception
+          storage.write(new WriteOperation()
           {
-            // The write may be replayed by the storage, so the removal must tolerate having already happened.
-            final VLVIndex vlvIndex = vlvIndexMap.remove(cfg.getName().toLowerCase());
-            if (vlvIndex != null)
+            @Override
+            public void run(WriteableTransaction txn) throws Exception
             {
               vlvIndex.closeAndDelete(txn);
             }
-          }
-        });
+          });
+        }
       }
       catch (Exception e)
       {

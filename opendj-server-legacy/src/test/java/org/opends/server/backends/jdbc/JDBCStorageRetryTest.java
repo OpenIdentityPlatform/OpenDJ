@@ -26,10 +26,11 @@ import java.sql.SQLException;
 import static org.forgerock.i18n.LocalizableMessage.raw;
 import static org.forgerock.opendj.ldap.ResultCode.OTHER;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Tests how a failure is classified as a transaction conflict, which is what decides whether
- * {@link JDBCStorage#write} and {@link JDBCStorage#read} replay the operation.
+ * {@link JDBCStorage#write} replays the operation, and how long it waits before it does.
  * <p>
  * Runs without a database: the failures the drivers report are reproduced as synthetic
  * {@link SQLException}s carrying the same vendor error number and SQLState.
@@ -38,6 +39,12 @@ import static org.testng.Assert.assertEquals;
 @SuppressWarnings("javadoc")
 public class JDBCStorageRetryTest extends DirectoryServerTestCase
 {
+  /** Driver class names, which is what the classification keys the vendor error numbers off. */
+  private static final String MSSQL = "com.microsoft.sqlserver.jdbc.SQLServerConnection";
+  private static final String MYSQL = "com.mysql.cj.jdbc.ConnectionImpl";
+  private static final String ORACLE = "oracle.jdbc.driver.T4CConnection";
+  private static final String POSTGRES = "org.postgresql.jdbc.PgConnection";
+
   /** A failure whose cause chain is a cycle, to check that walking it terminates. */
   private static final class SelfCausedException extends RuntimeException
   {
@@ -55,36 +62,66 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   {
     return new Object[][] {
       // SQL Server picking a transaction as the deadlock victim: the failure this retry exists for
-      { "mssql deadlock victim", sql(1205, "40001"), true },
-      // the xopenStates connection property makes the same driver report a state of no help here
-      { "mssql deadlock victim, xopenStates", sql(1205, "42000"), true },
-      // the conflict of the other engines is carried by the SQLState, under a vendor number of their own
-      { "postgres serialization failure", sql(0, "40001"), true },
-      { "postgres deadlock detected", sql(0, "40P01"), true },
-      { "mysql deadlock", sql(1213, "40001"), true },
+      { "mssql deadlock victim", sql(1205, "40001"), MSSQL, true },
+      // a deployment may add xopenStates=true to its connection URL, which reports the same deadlock as 42000
+      { "mssql deadlock victim, xopenStates", sql(1205, "42000"), MSSQL, true },
+      // the conflict of most other engines is carried by the SQLState, under a vendor number of their own
+      { "postgres serialization failure", sql(0, "40001"), POSTGRES, true },
+      { "postgres deadlock detected", sql(0, "40P01"), POSTGRES, true },
+      { "mysql deadlock", sql(1213, "40001"), MYSQL, true },
       // not a deadlock, but transient in the same way and equally resolved by a replay
-      { "mysql lock wait timeout", sql(1205, "HY000"), true },
+      { "mysql lock wait timeout", sql(1205, "HY000"), MYSQL, true },
+      // Oracle maps ORA-00060 to SQLState 61000, so only its error number identifies the deadlock
+      { "oracle deadlock detected", sql(60, "61000"), ORACLE, true },
 
       // the conflict reaches JDBCStorage.write() wrapped, so the whole cause chain has to be walked
-      { "wrapped once", new StorageRuntimeException(sql(1205, "40001")), true },
+      { "wrapped once", new StorageRuntimeException(sql(1205, "40001")), MSSQL, true },
       { "wrapped twice",
-        new DirectoryException(OTHER, raw("unchecked"), new StorageRuntimeException(sql(1205, "40001"))), true },
+        new DirectoryException(OTHER, raw("unchecked"), new StorageRuntimeException(sql(1205, "40001"))), MSSQL,
+        true },
+
+      // the vendor numbers collide across engines, so they must not be matched driver-independently:
+      // ORA-01205 "not a data file" is fatal, and no replay resolves it
+      { "oracle not a data file", sql(1205, "64000"), ORACLE, false },
+      // and a lock wait timeout is a MySQL number: 1205 means nothing of the kind to PostgreSQL
+      { "postgres unrelated 1205", sql(1205, "22001"), POSTGRES, false },
 
       // nothing a replay can resolve
-      { "primary key violation", sql(2627, "23000"), false },
-      { "syntax error", sql(102, "S0001"), false },
-      { "no SQLState", sql(0, null), false },
-      { "not a SQLException", new IllegalStateException("connection closed"), false },
-      { "wrapped, not a conflict", new StorageRuntimeException(sql(2627, "23000")), false },
-      { "no failure at all", null, false },
-      { "cyclic cause chain", new SelfCausedException(), false },
+      { "primary key violation", sql(2627, "23000"), MSSQL, false },
+      { "syntax error", sql(102, "S0001"), MSSQL, false },
+      { "no SQLState", sql(0, null), MSSQL, false },
+      { "not a SQLException", new IllegalStateException("connection closed"), MSSQL, false },
+      { "wrapped, not a conflict", new StorageRuntimeException(sql(2627, "23000")), MSSQL, false },
+      { "no failure at all", null, MSSQL, false },
+      { "unknown driver", sql(1205, "HY000"), null, false },
+      { "cyclic cause chain", new SelfCausedException(), MSSQL, false },
     };
   }
 
   @Test(dataProvider = "failures")
-  public void testIsRetryableConflict(String name, Throwable failure, boolean expected)
+  public void testIsRetryableConflict(String name, Throwable failure, String driver, boolean expected)
   {
-    assertEquals(JDBCStorage.isRetryableConflict(failure), expected, name);
+    assertEquals(JDBCStorage.isRetryableConflict(failure, driver), expected, name);
+  }
+
+  /** The delay grows with the attempt, so that the replays outlast a contention lasting more than a few ms. */
+  @Test
+  public void testRetryDelayGrowsAndStaysBounded()
+  {
+    long previousBound = 0;
+    for (int attempt = 1; attempt <= 10; attempt++)
+    {
+      long bound = 0;
+      for (int i = 0; i < 100; i++)
+      {
+        final long delay = JDBCStorage.retryDelayMillis(attempt);
+        assertTrue(delay >= 0, "attempt " + attempt + " waited " + delay + " ms");
+        assertTrue(delay < 1000, "attempt " + attempt + " waited " + delay + " ms");
+        bound = Math.max(bound, delay);
+      }
+      assertTrue(bound >= previousBound / 2, "attempt " + attempt + " did not grow past attempt " + (attempt - 1));
+      previousBound = bound;
+    }
   }
 
   private static SQLException sql(int errorCode, String sqlState)
