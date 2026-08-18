@@ -341,6 +341,22 @@
 				    <publishingServerId>ossrh</publishingServerId>
 				    <autoPublish>true</autoPublish>
 				    <waitMaxTime>5400</waitMaxTime>
+				    <!-- The MSI modules stay in every reactor so that maven-release-plugin keeps
+				         rewriting their versions (see the note in opendj-packages/pom.xml), but the
+				         installer they build is distributed through GitHub Releases and the
+				         Package/Deploy artifact, not Central - and only a Windows job can build it,
+				         so the Linux release that publishes to Central has nothing but their poms to
+				         offer. Excluded here rather than with maven.deploy.skip in the modules: the
+				         extension above unbinds maven-deploy-plugin and publishes through this
+				         plugin's own goal, which that property does not gate, so the poms would ship
+				         to Central with no .msi beside them - a resolvable coordinate whose artifact
+				         does not exist, which is worse for a consumer than a version that was never
+				         published. The match is against the bare artifactId; a groupId:artifactId
+				         entry would silently never match. -->
+				    <excludeArtifacts>
+				        <excludeArtifact>opendj-msi</excludeArtifact>
+				        <excludeArtifact>opendj-msi-standard</excludeArtifact>
+				    </excludeArtifacts>
 				</configuration>
 			    </plugin>
         </plugins>
