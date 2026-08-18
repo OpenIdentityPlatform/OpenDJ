@@ -125,10 +125,12 @@
          Additional instances get key names like "OpenDJ Server-2", which this search does
          not see - as does a ko/zh_TW installation whose service was registered under the
          localized "OpenDS" name - so their service is not stopped here. Such an upgrade is
-         not let through either: CheckServerNotRunning below is deliberately not
-         ImagePath-gated, so a server running out of the tree holds locks\server.lock and
-         the upgrade is refused with 1603. The residual is that the stop is never attempted
-         - a refusal, not damage. The Services key is shared between registry views. -->
+         caught by CheckServerNotRunning below instead, which is deliberately not
+         ImagePath-gated: a server running out of the tree holds locks\server.lock and the
+         upgrade is refused with 1603 - a refusal, not damage, and the residual is that the
+         stop is never attempted. What that guard cannot do is refuse on a lock it is not
+         allowed to read at all; it fails open there, and says so where it is defined. The
+         Services key is shared between registry views. -->
     <Property Id="OPENDJ_SVC_IMAGEPATH" Secure="yes">
       <RegistrySearch Id="OpendjSvcImagePathSearch" Root="HKLM"
                       Key="SYSTEM\CurrentControlSet\Services\OpenDJ Server"
@@ -418,14 +420,25 @@
          before the refusal - which is the right way round, since the alternative is
          refusing an upgrade whose server did stop.
          A held byte-range lock and a sharing violation raise IOException, and only that is
-         retried; anything else means the question could not be asked rather than answered -
-         a read-only handle or a denied open under Program Files - and lets the upgrade
-         proceed. That is the same fail-open the swallowed 'net stop' has, and for the same
-         reason: an immediate action impersonates the invoking user, who under the filtered
-         token of a UAC double-click may not be able to open a file the elevated install
-         would replace happily. The file going away between the test and the open raises an
-         IOException subclass, so it costs one sleep before Test-Path lets the next pass out
-         at exit 0.
+         retried; anything else - an UnauthorizedAccessException on an ACL that does not let
+         the lock file be read at all, which is a sibling of IOException rather than a
+         subclass and so reaches the bare catch - means the question could not be asked
+         rather than answered, and lets the upgrade proceed. That is the same fail-open the
+         swallowed 'net stop' has, and for the same reason: an immediate action impersonates
+         the invoking user, who under the filtered token of a UAC double-click holds
+         whatever rights that user has on the old tree, not the ones the elevated install
+         runs with.
+         Which is why the open asks for READ and not read-write: LockFile needs only
+         GENERIC_READ, while a read-write open of a file under [ProgramFilesFolder] is
+         denied to a standard user outright - so a read-write probe took the fail-open path
+         on every double-click upgrade of a Program Files install, running server or not,
+         and the refusal promised at the top of this file only ever happened for the
+         elevated console / SCCM / SYSTEM / CI modes. Read is what the default Program Files
+         ACL grants Users, so the lock is testable in all of them now.
+         (.github/scripts/wait-server-stopped.ps1 keeps its read-write open: it runs
+         elevated over a workspace tree it owns, where the distinction cannot arise.)
+         The file going away between the test and the open raises an IOException subclass,
+         so it costs one sleep before Test-Path lets the next pass out at exit 0.
          The typed 'catch [System.IO.IOException]' is load-bearing and has to be a TYPE, not
          a name comparison: PowerShell wraps anything thrown out of a .NET method or
          constructor in a MethodInvocationException, so inside a plain catch-all
@@ -444,7 +457,7 @@
          substituted away, leaving two catch-all blocks and a script that fails to parse -
          which this time would refuse every upgrade rather than none. -->
     <CustomAction Id="CheckServerNotRunning" Directory="TARGETDIR"
-                  ExeCommand="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -NonInteractive -Command &quot;$lock = '[OPENDJ]locks\server.lock'; $deadline = (Get-Date).AddSeconds(60); do { if (-not (Test-Path $lock)) { exit 0 }; try { $fs = New-Object System.IO.FileStream($lock, 'Open', 'ReadWrite', 'ReadWrite'); try { $fs.Lock(0, 1); $fs.Unlock(0, 1); exit 0 } finally { $fs.Close() } } catch [\[]System.IO.IOException[\]] { Start-Sleep -Seconds 2 } catch { exit 0 } } while ((Get-Date) -lt $deadline); exit 1&quot;"
+                  ExeCommand="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -NonInteractive -Command &quot;$lock = '[OPENDJ]locks\server.lock'; $deadline = (Get-Date).AddSeconds(60); do { if (-not (Test-Path $lock)) { exit 0 }; try { $fs = New-Object System.IO.FileStream($lock, 'Open', 'Read', 'ReadWrite'); try { $fs.Lock(0, 1); $fs.Unlock(0, 1); exit 0 } finally { $fs.Close() } } catch [\[]System.IO.IOException[\]] { Start-Sleep -Seconds 2 } catch { exit 0 } } while ((Get-Date) -lt $deadline); exit 1&quot;"
                   Execute="immediate" Return="check"/>
     <InstallExecuteSequence>
       <Custom Action="RequireDirOnCustomUpgrade" After="CostFinalize"

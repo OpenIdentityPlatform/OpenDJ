@@ -976,8 +976,13 @@ ServiceReturnCode createServiceBinPath(char* serviceBinPath)
 //
 // The functions returns SERVICE_RETURN_OK if we could get a service name,
 // SERVICE_LIST_UNAVAILABLE if the list of services could not be read at all -
-// which callers must not read as "no such service" - and SERVICE_RETURN_ERROR
-// when the list was read and held no match.
+// which callers must not read as "no such service" - SERVICE_LIST_PARTIAL when
+// the list was read but at least one entry could not be examined and nothing
+// matched, which callers must not read as "no such service" either, and
+// SERVICE_RETURN_ERROR when the list was read in full and held no match.
+// One residual stays on SERVICE_RETURN_ERROR: an entry that matches but whose
+// name does not fit MAX_SERVICE_NAME. Windows caps a service name at 256
+// characters, the same bound, so that is unreachable rather than tolerated.
 // The serviceName buffer must be allocated OUTSIDE the function and its
 // minimum size must be of 256 (the maximum string length of a Service Name).
 // ----------------------------------------------------
@@ -1003,6 +1008,7 @@ ServiceReturnCode getServiceName(char* cmdToRun, char* serviceName)
   if (returnValue == SERVICE_RETURN_OK)
   {
     int i;
+    int unreadable = 0;
     returnValue = SERVICE_RETURN_ERROR;
     if (nbServices > 0)
     {
@@ -1029,8 +1035,24 @@ ServiceReturnCode getServiceName(char* cmdToRun, char* serviceName)
             break;
           }
         }
+        else
+        {
+          // getServiceList() leaves cmdToRun NULL for an entry whose
+          // configuration it could not read - QueryServiceConfig denied, or the
+          // service deleted between the enumeration and the read - and the
+          // command line is the only thing this search matches on. Such an entry
+          // can neither be matched nor ruled out, so remember that the sweep was
+          // incomplete rather than let it pass as a clean "no match".
+          unreadable++;
+        }
       }
       free (serviceList);
+    }
+    if ((returnValue != SERVICE_RETURN_OK) && (unreadable > 0))
+    {
+      returnValue = SERVICE_LIST_PARTIAL;
+      debug("getServiceName: no match, but %d service(s) could not be read.",
+          unreadable);
     }
   }
   else
@@ -2465,6 +2487,12 @@ int serviceState()
     }
     else
     {
+      // SERVICE_LIST_PARTIAL lands here too, on purpose: a state question whose
+      // answer is only ever compared against "enabled" reads the same either
+      // way, while a --serviceState that printed an error whenever an unrelated
+      // service denies QueryServiceConfig would be a worse answer than the
+      // "disabled" it replaces. removeService() below does treat it as an
+      // error, because there the unproven absence is acted on.
       returnCode = 1;
       debug("Service '%s' is disabled.", serviceName);
     }
@@ -2560,11 +2588,24 @@ int removeService()
     {
       returnCode = removeServiceWithServiceName(serviceName);
     }
-    else if (code == SERVICE_LIST_UNAVAILABLE)
+    else if ((code == SERVICE_LIST_UNAVAILABLE) ||
+        (code == SERVICE_LIST_PARTIAL))
     {
-      // The SCM could not be enumerated: "the service does not exist" cannot
-      // be proven, so report an error instead of the "already disabled"
-      // success the callers map exit code 1 to.
+      // The SCM could not be enumerated, or an entry in it could not be read:
+      // "the service does not exist" cannot be proven, so report an error
+      // instead of the "already disabled" success the callers map exit code 1
+      // to. Deliberately not mirrored in serviceState() above, which keeps
+      // answering "disabled" on a partial read: all three java callers of
+      // ConfigureWindowsService.serviceState() only ever test for
+      // SERVICE_STATE_ENABLED, so the answer would not change for any of them,
+      // and --serviceState would start printing an error on every box where an
+      // unrelated service denies QueryServiceConfig to the invoking user.
+      // Removal is the path where an unproven absence destroys something.
+      // What changes in practice is narrow: the uninstaller asks serviceState()
+      // first and never calls this when nothing is registered, so the new error
+      // reaches a hand-run --disableService or 'cleanup' on an instance whose
+      // service really is absent - which now says "could not tell" instead of
+      // "already disabled", on a box where a service denied its config to us.
       returnCode = 3;
     }
     else
@@ -2574,7 +2615,14 @@ int removeService()
   }
   else
   {
-    returnCode = 2;
+    // createServiceBinPath() failed - GetModuleFileName() truncated at MAX_PATH,
+    // or "<exe>" start "<instanceDir>" did not fit COMMAND_SIZE. Hard errors
+    // both, and this function's contract puts those on 3: exit code 2 is
+    // WARN_WINDOWS_SERVICE_MARKED_FOR_DELETION, which InstallerHelper
+    // .disableWindowsService() lets through as a warning, so an install path
+    // long enough to hit either limit reported a deletion that never happened
+    // and the uninstall carried on.
+    returnCode = 3;
   }
 
   debug("removeService returning %d.", returnCode);

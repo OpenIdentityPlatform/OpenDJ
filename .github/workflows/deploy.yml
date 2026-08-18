@@ -130,16 +130,27 @@ jobs:
           #
           # The Maven steps below must build the tree the triggering Build validated. The
           # rebase moves the worktree onto the branch tip, which can carry commits that
-          # Build run never saw, so remember the refresh as it was made - HEAD_SHA plus
-          # the launchers - and come back to it once the push has landed. (The checkout above
-          # takes the branch by name, so it is already the tip as of a moment ago; this
-          # only keeps the rebase from widening that.)
+          # Build run never saw, so remember the refresh as it was made - the tree as
+          # checked out, plus the launchers - and come back to it however this step ends.
+          # (The checkout above takes the branch by NAME, not the triggering run's SHA, so
+          # that tree is the tip as of a moment ago rather than HEAD_SHA itself; what this
+          # keeps is the rebase from widening the gap.)
           REFRESHED=$(git rev-parse HEAD)
+          # A trap rather than a line on the push-success path: all four ways out of the
+          # loop below - fetch failure, rebase conflict, three lost races, and the push
+          # that lands - can be taken after a rebase has already moved the worktree, and
+          # 'git rebase --abort' returns to the state that rebase started from, which on
+          # attempt 2 or 3 is the result of the previous attempt rather than $REFRESHED.
+          #
+          # --force matters: when the abort above fails - it is masked by '|| true' - a
+          # plain 'checkout --detach' stops on "you need to resolve your current index
+          # first" and leaves the worktree mid-rebase for the Maven steps.
+          trap 'git checkout --quiet --force --detach "$REFRESHED" || echo "::warning title=Could not restore the validated tree::the build continues on the current $BRANCH tip."' EXIT
           for attempt in 1 2 3; do
             # Guarded like everything else in this block: bare, it is the one command left
             # that could still take the job down with it. The step runs under set -e with
             # no continue-on-error, so a transient fetch failure would skip the Maven
-            # deploy, all eight artifact uploads, the MSI attachment and both documentation
+            # deploy, all nine artifact uploads, the MSI attachment and both documentation
             # pushes over a refresh that is allowed to fail.
             if ! git fetch --quiet origin "$BRANCH"; then
               echo "::warning title=Could not refresh the launcher binaries::$BRANCH could not be fetched. Refresh opendj-server-legacy/lib/*.exe from the windows-exe-11 artifact of Build run ${RUN_ID} and commit them."
@@ -158,12 +169,6 @@ jobs:
                 echo "The launchers committed on $BRANCH already match the rebuilt ones."
               else
                 echo "Refreshed launchers pushed to $BRANCH."
-              fi
-              # Guarded like the rest of this block: failing to get back to the
-              # validated tree means building the tip, which is what this job did
-              # before the refresh existed - not a reason to skip the deploy.
-              if ! git checkout --quiet --detach "$REFRESHED"; then
-                echo "::warning title=Could not restore the validated tree::the build continues on the current $BRANCH tip."
               fi
               exit 0
             fi
