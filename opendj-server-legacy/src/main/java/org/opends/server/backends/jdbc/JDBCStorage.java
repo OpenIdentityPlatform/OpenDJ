@@ -34,6 +34,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.BackupManager;
 
+import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -170,13 +171,69 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// dialect is told to give up after this many seconds instead of waiting.
 	private static final int COMMENT_LOCK_TIMEOUT_SECONDS=5;
 
-	// Trees whose stamp failed. A backend whose account may not comment its tables (no ALTER
-	// privilege, for instance) would otherwise reissue the statement for every tree on every
-	// open; the attempt is made again when the server restarts, so nothing is lost for good.
+	// The comment statement runs on a connection of its own (newStampConnection() below), and a
+	// driver waits for a connect attempt without limit unless it is told otherwise: a database
+	// that keeps its established connections alive but accepts no new ones (a moved vip, a proxy
+	// at its connection limit) would otherwise hang the open of a tree - dsconfig
+	// create-backend-index opens one on a running server - instead of leaving a table unstamped.
+	// Every dialect gets the same bound, in the unit its own driver property takes.
+	private static final int STAMP_CONNECT_TIMEOUT_SECONDS=10;
+
+	// Trees whose stamp failed for a reason that is not going to change by itself: an account that
+	// may not comment its tables (no ALTER privilege, for instance) would otherwise reissue the
+	// statement for every tree on every open. A failure that says nothing about the table - a lock
+	// timeout, a connection that broke - is not remembered (isTransientFailure() below), so a
+	// contended moment does not leave the backend unstamped until it is restarted.
 	private final Set<TreeName> unstampableTrees=ConcurrentHashMap.newKeySet();
+
+	/**
+	 * The engines whose comment statement, comment readback and statistics refresh this backend
+	 * knows, with the two session settings a comment statement needs: the driver property that
+	 * bounds its connect attempt, and the statement that bounds its wait for the table lock.
+	 */
+	enum Dialect {
+		/** postgresql: lock_timeout takes milliseconds, connectTimeout seconds. */
+		POSTGRES("connectTimeout", STAMP_CONNECT_TIMEOUT_SECONDS,
+			"set lock_timeout = "+(COMMENT_LOCK_TIMEOUT_SECONDS*1000)),
+		/** mysql: lock_wait_timeout takes seconds, connectTimeout milliseconds. */
+		MYSQL("connectTimeout", STAMP_CONNECT_TIMEOUT_SECONDS*1000,
+			"set session lock_wait_timeout="+COMMENT_LOCK_TIMEOUT_SECONDS),
+		/** oracle: ddl_lock_timeout takes seconds and defaults to 0 (give up at once), but it can be raised globally. */
+		ORACLE("oracle.net.CONNECT_TIMEOUT", STAMP_CONNECT_TIMEOUT_SECONDS*1000,
+			"alter session set ddl_lock_timeout="+COMMENT_LOCK_TIMEOUT_SECONDS),
+		/** ms sql server: lock_timeout takes milliseconds, loginTimeout seconds. */
+		MICROSOFT("loginTimeout", STAMP_CONNECT_TIMEOUT_SECONDS,
+			"set lock_timeout "+(COMMENT_LOCK_TIMEOUT_SECONDS*1000));
+
+		final String connectTimeoutProperty;
+		final String connectTimeoutValue;
+		final String lockTimeoutSql;
+
+		Dialect(String connectTimeoutProperty, int connectTimeoutValue, String lockTimeoutSql) {
+			this.connectTimeoutProperty=connectTimeoutProperty;
+			this.connectTimeoutValue=String.valueOf(connectTimeoutValue);
+			this.lockTimeoutSql=lockTimeoutSql;
+		}
+	}
 
 	static String driverNameOf(Connection con) {
 		return ((CachedConnection) con).parent.getClass().getName();
+	}
+
+	// The dialect behind a pooled connection, or null for an engine none of the statements of this
+	// class fit: it is left unstamped and its statistics untouched rather than fed untested SQL.
+	static Dialect dialectOf(Connection con) {
+		final String driverName=driverNameOf(con);
+		if (driverName.contains("postgres")) {
+			return Dialect.POSTGRES;
+		}else if (driverName.contains("mysql")) {
+			return Dialect.MYSQL;
+		}else if (driverName.contains("oracle")) {
+			return Dialect.ORACLE;
+		}else if (driverName.contains("microsoft")) {
+			return Dialect.MICROSOFT;
+		}
+		return null;
 	}
 
 	/** Outcome of a comment stamp: openTree() ignores it, tests tell the cases apart. */
@@ -213,6 +270,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// Whether backslash is an escape character inside string literals on this mysql connection:
 	// under the NO_BACKSLASH_ESCAPES sql mode it is an ordinary character, and doubling it there
 	// would store a comment that never matches its tree name - re-stamping the table forever.
+	// Asked of the very session that parses the literal: sql_mode is a session setting, and a
+	// session opened at another moment can have been given another value of it.
 	boolean isMysqlBackslashEscape(Connection con) throws SQLException {
 		try (final PreparedStatement statement=con.prepareStatement("select @@sql_mode");
 			final ResultSet rs=executeResultSet(statement)) {
@@ -221,14 +280,64 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 	}
 
-	// A connection of its own for the comment statement, outside the pool: the statement needs a
-	// session setting (the lock timeout above) that a pooled connection would carry over to
-	// whoever borrows it next, since CachedConnection.close() only rolls back. Opened only when
-	// a table really has to be stamped, which is once per tree per deployment.
-	Connection newStampConnection() throws SQLException {
-		final Connection con=DriverManager.getConnection(config.getDBDirectory());
-		con.setAutoCommit(false);
+	// A connection of its own for the comment statements, outside the pool: they need session
+	// settings (the lock timeout above) that a pooled connection would carry over to whoever
+	// borrows it next, since CachedConnection.close() only rolls back.
+	Connection newStampConnection(Dialect dialect) throws SQLException {
+		final Properties properties=new Properties();
+		properties.setProperty(dialect.connectTimeoutProperty, dialect.connectTimeoutValue);
+		final Connection con=DriverManager.getConnection(config.getDBDirectory(), properties);
+		try {
+			con.setAutoCommit(false);
+			executeSessionStatement(con, dialect.lockTimeoutSql); // give up instead of waiting for another session
+		}catch (SQLException e) { // nothing else holds this connection yet: it would leak
+			try {
+				con.close();
+			}catch (SQLException e2) {}
+			throw e;
+		}
 		return con;
+	}
+
+	// The connection the comment statements of one sweep of openTree() calls share. Opening a
+	// backend opens every tree it holds (about 25 for a stock suffix), so a connection per stamp
+	// would mean that many physical connects on the first open after an upgrade - the one open
+	// that stamps them all. Opened lazily: a sweep that finds every comment up to date, which is
+	// every open after the first, opens nothing at all.
+	final class StampSession implements Closeable {
+		private Connection con;
+
+		Connection connection(Dialect dialect) throws SQLException {
+			if (con==null) {
+				con=newStampConnection(dialect);
+			}
+			return con;
+		}
+
+		// A statement that failed can leave the session unusable (postgres refuses every further
+		// statement of the transaction with 25P02 until it is rolled back), so the stamp of the
+		// next tree gets a clean one: rolled back, or replaced when even the rollback fails.
+		void reset() {
+			if (con!=null) {
+				try {
+					con.rollback();
+				}catch (SQLException e) {
+					close();
+				}
+			}
+		}
+
+		@Override
+		public void close() {
+			if (con!=null) {
+				try {
+					con.close();
+				}catch (SQLException e) {
+					logger.trace(LocalizableMessage.raw("jdbc: unable to close the comment connection: %s", stackTraceToSingleLineString(e)));
+				}
+				con=null;
+			}
+		}
 	}
 
 	// A session setting must reach the server as a plain batch: the sql server driver runs a
@@ -253,22 +362,22 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// DefaultIndex.afterOpen()). The comment is a diagnostic aid: a failed attempt only logs and
 	// must not fail the backend.
 	CommentResult commentTable(TreeName treeName) {
+		try (final StampSession session=new StampSession()) { // a stamp of its own: no sweep to share a connection with
+			return commentTable(treeName, session);
+		}
+	}
+
+	CommentResult commentTable(TreeName treeName, StampSession session) {
 		final String tableName=getTableName(treeName);
 		if (unstampableTrees.contains(treeName)) { // this tree already failed in this JVM: do not ask again
 			return CommentResult.FAILED;
 		}
 		final String treeComment=treeName.toString();
-		final String sql;
-		final String[] args;
-		final String lockTimeoutSql;
+		Dialect dialect=null;
 		try {
 			try (final Connection con=getConnection()) { // pooled: dialect detection and readback take no lock
-				final String driverName=driverNameOf(con);
-				final boolean postgres=driverName.contains("postgres");
-				final boolean mysql=driverName.contains("mysql");
-				final boolean oracle=driverName.contains("oracle");
-				final boolean microsoft=driverName.contains("microsoft");
-				if (!postgres && !mysql && !oracle && !microsoft) { // no comment syntax and readback known for other engines: leave the table unstamped
+				dialect=dialectOf(con);
+				if (dialect==null) { // no comment syntax and readback known for other engines: leave the table unstamped
 					return CommentResult.UNSUPPORTED;
 				}
 				// comment statements are DDL (metadata lock on mysql, ddl lock on oracle) and openTree()
@@ -276,72 +385,130 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				if (treeComment.equals(readStoredComment(con, tableName))) {
 					return CommentResult.UP_TO_DATE;
 				}
-				if (mysql) { // ALTER TABLE takes no binds; whether backslash escapes inside the literal depends on the sql mode
-					sql="alter table "+tableName+" comment "+sqlLiteral(treeComment,isMysqlBackslashEscape(con));
-					args=NO_ARGS;
-					lockTimeoutSql="set session lock_wait_timeout="+COMMENT_LOCK_TIMEOUT_SECONDS;
-				}else if (microsoft) { // no COMMENT ON in t-sql: MS_Description extended property (procedure arguments take binds)
-					sql="declare @s sysname = schema_name()"
-						+" if exists (select 1 from sys.extended_properties where class=1 and major_id=object_id(?) and minor_id=0 and name='MS_Description')"
-						+" exec sys.sp_updateextendedproperty N'MS_Description', ?, N'SCHEMA', @s, N'TABLE', ?"
-						+" else"
-						+" exec sys.sp_addextendedproperty N'MS_Description', ?, N'SCHEMA', @s, N'TABLE', ?";
-					args=new String[]{tableName, treeComment, tableName, treeComment, tableName};
-					lockTimeoutSql="set lock_timeout "+(COMMENT_LOCK_TIMEOUT_SECONDS*1000);
-				}else if (postgres) { // no binds in ddl; the E'' form keeps backslash an escape character regardless of standard_conforming_strings
-					sql="comment on table "+tableName+" is E"+sqlLiteral(treeComment,true);
-					args=NO_ARGS;
-					lockTimeoutSql="set lock_timeout = "+(COMMENT_LOCK_TIMEOUT_SECONDS*1000); // milliseconds
-				}else { // oracle: no binds in ddl; backslash is never an escape character in oracle literals
-					sql="comment on table "+tableName+" is "+sqlLiteral(treeComment,false);
-					args=NO_ARGS;
-					// ddl_lock_timeout defaults to 0 (give up at once), but it can be raised globally
-					lockTimeoutSql="alter session set ddl_lock_timeout="+COMMENT_LOCK_TIMEOUT_SECONDS;
-				}
 			}
-			try (final Connection con=newStampConnection()) {
-				executeSessionStatement(con, lockTimeoutSql); // give up instead of waiting for another session
-				try (final PreparedStatement statement=con.prepareStatement(sql)) {
-					for (int i=0;i<args.length;i++) {
-						statement.setString(i+1,args[i]);
-					}
-					executeAny(statement);
-					con.commit();
+			final Connection con=session.connection(dialect);
+			final String sql;
+			final String[] args;
+			switch (dialect) {
+			case MYSQL: // ALTER TABLE takes no binds; whether backslash escapes inside the literal depends on the sql mode of this session
+				sql="alter table "+tableName+" comment "+sqlLiteral(treeComment,isMysqlBackslashEscape(con));
+				args=NO_ARGS;
+				break;
+			case MICROSOFT: // no COMMENT ON in t-sql: MS_Description extended property (procedure arguments take binds)
+				sql="declare @s sysname = schema_name()"
+					+" if exists (select 1 from sys.extended_properties where class=1 and major_id=object_id(?) and minor_id=0 and name='MS_Description')"
+					+" exec sys.sp_updateextendedproperty N'MS_Description', ?, N'SCHEMA', @s, N'TABLE', ?"
+					+" else"
+					+" exec sys.sp_addextendedproperty N'MS_Description', ?, N'SCHEMA', @s, N'TABLE', ?";
+				args=new String[]{tableName, treeComment, tableName, treeComment, tableName};
+				break;
+			case POSTGRES: // no binds in ddl; the E'' form keeps backslash an escape character regardless of standard_conforming_strings
+				sql="comment on table "+tableName+" is E"+sqlLiteral(treeComment,true);
+				args=NO_ARGS;
+				break;
+			default: // oracle: no binds in ddl; backslash is never an escape character in oracle literals
+				sql="comment on table "+tableName+" is "+sqlLiteral(treeComment,false);
+				args=NO_ARGS;
+				break;
+			}
+			try (final PreparedStatement statement=con.prepareStatement(sql)) {
+				for (int i=0;i<args.length;i++) {
+					statement.setString(i+1,args[i]);
 				}
+				executeAny(statement);
+				con.commit();
 			}
 			return CommentResult.STAMPED;
 		}catch (InterruptedException e) { // the connection pool hands out connections through a blocking queue
 			Thread.currentThread().interrupt();
+			session.reset();
 			logger.debug(LocalizableMessage.raw("jdbc: interrupted while commenting table %s with tree name %s", tableName, treeName));
 			return CommentResult.FAILED; // not remembered: an interrupt says nothing about this table
-		}catch (Exception e) { // closing the connection has rolled back whatever the failed attempt left pending
-			unstampableTrees.add(treeName);
-			logger.warn(LocalizableMessage.raw("jdbc: unable to comment table %s with tree name %s, it stays unstamped until the next start (the comment is a diagnostic aid: the backend is unaffected): %s",
-				tableName, treeName, stackTraceToSingleLineString(e)));
+		}catch (Exception e) {
+			session.reset(); // what the failed statement left behind must not poison the stamp of the next tree
+			final boolean transientFailure=isTransientFailure(e, dialect);
+			if (!transientFailure) {
+				unstampableTrees.add(treeName);
+			}
+			logger.warn(LocalizableMessage.raw("jdbc: unable to comment table %s with tree name %s, it stays unstamped %s (the comment is a diagnostic aid: the backend is unaffected): %s",
+				tableName, treeName, transientFailure?"for now":"until the next start", stackTraceToSingleLineString(e)));
 			return CommentResult.FAILED;
 		}
 	}
 
+	// Whether a failed stamp says anything about the table it was meant to stamp: a lock timeout
+	// (the bound above), a connection that broke or any other transient driver failure is a
+	// property of the moment and worth trying again, while a statement the database rejected - an
+	// account that may not comment its tables, say - would be rejected again for every tree on
+	// every open. Only the latter is remembered.
+	static boolean isTransientFailure(Throwable failure, Dialect dialect) {
+		for (Throwable e=failure;e!=null;e=e.getCause()) {
+			if (e instanceof SQLTransientException) {
+				return true;
+			}
+			if (!(e instanceof SQLException)) {
+				continue;
+			}
+			final SQLException sqlException=(SQLException) e;
+			final String sqlState=sqlException.getSQLState();
+			if (sqlState!=null && sqlState.startsWith("08")) { // connection exception
+				return true;
+			}
+			if (dialect==null) { // the failure came before the engine was known
+				continue;
+			}
+			switch (dialect) {
+			case POSTGRES:
+				if ("55P03".equals(sqlState)) { // lock not available: lock_timeout expired
+					return true;
+				}
+				break;
+			case MYSQL:
+				if (sqlException.getErrorCode()==1205) { // lock wait timeout exceeded
+					return true;
+				}
+				break;
+			case ORACLE: // ORA-00054 resource busy and acquire with NOWAIT specified or timeout expired,
+				if (sqlException.getErrorCode()==54 || sqlException.getErrorCode()==4021) { // ORA-04021 timeout occurred while waiting to lock object
+					return true;
+				}
+				break;
+			default:
+				if (sqlException.getErrorCode()==1222) { // sql server: lock request time out period exceeded
+					return true;
+				}
+				break;
+			}
+		}
+		return false;
+	}
+
 	// Returns the comment currently stored on the table, or null when there is none.
-	// Only called for the four dialects commentTable() recognizes.
+	// Only called for the dialects commentTable() recognizes.
 	String readStoredComment(Connection con, String tableName) throws SQLException {
-		final String driverName=driverNameOf(con);
+		final Dialect dialect=dialectOf(con);
+		if (dialect==null) {
+			throw new SQLException("no table comment readback for "+driverNameOf(con));
+		}
 		final String sql;
 		final String arg;
-		if (driverName.contains("postgres")) {
+		switch (dialect) {
+		case POSTGRES:
 			sql="select obj_description(to_regclass(?), 'pg_class')";
 			arg=tableName;
-		}else if (driverName.contains("mysql")) {
+			break;
+		case MYSQL:
 			sql="select table_comment from information_schema.tables where table_schema=database() and table_name=?";
 			arg=tableName;
-		}else if (driverName.contains("oracle")) {
+			break;
+		case ORACLE:
 			sql="select comments from user_tab_comments where table_name=?";
 			arg=tableName.toUpperCase();
-		}else if (driverName.contains("microsoft")) {
+			break;
+		default:
 			sql="select cast(value as nvarchar(4000)) from sys.extended_properties where class=1 and major_id=object_id(?) and minor_id=0 and name='MS_Description'";
 			arg=tableName;
-		}else {
-			throw new SQLException("no table comment readback for "+driverName);
+			break;
 		}
 		try (final PreparedStatement statement=con.prepareStatement(sql)) {
 			statement.setString(1,arg);
@@ -351,6 +518,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 	}
 
+	// Statistics upkeep after an import is bounded and can be turned off: gathering statistics of
+	// a freshly loaded table is a full scan on oracle (dbms_stats defaults to AUTO_SAMPLE_SIZE,
+	// and the entries themselves live in the blob column it reads), which a multi-million entry
+	// backend would otherwise pay in full, with no way to cap or skip it, after import-ldif has
+	// already reported its final status.
+	static final String STATISTICS_PROPERTY="org.openidentityplatform.opendj.jdbc.statistics";
+	static final String STATISTICS_TIMEOUT_PROPERTY=STATISTICS_PROPERTY+".timeout";
+	private static final int STATISTICS_TIMEOUT_SECONDS_DEFAULT=600;
+
 	// A bulk load leaves the optimizer statistics of freshly created tables stale (a table that
 	// was never analyzed can make the planner badly misestimate the "where k>? order by k" cursor
 	// batches - see OpenIdentityPlatform/OpenDJ#859), so refresh them once the data is in place.
@@ -359,37 +535,44 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// table on oracle. Statistics upkeep is best-effort: a failure must not fail the import that
 	// produced the data, so failures are only logged - the return value makes them observable to tests.
 	boolean updateTableStatistics(Connection con, Collection<TreeName> trees) {
-		final String driverName=driverNameOf(con);
-		final boolean postgres=driverName.contains("postgres");
-		final boolean mysql=driverName.contains("mysql");
-		final boolean oracle=driverName.contains("oracle");
-		final boolean microsoft=driverName.contains("microsoft");
-		if (!postgres && !mysql && !oracle && !microsoft) { // no portable statistics refresh for other engines
+		if (!Boolean.parseBoolean(System.getProperty(STATISTICS_PROPERTY,"true"))) {
+			logger.debug(LocalizableMessage.raw("jdbc: statistics refresh turned off by %s", STATISTICS_PROPERTY));
+			return false; // nothing was refreshed
+		}
+		final Dialect dialect=dialectOf(con);
+		if (dialect==null) { // no portable statistics refresh for other engines
 			return false; // nothing was refreshed: reporting success here would make the assertion of the tests vacuous
 		}
+		final int timeoutSeconds=Math.max(0,Integer.getInteger(STATISTICS_TIMEOUT_PROPERTY,STATISTICS_TIMEOUT_SECONDS_DEFAULT));
 		boolean allRefreshed=true;
 		for (final TreeName treeName : trees) {
 			final String tableName=getTableName(treeName);
 			final String sql;
 			final String[] args;
-			if (postgres) {
+			switch (dialect) {
+			case POSTGRES:
 				sql="analyze "+tableName;
 				args=NO_ARGS;
-			}else if (mysql) {
+				break;
+			case MYSQL:
 				sql="analyze table "+tableName;
 				args=NO_ARGS;
-			}else if (oracle) {
+				break;
+			case ORACLE:
 				sql="begin dbms_stats.gather_table_stats(user, ?); end;";
 				args=new String[]{tableName.toUpperCase()};
-			}else {
+				break;
+			default:
 				sql="update statistics "+tableName;
 				args=NO_ARGS;
+				break;
 			}
 			try (final PreparedStatement statement=con.prepareStatement(sql)) {
+				statement.setQueryTimeout(timeoutSeconds); // 0: wait without limit
 				for (int i=0;i<args.length;i++) {
 					statement.setString(i+1,args[i]);
 				}
-				if (mysql) { // mysql reports analyze problems as a result row, not an SQLException
+				if (dialect==Dialect.MYSQL) { // mysql reports analyze problems as a result row, not an SQLException
 					try (final ResultSet rs=executeResultSet(statement)) {
 						while (rs.next()) {
 							if ("error".equalsIgnoreCase(rs.getString("Msg_type"))) {
@@ -464,14 +647,17 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	@Override
 	public void write(WriteOperation writeOperation) throws Exception {
 		try (final Connection con=getConnection()) {
+			final WriteableTransactionTransactionImpl txn=new WriteableTransactionTransactionImpl(con);
 			try {
-				writeOperation.run(new WriteableTransactionTransactionImpl(con));
+				writeOperation.run(txn);
 				con.commit();
 			} catch (Exception e) {
 				try {
 					con.rollback();
 				} catch (SQLException ex) {}
 				throw e;
+			} finally { // the comment connection lives no longer than the trees it stamped
+				txn.stampSession.close();
 			}
 		}
 	}
@@ -540,6 +726,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 	}
 	private final class WriteableTransactionTransactionImpl extends ReadableTransactionImpl implements WriteableTransaction {
+
+		// Shared by every table this transaction stamps: opening a backend opens all its trees,
+		// and each stamp of its own connection would be a physical connect of its own. Closed by
+		// write() (and by ImporterImpl.close()) when the transaction is done with.
+		final StampSession stampSession=new StampSession();
 
 		public WriteableTransactionTransactionImpl(Connection con) {
 			super(con);
@@ -630,7 +821,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}
 				}
 				// mssql: k is varbinary(max), which cannot be an index key column - cursor batches stay unindexed there
-				commentTable(treeName);
+				commentTable(treeName, stampSession);
 			}
 		}
 
@@ -976,6 +1167,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// aborted, since close() runs from the try-with-resources of OnDiskMergeImporter.
 		final Set<TreeName> writtenTrees = ConcurrentHashMap.newKeySet();
 
+		// Set when the import failed or was cancelled. Its trees hold whatever the import got
+		// through before it stopped - beforePhaseOne cleared them all, so that can be nothing at
+		// all - and the operator is going to run it again, so there is nothing worth describing
+		// to the optimizer here: on oracle gathering those statistics is a full scan per table
+		// that would delay the report of a failure, or of a cancellation, by all of its duration.
+		volatile boolean aborted = false;
+
 		final Boolean isOpen;
 
 		public ImporterImpl() {
@@ -997,13 +1195,26 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 		
 		@Override
+		public void aborted() {
+			aborted = true;
+		}
+
+		@Override
 		public void close() {
 			try {
 				try {
 					con.commit();
-					updateTableStatistics(con, writtenTrees);
+					if (aborted) {
+						logger.debug(LocalizableMessage.raw("jdbc: import aborted: statistics of the trees it wrote are left alone"));
+					}else {
+						updateTableStatistics(con, writtenTrees);
+					}
 				} finally { // the pooled connection must be returned even when the commit or a statistics statement throws
-					con.close();
+					try {
+						con.close();
+					} finally {
+						txw.stampSession.close();
+					}
 				}
 			} catch (SQLException e) {
 				throw new StorageRuntimeException(e);

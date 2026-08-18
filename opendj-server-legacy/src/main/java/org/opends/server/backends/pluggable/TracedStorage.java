@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -224,6 +225,14 @@ final class TracedStorage implements Storage
       final ByteString value = importer.read(name, key);
       traceLeave("read", "name", name, "key", hex(key), "value", hex(value));
       return value;
+    }
+
+    @Override
+    public void aborted()
+    {
+      traceEnter("aborted");
+      importer.aborted();
+      traceLeave("aborted");
     }
 
     @Override

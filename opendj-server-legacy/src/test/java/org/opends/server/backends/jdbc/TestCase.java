@@ -41,6 +41,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -490,7 +491,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				// giving up and stamping anyway are both fine here - the engines differ in whether an
 				// uncommitted row of another session conflicts with the comment statement at all.
 				// Waiting for that session to finish is what must never happen.
-				assertTrue(elapsedMs < 60000, "the comment statement waited " + elapsedMs + " ms for a lock, result " + result);
+				// the bound is 5 s (COMMENT_LOCK_TIMEOUT_SECONDS): the slack is for the connect and the
+				// statement around it, not for a regression of the bound itself
+				assertTrue(elapsedMs < 20000, "the comment statement waited " + elapsedMs + " ms for a lock, result " + result);
 				if (result == JDBCStorage.CommentResult.STAMPED) { // it reported success: the comment must be there
 					assertEquals(readTableComment(tableName), tree.toString());
 				}
@@ -512,9 +515,10 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	 * A failing comment stamp must never disturb the transaction that opened the tree: it used
 	 * to roll back the caller's connection, silently discarding writes pending in the same
 	 * transaction (the way DefaultIndex.afterOpen() writes the trusted flag between openTree() calls).
-	 * The write pending during the failing stamp deliberately targets another tree: a write left
-	 * pending on the very table being stamped would make the comment statement wait for the
-	 * caller's own lock, which is a shape no production path has.
+	 * The write pending during the failing stamp deliberately targets another tree: a statement
+	 * left pending on the very table being stamped - a write, or on mysql any statement, since a
+	 * transaction holds a shared metadata lock on every table it touched - would make the comment
+	 * statement wait for the caller's own lock, which is a shape no production path has.
 	 */
 	@Test
 	public void testCommentFailureLeavesTransactionIntact() throws Exception {
@@ -540,9 +544,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				return null; // pretend the table carries no comment, so a stamp is attempted
 			}
 			@Override
-			Connection newStampConnection() throws SQLException {
+			Connection newStampConnection(Dialect dialect) throws SQLException {
 				stampAttempts.incrementAndGet();
-				throw new SQLException("injected comment failure");
+				throw new SQLException("injected comment failure"); // no sql state, no vendor code: not a failure of the moment
 			}
 		};
 		try {
@@ -571,6 +575,188 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					public void run(WriteableTransaction txn) throws Exception {
 						txn.deleteTree(stamped);
 						txn.deleteTree(written);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * A stamp that failed for a reason of the moment - the lock timeout the statement is given,
+	 * a connection that broke - must be attempted again: only a failure saying that this table
+	 * cannot be commented at all is remembered, or one contended moment would leave a backend
+	 * unstamped until it is restarted.
+	 */
+	@Test
+	public void testTransientStampFailureIsRetried() throws Exception {
+		final TreeName tree = new TreeName("o=transientStamp", "dn2id");
+		final AtomicInteger stampAttempts = new AtomicInteger();
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
+			@Override
+			String readStoredComment(Connection con, String tableName) throws SQLException {
+				return null; // pretend the table carries no comment, so a stamp is attempted
+			}
+			@Override
+			Connection newStampConnection(Dialect dialect) throws SQLException {
+				stampAttempts.incrementAndGet();
+				throw new SQLException("injected connection failure", "08006"); // connection exception: a failure of the moment
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true); // stamp #1, fails
+				}
+			});
+			assertEquals(storage.commentTable(tree), JDBCStorage.CommentResult.FAILED);
+			assertEquals(stampAttempts.get(), 2, "a stamp that failed for a reason of the moment was not attempted again");
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * Opening a backend opens every tree it holds - about 25 for a stock suffix - and the first
+	 * open after an upgrade stamps them all: the stamps must share one connection rather than
+	 * make a physical connect each. An open that finds the comments in place must make none.
+	 */
+	@Test
+	public void testCommentStampsShareOneConnection() throws Exception {
+		final TreeName[] trees = {
+			new TreeName("o=commentSweep", "dn2id"),
+			new TreeName("o=commentSweep", "id2entry"),
+			new TreeName("o=commentSweep", "state") };
+		final AtomicInteger connects = new AtomicInteger();
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
+			@Override
+			Connection newStampConnection(Dialect dialect) throws SQLException {
+				connects.incrementAndGet();
+				return super.newStampConnection(dialect);
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					for (final TreeName tree : trees) {
+						txn.openTree(tree, true); // freshly created: every one of them is stamped
+					}
+				}
+			});
+			for (final TreeName tree : trees) {
+				assertEquals(readTableComment(storage.getTableName(tree)), tree.toString());
+			}
+			assertEquals(connects.get(), 1, "the stamps of one open did not share a connection");
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					for (final TreeName tree : trees) {
+						txn.openTree(tree, true);
+					}
+				}
+			});
+			assertEquals(connects.get(), 1, "an open that found every comment in place still connected");
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						for (final TreeName tree : trees) {
+							txn.deleteTree(tree);
+						}
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * An import that failed or was cancelled leaves trees holding an incomplete import that is
+	 * going to be run again: refreshing statistics of it describes data nobody will query, and on
+	 * oracle it is a full scan per table between the failure and its report.
+	 */
+	@Test
+	public void testAbortedImportSkipsStatistics() throws Exception {
+		final TreeName tree = new TreeName("o=abortedImport", "dn2id");
+		final AtomicInteger refreshes = new AtomicInteger();
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
+			@Override
+			boolean updateTableStatistics(Connection con, Collection<TreeName> trees) {
+				refreshes.incrementAndGet();
+				return super.updateTableStatistics(con, trees);
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			try (final Importer importer = storage.startImport()) {
+				importer.put(tree, key(1), value(1));
+				importer.aborted(); // what OnDiskMergeImporter reports when the import throws or is cancelled
+			}
+			assertEquals(refreshes.get(), 0, "statistics were refreshed for an import that was aborted");
+			try (final Importer importer = storage.startImport()) {
+				importer.put(tree, key(2), value(2));
+			}
+			assertEquals(refreshes.get(), 1, "statistics were not refreshed for an import that finished");
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * The statistics refresh must be possible to turn off: on oracle it gathers with
+	 * AUTO_SAMPLE_SIZE, a full scan of every table the import wrote.
+	 */
+	@Test
+	public void testStatisticsRefreshCanBeTurnedOff() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("o=statisticsOff", "dn2id");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			System.setProperty(JDBCStorage.STATISTICS_PROPERTY, "false");
+			try (final Connection con = CachedConnection.getConnection(getJdbcUrl())) {
+				assertFalse(storage.updateTableStatistics(con, Collections.singleton(tree)),
+					"the refresh ran with " + JDBCStorage.STATISTICS_PROPERTY + "=false");
+			}
+		} finally {
+			System.clearProperty(JDBCStorage.STATISTICS_PROPERTY);
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
 					}
 				});
 			} catch (Exception ignored) {}
