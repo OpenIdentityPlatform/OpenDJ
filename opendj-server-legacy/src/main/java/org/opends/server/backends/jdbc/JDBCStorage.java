@@ -47,6 +47,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	
 	private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+	/** Number of attempts a {@link #read} or {@link #write} makes before it propagates the conflict to the caller. */
+	private static final int MAX_RETRIES = 10;
+
+	/** Upper bound of the random delay inserted between two attempts, in milliseconds. */
+	private static final double MAX_SLEEP_ON_RETRY_MS = 50.0;
+
+	/** Number of {@link Throwable#getCause()} hops walked when classifying a failure, also a guard against a cycle. */
+	private static final int MAX_CAUSE_HOPS = 16;
+
+	/** SQL Server error number of the transaction picked as the deadlock victim: "Rerun the transaction". */
+	private static final int ERROR_DEADLOCK_VICTIM = 1205;
+
 	private JDBCBackendCfg config;
 
 	public JDBCStorage(JDBCBackendCfg cfg, ServerContext serverContext) {
@@ -172,24 +184,84 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	//operation
 	@Override
 	public <T> T read(ReadOperation<T> readOperation) throws Exception {
-		try(final Connection con=getConnection()) {
-			return readOperation.run(new ReadableTransactionImpl(con));
+		for (int attempt=1;;attempt++) {
+			try(final Connection con=getConnection()) {
+				return readOperation.run(new ReadableTransactionImpl(con));
+			} catch (Exception e) {
+				if (!retryOnConflict(e,attempt)) {
+					throw e;
+				}
+			}
 		}
 	}
 
 	@Override
 	public void write(WriteOperation writeOperation) throws Exception {
-		try (final Connection con=getConnection()) {
-			try {
-				writeOperation.run(new WriteableTransactionTransactionImpl(con));
-				con.commit();
-			} catch (Exception e) {
+		for (int attempt=1;;attempt++) {
+			try (final Connection con=getConnection()) {
 				try {
-					con.rollback();
-				} catch (SQLException ex) {}
-				throw e;
+					writeOperation.run(new WriteableTransactionTransactionImpl(con));
+					con.commit();
+					return;
+				} catch (Exception e) {
+					try {
+						con.rollback();
+					} catch (SQLException ex) {}
+					throw e;
+				}
+			} catch (Exception e) {
+				if (!retryOnConflict(e,attempt)) {
+					throw e;
+				}
 			}
 		}
+	}
+
+	/**
+	 * Waits for a short random delay and returns whether the failed attempt should be replayed.
+	 * <p>
+	 * {@link org.opends.server.backends.pluggable.spi.Storage#write(WriteOperation)} requires an implementation to
+	 * retry a rolled back operation until it succeeds, and {@link WriteOperation} is documented as idempotent for
+	 * exactly that reason; {@link org.opends.server.backends.pdb.PDBStorage#write(WriteOperation)} already does so
+	 * on the conflict exception of its own engine. The loop is bounded here, unlike PDBStorage: the database may be
+	 * shared with writers outside this server, so a conflict is not guaranteed to clear and failing the operation is
+	 * better than never returning. The delay is randomized to spread the retries of the transactions that collided.
+	 */
+	private boolean retryOnConflict(Exception e, int attempt) throws InterruptedException {
+		if (attempt>=MAX_RETRIES || !isRetryableConflict(e)) {
+			return false;
+		}
+		//logged rather than silently absorbed, so that a deployment retrying most of its writes stays observable
+		logger.warn(LocalizableMessage.raw("jdbc: replaying the transaction after a conflict, attempt %d of %d: %s",
+				attempt, MAX_RETRIES, stackTraceToSingleLineString(e)));
+		Thread.sleep((long) (Math.random() * MAX_SLEEP_ON_RETRY_MS));
+		return true;
+	}
+
+	/**
+	 * Returns whether the given failure carries a transaction conflict that replaying the operation can resolve.
+	 * <p>
+	 * The conflict is looked up along the whole cause chain because it reaches this class wrapped: a deadlock in
+	 * {@code put} arrives as {@code StorageRuntimeException(SQLException)}, and a caller such as
+	 * {@code EntryContainer.addEntry} may wrap it once more.
+	 * <p>
+	 * Both the vendor error number and the SQLState are examined, since neither alone covers the drivers in use.
+	 * SQL Server reports the deadlock victim as error 1205 with SQLState 40001, but as 42000 when the connection was
+	 * opened with {@code xopenStates=true}, so the state cannot be relied upon; conversely the standard class 40
+	 * states carry the conflict of the other engines - 40P01 for PostgreSQL, 40001 for MySQL and H2 - under vendor
+	 * error numbers of their own. Error 1205 of MySQL is a lock wait timeout rather than a deadlock, which the code
+	 * alone cannot tell apart, but that condition is transient as well and is equally resolved by a replay.
+	 */
+	static boolean isRetryableConflict(Throwable t) {
+		for (int hop=0; t!=null && hop<MAX_CAUSE_HOPS; t=t.getCause(), hop++) {
+			if (t instanceof SQLException) {
+				final SQLException e=(SQLException) t;
+				if (e.getErrorCode()==ERROR_DEADLOCK_VICTIM || String.valueOf(e.getSQLState()).startsWith("40")) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	static final byte[] NULL=new byte[]{(byte)0};
@@ -391,7 +463,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			try {
 				upsert(treeName, key, value);
 			} catch (SQLException e) {
-				throw new RuntimeException(e);
+				//StorageRuntimeException, like read() and delete(): EntryContainer passes that type through unchanged,
+				//while any other runtime exception is turned into an opaque ERR_UNCHECKED_EXCEPTION before it can be
+				//classified as a conflict
+				throw new StorageRuntimeException(e);
 			}
 		}
 

@@ -244,7 +244,12 @@ public class EntryContainer
           @Override
           public void run(WriteableTransaction txn) throws Exception
           {
-            attrIndexMap.remove(cfg.getAttribute()).closeAndDelete(txn);
+            // The write may be replayed by the storage, so the removal must tolerate having already happened.
+            final AttributeIndex index = attrIndexMap.remove(cfg.getAttribute());
+            if (index != null)
+            {
+              index.closeAndDelete(txn);
+            }
             attrCryptoMap.remove(cfg.getAttribute());
           }
         });
@@ -326,7 +331,12 @@ public class EntryContainer
           @Override
           public void run(WriteableTransaction txn) throws Exception
           {
-            vlvIndexMap.remove(cfg.getName().toLowerCase()).closeAndDelete(txn);
+            // The write may be replayed by the storage, so the removal must tolerate having already happened.
+            final VLVIndex vlvIndex = vlvIndexMap.remove(cfg.getName().toLowerCase());
+            if (vlvIndex != null)
+            {
+              vlvIndex.closeAndDelete(txn);
+            }
           }
         });
       }
