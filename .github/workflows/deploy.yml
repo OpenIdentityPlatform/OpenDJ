@@ -127,6 +127,14 @@ jobs:
           # warns and lets the job carry on. The next push to this branch retries it, and
           # nothing downstream depends on the committed binaries being current - the Build
           # run that produced them compiled its own.
+          #
+          # The Maven steps below must build the tree the triggering Build validated. The
+          # rebase moves the worktree onto the branch tip, which can carry commits that
+          # Build run never saw, so remember the refresh as it was made - HEAD_SHA plus
+          # the launchers - and come back to it once the push has landed. (The checkout above
+          # takes the branch by name, so it is already the tip as of a moment ago; this
+          # only keeps the rebase from widening that.)
+          REFRESHED=$(git rev-parse HEAD)
           for attempt in 1 2 3; do
             # Guarded like everything else in this block: bare, it is the one command left
             # that could still take the job down with it. The step runs under set -e with
@@ -150,6 +158,12 @@ jobs:
                 echo "The launchers committed on $BRANCH already match the rebuilt ones."
               else
                 echo "Refreshed launchers pushed to $BRANCH."
+              fi
+              # Guarded like the rest of this block: failing to get back to the
+              # validated tree means building the tip, which is what this job did
+              # before the refresh existed - not a reason to skip the deploy.
+              if ! git checkout --quiet --detach "$REFRESHED"; then
+                echo "::warning title=Could not restore the validated tree::the build continues on the current $BRANCH tip."
               fi
               exit 0
             fi
