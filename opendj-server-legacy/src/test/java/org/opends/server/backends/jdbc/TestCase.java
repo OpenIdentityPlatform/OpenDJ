@@ -36,6 +36,7 @@ import org.testng.annotations.Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -43,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.mockito.Mockito.when;
@@ -364,7 +366,8 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		} else if (url.startsWith("jdbc:oracle")) {
 			sql = "select comments from user_tab_comments where table_name='" + tableName.toUpperCase() + "'";
 		} else if (url.startsWith("jdbc:sqlserver")) {
-			sql = "select cast(value as nvarchar(4000)) from sys.extended_properties where major_id=object_id('" + tableName + "') and minor_id=0 and name='MS_Description'";
+			// class=1 is the table itself: major_id is only unique within a class
+			sql = "select cast(value as nvarchar(4000)) from sys.extended_properties where class=1 and major_id=object_id('" + tableName + "') and minor_id=0 and name='MS_Description'";
 		} else {
 			throw new SkipException("no table comment query for " + url);
 		}
@@ -396,6 +399,24 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	}
 
 	/**
+	 * Removes the stored comment, so that the next stamp has to create one rather than replace
+	 * it: on sql server that is sp_addextendedproperty, which is the statement reported to wait
+	 * for an uncommitted row of another session.
+	 */
+	void clearTableComment(String tableName) throws Exception {
+		final String url = getJdbcUrl();
+		if (!url.startsWith("jdbc:sqlserver")) {
+			writeTableComment(tableName, "stale"); // the other engines have one statement for both cases
+			return;
+		}
+		try (final Connection con = DriverManager.getConnection(url);
+			 final Statement st = con.createStatement()) {
+			st.execute("declare @s sysname = schema_name()"
+				+ " exec sys.sp_dropextendedproperty N'MS_Description', N'SCHEMA', @s, N'TABLE', N'" + tableName + "'");
+		}
+	}
+
+	/**
 	 * Comment statements are DDL (a metadata lock on mysql, a ddl lock on oracle), so a table
 	 * whose stored comment already matches its tree name must not be re-stamped on subsequent
 	 * opens - while a stale comment must be refreshed.
@@ -413,10 +434,67 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				}
 			});
 			assertEquals(readTableComment(storage.getTableName(tree)), tree.toString());
-			assertFalse(storage.commentTable(tree), "an up-to-date comment was re-stamped");
+			// UP_TO_DATE and not FAILED: the statement was skipped, not rejected
+			assertEquals(storage.commentTable(tree), JDBCStorage.CommentResult.UP_TO_DATE, "an up-to-date comment was re-stamped");
 			writeTableComment(storage.getTableName(tree), "stale");
-			assertTrue(storage.commentTable(tree), "a stale comment was not re-stamped");
+			assertEquals(storage.commentTable(tree), JDBCStorage.CommentResult.STAMPED, "a stale comment was not re-stamped");
 			assertEquals(readTableComment(storage.getTableName(tree)), tree.toString());
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * A stamp must never queue behind another session's transaction. Comment statements take a
+	 * lock (a metadata lock on mysql, a schema modification lock on sql server) and both engines
+	 * wait for it without limit by default - lock_wait_timeout is a year, lock_timeout is
+	 * infinite - so an unbounded stamp could hang the backend open and, on mysql, park every
+	 * other query on that table behind itself. Whether an uncommitted row of another session
+	 * conflicts with the statement at all differs between engines and versions, so the assertion
+	 * is on the timing: the call comes back rather than waiting for that transaction to end.
+	 */
+	@Test(timeOut = 180000)
+	public void testCommentStampGivesUpOnLock() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("o=commentLock", "dn2id");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			final String tableName = storage.getTableName(tree);
+			clearTableComment(tableName); // no comment stored: the next attempt must issue a statement
+			try (final Connection blocker = DriverManager.getConnection(getJdbcUrl())) {
+				blocker.setAutoCommit(false);
+				try (final PreparedStatement st = blocker.prepareStatement("insert into " + tableName + " (h,k) values (?,?)")) {
+					st.setString(1, String.format("%1$-128s", "blocker").replace(' ', 'x'));
+					st.setBytes(2, new byte[]{1});
+					st.executeUpdate();
+				}
+				// the row is left uncommitted, so the lock it holds is still there
+				final long start = System.currentTimeMillis();
+				final JDBCStorage.CommentResult result = storage.commentTable(tree);
+				final long elapsedMs = System.currentTimeMillis() - start;
+				blocker.rollback();
+				// giving up and stamping anyway are both fine here - the engines differ in whether an
+				// uncommitted row of another session conflicts with the comment statement at all.
+				// Waiting for that session to finish is what must never happen.
+				assertTrue(elapsedMs < 60000, "the comment statement waited " + elapsedMs + " ms for a lock, result " + result);
+				if (result == JDBCStorage.CommentResult.STAMPED) { // it reported success: the comment must be there
+					assertEquals(readTableComment(tableName), tree.toString());
+				}
+			}
 		} finally {
 			try {
 				storage.write(new WriteOperation() {
@@ -434,14 +512,37 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	 * A failing comment stamp must never disturb the transaction that opened the tree: it used
 	 * to roll back the caller's connection, silently discarding writes pending in the same
 	 * transaction (the way DefaultIndex.afterOpen() writes the trusted flag between openTree() calls).
+	 * The write pending during the failing stamp deliberately targets another tree: a write left
+	 * pending on the very table being stamped would make the comment statement wait for the
+	 * caller's own lock, which is a shape no production path has.
 	 */
 	@Test
 	public void testCommentFailureLeavesTransactionIntact() throws Exception {
-		final TreeName tree = new TreeName("o=commentFailure", "dn2id");
+		final TreeName stamped = new TreeName("o=commentFailure", "dn2id");
+		final TreeName written = new TreeName("o=commentFailure", "id2entry");
+		final JDBCStorage setUp = new JDBCStorage(createBackendCfg(), null);
+		try { // create both tables up front, with a storage that stamps them normally
+			setUp.open(AccessMode.READ_WRITE);
+			setUp.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(stamped, true);
+					txn.openTree(written, true);
+				}
+			});
+		} finally {
+			setUp.close();
+		}
+		final AtomicInteger stampAttempts = new AtomicInteger();
 		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
 			@Override
 			String readStoredComment(Connection con, String tableName) throws SQLException {
-				throw new SQLException("injected comment readback failure");
+				return null; // pretend the table carries no comment, so a stamp is attempted
+			}
+			@Override
+			Connection newStampConnection() throws SQLException {
+				stampAttempts.incrementAndGet();
+				throw new SQLException("injected comment failure");
 			}
 		};
 		try {
@@ -449,29 +550,27 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			storage.write(new WriteOperation() {
 				@Override
 				public void run(WriteableTransaction txn) throws Exception {
-					txn.openTree(tree, true); // create the table up front
-				}
-			});
-			storage.write(new WriteOperation() {
-				@Override
-				public void run(WriteableTransaction txn) throws Exception {
-					txn.put(tree, key(1), value(1)); // pending in this transaction...
-					txn.openTree(tree, true); // ...while the comment machinery fails
+					txn.put(written, key(1), value(1)); // pending in this transaction...
+					txn.openTree(stamped, true); // ...while the comment machinery fails
 				}
 			});
 			storage.read(new ReadOperation<Void>() {
 				@Override
 				public Void run(ReadableTransaction txn) throws Exception {
-					assertEquals(txn.read(tree, key(1)), value(1), "failing comment stamp discarded a pending write");
+					assertEquals(txn.read(written, key(1)), value(1), "failing comment stamp discarded a pending write");
 					return null;
 				}
 			});
+			// the failure is remembered: an unstampable table is not asked again in this JVM
+			assertEquals(storage.commentTable(stamped), JDBCStorage.CommentResult.FAILED);
+			assertEquals(stampAttempts.get(), 1, "a failed stamp was reissued");
 		} finally {
 			try {
 				storage.write(new WriteOperation() {
 					@Override
 					public void run(WriteableTransaction txn) throws Exception {
-						txn.deleteTree(tree);
+						txn.deleteTree(stamped);
+						txn.deleteTree(written);
 					}
 				});
 			} catch (Exception ignored) {}
@@ -518,6 +617,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					txn.openTree(tree, true);
 				}
 			});
+			suspendAutomaticStatistics(storage.getTableName(tree));
 			try (final Importer importer = storage.startImport()) {
 				for (int i = 0; i < 40; i++) {
 					importer.put(tree, key(i), value(i));
@@ -542,6 +642,23 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		}
 	}
 
+	/**
+	 * Suspends the automatic statistics upkeep of the engines that have it, so that what the
+	 * assertion below sees was produced by the refresh of the import and by nothing else: InnoDB
+	 * recalculates innodb_table_stats.n_rows on its own (innodb_stats_auto_recalc is on by
+	 * default), which would let the assertion pass with no "analyze table" ever issued.
+	 */
+	void suspendAutomaticStatistics(String tableName) throws Exception {
+		final String url = getJdbcUrl();
+		if (!url.startsWith("jdbc:mysql")) {
+			return; // nothing refreshes what is asserted below on the other engines within a test run
+		}
+		try (final Connection con = DriverManager.getConnection(url);
+			 final Statement st = con.createStatement()) {
+			st.execute("alter table " + tableName + " stats_auto_recalc=0");
+		}
+	}
+
 	void assertTableStatisticsFresh(String tableName) throws Exception {
 		final String url = getJdbcUrl();
 		final String sql;
@@ -552,7 +669,8 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			// num_rows stays null until dbms_stats gathers statistics
 			sql = "select num_rows from user_tables where table_name='" + tableName.toUpperCase() + "'";
 		} else if (url.startsWith("jdbc:mysql")) {
-			// n_rows in the persistent stats table is refreshed by ANALYZE TABLE
+			// n_rows in the persistent stats table is refreshed by ANALYZE TABLE, and - with the
+			// automatic recalculation suspended above - by nothing else: it stays 0 without it
 			sql = "select n_rows from mysql.innodb_table_stats where database_name=database() and table_name='" + tableName + "'";
 		} else if (url.startsWith("jdbc:sqlserver")) {
 			// last_updated stays null until the first UPDATE STATISTICS
