@@ -2494,10 +2494,20 @@ int removeServiceWithServiceName(char *serviceName)
 
   debug("Removing service with name %s.", serviceName);
 
-  if (code != SERVICE_IN_USE)
+  if (code == SERVICE_NOT_IN_USE)
   {
     returnCode = 1;
     debug("Service does not exist.");
+  }
+  else if (code != SERVICE_IN_USE)
+  {
+    // serviceNameInUse() could not enumerate the SCM: "the service does not
+    // exist" cannot be proven, and exit code 1 is what the callers read as
+    // SERVICE_ALREADY_DISABLED - the lie removeService() stopped telling when
+    // its own enumeration fails. Report an error instead, for both the 'remove'
+    // and the 'cleanup' subcommand.
+    returnCode = 3;
+    debug("Could not determine whether the service exists.");
   }
   else
   {
