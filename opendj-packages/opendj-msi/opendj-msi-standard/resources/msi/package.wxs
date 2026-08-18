@@ -123,9 +123,12 @@
          backslash - accepted: the worst case is refusing an upgrade whose neighbouring
          instance is running.
          Additional instances get key names like "OpenDJ Server-2", which this search does
-         not see; upgrading such an instance while it runs falls back to the WiX3-era
-         behaviour (locked jars go to delete-on-reboot). The Services key is shared
-         between registry views. -->
+         not see - as does a ko/zh_TW installation whose service was registered under the
+         localized "OpenDS" name - so their service is not stopped here. Such an upgrade is
+         not let through either: CheckServerNotRunning below is deliberately not
+         ImagePath-gated, so a server running out of the tree holds locks\server.lock and
+         the upgrade is refused with 1603. The residual is that the stop is never attempted
+         - a refusal, not damage. The Services key is shared between registry views. -->
     <Property Id="OPENDJ_SVC_IMAGEPATH" Secure="yes">
       <RegistrySearch Id="OpendjSvcImagePathSearch" Root="HKLM"
                       Key="SYSTEM\CurrentControlSet\Services\OpenDJ Server"

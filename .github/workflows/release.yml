@@ -222,9 +222,12 @@ jobs:
       - name: Build the MSI (packaging only, no rebuild)
         env:
           MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
-        # -P: do not rely on the wix.exe file-activation of distribution-windows-msi -
-        # a path drift would otherwise yield "Could not find the selected project in
-        # the reactor", swallowed by the job's continue-on-error.
+        # -P: do not rely on the wix.exe file-activation of distribution-windows-msi. The
+        # profile now lives in opendj-msi-standard's <build> and the module is part of
+        # every reactor, so -pl always resolves it; what -P buys is forcing the plugins on
+        # when wix.exe is not under %USERPROFILE%\.dotnet\tools. Without it this builds a
+        # pom that produces nothing, and fail_on_unmatched_files below is the only symptom
+        # - the job's continue-on-error swallows everything else.
         run: mvn --batch-mode --errors -DskipTests package -pl :opendj-msi-standard -Pdistribution-windows-msi --file pom.xml
       - name: Attach the MSI to the GitHub release
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
