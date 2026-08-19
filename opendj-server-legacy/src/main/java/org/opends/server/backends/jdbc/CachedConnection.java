@@ -15,14 +15,10 @@
  */
 package org.opends.server.backends.jdbc;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.github.benmanes.caffeine.cache.RemovalCause;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import java.sql.*;
-import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -47,9 +43,34 @@ public class CachedConnection implements Connection {
     /** Bound of the validation of a pooled connection: isValid(0) means "no timeout" in the JDBC contract. */
     static final int VALIDATION_TIMEOUT_SECONDS = 5;
 
+    /** The greatest number of connections one pool holds to one database; 0 for no bound. */
+    static final String POOL_MAX_PROPERTY = "org.openidentityplatform.opendj.jdbc.pool.max";
+    /**
+     * Sized like the worker thread pool of the server ({@code Platform.computeNumberOfThreads(16, 2)}),
+     * since an operation borrows one connection for its duration: the bound is there to keep a burst
+     * from opening as many connections as the database will accept, not to throttle steady traffic.
+     */
+    static final int DEFAULT_POOL_MAX = Math.max(16, Runtime.getRuntime().availableProcessors() * 2);
+
+    /** How long a borrow waits for a connection to be returned before looking at the pool again. */
+    private static final long POOL_FULL_POLL_MS = 250;
+    /** The sweep runs at half the TTL, and no more often than this. */
+    private static final long MIN_SWEEP_INTERVAL_MS = 1000;
+
     static final long MAX_BACKOFF_MS = 1000;
     static final long STALL_WARNING_AFTER_MS = 1000;
     static final long STALL_WARNING_INTERVAL_MS = 10000;
+
+    /**
+     * How many connections the current thread holds. A borrow made while one is already held may
+     * exceed the bound of the pool, because the two are held at the same time and waiting for the
+     * first to be returned would wait forever: {@code PersistentCompressedSchema.store()} opens a
+     * write of its own - the definition has to commit independently of the entry - and reaches it
+     * from inside a transaction on two paths, {@code EntryContainer.importEntry} and
+     * {@code EntryContainer.modifyDN}, both of which encode the entry inside the transaction.
+     * Such a connection is never pooled on return, so the pool does not grow past its bound.
+     */
+    private static final ThreadLocal<int[]> held = ThreadLocal.withInitial(() -> new int[1]);
 
     // setNetworkTimeout() takes the executor its timeout handling runs on: the drivers it is used
     // with here only set a socket option in it, so it costs a call rather than a thread.
@@ -60,27 +81,244 @@ public class CachedConnection implements Connection {
 
     final Connection parent;
 
-    static LoadingCache<String, BlockingQueue<CachedConnection>> cached = Caffeine.newBuilder()
-        .expireAfterAccess(Duration.ofMillis(getCacheTtlMillis()))
-        .removalListener((String key, BlockingQueue<CachedConnection> value, RemovalCause cause) -> {
-            for (CachedConnection con : value) {
-                try {
-                    if (!con.isClosed()) {
-                        con.parent.close();
-                    }
-                } catch (SQLException e) {
-                    // ignore
-                }
-            }
-        })
-        .build(conStr -> new LinkedBlockingQueue<>());
+    /** The pool this connection belongs to, held directly so that the return needs no lookup. */
+    private final Pool pool;
+    /** Whether this connection holds a permit of its pool: a reentrant borrow does not. */
+    private final boolean metered;
+    /** The thread that borrowed it, so that a return on another thread does not corrupt the count. */
+    private volatile Thread owner;
+    /** When it was last returned to the pool, which is what the TTL is measured from. */
+    volatile long returnedAtMillis;
+    private final AtomicBoolean permitReleased = new AtomicBoolean();
+
+    /** The pool of every connection string in use, kept until the last storage using it closes. */
+    static final ConcurrentMap<String, Pool> pools = new ConcurrentHashMap<>();
+
+    /** The sweep that closes connections nothing has borrowed for the TTL, started with the first pool. */
+    private static volatile ScheduledExecutorService sweeper;
 
     /**
      * Returns the time after which an idle pooled connection is closed, as configured by the
      * {@value #TTL_PROPERTY} system property. An invalid value is ignored in favor of the default.
+     * <p>
+     * Read on every borrow and every sweep rather than once, so that it can be changed on a running
+     * server the way the bounds of a borrow can.
      */
-    private static long getCacheTtlMillis() {
+    static long getCacheTtlMillis() {
         return getNonNegativeProperty(TTL_PROPERTY, DEFAULT_TTL_MS);
+    }
+
+    /** The pool of a connection string, created on first use. */
+    static Pool poolOf(String connectionString) {
+        final Pool pool = pools.computeIfAbsent(connectionString, Pool::new);
+        startSweeper();
+        return pool;
+    }
+
+    private static void startSweeper() {
+        if (sweeper != null) {
+            return;
+        }
+        synchronized (pools) {
+            if (sweeper == null) {
+                final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor(runnable -> {
+                    final Thread thread = new Thread(runnable, "JDBC backend connection pool sweeper");
+                    thread.setDaemon(true);
+                    return thread;
+                });
+                final long interval = Math.max(MIN_SWEEP_INTERVAL_MS, getCacheTtlMillis() / 2);
+                service.scheduleWithFixedDelay(CachedConnection::sweep, interval, interval, TimeUnit.MILLISECONDS);
+                sweeper = service;
+            }
+        }
+    }
+
+    // Expiry has to happen without a borrow behind it. Caffeine was left without a scheduler, so an
+    // entry was only ever expired by a later cache operation - and a backend that has gone idle,
+    // the one case the TTL exists for, performs none (issue #878).
+    private static void sweep() {
+        final long ttlMillis = getCacheTtlMillis();
+        for (final Pool pool : pools.values()) {
+            try {
+                pool.sweep(ttlMillis);
+            } catch (RuntimeException e) {
+                logger.traceException(e);
+            }
+        }
+    }
+
+    /**
+     * Registers a storage as a user of the pool of a connection string. Reference counted because a
+     * pool belongs to a database rather than to a backend: two backends may address one database,
+     * and closing one of them must not take the connections of the other with it.
+     */
+    static void openPool(String connectionString) {
+        poolOf(connectionString).addUser();
+    }
+
+    /** Unregisters a storage; the connections are released once the last user is gone. */
+    static void closePool(String connectionString) {
+        final Pool pool = pools.get(connectionString);
+        if (pool != null) {
+            pool.removeUser();
+        }
+    }
+
+    /** Closes every idle connection of a connection string, leaving the pool usable. */
+    static void invalidate(String connectionString) {
+        final Pool pool = pools.get(connectionString);
+        if (pool != null) {
+            pool.drainIdle();
+        }
+    }
+
+    /**
+     * The connections of one connection string.
+     * <p>
+     * This replaces the cache entry that used to hold them. That one carried the TTL on the pool
+     * rather than on a connection - {@code expireAfterAccess} keyed by the connection string, reset
+     * by every borrow and every return - so under continuous traffic nothing ever expired and the
+     * peak count of a burst stayed open for as long as the backend saw any traffic at all. It also
+     * had no bound, so the only ceiling on the connections of a backend was the {@code
+     * max_connections} of the database itself (issue #878).
+     */
+    static final class Pool {
+        final String connectionString;
+        /** Idle connections, most recently returned first: the ones a burst opened sink to the bottom, where the sweep finds them. */
+        private final LinkedBlockingDeque<CachedConnection> idle = new LinkedBlockingDeque<>();
+        /** One permit per live connection, borrowed or idle. Sized once: this is how large the pool may grow, not a rate. */
+        private final Semaphore permits;
+        private final int max;
+        /** Open storages using this pool, guarded by this. */
+        private int users;
+        /**
+         * Set when the last storage using this pool closed. A pool no storage ever registered with -
+         * a borrow made straight through {@link CachedConnection#getConnection}, as the tests do -
+         * is not closed and pools normally; only one that had a user and lost it stops keeping
+         * connections for a borrower that is not going to come.
+         */
+        private volatile boolean closed;
+
+        Pool(String connectionString) {
+            this.connectionString = connectionString;
+            final long configured = getNonNegativeProperty(POOL_MAX_PROPERTY, DEFAULT_POOL_MAX);
+            this.max = (configured == 0 || configured > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) configured;
+            this.permits = new Semaphore(max);
+        }
+
+        int max() {
+            return max;
+        }
+
+        int idleCount() {
+            return idle.size();
+        }
+
+        /** The connections this pool holds, borrowed and idle together. */
+        int liveCount() {
+            return max - permits.availablePermits();
+        }
+
+        synchronized void addUser() {
+            users++;
+            closed = false;
+        }
+
+        void removeUser() {
+            final boolean wasLast;
+            synchronized (this) {
+                wasLast = users > 0 && --users == 0;
+                if (wasLast) {
+                    closed = true;
+                }
+            }
+            if (wasLast) {
+                // Outside the monitor: closing a connection is a round trip, and an open of the
+                // same database has no reason to wait behind it. The borrowed ones are not here to
+                // be closed - give() closes them when they come back, since a pool nobody uses must
+                // not keep them for a borrower that is not going to come.
+                logger.trace(LocalizableMessage.raw("releasing %d pooled connections of %s: its last user closed",
+                    idle.size(), safeUrl(connectionString)));
+                drainIdle();
+            }
+        }
+
+        void drainIdle() {
+            for (CachedConnection con = idle.pollFirst(); con != null; con = idle.pollFirst()) {
+                destroy(con);
+            }
+        }
+
+        /**
+         * Takes a connection out of the pool, waiting up to waitMs for one to be returned, and
+         * discarding the ones that are broken or have been idle for longer than the TTL.
+         */
+        CachedConnection pollIdle(long waitMs, long ttlMillis) throws InterruptedException {
+            long remainingWait = waitMs;
+            while (true) {
+                final long polledAt = System.currentTimeMillis();
+                final CachedConnection con = idle.pollFirst(remainingWait, TimeUnit.MILLISECONDS);
+                if (con == null) {
+                    return null;
+                }
+                if (System.currentTimeMillis() - con.returnedAtMillis <= ttlMillis && isUsable(con)) {
+                    return con;
+                }
+                destroy(con);
+                remainingWait -= System.currentTimeMillis() - polledAt;
+                if (remainingWait <= 0) {
+                    // one more look, since a connection may have been returned in the meantime
+                    remainingWait = 0;
+                }
+            }
+        }
+
+        /** Takes the right to hold one more connection, or reports that the pool is full. */
+        boolean tryReserve() {
+            return permits.tryAcquire();
+        }
+
+        void cancelReservation() {
+            permits.release();
+        }
+
+        /** Hands a connection back, closing it rather than pooling it when it may not be kept. */
+        void give(CachedConnection con) {
+            // An unmetered connection holds no permit, so pooling it would put the pool one over its
+            // bound for good; and a closed pool has nobody left to hand it to.
+            if (con.metered && !closed) {
+                addIdle(con);
+                if (closed) {
+                    // The last user left while this one was on its way back, so it missed the drain.
+                    drainIdle();
+                }
+            } else {
+                destroy(con);
+            }
+        }
+
+        /** Puts a connection into the pool. The caller must hold the right to keep it there. */
+        void addIdle(CachedConnection con) {
+            con.returnedAtMillis = System.currentTimeMillis();
+            idle.addFirst(con);
+        }
+
+        void destroy(CachedConnection con) {
+            closeQuietly(con.parent);
+            con.releasePermit();
+        }
+
+        void sweep(long ttlMillis) {
+            final long deadline = System.currentTimeMillis() - ttlMillis;
+            // From the tail: the least recently returned connection is the first to have expired,
+            // and once one has not, neither has anything in front of it.
+            for (CachedConnection con = idle.peekLast(); con != null; con = idle.peekLast()) {
+                if (con.returnedAtMillis > deadline || !idle.removeLastOccurrence(con)) {
+                    return;
+                }
+                destroy(con);
+            }
+        }
     }
 
     /**
@@ -211,9 +449,38 @@ public class CachedConnection implements Connection {
     }
 
     final String connectionString;
+
+    /** A connection outside the accounting of its pool: it holds no permit and is never pooled. */
     public CachedConnection(String connectionString, Connection parent) {
+        this(connectionString, parent, poolOf(connectionString), false);
+    }
+
+    CachedConnection(String connectionString, Connection parent, Pool pool, boolean metered) {
         this.connectionString = connectionString;
         this.parent = parent;
+        this.pool = pool;
+        this.metered = metered;
+    }
+
+    /** Gives back the right to hold this connection, once and only if it was taken. */
+    void releasePermit() {
+        if (metered && permitReleased.compareAndSet(false, true)) {
+            pool.cancelReservation();
+        }
+    }
+
+    /** Records that the borrowing thread holds this connection, so a borrow nested in it is recognized. */
+    private static CachedConnection borrowed(CachedConnection con) {
+        con.owner = Thread.currentThread();
+        held.get()[0]++;
+        return con;
+    }
+
+    private static void released() {
+        final int[] depth = held.get();
+        if (depth[0] > 0) {
+            depth[0]--;
+        }
     }
 
     /**
@@ -223,25 +490,47 @@ public class CachedConnection implements Connection {
      * not answer into a hang rather than into an error the caller can report.
      */
     static Connection getConnection(String connectionString) throws Exception {
+        final Pool pool = poolOf(connectionString);
         final ConnectDialect dialect = ConnectDialect.of(connectionString);
         final long connectTimeoutSeconds = Math.min(
             getNonNegativeProperty(CONNECT_TIMEOUT_PROPERTY, DEFAULT_CONNECT_TIMEOUT_SECONDS), Integer.MAX_VALUE / 1000);
         final long poolTimeoutSeconds = getNonNegativeProperty(POOL_TIMEOUT_PROPERTY, DEFAULT_POOL_TIMEOUT_SECONDS);
+        final long ttlMillis = getCacheTtlMillis();
         final long startedAt = System.currentTimeMillis();
         final long deadline = (poolTimeoutSeconds == 0 || poolTimeoutSeconds >= Long.MAX_VALUE / 1000)
             ? Long.MAX_VALUE : startedAt + poolTimeoutSeconds * 1000;
+        // A thread already holding a connection is not made to wait for one: the two are held at
+        // the same time, so waiting for the first to come back would wait for itself.
+        final boolean reentrant = held.get()[0] > 0;
         long waitMs = 0;
         long backoffMs = 0;
         int attempts = 0;
         while (true) {
-            final CachedConnection pooled = poll(connectionString, waitMs);
+            final CachedConnection pooled = pool.pollIdle(waitMs, ttlMillis);
             if (pooled != null) {
-                return pooled;
+                return borrowed(pooled);
+            }
+            if (!reentrant && !pool.tryReserve()) {
+                // The pool holds as many connections as it may: only a returned one can serve this
+                // borrow now, and the deadline decides how long that is worth waiting for. This is
+                // the point of the bound - without it the borrow would open one more connection,
+                // and the only ceiling left would be the max_connections of the database itself.
+                final long remaining = deadline - System.currentTimeMillis();
+                if (remaining <= 0) {
+                    throw new SQLTimeoutException("no connection to " + safeUrl(connectionString)
+                        + " could be borrowed within " + poolTimeoutSeconds + "s: all " + pool.max()
+                        + " connections of the pool are in use (raise " + POOL_MAX_PROPERTY + " to allow more)");
+                }
+                waitMs = Math.min(POOL_FULL_POLL_MS, remaining);
+                continue;
             }
             attempts++;
             try {
-                return connect(connectionString, dialect, connectTimeoutSeconds);
+                return borrowed(connect(connectionString, dialect, connectTimeoutSeconds, pool, !reentrant));
             } catch (SQLException e) {
+                if (!reentrant) {
+                    pool.cancelReservation();
+                }
                 // A database that accepts no further connection is the one failure worth waiting
                 // out: one of ours is going to come back to the pool. Everything else - a password
                 // that is not accepted, a database that is down, a driver that is not on the
@@ -262,19 +551,6 @@ public class CachedConnection implements Connection {
         }
     }
 
-    /** Takes a usable connection out of the pool, waiting up to waitMs for one to be returned to it. */
-    private static CachedConnection poll(String connectionString, long waitMs) throws InterruptedException {
-        CachedConnection con = cached.get(connectionString).poll(waitMs, TimeUnit.MILLISECONDS);
-        while (con != null) {
-            if (isUsable(con)) {
-                return con;
-            }
-            closeQuietly(con.parent);
-            con = cached.get(connectionString).poll();
-        }
-        return null;
-    }
-
     private static boolean isUsable(CachedConnection con) {
         try {
             // The validation needs a bound of its own: isValid(0) means "no timeout" in the JDBC
@@ -286,8 +562,8 @@ public class CachedConnection implements Connection {
         }
     }
 
-    private static CachedConnection connect(String connectionString, ConnectDialect dialect, long connectTimeoutSeconds)
-            throws SQLException {
+    private static CachedConnection connect(String connectionString, ConnectDialect dialect, long connectTimeoutSeconds,
+            Pool pool, boolean metered) throws SQLException {
         // A driver is free to write into the map it is handed, so it gets one of its own.
         final Properties properties = new Properties();
         final boolean readBoundSet = dialect != null && connectTimeoutSeconds > 0
@@ -304,7 +580,7 @@ public class CachedConnection implements Connection {
             closeQuietly(conNew);
             throw e;
         }
-        return new CachedConnection(connectionString, conNew);
+        return new CachedConnection(connectionString, conNew, pool, metered);
     }
 
     // The second bound of the login is a socket read timeout on mysql, oracle and sql server, in
@@ -430,15 +706,21 @@ public class CachedConnection implements Connection {
 
     @Override
     public void close() throws SQLException {
+        if (owner == Thread.currentThread()) {
+            released();
+        }
         try {
             rollback();
         } catch (SQLException e) {
             // A connection that cannot be rolled back must not be handed to the next borrower -
             // and must not be dropped on the floor either: nothing else holds it any more.
-            closeQuietly(parent);
+            pool.destroy(this);
             throw e;
         }
-        cached.get(connectionString).add(this);
+        // Straight to the pool it came from rather than through a lookup of its connection string:
+        // the entry the lookup returned could be evicted between the two, leaving the connection in
+        // a queue nothing referred to any more - never handed out, never closed (issue #878).
+        pool.give(this);
     }
 
     @Override

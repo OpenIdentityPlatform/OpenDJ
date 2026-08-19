@@ -46,6 +46,7 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
@@ -81,6 +82,180 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	public void clearProperties() {
 		System.clearProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY);
 		System.clearProperty(CachedConnection.POOL_TIMEOUT_PROPERTY);
+		System.clearProperty(CachedConnection.POOL_MAX_PROPERTY);
+		System.clearProperty(CachedConnection.TTL_PROPERTY);
+	}
+
+	/**
+	 * Nothing used to limit how many connections a backend opened: the pool was an unbounded queue
+	 * behind a cache with no maximum size, so a burst of concurrent operations opened as many
+	 * connections as there were threads asking, and the only ceiling left was the max_connections of
+	 * the database itself (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testThePoolDoesNotGrowPastItsBound() throws Exception {
+		final String url = StubDriver.PREFIX + "bounded";
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, "2");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "1");
+		stub.answerWith(null);
+
+		// One thread per borrow, as the worker threads of the server are: two borrows on one thread
+		// are nested by definition, and a nested one is allowed past the bound on purpose.
+		final Connection first = borrowOnAThreadOfItsOwn(url);
+		final Connection second = borrowOnAThreadOfItsOwn(url);
+		assertEquals(CachedConnection.poolOf(url).liveCount(), 2);
+		try {
+			borrowOnAThreadOfItsOwn(url);
+			fail("a third connection was opened past the bound of two");
+		} catch (ExecutionException e) {
+			assertTrue(e.getCause() instanceof SQLTimeoutException, String.valueOf(e.getCause()));
+			assertTrue(e.getCause().getMessage().contains("all 2 connections"), e.getCause().getMessage());
+		}
+
+		// The bound waits for a returned connection rather than refusing outright: it is a ceiling
+		// on the connections held, not on the operations served.
+		first.close();
+		final Connection third = borrowOnAThreadOfItsOwn(url);
+		assertSame(third, first);
+		third.close();
+		second.close();
+		CachedConnection.invalidate(url);
+	}
+
+	/** Borrows the way the server does, one operation to a thread. */
+	private static Connection borrowOnAThreadOfItsOwn(String url) throws Exception {
+		final FutureTask<Connection> borrow = new FutureTask<>(() -> CachedConnection.getConnection(url));
+		final Thread thread = new Thread(borrow, "borrow-" + url);
+		thread.setDaemon(true);
+		thread.start();
+		return borrow.get(120, TimeUnit.SECONDS);
+	}
+
+	/**
+	 * A borrow made while this thread already holds a connection must not wait for the bound: the
+	 * two are held at once, so it would wait for itself. PersistentCompressedSchema.store() opens a
+	 * write of its own and is reached from inside a transaction by EntryContainer.importEntry and
+	 * EntryContainer.modifyDN, both of which encode the entry inside it.
+	 */
+	@Test(timeOut = 120000)
+	public void testABorrowNestedInAnotherMayPassTheBound() throws Exception {
+		final String url = StubDriver.PREFIX + "reentrant";
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, "1");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "1");
+		stub.answerWith(null);
+
+		final Connection outer = CachedConnection.getConnection(url);
+		final Connection nested = CachedConnection.getConnection(url);
+		assertNotSame(nested, outer);
+
+		// It holds no permit of the pool, so pooling it would leave the pool one connection over
+		// its bound for good: it is closed instead.
+		nested.close();
+		verify(((CachedConnection) nested).parent).close();
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 0);
+
+		outer.close();
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1);
+		CachedConnection.invalidate(url);
+	}
+
+	/**
+	 * The TTL used to sit on the pool rather than on a connection - keyed by the connection string,
+	 * and touched by every borrow and every return - so under continuous traffic nothing in it ever
+	 * expired (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testAnIdleConnectionIsClosedAfterItsTtl() throws Exception {
+		final String url = StubDriver.PREFIX + "ttl";
+		stub.answerWith(null);
+
+		final CachedConnection first = (CachedConnection) CachedConnection.getConnection(url);
+		first.close();
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1);
+		first.returnedAtMillis = System.currentTimeMillis() - 60000;
+		System.setProperty(CachedConnection.TTL_PROPERTY, "1000");
+
+		final Connection second = CachedConnection.getConnection(url);
+
+		assertNotSame(second, first, "a connection idle far longer than the TTL was handed out");
+		verify(first.parent).close();
+		second.close();
+		CachedConnection.invalidate(url);
+	}
+
+	/**
+	 * Expiry has to happen without a borrow behind it: the cache was built without a scheduler, so
+	 * an entry was only ever expired by a later cache operation - and a backend that has gone idle,
+	 * the one case the TTL exists for, performs none (#878). This is what the sweeper thread runs.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheSweepClosesAnIdleConnectionWithNoBorrowBehindIt() throws Exception {
+		final String url = StubDriver.PREFIX + "sweep";
+		stub.answerWith(null);
+		final CachedConnection con = (CachedConnection) CachedConnection.getConnection(url);
+		con.close();
+		con.returnedAtMillis = System.currentTimeMillis() - 60000;
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+		assertEquals(pool.idleCount(), 1);
+
+		pool.sweep(1000);
+
+		assertEquals(pool.idleCount(), 0);
+		verify(con.parent).close();
+		assertEquals(pool.liveCount(), 0, "a swept connection kept its place in the pool");
+	}
+
+	/** A closed backend has no use for its connections; they used to be left open (#878). */
+	@Test(timeOut = 120000)
+	public void testClosingTheLastUserReleasesTheConnections() throws Exception {
+		final String url = StubDriver.PREFIX + "release";
+		stub.answerWith(null);
+		CachedConnection.openPool(url);
+		final CachedConnection con = (CachedConnection) CachedConnection.getConnection(url);
+		con.close();
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1);
+
+		CachedConnection.closePool(url);
+
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 0);
+		verify(con.parent).close();
+		assertEquals(CachedConnection.poolOf(url).liveCount(), 0);
+	}
+
+	/**
+	 * A pool belongs to a database rather than to a backend: two backends may address one database,
+	 * and closing one of them must not take the connections of the other with it.
+	 */
+	@Test(timeOut = 120000)
+	public void testConnectionsSurviveWhileAnotherBackendStillUsesTheDatabase() throws Exception {
+		final String url = StubDriver.PREFIX + "shared";
+		stub.answerWith(null);
+		CachedConnection.openPool(url);
+		CachedConnection.openPool(url);
+		final CachedConnection con = (CachedConnection) CachedConnection.getConnection(url);
+		con.close();
+
+		CachedConnection.closePool(url);
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1, "the second backend lost its connections");
+
+		CachedConnection.closePool(url);
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 0);
+		verify(con.parent).close();
+	}
+
+	/** A connection out on loan when the last backend closed is closed when it comes back. */
+	@Test(timeOut = 120000)
+	public void testAConnectionReturnedAfterTheLastUserLeftIsClosed() throws Exception {
+		final String url = StubDriver.PREFIX + "return-after-close";
+		stub.answerWith(null);
+		CachedConnection.openPool(url);
+		final CachedConnection con = (CachedConnection) CachedConnection.getConnection(url);
+
+		CachedConnection.closePool(url);
+		con.close();
+
+		verify(con.parent).close();
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 0);
 	}
 
 	/**
@@ -228,7 +403,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final String url = StubDriver.PREFIX + "broken-pooled";
 		final Connection stale = mock(Connection.class);
 		when(stale.isValid(anyInt())).thenReturn(false);
-		CachedConnection.cached.get(url).add(new CachedConnection(url, stale));
+		CachedConnection.poolOf(url).addIdle(new CachedConnection(url, stale));
 		final Connection fresh = mock(Connection.class);
 		when(fresh.isValid(anyInt())).thenReturn(true);
 		stub.answerWith(fresh);
@@ -256,7 +431,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 			assertEquals(expected.getMessage(), "connection is closed");
 		}
 		verify(parent).close();
-		assertTrue(CachedConnection.cached.get(url).isEmpty(), "a connection that cannot be rolled back was pooled");
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 0, "a connection that cannot be rolled back was pooled");
 	}
 
 	@Test

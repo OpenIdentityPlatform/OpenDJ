@@ -152,7 +152,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, "2");
 		try {
 			// a pooled connection would be handed back without being established again
-			CachedConnection.cached.invalidate(url);
+			CachedConnection.invalidate(url);
 			try (final Connection con = CachedConnection.getConnection(url)) {
 				assertEquals(con.getNetworkTimeout(), 0, "the read bound of the login is still in force");
 			}

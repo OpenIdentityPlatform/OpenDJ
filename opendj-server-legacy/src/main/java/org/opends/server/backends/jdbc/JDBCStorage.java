@@ -41,6 +41,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.opends.server.backends.pluggable.spi.StorageUtils.addErrorMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -145,11 +146,26 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 
 	AccessMode accessMode=AccessMode.READ_ONLY;
+
+	// Whether this storage counts as a user of the pool of its connection string. The pool belongs
+	// to the database rather than to this backend - two backends may address one database - so it
+	// is reference counted, and this flag keeps an open() or a close() that comes twice from
+	// counting twice (issue #878).
+	private final AtomicBoolean poolRegistered=new AtomicBoolean();
+
 	@Override
 	public void open(AccessMode accessMode) throws Exception {
+		if (poolRegistered.compareAndSet(false, true)) {
+			CachedConnection.openPool(config.getDBDirectory());
+		}
 		try (final Connection con=getConnection()) {
 			this.accessMode = accessMode;
 			storageStatus = StorageStatus.working();
+		} catch (Exception e) {
+			if (poolRegistered.compareAndSet(true, false)) {
+				CachedConnection.closePool(config.getDBDirectory());
+			}
+			throw e;
 		}
 	}
 
@@ -166,6 +182,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// that it is not reissued for every tree on every open; disabling and re-enabling the
 		// backend is the way to try again once the privilege has been granted
 		unstampableTrees.clear();
+		// A closed backend has no use for its connections. They used to stay open - close() only
+		// flipped the status - so disabling or removing a JDBC backend left them behind, and with
+		// nothing left to expire the pool entry they could stay open for good (issue #878).
+		if (poolRegistered.compareAndSet(true, false)) {
+			CachedConnection.closePool(config.getDBDirectory());
+		}
 	}
 
 	final LoadingCache<TreeName,String> tree2table = Caffeine.newBuilder()
@@ -1532,7 +1554,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}else {
 						updateTableStatistics(con, writtenTrees);
 					}
-				} finally { // the pooled connection must be returned even when the commit or a statistics statement throws
+				} finally {
+					// Back to the pool even when the commit or a statistics statement failed: nothing
+					// else holds this connection, so leaving it behind would leak it along with the failure.
 					try {
 						con.close();
 					} finally {
