@@ -217,17 +217,22 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			"loginTimeout", STAMP_CONNECT_TIMEOUT_SECONDS);
 
 		final String lockTimeoutSql;
-		// The driver properties bounding the connect attempt of a stamp connection, as the
-		// name/value pairs the constructor was given. newStampConnection() hands the driver a
-		// copy of them: a driver is free to write into the map it is passed, and the sql server
-		// one gives a supplied property precedence over the same property of the url.
+		// The driver properties bounding the connect attempt of a stamp connection.
+		// newStampConnection() hands the driver a copy of them: a driver is free to write into the
+		// map it is passed, and the sql server one gives a supplied property precedence over the
+		// same property of the url.
 		final Properties connectProperties=new Properties();
 
-		Dialect(String lockTimeoutSql, Object... connectPropertyPairs) {
+		/** For the one driver whose single property covers the whole login phase. */
+		Dialect(String lockTimeoutSql, String connectProperty, int connectValue) {
 			this.lockTimeoutSql=lockTimeoutSql;
-			for (int i=0;i<connectPropertyPairs.length;i+=2) {
-				connectProperties.setProperty((String) connectPropertyPairs[i], String.valueOf(connectPropertyPairs[i+1]));
-			}
+			connectProperties.setProperty(connectProperty, String.valueOf(connectValue));
+		}
+
+		/** For the drivers needing a read bound on top of the one bounding the socket connect. */
+		Dialect(String lockTimeoutSql, String connectProperty, int connectValue, String readProperty, int readValue) {
+			this(lockTimeoutSql, connectProperty, connectValue);
+			connectProperties.setProperty(readProperty, String.valueOf(readValue));
 		}
 	}
 
