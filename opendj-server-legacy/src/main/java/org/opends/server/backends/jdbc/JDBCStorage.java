@@ -41,6 +41,8 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.opends.server.backends.pluggable.spi.StorageUtils.addErrorMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -117,18 +119,149 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		return ccr;
 	}
 
+	/**
+	 * What a statement of this backend may legitimately take, and the property bounding it. One
+	 * value cannot serve both: an entry read is a single row of an index, while the count of a
+	 * tree and the delete that empties one before an import are a scan and a rewrite of a whole
+	 * table, which take minutes on a populated backend and are not a symptom of anything.
+	 */
+	enum StatementBound {
+		/** one row by primary key, or one batch of a cursor along its index */
+		OPERATION("org.openidentityplatform.opendj.jdbc.query.timeout", 120),
+		/** a whole table at once: count(*), the delete of clearTree, create index, drop table */
+		BULK("org.openidentityplatform.opendj.jdbc.bulk.timeout", 0);
+
+		final String property;
+		final int defaultSeconds;
+
+		StatementBound(String property, int defaultSeconds) {
+			this.property = property;
+			this.defaultSeconds = defaultSeconds;
+		}
+
+		/**
+		 * The bound in seconds, as configured by {@link #property}: 0 - or a negative value, or one
+		 * that is not a number - leaves the statement unbounded, as it was before this bound existed.
+		 */
+		int seconds() {
+			return Math.max(0, Integer.getInteger(property, defaultSeconds));
+		}
+	}
+
 	ResultSet executeResultSet(PreparedStatement statement) throws SQLException {
+		return executeResultSet(statement, StatementBound.OPERATION);
+	}
+
+	ResultSet executeResultSet(PreparedStatement statement, StatementBound bound) throws SQLException {
 		if (logger.isTraceEnabled()) {
 			logger.trace(LocalizableMessage.raw("jdbc: %s",statement));
 		}
-		return statement.executeQuery();
+		return bounded(statement, bound, statement::executeQuery);
 	}
 
 	int execute(PreparedStatement statement) throws SQLException {
+		return execute(statement, StatementBound.OPERATION);
+	}
+
+	int execute(PreparedStatement statement, StatementBound bound) throws SQLException {
 		if (logger.isTraceEnabled()) {
 			logger.trace(LocalizableMessage.raw("jdbc: %s",statement));
 		}
-		return statement.executeUpdate();
+		return bounded(statement, bound, statement::executeUpdate);
+	}
+
+	private interface Execution<T> {
+		T run() throws SQLException;
+	}
+
+	/**
+	 * Runs a statement under the bound of its class. A statement of this backend has to end: a row
+	 * locked by an unrelated session, a table waiting for a metadata lock or a database that stops
+	 * answering mid-query would otherwise park the worker thread that issued it for good.
+	 * <p>
+	 * The bound is asked of the driver rather than of the session, because a pooled connection
+	 * cannot carry a session setting - {@code CachedConnection.close()} only rolls back, so a
+	 * {@code statement_timeout} of one operation would apply to whoever borrows the connection
+	 * next - and it is applied in two layers, since the first one is not answered everywhere:
+	 * {@code setQueryTimeout} cancels the statement and keeps the connection, while the socket read
+	 * timeout behind it ends the wait even when the cancel is not acted upon. Oracle needs that
+	 * second layer: a session blocked in a row-lock enqueue does not process the break its driver
+	 * sends, so the timeout is armed and never arrives (the container suites cover it).
+	 */
+	private <T> T bounded(PreparedStatement statement, StatementBound bound, Execution<T> execution) throws SQLException {
+		final int seconds=bound.seconds();
+		if (seconds <= 0) { // unbounded, exactly as this backend ran before the bound existed
+			return execution.run();
+		}
+		statement.setQueryTimeout(seconds);
+		final long startedAt=System.currentTimeMillis();
+		final int backstop=armBackstop(statement, seconds);
+		try {
+			return execution.run();
+		}catch (SQLException e) {
+			throw timedOut(e, bound, seconds, startedAt);
+		}finally {
+			releaseBackstop(statement, backstop);
+		}
+	}
+
+	/** How long the socket read timeout outlasts the cancel it backs up, giving it room to arrive. */
+	static final int BACKSTOP_MARGIN_SECONDS = 30;
+
+	// setNetworkTimeout() takes the executor its timeout handling runs on; the drivers of this
+	// backend only set a socket option in it, so it costs a call rather than a thread.
+	private static final Executor DIRECT_EXECUTOR = Runnable::run;
+
+	private static final AtomicBoolean backstopWarned = new AtomicBoolean();
+
+	/**
+	 * Arms the socket read timeout that backs up the cancel of a statement, and returns the value
+	 * to put back afterwards, or -1 when there is nothing to put back. Unlike the cancel, reaching
+	 * this one costs the connection: the driver closes it, which is the price of a wait that the
+	 * database was never going to end on its own.
+	 */
+	private int armBackstop(PreparedStatement statement, int seconds) {
+		try {
+			final Connection con=statement.getConnection();
+			if (con == null) {
+				return -1;
+			}
+			final int previous=con.getNetworkTimeout();
+			con.setNetworkTimeout(DIRECT_EXECUTOR, (int) Math.min(Integer.MAX_VALUE, (seconds+BACKSTOP_MARGIN_SECONDS)*1000L));
+			return previous;
+		}catch (SQLException | RuntimeException e) {
+			if (backstopWarned.compareAndSet(false, true)) {
+				logger.warn(LocalizableMessage.raw("jdbc: the socket read timeout backing up a cancelled statement could not"
+					+ " be set (%s): a statement the database does not cancel will wait for it indefinitely", e.getMessage()));
+			}
+			return -1;
+		}
+	}
+
+	private void releaseBackstop(PreparedStatement statement, int backstop) {
+		if (backstop < 0) {
+			return;
+		}
+		try {
+			statement.getConnection().setNetworkTimeout(DIRECT_EXECUTOR, backstop);
+		}catch (SQLException | RuntimeException e) {
+			// the connection the backstop was armed on is on its way out: it reached the timeout
+		}
+	}
+
+	// Every driver reports a cancelled statement differently - postgresql as 57014, oracle as
+	// ORA-01013, and neither of them as a SQLTimeoutException - so the bound is recognized by the
+	// time the statement took rather than by the class or the state of its failure. The SQL state
+	// and the error number are carried over, since a failure that arrives at the bound may still be
+	// one a caller classifies: a mysql lock wait, reported in class 40, ends inside a longer bound
+	// and stays the replayable conflict it is. The statement itself is left out of the message: a
+	// driver renders it with its parameters bound, and those are entry data.
+	private SQLException timedOut(SQLException e, StatementBound bound, int seconds, long startedAt) {
+		if (seconds <= 0 || System.currentTimeMillis()-startedAt < seconds*1000L) {
+			return e;
+		}
+		return new SQLTimeoutException("jdbc: the statement did not finish within the "+seconds+"s of "
+			+bound.property+": raise that property, or set it to 0 for no bound", e.getSQLState(), e.getErrorCode(), e);
 	}
 
 	// unlike execute(), tolerates statements that return a result set ("analyze table" on mysql)
@@ -785,7 +918,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				try {
 					for (final TreeName treeName : trees) {
 						try (final PreparedStatement statement = con.prepareStatement("drop table " + getTableName(treeName))) {
-							execute(statement);
+							execute(statement, StatementBound.BULK);
 						}
 					}
 					con.commit();
@@ -1036,7 +1169,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		@Override
 		public long getRecordCount(TreeName treeName) {
 			try (final PreparedStatement statement=con.prepareStatement("select count(*) from "+getTableName(treeName));
-				 final ResultSet rc=executeResultSet(statement)){
+				 final ResultSet rc=executeResultSet(statement, StatementBound.BULK)){
 				return rc.next() ? rc.getLong(1) : 0;
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
@@ -1098,7 +1231,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (createOnDemand) {
 				if (!isExistsTable(treeName)) {
 					try (final PreparedStatement statement=con.prepareStatement("create table "+getTableName(treeName)+" ("+getTableDialect()+")")){
-						execute(statement);
+						execute(statement, StatementBound.BULK);
 						con.commit();
 					}catch (SQLException e) {
 						throw new StorageRuntimeException(e);
@@ -1109,7 +1242,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				final String tableName=getTableName(treeName);
 				if (driverName.contains("postgres")) {
 					try (final PreparedStatement statement=con.prepareStatement("create index if not exists k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)")){
-						execute(statement);
+						execute(statement, StatementBound.BULK);
 						con.commit();
 					}catch (SQLException e) {
 						throw new StorageRuntimeException(e);
@@ -1118,7 +1251,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					try {
 						if (!isExistsIndex(tableName,"k_"+tableName.substring("opendj_".length()))) { // mysql has no "create index if not exists"
 							try (final PreparedStatement statement=con.prepareStatement("create index k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)")){
-								execute(statement);
+								execute(statement, StatementBound.BULK);
 								con.commit();
 							}
 						}
@@ -1130,7 +1263,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 						// oracle has no "create index if not exists"; unquoted identifiers are stored in uppercase
 						if (!isExistsIndex(tableName.toUpperCase(),"k_"+tableName.substring("opendj_".length()))) {
 							try (final PreparedStatement statement=con.prepareStatement("create index k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)")){
-								execute(statement);
+								execute(statement, StatementBound.BULK);
 								con.commit();
 							}
 						}
@@ -1159,7 +1292,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		
 		public void clearTree(TreeName treeName) {
 			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName))){
-				execute(statement);
+				execute(statement, StatementBound.BULK);
 				con.commit();
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
@@ -1170,7 +1303,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		public void deleteTree(TreeName treeName) {
 			if (isExistsTable(treeName)) {
 				try (final PreparedStatement statement = con.prepareStatement("drop table " + getTableName(treeName))) {
-					execute(statement);
+					execute(statement, StatementBound.BULK);
 					con.commit();
 				} catch (SQLException e) {
 					throw new StorageRuntimeException(e);

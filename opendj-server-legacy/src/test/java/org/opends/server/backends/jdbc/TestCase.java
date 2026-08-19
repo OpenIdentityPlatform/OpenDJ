@@ -200,6 +200,109 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	}
 
 	/**
+	 * A statement of this backend has to end even when another session holds what it needs: a row
+	 * locked by a transaction that never commits used to park the worker thread that issued the
+	 * write for good, with nothing in the log to say so (#877).
+	 */
+	@Test(timeOut = 600000)
+	public void testWriteBlockedByAnotherSessionGivesUpAtItsBound() throws Exception {
+		assertBoundedWhileRowsAreLocked("testStatementBound", JDBCStorage.StatementBound.OPERATION,
+			new BlockedOperation() {
+				@Override
+				public void run(JDBCStorage storage, TreeName tree) throws Exception {
+					storage.write(new WriteOperation() {
+						@Override
+						public void run(WriteableTransaction txn) throws Exception {
+							txn.put(tree, key(1), value(2));
+						}
+					});
+				}
+			});
+	}
+
+	/**
+	 * The bulk class keeps a bound of its own: a count or the delete that empties a tree before an
+	 * import legitimately takes minutes, so it must not be cut at the bound of an entry read - and
+	 * must still be able to give up (#877).
+	 */
+	@Test(timeOut = 600000)
+	public void testBulkStatementGivesUpAtItsOwnBound() throws Exception {
+		assertBoundedWhileRowsAreLocked("testBulkBound", JDBCStorage.StatementBound.BULK,
+			new BlockedOperation() {
+				@Override
+				public void run(JDBCStorage storage, TreeName tree) throws Exception {
+					// the importer is where "delete from <table>" - the bulk class - is reachable:
+					// AbstractTwoPhaseImportStrategy clears every tree before an import writes to it
+					try (final Importer importer = storage.startImport()) {
+						importer.clearTree(tree);
+					}
+				}
+			});
+	}
+
+	private interface BlockedOperation {
+		void run(JDBCStorage storage, TreeName tree) throws Exception;
+	}
+
+	/**
+	 * Runs the given operation while another session holds every row of the tree in an uncommitted
+	 * transaction, with only the property of the given class bounding it: the operation must give
+	 * up inside that bound instead of waiting for a lock that is never released.
+	 */
+	private void assertBoundedWhileRowsAreLocked(String treeId, JDBCStorage.StatementBound bound, BlockedOperation blocked)
+			throws Exception {
+		final int boundSeconds = 5;
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName(treeId, "tree");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					txn.put(tree, key(1), value(1));
+				}
+			});
+			// another session takes an exclusive lock on every row of the table and keeps it: the
+			// same statement clearTree() issues, so it is known to parse on all four dialects
+			try (final Connection blocker = DriverManager.getConnection(getJdbcUrl())) {
+				blocker.setAutoCommit(false);
+				try (final Statement lock = blocker.createStatement()) {
+					lock.executeUpdate("delete from " + storage.getTableName(tree));
+				}
+				// only the class under test is bounded, so a pass through the other one cannot
+				// be mistaken for the bound working
+				for (final JDBCStorage.StatementBound each : JDBCStorage.StatementBound.values()) {
+					System.setProperty(each.property, each == bound ? Integer.toString(boundSeconds) : "0");
+				}
+				final long startedAt = System.currentTimeMillis();
+				try {
+					blocked.run(storage, tree);
+					fail("the operation must give up while the rows it needs are locked");
+				} catch (Exception expected) {
+					// the bound was reached and the transaction rolled back
+				}
+				final long elapsed = System.currentTimeMillis() - startedAt;
+				assertTrue(elapsed < 120000, "gave up only after " + elapsed + " ms");
+				blocker.rollback();
+			}
+		} finally {
+			for (final JDBCStorage.StatementBound each : JDBCStorage.StatementBound.values()) {
+				System.clearProperty(each.property);
+			}
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
 	 * Forward repositioning inside the already-fetched batch must be served from the buffer without SQL,
 	 * and batch sizes must grow from "fetchsize.initial" to "fetchsize" on sequential reads (#860).
 	 */
