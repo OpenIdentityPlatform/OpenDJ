@@ -51,6 +51,7 @@ import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -474,9 +475,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			});
 			assertEquals(readTableComment(storage.getTableName(tree)), tree.toString());
 			// UP_TO_DATE and not FAILED: the statement was skipped, not rejected
-			assertEquals(storage.commentTable(tree), JDBCStorage.CommentResult.UP_TO_DATE, "an up-to-date comment was re-stamped");
+			assertEquals(storage.commentTable(tree, dialect()), JDBCStorage.CommentResult.UP_TO_DATE, "an up-to-date comment was re-stamped");
 			writeTableComment(storage.getTableName(tree), "stale");
-			assertEquals(storage.commentTable(tree), JDBCStorage.CommentResult.STAMPED, "a stale comment was not re-stamped");
+			assertEquals(storage.commentTable(tree, dialect()), JDBCStorage.CommentResult.STAMPED, "a stale comment was not re-stamped");
 			assertEquals(readTableComment(storage.getTableName(tree)), tree.toString());
 		} finally {
 			try {
@@ -523,7 +524,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				}
 				// the row is left uncommitted, so the lock it holds is still there
 				final long start = System.currentTimeMillis();
-				final JDBCStorage.CommentResult result = storage.commentTable(tree);
+				final JDBCStorage.CommentResult result = storage.commentTable(tree, dialect());
 				final long elapsedMs = System.currentTimeMillis() - start;
 				blocker.rollback();
 				// giving up and stamping anyway are both fine here - the engines differ in whether an
@@ -578,13 +579,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		final AtomicInteger stampAttempts = new AtomicInteger();
 		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
 			@Override
-			String readStoredComment(Connection con, String tableName) throws SQLException {
-				return null; // pretend the table carries no comment, so a stamp is attempted
-			}
-			@Override
 			Connection newStampConnection(Dialect dialect) throws SQLException {
 				stampAttempts.incrementAndGet();
-				throw new SQLException("injected comment failure"); // no sql state, no vendor code: not a failure of the moment
+				throw new SQLException("injected comment failure"); // no sql state, no vendor code: a rejection, not a failure of the moment
 			}
 		};
 		try {
@@ -603,8 +600,8 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					return null;
 				}
 			});
-			// the failure is remembered: an unstampable table is not asked again in this JVM
-			assertEquals(storage.commentTable(stamped), JDBCStorage.CommentResult.FAILED);
+			// the failure is remembered: an unstampable table is not asked again while this backend is open
+			assertEquals(storage.commentTable(stamped, dialect()), JDBCStorage.CommentResult.FAILED);
 			assertEquals(stampAttempts.get(), 1, "a failed stamp was reissued");
 		} finally {
 			try {
@@ -632,10 +629,6 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		final AtomicInteger stampAttempts = new AtomicInteger();
 		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
 			@Override
-			String readStoredComment(Connection con, String tableName) throws SQLException {
-				return null; // pretend the table carries no comment, so a stamp is attempted
-			}
-			@Override
 			Connection newStampConnection(Dialect dialect) throws SQLException {
 				stampAttempts.incrementAndGet();
 				throw new SQLException("injected connection failure", "08006"); // connection exception: a failure of the moment
@@ -649,7 +642,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					txn.openTree(tree, true); // stamp #1, fails
 				}
 			});
-			assertEquals(storage.commentTable(tree), JDBCStorage.CommentResult.FAILED);
+			assertEquals(storage.commentTable(tree, dialect()), JDBCStorage.CommentResult.FAILED);
 			assertEquals(stampAttempts.get(), 2, "a stamp that failed for a reason of the moment was not attempted again");
 		} finally {
 			try {
@@ -666,8 +659,10 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 
 	/**
 	 * Opening a backend opens every tree it holds - about 25 for a stock suffix - and the first
-	 * open after an upgrade stamps them all: the stamps must share one connection rather than
-	 * make a physical connect each. An open that finds the comments in place must make none.
+	 * open after an upgrade stamps them all: the trees of one open must share one connection
+	 * rather than make a physical connect each. One per open is what the comment machinery costs,
+	 * readback included - the readback runs on that same connection, because the thread doing the
+	 * open is inside a transaction and holding a pooled connection already.
 	 */
 	@Test
 	public void testCommentStampsShareOneConnection() throws Exception {
@@ -705,7 +700,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					}
 				}
 			});
-			assertEquals(connects.get(), 1, "an open that found every comment in place still connected");
+			// three trees, one more connect: the open that finds every comment in place issues no
+			// statement and takes no lock, and pays one connection for the whole sweep either way
+			assertEquals(connects.get(), 2, "the trees of an open that found every comment in place did not share a connection");
 		} finally {
 			try {
 				storage.write(new WriteOperation() {
@@ -742,7 +739,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				bound = sessionLockBound(fresh); // what a connection carrying the bound reports
 			}
 			try (final JDBCStorage.StampSession session = storage.new StampSession()) {
-				assertEquals(storage.commentTable(missing, session), JDBCStorage.CommentResult.FAILED,
+				assertEquals(storage.commentTable(missing, dialect, session), JDBCStorage.CommentResult.FAILED,
 					"stamping a table that does not exist was reported as done");
 				if (bound != null) { // oracle: ddl_lock_timeout is only in v$parameter, which the test user cannot read
 					assertEquals(sessionLockBound(session.connection(dialect)), bound,
@@ -755,14 +752,13 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	}
 
 	/**
-	 * A stamp failure of the moment - a connect that did not go through, a lock the statement
-	 * gave up on - says nothing about one table: every remaining tree of the same open would pay
-	 * the same bound, or the same connect attempt, again. That is about 25 of them for a stock
-	 * suffix, all for a diagnostic aid, so the sweep gives up after the first - and since nothing
-	 * is remembered, the next open tries again.
+	 * A stamp that lost its connection ends the sweep it happened in: every tree behind it needs
+	 * that same connection, so each would pay the same connect attempt again. That is about 25 of
+	 * them for a stock suffix, all for a diagnostic aid. Nothing is remembered, so the next open
+	 * tries again.
 	 */
 	@Test
-	public void testTransientStampFailureEndsTheSweep() throws Exception {
+	public void testConnectionFailureEndsTheSweep() throws Exception {
 		final TreeName[] trees = {
 			new TreeName("o=sweepGiveUp", "dn2id"),
 			new TreeName("o=sweepGiveUp", "id2entry"),
@@ -770,13 +766,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		final AtomicInteger stampAttempts = new AtomicInteger();
 		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
 			@Override
-			String readStoredComment(Connection con, String tableName) throws SQLException {
-				return null; // pretend no table carries a comment, so every one of them is stamped
-			}
-			@Override
 			Connection newStampConnection(Dialect dialect) throws SQLException {
 				stampAttempts.incrementAndGet();
-				throw new SQLException("injected connection failure", "08006"); // connection exception: a failure of the moment
+				throw new SQLException("injected connection failure", "08006"); // connection exception: the session is gone
 			}
 		};
 		try {
@@ -789,7 +781,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					}
 				}
 			});
-			assertEquals(stampAttempts.get(), 1, "a failure of the moment was paid once per tree of the same open");
+			assertEquals(stampAttempts.get(), 1, "a connection that was gone was paid once per tree of the same open");
 			storage.write(new WriteOperation() {
 				@Override
 				public void run(WriteableTransaction txn) throws Exception {
@@ -798,7 +790,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					}
 				}
 			});
-			assertEquals(stampAttempts.get(), 2, "the open after a failure of the moment did not try again");
+			assertEquals(stampAttempts.get(), 2, "the open after a lost connection did not try again");
 		} finally {
 			try {
 				storage.write(new WriteOperation() {
@@ -811,6 +803,90 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				});
 			} catch (Exception ignored) {}
 			storage.close();
+		}
+	}
+
+	/**
+	 * A lock belongs to the table it is held on, so a stamp that gave up on one must not cost the
+	 * trees behind it their comments: the trees of an open are stamped in a fixed order, and a
+	 * table left permanently contended by another session would otherwise mean nothing is ever
+	 * stamped, on any open. Nothing is remembered either - the open that follows stamps the table
+	 * whose moment has passed.
+	 * <p>
+	 * The failure is injected at the readback rather than at the comment statement, which is built
+	 * inline; what is under test is the classification of the failure and what the sweep does with
+	 * it, and those do not depend on which of the two statements produced it.
+	 */
+	@Test
+	public void testContendedTableDoesNotEndTheSweep() throws Exception {
+		final TreeName[] trees = {
+			new TreeName("o=sweepContended", "dn2id"),
+			new TreeName("o=sweepContended", "id2entry"),
+			new TreeName("o=sweepContended", "state") };
+		final AtomicInteger contended = new AtomicInteger(1); // the first tree, for one sweep only
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
+			@Override
+			String readStoredComment(Connection con, Dialect dialect, String tableName) throws SQLException {
+				if (tableName.equals(getTableName(trees[0])) && contended.getAndDecrement() > 0) {
+					throw lockTimeoutOf(dialect); // as if another session held this one table
+				}
+				return super.readStoredComment(con, dialect, tableName);
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					for (final TreeName tree : trees) {
+						txn.openTree(tree, true);
+					}
+				}
+			});
+			assertNotEquals(readTableComment(storage.getTableName(trees[0])), trees[0].toString(),
+				"the contended table was stamped anyway");
+			for (int i = 1; i < trees.length; i++) {
+				assertEquals(readTableComment(storage.getTableName(trees[i])), trees[i].toString(),
+					"one contended table cost the trees behind it their comments");
+			}
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					for (final TreeName tree : trees) {
+						txn.openTree(tree, true);
+					}
+				}
+			});
+			assertEquals(readTableComment(storage.getTableName(trees[0])), trees[0].toString(),
+				"a table left unstamped by a contended moment was not stamped by the open that followed");
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						for (final TreeName tree : trees) {
+							txn.deleteTree(tree);
+						}
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/** The failure a dialect reports when a statement gave up on the lock bound it was given. */
+	static SQLException lockTimeoutOf(JDBCStorage.Dialect dialect) {
+		switch (dialect) {
+		case POSTGRES:
+			return new SQLException("canceling statement due to lock timeout", "55P03");
+		case MYSQL:
+			return new SQLException("Lock wait timeout exceeded; try restarting transaction", "HY000", 1205);
+		case ORACLE:
+			return new SQLException("ORA-00054: resource busy and acquire with NOWAIT specified", "61000", 54);
+		case MICROSOFT:
+			return new SQLException("Lock request time out period exceeded", "HY000", 1222);
+		default:
+			throw new IllegalStateException("no lock timeout failure for dialect " + dialect);
 		}
 	}
 
@@ -864,25 +940,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		}
 	}
 
-	/**
-	 * Every dialect must bound the whole login attempt of a stamp connection, not only its socket
-	 * connect: postgres and mysql apply their connect property to socket.connect() alone, and
-	 * oracle's CONNECT_TIMEOUT excludes authentication, so those three carry a second property
-	 * for the reads of tls and authentication, while the sql server loginTimeout covers the phase
-	 * on its own. A server that accepts a connection and then goes quiet cannot be staged in a
-	 * container, so this guards the declaration rather than the behaviour.
-	 */
-	@Test
-	public void testEveryDialectBoundsItsLoginAttempt() {
-		for (final JDBCStorage.Dialect dialect : JDBCStorage.Dialect.values()) {
-			assertEquals(dialect.connectProperties.size(), dialect == JDBCStorage.Dialect.MICROSOFT ? 1 : 2,
-				"connect bounds of " + dialect + ": " + dialect.connectProperties);
-			for (final String name : dialect.connectProperties.stringPropertyNames()) {
-				assertTrue(Integer.parseInt(dialect.connectProperties.getProperty(name)) > 0,
-					name + " of " + dialect + " bounds nothing: " + dialect.connectProperties.getProperty(name));
-			}
-		}
-	}
+	// The bounds of a stamp connection are covered by StampConnectionTestCase: what they are worth
+	// is whether they reach the driver and whether the driver then gives up on a server that never
+	// answers, and neither needs - nor can be staged by - a database container.
 
 	/**
 	 * An import that failed or was cancelled leaves trees holding an incomplete import that is

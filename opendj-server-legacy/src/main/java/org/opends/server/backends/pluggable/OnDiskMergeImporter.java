@@ -1205,7 +1205,17 @@ final class OnDiskMergeImporter
       // incomplete import: the storage must not treat what is in them as the final data. Errors
       // are caught too - an import killed by an OutOfMemoryError leaves the trees just as partial
       // as one killed by an exception.
-      importStrategy.aborted();
+      try
+      {
+        importStrategy.aborted();
+      }
+      catch (Throwable notified)
+      {
+        // What went wrong here matters less than what brought the import down: the report of the
+        // failure is the point of this block. Concrete for the motivating case, an import killed
+        // by an OutOfMemoryError, where notifying the storage allocates.
+        t.addSuppressed(notified);
+      }
       throw t;
     }
   }
