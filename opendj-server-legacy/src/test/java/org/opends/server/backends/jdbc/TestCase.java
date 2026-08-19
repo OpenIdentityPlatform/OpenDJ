@@ -41,6 +41,10 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.mockito.Mockito.when;
@@ -358,6 +362,82 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			});
 		} finally {
 			System.clearProperty("org.openidentityplatform.opendj.jdbc.fetchsize");
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+	/**
+	 * Two or more <em>distinct new</em> keys written into one tree per transaction is the shape the primary key
+	 * seek made able to deadlock: on the NOT MATCHED path the seek range-locks the gap before the next existing
+	 * key, that lock is self-incompatible, and the key hash scatters logically ordered keys across the index, so
+	 * two writers inserting different keys can each end up holding what the other needs. The ascending key order
+	 * that {@code IndexBuffer} maintains does not help there. Nothing may escape {@link JDBCStorage#write}, which
+	 * replays the conflict, and no record may be lost to it (#867).
+	 */
+	@Test(timeOut = 600000)
+	public void testConcurrentWritersInsertingDistinctKeys() throws Exception {
+		final int writers = 4;
+		final int rounds = 25;
+		final int keysPerTransaction = 3;
+		final int seeded = 10;
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("testConcurrentInsert", "tree");
+		final ExecutorService executor = Executors.newFixedThreadPool(writers);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			// seeded, so that every insert below takes the NOT MATCHED path with a gap to lock in front of it
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					for (int i = 0; i < seeded; i++) {
+						txn.put(tree, key(i), value(i));
+					}
+				}
+			});
+			final List<Callable<Void>> concurrent = new ArrayList<>();
+			for (int writer = 0; writer < writers; writer++) {
+				final int id = writer;
+				concurrent.add(new Callable<Void>() {
+					@Override
+					public Void call() throws Exception {
+						for (int round = 0; round < rounds; round++) {
+							final int current = round;
+							storage.write(new WriteOperation() {
+								@Override
+								public void run(WriteableTransaction txn) throws Exception {
+									for (int i = 0; i < keysPerTransaction; i++) {
+										txn.put(tree,
+												ByteString.valueOfUtf8(String.format("w%02d-r%03d-k%d", id, current, i)),
+												value(i));
+									}
+								}
+							});
+						}
+						return null;
+					}
+				});
+			}
+			for (final Future<Void> written : executor.invokeAll(concurrent)) {
+				// a conflict the storage did not replay surfaces here, as it would reach an LDAP client
+				written.get();
+			}
+			storage.read(new ReadOperation<Void>() {
+				@Override
+				public Void run(ReadableTransaction txn) throws Exception {
+					assertEquals(txn.getRecordCount(tree), seeded + writers * rounds * keysPerTransaction);
+					return null;
+				}
+			});
+		} finally {
+			executor.shutdownNow();
 			try {
 				storage.write(new WriteOperation() {
 					@Override

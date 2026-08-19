@@ -68,9 +68,12 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       // the conflict of most other engines is carried by the SQLState, under a vendor number of their own
       { "postgres serialization failure", sql(0, "40001"), POSTGRES, true },
       { "postgres deadlock detected", sql(0, "40P01"), POSTGRES, true },
+      // Connector/J replaces the server side HY000 of both conditions with 40001, so neither needs a number here
       { "mysql deadlock", sql(1213, "40001"), MYSQL, true },
       // not a deadlock, but transient in the same way and equally resolved by a replay
-      { "mysql lock wait timeout", sql(1205, "HY000"), MYSQL, true },
+      { "mysql lock wait timeout", sql(1205, "40001"), MYSQL, true },
+      // the rollback a MySQL group replication conflict reports, error 3101, which the driver maps to 40000
+      { "mysql group replication rollback", sql(3101, "40000"), MYSQL, true },
       // Oracle maps ORA-00060 to SQLState 61000, so only its error number identifies the deadlock
       { "oracle deadlock detected", sql(60, "61000"), ORACLE, true },
 
@@ -86,6 +89,13 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       // and a lock wait timeout is a MySQL number: 1205 means nothing of the kind to PostgreSQL
       { "postgres unrelated 1205", sql(1205, "22001"), POSTGRES, false },
 
+      // two class 40 states are rollbacks that a replay must not repeat: 40003 leaves the outcome of the
+      // transaction unknown, and 40002 is an integrity constraint violation that a replay would only hit again
+      { "statement completion unknown", sql(0, "40003"), POSTGRES, false },
+      { "transaction integrity constraint violation", sql(0, "40002"), POSTGRES, false },
+      // ... but the state of a conflict is still matched whatever vendor number carries it
+      { "class 40 is driver independent", sql(0, "40001"), null, true },
+
       // nothing a replay can resolve
       { "primary key violation", sql(2627, "23000"), MSSQL, false },
       { "syntax error", sql(102, "S0001"), MSSQL, false },
@@ -93,6 +103,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       { "not a SQLException", new IllegalStateException("connection closed"), MSSQL, false },
       { "wrapped, not a conflict", new StorageRuntimeException(sql(2627, "23000")), MSSQL, false },
       { "no failure at all", null, MSSQL, false },
+      // a vendor number is never matched without a driver to key it off, since the engines collide on it
       { "unknown driver", sql(1205, "HY000"), null, false },
       { "cyclic cause chain", new SelfCausedException(), MSSQL, false },
     };
@@ -122,6 +133,29 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       assertTrue(bound >= previousBound / 2, "attempt " + attempt + " did not grow past attempt " + (attempt - 1));
       previousBound = bound;
     }
+  }
+
+  /**
+   * A replay is logged once per attempt, so what it logs has to identify the conflict without a stack trace: the
+   * SQLState and the vendor error number, reached through however many wrappers the failure arrived in.
+   */
+  @Test
+  public void testConflictSummaryNamesTheStateAndTheNumber()
+  {
+    final String summary = JDBCStorage.conflictSummary(
+        new DirectoryException(OTHER, raw("unchecked"), new StorageRuntimeException(sql(1205, "40001"))));
+    assertTrue(summary.contains("40001"), summary);
+    assertTrue(summary.contains("1205"), summary);
+    assertTrue(summary.contains("synthetic failure"), summary);
+  }
+
+  /** A failure carrying no SQLException at all, and a cyclic cause chain, still have to yield something loggable. */
+  @Test
+  public void testConflictSummaryTerminatesWithoutASQLException()
+  {
+    assertTrue(JDBCStorage.conflictSummary(new IllegalStateException("connection closed")).contains("closed"));
+    assertTrue(JDBCStorage.conflictSummary(new SelfCausedException()).contains("SelfCausedException"));
+    assertEquals(JDBCStorage.conflictSummary(null), "null");
   }
 
   private static SQLException sql(int errorCode, String sqlState)
