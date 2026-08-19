@@ -417,6 +417,44 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		}
 	}
 
+	/** The dialect of the database this suite runs against, as the backend detects it from the driver. */
+	JDBCStorage.Dialect dialect() {
+		final String url = getJdbcUrl();
+		if (url.startsWith("jdbc:postgresql")) {
+			return JDBCStorage.Dialect.POSTGRES;
+		} else if (url.startsWith("jdbc:mysql")) {
+			return JDBCStorage.Dialect.MYSQL;
+		} else if (url.startsWith("jdbc:oracle")) {
+			return JDBCStorage.Dialect.ORACLE;
+		} else if (url.startsWith("jdbc:sqlserver")) {
+			return JDBCStorage.Dialect.MICROSOFT;
+		}
+		throw new SkipException("no dialect for " + url);
+	}
+
+	/**
+	 * What this connection reports as its lock bound, in the unit and the rendering of its own
+	 * engine, or null where reading it needs a privilege the test user does not have: oracle
+	 * keeps ddl_lock_timeout in v$parameter, which an application user cannot select from.
+	 */
+	String sessionLockBound(Connection con) throws Exception {
+		final String url = getJdbcUrl();
+		final String sql;
+		if (url.startsWith("jdbc:postgresql")) {
+			sql = "show lock_timeout";
+		} else if (url.startsWith("jdbc:mysql")) {
+			sql = "select @@session.lock_wait_timeout";
+		} else if (url.startsWith("jdbc:sqlserver")) {
+			sql = "select @@lock_timeout";
+		} else {
+			return null;
+		}
+		try (final Statement st = con.createStatement();
+			 final ResultSet rs = st.executeQuery(sql)) {
+			return rs.next() ? rs.getString(1) : null;
+		}
+	}
+
 	/**
 	 * Comment statements are DDL (a metadata lock on mysql, a ddl lock on oracle), so a table
 	 * whose stored comment already matches its tree name must not be re-stamped on subsequent
@@ -680,6 +718,169 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				});
 			} catch (Exception ignored) {}
 			storage.close();
+		}
+	}
+
+	/**
+	 * The bound a stamp connection is given must survive a stamp that failed. Postgres undoes a
+	 * plain SET when the transaction that ran it is rolled back, and a failed stamp is rolled
+	 * back with the connection kept and reused - one connection serves every tree of a backend
+	 * open - so every tree stamped after the first failure used to run with no bound at all,
+	 * which is what the bound exists to prevent.
+	 */
+	@Test
+	public void testLockBoundSurvivesAFailedStamp() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		// no table was ever created for this tree, so its comment statement fails - on a connection
+		// that stays usable, which is the case the session rolls back rather than replaces
+		final TreeName missing = new TreeName("o=lockBound", "neverCreated");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			final JDBCStorage.Dialect dialect = dialect();
+			final String bound;
+			try (final Connection fresh = storage.newStampConnection(dialect)) {
+				bound = sessionLockBound(fresh); // what a connection carrying the bound reports
+			}
+			try (final JDBCStorage.StampSession session = storage.new StampSession()) {
+				assertEquals(storage.commentTable(missing, session), JDBCStorage.CommentResult.FAILED,
+					"stamping a table that does not exist was reported as done");
+				if (bound != null) { // oracle: ddl_lock_timeout is only in v$parameter, which the test user cannot read
+					assertEquals(sessionLockBound(session.connection(dialect)), bound,
+						"the lock bound was lost when the failed stamp was rolled back");
+				}
+			}
+		} finally {
+			storage.close();
+		}
+	}
+
+	/**
+	 * A stamp failure of the moment - a connect that did not go through, a lock the statement
+	 * gave up on - says nothing about one table: every remaining tree of the same open would pay
+	 * the same bound, or the same connect attempt, again. That is about 25 of them for a stock
+	 * suffix, all for a diagnostic aid, so the sweep gives up after the first - and since nothing
+	 * is remembered, the next open tries again.
+	 */
+	@Test
+	public void testTransientStampFailureEndsTheSweep() throws Exception {
+		final TreeName[] trees = {
+			new TreeName("o=sweepGiveUp", "dn2id"),
+			new TreeName("o=sweepGiveUp", "id2entry"),
+			new TreeName("o=sweepGiveUp", "state") };
+		final AtomicInteger stampAttempts = new AtomicInteger();
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
+			@Override
+			String readStoredComment(Connection con, String tableName) throws SQLException {
+				return null; // pretend no table carries a comment, so every one of them is stamped
+			}
+			@Override
+			Connection newStampConnection(Dialect dialect) throws SQLException {
+				stampAttempts.incrementAndGet();
+				throw new SQLException("injected connection failure", "08006"); // connection exception: a failure of the moment
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					for (final TreeName tree : trees) {
+						txn.openTree(tree, true);
+					}
+				}
+			});
+			assertEquals(stampAttempts.get(), 1, "a failure of the moment was paid once per tree of the same open");
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					for (final TreeName tree : trees) {
+						txn.openTree(tree, true);
+					}
+				}
+			});
+			assertEquals(stampAttempts.get(), 2, "the open after a failure of the moment did not try again");
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						for (final TreeName tree : trees) {
+							txn.deleteTree(tree);
+						}
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * @@sql_mode decides whether a backslash escapes inside the comment literal. It belongs to
+	 * the session, and the stamps of one open share a connection, so it is asked once for the
+	 * whole sweep rather than once per tree - and only on mysql, the one engine whose literal
+	 * depends on it.
+	 */
+	@Test
+	public void testSqlModeProbedOncePerSweep() throws Exception {
+		final TreeName[] trees = {
+			new TreeName("o=sqlModeProbe", "dn2id"),
+			new TreeName("o=sqlModeProbe", "id2entry"),
+			new TreeName("o=sqlModeProbe", "state") };
+		final AtomicInteger probes = new AtomicInteger();
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
+			@Override
+			boolean isMysqlBackslashEscape(Connection con) throws SQLException {
+				probes.incrementAndGet();
+				return super.isMysqlBackslashEscape(con);
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					for (final TreeName tree : trees) {
+						txn.openTree(tree, true); // freshly created: every one of them is stamped
+					}
+				}
+			});
+			for (final TreeName tree : trees) {
+				assertEquals(readTableComment(storage.getTableName(tree)), tree.toString());
+			}
+			assertEquals(probes.get(), dialect() == JDBCStorage.Dialect.MYSQL ? 1 : 0,
+				"the sql mode of one sweep was not asked exactly once");
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						for (final TreeName tree : trees) {
+							txn.deleteTree(tree);
+						}
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * Every dialect must bound the whole login attempt of a stamp connection, not only its socket
+	 * connect: postgres and mysql apply their connect property to socket.connect() alone, and
+	 * oracle's CONNECT_TIMEOUT excludes authentication, so those three carry a second property
+	 * for the reads of tls and authentication, while the sql server loginTimeout covers the phase
+	 * on its own. A server that accepts a connection and then goes quiet cannot be staged in a
+	 * container, so this guards the declaration rather than the behaviour.
+	 */
+	@Test
+	public void testEveryDialectBoundsItsLoginAttempt() {
+		for (final JDBCStorage.Dialect dialect : JDBCStorage.Dialect.values()) {
+			assertEquals(dialect.connectProperties.size(), dialect == JDBCStorage.Dialect.MICROSOFT ? 1 : 2,
+				"connect bounds of " + dialect + ": " + dialect.connectProperties);
+			for (final String name : dialect.connectProperties.stringPropertyNames()) {
+				assertTrue(Integer.parseInt(dialect.connectProperties.getProperty(name)) > 0,
+					name + " of " + dialect + " bounds nothing: " + dialect.connectProperties.getProperty(name));
+			}
 		}
 	}
 

@@ -1199,12 +1199,14 @@ final class OnDiskMergeImporter
     {
       importAllEntries(source);
     }
-    catch (Exception e)
+    catch (Throwable t)
     {
       // Cancellation lands here as well (see the InterruptedException below). The trees hold an
-      // incomplete import: the storage must not treat what is in them as the final data.
+      // incomplete import: the storage must not treat what is in them as the final data. Errors
+      // are caught too - an import killed by an OutOfMemoryError leaves the trees just as partial
+      // as one killed by an exception.
       importStrategy.aborted();
-      throw e;
+      throw t;
     }
   }
 
