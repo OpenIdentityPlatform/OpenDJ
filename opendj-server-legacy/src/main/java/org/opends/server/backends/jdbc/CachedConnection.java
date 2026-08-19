@@ -23,15 +23,40 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import java.sql.*;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class CachedConnection implements Connection {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     static final String TTL_PROPERTY = "org.openidentityplatform.opendj.jdbc.ttl";
     static final long DEFAULT_TTL_MS = 15000;
+
+    /** Bounds the connect and the login of one attempt to establish a connection, in seconds; 0 for no bound. */
+    static final String CONNECT_TIMEOUT_PROPERTY = "org.openidentityplatform.opendj.jdbc.connect.timeout";
+    static final long DEFAULT_CONNECT_TIMEOUT_SECONDS = 30;
+
+    /** Bounds a whole borrow - every connect attempt and every wait for a pooled connection - in seconds; 0 for no bound. */
+    static final String POOL_TIMEOUT_PROPERTY = "org.openidentityplatform.opendj.jdbc.pool.timeout";
+    static final long DEFAULT_POOL_TIMEOUT_SECONDS = 60;
+
+    /** Bound of the validation of a pooled connection: isValid(0) means "no timeout" in the JDBC contract. */
+    static final int VALIDATION_TIMEOUT_SECONDS = 5;
+
+    static final long MAX_BACKOFF_MS = 1000;
+    static final long STALL_WARNING_AFTER_MS = 1000;
+    static final long STALL_WARNING_INTERVAL_MS = 10000;
+
+    // setNetworkTimeout() takes the executor its timeout handling runs on: the drivers it is used
+    // with here only set a socket option in it, so it costs a call rather than a thread.
+    private static final Executor DIRECT_EXECUTOR = Runnable::run;
+
+    private static final AtomicLong lastStallWarning = new AtomicLong();
+    private static final AtomicBoolean readBoundWarned = new AtomicBoolean();
 
     final Connection parent;
 
@@ -55,19 +80,134 @@ public class CachedConnection implements Connection {
      * {@value #TTL_PROPERTY} system property. An invalid value is ignored in favor of the default.
      */
     private static long getCacheTtlMillis() {
-        final String ttl = System.getProperty(TTL_PROPERTY);
-        if (ttl != null) {
+        return getNonNegativeProperty(TTL_PROPERTY, DEFAULT_TTL_MS);
+    }
+
+    /**
+     * Returns the value of a numeric system property, ignoring a value that is not a non-negative
+     * number in favor of the default.
+     */
+    private static long getNonNegativeProperty(String name, long defaultValue) {
+        final String value = System.getProperty(name);
+        if (value != null) {
             try {
-                final long millis = Long.parseLong(ttl.trim());
-                if (millis >= 0) {
-                    return millis;
+                final long parsed = Long.parseLong(value.trim());
+                if (parsed >= 0) {
+                    return parsed;
                 }
             } catch (NumberFormatException ignored) {
             }
-            logger.warn(LocalizableMessage.raw("Ignoring invalid value \"%s\" of the %s property, using %d ms",
-                ttl, TTL_PROPERTY, DEFAULT_TTL_MS));
+            logger.warn(LocalizableMessage.raw("Ignoring invalid value \"%s\" of the %s property, using %d",
+                value, name, defaultValue));
         }
-        return DEFAULT_TTL_MS;
+        return defaultValue;
+    }
+
+    /**
+     * The drivers this backend is used with, recognized by the prefix of the connection string,
+     * together with the properties that bound one attempt to establish a connection. Not one of
+     * them bounds the attempt with a single property: the one named first covers the socket
+     * connect, and the login behind it - the reads of the prelogin handshake, of TLS and of
+     * authentication, the phase a proxy at its connection limit or a moved VIP leaves unanswered -
+     * needs the second. That holds for the SQL Server driver too, whose loginTimeout leaves the
+     * read of the prelogin answer unbounded (CachedConnectionTestCase covers every one of them
+     * against a socket that never answers).
+     */
+    enum ConnectDialect {
+        /** postgresql: both properties take seconds; loginTimeout bounds the login the driver runs on a thread of its own. */
+        POSTGRES("jdbc:postgresql:", "connectTimeout", 1, "loginTimeout", 1, false, new int[]{}),
+        /** mysql: both properties take milliseconds; socketTimeout is a socket read timeout that outlives the login. */
+        MYSQL("jdbc:mysql:", "connectTimeout", 1000, "socketTimeout", 1000, true, new int[]{1040, 1203}),
+        /** oracle: both properties take milliseconds; ReadTimeout is a socket read timeout that outlives the login. */
+        ORACLE("jdbc:oracle:", "oracle.net.CONNECT_TIMEOUT", 1000, "oracle.jdbc.ReadTimeout", 1000, true,
+            new int[]{20, 12516, 12518, 12519, 12520}),
+        /** ms sql server: loginTimeout takes seconds, socketTimeout milliseconds; the latter is a socket read timeout that outlives the login. */
+        MICROSOFT("jdbc:sqlserver:", "loginTimeout", 1, "socketTimeout", 1000, true, new int[]{17809, 10928, 10929});
+
+        final String urlPrefix;
+        final String connectProperty;
+        final int connectUnitsPerSecond;
+        final String readProperty;
+        final int readUnitsPerSecond;
+        /** whether the read bound of the login stays in force for every statement issued afterwards */
+        final boolean readBoundOutlivesLogin;
+        /** the vendor codes of this dialect for "no further connection is accepted" */
+        final int[] connectionLimitCodes;
+
+        ConnectDialect(String urlPrefix, String connectProperty, int connectUnitsPerSecond,
+                       String readProperty, int readUnitsPerSecond, boolean readBoundOutlivesLogin,
+                       int[] connectionLimitCodes) {
+            this.urlPrefix = urlPrefix;
+            this.connectProperty = connectProperty;
+            this.connectUnitsPerSecond = connectUnitsPerSecond;
+            this.readProperty = readProperty;
+            this.readUnitsPerSecond = readUnitsPerSecond;
+            this.readBoundOutlivesLogin = readBoundOutlivesLogin;
+            this.connectionLimitCodes = connectionLimitCodes;
+        }
+
+        /** The dialect of a connection string, or null for a driver whose property names are not known here. */
+        static ConnectDialect of(String connectionString) {
+            final String url = connectionString.toLowerCase(Locale.ROOT);
+            for (final ConnectDialect dialect : values()) {
+                if (url.startsWith(dialect.urlPrefix)) {
+                    return dialect;
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Fills in the properties bounding one connect attempt, leaving out every property the
+         * connection string sets itself - an explicit setting of the administrator keeps
+         * precedence, and the SQL Server driver gives a supplied property precedence over the url.
+         * Returns whether a read bound outliving the login was set and has to be lifted once the
+         * connection is established.
+         */
+        boolean bound(String connectionString, Properties properties, long timeoutSeconds) {
+            if (!declaredInUrl(connectionString, connectProperty)) {
+                properties.setProperty(connectProperty, Long.toString(timeoutSeconds * connectUnitsPerSecond));
+            }
+            if (readProperty != null && !declaredInUrl(connectionString, readProperty)) {
+                properties.setProperty(readProperty, Long.toString(timeoutSeconds * readUnitsPerSecond));
+                return readBoundOutlivesLogin;
+            }
+            return false;
+        }
+
+        boolean isConnectionLimit(SQLException e) {
+            for (final int code : connectionLimitCodes) {
+                if (e.getErrorCode() == code) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Whether the connection string sets this property itself. The dialects separate their
+        // parameters differently - "?a=1&b=2" (postgresql, mysql), ";a=1;b=2" (sql server),
+        // "(A=1)" inside the descriptor of an oracle tns url, where the property also goes by the
+        // last segment of its name alone - so a parameter is recognized by the delimiter in front
+        // of it and the "=" behind it rather than by parsing the url syntax of every driver.
+        private static boolean declaredInUrl(String connectionString, String property) {
+            if (containsParameter(connectionString, property)) {
+                return true;
+            }
+            final int dot = property.lastIndexOf('.');
+            return dot >= 0 && containsParameter(connectionString, property.substring(dot + 1));
+        }
+
+        private static boolean containsParameter(String connectionString, String property) {
+            final String url = connectionString.toLowerCase(Locale.ROOT);
+            final String name = property.toLowerCase(Locale.ROOT);
+            for (int i = url.indexOf(name); i >= 0; i = url.indexOf(name, i + name.length())) {
+                final int end = i + name.length();
+                if (i > 0 && "?&;(,".indexOf(url.charAt(i - 1)) >= 0 && end < url.length() && url.charAt(end) == '=') {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     final String connectionString;
@@ -76,38 +216,175 @@ public class CachedConnection implements Connection {
         this.parent = parent;
     }
 
+    /**
+     * Borrows a connection: a usable one out of the pool, or a newly established one. Bounded in
+     * both phases - every operation of this backend, the open of a backend and the import
+     * included, comes through here, and an unbounded borrow turns a database that listens but does
+     * not answer into a hang rather than into an error the caller can report.
+     */
     static Connection getConnection(String connectionString) throws Exception {
-        return getConnection(connectionString, 0);
-    }
-
-    static Connection getConnection(String connectionString, final int waitTime) throws Exception {
-        CachedConnection con = cached.get(connectionString).poll(waitTime, TimeUnit.MILLISECONDS);
-
-        while (con != null) {
-            if (!con.isValid(0)) {
-                try {
-                    con.parent.close();
-                } catch (SQLException e) {
-                    con = null;
+        final ConnectDialect dialect = ConnectDialect.of(connectionString);
+        final long connectTimeoutSeconds = Math.min(
+            getNonNegativeProperty(CONNECT_TIMEOUT_PROPERTY, DEFAULT_CONNECT_TIMEOUT_SECONDS), Integer.MAX_VALUE / 1000);
+        final long poolTimeoutSeconds = getNonNegativeProperty(POOL_TIMEOUT_PROPERTY, DEFAULT_POOL_TIMEOUT_SECONDS);
+        final long startedAt = System.currentTimeMillis();
+        final long deadline = (poolTimeoutSeconds == 0 || poolTimeoutSeconds >= Long.MAX_VALUE / 1000)
+            ? Long.MAX_VALUE : startedAt + poolTimeoutSeconds * 1000;
+        long waitMs = 0;
+        long backoffMs = 0;
+        int attempts = 0;
+        while (true) {
+            final CachedConnection pooled = poll(connectionString, waitMs);
+            if (pooled != null) {
+                return pooled;
+            }
+            attempts++;
+            try {
+                return connect(connectionString, dialect, connectTimeoutSeconds);
+            } catch (SQLException e) {
+                // A database that accepts no further connection is the one failure worth waiting
+                // out: one of ours is going to come back to the pool. Everything else - a password
+                // that is not accepted, a database that is down, a driver that is not on the
+                // classpath - is reported to the caller instead of being retried behind its back.
+                if (!isConnectionLimit(e, dialect)) {
+                    throw e;
                 }
-                con = cached.get(connectionString).poll();
-            } else {
-                return con;
+                final long remaining = deadline - System.currentTimeMillis();
+                if (remaining <= 0) {
+                    throw new SQLTimeoutException("no connection to " + safeUrl(connectionString) + " could be borrowed within "
+                        + poolTimeoutSeconds + "s (" + attempts + " attempts): the database accepts no further connection"
+                        + " and none was returned to the pool", e);
+                }
+                backoffMs = Math.min(backoffMs == 0 ? 1 : backoffMs * 2, MAX_BACKOFF_MS);
+                waitMs = Math.min(backoffMs, remaining);
+                warnStall(connectionString, attempts, startedAt, e);
             }
         }
-        Connection conNew = null;
+    }
+
+    /** Takes a usable connection out of the pool, waiting up to waitMs for one to be returned to it. */
+    private static CachedConnection poll(String connectionString, long waitMs) throws InterruptedException {
+        CachedConnection con = cached.get(connectionString).poll(waitMs, TimeUnit.MILLISECONDS);
+        while (con != null) {
+            if (isUsable(con)) {
+                return con;
+            }
+            closeQuietly(con.parent);
+            con = cached.get(connectionString).poll();
+        }
+        return null;
+    }
+
+    private static boolean isUsable(CachedConnection con) {
         try {
-            conNew = DriverManager.getConnection(connectionString);
+            // The validation needs a bound of its own: isValid(0) means "no timeout" in the JDBC
+            // contract, and a connection whose socket is half-open answers it no sooner than it
+            // answers anything else.
+            return con.isValid(VALIDATION_TIMEOUT_SECONDS);
+        } catch (SQLException e) { // a driver reporting the validation as an error: discard it
+            return false;
+        }
+    }
+
+    private static CachedConnection connect(String connectionString, ConnectDialect dialect, long connectTimeoutSeconds)
+            throws SQLException {
+        // A driver is free to write into the map it is handed, so it gets one of its own.
+        final Properties properties = new Properties();
+        final boolean readBoundSet = dialect != null && connectTimeoutSeconds > 0
+            && dialect.bound(connectionString, properties, connectTimeoutSeconds);
+        final Connection conNew = DriverManager.getConnection(connectionString, properties);
+        try {
+            // still under the read bound: both of these are round trips of their own
             conNew.setAutoCommit(false);
             conNew.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
-            return new CachedConnection(connectionString, conNew);
-        } catch (SQLException e) { // max_connection server error: try recursion for reuse connection
-            if (conNew != null) { // the connection was established but not set up: nothing else would close it
-                try {
-                    conNew.close();
-                } catch (SQLException e2) {}
+            if (readBoundSet) {
+                relaxReadBound(conNew);
             }
-            return getConnection(connectionString, (waitTime == 0) ? 1 : waitTime * 2);
+        } catch (SQLException e) { // nothing holds this connection yet: it would leak
+            closeQuietly(conNew);
+            throw e;
+        }
+        return new CachedConnection(connectionString, conNew);
+    }
+
+    // The second bound of the login is a socket read timeout on mysql, oracle and sql server, in
+    // force for the whole life of the connection: left in place it would break every statement
+    // slower than it - an import batch, the statistics of a freshly loaded table - so it is lifted
+    // as soon as the login is through, restoring the behaviour of a connection this class
+    // established before. A read bound the connection string sets itself is never touched here:
+    // it is not set at all, so nothing of the administrator's is lifted along with it.
+    private static void relaxReadBound(Connection con) {
+        try {
+            con.setNetworkTimeout(DIRECT_EXECUTOR, 0);
+        } catch (SQLException | RuntimeException e) {
+            if (readBoundWarned.compareAndSet(false, true)) {
+                logger.warn(LocalizableMessage.raw(
+                    "The read bound of the login could not be lifted (%s): statements taking longer than the %s"
+                        + " property will fail on connections of this backend", e.getMessage(), CONNECT_TIMEOUT_PROPERTY));
+            }
+        }
+    }
+
+    /** Whether the database refused the connection because it accepts no further one. */
+    static boolean isConnectionLimit(SQLException e, ConnectDialect dialect) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t instanceof SQLException) {
+                final SQLException sql = (SQLException) t;
+                // class 53, insufficient_resources, is how the standard - and postgresql, with
+                // 53300 too_many_connections - reports a server taking no further connection
+                final String sqlState = sql.getSQLState();
+                if ((sqlState != null && sqlState.startsWith("53"))
+                    || (dialect != null && dialect.isConnectionLimit(sql))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // A stall has to reach the server log: without it a database accepting no further connection
+    // is indistinguishable from a hang. Throttled, since every operation of the backend borrows
+    // through here and would otherwise log a copy of its own.
+    private static void warnStall(String connectionString, int attempts, long startedAt, SQLException cause) {
+        final long now = System.currentTimeMillis();
+        if (now - startedAt < STALL_WARNING_AFTER_MS) {
+            return;
+        }
+        final long last = lastStallWarning.get();
+        if (now - last >= STALL_WARNING_INTERVAL_MS && lastStallWarning.compareAndSet(last, now)) {
+            logger.warn(LocalizableMessage.raw(
+                "%s accepts no further connection: waiting %d ms for a pooled one so far (%d attempts), last error: %s",
+                safeUrl(connectionString), now - startedAt, attempts, cause.getMessage()));
+        }
+    }
+
+    // The connection string carries the credentials of the backend, so it is never logged as it
+    // stands. Parameters - "?user=...&password=..." on postgresql and mysql, ";password=..." on
+    // sql server - are cut off behind their first separator, while the credentials of a url that
+    // carries them in front of an "@" ("user/password@//host" on an oracle thin url, the userinfo
+    // of a url) are cut off in front of it, leaving the scheme and the host they stand between.
+    static String safeUrl(String connectionString) {
+        int cut = connectionString.length();
+        for (final char separator : new char[]{'?', ';'}) {
+            final int at = connectionString.indexOf(separator);
+            if (at >= 0 && at < cut) {
+                cut = at;
+            }
+        }
+        final String url = connectionString.substring(0, cut);
+        final int at = url.indexOf('@');
+        if (at < 0) {
+            return url;
+        }
+        final int scheme = url.indexOf(':', "jdbc:".length()) + 1; // the end of "jdbc:<subprotocol>:"
+        return url.substring(0, scheme) + url.substring(at);
+    }
+
+    private static void closeQuietly(Connection con) {
+        try {
+            con.close();
+        } catch (SQLException e) {
+            // ignore: it is on its way out anyway
         }
     }
 
@@ -153,7 +430,14 @@ public class CachedConnection implements Connection {
 
     @Override
     public void close() throws SQLException {
-        rollback();
+        try {
+            rollback();
+        } catch (SQLException e) {
+            // A connection that cannot be rolled back must not be handed to the next borrower -
+            // and must not be dropped on the floor either: nothing else holds it any more.
+            closeQuietly(parent);
+            throw e;
+        }
         cached.get(connectionString).add(this);
     }
 
