@@ -2010,6 +2010,26 @@ public abstract class ReplicationDomain
   }
 
   /**
+   * Terminates the provided import/export context: the context is released
+   * before the initialize task is notified, so that nothing reacting to the
+   * completion can still observe {@link #ieRunning()} as true and see its own
+   * total update rejected as a simultaneous import/export (issue #868).
+   *
+   * @param ieCtx the context of the initialization being terminated, already
+   *              holding the exception to report - if any
+   */
+  private void completeInitializeTask(ImportExportContext ieCtx)
+  {
+    releaseIEContext();
+    if (ieCtx.initializeTask instanceof InitializeTask)
+    {
+      // Update the task that initiated the import
+      ((InitializeTask) ieCtx.initializeTask)
+          .updateTaskCompletionState(ieCtx.getException());
+    }
+  }
+
+  /**
    * Processes an error message received while an export is
    * on going, or an import will start.
    *
@@ -2033,11 +2053,7 @@ public abstract class ReplicationDomain
        */
       if (ieCtx.initializeTask instanceof InitializeTask)
       {
-        // Update the task that initiated the import
-        ((InitializeTask) ieCtx.initializeTask)
-            .updateTaskCompletionState(ieCtx.getException());
-
-        releaseIEContext();
+        completeInitializeTask(ieCtx);
       }
     }
   }
@@ -2449,12 +2465,7 @@ public abstract class ReplicationDomain
     ieCtx.setExceptionIfNoneSet(new DirectoryException(ResultCode.OTHER,
         ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(
             getBaseDN(), ieCtx.initReqMsgSent.getDestination())));
-    if (ieCtx.initializeTask instanceof InitializeTask)
-    {
-      ((InitializeTask) ieCtx.initializeTask)
-          .updateTaskCompletionState(ieCtx.getException());
-    }
-    releaseIEContext();
+    completeInitializeTask(ieCtx);
     return true;
   }
 
@@ -2634,23 +2645,22 @@ public abstract class ReplicationDomain
               ieCtx.getException().getMessageObject());
           broker.publish(errorMsg);
         }
-        /*
-        Update the task that initiated the import must be the last thing.
-        Particularly, broker.restart() after import success must be done
-        before some other operations/tasks to be launched,
-        like resetting the generation ID.
-        */
-        if (initFromTask != null)
-        {
-          initFromTask.updateTaskCompletionState(ieCtx.getException());
-        }
       }
       finally
       {
         String errorMsg = ieCtx.getException() != null ? ieCtx.getException().getLocalizedMessage() : "";
         logger.info(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END,
             getBaseDN(), initTargetMsgReceived.getSenderID(), getServerId(), errorMsg);
-        releaseIEContext();
+        /*
+        Update the task that initiated the import must be the last thing.
+        Particularly, broker.restart() after import success must be done
+        before some other operations/tasks to be launched,
+        like resetting the generation ID. It also must come after the context
+        is released, and from this finally block rather than from the try
+        above: a failure while notifying the exporter would otherwise leave
+        the task waiting forever (issues #861 and #868).
+        */
+        completeInitializeTask(ieCtx);
       } // finally
     } // finally
   }
