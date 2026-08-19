@@ -227,7 +227,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				return -1;
 			}
 			final int previous=con.getNetworkTimeout();
-			con.setNetworkTimeout(DIRECT_EXECUTOR, (int) Math.min(Integer.MAX_VALUE, (seconds+BACKSTOP_MARGIN_SECONDS)*1000L));
+			final int backstop=(int) Math.min(Integer.MAX_VALUE, (seconds+BACKSTOP_MARGIN_SECONDS)*1000L);
+			// only ever tighten: a connection that already carries a read timeout carries one a
+			// deployment asked for, and this backstop exists to cap a cancel that is not acted
+			// upon, not to relax anything. 0 is "no timeout" in the JDBC contract, so it is the
+			// one value there is always something to gain by replacing.
+			if (previous > 0 && previous <= backstop) {
+				return -1;
+			}
+			con.setNetworkTimeout(DIRECT_EXECUTOR, backstop);
 			return previous;
 		}catch (SQLException | RuntimeException e) {
 			if (backstopWarned.compareAndSet(false, true)) {

@@ -16,6 +16,7 @@
 package org.opends.server.backends.jdbc;
 
 import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
+import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.opends.server.DirectoryServerTestCase;
@@ -24,12 +25,17 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
+import java.util.concurrent.Executor;
 
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -114,6 +120,44 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 		storage.execute(statement, StatementBound.BULK);
 
 		verify(statement, never()).setQueryTimeout(anyInt());
+	}
+
+	/**
+	 * Behind the cancel is a socket read timeout, for the databases that do not act on a cancel:
+	 * it is armed for the statement and put back afterwards, so a bulk statement sharing the
+	 * connection is not cut by the bound of an entry read.
+	 */
+	@Test
+	public void testTheBackstopIsArmedAndPutBack() throws Exception {
+		System.setProperty(StatementBound.OPERATION.property, "7");
+		final Connection con = mock(Connection.class);
+		when(con.getNetworkTimeout()).thenReturn(0); // no bound of its own
+		final PreparedStatement statement = mock(PreparedStatement.class);
+		when(statement.getConnection()).thenReturn(con);
+
+		storage.execute(statement);
+
+		final InOrder inOrder = inOrder(con);
+		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq((7 + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000));
+		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq(0));
+	}
+
+	/**
+	 * The backstop only ever tightens. A read timeout a deployment gave its connections is the
+	 * bound it asked for, and this one - deliberately the looser of the two, so that the cancel
+	 * has room to arrive first - must not stand in for it while a statement runs.
+	 */
+	@Test
+	public void testTheBackstopDoesNotLoosenATighterBound() throws Exception {
+		System.setProperty(StatementBound.OPERATION.property, "7");
+		final Connection con = mock(Connection.class);
+		when(con.getNetworkTimeout()).thenReturn(5000); // tighter than 7s plus the margin
+		final PreparedStatement statement = mock(PreparedStatement.class);
+		when(statement.getConnection()).thenReturn(con);
+
+		storage.execute(statement);
+
+		verify(con, never()).setNetworkTimeout(any(Executor.class), anyInt());
 	}
 
 	/**
