@@ -288,6 +288,15 @@ final class TracedStorage implements Storage
     }
 
     @Override
+    public boolean treeExists(TreeName name)
+    {
+      traceEnter("treeExists", "name", name);
+      final boolean exists = txn.treeExists(name);
+      traceLeave("treeExists", "name", name, "exists", exists);
+      return exists;
+    }
+
+    @Override
     public Cursor<ByteString, ByteString> openCursor(final TreeName name)
     {
       traceEnter("openCursor", "name", name);
@@ -363,6 +372,15 @@ final class TracedStorage implements Storage
       final long count = txn.getRecordCount(name);
       traceLeave("getRecordCount", "name", name, "count", count);
       return count;
+    }
+
+    @Override
+    public boolean treeExists(TreeName name)
+    {
+      traceEnter("treeExists", "name", name);
+      final boolean exists = txn.treeExists(name);
+      traceLeave("treeExists", "name", name, "exists", exists);
+      return exists;
     }
 
     @Override

@@ -63,6 +63,7 @@ import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.cql.Statement;
+import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
@@ -245,6 +246,31 @@ public class CASStorage implements org.opends.server.backends.pluggable.spi.Stor
 				prepared.get("SELECT count(*) FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId").bind()
 					.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId())
 			).one().getLong(0);
+		}
+
+		@Override
+		public boolean treeExists(TreeName treeName) {
+			// Every tree of this backend is a partition of the one table named after the backend id,
+			// so a tree has no existence apart from its rows: "exists" here means "holds at least one
+			// record". A LIMIT 1 lookup rather than getRecordCount() to avoid the full partition scan
+			// a count would run.
+			try {
+				return execute(
+					prepared.get("SELECT key FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId LIMIT 1").bind()
+						.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId())
+				).one()!=null;
+			}catch (RuntimeException e) {
+				// The backend's own table has not been created yet - a read-only open of a backend
+				// that was never written - so none of its trees can exist either. The driver reports
+				// it from prepare() as much as from execute(), and the statement cache may hand back
+				// the loader's failure wrapped, so the whole chain is searched.
+				for (Throwable cause=e; cause!=null; cause=cause.getCause()) {
+					if (cause instanceof InvalidQueryException) {
+						return false;
+					}
+				}
+				throw e;
+			}
 		}
 
 		@Override

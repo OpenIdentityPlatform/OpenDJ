@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -249,9 +250,20 @@ public class DefaultIndexTest extends DirectoryServerTestCase
     }
 
     @Override
+    public boolean treeExists(TreeName treeName)
+    {
+      return storage.containsKey(treeName);
+    }
+
+    @Override
     public void openTree(TreeName name, boolean createOnDemand)
     {
-      storage.put(name, new TreeMap<ByteString, ByteString>());
+      // Honours createOnDemand, and leaves an already open tree alone rather than replacing it with
+      // an empty one, so that a caller opening the same tree twice does not silently lose its records.
+      if (createOnDemand)
+      {
+        storage.putIfAbsent(name, new TreeMap<ByteString, ByteString>());
+      }
     }
 
     @Override

@@ -168,22 +168,33 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		unstampableTrees.clear();
 	}
 
+	// The trees this storage has taken an interest in, and the tables they map to. listTrees() -
+	// and through it removeStorageFiles() - reads this, so a tree only belongs here once this
+	// backend uses it: see toTableName() below for the trees that are merely asked about.
 	final LoadingCache<TreeName,String> tree2table = Caffeine.newBuilder()
-		.build(treeName -> {
-			try {
-				final MessageDigest md = MessageDigest.getInstance("SHA-224");
-				final byte[] messageDigest = md.digest(treeName.toString().getBytes());
-				final StringBuilder hashtext = new StringBuilder(56);
-				for (byte b : messageDigest) {
-					String hex = Integer.toHexString(0xff & b);
-					if (hex.length() == 1) hashtext.append('0');
-					hashtext.append(hex);
-				}
-				return "opendj_" + hashtext;
-			} catch (NoSuchAlgorithmException e) {
-				throw new RuntimeException(e);
+		.build(JDBCStorage::toTableName);
+
+	/**
+	 * The table a tree name maps to. A pure function of the name, so that a tree can be asked about
+	 * without being entered into tree2table: treeExists() is asked about trees this backend does not
+	 * own - the compressed schema probes the tree its definitions used to be shared under (#873) -
+	 * and removeStorageFiles() drops every table tree2table names, so a probe must not enrol one.
+	 */
+	static String toTableName(TreeName treeName) {
+		try {
+			final MessageDigest md = MessageDigest.getInstance("SHA-224");
+			final byte[] messageDigest = md.digest(treeName.toString().getBytes());
+			final StringBuilder hashtext = new StringBuilder(56);
+			for (byte b : messageDigest) {
+				String hex = Integer.toHexString(0xff & b);
+				if (hex.length() == 1) hashtext.append('0');
+				hashtext.append(hex);
 			}
-		});
+			return "opendj_" + hashtext;
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	String getTableName(TreeName treeName) {
 		return tree2table.get(treeName);
@@ -1042,6 +1053,40 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				throw new StorageRuntimeException(e);
 			}
 		}
+
+		@Override
+		public boolean treeExists(TreeName treeName) {
+			return isExistsTable(treeName);
+		}
+
+		// Readable, not writeable: a read-only open has to be able to tell a tree that was never
+		// written from one it may not read, since every other statement here fails outright on a
+		// table that does not exist.
+		boolean isExistsTable(TreeName treeName) {
+			// toTableName() rather than getTableName(): asking whether a tree is there must not
+			// enrol it in tree2table, which is what removeStorageFiles() drops.
+			final String tableName = toTableName(treeName);
+			try {
+				final DatabaseMetaData metaData = con.getMetaData();
+				// asked of the catalog by name: openTree(createOnDemand) calls this for every tree
+				// of the backend - about 25 of them for a stock suffix, on every open - and listing
+				// every table of the database each time costs the whole catalog once per tree, on a
+				// database this backend may well be sharing with something else
+				try (final ResultSet rs = metaData.getTables(null, null,
+						storedIdentifier(metaData, tableName), new String[]{"TABLE"})) {
+					while (rs.next()) {
+						// the name still has to be compared: "_" is a single-character wildcard in a
+						// metadata pattern, so "opendj_<hash>" also matches a table named "opendjX<hash>"
+						if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
+							return true;
+						}
+					}
+				}
+			} catch (Exception e) {
+				throw new StorageRuntimeException(e);
+			}
+			return false;
+		}
 	}
 	/**
 	 * A transaction able to write, unless the storage was opened read-only: then it may open an existing tree and
@@ -1073,30 +1118,6 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (isReadOnly) {
 				throw new ReadOnlyStorageException();
 			}
-		}
-
-		boolean isExistsTable(TreeName treeName) {
-			final String tableName = getTableName(treeName);
-			try {
-				final DatabaseMetaData metaData = con.getMetaData();
-				// asked of the catalog by name: openTree(createOnDemand) calls this for every tree
-				// of the backend - about 25 of them for a stock suffix, on every open - and listing
-				// every table of the database each time costs the whole catalog once per tree, on a
-				// database this backend may well be sharing with something else
-				try (final ResultSet rs = metaData.getTables(null, null,
-						storedIdentifier(metaData, tableName), new String[]{"TABLE"})) {
-					while (rs.next()) {
-						// the name still has to be compared: "_" is a single-character wildcard in a
-						// metadata pattern, so "opendj_<hash>" also matches a table named "opendjX<hash>"
-						if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
-							return true;
-						}
-					}
-				}
-			} catch (Exception e) {
-				throw new StorageRuntimeException(e);
-			}
-			return false;
 		}
 
 		String getTableDialect() {

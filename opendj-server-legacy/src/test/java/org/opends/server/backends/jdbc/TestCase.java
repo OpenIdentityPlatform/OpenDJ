@@ -237,6 +237,150 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	}
 
 	/**
+	 * treeExists() has to answer for a table that was never created rather than fail: it is how the
+	 * compressed schema tells a backend with nothing to migrate from one whose definitions are still
+	 * under the shared prefix (#873), and every other statement of this storage fails outright on a
+	 * table that does not exist.
+	 */
+	@Test
+	public void testTreeExistsAnswersForAMissingTable() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName present = new TreeName("testTreeExists", "present");
+		final TreeName absent = new TreeName("testTreeExists", "absent");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(present, true);
+					assertTrue(txn.treeExists(present));
+					assertFalse(txn.treeExists(absent));
+				}
+			});
+			// the read path has to answer as well: export-ldif and verify-index open read-only, where
+			// no tree is created and the question cannot be settled by writing one
+			storage.read(new ReadOperation<Void>() {
+				@Override
+				public Void run(ReadableTransaction txn) throws Exception {
+					assertTrue(txn.treeExists(present));
+					assertFalse(txn.treeExists(absent));
+					return null;
+				}
+			});
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.deleteTree(present);
+					assertFalse(txn.treeExists(present));
+				}
+			});
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(present);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * The compressed schema definitions of this backend must live in a table of its own. The tree
+	 * name they used to carry held no backend qualifier, so its table name was a constant that every
+	 * JDBC backend of every server sharing the database mapped to, and two of them overwrote each
+	 * other's token definitions there (#873). The backend of this suite has been opened and populated
+	 * by PluggableBackendImplTestCase#setUp, so its own table exists by now.
+	 */
+	@Test
+	public void testCompressedSchemaTableIsQualifiedByBackendId() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			final String shared = JDBCStorage.toTableName(new TreeName("compressed_schema", "compressed_attributes"));
+			final String own = JDBCStorage.toTableName(
+					new TreeName("compressed_schema_" + getBackendId(), "compressed_attributes"));
+			assertFalse(shared.equals(own), "the qualified tree name must map to a table of its own");
+			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+				assertTrue(isExistingTable(con, own), own + " (this backend's own definitions) is missing");
+				assertFalse(isExistingTable(con, shared), shared + " is the table every backend used to share");
+			}
+		} finally {
+			storage.close();
+		}
+	}
+
+	/**
+	 * Asking whether a tree is there must not enrol it in the storage's tree map: removeStorageFiles()
+	 * drops every table that map names, and the compressed schema asks about the tree its definitions
+	 * used to be shared under - which on a shared database is another backend's to keep (#873).
+	 */
+	@Test
+	public void testProbingATreeDoesNotPutItUpForRemoval() throws Exception {
+		final TreeName foreign = new TreeName("testProbe", "foreign");
+		final JDBCStorage owner = new JDBCStorage(createBackendCfg(), null);
+		owner.open(AccessMode.READ_WRITE);
+		owner.write(new WriteOperation() {
+			@Override
+			public void run(WriteableTransaction txn) throws Exception {
+				txn.openTree(foreign, true);
+				txn.put(foreign, key(1), value(1));
+			}
+		});
+		owner.close();
+
+		// a second storage on the same database, which never opened that tree - the shape of two
+		// backends addressing one database
+		final JDBCStorage other = new JDBCStorage(createBackendCfg(), null);
+		try {
+			other.open(AccessMode.READ_WRITE);
+			other.read(new ReadOperation<Void>() {
+				@Override
+				public Void run(ReadableTransaction txn) throws Exception {
+					assertTrue(txn.treeExists(foreign));
+					return null;
+				}
+			});
+			assertFalse(other.listTrees().contains(foreign), "a probed tree must not be listed for removal");
+
+			other.removeStorageFiles();
+
+			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+				assertTrue(isExistingTable(con, JDBCStorage.toTableName(foreign)),
+						"clearing one backend dropped a table it had only asked about");
+			}
+		} finally {
+			other.close();
+			final JDBCStorage cleanup = new JDBCStorage(createBackendCfg(), null);
+			try {
+				cleanup.open(AccessMode.READ_WRITE);
+				cleanup.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(foreign);
+					}
+				});
+			} catch (Exception ignored) {
+			} finally {
+				cleanup.close();
+			}
+		}
+	}
+
+	private static boolean isExistingTable(Connection con, String tableName) throws SQLException {
+		try (final ResultSet rs = con.getMetaData().getTables(null, null, null, new String[]{"TABLE"})) {
+			while (rs.next()) {
+				if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Forward repositioning inside the already-fetched batch must be served from the buffer without SQL,
 	 * and batch sizes must grow from "fetchsize.initial" to "fetchsize" on sequential reads (#860).
 	 */
