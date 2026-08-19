@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable.spi;
 
@@ -51,4 +52,20 @@ public interface ReadableTransaction
    * @return the number of key/value pairs in the provided tree.
    */
   long getRecordCount(TreeName treeName);
+
+  /**
+   * Returns whether the tree whose name is provided is present in the storage.
+   * <p>
+   * This is not the same question as whether the tree is empty, and it cannot be answered by
+   * reading from the tree: a storage is free to materialize a tree on first access - the JE backend
+   * opens its databases with {@code setAllowCreate(true)} - or to reject the access outright, as the
+   * JDBC backend does when no table of that name exists. Callers that must distinguish "never
+   * written" from "written and since emptied", such as the compressed schema deciding whether it
+   * has anything to migrate, need this instead.
+   *
+   * @param treeName
+   *          the tree name
+   * @return {@code true} if the tree exists, {@code false} otherwise
+   */
+  boolean treeExists(TreeName treeName);
 }

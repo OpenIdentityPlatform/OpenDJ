@@ -137,7 +137,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          compressedSchema = new PersistentCompressedSchema(serverContext, storage, txn, accessMode);
+          compressedSchema = new PersistentCompressedSchema(serverContext, backendId, storage, txn, accessMode);
           openAndRegisterEntryContainers(txn, config.getBaseDN(), accessMode);
         }
       });

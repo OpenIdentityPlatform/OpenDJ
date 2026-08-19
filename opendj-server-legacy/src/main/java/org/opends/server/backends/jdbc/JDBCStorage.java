@@ -168,22 +168,33 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		unstampableTrees.clear();
 	}
 
+	// The trees this storage has taken an interest in, and the tables they map to. listTrees() -
+	// and through it removeStorageFiles() - reads this, so a tree only belongs here once this
+	// backend uses it: see toTableName() below for the trees that are merely asked about.
 	final LoadingCache<TreeName,String> tree2table = Caffeine.newBuilder()
-		.build(treeName -> {
-			try {
-				final MessageDigest md = MessageDigest.getInstance("SHA-224");
-				final byte[] messageDigest = md.digest(treeName.toString().getBytes());
-				final StringBuilder hashtext = new StringBuilder(56);
-				for (byte b : messageDigest) {
-					String hex = Integer.toHexString(0xff & b);
-					if (hex.length() == 1) hashtext.append('0');
-					hashtext.append(hex);
-				}
-				return "opendj_" + hashtext;
-			} catch (NoSuchAlgorithmException e) {
-				throw new RuntimeException(e);
+		.build(JDBCStorage::toTableName);
+
+	/**
+	 * The table a tree name maps to. A pure function of the name, so that a tree can be asked about
+	 * without being entered into tree2table: treeExists() is asked about trees this backend does not
+	 * own - the compressed schema probes the tree its definitions used to be shared under (#873) -
+	 * and removeStorageFiles() drops every table tree2table names, so a probe must not enrol one.
+	 */
+	static String toTableName(TreeName treeName) {
+		try {
+			final MessageDigest md = MessageDigest.getInstance("SHA-224");
+			final byte[] messageDigest = md.digest(treeName.toString().getBytes());
+			final StringBuilder hashtext = new StringBuilder(56);
+			for (byte b : messageDigest) {
+				String hex = Integer.toHexString(0xff & b);
+				if (hex.length() == 1) hashtext.append('0');
+				hashtext.append(hex);
 			}
-		});
+			return "opendj_" + hashtext;
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	String getTableName(TreeName treeName) {
 		return tree2table.get(treeName);
@@ -1042,24 +1053,19 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				throw new StorageRuntimeException(e);
 			}
 		}
-	}
-	private final class WriteableTransactionTransactionImpl extends ReadableTransactionImpl implements WriteableTransaction {
 
-		// Shared by every table this transaction stamps: opening a backend opens all its trees,
-		// and each stamp of its own connection would be a physical connect of its own. Closed by
-		// write() (and by ImporterImpl.close()) when the transaction is done with.
-		final StampSession stampSession=new StampSession();
-
-		public WriteableTransactionTransactionImpl(Connection con) {
-			super(con);
-			if (!accessMode.isWriteable()) {
-				throw new ReadOnlyStorageException();
-			}
-			isReadOnly = false;
+		@Override
+		public boolean treeExists(TreeName treeName) {
+			return isExistsTable(treeName);
 		}
 
+		// Readable, not writeable: a read-only open has to be able to tell a tree that was never
+		// written from one it may not read, since every other statement here fails outright on a
+		// table that does not exist.
 		boolean isExistsTable(TreeName treeName) {
-			final String tableName = getTableName(treeName);
+			// toTableName() rather than getTableName(): asking whether a tree is there must not
+			// enrol it in tree2table, which is what removeStorageFiles() drops.
+			final String tableName = toTableName(treeName);
 			try {
 				final DatabaseMetaData metaData = con.getMetaData();
 				// asked of the catalog by name: openTree(createOnDemand) calls this for every tree
@@ -1080,6 +1086,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				throw new StorageRuntimeException(e);
 			}
 			return false;
+		}
+	}
+	private final class WriteableTransactionTransactionImpl extends ReadableTransactionImpl implements WriteableTransaction {
+
+		// Shared by every table this transaction stamps: opening a backend opens all its trees,
+		// and each stamp of its own connection would be a physical connect of its own. Closed by
+		// write() (and by ImporterImpl.close()) when the transaction is done with.
+		final StampSession stampSession=new StampSession();
+
+		public WriteableTransactionTransactionImpl(Connection con) {
+			super(con);
+			if (!accessMode.isWriteable()) {
+				throw new ReadOnlyStorageException();
+			}
+			isReadOnly = false;
 		}
 
 		String getTableDialect() {
