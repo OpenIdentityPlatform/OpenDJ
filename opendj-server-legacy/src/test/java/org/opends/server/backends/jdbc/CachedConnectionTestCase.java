@@ -31,14 +31,20 @@ import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
+import org.mockito.InOrder;
+
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -151,6 +157,28 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		}
 	}
 
+	/**
+	 * The deadline of the borrow bounds the attempt inside it as well: the pool timeout stands for
+	 * the whole borrow, and an attempt left to run out its own bound would overrun it by that bound.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheAttemptIsBoundedByTheDeadlineOfTheBorrow() throws Exception {
+		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, "600");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "2");
+		try (final ServerSocket blackhole = new ServerSocket(0, 50, InetAddress.getLoopbackAddress())) {
+			final String url = "jdbc:postgresql://127.0.0.1:" + blackhole.getLocalPort() + "/opendj?user=opendj&password=opendj";
+			final long startedAt = System.currentTimeMillis();
+			try {
+				CachedConnection.getConnection(url);
+				fail("a database that never answers must not hand out a connection");
+			} catch (SQLException expected) {
+				// reported, and within the borrow it was given rather than the 600 s of the attempt
+			}
+			final long elapsed = System.currentTimeMillis() - startedAt;
+			assertTrue(elapsed < 30000, "the attempt outlived the deadline of the borrow: " + elapsed + " ms");
+		}
+	}
+
 	/** Pool exhaustion stays a retry - one of our own connections is on its way back to the pool. */
 	@Test(timeOut = 120000)
 	public void testConnectionLimitIsRetried() throws Exception {
@@ -183,6 +211,55 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertTrue(elapsed >= 2000, "gave up after " + elapsed + " ms, before the deadline it was given");
 		assertElapsedWithinBound(startedAt, 2000);
 		assertTrue(stub.attempts.get() > 1, "the connect must be retried while the deadline lasts");
+	}
+
+	/**
+	 * A database on its way up - starting, recovering, shutting down - says so, and says it for
+	 * seconds: the backend it belongs to would otherwise stay locked down until the next restart
+	 * of the server, since nothing above JDBCStorage.open() attempts it a second time.
+	 */
+	@Test(timeOut = 120000)
+	public void testDatabaseOnItsWayUpIsRetried() throws Exception {
+		final String url = StubDriver.PREFIX + "starting-up";
+		stub.failWith(new SQLException("the database system is starting up", "57P03"), 2);
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "30");
+
+		final Connection con = CachedConnection.getConnection(url);
+
+		assertNotNull(con);
+		assertEquals(stub.attempts.get(), 3, "a database that is starting up must be waited out");
+	}
+
+	/** ... and it is recognized however the driver wrapped it: a SQLException carries two chains. */
+	@Test(timeOut = 120000)
+	public void testTheWholeChainOfTheFailureIsLookedAt() throws Exception {
+		final String url = StubDriver.PREFIX + "wrapped";
+		final SQLException wrapped = new SQLException("could not connect to the server", "08006");
+		wrapped.setNextException(tooManyConnections());
+		stub.failWith(wrapped, 1);
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "30");
+
+		assertNotNull(CachedConnection.getConnection(url));
+		assertEquals(stub.attempts.get(), 2, "the failure behind the one reported must be looked at");
+	}
+
+	/**
+	 * The rest of the insufficient_resources class is not worth waiting out: a server out of disk
+	 * is not made whole by a connection of ours coming back to the pool.
+	 */
+	@Test(timeOut = 120000)
+	public void testDiskFullIsNotRetried() throws Exception {
+		final String url = StubDriver.PREFIX + "disk-full";
+		stub.failWith(new SQLException("could not extend file: No space left on device", "53100"), StubDriver.ALWAYS);
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "30");
+
+		try {
+			CachedConnection.getConnection(url);
+			fail("a database out of disk must be reported to the caller");
+		} catch (SQLException expected) {
+			assertEquals(expected.getSQLState(), "53100");
+		}
+		assertEquals(stub.attempts.get(), 1, "a failure that waiting cannot clear must be attempted once");
 	}
 
 	/**
@@ -220,6 +297,90 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 			assertEquals(expected.getMessage(), "read only");
 		}
 		verify(broken).close();
+	}
+
+	/** The same, for a driver whose failure in the setup is not a SQLException but an unchecked one. */
+	@Test(timeOut = 120000)
+	public void testConnectionIsClosedWhenItsSetupFailsWithAnUncheckedError() throws Exception {
+		final String url = StubDriver.PREFIX + "setup-unchecked";
+		final Connection broken = mock(Connection.class);
+		doThrow(new IllegalStateException("driver internal")).when(broken).setTransactionIsolation(anyInt());
+		stub.answerWith(broken);
+
+		try {
+			CachedConnection.getConnection(url);
+			fail("a connection that cannot be set up must be reported");
+		} catch (IllegalStateException expected) {
+			assertEquals(expected.getMessage(), "driver internal");
+		}
+		verify(broken).close();
+	}
+
+	/**
+	 * isValid(n) is not a bound at the socket on every driver - the SQL Server driver turns it
+	 * into a query timeout, which needs an answer from the server to fire - and the read bound of
+	 * the login was lifted the moment the connection was established, so the socket carries the
+	 * bound of the validation, for the length of the validation only.
+	 */
+	@Test(timeOut = 120000)
+	public void testValidationOfAPooledConnectionIsBoundedAtTheSocket() throws Exception {
+		final String url = StubDriver.PREFIX + "validation-bound";
+		final Connection pooled = mock(Connection.class);
+		when(pooled.isValid(anyInt())).thenReturn(true);
+		when(pooled.getNetworkTimeout()).thenReturn(0);
+		CachedConnection.cached.get(url).add(new CachedConnection(url, pooled));
+
+		final Connection borrowed = CachedConnection.getConnection(url);
+
+		assertSame(((CachedConnection) borrowed).parent, pooled);
+		final InOrder inOrder = inOrder(pooled);
+		inOrder.verify(pooled).setNetworkTimeout(any(Executor.class), eq(CachedConnection.VALIDATION_TIMEOUT_SECONDS * 1000));
+		inOrder.verify(pooled).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
+		inOrder.verify(pooled).setNetworkTimeout(any(Executor.class), eq(0));
+	}
+
+	/** A read bound of the connection string is tighter than ours and stays untouched. */
+	@Test(timeOut = 120000)
+	public void testValidationLeavesTheBoundOfTheConnectionStringAlone() throws Exception {
+		final String url = StubDriver.PREFIX + "validation-tighter";
+		final Connection pooled = mock(Connection.class);
+		when(pooled.isValid(anyInt())).thenReturn(true);
+		when(pooled.getNetworkTimeout()).thenReturn(2000);
+		CachedConnection.cached.get(url).add(new CachedConnection(url, pooled));
+
+		assertNotNull(CachedConnection.getConnection(url));
+
+		verify(pooled, never()).setNetworkTimeout(any(Executor.class), anyInt());
+	}
+
+	/**
+	 * The pool has no upper bound on the number of connections it holds, and a validation is a
+	 * round trip: after a failover that left them half-open, draining the pool must not outlive
+	 * the deadline of the borrow - establishing a connection is the faster answer past it.
+	 */
+	@Test(timeOut = 120000)
+	public void testDrainOfThePoolStopsAtTheDeadline() throws Exception {
+		final String url = StubDriver.PREFIX + "drain-deadline";
+		final int pooled = 8;
+		final AtomicInteger validated = new AtomicInteger();
+		for (int i = 0; i < pooled; i++) {
+			final Connection stale = mock(Connection.class);
+			when(stale.isValid(anyInt())).thenAnswer(invocation -> {
+				validated.incrementAndGet();
+				Thread.sleep(500); // a database that no longer answers: every validation waits out its bound
+				return false;
+			});
+			CachedConnection.cached.get(url).add(new CachedConnection(url, stale));
+		}
+		final Connection fresh = mock(Connection.class);
+		stub.answerWith(fresh);
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "1");
+
+		final Connection borrowed = CachedConnection.getConnection(url);
+
+		assertSame(((CachedConnection) borrowed).parent, fresh);
+		assertTrue(validated.get() < pooled,
+			"the whole pool was validated past the deadline: " + validated.get() + " of " + pooled);
 	}
 
 	/** A pooled connection that no longer validates is closed and replaced, not handed out. */
@@ -295,6 +456,19 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * A driver with a range of its own for its connect property is never handed a value beyond it:
+	 * SQLServerDriverIntProperty.LOGIN_TIMEOUT is validated against [0, 65535], so a bound past
+	 * that would not widen the connect, it would fail every one of them.
+	 */
+	@Test
+	public void testConnectBoundStaysInTheRangeTheDriverTakes() throws Exception {
+		final Properties microsoft = new Properties();
+		CachedConnection.ConnectDialect.MICROSOFT.bound("jdbc:sqlserver://h:1433;databaseName=db", microsoft, 100000);
+		assertEquals(microsoft.getProperty("loginTimeout"), "65535");
+		assertEquals(microsoft.getProperty("socketTimeout"), "100000000", "the read bound takes any value");
+	}
+
+	/**
 	 * A bound the administrator put into the connection string by hand - the only workaround this
 	 * backend had - keeps precedence, property by property.
 	 */
@@ -319,11 +493,39 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertNull(oracle.getProperty("oracle.net.CONNECT_TIMEOUT"));
 		assertEquals(oracle.getProperty("oracle.jdbc.ReadTimeout"), "7000");
 
+		// inside the descriptor the read bound goes by RECV_TIMEOUT, and one of the administrator
+		// is never lifted after the login, because ours is not set on top of it
+		final Properties recv = new Properties();
+		assertFalse(CachedConnection.ConnectDialect.ORACLE.bound(
+			"jdbc:oracle:thin:@(DESCRIPTION=(RECV_TIMEOUT=30)(ADDRESS=(HOST=h)(PORT=1521)))", recv, 7),
+			"a read bound of the connection string must not be lifted once the login is through");
+		assertNull(recv.getProperty("oracle.jdbc.ReadTimeout"));
+
 		// a name that only appears as the tail of another parameter is not a setting of its own
 		final Properties mysql = new Properties();
 		CachedConnection.ConnectDialect.MYSQL.bound("jdbc:mysql://h:3306/db?xconnectTimeout=1&socketTimeoutX=2", mysql, 7);
 		assertEquals(mysql.getProperty("connectTimeout"), "7000");
 		assertEquals(mysql.getProperty("socketTimeout"), "7000");
+	}
+
+	/**
+	 * A parameter is recognized the way the driver of its dialect recognizes it: pgjdbc looks its
+	 * properties up by their exact name, so a name of another case is a parameter of nobody and
+	 * must not pass for a bound the administrator set - while the other three match either way.
+	 */
+	@Test
+	public void testTheCaseOfAParameterIsTheOneOfItsDriver() throws Exception {
+		final Properties postgres = new Properties();
+		CachedConnection.ConnectDialect.POSTGRES.bound("jdbc:postgresql://h:5432/db?ConnectTimeout=5", postgres, 7);
+		assertEquals(postgres.getProperty("connectTimeout"), "7", "pgjdbc ignores a parameter of another case");
+
+		final Properties mysql = new Properties();
+		CachedConnection.ConnectDialect.MYSQL.bound("jdbc:mysql://h:3306/db?SocketTimeout=1", mysql, 7);
+		assertNull(mysql.getProperty("socketTimeout"), "Connector/J matches its properties without case");
+
+		final Properties microsoft = new Properties();
+		CachedConnection.ConnectDialect.MICROSOFT.bound("jdbc:sqlserver://h:1433;LoginTimeout=45", microsoft, 7);
+		assertNull(microsoft.getProperty("loginTimeout"), "the sql server driver normalizes the name of a property");
 	}
 
 	/** The connection string holds the credentials of the backend: a stall report must not carry them. */
@@ -334,6 +536,12 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:scott/secret@//h:1521/svc"), "jdbc:oracle:@//h:1521/svc");
 		assertEquals(CachedConnection.safeUrl("jdbc:mysql://u:secret@h:3306/db"), "jdbc:mysql:@h:3306/db");
 		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:@//h:1521/svc"), "jdbc:oracle:@//h:1521/svc");
+		// a password holding the parameter separator of another dialect: ";" separates nothing on
+		// an oracle url, so the credentials are cut in front of the "@" rather than inside them
+		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:scott/pa;ss@//h:1521/svc"), "jdbc:oracle:@//h:1521/svc");
+		// ... and an "@" that stands inside a parameter is not the end of credentials: the host survives
+		assertEquals(CachedConnection.safeUrl("jdbc:postgresql://h:5432/db?user=u@example.com&password=secret"),
+			"jdbc:postgresql://h:5432/db");
 	}
 
 	private static SQLException tooManyConnections() {
