@@ -164,7 +164,7 @@ Removing the package does not remove your data or configuration. You must remove
 ====
 Remove OpenDJ directory server installed from the `.msi` package like any other Windows program.
 
-. If OpenDJ is registered as a Windows service, remove the service first:
+. If OpenDJ is registered as a Windows service, remove the service first — the package does not manage it and leaves the registration behind, pointing at files that are about to be deleted:
 +
 
 [source, console]
@@ -180,7 +180,7 @@ C:\path\to\opendj\bat> windows-service.bat --disableService
 C:\> msiexec /x opendj-{opendj-version}.msi /quiet
 ----
 +
-Uninstalling removes the files installed by the package. Your configured instance data under the installation directory (for example `config`, `db`, and `logs`) is not removed; delete the installation directory manually to remove all files.
+Uninstalling removes the files installed by the package. Your configured instance data under the installation directory (for example `config`, `db`, and `logs`) is not removed; delete the installation directory manually, or run `uninstall.bat` before removing the package, to remove all files. Running `uninstall.bat` also disables the Windows service if one is registered, which covers the first step above.
 
 ====
 

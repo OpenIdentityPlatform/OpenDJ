@@ -13,6 +13,7 @@
 #
 # Copyright 2008 Sun Microsystems, Inc.
 # Portions Copyright 2011 ForgeRock AS.
+# Portions Copyright 2026 3A Systems, LLC.
 
 #
 # This is the Makefile than can be used to generate the executables
@@ -36,10 +37,14 @@ CC=cl
 SERVICE_PROGNAME=opendj_service.exe
 LAUNCHER_ADMINISTRATOR_PROGNAME=launcher_administrator.exe
 WINLAUNCHER_PROGNAME=winlauncher.exe
-LINKER=link -nologo /machine:x86
+# /Brepro makes the outputs reproducible (content-hash PE timestamps instead of the
+# build time). The Package/Deploy workflow commits these binaries back to the branch
+# whenever their bytes differ from the committed ones; without /Brepro every build
+# would differ and it would commit on every push.
+LINKER=link -nologo /machine:x86 /Brepro
 LIBS=advapi32.lib
 
-CFLAGS= -D_WINDOWS  -nologo  -W3 -O2
+CFLAGS= -D_WINDOWS  -nologo  -W3 -O2 /Brepro
 RC=rc
 MC=mc
 MT=mt
