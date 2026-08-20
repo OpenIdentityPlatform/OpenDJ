@@ -28,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -155,7 +156,19 @@ public class CompressedSchema
   {
     for(int id=0;id<mappings.adDecodeMap.size();id++){
       final AttributeDescription ad = mappings.adDecodeMap.get(id);
-      loadAttributeToMaps(id, ad.getAttributeType().getNameOrOID(), ad.getOptions(), newMappings);
+      if (ad != null)
+      {
+        loadAttributeToMaps(id, ad.getAttributeType().getNameOrOID(), ad.getOptions(), newMappings);
+      }
+      else
+      {
+        // A decode map can carry a gap: it is padded with null for the ids missing from the
+        // compressed schema it was loaded from. Carry the gap over rather than dereferencing it,
+        // and carry it over as a gap - dropping it would shift the ids of the elements after it,
+        // and would let the next registration hand out an id an already written entry carries.
+        // The ids are walked in order from zero, so the new map holds exactly id elements here.
+        newMappings.adDecodeMap.add(null);
+      }
     }
   }
 
@@ -166,7 +179,16 @@ public class CompressedSchema
   private void reloadObjectClassesMap(Mappings mappings, Mappings newMappings)
   {
     for(int id=0;id<mappings.ocDecodeMap.size();id++){
-      loadObjectClassesToMaps(id, mappings.ocDecodeMap.get(id).values(), newMappings, false);
+      final Map<ObjectClass, String> ocMap = mappings.ocDecodeMap.get(id);
+      if (ocMap != null)
+      {
+        loadObjectClassesToMaps(id, ocMap.values(), newMappings, false);
+      }
+      else
+      {
+        // A gap, as in reloadAttributeTypeMaps().
+        newMappings.ocDecodeMap.add(null);
+      }
     }
   }
 
@@ -188,7 +210,7 @@ public class CompressedSchema
 
     // Before returning the attribute, make sure that the attribute type is not stale.
     final Mappings mappings = reloadMappingsIfSchemaChanged();
-    final AttributeDescription ad = mappings.adDecodeMap.get(adId);
+    final AttributeDescription ad = decodeMapGet(mappings.adDecodeMap, adId);
     if (ad == null)
     {
       throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
@@ -224,6 +246,39 @@ public class CompressedSchema
   }
 
   /**
+   * Returns the element a token addresses, or {@code null} where it addresses none: the token can
+   * be outside the range of the decode map, or address one of the slots the map is padded with for
+   * the ids missing from the compressed schema it was loaded from. Both are reported to the caller
+   * as the unknown token they are, rather than let out of the decode path as an unchecked
+   * exception the callers of that path are not written for.
+   *
+   * @param decodeMap
+   *          The decode map to look the token up in.
+   * @param id
+   *          The decoded token.
+   * @return The element registered under the token, or {@code null} if there is none.
+   */
+  private static <T> T decodeMapGet(final List<T> decodeMap, final int id)
+  {
+    if (id < 0)
+    {
+      return null;
+    }
+    try
+    {
+      return decodeMap.get(id);
+    }
+    catch (final IndexOutOfBoundsException e)
+    {
+      // Caught rather than kept away by a comparison against size(): size() and get() of a
+      // CopyOnWriteArrayList read the array separately, so the comparison would not make the
+      // lookup safe anyway, and this runs for every attribute of every entry read from a backend -
+      // the common path is left with the single read it had.
+      return null;
+    }
+  }
+
+  /**
    * Decodes an object class set from the provided byte string.
    *
    * @param reader
@@ -241,7 +296,7 @@ public class CompressedSchema
 
     // Before returning the object classes, make sure that none of them are stale.
     final Mappings mappings = reloadMappingsIfSchemaChanged();
-    Map<ObjectClass, String> ocMap = mappings.ocDecodeMap.get(ocId);
+    Map<ObjectClass, String> ocMap = decodeMapGet(mappings.ocDecodeMap, ocId);
     if (ocMap == null)
     {
       throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
@@ -297,10 +352,7 @@ public class CompressedSchema
       id = mappings.adEncodeMap.get(ad);
       if (id == null)
       {
-        id = mappings.adDecodeMap.size();
-        mappings.adDecodeMap.add(ad);
-        mappings.adEncodeMap.put(ad, id);
-        storeAttribute(encodeId(id), ad.getAttributeType().getNameOrOID(), ad.getOptions());
+        id = registerAttribute(mappings, ad);
       }
       return id;
     }
@@ -308,6 +360,46 @@ public class CompressedSchema
     {
       exclusiveLock.unlock();
     }
+  }
+
+  /**
+   * Registers a new attribute description and returns the id allocated to it. The registration is
+   * persisted before it is published, and is withdrawn if it cannot be persisted: an entry must
+   * never be written with a token whose definition did not reach the storage, because nothing
+   * stores it afterwards and the entry cannot be decoded once the server is restarted.
+   * <p>
+   * Must be called with the exclusive lock held, which is what makes the id allocated here still
+   * the last element of the decode map when it has to be withdrawn.
+   */
+  private int registerAttribute(final Mappings mappings, final AttributeDescription ad) throws DirectoryException
+  {
+    final int id = mappings.adDecodeMap.size();
+    // Appended to the decode map first: storeAttribute() is free to persist the whole content of
+    // this compressed schema rather than the single element it is handed - DefaultCompressedSchema
+    // rewrites its file from getAllAttributes() - so the element being registered has to be part
+    // of it by then. The decode map is not what an encode reaches the id through, so nothing can
+    // yet write an entry carrying it.
+    mappings.adDecodeMap.add(ad);
+    boolean registered = false;
+    try
+    {
+      storeAttribute(encodeId(id), ad.getAttributeType().getNameOrOID(), ad.getOptions());
+      // Published only once persisted: the encode map is read without the lock, so an id another
+      // thread finds there can be carried by an entry a moment later and must never be withdrawn.
+      mappings.adEncodeMap.put(ad, id);
+      registered = true;
+    }
+    finally
+    {
+      if (!registered)
+      {
+        // Withdrawn, so that the next attempt allocates the id again and stores it. Removed by
+        // index, and by the index of the last element: every append is made under the exclusive
+        // lock, so this is still the element appended above, and no other id shifts.
+        mappings.adDecodeMap.remove(mappings.adDecodeMap.size() - 1);
+      }
+    }
+    return id;
   }
 
   /**
@@ -354,10 +446,7 @@ public class CompressedSchema
       id = mappings.ocEncodeMap.get(objectClasses);
       if (id == null)
       {
-        id = mappings.ocDecodeMap.size();
-        mappings.ocDecodeMap.add(objectClasses);
-        mappings.ocEncodeMap.put(objectClasses, id);
-        storeObjectClasses(encodeId(id), objectClasses.values());
+        id = registerObjectClasses(mappings, objectClasses);
       }
       return id;
     }
@@ -365,6 +454,35 @@ public class CompressedSchema
     {
       exclusiveLock.unlock();
     }
+  }
+
+  /**
+   * Registers a new object class set and returns the id allocated to it, persisting the
+   * registration before publishing it and withdrawing it if it cannot be persisted, exactly as
+   * {@link #registerAttribute(Mappings, AttributeDescription)} does.
+   * <p>
+   * Must be called with the exclusive lock held.
+   */
+  private int registerObjectClasses(final Mappings mappings, final Map<ObjectClass, String> objectClasses)
+      throws DirectoryException
+  {
+    final int id = mappings.ocDecodeMap.size();
+    mappings.ocDecodeMap.add(objectClasses);
+    boolean registered = false;
+    try
+    {
+      storeObjectClasses(encodeId(id), objectClasses.values());
+      mappings.ocEncodeMap.put(objectClasses, id);
+      registered = true;
+    }
+    finally
+    {
+      if (!registered)
+      {
+        mappings.ocDecodeMap.remove(mappings.ocDecodeMap.size() - 1);
+      }
+    }
+    return id;
   }
 
   /**
@@ -390,12 +508,23 @@ public class CompressedSchema
           @Override
           public boolean hasNext()
           {
+            // Skips the gaps: a decode map padded with null for the ids missing from the
+            // compressed schema it was loaded from is still saved, and the ids around a gap are
+            // preserved by the token each element is written with.
+            while (id < adDecodeMap.size() && adDecodeMap.get(id) == null)
+            {
+              id++;
+            }
             return id < adDecodeMap.size();
           }
 
           @Override
           public Entry<byte[], Entry<String, Iterable<String>>> next()
           {
+            if (!hasNext())
+            {
+              throw new NoSuchElementException();
+            }
             final byte[] encodedAttribute = encodeId(id);
             final AttributeDescription ad = adDecodeMap.get(id++);
             return new SimpleImmutableEntry<byte[], Entry<String, Iterable<String>>>(
@@ -437,12 +566,21 @@ public class CompressedSchema
           @Override
           public boolean hasNext()
           {
+            // Skips the gaps, as in getAllAttributes().
+            while (id < ocDecodeMap.size() && ocDecodeMap.get(id) == null)
+            {
+              id++;
+            }
             return id < ocDecodeMap.size();
           }
 
           @Override
           public Entry<byte[], Collection<String>> next()
           {
+            if (!hasNext())
+            {
+              throw new NoSuchElementException();
+            }
             final byte[] encodedObjectClasses = encodeId(id);
             final Map<ObjectClass, String> ocMap = ocDecodeMap.get(id++);
             return new SimpleImmutableEntry<>(encodedObjectClasses, ocMap.values());

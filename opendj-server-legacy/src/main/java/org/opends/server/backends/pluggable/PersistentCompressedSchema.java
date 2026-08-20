@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -112,7 +113,12 @@ final class PersistentCompressedSchema extends CompressedSchema
     }
     catch (final IOException e)
     {
-      // TODO: Shouldn't happen but should log a message
+      // Reported rather than absorbed: the caller takes a store that returned for a definition
+      // that reached the tree, and an entry written with a token that never did cannot be decoded
+      // once the server is restarted.
+      logger.traceException(e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+          ERR_COMPSCHEMA_CANNOT_STORE_EX.get(e.getMessage()), e);
     }
   }
 
@@ -133,7 +139,10 @@ final class PersistentCompressedSchema extends CompressedSchema
     }
     catch (final IOException e)
     {
-      // TODO: Shouldn't happen but should log a message
+      // Reported rather than absorbed, as in storeAttribute().
+      logger.traceException(e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+          ERR_COMPSCHEMA_CANNOT_STORE_EX.get(e.getMessage()), e);
     }
   }
 
