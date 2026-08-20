@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable.spi;
 
@@ -73,6 +74,17 @@ public interface Importer extends Closeable
    * @return a new cursor
    */
   SequentialCursor<ByteString, ByteString> openCursor(TreeName treeName);
+
+  /**
+   * Notifies this importer that the import failed or was cancelled, before {@link #close()} runs: what the trees hold
+   * is an incomplete import that is going to be run again. Implementations doing work of their own in {@link #close()}
+   * on the assumption that the data is final - refreshing the optimizer statistics of a database, for instance - can
+   * skip it. The default implementation does nothing.
+   */
+  default void aborted()
+  {
+    // nothing by default: an importer that treats a partial import like a complete one is not wrong, only wasteful
+  }
 
   @Override
   void close();

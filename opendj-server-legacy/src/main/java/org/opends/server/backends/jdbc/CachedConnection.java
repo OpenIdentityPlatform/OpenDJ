@@ -95,12 +95,18 @@ public class CachedConnection implements Connection {
                 return con;
             }
         }
+        Connection conNew = null;
         try {
-            final Connection conNew = DriverManager.getConnection(connectionString);
+            conNew = DriverManager.getConnection(connectionString);
             conNew.setAutoCommit(false);
             conNew.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
             return new CachedConnection(connectionString, conNew);
         } catch (SQLException e) { // max_connection server error: try recursion for reuse connection
+            if (conNew != null) { // the connection was established but not set up: nothing else would close it
+                try {
+                    conNew.close();
+                } catch (SQLException e2) {}
+            }
             return getConnection(connectionString, (waitTime == 0) ? 1 : waitTime * 2);
         }
     }

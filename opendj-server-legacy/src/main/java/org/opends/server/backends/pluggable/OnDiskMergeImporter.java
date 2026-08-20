@@ -1195,6 +1195,33 @@ final class OnDiskMergeImporter
 
   private void doImport(final Source source) throws InterruptedException, ExecutionException
   {
+    try
+    {
+      importAllEntries(source);
+    }
+    catch (Throwable t)
+    {
+      // Cancellation lands here as well (see the InterruptedException below). The trees hold an
+      // incomplete import: the storage must not treat what is in them as the final data. Errors
+      // are caught too - an import killed by an OutOfMemoryError leaves the trees just as partial
+      // as one killed by an exception.
+      try
+      {
+        importStrategy.aborted();
+      }
+      catch (Throwable notified)
+      {
+        // What went wrong here matters less than what brought the import down: the report of the
+        // failure is the point of this block. Concrete for the motivating case, an import killed
+        // by an OutOfMemoryError, where notifying the storage allocates.
+        t.addSuppressed(notified);
+      }
+      throw t;
+    }
+  }
+
+  private void importAllEntries(final Source source) throws InterruptedException, ExecutionException
+  {
     final long phaseOneStartTime = System.currentTimeMillis();
     final PhaseOneWriteableTransaction transaction = new PhaseOneWriteableTransaction(importStrategy);
     importedCount.set(0);
@@ -1325,6 +1352,12 @@ final class OnDiskMergeImporter
     void afterPhaseOne()
     {
       closeSilently(bufferPool);
+    }
+
+    /** Tells the storage that the import stopped before it was through, so that its data is not final. */
+    void aborted()
+    {
+      importer.aborted();
     }
 
     abstract Callable<Void> newPhaseTwoTask(TreeName treeName, Chunk source, PhaseTwoProgressReporter progressReporter);
