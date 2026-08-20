@@ -21,6 +21,7 @@ import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
 import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
+import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -35,17 +36,26 @@ import org.testng.annotations.Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -157,6 +167,57 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 
 	private static ByteString value(int i) {
 		return ByteString.valueOfUtf8("value" + i);
+	}
+
+	/**
+	 * openTree() and deleteTree() ask the catalog whether the table of a tree is there. The name is
+	 * looked up in the form the catalog stores it - an unquoted identifier is folded to upper case
+	 * on oracle and to lower case on postgresql - so getting that wrong makes a second open try to
+	 * create a table that is already there, and a second delete drop one that is already gone (#885).
+	 */
+	@Test
+	public void testTableOfATreeIsFoundByName() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("testCatalogLookup", "tree");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					txn.put(tree, key(1), value(1));
+				}
+			});
+			// the table is there now: opening the tree again must find it, not create it a second time
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			assertEquals(storage.read(new ReadOperation<ByteString>() {
+				@Override
+				public ByteString run(ReadableTransaction txn) throws Exception {
+					return txn.read(tree, key(1));
+				}
+			}), value(1));
+
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.deleteTree(tree);
+				}
+			});
+			// and gone now: deleting it again must find nothing rather than drop what is not there
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.deleteTree(tree);
+				}
+			});
+		} finally {
+			storage.close();
+		}
 	}
 
 	/**
@@ -290,6 +351,816 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		}
 	}
 
+	/**
+	 * Each table must be stamped with the tree name it stores: table names are opaque SHA-224
+	 * hashes, so without the comment there is no way to tell the trees apart on the database
+	 * side (#859). The single quote in the base DN exercises the comment escaping.
+	 */
+	@Test
+	public void testTreeNameStoredAsTableComment() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		// a quote and a backslash in the tree name exercise the literal escaping (backslash is an escape character in mysql)
+		final TreeName tree = new TreeName("o=comment'te\\st", "dn2id");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			assertEquals(readTableComment(storage.getTableName(tree)), tree.toString());
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	String readTableComment(String tableName) throws Exception {
+		final String url = getJdbcUrl();
+		final String sql;
+		if (url.startsWith("jdbc:postgresql")) {
+			sql = "select obj_description('" + tableName + "'::regclass, 'pg_class')";
+		} else if (url.startsWith("jdbc:mysql")) {
+			sql = "select table_comment from information_schema.tables where table_schema=database() and table_name='" + tableName + "'";
+		} else if (url.startsWith("jdbc:oracle")) {
+			sql = "select comments from user_tab_comments where table_name='" + tableName.toUpperCase() + "'";
+		} else if (url.startsWith("jdbc:sqlserver")) {
+			// class=1 is the table itself: major_id is only unique within a class
+			sql = "select cast(value as nvarchar(4000)) from sys.extended_properties where class=1 and major_id=object_id('" + tableName + "') and minor_id=0 and name='MS_Description'";
+		} else {
+			throw new SkipException("no table comment query for " + url);
+		}
+		try (final Connection con = DriverManager.getConnection(url);
+			 final Statement st = con.createStatement();
+			 final ResultSet rs = st.executeQuery(sql)) {
+			return rs.next() ? rs.getString(1) : null;
+		}
+	}
+
+	void writeTableComment(String tableName, String comment) throws Exception {
+		final String url = getJdbcUrl();
+		final String sql;
+		if (url.startsWith("jdbc:postgresql") || url.startsWith("jdbc:oracle")) {
+			sql = "comment on table " + tableName + " is '" + comment + "'";
+		} else if (url.startsWith("jdbc:mysql")) {
+			sql = "alter table " + tableName + " comment '" + comment + "'";
+		} else if (url.startsWith("jdbc:sqlserver")) {
+			// exec arguments must be constants or variables: schema_name() cannot be passed inline
+			sql = "declare @s sysname = schema_name()"
+				+ " exec sys.sp_updateextendedproperty N'MS_Description', N'" + comment + "', N'SCHEMA', @s, N'TABLE', N'" + tableName + "'";
+		} else {
+			throw new SkipException("no table comment statement for " + url);
+		}
+		try (final Connection con = DriverManager.getConnection(url);
+			 final Statement st = con.createStatement()) {
+			st.execute(sql);
+		}
+	}
+
+	/**
+	 * Removes the stored comment, so that the next stamp has to create one rather than replace
+	 * it: on sql server that is sp_addextendedproperty, which is the statement reported to wait
+	 * for an uncommitted row of another session.
+	 */
+	void clearTableComment(String tableName) throws Exception {
+		final String url = getJdbcUrl();
+		if (!url.startsWith("jdbc:sqlserver")) {
+			writeTableComment(tableName, "stale"); // the other engines have one statement for both cases
+			return;
+		}
+		try (final Connection con = DriverManager.getConnection(url);
+			 final Statement st = con.createStatement()) {
+			st.execute("declare @s sysname = schema_name()"
+				+ " exec sys.sp_dropextendedproperty N'MS_Description', N'SCHEMA', @s, N'TABLE', N'" + tableName + "'");
+		}
+	}
+
+	/** The dialect of the database this suite runs against, as the backend detects it from the driver. */
+	JDBCStorage.Dialect dialect() {
+		final String url = getJdbcUrl();
+		if (url.startsWith("jdbc:postgresql")) {
+			return JDBCStorage.Dialect.POSTGRES;
+		} else if (url.startsWith("jdbc:mysql")) {
+			return JDBCStorage.Dialect.MYSQL;
+		} else if (url.startsWith("jdbc:oracle")) {
+			return JDBCStorage.Dialect.ORACLE;
+		} else if (url.startsWith("jdbc:sqlserver")) {
+			return JDBCStorage.Dialect.MICROSOFT;
+		}
+		throw new SkipException("no dialect for " + url);
+	}
+
+	/**
+	 * What this connection reports as its lock bound, in the unit and the rendering of its own
+	 * engine, or null where reading it needs a privilege the test user does not have: oracle
+	 * keeps ddl_lock_timeout in v$parameter, which an application user cannot select from.
+	 */
+	String sessionLockBound(Connection con) throws Exception {
+		final String url = getJdbcUrl();
+		final String sql;
+		if (url.startsWith("jdbc:postgresql")) {
+			sql = "show lock_timeout";
+		} else if (url.startsWith("jdbc:mysql")) {
+			sql = "select @@session.lock_wait_timeout";
+		} else if (url.startsWith("jdbc:sqlserver")) {
+			sql = "select @@lock_timeout";
+		} else {
+			return null;
+		}
+		try (final Statement st = con.createStatement();
+			 final ResultSet rs = st.executeQuery(sql)) {
+			return rs.next() ? rs.getString(1) : null;
+		}
+	}
+
+	/**
+	 * Comment statements are DDL (a metadata lock on mysql, a ddl lock on oracle), so a table
+	 * whose stored comment already matches its tree name must not be re-stamped on subsequent
+	 * opens - while a stale comment must be refreshed.
+	 */
+	@Test
+	public void testCommentStampSkippedWhenAlreadyStored() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("o=commentSkip", "dn2id");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true); // stamps the freshly created table
+				}
+			});
+			assertEquals(readTableComment(storage.getTableName(tree)), tree.toString());
+			// UP_TO_DATE and not FAILED: the statement was skipped, not rejected
+			assertEquals(storage.commentTable(tree, dialect()), JDBCStorage.CommentResult.UP_TO_DATE, "an up-to-date comment was re-stamped");
+			writeTableComment(storage.getTableName(tree), "stale");
+			assertEquals(storage.commentTable(tree, dialect()), JDBCStorage.CommentResult.STAMPED, "a stale comment was not re-stamped");
+			assertEquals(readTableComment(storage.getTableName(tree)), tree.toString());
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * A stamp must never queue behind another session's transaction. Comment statements take a
+	 * lock (a metadata lock on mysql, a schema modification lock on sql server) and both engines
+	 * wait for it without limit by default - lock_wait_timeout is a year, lock_timeout is
+	 * infinite - so an unbounded stamp could hang the backend open and, on mysql, park every
+	 * other query on that table behind itself. Whether an uncommitted row of another session
+	 * conflicts with the statement at all differs between engines and versions, so the assertion
+	 * is on the timing: the call comes back rather than waiting for that transaction to end.
+	 */
+	@Test(timeOut = 180000)
+	public void testCommentStampGivesUpOnLock() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("o=commentLock", "dn2id");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			final String tableName = storage.getTableName(tree);
+			clearTableComment(tableName); // no comment stored: the next attempt must issue a statement
+			try (final Connection blocker = DriverManager.getConnection(getJdbcUrl())) {
+				blocker.setAutoCommit(false);
+				try (final PreparedStatement st = blocker.prepareStatement("insert into " + tableName + " (h,k) values (?,?)")) {
+					st.setString(1, String.format("%1$-128s", "blocker").replace(' ', 'x'));
+					st.setBytes(2, new byte[]{1});
+					st.executeUpdate();
+				}
+				// the row is left uncommitted, so the lock it holds is still there
+				final long start = System.currentTimeMillis();
+				final JDBCStorage.CommentResult result = storage.commentTable(tree, dialect());
+				final long elapsedMs = System.currentTimeMillis() - start;
+				blocker.rollback();
+				// giving up and stamping anyway are both fine here - the engines differ in whether an
+				// uncommitted row of another session conflicts with the comment statement at all.
+				// Waiting for that session to finish is what must never happen.
+				// the bound is 5 s (COMMENT_LOCK_TIMEOUT_SECONDS): the slack is for the connect and the
+				// statement around it, not for a regression of the bound itself
+				assertTrue(elapsedMs < 20000, "the comment statement waited " + elapsedMs + " ms for a lock, result " + result);
+				if (result == JDBCStorage.CommentResult.STAMPED) { // it reported success: the comment must be there
+					assertEquals(readTableComment(tableName), tree.toString());
+				}
+			}
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * A failing comment stamp must never disturb the transaction that opened the tree: it used
+	 * to roll back the caller's connection, silently discarding writes pending in the same
+	 * transaction (the way DefaultIndex.afterOpen() writes the trusted flag between openTree() calls).
+	 * The write pending during the failing stamp deliberately targets another tree: a statement
+	 * left pending on the very table being stamped - a write, or on mysql any statement, since a
+	 * transaction holds a shared metadata lock on every table it touched - would make the comment
+	 * statement wait for the caller's own lock, which is a shape no production path has.
+	 */
+	@Test
+	public void testCommentFailureLeavesTransactionIntact() throws Exception {
+		final TreeName stamped = new TreeName("o=commentFailure", "dn2id");
+		final TreeName written = new TreeName("o=commentFailure", "id2entry");
+		final JDBCStorage setUp = new JDBCStorage(createBackendCfg(), null);
+		try { // create both tables up front, with a storage that stamps them normally
+			setUp.open(AccessMode.READ_WRITE);
+			setUp.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(stamped, true);
+					txn.openTree(written, true);
+				}
+			});
+		} finally {
+			setUp.close();
+		}
+		final AtomicInteger stampAttempts = new AtomicInteger();
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
+			@Override
+			Connection newStampConnection(Dialect dialect) throws SQLException {
+				stampAttempts.incrementAndGet();
+				throw new SQLException("injected comment failure"); // no sql state, no vendor code: a rejection, not a failure of the moment
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.put(written, key(1), value(1)); // pending in this transaction...
+					txn.openTree(stamped, true); // ...while the comment machinery fails
+				}
+			});
+			storage.read(new ReadOperation<Void>() {
+				@Override
+				public Void run(ReadableTransaction txn) throws Exception {
+					assertEquals(txn.read(written, key(1)), value(1), "failing comment stamp discarded a pending write");
+					return null;
+				}
+			});
+			// the failure is remembered: an unstampable table is not asked again while this backend is open
+			assertEquals(storage.commentTable(stamped, dialect()), JDBCStorage.CommentResult.FAILED);
+			assertEquals(stampAttempts.get(), 1, "a failed stamp was reissued");
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(stamped);
+						txn.deleteTree(written);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * A stamp that failed for a reason of the moment - the lock timeout the statement is given,
+	 * a connection that broke - must be attempted again: only a failure saying that this table
+	 * cannot be commented at all is remembered, or one contended moment would leave a backend
+	 * unstamped until it is restarted.
+	 */
+	@Test
+	public void testTransientStampFailureIsRetried() throws Exception {
+		final TreeName tree = new TreeName("o=transientStamp", "dn2id");
+		final AtomicInteger stampAttempts = new AtomicInteger();
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
+			@Override
+			Connection newStampConnection(Dialect dialect) throws SQLException {
+				stampAttempts.incrementAndGet();
+				throw new SQLException("injected connection failure", "08006"); // connection exception: a failure of the moment
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true); // stamp #1, fails
+				}
+			});
+			assertEquals(storage.commentTable(tree, dialect()), JDBCStorage.CommentResult.FAILED);
+			assertEquals(stampAttempts.get(), 2, "a stamp that failed for a reason of the moment was not attempted again");
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * Opening a backend opens every tree it holds - about 25 for a stock suffix - and the first
+	 * open after an upgrade stamps them all: the trees of one open must share one connection
+	 * rather than make a physical connect each. One per open is what the comment machinery costs,
+	 * readback included - the readback runs on that same connection, because the thread doing the
+	 * open is inside a transaction and holding a pooled connection already.
+	 */
+	@Test
+	public void testCommentStampsShareOneConnection() throws Exception {
+		final TreeName[] trees = {
+			new TreeName("o=commentSweep", "dn2id"),
+			new TreeName("o=commentSweep", "id2entry"),
+			new TreeName("o=commentSweep", "state") };
+		final AtomicInteger connects = new AtomicInteger();
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
+			@Override
+			Connection newStampConnection(Dialect dialect) throws SQLException {
+				connects.incrementAndGet();
+				return super.newStampConnection(dialect);
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					for (final TreeName tree : trees) {
+						txn.openTree(tree, true); // freshly created: every one of them is stamped
+					}
+				}
+			});
+			for (final TreeName tree : trees) {
+				assertEquals(readTableComment(storage.getTableName(tree)), tree.toString());
+			}
+			assertEquals(connects.get(), 1, "the stamps of one open did not share a connection");
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					for (final TreeName tree : trees) {
+						txn.openTree(tree, true);
+					}
+				}
+			});
+			// three trees, one more connect: the open that finds every comment in place issues no
+			// statement and takes no lock, and pays one connection for the whole sweep either way
+			assertEquals(connects.get(), 2, "the trees of an open that found every comment in place did not share a connection");
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						for (final TreeName tree : trees) {
+							txn.deleteTree(tree);
+						}
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * The bound a stamp connection is given must survive a stamp that failed. Postgres undoes a
+	 * plain SET when the transaction that ran it is rolled back, and a failed stamp is rolled
+	 * back with the connection kept and reused - one connection serves every tree of a backend
+	 * open - so every tree stamped after the first failure used to run with no bound at all,
+	 * which is what the bound exists to prevent.
+	 */
+	@Test
+	public void testLockBoundSurvivesAFailedStamp() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		// no table was ever created for this tree, so its comment statement fails - on a connection
+		// that stays usable, which is the case the session rolls back rather than replaces
+		final TreeName missing = new TreeName("o=lockBound", "neverCreated");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			final JDBCStorage.Dialect dialect = dialect();
+			final String bound;
+			try (final Connection fresh = storage.newStampConnection(dialect)) {
+				bound = sessionLockBound(fresh); // what a connection carrying the bound reports
+			}
+			try (final JDBCStorage.StampSession session = storage.new StampSession()) {
+				assertEquals(storage.commentTable(missing, dialect, session), JDBCStorage.CommentResult.FAILED,
+					"stamping a table that does not exist was reported as done");
+				if (bound != null) { // oracle: ddl_lock_timeout is only in v$parameter, which the test user cannot read
+					assertEquals(sessionLockBound(session.connection(dialect)), bound,
+						"the lock bound was lost when the failed stamp was rolled back");
+				}
+			}
+		} finally {
+			storage.close();
+		}
+	}
+
+	/**
+	 * A stamp that lost its connection ends the sweep it happened in: every tree behind it needs
+	 * that same connection, so each would pay the same connect attempt again. That is about 25 of
+	 * them for a stock suffix, all for a diagnostic aid. Nothing is remembered, so the next open
+	 * tries again.
+	 */
+	@Test
+	public void testConnectionFailureEndsTheSweep() throws Exception {
+		final TreeName[] trees = {
+			new TreeName("o=sweepGiveUp", "dn2id"),
+			new TreeName("o=sweepGiveUp", "id2entry"),
+			new TreeName("o=sweepGiveUp", "state") };
+		final AtomicInteger stampAttempts = new AtomicInteger();
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
+			@Override
+			Connection newStampConnection(Dialect dialect) throws SQLException {
+				stampAttempts.incrementAndGet();
+				throw new SQLException("injected connection failure", "08006"); // connection exception: the session is gone
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					for (final TreeName tree : trees) {
+						txn.openTree(tree, true);
+					}
+				}
+			});
+			assertEquals(stampAttempts.get(), 1, "a connection that was gone was paid once per tree of the same open");
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					for (final TreeName tree : trees) {
+						txn.openTree(tree, true);
+					}
+				}
+			});
+			assertEquals(stampAttempts.get(), 2, "the open after a lost connection did not try again");
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						for (final TreeName tree : trees) {
+							txn.deleteTree(tree);
+						}
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * A lock belongs to the table it is held on, so a stamp that gave up on one must not cost the
+	 * trees behind it their comments: the trees of an open are stamped in a fixed order, and a
+	 * table left permanently contended by another session would otherwise mean nothing is ever
+	 * stamped, on any open. Nothing is remembered either - the open that follows stamps the table
+	 * whose moment has passed.
+	 * <p>
+	 * The failure is injected at the readback rather than at the comment statement, which is built
+	 * inline; what is under test is the classification of the failure and what the sweep does with
+	 * it, and those do not depend on which of the two statements produced it.
+	 */
+	@Test
+	public void testContendedTableDoesNotEndTheSweep() throws Exception {
+		final TreeName[] trees = {
+			new TreeName("o=sweepContended", "dn2id"),
+			new TreeName("o=sweepContended", "id2entry"),
+			new TreeName("o=sweepContended", "state") };
+		final AtomicInteger contended = new AtomicInteger(1); // the first tree, for one sweep only
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
+			@Override
+			String readStoredComment(Connection con, Dialect dialect, String tableName) throws SQLException {
+				if (tableName.equals(getTableName(trees[0])) && contended.getAndDecrement() > 0) {
+					throw lockTimeoutOf(dialect); // as if another session held this one table
+				}
+				return super.readStoredComment(con, dialect, tableName);
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					for (final TreeName tree : trees) {
+						txn.openTree(tree, true);
+					}
+				}
+			});
+			assertNotEquals(readTableComment(storage.getTableName(trees[0])), trees[0].toString(),
+				"the contended table was stamped anyway");
+			for (int i = 1; i < trees.length; i++) {
+				assertEquals(readTableComment(storage.getTableName(trees[i])), trees[i].toString(),
+					"one contended table cost the trees behind it their comments");
+			}
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					for (final TreeName tree : trees) {
+						txn.openTree(tree, true);
+					}
+				}
+			});
+			assertEquals(readTableComment(storage.getTableName(trees[0])), trees[0].toString(),
+				"a table left unstamped by a contended moment was not stamped by the open that followed");
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						for (final TreeName tree : trees) {
+							txn.deleteTree(tree);
+						}
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/** The failure a dialect reports when a statement gave up on the lock bound it was given. */
+	static SQLException lockTimeoutOf(JDBCStorage.Dialect dialect) {
+		switch (dialect) {
+		case POSTGRES:
+			return new SQLException("canceling statement due to lock timeout", "55P03");
+		case MYSQL:
+			return new SQLException("Lock wait timeout exceeded; try restarting transaction", "HY000", 1205);
+		case ORACLE:
+			return new SQLException("ORA-00054: resource busy and acquire with NOWAIT specified", "61000", 54);
+		case MICROSOFT:
+			return new SQLException("Lock request time out period exceeded", "HY000", 1222);
+		default:
+			throw new IllegalStateException("no lock timeout failure for dialect " + dialect);
+		}
+	}
+
+	/**
+	 * @@sql_mode decides whether a backslash escapes inside the comment literal. It belongs to
+	 * the session, and the stamps of one open share a connection, so it is asked once for the
+	 * whole sweep rather than once per tree - and only on mysql, the one engine whose literal
+	 * depends on it.
+	 */
+	@Test
+	public void testSqlModeProbedOncePerSweep() throws Exception {
+		final TreeName[] trees = {
+			new TreeName("o=sqlModeProbe", "dn2id"),
+			new TreeName("o=sqlModeProbe", "id2entry"),
+			new TreeName("o=sqlModeProbe", "state") };
+		final AtomicInteger probes = new AtomicInteger();
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
+			@Override
+			boolean isMysqlBackslashEscape(Connection con) throws SQLException {
+				probes.incrementAndGet();
+				return super.isMysqlBackslashEscape(con);
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					for (final TreeName tree : trees) {
+						txn.openTree(tree, true); // freshly created: every one of them is stamped
+					}
+				}
+			});
+			for (final TreeName tree : trees) {
+				assertEquals(readTableComment(storage.getTableName(tree)), tree.toString());
+			}
+			assertEquals(probes.get(), dialect() == JDBCStorage.Dialect.MYSQL ? 1 : 0,
+				"the sql mode of one sweep was not asked exactly once");
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						for (final TreeName tree : trees) {
+							txn.deleteTree(tree);
+						}
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	// The bounds of a stamp connection are covered by StampConnectionTestCase: what they are worth
+	// is whether they reach the driver and whether the driver then gives up on a server that never
+	// answers, and neither needs - nor can be staged by - a database container.
+
+	/**
+	 * An import that failed or was cancelled leaves trees holding an incomplete import that is
+	 * going to be run again: refreshing statistics of it describes data nobody will query, and on
+	 * oracle it is a full scan per table between the failure and its report.
+	 */
+	@Test
+	public void testAbortedImportSkipsStatistics() throws Exception {
+		final TreeName tree = new TreeName("o=abortedImport", "dn2id");
+		final AtomicInteger refreshes = new AtomicInteger();
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null) {
+			@Override
+			boolean updateTableStatistics(Connection con, Collection<TreeName> trees) {
+				refreshes.incrementAndGet();
+				return super.updateTableStatistics(con, trees);
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			try (final Importer importer = storage.startImport()) {
+				importer.put(tree, key(1), value(1));
+				importer.aborted(); // what OnDiskMergeImporter reports when the import throws or is cancelled
+			}
+			assertEquals(refreshes.get(), 0, "statistics were refreshed for an import that was aborted");
+			try (final Importer importer = storage.startImport()) {
+				importer.put(tree, key(2), value(2));
+			}
+			assertEquals(refreshes.get(), 1, "statistics were not refreshed for an import that finished");
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * The statistics refresh must be possible to turn off: on oracle it gathers with
+	 * AUTO_SAMPLE_SIZE, a full scan of every table the import wrote.
+	 */
+	@Test
+	public void testStatisticsRefreshCanBeTurnedOff() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("o=statisticsOff", "dn2id");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			System.setProperty(JDBCStorage.STATISTICS_PROPERTY, "false");
+			try (final Connection con = CachedConnection.getConnection(getJdbcUrl())) {
+				assertFalse(storage.updateTableStatistics(con, Collections.singleton(tree)),
+					"the refresh ran with " + JDBCStorage.STATISTICS_PROPERTY + "=false");
+			}
+		} finally {
+			System.clearProperty(JDBCStorage.STATISTICS_PROPERTY);
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/** deleteTree() must forget the tree: statistics refresh iterates known trees and must skip dropped tables. */
+	@Test
+	public void testDeleteTreeForgetsTree() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("o=deleteTree", "dn2id");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			assertTrue(storage.listTrees().contains(tree));
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.deleteTree(tree);
+				}
+			});
+			assertFalse(storage.listTrees().contains(tree), "deleteTree() left the tree in the tree-to-table cache");
+		} finally {
+			storage.close();
+		}
+	}
+
+	/** A bulk import must refresh optimizer statistics: fresh tables were never analyzed (#859). */
+	@Test
+	public void testImportRefreshesTableStatistics() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("testImportAnalyze", "tree");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			suspendAutomaticStatistics(storage.getTableName(tree));
+			try (final Importer importer = storage.startImport()) {
+				for (int i = 0; i < 40; i++) {
+					importer.put(tree, key(i), value(i));
+				}
+			}
+			assertTableStatisticsFresh(storage.getTableName(tree));
+			// import swallows statistics failures by design: assert directly that the
+			// dialect-specific refresh statement is accepted by this database
+			try (final Connection con = CachedConnection.getConnection(getJdbcUrl())) {
+				assertTrue(storage.updateTableStatistics(con, Collections.singleton(tree)), "statistics refresh reported failures");
+			}
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * Suspends the automatic statistics upkeep of the engines that have it, so that what the
+	 * assertion below sees was produced by the refresh of the import and by nothing else: InnoDB
+	 * recalculates innodb_table_stats.n_rows on its own (innodb_stats_auto_recalc is on by
+	 * default), which would let the assertion pass with no "analyze table" ever issued.
+	 */
+	void suspendAutomaticStatistics(String tableName) throws Exception {
+		final String url = getJdbcUrl();
+		if (!url.startsWith("jdbc:mysql")) {
+			return; // nothing refreshes what is asserted below on the other engines within a test run
+		}
+		try (final Connection con = DriverManager.getConnection(url);
+			 final Statement st = con.createStatement()) {
+			st.execute("alter table " + tableName + " stats_auto_recalc=0");
+		}
+	}
+
+	void assertTableStatisticsFresh(String tableName) throws Exception {
+		final String url = getJdbcUrl();
+		final String sql;
+		if (url.startsWith("jdbc:postgresql")) {
+			// reltuples stays -1/0 until the first ANALYZE
+			sql = "select reltuples::bigint from pg_class where relname='" + tableName + "'";
+		} else if (url.startsWith("jdbc:oracle")) {
+			// num_rows stays null until dbms_stats gathers statistics
+			sql = "select num_rows from user_tables where table_name='" + tableName.toUpperCase() + "'";
+		} else if (url.startsWith("jdbc:mysql")) {
+			// n_rows in the persistent stats table is refreshed by ANALYZE TABLE, and - with the
+			// automatic recalculation suspended above - by nothing else: it stays 0 without it
+			sql = "select n_rows from mysql.innodb_table_stats where database_name=database() and table_name='" + tableName + "'";
+		} else if (url.startsWith("jdbc:sqlserver")) {
+			// last_updated stays null until the first UPDATE STATISTICS
+			sql = "select count(*) from sys.stats s cross apply sys.dm_db_stats_properties(s.object_id, s.stats_id) p"
+				+ " where s.object_id=object_id('" + tableName + "') and p.last_updated is not null";
+		} else {
+			throw new SkipException("no statistics query for " + url);
+		}
+		try (final Connection con = DriverManager.getConnection(url);
+			 final Statement st = con.createStatement();
+			 final ResultSet rs = st.executeQuery(sql)) {
+			assertTrue(rs.next(), "table " + tableName + " not found");
+			final long rows = rs.getLong(1);
+			assertFalse(rs.wasNull(), "statistics were never gathered for " + tableName);
+			assertTrue(rows > 0, "statistics of " + tableName + " look stale: " + rows);
+		}
+	}
+
 	/** Cursor operations must keep working when the tree spans several "fetchsize" batches. */
 	@Test
 	public void testCursorCrossesFetchSizeBatches() throws Exception {
@@ -379,6 +1250,82 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			});
 		} finally {
 			System.clearProperty("org.openidentityplatform.opendj.jdbc.fetchsize");
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+	/**
+	 * Two or more <em>distinct new</em> keys written into one tree per transaction is the shape the primary key
+	 * seek made able to deadlock: on the NOT MATCHED path the seek range-locks the gap before the next existing
+	 * key, that lock is self-incompatible, and the key hash scatters logically ordered keys across the index, so
+	 * two writers inserting different keys can each end up holding what the other needs. The ascending key order
+	 * that {@code IndexBuffer} maintains does not help there. Nothing may escape {@link JDBCStorage#write}, which
+	 * replays the conflict, and no record may be lost to it (#867).
+	 */
+	@Test(timeOut = 600000)
+	public void testConcurrentWritersInsertingDistinctKeys() throws Exception {
+		final int writers = 4;
+		final int rounds = 25;
+		final int keysPerTransaction = 3;
+		final int seeded = 10;
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("testConcurrentInsert", "tree");
+		final ExecutorService executor = Executors.newFixedThreadPool(writers);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			// seeded, so that every insert below takes the NOT MATCHED path with a gap to lock in front of it
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					for (int i = 0; i < seeded; i++) {
+						txn.put(tree, key(i), value(i));
+					}
+				}
+			});
+			final List<Callable<Void>> concurrent = new ArrayList<>();
+			for (int writer = 0; writer < writers; writer++) {
+				final int id = writer;
+				concurrent.add(new Callable<Void>() {
+					@Override
+					public Void call() throws Exception {
+						for (int round = 0; round < rounds; round++) {
+							final int current = round;
+							storage.write(new WriteOperation() {
+								@Override
+								public void run(WriteableTransaction txn) throws Exception {
+									for (int i = 0; i < keysPerTransaction; i++) {
+										txn.put(tree,
+												ByteString.valueOfUtf8(String.format("w%02d-r%03d-k%d", id, current, i)),
+												value(i));
+									}
+								}
+							});
+						}
+						return null;
+					}
+				});
+			}
+			for (final Future<Void> written : executor.invokeAll(concurrent)) {
+				// a conflict the storage did not replay surfaces here, as it would reach an LDAP client
+				written.get();
+			}
+			storage.read(new ReadOperation<Void>() {
+				@Override
+				public Void run(ReadableTransaction txn) throws Exception {
+					assertEquals(txn.getRecordCount(tree), seeded + writers * rounds * keysPerTransaction);
+					return null;
+				}
+			});
+		} finally {
+			executor.shutdownNow();
 			try {
 				storage.write(new WriteOperation() {
 					@Override
