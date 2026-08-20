@@ -49,6 +49,47 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	
 	private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+	/** Number of attempts a {@link #write} makes before it propagates the conflict to the caller. */
+	private static final int MAX_RETRIES = 10;
+
+	/**
+	 * Wall-clock budget the replays of a {@link #write} may spend, in nanoseconds. It is checked between attempts,
+	 * so an attempt already running is never interrupted: the loop returns after at most this window plus one
+	 * attempt. It bounds the conflicts that are slow to report, which {@link #MAX_RETRIES} alone does not - MySQL
+	 * reports a lock wait timeout only after innodb_lock_wait_timeout, 50 s by default and not overridden here, so
+	 * ten attempts would park a worker thread for eight minutes where a single one released it after 50 s. The
+	 * deadlocks this retry exists for keep their full attempt budget, since every engine reports one in well under
+	 * a second.
+	 */
+	private static final long MAX_RETRY_WINDOW_NANOS = 10L * 1000L * 1000L * 1000L; //10 s
+
+	/** Upper bound of the random delay before the second attempt, in milliseconds; it doubles with every attempt. */
+	private static final double BASE_SLEEP_ON_RETRY_MS = 50.0;
+
+	/** Upper bound the doubled delay is capped at, in milliseconds. */
+	private static final double MAX_SLEEP_ON_RETRY_MS = 1000.0;
+
+	/** Number of {@link Throwable#getCause()} hops walked when classifying a failure, also a guard against a cycle. */
+	private static final int MAX_CAUSE_HOPS = 16;
+
+	/** SQL Server error number of the transaction picked as the deadlock victim: "Rerun the transaction". */
+	private static final int MSSQL_DEADLOCK_VICTIM = 1205;
+
+	/** Oracle error number of a detected deadlock: ORA-00060, reported with SQLState 61000 rather than class 40. */
+	private static final int ORACLE_DEADLOCK_DETECTED = 60;
+
+	/**
+	 * Class 40 states that are transaction rollbacks but must not be replayed. 40003 leaves the outcome of the
+	 * transaction unknown, so replaying an add that in fact committed would answer the client with
+	 * "entry already exists", and 40002 is an integrity constraint violation, which a replay repeats rather than
+	 * resolves. Neither is reachable with the drivers shipped here - of class 40, Connector/J emits only 40000 and
+	 * 40001, Oracle only ORA-02091/02092, and mssql-jdbc and PostgreSQL report their deadlock as 40001 and 40P01 -
+	 * so they are excluded from the blanket class 40 match rather than that match being narrowed to a whitelist,
+	 * which would fail a further engine reporting a conflict of its own.
+	 */
+	private static final Set<String> NON_REPLAYABLE_ROLLBACK_STATES =
+			Collections.unmodifiableSet(new HashSet<>(Arrays.asList("40002", "40003")));
+
 	private JDBCBackendCfg config;
 
 	public JDBCStorage(JDBCBackendCfg cfg, ServerContext serverContext) {
@@ -251,8 +292,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 	}
 
+	/** Returns the class name of the driver behind the given connection, which names the engine it talks to. */
 	static String driverNameOf(Connection con) {
-		return ((CachedConnection) con).parent.getClass().getName();
+		// a stamp connection comes straight from the driver, a transaction one from the pool
+		return ((con instanceof CachedConnection) ? ((CachedConnection) con).parent : con).getClass().getName();
 	}
 
 	// The dialect behind a pooled connection, or null for an engine none of the statements of this
@@ -767,6 +810,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 	
 	//operation
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * A rolled back read is <em>not</em> replayed, as
+	 * {@link org.opends.server.backends.pluggable.spi.Storage#read(ReadOperation)} requires: two of the read
+	 * operations of this server are not idempotent, and replaying them corrupts their result rather than repairing
+	 * it. {@code ExportJob} runs the whole export inside a single read and its LDIF writer is opened once, so a
+	 * replay appends the entries already written instead of truncating the file; {@code VerifyJob} accumulates its
+	 * counters in instance fields that no attempt resets, so a replay reports twice the entry count of the backend.
+	 * Both are reachable while the server is online, since an export holds no more than a shared backend lock.
+	 * A conflict therefore fails the read here, exactly as it did before the retry of {@link #write} was added.
+	 */
 	@Override
 	public <T> T read(ReadOperation<T> readOperation) throws Exception {
 		try(final Connection con=getConnection()) {
@@ -774,22 +829,140 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * {@link org.opends.server.backends.pluggable.spi.Storage#write(WriteOperation)} requires an implementation to
+	 * retry a rolled back operation until it succeeds, and {@link WriteOperation} is documented as idempotent for
+	 * exactly that reason; {@link org.opends.server.backends.pdb.PDBStorage#write(WriteOperation)} already does so
+	 * on the conflict exception of its own engine. The loop is bounded here, unlike PDBStorage: the database may be
+	 * shared with writers outside this server, so a conflict is not guaranteed to clear and failing the operation is
+	 * better than never returning. It is bounded twice - by {@link #MAX_RETRIES} attempts and by the
+	 * {@link #MAX_RETRY_WINDOW_NANOS} wall-clock window - because an attempt is not guaranteed to be short: a
+	 * conflict an engine reports only after its own lock wait timeout would otherwise multiply that wait by the
+	 * attempt count. A conflict that slow consumes the whole window in one attempt and is not replayed, which is
+	 * what master did with it.
+	 * <p>
+	 * Only the operation itself is replayed: a failure of {@link #getConnection()} or of the implicit
+	 * {@link Connection#close()} - which returns the connection to the pool after a rollback - leaves the loop, so
+	 * that a completed write is never replayed because releasing its connection failed.
+	 */
 	@Override
 	public void write(WriteOperation writeOperation) throws Exception {
-		try (final Connection con=getConnection()) {
-			final WriteableTransactionTransactionImpl txn=new WriteableTransactionTransactionImpl(con);
-			try {
-				writeOperation.run(txn);
-				con.commit();
-			} catch (Exception e) {
+		final long giveUpAt=System.nanoTime()+MAX_RETRY_WINDOW_NANOS;
+		for (int attempt=1;;attempt++) {
+			Exception failure=null;
+			String driver=null;
+			try (final Connection con=getConnection()) {
+				driver=driverNameOf(con);
+				final WriteableTransactionTransactionImpl txn=new WriteableTransactionTransactionImpl(con);
 				try {
-					con.rollback();
-				} catch (SQLException ex) {}
-				throw e;
-			} finally { // the comment connection lives no longer than the trees it stamped
-				txn.stampSession.close();
+					writeOperation.run(txn);
+					con.commit();
+					return;
+				} catch (Exception e) {
+					try {
+						con.rollback();
+					} catch (SQLException ex) {}
+					//rethrown, so that a failure of the implicit close() is suppressed into the failure being
+					//replayed rather than replacing it
+					failure=e;
+					throw e;
+				} finally { // the comment connection lives no longer than the trees it stamped, and no longer
+					// than the attempt that opened it: a replay stamps on a session of its own
+					txn.stampSession.close();
+				}
+			} catch (Exception e) {
+				//anything the operation did not throw comes from getConnection() or from the implicit close(),
+				//which returns the connection to the pool: neither belongs to the replayed region
+				if (e!=failure) {
+					throw e;
+				}
+			}
+			//System.nanoTime()-giveUpAt is the overflow safe form of the comparison
+			if (attempt>=MAX_RETRIES || System.nanoTime()-giveUpAt>=0 || !isRetryableConflict(failure,driver)) {
+				throw failure;
+			}
+			//logged rather than silently absorbed, so that a deployment retrying most of its writes stays observable;
+			//one line per replay, since an add can emit nine of them and a stack trace each time reads as a failure
+			logger.warn(LocalizableMessage.raw("jdbc: replaying the transaction after a conflict, attempt %d of %d: %s",
+					attempt, MAX_RETRIES, conflictSummary(failure)));
+			if (logger.isTraceEnabled()) {
+				logger.trace("jdbc: the conflict being replayed was %s", stackTraceToSingleLineString(failure));
+			}
+			try {
+				//randomized to spread the retries of the transactions that collided, growing to outlast contention
+				Thread.sleep(retryDelayMillis(attempt));
+			} catch (InterruptedException e) {
+				//sleep cleared the interrupt flag: restore it, and report the failure being retried rather than the
+				//interrupt, which would hide from the caller what actually went wrong
+				Thread.currentThread().interrupt();
+				failure.addSuppressed(e);
+				throw failure;
 			}
 		}
+	}
+
+	/** Returns the randomized delay before the given attempt is replayed, doubling with each attempt up to a cap. */
+	static long retryDelayMillis(int attempt) {
+		final double bound=Math.min(MAX_SLEEP_ON_RETRY_MS, BASE_SLEEP_ON_RETRY_MS * (1 << Math.min(attempt-1, 5)));
+		return (long) (Math.random() * bound);
+	}
+
+	/**
+	 * Returns whether the given failure carries a transaction conflict that replaying the operation can resolve.
+	 * <p>
+	 * The conflict is looked up along the whole cause chain because it reaches this class wrapped: a deadlock in
+	 * {@code put} arrives as {@code StorageRuntimeException(SQLException)}, and a caller such as
+	 * {@code EntryContainer.addEntry} may wrap it once more.
+	 * <p>
+	 * The standard class 40 states carry the conflict of most engines - 40P01 for PostgreSQL, 40001 for SQL Server
+	 * and for MySQL, whose driver replaces the server side HY000 of a deadlock and of a lock wait timeout with
+	 * 40001 - but not of all of them, so the vendor error numbers are consulted as well, keyed by the driver in the
+	 * same way {@code getTableDialect} keys the column types. They cannot be matched driver-independently: Oracle
+	 * reports a deadlock as ORA-00060 with SQLState 61000, and gives 1205 to a fatal "not a data file" error that
+	 * no replay can resolve, while 1205 is exactly the deadlock victim of SQL Server. The SQL Server number is
+	 * matched beyond its class 40 state because a deployment may add {@code xopenStates=true} to its connection
+	 * URL, which reports the same deadlock as 42000. MySQL needs no number of its own, since its driver has already
+	 * mapped both conditions into class 40; see {@link #NON_REPLAYABLE_ROLLBACK_STATES} for the two class 40 states
+	 * that are excluded from that match.
+	 */
+	static boolean isRetryableConflict(Throwable t, String driver) {
+		for (int hop=0; t!=null && hop<MAX_CAUSE_HOPS; t=t.getCause(), hop++) {
+			if (t instanceof SQLException && isConflict((SQLException) t, driver)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean isConflict(SQLException e, String driver) {
+		final String state=String.valueOf(e.getSQLState());
+		if (state.startsWith("40") && !NON_REPLAYABLE_ROLLBACK_STATES.contains(state)) {
+			return true;
+		}
+		final String driverName=String.valueOf(driver);
+		if (driverName.contains("oracle")) {
+			return e.getErrorCode()==ORACLE_DEADLOCK_DETECTED;
+		} else if (driverName.contains("microsoft")) {
+			return e.getErrorCode()==MSSQL_DEADLOCK_VICTIM;
+		}
+		return false;
+	}
+
+	/**
+	 * Returns the SQLState and vendor error number of the first {@link SQLException} of the given cause chain, which
+	 * is what identifies a conflict, so that a replay can be logged without a stack trace on every attempt.
+	 */
+	static String conflictSummary(Throwable failure) {
+		Throwable t=failure;
+		for (int hop=0; t!=null && hop<MAX_CAUSE_HOPS; t=t.getCause(), hop++) {
+			if (t instanceof SQLException) {
+				final SQLException e=(SQLException) t;
+				return "SQLState "+e.getSQLState()+", error "+e.getErrorCode()+": "+e.getMessage();
+			}
+		}
+		return String.valueOf(failure);
 	}
 
 	static final byte[] NULL=new byte[]{(byte)0};
@@ -819,6 +992,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			}
 		});
 
+	/**
+	 * Returns the placeholder to compare against the {@code h} column, casting it where the driver would
+	 * otherwise bind a value of the wrong type.
+	 * <p>
+	 * The SQL Server driver sends {@link PreparedStatement#setString} parameters as NVARCHAR, and under a SQL
+	 * collation comparing the {@code char(128)} column against an NVARCHAR value converts the column instead of
+	 * the value: the primary key can no longer be sought, so every statement scans the whole table rather than
+	 * reading one row. The upsert runs that scan under HOLDLOCK, which range-locks the entire table instead of
+	 * the single key being written - the lock footprint that lets concurrent writers deadlock (error 1205).
+	 * Casting the parameter back to char keeps the comparison seekable.
+	 */
+	static String hashParam(Connection con) {
+		return driverNameOf(con).contains("microsoft") ? "cast(? as char(128))" : "?";
+	}
+
 	private class ReadableTransactionImpl implements ReadableTransaction {
 		final Connection con;
 		boolean isReadOnly=true;
@@ -829,7 +1017,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
-			try (final PreparedStatement statement=con.prepareStatement("select v from "+getTableName(treeName)+" where h=? and k=?")){
+			try (final PreparedStatement statement=con.prepareStatement("select v from "+getTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
 				try(ResultSet rc=executeResultSet(statement)) {
@@ -895,11 +1083,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 
 		String getTableDialect() {
-			if (((CachedConnection) con).parent.getClass().getName().contains("oracle")) {
+			if (driverNameOf(con).contains("oracle")) {
 				return "h char(128),k raw(2000),v blob,primary key(h,k)";
-			}else if (((CachedConnection) con).parent.getClass().getName().contains("mysql")) {
+			}else if (driverNameOf(con).contains("mysql")) {
 				return "h char(128),k varbinary(255),v longblob,primary key(h,k)";
-			}else if (((CachedConnection) con).parent.getClass().getName().contains("microsoft")) {
+			}else if (driverNameOf(con).contains("microsoft")) {
 				return "h char(128),k varbinary(max),v image,primary key(h)";
 			}
 			return "h char(128),k bytea,v bytea,primary key(h,k)";
@@ -917,7 +1105,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}
 				}
 				// CursorImpl iterates with "where k>? order by k" batches: primary key (h,k) cannot serve them
-				final String driverName=((CachedConnection) con).parent.getClass().getName();
+				final String driverName=driverNameOf(con);
 				final String tableName=getTableName(treeName);
 				if (driverName.contains("postgres")) {
 					try (final PreparedStatement statement=con.prepareStatement("create index if not exists k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)")){
@@ -998,12 +1186,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			try {
 				upsert(treeName, key, value);
 			} catch (SQLException e) {
-				throw new RuntimeException(e);
+				//StorageRuntimeException, like read() and delete(): EntryContainer passes that type through unchanged,
+				//while any other runtime exception is turned into an opaque ERR_UNCHECKED_EXCEPTION before it can be
+				//classified as a conflict
+				throw new StorageRuntimeException(e);
 			}
 		}
 
 		boolean upsert(TreeName treeName, ByteSequence key, ByteSequence value) throws SQLException {
-			final String driverName=((CachedConnection) con).parent.getClass().getName();
+			final String driverName=driverNameOf(con);
 			if (driverName.contains("postgres")) { //postgres upsert
 				try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) values (?,?,?) ON CONFLICT (h, k) DO UPDATE set v=excluded.v")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
@@ -1025,8 +1216,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					statement.setBytes(3, value.toByteArray());
 					return (execute(statement) == 1 && statement.getUpdateCount() > 0);
 				}
-			}else if (driverName.contains("microsoft")) { //ANSI MERGE with ; WITH (HOLDLOCK) makes the upsert atomic: without it SQL Server MERGE can race two concurrent NOT MATCHED inserts of the same key into a PRIMARY KEY violation. UPDLOCK is required on top of it: with HOLDLOCK alone the search phase takes a shared lock that the WHEN MATCHED update then has to convert to an exclusive one, so two concurrent upserts of the same key deadlock on the conversion; an update lock is taken right away and makes the second transaction wait instead
-				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " WITH (HOLDLOCK, UPDLOCK) old using (select ? h,? k,? v) new on (old.h=new.h and old.k=new.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v);")) {
+			}else if (driverName.contains("microsoft")) { //ANSI MERGE with ; WITH (HOLDLOCK) makes the upsert atomic: without it SQL Server MERGE can race two concurrent NOT MATCHED inserts of the same key into a PRIMARY KEY violation. UPDLOCK is required on top of it: with HOLDLOCK alone the search phase takes a shared lock that the WHEN MATCHED update then has to convert to an exclusive one, so two concurrent upserts of the same key deadlock on the conversion; an update lock is taken right away and makes the second transaction wait instead. h is cast back to char so that the join can seek the primary key instead of scanning the whole table under those locks, see hashParam()
+				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " WITH (HOLDLOCK, UPDLOCK) old using (select cast(? as char(128)) h,? k,? v) new on (old.h=new.h and old.k=new.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v);")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
@@ -1075,7 +1266,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public boolean delete(TreeName treeName, ByteSequence key) {
-			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName)+" where h=? and k=?")){
+			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
 				return (execute(statement)==1 && statement.getUpdateCount()>0);
@@ -1194,7 +1385,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (isReadOnly) {
 				throw new UnsupportedOperationException();
 			}
-			try (final PreparedStatement statement=con.prepareStatement("delete from "+tableName+" where h=? and k=?")){
+			try (final PreparedStatement statement=con.prepareStatement("delete from "+tableName+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(db2real(currentKeyDb))));
 				statement.setBytes(2,currentKeyDb);
 				execute(statement);
@@ -1238,7 +1429,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		@Override
 		public boolean positionToKey(ByteSequence key) {
 			final byte[] real=key.toByteArray();
-			try (final PreparedStatement statement=con.prepareStatement("select v from "+tableName+" where h=? and k=?")){
+			try (final PreparedStatement statement=con.prepareStatement("select v from "+tableName+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(real)));
 				statement.setBytes(2,real2db(real));
 				try(final ResultSet rc=executeResultSet(statement)) {

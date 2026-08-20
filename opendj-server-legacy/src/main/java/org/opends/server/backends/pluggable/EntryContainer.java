@@ -38,6 +38,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -199,21 +201,28 @@ public class EntryContainer
       {
         final CryptoSuite cryptoSuite = newCryptoSuite(cfg.isConfidentialityEnabled());
         final AttributeIndex index = newAttributeIndex(cfg, cryptoSuite);
+        final AtomicBoolean trusted = new AtomicBoolean();
         storage.write(new WriteOperation()
         {
           @Override
           public void run(WriteableTransaction txn) throws Exception
           {
+            // The write may be replayed by the storage, and open() registers this index as a change listener of
+            // its configuration. close() removes every registration made for this index, so closing first leaves
+            // one listener behind rather than one per attempt; it is a no-op on the first attempt.
+            index.close();
             index.open(txn, true);
-            if (!index.isTrusted())
-            {
-              ccr.setAdminActionRequired(true);
-              ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(cfg.getAttribute().getNameOrOID()));
-            }
+            trusted.set(index.isTrusted());
             attrIndexMap.put(cfg.getAttribute(), index);
             attrCryptoMap.put(cfg.getAttribute(), cryptoSuite);
           }
         });
+        if (!trusted.get())
+        {
+          // Reported outside the write, since a replayed attempt would otherwise repeat the message.
+          ccr.setAdminActionRequired(true);
+          ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(cfg.getAttribute().getNameOrOID()));
+        }
       }
       catch(Exception e)
       {
@@ -239,15 +248,23 @@ public class EntryContainer
       EntryContainer.this.lock();
       try
       {
-        storage.write(new WriteOperation()
+        // The write may be replayed by the storage, so the maps are updated outside of it: left inside, the second
+        // attempt would find nothing to delete and commit an empty transaction, reporting success for work that
+        // did not happen. The index may already be gone, since applyConfigurationAdd can fail after the config
+        // entry was persisted but before the index reached the map.
+        final AttributeIndex index = attrIndexMap.remove(cfg.getAttribute());
+        attrCryptoMap.remove(cfg.getAttribute());
+        if (index != null)
         {
-          @Override
-          public void run(WriteableTransaction txn) throws Exception
+          storage.write(new WriteOperation()
           {
-            attrIndexMap.remove(cfg.getAttribute()).closeAndDelete(txn);
-            attrCryptoMap.remove(cfg.getAttribute());
-          }
-        });
+            @Override
+            public void run(WriteableTransaction txn) throws Exception
+            {
+              index.closeAndDelete(txn);
+            }
+          });
+        }
       }
       catch (Exception de)
       {
@@ -283,21 +300,35 @@ public class EntryContainer
       final ConfigChangeResult ccr = new ConfigChangeResult();
       try
       {
+        final AtomicReference<VLVIndex> built = new AtomicReference<>();
+        final AtomicBoolean trusted = new AtomicBoolean();
         storage.write(new WriteOperation()
         {
           @Override
           public void run(WriteableTransaction txn) throws Exception
           {
-            VLVIndex vlvIndex = new VLVIndex(cfg, state, storage, EntryContainer.this, txn);
-            vlvIndex.open(txn, true);
-            if(!vlvIndex.isTrusted())
+            // The write may be replayed by the storage, and the VLVIndex constructor registers the new instance as
+            // a change listener of its configuration. Only the last instance reaches the map, so the one built by
+            // the previous attempt is closed here, which deregisters it: left registered it would never be closed
+            // again, and every later VLV configuration change would be applied once per attempt.
+            final VLVIndex previous = built.getAndSet(null);
+            if (previous != null)
             {
-              ccr.setAdminActionRequired(true);
-              ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(cfg.getName()));
+              previous.close();
             }
+            VLVIndex vlvIndex = new VLVIndex(cfg, state, storage, EntryContainer.this, txn);
+            built.set(vlvIndex);
+            vlvIndex.open(txn, true);
+            trusted.set(vlvIndex.isTrusted());
             vlvIndexMap.put(cfg.getName().toLowerCase(), vlvIndex);
           }
         });
+        if (!trusted.get())
+        {
+          // Reported outside the write, since a replayed attempt would otherwise repeat the message.
+          ccr.setAdminActionRequired(true);
+          ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(cfg.getName()));
+        }
       }
       catch(Exception e)
       {
@@ -321,14 +352,20 @@ public class EntryContainer
       EntryContainer.this.lock();
       try
       {
-        storage.write(new WriteOperation()
+        // Removed outside the write for the reason given in the index delete listener above: the write may be
+        // replayed, and a replay must still have the deletion to perform.
+        final VLVIndex vlvIndex = vlvIndexMap.remove(cfg.getName().toLowerCase());
+        if (vlvIndex != null)
         {
-          @Override
-          public void run(WriteableTransaction txn) throws Exception
+          storage.write(new WriteOperation()
           {
-            vlvIndexMap.remove(cfg.getName().toLowerCase()).closeAndDelete(txn);
-          }
-        });
+            @Override
+            public void run(WriteableTransaction txn) throws Exception
+            {
+              vlvIndex.closeAndDelete(txn);
+            }
+          });
+        }
       }
       catch (Exception e)
       {
