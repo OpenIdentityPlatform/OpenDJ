@@ -259,17 +259,24 @@ public class CASStorage implements org.opends.server.backends.pluggable.spi.Stor
 					prepared.get("SELECT key FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId LIMIT 1").bind()
 						.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId())
 				).one()!=null;
-			}catch (RuntimeException e) {
+			}catch (InvalidQueryException e) {
 				// The backend's own table has not been created yet - a read-only open of a backend
-				// that was never written - so none of its trees can exist either. The driver reports
-				// it from prepare() as much as from execute(), and the statement cache may hand back
-				// the loader's failure wrapped, so the whole chain is searched.
-				for (Throwable cause=e; cause!=null; cause=cause.getCause()) {
-					if (cause instanceof InvalidQueryException) {
-						return false;
-					}
+				// that was never written, where openTree() creates nothing - so none of its trees
+				// can exist either. The driver reports it from prepare() as much as from execute().
+				//
+				// Only a read-only open may answer "absent" here. InvalidQueryException carries the
+				// whole INVALID protocol code - an absent keyspace, an unknown column, a table a
+				// coordinator has not caught up with yet, which is what a rolling upgrade produces
+				// since schema agreement is never reached in a mixed-version cluster - and calling a
+				// populated tree absent would have the compressed schema restart its token allocation
+				// from zero and overwrite the definitions the entries already written were encoded
+				// with (#873). A writeable open has just run CREATE TABLE IF NOT EXISTS through
+				// openTree(), so a rejection there is a fault and must fail the open, as it did
+				// before this method existed and loadTrees() opened its cursor unconditionally.
+				if (accessMode.isWriteable()) {
+					throw e;
 				}
-				throw e;
+				return false;
 			}
 		}
 

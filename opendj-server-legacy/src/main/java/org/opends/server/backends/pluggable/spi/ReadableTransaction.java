@@ -62,6 +62,12 @@ public interface ReadableTransaction
    * JDBC backend does when no table of that name exists. Callers that must distinguish "never
    * written" from "written and since emptied", such as the compressed schema deciding whether it
    * has anything to migrate, need this instead.
+   * <p>
+   * A storage whose trees have no existence of their own cannot keep that distinction: the
+   * Cassandra backend holds every tree of a backend as a partition of the one table named after
+   * the backend id, so it answers whether the partition holds a record and a tree that was emptied
+   * reports itself absent. Nothing may be inferred from a {@code false} beyond "there is nothing
+   * to read here".
    *
    * @param treeName
    *          the tree name

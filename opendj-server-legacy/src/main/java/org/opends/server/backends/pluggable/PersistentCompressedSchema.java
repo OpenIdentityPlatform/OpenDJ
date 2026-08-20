@@ -184,8 +184,16 @@ final class PersistentCompressedSchema extends CompressedSchema
   private void load(WriteableTransaction txn, boolean shouldCreate)
       throws StorageRuntimeException, InitializationException
   {
-    txn.openTree(adTreeName, shouldCreate);
-    txn.openTree(ocTreeName, shouldCreate);
+    if (shouldCreate)
+    {
+      // Asked for only where the trees may be created. A read-only open must leave the storage as
+      // it found it, and passing the flag on would not: JEStorage.openTree ignores createOnDemand
+      // and reaches env.openDatabase() with setAllowCreate(true), so an offline export-ldif or
+      // verify-index of a backend that has not migrated yet would leave two empty databases behind.
+      // Nothing below needs the trees open - every read is guarded by treeExists().
+      txn.openTree(adTreeName, true);
+      txn.openTree(ocTreeName, true);
+    }
 
     if (needsLegacyDefinitions(txn))
     {
@@ -210,6 +218,17 @@ final class PersistentCompressedSchema extends CompressedSchema
    * previous migration did not run to completion - on a storage without transactions the copy can
    * stop halfway. Once migrated, this backend's trees only ever grow, so they can no longer hold
    * fewer records than the legacy ones and the question is settled without reading either tree.
+   * <p>
+   * That invariant holds in one direction only. A version from before the separation resumes
+   * writing to the legacy pair, so after a downgrade and a second upgrade the counts can agree
+   * while the definitions behind them have diverged, and nothing is migrated. Downgrading across
+   * the separation is not a supported path.
+   * <p>
+   * A backend created after the upgrade on a database that already holds legacy definitions copies
+   * them although it has no entries of its own. Deliberate: what it inherits is a consistent
+   * token-to-definition mapping and costs one copy, whereas asking instead whether its own trees
+   * are absent would answer "nothing to migrate" for the half-copied trees an interrupted
+   * migration leaves behind - the one case this method exists to catch.
    */
   private boolean needsLegacyDefinitions(ReadableTransaction txn)
   {

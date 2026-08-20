@@ -276,9 +276,11 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	}
 
 	/**
-	 * Asking whether a tree is there must not enrol it in the storage's tree map: removeStorageFiles()
-	 * drops every table that map names, and the compressed schema asks about the tree its definitions
-	 * used to be shared under - which on a shared database is another backend's to keep (#873).
+	 * Reading a tree must not enrol it in the storage's tree map: removeStorageFiles() drops every
+	 * table that map names, and the compressed schema reads the tree its definitions used to be
+	 * shared under - which on a shared database is another backend's to keep (#873). Asking whether
+	 * the tree is there is only the first of those reads: the migration counts it and copies it out
+	 * too, so one guarded statement would not be enough.
 	 */
 	@Test
 	public void testProbingATreeDoesNotPutItUpForRemoval() throws Exception {
@@ -302,11 +304,19 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			other.read(new ReadOperation<Void>() {
 				@Override
 				public Void run(ReadableTransaction txn) throws Exception {
+					// every read the compressed schema runs against a tree it does not own: it asks
+					// whether the tree is there, counts it, reads a key of it and walks it (#873)
 					assertTrue(txn.treeExists(foreign));
+					assertEquals(txn.getRecordCount(foreign), 1);
+					assertEquals(txn.read(foreign, key(1)), value(1));
+					try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(foreign)) {
+						assertTrue(cursor.next());
+						assertEquals(cursor.getKey(), key(1));
+					}
 					return null;
 				}
 			});
-			assertFalse(other.listTrees().contains(foreign), "a probed tree must not be listed for removal");
+			assertFalse(other.listTrees().contains(foreign), "a tree only read must not be listed for removal");
 
 			other.removeStorageFiles();
 
