@@ -50,6 +50,8 @@ import org.opends.server.extensions.DummyAlertHandler;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
+import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.HeartbeatThread;
@@ -1359,6 +1361,103 @@ public class UpdateOperationTest extends ReplicationTestCase
             assertNotEquals(getMonitorAttrValue(baseDN, "replayed-updates"), initialCount);
           }
         });
+      }
+      finally
+      {
+        ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
+      }
+    }
+    finally
+    {
+      broker.stop();
+    }
+  }
+
+  /**
+   * Test case for [Issue 889]: a change whose replay failed on the server itself must
+   * not be recorded as replayed. Recording it would advance the ServerState past the
+   * change, so the replication server would never send it again while this replica
+   * reports itself up to date.
+   */
+  @Test
+  public void failedReplayIsNotRecordedAsReplayed() throws Exception
+  {
+    testSetUp("failedReplayIsNotRecordedAsReplayed");
+    logger.error(LocalizableMessage.raw("Starting replication test : failedReplayIsNotRecordedAsReplayed"));
+
+    final int serverId = 12;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    try
+    {
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+
+      Entry tmp = TestCaseUtils.addEntry(
+          "dn: uid=user.889," + baseDN,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "uid: user.889",
+          "cn: Aaccf Amar",
+          "sn: Amar");
+      String uuid = getEntry(tmp.getName(), 1, true).parseAttribute("entryuuid").asString();
+
+      final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+      final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+      final int initialAlerts = DummyAlertHandler.getAlertCount();
+
+      /*
+       * Fail the replay the way a storage failure does: the backend reports it with the
+       * server-error-result-code, 80 by default. The short circuit has to be set at the
+       * pre-parse plugin point, the pre-operation ones are not invoked for synchronization
+       * operations.
+       */
+      ShortCircuitPlugin.registerShortCircuit(
+          OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
+      try
+      {
+        final CSN csn = gen.newCSN();
+        broker.publish(new DeleteMsg(tmp.getName(), csn, uuid));
+
+        /*
+         * The replication server resumes from the ServerState of this replica, so it only
+         * sends the change again as long as the state does not cover it: seeing the same
+         * change fail more than once is what tells that it was not recorded as replayed.
+         */
+        TestTimer timer = new TestTimer.Builder()
+          .maxSleep(60, SECONDS)
+          .sleepTimes(100, MILLISECONDS)
+          .toTimer();
+        timer.repeatUntilSuccess(new CallableVoid()
+        {
+          @Override
+          public void call() throws Exception
+          {
+            assertTrue(getMonitorAttrValue(baseDN, "replayed-updates-failed") >= initialFailures + 2,
+                "the change was not sent again after its replay failed");
+          }
+        });
+        assertNotNull(getEntry(tmp.getName(), 1, true), "the entry must not have been deleted");
+
+        /*
+         * The change can never be applied here, so the replica eventually gives up on it
+         * rather than stopping for good: it then warns that it has diverged.
+         */
+        TestTimer giveUpTimer = new TestTimer.Builder()
+          .maxSleep(60, SECONDS)
+          .sleepTimes(200, MILLISECONDS)
+          .toTimer();
+        giveUpTimer.repeatUntilSuccess(new CallableVoid()
+        {
+          @Override
+          public void call() throws Exception
+          {
+            assertTrue(domain.getServerState().cover(csn),
+                "the replica did not give up on a change it can never replay");
+          }
+        });
+        Assertions.assertThat(DummyAlertHandler.getAlertCount()).isGreaterThan(initialAlerts);
       }
       finally
       {

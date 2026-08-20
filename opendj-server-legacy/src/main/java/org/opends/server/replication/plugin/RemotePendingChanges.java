@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -196,6 +197,31 @@ final class RemotePendingChanges
     }
     finally
     {
+      pendingChangesWriteLock.unlock();
+    }
+  }
+
+  /**
+   * Forgets every pending change without updating the ServerState.
+   * <p>
+   * Called when the replay of a change failed and the session to the
+   * replication server is restarted: the changes that were not committed must
+   * be replayed again, and {@link #putRemoteUpdate(LDAPUpdateMsg)} would
+   * otherwise discard the ones still listed here as duplicates.
+   */
+  public void clear()
+  {
+    pendingChangesWriteLock.lock();
+    dependentChangesLock.lock();
+    try
+    {
+      pendingChanges.clear();
+      dependentChanges.clear();
+      activeAndDependentChanges.clear();
+    }
+    finally
+    {
+      dependentChangesLock.unlock();
       pendingChangesWriteLock.unlock();
     }
   }
