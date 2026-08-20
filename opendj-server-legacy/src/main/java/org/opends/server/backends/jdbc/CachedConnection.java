@@ -46,6 +46,29 @@ public class CachedConnection implements Connection {
     static final long DEFAULT_TTL_MS = 15000;
 
     /**
+     * How long a pooled connection is handed out without being validated after it was last proven
+     * alive, in ms; 0 validates every borrow, the way this pool did before the window existed.
+     * <p>
+     * The validation of a connection is a round trip of its own - an empty query on postgresql, a
+     * ping on mysql, a round trip of its own on oracle and sql server - and every operation of
+     * this backend pays it next to the single statement the operation came for. It earns that on a
+     * connection that has been sitting in the pool, which the database or a firewall may have
+     * dropped in the meantime; it earns nothing on one that answered a moment ago, which is most
+     * of them under load. So a connection proven alive within this window is trusted rather than
+     * validated, the way the aliveBypassWindow of HikariCP does it.
+     */
+    static final String ALIVE_BYPASS_PROPERTY = "org.openidentityplatform.opendj.jdbc.alive.bypass";
+    static final long DEFAULT_ALIVE_BYPASS_MS = 500;
+
+    // Read once, at class initialization: every operation of this backend borrows a connection,
+    // and the borrow is not the place to parse a system property. Not final so that a test can
+    // vary the window without a class loader of its own, and volatile because a non-final static
+    // long is written neither atomically nor visibly to the threads reading it (JLS 17.7) - every
+    // worker of the backend and every replay thread reads this one.
+    static volatile long aliveBypassNanos = TimeUnit.MILLISECONDS.toNanos(
+        getNonNegativeProperty(ALIVE_BYPASS_PROPERTY, DEFAULT_ALIVE_BYPASS_MS, "ms"));
+
+    /**
      * Bounds the connect and the login of one attempt to establish a connection, in seconds; 0 for
      * no bound of its own - the deadline of {@value #POOL_TIMEOUT_PROPERTY} still bounds the
      * attempt, since it stands for the whole borrow. Setting both to 0 is what leaves a connect
@@ -110,11 +133,31 @@ public class CachedConnection implements Connection {
     // and every operation of the backend comes through here.
     static final Set<String> warnedOnce = ConcurrentHashMap.newKeySet();
 
+    /**
+     * When an operation last reported that the database had dropped a connection of a pool, as a
+     * {@link System#nanoTime()} reading per connection string. A connection proven alive before
+     * that moment is validated on its next borrow whatever the window says: whatever dropped one
+     * connection - a restart, a failover, a network that went away - dropped every connection
+     * established before it, and the window would otherwise hand out the rest of that generation
+     * one by one until the pool runs out of them. It is set by the caller that saw the failure
+     * ({@code JDBCStorage}), never by a validation that failed here: an idle connection the server
+     * reaped is a routine event, and it says nothing about the connection in use that the pool is
+     * about to hand out.
+     */
+    private static final Map<String, AtomicLong> poolDistrustedAt = new ConcurrentHashMap<>();
+
     final Connection parent;
 
-    static LoadingCache<String, BlockingQueue<CachedConnection>> cached = Caffeine.newBuilder()
+    // A deque handed out from the end it is returned to: the connection borrowed next is the one
+    // returned last, so under any load the pool keeps reusing its hottest connections instead of
+    // walking round every one it ever opened. That is what gives the window above anything to
+    // bypass - a connection reached only after a whole cycle of the pool has been idle far longer
+    // than the window - and it leaves the connections nothing needs at the cold end of the deque,
+    // where the per-connection idle expiry of #878 can find them. Until that lands, the cold end
+    // is reached only when the whole pool expires, after DEFAULT_TTL_MS with the backend idle.
+    static LoadingCache<String, BlockingDeque<CachedConnection>> cached = Caffeine.newBuilder()
         .expireAfterAccess(Duration.ofMillis(getCacheTtlMillis()))
-        .removalListener((String key, BlockingQueue<CachedConnection> value, RemovalCause cause) -> {
+        .removalListener((String key, BlockingDeque<CachedConnection> value, RemovalCause cause) -> {
             for (CachedConnection con : value) {
                 try {
                     if (!con.isClosed()) {
@@ -125,7 +168,7 @@ public class CachedConnection implements Connection {
                 }
             }
         })
-        .build(conStr -> new LinkedBlockingQueue<>());
+        .build(conStr -> new LinkedBlockingDeque<>());
 
     /**
      * Returns the time after which an idle pooled connection is closed, as configured by the
@@ -467,6 +510,20 @@ public class CachedConnection implements Connection {
      */
     private final boolean poolable;
 
+    /**
+     * When this connection last answered the database, as a {@link System#nanoTime()} reading:
+     * established - the login and the two round trips that set it up have just answered - or
+     * validated. It is never stamped on the way back into the pool, although that is where a
+     * connection has most recently been used: {@link #close()} ends the transaction, and pgjdbc
+     * short-circuits both {@code rollback()} and {@code commit()} when the transaction state is
+     * IDLE, so on a borrow that issued no statement - {@code JDBCStorage.open()}, a configuration
+     * change that leaves the base DNs alone, an import of nothing - not a byte reaches the server
+     * and the stamp would prove nothing, while marking a connection the database may have dropped
+     * as the freshest one in the pool. Stamping proof rather than use makes the window mean
+     * "validated at most once per window", which is a claim this class can always back.
+     */
+    private volatile long lastKnownAliveNanos;
+
     public CachedConnection(String connectionString, Connection parent) {
         this(connectionString, parent, true);
     }
@@ -475,6 +532,7 @@ public class CachedConnection implements Connection {
         this.connectionString = connectionString;
         this.parent = parent;
         this.poolable = poolable;
+        this.lastKnownAliveNanos = System.nanoTime();
     }
 
     /**
@@ -587,13 +645,14 @@ public class CachedConnection implements Connection {
      * The validation of a connection costs a round trip, and the pool has no upper bound on the
      * number of them it holds, so draining a pool the database no longer answers is given the
      * deadline of the borrow as well: past it, establishing a connection is the faster answer.
-     * The connection in hand is always validated first, whatever the deadline says - a database at
-     * its connection limit has no other source of connections than the ones coming back, and one
-     * returned to the pool a moment before the deadline is the very connection this borrow waited
-     * for. Only a connection the database no longer answers is closed here.
+     * The connection in hand is always looked at first - trusted or validated, see
+     * {@link #isKnownAlive} - whatever the deadline says: a database at its connection limit has
+     * no other source of connections than the ones coming back, and one returned to the pool a
+     * moment before the deadline is the very connection this borrow waited for. Only a connection
+     * the database no longer answers is closed here.
      */
     private static CachedConnection poll(String connectionString, long waitMs, long deadline) throws InterruptedException {
-        CachedConnection con = cached.get(connectionString).poll(waitMs, TimeUnit.MILLISECONDS);
+        CachedConnection con = cached.get(connectionString).pollFirst(waitMs, TimeUnit.MILLISECONDS);
         while (con != null) {
             if (isUsable(con)) {
                 return con;
@@ -602,12 +661,15 @@ public class CachedConnection implements Connection {
             if (System.currentTimeMillis() >= deadline) {
                 return null;
             }
-            con = cached.get(connectionString).poll();
+            con = cached.get(connectionString).pollFirst();
         }
         return null;
     }
 
     private static boolean isUsable(CachedConnection con) {
+        if (isKnownAlive(con)) {
+            return true;
+        }
         // The validation needs a bound of its own: isValid(0) means "no timeout" in the JDBC
         // contract, and a connection whose socket is half-open answers it no sooner than it
         // answers anything else. isValid(n) is not that bound on every driver either - the SQL
@@ -640,6 +702,7 @@ public class CachedConnection implements Connection {
                 "the connection is closed rather than pooled")) {
             return false; // it would carry the bound of the validation into every statement
         }
+        con.lastKnownAliveNanos = System.nanoTime();
         return true;
     }
 
@@ -647,6 +710,43 @@ public class CachedConnection implements Connection {
     private static final int VALIDATION_BOUND_LEFT_ALONE = -1;
     /** A connection {@link #boundValidation} could not bound, which may still carry the bound it failed to report. */
     private static final int VALIDATION_BOUND_FAILED = -2;
+
+    /**
+     * Whether a connection can be handed out on the strength of the last answer it gave, without a
+     * round trip to ask for another. Three things have to hold: the window is on, the answer is
+     * younger than it, and nothing has reported since that the database dropped a connection of
+     * this pool.
+     * <p>
+     * What the window trades away is the connection that breaks inside it: it is handed out, and
+     * the failure surfaces on the statement of the caller rather than on the borrow. That is where
+     * a connection breaking mid-operation surfaces anyway - but not every caller of this backend
+     * reports such a failure to the client, so the trade is not the caller's alone to bear.
+     * {@code JDBCStorage} answers it on both sides: a write is replayed on a connection the next
+     * attempt borrows of its own, and a read as much as a write marks the pool distrusted, which
+     * closes the window for the rest of the generation the dropped connection belonged to.
+     */
+    private static boolean isKnownAlive(CachedConnection con) {
+        final long window = aliveBypassNanos;
+        if (window <= 0) {
+            return false;
+        }
+        final long provenAt = con.lastKnownAliveNanos;
+        if (System.nanoTime() - provenAt >= window) { // the overflow safe form of the comparison
+            return false;
+        }
+        final AtomicLong distrusted = poolDistrustedAt.get(con.connectionString);
+        return distrusted == null || provenAt - distrusted.get() > 0;
+    }
+
+    /**
+     * Reports that the database dropped a connection of this pool, so that no connection proven
+     * alive before now is handed out unvalidated again. It is called by the operation that saw the
+     * failure: this class only ever learns of one from the statement it broke, since a borrow
+     * inside the window asks the database nothing.
+     */
+    static void distrustPool(String connectionString) {
+        poolDistrustedAt.computeIfAbsent(connectionString, url -> new AtomicLong()).set(System.nanoTime());
+    }
 
     /**
      * Bounds the socket of a pooled connection for the length of its validation, returning the
@@ -1147,7 +1247,9 @@ public class CachedConnection implements Connection {
             closeQuietly(parent);
             return;
         }
-        cached.get(connectionString).add(this);
+        // Returned to the end the next borrow takes it from, so that the pool keeps reusing its
+        // hottest connections rather than cycling through every one it ever opened.
+        cached.get(connectionString).addFirst(this);
     }
 
     @Override

@@ -90,6 +90,19 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	private static final Set<String> NON_REPLAYABLE_ROLLBACK_STATES =
 			Collections.unmodifiableSet(new HashSet<>(Arrays.asList("40002", "40003")));
 
+	/** SQLState class 08, connection exception: the connection is gone, whatever the statement asked for. */
+	private static final String CONNECTION_FAILURE_CLASS = "08";
+
+	/**
+	 * The states outside class 08 that also say the connection is gone rather than the statement wrong. PostgreSQL
+	 * announces the connection it is about to drop as 57P01 (admin_shutdown - a pg_terminate_backend of an idle
+	 * connection reaper, or a shutdown of the server), 57P02 (crash_shutdown) or 57P03 (cannot_connect_now), and
+	 * only the next use of that connection is reported as class 08. The list is the one HikariCP evicts a
+	 * connection on, minus its two Sybase states: that driver is not one this backend is used with.
+	 */
+	private static final Set<String> CONNECTION_FAILURE_STATES =
+			Collections.unmodifiableSet(new HashSet<>(Arrays.asList("57P01", "57P02", "57P03")));
+
 	private JDBCBackendCfg config;
 
 	public JDBCStorage(JDBCBackendCfg cfg, ServerContext serverContext) {
@@ -821,11 +834,19 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * counters in instance fields that no attempt resets, so a replay reports twice the entry count of the backend.
 	 * Both are reachable while the server is online, since an export holds no more than a shared backend lock.
 	 * A conflict therefore fails the read here, exactly as it did before the retry of {@link #write} was added.
+	 * <p>
+	 * A connection the database dropped is not replayed either, for the same reason - but it is reported to the
+	 * pool, which cannot notice one on its own: a borrow inside the alive window of
+	 * {@link CachedConnection#ALIVE_BYPASS_PROPERTY} asks the database nothing, so the statement that broke is the
+	 * only place the drop is ever seen.
 	 */
 	@Override
 	public <T> T read(ReadOperation<T> readOperation) throws Exception {
 		try(final Connection con=getConnection()) {
 			return readOperation.run(new ReadableTransactionImpl(con));
+		} catch (Exception e) {
+			distrustPoolOnConnectionFailure(e);
+			throw e;
 		}
 	}
 
@@ -846,6 +867,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * Only the operation itself is replayed: a failure of {@link #getConnection()} or of the implicit
 	 * {@link Connection#close()} - which returns the connection to the pool after a rollback - leaves the loop, so
 	 * that a completed write is never replayed because releasing its connection failed.
+	 * <p>
+	 * A connection the database dropped is replayed as well, on a connection the next attempt borrows of its own.
+	 * That is what makes the alive window of {@link CachedConnection#ALIVE_BYPASS_PROPERTY} safe to leave on: a
+	 * connection handed out unvalidated and found dead costs an attempt rather than the operation, and a write of
+	 * the replication replay - which records a failed operation as applied and advances the server state past it,
+	 * see #889 - never sees it. Only while the transaction has not been committed yet, though: see
+	 * {@link #replayReason(Throwable, String, boolean)}.
 	 */
 	@Override
 	public void write(WriteOperation writeOperation) throws Exception {
@@ -853,11 +881,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		for (int attempt=1;;attempt++) {
 			Exception failure=null;
 			String driver=null;
+			boolean committing=false;
 			try (final Connection con=getConnection()) {
 				driver=driverNameOf(con);
 				final WriteableTransactionTransactionImpl txn=new WriteableTransactionTransactionImpl(con);
 				try {
 					writeOperation.run(txn);
+					committing=true;
 					con.commit();
 					return;
 				} catch (Exception e) {
@@ -879,16 +909,20 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					throw e;
 				}
 			}
+			//whatever the loop decides, the pool has to hear of a connection the database dropped: it holds the
+			//rest of that generation, and inside the alive window it would hand them out unvalidated as well
+			distrustPoolOnConnectionFailure(failure);
+			final String reason=replayReason(failure,driver,committing);
 			//System.nanoTime()-giveUpAt is the overflow safe form of the comparison
-			if (attempt>=MAX_RETRIES || System.nanoTime()-giveUpAt>=0 || !isRetryableConflict(failure,driver)) {
+			if (reason==null || attempt>=MAX_RETRIES || System.nanoTime()-giveUpAt>=0) {
 				throw failure;
 			}
 			//logged rather than silently absorbed, so that a deployment retrying most of its writes stays observable;
 			//one line per replay, since an add can emit nine of them and a stack trace each time reads as a failure
-			logger.warn(LocalizableMessage.raw("jdbc: replaying the transaction after a conflict, attempt %d of %d: %s",
-					attempt, MAX_RETRIES, conflictSummary(failure)));
+			logger.warn(LocalizableMessage.raw("jdbc: replaying the transaction after %s, attempt %d of %d: %s",
+					reason, attempt, MAX_RETRIES, conflictSummary(failure)));
 			if (logger.isTraceEnabled()) {
-				logger.trace("jdbc: the conflict being replayed was %s", stackTraceToSingleLineString(failure));
+				logger.trace("jdbc: the failure being replayed was %s", stackTraceToSingleLineString(failure));
 			}
 			try {
 				//randomized to spread the retries of the transactions that collided, growing to outlast contention
@@ -900,6 +934,56 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				failure.addSuppressed(e);
 				throw failure;
 			}
+		}
+	}
+
+	/**
+	 * Why the operation of a {@link #write} is worth replaying, as the noun phrase the message reporting the replay
+	 * names - or null for a failure this loop must not repeat.
+	 * <p>
+	 * A transaction conflict is replayable whichever phase reported it: the engine rolled the transaction back
+	 * before it answered. A connection the database dropped is replayable only while the transaction had not been
+	 * committed yet. A drop reported by {@code commit()} leaves the outcome unknown - the server may have committed
+	 * and died before the answer reached us - and replaying a write that in fact committed applies it twice, which
+	 * is the very reason 40003 is kept out of {@link #NON_REPLAYABLE_ROLLBACK_STATES}.
+	 */
+	static String replayReason(Throwable failure, String driver, boolean committing) {
+		if (isRetryableConflict(failure, driver)) {
+			return "a conflict";
+		}
+		if (!committing && isConnectionFailure(failure)) {
+			return "a connection the database dropped";
+		}
+		return null;
+	}
+
+	/**
+	 * Whether a failure says the connection is gone rather than the statement rejected: the database dropped it,
+	 * restarted, failed over, or the network did. The cause chain is walked for the reason
+	 * {@link #isRetryableConflict} walks it - the failure reaches this class wrapped in a
+	 * {@link StorageRuntimeException}, and a caller such as {@code EntryContainer.addEntry} may wrap it once more.
+	 */
+	static boolean isConnectionFailure(Throwable t) {
+		for (int hop=0; t!=null && hop<MAX_CAUSE_HOPS; t=t.getCause(), hop++) {
+			if (t instanceof SQLException) {
+				final String state=String.valueOf(((SQLException) t).getSQLState());
+				if (state.startsWith(CONNECTION_FAILURE_CLASS) || CONNECTION_FAILURE_STATES.contains(state)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Tells the pool of this backend that the database dropped a connection, so that the ones it still holds from
+	 * before the drop are validated on their next borrow instead of being trusted for the rest of the alive window.
+	 * A dropped connection is rarely alone: a restart, a failover or a network that went away takes every
+	 * connection established before it, and the pool has no other way of hearing about any of them.
+	 */
+	private void distrustPoolOnConnectionFailure(Throwable failure) {
+		if (isConnectionFailure(failure)) {
+			CachedConnection.distrustPool(config.getDBDirectory());
 		}
 	}
 
