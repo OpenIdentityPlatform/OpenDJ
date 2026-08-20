@@ -53,6 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.mockito.Mockito.when;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
@@ -245,6 +246,20 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	}
 
 	/**
+	 * Whether the failure the operation gave up with is the one its bound produced: the message of
+	 * a statement classified as having reached its bound names the property that bounded it, and it
+	 * arrives wrapped in whatever the storage throws to its caller.
+	 */
+	private static boolean namesTheBound(Throwable failure, JDBCStorage.StatementBound bound) {
+		for (Throwable t = failure; t != null && t != t.getCause(); t = t.getCause()) {
+			if (t.getMessage() != null && t.getMessage().contains(bound.property)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Runs the given operation while another session holds every row of the tree in an uncommitted
 	 * transaction, with only the property of the given class bounding it: the operation must give
 	 * up inside that bound instead of waiting for a lock that is never released.
@@ -276,14 +291,32 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					System.setProperty(each.property, each == bound ? Integer.toString(boundSeconds) : "0");
 				}
 				final long startedAt = System.currentTimeMillis();
+				Exception failure = null;
 				try {
 					blocked.run(storage, tree);
 					fail("the operation must give up while the rows it needs are locked");
 				} catch (Exception expected) {
-					// the bound was reached and the transaction rolled back
+					failure = expected; // the bound was reached and the transaction rolled back
 				}
 				final long elapsed = System.currentTimeMillis() - startedAt;
-				assertTrue(elapsed < 120000, "gave up only after " + elapsed + " ms");
+				// The failure has to be the one the bound produces, not any failure at all: an
+				// operation that fell over at once for an unrelated reason would otherwise pass
+				// this test at t=0. timedOut() names the property in the message of everything it
+				// classifies as reaching the bound.
+				assertTrue(namesTheBound(failure, bound), "gave up with " + stackTraceToSingleLineString(failure)
+					+ ", which does not name " + bound.property);
+				// And it has to arrive at the bound rather than at something else that happens to
+				// end the wait inside a generous ceiling: with the bound deleted, mysql would still
+				// come back after its own innodb_lock_wait_timeout of 50 s, and the assertion has
+				// to fail then. Oracle is given the second layer as well - a session blocked in a
+				// row-lock enqueue does not act on the break its driver sends, so the wait there
+				// ends at the socket read timeout, which is the bound plus its margin.
+				final long ceilingSeconds = getJdbcUrl().startsWith("jdbc:oracle")
+					? boundSeconds + JDBCStorage.BACKSTOP_MARGIN_SECONDS + 10 : boundSeconds * 4L;
+				assertTrue(elapsed >= boundSeconds * 1000L, "gave up after " + elapsed + " ms, before its bound of "
+					+ boundSeconds + " s: something other than the bound ended the wait");
+				assertTrue(elapsed < ceilingSeconds * 1000L, "gave up only after " + elapsed + " ms, past the "
+					+ ceilingSeconds + " s this bound of " + boundSeconds + " s allows");
 				blocker.rollback();
 			}
 		} finally {

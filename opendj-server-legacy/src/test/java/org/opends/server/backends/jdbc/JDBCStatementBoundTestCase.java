@@ -32,8 +32,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLTimeoutException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
+import static java.util.Collections.singletonList;
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
@@ -71,6 +73,7 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 		for (final StatementBound bound : StatementBound.values()) {
 			System.clearProperty(bound.property);
 		}
+		System.clearProperty(JDBCStorage.STATISTICS_TIMEOUT_PROPERTY);
 	}
 
 	/**
@@ -114,6 +117,10 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 		System.setProperty(StatementBound.OPERATION.property, "two minutes");
 		assertEquals(StatementBound.OPERATION.seconds(), 120);
 
+		// from a bound that took, so that the fallback is what the assertion below can be seeing:
+		// the default of this class is 0, which is also what a value read as a number would give
+		System.setProperty(StatementBound.BULK.property, "900");
+		assertEquals(StatementBound.BULK.seconds(), 900);
 		System.setProperty(StatementBound.BULK.property, "as long as it takes");
 		assertEquals(StatementBound.BULK.seconds(), 0);
 	}
@@ -140,8 +147,9 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 
 	/**
 	 * Behind the cancel is a socket read timeout, for the databases that do not act on a cancel:
-	 * it is armed for the statement and put back afterwards, so a bulk statement sharing the
-	 * connection is not cut by the bound of an entry read.
+	 * it is armed for the statement and put back once nothing is running on the connection any
+	 * more. What a connection carrying several statements at once does with it is pinned by the
+	 * three tests below.
 	 */
 	@Test
 	public void testTheBackstopIsArmedAndPutBack() throws Exception {
@@ -174,6 +182,125 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 		storage.execute(statement);
 
 		verify(con, never()).setNetworkTimeout(any(Executor.class), anyInt());
+	}
+
+	/**
+	 * A statement of a class that carries no bound takes the backstop off the connection for as
+	 * long as it runs. The socket read timeout is a property of the connection, and an importer
+	 * writes to a single one from every phase-one worker and every phase-two task, so the bulk
+	 * {@code delete from} that empties a tree would otherwise be cut at the bound of an entry read
+	 * happening to run beside it - and cut without ever naming a property, since a statement of an
+	 * unbounded class has none to name.
+	 */
+	@Test
+	public void testAnUnboundedStatementTakesTheBackstopOffWhileItRuns() throws Exception {
+		System.setProperty(StatementBound.OPERATION.property, "7");
+		System.setProperty(StatementBound.BULK.property, "0");
+		final Connection con = mock(Connection.class);
+		when(con.getNetworkTimeout()).thenReturn(0);
+		final PreparedStatement bulk = mock(PreparedStatement.class);
+		when(bulk.getConnection()).thenReturn(con);
+		final PreparedStatement operation = mock(PreparedStatement.class);
+		when(operation.getConnection()).thenReturn(con);
+		when(operation.executeUpdate()).thenAnswer(new Answer<Integer>() {
+			@Override
+			public Integer answer(InvocationOnMock invocation) throws Throwable {
+				storage.execute(bulk, StatementBound.BULK); // what another thread of the import is doing
+				return 1;
+			}
+		});
+
+		storage.execute(operation);
+
+		final InOrder inOrder = inOrder(con);
+		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq((7 + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000));
+		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq(0)); // the bulk statement takes it off
+		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq((7 + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000));
+		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq(0)); // and the entry read is through
+	}
+
+	/**
+	 * The backstop belongs to the connection, not to the statement that armed it: the first
+	 * statement to finish must not take it away from the statements still running there.
+	 */
+	@Test
+	public void testTheBackstopOutlastsTheStatementThatArmedIt() throws Exception {
+		System.setProperty(StatementBound.OPERATION.property, "7");
+		final Connection con = mock(Connection.class);
+		when(con.getNetworkTimeout()).thenReturn(0);
+		final CountDownLatch running = new CountDownLatch(1);
+		final CountDownLatch mayFinish = new CountDownLatch(1);
+		final PreparedStatement lingering = mock(PreparedStatement.class);
+		when(lingering.getConnection()).thenReturn(con);
+		when(lingering.executeUpdate()).thenAnswer(new Answer<Integer>() {
+			@Override
+			public Integer answer(InvocationOnMock invocation) throws Throwable {
+				running.countDown();
+				mayFinish.await();
+				return 1;
+			}
+		});
+		final Thread concurrent = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					storage.execute(lingering);
+				} catch (SQLException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		});
+		final PreparedStatement first = mock(PreparedStatement.class);
+		when(first.getConnection()).thenReturn(con);
+		when(first.executeUpdate()).thenAnswer(new Answer<Integer>() {
+			@Override
+			public Integer answer(InvocationOnMock invocation) throws Throwable {
+				concurrent.start(); // a second statement joins this connection and outlives this one
+				running.await();
+				return 1;
+			}
+		});
+
+		storage.execute(first);
+
+		verify(con, never()).setNetworkTimeout(any(Executor.class), eq(0));
+		mayFinish.countDown();
+		concurrent.join();
+		final InOrder inOrder = inOrder(con);
+		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq((7 + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000));
+		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq(0));
+	}
+
+	/**
+	 * With bounds of two classes in flight on one connection, the value armed is the loosest of
+	 * them: a socket read timeout is shared by everything running on the connection, so tightening
+	 * it to the bound of an entry read would cut the bulk statement beside it long before the bound
+	 * that statement was actually given.
+	 */
+	@Test
+	public void testTheBackstopFollowsTheLoosestBoundInFlight() throws Exception {
+		System.setProperty(StatementBound.OPERATION.property, "7");
+		System.setProperty(StatementBound.BULK.property, "100");
+		final Connection con = mock(Connection.class);
+		when(con.getNetworkTimeout()).thenReturn(0);
+		final PreparedStatement operation = mock(PreparedStatement.class);
+		when(operation.getConnection()).thenReturn(con);
+		final PreparedStatement bulk = mock(PreparedStatement.class);
+		when(bulk.getConnection()).thenReturn(con);
+		when(bulk.executeUpdate()).thenAnswer(new Answer<Integer>() {
+			@Override
+			public Integer answer(InvocationOnMock invocation) throws Throwable {
+				storage.execute(operation); // an entry read of another thread, with a tighter bound
+				return 1;
+			}
+		});
+
+		storage.execute(bulk, StatementBound.BULK);
+
+		final InOrder inOrder = inOrder(con);
+		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq((100 + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000));
+		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq(0));
+		verify(con, never()).setNetworkTimeout(any(Executor.class), eq((7 + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000));
 	}
 
 	/**
@@ -329,8 +456,8 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 		when(statement.executeQuery()).thenReturn(mock(ResultSet.class));
 		final Connection parent = mock(Connection.class);
 		when(parent.prepareStatement(anyString())).thenReturn(statement);
-		final JDBCStorage.CursorImpl cursor =
-			storage.new CursorImpl(true, new CachedConnection("jdbc:mock", parent), new TreeName("dc=example,dc=com", "id2entry"));
+		final JDBCStorage.CursorImpl cursor = storage.new CursorImpl(true, new CachedConnection("jdbc:mock", parent),
+			new TreeName("dc=example,dc=com", "id2entry"), StatementBound.OPERATION);
 
 		cursor.positionToLastKey();
 		verify(statement, never()).setQueryTimeout(anyInt());
@@ -338,4 +465,58 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 		cursor.next();
 		verify(statement).setQueryTimeout(7);
 	}
+
+	/**
+	 * The batches of a cursor an import or a {@code rebuild-index} walks are bulk work, however
+	 * ordinary the statement looks: nobody is waiting on that walk, and on mssql it is not even a
+	 * walk along an index - {@code k} is a {@code varbinary(max)} there, which cannot be an index
+	 * key, so every batch is a scan and a sort of the whole table. Phase one of a rebuild reads
+	 * every record of id2entry through such a cursor, and before this bound existed it ran to the
+	 * end however long that took.
+	 */
+	@Test
+	public void testTheBatchesOfAnImportCursorAreBulk() throws Exception {
+		System.setProperty(StatementBound.OPERATION.property, "7");
+		System.setProperty(StatementBound.BULK.property, "0");
+		final PreparedStatement statement = mock(PreparedStatement.class);
+		when(statement.executeQuery()).thenReturn(mock(ResultSet.class));
+		final Connection parent = mock(Connection.class);
+		when(parent.prepareStatement(anyString())).thenReturn(statement);
+		final JDBCStorage.CursorImpl cursor = storage.new CursorImpl(true, new CachedConnection("jdbc:mock", parent),
+			new TreeName("dc=example,dc=com", "id2entry"), StatementBound.BULK);
+
+		cursor.next();
+
+		verify(statement, never()).setQueryTimeout(anyInt());
+	}
+
+	/**
+	 * The statistics refresh after an import runs under a bound of its own - it takes as long as a
+	 * scan of the table it describes, which no class of {@link StatementBound} can be asked to
+	 * allow - and under both layers of it. The second one is the reason: on oracle this statement
+	 * is {@code dbms_stats.gather_table_stats}, the engine whose session does not act on the break
+	 * its driver sends, and it runs at the very end of a successful import, where a cancel that
+	 * never arrives would park the import with its data already committed.
+	 */
+	@Test
+	public void testTheStatisticsRefreshRunsUnderItsOwnBoundAndTheBackstop() throws Exception {
+		System.setProperty(JDBCStorage.STATISTICS_TIMEOUT_PROPERTY, "60");
+		final PreparedStatement statement = mock(PreparedStatement.class);
+		final Connection con = mock(oracleConnection.class); // the dialect is read off the connection
+		when(con.getNetworkTimeout()).thenReturn(0);
+		when(con.prepareStatement(anyString())).thenReturn(statement);
+
+		assertTrue(storage.updateTableStatistics(con, singletonList(new TreeName("dc=example,dc=com", "id2entry"))));
+
+		verify(statement).setQueryTimeout(60);
+		final InOrder inOrder = inOrder(con, statement);
+		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq((60 + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000));
+		inOrder.verify(statement).execute();
+		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq(0));
+	}
+
+	// JDBCStorage.dialectOf() reads the engine off the class name of the connection, so a mock of
+	// this interface is an oracle connection as far as the storage is concerned - which is the
+	// whole reason for the lower case name here.
+	private interface oracleConnection extends Connection {}
 }

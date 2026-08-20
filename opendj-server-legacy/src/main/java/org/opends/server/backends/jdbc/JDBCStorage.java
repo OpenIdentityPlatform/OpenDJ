@@ -215,15 +215,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * {@code setQueryTimeout} cancels the statement and keeps the connection, while the socket read
 	 * timeout behind it ends the wait even when the cancel is not acted upon. Oracle needs that
 	 * second layer: a session blocked in a row-lock enqueue does not process the break its driver
-	 * sends, so the timeout is armed and never arrives (the container suites cover it).
+	 * sends, so the timeout is armed and never arrives (the container suites cover it). That second
+	 * layer belongs to the connection rather than to the statement, so it is arbitrated between the
+	 * statements running on one - see {@link Backstop}.
 	 */
 	private <T> T bounded(PreparedStatement statement, StatementBound bound, Execution<T> execution) throws SQLException {
 		final int seconds=bound.seconds();
-		if (seconds <= 0) { // unbounded, exactly as this backend ran before the bound existed
-			return execution.run();
+		if (seconds > 0) {
+			setQueryTimeout(statement, seconds);
 		}
-		setQueryTimeout(statement, seconds);
-		return bounded(connectionOf(statement), bound, seconds, execution);
+		// an unbounded class is announced to the connection all the same: a statement told it may
+		// take as long as it needs must not be cut by the socket read timeout of a concurrent one
+		return bounded(connectionOf(statement), bound.property, seconds, execution);
 	}
 
 	/**
@@ -234,22 +237,23 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * locks, as the {@code create table} they guard.
 	 */
 	<T> T bounded(Connection con, StatementBound bound, Execution<T> execution) throws SQLException {
-		final int seconds=bound.seconds();
-		if (seconds <= 0) {
-			return execution.run();
-		}
-		return bounded(con, bound, seconds, execution);
+		return bounded(con, bound.property, bound.seconds(), execution);
 	}
 
-	private <T> T bounded(Connection con, StatementBound bound, int seconds, Execution<T> execution) throws SQLException {
+	/**
+	 * Runs a statement under a bound of its own rather than under the bound of a class, for the one
+	 * statement that has a property of its own: the statistics refresh after an import, which
+	 * legitimately takes as long as a scan of the table it describes.
+	 */
+	private <T> T bounded(Connection con, String property, int seconds, Execution<T> execution) throws SQLException {
 		final long startedAt=System.nanoTime();
-		final int backstop=armBackstop(con, seconds);
+		final Backstop backstop=holdBackstop(con, seconds);
 		try {
 			return execution.run();
 		}catch (SQLException e) {
-			throw timedOut(e, bound, seconds, startedAt);
+			throw timedOut(e, property, seconds, startedAt);
 		}finally {
-			releaseBackstop(con, backstop);
+			releaseBackstop(backstop, con, seconds);
 		}
 	}
 
@@ -291,44 +295,152 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	private final AtomicBoolean queryTimeoutWarned = new AtomicBoolean();
 
 	/**
-	 * Arms the socket read timeout that backs up the cancel of a statement, and returns the value
-	 * to put back afterwards, or -1 when there is nothing to put back. Unlike the cancel, reaching
-	 * this one costs the connection: the driver closes it, which is the price of a wait that the
-	 * database was never going to end on its own.
+	 * The socket read timeout of one connection, and the statements running on it. This second
+	 * layer of the bound is a property of the socket rather than of a statement, so it cannot be
+	 * armed and put back per statement wherever a connection carries more than one at a time: an
+	 * {@code ImporterImpl} holds a single connection for the whole of an import and writes to it
+	 * from every phase-one worker and every phase-two task, and there the first statement to finish
+	 * would take the backstop away from every statement still in flight - while a statement whose
+	 * class carries no bound at all would run under whatever value a concurrent one happened to
+	 * arm, dying at it with nothing to say which property cut it, since such a statement never
+	 * reaches {@link #timedOut}.
+	 * <p>
+	 * So the value armed is the loosest of the bounds of the statements in flight, and a statement
+	 * with no bound of its own takes it off for as long as it runs: this backstop exists to end a
+	 * wait nothing else would end, never to cut a statement that was told it may take as long as it
+	 * needs. What the connection carried before is put back when the last of them is through.
 	 */
-	private int armBackstop(Connection con, int seconds) {
-		if (con == null) {
-			return -1;
+	private static final class Backstop {
+		/** Bounds of the statements in flight, in milliseconds and by count, the loosest last. */
+		final TreeMap<Integer,Integer> bounds=new TreeMap<>();
+		/** Statements in flight with no bound of their own, which no backstop may cut short. */
+		int unbounded;
+		/** Statements holding this entry, bounded or not: at zero it leaves {@link #backstops}. */
+		int holders;
+		/** What the connection carried before the backstop armed it, and is given back afterwards. */
+		int previous;
+		/** What the backstop has armed, or 0 when the connection carries {@link #previous}. */
+		int armed;
+		/** Set when the driver would not report or take a network timeout: it is not asked again. */
+		boolean unsupported;
+	}
+
+	// Keyed by identity on the connection of the driver: CachedConnection.prepareStatement() hands
+	// the statement to the connection it wraps, so that is the one a statement reports, while the
+	// catalog lookups above hold the wrapper of that same connection - both have to find the same
+	// entry, so a wrapper is unwrapped on the way in. Static because the pool these connections
+	// come from is static; an entry lives only while statements are running on its connection.
+	private static final Map<Connection,Backstop> backstops = new IdentityHashMap<>();
+
+	private static Connection physical(Connection con) {
+		return con instanceof CachedConnection ? ((CachedConnection)con).parent : con;
+	}
+
+	/**
+	 * Puts the bound of a statement about to run on the connection that will run it, and makes the
+	 * socket read timeout of that connection fit every statement in flight on it. Reaching this
+	 * bound, unlike reaching the cancel it backs up, costs the connection: the driver closes it,
+	 * which is the price of a wait the database was never going to end on its own.
+	 */
+	private Backstop holdBackstop(Connection con, int seconds) {
+		final Connection physical=physical(con);
+		if (physical == null) {
+			return null;
 		}
+		final Backstop state;
+		synchronized (backstops) {
+			state=backstops.computeIfAbsent(physical, c -> new Backstop());
+			state.holders++; // held from here, so that the entry outlives a concurrent release
+		}
+		synchronized (state) {
+			if (seconds > 0) {
+				state.bounds.merge(backstopMillis(seconds), 1, Integer::sum);
+			}else {
+				state.unbounded++;
+			}
+			applyBackstop(physical, state);
+		}
+		return state;
+	}
+
+	private void releaseBackstop(Backstop state, Connection con, int seconds) {
+		if (state == null) {
+			return;
+		}
+		final Connection physical=physical(con);
 		try {
-			final int previous=con.getNetworkTimeout();
-			final int backstop=(int) Math.min(Integer.MAX_VALUE, (seconds+BACKSTOP_MARGIN_SECONDS)*1000L);
+			synchronized (state) {
+				if (seconds > 0) {
+					final int millis=backstopMillis(seconds);
+					final Integer inFlight=state.bounds.get(millis);
+					if (inFlight == null || inFlight <= 1) {
+						state.bounds.remove(millis);
+					}else {
+						state.bounds.put(millis, inFlight-1);
+					}
+				}else {
+					state.unbounded--;
+				}
+				applyBackstop(physical, state);
+			}
+		}finally { // the entry is let go whatever the driver did, so that it cannot outlive its connection
+			synchronized (backstops) {
+				if (--state.holders <= 0) { // nothing is running on it: the connection is on its own again
+					backstops.remove(physical);
+				}
+			}
+		}
+	}
+
+	private static int backstopMillis(int seconds) {
+		return (int) Math.min(Integer.MAX_VALUE, (seconds+BACKSTOP_MARGIN_SECONDS)*1000L);
+	}
+
+	/**
+	 * Makes the socket read timeout of the connection what the statements in flight on it need: the
+	 * loosest of their bounds, or nothing of ours at all while one of them carries no bound. Called
+	 * with the monitor of {@code state} held, since it both reads those counts and acts on the
+	 * driver.
+	 */
+	private void applyBackstop(Connection con, Backstop state) {
+		if (state.unsupported) {
+			return;
+		}
+		final int wanted=state.unbounded > 0 || state.bounds.isEmpty() ? 0 : state.bounds.lastKey();
+		try {
+			if (wanted == 0) {
+				if (state.armed != 0) {
+					con.setNetworkTimeout(DIRECT_EXECUTOR, state.previous);
+					state.armed=0;
+				}
+				return;
+			}
+			if (state.armed == 0) {
+				state.previous=con.getNetworkTimeout();
+			}
 			// only ever tighten: a connection that already carries a read timeout carries one a
 			// deployment asked for, and this backstop exists to cap a cancel that is not acted
 			// upon, not to relax anything. 0 is "no timeout" in the JDBC contract, so it is the
 			// one value there is always something to gain by replacing.
-			if (previous > 0 && previous <= backstop) {
-				return -1;
+			if (state.previous > 0 && state.previous <= wanted) {
+				if (state.armed != 0) {
+					con.setNetworkTimeout(DIRECT_EXECUTOR, state.previous);
+					state.armed=0;
+				}
+				return;
 			}
-			con.setNetworkTimeout(DIRECT_EXECUTOR, backstop);
-			return previous;
+			if (state.armed != wanted) {
+				con.setNetworkTimeout(DIRECT_EXECUTOR, wanted);
+				state.armed=wanted;
+			}
 		}catch (SQLException | RuntimeException e) {
+			// either the connection is on its way out - it may be the one that reached this very
+			// timeout - or the driver has no network timeout to give: it is not asked again
+			state.unsupported=true;
 			if (backstopWarned.compareAndSet(false, true)) {
 				logger.warn(LocalizableMessage.raw("jdbc: the socket read timeout backing up a cancelled statement could not"
 					+ " be set (%s): a statement the database does not cancel will wait for it indefinitely", e.getMessage()));
 			}
-			return -1;
-		}
-	}
-
-	private void releaseBackstop(Connection con, int backstop) {
-		if (con == null || backstop < 0) {
-			return;
-		}
-		try {
-			con.setNetworkTimeout(DIRECT_EXECUTOR, backstop);
-		}catch (SQLException | RuntimeException e) {
-			// the connection the backstop was armed on is on its way out: it reached the timeout
 		}
 	}
 
@@ -342,15 +454,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// one a caller classifies: a mysql lock wait, reported in class 40, ends inside a longer bound
 	// and stays the replayable conflict it is. The statement itself is left out of the message: a
 	// driver renders it with its parameters bound, and those are entry data.
-	private SQLException timedOut(SQLException e, StatementBound bound, int seconds, long startedAt) {
+	private SQLException timedOut(SQLException e, String property, int seconds, long startedAt) {
 		if (seconds <= 0 || System.nanoTime()-startedAt < seconds*1_000_000_000L) {
 			return e;
 		}
 		return new SQLTimeoutException("jdbc: the statement did not finish within the "+seconds+"s of "
-			+bound.property+": raise that property, or set it to 0 for no bound", e.getSQLState(), e.getErrorCode(), e);
+			+property+": raise that property, or set it to 0 for no bound", e.getSQLState(), e.getErrorCode(), e);
 	}
 
-	// unlike execute(), tolerates statements that return a result set ("analyze table" on mysql)
+	// Unlike execute(), tolerates a statement that returns a result set - the comment statement of
+	// mssql is a batch that ends in an exec - and, unlike it, carries no bound of its own: what is
+	// left of this method runs on a stamp connection, which is given a lock timeout of its own
+	// (Dialect.lockTimeoutSql) and a socket read timeout in its connect properties.
 	void executeAny(PreparedStatement statement) throws SQLException {
 		if (logger.isTraceEnabled()) {
 			logger.trace(LocalizableMessage.raw("jdbc: %s",statement));
@@ -956,26 +1071,36 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					throw new IllegalStateException("no statistics refresh for dialect "+dialect);
 				}
 				try (final PreparedStatement statement=con.prepareStatement(sql)) {
-					statement.setQueryTimeout(timeoutSeconds); // 0: wait without limit
+					if (timeoutSeconds>0) { // 0: wait without limit
+						setQueryTimeout(statement, timeoutSeconds);
+					}
 					for (int i=0;i<args.length;i++) {
 						statement.setString(i+1,args[i]);
 					}
-					if (dialect==Dialect.MYSQL) { // mysql reports analyze problems as a result row, not an SQLException
-						// read outside executeResultSet(): this statement carries the bound of the statistics
-						// refresh, set above, and a class of StatementBound would put its own over it
+					// Under the bound of the statistics refresh rather than under a class of
+					// StatementBound, which would put its own value over one this statement has a
+					// property for - but under both layers of it all the same: on oracle this is
+					// dbms_stats.gather_table_stats, the engine whose session does not act on the
+					// break its driver sends, and it runs at the very end of a successful import,
+					// where a cancel that never arrives would park it with the data already
+					// committed and nothing left to report.
+					bounded(con, STATISTICS_TIMEOUT_PROPERTY, timeoutSeconds, () -> {
 						if (logger.isTraceEnabled()) {
 							logger.trace(LocalizableMessage.raw("jdbc: %s",statement));
 						}
-						try (final ResultSet rs=statement.executeQuery()) {
-							while (rs.next()) {
-								if ("error".equalsIgnoreCase(rs.getString("Msg_type"))) {
-									throw new SQLException(rs.getString("Msg_text"));
+						if (dialect==Dialect.MYSQL) { // mysql reports analyze problems as a result row, not an SQLException
+							try (final ResultSet rs=statement.executeQuery()) {
+								while (rs.next()) {
+									if ("error".equalsIgnoreCase(rs.getString("Msg_type"))) {
+										throw new SQLException(rs.getString("Msg_text"));
+									}
 								}
 							}
+						}else { // tolerates a statement that returns a result set, which execute() does not
+							statement.execute();
 						}
-					}else {
-						executeAny(statement);
-					}
+						return null;
+					});
 					con.commit();
 				}
 			}catch (Exception e) {
@@ -1249,7 +1374,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public Cursor<ByteString, ByteString> openCursor(TreeName treeName) {
-			return new CursorImpl(isReadOnly,con,treeName);
+			return new CursorImpl(isReadOnly,con,treeName,StatementBound.OPERATION);
+		}
+
+		/**
+		 * Opens a cursor whose batches are bulk statements, for the walk an import or a
+		 * {@code rebuild-index} makes over a whole tree: there is no client waiting on it, and on
+		 * mssql it is not even a walk along an index - {@code k} is a {@code varbinary(max)} that
+		 * cannot be an index key there, so every batch is a scan and a sort of the table. Bounding
+		 * those as entry reads would abort a rebuild that ran to the end before this bound existed.
+		 */
+		Cursor<ByteString, ByteString> openBulkCursor(TreeName treeName) {
+			return new CursorImpl(isReadOnly,con,treeName,StatementBound.BULK);
 		}
 
 		@Override
@@ -1526,10 +1662,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		ByteString currentValue;
 		boolean defined;
 
-		public CursorImpl(boolean isReadOnly, Connection con, TreeName treeName) {
+		// The class of the batches this cursor takes, from whoever opened it: a search walks its
+		// index and has a client waiting, while an import or a rebuild walks a whole tree with
+		// nobody waiting - and on mssql it walks it unindexed either way. It is not read off the
+		// shape of the statement, because the opening batch of every cursor is the same
+		// unconditioned "order by k" that positionToLastKey() issues, search or not.
+		final StatementBound batchBound;
+
+		public CursorImpl(boolean isReadOnly, Connection con, TreeName treeName, StatementBound batchBound) {
 			this.isReadOnly=isReadOnly;
 			this.con=con;
 			this.tableName=getTableName(treeName);
+			this.batchBound=batchBound;
 			this.limitClause=((CachedConnection)con).parent.getClass().getName().contains("mysql")
 				? " limit ?,?" : " offset ? rows fetch next ? rows only";
 		}
@@ -1542,9 +1686,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		/**
 		 * Reads one batch of the cursor. The class of the bound is the caller's: a batch taken
-		 * along the index of the tree is an operation, while a batch that has to look at the whole
-		 * table to answer - the one behind {@link #positionToLastKey()} - is bulk work, and the
-		 * two cannot share a value.
+		 * along the index of the tree for a client is an operation, while a batch that has to look
+		 * at the whole table to answer - the one behind {@link #positionToLastKey()} - and every
+		 * batch of a cursor an import or a rebuild walks ({@link #batchBound}) is bulk work, and
+		 * the two cannot share a value.
 		 */
 		boolean fetchBatch(String condition, byte[] dbKey, long offset, boolean descending, int limit, StatementBound bound) {
 			fetchCount++;
@@ -1579,7 +1724,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public boolean next() {
-			if (buffer.isEmpty() && !fetchBatch(currentKeyDb==null?null:">",currentKeyDb,0,false,adaptiveBatchSize(),StatementBound.OPERATION)) {
+			if (buffer.isEmpty() && !fetchBatch(currentKeyDb==null?null:">",currentKeyDb,0,false,adaptiveBatchSize(),batchBound)) {
 				defined=false;
 				return false;
 			}
@@ -1649,7 +1794,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (!buffer.isEmpty()) { // jumped outside the buffered range: random access, back to small batches
 				nextBatchSize=initialBatchSize;
 			}
-			if (fetchBatch(">=",target,0,false,adaptiveBatchSize(),StatementBound.OPERATION)) {
+			if (fetchBatch(">=",target,0,false,adaptiveBatchSize(),batchBound)) {
 				advanceFromBuffer();
 				return true;
 			}
@@ -1700,10 +1845,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 
 		/**
-		 * An operation, unlike {@link #positionToLastKey()}: the offset comes from the VLV request
-		 * of a client, so this runs on a search path and has to give the worker thread back. That
-		 * a deep offset is served by walking to it - the engines have no other way to answer an
-		 * {@code offset ?} - is what makes the bound reachable here, and reaching it answers the
+		 * The class of the cursor, unlike {@link #positionToLastKey()}, which is bulk however it
+		 * was opened: an offset comes from the VLV request of a client, so this runs on a search
+		 * path and has to give the worker thread back - an import has no VLV position to seek to.
+		 * That a deep offset is served by walking to it - the engines have no other way to answer
+		 * an {@code offset ?} - is what makes the bound reachable here, and reaching it answers the
 		 * request with an error rather than parking a thread of the server on it.
 		 */
 		@Override
@@ -1711,7 +1857,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (!buffer.isEmpty()) { // absolute jump: random access, back to small batches
 				nextBatchSize=initialBatchSize;
 			}
-			if (index>=0 && fetchBatch(null,null,index,false,adaptiveBatchSize(),StatementBound.OPERATION)) {
+			if (index>=0 && fetchBatch(null,null,index,false,adaptiveBatchSize(),batchBound)) {
 				advanceFromBuffer();
 				return true;
 			}
@@ -1763,16 +1909,16 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			txw =new WriteableTransactionTransactionImpl(con);
 		}
 		
-		// The connection goes back whatever the commit does, and the storage this importer opened
-		// is closed whatever the connection does: an importer is closed on the way out of a failed
-		// import as readily as a finished one - a clearTree() that reaches the bulk bound is one
-		// way there - and a commit that throws on the way would otherwise leave the connection
-		// out of the pool for good, holding the transaction and the locks of that import.
 		@Override
 		public void aborted() {
 			aborted = true;
 		}
 
+		// The connection goes back whatever the commit does, and the storage this importer opened
+		// is closed whatever the connection does: an importer is closed on the way out of a failed
+		// import as readily as a finished one - a clearTree() that reaches the bulk bound is one
+		// way there - and a commit that throws on the way would otherwise leave the connection
+		// out of the pool for good, holding the transaction and the locks of that import.
 		@Override
 		public void close() {
 			try {
@@ -1816,9 +1962,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			return txr.read(treeName, key);
 		}
 		
+		// Bulk, like everything else an import does: this walks a whole tree with no client waiting
+		// on it - phase one of a rebuild-index reads every record of id2entry through this cursor
+		// (OnDiskMergeImporter.ID2EntrySource) - and on mssql it walks it unindexed, so a batch of
+		// it is a scan and a sort of the table rather than a step along an index.
 		@Override
 		public SequentialCursor<ByteString, ByteString> openCursor(TreeName treeName) {
-			return txr.openCursor(treeName);
+			return txr.openBulkCursor(treeName);
 		}
 	}
 	
