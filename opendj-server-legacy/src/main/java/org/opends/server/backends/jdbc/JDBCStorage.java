@@ -134,6 +134,23 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		return tree2table.get(treeName);
 	}
 
+	/**
+	 * The form a catalog pattern has to take to match an identifier this backend created unquoted.
+	 * An unquoted identifier is folded when it is stored - to upper case on oracle, to lower case
+	 * on postgresql - and a metadata pattern is matched against the stored form, not against the
+	 * name as it was written. The driver is asked which way it folds, rather than its class name
+	 * being matched, since this is what the JDBC contract exposes these two methods for.
+	 */
+	static String storedIdentifier(DatabaseMetaData metaData, String name) throws SQLException {
+		if (metaData.storesUpperCaseIdentifiers()) {
+			return name.toUpperCase();
+		}
+		if (metaData.storesLowerCaseIdentifiers()) {
+			return name.toLowerCase();
+		}
+		return name;
+	}
+
 	@Override
 	public void removeStorageFiles() throws StorageRuntimeException {
 		final boolean isOpen=getStorageStatus().isWorking();
@@ -266,10 +283,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 
 		boolean isExistsTable(TreeName treeName) {
-			try (final ResultSet rs = con.getMetaData().getTables(null, null, null, new String[]{"TABLE"})) {
-				while (rs.next()) {
-					if (tree2table.get(treeName).equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
-						return true;
+			final String tableName = getTableName(treeName);
+			try {
+				final DatabaseMetaData metaData = con.getMetaData();
+				// asked of the catalog by name: openTree(createOnDemand) calls this for every tree
+				// of the backend - about 25 of them for a stock suffix, on every open - and listing
+				// every table of the database each time costs the whole catalog once per tree, on a
+				// database this backend may well be sharing with something else
+				try (final ResultSet rs = metaData.getTables(null, null,
+						storedIdentifier(metaData, tableName), new String[]{"TABLE"})) {
+					while (rs.next()) {
+						// the name still has to be compared: "_" is a single-character wildcard in a
+						// metadata pattern, so "opendj_<hash>" also matches a table named "opendjX<hash>"
+						if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
+							return true;
+						}
 					}
 				}
 			} catch (Exception e) {

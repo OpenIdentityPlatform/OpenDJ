@@ -139,6 +139,57 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	}
 
 	/**
+	 * openTree() and deleteTree() ask the catalog whether the table of a tree is there. The name is
+	 * looked up in the form the catalog stores it - an unquoted identifier is folded to upper case
+	 * on oracle and to lower case on postgresql - so getting that wrong makes a second open try to
+	 * create a table that is already there, and a second delete drop one that is already gone (#885).
+	 */
+	@Test
+	public void testTableOfATreeIsFoundByName() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("testCatalogLookup", "tree");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					txn.put(tree, key(1), value(1));
+				}
+			});
+			// the table is there now: opening the tree again must find it, not create it a second time
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			assertEquals(storage.read(new ReadOperation<ByteString>() {
+				@Override
+				public ByteString run(ReadableTransaction txn) throws Exception {
+					return txn.read(tree, key(1));
+				}
+			}), value(1));
+
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.deleteTree(tree);
+				}
+			});
+			// and gone now: deleting it again must find nothing rather than drop what is not there
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.deleteTree(tree);
+				}
+			});
+		} finally {
+			storage.close();
+		}
+	}
+
+	/**
 	 * Forward repositioning inside the already-fetched batch must be served from the buffer without SQL,
 	 * and batch sizes must grow from "fetchsize.initial" to "fetchsize" on sequential reads (#860).
 	 */
