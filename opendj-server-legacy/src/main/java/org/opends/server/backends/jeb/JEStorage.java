@@ -428,6 +428,21 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     }
 
     @Override
+    public boolean treeExists(TreeName treeName)
+    {
+      // Deliberately not getOrOpenTree(): dbConfig() sets allowCreate, so asking the tree itself
+      // would create the very database whose absence is being tested.
+      try
+      {
+        return env.getDatabaseNames().contains(toDatabaseName(treeName));
+      }
+      catch (DatabaseException e)
+      {
+        throw new StorageRuntimeException(e);
+      }
+    }
+
+    @Override
     public Cursor<ByteString, ByteString> openCursor(final TreeName treeName)
     {
       try
@@ -551,6 +566,12 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     }
 
     @Override
+    public boolean treeExists(TreeName treeName)
+    {
+      return delegate.treeExists(treeName);
+    }
+
+    @Override
     public void openTree(TreeName treeName, boolean createOnDemand)
     {
       if (createOnDemand)
@@ -637,6 +658,13 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     public long getRecordCount(TreeName treeName)
     {
       return 0;
+    }
+
+    @Override
+    public boolean treeExists(TreeName treeName)
+    {
+      // No environment was ever opened, so nothing is stored.
+      return false;
     }
   }
 

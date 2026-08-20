@@ -42,6 +42,7 @@ import org.testng.annotations.Test;
 import com.datastax.oss.driver.api.core.AllNodesFailedException;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
+import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
 
 import java.net.InetSocketAddress;
 import java.util.NoSuchElementException;
@@ -132,6 +133,68 @@ public class TestCase extends PluggableBackendImplTestCase<CASBackendCfg> {
 				}
 			}
 		});
+	}
+
+	/** A storage under a backend id of its own, so that its table is one no other test has created. */
+	private CASStorage openStorage(String backendId, AccessMode accessMode) throws Exception {
+		final CASBackendCfg backendCfg = mockCfg(CASBackendCfg.class);
+		when(backendCfg.getBackendId()).thenReturn(backendId);
+		when(backendCfg.getDBDirectory()).thenReturn("CASTestCase");
+		final CASStorage storage = new CASStorage(backendCfg, null);
+		storage.open(accessMode);
+		return storage;
+	}
+
+	/**
+	 * The compressed schema asks whether a tree is there before anything has been written (#873), so
+	 * treeExists() has to answer for a table that openTree() has not created yet. It may only answer
+	 * where nothing can follow from the answer: a read has nothing to lose, but a writeable
+	 * transaction has just created the table through openTree(), so a query rejected there is a
+	 * fault. Reporting a populated tree absent would have the compressed schema allocate its tokens
+	 * from zero again and overwrite the definitions its entries were encoded with.
+	 */
+	@Test
+	public void testTreeExistsAnswersForAMissingTable() throws Exception {
+		final CASStorage storage = openStorage("CASTreeExists", AccessMode.READ_WRITE);
+		final TreeName tree = new TreeName("testTreeExists", "tree");
+		try {
+			// the keyspace is there - open(READ_WRITE) creates it - but the table is not
+			assertFalse(storage.read(new ReadOperation<Boolean>() {
+				@Override
+				public Boolean run(ReadableTransaction txn) throws Exception {
+					return txn.treeExists(tree);
+				}
+			}), "a read of a table that was never created finds no tree");
+
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.treeExists(tree);
+					}
+				});
+				fail("a writeable transaction must not report a rejected query as an absent tree");
+			} catch (InvalidQueryException expected) {
+				// the table of a writeable open is created by openTree(), so its absence is a fault
+			}
+
+			// Every tree of this backend is a partition of the one table, so it has no existence of
+			// its own: it is there once it holds a record, and not before.
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					assertFalse(txn.treeExists(tree), "an empty partition holds no record");
+					txn.put(tree, key(0), value(0));
+					assertTrue(txn.treeExists(tree));
+					txn.deleteTree(tree);
+					assertFalse(txn.treeExists(tree));
+				}
+			});
+		} finally {
+			dropTree(storage, tree);
+			storage.close();
+		}
 	}
 
 	private static void dropTree(CASStorage storage, final TreeName tree) {
