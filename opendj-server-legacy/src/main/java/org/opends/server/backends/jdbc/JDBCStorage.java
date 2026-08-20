@@ -36,6 +36,7 @@ import org.opends.server.util.BackupManager;
 
 import java.io.Closeable;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
@@ -166,6 +167,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// that it is not reissued for every tree on every open; disabling and re-enabling the
 		// backend is the way to try again once the privilege has been granted
 		unstampableTrees.clear();
+		// what this storage knows of its catalog holds no longer than the open it learnt it in: the
+		// table may well be gone by the next one, dropped by an offline tool run in the meantime
+		catalogTableOpened=false;
 	}
 
 	final LoadingCache<TreeName,String> tree2table = Caffeine.newBuilder()
@@ -188,6 +192,49 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	String getTableName(TreeName treeName) {
 		return tree2table.get(treeName);
 	}
+
+	/**
+	 * The pseudo base DN of the tree naming the trees of a backend. Every real tree of a backend is
+	 * named after an entry container, whose prefix is a normalized DN and so always holds a "=",
+	 * which an identifier of this form cannot collide with.
+	 */
+	static final String CATALOG_BASE_DN="opendj_catalog";
+
+	/**
+	 * The base DN under which the compressed schema trees are named by versions naming them from a
+	 * literal. It carries no backend qualifier, so on a database addressed by several backends -
+	 * which nothing forbids (#873) - that pair of trees is the same pair for all of them, and a
+	 * backend must not put a tree another one may be the owner of up for removal. The pair is left
+	 * where it lies on purpose (#881): it may still be the only copy a backend has. Trees named from
+	 * the backend id instead are enrolled like any other.
+	 */
+	static final String SHARED_COMPRESSED_SCHEMA_BASE_DN="compressed_schema";
+
+	/**
+	 * The tree naming the trees this backend owns: one row per tree, the tree name as its key and the
+	 * table holding that tree as its value.
+	 * <p>
+	 * A table is named after the hash of its tree name, so the catalog of a database can neither be
+	 * filtered by a per-backend prefix nor read back into a {@link TreeName}. Without a record of its
+	 * own a backend can therefore only name the trees this very process has already touched - which
+	 * is precisely what {@link #removeStorageFiles()} cannot have, running as it does before the root
+	 * container is open. In the offline {@code import-ldif} nothing has touched a tree at all, so
+	 * {@code --clearBackend} used to clear nothing whatsoever (#888).
+	 * <p>
+	 * The catalog is per backend and named after the backend id alone: a process that has opened
+	 * nothing can still find its table, and backends sharing one database URL - which nothing
+	 * forbids (#873) - never name each other's trees.
+	 */
+	TreeName getCatalogTree() {
+		return new TreeName(CATALOG_BASE_DN, config.getBackendId());
+	}
+
+	/**
+	 * Whether the table of the catalog was created, or found, by this storage. A tree is enrolled on
+	 * every open - about 25 of them for a stock suffix - and asking the catalog whether the table is
+	 * there would cost a metadata round trip per tree.
+	 */
+	private volatile boolean catalogTableOpened=false;
 
 	/**
 	 * The form a catalog pattern has to take to match an identifier this backend created unquoted.
@@ -769,6 +816,31 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		return allRefreshed;
 	}
 
+	/**
+	 * Whether a table of this name is there. Asked of the catalog by name rather than by listing
+	 * every table of the database: openTree(createOnDemand) asks it for every tree of the backend -
+	 * about 25 of them for a stock suffix - on every open, on a database this backend may well be
+	 * sharing with something else.
+	 */
+	boolean isExistsTable(Connection con, String tableName) {
+		try {
+			final DatabaseMetaData metaData = con.getMetaData();
+			try (final ResultSet rs = metaData.getTables(null, null,
+					storedIdentifier(metaData, tableName), new String[]{"TABLE"})) {
+				while (rs.next()) {
+					// the name still has to be compared: "_" is a single-character wildcard in a
+					// metadata pattern, so "opendj_<hash>" also matches a table named "opendjX<hash>"
+					if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
+						return true;
+					}
+				}
+			}
+		} catch (Exception e) {
+			throw new StorageRuntimeException(e);
+		}
+		return false;
+	}
+
 	@Override
 	public void removeStorageFiles() throws StorageRuntimeException {
 		final boolean isOpen=getStorageStatus().isWorking();
@@ -779,12 +851,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				throw new StorageRuntimeException(e);
 			}
 		}
-		final Set<TreeName> trees=listTrees();
-		if (!trees.isEmpty()) {
-			try (final Connection con = getConnection()) {
+		try (final Connection con = getConnection()) {
+			final Set<TreeName> trees=listTrees(con);
+			if (trees.isEmpty()) {
+				reportUncataloguedTables(con);
+			} else {
 				try {
-					for (final TreeName treeName : trees) {
-						try (final PreparedStatement statement = con.prepareStatement("drop table " + getTableName(treeName))) {
+					for (final TreeName treeName : catalogDroppedLast(trees)) {
+						final String tableName=getTableName(treeName);
+						if (!isExistsTable(con, tableName)) { // a row of the catalog outliving its table
+							continue;
+						}
+						try (final PreparedStatement statement = con.prepareStatement("drop table " + tableName)) {
 							execute(statement);
 						}
 					}
@@ -795,17 +873,71 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					} catch (SQLException e2) {}
 					throw new StorageRuntimeException(e);
 				}
-			} catch (Exception e) {
-				throw new StorageRuntimeException(e);
+				// all tables are gone: forget the mappings so listTrees() consumers skip the dropped trees
+				for (final TreeName treeName : trees) {
+					tree2table.invalidate(treeName);
+					unstampableTrees.remove(treeName); // a table recreated later deserves a fresh stamp attempt
+				}
 			}
-			// all tables are gone: forget the mappings so listTrees() consumers skip the dropped trees
-			for (final TreeName treeName : trees) {
-				tree2table.invalidate(treeName);
-				unstampableTrees.remove(treeName); // a table recreated later deserves a fresh stamp attempt
+		} catch (StorageRuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new StorageRuntimeException(e);
+		} finally {
+			// the catalog went with the rest: the next tree enrolled creates its table again. The
+			// online import needs exactly that - the storage which has just dropped its tables is the
+			// one going on to open a root container and enrol every tree of it anew.
+			catalogTableOpened=false;
+			if (!isOpen) {
+				close();
 			}
 		}
-		if (!isOpen) {
-			close();
+	}
+
+	/**
+	 * The trees to remove, the catalog last: it names what is still to be dropped, so a removal that
+	 * fails halfway - dropping a table is DDL, which mysql and oracle commit as they go - is finished
+	 * by the next attempt rather than leaving behind tables nothing names any more.
+	 */
+	private List<TreeName> catalogDroppedLast(Set<TreeName> trees) {
+		final TreeName catalog=getCatalogTree();
+		final List<TreeName> ordered=new ArrayList<>(trees.size());
+		for (final TreeName treeName : trees) {
+			if (!catalog.equals(treeName)) {
+				ordered.add(treeName);
+			}
+		}
+		if (trees.contains(catalog)) {
+			ordered.add(catalog);
+		}
+		return ordered;
+	}
+
+	/**
+	 * Reports the tables of a backend whose catalog is not there yet. They are reported rather than
+	 * dropped: a table is named after the hash of its tree name, so nothing about a table found under
+	 * the "opendj_" prefix says which backend of a shared database (#873) it belongs to. The catalog
+	 * is written as the trees of a backend are opened, so the first read-write open after an upgrade
+	 * to a version keeping one is enough to make the next clear complete.
+	 */
+	private void reportUncataloguedTables(Connection con) {
+		int count=0;
+		try {
+			final DatabaseMetaData metaData=con.getMetaData();
+			try (final ResultSet rs=metaData.getTables(null, null,
+					storedIdentifier(metaData, "opendj%"), new String[]{"TABLE"})) {
+				while (rs.next()) {
+					count++;
+				}
+			}
+		} catch (SQLException e) {
+			logger.trace(LocalizableMessage.raw("jdbc: unable to look for the tables of an uncatalogued backend: %s",
+				stackTraceToSingleLineString(e)));
+			return;
+		}
+		if (count>0) {
+			logger.warn(LocalizableMessage.raw("jdbc: backend %s has no tree catalog (table %s), so none of the %d opendj tables reachable on this connection could be attributed to it and nothing was cleared; the catalog is written as the trees are opened, from the first read-write open of the backend on",
+				config.getBackendId(), getTableName(getCatalogTree()), count));
 		}
 	}
 	
@@ -1059,27 +1191,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 
 		boolean isExistsTable(TreeName treeName) {
-			final String tableName = getTableName(treeName);
-			try {
-				final DatabaseMetaData metaData = con.getMetaData();
-				// asked of the catalog by name: openTree(createOnDemand) calls this for every tree
-				// of the backend - about 25 of them for a stock suffix, on every open - and listing
-				// every table of the database each time costs the whole catalog once per tree, on a
-				// database this backend may well be sharing with something else
-				try (final ResultSet rs = metaData.getTables(null, null,
-						storedIdentifier(metaData, tableName), new String[]{"TABLE"})) {
-					while (rs.next()) {
-						// the name still has to be compared: "_" is a single-character wildcard in a
-						// metadata pattern, so "opendj_<hash>" also matches a table named "opendjX<hash>"
-						if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
-							return true;
-						}
-					}
-				}
-			} catch (Exception e) {
-				throw new StorageRuntimeException(e);
-			}
-			return false;
+			return JDBCStorage.this.isExistsTable(con, getTableName(treeName));
 		}
 
 		String getTableDialect() {
@@ -1142,6 +1254,71 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				// the dialect is taken off this transaction's own connection: finding it out must
 				// not cost a borrow from a pool this thread is already holding a connection of
 				commentTable(treeName, dialectOf(con), stampSession);
+				// what makes this tree nameable by a process which has opened nothing: see getCatalogTree()
+				enrolInCatalog(treeName);
+			}
+		}
+
+		/**
+		 * Records the tree in the catalog of this backend, creating the catalog itself along the way
+		 * when this is the first tree of the storage. Enrolling is the business of
+		 * openTree(createOnDemand) alone: naming a tree in order to read it must never put it up for
+		 * removal, since the tree read may belong to another backend of the same database - the
+		 * unqualified compressed schema trees such a database may still hold, say (#873).
+		 * <p>
+		 * The row is written on every open rather than only when the table is created, so that a
+		 * backend of an installation upgraded to a version keeping a catalog fills it in at its first
+		 * read-write open instead of waiting for its trees to be created again.
+		 */
+		void enrolInCatalog(TreeName treeName) {
+			final TreeName catalog=getCatalogTree();
+			if (catalog.equals(treeName)) {
+				return; // the catalog holds no row of its own: listTrees() adds it when its table is there
+			}
+			if (SHARED_COMPRESSED_SCHEMA_BASE_DN.equals(treeName.getBaseDN())) {
+				return; // a tree this backend may not be the only owner of: see the constant
+			}
+			if (!catalogTableOpened) {
+				openCatalogTable(catalog);
+				catalogTableOpened=true;
+			}
+			try {
+				upsert(catalog, ByteString.valueOfUtf8(treeName.toString()),
+					ByteString.valueOfUtf8(getTableName(treeName)));
+			} catch (SQLException e) {
+				throw new StorageRuntimeException(e);
+			}
+		}
+
+		/**
+		 * Creates the table of the catalog when it is not there yet. It takes neither the index nor
+		 * the comment openTree() gives a tree: the catalog is read whole and written by key, never
+		 * iterated by key range, so the index a cursor needs would serve nothing here, and its rows
+		 * name the trees in plain text, so a comment naming the table would only repeat what reading
+		 * it says. Keeping it out of the comment sweep also keeps the cost of a stamp the database
+		 * rejects where it was - one attempt per tree of the backend, not one more.
+		 */
+		void openCatalogTable(TreeName catalog) {
+			if (isExistsTable(catalog)) {
+				return;
+			}
+			try (final PreparedStatement statement=con.prepareStatement("create table "+getTableName(catalog)+" ("+getTableDialect()+")")) {
+				execute(statement);
+				con.commit();
+			} catch (SQLException e) {
+				throw new StorageRuntimeException(e);
+			}
+		}
+
+		/** Takes the tree out of the catalog: a row is what puts a table up for removal, and this one is gone. */
+		void unenrolFromCatalog(TreeName treeName) {
+			final TreeName catalog=getCatalogTree();
+			if (catalog.equals(treeName)) {
+				catalogTableOpened=false; // its own table is gone: the next enrolment creates it again
+				return;
+			}
+			if (catalogTableOpened || isExistsTable(catalog)) {
+				delete(catalog, ByteString.valueOfUtf8(treeName.toString()));
 			}
 		}
 
@@ -1176,6 +1353,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					throw new StorageRuntimeException(e);
 				}
 			}
+			unenrolFromCatalog(treeName);
 			// forget the mapping so listTrees() consumers (updateTableStatistics) skip the dropped table
 			tree2table.invalidate(treeName);
 			unstampableTrees.remove(treeName); // a table recreated later deserves a fresh stamp attempt
@@ -1474,9 +1652,44 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * Answered from the catalog of the backend rather than from the trees this process happens to
+	 * have touched: {@link #removeStorageFiles()} runs before anything has touched one (#888).
+	 */
 	@Override
 	public Set<TreeName> listTrees() {
-		return tree2table.asMap().keySet();
+		try (final Connection con=getConnection()) {
+			return listTrees(con);
+		} catch (StorageRuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new StorageRuntimeException(e);
+		}
+	}
+
+	Set<TreeName> listTrees(Connection con) throws SQLException {
+		final TreeName catalog=getCatalogTree();
+		final String catalogTable=getTableName(catalog);
+		if (!isExistsTable(con, catalogTable)) { // a backend which has never been opened read-write
+			return Collections.emptySet();
+		}
+		final Set<TreeName> trees=new HashSet<>();
+		trees.add(catalog); // the catalog names every tree of the backend but itself
+		try (final PreparedStatement statement=con.prepareStatement("select k from "+catalogTable);
+			 final ResultSet rs=executeResultSet(statement)) {
+			while (rs.next()) {
+				final String name=new String(db2real(rs.getBytes("k")), StandardCharsets.UTF_8);
+				try {
+					trees.add(TreeName.valueOf(name));
+				} catch (RuntimeException e) { // reported rather than passed off as a backend with fewer trees
+					logger.warn(LocalizableMessage.raw("jdbc: table %s holds \"%s\", which is not the name of a tree: skipped",
+						catalogTable, name));
+				}
+			}
+		}
+		return trees;
 	}
 
 	private final class ImporterImpl implements Importer {

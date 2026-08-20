@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -117,10 +118,31 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 
 	@Override
 	protected JDBCBackendCfg createBackendCfg() {
+		return createBackendCfg(getBackendId());
+	}
+
+	/**
+	 * A configuration of another backend on the database of this suite: backends sharing one database
+	 * URL is a configuration nothing forbids, and what one of them clears must be its own tables.
+	 */
+	protected JDBCBackendCfg createBackendCfg(String backendId) {
 		JDBCBackendCfg backendCfg = mockCfg(JDBCBackendCfg.class);
-		when(backendCfg.getBackendId()).thenReturn(getBackendId());
+		when(backendCfg.getBackendId()).thenReturn(backendId);
 		when(backendCfg.getDBDirectory()).thenReturn(getJdbcUrl());
 		return backendCfg;
+	}
+
+	/** Asked of the database itself, by listing its tables, so that no folding rule of the backend is trusted here. */
+	private boolean isExistsTable(String tableName) throws SQLException {
+		try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+			 final ResultSet rs = con.getMetaData().getTables(null, null, null, new String[]{"TABLE"})) {
+			while (rs.next()) {
+				if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	@AfterClass
@@ -1313,6 +1335,96 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					}
 				});
 			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * removeStorageFiles() has to clear a backend this process has never opened: offline import-ldif
+	 * configures the backend and calls it before anything opens the root container, so answering from
+	 * the trees this process happens to have touched dropped nothing at all - an offline
+	 * "import-ldif --clearBackend" cleared a JDBC backend of nothing (#888).
+	 */
+	@Test
+	public void testABackendIsClearedByAProcessThatNeverOpenedIt() throws Exception {
+		final TreeName tree = new TreeName("testOfflineClear", "tree");
+		final TreeName neighbourTree = new TreeName("testOfflineClearNeighbour", "tree");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_cleared"), null);
+		final JDBCStorage neighbour = new JDBCStorage(createBackendCfg(getBackendId() + "_neighbour"), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					txn.put(tree, key(1), value(1));
+				}
+			});
+			neighbour.open(AccessMode.READ_WRITE);
+			neighbour.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(neighbourTree, true);
+					txn.put(neighbourTree, key(1), value(1));
+				}
+			});
+		} finally {
+			storage.close();
+			neighbour.close();
+		}
+
+		// configured and never opened, nothing touched: what BackendImpl.importLDIF holds offline
+		final JDBCStorage offline = new JDBCStorage(createBackendCfg(getBackendId() + "_cleared"), null);
+		assertTrue(offline.listTrees().contains(tree),
+			"the tree of a backend this process never opened has to be named by its catalog");
+
+		offline.removeStorageFiles();
+
+		assertFalse(isExistsTable(offline.getTableName(tree)), "the table of the tree survived the clear");
+		assertFalse(isExistsTable(offline.getTableName(offline.getCatalogTree())), "the catalog survived the clear");
+		assertTrue(offline.listTrees().isEmpty(), "a cleared backend still names trees");
+		// the neighbour is named by a catalog of its own: what one backend clears is never another's
+		assertTrue(isExistsTable(neighbour.getTableName(neighbourTree)),
+			"the clear of one backend dropped the table of another backend of the same database");
+		neighbour.removeStorageFiles();
+	}
+
+	/**
+	 * A dropped tree has to leave the catalog together with its table: a row outliving its table
+	 * would make backendstat name a tree that is not there, and would put a table that is already
+	 * gone up for removal (#888).
+	 */
+	@Test
+	public void testADeletedTreeIsNoLongerNamedByTheCatalog() throws Exception {
+		final TreeName kept = new TreeName("testCatalogDelete", "kept");
+		final TreeName dropped = new TreeName("testCatalogDelete", "dropped");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_deleted"), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(kept, true);
+					txn.openTree(dropped, true);
+				}
+			});
+			final Set<TreeName> opened = storage.listTrees();
+			assertTrue(opened.contains(kept) && opened.contains(dropped), "an opened tree is not named by the catalog");
+
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.deleteTree(dropped);
+				}
+			});
+
+			final Set<TreeName> remaining = storage.listTrees();
+			assertTrue(remaining.contains(kept), "the catalog forgot a tree that is still there");
+			assertFalse(remaining.contains(dropped), "the catalog still names a tree that was deleted");
+			// and the removal that follows must not stumble over the tree it no longer names
+			storage.removeStorageFiles();
+			assertFalse(isExistsTable(storage.getTableName(kept)), "the table of the tree survived the clear");
+		} finally {
 			storage.close();
 		}
 	}
