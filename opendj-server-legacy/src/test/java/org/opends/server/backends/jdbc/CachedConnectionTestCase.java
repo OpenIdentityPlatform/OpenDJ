@@ -29,6 +29,8 @@ import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -256,6 +258,119 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 		verify(con.parent).close();
 		assertEquals(CachedConnection.poolOf(url).idleCount(), 0);
+	}
+
+	/** A backend closed and opened again pools its connections as before: addUser() clears the flag. */
+	@Test(timeOut = 120000)
+	public void testABackendClosedAndOpenedAgainPoolsItsConnections() throws Exception {
+		final String url = StubDriver.PREFIX + "reopen";
+		stub.answerWith(null);
+		CachedConnection.openPool(url);
+		CachedConnection.getConnection(url).close();
+		CachedConnection.closePool(url);
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 0);
+
+		CachedConnection.openPool(url);
+		CachedConnection.getConnection(url).close();
+
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1, "a reopened backend stopped pooling its connections");
+		CachedConnection.closePool(url);
+	}
+
+	/**
+	 * A connect that fails with something other than a SQLException must not cost the pool a
+	 * permit. DriverManager catches SQLException alone, so an unchecked failure of a driver reaches
+	 * the borrow: Connector/J hands a url with a "%" in it to URLDecoder, and this backend keeps
+	 * its credentials in the url. Only a live connection carries a permit, so one left behind is
+	 * left behind for good - after as many failures as the bound the pool would report that every
+	 * connection is in use while holding none (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectFailingUncheckedCostsThePoolNothing() throws Exception {
+		final String url = StubDriver.PREFIX + "unchecked";
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, "2");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "1");
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+		stub.failWith(new IllegalArgumentException("URLDecoder: Illegal hex characters in escape (%) pattern"),
+			StubDriver.ALWAYS);
+
+		for (int i = 1; i <= 2 * pool.max(); i++) {
+			try {
+				CachedConnection.getConnection(url);
+				fail("the connect did not fail");
+			} catch (IllegalArgumentException expected) {
+				// reported to the caller, as a configuration error has to be
+			}
+			assertEquals(pool.liveCount(), 0, "attempt " + i + " kept a permit of the pool");
+		}
+
+		// and the pool still serves, rather than reporting connections it does not hold as in use
+		stub.answerWith(null);
+		final Connection con = CachedConnection.getConnection(url);
+		assertNotNull(con);
+		con.close();
+		CachedConnection.invalidate(url);
+	}
+
+	/**
+	 * The exemption of a nested borrow belongs to one pool: a thread holding a connection to one
+	 * database holds nothing of another, so the bound of that other pool applies and its connection
+	 * comes back to it rather than being closed.
+	 */
+	@Test(timeOut = 120000)
+	public void testHoldingAConnectionToOneDatabaseDoesNotExemptABorrowFromAnother() throws Exception {
+		final String first = StubDriver.PREFIX + "held-first";
+		final String second = StubDriver.PREFIX + "held-second";
+		stub.answerWith(null);
+
+		final Connection held = CachedConnection.getConnection(first);
+		final Connection other = CachedConnection.getConnection(second);
+		assertEquals(CachedConnection.poolOf(second).liveCount(), 1, "the borrow passed the bound of the other pool");
+		other.close();
+
+		assertEquals(CachedConnection.poolOf(second).idleCount(), 1, "the borrow was taken for a nested one and closed");
+		held.close();
+		CachedConnection.invalidate(first);
+		CachedConnection.invalidate(second);
+	}
+
+	/** JDBC makes close() on a closed connection a no-op; a second return would pool the same one twice. */
+	@Test(timeOut = 120000)
+	public void testASecondCloseDoesNotPoolTheConnectionTwice() throws Exception {
+		final String url = StubDriver.PREFIX + "double-close";
+		stub.answerWith(null);
+		final Connection con = CachedConnection.getConnection(url);
+		con.close();
+		con.close();
+
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1, "one connection was pooled twice");
+		CachedConnection.invalidate(url);
+	}
+
+	/**
+	 * What the sweeper runs hands the close elsewhere instead of running it. The sweep of every
+	 * pool shares one thread and scheduleWithFixedDelay never overlaps its runs, so one close that
+	 * does not return would stop the expiry of every pool in the JVM, silently (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testTheSweepDoesNotCloseOnTheSweeperThread() throws Exception {
+		final String url = StubDriver.PREFIX + "sweep-elsewhere";
+		stub.answerWith(null);
+		final CachedConnection con = (CachedConnection) CachedConnection.getConnection(url);
+		con.close();
+		con.returnedAtMillis = System.currentTimeMillis() - 60000;
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+		final List<Runnable> handedOff = new ArrayList<>();
+
+		pool.sweep(1000, handedOff::add);
+
+		assertEquals(pool.idleCount(), 0, "the expired connection kept its place in the pool");
+		verify(con.parent, never()).close();
+		assertEquals(handedOff.size(), 1);
+
+		handedOff.get(0).run();
+		verify(con.parent).close();
+		assertEquals(pool.liveCount(), 0, "a swept connection kept its permit");
 	}
 
 	/**
@@ -547,11 +662,12 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		static final int ALWAYS = -1;
 
 		final AtomicInteger attempts = new AtomicInteger();
-		private volatile SQLException failure;
+		/** A SQLException, or the unchecked failure a driver is free to throw at DriverManager instead. */
+		private volatile Throwable failure;
 		private volatile int failuresLeft;
 		private volatile Connection answer;
 
-		void failWith(SQLException failure, int times) {
+		void failWith(Throwable failure, int times) {
 			this.failure = failure;
 			this.failuresLeft = times;
 			this.answer = null;
@@ -575,7 +691,10 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 				if (failuresLeft > 0) {
 					failuresLeft--;
 				}
-				throw failure;
+				if (failure instanceof SQLException) {
+					throw (SQLException) failure;
+				}
+				throw (RuntimeException) failure;
 			}
 			if (answer != null) {
 				return answer;
