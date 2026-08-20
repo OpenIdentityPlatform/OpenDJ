@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 
 public class CachedConnection implements Connection {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -46,7 +47,12 @@ public class CachedConnection implements Connection {
     static final String CONNECT_TIMEOUT_PROPERTY = "org.openidentityplatform.opendj.jdbc.connect.timeout";
     static final long DEFAULT_CONNECT_TIMEOUT_SECONDS = 30;
 
-    /** Bounds a whole borrow - every connect attempt and every wait for a pooled connection - in seconds; 0 for no bound. */
+    /**
+     * Bounds a whole borrow - every connect attempt and every wait for a pooled connection - in
+     * seconds; 0 for no bound. Not to the millisecond: the connection in hand is validated
+     * whatever the deadline says, and an attempt is never given less than a second, so a borrow
+     * can return a validation and a last attempt past it.
+     */
     static final String POOL_TIMEOUT_PROPERTY = "org.openidentityplatform.opendj.jdbc.pool.timeout";
     static final long DEFAULT_POOL_TIMEOUT_SECONDS = 60;
 
@@ -64,6 +70,11 @@ public class CachedConnection implements Connection {
 
     /** How many links of the cause and getNextException() chains of a failure are looked at. */
     private static final int MAX_CHAIN_LENGTH = 32;
+
+    /** What a connection string is cut down to where this cannot tell its credentials from the rest of it. */
+    static final String CREDENTIALS_HIDDEN = "<credentials hidden>";
+    /** A password standing where neither the userinfo nor the parameters of a url are looked for. */
+    private static final Pattern SECRET_PARAMETER = Pattern.compile("(?i)(password|pwd)\\s*=[^,)&;?/]*");
 
     // setNetworkTimeout() takes the executor its timeout handling runs on: the drivers it is used
     // with here only set a socket option in it, so it costs a call rather than a thread.
@@ -137,12 +148,13 @@ public class CachedConnection implements Connection {
         /**
          * postgresql: every property of the three takes seconds. connectTimeout covers the socket
          * connect and socketTimeout the reads of the login: pgjdbc puts an SO_TIMEOUT on the login
-         * socket only where socketTimeout is set (ConnectionFactoryImpl.openConnectionImpl, both
-         * before and after enableSSL), and it defaults to none. loginTimeout is kept on top of the
-         * two for a url naming more than one host, where each of them costs a connect and a login
-         * of its own - but it is not a bound this class could rely on alone: Driver.connect runs
-         * the login on a daemon thread, gives up on the thread rather than on the login, and the
-         * thread stays parked in the read for as long as the read lasts.
+         * socket only where socketTimeout is set (ConnectionFactoryImpl.tryConnect, both before and
+         * after enableSSL), and it defaults to none. loginTimeout is kept on top of the two for a
+         * url naming more than one host, where each of them costs a login of its own - the connect
+         * is one budget for all of them, taken from the single System.nanoTime() in front of the
+         * loop over the hosts - but it is not a bound this class could rely on alone: Driver.connect
+         * runs the login on a daemon thread, gives up on the thread rather than on the login, and
+         * the thread stays parked in the read for as long as the read lasts.
          */
         POSTGRES("jdbc:postgresql:", '?',
             new String[]{"connectTimeout", "loginTimeout"}, 1, 0,
@@ -156,11 +168,14 @@ public class CachedConnection implements Connection {
         /** oracle: both properties take milliseconds; ReadTimeout is a socket read timeout that outlives the login. */
         ORACLE("jdbc:oracle:", '?',
             new String[]{"oracle.net.CONNECT_TIMEOUT"}, 1000, 0,
-            // the read bound goes by three names: the property set here, the property of oracle
-            // net it stands for, and RECV_TIMEOUT inside a tns descriptor. A bound under any of
-            // them is a bound of the administrator, so ours is not set on top of it - and none of
-            // theirs is lifted with ours once the login is through.
-            new String[]{"oracle.jdbc.ReadTimeout", "oracle.net.READ_TIMEOUT", "RECV_TIMEOUT"}, 1000, true,
+            // the read bound goes by two names the driver reads: the property set here and the
+            // property of oracle net it stands for, inside a tns descriptor by the last segment of
+            // either. A bound under one of them is a bound of the administrator, so ours is not set
+            // on top of it - and neither of theirs is lifted with ours once the login is through.
+            // RECV_TIMEOUT is not one of them: it is a parameter of sqlnet.ora and of the listener,
+            // and the name does not appear in ojdbc8 at all, so a descriptor carrying one would
+            // have taken our bound off a connection that never had one of its own.
+            new String[]{"oracle.jdbc.ReadTimeout", "oracle.net.READ_TIMEOUT"}, 1000, true,
             // ORA-01033 and ORA-01034: the instance is starting up or not there yet; ORA-01089:
             // it is shutting down. ORA-12514 is left out of these on purpose - a listener that
             // does not know the service is also what a service name of a typo looks like, forever
@@ -225,10 +240,10 @@ public class CachedConnection implements Connection {
 
         /**
          * Fills in the properties bounding one connect attempt, leaving out every property the
-         * connection string sets itself - an explicit setting of the administrator keeps
-         * precedence, and the SQL Server driver gives a supplied property precedence over the url.
-         * A driver with a range of its own for its connect property is not handed a value beyond
-         * it: a bound it rejects is no bound at all, it is a connect that never happens.
+         * administrator set themselves - an explicit setting of theirs keeps precedence, and the
+         * SQL Server driver gives a supplied property precedence over the url. A driver with a
+         * range of its own for its connect property is not handed a value beyond it: a bound it
+         * rejects is no bound at all, it is a connect that never happens.
          * Returns whether a read bound outliving the login was set and has to be lifted once the
          * connection is established.
          */
@@ -236,11 +251,11 @@ public class CachedConnection implements Connection {
             final long connectSeconds = maxConnectSeconds > 0
                 ? Math.min(timeoutSeconds, maxConnectSeconds) : timeoutSeconds;
             for (final String property : connectProperties) {
-                if (!declaredInUrl(connectionString, property)) {
+                if (!declared(connectionString, property)) {
                     properties.setProperty(property, Long.toString(connectSeconds * connectUnitsPerSecond));
                 }
             }
-            if (!declaredInUrl(connectionString, readProperties)) {
+            if (!declared(connectionString, readProperties)) {
                 properties.setProperty(readProperties[0], Long.toString(timeoutSeconds * readUnitsPerSecond));
                 return readBoundOutlivesLogin;
             }
@@ -261,14 +276,19 @@ public class CachedConnection implements Connection {
             return false;
         }
 
-        // Whether the connection string sets one of these properties itself. The dialects separate
-        // their parameters differently - "?a=1&b=2" (postgresql, mysql), ";a=1;b=2" (sql server),
-        // "(A=1)" inside the descriptor of an oracle tns url, where the property also goes by the
-        // last segment of its name alone - so a parameter is recognized by the delimiter in front
-        // of it and the "=" behind it rather than by parsing the url syntax of every driver.
-        private boolean declaredInUrl(String connectionString, String... properties) {
+        // Whether the administrator bounded one of these properties themselves. The dialects
+        // separate their parameters differently - "?a=1&b=2" (postgresql, mysql), ";a=1;b=2" (sql
+        // server), "(A=1)" inside the descriptor of an oracle tns url, where the property also goes
+        // by the last segment of its name alone - so a parameter is recognized by the delimiter in
+        // front of it and the "=" behind it rather than by parsing the url syntax of every driver.
+        // The connection string is not the only channel of theirs: the oracle driver reads its
+        // dotted properties out of the system properties as well, which is how a whole jvm is
+        // bounded with -Doracle.jdbc.ReadTimeout, and a property supplied to a driver outranks the
+        // system property without a word - and would then be lifted after the login as if it were
+        // ours, leaving a connection with no read bound where the administrator had set one.
+        private boolean declared(String connectionString, String... properties) {
             for (final String property : properties) {
-                if (containsParameter(connectionString, property)) {
+                if (containsParameter(connectionString, property) || setAsSystemProperty(property)) {
                     return true;
                 }
                 final int dot = property.lastIndexOf('.');
@@ -279,22 +299,56 @@ public class CachedConnection implements Connection {
             return false;
         }
 
-        // Matched the way the driver of this dialect matches it: pgjdbc keeps the name of a url
-        // parameter as it stands and looks its properties up by their exact name, so "?LoginTimeout="
-        // is a parameter of nobody and must not be taken for a bound of the administrator - while
-        // Connector/J (PropertyKey.fromValue), the SQL Server driver (getNormalizedPropertyName)
-        // and the keywords of an oracle descriptor all match without regard to case.
+        // Only a dotted name is looked for: "oracle.jdbc.ReadTimeout" is the name its own driver
+        // reads, while a plain "socketTimeout" is a name common enough to be somebody else's.
+        private static boolean setAsSystemProperty(String property) {
+            return property.indexOf('.') >= 0 && isBound(System.getProperty(property));
+        }
+
+        // Matched the way the driver of this dialect matches it: pgjdbc and Connector/J look their
+        // properties up by their exact name - PropertyKey.fromValue answers null for a name of
+        // another case and the parameter is then a parameter of nobody, so "?SocketTimeout=" must
+        // not be taken for a bound of the administrator - while the SQL Server driver
+        // (getNormalizedPropertyName) and the keywords of an oracle descriptor match either way.
         private boolean containsParameter(String connectionString, String property) {
-            final boolean exact = this == POSTGRES;
+            final boolean exact = this == POSTGRES || this == MYSQL;
             final String url = exact ? connectionString : connectionString.toLowerCase(Locale.ROOT);
             final String name = exact ? property : property.toLowerCase(Locale.ROOT);
             for (int i = url.indexOf(name); i >= 0; i = url.indexOf(name, i + name.length())) {
                 final int end = i + name.length();
-                if (i > 0 && "?&;(,".indexOf(url.charAt(i - 1)) >= 0 && end < url.length() && url.charAt(end) == '=') {
+                if (i > 0 && "?&;(,".indexOf(url.charAt(i - 1)) >= 0 && end < url.length() && url.charAt(end) == '='
+                        && isBound(valueOf(url, end + 1))) {
                     return true;
                 }
             }
             return false;
+        }
+
+        /** The value of the parameter that starts here: up to the delimiter in front of the next one. */
+        private static String valueOf(String url, int from) {
+            int end = from;
+            while (end < url.length() && "&;),?".indexOf(url.charAt(end)) < 0) {
+                end++;
+            }
+            return url.substring(from, end);
+        }
+
+        /**
+         * Whether a value of the administrator bounds anything. Every one of these drivers reads 0
+         * as "wait as long as it takes", so a property set to it is not a bound of theirs to stay
+         * out of the way of - it is the default this class exists to replace, and on postgresql it
+         * is worse than none: loginTimeout alone leaves the login on a daemon thread the driver
+         * abandons at the timeout. A value that is no number is left to the driver it belongs to.
+         */
+        private static boolean isBound(String value) {
+            if (value == null || value.trim().isEmpty()) {
+                return false;
+            }
+            try {
+                return Double.parseDouble(value.trim()) != 0; // pgjdbc takes a float for its loginTimeout
+            } catch (NumberFormatException notANumber) {
+                return true;
+            }
         }
     }
 
@@ -372,15 +426,19 @@ public class CachedConnection implements Connection {
      * own left to run out would overrun it by a full connect timeout. That holds for an attempt
      * the {@value #CONNECT_TIMEOUT_PROPERTY} property gives no bound of its own, too: turning the
      * per-attempt bound off must not turn the bound of the borrow off with it. Never 0 for an
-     * attempt that is bounded at all: 0 is the value that stands for no bound.
+     * attempt that is bounded at all: 0 is the value that stands for no bound. And never past what
+     * an int of milliseconds takes - the pool timeout has no upper bound of its own, while the SQL
+     * Server driver rejects a socketTimeout beyond Integer.MAX_VALUE outright, failing every
+     * connect of that backend with the name of a property nobody typed.
      */
-    private static long attemptSeconds(long connectTimeoutSeconds, long deadline) {
+    static long attemptSeconds(long connectTimeoutSeconds, long deadline) {
         if (deadline == Long.MAX_VALUE) {
             return connectTimeoutSeconds;
         }
         final long remainingSeconds = (deadline - System.currentTimeMillis() + 999) / 1000;
-        return Math.max(1, connectTimeoutSeconds == 0
-            ? remainingSeconds : Math.min(connectTimeoutSeconds, remainingSeconds));
+        final long bound = connectTimeoutSeconds == 0
+            ? remainingSeconds : Math.min(connectTimeoutSeconds, remainingSeconds);
+        return Math.max(1, Math.min(bound, Integer.MAX_VALUE / 1000));
     }
 
     /**
@@ -419,7 +477,9 @@ public class CachedConnection implements Connection {
         boolean usable;
         try {
             usable = con.isValid(VALIDATION_TIMEOUT_SECONDS);
-        } catch (SQLException e) { // a driver reporting the validation as an error: discard it
+        } catch (SQLException | RuntimeException e) { // a driver reporting the validation as an error: discard it
+            // an unchecked failure out of a driver would unwind through poll(), which stands
+            // outside every try of the borrow, and leave this connection dequeued and unclosed
             usable = false;
         }
         if (!usable) {
@@ -562,59 +622,93 @@ public class CachedConnection implements Connection {
         }
     }
 
-    // The connection string carries the credentials of the backend, so it is never logged as it
-    // stands. The credentials in front of an "@" are cut off - "user/password@//host" on an oracle
-    // thin url, the userinfo of a url-shaped one - and so are the parameters behind their first
-    // separator: "?user=...&password=..." on postgresql, mysql and oracle, ";password=..." on sql
-    // server.
+    // The connection string carries the credentials of the backend - JDBCStorage hands the whole
+    // db-directory of the configuration to this class, so the url is the only place they live -
+    // and it is never logged as it stands. Three shapes hold them and all three are taken off: the
+    // "user/password@" in front of an oracle descriptor; the userinfo of an authority, one per
+    // host of it, since a url of Connector/J gives every host credentials of its own
+    // ("//u:p@h1:3306,u2:p2@h2:3306"); and the parameters behind their first separator,
+    // "?user=...&password=..." on postgresql, mysql and oracle, ";password=..." on sql server.
+    // What is left is looked over once more: the key-value host syntax of Connector/J puts a
+    // password inside the authority itself ("//address=(host=h)(user=u)(password=p)"), where
+    // neither of the first two shapes stands, so a "password=" of any case is blanked out wherever
+    // it is left standing.
     //
-    // A password is free to hold either of the two delimiters, so neither of them is looked for in
-    // the whole string. The credentials of an oracle url stand between the subprotocol and the
-    // first "@", which is the delimiter of its descriptor - a password holding an "@" has to be
-    // quoted for the driver itself, and a "?" of one is part of the password rather than the start
-    // of the parameters. Everywhere else they stand inside the authority, between "//" and the
-    // path behind it, so a "?" of a password is inside them and an "@" of a parameter value
-    // ("?user=u@example.com") is not mistaken for the end of them: the host survives in the
-    // message either way.
+    // A password is free to hold either of the delimiters, so neither of them is looked for in the
+    // whole string. The credentials of an oracle url stand between the subprotocol and the first
+    // "@", which is the delimiter of its descriptor, so a "?" of one is part of the password
+    // rather than the start of the parameters. Everywhere else they stand inside the authority,
+    // between "//" and the path behind it, so a "?" of a password is inside them and an "@" of a
+    // parameter value ("?user=u@example.com") is not mistaken for the end of them: the host
+    // survives in the message either way.
+    //
+    // And a url none of this took apart is not logged past its subprotocol. An "@" left standing
+    // anywhere but where the credentials of an oracle url ended is one this did not recognize - a
+    // password holding a "/" inside an authority, a quoted one holding an "@" - and the host of a
+    // stall report is worth less than a password in the server log.
     static String safeUrl(String connectionString) {
         final ConnectDialect dialect = ConnectDialect.of(connectionString);
         final String separators = dialect == null ? "?;" : String.valueOf(dialect.parameterSeparator);
-        final String url = stripCredentials(connectionString, separators);
-        final int cut = indexOfAny(url, separators, 0);
-        return cut < 0 ? url : url.substring(0, cut);
+        final int scheme = connectionString.indexOf(':', "jdbc:".length()) + 1; // the end of "jdbc:<subprotocol>:"
+        if (scheme <= 0) {
+            return CREDENTIALS_HIDDEN;
+        }
+        final String stripped = stripCredentials(connectionString, scheme, separators);
+        final int parameters = indexOfAny(stripped, separators, scheme);
+        final String url = parameters < 0 ? stripped : stripped.substring(0, parameters);
+        final String redacted = SECRET_PARAMETER.matcher(url).replaceAll("$1=***");
+        return redacted.lastIndexOf('@') > scheme ? redacted.substring(0, scheme) + CREDENTIALS_HIDDEN : redacted;
     }
 
-    private static String stripCredentials(String url, String separators) {
-        final int scheme = url.indexOf(':', "jdbc:".length()) + 1; // the end of "jdbc:<subprotocol>:"
-        if (scheme <= 0) {
-            return url;
+    private static String stripCredentials(String url, int scheme, String separators) {
+        final int authority = startOfAuthority(url, scheme);
+        if (authority < 0) {
+            // no authority: the credentials of an oracle url stand between the subprotocol and the
+            // first "@", which is the delimiter of the descriptor behind it - a password holding
+            // an "@" of its own has to be quoted for the driver itself
+            final int at = url.indexOf('@', scheme);
+            return at < 0 ? url : url.substring(0, scheme) + url.substring(at);
         }
-        final boolean authorityShaped = url.startsWith("//", scheme);
-        final int credentials = authorityShaped ? scheme + 2 : scheme;
-        final int at = url.indexOf('@', credentials);
-        if (at < 0 || at >= endOfCredentials(url, credentials, authorityShaped, separators)) {
-            return url;
-        }
-        // the "@" of an oracle url is the delimiter of the descriptor behind it and stays; the one
-        // of an authority separates the userinfo from the host and goes with the userinfo
-        return url.substring(0, credentials) + url.substring(authorityShaped ? at + 1 : at);
+        final int end = endOfAuthority(url, authority, separators);
+        return url.substring(0, authority) + withoutUserinfo(url.substring(authority, end)) + url.substring(end);
     }
 
     /**
-     * Where the credentials of a url of this shape have to end: at the path of an authority - a
-     * password holds a "?" more readily than a "/" - or at the first parameter of a url that has
-     * no path. An oracle url has neither, and its first "@" ends them wherever it stands.
+     * Where the hosts of a url of this shape start, or -1 for a url that names no authority. The
+     * subprotocol is free to name the kind of connection in front of it - "jdbc:mysql:replication://"
+     * - so the "//" is looked for rather than expected right behind the subprotocol. An "@" in
+     * front of it belongs to an oracle url ("jdbc:oracle:thin:user/pw@//host"), whose credentials
+     * stand where an authority has no place for them.
      */
-    private static int endOfCredentials(String url, int credentials, boolean authorityShaped, String separators) {
-        if (!authorityShaped) {
-            return url.length();
-        }
-        final int path = url.indexOf('/', credentials);
+    private static int startOfAuthority(String url, int scheme) {
+        final int slashes = url.indexOf("//", scheme);
+        return slashes < 0 || url.lastIndexOf('@', slashes) >= scheme ? -1 : slashes + 2;
+    }
+
+    /**
+     * Where the hosts of an authority end: at the path behind them - a password holds a "?" more
+     * readily than a "/" - or at the first parameter of a url that has no path.
+     */
+    private static int endOfAuthority(String url, int authority, String separators) {
+        final int path = url.indexOf('/', authority);
         if (path >= 0) {
             return path;
         }
-        final int parameter = indexOfAny(url, separators, credentials);
+        final int parameter = indexOfAny(url, separators, authority);
         return parameter < 0 ? url.length() : parameter;
+    }
+
+    /** The hosts of an authority, each of them without the credentials a url may give it. */
+    private static String withoutUserinfo(String authority) {
+        final StringBuilder hosts = new StringBuilder();
+        for (final String host : authority.split(",", -1)) {
+            if (hosts.length() > 0) {
+                hosts.append(',');
+            }
+            final int at = host.lastIndexOf('@');
+            hosts.append(at < 0 ? host : host.substring(at + 1));
+        }
+        return hosts.toString();
     }
 
     private static int indexOfAny(String url, String separators, int from) {
