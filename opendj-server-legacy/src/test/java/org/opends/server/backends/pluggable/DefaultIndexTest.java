@@ -126,7 +126,8 @@ public class DefaultIndexTest extends DirectoryServerTestCase
         cryptoSuite);
   }
 
-  static final class DummyWriteableTransaction implements WriteableTransaction {
+  /** Not final: a test that needs a storage to fail, or to behave as one engine does, subclasses it. */
+  static class DummyWriteableTransaction implements WriteableTransaction {
 
     private final Map<TreeName, TreeMap<ByteString, ByteString>> storage = new HashMap<>();
 

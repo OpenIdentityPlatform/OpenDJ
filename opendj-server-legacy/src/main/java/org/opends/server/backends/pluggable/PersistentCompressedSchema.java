@@ -89,6 +89,9 @@ final class PersistentCompressedSchema extends CompressedSchema
   /** The storage in which the trees are held. */
   private final Storage storage;
 
+  /** How many definitions the migration copied, reported by {@link #reportMigration()} once committed. */
+  private long migratedDefinitions;
+
   private final ByteStringBuilder storeAttributeWriterBuffer = new ByteStringBuilder();
   private final ASN1Writer storeAttributeWriter = ASN1.getWriter(storeAttributeWriterBuffer);
   private final ByteStringBuilder storeObjectClassesWriterBuffer = new ByteStringBuilder();
@@ -127,10 +130,22 @@ final class PersistentCompressedSchema extends CompressedSchema
   }
 
   /**
-   * Qualifies the legacy prefix with the backend id. {@link TreeName} splits its string form on
-   * '/' and states that no component may contain one, and nothing rules a '/' out of a backend id
-   * - ds-cfg-backend-id is a plain string - so it is escaped rather than passed through. The
-   * escape is reversible, so two distinct backend ids can never produce one prefix.
+   * Qualifies the legacy prefix with the backend id. {@link TreeName} documents that it assumes no
+   * name component contains a '/', and {@code TreeName.valueOf} splits the string form at the last
+   * one, so a prefix carrying a '/' would come back as a different name than it went in as.
+   * Nothing rules a '/' out of a backend id - ds-cfg-backend-id is a plain string - so it is
+   * escaped rather than passed through. The escape is reversible, so two distinct backend ids can
+   * never produce one prefix.
+   * <p>
+   * The qualifier is the backend id rather than a base DN because this object is built once per
+   * {@link RootContainer}, before any entry container exists, and a backend holding two base DNs
+   * has no single prefix to borrow. The price is that these two trees, alone among the trees of a
+   * backend, do not follow the entries when a JDBC backend is deleted and re-created under another
+   * id over the same database: every other tree is named from its base DN and is found again,
+   * while these are not, leaving the token allocation to restart at zero over entries encoded with
+   * the definitions of the old id. Changing a backend id over populated storage needs an export
+   * and a re-import - as it always has on Cassandra, where the one table of a backend is named
+   * after the id and the entries do not survive the rename either.
    */
   private static String treePrefix(String backendId)
   {
@@ -204,8 +219,12 @@ final class PersistentCompressedSchema extends CompressedSchema
       else
       {
         // Read-only: nothing may be written, so the legacy definitions are read where they lie.
-        // Loaded first, so that anything this backend has already migrated and since added under
-        // its own prefix wins for the same token.
+        // Loaded first, so that a token this backend has already migrated, and since re-used under
+        // its own prefix, decodes to its own definition. That settles the decode map only:
+        // CompressedSchema.loadAttributeToMaps keys the encode map by attribute description, so a
+        // legacy description displaced from a token stays in it and would encode to a token that
+        // now decodes to another attribute. Harmless only because nothing encodes during a
+        // read-only open - export-ldif and verify-index decode.
         loadTrees(txn, LEGACY_OC_TREE_NAME, LEGACY_AD_TREE_NAME);
       }
     }
@@ -222,7 +241,13 @@ final class PersistentCompressedSchema extends CompressedSchema
    * That invariant holds in one direction only. A version from before the separation resumes
    * writing to the legacy pair, so after a downgrade and a second upgrade the counts can agree
    * while the definitions behind them have diverged, and nothing is migrated. Downgrading across
-   * the separation is not a supported path.
+   * the separation is not a supported path - the legacy trees are left in place so that a backend
+   * still running an earlier version can go on reading them, not so that this one can go back.
+   * <p>
+   * The question is settled again on every open, nothing recording that it has been answered
+   * before: two existence probes, and the record counts only where the legacy trees are still
+   * there. That is what not writing a marker of this backend's own into a database it may be
+   * sharing with another one costs.
    * <p>
    * A backend created after the upgrade on a database that already holds legacy definitions copies
    * them although it has no entries of its own. Deliberate: what it inherits is a consistent
@@ -246,11 +271,25 @@ final class PersistentCompressedSchema extends CompressedSchema
 
   private void migrateLegacyDefinitions(WriteableTransaction txn) throws InitializationException
   {
+    migratedDefinitions = migrateTree(txn, LEGACY_AD_TREE_NAME, adTreeName)
+        + migrateTree(txn, LEGACY_OC_TREE_NAME, ocTreeName);
+  }
+
+  private long migrateTree(WriteableTransaction txn, TreeName from, TreeName to) throws InitializationException
+  {
     try
     {
-      final long copied = copyMissingRecords(txn, LEGACY_AD_TREE_NAME, adTreeName)
-          + copyMissingRecords(txn, LEGACY_OC_TREE_NAME, ocTreeName);
-      logger.info(NOTE_COMPSCHEMA_MIGRATED, copied, backendId, LEGACY_TREE_PREFIX, adTreeName.getBaseDN());
+      return copyMissingRecords(txn, from, to);
+    }
+    catch (final StorageRuntimeException e)
+    {
+      // Left with the type the storage gave it. The migration runs inside the WriteOperation of
+      // RootContainer.open(), and PDBStorage.write() decides by type what to do with what leaves
+      // it: a transaction conflict reaches its retry as a RollbackException only, so wrapping it
+      // here would turn a conflict that used to be replayed into a permanent failure of the open.
+      // Nothing is lost - a storage failure that is not a conflict still fails the open, through
+      // ERR_OPEN_ENV_FAIL, and leaves the trees as they were, since the transaction rolls back.
+      throw e;
     }
     catch (final Exception e)
     {
@@ -258,15 +297,33 @@ final class PersistentCompressedSchema extends CompressedSchema
       // Deliberately fatal to the open. Loading no definitions at all would restart token
       // allocation from zero and decode every entry written so far as the wrong attributes,
       // without reporting anything.
-      throw new InitializationException(ERR_COMPSCHEMA_CANNOT_MIGRATE.get(
-          backendId, LEGACY_TREE_PREFIX, adTreeName.getBaseDN(), stackTraceToSingleLineString(e)), e);
+      throw new InitializationException(
+          ERR_COMPSCHEMA_CANNOT_MIGRATE.get(backendId, from, to, stackTraceToSingleLineString(e)), e);
+    }
+  }
+
+  /**
+   * Reports a migration that has been committed, and reports nothing where none was needed.
+   * <p>
+   * Called by {@link RootContainer#open} once the transaction the migration ran in has committed,
+   * and only then: a copy is undone by a rollback - a later failure of the same transaction, or a
+   * conflict PersistIt replays - and this line is the only evidence the migration path emits, so
+   * one standing for a copy that was rolled back, or repeated once per replay, would be worse than
+   * none at all.
+   */
+  void reportMigration()
+  {
+    if (migratedDefinitions > 0)
+    {
+      logger.info(NOTE_COMPSCHEMA_MIGRATED, migratedDefinitions, backendId,
+          LEGACY_AD_TREE_NAME, LEGACY_OC_TREE_NAME, adTreeName, ocTreeName);
     }
   }
 
   /**
    * Copies the records of {@code from} that {@code to} does not already hold, and returns how many
    * were copied. The legacy tree is left in place: on a shared database it may still be the only
-   * copy another backend has, and leaving it is what makes a downgrade possible.
+   * copy a backend that has not been upgraded yet has.
    * <p>
    * A key already present in {@code to} is never overwritten, which is what makes this safe to
    * re-run after an interrupted migration and safe against a legacy tree that a backend of an

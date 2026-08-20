@@ -183,7 +183,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * Which of the two a statement takes therefore says who owns the tree it names: a path that
 	 * creates or writes one - openTree(), clearTree(), deleteTree(), put(), update(), delete() -
 	 * takes the enrolling {@link #getTableName(TreeName)}, and a read-only path - read(),
-	 * getRecordCount(), isExistsTable() and the cursor - takes this one. Every tree this backend
+	 * getRecordCount(), isExistsTable() and the cursor - takes {@link #readTableName(TreeName)},
+	 * which computes this only for a tree that is not enrolled already. Every tree this backend
 	 * owns passes through openTree(name, true) as it is opened, so listTrees() still names the
 	 * complete owned set.
 	 */
@@ -205,6 +206,22 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 	String getTableName(TreeName treeName) {
 		return tree2table.get(treeName);
+	}
+
+	/**
+	 * The table a tree name maps to, for a statement that only reads it. Answered from the memo of
+	 * {@link #getTableName(TreeName)} where the tree is in it, and computed without being put there
+	 * otherwise.
+	 * <p>
+	 * Every tree this backend owns is enrolled as it is opened, so the per-entry read path stays a
+	 * map lookup: {@link #toTableName(TreeName)} takes a JCA provider lookup and a digest per call,
+	 * which read() would otherwise pay for every entry of every search. Only a tree this backend
+	 * does not own - the shared compressed schema tree the migration of #873 reads - is computed,
+	 * twice per open of the backend.
+	 */
+	String readTableName(TreeName treeName) {
+		final String enrolled=tree2table.getIfPresent(treeName);
+		return enrolled!=null ? enrolled : toTableName(treeName);
 	}
 
 	/**
@@ -1035,7 +1052,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
-			try (final PreparedStatement statement=con.prepareStatement("select v from "+toTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
+			try (final PreparedStatement statement=con.prepareStatement("select v from "+readTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
 				try(ResultSet rc=executeResultSet(statement)) {
@@ -1053,7 +1070,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public long getRecordCount(TreeName treeName) {
-			try (final PreparedStatement statement=con.prepareStatement("select count(*) from "+toTableName(treeName));
+			try (final PreparedStatement statement=con.prepareStatement("select count(*) from "+readTableName(treeName));
 				 final ResultSet rc=executeResultSet(statement)){
 				return rc.next() ? rc.getLong(1) : 0;
 			}catch (SQLException e) {
@@ -1066,11 +1083,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			return isExistsTable(treeName);
 		}
 
-		// Readable, not writeable: a read-only open has to be able to tell a tree that was never
-		// written from one it may not read, since every other statement here fails outright on a
-		// table that does not exist.
+		// Readable, not writeable: the caller that asks about a tree this backend does not own is
+		// the compressed schema migration (#873), which probes the shared tree from the writeable
+		// transaction of RootContainer.open() but must not create or enrol it. Answering that from
+		// the readable transaction keeps the probe available to every reader, and costs nothing:
+		// the writeable one inherits it.
 		boolean isExistsTable(TreeName treeName) {
-			final String tableName = toTableName(treeName);
+			final String tableName = readTableName(treeName);
 			try {
 				final DatabaseMetaData metaData = con.getMetaData();
 				// asked of the catalog by name: openTree(createOnDemand) calls this for every tree
@@ -1338,7 +1357,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// repositioning transfer "fetchsize" rows over the network (#860).
 	final class CursorImpl implements Cursor<ByteString, ByteString> {
 		final Connection con;
+		final TreeName treeName;
 		final String tableName;
+		// the enrolling name, resolved once and only if this cursor ever deletes
+		String writeTableName;
 		final boolean isReadOnly;
 		final int batchSize=Math.max(1,Integer.getInteger("org.openidentityplatform.opendj.jdbc.fetchsize",1000));
 		final int initialBatchSize=Math.min(batchSize,Math.max(1,Integer.getInteger("org.openidentityplatform.opendj.jdbc.fetchsize.initial",32)));
@@ -1355,7 +1377,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		public CursorImpl(boolean isReadOnly, Connection con, TreeName treeName) {
 			this.isReadOnly=isReadOnly;
 			this.con=con;
-			this.tableName=toTableName(treeName);
+			this.treeName=treeName;
+			// the read statements below take the non-enrolling name: a cursor is how the migration
+			// of #873 reads the shared tree, and reading a tree must not put it up for removal
+			this.tableName=readTableName(treeName);
 			this.limitClause=((CachedConnection)con).parent.getClass().getName().contains("mysql")
 				? " limit ?,?" : " offset ? rows fetch next ? rows only";
 		}
@@ -1436,7 +1461,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (isReadOnly) {
 				throw new UnsupportedOperationException();
 			}
-			try (final PreparedStatement statement=con.prepareStatement("delete from "+tableName+" where h="+hashParam(con)+" and k=?")){
+			if (writeTableName==null) {
+				// the enrolling name, unlike the read statements above: this writes to the tree, so
+				// it is one this backend owns, and removeStorageFiles() has to know about it
+				writeTableName=getTableName(treeName);
+			}
+			try (final PreparedStatement statement=con.prepareStatement("delete from "+writeTableName+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(db2real(currentKeyDb))));
 				statement.setBytes(2,currentKeyDb);
 				execute(statement);

@@ -141,6 +141,9 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
           openAndRegisterEntryContainers(txn, config.getBaseDN(), accessMode);
         }
       });
+      // after the write, never inside it: a compressed schema migration is only worth reporting
+      // once the transaction that copied it has committed, and a replayed operation runs twice
+      compressedSchema.reportMigration();
     }
     catch(StorageRuntimeException e)
     {

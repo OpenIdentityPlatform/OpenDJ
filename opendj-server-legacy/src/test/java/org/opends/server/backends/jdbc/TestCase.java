@@ -379,6 +379,57 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		}
 	}
 
+	/**
+	 * The other side of the same rule: a cursor reads through the non-enrolling name, but deleting
+	 * through one writes to the tree, so it is a tree this backend owns and removeStorageFiles()
+	 * has to be able to name it.
+	 */
+	@Test
+	public void testDeletingThroughACursorPutsTheTreeUpForRemoval() throws Exception {
+		final TreeName tree = new TreeName("testCursorDelete", "tree");
+		final JDBCStorage owner = new JDBCStorage(createBackendCfg(), null);
+		owner.open(AccessMode.READ_WRITE);
+		owner.write(new WriteOperation() {
+			@Override
+			public void run(WriteableTransaction txn) throws Exception {
+				txn.openTree(tree, true);
+				txn.put(tree, key(1), value(1));
+			}
+		});
+		owner.close();
+
+		// a storage that never opened that tree, so nothing but the delete can enrol it
+		final JDBCStorage other = new JDBCStorage(createBackendCfg(), null);
+		try {
+			other.open(AccessMode.READ_WRITE);
+			other.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(tree)) {
+						assertTrue(cursor.next());
+						cursor.delete();
+					}
+				}
+			});
+			assertTrue(other.listTrees().contains(tree), "a tree written through a cursor must be listed for removal");
+		} finally {
+			other.close();
+			final JDBCStorage cleanup = new JDBCStorage(createBackendCfg(), null);
+			try {
+				cleanup.open(AccessMode.READ_WRITE);
+				cleanup.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {
+			} finally {
+				cleanup.close();
+			}
+		}
+	}
+
 	private static boolean isExistingTable(Connection con, String tableName) throws SQLException {
 		try (final ResultSet rs = con.getMetaData().getTables(null, null, null, new String[]{"TABLE"})) {
 			while (rs.next()) {
