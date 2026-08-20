@@ -37,7 +37,12 @@ public class CachedConnection implements Connection {
     static final String TTL_PROPERTY = "org.openidentityplatform.opendj.jdbc.ttl";
     static final long DEFAULT_TTL_MS = 15000;
 
-    /** Bounds the connect and the login of one attempt to establish a connection, in seconds; 0 for no bound. */
+    /**
+     * Bounds the connect and the login of one attempt to establish a connection, in seconds; 0 for
+     * no bound of its own - the deadline of {@value #POOL_TIMEOUT_PROPERTY} still bounds the
+     * attempt, since it stands for the whole borrow. Setting both to 0 is what leaves a connect
+     * unbounded.
+     */
     static final String CONNECT_TIMEOUT_PROPERTY = "org.openidentityplatform.opendj.jdbc.connect.timeout";
     static final long DEFAULT_CONNECT_TIMEOUT_SECONDS = 30;
 
@@ -121,24 +126,36 @@ public class CachedConnection implements Connection {
      * them bounds the attempt with a single property: the one named first covers the socket
      * connect, and the login behind it - the reads of the prelogin handshake, of TLS and of
      * authentication, the phase a proxy at its connection limit or a moved VIP leaves unanswered -
-     * needs the second. That holds for the SQL Server driver too, whose loginTimeout leaves the
-     * read of the prelogin answer unbounded (CachedConnectionTestCase covers every one of them
-     * against a socket that never answers).
+     * needs the read bound behind it. That holds for the SQL Server driver too, whose loginTimeout
+     * leaves the read of the prelogin answer unbounded - and for pgjdbc, whose loginTimeout is not
+     * a bound of the socket at all: Driver.connect hands the login to a daemon thread of its own
+     * and abandons it at the timeout, so an unbounded read there leaks a thread and a socket per
+     * borrow instead of failing one (CachedConnectionTestCase covers every one of them against a
+     * socket that never answers).
      */
     enum ConnectDialect {
-        /** postgresql: both properties take seconds; loginTimeout bounds the login the driver runs on a thread of its own. */
+        /**
+         * postgresql: every property of the three takes seconds. connectTimeout covers the socket
+         * connect and socketTimeout the reads of the login: pgjdbc puts an SO_TIMEOUT on the login
+         * socket only where socketTimeout is set (ConnectionFactoryImpl.openConnectionImpl, both
+         * before and after enableSSL), and it defaults to none. loginTimeout is kept on top of the
+         * two for a url naming more than one host, where each of them costs a connect and a login
+         * of its own - but it is not a bound this class could rely on alone: Driver.connect runs
+         * the login on a daemon thread, gives up on the thread rather than on the login, and the
+         * thread stays parked in the read for as long as the read lasts.
+         */
         POSTGRES("jdbc:postgresql:", '?',
-            "connectTimeout", 1, 0,
-            new String[]{"loginTimeout"}, 1, false,
+            new String[]{"connectTimeout", "loginTimeout"}, 1, 0,
+            new String[]{"socketTimeout"}, 1, true,
             new int[]{}, new int[]{}),
         /** mysql: both properties take milliseconds; socketTimeout is a socket read timeout that outlives the login. */
         MYSQL("jdbc:mysql:", '?',
-            "connectTimeout", 1000, 0,
+            new String[]{"connectTimeout"}, 1000, 0,
             new String[]{"socketTimeout"}, 1000, true,
             new int[]{1040, 1203}, new int[]{1053}),
         /** oracle: both properties take milliseconds; ReadTimeout is a socket read timeout that outlives the login. */
         ORACLE("jdbc:oracle:", '?',
-            "oracle.net.CONNECT_TIMEOUT", 1000, 0,
+            new String[]{"oracle.net.CONNECT_TIMEOUT"}, 1000, 0,
             // the read bound goes by three names: the property set here, the property of oracle
             // net it stands for, and RECV_TIMEOUT inside a tns descriptor. A bound under any of
             // them is a bound of the administrator, so ours is not set on top of it - and none of
@@ -155,7 +172,7 @@ public class CachedConnection implements Connection {
          * against [0, 65535], and a value beyond it fails every connect the driver is asked for.
          */
         MICROSOFT("jdbc:sqlserver:", ';',
-            "loginTimeout", 1, 65535,
+            new String[]{"loginTimeout"}, 1, 65535,
             new String[]{"socketTimeout"}, 1000, true,
             // 921 and 922: the database has not been recovered yet, or is being recovered; 927: it
             // is in the middle of a restore; 40613: azure sql reporting it not available for now
@@ -164,9 +181,10 @@ public class CachedConnection implements Connection {
         final String urlPrefix;
         /** the character that separates the parameters of this dialect from the url in front of them */
         final char parameterSeparator;
-        final String connectProperty;
+        /** the properties bounding the connect: the socket connect, and whatever the driver wraps it in */
+        final String[] connectProperties;
         final int connectUnitsPerSecond;
-        /** the largest value the driver accepts for its connect property, 0 for a driver that takes any */
+        /** the largest value the driver accepts for a connect property, 0 for a driver that takes any */
         final long maxConnectSeconds;
         /** the read bound of the login: the first name is the one set here, the rest are the names it also goes by */
         final String[] readProperties;
@@ -179,12 +197,12 @@ public class CachedConnection implements Connection {
         final int[] notAcceptingYetCodes;
 
         ConnectDialect(String urlPrefix, char parameterSeparator,
-                       String connectProperty, int connectUnitsPerSecond, long maxConnectSeconds,
+                       String[] connectProperties, int connectUnitsPerSecond, long maxConnectSeconds,
                        String[] readProperties, int readUnitsPerSecond, boolean readBoundOutlivesLogin,
                        int[] connectionLimitCodes, int[] notAcceptingYetCodes) {
             this.urlPrefix = urlPrefix;
             this.parameterSeparator = parameterSeparator;
-            this.connectProperty = connectProperty;
+            this.connectProperties = connectProperties;
             this.connectUnitsPerSecond = connectUnitsPerSecond;
             this.maxConnectSeconds = maxConnectSeconds;
             this.readProperties = readProperties;
@@ -215,10 +233,12 @@ public class CachedConnection implements Connection {
          * connection is established.
          */
         boolean bound(String connectionString, Properties properties, long timeoutSeconds) {
-            if (!declaredInUrl(connectionString, connectProperty)) {
-                final long connectSeconds = maxConnectSeconds > 0
-                    ? Math.min(timeoutSeconds, maxConnectSeconds) : timeoutSeconds;
-                properties.setProperty(connectProperty, Long.toString(connectSeconds * connectUnitsPerSecond));
+            final long connectSeconds = maxConnectSeconds > 0
+                ? Math.min(timeoutSeconds, maxConnectSeconds) : timeoutSeconds;
+            for (final String property : connectProperties) {
+                if (!declaredInUrl(connectionString, property)) {
+                    properties.setProperty(property, Long.toString(connectSeconds * connectUnitsPerSecond));
+                }
             }
             if (!declaredInUrl(connectionString, readProperties)) {
                 properties.setProperty(readProperties[0], Long.toString(timeoutSeconds * readUnitsPerSecond));
@@ -279,9 +299,22 @@ public class CachedConnection implements Connection {
     }
 
     final String connectionString;
+    /**
+     * Whether this connection may go back into the pool once it is closed. A connection carrying a
+     * read bound that could not be lifted serves the borrower waiting for it and is closed
+     * afterwards: left in the pool it would fail every statement slower than that bound - an
+     * import batch among them - for every borrow the pool hands it to.
+     */
+    private final boolean poolable;
+
     public CachedConnection(String connectionString, Connection parent) {
+        this(connectionString, parent, true);
+    }
+
+    CachedConnection(String connectionString, Connection parent, boolean poolable) {
         this.connectionString = connectionString;
         this.parent = parent;
+        this.poolable = poolable;
     }
 
     /**
@@ -323,8 +356,8 @@ public class CachedConnection implements Connection {
                 final long remaining = deadline - System.currentTimeMillis();
                 if (remaining <= 0) {
                     throw new SQLTimeoutException("no connection to " + safeUrl(connectionString) + " could be borrowed within "
-                        + poolTimeoutSeconds + "s (" + attempts + " attempts): the database took no further connection"
-                        + " and none was returned to the pool", e);
+                        + poolTimeoutSeconds + "s (" + attempts + " attempts): the database took no connection for the"
+                        + " moment and none was returned to the pool, last error: " + e.getMessage(), e);
                 }
                 backoffMs = Math.min(backoffMs == 0 ? 1 : backoffMs * 2, MAX_BACKOFF_MS);
                 waitMs = Math.min(backoffMs, remaining);
@@ -336,15 +369,18 @@ public class CachedConnection implements Connection {
     /**
      * The bound of one connect attempt. The deadline of the borrow bounds it as well - the
      * {@value #POOL_TIMEOUT_PROPERTY} property stands for the whole borrow, and an attempt of its
-     * own left to run out would overrun it by a full connect timeout. Never 0 for an attempt that
-     * is bounded at all: 0 is the value that stands for no bound.
+     * own left to run out would overrun it by a full connect timeout. That holds for an attempt
+     * the {@value #CONNECT_TIMEOUT_PROPERTY} property gives no bound of its own, too: turning the
+     * per-attempt bound off must not turn the bound of the borrow off with it. Never 0 for an
+     * attempt that is bounded at all: 0 is the value that stands for no bound.
      */
     private static long attemptSeconds(long connectTimeoutSeconds, long deadline) {
-        if (connectTimeoutSeconds == 0 || deadline == Long.MAX_VALUE) {
+        if (deadline == Long.MAX_VALUE) {
             return connectTimeoutSeconds;
         }
         final long remainingSeconds = (deadline - System.currentTimeMillis() + 999) / 1000;
-        return Math.max(1, Math.min(connectTimeoutSeconds, remainingSeconds));
+        return Math.max(1, connectTimeoutSeconds == 0
+            ? remainingSeconds : Math.min(connectTimeoutSeconds, remainingSeconds));
     }
 
     /**
@@ -352,18 +388,21 @@ public class CachedConnection implements Connection {
      * The validation of a connection costs a round trip, and the pool has no upper bound on the
      * number of them it holds, so draining a pool the database no longer answers is given the
      * deadline of the borrow as well: past it, establishing a connection is the faster answer.
+     * The connection in hand is always validated first, whatever the deadline says - a database at
+     * its connection limit has no other source of connections than the ones coming back, and one
+     * returned to the pool a moment before the deadline is the very connection this borrow waited
+     * for. Only a connection the database no longer answers is closed here.
      */
     private static CachedConnection poll(String connectionString, long waitMs, long deadline) throws InterruptedException {
         CachedConnection con = cached.get(connectionString).poll(waitMs, TimeUnit.MILLISECONDS);
         while (con != null) {
-            if (System.currentTimeMillis() >= deadline) {
-                closeQuietly(con.parent);
-                return null;
-            }
             if (isUsable(con)) {
                 return con;
             }
             closeQuietly(con.parent);
+            if (System.currentTimeMillis() >= deadline) {
+                return null;
+            }
             con = cached.get(connectionString).poll();
         }
         return null;
@@ -383,10 +422,17 @@ public class CachedConnection implements Connection {
         } catch (SQLException e) { // a driver reporting the validation as an error: discard it
             usable = false;
         }
+        if (!usable) {
+            // On its way out, and the driver knows it: Connector/J answers a failed validation by
+            // aborting the connection and the SQL Server driver by terminating it, so putting the
+            // previous bound back would fail as well - and warn about a bound of a connection that
+            // is about to be closed, over a reaped idle connection that is nobody's problem.
+            return false;
+        }
         if (restore >= 0 && !setNetworkTimeout(con.parent, restore)) {
             return false; // it would carry the bound of the validation into every statement
         }
-        return usable;
+        return true;
     }
 
     /**
@@ -409,25 +455,29 @@ public class CachedConnection implements Connection {
         }
     }
 
-    private static CachedConnection connect(String connectionString, ConnectDialect dialect, long connectTimeoutSeconds)
+    static CachedConnection connect(String connectionString, ConnectDialect dialect, long connectTimeoutSeconds)
             throws SQLException {
         // A driver is free to write into the map it is handed, so it gets one of its own.
         final Properties properties = new Properties();
         final boolean readBoundSet = dialect != null && connectTimeoutSeconds > 0
             && dialect.bound(connectionString, properties, connectTimeoutSeconds);
         final Connection conNew = DriverManager.getConnection(connectionString, properties);
+        boolean poolable = true;
         try {
             // still under the read bound: both of these are round trips of their own
             conNew.setAutoCommit(false);
             conNew.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
             if (readBoundSet) {
-                relaxReadBound(conNew);
+                // a driver that will not take the bound back has warned about it already: the
+                // connection serves the borrower that is waiting for it and is closed rather than
+                // pooled, so the bound of the login does not outlive it in the pool
+                poolable = relaxReadBound(conNew);
             }
         } catch (SQLException | RuntimeException e) { // nothing holds this connection yet: it would leak
             closeQuietly(conNew);
             throw e;
         }
-        return new CachedConnection(connectionString, conNew);
+        return new CachedConnection(connectionString, conNew, poolable);
     }
 
     // The second bound of the login is a socket read timeout on mysql, oracle and sql server, in
@@ -435,9 +485,10 @@ public class CachedConnection implements Connection {
     // slower than it - an import batch, the statistics of a freshly loaded table - so it is lifted
     // as soon as the login is through, restoring the behaviour of a connection this class
     // established before. A read bound the connection string sets itself is never touched here:
-    // it is not set at all, so nothing of the administrator's is lifted along with it.
-    private static void relaxReadBound(Connection con) {
-        setNetworkTimeout(con, 0);
+    // it is not set at all, so nothing of the administrator's is lifted along with it. Returns
+    // whether the bound is gone - a connection still carrying it must not be pooled.
+    private static boolean relaxReadBound(Connection con) {
+        return setNetworkTimeout(con, 0);
     }
 
     /** Puts a network timeout on a connection, reporting a driver that will not take one. */
@@ -512,35 +563,64 @@ public class CachedConnection implements Connection {
     }
 
     // The connection string carries the credentials of the backend, so it is never logged as it
-    // stands. The credentials of a url that carries them in front of an "@" ("user/password@//host"
-    // on an oracle thin url, the userinfo of a url) are cut off in front of it, leaving the scheme
-    // and the host they stand between; parameters - "?user=...&password=..." on postgresql, mysql
-    // and oracle, ";password=..." on sql server - are cut off behind their first separator.
+    // stands. The credentials in front of an "@" are cut off - "user/password@//host" on an oracle
+    // thin url, the userinfo of a url-shaped one - and so are the parameters behind their first
+    // separator: "?user=...&password=..." on postgresql, mysql and oracle, ";password=..." on sql
+    // server.
     //
-    // The order of the two is what a password holding a separator of another dialect turns on: the
-    // ";" of "scott/pa;ss@//host" is a separator on sql server and nothing on oracle, so the
-    // separator is taken from the dialect of the url, and the userinfo goes first where it stands
-    // in front of the parameters.
+    // A password is free to hold either of the two delimiters, so neither of them is looked for in
+    // the whole string. The credentials of an oracle url stand between the subprotocol and the
+    // first "@", which is the delimiter of its descriptor - a password holding an "@" has to be
+    // quoted for the driver itself, and a "?" of one is part of the password rather than the start
+    // of the parameters. Everywhere else they stand inside the authority, between "//" and the
+    // path behind it, so a "?" of a password is inside them and an "@" of a parameter value
+    // ("?user=u@example.com") is not mistaken for the end of them: the host survives in the
+    // message either way.
     static String safeUrl(String connectionString) {
         final ConnectDialect dialect = ConnectDialect.of(connectionString);
         final String separators = dialect == null ? "?;" : String.valueOf(dialect.parameterSeparator);
-        String url = connectionString;
-        final int at = url.indexOf('@');
-        final int firstParameter = indexOfAny(url, separators);
-        if (at >= 0 && (firstParameter < 0 || at < firstParameter)) {
-            final int scheme = url.indexOf(':', "jdbc:".length()) + 1; // the end of "jdbc:<subprotocol>:"
-            if (scheme > 0 && scheme < at) {
-                url = url.substring(0, scheme) + url.substring(at);
-            }
-        }
-        final int cut = indexOfAny(url, separators);
+        final String url = stripCredentials(connectionString, separators);
+        final int cut = indexOfAny(url, separators, 0);
         return cut < 0 ? url : url.substring(0, cut);
     }
 
-    private static int indexOfAny(String url, String separators) {
+    private static String stripCredentials(String url, String separators) {
+        final int scheme = url.indexOf(':', "jdbc:".length()) + 1; // the end of "jdbc:<subprotocol>:"
+        if (scheme <= 0) {
+            return url;
+        }
+        final boolean authorityShaped = url.startsWith("//", scheme);
+        final int credentials = authorityShaped ? scheme + 2 : scheme;
+        final int at = url.indexOf('@', credentials);
+        if (at < 0 || at >= endOfCredentials(url, credentials, authorityShaped, separators)) {
+            return url;
+        }
+        // the "@" of an oracle url is the delimiter of the descriptor behind it and stays; the one
+        // of an authority separates the userinfo from the host and goes with the userinfo
+        return url.substring(0, credentials) + url.substring(authorityShaped ? at + 1 : at);
+    }
+
+    /**
+     * Where the credentials of a url of this shape have to end: at the path of an authority - a
+     * password holds a "?" more readily than a "/" - or at the first parameter of a url that has
+     * no path. An oracle url has neither, and its first "@" ends them wherever it stands.
+     */
+    private static int endOfCredentials(String url, int credentials, boolean authorityShaped, String separators) {
+        if (!authorityShaped) {
+            return url.length();
+        }
+        final int path = url.indexOf('/', credentials);
+        if (path >= 0) {
+            return path;
+        }
+        final int parameter = indexOfAny(url, separators, credentials);
+        return parameter < 0 ? url.length() : parameter;
+    }
+
+    private static int indexOfAny(String url, String separators, int from) {
         int found = -1;
         for (int i = 0; i < separators.length(); i++) {
-            final int at = url.indexOf(separators.charAt(i));
+            final int at = url.indexOf(separators.charAt(i), from);
             if (at >= 0 && (found < 0 || at < found)) {
                 found = at;
             }
@@ -605,6 +685,10 @@ public class CachedConnection implements Connection {
             // and must not be dropped on the floor either: nothing else holds it any more.
             closeQuietly(parent);
             throw e;
+        }
+        if (!poolable) {
+            closeQuietly(parent);
+            return;
         }
         cached.get(connectionString).add(this);
     }

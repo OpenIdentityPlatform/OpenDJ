@@ -432,10 +432,15 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	/** Both phases are bounded, in the units of the driver: the connect alone leaves the login open. */
 	@Test
 	public void testBothPhasesOfTheLoginAreBounded() throws Exception {
+		// pgjdbc puts an SO_TIMEOUT on the login socket only where socketTimeout is set: without it
+		// loginTimeout bounds the caller alone, and the thread the driver runs the login on stays
+		// parked in the read it abandoned
 		final Properties postgres = new Properties();
-		assertFalse(CachedConnection.ConnectDialect.POSTGRES.bound("jdbc:postgresql://h:5432/db", postgres, 7));
+		assertTrue(CachedConnection.ConnectDialect.POSTGRES.bound("jdbc:postgresql://h:5432/db", postgres, 7),
+			"the read bound of postgresql outlives the login and has to be lifted");
 		assertEquals(postgres.getProperty("connectTimeout"), "7");
-		assertEquals(postgres.getProperty("loginTimeout"), "7");
+		assertEquals(postgres.getProperty("socketTimeout"), "7");
+		assertEquals(postgres.getProperty("loginTimeout"), "7", "the bound of a url naming more than one host");
 
 		final Properties mysql = new Properties();
 		assertTrue(CachedConnection.ConnectDialect.MYSQL.bound("jdbc:mysql://h:3306/db", mysql, 7),
@@ -478,6 +483,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		CachedConnection.ConnectDialect.POSTGRES.bound(
 			"jdbc:postgresql://h:5432/db?user=u&password=p&loginTimeout=30&socketTimeout=300", postgres, 7);
 		assertNull(postgres.getProperty("loginTimeout"), "the setting of the connection string was overridden");
+		assertNull(postgres.getProperty("socketTimeout"), "the setting of the connection string was overridden");
 		assertEquals(postgres.getProperty("connectTimeout"), "7", "the property it leaves open must still be bounded");
 
 		// the sql server driver gives a supplied property precedence over the one of the url
@@ -534,7 +540,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertEquals(CachedConnection.safeUrl("jdbc:postgresql://h:5432/db?user=u&password=secret"), "jdbc:postgresql://h:5432/db");
 		assertEquals(CachedConnection.safeUrl("jdbc:sqlserver://h:1433;databaseName=db;password=secret"), "jdbc:sqlserver://h:1433");
 		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:scott/secret@//h:1521/svc"), "jdbc:oracle:@//h:1521/svc");
-		assertEquals(CachedConnection.safeUrl("jdbc:mysql://u:secret@h:3306/db"), "jdbc:mysql:@h:3306/db");
+		assertEquals(CachedConnection.safeUrl("jdbc:mysql://u:secret@h:3306/db"), "jdbc:mysql://h:3306/db");
 		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:@//h:1521/svc"), "jdbc:oracle:@//h:1521/svc");
 		// a password holding the parameter separator of another dialect: ";" separates nothing on
 		// an oracle url, so the credentials are cut in front of the "@" rather than inside them
@@ -542,6 +548,147 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		// ... and an "@" that stands inside a parameter is not the end of credentials: the host survives
 		assertEquals(CachedConnection.safeUrl("jdbc:postgresql://h:5432/db?user=u@example.com&password=secret"),
 			"jdbc:postgresql://h:5432/db");
+		// a password holding the parameter separator of its own dialect: on an oracle url the
+		// parameters stand behind the descriptor, so a "?" in front of the "@" is part of the
+		// password and cutting there would leave the start of it in the log
+		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:scott/pa?ss@//h:1521/svc"), "jdbc:oracle:@//h:1521/svc");
+		// the same inside an authority, where the credentials end at the path rather than at a "?"
+		assertEquals(CachedConnection.safeUrl("jdbc:mysql://u:sec?ret@h:3306/db"), "jdbc:mysql://h:3306/db");
+	}
+
+	/**
+	 * pgjdbc enforces loginTimeout out of process: Driver.connect hands the login to a daemon
+	 * thread of its own and gives up on the thread rather than on the login. Against the database
+	 * this bound exists for - one that completes the handshake and then says nothing - an
+	 * unbounded read there leaves that thread, and the socket it holds, behind on every borrow;
+	 * a few operations a second are enough to run the server out of threads and file descriptors.
+	 */
+	@Test(timeOut = 300000)
+	public void testTheLoginThreadOfPostgresDoesNotOutliveTheBorrow() throws Exception {
+		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, Long.toString(BOUND_SECONDS));
+		try (final ServerSocket blackhole = new ServerSocket(0, 50, InetAddress.getLoopbackAddress())) {
+			final String url = "jdbc:postgresql://127.0.0.1:" + blackhole.getLocalPort() + "/opendj?user=opendj&password=opendj";
+			try {
+				CachedConnection.getConnection(url);
+				fail("a database that never answers must not hand out a connection");
+			} catch (SQLException expected) {
+				// reported to the caller, as the bound of the attempt promises
+			}
+			final long giveUpAt = System.currentTimeMillis() + BOUND_SECONDS * 1000 + BOUND_MARGIN_MS;
+			while (loginThreadsOfPostgres() > 0 && System.currentTimeMillis() < giveUpAt) {
+				Thread.sleep(100);
+			}
+			assertEquals(loginThreadsOfPostgres(), 0,
+				"the login thread pgjdbc abandoned outlived the borrow: the read of the login is not bounded");
+		}
+	}
+
+	private static int loginThreadsOfPostgres() {
+		int alive = 0;
+		for (final Thread thread : Thread.getAllStackTraces().keySet()) {
+			if (thread.isAlive() && thread.getName().startsWith("PostgreSQL JDBC driver connection thread")) {
+				alive++;
+			}
+		}
+		return alive;
+	}
+
+	/**
+	 * The deadline of the borrow stands for the whole borrow, so it bounds the attempt inside it
+	 * even where the per-attempt property gives it no bound of its own: turning that property off
+	 * must not turn the bound of the borrow off with it.
+	 */
+	@Test(timeOut = 300000)
+	public void testTheDeadlineBoundsAnAttemptTheConnectPropertyDoesNot() throws Exception {
+		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, "0");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "2");
+		try (final ServerSocket blackhole = new ServerSocket(0, 50, InetAddress.getLoopbackAddress())) {
+			final String url = "jdbc:postgresql://127.0.0.1:" + blackhole.getLocalPort() + "/opendj?user=opendj&password=opendj";
+			final long startedAt = System.currentTimeMillis();
+			try {
+				CachedConnection.getConnection(url);
+				fail("a database that never answers must not hand out a connection");
+			} catch (SQLException expected) {
+				// bounded by what is left of the deadline of the borrow
+			}
+			assertElapsedWithinBound(startedAt, 2000);
+		}
+	}
+
+	/**
+	 * The deadline stops the drain of the pool; it does not throw away the connection in hand. A
+	 * database at its connection limit has no other source of connections than the ones coming
+	 * back to the pool, and closing one unvalidated takes it out of that source for good - while
+	 * the borrow that closed it fails with a timeout anyway.
+	 */
+	@Test(timeOut = 120000)
+	public void testAPooledConnectionIsNotDiscardedUnvalidatedAtTheDeadline() throws Exception {
+		final String url = StubDriver.PREFIX + "unvalidated-at-deadline";
+		final Connection stale = mock(Connection.class);
+		when(stale.isValid(anyInt())).thenAnswer(invocation -> {
+			Thread.sleep(1500); // a database that no longer answers: the validation waits out its bound
+			return false;
+		});
+		final Connection good = mock(Connection.class);
+		when(good.isValid(anyInt())).thenReturn(true);
+		CachedConnection.cached.get(url).add(new CachedConnection(url, stale));
+		CachedConnection.cached.get(url).add(new CachedConnection(url, good));
+		final Connection fresh = mock(Connection.class);
+		stub.answerWith(fresh);
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "1");
+
+		final Connection borrowed = CachedConnection.getConnection(url);
+
+		assertSame(((CachedConnection) borrowed).parent, fresh, "the drain must stop at the deadline");
+		verify(stale).close();
+		verify(good, never()).close();
+		assertFalse(CachedConnection.cached.get(url).isEmpty(), "a connection the deadline was reached in front of was lost");
+	}
+
+	/**
+	 * A connection the validation of which failed is on its way out, and its driver knows it:
+	 * Connector/J answers a failed validation by aborting the connection and the SQL Server driver
+	 * by terminating it. Putting the previous bound back on it fails, and warns about statements
+	 * of a connection that is being closed - over an idle connection the server reaped, which is
+	 * nobody's problem.
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectionOnItsWayOutIsNotGivenItsBoundBack() throws Exception {
+		final String url = StubDriver.PREFIX + "reaped-idle";
+		final Connection reaped = mock(Connection.class);
+		when(reaped.getNetworkTimeout()).thenReturn(0);
+		when(reaped.isValid(anyInt())).thenReturn(false);
+		CachedConnection.cached.get(url).add(new CachedConnection(url, reaped));
+		final Connection fresh = mock(Connection.class);
+		stub.answerWith(fresh);
+
+		assertSame(((CachedConnection) CachedConnection.getConnection(url)).parent, fresh);
+
+		verify(reaped).setNetworkTimeout(any(Executor.class), eq(CachedConnection.VALIDATION_TIMEOUT_SECONDS * 1000));
+		verify(reaped, never()).setNetworkTimeout(any(Executor.class), eq(0));
+		verify(reaped).close();
+	}
+
+	/**
+	 * The read bound of the login is lifted once the login is through, because left in place it
+	 * fails every statement slower than it. A driver that will not take it back leaves a
+	 * connection that must not be pooled: it would carry that bound into every borrow the pool
+	 * hands it to, an import batch among them.
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectionStillCarryingTheBoundOfItsLoginIsNotPooled() throws Exception {
+		final String url = StubDriver.PREFIX + "unliftable-bound";
+		final Connection parent = mock(Connection.class);
+		doThrow(new SQLException("setNetworkTimeout is not supported"))
+			.when(parent).setNetworkTimeout(any(Executor.class), eq(0));
+		stub.answerWith(parent);
+
+		final CachedConnection borrowed = CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 30);
+		borrowed.close();
+
+		verify(parent).close();
+		assertTrue(CachedConnection.cached.get(url).isEmpty(),
+			"a connection still carrying the read bound of its login went back into the pool");
 	}
 
 	private static SQLException tooManyConnections() {
