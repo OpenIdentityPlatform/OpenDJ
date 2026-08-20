@@ -175,10 +175,17 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		.build(JDBCStorage::toTableName);
 
 	/**
-	 * The table a tree name maps to. A pure function of the name, so that a tree can be asked about
-	 * without being entered into tree2table: treeExists() is asked about trees this backend does not
-	 * own - the compressed schema probes the tree its definitions used to be shared under (#873) -
-	 * and removeStorageFiles() drops every table tree2table names, so a probe must not enrol one.
+	 * The table a tree name maps to. A pure function of the name, so that a tree can be read
+	 * without being entered into tree2table: the compressed schema reads the tree its definitions
+	 * used to be shared under (#873), a tree this backend does not own, and removeStorageFiles()
+	 * drops every table tree2table names.
+	 * <p>
+	 * Which of the two a statement takes therefore says who owns the tree it names: a path that
+	 * creates or writes one - openTree(), clearTree(), deleteTree(), put(), update(), delete() -
+	 * takes the enrolling {@link #getTableName(TreeName)}, and a read-only path - read(),
+	 * getRecordCount(), isExistsTable() and the cursor - takes this one. Every tree this backend
+	 * owns passes through openTree(name, true) as it is opened, so listTrees() still names the
+	 * complete owned set.
 	 */
 	static String toTableName(TreeName treeName) {
 		try {
@@ -1028,7 +1035,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
-			try (final PreparedStatement statement=con.prepareStatement("select v from "+getTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
+			try (final PreparedStatement statement=con.prepareStatement("select v from "+toTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
 				try(ResultSet rc=executeResultSet(statement)) {
@@ -1046,7 +1053,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public long getRecordCount(TreeName treeName) {
-			try (final PreparedStatement statement=con.prepareStatement("select count(*) from "+getTableName(treeName));
+			try (final PreparedStatement statement=con.prepareStatement("select count(*) from "+toTableName(treeName));
 				 final ResultSet rc=executeResultSet(statement)){
 				return rc.next() ? rc.getLong(1) : 0;
 			}catch (SQLException e) {
@@ -1063,8 +1070,6 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// written from one it may not read, since every other statement here fails outright on a
 		// table that does not exist.
 		boolean isExistsTable(TreeName treeName) {
-			// toTableName() rather than getTableName(): asking whether a tree is there must not
-			// enrol it in tree2table, which is what removeStorageFiles() drops.
 			final String tableName = toTableName(treeName);
 			try {
 				final DatabaseMetaData metaData = con.getMetaData();
@@ -1350,7 +1355,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		public CursorImpl(boolean isReadOnly, Connection con, TreeName treeName) {
 			this.isReadOnly=isReadOnly;
 			this.con=con;
-			this.tableName=getTableName(treeName);
+			this.tableName=toTableName(treeName);
 			this.limitClause=((CachedConnection)con).parent.getClass().getName().contains("mysql")
 				? " limit ?,?" : " offset ? rows fetch next ? rows only";
 		}
