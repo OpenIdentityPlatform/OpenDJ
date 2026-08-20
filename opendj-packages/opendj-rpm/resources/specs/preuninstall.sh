@@ -13,28 +13,71 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2013-2015 ForgeRock AS.
+# Portions Copyright 2026 3A Systems, LLC
 
 # =================================
 # RPM Pre Uninstall Script (%preun)
 # =================================
 
-# If the first argument to %preun and %postun is 0, the action is uninstallation.
-# If the first argument to %preun and %postun is 1, the action is an upgrade.
+# $1 is 0 for an uninstallation and 1 for an upgrade.
 
-if [ "$1" == "0" ] ; then
+# The instance root may have been relocated with instance.loc (split layout):
+# resolve it the way the server scripts (_script-util.sh) do. Empty-file reads
+# are tolerated; the result then simply fails the file checks below.
+resolve_instance_root() {
+    INSTANCE_ROOT="%{_prefix}"
+    if [ -f /etc/opendj/instance.loc ] ; then
+        read INSTANCE_ROOT < /etc/opendj/instance.loc || true
+    elif [ -f "%{_prefix}"/instance.loc ] ; then
+        read _loc < "%{_prefix}"/instance.loc || true
+        case "$_loc" in
+            /*) INSTANCE_ROOT=$_loc ;;
+            *)  INSTANCE_ROOT="%{_prefix}"/$_loc ;;
+        esac
+    fi
+}
+
+if [ "$1" = "0" ] ; then
     echo "Pre Uninstall - uninstall"
-    # Unlink the symlink to the process ID.
-    test -h "/var/run/opendj.pid" && unlink /var/run/opendj.pid
-    # Only if the instance has been configured
-    if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ] ; then
-	   "%{_prefix}"/bin/./stop-ds
+    resolve_instance_root
+    # Stop and unregister the service. "disable" only manipulates symlinks, so
+    # it runs without a booted-systemd gate too (chroot/image builds) - or the
+    # wants link would dangle in the resulting image.
+    if command -v systemctl >/dev/null 2>&1 ; then
+        if [ -d /run/systemd/system ] ; then
+            systemctl stop opendj.service >/dev/null 2>&1 || true
+        fi
+        systemctl disable opendj.service >/dev/null 2>&1 || true
     fi
-
+    # Stop a still-running instance directly - keyed on a live PID, so an
+    # instance that was never upgraded is stopped too. Run the tree's own
+    # script as the owner of the server *process*, never as root for a
+    # non-root server.
+    SERVER_PID=$(cat "$INSTANCE_ROOT/logs/server.pid" 2>/dev/null || true)
+    if [ -x "%{_prefix}"/bin/stop-ds ] && [ -n "$SERVER_PID" ] && [ -d "/proc/$SERVER_PID" ] ; then
+        OWNER=$(stat -c '%%U' "/proc/$SERVER_PID" 2>/dev/null || echo root)
+        if [ "$OWNER" != root ] && command -v runuser >/dev/null 2>&1 ; then
+            runuser -u "$OWNER" -- "%{_prefix}"/bin/stop-ds || true
+        else
+            "%{_prefix}"/bin/stop-ds || true
+        fi
+        # The package files must not be deleted under a live JVM: verify the
+        # stop happened (the stop errors above are deliberately swallowed).
+        for _i in 1 2 3 4 5 6 7 8 9 10 ; do
+            [ -d "/proc/$SERVER_PID" ] || break
+            sleep 2
+        done
+        if [ -d "/proc/$SERVER_PID" ] ; then
+            echo "Unable to stop the running OpenDJ server (pid $SERVER_PID); stop it manually and retry." >&2
+            exit 1
+        fi
+    fi
+    # A stale restart flag must not survive into a later re-install.
+    rm -f "$INSTANCE_ROOT/logs/status"
     if [ -e /etc/init.d/opendj ] ; then
-        # Deletes the service.
-        /sbin/chkconfig --del opendj
+        /sbin/chkconfig --del opendj || true
     fi
-else if [ "$1" == "1" ] ; then
-    echo "Pre Uninstall - upgrade uninstall"
-    fi
+    # Clean up the legacy PID symlink created by the SysV init script.
+    [ -h /run/opendj.pid ] && rm -f /run/opendj.pid || true
+    [ -h /var/run/opendj.pid ] && rm -f /var/run/opendj.pid || true
 fi
