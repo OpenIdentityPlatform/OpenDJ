@@ -128,7 +128,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	enum StatementBound {
 		/** one row by primary key, or one batch of a cursor along its index */
 		OPERATION("org.openidentityplatform.opendj.jdbc.query.timeout", 120),
-		/** a whole table at once: count(*), the delete of clearTree, create index, drop table */
+		/**
+		 * a whole table at once: count(*), the delete of clearTree, the scan behind the highest
+		 * entry id, create index, drop table. This class ships <em>unbounded</em>: what such a
+		 * statement legitimately takes follows the size of the backend and the speed of its
+		 * database, neither of which can be guessed here, so the deployment that knows both sets
+		 * the property - until it does, a create index waiting for a metadata lock still waits for
+		 * as long as the engine lets it.
+		 */
 		BULK("org.openidentityplatform.opendj.jdbc.bulk.timeout", 0);
 
 		final String property;
@@ -140,23 +147,45 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 
 		/**
-		 * The bound in seconds, as configured by {@link #property}: 0 - or a negative value, or one
-		 * that is not a number - leaves the statement unbounded, as it was before this bound existed.
+		 * The bound in seconds, as configured by {@link #property}: 0, or a negative value, leaves
+		 * the statement unbounded, as it was before this bound existed, while a value that is not a
+		 * number is ignored in favour of {@link #defaultSeconds} - {@code Integer.getInteger()}
+		 * falls back to its default rather than reading such a value as a zero.
 		 */
 		int seconds() {
 			return Math.max(0, Integer.getInteger(property, defaultSeconds));
 		}
 	}
 
-	ResultSet executeResultSet(PreparedStatement statement) throws SQLException {
-		return executeResultSet(statement, StatementBound.OPERATION);
+	/** What a caller of {@link #executeResultSet} makes of the rows, while the bound is still armed. */
+	interface RowsHandler<T> {
+		T handle(ResultSet rows) throws SQLException;
 	}
 
-	ResultSet executeResultSet(PreparedStatement statement, StatementBound bound) throws SQLException {
+	<T> T executeResultSet(PreparedStatement statement, RowsHandler<T> rows) throws SQLException {
+		return executeResultSet(statement, StatementBound.OPERATION, rows);
+	}
+
+	/**
+	 * Runs a query under the bound of its class and hands the rows to {@code rows} while that bound
+	 * is still armed. They are read there rather than after this method returns because a driver
+	 * transfers them as they are asked for: read outside, the transfer - up to a whole batch of a
+	 * cursor - would run with neither layer of the bound covering it, which is exactly where a
+	 * database that stops answering mid-drain parks the worker thread. {@code setQueryTimeout}
+	 * covering {@code ResultSet.next()} is optional in the JDBC contract ("drivers <em>may</em>
+	 * also apply this limit"), and the two drivers of this backend that do not buffer a result
+	 * whole - oracle prefetches ten rows at a time, mssql buffers adaptively - are the ones that
+	 * do not.
+	 */
+	<T> T executeResultSet(PreparedStatement statement, StatementBound bound, RowsHandler<T> rows) throws SQLException {
 		if (logger.isTraceEnabled()) {
 			logger.trace(LocalizableMessage.raw("jdbc: %s",statement));
 		}
-		return bounded(statement, bound, statement::executeQuery);
+		return bounded(statement, bound, () -> {
+			try (final ResultSet rs=statement.executeQuery()) {
+				return rows.handle(rs);
+			}
+		});
 	}
 
 	int execute(PreparedStatement statement) throws SQLException {
@@ -170,7 +199,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		return bounded(statement, bound, statement::executeUpdate);
 	}
 
-	private interface Execution<T> {
+	interface Execution<T> {
 		T run() throws SQLException;
 	}
 
@@ -193,15 +222,59 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		if (seconds <= 0) { // unbounded, exactly as this backend ran before the bound existed
 			return execution.run();
 		}
-		statement.setQueryTimeout(seconds);
-		final long startedAt=System.currentTimeMillis();
-		final int backstop=armBackstop(statement, seconds);
+		setQueryTimeout(statement, seconds);
+		return bounded(connectionOf(statement), bound, seconds, execution);
+	}
+
+	/**
+	 * Runs the catalog lookups of {@code openTree()} under the bound of their class. They ask
+	 * {@code DatabaseMetaData}, which takes no query timeout, so the socket read timeout behind the
+	 * cancel is the only layer they can be given - and they do need one: they run once per tree on
+	 * every open of a backend, and the catalog is answered by the same engine, behind the same
+	 * locks, as the {@code create table} they guard.
+	 */
+	<T> T bounded(Connection con, StatementBound bound, Execution<T> execution) throws SQLException {
+		final int seconds=bound.seconds();
+		if (seconds <= 0) {
+			return execution.run();
+		}
+		return bounded(con, bound, seconds, execution);
+	}
+
+	private <T> T bounded(Connection con, StatementBound bound, int seconds, Execution<T> execution) throws SQLException {
+		final long startedAt=System.nanoTime();
+		final int backstop=armBackstop(con, seconds);
 		try {
 			return execution.run();
 		}catch (SQLException e) {
 			throw timedOut(e, bound, seconds, startedAt);
 		}finally {
-			releaseBackstop(statement, backstop);
+			releaseBackstop(con, backstop);
+		}
+	}
+
+	/**
+	 * Asks the driver to cancel the statement at the bound. Not every driver has one: the JDBC
+	 * contract allows {@code SQLFeatureNotSupportedException} and this backend takes whatever URL a
+	 * deployment configures, so a driver without it degrades to the socket read timeout behind it
+	 * rather than failing every statement it is given.
+	 */
+	private void setQueryTimeout(PreparedStatement statement, int seconds) {
+		try {
+			statement.setQueryTimeout(seconds);
+		}catch (SQLException | RuntimeException e) {
+			if (queryTimeoutWarned.compareAndSet(false, true)) {
+				logger.warn(LocalizableMessage.raw("jdbc: the driver would not take a query timeout (%s): a statement of this"
+					+ " backend is left to the socket read timeout behind it", e.getMessage()));
+			}
+		}
+	}
+
+	private Connection connectionOf(PreparedStatement statement) {
+		try {
+			return statement.getConnection();
+		}catch (SQLException | RuntimeException e) {
+			return null; // nothing to arm the backstop on; the cancel above is the whole bound
 		}
 	}
 
@@ -212,7 +285,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// backend only set a socket option in it, so it costs a call rather than a thread.
 	private static final Executor DIRECT_EXECUTOR = Runnable::run;
 
-	private static final AtomicBoolean backstopWarned = new AtomicBoolean();
+	// per storage rather than per JVM: a driver that will not take one of these says so once for
+	// every backend running on it, instead of one backend silencing the warning for all of them.
+	private final AtomicBoolean backstopWarned = new AtomicBoolean();
+	private final AtomicBoolean queryTimeoutWarned = new AtomicBoolean();
 
 	/**
 	 * Arms the socket read timeout that backs up the cancel of a statement, and returns the value
@@ -220,12 +296,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * this one costs the connection: the driver closes it, which is the price of a wait that the
 	 * database was never going to end on its own.
 	 */
-	private int armBackstop(PreparedStatement statement, int seconds) {
+	private int armBackstop(Connection con, int seconds) {
+		if (con == null) {
+			return -1;
+		}
 		try {
-			final Connection con=statement.getConnection();
-			if (con == null) {
-				return -1;
-			}
 			final int previous=con.getNetworkTimeout();
 			final int backstop=(int) Math.min(Integer.MAX_VALUE, (seconds+BACKSTOP_MARGIN_SECONDS)*1000L);
 			// only ever tighten: a connection that already carries a read timeout carries one a
@@ -246,12 +321,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 	}
 
-	private void releaseBackstop(PreparedStatement statement, int backstop) {
-		if (backstop < 0) {
+	private void releaseBackstop(Connection con, int backstop) {
+		if (con == null || backstop < 0) {
 			return;
 		}
 		try {
-			statement.getConnection().setNetworkTimeout(DIRECT_EXECUTOR, backstop);
+			con.setNetworkTimeout(DIRECT_EXECUTOR, backstop);
 		}catch (SQLException | RuntimeException e) {
 			// the connection the backstop was armed on is on its way out: it reached the timeout
 		}
@@ -259,13 +334,16 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 	// Every driver reports a cancelled statement differently - postgresql as 57014, oracle as
 	// ORA-01013, and neither of them as a SQLTimeoutException - so the bound is recognized by the
-	// time the statement took rather than by the class or the state of its failure. The SQL state
-	// and the error number are carried over, since a failure that arrives at the bound may still be
+	// time the statement took rather than by the class or the state of its failure, and that time
+	// is taken from the monotonic clock, which a step of the wall clock can neither lengthen nor
+	// shorten. What it cannot tell apart is a failure of another kind arriving after the bound,
+	// which is why the failure it replaces is chained rather than swallowed. The SQL state and the
+	// error number are carried over as well, since a failure that arrives at the bound may still be
 	// one a caller classifies: a mysql lock wait, reported in class 40, ends inside a longer bound
 	// and stays the replayable conflict it is. The statement itself is left out of the message: a
 	// driver renders it with its parameters bound, and those are entry data.
 	private SQLException timedOut(SQLException e, StatementBound bound, int seconds, long startedAt) {
-		if (seconds <= 0 || System.currentTimeMillis()-startedAt < seconds*1000L) {
+		if (seconds <= 0 || System.nanoTime()-startedAt < seconds*1_000_000_000L) {
 			return e;
 		}
 		return new SQLTimeoutException("jdbc: the statement did not finish within the "+seconds+"s of "
@@ -492,9 +570,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// Asked of the very session that parses the literal: sql_mode is a session setting, and a
 	// session opened at another moment can have been given another value of it.
 	boolean isMysqlBackslashEscape(Connection con) throws SQLException {
-		try (final PreparedStatement statement=con.prepareStatement("select @@sql_mode");
-			final ResultSet rs=executeResultSet(statement)) {
-			final String sqlMode=rs.next() ? rs.getString(1) : null;
+		try (final PreparedStatement statement=con.prepareStatement("select @@sql_mode")) {
+			final String sqlMode=executeResultSet(statement, rs -> rs.next() ? rs.getString(1) : null);
 			return sqlMode==null || !sqlMode.toUpperCase().contains("NO_BACKSLASH_ESCAPES");
 		}
 	}
@@ -818,9 +895,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 		try (final PreparedStatement statement=con.prepareStatement(sql)) {
 			statement.setString(1,arg);
-			try (final ResultSet rs=executeResultSet(statement)) {
-				return rs.next() ? rs.getString(1) : null;
-			}
+			return executeResultSet(statement, rs -> rs.next() ? rs.getString(1) : null);
 		}
 	}
 
@@ -886,7 +961,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 						statement.setString(i+1,args[i]);
 					}
 					if (dialect==Dialect.MYSQL) { // mysql reports analyze problems as a result row, not an SQLException
-						try (final ResultSet rs=executeResultSet(statement)) {
+						// read outside executeResultSet(): this statement carries the bound of the statistics
+						// refresh, set above, and a class of StatementBound would put its own over it
+						if (logger.isTraceEnabled()) {
+							logger.trace(LocalizableMessage.raw("jdbc: %s",statement));
+						}
+						try (final ResultSet rs=statement.executeQuery()) {
 							while (rs.next()) {
 								if ("error".equalsIgnoreCase(rs.getString("Msg_type"))) {
 									throw new SQLException(rs.getString("Msg_text"));
@@ -1161,9 +1241,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			try (final PreparedStatement statement=con.prepareStatement("select v from "+getTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
-				try(ResultSet rc=executeResultSet(statement)) {
-					return rc.next() ? ByteString.wrap(rc.getBytes("v")) : null;
-				}
+				return executeResultSet(statement, rc -> rc.next() ? ByteString.wrap(rc.getBytes("v")) : null);
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
@@ -1176,9 +1254,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public long getRecordCount(TreeName treeName) {
-			try (final PreparedStatement statement=con.prepareStatement("select count(*) from "+getTableName(treeName));
-				 final ResultSet rc=executeResultSet(statement, StatementBound.BULK)){
-				return rc.next() ? rc.getLong(1) : 0;
+			try (final PreparedStatement statement=con.prepareStatement("select count(*) from "+getTableName(treeName))){
+				return executeResultSet(statement, StatementBound.BULK, rc -> rc.next() ? rc.getLong(1) : 0);
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
@@ -1201,26 +1278,31 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		boolean isExistsTable(TreeName treeName) {
 			final String tableName = getTableName(treeName);
+			// the catalog lookup guarding a create table is bounded as the operation it is, not as
+			// the bulk statement it guards: it asks a data dictionary rather than doing work of
+			// its own, so a wait here is the metadata lock of another session
 			try {
-				final DatabaseMetaData metaData = con.getMetaData();
-				// asked of the catalog by name: openTree(createOnDemand) calls this for every tree
-				// of the backend - about 25 of them for a stock suffix, on every open - and listing
-				// every table of the database each time costs the whole catalog once per tree, on a
-				// database this backend may well be sharing with something else
-				try (final ResultSet rs = metaData.getTables(null, null,
-						storedIdentifier(metaData, tableName), new String[]{"TABLE"})) {
-					while (rs.next()) {
-						// the name still has to be compared: "_" is a single-character wildcard in a
-						// metadata pattern, so "opendj_<hash>" also matches a table named "opendjX<hash>"
-						if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
-							return true;
+				return bounded(con, StatementBound.OPERATION, () -> {
+					final DatabaseMetaData metaData = con.getMetaData();
+					// asked of the catalog by name: openTree(createOnDemand) calls this for every tree
+					// of the backend - about 25 of them for a stock suffix, on every open - and listing
+					// every table of the database each time costs the whole catalog once per tree, on a
+					// database this backend may well be sharing with something else
+					try (final ResultSet rs = metaData.getTables(null, null,
+							storedIdentifier(metaData, tableName), new String[]{"TABLE"})) {
+						while (rs.next()) {
+							// the name still has to be compared: "_" is a single-character wildcard in a
+							// metadata pattern, so "opendj_<hash>" also matches a table named "opendjX<hash>"
+							if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
+								return true;
+							}
 						}
 					}
-				}
+					return false;
+				});
 			} catch (Exception e) {
 				throw new StorageRuntimeException(e);
 			}
-			return false;
 		}
 
 		String getTableDialect() {
@@ -1287,15 +1369,17 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 
 		boolean isExistsIndex(String tableName, String indexName) throws SQLException {
-			// approximate=true: with false the oracle driver runs ANALYZE on every call
-			try (final ResultSet rs = con.getMetaData().getIndexInfo(null, null, tableName, false, true)) {
-				while (rs.next()) {
-					if (indexName.equalsIgnoreCase(rs.getString("INDEX_NAME"))) {
-						return true;
+			return bounded(con, StatementBound.OPERATION, () -> {
+				// approximate=true: with false the oracle driver runs ANALYZE on every call
+				try (final ResultSet rs = con.getMetaData().getIndexInfo(null, null, tableName, false, true)) {
+					while (rs.next()) {
+						if (indexName.equalsIgnoreCase(rs.getString("INDEX_NAME"))) {
+							return true;
+						}
 					}
 				}
-			}
-			return false;
+				return false;
+			});
 		}
 		
 		public void clearTree(TreeName treeName) {
@@ -1456,7 +1540,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			return size;
 		}
 
-		boolean fetchBatch(String condition, byte[] dbKey, long offset, boolean descending, int limit) {
+		/**
+		 * Reads one batch of the cursor. The class of the bound is the caller's: a batch taken
+		 * along the index of the tree is an operation, while a batch that has to look at the whole
+		 * table to answer - the one behind {@link #positionToLastKey()} - is bulk work, and the
+		 * two cannot share a value.
+		 */
+		boolean fetchBatch(String condition, byte[] dbKey, long offset, boolean descending, int limit, StatementBound bound) {
 			fetchCount++;
 			buffer.clear();
 			try (final PreparedStatement statement=con.prepareStatement("select k,v from "+tableName
@@ -1468,15 +1558,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				}
 				statement.setLong(i++,offset);
 				statement.setLong(i,limit);
-				try(final ResultSet rc=executeResultSet(statement)) {
+				return executeResultSet(statement, bound, rc -> {
 					while (rc.next()) {
 						buffer.add(new byte[][]{rc.getBytes(1),rc.getBytes(2)});
 					}
-				}
+					return !buffer.isEmpty();
+				});
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
-			return !buffer.isEmpty();
 		}
 
 		void advanceFromBuffer() {
@@ -1489,7 +1579,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public boolean next() {
-			if (buffer.isEmpty() && !fetchBatch(currentKeyDb==null?null:">",currentKeyDb,0,false,adaptiveBatchSize())) {
+			if (buffer.isEmpty() && !fetchBatch(currentKeyDb==null?null:">",currentKeyDb,0,false,adaptiveBatchSize(),StatementBound.OPERATION)) {
 				defined=false;
 				return false;
 			}
@@ -1559,7 +1649,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (!buffer.isEmpty()) { // jumped outside the buffered range: random access, back to small batches
 				nextBatchSize=initialBatchSize;
 			}
-			if (fetchBatch(">=",target,0,false,adaptiveBatchSize())) {
+			if (fetchBatch(">=",target,0,false,adaptiveBatchSize(),StatementBound.OPERATION)) {
 				advanceFromBuffer();
 				return true;
 			}
@@ -1570,30 +1660,38 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		@Override
 		public boolean positionToKey(ByteSequence key) {
 			final byte[] real=key.toByteArray();
+			final byte[] value;
 			try (final PreparedStatement statement=con.prepareStatement("select v from "+tableName+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(real)));
 				statement.setBytes(2,real2db(real));
-				try(final ResultSet rc=executeResultSet(statement)) {
-					if (rc.next()) {
-						buffer.clear();
-						nextBatchSize=initialBatchSize;
-						currentKeyDb=real2db(real);
-						currentKey=ByteString.wrap(real);
-						currentValue=ByteString.wrap(rc.getBytes("v"));
-						defined=true;
-						return true;
-					}
-				}
+				value=executeResultSet(statement, rc -> rc.next() ? rc.getBytes("v") : null);
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
+			}
+			if (value!=null) {
+				buffer.clear();
+				nextBatchSize=initialBatchSize;
+				currentKeyDb=real2db(real);
+				currentKey=ByteString.wrap(real);
+				currentValue=ByteString.wrap(value);
+				defined=true;
+				return true;
 			}
 			defined=false;
 			return false;
 		}
 
+		/**
+		 * Bulk, not operation: with no condition to seek on, this is {@code order by k desc} over
+		 * the whole table - and on mssql, where {@code k} is a {@code varbinary(max)} that cannot
+		 * be an index key, a scan and a sort of it. It is also not on a search path: every open of
+		 * a backend runs it once per base DN, through {@code EntryContainer.getHighestEntryID()},
+		 * outside the try/catch of {@code BackendImpl.openBackend()} - a bound of two minutes here
+		 * would turn a large backend that opens slowly into one that does not open at all.
+		 */
 		@Override
 		public boolean positionToLastKey() {
-			if (fetchBatch(null,null,0,true,1)) {
+			if (fetchBatch(null,null,0,true,1,StatementBound.BULK)) {
 				advanceFromBuffer();
 				return true;
 			}
@@ -1601,12 +1699,19 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			return false;
 		}
 
+		/**
+		 * An operation, unlike {@link #positionToLastKey()}: the offset comes from the VLV request
+		 * of a client, so this runs on a search path and has to give the worker thread back. That
+		 * a deep offset is served by walking to it - the engines have no other way to answer an
+		 * {@code offset ?} - is what makes the bound reachable here, and reaching it answers the
+		 * request with an error rather than parking a thread of the server on it.
+		 */
 		@Override
 		public boolean positionToIndex(int index) {
 			if (!buffer.isEmpty()) { // absolute jump: random access, back to small batches
 				nextBatchSize=initialBatchSize;
 			}
-			if (index>=0 && fetchBatch(null,null,index,false,adaptiveBatchSize())) {
+			if (index>=0 && fetchBatch(null,null,index,false,adaptiveBatchSize(),StatementBound.OPERATION)) {
 				advanceFromBuffer();
 				return true;
 			}
@@ -1658,6 +1763,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			txw =new WriteableTransactionTransactionImpl(con);
 		}
 		
+		// The connection goes back whatever the commit does, and the storage this importer opened
+		// is closed whatever the connection does: an importer is closed on the way out of a failed
+		// import as readily as a finished one - a clearTree() that reaches the bulk bound is one
+		// way there - and a commit that throws on the way would otherwise leave the connection
+		// out of the pool for good, holding the transaction and the locks of that import.
 		@Override
 		public void aborted() {
 			aborted = true;
