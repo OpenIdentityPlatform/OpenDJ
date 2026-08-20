@@ -26,11 +26,12 @@ import java.sql.SQLException;
 import static org.forgerock.i18n.LocalizableMessage.raw;
 import static org.forgerock.opendj.ldap.ResultCode.OTHER;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
- * Tests how a failure is classified as a transaction conflict, which is what decides whether
- * {@link JDBCStorage#write} replays the operation, and how long it waits before it does.
+ * Tests how a failure is classified - as a transaction conflict, or as a connection the database dropped - which
+ * is what decides whether {@link JDBCStorage#write} replays the operation, and how long it waits before it does.
  * <p>
  * Runs without a database: the failures the drivers report are reproduced as synthetic
  * {@link SQLException}s carrying the same vendor error number and SQLState.
@@ -113,6 +114,73 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   public void testIsRetryableConflict(String name, Throwable failure, String driver, boolean expected)
   {
     assertEquals(JDBCStorage.isRetryableConflict(failure, driver), expected, name);
+  }
+
+  @DataProvider
+  public Object[][] connectionFailures()
+  {
+    return new Object[][] {
+      // class 08, connection exception: pgjdbc reports the next use of a connection the server dropped as 08003,
+      // and a socket that failed under it as 08006, while a connect that never came up is 08001
+      { "connection does not exist", sql(0, "08003"), true },
+      { "connection failure", sql(0, "08006"), true },
+      { "unable to establish connection", sql(0, "08001"), true },
+      // the FATAL message a pg_terminate_backend or a shutdown sends before the socket closes: the connection is
+      // gone, and only its next use would be reported as class 08
+      { "admin shutdown", sql(0, "57P01"), true },
+      { "crash shutdown", sql(0, "57P02"), true },
+      { "cannot connect now", sql(0, "57P03"), true },
+      // it reaches write() wrapped, exactly as a conflict does
+      { "wrapped once", new StorageRuntimeException(sql(0, "08006")), true },
+      { "wrapped twice",
+        new DirectoryException(OTHER, raw("unchecked"), new StorageRuntimeException(sql(0, "08003"))), true },
+
+      // a statement the database answered, however badly, leaves the connection usable
+      { "deadlock victim", sql(1205, "40001"), false },
+      { "primary key violation", sql(2627, "23000"), false },
+      // 53300 is the server refusing a further connection, not the loss of one already established
+      { "too many connections", sql(0, "53300"), false },
+      { "no SQLState", sql(0, null), false },
+      { "not a SQLException", new IllegalStateException("connection closed"), false },
+      { "no failure at all", null, false },
+      { "cyclic cause chain", new SelfCausedException(), false },
+    };
+  }
+
+  @Test(dataProvider = "connectionFailures")
+  public void testIsConnectionFailure(String name, Throwable failure, boolean expected)
+  {
+    assertEquals(JDBCStorage.isConnectionFailure(failure), expected, name);
+  }
+
+  /**
+   * A connection the database dropped is replayed on a connection the next attempt borrows of its own - but only
+   * while the transaction has not been committed yet. A drop reported by {@code commit()} leaves the outcome of
+   * the transaction unknown, and replaying a write that in fact committed applies it twice.
+   */
+  @Test
+  public void testADroppedConnectionIsReplayedOnlyBeforeTheCommit()
+  {
+    final SQLException dropped = sql(0, "08006");
+    assertEquals(JDBCStorage.replayReason(dropped, POSTGRES, false), "a connection the database dropped");
+    assertNull(JDBCStorage.replayReason(dropped, POSTGRES, true), "an in doubt transaction was replayed");
+  }
+
+  /** A conflict is a rollback the engine completed before it answered, whichever phase reported it. */
+  @Test
+  public void testAConflictIsReplayedFromEitherPhase()
+  {
+    final SQLException conflict = sql(0, "40001");
+    assertEquals(JDBCStorage.replayReason(conflict, POSTGRES, false), "a conflict");
+    assertEquals(JDBCStorage.replayReason(conflict, POSTGRES, true), "a conflict");
+  }
+
+  /** Everything else fails the operation, as it did before either replay existed. */
+  @Test
+  public void testAFailureOfTheStatementIsNotReplayed()
+  {
+    assertNull(JDBCStorage.replayReason(sql(2627, "23000"), MSSQL, false));
+    assertNull(JDBCStorage.replayReason(sql(2627, "23000"), MSSQL, true));
   }
 
   /** The delay grows with the attempt, so that the replays outlast a contention lasting more than a few ms. */
