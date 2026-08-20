@@ -1251,6 +1251,40 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     }
   }
 
+  /**
+   * export-ldif, verify-index and backendstat open a root container of their own, in READ_ONLY mode, when the
+   * backend is not already open - a stopped server or a disabled backend. RootContainer.open() asks the storage
+   * for a write transaction even in that mode, since that is where it opens the compressed schema and the entry
+   * containers, so a storage refusing to hand one out fails the three tools before they read anything (#874).
+   * <p>
+   * testReadOnly() above does not cover this: it expects a ReadOnlyStorageException and a storage that fails the
+   * open throws one too, from RootContainer.open() rather than from the write it is meant to be checking.
+   */
+  @Test
+  public void testOfflineToolsOpenBackendReadOnly() throws Exception
+  {
+    // Put the backend offline, so that the tools open a read-only root container of their own
+    backend.finalizeBackend();
+    try
+    {
+      final ByteArrayOutputStream exported = new ByteArrayOutputStream();
+      try (final LDIFExportConfig exportConfig = new LDIFExportConfig(exported))
+      {
+        backend.exportLDIF(exportConfig);
+      }
+      assertThat(exported.toString(StandardCharsets.UTF_8.name())).contains(testBaseDN.toString());
+
+      final VerifyConfig verifyConfig = new VerifyConfig();
+      verifyConfig.setBaseDN(testBaseDN);
+      verifyConfig.addCompleteIndex("dn2id");
+      assertThat(backend.verifyBackend(verifyConfig)).isEqualTo(0);
+    }
+    finally
+    {
+      backend.openBackend();
+    }
+  }
+
   @Test
   public void test_issue_496() throws Exception {
     int resultCode = TestCaseUtils.applyModifications(true,
