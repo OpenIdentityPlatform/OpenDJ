@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -98,7 +99,15 @@ public class ReplayThread extends DirectoryThread
             // Find replication domain for that update message and mark it as "in progress"
             updateMsg = updateToreplay.getUpdateMessage();
             domain = updateToreplay.getReplicationDomain();
-            domain.markInProgress(updateMsg);
+            if (!domain.markInProgress(updateMsg))
+            {
+              /*
+               * The domain restarted its session after a failed replay while this
+               * message was waiting here, so it does not know about this change
+               * anymore: the replication server sends it again over the new session.
+               */
+              continue;
+            }
           }
           finally
           {

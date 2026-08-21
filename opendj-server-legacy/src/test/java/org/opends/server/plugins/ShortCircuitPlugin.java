@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.plugins;
 
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -614,11 +616,18 @@ public class ShortCircuitPlugin
     }
 
     // Check for registered short circuits.
-    Integer resultCode = shortCircuits.get(
-         operation.getOperationType() + "/" + section.toLowerCase());
+    final String key = operation.getOperationType() + "/" + section.toLowerCase();
+    Integer resultCode = shortCircuits.get(key);
     if (resultCode != null)
     {
-      return resultCode;
+      final int reached = shortCircuitCounts.computeIfAbsent(key, k -> new AtomicInteger()).incrementAndGet();
+      final Integer maxTimes = shortCircuitLimits.get(key);
+      if (maxTimes == null || reached <= maxTimes)
+      {
+        return resultCode;
+      }
+      // The short circuit was applied as many times as it was asked for: from now on the
+      // operations are let through, which is how a transient failure is simulated.
     }
 
     // If we've gotten here, then we shouldn't short-circuit the operation
@@ -662,6 +671,39 @@ public class ShortCircuitPlugin
   /** Registered short circuits for operations regardless of controls. */
   private static Map<String, Integer> shortCircuits = new ConcurrentHashMap<>();
 
+  /** How many times a registered short circuit was reached. */
+  private static final Map<String, AtomicInteger> shortCircuitCounts = new ConcurrentHashMap<>();
+
+  /** How many times a registered short circuit must be applied, when it is limited. */
+  private static final Map<String, Integer> shortCircuitLimits = new ConcurrentHashMap<>();
+
+  /**
+   * Returns how many times the short circuit registered for the given operation type and
+   * plugin point was reached. A short circuit registered for a limited number of times is
+   * counted as reached by the operations it let through once that number was used up.
+   *
+   * @param operation The type of operation the short circuit applies to.
+   * @param section The plugin point the short circuit applies to.
+   * @return the number of operations which reached the short circuit
+   */
+  public static int getShortCircuitCount(OperationType operation, String section)
+  {
+    final AtomicInteger count = shortCircuitCounts.get(operation + "/" + section.toLowerCase());
+    return count != null ? count.get() : 0;
+  }
+
+  /**
+   * Forgets how many times the short circuit registered for the given operation type and
+   * plugin point was applied.
+   *
+   * @param operation The type of operation the short circuit applies to.
+   * @param section The plugin point the short circuit applies to.
+   */
+  public static void resetShortCircuitCount(OperationType operation, String section)
+  {
+    shortCircuitCounts.remove(operation + "/" + section.toLowerCase());
+  }
+
   /**
    * Register a short circuit for the given operation type and plugin point.
    * @param operation The type of operation the short circuit applies to.
@@ -674,12 +716,31 @@ public class ShortCircuitPlugin
   }
 
   /**
+   * Register a short circuit which only applies to the given number of operations, the
+   * ones which follow being let through: this is how a transient failure is simulated.
+   *
+   * @param operation The type of operation the short circuit applies to.
+   * @param section The plugin point the short circuit applies to.
+   * @param resultCode The result code to be returned for the short circuit.
+   * @param maxTimes How many operations must be short circuited.
+   */
+  public static void registerShortCircuit(OperationType operation, String section, int resultCode, int maxTimes)
+  {
+    final String key = operation + "/" + section.toLowerCase();
+    shortCircuitCounts.remove(key);
+    shortCircuitLimits.put(key, maxTimes);
+    shortCircuits.put(key, resultCode);
+  }
+
+  /**
    * Deregister a short circuit for the given operation type and plugin point.
    * @param operation The type of operation the short circuit applies to.
    * @param section The plugin point the short circuit applies to.
    */
   public static void deregisterShortCircuit(OperationType operation, String section)
   {
-    shortCircuits.remove(operation + "/" + section.toLowerCase());
+    final String key = operation + "/" + section.toLowerCase();
+    shortCircuits.remove(key);
+    shortCircuitLimits.remove(key);
   }
 }

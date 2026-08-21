@@ -83,12 +83,12 @@ public class RemotePendingChangesTest extends ReplicationTestCase
   }
 
   /**
-   * Restarting the session forgets the pending changes without recording them, so that
-   * the ones the replication server sends again are replayed rather than discarded as
-   * duplicates.
+   * Restarting the session forgets the changes which were not replayed without recording
+   * them, so that the ones the replication server sends again are replayed rather than
+   * discarded as duplicates.
    */
   @Test
-  public void clearForgetsThePendingChangesWithoutRecordingThem() throws Exception
+  public void clearUncommittedForgetsTheChangesWhichWereNotReplayed() throws Exception
   {
     final ServerState state = new ServerState();
     final RemotePendingChanges pendingChanges = new RemotePendingChanges(state);
@@ -97,12 +97,95 @@ public class RemotePendingChangesTest extends ReplicationTestCase
     assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")));
     assertFalse(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")), "a duplicate must be discarded");
 
-    pendingChanges.clear();
+    pendingChanges.clearUncommitted();
 
     assertEquals(pendingChanges.getQueueSize(), 0);
     assertTrue(state.isEmpty(), "clearing the pending changes must not record them as replayed");
     assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")),
         "the change must be accepted again once the session has been restarted");
+  }
+
+  /**
+   * A change which was replayed while an older one was still failing must survive the
+   * restart of the session. The ServerState does not cover it yet, so the replication
+   * server sends it again, and replaying it a second time is exactly what the duplicate
+   * check of {@code putRemoteUpdate()} is there to prevent (OPENDJ-1115).
+   */
+  @Test
+  public void clearUncommittedKeepsTheChangesWhichWereReplayed() throws Exception
+  {
+    final ServerState state = new ServerState();
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(state);
+    final CSNGenerator generator = new CSNGenerator(SERVER_ID, 0);
+    final CSN failed = generator.newCSN();
+    final CSN next = generator.newCSN();
+
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(failed, "uuid-1")));
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(next, "uuid-2")));
+    // The replay of the first change failed, the second one went through and is held
+    // back by the first one.
+    pendingChanges.commit(next);
+
+    pendingChanges.clearUncommitted();
+
+    assertEquals(pendingChanges.getQueueSize(), 1);
+    assertTrue(state.isEmpty(), "clearing the pending changes must not record them as replayed");
+    assertFalse(pendingChanges.putRemoteUpdate(deleteMsg(next, "uuid-2")),
+        "a change which was replayed must not be replayed a second time");
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(failed, "uuid-1")),
+        "the change which was not replayed must be accepted again");
+
+    // The change which failed finally made it: both are now recorded as replayed.
+    pendingChanges.commit(failed);
+
+    assertTrue(state.cover(failed));
+    assertTrue(state.cover(next));
+    assertEquals(pendingChanges.getQueueSize(), 0);
+  }
+
+  /**
+   * A message which was waiting in the replay queue while the session was restarted must
+   * be reported as not pending anymore rather than replayed against a bookkeeping which
+   * does not list its change.
+   */
+  @Test
+  public void markInProgressReportsAChangeWhichIsNotPendingAnymore() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSN csn = new CSNGenerator(SERVER_ID, 0).newCSN();
+    final DeleteMsg msg = deleteMsg(csn, "uuid-1");
+
+    assertTrue(pendingChanges.putRemoteUpdate(msg));
+    assertTrue(pendingChanges.markInProgress(msg));
+    assertEquals(pendingChanges.changesInProgressSize(), 1);
+
+    pendingChanges.clearUncommitted();
+
+    assertEquals(pendingChanges.changesInProgressSize(), 0);
+    assertFalse(pendingChanges.markInProgress(msg),
+        "a message whose change was forgotten must not be replayed");
+  }
+
+  /**
+   * The replication server sends the change again over the new session while the message
+   * of the previous delivery may still be waiting in the replay queue: only the delivery
+   * which is listed as pending is replayed, or the same change would be applied twice.
+   */
+  @Test
+  public void markInProgressRejectsThePreviousDeliveryOfAChange() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSN csn = new CSNGenerator(SERVER_ID, 0).newCSN();
+    final DeleteMsg previousDelivery = deleteMsg(csn, "uuid-1");
+    final DeleteMsg newDelivery = deleteMsg(csn, "uuid-1");
+
+    assertTrue(pendingChanges.putRemoteUpdate(previousDelivery));
+    pendingChanges.clearUncommitted();
+    assertTrue(pendingChanges.putRemoteUpdate(newDelivery), "the change must be accepted again");
+
+    assertFalse(pendingChanges.markInProgress(previousDelivery),
+        "the message of the previous delivery must not be replayed");
+    assertTrue(pendingChanges.markInProgress(newDelivery));
   }
 
   private DeleteMsg deleteMsg(CSN csn, String entryUUID) throws Exception
