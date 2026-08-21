@@ -968,7 +968,7 @@ public class CachedConnection implements Connection {
      * vendor code of every link survive it: they are what tells a caller what happened.
      */
     static SQLException reported(SQLException e, String connectionString) {
-        return holdsCredentials(e, connectionString) ? redactedCopy(e, connectionString, 0) : e;
+        return holdsCredentials(e, connectionString) ? redactedSqlCopy(e, connectionString, 0) : e;
     }
 
     /** The same of an unchecked failure: a driver is free to report a connect it will not make as one. */
@@ -1003,13 +1003,13 @@ public class CachedConnection implements Connection {
         return false;
     }
 
-    private static SQLException redactedCopy(SQLException e, String connectionString, int depth) {
+    private static SQLException redactedSqlCopy(SQLException e, String connectionString, int depth) {
         final SQLException copy =
             new SQLException(redact(e.getMessage(), connectionString), e.getSQLState(), e.getErrorCode());
         copy.setStackTrace(e.getStackTrace());
         if (depth < MAX_CHAIN_LENGTH) {
             if (e.getNextException() != null) {
-                copy.setNextException(redactedCopy(e.getNextException(), connectionString, depth + 1));
+                copy.setNextException(redactedSqlCopy(e.getNextException(), connectionString, depth + 1));
             }
             if (e.getCause() != null) {
                 copy.initCause(redactedCopy(e.getCause(), connectionString, depth + 1));
@@ -1022,7 +1022,7 @@ public class CachedConnection implements Connection {
     // can rebuild, and the name of the failure is what a reader of the log is after.
     private static Throwable redactedCopy(Throwable t, String connectionString, int depth) {
         if (t instanceof SQLException) {
-            return redactedCopy((SQLException) t, connectionString, depth);
+            return redactedSqlCopy((SQLException) t, connectionString, depth);
         }
         final Throwable copy = new Throwable(t.getClass().getName()
             + (t.getMessage() == null ? "" : ": " + redact(t.getMessage(), connectionString)));
