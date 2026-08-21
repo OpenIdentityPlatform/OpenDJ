@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -51,10 +52,12 @@ import java.util.SortedMap;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.DataFormatException;
 
@@ -79,6 +82,7 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
 import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
+import org.forgerock.util.annotations.VisibleForTesting;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.LocalBackend;
@@ -310,6 +314,54 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       new AtomicInteger();
   /** The number of updates replayed successfully by the replication. */
   private final AtomicInteger numReplayedPostOpCalled = new AtomicInteger();
+  /**
+   * How many times the replay of a change is attempted before this replica gives up on
+   * it and moves on to the changes which follow it.
+   */
+  private static final int MAX_REPLAY_ATTEMPTS = 3;
+  /**
+   * How long the session is left down before the change is asked for again, multiplied
+   * by the number of attempts already made: a backend which keeps failing must not be
+   * hammered with a session restart per failed change.
+   */
+  private static final long REPLAY_RETRY_DELAY_IN_MS = 1000;
+  /**
+   * How many changes the replay failures are remembered for. Only the changes which are
+   * failing are listed here, so the bound is never reached in practice: it is there so
+   * that a replica failing every change it is sent can not grow the map without end.
+   */
+  private static final int MAX_FAILED_REPLAY_ATTEMPTS_TRACKED = 1000;
+  /**
+   * How long the alert telling that this replica diverges is not sent again. A single
+   * cause - a schema which does not match, a backend which is gone - makes every change
+   * in flight unreplayable, and one alert per change would be a storm.
+   */
+  private static final long UNREPLAYED_CHANGE_ALERT_INTERVAL_IN_MS = 60000;
+  /** The number of updates this replica gave up replaying. */
+  private final AtomicInteger numFailedReplayedUpdates = new AtomicInteger();
+  /** Set while a replay thread is restarting the session after a failed replay. */
+  private final AtomicBoolean replayFailureRecovery = new AtomicBoolean();
+  /**
+   * How many times the replay of a change failed, keyed on the CSN of the change.
+   * <p>
+   * The count has to be kept per change: a backend which is failing fails every change
+   * in flight, and a single slot would be reset by each of them in turn, so the give up
+   * after {@link #MAX_REPLAY_ATTEMPTS} would never be reached. Entries are dropped as
+   * soon as the change is replayed or given up on, and the oldest ones are evicted if
+   * more than {@link #MAX_FAILED_REPLAY_ATTEMPTS_TRACKED} changes are failing at once.
+   */
+  private final ConcurrentSkipListMap<CSN, Integer> failedReplayAttempts = new ConcurrentSkipListMap<>();
+  /** When the alert about a change this replica gave up on was last sent. */
+  private final AtomicLong lastUnreplayedChangeAlertTime = new AtomicLong();
+  /**
+   * The result codes conflict resolution knows how to solve. The result code the server
+   * puts on an internal error is configurable and is not validated as a result code, so
+   * it could be set to one of these: it must never take a change away from
+   * {@code solveNamingConflict()}, which is the only thing which can solve them.
+   */
+  private static final Set<ResultCode> CONFLICT_RESULT_CODES = new HashSet<>(Arrays.asList(
+      ResultCode.NO_SUCH_OBJECT, ResultCode.ENTRY_ALREADY_EXISTS,
+      ResultCode.NOT_ALLOWED_ON_RDN, ResultCode.NOT_ALLOWED_ON_NONLEAF));
 
   private final PersistentServerState state;
   private volatile boolean generationIdSavedStatus;
@@ -2001,6 +2053,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       if (op.isSynchronizationOperation())
       { // Replaying a sync operation
         numReplayedPostOpCalled.incrementAndGet();
+        // The change made it, the failures it went through are history.
+        failedReplayAttempts.remove(curCSN);
         try
         {
           remotePendingChanges.commit(curCSN);
@@ -2268,11 +2322,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
   /**
    * Marks the specified message as the one currently processed by a replay thread.
+   *
    * @param msg the message being processed
+   * @return {@code false} if the change is not pending anymore, which happens when the
+   *         session was restarted after a failed replay while this message was waiting
+   *         in the replay queue: it is sent again, so this copy must not be replayed
    */
-  void markInProgress(LDAPUpdateMsg msg)
+  boolean markInProgress(LDAPUpdateMsg msg)
   {
-    remotePendingChanges.markInProgress(msg);
+    return remotePendingChanges.markInProgress(msg);
   }
 
   /**
@@ -2280,10 +2338,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    *
    * @param msg
    *          The UpdateMsg to be replayed.
-   * @param shutdown
-   *          whether the server initiated shutdown
+   * @param replayThreadShutdown
+   *          whether the replay thread was asked to stop
    */
-  void replay(LDAPUpdateMsg msg, AtomicBoolean shutdown)
+  void replay(LDAPUpdateMsg msg, AtomicBoolean replayThreadShutdown)
   {
     // Try replay the operation, then flush (replaying) any pending operation
     // whose dependency has been replayed until no more left.
@@ -2291,6 +2349,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       Operation op = null; // the last operation on which replay was attempted
       boolean dependency = false;
+      boolean replayFailed = false;
       String replayErrorMsg = null;
       CSN csn = null;
       try
@@ -2304,11 +2363,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         dependency = remotePendingChanges.checkDependencies(op, msg);
         boolean replayDone = false;
         int retryCount = 10;
-        while (!dependency && !replayDone && retryCount-- > 0)
+        while (!dependency && !replayDone && !replayFailed && retryCount-- > 0)
         {
-          if (shutdown.get())
+          if (replayThreadShutdown.get() || shutdown.get())
           {
-            // shutdown initiated, let's leave
+            // Either this replay thread or this domain is going away, let's leave.
             return;
           }
           // Try replay the operation
@@ -2343,7 +2402,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
               // was a no-op. For example, an add which has already been
               // replayed, or a modify DN operation on an entry which has been
               // renamed by a more recent modify DN.
+              // The change is in the data: push it to the serverState.
               replayDone = true;
+              updateError(csn);
             }
             else if (result == ResultCode.BUSY)
             {
@@ -2354,64 +2415,87 @@ public final class LDAPReplicationDomain extends ReplicationDomain
               Thread.yield();
               continue;
             }
-            else if (result == ResultCode.UNAVAILABLE)
+            else if (isServerFailure(result))
             {
               /*
                * It can happen when a rebuild is performed or the backend is
-               * offline (OPENDJ-49). Give the server another chance to process
-               * this operation after some time.
+               * offline (OPENDJ-49), or when the storage failed to serve the
+               * operation. Give the server another chance to process this
+               * operation after some time.
                */
               Thread.sleep(50);
               continue;
             }
-            else if (op instanceof ModifyOperation)
-            {
-              ModifyOperation castOp = (ModifyOperation) op;
-              dependency = remotePendingChanges.checkDependencies(castOp);
-              ModifyMsg modifyMsg = (ModifyMsg) msg;
-              replayDone = !dependency && solveNamingConflict(castOp, modifyMsg);
-            }
-            else if (op instanceof DeleteOperation)
-            {
-              DeleteOperation castOp = (DeleteOperation) op;
-              dependency = remotePendingChanges.checkDependencies(castOp);
-              replayDone = !dependency && solveNamingConflict(castOp, msg);
-            }
-            else if (op instanceof AddOperation)
-            {
-              AddOperation castOp = (AddOperation) op;
-              AddMsg addMsg = (AddMsg) msg;
-              dependency = remotePendingChanges.checkDependencies(castOp);
-              replayDone = !dependency && solveNamingConflict(castOp, addMsg);
-            }
-            else if (op instanceof ModifyDNOperation)
-            {
-              ModifyDNOperation castOp = (ModifyDNOperation) op;
-              ModifyDNMsg modifyDNMsg = (ModifyDNMsg) msg;
-              dependency = remotePendingChanges.checkDependencies(modifyDNMsg);
-              replayDone = !dependency && solveNamingConflict(castOp, modifyDNMsg);
-            }
             else
             {
-              replayDone = true; // unknown type of operation ?!
-            }
+              ConflictResolution resolution = ConflictResolution.NOTHING_TO_DO;
+              if (op instanceof ModifyOperation)
+              {
+                ModifyOperation castOp = (ModifyOperation) op;
+                dependency = remotePendingChanges.checkDependencies(castOp);
+                ModifyMsg modifyMsg = (ModifyMsg) msg;
+                resolution = dependency ? resolution : solveNamingConflict(castOp, modifyMsg);
+              }
+              else if (op instanceof DeleteOperation)
+              {
+                DeleteOperation castOp = (DeleteOperation) op;
+                dependency = remotePendingChanges.checkDependencies(castOp);
+                resolution = dependency ? resolution : solveNamingConflict(castOp, msg);
+              }
+              else if (op instanceof AddOperation)
+              {
+                AddOperation castOp = (AddOperation) op;
+                AddMsg addMsg = (AddMsg) msg;
+                dependency = remotePendingChanges.checkDependencies(castOp);
+                resolution = dependency ? resolution : solveNamingConflict(castOp, addMsg);
+              }
+              else if (op instanceof ModifyDNOperation)
+              {
+                ModifyDNOperation castOp = (ModifyDNOperation) op;
+                ModifyDNMsg modifyDNMsg = (ModifyDNMsg) msg;
+                dependency = remotePendingChanges.checkDependencies(modifyDNMsg);
+                resolution = dependency ? resolution : solveNamingConflict(castOp, modifyDNMsg);
+              }
+              // else: unknown type of operation ?! there is nothing to replay
 
-            if (replayDone)
-            {
-              // the update became a dummy update and the result
-              // of the conflict resolution phase is to do nothing.
-              // however we still need to push this change to the serverState
-              updateError(csn);
-            }
-            else
-            {
-              /*
-               * Create a new operation reflecting the new state of the UpdateMsg after conflict resolution
-               * modified it and try replaying it again. Dependencies might have been replayed by now.
-               *  Note: When msg is a DeleteMsg, the DeleteOperation is properly
-               *  created with subtreeDelete request control when needed.
-               */
-              nextOp = msg.createOperation(conn);
+              if (!dependency)
+              {
+                switch (resolution)
+                {
+                case NOTHING_TO_DO:
+                  // the update became a dummy update and the result
+                  // of the conflict resolution phase is to do nothing.
+                  // however we still need to push this change to the serverState
+                  replayDone = true;
+                  updateError(csn);
+                  break;
+
+                case FAILED:
+                  /*
+                   * The operation did not fail on a naming conflict and not on the server
+                   * either: the change can not be applied on this replica. Skip it so that the
+                   * replica keeps replaying the changes which follow, but report the error in
+                   * the ack and tell the administrator that the data now diverge.
+                   */
+                  final LocalizableMessage errorMsg = ERR_ERROR_REPLAYING_OPERATION.get(
+                      op, csn, result, op.getErrorMessage());
+                  logger.error(errorMsg);
+                  replayErrorMsg = errorMsg.toString();
+                  replayDone = true;
+                  skipUnreplayableChange(csn, errorMsg);
+                  break;
+
+                default:
+                  /*
+                   * Create a new operation reflecting the new state of the UpdateMsg after conflict resolution
+                   * modified it and try replaying it again. Dependencies might have been replayed by now.
+                   *  Note: When msg is a DeleteMsg, the DeleteOperation is properly
+                   *  created with subtreeDelete request control when needed.
+                   */
+                  nextOp = msg.createOperation(conn);
+                  break;
+                }
+              }
             }
           }
           else
@@ -2420,17 +2504,34 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           }
         }
 
-        if (!replayDone && !dependency)
+        if (!replayDone && !replayFailed && !dependency)
         {
-          // Continue with the next change but the servers could now become
-          // inconsistent.
-          // Let the repair tool know about this.
-          final LocalizableMessage message = ERR_LOOP_REPLAYING_OPERATION.get(
-              op, op.getErrorMessage());
-          logger.error(message);
-          numUnresolvedNamingConflicts.incrementAndGet();
-          replayErrorMsg = message.toString();
-          updateError(csn);
+          if (isServerFailure(op.getResultCode()))
+          {
+            /*
+             * The server kept failing to apply the change, so the change is not in the data.
+             * Leave it out of the ServerState, otherwise the replication server would never
+             * send it again and this replica would silently diverge while reporting itself
+             * up to date.
+             */
+            final LocalizableMessage message = ERR_ERROR_REPLAYING_OPERATION.get(
+                op, csn, op.getResultCode(), op.getErrorMessage());
+            logger.error(message);
+            replayErrorMsg = message.toString();
+            replayFailed = true;
+          }
+          else
+          {
+            // Conflict resolution kept rewriting an operation which kept failing.
+            // Continue with the next change but the servers could now become inconsistent.
+            // Let the repair tool know about this.
+            final LocalizableMessage message = ERR_LOOP_REPLAYING_OPERATION.get(
+                op, op.getErrorMessage());
+            logger.error(message);
+            numUnresolvedNamingConflicts.incrementAndGet();
+            replayErrorMsg = message.toString();
+            skipUnreplayableChange(csn, message);
+          }
         }
       } catch (DecodeException | LDAPException | DataFormatException e)
       {
@@ -2440,9 +2541,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         if (csn != null)
         {
           /*
-           * An Exception happened during the replay process.
-           * Continue with the next change but the servers will now start
-           * to be inconsistent.
+           * An Exception happened during the replay process: the change is not in the
+           * data, so it must not be recorded as replayed.
            * Let the repair tool know about this.
            */
           LocalizableMessage message =
@@ -2450,7 +2550,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
                   stackTraceToSingleLineString(e), op);
           logger.error(message);
           replayErrorMsg = message.toString();
-          updateError(csn);
+          replayFailed = true;
         } else
         {
           replayErrorMsg = logDecodingOperationError(msg, e);
@@ -2461,6 +2561,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         {
           processUpdateDone(msg, replayErrorMsg);
         }
+      }
+
+      if (replayFailed && recoverFromReplayFailure(csn, replayThreadShutdown))
+      {
+        // The ack has been published and the change, still owned by the replication
+        // server, is being delivered again: there is nothing left to replay here.
+        return;
       }
 
       // Now replay any pending update that had a dependency and whose
@@ -2485,12 +2592,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * called when error or Exceptions happen during the operation replay.
    *
    * @param csn the CSN of the operation with error.
+   * @return {@code false} if the change was not listed in the pending changes anymore,
+   *         so that it has not been recorded as replayed: the replication server sends
+   *         it again.
    */
-  private void updateError(CSN csn)
+  private boolean updateError(CSN csn)
   {
     try
     {
       remotePendingChanges.commit(csn);
+      return true;
     }
     catch (NoSuchElementException e)
     {
@@ -2502,6 +2613,201 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             "LDAPReplicationDomain.updateError: Unable to find remote "
                 + "pending change for CSN %s", csn);
       }
+      return false;
+    }
+  }
+
+  /**
+   * Returns whether the provided result code reports a failure of this server rather
+   * than a change which can not be applied: the backend being offline or rebuilt
+   * (OPENDJ-49), or the storage failing to serve the operation.
+   *
+   * @param result the result code of a replayed operation
+   * @return {@code true} if the operation failed on the server itself
+   */
+  private boolean isServerFailure(ResultCode result)
+  {
+    if (ResultCode.UNAVAILABLE.equals(result))
+    {
+      return true;
+    }
+    return result.equals(getServerContext().getCoreConfigManager().getServerErrorResultCode())
+        && !CONFLICT_RESULT_CODES.contains(result);
+  }
+
+  /**
+   * Records a change which could not be replayed as replayed anyway, so that this replica
+   * keeps replaying the changes which follow it, and warns that the data now diverge.
+   *
+   * @param csn the CSN of the change which could not be replayed
+   * @param cause the message describing why it could not be replayed
+   */
+  private void skipUnreplayableChange(CSN csn, LocalizableMessage cause)
+  {
+    failedReplayAttempts.remove(csn);
+    if (updateError(csn))
+    {
+      numFailedReplayedUpdates.incrementAndGet();
+      sendUnreplayedChangeAlert(cause);
+    }
+    // Otherwise the change is not listed as pending anymore - the session was restarted
+    // while it was being replayed - so it has not been skipped: the replication server
+    // sends it again and this replica gives up on it then.
+  }
+
+  /**
+   * Tells the administrator that this replica gave up on a change and now diverges from
+   * the rest of the topology.
+   * <p>
+   * Whatever makes a change unreplayable - a schema which does not match, a backend
+   * which is gone - makes every change in flight unreplayable too, so the alert is not
+   * sent again for {@link #UNREPLAYED_CHANGE_ALERT_INTERVAL_IN_MS}: each skipped change
+   * is logged, the alert is there to have the administrator look at the log.
+   *
+   * @param cause the message describing why the change could not be replayed
+   */
+  private void sendUnreplayedChangeAlert(LocalizableMessage cause)
+  {
+    final long now = System.currentTimeMillis();
+    final long lastSent = lastUnreplayedChangeAlertTime.get();
+    if (now - lastSent >= UNREPLAYED_CHANGE_ALERT_INTERVAL_IN_MS
+        && lastUnreplayedChangeAlertTime.compareAndSet(lastSent, now))
+    {
+      DirectoryServer.sendAlertNotification(
+          this, ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE, cause);
+    }
+  }
+
+  /**
+   * Lets the next change this replica gives up on raise its alert straight away.
+   * <p>
+   * Only there for the tests which check the alert: they must not be at the mercy of the
+   * alert another test raised less than
+   * {@link #UNREPLAYED_CHANGE_ALERT_INTERVAL_IN_MS} ago.
+   */
+  @VisibleForTesting
+  public void resetUnreplayedChangeAlertThrottle()
+  {
+    lastUnreplayedChangeAlertTime.set(0);
+  }
+
+  /**
+   * Counts one more failed replay of the change with the provided CSN.
+   *
+   * @param csn the CSN of the change whose replay failed
+   * @return how many times the replay of that change failed in a row
+   */
+  private int countReplayFailure(CSN csn)
+  {
+    final int attempts = failedReplayAttempts.merge(csn, 1, Integer::sum);
+    while (failedReplayAttempts.size() > MAX_FAILED_REPLAY_ATTEMPTS_TRACKED)
+    {
+      // Every change in flight is failing: keep the counts of the most recent ones,
+      // the oldest ones have been given up on long ago.
+      failedReplayAttempts.pollFirstEntry();
+    }
+    return attempts;
+  }
+
+  /**
+   * Recovers from a change which could not be replayed.
+   * <p>
+   * The change has deliberately been left out of the ServerState, so the replication
+   * server still owns it: restart the session so that it is sent again and replayed on
+   * a backend which has hopefully recovered in the meantime. Give up once its replay
+   * failed {@link #MAX_REPLAY_ATTEMPTS} times and record it as replayed, so that a
+   * change which can never be applied here does not stop this replica for good: the
+   * administrator is told that this replica has diverged and must be reinitialized.
+   *
+   * @param csn
+   *          the CSN of the change which could not be replayed, {@code null} when the
+   *          message could not even be decoded
+   * @param replayThreadShutdown
+   *          whether the replay thread was asked to stop
+   * @return {@code true} when the caller must stop replaying because the session is
+   *         being restarted or is going away, {@code false} when it may carry on with
+   *         the changes which follow
+   */
+  private boolean recoverFromReplayFailure(CSN csn, AtomicBoolean replayThreadShutdown)
+  {
+    if (csn == null)
+    {
+      // The message could not be decoded: there is nothing to ask for again.
+      return false;
+    }
+    final int attempts = countReplayFailure(csn);
+    if (attempts >= MAX_REPLAY_ATTEMPTS)
+    {
+      final LocalizableMessage message =
+          ERR_REPLAY_SKIPPING_CHANGE.get(csn, getBaseDN(), attempts);
+      logger.error(message);
+      skipUnreplayableChange(csn, message);
+      return false;
+    }
+
+    if (replayThreadShutdown.get() || shutdown.get() || disabled)
+    {
+      /*
+       * This replay thread or this whole domain is going away: there is no session to
+       * have the change sent over again. Restarting the one which is being stopped would
+       * leave a broker and a listener thread behind on a domain whose alert generator,
+       * flush thread and RSUpdater are already gone.
+       */
+      return true;
+    }
+
+    logger.warn(WARN_REPLAY_RETRYING_CHANGE, csn, getBaseDN(), attempts);
+    if (!replayFailureRecovery.compareAndSet(false, true))
+    {
+      // Another replay thread is already restarting the session: the change it could not
+      // replay is left out of the ServerState too, so it comes back over the new session.
+      return true;
+    }
+    try
+    {
+      disableService();
+      /*
+       * The uncommitted changes are about to be sent again: forget the ones still listed
+       * as pending, or processUpdate() would discard them as duplicates. The messages
+       * they came with may still be waiting in the replay queue, which is shared by every
+       * domain and which no lock lets this thread drain in reasonable time: they are
+       * dropped when a replay thread takes them out, because markInProgress() only
+       * accepts the delivery which is listed as pending.
+       */
+      remotePendingChanges.clearUncommitted();
+      // Leave the backend some time to recover rather than ask for the change straight
+      // away: a session restart is not free for the replication server either.
+      waitBeforeSessionRestart(attempts);
+      if (shutdown.get() || disabled)
+      {
+        // The domain went away while this thread was waiting.
+        return true;
+      }
+      enableService();
+    }
+    finally
+    {
+      replayFailureRecovery.set(false);
+    }
+    return true;
+  }
+
+  /**
+   * Waits for a while before the session to the replication server is started again, so
+   * that a backend which keeps failing is not asked for every change it can not apply as
+   * fast as the replication server can send them.
+   *
+   * @param attempts how many times the replay of the change failed already
+   */
+  private void waitBeforeSessionRestart(int attempts)
+  {
+    try
+    {
+      Thread.sleep(REPLAY_RETRY_DELAY_IN_MS * attempts);
+    }
+    catch (InterruptedException e)
+    {
+      Thread.currentThread().interrupt();
     }
   }
 
@@ -2581,14 +2887,25 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     return null;
   }
 
+  /** Outcome of the conflict resolution attempted after a replayed operation failed. */
+  private enum ConflictResolution
+  {
+    /** The update message was adjusted: the operation must be replayed again. */
+    REPLAY_AGAIN,
+    /** The change is already reflected in the data: there is nothing left to replay. */
+    NOTHING_TO_DO,
+    /** The operation failed for a reason which is not a naming conflict. */
+    FAILED
+  }
+
   /**
    * Solve a conflict detected when replaying a modify operation.
    *
    * @param op The operation that triggered the conflict detection.
    * @param msg The operation that triggered the conflict detection.
-   * @return true if the process is completed, false if it must continue..
+   * @return the outcome of the conflict resolution
    */
-  private boolean solveNamingConflict(ModifyOperation op, ModifyMsg msg)
+  private ConflictResolution solveNamingConflict(ModifyOperation op, ModifyMsg msg)
   {
     ResultCode result = op.getResultCode();
     ModifyContext ctx = (ModifyContext) op.getAttachment(SYNCHROCONTEXT);
@@ -2609,14 +2926,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         // replay the modify using the current dn of this entry.
         msg.setDN(newDN);
         numResolvedNamingConflicts.incrementAndGet();
-        return false;
+        return ConflictResolution.REPLAY_AGAIN;
       }
       else
       {
         // This entry does not exist anymore.
         // It has probably been deleted, stop the processing of this operation
         numResolvedNamingConflicts.incrementAndGet();
-        return true;
+        return ConflictResolution.NOTHING_TO_DO;
       }
     }
     else if (result == ResultCode.NOT_ALLOWED_ON_RDN)
@@ -2631,7 +2948,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       {
         // The entry does not exist anymore.
         numResolvedNamingConflicts.incrementAndGet();
-        return true;
+        return ConflictResolution.NOTHING_TO_DO;
       }
 
       // The modify operation is trying to delete the value that is
@@ -2657,15 +2974,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       }
       msg.setMods(mods);
       numResolvedNamingConflicts.incrementAndGet();
-      return false;
+      return ConflictResolution.REPLAY_AGAIN;
     }
     else
     {
-      // The other type of errors can not be caused by naming conflicts.
-      // Log a message for the repair tool.
-      logger.error(ERR_ERROR_REPLAYING_OPERATION,
-          op, ctx.getCSN(), result, op.getErrorMessage());
-      return true;
+      // The other type of errors can not be caused by naming conflicts:
+      // the operation simply failed, replay() reports it.
+      return ConflictResolution.FAILED;
     }
   }
 
@@ -2674,9 +2989,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   *
   * @param op The operation that triggered the conflict detection.
   * @param msg The operation that triggered the conflict detection.
-  * @return true if the process is completed, false if it must continue..
+  * @return the outcome of the conflict resolution
   */
- private boolean solveNamingConflict(DeleteOperation op, LDAPUpdateMsg msg)
+ private ConflictResolution solveNamingConflict(DeleteOperation op, LDAPUpdateMsg msg)
  {
    ResultCode result = op.getResultCode();
    DeleteContext ctx = (DeleteContext) op.getAttachment(SYNCHROCONTEXT);
@@ -2695,14 +3010,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         * In any case, there is nothing more to do.
         */
        numResolvedNamingConflicts.incrementAndGet();
-       return true;
+       return ConflictResolution.NOTHING_TO_DO;
      }
      else
      {
        // This entry has been renamed, replay the delete using its new DN.
        msg.setDN(currentDN);
        numResolvedNamingConflicts.incrementAndGet();
-       return false;
+       return ConflictResolution.REPLAY_AGAIN;
      }
    }
    else if (result == ResultCode.NOT_ALLOWED_ON_NONLEAF)
@@ -2722,15 +3037,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        numUnresolvedNamingConflicts.incrementAndGet();
      }
 
-     return false;
+     return ConflictResolution.REPLAY_AGAIN;
    }
    else
    {
-     // The other type of errors can not be caused by naming conflicts.
-     // Log a message for the repair tool.
-     logger.error(ERR_ERROR_REPLAYING_OPERATION,
-         op, ctx.getCSN(), result, op.getErrorMessage());
-     return true;
+     // The other type of errors can not be caused by naming conflicts:
+     // the operation simply failed, replay() reports it.
+     return ConflictResolution.FAILED;
    }
  }
 
@@ -2739,10 +3052,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
  *
  * @param op The operation that triggered the conflict detection.
  * @param msg The operation that triggered the conflict detection.
- * @return true if the process is completed, false if it must continue.
+ * @return the outcome of the conflict resolution
  * @throws Exception When the operation is not valid.
  */
-private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
+private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     throws Exception
 {
   ResultCode result = op.getResultCode();
@@ -2788,7 +3101,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   {
     markConflictEntry(op, currentDN, currentDN.parent().child(newRDN));
     numUnresolvedNamingConflicts.incrementAndGet();
-    return true;
+    return ConflictResolution.NOTHING_TO_DO;
   }
 
   DN newDN = newSuperior.child(newRDN);
@@ -2801,7 +3114,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     // The entry has been deleted, we can safely assume
     // that the operation is completed.
     numResolvedNamingConflicts.incrementAndGet();
-    return true;
+    return ConflictResolution.NOTHING_TO_DO;
   }
 
   // if the newDN and the current DN match then the operation
@@ -2810,7 +3123,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   if (newDN.equals(currentDN))
   {
     numResolvedNamingConflicts.incrementAndGet();
-    return true;
+    return ConflictResolution.NOTHING_TO_DO;
   }
 
   if (result == ResultCode.NO_SUCH_OBJECT
@@ -2825,7 +3138,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     modifyDnMsg.setDN(currentDN);
     modifyDnMsg.setNewSuperior(newSuperior.toString());
     numResolvedNamingConflicts.incrementAndGet();
-    return false;
+    return ConflictResolution.REPLAY_AGAIN;
   }
   else if (result == ResultCode.ENTRY_ALREADY_EXISTS)
   {
@@ -2841,15 +3154,13 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
                           modifyDnMsg.getNewRDN()));
     modifyDnMsg.setNewSuperior(newSuperior.toString());
     numUnresolvedNamingConflicts.incrementAndGet();
-    return false;
+    return ConflictResolution.REPLAY_AGAIN;
   }
   else
   {
-    // The other type of errors can not be caused by naming conflicts.
-    // Log a message for the repair tool.
-    logger.error(ERR_ERROR_REPLAYING_OPERATION,
-        op, ctx.getCSN(), result, op.getErrorMessage());
-    return true;
+    // The other type of errors can not be caused by naming conflicts:
+    // the operation simply failed, replay() reports it.
+    return ConflictResolution.FAILED;
   }
 }
 
@@ -2858,10 +3169,10 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
    *
    * @param op The operation that triggered the conflict detection.
    * @param msg The message that triggered the conflict detection.
-   * @return true if the process is completed, false if it must continue.
+   * @return the outcome of the conflict resolution
    * @throws Exception When the operation is not valid.
    */
-  private boolean solveNamingConflict(AddOperation op, AddMsg msg)
+  private ConflictResolution solveNamingConflict(AddOperation op, AddMsg msg)
       throws Exception
   {
     ResultCode result = op.getResultCode();
@@ -2884,7 +3195,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
          * message for the repair tool to look at this problem.
          * TODO : Log the message
          */
-        return true;
+        return ConflictResolution.NOTHING_TO_DO;
       }
       DN parentDn = findEntryDN(parentUniqueId);
       if (parentDn == null)
@@ -2911,7 +3222,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
         msg.setDN(DN.valueOf(msg.getDN().rdn() + "," + parentDn));
         numResolvedNamingConflicts.incrementAndGet();
       }
-      return false;
+      return ConflictResolution.REPLAY_AGAIN;
     }
     else if (result == ResultCode.ENTRY_ALREADY_EXISTS)
     {
@@ -2927,7 +3238,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       if (findEntryDN(entryUUID) != null)
       {
         // entry already exist : this is a replay
-        return true;
+        return ConflictResolution.NOTHING_TO_DO;
       }
       else
       {
@@ -2936,16 +3247,14 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
             generateConflictRDN(entryUUID, msg.getDN().toString());
         msg.setDN(DN.valueOf(conflictRDN));
         numUnresolvedNamingConflicts.incrementAndGet();
-        return false;
+        return ConflictResolution.REPLAY_AGAIN;
       }
     }
     else
     {
-      // The other type of errors can not be caused by naming conflicts.
-      // log a message for the repair tool.
-      logger.error(ERR_ERROR_REPLAYING_OPERATION,
-          op, ctx.getCSN(), result, op.getErrorMessage());
-      return true;
+      // The other type of errors can not be caused by naming conflicts:
+      // the operation simply failed, replay() reports it.
+      return ConflictResolution.FAILED;
     }
   }
 
@@ -3847,6 +4156,8 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
     alerts.put(ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT,
                ALERT_DESCRIPTION_REPLICATION_UNRESOLVED_CONFLICT);
+    alerts.put(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE,
+               ALERT_DESCRIPTION_REPLICATION_UNREPLAYED_CHANGE);
     return alerts;
   }
 
@@ -4258,6 +4569,12 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
          * are uncommitted changes in the queue and session failover occurs
          * causing a recovery of all changes since the current committed server
          * state. See OPENDJ-1115.
+         *
+         * The copy which is already listed owns the change: it is the one which records
+         * it in the ServerState once it really has been replayed. Report this delivery
+         * as done - the window and the ack are per delivery - but as handled
+         * asynchronously, so that the listener does not push the CSN to the ServerState
+         * over a change which is still being replayed or is failing (issue #889).
          */
         if (logger.isTraceEnabled())
         {
@@ -4265,7 +4582,8 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
                   "LDAPReplicationDomain.processUpdate: ignoring "
                   + "duplicate change %s", msg.getCSN());
         }
-        return true;
+        processUpdateDone(msg, null);
+        return false;
       }
 
       // Put update message into the replay queue
@@ -4301,6 +4619,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   {
     attributes.add("pending-updates", pendingChanges.size());
     attributes.add("replayed-updates-ok", numReplayedPostOpCalled);
+    attributes.add("replayed-updates-failed", numFailedReplayedUpdates);
     attributes.add("resolved-modify-conflicts", numResolvedModifyConflicts);
     attributes.add("resolved-naming-conflicts", numResolvedNamingConflicts);
     attributes.add("unresolved-naming-conflicts", numUnresolvedNamingConflicts);

@@ -13,10 +13,13 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -41,6 +44,9 @@ public class DummyAlertHandler
 
   /** The number of times this alert handler has been invoked. */
   private static AtomicInteger alertCount = new AtomicInteger(0);
+
+  /** The number of times this alert handler has been invoked, per alert type. */
+  private static final ConcurrentMap<String, AtomicInteger> alertCountByType = new ConcurrentHashMap<>();
 
   /** Creates a new instance of this SMTP alert handler. */
   public DummyAlertHandler()
@@ -86,6 +92,7 @@ public class DummyAlertHandler
                                     LocalizableMessage alertMessage)
   {
     alertCount.incrementAndGet();
+    alertCountByType.computeIfAbsent(alertType, type -> new AtomicInteger()).incrementAndGet();
   }
 
   /**
@@ -96,6 +103,21 @@ public class DummyAlertHandler
   public static int getAlertCount()
   {
     return alertCount.get();
+  }
+
+  /**
+   * Retrieves the number of times that this alert handler has been invoked with the
+   * provided alert type.
+   *
+   * @param  alertType  The type of the alert notifications to count.
+   *
+   * @return  The number of times that this alert handler has been given an alert
+   *          notification of that type.
+   */
+  public static int getAlertCount(String alertType)
+  {
+    final AtomicInteger count = alertCountByType.get(alertType);
+    return count != null ? count.get() : 0;
   }
 
   /** {@inheritDoc} */

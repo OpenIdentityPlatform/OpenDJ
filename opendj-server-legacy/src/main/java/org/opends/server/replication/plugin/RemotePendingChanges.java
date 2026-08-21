@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -140,6 +141,10 @@ final class RemotePendingChanges
   /**
    * Add a new LDAPUpdateMsg that was received from the replication server
    * to the pendingList.
+   * <p>
+   * A change which is already listed is left alone: the copy which is here knows
+   * whether it has been replayed and what it depends on, while the one which comes
+   * with the message the replication server sent again knows neither.
    *
    * @param update The LDAPUpdateMsg that was received from the replication
    *               server and that will be added to the pending list.
@@ -152,7 +157,7 @@ final class RemotePendingChanges
     try
     {
       CSN csn = update.getCSN();
-      return pendingChanges.put(csn, new PendingChange(csn, null, update)) == null;
+      return pendingChanges.putIfAbsent(csn, new PendingChange(csn, null, update)) == null;
     }
     finally
     {
@@ -200,12 +205,71 @@ final class RemotePendingChanges
     }
   }
 
-  public void markInProgress(LDAPUpdateMsg msg)
+  /**
+   * Forgets the changes which have not been replayed yet, without updating the
+   * ServerState.
+   * <p>
+   * Called when the replay of a change failed and the session to the
+   * replication server is restarted: the changes that were not committed must
+   * be replayed again, and {@link #putRemoteUpdate(LDAPUpdateMsg)} would
+   * otherwise discard the ones still listed here as duplicates.
+   * <p>
+   * The changes which have already been committed stay: they are held back by
+   * the change which failed, so the ServerState does not cover them yet and the
+   * replication server sends them again. Forgetting them would have them
+   * replayed a second time, which is exactly what the duplicate check of
+   * {@link #putRemoteUpdate(LDAPUpdateMsg)} is there to prevent (OPENDJ-1115).
+   * Keeping them is enough: the ServerState is updated over them as soon as the
+   * change which holds them back commits.
+   */
+  public void clearUncommitted()
+  {
+    pendingChangesWriteLock.lock();
+    dependentChangesLock.lock();
+    try
+    {
+      final Iterator<PendingChange> it = pendingChanges.values().iterator();
+      while (it.hasNext())
+      {
+        final PendingChange change = it.next();
+        if (!change.isCommitted())
+        {
+          dependentChanges.remove(change);
+          activeAndDependentChanges.remove(change);
+          it.remove();
+        }
+      }
+    }
+    finally
+    {
+      dependentChangesLock.unlock();
+      pendingChangesWriteLock.unlock();
+    }
+  }
+
+  /**
+   * Marks the change of the provided message as being replayed.
+   *
+   * @param msg
+   *          the message whose change is being replayed
+   * @return {@code false} if this message is not the delivery which is listed as
+   *         pending, which happens when the session was restarted after a failed
+   *         replay while this message was still waiting in the replay queue: the
+   *         change was either forgotten or the replication server sent it again,
+   *         so this copy must not be replayed.
+   */
+  public boolean markInProgress(LDAPUpdateMsg msg)
   {
     pendingChangesReadLock.lock();
     try
     {
-      activeAndDependentChanges.add(pendingChanges.get(msg.getCSN()));
+      final PendingChange change = pendingChanges.get(msg.getCSN());
+      if (change == null || change.getLDAPUpdateMsg() != msg)
+      {
+        return false;
+      }
+      activeAndDependentChanges.add(change);
+      return true;
     }
     finally
     {
