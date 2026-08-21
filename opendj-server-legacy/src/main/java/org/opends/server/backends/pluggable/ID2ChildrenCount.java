@@ -63,6 +63,13 @@ final class ID2ChildrenCount extends AbstractTree
         TO_ENTRY_ID, CursorTransformer.<ByteString, Void> keepValuesUnchanged());
   }
 
+  /** @see ReadableTransaction#openBulkCursor(TreeName) */
+  SequentialCursor<EntryID, Void> openBulkCursor(ReadableTransaction txn)
+  {
+    return transformKeysAndValues(counter.openBulkCursor(txn),
+        TO_ENTRY_ID, CursorTransformer.<ByteString, Void> keepValuesUnchanged());
+  }
+
   /**
    * Updates the number of children for a given entry without updating the total number of entries.
    * <p>

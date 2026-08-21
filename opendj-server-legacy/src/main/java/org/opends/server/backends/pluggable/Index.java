@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -36,6 +37,17 @@ interface Index extends Tree
   boolean isTrusted();
 
   Cursor<ByteString, EntryIDSet> openCursor(ReadableTransaction txn);
+
+  /**
+   * Opens a cursor over the whole index for a task no client operation is waiting on, such as
+   * {@code verify-index} or {@code dbtest}.
+   *
+   * @param txn
+   *          the transaction to read the index with
+   * @return a cursor over every key of this index
+   * @see ReadableTransaction#openBulkCursor(org.opends.server.backends.pluggable.spi.TreeName)
+   */
+  Cursor<ByteString, EntryIDSet> openBulkCursor(ReadableTransaction txn);
 
   boolean setIndexEntryLimit(int indexEntryLimit);
 

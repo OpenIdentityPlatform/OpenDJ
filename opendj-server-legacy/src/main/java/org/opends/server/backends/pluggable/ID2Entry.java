@@ -382,7 +382,11 @@ class ID2Entry extends AbstractTree
   {
     // Make sure the tree is there and readable, even if the storage is READ_ONLY.
     // Would be nice if there were a better way...
-    try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
+    // Bulk: the first batch of a cursor carries no seek predicate, so this is a walk of the whole
+    // tree as far as the storage is concerned, and it runs on every open of the backend. A bound
+    // meant for an entry read would keep a large backend from opening at all on an engine where
+    // such a batch is not a step along an index.
+    try (final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(getName()))
     {
       cursor.next();
     }

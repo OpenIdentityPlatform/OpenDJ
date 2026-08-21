@@ -297,6 +297,15 @@ final class TracedStorage implements Storage
     }
 
     @Override
+    public Cursor<ByteString, ByteString> openBulkCursor(final TreeName name)
+    {
+      traceEnter("openBulkCursor", "name", name);
+      final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(name);
+      traceLeave("openBulkCursor", "name", name);
+      return new TracedCursor(cursor);
+    }
+
+    @Override
     public ByteString read(final TreeName name, final ByteSequence key)
     {
       traceEnter("read", "name", name, "key", hex(key));
@@ -371,6 +380,15 @@ final class TracedStorage implements Storage
       traceEnter("openCursor", "name", name);
       final Cursor<ByteString, ByteString> cursor = txn.openCursor(name);
       traceLeave("openCursor", "name", name);
+      return new TracedCursor(cursor);
+    }
+
+    @Override
+    public Cursor<ByteString, ByteString> openBulkCursor(final TreeName name)
+    {
+      traceEnter("openBulkCursor", "name", name);
+      final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(name);
+      traceLeave("openBulkCursor", "name", name);
       return new TracedCursor(cursor);
     }
 

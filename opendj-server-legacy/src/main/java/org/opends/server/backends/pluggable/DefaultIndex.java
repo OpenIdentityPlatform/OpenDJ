@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -131,7 +132,19 @@ class DefaultIndex extends AbstractTree implements Index
   public final Cursor<ByteString, EntryIDSet> openCursor(ReadableTransaction txn)
   {
     checkNotNull(txn, "txn must not be null");
-    return CursorTransformer.transformValues(txn.openCursor(getName()),
+    return decoding(txn.openCursor(getName()));
+  }
+
+  @Override
+  public final Cursor<ByteString, EntryIDSet> openBulkCursor(ReadableTransaction txn)
+  {
+    checkNotNull(txn, "txn must not be null");
+    return decoding(txn.openBulkCursor(getName()));
+  }
+
+  private Cursor<ByteString, EntryIDSet> decoding(Cursor<ByteString, ByteString> cursor)
+  {
+    return CursorTransformer.transformValues(cursor,
         new ValueTransformer<ByteString, ByteString, EntryIDSet, NeverThrowsException>()
         {
           @Override

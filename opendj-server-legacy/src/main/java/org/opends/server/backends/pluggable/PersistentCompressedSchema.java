@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -146,7 +147,8 @@ final class PersistentCompressedSchema extends CompressedSchema
     // Cursor through the object class database and load the object class set
     // definitions. At the same time, figure out the highest token value and
     // initialize the object class counter to one greater than that.
-    try (Cursor<ByteString, ByteString> ocCursor = txn.openCursor(ocTreeName))
+    // Both trees are read whole while the backend opens, with no client operation waiting on it.
+    try (Cursor<ByteString, ByteString> ocCursor = txn.openBulkCursor(ocTreeName))
     {
       while (ocCursor.next())
       {
@@ -169,7 +171,7 @@ final class PersistentCompressedSchema extends CompressedSchema
     }
 
     // Cursor through the attribute description database and load the attribute set definitions.
-    try (Cursor<ByteString, ByteString> adCursor = txn.openCursor(adTreeName))
+    try (Cursor<ByteString, ByteString> adCursor = txn.openBulkCursor(adTreeName))
     {
       while (adCursor.next())
       {
