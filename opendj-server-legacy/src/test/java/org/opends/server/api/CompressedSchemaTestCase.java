@@ -15,6 +15,7 @@
  */
 package org.opends.server.api;
 
+import static org.opends.messages.CoreMessages.*;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
@@ -88,6 +89,7 @@ public class CompressedSchemaTestCase extends APITestCase
         throws DirectoryException
     {
       objectClassStoreCount++;
+      awaitIfGated();
       failIfRequested();
       storedObjectClasses.put(token(encodedObjectClasses), new ArrayList<>(objectClassNames));
     }
@@ -190,8 +192,15 @@ public class CompressedSchemaTestCase extends APITestCase
     assertEquals(compressedSchema.attributeStoreCount, 2, "the failed registration was left behind");
 
     final int encodedToken = tokenOf(builder.toByteString());
+    assertEquals(encodedToken, 0, "the withdrawn id was not allocated again");
     assertTrue(compressedSchema.storedAttributes.containsKey(encodedToken),
         "the entry carries token " + encodedToken + ", which was never stored");
+    // What the withdrawal exists for: an element left behind by the failed registration would be
+    // saved here under a token whose store never returned. Asserting the store count and the token
+    // of the retry is not enough on its own - a registration that leaks its decode map element
+    // simply allocates the next id, and every other assertion of this test still holds.
+    assertEquals(compressedSchema.savedAttributeTokens(), Collections.singletonList(0),
+        "the whole content still holds the element of the failed registration");
     final Attribute decoded = compressedSchema.decodeAttribute(builder.toByteString().asReader());
     assertEquals(decoded.getAttributeDescription(), attribute.getAttributeDescription());
     assertEquals(decoded.iterator().next().toString(), "a value");
@@ -223,8 +232,12 @@ public class CompressedSchemaTestCase extends APITestCase
     assertEquals(compressedSchema.objectClassStoreCount, 2, "the failed registration was left behind");
 
     final int encodedToken = tokenOf(builder.toByteString());
+    assertEquals(encodedToken, 0, "the withdrawn id was not allocated again");
     assertTrue(compressedSchema.storedObjectClasses.containsKey(encodedToken),
         "the entry carries token " + encodedToken + ", which was never stored");
+    // As in attributeTokenIsWithdrawnWhenItCannotBeStored().
+    assertEquals(compressedSchema.savedObjectClassTokens(), Collections.singletonList(0),
+        "the whole content still holds the element of the failed registration");
     assertEquals(compressedSchema.decodeObjectClasses(builder.toByteString().asReader()), objectClasses);
   }
 
@@ -247,18 +260,12 @@ public class CompressedSchemaTestCase extends APITestCase
       final Future<Integer> registering = executor.submit(encoding(compressedSchema, attribute, null));
       assertTrue(compressedSchema.enteredStore.await(30, TimeUnit.SECONDS), "the store was never reached");
 
-      // Another encode of the same attribute must not be handed the id being stored.
-      final CountDownLatch started = new CountDownLatch(1);
-      final Future<Integer> concurrent = executor.submit(encoding(compressedSchema, attribute, started));
-      assertTrue(started.await(30, TimeUnit.SECONDS), "the concurrent encode was never started");
-      try
-      {
-        fail("the token was handed out before it was stored: " + concurrent.get(500, TimeUnit.MILLISECONDS));
-      }
-      catch (final TimeoutException expected)
-      {
-        // Waiting for the registration to be persisted, as it must.
-      }
+      // Another encode of the same attribute must not be handed the id being stored: it has to
+      // park on the exclusive lock until the store returns.
+      final AtomicReference<Thread> concurrentThread = new AtomicReference<>();
+      final Future<Integer> concurrent = executor.submit(encoding(compressedSchema, attribute, concurrentThread));
+      awaitParkedOnTheLock(concurrent, concurrentThread);
+      assertFalse(concurrent.isDone(), "the token was handed out before it was stored");
 
       compressedSchema.leaveStore.countDown();
       assertEquals(registering.get(30, TimeUnit.SECONDS), Integer.valueOf(0));
@@ -271,17 +278,78 @@ public class CompressedSchemaTestCase extends APITestCase
     }
   }
 
+  /** The same for an object class set, whose registration orders the two maps the same way. */
+  @Test
+  public void anObjectClassTokenIsPublishedOnlyOnceItIsStored() throws Exception
+  {
+    final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+    final Map<ObjectClass, String> objectClasses = objectClasses("top", "person");
+    final ExecutorService executor = Executors.newFixedThreadPool(2);
+    try
+    {
+      compressedSchema.enteredStore = new CountDownLatch(1);
+      compressedSchema.leaveStore = new CountDownLatch(1);
+      final Future<Integer> registering = executor.submit(encoding(compressedSchema, objectClasses, null));
+      assertTrue(compressedSchema.enteredStore.await(30, TimeUnit.SECONDS), "the store was never reached");
+
+      final AtomicReference<Thread> concurrentThread = new AtomicReference<>();
+      final Future<Integer> concurrent = executor.submit(encoding(compressedSchema, objectClasses, concurrentThread));
+      awaitParkedOnTheLock(concurrent, concurrentThread);
+      assertFalse(concurrent.isDone(), "the token was handed out before it was stored");
+
+      compressedSchema.leaveStore.countDown();
+      assertEquals(registering.get(30, TimeUnit.SECONDS), Integer.valueOf(0));
+      assertEquals(concurrent.get(30, TimeUnit.SECONDS), Integer.valueOf(0));
+      assertEquals(compressedSchema.objectClassStoreCount, 1, "the same token was stored twice");
+    }
+    finally
+    {
+      executor.shutdownNow();
+    }
+  }
+
+  /**
+   * Waits for the provided encode to park on the exclusive lock, which is what it must do while
+   * another thread holds that lock inside a store. Waiting for the thread to park is what makes
+   * this prove the encode reached the lock-free read of the encode map: a latch counted down
+   * inside the task only proves the task body started, so a build that published an id before
+   * storing it would be recorded as a pass whenever the thread was slow between the two.
+   */
+  private static void awaitParkedOnTheLock(final Future<Integer> encode, final AtomicReference<Thread> runningOn)
+      throws Exception
+  {
+    final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+    while (System.nanoTime() < deadline)
+    {
+      if (encode.isDone())
+      {
+        fail("the token was handed out before it was stored: " + encode.get());
+      }
+      final Thread thread = runningOn.get();
+      if (thread != null)
+      {
+        final Thread.State state = thread.getState();
+        if (state == Thread.State.WAITING || state == Thread.State.BLOCKED)
+        {
+          return;
+        }
+      }
+      Thread.sleep(1);
+    }
+    fail("the concurrent encode never parked on the exclusive lock");
+  }
+
   private static Callable<Integer> encoding(final CompressedSchema compressedSchema, final Attribute attribute,
-      final CountDownLatch started)
+      final AtomicReference<Thread> runningOn)
   {
     return new Callable<Integer>()
     {
       @Override
       public Integer call() throws Exception
       {
-        if (started != null)
+        if (runningOn != null)
         {
-          started.countDown();
+          runningOn.set(Thread.currentThread());
         }
         final ByteStringBuilder builder = new ByteStringBuilder();
         compressedSchema.encodeAttribute(builder, attribute);
@@ -290,41 +358,104 @@ public class CompressedSchemaTestCase extends APITestCase
     };
   }
 
-  /** A token with no definition is reported, whether it is out of range or below it. */
+  private static Callable<Integer> encoding(final CompressedSchema compressedSchema,
+      final Map<ObjectClass, String> objectClasses, final AtomicReference<Thread> runningOn)
+  {
+    return new Callable<Integer>()
+    {
+      @Override
+      public Integer call() throws Exception
+      {
+        if (runningOn != null)
+        {
+          runningOn.set(Thread.currentThread());
+        }
+        final ByteStringBuilder builder = new ByteStringBuilder();
+        compressedSchema.encodeObjectClasses(builder, objectClasses);
+        return tokenOf(builder.toByteString());
+      }
+    };
+  }
+
+  /**
+   * A token with no definition is reported, whether it is below the range of the decode map, the
+   * first id past its end, or well beyond it - and against a populated map as well as an empty
+   * one, since it is the size of that map the lookup is measured against.
+   */
   @Test
   public void unknownAttributeTokenIsReported() throws Exception
   {
-    final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+    final TestCompressedSchema empty = new TestCompressedSchema();
     for (final int unknownToken : new int[] { -1, 0, 7 })
     {
-      try
-      {
-        compressedSchema.decodeAttribute(encodedAttribute(unknownToken).asReader());
-        fail("the token " + unknownToken + " has no definition and should have been reported");
-      }
-      catch (final DirectoryException expected)
-      {
-        // Reported as the unknown token it is.
-      }
+      assertAttributeTokenIsReported(empty, unknownToken);
+    }
+
+    final TestCompressedSchema populated = new TestCompressedSchema();
+    populated.loadAttributeAt(0, "description");
+    populated.loadAttributeAt(1, "cn");
+    for (final int unknownToken : new int[] { -1, 2, 7 })
+    {
+      assertAttributeTokenIsReported(populated, unknownToken);
     }
   }
 
   @Test
   public void unknownObjectClassTokenIsReported() throws Exception
   {
-    final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+    final TestCompressedSchema empty = new TestCompressedSchema();
     for (final int unknownToken : new int[] { -1, 0, 7 })
     {
-      try
-      {
-        compressedSchema.decodeObjectClasses(encodedToken(unknownToken, new ByteStringBuilder()).asReader());
-        fail("the token " + unknownToken + " has no definition and should have been reported");
-      }
-      catch (final DirectoryException expected)
-      {
-        // Reported as the unknown token it is.
-      }
+      assertObjectClassTokenIsReported(empty, unknownToken);
     }
+
+    final TestCompressedSchema populated = new TestCompressedSchema();
+    populated.loadObjectClassesAt(0, Arrays.asList("top", "person"));
+    populated.loadObjectClassesAt(1, Arrays.asList("top", "organizationalUnit"));
+    for (final int unknownToken : new int[] { -1, 2, 7 })
+    {
+      assertObjectClassTokenIsReported(populated, unknownToken);
+    }
+  }
+
+  private static void assertAttributeTokenIsReported(final TestCompressedSchema compressedSchema,
+      final int unknownToken) throws Exception
+  {
+    try
+    {
+      compressedSchema.decodeAttribute(encodedAttribute(unknownToken).asReader());
+      fail("the token " + unknownToken + " has no definition and should have been reported");
+    }
+    catch (final DirectoryException expected)
+    {
+      // Reported as the unknown token it is, and named as such: nothing else in this decode path
+      // is allowed to answer for a token, and the message the operator gets is what says which.
+      assertMessageIs(expected, ERR_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN.get(unknownToken), unknownToken);
+    }
+  }
+
+  private static void assertObjectClassTokenIsReported(final TestCompressedSchema compressedSchema,
+      final int unknownToken) throws Exception
+  {
+    try
+    {
+      compressedSchema.decodeObjectClasses(encodedToken(unknownToken, new ByteStringBuilder()).asReader());
+      fail("the token " + unknownToken + " has no definition and should have been reported");
+    }
+    catch (final DirectoryException expected)
+    {
+      assertMessageIs(expected, ERR_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN.get(unknownToken), unknownToken);
+    }
+  }
+
+  /** Asserts that the exception carries the expected message, by resource and id rather than text. */
+  private static void assertMessageIs(final DirectoryException reported, final LocalizableMessage expected,
+      final int unknownToken)
+  {
+    final LocalizableMessage message = reported.getMessageObject();
+    assertEquals(message.resourceName() + "-" + message.ordinal(),
+        expected.resourceName() + "-" + expected.ordinal(),
+        "the token " + unknownToken + " was reported as something else: " + message);
   }
 
   /**

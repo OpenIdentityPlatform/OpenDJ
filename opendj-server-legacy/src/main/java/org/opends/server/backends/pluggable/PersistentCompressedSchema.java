@@ -113,9 +113,14 @@ final class PersistentCompressedSchema extends CompressedSchema
     }
     catch (final IOException e)
     {
-      // Reported rather than absorbed: the caller takes a store that returned for a definition
-      // that reached the tree, and an entry written with a token that never did cannot be decoded
-      // once the server is restarted.
+      // Reported rather than absorbed. Defensive as things stand: the writer encodes into a
+      // ByteStringBuilder, and none of the write methods of the OutputStream it hands out declares
+      // IOException, so nothing under this try can raise one - the catch compiles because the
+      // ASN1Writer interface declares it. What makes a withdrawal reachable in a running server is
+      // store()'s own catch, on a storage.write that failed. Were this one ever to fire, nothing
+      // would have reached the tree either, and a store that did not happen must not return
+      // normally: the caller would publish the token, and an entry written with a token whose
+      // definition is nowhere cannot be decoded once the server is restarted.
       logger.traceException(e);
       throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_COMPSCHEMA_CANNOT_STORE_EX.get(e.getMessage()), e);
