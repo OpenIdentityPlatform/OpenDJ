@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -112,7 +113,17 @@ final class PersistentCompressedSchema extends CompressedSchema
     }
     catch (final IOException e)
     {
-      // TODO: Shouldn't happen but should log a message
+      // Reported rather than absorbed. Defensive as things stand: the writer encodes into a
+      // ByteStringBuilder, and none of the write methods of the OutputStream it hands out declares
+      // IOException, so nothing under this try can raise one - the catch compiles because the
+      // ASN1Writer interface declares it. What makes a withdrawal reachable in a running server is
+      // store()'s own catch, on a storage.write that failed. Were this one ever to fire, nothing
+      // would have reached the tree either, and a store that did not happen must not return
+      // normally: the caller would publish the token, and an entry written with a token whose
+      // definition is nowhere cannot be decoded once the server is restarted.
+      logger.traceException(e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+          ERR_COMPSCHEMA_CANNOT_STORE_EX.get(e.getMessage()), e);
     }
   }
 
@@ -133,7 +144,10 @@ final class PersistentCompressedSchema extends CompressedSchema
     }
     catch (final IOException e)
     {
-      // TODO: Shouldn't happen but should log a message
+      // Reported rather than absorbed, as in storeAttribute().
+      logger.traceException(e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+          ERR_COMPSCHEMA_CANNOT_STORE_EX.get(e.getMessage()), e);
     }
   }
 
