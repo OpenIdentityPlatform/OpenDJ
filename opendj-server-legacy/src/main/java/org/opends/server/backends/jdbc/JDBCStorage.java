@@ -69,7 +69,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	/** Upper bound the doubled delay is capped at, in milliseconds. */
 	private static final double MAX_SLEEP_ON_RETRY_MS = 1000.0;
 
-	/** Number of {@link Throwable#getCause()} hops walked when classifying a failure, also a guard against a cycle. */
+	/**
+	 * Number of links walked when classifying a failure, also a guard against a chain long enough to matter.
+	 * {@link #isRetryableConflict} walks the causes; {@link #isConnectionFailure} walks the causes, the next
+	 * exceptions and the suppressed exceptions together, and counts them against the same number.
+	 */
 	private static final int MAX_CAUSE_HOPS = 16;
 
 	/** SQL Server error number of the transaction picked as the deadlock victim: "Rerun the transaction". */
@@ -97,8 +101,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * The states outside class 08 that also say the connection is gone rather than the statement wrong. PostgreSQL
 	 * announces the connection it is about to drop as 57P01 (admin_shutdown - a pg_terminate_backend of an idle
 	 * connection reaper, or a shutdown of the server), 57P02 (crash_shutdown) or 57P03 (cannot_connect_now), and
-	 * only the next use of that connection is reported as class 08. The list is the one HikariCP evicts a
-	 * connection on, minus its two Sybase states: that driver is not one this backend is used with.
+	 * only the next use of that connection is reported as class 08. They are the states of the list HikariCP
+	 * evicts a connection on that a driver of this backend reports: of the rest, JZ0C0 and JZ0C1 belong to a Sybase
+	 * driver this backend is not used with, 01002 is a disconnect none of these four drivers reports, and 0A000 is
+	 * the standard "feature not supported", which says nothing about the connection at all.
 	 */
 	private static final Set<String> CONNECTION_FAILURE_STATES =
 			Collections.unmodifiableSet(new HashSet<>(Arrays.asList("57P01", "57P02", "57P03")));
@@ -156,11 +162,23 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		return CachedConnection.getConnection(config.getDBDirectory());
 	}
 
+	/**
+	 * Borrows a connection the pool validates whatever the alive window of
+	 * {@link CachedConnection#ALIVE_BYPASS_PROPERTY} says, for the borrows this class compensates a dropped
+	 * connection on in no other way: {@link #open(AccessMode)}, {@link #removeStorageFiles()} and the importer
+	 * issue their statements far from the borrow, and the open issues none at all, so a connection dropped inside
+	 * the window would surface out of the rollback that releases it. One round trip on a path taken once per open,
+	 * per import or per removal buys back exactly what master did on every borrow.
+	 */
+	Connection getValidatedConnection() throws Exception {
+		return CachedConnection.getConnection(config.getDBDirectory(), false);
+	}
+
 
 	AccessMode accessMode=AccessMode.READ_ONLY;
 	@Override
 	public void open(AccessMode accessMode) throws Exception {
-		try (final Connection con=getConnection()) {
+		try (final Connection con=getValidatedConnection()) {
 			this.accessMode = accessMode;
 			storageStatus = StorageStatus.working();
 		}
@@ -794,7 +812,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 		final Set<TreeName> trees=listTrees();
 		if (!trees.isEmpty()) {
-			try (final Connection con = getConnection()) {
+			try (final Connection con = getValidatedConnection()) {
 				try {
 					for (final TreeName treeName : trees) {
 						try (final PreparedStatement statement = con.prepareStatement("drop table " + getTableName(treeName))) {
@@ -842,10 +860,27 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 */
 	@Override
 	public <T> T read(ReadOperation<T> readOperation) throws Exception {
-		try(final Connection con=getConnection()) {
-			return readOperation.run(new ReadableTransactionImpl(con));
+		//borrowed outside the try: a connect the pool could not make says nothing about the connections it
+		//holds - mysql reports a server at its connection limit as 08004, which is class 08 like a connection
+		//that broke - and distrusting the pool over it would validate every borrow under the very load the
+		//window exists for, against a server already refusing connections
+		final Connection con=getConnection();
+		boolean dropped=false;
+		try (con) {
+			try {
+				return readOperation.run(new ReadableTransactionImpl(con));
+			} catch (Exception e) {
+				//asked while this read still owns the connection: once the release below has returned it to
+				//the pool, another borrow may hold it and the driver would be answering about that one
+				dropped=isConnectionFailure(e,con);
+				throw e;
+			}
 		} catch (Exception e) {
-			distrustPoolOnConnectionFailure(e);
+			//also the release of the connection: its rollback is the one round trip a read that found
+			//nothing makes, so it can be the only place a drop is ever seen
+			if (dropped||isConnectionFailure(e)) {
+				distrustPool();
+			}
 			throw e;
 		}
 	}
@@ -872,8 +907,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * That is what makes the alive window of {@link CachedConnection#ALIVE_BYPASS_PROPERTY} safe to leave on: a
 	 * connection handed out unvalidated and found dead costs an attempt rather than the operation, and a write of
 	 * the replication replay - which records a failed operation as applied and advances the server state past it,
-	 * see #889 - never sees it. Only while the transaction has not been committed yet, though: see
-	 * {@link #replayReason(Throwable, String, boolean)}.
+	 * see #889 - never sees it. Only while nothing of the attempt may have been committed yet, though: see
+	 * {@link #replayReason(Throwable, String, boolean, boolean, boolean)}.
 	 */
 	@Override
 	public void write(WriteOperation writeOperation) throws Exception {
@@ -882,7 +917,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			Exception failure=null;
 			String driver=null;
 			boolean committing=false;
-			try (final Connection con=getConnection()) {
+			boolean dropped=false;
+			boolean partlyCommitted=false;
+			//borrowed outside the try, for the reason read() borrows outside it: a connect the pool could not
+			//make is not a connection of this pool that broke, and it leaves the loop as it always did
+			final Connection con=getConnection();
+			try (con) {
 				driver=driverNameOf(con);
 				final WriteableTransactionTransactionImpl txn=new WriteableTransactionTransactionImpl(con);
 				try {
@@ -894,25 +934,38 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					try {
 						con.rollback();
 					} catch (SQLException ex) {}
+					//asked while this attempt still owns the connection: the release below returns it to the
+					//pool, and the driver would then be answering about whichever borrow holds it next
+					dropped=isConnectionFailure(e,con);
 					//rethrown, so that a failure of the implicit close() is suppressed into the failure being
 					//replayed rather than replacing it
 					failure=e;
 					throw e;
 				} finally { // the comment connection lives no longer than the trees it stamped, and no longer
 					// than the attempt that opened it: a replay stamps on a session of its own
+					partlyCommitted=txn.partlyCommitted;
 					txn.stampSession.close();
 				}
 			} catch (Exception e) {
-				//anything the operation did not throw comes from getConnection() or from the implicit close(),
-				//which returns the connection to the pool: neither belongs to the replayed region
+				//anything the operation did not throw comes from around it - the name of the driver, the
+				//transaction, or the implicit close() that returns the connection to the pool: none of them
+				//belongs to the replayed region
 				if (e!=failure) {
+					//a drop reported by the release of the connection still has to reach the pool, which has no
+					//other way of hearing of it. Only the chains of the failure can be asked for it now: the
+					//connection has been released, and whether it is closed is no longer this attempt's answer
+					if (isConnectionFailure(e)) {
+						distrustPool();
+					}
 					throw e;
 				}
 			}
 			//whatever the loop decides, the pool has to hear of a connection the database dropped: it holds the
 			//rest of that generation, and inside the alive window it would hand them out unvalidated as well
-			distrustPoolOnConnectionFailure(failure);
-			final String reason=replayReason(failure,driver,committing);
+			if (dropped) {
+				distrustPool();
+			}
+			final String reason=replayReason(failure,driver,committing,partlyCommitted,dropped);
 			//System.nanoTime()-giveUpAt is the overflow safe form of the comparison
 			if (reason==null || attempt>=MAX_RETRIES || System.nanoTime()-giveUpAt>=0) {
 				throw failure;
@@ -946,33 +999,117 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * committed yet. A drop reported by {@code commit()} leaves the outcome unknown - the server may have committed
 	 * and died before the answer reached us - and replaying a write that in fact committed applies it twice, which
 	 * is the very reason 40003 is kept out of {@link #NON_REPLAYABLE_ROLLBACK_STATES}.
+	 * <p>
+	 * Nothing is replayable once the attempt has committed part of its own work, whatever the failure says. The DDL
+	 * of {@link WriteableTransactionTransactionImpl#openTree} and {@link WriteableTransactionTransactionImpl#deleteTree}
+	 * commits inside {@link WriteOperation#run}, and mysql and oracle commit before a DDL statement whether asked
+	 * to or not, so the attempt no longer rolls back as a whole - and {@link WriteOperation} is only idempotent in
+	 * the database. {@code RootContainer.open} opens and registers every entry container of every base DN in one
+	 * write: replayed after the trees of the first base DN were created and committed, it registers that base DN a
+	 * second time and fails with ERR_ENTRY_CONTAINER_ALREADY_REGISTERED, which masks the failure that caused the
+	 * replay and leaves the indexes of the previous attempt behind with their configuration listeners.
+	 *
+	 * @param committing whether the failure was reported by {@code commit()}, which leaves the outcome unknown
+	 * @param partlyCommitted whether the attempt committed part of its work before it failed
+	 * @param connectionClosed whether the driver closed the connection under the failure - evidence no SQLState
+	 * carries on mssql-jdbc, which reports a killed session as S0001 and closes the connection behind it
 	 */
-	static String replayReason(Throwable failure, String driver, boolean committing) {
+	static String replayReason(Throwable failure, String driver, boolean committing, boolean partlyCommitted,
+			boolean connectionClosed) {
+		if (partlyCommitted) {
+			return null;
+		}
 		if (isRetryableConflict(failure, driver)) {
 			return "a conflict";
 		}
-		if (!committing && isConnectionFailure(failure)) {
+		if (!committing && (connectionClosed || isConnectionFailure(failure))) {
 			return "a connection the database dropped";
 		}
 		return null;
 	}
 
 	/**
-	 * Whether a failure says the connection is gone rather than the statement rejected: the database dropped it,
-	 * restarted, failed over, or the network did. The cause chain is walked for the reason
-	 * {@link #isRetryableConflict} walks it - the failure reaches this class wrapped in a
-	 * {@link StorageRuntimeException}, and a caller such as {@code EntryContainer.addEntry} may wrap it once more.
+	 * Whether a failure says the connection is gone rather than the statement rejected, asked of the failure and of
+	 * the connection it was raised on. A driver is not required to say so in a SQLState: mssql-jdbc reports a
+	 * session killed by {@code KILL}, by the resource governor or by an availability group transition as error 596,
+	 * 3980, 10054, 18456 or 4060, and {@code generateStateCode} maps none of them - with xopenStates off, which is
+	 * its default, every one of them comes out as {@code "S"+errorState}, measured as S0001. What the driver does
+	 * do is close the connection for any error of severity 20 and above, before it throws.
+	 * <p>
+	 * Asked only while the operation that failed still owns the connection: a released one is back in the pool and
+	 * may already have been handed to another borrow, whose state it would then be answering about.
 	 */
-	static boolean isConnectionFailure(Throwable t) {
-		for (int hop=0; t!=null && hop<MAX_CAUSE_HOPS; t=t.getCause(), hop++) {
-			if (t instanceof SQLException) {
-				final String state=String.valueOf(((SQLException) t).getSQLState());
-				if (state.startsWith(CONNECTION_FAILURE_CLASS) || CONNECTION_FAILURE_STATES.contains(state)) {
-					return true;
-				}
+	static boolean isConnectionFailure(Throwable failure, Connection con) {
+		return isConnectionFailure(failure) || isClosed(con);
+	}
+
+	/** Whether the driver reports the connection as closed; one that cannot answer is taken as closed. */
+	private static boolean isClosed(Connection con) {
+		try {
+			return con.isClosed();
+		} catch (SQLException e) {
+			return true;
+		}
+	}
+
+	/**
+	 * Whether a failure says the connection is gone rather than the statement rejected: the database dropped it,
+	 * restarted, failed over, or the network did.
+	 * <p>
+	 * Both chains of the failure are walked, for the reason {@link #failureScope} walks both: a driver reports the
+	 * error that says what happened as the next exception of a generic one at least as often as it reports it as
+	 * the cause, and mssql-jdbc chains every error of a message it received that way. The suppressed exceptions are
+	 * walked with them, since the rollback and the release of a connection report a drop there - a write whose
+	 * operation failed for its own reasons carries the drop of its {@code close()} as a suppressed exception (JLS
+	 * 14.20.3.1) rather than as a cause. The walk starts at the failure this class was handed because it reaches it
+	 * wrapped in a {@link StorageRuntimeException}, and a caller such as {@code EntryContainer.addEntry} may wrap
+	 * it once more.
+	 */
+	static boolean isConnectionFailure(Throwable failure) {
+		final Deque<Throwable> pending=new ArrayDeque<>();
+		final Set<Throwable> seen=Collections.newSetFromMap(new IdentityHashMap<Throwable,Boolean>());
+		if (failure!=null) {
+			pending.push(failure);
+		}
+		while (!pending.isEmpty() && seen.size()<MAX_CAUSE_HOPS) {
+			final Throwable e=pending.pop();
+			if (!seen.add(e)) { // a driver that chains an exception back to itself must not loop this walk
+				continue;
+			}
+			if (e.getCause()!=null) {
+				pending.push(e.getCause());
+			}
+			for (final Throwable suppressed : e.getSuppressed()) {
+				pending.push(suppressed);
+			}
+			if (!(e instanceof SQLException)) {
+				continue;
+			}
+			final SQLException sqlException=(SQLException) e;
+			if (sqlException.getNextException()!=null) {
+				pending.push(sqlException.getNextException());
+			}
+			if (saysTheConnectionIsGone(sqlException)) {
+				return true;
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * What one exception of the chain says on its own. The types are asked before the SQLState, the way
+	 * {@link #scopeOf} asks them: they are what the JDBC contract gives a driver to say the connection is gone, and
+	 * a driver that raises one of them has said so whatever state it filled in. Oracle reports ORA-03113, ORA-00028
+	 * and ORA-01089 as {@link SQLRecoverableException} and happens to map them to 08006 as well; the type is what
+	 * makes that robust rather than lucky.
+	 */
+	private static boolean saysTheConnectionIsGone(SQLException e) {
+		if (e instanceof SQLRecoverableException || e instanceof SQLNonTransientConnectionException
+				|| e instanceof SQLTransientConnectionException) {
+			return true;
+		}
+		final String state=String.valueOf(e.getSQLState());
+		return state.startsWith(CONNECTION_FAILURE_CLASS) || CONNECTION_FAILURE_STATES.contains(state);
 	}
 
 	/**
@@ -981,10 +1118,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * A dropped connection is rarely alone: a restart, a failover or a network that went away takes every
 	 * connection established before it, and the pool has no other way of hearing about any of them.
 	 */
-	private void distrustPoolOnConnectionFailure(Throwable failure) {
-		if (isConnectionFailure(failure)) {
-			CachedConnection.distrustPool(config.getDBDirectory());
-		}
+	private void distrustPool() {
+		CachedConnection.distrustPool(config.getDBDirectory());
 	}
 
 	/** Returns the randomized delay before the given attempt is replayed, doubling with each attempt up to a cap. */
@@ -1144,6 +1279,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// write() (and by ImporterImpl.close()) when the transaction is done with.
 		final StampSession stampSession=new StampSession();
 
+		/**
+		 * Whether this transaction has committed part of its own work, which takes the attempt out of the
+		 * replay of {@link JDBCStorage#write}: what it did no longer rolls back as a whole, and a
+		 * {@link WriteOperation} is only idempotent in the database. Set before the work rather than after the
+		 * commit, because mysql and oracle commit before a DDL statement whether asked to or not - the
+		 * statement that fails has committed everything before it just as surely as the one that succeeds.
+		 */
+		boolean partlyCommitted;
+
 		public WriteableTransactionTransactionImpl(Connection con) {
 			super(con);
 			//captured once rather than read per operation: the access mode of the storage is mutable state -
@@ -1198,6 +1342,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		public void openTree(TreeName treeName, boolean createOnDemand) {
 			if (createOnDemand) {
 				checkReadOnly();
+				// the create table and the create index below commit, and reach the engines that commit
+				// before a DDL statement of their own accord: from here on the attempt is not replayable
+				partlyCommitted=true;
 				if (!isExistsTable(treeName)) {
 					try (final PreparedStatement statement=con.prepareStatement("create table "+getTableName(treeName)+" ("+getTableDialect()+")")){
 						execute(statement);
@@ -1261,6 +1408,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		
 		public void clearTree(TreeName treeName) {
 			checkReadOnly();
+			partlyCommitted=true; // it commits the delete, and everything the transaction did before it
 			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName))){
 				execute(statement);
 				con.commit();
@@ -1273,6 +1421,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		public void deleteTree(TreeName treeName) {
 			checkReadOnly();
 			if (isExistsTable(treeName)) {
+				partlyCommitted=true; // the drop commits, on the engines that do not commit before it anyway
 				try (final PreparedStatement statement = con.prepareStatement("drop table " + getTableName(treeName))) {
 					execute(statement);
 					con.commit();
@@ -1618,7 +1767,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				}
 			}
 			try {
-				con = getConnection();
+				con = getValidatedConnection();
 			}catch (Exception e){
 				throw new StorageRuntimeException(e);
 			}

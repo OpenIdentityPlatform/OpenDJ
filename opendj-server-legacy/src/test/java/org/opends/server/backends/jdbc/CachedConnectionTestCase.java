@@ -113,6 +113,8 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	public void clearProperties() {
 		System.clearProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY);
 		System.clearProperty(CachedConnection.POOL_TIMEOUT_PROPERTY);
+		System.clearProperty(CachedConnection.TTL_PROPERTY);
+		System.clearProperty(CachedConnection.ALIVE_BYPASS_PROPERTY);
 		// what has been reported once is remembered for the life of the jvm: left standing, the key
 		// of one test is what the next one finds when it asserts that it reported something itself
 		CachedConnection.warnedOnce.clear();
@@ -563,7 +565,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final Connection pooled = mock(Connection.class);
 		when(pooled.isValid(anyInt())).thenReturn(true);
 		when(pooled.getNetworkTimeout()).thenReturn(0);
-		CachedConnection.cached.get(url).add(new CachedConnection(url, pooled));
+		seedPool(url, pooled);
 
 		final Connection borrowed = CachedConnection.getConnection(url);
 
@@ -589,7 +591,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		when(pooled.isValid(anyInt())).thenReturn(true);
 		doThrow(new SQLException("the driver took the bound and then failed"))
 			.when(pooled).setNetworkTimeout(any(Executor.class), anyInt());
-		CachedConnection.cached.get(url).add(new CachedConnection(url, pooled));
+		seedPool(url, pooled);
 		final Connection fresh = mock(Connection.class);
 		stub.answerWith(fresh);
 
@@ -632,7 +634,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final Connection pooled = mock(Connection.class);
 		when(pooled.isValid(anyInt())).thenReturn(true);
 		when(pooled.getNetworkTimeout()).thenReturn(2000);
-		CachedConnection.cached.get(url).add(new CachedConnection(url, pooled));
+		seedPool(url, pooled);
 
 		assertNotNull(CachedConnection.getConnection(url));
 
@@ -656,7 +658,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 				Thread.sleep(500); // a database that no longer answers: every validation waits out its bound
 				return false;
 			});
-			CachedConnection.cached.get(url).add(new CachedConnection(url, stale));
+			seedPool(url, stale);
 		}
 		final Connection fresh = mock(Connection.class);
 		stub.answerWith(fresh);
@@ -675,7 +677,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final String url = StubDriver.PREFIX + "broken-pooled";
 		final Connection stale = mock(Connection.class);
 		when(stale.isValid(anyInt())).thenReturn(false);
-		CachedConnection.cached.get(url).add(new CachedConnection(url, stale));
+		seedPool(url, stale);
 		final Connection fresh = mock(Connection.class);
 		when(fresh.isValid(anyInt())).thenReturn(true);
 		stub.answerWith(fresh);
@@ -699,7 +701,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final String url = StubDriver.PREFIX + "validation-unchecked";
 		final Connection broken = mock(Connection.class);
 		when(broken.isValid(anyInt())).thenThrow(new IllegalStateException("driver internal"));
-		CachedConnection.cached.get(url).add(new CachedConnection(url, broken));
+		seedPool(url, broken);
 		final Connection fresh = mock(Connection.class);
 		stub.answerWith(fresh);
 
@@ -1290,8 +1292,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		});
 		final Connection good = mock(Connection.class);
 		when(good.isValid(anyInt())).thenReturn(true);
-		CachedConnection.cached.get(url).add(new CachedConnection(url, stale));
-		CachedConnection.cached.get(url).add(new CachedConnection(url, good));
+		seedPool(url, stale, good);
 		final Connection fresh = mock(Connection.class);
 		stub.answerWith(fresh);
 		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "1");
@@ -1317,7 +1318,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final Connection reaped = mock(Connection.class);
 		when(reaped.getNetworkTimeout()).thenReturn(0);
 		when(reaped.isValid(anyInt())).thenReturn(false);
-		CachedConnection.cached.get(url).add(new CachedConnection(url, reaped));
+		seedPool(url, reaped);
 		final Connection fresh = mock(Connection.class);
 		stub.answerWith(fresh);
 
@@ -1518,6 +1519,84 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		verify(parent).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
 		verify(parent).close();
 		assertSame(((CachedConnection) next).parent, fresh, "the rest of the generation was handed out unvalidated");
+	}
+
+	/**
+	 * Seeds the pool the way {@link CachedConnection#close()} fills it - at the end a borrow takes
+	 * from - so that the connection named first here is the one the next borrow gets.
+	 */
+	private static void seedPool(String url, Connection... parents) {
+		for (int i = parents.length - 1; i >= 0; i--) {
+			CachedConnection.cached.get(url).addFirst(new CachedConnection(url, parents[i]));
+		}
+	}
+
+	/**
+	 * The borrows nothing compensates a dropped connection on - the open of a backend, the removal
+	 * of its files, the start of an import - ask for a connection the pool validates whatever the
+	 * window says. Each of them is one borrow of a cold path, and the one that opens a backend
+	 * issues no statement at all: a connection dropped inside the window would surface there out of
+	 * the rollback that releases it, with no statement to replay and nothing to tell the pool.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheBorrowsNothingCompensatesAreValidated() throws Exception {
+		final String url = StubDriver.PREFIX + "validated-borrow";
+		CachedConnection.aliveBypassNanos = TimeUnit.HOURS.toNanos(1);
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(parent);
+		CachedConnection.getConnection(url).close();
+
+		final Connection borrowed = CachedConnection.getConnection(url, false);
+
+		assertSame(((CachedConnection) borrowed).parent, parent, "the pooled connection was not the one handed back");
+		verify(parent).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
+	}
+
+	/**
+	 * A connection closed under the borrow is not handed out on the strength of its last answer:
+	 * the removal listener of the pool closes every connection it finds in the deque when the pool
+	 * expires, and it iterates a weakly consistent view. The validation the window replaces
+	 * answered that as well, out of a flag of the driver rather than out of a round trip.
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectionThePoolClosedIsNotHandedOut() throws Exception {
+		final String url = StubDriver.PREFIX + "closed-inside-the-window";
+		CachedConnection.aliveBypassNanos = TimeUnit.HOURS.toNanos(1);
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(parent);
+		CachedConnection.getConnection(url).close();
+		// closed where it lay, by the expiry of the pool: a closed connection answers isValid() with
+		// false as well, which is what discards it once the window stops trusting it
+		when(parent.isClosed()).thenReturn(true);
+		when(parent.isValid(anyInt())).thenReturn(false);
+		final Connection fresh = mock(Connection.class);
+		when(fresh.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(fresh);
+
+		final Connection borrowed = CachedConnection.getConnection(url);
+
+		assertSame(((CachedConnection) borrowed).parent, fresh, "a closed connection was handed out on its last answer");
+	}
+
+	/**
+	 * The window is clamped to the idle time the pool keeps a connection for. A value the unit
+	 * conversion saturates on would leave every connection of the pool trusted for the life of the
+	 * server, and one merely longer than the pool holds a connection leaves the connection in
+	 * constant use - the one the window exists for - validated not once per window but never.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheWindowIsClampedToTheIdleTimeOfThePool() {
+		System.setProperty(CachedConnection.TTL_PROPERTY, "15000");
+		System.setProperty(CachedConnection.ALIVE_BYPASS_PROPERTY, "500");
+		assertEquals(CachedConnection.getAliveBypassMillis(), 500L, "a window inside the ttl was not left alone");
+
+		System.setProperty(CachedConnection.ALIVE_BYPASS_PROPERTY, Long.toString(Long.MAX_VALUE));
+		assertEquals(CachedConnection.getAliveBypassMillis(), 15000L, "a window of Long.MAX_VALUE was not clamped");
+
+		System.setProperty(CachedConnection.TTL_PROPERTY, "100");
+		assertEquals(CachedConnection.getAliveBypassMillis(), 100L, "the clamp is the configured ttl, not the default");
 	}
 
 	private static SQLException tooManyConnections() {

@@ -66,8 +66,7 @@ public class CachedConnection implements Connection {
     // vary the window without a class loader of its own, and volatile because a non-final static
     // long is written neither atomically nor visibly to the threads reading it (JLS 17.7) - every
     // worker of the backend and every replay thread reads this one.
-    static volatile long aliveBypassNanos = TimeUnit.MILLISECONDS.toNanos(
-        getNonNegativeProperty(ALIVE_BYPASS_PROPERTY, DEFAULT_ALIVE_BYPASS_MS, "ms"));
+    static volatile long aliveBypassNanos = TimeUnit.MILLISECONDS.toNanos(getAliveBypassMillis());
 
     /**
      * Bounds the connect and the login of one attempt to establish a connection, in seconds; 0 for
@@ -151,7 +150,7 @@ public class CachedConnection implements Connection {
      * reaped is a routine event, and it says nothing about the connection in use that the pool is
      * about to hand out.
      */
-    private static final Map<String, AtomicLong> poolDistrustedAt = new ConcurrentHashMap<>();
+    private static final Map<String, Long> poolDistrustedAt = new ConcurrentHashMap<>();
 
     final Connection parent;
 
@@ -162,6 +161,9 @@ public class CachedConnection implements Connection {
     // than the window - and it leaves the connections nothing needs at the cold end of the deque,
     // where the per-connection idle expiry of #878 can find them. Until that lands, the cold end
     // is reached only when the whole pool expires, after DEFAULT_TTL_MS with the backend idle.
+    // A deque takes one lock for both of its ends where the queue it replaces took one for each,
+    // so a borrow and a return no longer proceed side by side - against the round trip the window
+    // above saves, and the connect the reuse saves, that lock is not worth a FIFO handoff.
     static LoadingCache<String, BlockingDeque<CachedConnection>> cached = Caffeine.newBuilder()
         .expireAfterAccess(Duration.ofMillis(getCacheTtlMillis()))
         .removalListener((String key, BlockingDeque<CachedConnection> value, RemovalCause cause) -> {
@@ -183,6 +185,27 @@ public class CachedConnection implements Connection {
      */
     private static long getCacheTtlMillis() {
         return getNonNegativeProperty(TTL_PROPERTY, DEFAULT_TTL_MS, "ms");
+    }
+
+    /**
+     * Returns the alive window, clamped to the {@value #TTL_PROPERTY} an idle pooled connection is
+     * kept for. Both of the timeouts this property sits next to are clamped as well: a value the
+     * unit conversion saturates on would leave every connection of the pool trusted for the life
+     * of the server, and one merely longer than the pool holds a connection leaves a connection in
+     * constant use - the one the window exists for - validated not once per window but never.
+     */
+    static long getAliveBypassMillis() {
+        final long configured = getNonNegativeProperty(ALIVE_BYPASS_PROPERTY, DEFAULT_ALIVE_BYPASS_MS, "ms");
+        final long ttl = getCacheTtlMillis();
+        if (configured > ttl) {
+            warnOnce(ALIVE_BYPASS_PROPERTY + "=" + configured + ">" + ttl,
+                "The %s window of %d ms is longer than the %d ms of %s a pooled connection is kept for,"
+                    + " and is used as %d ms: a connection trusted for longer than the pool keeps it would"
+                    + " never be validated at all",
+                ALIVE_BYPASS_PROPERTY, configured, ttl, TTL_PROPERTY, ttl);
+            return ttl;
+        }
+        return configured;
     }
 
     /**
@@ -553,6 +576,22 @@ public class CachedConnection implements Connection {
      * not answer into a hang rather than into an error the caller can report.
      */
     static Connection getConnection(String connectionString) throws Exception {
+        return getConnection(connectionString, true);
+    }
+
+    /**
+     * Borrows a connection, either trusting the alive window of {@value #ALIVE_BYPASS_PROPERTY} or
+     * validating whatever comes out of the pool.
+     *
+     * @param trusted false for a borrow nothing compensates a dropped connection on. What the
+     * window trades away is the connection that breaks inside it, and {@code JDBCStorage} takes
+     * that off the caller where it can - a write is replayed, a read tells the pool - but the
+     * borrows that open a backend, remove its files or start an import have neither: they issue
+     * their statements far from the borrow, and the one that opens a backend issues none at all,
+     * so a dropped connection would surface out of the {@code rollback()} of its release. Each of
+     * them is one borrow of a cold path, where the round trip the window saves is worth nothing.
+     */
+    static Connection getConnection(String connectionString, boolean trusted) throws Exception {
         final ConnectDialect dialect = ConnectDialect.of(connectionString);
         reportUnknownDialect(connectionString, dialect);
         final long connectTimeoutSeconds = Math.min(
@@ -566,7 +605,7 @@ public class CachedConnection implements Connection {
         long backoffMs = 0;
         int attempts = 0;
         while (true) {
-            final CachedConnection pooled = poll(connectionString, waitMs, deadline);
+            final CachedConnection pooled = poll(connectionString, waitMs, deadline, trusted);
             if (pooled != null) {
                 return pooled;
             }
@@ -662,10 +701,11 @@ public class CachedConnection implements Connection {
      * moment before the deadline is the very connection this borrow waited for. Only a connection
      * the database no longer answers is closed here.
      */
-    private static CachedConnection poll(String connectionString, long waitMs, long deadline) throws InterruptedException {
+    private static CachedConnection poll(String connectionString, long waitMs, long deadline, boolean trusted)
+            throws InterruptedException {
         CachedConnection con = cached.get(connectionString).pollFirst(waitMs, TimeUnit.MILLISECONDS);
         while (con != null) {
-            if (isUsable(con)) {
+            if (isUsable(con, trusted)) {
                 return con;
             }
             closeQuietly(con.parent);
@@ -677,8 +717,8 @@ public class CachedConnection implements Connection {
         return null;
     }
 
-    private static boolean isUsable(CachedConnection con) {
-        if (isKnownAlive(con)) {
+    private static boolean isUsable(CachedConnection con, boolean trusted) {
+        if (trusted && isKnownAlive(con)) {
             return true;
         }
         // The validation needs a bound of its own: isValid(0) means "no timeout" in the JDBC
@@ -745,8 +785,24 @@ public class CachedConnection implements Connection {
         if (System.nanoTime() - provenAt >= window) { // the overflow safe form of the comparison
             return false;
         }
-        final AtomicLong distrusted = poolDistrustedAt.get(con.connectionString);
-        return distrusted == null || provenAt - distrusted.get() > 0;
+        final Long distrusted = poolDistrustedAt.get(con.connectionString);
+        if (distrusted != null && provenAt - distrusted <= 0) { // the overflow safe form of the comparison
+            return false;
+        }
+        // What the validation this replaces also answered: the removalListener above closes every
+        // connection it finds in the deque when the pool expires, and it iterates a weakly
+        // consistent view, so a connection taken out by a borrow running at the same time can be
+        // closed under it. Answered by the driver out of a flag of its own, not by a round trip.
+        return !isClosed(con.parent);
+    }
+
+    /** Whether the driver reports the connection as closed; one that cannot say is not one to trust. */
+    private static boolean isClosed(Connection con) {
+        try {
+            return con.isClosed();
+        } catch (SQLException e) {
+            return true;
+        }
     }
 
     /**
@@ -756,7 +812,11 @@ public class CachedConnection implements Connection {
      * inside the window asks the database nothing.
      */
     static void distrustPool(String connectionString) {
-        poolDistrustedAt.computeIfAbsent(connectionString, url -> new AtomicLong()).set(System.nanoTime());
+        // merge(max) rather than computeIfAbsent().set(): two operations reporting a drop at once
+        // would otherwise move the distrust point backwards - the later reading is written first
+        // and the earlier one overwrites it - and the AtomicLong of computeIfAbsent is published
+        // holding its initial 0 before set() runs, which a borrow racing it reads as "never".
+        poolDistrustedAt.merge(connectionString, System.nanoTime(), Math::max);
     }
 
     /**
