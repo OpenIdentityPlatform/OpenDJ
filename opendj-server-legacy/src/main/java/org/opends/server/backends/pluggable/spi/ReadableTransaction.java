@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable.spi;
 
@@ -42,6 +43,26 @@ public interface ReadableTransaction
    * @return a new cursor
    */
   Cursor<ByteString, ByteString> openCursor(TreeName treeName);
+
+  /**
+   * Opens a cursor on the tree whose name is provided, for a walk of that whole tree with no
+   * client operation waiting on it: an export, a verify, a rebuild, or the load of a tree while
+   * the backend opens.
+   * <p>
+   * A storage engine that bounds how long a statement may take must not bound such a walk as it
+   * bounds the work of a client operation: what this legitimately takes follows the size of the
+   * tree, and cutting it short fails an administrative task that would otherwise have run to the
+   * end. An engine with no such bound - every one but the JDBC backend - answers this exactly as
+   * {@link #openCursor(TreeName)} does.
+   *
+   * @param treeName
+   *          the tree name
+   * @return a new cursor
+   */
+  default Cursor<ByteString, ByteString> openBulkCursor(TreeName treeName)
+  {
+    return openCursor(treeName);
+  }
 
   /**
    * Returns the number of key/value pairs in the provided tree.

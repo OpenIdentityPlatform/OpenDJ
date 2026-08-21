@@ -259,6 +259,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		return false;
 	}
 
+	/** How far under its bound a statement may report the cancel, the timer of a driver being coarse. */
+	private static final long CLOCK_SLACK_MILLIS = 250;
+
 	/**
 	 * Runs the given operation while another session holds every row of the tree in an uncommitted
 	 * transaction, with only the property of the given class bounding it: the operation must give
@@ -290,7 +293,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				for (final JDBCStorage.StatementBound each : JDBCStorage.StatementBound.values()) {
 					System.setProperty(each.property, each == bound ? Integer.toString(boundSeconds) : "0");
 				}
-				final long startedAt = System.currentTimeMillis();
+				// the monotonic clock, which is what timedOut() measures the bound with: a step of
+				// the wall clock can neither lengthen nor shorten what the assertions below allow
+				final long startedAt = System.nanoTime();
 				Exception failure = null;
 				try {
 					blocked.run(storage, tree);
@@ -298,7 +303,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				} catch (Exception expected) {
 					failure = expected; // the bound was reached and the transaction rolled back
 				}
-				final long elapsed = System.currentTimeMillis() - startedAt;
+				final long elapsed = (System.nanoTime() - startedAt) / 1000000L;
 				// The failure has to be the one the bound produces, not any failure at all: an
 				// operation that fell over at once for an unrelated reason would otherwise pass
 				// this test at t=0. timedOut() names the property in the message of everything it
@@ -313,7 +318,10 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				// ends at the socket read timeout, which is the bound plus its margin.
 				final long ceilingSeconds = getJdbcUrl().startsWith("jdbc:oracle")
 					? boundSeconds + JDBCStorage.BACKSTOP_MARGIN_SECONDS + 10 : boundSeconds * 4L;
-				assertTrue(elapsed >= boundSeconds * 1000L, "gave up after " + elapsed + " ms, before its bound of "
+				// with a little slack under the bound: a driver keeps its timer in whole seconds and
+				// may report the cancel a few milliseconds before the bound is arithmetically due
+				assertTrue(elapsed >= boundSeconds * 1000L - CLOCK_SLACK_MILLIS,
+					"gave up after " + elapsed + " ms, before its bound of "
 					+ boundSeconds + " s: something other than the bound ended the wait");
 				assertTrue(elapsed < ceilingSeconds * 1000L, "gave up only after " + elapsed + " ms, past the "
 					+ ceilingSeconds + " s this bound of " + boundSeconds + " s allows");

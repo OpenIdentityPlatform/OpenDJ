@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -172,7 +173,10 @@ class ExportJob
        throws StorageRuntimeException, IOException, LDIFException
   {
     ID2Entry id2entry = entryContainer.getID2Entry();
-    try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(id2entry.getName()))
+    // The whole of id2entry with nobody waiting on the walk: an export-ldif, or the generation ID
+    // a replicated domain computes for itself the first time it starts (LDAPReplicationDomain
+    // .computeGenerationId), which is why this must not be bounded as the work of an operation.
+    try (final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(id2entry.getName()))
     {
       while (cursor.next())
       {

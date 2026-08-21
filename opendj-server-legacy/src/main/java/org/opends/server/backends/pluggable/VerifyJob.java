@@ -345,7 +345,8 @@ class VerifyJob
    */
   private void iterateID2Entry(ReadableTransaction txn) throws StorageRuntimeException
   {
-    try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(id2entry.getName()))
+    // Every tree this job walks, it walks whole, and no client operation is waiting on it.
+    try(final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(id2entry.getName()))
     {
       long storedEntryCount = id2entry.getRecordCount(txn);
       while (cursor.next())
@@ -442,7 +443,7 @@ class VerifyJob
     final Deque<ChildrenCount> childrenCounters = new LinkedList<>();
     ChildrenCount currentNode = null;
 
-    try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName()))
+    try(final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(dn2id.getName()))
     {
       while (cursor.next())
       {
@@ -525,7 +526,7 @@ class VerifyJob
 
   private void iterateID2ChildrenCount(ReadableTransaction txn) throws StorageRuntimeException
   {
-    try (final SequentialCursor<EntryID, Void> cursor = id2childrenCount.openCursor(txn))
+    try (final SequentialCursor<EntryID, Void> cursor = id2childrenCount.openBulkCursor(txn))
     {
       while (cursor.next())
       {
@@ -607,7 +608,7 @@ class VerifyJob
       return;
     }
 
-    try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(vlvIndex.getName()))
+    try(final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(vlvIndex.getName()))
     {
       while (cursor.next())
       {
@@ -655,7 +656,7 @@ class VerifyJob
       return;
     }
 
-    try(final Cursor<ByteString,EntryIDSet> cursor = index.openCursor(txn))
+    try(final Cursor<ByteString,EntryIDSet> cursor = index.openBulkCursor(txn))
     {
       while (cursor.next())
       {

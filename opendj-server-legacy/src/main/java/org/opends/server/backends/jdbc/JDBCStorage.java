@@ -221,12 +221,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 */
 	private <T> T bounded(PreparedStatement statement, StatementBound bound, Execution<T> execution) throws SQLException {
 		final int seconds=bound.seconds();
-		if (seconds > 0) {
-			setQueryTimeout(statement, seconds);
-		}
+		// whether the cancel is in force: a driver is free to refuse the query timeout, and then the
+		// socket read timeout behind it is the only layer this statement has - one that arrives later
+		final boolean cancelArmed=seconds > 0 && setQueryTimeout(statement, seconds);
 		// an unbounded class is announced to the connection all the same: a statement told it may
 		// take as long as it needs must not be cut by the socket read timeout of a concurrent one
-		return bounded(connectionOf(statement), bound.property, seconds, execution);
+		return bounded(connectionOf(statement), bound.property, seconds, cancelArmed, execution);
 	}
 
 	/**
@@ -237,7 +237,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * locks, as the {@code create table} they guard.
 	 */
 	<T> T bounded(Connection con, StatementBound bound, Execution<T> execution) throws SQLException {
-		return bounded(con, bound.property, bound.seconds(), execution);
+		// no cancel to arm: DatabaseMetaData takes no query timeout, so the socket read timeout behind
+		// it is the only layer these have, and nothing ends their wait before the margin of that layer
+		return bounded(con, bound.property, bound.seconds(), false, execution);
 	}
 
 	/**
@@ -245,13 +247,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * statement that has a property of its own: the statistics refresh after an import, which
 	 * legitimately takes as long as a scan of the table it describes.
 	 */
-	private <T> T bounded(Connection con, String property, int seconds, Execution<T> execution) throws SQLException {
+	private <T> T bounded(Connection con, String property, int seconds, boolean cancelArmed, Execution<T> execution)
+			throws SQLException {
 		final long startedAt=System.nanoTime();
 		final Backstop backstop=holdBackstop(con, seconds);
 		try {
 			return execution.run();
 		}catch (SQLException e) {
-			throw timedOut(e, property, seconds, startedAt);
+			throw timedOut(e, property, seconds, cancelArmed, startedAt);
 		}finally {
 			releaseBackstop(backstop, con, seconds);
 		}
@@ -263,14 +266,16 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * deployment configures, so a driver without it degrades to the socket read timeout behind it
 	 * rather than failing every statement it is given.
 	 */
-	private void setQueryTimeout(PreparedStatement statement, int seconds) {
+	private boolean setQueryTimeout(PreparedStatement statement, int seconds) {
 		try {
 			statement.setQueryTimeout(seconds);
+			return true;
 		}catch (SQLException | RuntimeException e) {
 			if (queryTimeoutWarned.compareAndSet(false, true)) {
 				logger.warn(LocalizableMessage.raw("jdbc: the driver would not take a query timeout (%s): a statement of this"
 					+ " backend is left to the socket read timeout behind it", e.getMessage()));
 			}
+			return false;
 		}
 	}
 
@@ -289,9 +294,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// backend only set a socket option in it, so it costs a call rather than a thread.
 	private static final Executor DIRECT_EXECUTOR = Runnable::run;
 
-	// per storage rather than per JVM: a driver that will not take one of these says so once for
-	// every backend running on it, instead of one backend silencing the warning for all of them.
-	private final AtomicBoolean backstopWarned = new AtomicBoolean();
+	// Set when the driver of this storage has no network timeout to give at all, which is a property
+	// of the driver rather than of a connection: asking it again would cost a throw per statement,
+	// and the entry a connection's Backstop lives in is gone as soon as nothing runs on it. Held per
+	// storage rather than per JVM, like the warnings below: a driver that will not take one of these
+	// says so once for every backend running on it, instead of one backend silencing it for all.
+	private final AtomicBoolean backstopUnsupported = new AtomicBoolean();
+	private final AtomicBoolean backstopUnsupportedWarned = new AtomicBoolean();
+	private final AtomicBoolean backstopFailedWarned = new AtomicBoolean();
 	private final AtomicBoolean queryTimeoutWarned = new AtomicBoolean();
 
 	/**
@@ -321,8 +331,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		int previous;
 		/** What the backstop has armed, or 0 when the connection carries {@link #previous}. */
 		int armed;
-		/** Set when the driver would not report or take a network timeout: it is not asked again. */
-		boolean unsupported;
+		/**
+		 * Set when the driver would not take a network timeout on this connection: it is not asked
+		 * again while the statements holding this entry run. A connection is the right scope for
+		 * that: the common cause is a connection on its way out, and a driver that has no network
+		 * timeout at all is remembered for the whole storage instead - see {@link #backstopUnsupported}.
+		 */
+		boolean failed;
 	}
 
 	// Keyed by identity on the connection of the driver: CachedConnection.prepareStatement() hands
@@ -403,7 +418,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * driver.
 	 */
 	private void applyBackstop(Connection con, Backstop state) {
-		if (state.unsupported) {
+		if (state.failed || backstopUnsupported.get()) {
 			return;
 		}
 		final int wanted=state.unbounded > 0 || state.bounds.isEmpty() ? 0 : state.bounds.lastKey();
@@ -434,12 +449,24 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				state.armed=wanted;
 			}
 		}catch (SQLException | RuntimeException e) {
-			// either the connection is on its way out - it may be the one that reached this very
-			// timeout - or the driver has no network timeout to give: it is not asked again
-			state.unsupported=true;
-			if (backstopWarned.compareAndSet(false, true)) {
+			state.failed=true; // whatever the cause, this connection is not asked again while it runs
+			// The two causes are told apart, because they deserve opposite treatment and one of them
+			// would otherwise spend the single warning the other needs: a driver with no network
+			// timeout at all says so through SQLFeatureNotSupportedException, and there is nothing to
+			// gain by asking it once per statement for the life of the storage, while a connection on
+			// its way out - it may be the one that reached this very timeout - says nothing about the
+			// driver and must not disable the backstop for the connections that are still healthy.
+			if (e instanceof SQLFeatureNotSupportedException) {
+				backstopUnsupported.set(true);
+				if (backstopUnsupportedWarned.compareAndSet(false, true)) {
+					logger.warn(LocalizableMessage.raw("jdbc: the driver takes no socket read timeout (%s): a statement the"
+						+ " database does not cancel will wait for it indefinitely, unless the connect properties of the URL"
+						+ " configured for this backend carry one", e.getMessage()));
+				}
+			}else if (backstopFailedWarned.compareAndSet(false, true)) {
 				logger.warn(LocalizableMessage.raw("jdbc: the socket read timeout backing up a cancelled statement could not"
-					+ " be set (%s): a statement the database does not cancel will wait for it indefinitely", e.getMessage()));
+					+ " be set on a connection (%s): a statement the database does not cancel will wait for it"
+					+ " indefinitely there", e.getMessage()));
 			}
 		}
 	}
@@ -454,12 +481,23 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// one a caller classifies: a mysql lock wait, reported in class 40, ends inside a longer bound
 	// and stays the replayable conflict it is. The statement itself is left out of the message: a
 	// driver renders it with its parameters bound, and those are entry data.
-	private SQLException timedOut(SQLException e, String property, int seconds, long startedAt) {
-		if (seconds <= 0 || System.nanoTime()-startedAt < seconds*1_000_000_000L) {
+	private SQLException timedOut(SQLException e, String property, int seconds, boolean cancelArmed, long startedAt) {
+		if (seconds <= 0) {
 			return e;
 		}
-		return new SQLTimeoutException("jdbc: the statement did not finish within the "+seconds+"s of "
-			+property+": raise that property, or set it to 0 for no bound", e.getSQLState(), e.getErrorCode(), e);
+		// Where the cancel is armed, the property ends the wait at its own value. Where it is not - a
+		// statement of DatabaseMetaData takes no query timeout, and a driver is free to refuse one -
+		// the socket read timeout behind it is the only layer there is, and that one arrives a margin
+		// later: measuring such a statement against the property alone reported a connection reset at
+		// 121 s as a query timeout of 120 s and sent the operator to a property that bounded nothing.
+		final long endsAfter=cancelArmed ? seconds : seconds+(long)BACKSTOP_MARGIN_SECONDS;
+		if (System.nanoTime()-startedAt < endsAfter*1_000_000_000L) {
+			return e;
+		}
+		return new SQLTimeoutException("jdbc: the statement did not finish within the "+endsAfter+"s of "
+			+(cancelArmed ? property : "the socket read timeout behind "+property+" ("+seconds+"s plus the margin of"
+				+" that layer, which is the only one bounding a statement taking no query timeout)")
+			+": raise that property, or set it to 0 for no bound", e.getSQLState(), e.getErrorCode(), e);
 	}
 
 	// Unlike execute(), tolerates a statement that returns a result set - the comment statement of
@@ -790,6 +828,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// A session setting must reach the server as a plain batch: the sql server driver runs a
 	// prepared statement through sp_executesql, and a setting made there is reverted when that
 	// call returns - before the statement it is meant to protect ever runs.
+	//
+	// Outside both layers of the bound, like the comment statement executeAny() runs, and for the
+	// same reason: this is issued from newStampConnection() on a stamp connection, whose connect
+	// properties carry a socket read timeout of their own (Dialect.connectProperties).
 	private void executeSessionStatement(Connection con, String sql) throws SQLException {
 		try (final Statement statement=con.createStatement()) {
 			if (logger.isTraceEnabled()) {
@@ -1071,9 +1113,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					throw new IllegalStateException("no statistics refresh for dialect "+dialect);
 				}
 				try (final PreparedStatement statement=con.prepareStatement(sql)) {
-					if (timeoutSeconds>0) { // 0: wait without limit
-						setQueryTimeout(statement, timeoutSeconds);
-					}
+					// 0: wait without limit - and false where the driver would not take the cancel, which
+					// leaves the socket read timeout behind it as the only layer this refresh runs under
+					final boolean cancelArmed=timeoutSeconds>0 && setQueryTimeout(statement, timeoutSeconds);
 					for (int i=0;i<args.length;i++) {
 						statement.setString(i+1,args[i]);
 					}
@@ -1084,7 +1126,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					// break its driver sends, and it runs at the very end of a successful import,
 					// where a cancel that never arrives would park it with the data already
 					// committed and nothing left to report.
-					bounded(con, STATISTICS_TIMEOUT_PROPERTY, timeoutSeconds, () -> {
+					bounded(con, STATISTICS_TIMEOUT_PROPERTY, timeoutSeconds, cancelArmed, () -> {
 						if (logger.isTraceEnabled()) {
 							logger.trace(LocalizableMessage.raw("jdbc: %s",statement));
 						}
@@ -1353,12 +1395,28 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		return driverNameOf(con).contains("microsoft") ? "cast(? as char(128))" : "?";
 	}
 
-	private class ReadableTransactionImpl implements ReadableTransaction {
+	class ReadableTransactionImpl implements ReadableTransaction {
 		final Connection con;
+		/**
+		 * The class the statements of this transaction take. It follows who runs them rather than
+		 * what they look like: an import issues the same select and the same upsert a client
+		 * operation does, but nobody is waiting on it - and on mssql it works the table unindexed,
+		 * {@code k} being a {@code varbinary(max)} that cannot be an index key - so bounding an
+		 * import as an entry read fails an import that ran to the end before this bound existed.
+		 * The catalog lookups of {@code openTree()} keep the operation class whoever runs them: they
+		 * read a data dictionary rather than the data, so a wait there is another session's metadata
+		 * lock, which is one of the waits this bound exists to end.
+		 */
+		final StatementBound bound;
 		boolean isReadOnly=true;
 
 		public ReadableTransactionImpl(Connection con) {
+			this(con, StatementBound.OPERATION);
+		}
+
+		ReadableTransactionImpl(Connection con, StatementBound bound) {
 			this.con=con;
+			this.bound=bound;
 		}
 
 		@Override
@@ -1366,7 +1424,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			try (final PreparedStatement statement=con.prepareStatement("select v from "+getTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
-				return executeResultSet(statement, rc -> rc.next() ? ByteString.wrap(rc.getBytes("v")) : null);
+				return executeResultSet(statement, bound, rc -> rc.next() ? ByteString.wrap(rc.getBytes("v")) : null);
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
@@ -1374,17 +1432,20 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public Cursor<ByteString, ByteString> openCursor(TreeName treeName) {
-			return new CursorImpl(isReadOnly,con,treeName,StatementBound.OPERATION);
+			return new CursorImpl(isReadOnly,con,treeName,bound);
 		}
 
 		/**
-		 * Opens a cursor whose batches are bulk statements, for the walk an import or a
-		 * {@code rebuild-index} makes over a whole tree: there is no client waiting on it, and on
-		 * mssql it is not even a walk along an index - {@code k} is a {@code varbinary(max)} that
-		 * cannot be an index key there, so every batch is a scan and a sort of the table. Bounding
-		 * those as entry reads would abort a rebuild that ran to the end before this bound existed.
+		 * {@inheritDoc}
+		 * <p>
+		 * The batches of such a cursor are bulk statements however ordinary they look: nobody is
+		 * waiting on the walk, and on mssql it is not even a walk along an index - {@code k} is a
+		 * {@code varbinary(max)} there, which cannot be an index key, so every batch is a scan and
+		 * a sort of the table. Bounding those as entry reads aborted an export or a rebuild that
+		 * ran to the end before this bound existed.
 		 */
-		Cursor<ByteString, ByteString> openBulkCursor(TreeName treeName) {
+		@Override
+		public Cursor<ByteString, ByteString> openBulkCursor(TreeName treeName) {
 			return new CursorImpl(isReadOnly,con,treeName,StatementBound.BULK);
 		}
 
@@ -1405,7 +1466,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		final StampSession stampSession=new StampSession();
 
 		public WriteableTransactionTransactionImpl(Connection con) {
-			super(con);
+			this(con, StatementBound.OPERATION);
+		}
+
+		WriteableTransactionTransactionImpl(Connection con, StatementBound bound) {
+			super(con, bound);
 			if (!accessMode.isWriteable()) {
 				throw new ReadOnlyStorageException();
 			}
@@ -1561,28 +1626,28 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
-					return (execute(statement) == 1 && statement.getUpdateCount() > 0);
+					return (execute(statement, bound) == 1 && statement.getUpdateCount() > 0);
 				}
 			}else if (driverName.contains("mysql")) { //mysql upsert
 				try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) values (?,?,?) as new ON DUPLICATE KEY UPDATE v=new.v")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
-					return (execute(statement) == 1 && statement.getUpdateCount() > 0);
+					return (execute(statement, bound) == 1 && statement.getUpdateCount() > 0);
 				}
 			}else if (driverName.contains("oracle")) { //ANSI MERGE without ;
 				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " old using (select ? h,? k,? v from dual) new on (old.h=new.h and old.k=new.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v)")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
-					return (execute(statement) == 1 && statement.getUpdateCount() > 0);
+					return (execute(statement, bound) == 1 && statement.getUpdateCount() > 0);
 				}
 			}else if (driverName.contains("microsoft")) { //ANSI MERGE with ; WITH (HOLDLOCK) makes the upsert atomic: without it SQL Server MERGE can race two concurrent NOT MATCHED inserts of the same key into a PRIMARY KEY violation. UPDLOCK is required on top of it: with HOLDLOCK alone the search phase takes a shared lock that the WHEN MATCHED update then has to convert to an exclusive one, so two concurrent upserts of the same key deadlock on the conversion; an update lock is taken right away and makes the second transaction wait instead. h is cast back to char so that the join can seek the primary key instead of scanning the whole table under those locks, see hashParam()
 				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " WITH (HOLDLOCK, UPDLOCK) old using (select cast(? as char(128)) h,? k,? v) new on (old.h=new.h and old.k=new.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v);")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
-					return (execute(statement) == 1 && statement.getUpdateCount() > 0);
+					return (execute(statement, bound) == 1 && statement.getUpdateCount() > 0);
 				}
 			}else { //ANSI SQL: try update before insert with not exists
 				return update(treeName,key,value) || insert(treeName,key,value);
@@ -1596,7 +1661,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				statement.setBytes(3, value.toByteArray());
 				statement.setString(4, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(5, real2db(key.toByteArray()));
-				return (execute(statement)==1 && statement.getUpdateCount()>0);
+				return (execute(statement, bound)==1 && statement.getUpdateCount()>0);
 			}
 		}
 
@@ -1605,7 +1670,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				statement.setBytes(1,value.toByteArray());
 				statement.setString(2,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(3,real2db(key.toByteArray()));
-				return (execute(statement)==1 && statement.getUpdateCount()>0);
+				return (execute(statement, bound)==1 && statement.getUpdateCount()>0);
 			}
 		}
 
@@ -1630,7 +1695,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
-				return (execute(statement)==1 && statement.getUpdateCount()>0);
+				return (execute(statement, bound)==1 && statement.getUpdateCount()>0);
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
@@ -1662,9 +1727,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		ByteString currentValue;
 		boolean defined;
 
-		// The class of the batches this cursor takes, from whoever opened it: a search walks its
-		// index and has a client waiting, while an import or a rebuild walks a whole tree with
-		// nobody waiting - and on mssql it walks it unindexed either way. It is not read off the
+		// The class of the statements this cursor issues, from whoever opened it: a search walks its
+		// index and has a client waiting, while an import, an export or a rebuild walks a whole tree
+		// with nobody waiting - and on mssql it walks it unindexed either way. It is not read off the
 		// shape of the statement, because the opening batch of every cursor is the same
 		// unconditioned "order by k" that positionToLastKey() issues, search or not.
 		final StatementBound batchBound;
@@ -1764,7 +1829,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			try (final PreparedStatement statement=con.prepareStatement("delete from "+tableName+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(db2real(currentKeyDb))));
 				statement.setBytes(2,currentKeyDb);
-				execute(statement);
+				execute(statement, batchBound);
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
@@ -1809,7 +1874,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			try (final PreparedStatement statement=con.prepareStatement("select v from "+tableName+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(real)));
 				statement.setBytes(2,real2db(real));
-				value=executeResultSet(statement, rc -> rc.next() ? rc.getBytes("v") : null);
+				value=executeResultSet(statement, batchBound, rc -> rc.next() ? rc.getBytes("v") : null);
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
@@ -1871,7 +1936,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		return tree2table.asMap().keySet();
 	}
 
-	private final class ImporterImpl implements Importer {
+	final class ImporterImpl implements Importer {
 		final Connection con;
 		final ReadableTransactionImpl txr;
 		final WriteableTransactionTransactionImpl txw;
@@ -1891,22 +1956,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		final Boolean isOpen;
 
-		public ImporterImpl() {
-			isOpen=getStorageStatus().isWorking();
-			if (!isOpen) {
-				try {
-					open(AccessMode.READ_WRITE);
-				}catch (Exception e) {
-					throw new StorageRuntimeException(e);
-				}
-			}
-			try {
-				con = getConnection();
-			}catch (Exception e){
-				throw new StorageRuntimeException(e);
-			}
-			txr =new ReadableTransactionImpl(con);
-			txw =new WriteableTransactionTransactionImpl(con);
+		/**
+		 * Both transactions of an import take the bulk class, and with them every statement it
+		 * issues: phase one writes the trees through {@code put()}, phase two reads them back
+		 * through {@code read()} and walks them through {@code openCursor()}, and none of that has
+		 * a client waiting on it. Bounding those as entry reads is not merely strict, it fails work
+		 * that ran to the end before this bound existed: {@code h} is the primary key on every
+		 * dialect and the default lock wait is forever on mssql, postgres and oracle, so an upsert
+		 * of an online import blocked by an LDAP write on the same table sat until the bound of an
+		 * entry read and then failed the import.
+		 */
+		ImporterImpl(Connection con, boolean isOpen) {
+			this.con=con;
+			this.isOpen=isOpen;
+			txr=new ReadableTransactionImpl(con, StatementBound.BULK);
+			txw=new WriteableTransactionTransactionImpl(con, StatementBound.BULK);
 		}
 		
 		@Override
@@ -1962,20 +2026,37 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			return txr.read(treeName, key);
 		}
 		
-		// Bulk, like everything else an import does: this walks a whole tree with no client waiting
-		// on it - phase one of a rebuild-index reads every record of id2entry through this cursor
-		// (OnDiskMergeImporter.ID2EntrySource) - and on mssql it walks it unindexed, so a batch of
-		// it is a scan and a sort of the table rather than a step along an index.
+		// Bulk like every other statement of an import, by the class of the transaction it comes
+		// from: this walks a whole tree with no client waiting on it - phase one of a rebuild-index
+		// reads every record of id2entry through this cursor (OnDiskMergeImporter.ID2EntrySource) -
+		// and on mssql it walks it unindexed, so a batch of it is a scan and a sort of the table
+		// rather than a step along an index.
 		@Override
 		public SequentialCursor<ByteString, ByteString> openCursor(TreeName treeName) {
-			return txr.openBulkCursor(treeName);
+			return txr.openCursor(treeName);
 		}
 	}
 	
 	//import
 	@Override
 	public Importer startImport() throws ConfigException, StorageRuntimeException {
-		return new ImporterImpl();
+		final boolean wasOpen=getStorageStatus().isWorking();
+		if (!wasOpen) {
+			try {
+				open(AccessMode.READ_WRITE);
+			}catch (Exception e) {
+				throw new StorageRuntimeException(e);
+			}
+		}
+		final Connection con;
+		try {
+			con=getConnection();
+		}catch (Exception e){
+			throw new StorageRuntimeException(e);
+		}
+		// outside the catch: a transaction of a read-only storage throws ReadOnlyStorageException,
+		// which a caller tells apart from any other failure of an import
+		return new ImporterImpl(con, wasOpen);
 	}
 	
 	//backup

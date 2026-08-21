@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -74,8 +75,19 @@ final class ShardedCounter extends AbstractTree
 
   SequentialCursor<ByteString, Void> openCursor(ReadableTransaction txn)
   {
+    return uniqueKeys(txn.openCursor(getName()));
+  }
+
+  /** @see ReadableTransaction#openBulkCursor(TreeName) */
+  SequentialCursor<ByteString, Void> openBulkCursor(ReadableTransaction txn)
+  {
+    return uniqueKeys(txn.openBulkCursor(getName()));
+  }
+
+  private SequentialCursor<ByteString, Void> uniqueKeys(Cursor<ByteString, ByteString> cursor)
+  {
     return new UniqueKeysCursor<>(transformKeysAndValues(
-        txn.openCursor(getName()), TO_KEY,
+        cursor, TO_KEY,
         CursorTransformer.<ByteString, ByteString, Void> constant(null)));
   }
 

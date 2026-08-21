@@ -1118,7 +1118,7 @@ public class BackendStat
           long undefined = 0;
           long count = 0;
           BackendTreeKeyValue keyDecoder = new BackendTreeKeyValue(index);
-          try (Cursor<ByteString, EntryIDSet> cursor = index.openCursor(txn))
+          try (Cursor<ByteString, EntryIDSet> cursor = index.openBulkCursor(txn))
           {
             while (cursor.next())
             {
@@ -1286,7 +1286,8 @@ public class BackendStat
           long count = 0;
           long totalKeySize = 0;
           long totalDataSize = 0;
-          try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(target.getTreeName()))
+          // dbtest walks the tree whole, on the command line of an operator: bulk work either way
+          try (final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(target.getTreeName()))
           {
             ByteString key;
             ByteString maxKey = null;
