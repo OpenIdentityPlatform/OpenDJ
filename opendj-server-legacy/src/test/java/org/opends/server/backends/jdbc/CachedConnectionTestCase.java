@@ -183,6 +183,28 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * A link of a chain carries a cause and a next exception both, and a driver is free to make the
+	 * two the same failure. Rebuilt under a bound on the depth alone, a chain of those is copied
+	 * twice over at every step - 2^32 links for one reaching the bound, which is a report of a
+	 * failed connect that never comes back. What bounds the redaction is the number of links it
+	 * rebuilds, the way the walk looking for credentials is bounded by the ones it visits.
+	 */
+	@Test(timeOut = 60000)
+	public void testAFailureWhoseCauseIsItsNextExceptionIsRedactedInBoundedTime() throws Exception {
+		final String url = "jdbc:postgresql://opendj:S3cretOfTheBackend@127.0.0.1:5432/opendj";
+		SQLException chain = new SQLException("connect to " + url + " failed", "08006", 1);
+		for (int i = 0; i < 64; i++) {
+			final SQLException link = new SQLException("link " + i + " of " + url, "08006", i);
+			link.setNextException(chain);
+			link.initCause(chain);
+			chain = link;
+		}
+		final SQLException reported = CachedConnection.reported(chain, url);
+		assertNoCredentials(reported);
+		assertEquals(reported.getSQLState(), "08006", "the SQLState of a link has to survive its redaction");
+	}
+
+	/**
 	 * A database that is not listening at all: every dialect reports it instead of retrying the
 	 * refused connect until the caller gives up on the operation.
 	 */

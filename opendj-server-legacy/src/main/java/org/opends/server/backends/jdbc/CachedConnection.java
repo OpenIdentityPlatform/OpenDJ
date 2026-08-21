@@ -808,7 +808,9 @@ public class CachedConnection implements Connection {
      * vendor code of every link survive it: they are what tells a caller what happened.
      */
     static SQLException reported(SQLException e, String connectionString) {
-        return holdsCredentials(e, connectionString) ? redactedCopy(e, connectionString, 0) : e;
+        return holdsCredentials(e, connectionString)
+            ? redactedCopy(e, connectionString, new int[] { MAX_CHAIN_LENGTH })
+            : e;
     }
 
     /** The same of an unchecked failure: a driver is free to report a connect it will not make as one. */
@@ -843,32 +845,36 @@ public class CachedConnection implements Connection {
         return false;
     }
 
-    private static SQLException redactedCopy(SQLException e, String connectionString, int depth) {
+    // The budget counts the links this rebuilds, the way holdsCredentials() counts the ones it
+    // visits - not how deep it has gone. A link of a chain carries a cause and a next exception
+    // both, and a driver is free to make them the same failure, so a bound on depth alone leaves
+    // room for a chain that fans out into two copies of itself at every step.
+    private static SQLException redactedCopy(SQLException e, String connectionString, int[] budget) {
+        budget[0]--;
         final SQLException copy =
             new SQLException(redact(e.getMessage(), connectionString), e.getSQLState(), e.getErrorCode());
         copy.setStackTrace(e.getStackTrace());
-        if (depth < MAX_CHAIN_LENGTH) {
-            if (e.getNextException() != null) {
-                copy.setNextException(redactedCopy(e.getNextException(), connectionString, depth + 1));
-            }
-            if (e.getCause() != null) {
-                copy.initCause(redactedCopy(e.getCause(), connectionString, depth + 1));
-            }
+        if (e.getNextException() != null && budget[0] > 0) {
+            copy.setNextException(redactedCopy(e.getNextException(), connectionString, budget));
+        }
+        if (e.getCause() != null && budget[0] > 0) {
+            copy.initCause(redactedLink(e.getCause(), connectionString, budget));
         }
         return copy;
     }
 
     // A link that is no SQLException keeps its class name in the message: its type is not one this
     // can rebuild, and the name of the failure is what a reader of the log is after.
-    private static Throwable redactedCopy(Throwable t, String connectionString, int depth) {
+    private static Throwable redactedLink(Throwable t, String connectionString, int[] budget) {
         if (t instanceof SQLException) {
-            return redactedCopy((SQLException) t, connectionString, depth);
+            return redactedCopy((SQLException) t, connectionString, budget);
         }
+        budget[0]--;
         final Throwable copy = new Throwable(t.getClass().getName()
             + (t.getMessage() == null ? "" : ": " + redact(t.getMessage(), connectionString)));
         copy.setStackTrace(t.getStackTrace());
-        if (t.getCause() != null && depth < MAX_CHAIN_LENGTH) {
-            copy.initCause(redactedCopy(t.getCause(), connectionString, depth + 1));
+        if (t.getCause() != null && budget[0] > 0) {
+            copy.initCause(redactedLink(t.getCause(), connectionString, budget));
         }
         return copy;
     }
