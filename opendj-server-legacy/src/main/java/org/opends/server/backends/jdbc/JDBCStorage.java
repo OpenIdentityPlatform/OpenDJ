@@ -141,7 +141,16 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	Connection getConnection() throws Exception {
-		return CachedConnection.getConnection(config.getDBDirectory());
+		// The pool this storage registered with in open(), not the one config names now. Nothing
+		// keeps db-directory from being changed on a running backend - applyConfigurationChange()
+		// takes it, isConfigurationChangeAcceptable() refuses nothing, and the component-restart
+		// admin action renders a message rather than holding the change back - so re-reading it
+		// here would borrow from a pool this storage never registered with, leaving the one it did
+		// register with holding a user that never borrows: the leak of #878 back through the
+		// configuration. And an unregistered pool is drained the moment another backend that did
+		// register with it closes, with this one still borrowing from it (issue #878).
+		final String registered=poolConnectionString;
+		return CachedConnection.getConnection(registered!=null ? registered : config.getDBDirectory());
 	}
 
 
@@ -1577,6 +1586,27 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			aborted = true;
 		}
 
+		/**
+		 * Hands the connection back to the pool and closes the stamp session, whatever went before.
+		 * Returns the failure the caller is to report: the return rolls back, and the rollback
+		 * fails on exactly the connection whose commit just did, so the commit stays the exception
+		 * the caller sees and this one rides along with it instead of replacing it.
+		 */
+		private SQLException releaseConnection(SQLException failure) {
+			try {
+				con.close();
+			} catch (SQLException e) {
+				if (failure==null) {
+					failure=e;
+				}else {
+					failure.addSuppressed(e);
+				}
+			} finally {
+				txw.stampSession.close();
+			}
+			return failure;
+		}
+
 		@Override
 		public void close() {
 			try {
@@ -1590,23 +1620,22 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}
 				} catch (SQLException e) {
 					failure=e;
+				} catch (Throwable t) {
+					// Back to the pool whatever came out of the commit, not only on the SQLException
+					// a driver is supposed to throw: nothing else holds this connection, and only
+					// its close() gives back the permit it took. A pool is never removed from the
+					// map, so a permit lost to an Error out of a bulk import - or to a driver
+					// failing unchecked - is lost for the life of the server, and enough of them
+					// walk the bound down to nothing (issue #878).
+					final SQLException onTheWayOut=releaseConnection(null);
+					if (onTheWayOut!=null) {
+						t.addSuppressed(onTheWayOut);
+					}
+					throw t;
 				}
 				// Back to the pool even when the commit failed: nothing else holds this connection,
 				// so leaving it behind would leak it along with the failure.
-				try {
-					con.close();
-				} catch (SQLException e) {
-					// The return rolls back, and the rollback fails on exactly the connection whose
-					// commit just did. The commit is what went wrong, so it stays the exception the
-					// caller sees and this one rides along with it instead of replacing it.
-					if (failure==null) {
-						failure=e;
-					}else {
-						failure.addSuppressed(e);
-					}
-				} finally {
-					txw.stampSession.close();
-				}
+				failure=releaseConnection(failure);
 				if (failure!=null) {
 					throw new StorageRuntimeException(failure);
 				}

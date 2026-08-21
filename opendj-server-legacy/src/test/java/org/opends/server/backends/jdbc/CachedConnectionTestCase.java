@@ -15,7 +15,10 @@
  */
 package org.opends.server.backends.jdbc;
 
+import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.backends.pluggable.spi.AccessMode;
+import org.opends.server.backends.pluggable.spi.Importer;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -37,9 +40,11 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
 import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -126,11 +131,16 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 	/** Borrows the way the server does, one operation to a thread. */
 	private static Connection borrowOnAThreadOfItsOwn(String url) throws Exception {
+		return startBorrow(url).get(120, TimeUnit.SECONDS);
+	}
+
+	/** The same, left running: a borrow that waits has to be looked at while it does. */
+	private static FutureTask<Connection> startBorrow(String url) {
 		final FutureTask<Connection> borrow = new FutureTask<>(() -> CachedConnection.getConnection(url));
 		final Thread thread = new Thread(borrow, "borrow-" + url);
 		thread.setDaemon(true);
 		thread.start();
-		return borrow.get(120, TimeUnit.SECONDS);
+		return borrow;
 	}
 
 	/**
@@ -196,6 +206,9 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		stub.answerWith(null);
 		final CachedConnection con = (CachedConnection) CachedConnection.getConnection(url);
 		con.close();
+		// The sweeper of the server is running while this case does, over every pool and reading
+		// the TTL as it goes: out of its reach, so that the sweep asserted here is the one below.
+		System.setProperty(CachedConnection.TTL_PROPERTY, "600000");
 		con.returnedAtMillis = System.currentTimeMillis() - 60000;
 		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
 		assertEquals(pool.idleCount(), 1);
@@ -358,6 +371,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		stub.answerWith(null);
 		final CachedConnection con = (CachedConnection) CachedConnection.getConnection(url);
 		con.close();
+		System.setProperty(CachedConnection.TTL_PROPERTY, "600000"); // see the case above
 		con.returnedAtMillis = System.currentTimeMillis() - 60000;
 		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
 		final List<Runnable> handedOff = new ArrayList<>();
@@ -371,6 +385,190 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		handedOff.get(0).run();
 		verify(con.parent).close();
 		assertEquals(pool.liveCount(), 0, "a swept connection kept its permit");
+	}
+
+	/**
+	 * And the sweep the scheduled sweeper actually runs closes elsewhere too: the case above
+	 * supplies an executor of its own, so it would pass just as well with the production one left
+	 * closing inline.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheScheduledSweepClosesOnAThreadOfItsOwn() throws Exception {
+		final String url = StubDriver.PREFIX + "sweeper-thread";
+		stub.answerWith(null);
+		final CachedConnection con = (CachedConnection) CachedConnection.getConnection(url);
+		con.close();
+		final AtomicReference<String> closedOn = new AtomicReference<>();
+		doAnswer(invocation -> {
+			closedOn.set(Thread.currentThread().getName());
+			return null;
+		}).when(con.parent).close();
+		con.returnedAtMillis = System.currentTimeMillis() - 60000;
+		System.setProperty(CachedConnection.TTL_PROPERTY, "1000");
+
+		CachedConnection.sweep(); // what the scheduled sweeper runs, with nothing supplied to it
+
+		for (int i = 0; i < 200 && closedOn.get() == null; i++) {
+			Thread.sleep(50);
+		}
+		assertNotNull(closedOn.get(), "the sweep never closed the expired connection");
+		assertFalse(closedOn.get().contains("sweeper"), "the close ran on the sweeper thread: " + closedOn.get());
+		assertTrue(closedOn.get().startsWith("JDBC backend connection pool closer"), closedOn.get());
+	}
+
+	/**
+	 * A borrow may not outlast the deadline it was given while emptying the pool. A poll of no
+	 * duration still hands out whatever the deque holds, and a connection whose socket is half-open
+	 * - a moved VIP, a firewall that dropped the idle sockets - costs the validation timeout to
+	 * discard, so draining a pool of its full bound overran the deadline by minutes, before the
+	 * connect that follows it had even started (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testABorrowStopsAtItsDeadlineRatherThanDrainingThePool() throws Exception {
+		final String url = StubDriver.PREFIX + "deadline-drain";
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, "6");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "1");
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+
+		// Fresh by the TTL, and each one a second to find broken: the pool a burst of traffic left
+		// behind, against a database that has stopped answering.
+		for (int i = 0; i < 6; i++) {
+			final Connection halfOpen = mock(Connection.class);
+			when(halfOpen.isValid(anyInt())).thenAnswer(invocation -> {
+				Thread.sleep(1000);
+				return false;
+			});
+			assertTrue(pool.tryReserve());
+			pool.addIdle(new CachedConnection(url, halfOpen, pool, true));
+		}
+		stub.answerWith(null);
+
+		final long startedAt = System.currentTimeMillis();
+		final Connection borrowed = CachedConnection.getConnection(url);
+		final long elapsed = System.currentTimeMillis() - startedAt;
+
+		assertNotNull(borrowed);
+		assertTrue(elapsed < 3500, "the borrow drained the pool past its deadline: " + elapsed + " ms");
+		borrowed.close();
+		CachedConnection.invalidate(url);
+	}
+
+	/** 0 means "no bound" for the size of the pool, and an invalid value means "the default". */
+	@Test(timeOut = 120000)
+	public void testTheBoundOfThePoolReadsItsBoundaryValues() throws Exception {
+		assertEquals(poolWithMax("unbounded", "0").max(), Integer.MAX_VALUE, "0 must mean no bound");
+		assertEquals(poolWithMax("negative", "-1").max(), CachedConnection.DEFAULT_POOL_MAX);
+		assertEquals(poolWithMax("not-a-number", "sixteen").max(), CachedConnection.DEFAULT_POOL_MAX);
+	}
+
+	private static CachedConnection.Pool poolWithMax(String name, String max) {
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, max);
+		return CachedConnection.poolOf(StubDriver.PREFIX + "bound-" + name); // read when the pool is built
+	}
+
+	/** 0 means "wait without limit" for a borrow, rather than "give up at once". */
+	@Test(timeOut = 120000)
+	public void testABorrowWithNoDeadlineWaitsForAReturnedConnection() throws Exception {
+		final String url = StubDriver.PREFIX + "no-deadline";
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, "1");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "0");
+		stub.answerWith(null);
+
+		final Connection held = borrowOnAThreadOfItsOwn(url);
+		final FutureTask<Connection> waiting = startBorrow(url);
+		try {
+			waiting.get(1500, TimeUnit.MILLISECONDS);
+			fail("the borrow gave up although it was given no deadline");
+		} catch (TimeoutException expected) {
+			// still waiting for the connection of the pool to come back, which is the point
+		}
+
+		held.close();
+		final Connection served = waiting.get(120, TimeUnit.SECONDS);
+		assertSame(served, held, "the borrow was served by something other than the returned connection");
+		served.close();
+		CachedConnection.invalidate(url);
+	}
+
+	/** 0 means "keep nothing" for the TTL: an idle connection is not handed out again. */
+	@Test(timeOut = 120000)
+	public void testAZeroTtlKeepsNoIdleConnection() throws Exception {
+		final String url = StubDriver.PREFIX + "zero-ttl";
+		stub.answerWith(null);
+		final CachedConnection first = (CachedConnection) CachedConnection.getConnection(url);
+		first.close();
+		first.returnedAtMillis = System.currentTimeMillis() - 5;
+		System.setProperty(CachedConnection.TTL_PROPERTY, "0");
+
+		final Connection second = CachedConnection.getConnection(url);
+
+		assertNotSame(second, first, "a connection was kept although the TTL keeps none");
+		verify(first.parent).close();
+		second.close();
+		CachedConnection.invalidate(url);
+	}
+
+	/**
+	 * The storage borrows from the pool it registered with, and gives that registration back when
+	 * it closes. db-directory may be changed on a running backend - applyConfigurationChange takes
+	 * it and nothing refuses it - and a borrow that followed the change would leave the pool this
+	 * storage registered with holding a user that never borrows, while the pool it borrowed from
+	 * has none: the leak of #878 back through the configuration, and a pool another backend may
+	 * drain while this one is still borrowing from it.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheStorageBorrowsFromThePoolItRegisteredWith() throws Exception {
+		final String registered = StubDriver.PREFIX + "storage-registered";
+		final String changed = StubDriver.PREFIX + "storage-changed";
+		stub.answerWith(null);
+		final JDBCBackendCfg cfg = mock(JDBCBackendCfg.class);
+		when(cfg.getDBDirectory()).thenReturn(registered);
+		final JDBCStorage storage = new JDBCStorage(cfg, null);
+		storage.open(AccessMode.READ_WRITE);
+
+		when(cfg.getDBDirectory()).thenReturn(changed); // the configuration changed under it
+		try (final Connection con = storage.getConnection()) {
+			assertEquals(((CachedConnection) con).connectionString, registered,
+				"the borrow left the pool this storage registered with");
+		}
+		assertEquals(CachedConnection.poolOf(changed).liveCount(), 0, "a pool with no user was borrowed from");
+
+		storage.close();
+
+		assertEquals(CachedConnection.poolOf(registered).idleCount(), 0,
+			"close() left the connections of the pool it registered with behind");
+	}
+
+	/**
+	 * An import gives its connection back however its commit went. The commit used to be guarded
+	 * against SQLException alone, so an Error out of a bulk import - or a driver failing unchecked
+	 * - left the connection borrowed and its permit with it; a pool is never removed from the map,
+	 * so that permit was gone for the life of the server and enough imports walked the bound of
+	 * the pool down to nothing (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testAnImportGivesItsConnectionBackWhenTheCommitFailsUnchecked() throws Exception {
+		final String url = StubDriver.PREFIX + "import-unchecked-commit";
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		doThrow(new Error("out of memory while importing")).when(parent).commit();
+		stub.answerWith(parent);
+		final JDBCBackendCfg cfg = mock(JDBCBackendCfg.class);
+		when(cfg.getDBDirectory()).thenReturn(url);
+		final JDBCStorage storage = new JDBCStorage(cfg, null);
+		storage.open(AccessMode.READ_WRITE);
+		final Importer importer = storage.startImport();
+
+		try {
+			importer.close();
+			fail("the failure of the commit was not reported");
+		} catch (Error expected) {
+			// reported to the caller, which is what an Error out of an import has to be
+		}
+
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1, "the import kept the connection of the pool");
+		storage.close();
+		assertEquals(CachedConnection.poolOf(url).liveCount(), 0, "the import kept a permit of the pool");
 	}
 
 	/**
