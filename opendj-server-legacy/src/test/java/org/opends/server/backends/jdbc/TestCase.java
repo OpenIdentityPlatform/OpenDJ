@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -56,6 +57,7 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -146,11 +148,24 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	 * than it - an import batch, the statistics of a freshly loaded table - so it has to be lifted
 	 * as soon as the login is through (#872).
 	 */
-	@Test
+	@Test(timeOut = 120000)
 	public void testLoginBoundDoesNotOutliveTheLogin() throws Exception {
 		final String url = createBackendCfg().getDBDirectory();
+		final CachedConnection.ConnectDialect dialect = CachedConnection.ConnectDialect.of(url);
+		assertNotNull(dialect, "the dialect of the container is one this backend bounds: " + CachedConnection.safeUrl(url));
 		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, "2");
 		try {
+			// the bound this lifts has to be in force first, or the assertion below holds of a
+			// connection that never carried one: established here with the very properties the
+			// borrow uses, and read back off the socket of this driver
+			final Properties bounding = new Properties();
+			assertTrue(dialect.bound(url, bounding, 2),
+				"the read bound of the login is not set for this dialect, so there is nothing to lift");
+			try (final Connection bounded = DriverManager.getConnection(url, bounding)) {
+				assertEquals(bounded.getNetworkTimeout(), 2000,
+					"the property this dialect names does not bound the socket of its login");
+			}
+
 			// a pooled connection would be handed back without being established again
 			CachedConnection.cached.invalidate(url);
 			try (final Connection con = CachedConnection.getConnection(url)) {

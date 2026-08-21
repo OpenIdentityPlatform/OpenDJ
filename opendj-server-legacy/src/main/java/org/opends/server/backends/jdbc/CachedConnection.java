@@ -24,12 +24,19 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.sql.*;
 import java.time.Duration;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CachedConnection implements Connection {
@@ -59,6 +66,8 @@ public class CachedConnection implements Connection {
     /** Bound of the validation of a pooled connection: isValid(0) means "no timeout" in the JDBC contract. */
     static final int VALIDATION_TIMEOUT_SECONDS = 5;
 
+    /** 08001, sqlclient_unable_to_establish_sqlconnection: the state of a connect that did not happen. */
+    private static final String CONNECT_FAILED_SQL_STATE = "08001";
     /** 53300, too_many_connections: how the standard - and postgresql - reports a server taking no further connection. */
     private static final String CONNECTION_LIMIT_SQL_STATE = "53300";
     /** 57P03, cannot_connect_now: postgresql starting up, shutting down or in recovery. */
@@ -73,8 +82,18 @@ public class CachedConnection implements Connection {
 
     /** What a connection string is cut down to where this cannot tell its credentials from the rest of it. */
     static final String CREDENTIALS_HIDDEN = "<credentials hidden>";
-    /** A password standing where neither the userinfo nor the parameters of a url are looked for. */
-    private static final Pattern SECRET_PARAMETER = Pattern.compile("(?i)(password|pwd)\\s*=[^,)&;?/]*");
+    /**
+     * A password standing where neither the userinfo nor the parameters of a url are looked for.
+     * The name goes by more than one spelling: mysql numbers the factors of a multi-factor login
+     * (password1, password2), and a wallet or a key store carries one under a name of its own
+     * (oracle.net.wallet_password, javax.net.ssl.keyStorePassword).
+     */
+    private static final Pattern SECRET_PARAMETER =
+        Pattern.compile("(?i)([\\w.]*(password|passwd|pwd)\\d*)\\s*=([^,)&;?]*)");
+
+    /** The parameters of a connection string worth keeping in a message: which database, not who connects. */
+    private static final Set<String> IDENTIFYING_PARAMETERS = Collections.unmodifiableSet(new HashSet<>(
+        Arrays.asList("databasename", "database", "instancename", "currentschema", "servicename")));
 
     // setNetworkTimeout() takes the executor its timeout handling runs on: the drivers it is used
     // with here only set a socket option in it, so it costs a call rather than a thread.
@@ -84,6 +103,12 @@ public class CachedConnection implements Connection {
     // own to report, and a single timestamp would let one of them starve the other.
     private static final Map<String, AtomicLong> lastStallWarning = new ConcurrentHashMap<>();
     private static final AtomicLong lastReadBoundWarning = new AtomicLong();
+
+    // What has been reported once already. Every one of these reports a setting rather than an
+    // event - a property that is not a number, a url no bound of this class can reach, a driver
+    // whose property names are not known here - so it does not become truer by being repeated,
+    // and every operation of the backend comes through here.
+    static final Set<String> warnedOnce = ConcurrentHashMap.newKeySet();
 
     final Connection parent;
 
@@ -125,10 +150,19 @@ public class CachedConnection implements Connection {
                 }
             } catch (NumberFormatException ignored) {
             }
-            logger.warn(LocalizableMessage.raw("Ignoring invalid value \"%s\" of the %s property, using %d %s",
-                value, name, defaultValue, unit));
+            // reported once for this value: both properties are read on every borrow, so a
+            // "30s" of a typo would otherwise put two lines in the log per backend operation
+            warnOnce(name + "=" + value, "Ignoring invalid value \"%s\" of the %s property, using %d %s",
+                value, name, defaultValue, unit);
         }
         return defaultValue;
+    }
+
+    /** Reports something about a setting once for the life of the jvm, however many borrows meet it. */
+    private static void warnOnce(String key, String format, Object... args) {
+        if (warnedOnce.add(key)) {
+            logger.warn(LocalizableMessage.raw(format, args));
+        }
     }
 
     /**
@@ -172,6 +206,10 @@ public class CachedConnection implements Connection {
             // property of oracle net it stands for, inside a tns descriptor by the last segment of
             // either. A bound under one of them is a bound of the administrator, so ours is not set
             // on top of it - and neither of theirs is lifted with ours once the login is through.
+            // Only the first of the two is a name the driver also reads out of the system
+            // properties (SYSTEM_PROPERTY_NAMES below): oracle.net.READ_TIMEOUT reaches the socket
+            // from the connection properties alone, so a -D of it bounds nothing and must not be
+            // taken for a bound of theirs.
             // RECV_TIMEOUT is not one of them: it is a parameter of sqlnet.ora and of the listener,
             // and the name does not appear in ojdbc8 at all, so a descriptor carrying one would
             // have taken our bound off a connection that never had one of its own.
@@ -239,27 +277,61 @@ public class CachedConnection implements Connection {
         }
 
         /**
-         * Fills in the properties bounding one connect attempt, leaving out every property the
-         * administrator set themselves - an explicit setting of theirs keeps precedence, and the
-         * SQL Server driver gives a supplied property precedence over the url. A driver with a
-         * range of its own for its connect property is not handed a value beyond it: a bound it
-         * rejects is no bound at all, it is a connect that never happens.
+         * Fills in the properties bounding one connect attempt, leaving out what the administrator
+         * bounded themselves - an explicit setting of theirs keeps precedence, on the SQL Server,
+         * mysql and oracle drivers because a supplied property outranks the url, and on postgresql
+         * because the url outranks the property. A driver with a range of its own for its connect
+         * property is not handed a value beyond it: a bound it rejects is no bound at all, it is a
+         * connect that never happens.
          * Returns whether a read bound outliving the login was set and has to be lifted once the
          * connection is established.
          */
         boolean bound(String connectionString, Properties properties, long timeoutSeconds) {
             final long connectSeconds = maxConnectSeconds > 0
                 ? Math.min(timeoutSeconds, maxConnectSeconds) : timeoutSeconds;
-            for (final String property : connectProperties) {
-                if (!declared(connectionString, property)) {
+            // The connect side is one budget rather than a set of independent knobs, so a bound of
+            // the administrator under any of its names leaves all of them alone. On postgresql
+            // connectTimeout bounds the socket connect and loginTimeout the login behind it:
+            // filling in the one they left out caps the one they set, and a "?connectTimeout=300"
+            // answered with a loginTimeout of ours is a login pgjdbc gives up on at 30 s - Driver
+            // .connect branches into its own thread as soon as loginTimeout is anything but 0.
+            if (!declared(connectionString, connectProperties)) {
+                for (final String property : connectProperties) {
                     properties.setProperty(property, Long.toString(connectSeconds * connectUnitsPerSecond));
                 }
             }
+            reportBoundTurnedOffInUrl(connectionString);
             if (!declared(connectionString, readProperties)) {
                 properties.setProperty(readProperties[0], Long.toString(timeoutSeconds * readUnitsPerSecond));
                 return readBoundOutlivesLogin;
             }
             return false;
+        }
+
+        /**
+         * Reports a url that turns a bound off where nothing this class supplies can put one back.
+         * A parameter of a postgresql url outranks the property this class hands the driver, so a
+         * "socketTimeout=0" there is not a default to be replaced - it is the administrator asking
+         * for an unbounded read, and a borrow that meets a database accepting the connection and
+         * answering nothing is then parked with no deadline able to reach it.
+         */
+        private void reportBoundTurnedOffInUrl(String connectionString) {
+            if (!urlOutranksProperties()) {
+                return;
+            }
+            for (final String[] properties : new String[][]{readProperties, connectProperties}) {
+                for (final String property : properties) {
+                    final String value = parameterValue(connectionString, property);
+                    if (value != null && !isBound(value)) {
+                        warnOnce(safeUrl(connectionString) + "|unbounded-read",
+                            "%s sets \"%s=%s\": a parameter of a postgresql url outranks the property this backend"
+                                + " supplies, so that phase of a connect carries no bound. An operation reaching a"
+                                + " database that accepts the connection and does not answer stays parked",
+                            safeUrl(connectionString), property, value);
+                        return;
+                    }
+                }
+            }
         }
 
         /** Whether a vendor code of this dialect is one that waiting for the database can clear. */
@@ -281,28 +353,60 @@ public class CachedConnection implements Connection {
         // server), "(A=1)" inside the descriptor of an oracle tns url, where the property also goes
         // by the last segment of its name alone - so a parameter is recognized by the delimiter in
         // front of it and the "=" behind it rather than by parsing the url syntax of every driver.
-        // The connection string is not the only channel of theirs: the oracle driver reads its
-        // dotted properties out of the system properties as well, which is how a whole jvm is
-        // bounded with -Doracle.jdbc.ReadTimeout, and a property supplied to a driver outranks the
-        // system property without a word - and would then be lifted after the login as if it were
-        // ours, leaving a connection with no read bound where the administrator had set one.
+        // The connection string is not the only channel of theirs: the oracle driver reads some of
+        // its properties out of the system properties as well, which is how a whole jvm is bounded
+        // with -Doracle.jdbc.ReadTimeout, and a property supplied to a driver outranks the system
+        // property without a word - and would then be lifted after the login as if it were ours,
+        // leaving a connection with no read bound where the administrator had set one.
         private boolean declared(String connectionString, String... properties) {
             for (final String property : properties) {
-                if (containsParameter(connectionString, property) || setAsSystemProperty(property)) {
-                    return true;
-                }
-                final int dot = property.lastIndexOf('.');
-                if (dot >= 0 && containsParameter(connectionString, property.substring(dot + 1))) {
+                if (declaredInUrl(connectionString, property) || setAsSystemProperty(property)) {
                     return true;
                 }
             }
             return false;
         }
 
-        // Only a dotted name is looked for: "oracle.jdbc.ReadTimeout" is the name its own driver
-        // reads, while a plain "socketTimeout" is a name common enough to be somebody else's.
+        /** Whether the connection string bounds this property, under its own name or the last segment of it. */
+        private boolean declaredInUrl(String connectionString, String property) {
+            if (containsParameter(connectionString, property)) {
+                return true;
+            }
+            final int dot = property.lastIndexOf('.');
+            return dot >= 0 && containsParameter(connectionString, property.substring(dot + 1));
+        }
+
+        // Which names a driver reads out of the system properties, listed rather than told from
+        // the shape of the name: ojdbc8 resolves oracle.jdbc.ReadTimeout and
+        // oracle.net.CONNECT_TIMEOUT in three tiers (the properties it was supplied, then
+        // System.getProperty, then the properties of the data source), while
+        // oracle.net.READ_TIMEOUT - a dotted name of the same driver - is read out of the
+        // connection properties alone: the six classes carrying the literal hand it to
+        // Properties.get, and none of them to System.getProperty. Taking a -D of it for a bound of
+        // the administrator would leave the login with no read bound at all - theirs not read by
+        // the driver and ours not set, because we believed theirs was in force.
+        private static final Set<String> SYSTEM_PROPERTY_NAMES = Collections.unmodifiableSet(new HashSet<>(
+            Arrays.asList("oracle.jdbc.ReadTimeout", "oracle.net.CONNECT_TIMEOUT")));
+
         private static boolean setAsSystemProperty(String property) {
-            return property.indexOf('.') >= 0 && isBound(System.getProperty(property));
+            return SYSTEM_PROPERTY_NAMES.contains(property) && isBound(System.getProperty(property));
+        }
+
+        // pgjdbc parses the url over the properties it was handed - Driver.connect copies them
+        // into a flat map and parseURL then writes the parameters of the url on top - so a value
+        // standing in a postgresql url is the value the driver uses, and the one supplied here
+        // never reaches the socket. A zero there is not a default of the driver to be replaced: it
+        // cannot be replaced, and setting ours on top of it would leave this class lifting a read
+        // bound the login never had. The other three let a supplied property win, so a zero of
+        // theirs is ours to override.
+        private boolean urlOutranksProperties() {
+            return this == POSTGRES;
+        }
+
+        /** Whether this property is bounded by the connection string, as the driver of this dialect reads it. */
+        private boolean containsParameter(String connectionString, String property) {
+            final String value = parameterValue(connectionString, property);
+            return value != null && (urlOutranksProperties() || isBound(value));
         }
 
         // Matched the way the driver of this dialect matches it: pgjdbc and Connector/J look their
@@ -310,18 +414,19 @@ public class CachedConnection implements Connection {
         // another case and the parameter is then a parameter of nobody, so "?SocketTimeout=" must
         // not be taken for a bound of the administrator - while the SQL Server driver
         // (getNormalizedPropertyName) and the keywords of an oracle descriptor match either way.
-        private boolean containsParameter(String connectionString, String property) {
+        private String parameterValue(String connectionString, String property) {
             final boolean exact = this == POSTGRES || this == MYSQL;
             final String url = exact ? connectionString : connectionString.toLowerCase(Locale.ROOT);
             final String name = exact ? property : property.toLowerCase(Locale.ROOT);
+            String value = null;
             for (int i = url.indexOf(name); i >= 0; i = url.indexOf(name, i + name.length())) {
                 final int end = i + name.length();
-                if (i > 0 && "?&;(,".indexOf(url.charAt(i - 1)) >= 0 && end < url.length() && url.charAt(end) == '='
-                        && isBound(valueOf(url, end + 1))) {
-                    return true;
+                if (i > 0 && "?&;(,".indexOf(url.charAt(i - 1)) >= 0 && end < url.length() && url.charAt(end) == '=') {
+                    // the last of them: a driver parsing a url into a map lets the last assignment stand
+                    value = valueOf(url, end + 1);
                 }
             }
-            return false;
+            return value;
         }
 
         /** The value of the parameter that starts here: up to the delimiter in front of the next one. */
@@ -336,9 +441,10 @@ public class CachedConnection implements Connection {
         /**
          * Whether a value of the administrator bounds anything. Every one of these drivers reads 0
          * as "wait as long as it takes", so a property set to it is not a bound of theirs to stay
-         * out of the way of - it is the default this class exists to replace, and on postgresql it
-         * is worse than none: loginTimeout alone leaves the login on a daemon thread the driver
-         * abandons at the timeout. A value that is no number is left to the driver it belongs to.
+         * out of the way of - it is the default this class exists to replace, and one of ours goes
+         * on top of it wherever a supplied property outranks the url. Where it does not, on
+         * postgresql, the zero stands and is reported instead of being written over. A value that
+         * is no number is left to the driver it belongs to.
          */
         private static boolean isBound(String value) {
             if (value == null || value.trim().isEmpty()) {
@@ -379,6 +485,7 @@ public class CachedConnection implements Connection {
      */
     static Connection getConnection(String connectionString) throws Exception {
         final ConnectDialect dialect = ConnectDialect.of(connectionString);
+        reportUnknownDialect(connectionString, dialect);
         final long connectTimeoutSeconds = Math.min(
             getNonNegativeProperty(CONNECT_TIMEOUT_PROPERTY, DEFAULT_CONNECT_TIMEOUT_SECONDS, "s"),
             Integer.MAX_VALUE / 1000);
@@ -405,19 +512,51 @@ public class CachedConnection implements Connection {
                 // not on the classpath - is reported to the caller instead of being retried behind
                 // its back.
                 if (!isWorthRetrying(e, dialect)) {
-                    throw e;
+                    throw reported(e, connectionString);
                 }
                 final long remaining = deadline - System.currentTimeMillis();
                 if (remaining <= 0) {
-                    throw new SQLTimeoutException("no connection to " + safeUrl(connectionString) + " could be borrowed within "
-                        + poolTimeoutSeconds + "s (" + attempts + " attempts): the database took no connection for the"
-                        + " moment and none was returned to the pool, last error: " + e.getMessage(), e);
+                    // 08001, the state of a connect that did not happen, rather than none at all:
+                    // this is the failure of a borrow, and a caller reading the state of what it
+                    // caught would otherwise see null where the driver's own exception carried one
+                    final SQLTimeoutException timeout = new SQLTimeoutException("no connection to "
+                        + safeUrl(connectionString) + " could be borrowed within " + poolTimeoutSeconds + "s ("
+                        + attempts + " attempts): the database took no connection for the moment and none was"
+                        + " returned to the pool, last error: " + redact(e.getMessage(), connectionString),
+                        CONNECT_FAILED_SQL_STATE);
+                    timeout.initCause(reported(e, connectionString));
+                    throw timeout;
                 }
                 backoffMs = Math.min(backoffMs == 0 ? 1 : backoffMs * 2, MAX_BACKOFF_MS);
                 waitMs = Math.min(backoffMs, remaining);
                 warnStall(connectionString, attempts, startedAt, e);
+            } catch (RuntimeException e) {
+                // a driver reporting a connect it will not make as an unchecked failure carries the
+                // connection string of the backend in its message as readily as a SQLException does
+                throw reportedUnchecked(e, connectionString);
             }
         }
+    }
+
+    /**
+     * Reports a connection string this class knows no bound for. The properties bounding a connect
+     * are the ones of a driver, so a driver outside the four leaves every attempt unbounded - and
+     * the deadline of the borrow cannot reach into a connect that is already under way, since the
+     * driver is the only thing holding the socket.
+     */
+    private static void reportUnknownDialect(String connectionString, ConnectDialect dialect) {
+        if (dialect != null) {
+            return;
+        }
+        final StringBuilder known = new StringBuilder();
+        for (final ConnectDialect candidate : ConnectDialect.values()) {
+            known.append(known.length() > 0 ? ", " : "").append(candidate.urlPrefix);
+        }
+        warnOnce(safeUrl(connectionString) + "|unknown-dialect",
+            "%s names a driver whose timeout properties are not known to this backend (%s are): a connect to a"
+                + " database that accepts it and does not answer is left without a bound, and the %s property"
+                + " cannot end it",
+            safeUrl(connectionString), known, POOL_TIMEOUT_PROPERTY);
     }
 
     /**
@@ -433,7 +572,9 @@ public class CachedConnection implements Connection {
      */
     static long attemptSeconds(long connectTimeoutSeconds, long deadline) {
         if (deadline == Long.MAX_VALUE) {
-            return connectTimeoutSeconds;
+            // 0 stands for an attempt with no bound of its own and stays 0; anything else is
+            // clamped here as well, so that the range holds whichever branch answers
+            return connectTimeoutSeconds == 0 ? 0 : Math.min(connectTimeoutSeconds, Integer.MAX_VALUE / 1000);
         }
         final long remainingSeconds = (deadline - System.currentTimeMillis() + 999) / 1000;
         final long bound = connectTimeoutSeconds == 0
@@ -474,6 +615,12 @@ public class CachedConnection implements Connection {
         // needs an answer from the server to fire at all - so the socket is bounded here, for the
         // validation only.
         final int restore = boundValidation(con.parent);
+        if (restore == VALIDATION_BOUND_FAILED) {
+            // the bound of the validation is not in force, and the driver may well have applied it
+            // before failing: validating here would be the unbounded isValid() this exists to
+            // avoid, and pooling it would hand out a connection carrying a bound of ours
+            return false;
+        }
         boolean usable;
         try {
             usable = con.isValid(VALIDATION_TIMEOUT_SECONDS);
@@ -489,30 +636,45 @@ public class CachedConnection implements Connection {
             // is about to be closed, over a reaped idle connection that is nobody's problem.
             return false;
         }
-        if (restore >= 0 && !setNetworkTimeout(con.parent, restore)) {
+        if (restore >= 0 && !setNetworkTimeout(con.parent, restore,
+                "the connection is closed rather than pooled")) {
             return false; // it would carry the bound of the validation into every statement
         }
         return true;
     }
 
+    /** A connection left alone by {@link #boundValidation}: no bound of ours to put back afterwards. */
+    private static final int VALIDATION_BOUND_LEFT_ALONE = -1;
+    /** A connection {@link #boundValidation} could not bound, which may still carry the bound it failed to report. */
+    private static final int VALIDATION_BOUND_FAILED = -2;
+
     /**
      * Bounds the socket of a pooled connection for the length of its validation, returning the
-     * network timeout to put back afterwards - or -1 for a connection left alone, either because
-     * the driver does not take one or because it is bounded at least as tightly already, by a read
-     * timeout of the connection string that is not ours to widen.
+     * network timeout to put back afterwards - or {@link #VALIDATION_BOUND_LEFT_ALONE} for a
+     * connection left alone, either because the driver does not take a network timeout or because
+     * it is bounded at least as tightly already, by a read timeout of the connection string that
+     * is not ours to widen.
+     * A driver that takes the call and then fails inside it is told apart from both: it is free to
+     * have applied the bound before failing, and a connection put back into the pool carrying five
+     * seconds of ours fails every statement slower than that for the rest of its life.
      */
     private static int boundValidation(Connection con) {
         final int bound = VALIDATION_TIMEOUT_SECONDS * 1000;
+        final int previous;
         try {
-            final int previous = con.getNetworkTimeout();
-            if (previous > 0 && previous <= bound) {
-                return -1;
-            }
-            con.setNetworkTimeout(DIRECT_EXECUTOR, bound);
-            return previous;
-        } catch (SQLException | RuntimeException e) {
-            return -1;
+            previous = con.getNetworkTimeout();
+        } catch (SQLException | RuntimeException e) { // a driver that does not take one: nothing was changed
+            return VALIDATION_BOUND_LEFT_ALONE;
         }
+        if (previous > 0 && previous <= bound) {
+            return VALIDATION_BOUND_LEFT_ALONE;
+        }
+        try {
+            con.setNetworkTimeout(DIRECT_EXECUTOR, bound);
+        } catch (SQLException | RuntimeException e) {
+            return VALIDATION_BOUND_FAILED;
+        }
+        return previous;
     }
 
     static CachedConnection connect(String connectionString, ConnectDialect dialect, long connectTimeoutSeconds)
@@ -548,11 +710,16 @@ public class CachedConnection implements Connection {
     // it is not set at all, so nothing of the administrator's is lifted along with it. Returns
     // whether the bound is gone - a connection still carrying it must not be pooled.
     private static boolean relaxReadBound(Connection con) {
-        return setNetworkTimeout(con, 0);
+        return setNetworkTimeout(con, 0, "statements taking longer than the "
+            + CONNECT_TIMEOUT_PROPERTY + " property fail on it, and it is closed rather than pooled");
     }
 
-    /** Puts a network timeout on a connection, reporting a driver that will not take one. */
-    private static boolean setNetworkTimeout(Connection con, int millis) {
+    /**
+     * Puts a network timeout on a connection, reporting a driver that will not take one. The
+     * consequence is the caller's to name: the same failure ends a freshly established connection
+     * carrying the read bound of its login and a pooled one whose bound could not be put back.
+     */
+    private static boolean setNetworkTimeout(Connection con, int millis, String consequence) {
         try {
             con.setNetworkTimeout(DIRECT_EXECUTOR, millis);
             return true;
@@ -564,9 +731,8 @@ public class CachedConnection implements Connection {
             final long last = lastReadBoundWarning.get();
             if (now - last >= STALL_WARNING_INTERVAL_MS && lastReadBoundWarning.compareAndSet(last, now)) {
                 logger.warn(LocalizableMessage.raw(
-                    "The read bound of a JDBC connection could not be set to %d ms (%s): statements taking longer"
-                        + " than the %s property may fail on connections of this backend",
-                    millis, e.getMessage(), CONNECT_TIMEOUT_PROPERTY));
+                    "The read bound of a JDBC connection could not be set to %d ms (%s): %s",
+                    millis, e.getMessage(), consequence));
             }
             return false;
         }
@@ -616,9 +782,157 @@ public class CachedConnection implements Connection {
         final AtomicLong lastOfThisUrl = lastStallWarning.computeIfAbsent(connectionString, url -> new AtomicLong());
         final long last = lastOfThisUrl.get();
         if (now - last >= STALL_WARNING_INTERVAL_MS && lastOfThisUrl.compareAndSet(last, now)) {
-            logger.warn(LocalizableMessage.raw(
-                "%s takes no further connection: waiting %d ms for a pooled one so far (%d attempts), last error: %s",
-                safeUrl(connectionString), now - startedAt, attempts, cause.getMessage()));
+            logger.warn(LocalizableMessage.raw("%s", stallMessage(connectionString, attempts, now - startedAt, cause)));
+        }
+    }
+
+    /**
+     * The stall as it reaches the log. Built apart from the logging of it so that the rule it has
+     * to keep - neither the connection string nor the message of the driver reaches a log as it
+     * stands - is a rule a test can hold it to.
+     */
+    static String stallMessage(String connectionString, int attempts, long waitedMs, SQLException cause) {
+        return String.format("%s takes no further connection: waiting %d ms for a pooled one so far (%d attempts),"
+            + " last error: %s", safeUrl(connectionString), waitedMs, attempts,
+            redact(cause.getMessage(), connectionString));
+    }
+
+    /**
+     * The failure of a connect as it may leave this class: the exception itself where nothing of it
+     * names the credentials of the backend, and a redacted rebuild of its whole chain where
+     * something does. Rebuilt rather than wrapped: a wrapper keeps its cause, and everything that
+     * prints a failure prints the causes along with it - a debug build of
+     * stackTraceToSingleLineString walks them, the config manager traces them, and
+     * RootContainer.open() makes the message of the cause the message of what it throws - so a
+     * link left as it stands would carry the password past the wrapper. The SQLState and the
+     * vendor code of every link survive it: they are what tells a caller what happened.
+     */
+    static SQLException reported(SQLException e, String connectionString) {
+        return holdsCredentials(e, connectionString) ? redactedCopy(e, connectionString, 0) : e;
+    }
+
+    /** The same of an unchecked failure: a driver is free to report a connect it will not make as one. */
+    static Exception reportedUnchecked(RuntimeException e, String connectionString) {
+        if (!holdsCredentials(e, connectionString)) {
+            return e;
+        }
+        final SQLException redacted = new SQLNonTransientConnectionException(e.getClass().getName()
+            + (e.getMessage() == null ? "" : ": " + redact(e.getMessage(), connectionString)),
+            CONNECT_FAILED_SQL_STATE);
+        redacted.setStackTrace(e.getStackTrace());
+        return redacted;
+    }
+
+    /** Whether anything in the chain of a failure names what a connection string keeps out of the log. */
+    private static boolean holdsCredentials(Throwable failure, String connectionString) {
+        final Deque<Throwable> pending = new ArrayDeque<>();
+        pending.add(failure);
+        for (int visited = 0; !pending.isEmpty() && visited < MAX_CHAIN_LENGTH; visited++) {
+            final Throwable t = pending.poll();
+            final String message = t.getMessage();
+            if (message != null && !message.equals(redact(message, connectionString))) {
+                return true;
+            }
+            if (t instanceof SQLException && ((SQLException) t).getNextException() != null) {
+                pending.add(((SQLException) t).getNextException());
+            }
+            if (t.getCause() != null) {
+                pending.add(t.getCause());
+            }
+        }
+        return false;
+    }
+
+    private static SQLException redactedCopy(SQLException e, String connectionString, int depth) {
+        final SQLException copy =
+            new SQLException(redact(e.getMessage(), connectionString), e.getSQLState(), e.getErrorCode());
+        copy.setStackTrace(e.getStackTrace());
+        if (depth < MAX_CHAIN_LENGTH) {
+            if (e.getNextException() != null) {
+                copy.setNextException(redactedCopy(e.getNextException(), connectionString, depth + 1));
+            }
+            if (e.getCause() != null) {
+                copy.initCause(redactedCopy(e.getCause(), connectionString, depth + 1));
+            }
+        }
+        return copy;
+    }
+
+    // A link that is no SQLException keeps its class name in the message: its type is not one this
+    // can rebuild, and the name of the failure is what a reader of the log is after.
+    private static Throwable redactedCopy(Throwable t, String connectionString, int depth) {
+        if (t instanceof SQLException) {
+            return redactedCopy((SQLException) t, connectionString, depth);
+        }
+        final Throwable copy = new Throwable(t.getClass().getName()
+            + (t.getMessage() == null ? "" : ": " + redact(t.getMessage(), connectionString)));
+        copy.setStackTrace(t.getStackTrace());
+        if (t.getCause() != null && depth < MAX_CHAIN_LENGTH) {
+            copy.initCause(redactedCopy(t.getCause(), connectionString, depth + 1));
+        }
+        return copy;
+    }
+
+    /**
+     * A message of a driver as it may be logged. A driver is free to put the connection string it
+     * was handed into it - the jdk itself does, "No suitable driver found for " + url, which is
+     * what the ordinary oracle misconfiguration of a driver jar left out of lib/extensions arrives
+     * as - and that connection string is where the credentials of this backend live.
+     * What it cannot answer for is a driver quoting back a part of a url it failed to parse:
+     * a whole credential is replaced, a fragment of one is not.
+     */
+    static String redact(String message, String connectionString) {
+        if (message == null || message.isEmpty()) {
+            return message;
+        }
+        String redacted = message.replace(connectionString, safeUrl(connectionString));
+        for (final String secret : secretsOf(connectionString)) {
+            redacted = redacted.replace(secret, CREDENTIALS_HIDDEN);
+        }
+        return SECRET_PARAMETER.matcher(redacted).replaceAll("$1=***");
+    }
+
+    /** What of a connection string must not stand in a message: the credentials safeUrl() takes out of it. */
+    private static List<String> secretsOf(String connectionString) {
+        final List<String> secrets = new ArrayList<>();
+        final ConnectDialect dialect = ConnectDialect.of(connectionString);
+        final String separators = dialect == null ? "?;" : String.valueOf(dialect.parameterSeparator);
+        final int scheme = connectionString.indexOf(':', "jdbc:".length()) + 1;
+        if (scheme <= 0) {
+            return secrets;
+        }
+        final int authority = startOfAuthority(connectionString, scheme);
+        if (authority < 0) {
+            final int at = connectionString.indexOf('@', scheme);
+            if (at > scheme) {
+                addSecret(secrets, connectionString.substring(credentialsStart(connectionString, scheme, at), at));
+            }
+        } else {
+            final int end = endOfAuthority(connectionString, authority, separators);
+            for (final String host : connectionString.substring(authority, end).split(",", -1)) {
+                final int at = host.lastIndexOf('@');
+                if (at > 0) {
+                    addSecret(secrets, host.substring(0, at));
+                }
+            }
+        }
+        final Matcher parameter = SECRET_PARAMETER.matcher(connectionString);
+        while (parameter.find()) {
+            addSecret(secrets, parameter.group(3));
+        }
+        return secrets;
+    }
+
+    // The credentials of one host, and the password inside them without the user name in front of
+    // it: a driver quoting a url back names either.
+    private static void addSecret(List<String> secrets, String credentials) {
+        if (credentials.isEmpty()) {
+            return;
+        }
+        secrets.add(credentials);
+        final int password = indexOfAny(credentials, ":/", 0);
+        if (password >= 0 && password + 1 < credentials.length()) {
+            secrets.add(credentials.substring(password + 1));
         }
     }
 
@@ -657,7 +971,33 @@ public class CachedConnection implements Connection {
         final int parameters = indexOfAny(stripped, separators, scheme);
         final String url = parameters < 0 ? stripped : stripped.substring(0, parameters);
         final String redacted = SECRET_PARAMETER.matcher(url).replaceAll("$1=***");
-        return redacted.lastIndexOf('@') > scheme ? redacted.substring(0, scheme) + CREDENTIALS_HIDDEN : redacted;
+        // an "@" standing anywhere but where the credentials of an oracle url ended is one this
+        // did not recognize - a password holding a "/" inside an authority, a quoted one holding
+        // an "@" - and the host of a stall report is worth less than a password in the server log
+        if (redacted.lastIndexOf('@') > endOfRecognizedCredentials(connectionString, scheme)) {
+            return redacted.substring(0, scheme) + CREDENTIALS_HIDDEN;
+        }
+        return parameters < 0 ? redacted
+            : redacted + identifyingParameters(stripped.substring(parameters), dialect);
+    }
+
+    /**
+     * The parameters worth keeping in a message: the ones naming the database rather than whoever
+     * connects to it. Two backends of one host answer to the same url up to their parameters, and
+     * a stall report that cannot tell them apart is a stall report of neither. Everything else is
+     * dropped rather than looked at - a name this does not know is a name free to carry a secret.
+     */
+    private static String identifyingParameters(String parameters, ConnectDialect dialect) {
+        final char separator = dialect == null ? ';' : dialect.parameterSeparator;
+        final StringBuilder kept = new StringBuilder();
+        for (final String parameter : parameters.split("[?&;]")) {
+            final int equals = parameter.indexOf('=');
+            if (equals > 0
+                && IDENTIFYING_PARAMETERS.contains(parameter.substring(0, equals).toLowerCase(Locale.ROOT))) {
+                kept.append(kept.length() == 0 || separator != '?' ? separator : '&').append(parameter);
+            }
+        }
+        return kept.toString();
     }
 
     private static String stripCredentials(String url, int scheme, String separators) {
@@ -667,10 +1007,32 @@ public class CachedConnection implements Connection {
             // first "@", which is the delimiter of the descriptor behind it - a password holding
             // an "@" of its own has to be quoted for the driver itself
             final int at = url.indexOf('@', scheme);
-            return at < 0 ? url : url.substring(0, scheme) + url.substring(at);
+            return at < 0 ? url : url.substring(0, credentialsStart(url, scheme, at)) + url.substring(at);
         }
         final int end = endOfAuthority(url, authority, separators);
         return url.substring(0, authority) + withoutUserinfo(url.substring(authority, end)) + url.substring(end);
+    }
+
+    /**
+     * Where the credentials of a url that names no authority start: behind the token naming the
+     * kind of driver, which stands in front of them ("jdbc:oracle:thin:user/pw@...") and is worth
+     * keeping - thin against oci is a first question of an oracle connect. The token is the one
+     * right behind the subprotocol rather than the last one in front of the "@", since a password
+     * is free to hold a ":" of its own.
+     */
+    private static int credentialsStart(String url, int scheme, int at) {
+        final int driverType = url.indexOf(':', scheme);
+        return driverType >= 0 && driverType < at ? driverType + 1 : scheme;
+    }
+
+    /**
+     * The last position a stripped url may still carry an "@" at: where the credentials of an
+     * oracle url ended, since the "@" is the delimiter of the descriptor behind them and stays.
+     * An authority keeps none of its own - every userinfo of it is taken off, delimiter included.
+     */
+    private static int endOfRecognizedCredentials(String url, int scheme) {
+        final int at = url.indexOf('@', scheme);
+        return startOfAuthority(url, scheme) < 0 && at > scheme ? credentialsStart(url, scheme, at) : scheme;
     }
 
     /**
@@ -701,12 +1063,13 @@ public class CachedConnection implements Connection {
     /** The hosts of an authority, each of them without the credentials a url may give it. */
     private static String withoutUserinfo(String authority) {
         final StringBuilder hosts = new StringBuilder();
-        for (final String host : authority.split(",", -1)) {
-            if (hosts.length() > 0) {
+        final String[] split = authority.split(",", -1);
+        for (int i = 0; i < split.length; i++) {
+            if (i > 0) { // by the position rather than by what is in hand: a first host may be empty
                 hosts.append(',');
             }
-            final int at = host.lastIndexOf('@');
-            hosts.append(at < 0 ? host : host.substring(at + 1));
+            final int at = split[i].lastIndexOf('@');
+            hosts.append(at < 0 ? split[i] : split[i].substring(at + 1));
         }
         return hosts.toString();
     }

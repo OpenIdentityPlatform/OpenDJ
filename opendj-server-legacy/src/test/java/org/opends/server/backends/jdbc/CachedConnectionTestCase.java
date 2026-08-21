@@ -107,6 +107,82 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * ... and the report of it carries no password. This is the path the credentials leave by: the
+	 * jdk itself builds "No suitable driver found for " + url, a missing driver jar is the ordinary
+	 * oracle misconfiguration, and what this class throws reaches the server error log in full -
+	 * JDBCStorage.open() hands it to RootContainer, which makes the message of the cause the
+	 * message of what it throws, and BackendConfigManager logs that at ERROR and answers a config
+	 * change with it. Every link of the chain is asserted, not only the message on top: everything
+	 * that prints a failure prints its causes along with it.
+	 */
+	@Test(timeOut = 120000)
+	public void testAReportedConnectCarriesNoCredentials() throws Exception {
+		final String url = "jdbc:nosuchengine://opendj:S3cretOfTheBackend@127.0.0.1:5432/opendj";
+		try {
+			CachedConnection.getConnection(url);
+			fail("a connection string no registered driver accepts must be reported");
+		} catch (SQLException expected) {
+			assertNoCredentials(expected);
+			assertTrue(expected.getMessage().contains("No suitable driver"),
+				"the failure has to stay recognizable: " + expected.getMessage());
+			assertTrue(expected.getMessage().contains("127.0.0.1:5432"),
+				"the host is what a report of a connect is read for: " + expected.getMessage());
+		}
+	}
+
+	/**
+	 * A url this class knows no timeout properties for is reported once. The properties bounding a
+	 * connect are the ones of a driver, so a driver outside the four - an admin-added mariadb, an
+	 * h2 - leaves every attempt unbounded, and the deadline of the borrow cannot reach into a
+	 * connect already under way: the driver is the only thing holding the socket. Silently, that
+	 * is #872 again, for a backend nobody thinks of as unbounded.
+	 */
+	@Test(timeOut = 120000)
+	public void testAUrlThisBackendCannotBoundIsReportedOnce() throws Exception {
+		final String url = "jdbc:nosuchengine-unbounded://127.0.0.1:5432/opendj";
+		try {
+			CachedConnection.getConnection(url);
+			fail("a connection string no registered driver accepts must be reported");
+		} catch (SQLException expected) {
+			// the point of the test is what was logged on the way, not what came back
+		}
+		assertTrue(CachedConnection.warnedOnce.contains(CachedConnection.safeUrl(url) + "|unknown-dialect"),
+			"a connection string no bound of this class can reach was not reported");
+	}
+
+	/**
+	 * ... and so is a postgresql url that turns the read bound off: a parameter of one outranks the
+	 * property this class supplies, so a "socketTimeout=0" there cannot be replaced. Nothing is
+	 * left to end a borrow that reaches a database accepting the connection and answering nothing,
+	 * and an administrator who wrote that zero has to be able to find it in the log.
+	 */
+	@Test
+	public void testAReadBoundTurnedOffInAPostgresUrlIsReportedOnce() throws Exception {
+		final String url = "jdbc:postgresql://reported:5432/db?socketTimeout=0";
+		assertFalse(CachedConnection.ConnectDialect.POSTGRES.bound(url, new Properties(), 7));
+		assertTrue(CachedConnection.warnedOnce.contains(CachedConnection.safeUrl(url) + "|unbounded-read"),
+			"a url leaving the reads of its login unbounded was not reported");
+	}
+
+	/** Nothing in the chain of a failure names the password of the backend, however deep it stands. */
+	private static void assertNoCredentials(Throwable failure) {
+		for (Throwable t = failure; t != null; t = t.getCause()) {
+			assertFalse(String.valueOf(t.getMessage()).contains("S3cretOfTheBackend"),
+				"the password of the backend reached a message: " + t);
+			if (t instanceof SQLException) {
+				for (SQLException next = ((SQLException) t).getNextException(); next != null;
+						next = next.getNextException()) {
+					assertFalse(String.valueOf(next.getMessage()).contains("S3cretOfTheBackend"),
+						"the password of the backend reached a message: " + next);
+				}
+			}
+			if (t.getCause() == t) {
+				break;
+			}
+		}
+	}
+
+	/**
 	 * A database that is not listening at all: every dialect reports it instead of retrying the
 	 * refused connect until the caller gives up on the operation.
 	 */
@@ -206,6 +282,10 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		} catch (SQLTimeoutException expected) {
 			assertTrue(expected.getMessage().contains("2s"), expected.getMessage());
 			assertEquals(((SQLException) expected.getCause()).getSQLState(), "53300");
+			// the state of a connect that did not happen, rather than none at all: this is the
+			// failure of a borrow, and monitoring reading the state off what it caught would
+			// otherwise see null where the driver's own exception carried one
+			assertEquals(expected.getSQLState(), "08001");
 		}
 		final long elapsed = System.currentTimeMillis() - startedAt;
 		assertTrue(elapsed >= 2000, "gave up after " + elapsed + " ms, before the deadline it was given");
@@ -339,6 +419,32 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		inOrder.verify(pooled).setNetworkTimeout(any(Executor.class), eq(0));
 	}
 
+	/**
+	 * A driver that takes the call bounding the validation and then fails inside it is told apart
+	 * from one that never takes a network timeout at all: it is free to have applied the bound
+	 * before failing, so the connection is discarded rather than validated unbounded and handed
+	 * out - pooled, it would carry five seconds of ours into every statement for the rest of its
+	 * life, and the import batch of a backend open is the first thing to die of that.
+	 */
+	@Test(timeOut = 120000)
+	public void testAPooledConnectionThatCannotBeBoundedForItsValidationIsDiscarded() throws Exception {
+		final String url = StubDriver.PREFIX + "validation-bound-fails";
+		final Connection pooled = mock(Connection.class);
+		when(pooled.getNetworkTimeout()).thenReturn(0);
+		when(pooled.isValid(anyInt())).thenReturn(true);
+		doThrow(new SQLException("the driver took the bound and then failed"))
+			.when(pooled).setNetworkTimeout(any(Executor.class), anyInt());
+		CachedConnection.cached.get(url).add(new CachedConnection(url, pooled));
+		final Connection fresh = mock(Connection.class);
+		stub.answerWith(fresh);
+
+		final Connection borrowed = CachedConnection.getConnection(url);
+
+		assertSame(((CachedConnection) borrowed).parent, fresh, "a connection this could not bound was handed out");
+		verify(pooled, never()).isValid(anyInt());
+		verify(pooled).close();
+	}
+
 	/** A read bound of the connection string is tighter than ours and stays untouched. */
 	@Test(timeOut = 120000)
 	public void testValidationLeavesTheBoundOfTheConnectionStringAlone() throws Exception {
@@ -379,8 +485,8 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final Connection borrowed = CachedConnection.getConnection(url);
 
 		assertSame(((CachedConnection) borrowed).parent, fresh);
-		assertTrue(validated.get() < pooled,
-			"the whole pool was validated past the deadline: " + validated.get() + " of " + pooled);
+		assertTrue(validated.get() > 0 && validated.get() < pooled,
+			"the drain has to start and to stop at the deadline: " + validated.get() + " of " + pooled);
 	}
 
 	/** A pooled connection that no longer validates is closed and replaced, not handed out. */
@@ -504,7 +610,8 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 			"jdbc:postgresql://h:5432/db?user=u&password=p&loginTimeout=30&socketTimeout=300", postgres, 7);
 		assertNull(postgres.getProperty("loginTimeout"), "the setting of the connection string was overridden");
 		assertNull(postgres.getProperty("socketTimeout"), "the setting of the connection string was overridden");
-		assertEquals(postgres.getProperty("connectTimeout"), "7", "the property it leaves open must still be bounded");
+		assertNull(postgres.getProperty("connectTimeout"),
+			"the connect side is one budget: a bound of the administrator under either of its names is theirs");
 
 		// the sql server driver gives a supplied property precedence over the one of the url
 		final Properties microsoft = new Properties();
@@ -575,7 +682,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 	/**
 	 * The connection string is not the only channel of the administrator: the oracle driver reads
-	 * its dotted properties out of the system properties as well, which is how a whole jvm is
+	 * some of its properties out of the system properties as well, which is how a whole jvm is
 	 * bounded with -Doracle.jdbc.ReadTimeout. A property supplied to the driver outranks that one
 	 * without a word, and this class would then lift it once the login is through as if it were
 	 * its own - leaving a connection with no read bound at all where the administrator set one.
@@ -594,8 +701,18 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 			System.clearProperty("oracle.jdbc.ReadTimeout");
 		}
 
-		// a plain name is common enough to be somebody else's system property: only the dotted
-		// ones are names a driver of these reads
+		// the connect property of the same driver, over the same channel
+		System.setProperty("oracle.net.CONNECT_TIMEOUT", "30000");
+		try {
+			final Properties oracle = new Properties();
+			CachedConnection.ConnectDialect.ORACLE.bound("jdbc:oracle:thin:@//h:1521/svc", oracle, 7);
+			assertNull(oracle.getProperty("oracle.net.CONNECT_TIMEOUT"), "the setting of the administrator was overridden");
+		} finally {
+			System.clearProperty("oracle.net.CONNECT_TIMEOUT");
+		}
+
+		// a plain name is common enough to be somebody else's system property: only a name a
+		// driver of these actually reads out of them is one of the administrator's
 		System.setProperty("socketTimeout", "30000");
 		try {
 			final Properties mysql = new Properties();
@@ -607,19 +724,42 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * ... and a dotted name is not a name a driver reads out of the system properties by the shape
+	 * of it. ojdbc8 resolves oracle.jdbc.ReadTimeout and oracle.net.CONNECT_TIMEOUT in three tiers
+	 * (the properties it was supplied, then System.getProperty, then the properties of the data
+	 * source), while oracle.net.READ_TIMEOUT - a dotted name of the same driver, and the name the
+	 * socket option is finally read under - reaches the socket from the connection properties
+	 * alone: the classes carrying the literal hand it to Properties.get, none of them to
+	 * System.getProperty. Taken for a bound of the administrator, a -D of it leaves the login with
+	 * no read bound whatever: theirs is not read and ours is not set.
+	 */
+	@Test
+	public void testASystemPropertyNoDriverReadsIsNoBound() throws Exception {
+		System.setProperty("oracle.net.READ_TIMEOUT", "30000");
+		try {
+			final Properties oracle = new Properties();
+			assertTrue(CachedConnection.ConnectDialect.ORACLE.bound("jdbc:oracle:thin:@//h:1521/svc", oracle, 7),
+				"a -D the driver never reads left this login with no read bound at all");
+			assertEquals(oracle.getProperty("oracle.jdbc.ReadTimeout"), "7000");
+		} finally {
+			System.clearProperty("oracle.net.READ_TIMEOUT");
+		}
+
+		// ... while the same name written into the connection string is one the driver does read
+		final Properties declared = new Properties();
+		assertFalse(CachedConnection.ConnectDialect.ORACLE.bound(
+			"jdbc:oracle:thin:@(DESCRIPTION=(READ_TIMEOUT=30)(ADDRESS=(HOST=h)(PORT=1521)))", declared, 7));
+		assertNull(declared.getProperty("oracle.jdbc.ReadTimeout"));
+	}
+
+	/**
 	 * A property the administrator set to 0 is not a bound of theirs: every one of these drivers
-	 * reads 0 as "wait as long as it takes", which is the default this class exists to replace. On
-	 * postgresql it is worse than no bound at all - loginTimeout alone hands the login to a daemon
-	 * thread the driver abandons at the timeout, and an unbounded read leaves it parked there with
-	 * the socket it holds.
+	 * reads 0 as "wait as long as it takes", which is the default this class exists to replace -
+	 * and on the three whose driver lets a supplied property win, ours is set on top of it.
+	 * Postgresql is the one where it cannot be, and is covered on its own below.
 	 */
 	@Test
 	public void testAZeroIsNotABoundOfTheAdministrator() throws Exception {
-		final Properties postgres = new Properties();
-		assertTrue(CachedConnection.ConnectDialect.POSTGRES.bound(
-			"jdbc:postgresql://h:5432/db?socketTimeout=0", postgres, 7));
-		assertEquals(postgres.getProperty("socketTimeout"), "7");
-
 		final Properties mysql = new Properties();
 		CachedConnection.ConnectDialect.MYSQL.bound("jdbc:mysql://h:3306/db?connectTimeout=0&socketTimeout=0", mysql, 7);
 		assertEquals(mysql.getProperty("connectTimeout"), "7000");
@@ -643,9 +783,57 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 		// a value that is no number is left to the driver it belongs to: it is not this class's to read
 		final Properties unreadable = new Properties();
-		assertFalse(CachedConnection.ConnectDialect.POSTGRES.bound(
-			"jdbc:postgresql://h:5432/db?socketTimeout=PT30S", unreadable, 7));
+		assertFalse(CachedConnection.ConnectDialect.MYSQL.bound(
+			"jdbc:mysql://h:3306/db?socketTimeout=PT30S", unreadable, 7));
 		assertNull(unreadable.getProperty("socketTimeout"));
+	}
+
+	/**
+	 * On postgresql a parameter of the url outranks the property this class supplies: Driver
+	 * .connect copies what it was handed into a flat map and parseURL then writes the parameters of
+	 * the url on top of it. So a "socketTimeout=0" there cannot be replaced, and setting ours
+	 * regardless would leave this class believing it bounded a login that carries no bound - and
+	 * lifting a read bound after it that was never in force. The effective values are read back
+	 * through the parser of the driver itself, since asserting on the map handed to it is
+	 * asserting on the half of the story this bug lived in.
+	 */
+	@Test
+	public void testAParameterOfAPostgresUrlOutranksTheBoundOfThisClass() throws Exception {
+		final String url = "jdbc:postgresql://h:5432/db?connectTimeout=0&socketTimeout=0&loginTimeout=0";
+		final Properties supplied = new Properties();
+		assertFalse(CachedConnection.ConnectDialect.POSTGRES.bound(url, supplied, 7),
+			"a read bound that never reaches the driver must not be reported as one to lift");
+		assertNull(supplied.getProperty("socketTimeout"));
+		assertNull(supplied.getProperty("connectTimeout"));
+		assertNull(supplied.getProperty("loginTimeout"));
+
+		final Properties effective = org.postgresql.Driver.parseURL(url, supplied);
+		assertEquals(effective.getProperty("socketTimeout"), "0", "the url is what the driver ends up reading");
+		assertEquals(effective.getProperty("connectTimeout"), "0");
+		assertEquals(effective.getProperty("loginTimeout"), "0");
+	}
+
+	/**
+	 * The connect side of a dialect is one budget rather than a set of independent knobs, so a
+	 * bound of the administrator under any of its names leaves all of them alone. On postgresql
+	 * connectTimeout bounds the socket connect and loginTimeout the login behind it: filling in the
+	 * one they left out caps the one they set, since Driver.connect hands the login to a thread of
+	 * its own as soon as loginTimeout is anything but 0 and gives up on it there.
+	 */
+	@Test
+	public void testAConnectBudgetOfTheAdministratorIsNotCappedByThisClass() throws Exception {
+		final String url = "jdbc:postgresql://h:5432/db?connectTimeout=300";
+		final Properties supplied = new Properties();
+		assertTrue(CachedConnection.ConnectDialect.POSTGRES.bound(url, supplied, 30),
+			"the read bound is a budget of its own and is still set");
+		assertNull(supplied.getProperty("loginTimeout"),
+			"a loginTimeout of ours caps the connectTimeout the administrator set");
+		assertNull(supplied.getProperty("connectTimeout"));
+		assertEquals(supplied.getProperty("socketTimeout"), "30");
+
+		final Properties effective = org.postgresql.Driver.parseURL(url, supplied);
+		assertEquals(effective.getProperty("connectTimeout"), "300", "the budget of the administrator, in full");
+		assertNull(effective.getProperty("loginTimeout"), "nothing of ours hands this login to a thread to abandon");
 	}
 
 	/**
@@ -662,42 +850,69 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, "0");
 		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "3000000");
-		final String url = "jdbc:sqlserver://127.0.0.1:" + closedPort()
-			+ ";databaseName=opendj;user=opendj;password=opendj;encrypt=false";
-		final long startedAt = System.currentTimeMillis();
-		try {
-			CachedConnection.getConnection(url);
-			fail("a refused connect must be reported");
-		} catch (SQLException expected) {
-			assertFalse(expected.getMessage().contains("socketTimeout"),
-				"the driver was handed a bound it does not take: " + expected.getMessage());
+		// a socket that answers the connect and closes it, rather than a port bound and released:
+		// with every bound of this borrow turned off, anything taking that port in between would
+		// leave the test hanging on the timeOut instead of failing
+		try (final ServerSocket rejecting = rejectingSocket()) {
+			final String url = "jdbc:sqlserver://127.0.0.1:" + rejecting.getLocalPort()
+				+ ";databaseName=opendj;user=opendj;password=opendj;encrypt=false";
+			final long startedAt = System.currentTimeMillis();
+			try {
+				CachedConnection.getConnection(url);
+				fail("a connect the database closes must be reported");
+			} catch (SQLException expected) {
+				assertFalse(expected.getMessage().contains("socketTimeout"),
+					"the driver was handed a bound it does not take: " + expected.getMessage());
+			}
+			assertElapsedWithinBound(startedAt, 0);
 		}
-		assertElapsedWithinBound(startedAt, 0);
+	}
+
+	/** The clamp of the range holds where the borrow has no deadline to take it from either. */
+	@Test
+	public void testTheBoundOfAnAttemptStaysInRangeWithoutADeadline() throws Exception {
+		assertEquals(CachedConnection.attemptSeconds(Long.MAX_VALUE, Long.MAX_VALUE), Integer.MAX_VALUE / 1000);
+		assertEquals(CachedConnection.attemptSeconds(0, Long.MAX_VALUE), 0, "0 stands for an attempt with no bound");
+		assertEquals(CachedConnection.attemptSeconds(30, Long.MAX_VALUE), 30);
 	}
 
 	/** The connection string holds the credentials of the backend: a stall report must not carry them. */
 	@Test
 	public void testLoggedConnectionStringCarriesNoCredentials() throws Exception {
 		assertEquals(CachedConnection.safeUrl("jdbc:postgresql://h:5432/db?user=u&password=secret"), "jdbc:postgresql://h:5432/db");
-		assertEquals(CachedConnection.safeUrl("jdbc:sqlserver://h:1433;databaseName=db;password=secret"), "jdbc:sqlserver://h:1433");
-		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:scott/secret@//h:1521/svc"), "jdbc:oracle:@//h:1521/svc");
+		// the parameter naming the database stays: two backends of one sql server host answer to
+		// the same url up to it, and a stall report that cannot tell them apart is one of neither
+		assertEquals(CachedConnection.safeUrl("jdbc:sqlserver://h:1433;databaseName=db;password=secret"),
+			"jdbc:sqlserver://h:1433;databaseName=db");
+		// ... and the token naming the kind of oracle driver stays as well: thin against oci is a
+		// first question of an oracle connect, and it stands in front of the credentials
+		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:scott/secret@//h:1521/svc"), "jdbc:oracle:thin:@//h:1521/svc");
 		assertEquals(CachedConnection.safeUrl("jdbc:mysql://u:secret@h:3306/db"), "jdbc:mysql://h:3306/db");
-		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:@//h:1521/svc"), "jdbc:oracle:@//h:1521/svc");
+		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:@//h:1521/svc"), "jdbc:oracle:thin:@//h:1521/svc");
 		// a password holding the parameter separator of another dialect: ";" separates nothing on
 		// an oracle url, so the credentials are cut in front of the "@" rather than inside them
-		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:scott/pa;ss@//h:1521/svc"), "jdbc:oracle:@//h:1521/svc");
+		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:scott/pa;ss@//h:1521/svc"), "jdbc:oracle:thin:@//h:1521/svc");
+		// ... and one holding a ":" is cut in front of it too: the token of the driver is the one
+		// behind the subprotocol, not the last one standing in front of the "@"
+		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:scott/pa:ss@//h:1521/svc"), "jdbc:oracle:thin:@//h:1521/svc");
 		// ... and an "@" that stands inside a parameter is not the end of credentials: the host survives
 		assertEquals(CachedConnection.safeUrl("jdbc:postgresql://h:5432/db?user=u@example.com&password=secret"),
 			"jdbc:postgresql://h:5432/db");
 		// a password holding the parameter separator of its own dialect: on an oracle url the
 		// parameters stand behind the descriptor, so a "?" in front of the "@" is part of the
 		// password and cutting there would leave the start of it in the log
-		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:scott/pa?ss@//h:1521/svc"), "jdbc:oracle:@//h:1521/svc");
+		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:scott/pa?ss@//h:1521/svc"), "jdbc:oracle:thin:@//h:1521/svc");
 		// the same inside an authority, where the credentials end at the path rather than at a "?"
 		assertEquals(CachedConnection.safeUrl("jdbc:mysql://u:sec?ret@h:3306/db"), "jdbc:mysql://h:3306/db");
 		// a descriptor of an oracle url carries no credentials and survives whole
 		assertEquals(CachedConnection.safeUrl("jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(HOST=h)(PORT=1521)))"),
-			"jdbc:oracle:@(DESCRIPTION=(ADDRESS=(HOST=h)(PORT=1521)))");
+			"jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(HOST=h)(PORT=1521)))");
+		// a first host with nothing in front of the comma keeps the comma: what is left is the
+		// hosts of a url, not one host of it
+		assertEquals(CachedConnection.safeUrl("jdbc:mysql://,h2:3306/db"), "jdbc:mysql://,h2:3306/db");
+		// a password under a name of its own, and one numbered by the factor it belongs to
+		assertEquals(CachedConnection.safeUrl("jdbc:mysql://(host=h,user=u,password2=secret)/db"),
+			"jdbc:mysql://(host=h,user=u,password2=***)/db");
 
 		// a url of Connector/J gives every host of it credentials of its own, and every one of
 		// them goes: the second used to stay in the message with the password of the failover host
@@ -712,7 +927,8 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 			"jdbc:mysql://address=(host=h)(port=3306)(user=u)(password=***)/db");
 		assertEquals(CachedConnection.safeUrl("jdbc:mysql://(host=h,port=3306,user=u,password=secret)/db"),
 			"jdbc:mysql://(host=h,port=3306,user=u,password=***)/db");
-		assertEquals(CachedConnection.safeUrl("jdbc:sqlserver://h:1433;databaseName=db;PWD=secret"), "jdbc:sqlserver://h:1433");
+		assertEquals(CachedConnection.safeUrl("jdbc:sqlserver://h:1433;databaseName=db;PWD=secret"),
+			"jdbc:sqlserver://h:1433;databaseName=db");
 
 		// a shape none of this took apart is not logged past its subprotocol: a password holding a
 		// "/" ends the authority in front of the "@" that would have given the credentials away
@@ -726,6 +942,43 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * A driver is free to quote the connection string it was handed back into the message of its
+	 * failure, and that message travels: RootContainer makes it the message of what it throws,
+	 * BackendConfigManager logs it at ERROR and answers a config change with it. So the message is
+	 * redacted rather than the two call sites that happen to log a url.
+	 */
+	@Test
+	public void testAMessageOfADriverCarriesNoCredentials() throws Exception {
+		final String url = "jdbc:postgresql://opendj:S3cret@h:5432/db";
+		assertEquals(CachedConnection.redact("No suitable driver found for " + url, url),
+			"No suitable driver found for jdbc:postgresql://h:5432/db");
+		// a driver naming the credentials alone, without the url around them
+		assertEquals(CachedConnection.redact("authentication of opendj:S3cret failed", url),
+			"authentication of " + CachedConnection.CREDENTIALS_HIDDEN + " failed");
+		// ... and naming the password alone
+		assertEquals(CachedConnection.redact("the password S3cret was not accepted", url),
+			"the password " + CachedConnection.CREDENTIALS_HIDDEN + " was not accepted");
+		// the credentials of an oracle url stand in front of its descriptor
+		final String oracle = "jdbc:oracle:thin:scott/S3cret@//h:1521/svc";
+		assertEquals(CachedConnection.redact("IO Error connecting to " + oracle, oracle),
+			"IO Error connecting to jdbc:oracle:thin:@//h:1521/svc");
+		// a password of a parameter is blanked wherever the message carries it
+		assertEquals(CachedConnection.redact("bad url jdbc:sqlserver://h:1433;password=S3cret",
+			"jdbc:sqlserver://h:1433;password=S3cret"), "bad url jdbc:sqlserver://h:1433");
+		// a message naming nothing of the connection string is left as it stands
+		assertEquals(CachedConnection.redact("Connection to h:5432 refused", url), "Connection to h:5432 refused");
+		assertNull(CachedConnection.redact(null, url));
+
+		// the stall report is the other way a driver's message reaches the log, and it carries the
+		// url of the backend alongside it
+		final String stall = CachedConnection.stallMessage(url, 3, 4000,
+			new SQLException("FATAL: too many connections for " + url));
+		assertFalse(stall.contains("S3cret"), stall);
+		assertTrue(stall.contains("jdbc:postgresql://h:5432/db"), stall);
+		assertTrue(stall.contains("4000 ms") && stall.contains("(3 attempts)"), stall);
+	}
+
+	/**
 	 * pgjdbc enforces loginTimeout out of process: Driver.connect hands the login to a daemon
 	 * thread of its own and gives up on the thread rather than on the login. Against the database
 	 * this bound exists for - one that completes the handshake and then says nothing - an
@@ -735,6 +988,10 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	@Test(timeOut = 300000)
 	public void testTheLoginThreadOfPostgresDoesNotOutliveTheBorrow() throws Exception {
 		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, Long.toString(BOUND_SECONDS));
+		// counted as a delta of this borrow rather than as a count of the jvm: three tests of this
+		// file open a pgjdbc login against a socket that never answers, and the order they run in
+		// is not contractual - a thread left by any of them would be reported here
+		final int before = loginThreadsOfPostgres();
 		try (final ServerSocket blackhole = new ServerSocket(0, 50, InetAddress.getLoopbackAddress())) {
 			final String url = "jdbc:postgresql://127.0.0.1:" + blackhole.getLocalPort() + "/opendj?user=opendj&password=opendj";
 			try {
@@ -744,10 +1001,10 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 				// reported to the caller, as the bound of the attempt promises
 			}
 			final long giveUpAt = System.currentTimeMillis() + BOUND_SECONDS * 1000 + BOUND_MARGIN_MS;
-			while (loginThreadsOfPostgres() > 0 && System.currentTimeMillis() < giveUpAt) {
+			while (loginThreadsOfPostgres() > before && System.currentTimeMillis() < giveUpAt) {
 				Thread.sleep(100);
 			}
-			assertEquals(loginThreadsOfPostgres(), 0,
+			assertTrue(loginThreadsOfPostgres() <= before,
 				"the login thread pgjdbc abandoned outlived the borrow: the read of the login is not bounded");
 		}
 	}
@@ -879,6 +1136,27 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		try (final ServerSocket socket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
 			return socket.getLocalPort();
 		} // closed again: nothing listens there any more
+	}
+
+	/**
+	 * A socket that answers a connect and closes it at once. A port bound and released is the
+	 * shape of a refused connect a test would reach for, but it races whatever else on the host
+	 * may take that port; this one is the failure it stands for and belongs to nobody else.
+	 */
+	private static ServerSocket rejectingSocket() throws Exception {
+		final ServerSocket socket = new ServerSocket(0, 50, InetAddress.getLoopbackAddress());
+		final Thread accepting = new Thread(() -> {
+			while (!socket.isClosed()) {
+				try {
+					socket.accept().close();
+				} catch (Exception closed) {
+					return;
+				}
+			}
+		}, "opendj-test-rejecting-socket");
+		accepting.setDaemon(true);
+		accepting.start();
+		return socket;
 	}
 
 	private static void assertElapsedWithinBound(long startedAt, long boundMs) {
