@@ -41,6 +41,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.opends.server.backends.pluggable.spi.StorageUtils.addErrorMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -140,16 +141,60 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	Connection getConnection() throws Exception {
-		return CachedConnection.getConnection(config.getDBDirectory());
+		// The pool this storage registered with in open(), not the one config names now. Nothing
+		// keeps db-directory from being changed on a running backend - applyConfigurationChange()
+		// takes it, isConfigurationChangeAcceptable() refuses nothing, and the component-restart
+		// admin action renders a message rather than holding the change back - so re-reading it
+		// here would borrow from a pool this storage never registered with, leaving the one it did
+		// register with holding a user that never borrows: the leak of #878 back through the
+		// configuration. And an unregistered pool is drained the moment another backend that did
+		// register with it closes, with this one still borrowing from it (issue #878).
+		final String registered=poolConnectionString;
+		return CachedConnection.getConnection(registered!=null ? registered : config.getDBDirectory());
 	}
 
 
 	AccessMode accessMode=AccessMode.READ_ONLY;
+
+	// Whether this storage counts as a user of the pool of its connection string. The pool belongs
+	// to the database rather than to this backend - two backends may address one database - so it
+	// is reference counted, and this flag keeps an open() or a close() that comes twice from
+	// counting twice (issue #878).
+	private final AtomicBoolean poolRegistered=new AtomicBoolean();
+
+	// The connection string open() registered with. applyConfigurationChange() replaces config, so
+	// reading db-directory again at close() could give back the pool of a database this storage
+	// never registered with - leaving the one it did with a user it never loses (issue #878).
+	private volatile String poolConnectionString;
+
 	@Override
 	public void open(AccessMode accessMode) throws Exception {
+		final boolean registeredHere=poolRegistered.compareAndSet(false, true);
+		if (registeredHere) {
+			poolConnectionString=config.getDBDirectory();
+			CachedConnection.openPool(poolConnectionString);
+		}
 		try (final Connection con=getConnection()) {
 			this.accessMode = accessMode;
 			storageStatus = StorageStatus.working();
+		} catch (Exception e) {
+			// Only what this call registered is given back: an open that found the registration
+			// already made took nothing, and giving it back would release a pool still in use.
+			if (registeredHere) {
+				releasePool();
+			}
+			throw e;
+		}
+	}
+
+	/** Gives up the registration of this storage with the pool of the database it opened. */
+	private void releasePool() {
+		if (poolRegistered.compareAndSet(true, false)) {
+			final String registered=poolConnectionString;
+			poolConnectionString=null;
+			if (registered!=null) {
+				CachedConnection.closePool(registered);
+			}
 		}
 	}
 
@@ -166,6 +211,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// that it is not reissued for every tree on every open; disabling and re-enabling the
 		// backend is the way to try again once the privilege has been granted
 		unstampableTrees.clear();
+		// A closed backend has no use for its connections. They used to stay open - close() only
+		// flipped the status - so disabling or removing a JDBC backend left them behind, and with
+		// nothing left to expire the pool entry they could stay open for good (issue #878).
+		releasePool();
 	}
 
 	final LoadingCache<TreeName,String> tree2table = Caffeine.newBuilder()
@@ -1508,13 +1557,28 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					throw new StorageRuntimeException(e);
 				}
 			}
+			// Nothing holds what this constructor takes until it returns: close() belongs to an
+			// object that was built, so a throw below - WriteableTransactionTransactionImpl rejects
+			// a storage opened READ_ONLY - would leave the connection borrowed and the storage this
+			// constructor opened open, with nobody left to give either back.
+			Connection borrowed=null;
 			try {
-				con = getConnection();
+				borrowed=getConnection();
+				txr =new ReadableTransactionImpl(borrowed);
+				txw =new WriteableTransactionTransactionImpl(borrowed);
+				con = borrowed;
+				borrowed=null;
 			}catch (Exception e){
-				throw new StorageRuntimeException(e);
+				if (borrowed!=null) {
+					try {
+						borrowed.close();
+					}catch (SQLException e2) {}
+				}
+				if (!isOpen) {
+					JDBCStorage.this.close();
+				}
+				throw e instanceof StorageRuntimeException ? (StorageRuntimeException) e : new StorageRuntimeException(e);
 			}
-			txr =new ReadableTransactionImpl(con);
-			txw =new WriteableTransactionTransactionImpl(con);
 		}
 		
 		@Override
@@ -1522,9 +1586,31 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			aborted = true;
 		}
 
+		/**
+		 * Hands the connection back to the pool and closes the stamp session, whatever went before.
+		 * Returns the failure the caller is to report: the return rolls back, and the rollback
+		 * fails on exactly the connection whose commit just did, so the commit stays the exception
+		 * the caller sees and this one rides along with it instead of replacing it.
+		 */
+		private SQLException releaseConnection(SQLException failure) {
+			try {
+				con.close();
+			} catch (SQLException e) {
+				if (failure==null) {
+					failure=e;
+				}else {
+					failure.addSuppressed(e);
+				}
+			} finally {
+				txw.stampSession.close();
+			}
+			return failure;
+		}
+
 		@Override
 		public void close() {
 			try {
+				SQLException failure=null;
 				try {
 					con.commit();
 					if (aborted) {
@@ -1532,15 +1618,27 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}else {
 						updateTableStatistics(con, writtenTrees);
 					}
-				} finally { // the pooled connection must be returned even when the commit or a statistics statement throws
-					try {
-						con.close();
-					} finally {
-						txw.stampSession.close();
+				} catch (SQLException e) {
+					failure=e;
+				} catch (Throwable t) {
+					// Back to the pool whatever came out of the commit, not only on the SQLException
+					// a driver is supposed to throw: nothing else holds this connection, and only
+					// its close() gives back the permit it took. A pool is never removed from the
+					// map, so a permit lost to an Error out of a bulk import - or to a driver
+					// failing unchecked - is lost for the life of the server, and enough of them
+					// walk the bound down to nothing (issue #878).
+					final SQLException onTheWayOut=releaseConnection(null);
+					if (onTheWayOut!=null) {
+						t.addSuppressed(onTheWayOut);
 					}
+					throw t;
 				}
-			} catch (SQLException e) {
-				throw new StorageRuntimeException(e);
+				// Back to the pool even when the commit failed: nothing else holds this connection,
+				// so leaving it behind would leak it along with the failure.
+				failure=releaseConnection(failure);
+				if (failure!=null) {
+					throw new StorageRuntimeException(failure);
+				}
 			} finally {
 				if (!isOpen) {
 					JDBCStorage.this.close();

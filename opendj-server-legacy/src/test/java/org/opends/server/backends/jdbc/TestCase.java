@@ -140,6 +140,27 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 
 	protected abstract String getJdbcUrl();
 
+	/**
+	 * The second property bounding a login is a socket read timeout on mysql, oracle and sql
+	 * server: in force for the whole life of the connection it would fail every statement slower
+	 * than it - an import batch, the statistics of a freshly loaded table - so it has to be lifted
+	 * as soon as the login is through (#872).
+	 */
+	@Test
+	public void testLoginBoundDoesNotOutliveTheLogin() throws Exception {
+		final String url = createBackendCfg().getDBDirectory();
+		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, "2");
+		try {
+			// a pooled connection would be handed back without being established again
+			CachedConnection.invalidate(url);
+			try (final Connection con = CachedConnection.getConnection(url)) {
+				assertEquals(con.getNetworkTimeout(), 0, "the read bound of the login is still in force");
+			}
+		} finally {
+			System.clearProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY);
+		}
+	}
+
 	private static ByteString key(int i) {
 		return ByteString.valueOfUtf8(String.format("key%02d", i));
 	}
