@@ -145,6 +145,24 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		return false;
 	}
 
+	/** Drops a table behind the back of the storage that owns it, which no code path of the backend does. */
+	private void dropTableBehindTheBackend(String tableName) throws SQLException {
+		try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+			 final Statement st = con.createStatement()) {
+			st.execute("drop table " + tableName);
+		}
+	}
+
+	/** Clears a backend of a test without letting the failure of the clear replace the failure being reported. */
+	private static void clearQuietly(JDBCStorage storage) {
+		try {
+			storage.removeStorageFiles();
+		} catch (Exception ignored) {
+		} finally {
+			storage.close();
+		}
+	}
+
 	@AfterClass
 	@Override
 	public void cleanUp() throws Exception {
@@ -1375,18 +1393,26 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 
 		// configured and never opened, nothing touched: what BackendImpl.importLDIF holds offline
 		final JDBCStorage offline = new JDBCStorage(createBackendCfg(getBackendId() + "_cleared"), null);
-		assertTrue(offline.listTrees().contains(tree),
-			"the tree of a backend this process never opened has to be named by its catalog");
+		try {
+			assertTrue(offline.listTrees().contains(tree),
+				"the tree of a backend this process never opened has to be named by its catalog");
 
-		offline.removeStorageFiles();
+			offline.removeStorageFiles();
 
-		assertFalse(isExistsTable(offline.getTableName(tree)), "the table of the tree survived the clear");
-		assertFalse(isExistsTable(offline.getTableName(offline.getCatalogTree())), "the catalog survived the clear");
-		assertTrue(offline.listTrees().isEmpty(), "a cleared backend still names trees");
-		// the neighbour is named by a catalog of its own: what one backend clears is never another's
-		assertTrue(isExistsTable(neighbour.getTableName(neighbourTree)),
-			"the clear of one backend dropped the table of another backend of the same database");
-		neighbour.removeStorageFiles();
+			assertFalse(isExistsTable(offline.getTableName(tree)), "the table of the tree survived the clear");
+			assertFalse(isExistsTable(offline.getTableName(offline.getCatalogTree())), "the catalog survived the clear");
+			final Set<TreeName> cleared = offline.listTrees();
+			assertFalse(cleared.contains(tree), "a cleared backend still names its tree");
+			assertFalse(cleared.contains(offline.getCatalogTree()), "a cleared backend still names its catalog");
+			// the neighbour is named by a catalog of its own: what one backend clears is never another's
+			assertTrue(isExistsTable(neighbour.getTableName(neighbourTree)),
+				"the clear of one backend dropped the table of another backend of the same database");
+		} finally {
+			// in a finally of their own: a failed assertion above must not leave the tables of either
+			// backend behind for the rest of the class, which nothing but @BeforeClass ever drops
+			clearQuietly(neighbour);
+			clearQuietly(offline);
+		}
 	}
 
 	/**
@@ -1425,7 +1451,124 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			storage.removeStorageFiles();
 			assertFalse(isExistsTable(storage.getTableName(kept)), "the table of the tree survived the clear");
 		} finally {
-			storage.close();
+			clearQuietly(storage);
+		}
+	}
+
+	/**
+	 * A row of the catalog whose table is not there any more must not fail the clear, and must not
+	 * stop it dropping the rest. Nothing of the backend leaves such a row behind - deleteTree() takes
+	 * it out in the commit that drops the table - but a table dropped by hand, or a catalog restored
+	 * from a backup older than the database, leaves exactly this (#888).
+	 */
+	@Test
+	public void testAClearSkipsACatalogRowWhoseTableIsGone() throws Exception {
+		final TreeName kept = new TreeName("testStaleCatalogRow", "kept");
+		final TreeName vanished = new TreeName("testStaleCatalogRow", "vanished");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_stale"), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(kept, true);
+					txn.openTree(vanished, true);
+				}
+			});
+			dropTableBehindTheBackend(storage.getTableName(vanished));
+			assertTrue(storage.listTrees().contains(vanished),
+				"the catalog was expected to go on naming the tree whose table was dropped behind its back");
+
+			storage.removeStorageFiles();
+
+			assertFalse(isExistsTable(storage.getTableName(kept)),
+				"a row of the catalog whose table is gone stopped the clear dropping the rest");
+			assertFalse(isExistsTable(storage.getTableName(storage.getCatalogTree())), "the catalog survived the clear");
+		} finally {
+			clearQuietly(storage);
+		}
+	}
+
+	/**
+	 * Naming a tree in order to read it must never put it up for removal: the tree read may be held
+	 * by another backend of the same database, which nothing forbids (#873). Only
+	 * openTree(createOnDemand) enrols.
+	 */
+	@Test
+	public void testReadingATreeDoesNotPutItUpForRemoval() throws Exception {
+		final TreeName owned = new TreeName("testReadDoesNotEnrol", "owned");
+		final TreeName foreign = new TreeName("testReadDoesNotEnrolForeign", "tree");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_reader"), null);
+		final JDBCStorage owner = new JDBCStorage(createBackendCfg(getBackendId() + "_owner"), null);
+		try {
+			owner.open(AccessMode.READ_WRITE);
+			owner.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(foreign, true);
+					txn.put(foreign, key(1), value(1));
+				}
+			});
+
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(owned, true); // the catalog of this backend comes into being here
+					txn.openTree(foreign, false); // read, not owned
+				}
+			});
+			assertEquals(storage.read(new ReadOperation<ByteString>() {
+				@Override
+				public ByteString run(ReadableTransaction txn) throws Exception {
+					return txn.read(foreign, key(1));
+				}
+			}), value(1), "the tree of the other backend could not be read");
+
+			assertFalse(storage.listTrees().contains(foreign), "reading a tree enrolled it in the catalog");
+			storage.removeStorageFiles();
+			assertTrue(isExistsTable(owner.getTableName(foreign)),
+				"the clear dropped a tree this backend had only read");
+			assertFalse(isExistsTable(storage.getTableName(owned)), "the table of the backend's own tree survived the clear");
+		} finally {
+			clearQuietly(owner);
+			clearQuietly(storage);
+		}
+	}
+
+	/**
+	 * The compressed schema trees named from a literal carry no backend qualifier, so on a database
+	 * addressed by several backends they are the same pair for all of them: a clear must leave them
+	 * where they lie (#881). A tool asking a backend what trees it holds has to be shown them all the
+	 * same, which is what keeps them out of the catalog and inside listTrees().
+	 */
+	@Test
+	public void testTheSharedCompressedSchemaTreesAreNamedButNeverCleared() throws Exception {
+		final TreeName shared = JDBCStorage.SHARED_COMPRESSED_SCHEMA_TREES.get(0);
+		final TreeName owned = new TreeName("testSharedCompressedSchema", "owned");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_schema"), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(owned, true);
+					// created, never written to: the pair holds the compressed schema of this very
+					// database, and a row of a test in it would be read back as a schema definition
+					txn.openTree(shared, true);
+				}
+			});
+			assertTrue(storage.listTrees().contains(shared),
+				"a tool asking this backend for its trees was not shown the compressed schema tree");
+
+			storage.removeStorageFiles();
+
+			assertTrue(isExistsTable(storage.getTableName(shared)),
+				"the clear dropped a compressed schema tree another backend of this database may be the only owner of");
+			assertFalse(isExistsTable(storage.getTableName(owned)), "the table of the backend's own tree survived the clear");
+		} finally {
+			// the shared pair is left where it lies, exactly as the backend leaves it
+			clearQuietly(storage);
 		}
 	}
 }
