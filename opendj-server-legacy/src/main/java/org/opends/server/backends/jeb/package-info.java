@@ -20,6 +20,7 @@
 /**
  * Contains the code for the Directory Server backend that uses the Berkeley DB
  * Java Edition as the repository for storing entry and index information.
+ * These classes are here just to support upgrade and are deprecated.
  * <BR><BR>
  *
  * <H2>On-disk Representation</H2>
