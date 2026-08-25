@@ -15,32 +15,58 @@
  */
 package org.opends.server.backends.jdbc;
 
+import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.TreeName;
+import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.types.DirectoryException;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.DriverPropertyInfo;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLRecoverableException;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 import static org.forgerock.i18n.LocalizableMessage.raw;
 import static org.forgerock.opendj.ldap.ResultCode.OTHER;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 /**
  * Tests how a failure is classified - as a transaction conflict, or as a connection the database dropped - which
- * is what decides whether {@link JDBCStorage#write} replays the operation, and how long it waits before it does.
+ * is what decides whether {@link JDBCStorage#write} replays the operation, and how long it waits before it does;
+ * and what {@code write()} itself does with that verdict, replay and pool alike.
  * <p>
  * Runs without a database: the failures the drivers report are reproduced as synthetic
- * {@link SQLException}s carrying the same vendor error number and SQLState.
+ * {@link SQLException}s carrying the same vendor error number and SQLState, and the writes that carry them run
+ * against mocked connections handed out by a driver of this test.
  */
 @Test(sequential = true)
 @SuppressWarnings("javadoc")
@@ -51,6 +77,17 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   private static final String MYSQL = "com.mysql.cj.jdbc.ConnectionImpl";
   private static final String ORACLE = "oracle.jdbc.driver.T4CConnection";
   private static final String POSTGRES = "org.postgresql.jdbc.PgConnection";
+
+  /** The tree every write of this test opens; the table name behind it is a hash of this name. */
+  private static final TreeName TREE = new TreeName("dc=example,dc=com", "id2entry");
+
+  private final StubDriver stub = new StubDriver();
+
+  /** Every test gets a pool of its own: the pools and the distrust of a pool are keyed by the url. */
+  private final AtomicInteger pools = new AtomicInteger();
+
+  /** The statement a create of a test runs, so that a test can assert that it ran - or that it did not. */
+  private PreparedStatement statements;
 
   /** A failure whose cause chain is a cycle, to check that walking it terminates. */
   private static final class SelfCausedException extends RuntimeException
@@ -217,6 +254,26 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     assertNull(JDBCStorage.replayReason(sql(596, "S0001"), MSSQL, false, true, true), "a drop was replayed");
   }
 
+  /**
+   * A conflict is replayed on the strength of the engine having rolled the transaction back before it answered,
+   * so it is read from the failure of the operation and not from the release of the connection: a class 40 the
+   * release contributed - Oracle reports a transaction rolled back under it as ORA-02091, SQLState 40000 - would
+   * otherwise re-authorise the replay of a commit whose outcome is unknown, past the guard that exists for it.
+   * A drop is read from the release as well, which is the one place it is often stated at all.
+   */
+  @Test
+  public void testAConflictIsNotReadFromTheReleaseOfTheConnection()
+  {
+    final SQLException onRelease = suppressing(sql(2627, "23000"), sql(0, "40000"));
+    assertFalse(JDBCStorage.isRetryableConflict(onRelease, POSTGRES), "a conflict was read from the release");
+    assertNull(JDBCStorage.replayReason(onRelease, POSTGRES, true, false, false),
+        "a transaction the commit left in doubt was replayed");
+
+    // the same shape carrying a drop instead: read, since the release is where a drop is stated at all
+    assertTrue(JDBCStorage.isConnectionFailure(suppressing(sql(2627, "23000"), sql(0, "08006"))),
+        "a drop was not read from the release");
+  }
+
   /** The connection is asked only where a state does not already say the connection is gone. */
   @Test
   public void testTheConnectionIsAskedWhetherTheDriverClosedIt() throws Exception
@@ -279,19 +336,312 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   public void testConflictSummaryNamesTheStateAndTheNumber()
   {
     final String summary = JDBCStorage.conflictSummary(
-        new DirectoryException(OTHER, raw("unchecked"), new StorageRuntimeException(sql(1205, "40001"))));
+        new DirectoryException(OTHER, raw("unchecked"), new StorageRuntimeException(sql(1205, "40001"))), POSTGRES);
     assertTrue(summary.contains("40001"), summary);
     assertTrue(summary.contains("1205"), summary);
     assertTrue(summary.contains("synthetic failure"), summary);
+  }
+
+  /**
+   * That line is the only record a replay leaves, so it names the failure the replay was decided on. A write whose
+   * operation was rejected and whose release then reported a drop is replayed on the class 08 suppressed into the
+   * rejection, and naming the state of the rejected statement would describe a replay that did not happen.
+   */
+  @Test
+  public void testConflictSummaryNamesTheFailureTheReplayWasDecidedOn()
+  {
+    final String summary = JDBCStorage.conflictSummary(
+        new StorageRuntimeException(suppressing(sql(2627, "23000"), sql(0, "08006"))), POSTGRES);
+    assertTrue(summary.contains("08006"), summary);
+    assertFalse(summary.contains("23000"), summary);
   }
 
   /** A failure carrying no SQLException at all, and a cyclic cause chain, still have to yield something loggable. */
   @Test
   public void testConflictSummaryTerminatesWithoutASQLException()
   {
-    assertTrue(JDBCStorage.conflictSummary(new IllegalStateException("connection closed")).contains("closed"));
-    assertTrue(JDBCStorage.conflictSummary(new SelfCausedException()).contains("SelfCausedException"));
-    assertEquals(JDBCStorage.conflictSummary(null), "null");
+    assertTrue(JDBCStorage.conflictSummary(new IllegalStateException("connection closed"), POSTGRES).contains("closed"));
+    assertTrue(JDBCStorage.conflictSummary(new SelfCausedException(), POSTGRES).contains("SelfCausedException"));
+    assertEquals(JDBCStorage.conflictSummary(null, POSTGRES), "null");
+  }
+
+  /** A statement that carries neither a conflict nor a drop is still the one the summary names. */
+  @Test
+  public void testConflictSummaryFallsBackToTheFirstFailureOfTheChain()
+  {
+    final String summary = JDBCStorage.conflictSummary(new StorageRuntimeException(sql(2627, "23000")), POSTGRES);
+    assertTrue(summary.contains("23000"), summary);
+  }
+
+  /**
+   * Opening a tree that is already there commits nothing, so the attempt stays replayable. The create table is
+   * guarded by a catalog read, and so is the create index on every engine but postgresql, so on an existing
+   * backend {@code openTree(name, true)} issues no statement at all - while
+   * {@code RootContainer.open()} opens every tree of every base DN in a single write whose first act is one of
+   * these. A flag raised on the catalog read alone would leave that write unreplayable for the life of the
+   * backend, the conflict replay of #867 included: {@code replayReason()} reads the flag before anything else.
+   */
+  @Test
+  public void testOpeningAnExistingTreeLeavesTheAttemptReplayable() throws Exception
+  {
+    final JDBCStorage storage = storageOverACatalogHolding(true);
+    final AtomicInteger attempts = new AtomicInteger();
+
+    storage.write(txn -> {
+      txn.openTree(TREE, true);
+      if (attempts.incrementAndGet() == 1)
+      {
+        throw new StorageRuntimeException(sql(0, "40001"));
+      }
+    });
+
+    assertEquals(attempts.get(), 2, "a transaction that committed nothing was not replayed");
+    verify(statements, never()).executeUpdate();
+  }
+
+  /**
+   * A tree that had to be created did commit - the create table commits, and mysql and oracle commit before a DDL
+   * statement of their own accord - so the attempt is out of the replay whatever the failure says: a
+   * {@link WriteOperation} is only idempotent in the database, and {@code RootContainer.open()} replayed after the
+   * trees of the first base DN were created registers that base DN a second time.
+   */
+  @Test
+  public void testCreatingATreeTakesTheAttemptOutOfTheReplay() throws Exception
+  {
+    final JDBCStorage storage = storageOverACatalogHolding(false);
+    final AtomicInteger attempts = new AtomicInteger();
+
+    try
+    {
+      storage.write(txn -> {
+        txn.openTree(TREE, true);
+        attempts.incrementAndGet();
+        throw new StorageRuntimeException(sql(0, "40001"));
+      });
+      fail("a transaction that had committed a create table was replayed");
+    }
+    catch (StorageRuntimeException expected)
+    {
+      assertTrue(JDBCStorage.isRetryableConflict(expected, POSTGRES), "the conflict was not the failure raised");
+    }
+    assertEquals(attempts.get(), 1, "a transaction that committed part of its work was replayed");
+    verify(statements).executeUpdate();
+  }
+
+  /**
+   * The rollback that unwinds a failed attempt is often the first place a drop is stated outright, and on a
+   * driver that reports a killed session as a plain vendor error it is the only one. It is joined to the failure
+   * being unwound rather than dropped on the floor, so that the classifiers below read it: without it the attempt
+   * would lean on the driver having flipped its closed flag already, and a driver that has not gives neither the
+   * replay nor the distrust.
+   */
+  @Test
+  public void testTheRollbackOfAFailedAttemptIsNotSwallowed() throws Exception
+  {
+    final long window = CachedConnection.aliveBypassNanos;
+    CachedConnection.aliveBypassNanos = TimeUnit.HOURS.toNanos(1);
+    try
+    {
+      final Connection pooled = mock(Connection.class);
+      when(pooled.isValid(anyInt())).thenReturn(true);
+      final Connection dropped = mock(Connection.class);
+      when(dropped.isValid(anyInt())).thenReturn(true);
+      when(dropped.isClosed()).thenReturn(false); // the driver has not flipped its flag yet
+
+      final JDBCStorage storage = storageOver(pooled, dropped);
+      final Connection first = storage.getConnection();
+      final Connection second = storage.getConnection();
+      first.close();
+      second.close();
+      // proven alive by the connect itself, and inside the window ever since: nothing has validated
+      verify(dropped, never()).isValid(anyInt());
+
+      // only the rollback that unwinds the attempt says the connection is gone: the release behind it
+      // goes through, so the dropped connection is back at the head of the pool - where the replay
+      // borrows it again - with nothing else to report what it saw
+      doThrow(new SQLException("connection reset", "08006")).doNothing().when(dropped).rollback();
+
+      final AtomicInteger attempts = new AtomicInteger();
+      storage.write(txn -> {
+        if (attempts.incrementAndGet() == 1)
+        {
+          throw new StorageRuntimeException(sql(596, "S0001")); // a killed session, as mssql-jdbc reports it
+        }
+      });
+
+      assertEquals(attempts.get(), 2, "the drop the rollback reported was not replayed");
+      // the distrust reached the pool: the borrow of the replay validated instead of trusting the
+      // last answer of a connection that predates the drop
+      verify(dropped, times(1)).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
+    }
+    finally
+    {
+      CachedConnection.aliveBypassNanos = window;
+    }
+  }
+
+  /**
+   * A drop the release of the connection reported reaches the pool as well as the replay. It is suppressed into
+   * the failure of the operation (JLS 14.20.3.1) rather than replacing it, so the attempt sees it only on the
+   * chains of that failure - and the pool has no other way of hearing of it: the rest of that generation would
+   * otherwise be handed out unvalidated one by one until the pool runs out of it.
+   */
+  @Test
+  public void testADropReportedByTheReleaseReachesThePool() throws Exception
+  {
+    final long window = CachedConnection.aliveBypassNanos;
+    CachedConnection.aliveBypassNanos = TimeUnit.HOURS.toNanos(1);
+    try
+    {
+      final Connection pooled = mock(Connection.class);
+      when(pooled.isValid(anyInt())).thenReturn(true);
+      final Connection released = mock(Connection.class);
+      when(released.isValid(anyInt())).thenReturn(true);
+
+      final JDBCStorage storage = storageOver(pooled, released);
+      // both are proven alive and back in the pool; the one released last is the one the write borrows
+      final Connection first = storage.getConnection();
+      final Connection second = storage.getConnection();
+      first.close();
+      second.close();
+
+      // from here the database has dropped the connection at the head of the pool: the operation is
+      // rejected for its own reasons, and the release that follows it is where the drop surfaces
+      doThrow(new SQLException("connection reset", "08006")).when(released).rollback();
+
+      final AtomicInteger attempts = new AtomicInteger();
+      storage.write(txn -> {
+        if (attempts.incrementAndGet() == 1)
+        {
+          throw new StorageRuntimeException(sql(2627, "23000"));
+        }
+      });
+
+      assertEquals(attempts.get(), 2, "the drop suppressed into the failure was not replayed");
+      verify(pooled).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
+    }
+    finally
+    {
+      CachedConnection.aliveBypassNanos = window;
+    }
+  }
+
+  @BeforeClass
+  public void registerStubDriver() throws Exception
+  {
+    DriverManager.registerDriver(stub);
+  }
+
+  @AfterClass
+  public void deregisterStubDriver() throws Exception
+  {
+    DriverManager.deregisterDriver(stub);
+  }
+
+  /**
+   * A storage whose pool hands out one connection of this test, over a catalog that either holds the table of
+   * {@link #TREE} or does not. The connection is a mock of no recognized driver, which is how the engines that
+   * guard their create index - and mssql, which has none - reach {@code openTree}.
+   */
+  private JDBCStorage storageOverACatalogHolding(boolean theTable) throws Exception
+  {
+    final Connection con = mock(Connection.class);
+    final JDBCStorage storage = storageOver(con);
+
+    statements = mock(PreparedStatement.class);
+    final String tableName = storage.getTableName(TREE);
+    final DatabaseMetaData metaData = mock(DatabaseMetaData.class);
+    // a result set of its own per call: the catalog is asked once per attempt, and a replayed attempt
+    // reading a result set the previous one had already walked to its end would find no table there
+    when(metaData.getTables(any(), any(), any(), any())).thenAnswer(invocation -> {
+      final ResultSet tables = mock(ResultSet.class);
+      when(tables.next()).thenReturn(theTable, false);
+      when(tables.getString("TABLE_NAME")).thenReturn(tableName);
+      return tables;
+    });
+
+    when(con.isValid(anyInt())).thenReturn(true);
+    when(con.getMetaData()).thenReturn(metaData);
+    when(con.prepareStatement(anyString())).thenReturn(statements);
+    return storage;
+  }
+
+  /**
+   * A storage of a pool of its own, which connects to the given connections in turn and answers every connect
+   * beyond them with the last. Every test gets a url of its own: both the pools and the distrust of a pool are
+   * keyed by the connection string, so a shared one would carry the state of one test into the next.
+   */
+  private JDBCStorage storageOver(Connection... connections) throws Exception
+  {
+    final JDBCBackendCfg cfg = mock(JDBCBackendCfg.class);
+    when(cfg.getDBDirectory()).thenReturn(StubDriver.PREFIX + pools.incrementAndGet());
+    final JDBCStorage storage = new JDBCStorage(cfg, null);
+    storage.accessMode = AccessMode.READ_WRITE;
+    stub.answerWith(connections);
+    return storage;
+  }
+
+  /** A driver of this test, so that the pool the write borrows from needs no database behind it. */
+  private static final class StubDriver implements Driver
+  {
+    static final String PREFIX = "jdbc:opendj-retry-stub:";
+
+    private volatile Connection[] answers = new Connection[0];
+    private final AtomicInteger connects = new AtomicInteger();
+
+    void answerWith(Connection... answers)
+    {
+      this.answers = answers;
+      this.connects.set(0);
+    }
+
+    @Override
+    public Connection connect(String url, Properties info)
+    {
+      if (!acceptsURL(url) || answers.length == 0)
+      {
+        return null;
+      }
+      // the last one answers every connect beyond the ones named, so a pool that opens more than the
+      // test set up gets a working connection rather than a null the driver contract reads as "not mine"
+      return answers[Math.min(connects.getAndIncrement(), answers.length - 1)];
+    }
+
+    @Override
+    public boolean acceptsURL(String url)
+    {
+      return url != null && url.startsWith(PREFIX);
+    }
+
+    @Override
+    public DriverPropertyInfo[] getPropertyInfo(String url, Properties info)
+    {
+      return new DriverPropertyInfo[0];
+    }
+
+    @Override
+    public int getMajorVersion()
+    {
+      return 1;
+    }
+
+    @Override
+    public int getMinorVersion()
+    {
+      return 0;
+    }
+
+    @Override
+    public boolean jdbcCompliant()
+    {
+      return false;
+    }
+
+    @Override
+    public Logger getParentLogger()
+    {
+      return Logger.getLogger(StubDriver.class.getName());
+    }
   }
 
   private static SQLException sql(int errorCode, String sqlState)

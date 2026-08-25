@@ -43,6 +43,17 @@ import java.util.regex.Pattern;
 public class CachedConnection implements Connection {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+    // What has been reported once already. Every one of these reports a setting rather than an
+    // event - a property that is not a number, a url no bound of this class can reach, a driver
+    // whose property names are not known here - so it does not become truer by being repeated,
+    // and every operation of the backend comes through here.
+    // Declared above every field whose initializer can reach warnOnce(): class variable
+    // initializers run in textual order (JLS 12.4.2), so a set declared below aliveBypassNanos
+    // would still be null the moment a property this class reports on carries a value worth
+    // warning about - a window longer than the ttl, or one that is not a number - and the report
+    // would leave the class uninitializable rather than merely configured oddly.
+    static final Set<String> warnedOnce = ConcurrentHashMap.newKeySet();
+
     static final String TTL_PROPERTY = "org.openidentityplatform.opendj.jdbc.ttl";
     static final long DEFAULT_TTL_MS = 15000;
 
@@ -133,12 +144,6 @@ public class CachedConnection implements Connection {
     private static final Map<String, AtomicLong> lastStallWarning = new ConcurrentHashMap<>();
     private static final AtomicLong lastReadBoundWarning = new AtomicLong();
 
-    // What has been reported once already. Every one of these reports a setting rather than an
-    // event - a property that is not a number, a url no bound of this class can reach, a driver
-    // whose property names are not known here - so it does not become truer by being repeated,
-    // and every operation of the backend comes through here.
-    static final Set<String> warnedOnce = ConcurrentHashMap.newKeySet();
-
     /**
      * When an operation last reported that the database had dropped a connection of a pool, as a
      * {@link System#nanoTime()} reading per connection string. A connection proven alive before
@@ -191,8 +196,12 @@ public class CachedConnection implements Connection {
      * Returns the alive window, clamped to the {@value #TTL_PROPERTY} an idle pooled connection is
      * kept for. Both of the timeouts this property sits next to are clamped as well: a value the
      * unit conversion saturates on would leave every connection of the pool trusted for the life
-     * of the server, and one merely longer than the pool holds a connection leaves a connection in
-     * constant use - the one the window exists for - validated not once per window but never.
+     * of the server, and one longer than the pool keeps a connection is a window the pool cannot
+     * back - it goes on trusting the last answer of a connection past the point the pool would
+     * have closed and replaced it, which is a claim about a connection that is no longer there.
+     * <p>
+     * Read at class initialization, like the ttl it is clamped to, so a value set after that
+     * changes neither.
      */
     static long getAliveBypassMillis() {
         final long configured = getNonNegativeProperty(ALIVE_BYPASS_PROPERTY, DEFAULT_ALIVE_BYPASS_MS, "ms");
@@ -201,7 +210,7 @@ public class CachedConnection implements Connection {
             warnOnce(ALIVE_BYPASS_PROPERTY + "=" + configured + ">" + ttl,
                 "The %s window of %d ms is longer than the %d ms of %s a pooled connection is kept for,"
                     + " and is used as %d ms: a connection trusted for longer than the pool keeps it would"
-                    + " never be validated at all",
+                    + " be trusted past the point the pool closed it",
                 ALIVE_BYPASS_PROPERTY, configured, ttl, TTL_PROPERTY, ttl);
             return ttl;
         }
@@ -812,11 +821,14 @@ public class CachedConnection implements Connection {
      * inside the window asks the database nothing.
      */
     static void distrustPool(String connectionString) {
-        // merge(max) rather than computeIfAbsent().set(): two operations reporting a drop at once
-        // would otherwise move the distrust point backwards - the later reading is written first
-        // and the earlier one overwrites it - and the AtomicLong of computeIfAbsent is published
-        // holding its initial 0 before set() runs, which a borrow racing it reads as "never".
-        poolDistrustedAt.merge(connectionString, System.nanoTime(), Math::max);
+        // merge(later of the two) rather than computeIfAbsent().set(): two operations reporting a
+        // drop at once would otherwise move the distrust point backwards - the later reading is
+        // written first and the earlier one overwrites it - and the AtomicLong of computeIfAbsent
+        // is published holding its initial 0 before set() runs, which a borrow racing it reads as
+        // "never". Not Math.max: nanoTime() has no defined origin, so the readings are compared by
+        // their difference, the way every other comparison of one in this class is.
+        poolDistrustedAt.merge(connectionString, System.nanoTime(),
+            (reported, now) -> now - reported > 0 ? now : reported);
     }
 
     /**

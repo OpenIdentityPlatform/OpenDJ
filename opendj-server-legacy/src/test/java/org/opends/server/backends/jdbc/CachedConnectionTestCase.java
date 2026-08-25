@@ -20,8 +20,13 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.sql.Connection;
@@ -1581,10 +1586,13 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
-	 * The window is clamped to the idle time the pool keeps a connection for. A value the unit
+	 * The window is clamped to the idle time the pool keeps a connection for: a value the unit
 	 * conversion saturates on would leave every connection of the pool trusted for the life of the
-	 * server, and one merely longer than the pool holds a connection leaves the connection in
-	 * constant use - the one the window exists for - validated not once per window but never.
+	 * server, and one longer than the pool holds a connection is a window the pool can never back -
+	 * the connection it was meant for is gone before it closes.
+	 * <p>
+	 * About the value the class settles on at initialization: the field the pool reads is assigned
+	 * once, so a ttl set after that changes neither it nor the idle time it was clamped to.
 	 */
 	@Test(timeOut = 120000)
 	public void testTheWindowIsClampedToTheIdleTimeOfThePool() {
@@ -1597,6 +1605,91 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 		System.setProperty(CachedConnection.TTL_PROPERTY, "100");
 		assertEquals(CachedConnection.getAliveBypassMillis(), 100L, "the clamp is the configured ttl, not the default");
+	}
+
+	/**
+	 * A setting worth warning about must leave the class usable. Both properties are read by the
+	 * initializer of {@code aliveBypassNanos}, and both report an unusable value through the set of
+	 * what has been said once already - which, declared below that initializer, would still be null
+	 * when the initializer reaches it (JLS 12.4.2). A window longer than the ttl is exactly the
+	 * tuning the javadoc of the property invites, and it would turn a log line into an
+	 * ExceptionInInitializerError on the first borrow and a causeless NoClassDefFoundError on every
+	 * one after it: no connection can be borrowed, so the backend cannot open at all.
+	 * <p>
+	 * Asserted on the class loaded afresh rather than on this one, which was initialized long
+	 * before the property was set.
+	 */
+	@Test(timeOut = 120000, dataProvider = "settingsWorthWarningAbout")
+	public void testASettingWorthWarningAboutStillInitializesTheClass(String ttl, String window, long expectedMillis)
+			throws Exception {
+		System.setProperty(CachedConnection.TTL_PROPERTY, ttl);
+		System.setProperty(CachedConnection.ALIVE_BYPASS_PROPERTY, window);
+
+		final Class<?> reloaded = loadedAfresh(CachedConnection.class);
+
+		assertNotSame(reloaded, CachedConnection.class, "the class under test was not loaded afresh");
+		final Field field = reloaded.getDeclaredField("aliveBypassNanos");
+		field.setAccessible(true);
+		assertEquals(field.getLong(null), TimeUnit.MILLISECONDS.toNanos(expectedMillis),
+			"the window the reloaded class settled on");
+	}
+
+	@DataProvider
+	public Object[][] settingsWorthWarningAbout() {
+		return new Object[][]{
+			// a window longer than the ttl: reported once and used as the ttl
+			{"15000", "60000", 15000L},
+			// not a number, and negative: reported once and ignored in favour of the default
+			{"15000", "half a second", CachedConnection.DEFAULT_ALIVE_BYPASS_MS},
+			{"15000", "-1", CachedConnection.DEFAULT_ALIVE_BYPASS_MS},
+			// the ttl is read by the same initializer, and reports its own value the same way
+			{"30s", "500", 500L}
+		};
+	}
+
+	/**
+	 * The class again, defined by a loader of this test rather than taken from the one that has
+	 * already initialized it: a static initializer runs once per loader, and this is about what it
+	 * does. Every other class is delegated to the parent, so the reloaded one shares the types it
+	 * is written against.
+	 */
+	private static Class<?> loadedAfresh(Class<?> type) throws Exception {
+		final String name = type.getName();
+		final ClassLoader parent = type.getClassLoader();
+		final ClassLoader loader = new ClassLoader(parent) {
+			@Override
+			protected Class<?> loadClass(String candidate, boolean resolve) throws ClassNotFoundException {
+				if (!name.equals(candidate)) {
+					return super.loadClass(candidate, resolve);
+				}
+				Class<?> defined = findLoadedClass(candidate);
+				if (defined == null) {
+					final byte[] bytecode = bytecodeOf(candidate, parent);
+					defined = defineClass(candidate, bytecode, 0, bytecode.length);
+				}
+				if (resolve) {
+					resolveClass(defined);
+				}
+				return defined;
+			}
+		};
+		return Class.forName(name, true, loader);
+	}
+
+	private static byte[] bytecodeOf(String name, ClassLoader from) throws ClassNotFoundException {
+		try (final InputStream in = from.getResourceAsStream(name.replace('.', '/') + ".class")) {
+			if (in == null) {
+				throw new ClassNotFoundException(name);
+			}
+			final ByteArrayOutputStream bytecode = new ByteArrayOutputStream();
+			final byte[] chunk = new byte[8192];
+			for (int read; (read = in.read(chunk)) >= 0; ) {
+				bytecode.write(chunk, 0, read);
+			}
+			return bytecode.toByteArray();
+		} catch (IOException e) {
+			throw new ClassNotFoundException(name, e);
+		}
 	}
 
 	private static SQLException tooManyConnections() {
