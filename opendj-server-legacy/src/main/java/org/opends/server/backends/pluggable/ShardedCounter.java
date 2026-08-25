@@ -73,12 +73,13 @@ final class ShardedCounter extends AbstractTree
     super(name);
   }
 
-  SequentialCursor<ByteString, Void> openCursor(ReadableTransaction txn)
-  {
-    return uniqueKeys(txn.openCursor(getName()));
-  }
-
-  /** @see ReadableTransaction#openBulkCursor(TreeName) */
+  /**
+   * The only cursor over this counter: {@code verify-index} walks the tree whole and no client
+   * operation opens one at all, so a walk of it cannot be given the bound of an operation by
+   * accident - there is no longer an overload of this method that would.
+   *
+   * @see ReadableTransaction#openBulkCursor(TreeName)
+   */
   SequentialCursor<ByteString, Void> openBulkCursor(ReadableTransaction txn)
   {
     return uniqueKeys(txn.openBulkCursor(getName()));

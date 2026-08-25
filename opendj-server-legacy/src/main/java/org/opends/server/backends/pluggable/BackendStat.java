@@ -1118,6 +1118,7 @@ public class BackendStat
           long undefined = 0;
           long count = 0;
           BackendTreeKeyValue keyDecoder = new BackendTreeKeyValue(index);
+          // dbtest walks the index whole, on the command line of an operator: bulk work either way
           try (Cursor<ByteString, EntryIDSet> cursor = index.openBulkCursor(txn))
           {
             while (cursor.next())

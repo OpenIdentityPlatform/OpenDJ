@@ -41,6 +41,12 @@ interface Index extends Tree
   /**
    * Opens a cursor over the whole index for a task no client operation is waiting on, such as
    * {@code verify-index} or {@code dbtest}.
+   * <p>
+   * Abstract rather than a {@code default} answering as {@link #openCursor(ReadableTransaction)}
+   * does, which is the compatibility the SPI needs for engines outside this repository: this
+   * interface is package-private with one implementor, and a second one inheriting that default
+   * would silently walk a whole index under the bound of a client operation. A compile error is
+   * the better answer here.
    *
    * @param txn
    *          the transaction to read the index with

@@ -259,9 +259,6 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		return false;
 	}
 
-	/** How far under its bound a statement may report the cancel, the timer of a driver being coarse. */
-	private static final long CLOCK_SLACK_MILLIS = 250;
-
 	/**
 	 * Runs the given operation while another session holds every row of the tree in an uncommitted
 	 * transaction, with only the property of the given class bounding it: the operation must give
@@ -288,44 +285,55 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				try (final Statement lock = blocker.createStatement()) {
 					lock.executeUpdate("delete from " + storage.getTableName(tree));
 				}
-				// only the class under test is bounded, so a pass through the other one cannot
-				// be mistaken for the bound working
-				for (final JDBCStorage.StatementBound each : JDBCStorage.StatementBound.values()) {
-					System.setProperty(each.property, each == bound ? Integer.toString(boundSeconds) : "0");
-				}
-				// the monotonic clock, which is what timedOut() measures the bound with: a step of
-				// the wall clock can neither lengthen nor shorten what the assertions below allow
-				final long startedAt = System.nanoTime();
-				Exception failure = null;
+				// the rows go back whatever the assertions below do with the run: the cleanup of
+				// this method drops the table, which is a bulk statement and unbounded here, so a
+				// lock still held would park it until the timeout of the harness and turn one
+				// failed assertion into a stalled build
 				try {
-					blocked.run(storage, tree);
-					fail("the operation must give up while the rows it needs are locked");
-				} catch (Exception expected) {
-					failure = expected; // the bound was reached and the transaction rolled back
+					// only the class under test is bounded, so a pass through the other one cannot
+					// be mistaken for the bound working
+					for (final JDBCStorage.StatementBound each : JDBCStorage.StatementBound.values()) {
+						System.setProperty(each.property, each == bound ? Integer.toString(boundSeconds) : "0");
+					}
+					// the monotonic clock, which is what timedOut() measures the bound with: a step of
+					// the wall clock can neither lengthen nor shorten what the assertions below allow
+					final long startedAt = System.nanoTime();
+					Exception failure = null;
+					try {
+						blocked.run(storage, tree);
+						fail("the operation must give up while the rows it needs are locked");
+					} catch (Exception expected) {
+						failure = expected; // the bound was reached and the transaction rolled back
+					}
+					final long elapsed = (System.nanoTime() - startedAt) / 1000000L;
+					// The failure has to be the one the bound produces, not any failure at all: an
+					// operation that fell over at once for an unrelated reason would otherwise pass
+					// this test at t=0. timedOut() names the property in the message of everything it
+					// classifies as reaching the bound.
+					assertTrue(namesTheBound(failure, bound), "gave up with " + stackTraceToSingleLineString(failure)
+						+ ", which does not name " + bound.property);
+					// And it has to arrive at the bound rather than at something else that happens to
+					// end the wait inside a generous ceiling: with the bound deleted, mysql would still
+					// come back after its own innodb_lock_wait_timeout of 50 s, and the assertion has
+					// to fail then. The ceiling is what the bound really allows a statement, which is
+					// the second layer rather than the property: holdBackstop() arms the socket read
+					// timeout at the bound plus its margin on every engine, not only on oracle, and a
+					// run where the cancel of the driver does not land ends there. Scoring that as a
+					// failure would fail this suite for the second layer doing exactly what it exists
+					// to do - and on oracle, where a session in a row-lock enqueue never acts on the
+					// break its driver sends, that is not an edge case but the normal path.
+					final long ceilingSeconds = boundSeconds + JDBCStorage.BACKSTOP_MARGIN_SECONDS + 10;
+					// with a little slack under the bound: a driver keeps its timer in whole seconds and
+					// may report the cancel a few milliseconds before the bound is arithmetically due,
+					// which is the slack timedOut() classifies such a statement with
+					assertTrue(elapsed >= boundSeconds * 1000L - JDBCStorage.CLOCK_SLACK_MILLIS,
+						"gave up after " + elapsed + " ms, before its bound of "
+						+ boundSeconds + " s: something other than the bound ended the wait");
+					assertTrue(elapsed < ceilingSeconds * 1000L, "gave up only after " + elapsed + " ms, past the "
+						+ ceilingSeconds + " s this bound of " + boundSeconds + " s allows");
+				}finally {
+					blocker.rollback();
 				}
-				final long elapsed = (System.nanoTime() - startedAt) / 1000000L;
-				// The failure has to be the one the bound produces, not any failure at all: an
-				// operation that fell over at once for an unrelated reason would otherwise pass
-				// this test at t=0. timedOut() names the property in the message of everything it
-				// classifies as reaching the bound.
-				assertTrue(namesTheBound(failure, bound), "gave up with " + stackTraceToSingleLineString(failure)
-					+ ", which does not name " + bound.property);
-				// And it has to arrive at the bound rather than at something else that happens to
-				// end the wait inside a generous ceiling: with the bound deleted, mysql would still
-				// come back after its own innodb_lock_wait_timeout of 50 s, and the assertion has
-				// to fail then. Oracle is given the second layer as well - a session blocked in a
-				// row-lock enqueue does not act on the break its driver sends, so the wait there
-				// ends at the socket read timeout, which is the bound plus its margin.
-				final long ceilingSeconds = getJdbcUrl().startsWith("jdbc:oracle")
-					? boundSeconds + JDBCStorage.BACKSTOP_MARGIN_SECONDS + 10 : boundSeconds * 4L;
-				// with a little slack under the bound: a driver keeps its timer in whole seconds and
-				// may report the cancel a few milliseconds before the bound is arithmetically due
-				assertTrue(elapsed >= boundSeconds * 1000L - CLOCK_SLACK_MILLIS,
-					"gave up after " + elapsed + " ms, before its bound of "
-					+ boundSeconds + " s: something other than the bound ended the wait");
-				assertTrue(elapsed < ceilingSeconds * 1000L, "gave up only after " + elapsed + " ms, past the "
-					+ ceilingSeconds + " s this bound of " + boundSeconds + " s allows");
-				blocker.rollback();
 			}
 		} finally {
 			for (final JDBCStorage.StatementBound each : JDBCStorage.StatementBound.values()) {

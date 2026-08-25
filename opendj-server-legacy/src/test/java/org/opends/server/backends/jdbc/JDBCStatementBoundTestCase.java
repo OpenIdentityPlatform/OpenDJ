@@ -38,12 +38,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.util.Collections.singletonList;
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.inOrder;
@@ -64,9 +67,11 @@ import static org.testng.Assert.fail;
  * build runs, while the container suites cover a statement really blocked on a lock.
  */
 @SuppressWarnings("javadoc")
-// timeOut on the class, not on the waits inside a test: a statement of another thread that never
-// arrives has to fail this suite rather than hang the build waiting for it.
-@Test(groups = { "precommit", "jdbc" }, sequential = true, timeOut = 120000)
+// Every wait of this suite is bounded where it is taken - awaitOrFail() and Background.joinOrFail()
+// - rather than by a timeOut on this annotation: a method carrying a @Test of its own replaces the
+// one of the class outright, only the groups of the two being merged, so a timeOut declared here
+// would bound nothing. A statement of another thread that never arrives fails this suite there.
+@Test(groups = { "precommit", "jdbc" }, sequential = true)
 public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 
 	private JDBCStorage storage;
@@ -448,6 +453,62 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * A driver reporting the cancel a few milliseconds before the bound is arithmetically due -
+	 * its timer is kept in whole seconds, while this classification is measured to the millisecond
+	 * - is still the bound arriving, and the failure has to name the property all the same.
+	 * Without the slack under it, the one failure this classification exists to name reached the
+	 * caller as a bare 57014 or ORA-01013, which no caller can tell from a cancel of an operator.
+	 */
+	@Test
+	public void testAFailureJustUnderTheBoundStillNamesTheProperty() throws Exception {
+		System.setProperty(StatementBound.OPERATION.property, "1");
+		final PreparedStatement statement = mock(PreparedStatement.class);
+		when(statement.executeUpdate()).thenAnswer(new Answer<Integer>() {
+			@Override
+			public Integer answer(InvocationOnMock invocation) throws Throwable {
+				Thread.sleep(1000 - JDBCStorage.CLOCK_SLACK_MILLIS / 2); // inside the slack, under the bound
+				throw new SQLException("canceling statement due to user request", "57014", 0);
+			}
+		});
+
+		try {
+			storage.execute(statement);
+			fail("the failure of the statement must reach the caller");
+		} catch (SQLTimeoutException e) {
+			assertTrue(e.getMessage().contains(StatementBound.OPERATION.property), e.getMessage());
+		}
+	}
+
+	/**
+	 * The failure reports the time the statement really took rather than the bound it reached.
+	 * A cancel that is armed is not a cancel that is acted upon - a session blocked in a row-lock
+	 * enqueue on oracle does not process the break its driver sends - and the wait then ends at
+	 * the socket read timeout behind it, a margin later than the property that armed it. Reported
+	 * as the property alone, the message put a time next to a clock that disagreed with it.
+	 */
+	@Test
+	public void testAFailureAtTheBoundReportsTheTimeItReallyTook() throws Exception {
+		System.setProperty(StatementBound.OPERATION.property, "1");
+		final PreparedStatement statement = mock(PreparedStatement.class);
+		when(statement.executeUpdate()).thenAnswer(new Answer<Integer>() {
+			@Override
+			public Integer answer(InvocationOnMock invocation) throws Throwable {
+				Thread.sleep(1500); // the cancel was armed at 1 s and the database did not act on it
+				throw new SQLException("connection reset by peer", "08006", 0);
+			}
+		});
+
+		try {
+			storage.execute(statement);
+			fail("the failure of the statement must reach the caller");
+		} catch (SQLTimeoutException e) {
+			final Matcher took = Pattern.compile("took (\\d+) ms").matcher(e.getMessage());
+			assertTrue(took.find(), e.getMessage());
+			assertTrue(Long.parseLong(took.group(1)) >= 1500, e.getMessage());
+		}
+	}
+
+	/**
 	 * The rows are read while the bound is still armed. A driver hands them over as they are asked
 	 * for - oracle prefetches ten at a time, mssql buffers adaptively - so a drain that happened
 	 * after the bound was released would be a wait with nothing bounding it, which is the hang
@@ -602,20 +663,41 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 	public void testEveryStatementOfAnImportIsBulk() throws Exception {
 		System.setProperty(StatementBound.OPERATION.property, "7");
 		System.setProperty(StatementBound.BULK.property, "0");
-		final PreparedStatement statement = mock(PreparedStatement.class);
-		when(statement.executeQuery()).thenReturn(mock(ResultSet.class));
 		final Connection parent = mock(Connection.class);
+		when(parent.getNetworkTimeout()).thenReturn(0); // no bound of its own
+		final PreparedStatement statement = mock(PreparedStatement.class);
+		// the statement reports the connection it runs on, as CachedConnection.prepareStatement()
+		// has it: without this the import would be measured against the first layer alone, and the
+		// second one - the layer that decides whether an import can hang on a peer that stopped
+		// answering - would never be entered at all
+		when(statement.getConnection()).thenReturn(parent);
+		when(statement.executeQuery()).thenReturn(mock(ResultSet.class));
 		when(parent.prepareStatement(anyString())).thenReturn(statement);
 		storage.accessMode = AccessMode.READ_WRITE; // an import has the storage open for writing
 		final JDBCStorage.ImporterImpl importer =
 			storage.new ImporterImpl(new CachedConnection("jdbc:mock", parent), true);
 		final TreeName tree = new TreeName("dc=example,dc=com", "id2entry");
 
+		// an entry read of a client arms the backstop on the very connection the import writes to,
+		// which is the shape of an online import: one connection, statements of both classes on it
+		final CountDownLatch running = new CountDownLatch(1);
+		final CountDownLatch mayFinish = new CountDownLatch(1);
+		final PreparedStatement operation = lingering(parent, running, mayFinish);
+		final Background entryRead = start("entry-read", () -> storage.execute(operation));
+		awaitOrFail(running, "the entry read never started");
+		verify(parent).setNetworkTimeout(any(Executor.class), eq((7 + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000));
+
 		importer.openCursor(tree).next();
 		importer.read(tree, ByteString.valueOfUtf8("key"));
 		importer.put(tree, ByteString.valueOfUtf8("key"), ByteString.valueOfUtf8("value"));
 
 		verify(statement, never()).setQueryTimeout(anyInt());
+		// and none of them runs under the socket read timeout of the entry read beside it either:
+		// while that read is still in flight, the import takes the backstop off the connection
+		verify(parent, atLeastOnce()).setNetworkTimeout(any(Executor.class), eq(0));
+
+		mayFinish.countDown();
+		entryRead.joinOrFail();
 	}
 
 	/**

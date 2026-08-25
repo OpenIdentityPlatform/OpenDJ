@@ -57,13 +57,13 @@ final class ID2ChildrenCount extends AbstractTree
     this.counter = new ShardedCounter(name);
   }
 
-  SequentialCursor<EntryID, Void> openCursor(ReadableTransaction txn)
-  {
-    return transformKeysAndValues(counter.openCursor(txn),
-        TO_ENTRY_ID, CursorTransformer.<ByteString, Void> keepValuesUnchanged());
-  }
-
-  /** @see ReadableTransaction#openBulkCursor(TreeName) */
+  /**
+   * The only cursor over the children counts: {@code verify-index} walks the tree whole and no client
+   * operation opens one at all, so a walk of it cannot be given the bound of an operation by
+   * accident - there is no longer an overload of this method that would.
+   *
+   * @see ReadableTransaction#openBulkCursor(TreeName)
+   */
   SequentialCursor<EntryID, Void> openBulkCursor(ReadableTransaction txn)
   {
     return transformKeysAndValues(counter.openBulkCursor(txn),

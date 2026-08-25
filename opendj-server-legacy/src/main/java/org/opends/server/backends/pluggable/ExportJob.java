@@ -169,7 +169,10 @@ class ExportJob
    * @throws  LDIFException  If an error occurs while trying to determine
    *                         whether to write an entry.
    */
-  private void exportContainer(ReadableTransaction txn, EntryContainer entryContainer)
+  // Visible to the test that pins the class of the cursor opened here: a walk of the whole of
+  // id2entry with nobody waiting on it, which a storage engine that bounds a statement must not
+  // bound as it bounds an operation (#877).
+  void exportContainer(ReadableTransaction txn, EntryContainer entryContainer)
        throws StorageRuntimeException, IOException, LDIFException
   {
     ID2Entry id2entry = entryContainer.getID2Entry();

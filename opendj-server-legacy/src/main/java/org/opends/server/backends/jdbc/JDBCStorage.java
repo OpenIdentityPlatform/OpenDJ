@@ -130,11 +130,16 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		OPERATION("org.openidentityplatform.opendj.jdbc.query.timeout", 120),
 		/**
 		 * a whole table at once: count(*), the delete of clearTree, the scan behind the highest
-		 * entry id, create index, drop table. This class ships <em>unbounded</em>: what such a
-		 * statement legitimately takes follows the size of the backend and the speed of its
-		 * database, neither of which can be guessed here, so the deployment that knows both sets
-		 * the property - until it does, a create index waiting for a metadata lock still waits for
-		 * as long as the engine lets it.
+		 * entry id, create index, drop table, and every batch of a cursor walking a tree whole.
+		 * This class ships <em>unbounded</em>: what such a statement legitimately takes follows the
+		 * size of the backend and the speed of its database, neither of which can be guessed here,
+		 * so the deployment that knows both sets the property - until it does, a create index
+		 * waiting for a metadata lock still waits for as long as the engine lets it, and so do the
+		 * walks a backend makes while it opens (the load of the compressed schema, the read that
+		 * checks id2entry is there) and the export behind the generation ID of a replicated domain.
+		 * That is what this backend did before any of these bounds existed; bounding them as the
+		 * work of a client operation, which is the only other value there was to give them, stopped
+		 * a large backend from opening at all.
 		 */
 		BULK("org.openidentityplatform.opendj.jdbc.bulk.timeout", 0);
 
@@ -204,9 +209,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	/**
-	 * Runs a statement under the bound of its class. A statement of this backend has to end: a row
-	 * locked by an unrelated session, a table waiting for a metadata lock or a database that stops
-	 * answering mid-query would otherwise park the worker thread that issued it for good.
+	 * Runs a statement under the bound of its class. A statement of a class that carries one has to
+	 * end: a row locked by an unrelated session, a table waiting for a metadata lock or a database
+	 * that stops answering mid-query would otherwise park the worker thread that issued it for
+	 * good. A class configured with no bound - which {@link StatementBound#BULK} ships as - takes
+	 * neither of the two layers below and waits as this backend waited before they existed.
 	 * <p>
 	 * The bound is asked of the driver rather than of the session, because a pooled connection
 	 * cannot carry a session setting - {@code CachedConnection.close()} only rolls back, so a
@@ -289,6 +296,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 	/** How long the socket read timeout outlasts the cancel it backs up, giving it room to arrive. */
 	static final int BACKSTOP_MARGIN_SECONDS = 30;
+
+	/** How far under its bound a driver may report the cancel, its timer being kept in whole seconds. */
+	static final long CLOCK_SLACK_MILLIS = 250;
 
 	// setNetworkTimeout() takes the executor its timeout handling runs on; the drivers of this
 	// backend only set a socket option in it, so it costs a call rather than a thread.
@@ -491,10 +501,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// later: measuring such a statement against the property alone reported a connection reset at
 		// 121 s as a query timeout of 120 s and sent the operator to a property that bounded nothing.
 		final long endsAfter=cancelArmed ? seconds : seconds+(long)BACKSTOP_MARGIN_SECONDS;
-		if (System.nanoTime()-startedAt < endsAfter*1_000_000_000L) {
+		final long elapsedMillis=(System.nanoTime()-startedAt)/1000000L;
+		// The bound is allowed a little slack under it: a driver keeps its timer in whole seconds and
+		// reports the cancel a few milliseconds before the bound is arithmetically due, and measured
+		// to the millisecond such a statement would arrive as a bare 57014 or ORA-01013, naming
+		// neither the property that cancelled it nor the fact that it was cancelled at all.
+		if (elapsedMillis < endsAfter*1000L-CLOCK_SLACK_MILLIS) {
 			return e;
 		}
-		return new SQLTimeoutException("jdbc: the statement did not finish within the "+endsAfter+"s of "
+		// The time is reported as measured rather than as the bound. Where the database does not act
+		// on the cancel - a session blocked in a row-lock enqueue on oracle - the wait ends at the
+		// socket read timeout, a margin past the property that armed it, and "did not finish within
+		// the 120s" of a statement that waited 150 s is a message an operator cannot put next to a
+		// clock. The property named still governs both layers, since backstopMillis() derives the
+		// second one from it, so raising it stays the remedy either way.
+		return new SQLTimeoutException("jdbc: the statement took "+elapsedMillis+" ms, reaching the "+endsAfter+"s of "
 			+(cancelArmed ? property : "the socket read timeout behind "+property+" ("+seconds+"s plus the margin of"
 				+" that layer, which is the only one bounding a statement taking no query timeout)")
 			+": raise that property, or set it to 0 for no bound", e.getSQLState(), e.getErrorCode(), e);
@@ -1449,6 +1470,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			return new CursorImpl(isReadOnly,con,treeName,StatementBound.BULK);
 		}
 
+		/**
+		 * {@inheritDoc}
+		 * <p>
+		 * Bulk whoever asks, which is the one place the class of the transaction is overridden
+		 * downwards: {@code select count(*)} is a scan of the whole table on every engine here, so
+		 * what it takes follows the size of the backend rather than the work the caller is doing -
+		 * and {@code BackendImpl.openBackend()} logs the entry count of every backend it starts.
+		 */
 		@Override
 		public long getRecordCount(TreeName treeName) {
 			try (final PreparedStatement statement=con.prepareStatement("select count(*) from "+getTableName(treeName))){
@@ -1870,11 +1899,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		@Override
 		public boolean positionToKey(ByteSequence key) {
 			final byte[] real=key.toByteArray();
-			final byte[] value;
+			// The row is wrapped inside the handler rather than after it, so that null keeps meaning
+			// "no such key" and only that: a row whose v is null - which the schema allows, however
+			// this backend writes it - has to fail here as it fails in read(), rather than report a
+			// key that exists as absent.
+			final ByteString value;
 			try (final PreparedStatement statement=con.prepareStatement("select v from "+tableName+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(real)));
 				statement.setBytes(2,real2db(real));
-				value=executeResultSet(statement, batchBound, rc -> rc.next() ? rc.getBytes("v") : null);
+				value=executeResultSet(statement, batchBound, rc -> rc.next() ? ByteString.wrap(rc.getBytes("v")) : null);
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
@@ -1883,7 +1916,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				nextBatchSize=initialBatchSize;
 				currentKeyDb=real2db(real);
 				currentKey=ByteString.wrap(real);
-				currentValue=ByteString.wrap(value);
+				currentValue=value;
 				defined=true;
 				return true;
 			}
@@ -2056,7 +2089,19 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 		// outside the catch: a transaction of a read-only storage throws ReadOnlyStorageException,
 		// which a caller tells apart from any other failure of an import
-		return new ImporterImpl(con, wasOpen);
+		try {
+			return new ImporterImpl(con, wasOpen);
+		}catch (RuntimeException e) {
+			// and the connection borrowed above goes back on that path too: it is the one an import
+			// holds for its whole duration, so leaking it here takes it out of the pool for good,
+			// with the transaction it had already begun
+			try {
+				con.close();
+			}catch (SQLException ignored) {
+				// the importer was never built; the failure to report is the one being thrown
+			}
+			throw e;
+		}
 	}
 	
 	//backup

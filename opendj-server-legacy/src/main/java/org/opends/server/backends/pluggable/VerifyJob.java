@@ -92,10 +92,13 @@ class VerifyJob
   /** Indicates whether the children count tree is to be verified. */
   private boolean verifyID2ChildrenCount;
 
+  // The trees below, and the iterate* methods that walk them, are visible to the test pinning the
+  // class of the cursors they open: every one of these walks a tree whole with nobody waiting on
+  // it, which a storage engine that bounds a statement must not bound as an operation (#877).
   /** The entry tree. */
-  private ID2Entry id2entry;
+  ID2Entry id2entry;
   /** The DN tree. */
-  private DN2ID dn2id;
+  DN2ID dn2id;
   /** The children tree. */
   private ID2ChildrenCount id2childrenCount;
 
@@ -343,7 +346,7 @@ class VerifyJob
    *
    * @throws StorageRuntimeException If an error occurs in the storage.
    */
-  private void iterateID2Entry(ReadableTransaction txn) throws StorageRuntimeException
+  void iterateID2Entry(ReadableTransaction txn) throws StorageRuntimeException
   {
     // Every tree this job walks, it walks whole, and no client operation is waiting on it.
     try(final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(id2entry.getName()))
@@ -438,7 +441,7 @@ class VerifyJob
    *
    * @throws StorageRuntimeException If an error occurs in the storage.
    */
-  private void iterateDN2ID(ReadableTransaction txn) throws StorageRuntimeException
+  void iterateDN2ID(ReadableTransaction txn) throws StorageRuntimeException
   {
     final Deque<ChildrenCount> childrenCounters = new LinkedList<>();
     ChildrenCount currentNode = null;
@@ -600,7 +603,7 @@ class VerifyJob
    * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If an error occurs reading values in the index.
    */
-  private void iterateVLVIndex(ReadableTransaction txn, VLVIndex vlvIndex, boolean verifyID)
+  void iterateVLVIndex(ReadableTransaction txn, VLVIndex vlvIndex, boolean verifyID)
       throws StorageRuntimeException, DirectoryException
   {
     if(vlvIndex == null || !verifyID)
