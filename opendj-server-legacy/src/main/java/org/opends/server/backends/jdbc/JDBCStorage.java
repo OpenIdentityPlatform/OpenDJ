@@ -708,8 +708,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	// Returns the comment currently stored on the table, or null when there is none. The dialect is
-	// passed in rather than read off the connection: this runs on the stamp connection, which is
-	// not a pooled one, and only for the dialects commentTable() recognizes.
+	// passed in rather than read off the connection: the stamp sweep runs this on a connection of its
+	// own, a clear runs it on the pooled one it did its work on, and both only for the dialects
+	// commentTable() recognizes. It is a read and nothing else, and CachedConnection.close() rolls
+	// back before the connection is handed on, so a clear leaves no transaction of its own behind.
 	String readStoredComment(Connection con, Dialect dialect, String tableName) throws SQLException {
 		final String sql;
 		final String arg;
@@ -828,27 +830,24 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	/**
-	 * Whether a table of this name is there. Asked of the catalog by name rather than by listing
-	 * every table of the database: openTree(createOnDemand) asks it for every tree of the backend -
-	 * about 25 of them for a stock suffix - on every open, on a database this backend may well be
-	 * sharing with something else.
-	 */
-	boolean isExistsTable(Connection con, String tableName) {
-		return isExistsTable(con, null, null, tableName);
-	}
-
-	/**
-	 * Whether a table of this name is there in the catalog and the schema given, which
-	 * {@link #removeStorageFiles()} takes off the connection it works on.
+	 * Whether a table of this name is there in the catalog and the schema given, which every caller
+	 * takes off the connection it works on. Asked of the catalog by name rather than by listing every
+	 * table of the database: openTree(createOnDemand) asks it for every tree of the backend - about 25
+	 * of them for a stock suffix - on every open, on a database this backend may well be sharing with
+	 * something else.
 	 * <p>
 	 * Asked with a null catalog the question spans the whole server on some drivers - Connector/J
-	 * reads a null catalog as "any database" since 8.0, and its databaseTerm being CATALOG it
-	 * ignores the schema pattern besides. Where the answer only decides whether a table has to be
-	 * created that is a hazard older than this catalog, but the removal decides something else by
-	 * it: a row whose table is gone is skipped so that the clear goes on, and a table of the same
-	 * name in another database of the server would turn that skip into an unqualified "drop table"
-	 * of a table that is not in this one, failing the whole clear on this attempt and on every
-	 * attempt after it.
+	 * reads a null catalog as "any database" since 8.0, and its databaseTerm being CATALOG it ignores
+	 * the schema pattern besides - and every answer of this method decides something that a table of
+	 * the same name in another database must have no say in. A clear skips the row of a table that is
+	 * gone so that it can go on, and a foreign table answering for it turns that skip into an
+	 * unqualified "drop table" of a table that is not in this database, failing the clear on this
+	 * attempt and on every attempt after it. An open of a tree creates its table where there is none,
+	 * and a foreign table answering for it skips the creation, leaving the catalog naming a tree whose
+	 * table is not here - or, for the catalog table itself, leaving the very row that names it to be
+	 * written into a table this database does not hold. Two backends of the stock backend id in two
+	 * databases of one server name their catalogs alike, so this is the ordinary layout and not a
+	 * corner of one.
 	 */
 	boolean isExistsTable(Connection con, String catalog, String schema, String tableName) {
 		try {
@@ -858,7 +857,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				while (rs.next()) {
 					// the name still has to be compared: "_" is a single-character wildcard in a
 					// metadata pattern, so "opendj_<hash>" also matches a table named "opendjX<hash>"
-					if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
+					if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME")) && isInScope(rs, catalog, schema)) {
 						return true;
 					}
 				}
@@ -867,6 +866,24 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			throw new StorageRuntimeException(e);
 		}
 		return false;
+	}
+
+	/**
+	 * Whether the table this row of a listing describes is in the catalog and the schema asked for.
+	 * The pattern alone does not settle it: a schema reaches {@link DatabaseMetaData#getTables} as a
+	 * pattern, where "_" is a single-character wildcard, so a listing narrowed to a schema named
+	 * "app_data" is answered for by a schema named "appXdata" as well.
+	 */
+	private static boolean isInScope(ResultSet rs, String catalog, String schema) throws SQLException {
+		return isSameScope(catalog, rs.getString("TABLE_CAT")) && isSameScope(schema, rs.getString("TABLE_SCHEM"));
+	}
+
+	/**
+	 * Whether a name of a listing rules a table out. A name neither side gives is no narrowing:
+	 * a driver naming no catalog of its own - oracle has none - must not be read as naming another.
+	 */
+	private static boolean isSameScope(String asked, String ofTable) {
+		return asked==null || ofTable==null || ofTable.isEmpty() || asked.equalsIgnoreCase(ofTable);
 	}
 
 	@Override
@@ -889,7 +906,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// the catalog names what this backend owns, and only that: listTrees() also names the
 			// shared compressed schema trees, which another backend of this database may be the only
 			// owner of and which a clear must therefore leave exactly where they lie (#881)
-			final Map<TreeName,String> trees=catalogTables(con);
+			final Map<TreeName,String> trees=catalogTables(con, catalog, schema);
 			int dropped=0;
 			int missing=0;
 			try {
@@ -920,7 +937,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				tree2table.invalidate(treeName);
 				unstampableTrees.remove(treeName);
 			}
-			reportClearOutcome(con, catalog, schema, dropped, missing);
+			try {
+				reportClearOutcome(con, catalog, schema, dropped, missing);
+			} catch (RuntimeException e) {
+				// the clear itself is done and committed: an account of what it left standing must not be
+				// the thing that reports it as failed, and a caller retrying it would find nothing to drop
+				logger.trace(LocalizableMessage.raw("jdbc: unable to report what the clear left standing: %s",
+					stackTraceToSingleLineString(e)));
+			}
 		} catch (StorageRuntimeException e) {
 			throw e;
 		} catch (Exception e) {
@@ -946,34 +970,59 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * a backend sharing this database (#873) and is passed over in silence; one whose stamp names a
 	 * tree of this backend is reported as its own, and so as removable by hand; one carrying no stamp
 	 * at all - left by a version stamping no table, or by a database that refused the comment - can be
-	 * attributed to nobody and is reported as exactly that.
+	 * attributed to nobody and is reported as exactly that. A stamp the database would not give up is
+	 * reported apart from all of these: it says nothing either way, and counting it as a table without
+	 * a stamp would turn a connection that died halfway into a confident line about tables this
+	 * backend may well own.
+	 * <p>
+	 * The silence has a cost worth stating: a table stamped with a tree of a base DN that was taken
+	 * out of the configuration while the backend was disabled reads exactly like a table of a backend
+	 * sharing the database, the stamp naming the tree and never the backend it belonged to, so it is
+	 * passed over too. What is left of such a base DN is found by its stamp and removed by hand.
 	 * <p>
 	 * The shared compressed schema pair is left out of all of it: it is kept on purpose (#881), so it
 	 * is no leftover of anything, and naming it here would be asking for the removal of the one thing
 	 * this code goes out of its way to spare.
 	 * <p>
-	 * A clear which dropped nothing at all is called out on top of that: #888 was exactly such a
+	 * A clear which dropped nothing at all is called out ahead of all of it: #888 was exactly such a
 	 * clear, and it went by without a word in the log. A backend upgraded in place is the one case
 	 * where a clear drops nothing while there is something to drop - nothing enrols a tree before
 	 * {@link #removeStorageFiles()} runs, so the first offline clear of such a backend finds an empty
-	 * catalog - and the line says so rather than leaving it to be found out.
+	 * catalog - and the line says so rather than leaving it to be found out. That line is decided by
+	 * what the clear itself did, so a database which would not say what is standing silences the two
+	 * lines above it and not this one: the silence of #888 is the very thing being reported.
 	 */
 	void reportClearOutcome(Connection con, String catalog, String schema, int dropped, int missing) {
 		final ClearLeftovers leftovers=leftoverTables(con, catalog, schema);
-		if (leftovers==null) { // the database would not say what is still standing: nothing to report
-			return;
+		final int ours=leftovers==null ? 0 : leftovers.ours.size();
+		final int unattributed=leftovers==null ? 0 : leftovers.unattributed.size();
+		final int unreadable=leftovers==null ? 0 : leftovers.unreadable.size();
+		// first of the lines, and not last: on a backend upgraded in place every table of it is
+		// unstamped and lands in the list below, and the operator has to be told why before being
+		// handed a list of tables their own backend is very probably still using.
+		// The count of trees which had lost their table is all but always zero here, and is carried for
+		// the case where it is not: a catalog which names anything at all names itself last, so its own
+		// table is dropped and "dropped" is one - unless the catalog table went while this clear was
+		// running, which is the one way a clear can name trees and still drop nothing. Each such tree is
+		// logged as the loop skips it either way; this line only sums them up.
+		if (dropped==0 && (missing>0 || ours>0 || unattributed>0 || unreadable>0 || leftovers==null)) {
+			logger.warn(LocalizableMessage.raw("jdbc: backend %s: the clear dropped no table at all: %d of the trees its catalog names had lost their table already, and %s. A backend upgraded from a version keeping no catalog has to be started once before its first offline \"import-ldif --clearBackend\": nothing enrols a tree before the clear runs, so that first clear finds a catalog that is not there and names nothing",
+				config.getBackendId(), missing, leftovers==null
+					? "what else is standing could not be read off this database"
+					: String.format("%d table(s) of this backend were named by no catalog, %d could not be attributed to anyone and %d could not be read",
+						ours, unattributed, unreadable)));
 		}
-		if (!leftovers.ours.isEmpty()) {
-			logger.warn(LocalizableMessage.raw("jdbc: backend %s: %d table(s) of %s hold trees of this backend that its catalog does not name, and the clear left them where they are: %s. A tree is enrolled as it is opened read-write and by no other means, so such a table is one of a tree taken out of the configuration while the backend was disabled, or one left by a version keeping no catalog: it is this backend's own and can be removed by hand, and re-adding the base DN or the index it belongs to adopts it with the rows it still holds",
-				config.getBackendId(), leftovers.ours.size(), scopeName(catalog, schema), leftovers.ours));
+		if (ours>0) {
+			logger.warn(LocalizableMessage.raw("jdbc: backend %s: %d table(s) of %s hold trees of this backend that its catalog does not name, and the clear left them where they are: %s. A tree is enrolled as it is opened read-write and by no other means, so such a table is one of a tree of a base DN this backend still serves that was taken out of the configuration while it was disabled - an attribute index, say - or one left by a version keeping no catalog: it is this backend's own and can be removed by hand, and re-adding the tree it belongs to adopts it with the rows it still holds",
+				config.getBackendId(), ours, scopeName(catalog, schema), leftovers.ours));
 		}
-		if (!leftovers.unattributed.isEmpty()) {
+		if (unattributed>0) {
 			logger.warn(LocalizableMessage.raw("jdbc: backend %s: %d opendj table(s) of %s are named by no catalog of this backend and carry no tree stamp, so nothing says whose they are: %s. They may hold the trees of a backend sharing this database, which nothing forbids, or be leftovers of a version stamping no table at all - a table is named after the hash of its tree name and can be attributed by no other means. They were left exactly where they are",
-				config.getBackendId(), leftovers.unattributed.size(), scopeName(catalog, schema), leftovers.unattributed));
+				config.getBackendId(), unattributed, scopeName(catalog, schema), leftovers.unattributed));
 		}
-		if (dropped==0 && (missing>0 || !leftovers.ours.isEmpty() || !leftovers.unattributed.isEmpty())) {
-			logger.warn(LocalizableMessage.raw("jdbc: backend %s: the clear dropped no table at all: %d of the trees its catalog names had lost their table already, %d table(s) of this backend were named by no catalog, and %d could not be attributed to anyone. A backend upgraded from a version keeping no catalog has to be started once before its first offline \"import-ldif --clearBackend\": nothing enrols a tree before the clear runs, so that first clear finds a catalog that is not there and names nothing",
-				config.getBackendId(), missing, leftovers.ours.size(), leftovers.unattributed.size()));
+		if (unreadable>0) {
+			logger.warn(LocalizableMessage.raw("jdbc: backend %s: the stamp of %d opendj table(s) of %s could not be read, so this clear says nothing about whose they are: %s. They were left exactly where they are",
+				config.getBackendId(), unreadable, scopeName(catalog, schema), leftovers.unreadable));
 		}
 	}
 
@@ -983,12 +1032,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		final List<String> ours=new ArrayList<>();
 		/** Tables carrying no stamp naming a tree: they can be attributed to nobody. */
 		final List<String> unattributed=new ArrayList<>();
+		/** Tables whose stamp the database would not give up: they are attributed neither way. */
+		final List<String> unreadable=new ArrayList<>();
 	}
 
 	/**
 	 * The "opendj" tables of the given catalog and schema that this backend can say something about,
-	 * or {@code null} where the database would not list them. A table stamped with a tree of another
-	 * backend is in neither list: it is that backend's business and no part of this clear's outcome.
+	 * or {@code null} where the database would not list them. A table stamped with a tree this backend
+	 * does not serve is in none of the lists: it is a backend sharing this database (#873) that it
+	 * belongs to, and no part of this clear's outcome.
 	 */
 	ClearLeftovers leftoverTables(Connection con, String catalog, String schema) {
 		// the shared compressed schema pair is left standing on purpose, so it is no leftover of
@@ -1006,8 +1058,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			try (final ResultSet rs=metaData.getTables(catalog, schema,
 					storedIdentifier(metaData, "opendj%"), new String[]{"TABLE"})) {
 				while (rs.next()) {
-					final String tableName=String.valueOf(rs.getString("TABLE_NAME"));
-					if (!leftOnPurpose.contains(tableName.toLowerCase())) {
+					final String tableName=rs.getString("TABLE_NAME");
+					if (tableName==null) { // a row naming no table names nothing this clear can report
+						continue;
+					}
+					if (!leftOnPurpose.contains(tableName.toLowerCase()) && isInScope(rs, catalog, schema)) {
 						standing.add(tableName);
 					}
 				}
@@ -1015,8 +1070,31 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// the stamps are read once the metadata result set is closed: they are queries of this very
 			// connection, and a driver may hold it for the whole of that result set
 			final Dialect dialect=dialectOf(con);
+			if (dialect==null) {
+				// no comment readback is known for this engine, so no table of it can be attributed to
+				// anyone at all. That is a different thing from a table which carries no stamp, and saying
+				// the second would be telling an operator that every table of every backend of this
+				// database is of unknown ownership when the truth is that nothing was ever asked
+				leftovers.unreadable.addAll(standing);
+				return leftovers;
+			}
 			for (final String tableName : standing) {
-				final TreeName stamp=stampedTree(con, dialect, tableName);
+				final TreeName stamp;
+				try {
+					stamp=stampedTree(con, dialect, tableName);
+				} catch (SQLException | RuntimeException e) {
+					// this table alone is unaccounted for, and the ones after it need not be: postgres
+					// refuses every further statement of a transaction whose statement failed (25P02), so
+					// the read that failed is rolled back before the next table is asked about. There is
+					// nothing pending to lose - the clear committed its drops before this ran
+					logger.trace(LocalizableMessage.raw("jdbc: unable to read the stamp of table %s: %s",
+						tableName, stackTraceToSingleLineString(e)));
+					leftovers.unreadable.add(tableName);
+					try {
+						con.rollback();
+					} catch (SQLException e2) {}
+					continue;
+				}
 				if (stamp==null) {
 					leftovers.unattributed.add(tableName);
 				} else if (isOwnTree(stamp)) {
@@ -1036,18 +1114,22 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * where what it carries is not the name of a tree, or where the engine has no comment readback of
 	 * its own here. The stamp is the only thing that attributes a table to a backend at all - a table
 	 * name is a bare hash - and stamping is best-effort, so the absence of one states nothing.
+	 * <p>
+	 * A read the database refused is passed to the caller rather than answered as an absent stamp: the
+	 * two say different things, and the second would let a connection that died halfway be reported as
+	 * a row of tables nothing can be said about.
 	 */
-	private TreeName stampedTree(Connection con, Dialect dialect, String tableName) {
+	private TreeName stampedTree(Connection con, Dialect dialect, String tableName) throws SQLException {
 		if (dialect==null) { // no readback known for this engine: no table of it can be attributed
 			return null;
 		}
+		final String comment=readStoredComment(con, dialect, tableName);
+		if (comment==null || comment.isEmpty()) {
+			return null;
+		}
 		try {
-			final String comment=readStoredComment(con, dialect, tableName);
-			if (comment==null || comment.isEmpty()) {
-				return null;
-			}
 			return TreeName.valueOf(comment);
-		} catch (SQLException | RuntimeException e) { // a comment of somebody else's making, or a read that failed
+		} catch (RuntimeException e) { // a comment of somebody else's making: no stamp of this backend's kind
 			return null;
 		}
 	}
@@ -1087,11 +1169,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	/**
-	 * The catalog this connection works in, or {@code null} where the driver will not say. A metadata
-	 * pattern is narrowed by it, and a driver refusing to name it must not fail what is being
-	 * narrowed - the unnarrowed answer is a count too wide, not a wrong one.
+	 * The catalog this connection works in, or {@code null} where the driver will not say. Every table
+	 * lookup of this backend is narrowed by it, and a driver refusing to name it must not fail the
+	 * lookup being narrowed: the unnarrowed question is the one this code asked before there was
+	 * anything to narrow it by. It is a weaker question, and where it decides a drop or a create it is
+	 * as weak as it ever was - a driver naming neither catalog nor schema is what {@link
+	 * #isExistsTable(Connection, String, String, String)} describes, and nothing here can make it say
+	 * more than it will.
 	 */
-	private static String catalogOf(Connection con) {
+	static String catalogOf(Connection con) {
 		try {
 			// an empty name is not the name of a catalog but a driver's way of saying it has none, and
 			// passed to a metadata pattern it means "tables that belong to no catalog" - which is not
@@ -1103,7 +1189,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	/** The schema this connection works in, or {@code null} where the driver will not say; see {@link #catalogOf}. */
-	private static String schemaOf(Connection con) {
+	static String schemaOf(Connection con) {
 		try {
 			return emptyToNull(con.getSchema());
 		} catch (Exception e) {
@@ -1365,8 +1451,24 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			isReadOnly = false;
 		}
 
+		/**
+		 * The database and the schema this transaction works in, asked of its connection once. Every
+		 * lookup of a table below is narrowed to them - the reason is in {@link #isExistsTable(Connection,
+		 * String, String, String)} - and asking per lookup would cost a round trip per tree of the
+		 * backend on every open: pgjdbc answers getSchema() with a "select current_schema()" of its own.
+		 * A transaction holds one connection for the whole of its life, so one answer serves it all.
+		 */
+		private String tableCatalog;
+		private String tableSchema;
+		private boolean tableScopeKnown;
+
 		boolean isExistsTable(TreeName treeName) {
-			return JDBCStorage.this.isExistsTable(con, getTableName(treeName));
+			if (!tableScopeKnown) {
+				tableCatalog=catalogOf(con);
+				tableSchema=schemaOf(con);
+				tableScopeKnown=true;
+			}
+			return JDBCStorage.this.isExistsTable(con, tableCatalog, tableSchema, getTableName(treeName));
 		}
 
 		String getTableDialect() {
@@ -1567,6 +1669,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// replays a class 40 conflict and rethrows everything else unreplayed - and the row would be
 			// rolled back over a table that is already gone, with nothing ever to put it right: a deleted
 			// tree is not opened again, so no enrolment and no unenrolment reaches it a second time.
+			// The commit is the transaction's and not the row's, so it carries whatever else the caller
+			// has pending. That is the shape of a deleteTree on every engine here anyway - the drop
+			// above commits, and on mysql and oracle the DDL would commit even without being asked -
+			// and this makes the branch where the table was already gone behave like the other one.
 			if (unenrolFromCatalog(treeName)) {
 				try {
 					con.commit();
@@ -1895,9 +2001,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	Set<TreeName> listTrees(Connection con) throws SQLException {
-		final Set<TreeName> trees=new HashSet<>(catalogTables(con).keySet());
 		final String catalog=catalogOf(con);
 		final String schema=schemaOf(con);
+		final Set<TreeName> trees=new HashSet<>(catalogTables(con, catalog, schema).keySet());
 		for (final TreeName treeName : SHARED_COMPRESSED_SCHEMA_TREES) {
 			// asked of the database, not assumed: the pair belongs to no backend in particular, and
 			// once #881 gives each backend a pair of its own an installation may hold neither table.
@@ -1920,11 +2026,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * removal drops what was enrolled even if the naming of tables were ever to change.
 	 */
 	Map<TreeName,String> catalogTables(Connection con) throws SQLException {
-		final TreeName catalog=getCatalogTree();
-		final String catalogTable=getTableName(catalog);
+		return catalogTables(con, catalogOf(con), schemaOf(con));
+	}
+
+	/**
+	 * The same, for a caller which has already asked this connection where it works. Neither name is
+	 * free of a round trip - pgjdbc answers getSchema() with a "select current_schema()" of its own -
+	 * so a clear and a listTrees(), which both narrow a lookup of their own by them, pass what they
+	 * have rather than asking again.
+	 */
+	Map<TreeName,String> catalogTables(Connection con, String catalog, String schema) throws SQLException {
+		final TreeName catalogTree=getCatalogTree();
+		final String catalogTable=getTableName(catalogTree);
 		// narrowed to this database: a catalog of the same name in another database of the server
 		// would send the select below at a table that is not here, failing the clear it answers
-		if (!isExistsTable(con, catalogOf(con), schemaOf(con), catalogTable)) {
+		if (!isExistsTable(con, catalog, schema, catalogTable)) {
 			return Collections.emptyMap();
 		}
 		final Map<TreeName,String> trees=new LinkedHashMap<>();
@@ -1950,8 +2066,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// removal drops the trees in this order, and what names them has to outlive them. Dropping a
 		// table is DDL, which mysql and oracle commit as they go, so a removal that fails halfway is
 		// finished by the next attempt rather than leaving behind tables nothing names any more.
-		trees.remove(catalog); // no row should name it; one that does must not hold back the order
-		trees.put(catalog, catalogTable);
+		trees.remove(catalogTree); // no row should name it; one that does must not hold back the order
+		trees.put(catalogTree, catalogTable);
 		return trees;
 	}
 
