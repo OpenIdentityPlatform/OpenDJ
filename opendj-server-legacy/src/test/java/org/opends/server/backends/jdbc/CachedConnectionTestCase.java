@@ -29,7 +29,12 @@ import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.IdentityHashMap;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.FutureTask;
@@ -69,7 +74,12 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 	/** A connect attempt of a bounded dialect must give up in about this long, plus room for a slow machine. */
 	private static final long BOUND_SECONDS = 2;
-	private static final long BOUND_MARGIN_MS = 60000;
+	/**
+	 * Room for a slow machine on top of a bound, and no more than that. A minute of it turned
+	 * every assertion below into "it does not run forever": a connect that has to be reported at
+	 * once and a borrow that has to give up at its two second deadline both passed at 59 s.
+	 */
+	private static final long BOUND_MARGIN_MS = 10000;
 
 	private final StubDriver stub = new StubDriver();
 
@@ -87,6 +97,9 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	public void clearProperties() {
 		System.clearProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY);
 		System.clearProperty(CachedConnection.POOL_TIMEOUT_PROPERTY);
+		// what has been reported once is remembered for the life of the jvm: left standing, the key
+		// of one test is what the next one finds when it asserts that it reported something itself
+		CachedConnection.warnedOnce.clear();
 	}
 
 	/**
@@ -140,14 +153,33 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	@Test(timeOut = 120000)
 	public void testAUrlThisBackendCannotBoundIsReportedOnce() throws Exception {
 		final String url = "jdbc:nosuchengine-unbounded://127.0.0.1:5432/opendj";
+		final String key = CachedConnection.safeUrl(url) + "|unknown-dialect";
+		// the set is the gate warnOnce() logs behind, so it has to start empty for this to be a
+		// test of what this borrow reported rather than of what some earlier one left behind
+		CachedConnection.warnedOnce.clear();
+		borrowExpectingFailure(url);
+		assertEquals(CachedConnection.warnedOnce, Collections.singleton(key),
+			"a connection string no bound of this class can reach was not reported");
+
+		// ... and once: every operation of the backend borrows through here, so a report per borrow
+		// is one nobody reads. A second borrow that would log again is one that adds a key again.
+		CachedConnection.warnedOnce.remove(key);
+		borrowExpectingFailure(url);
+		assertEquals(CachedConnection.warnedOnce, Collections.singleton(key),
+			"the report is not the one warnOnce() gates: " + CachedConnection.warnedOnce);
+		borrowExpectingFailure(url);
+		assertEquals(CachedConnection.warnedOnce, Collections.singleton(key),
+			"the same url was reported a second time");
+	}
+
+	/** A borrow that has to fail: what the test is after is what was logged on the way. */
+	private static void borrowExpectingFailure(String url) throws Exception {
 		try {
 			CachedConnection.getConnection(url);
 			fail("a connection string no registered driver accepts must be reported");
 		} catch (SQLException expected) {
 			// the point of the test is what was logged on the way, not what came back
 		}
-		assertTrue(CachedConnection.warnedOnce.contains(CachedConnection.safeUrl(url) + "|unknown-dialect"),
-			"a connection string no bound of this class can reach was not reported");
 	}
 
 	/**
@@ -159,26 +191,61 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	@Test
 	public void testAReadBoundTurnedOffInAPostgresUrlIsReportedOnce() throws Exception {
 		final String url = "jdbc:postgresql://reported:5432/db?socketTimeout=0";
+		final String key = CachedConnection.safeUrl(url) + "|unbounded|socketTimeout";
+		CachedConnection.warnedOnce.clear();
 		assertFalse(CachedConnection.ConnectDialect.POSTGRES.bound(url, new Properties(), 7));
-		assertTrue(CachedConnection.warnedOnce.contains(CachedConnection.safeUrl(url) + "|unbounded-read"),
+		assertEquals(CachedConnection.warnedOnce, Collections.singleton(key),
 			"a url leaving the reads of its login unbounded was not reported");
+
+		assertFalse(CachedConnection.ConnectDialect.POSTGRES.bound(url, new Properties(), 7));
+		assertEquals(CachedConnection.warnedOnce, Collections.singleton(key),
+			"the same url was reported a second time");
 	}
 
-	/** Nothing in the chain of a failure names the password of the backend, however deep it stands. */
+	/**
+	 * ... and every parameter of it that is turned off, not only the first one. A url is free to
+	 * turn off the read bound and the login bound both, and the login bound is the per-host budget
+	 * of a failover url - safeUrl() keeps neither parameter, so a key of the url alone would name
+	 * the first offender, remember the url as reported, and leave the rest of them unmentionable.
+	 */
+	@Test
+	public void testEveryBoundTurnedOffInAPostgresUrlIsReported() throws Exception {
+		final String url = "jdbc:postgresql://reported-twice:5432/db?socketTimeout=0&loginTimeout=0";
+		final String safe = CachedConnection.safeUrl(url);
+		CachedConnection.warnedOnce.clear();
+
+		CachedConnection.ConnectDialect.POSTGRES.bound(url, new Properties(), 7);
+
+		assertTrue(CachedConnection.warnedOnce.contains(safe + "|unbounded|socketTimeout"),
+			"the read bound left at 0 was not reported: " + CachedConnection.warnedOnce);
+		assertTrue(CachedConnection.warnedOnce.contains(safe + "|unbounded|loginTimeout"),
+			"the login bound left at 0 was not reported: " + CachedConnection.warnedOnce);
+	}
+
+	/**
+	 * Nothing in the chain of a failure names the password of the backend, however deep it stands.
+	 * Walked by identity rather than link by link: a driver is free to make the cause and the next
+	 * exception of a link the same failure, which is the very shape the sibling test builds, and a
+	 * helper looping on it would hang the run it is checking for exactly that.
+	 */
 	private static void assertNoCredentials(Throwable failure) {
-		for (Throwable t = failure; t != null; t = t.getCause()) {
+		final Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
+		final Deque<Throwable> pending = new ArrayDeque<>();
+		enqueue(pending, seen, failure);
+		while (!pending.isEmpty()) {
+			final Throwable t = pending.poll();
 			assertFalse(String.valueOf(t.getMessage()).contains("S3cretOfTheBackend"),
 				"the password of the backend reached a message: " + t);
 			if (t instanceof SQLException) {
-				for (SQLException next = ((SQLException) t).getNextException(); next != null;
-						next = next.getNextException()) {
-					assertFalse(String.valueOf(next.getMessage()).contains("S3cretOfTheBackend"),
-						"the password of the backend reached a message: " + next);
-				}
+				enqueue(pending, seen, ((SQLException) t).getNextException());
 			}
-			if (t.getCause() == t) {
-				break;
-			}
+			enqueue(pending, seen, t.getCause());
+		}
+	}
+
+	private static void enqueue(Deque<Throwable> pending, Set<Throwable> seen, Throwable t) {
+		if (t != null && seen.add(t)) {
+			pending.add(t);
 		}
 	}
 
@@ -202,6 +269,54 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final SQLException reported = CachedConnection.reported(chain, url);
 		assertNoCredentials(reported);
 		assertEquals(reported.getSQLState(), "08006", "the SQLState of a link has to survive its redaction");
+	}
+
+	/**
+	 * ... and the chain of one is walked link by link rather than copy by copy. Enqueued twice, a
+	 * failure whose cause is its own next exception fans out into a level twice the size of the one
+	 * above it, so five levels of it are enough to spend the whole budget of the walk: the link
+	 * that names the url stands at level six of seven and was never reached - and a walk that ends
+	 * without finding credentials is one that reports the failure as it stands, password and all.
+	 */
+	@Test(timeOut = 60000)
+	public void testACredentialBehindADuplicatedChainIsStillRedacted() throws Exception {
+		final String url = "jdbc:postgresql://opendj:S3cretOfTheBackend@127.0.0.1:5432/opendj";
+		SQLException chain = new SQLException("connect to " + url + " failed", "08006", 1);
+		for (int i = 0; i < 6; i++) {
+			final SQLException link = new SQLException("wrapper " + i, "08006", i);
+			link.setNextException(chain);
+			link.initCause(chain);
+			chain = link;
+		}
+
+		assertNoCredentials(CachedConnection.reported(chain, url));
+	}
+
+	/**
+	 * The tail a rebuild has no budget left for is named rather than dropped. Without it the same
+	 * failure keeps its root cause where the url of the backend carries no password and loses it
+	 * without a word where it does - and the root cause is what a report of a failed connect is
+	 * read for.
+	 */
+	@Test(timeOut = 60000)
+	public void testTheTailOfALongChainIsNamedRatherThanDropped() throws Exception {
+		final String url = "jdbc:postgresql://opendj:S3cretOfTheBackend@127.0.0.1:5432/opendj";
+		SQLException chain = new SQLException("Connection to 127.0.0.1:5432 refused", "08006", 1);
+		for (int i = 0; i < 40; i++) {
+			final SQLException link = new SQLException("wrapper " + i + " of " + url, "08006", i);
+			link.initCause(chain);
+			chain = link;
+		}
+
+		final SQLException reported = CachedConnection.reported(chain, url);
+
+		assertNoCredentials(reported);
+		Throwable last = reported;
+		while (last.getCause() != null) {
+			last = last.getCause();
+		}
+		assertTrue(String.valueOf(last.getMessage()).contains("left out"),
+			"the tail a rebuild had no budget for has to say so: " + last.getMessage());
 	}
 
 	/**
@@ -273,7 +388,8 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 				// reported, and within the borrow it was given rather than the 600 s of the attempt
 			}
 			final long elapsed = System.currentTimeMillis() - startedAt;
-			assertTrue(elapsed < 30000, "the attempt outlived the deadline of the borrow: " + elapsed + " ms");
+			assertTrue(elapsed < 2000 + BOUND_MARGIN_MS,
+				"the attempt outlived the deadline of the borrow: " + elapsed + " ms");
 		}
 	}
 
@@ -465,6 +581,31 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertSame(((CachedConnection) borrowed).parent, fresh, "a connection this could not bound was handed out");
 		verify(pooled, never()).isValid(anyInt());
 		verify(pooled).close();
+	}
+
+	/**
+	 * A driver answering a negative network timeout is outside the contract of the call - 0 is no
+	 * limit and nothing below it stands for anything - and taken back as it is, it is one of the
+	 * two sentinels this class tells its own outcomes apart by: the bound of the validation would
+	 * be read as a bound that was never set, and the connection would go back into the pool still
+	 * carrying five seconds of ours into every statement of the next borrower.
+	 */
+	@Test(timeOut = 120000)
+	public void testAPooledConnectionWhoseDriverAnswersANegativeBoundIsPutBackUnbounded() throws Exception {
+		final String url = StubDriver.PREFIX + "validation-negative-bound";
+		final Connection pooled = mock(Connection.class);
+		when(pooled.isValid(anyInt())).thenReturn(true);
+		when(pooled.getNetworkTimeout()).thenReturn(-1);
+		CachedConnection.cached.get(url).add(new CachedConnection(url, pooled));
+
+		final Connection borrowed = CachedConnection.getConnection(url);
+
+		assertSame(((CachedConnection) borrowed).parent, pooled);
+		final InOrder inOrder = inOrder(pooled);
+		inOrder.verify(pooled)
+			.setNetworkTimeout(any(Executor.class), eq(CachedConnection.VALIDATION_TIMEOUT_SECONDS * 1000));
+		inOrder.verify(pooled).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
+		inOrder.verify(pooled).setNetworkTimeout(any(Executor.class), eq(0));
 	}
 
 	/** A read bound of the connection string is tighter than ours and stays untouched. */
@@ -1001,6 +1142,55 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * A password is free to be one character long, and a bare one of those stands inside half the
+	 * lines a driver writes. Replaced wherever it is found, it takes the diagnostic apart along
+	 * with the credential - and, since the walk looking for credentials asks the redaction whether
+	 * it changed anything, it makes every failure of that backend one whose chain is rebuilt.
+	 */
+	@Test
+	public void testAShortPasswordDoesNotRewriteTheMessageOfADriver() throws Exception {
+		final String url = "jdbc:oracle:thin:opendj/1@//h:1521/svc";
+		// the "1" of an ORA number is part of a number, not a credential of anybody
+		assertEquals(CachedConnection.redact("ORA-12541: TNS:no listener", url), "ORA-12541: TNS:no listener");
+		// ... while the same password quoted back on its own is still taken out
+		assertEquals(CachedConnection.redact("the password 1 was not accepted", url),
+			"the password " + CachedConnection.CREDENTIALS_HIDDEN + " was not accepted");
+		assertEquals(CachedConnection.redact("IO Error connecting to " + url, url),
+			"IO Error connecting to jdbc:oracle:thin:@//h:1521/svc");
+	}
+
+	/**
+	 * A driver is free to name a parameter in the middle of a sentence. The value of one ends at
+	 * the first space: reaching to the end of the string, it would take the host, the port and the
+	 * cause of the failure into the blank along with the password - the very information the
+	 * redaction of a connection string goes out of its way to keep.
+	 */
+	@Test
+	public void testAPasswordParameterDoesNotSwallowTheRestOfTheMessage() throws Exception {
+		final String url = "jdbc:postgresql://h:5432/db?user=u&password=hunter2";
+		assertEquals(CachedConnection.redact("Connection refused: password=hunter2 for user u at h:5432", url),
+			"Connection refused: password=*** for user u at h:5432");
+	}
+
+	/**
+	 * The credentials of an oracle url are separated by a "/", so a password holding a "//" of
+	 * its own used to start an authority inside itself: what was taken off as a userinfo was the
+	 * tail of the password, the "@" the last guard of safeUrl() looks for went with it, and the
+	 * user name and the head of the password stayed in the message of a stall.
+	 */
+	@Test
+	public void testAPasswordHoldingASlashPairIsNotLeftInTheLog() throws Exception {
+		final String easyConnect = "jdbc:oracle:thin:opendj/pa//ss@//h:1521/svc";
+		assertEquals(CachedConnection.safeUrl(easyConnect), "jdbc:oracle:thin:@//h:1521/svc");
+		// ... and the same password in front of a host that names no "//" of its own
+		final String sid = "jdbc:oracle:thin:opendj/pa//ss@h:1521:svc";
+		assertEquals(CachedConnection.safeUrl(sid), "jdbc:oracle:thin:@h:1521:svc");
+		// the message of a driver quoting the url back carries no more of it than the log does
+		assertEquals(CachedConnection.redact("IO Error connecting to " + easyConnect, easyConnect),
+			"IO Error connecting to jdbc:oracle:thin:@//h:1521/svc");
+	}
+
+	/**
 	 * pgjdbc enforces loginTimeout out of process: Driver.connect hands the login to a daemon
 	 * thread of its own and gives up on the thread rather than on the login. Against the database
 	 * this bound exists for - one that completes the handshake and then says nothing - an
@@ -1059,6 +1249,10 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 			} catch (SQLException expected) {
 				// bounded by what is left of the deadline of the borrow
 			}
+			// the wait is the point of this one as much as its end is: a borrow against a socket that
+			// never answers cannot be over before the deadline unless something else ended it
+			final long elapsed = System.currentTimeMillis() - startedAt;
+			assertTrue(elapsed >= 1000, "the borrow was over after " + elapsed + " ms, before its deadline");
 			assertElapsedWithinBound(startedAt, 2000);
 		}
 	}
@@ -1181,9 +1375,14 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		return socket;
 	}
 
+	// The margin grows with the bound instead of dwarfing it: what this has to catch is a bound
+	// that is not in force, and a bound of 2 s that is not in force is not a wait of 12 s - it is
+	// the 30 s of the connect property, the 600 s of a driver, or no end at all.
 	private static void assertElapsedWithinBound(long startedAt, long boundMs) {
 		final long elapsed = System.currentTimeMillis() - startedAt;
-		assertTrue(elapsed < boundMs + BOUND_MARGIN_MS, "gave up only after " + elapsed + " ms");
+		final long margin = Math.max(BOUND_MARGIN_MS, boundMs);
+		assertTrue(elapsed < boundMs + margin,
+			"gave up only after " + elapsed + " ms, past the " + boundMs + " ms it was bounded by");
 	}
 
 	/**

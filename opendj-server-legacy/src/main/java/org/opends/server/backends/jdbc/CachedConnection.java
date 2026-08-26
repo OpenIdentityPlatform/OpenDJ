@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -87,9 +88,13 @@ public class CachedConnection implements Connection {
      * The name goes by more than one spelling: mysql numbers the factors of a multi-factor login
      * (password1, password2), and a wallet or a key store carries one under a name of its own
      * (oracle.net.wallet_password, javax.net.ssl.keyStorePassword).
+     * The value of one ends at a separator of a connection string or at the first space: a driver
+     * is free to name a parameter in the middle of a sentence ("password=hunter2 for user u at
+     * h:5432"), and a value class running to the end of the string would take the host, the port
+     * and the cause of the failure into the blank along with the password.
      */
     private static final Pattern SECRET_PARAMETER =
-        Pattern.compile("(?i)([\\w.]*(password|passwd|pwd)\\d*)\\s*=([^,)&;?]*)");
+        Pattern.compile("(?i)([\\w.]*(password|passwd|pwd)\\d*)\\s*=([^\\s,)&;?]*)");
 
     /** The parameters of a connection string worth keeping in a message: which database, not who connects. */
     private static final Set<String> IDENTIFYING_PARAMETERS = Collections.unmodifiableSet(new HashSet<>(
@@ -100,7 +105,9 @@ public class CachedConnection implements Connection {
     private static final Executor DIRECT_EXECUTOR = Runnable::run;
 
     // Throttled per connection string: two JDBC backends stalling at once have a stall of their
-    // own to report, and a single timestamp would let one of them starve the other.
+    // own to report, and a single timestamp would let one of them starve the other. Keyed by the
+    // safe form of it, the way warnedOnce below is: a static field of this class outlives every
+    // borrow, and the password of the backend has no business in one.
     private static final Map<String, AtomicLong> lastStallWarning = new ConcurrentHashMap<>();
     private static final AtomicLong lastReadBoundWarning = new AtomicLong();
 
@@ -319,16 +326,20 @@ public class CachedConnection implements Connection {
             if (!urlOutranksProperties()) {
                 return;
             }
+            // Every one of them, and keyed by the property rather than by the url alone: a url
+            // turns off the read bound and the login bound both ("?socketTimeout=0&loginTimeout=0",
+            // where the second is the per-host budget of a failover url), and safeUrl() keeps none
+            // of the timeout parameters - so a single key would report the first offender and
+            // leave the administrator to find the rest of them on their own.
             for (final String[] properties : new String[][]{readProperties, connectProperties}) {
                 for (final String property : properties) {
                     final String value = parameterValue(connectionString, property);
                     if (value != null && !isBound(value)) {
-                        warnOnce(safeUrl(connectionString) + "|unbounded-read",
+                        warnOnce(safeUrl(connectionString) + "|unbounded|" + property,
                             "%s sets \"%s=%s\": a parameter of a postgresql url outranks the property this backend"
                                 + " supplies, so that phase of a connect carries no bound. An operation reaching a"
                                 + " database that accepts the connection and does not answer stays parked",
                             safeUrl(connectionString), property, value);
-                        return;
                     }
                 }
             }
@@ -674,7 +685,12 @@ public class CachedConnection implements Connection {
         } catch (SQLException | RuntimeException e) {
             return VALIDATION_BOUND_FAILED;
         }
-        return previous;
+        // A driver answering a negative timeout is outside the contract of getNetworkTimeout(),
+        // where 0 stands for no limit and nothing below it stands for anything. Handed back as it
+        // is, it would be one of the two sentinels above: the bound just set would be read as a
+        // bound that was never set, and the connection would go into the pool carrying five
+        // seconds of ours into every statement of whoever borrows it next.
+        return previous < 0 ? 0 : previous;
     }
 
     static CachedConnection connect(String connectionString, ConnectDialect dialect, long connectTimeoutSeconds)
@@ -693,7 +709,7 @@ public class CachedConnection implements Connection {
                 // a driver that will not take the bound back has warned about it already: the
                 // connection serves the borrower that is waiting for it and is closed rather than
                 // pooled, so the bound of the login does not outlive it in the pool
-                poolable = relaxReadBound(conNew);
+                poolable = relaxReadBound(conNew, connectTimeoutSeconds);
             }
         } catch (SQLException | RuntimeException e) { // nothing holds this connection yet: it would leak
             closeQuietly(conNew);
@@ -709,9 +725,12 @@ public class CachedConnection implements Connection {
     // established before. A read bound the connection string sets itself is never touched here:
     // it is not set at all, so nothing of the administrator's is lifted along with it. Returns
     // whether the bound is gone - a connection still carrying it must not be pooled.
-    private static boolean relaxReadBound(Connection con) {
-        return setNetworkTimeout(con, 0, "statements taking longer than the "
-            + CONNECT_TIMEOUT_PROPERTY + " property fail on it, and it is closed rather than pooled");
+    // Named by the bound the login was given rather than by the property it came from: with
+    // CONNECT_TIMEOUT_PROPERTY at 0 the attempt takes its bound from what is left of the deadline
+    // of the borrow, so naming that property would point at the one setting that is not in force.
+    private static boolean relaxReadBound(Connection con, long boundSeconds) {
+        return setNetworkTimeout(con, 0, "statements taking longer than the " + boundSeconds
+            + "s the login of this connection was bounded by fail on it, and it is closed rather than pooled");
     }
 
     /**
@@ -750,8 +769,9 @@ public class CachedConnection implements Connection {
         // a failure of the driver is often wrapped, and a SQLException carries two chains of its
         // own: the causes behind it and the further exceptions of getNextException()
         final Deque<Throwable> pending = new ArrayDeque<>();
-        pending.add(e);
-        for (int visited = 0; !pending.isEmpty() && visited < MAX_CHAIN_LENGTH; visited++) {
+        final Set<Throwable> visited = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
+        enqueue(pending, visited, e);
+        for (int links = 0; !pending.isEmpty() && links < MAX_CHAIN_LENGTH; links++) {
             final Throwable t = pending.poll();
             if (t instanceof SQLException) {
                 final SQLException sql = (SQLException) t;
@@ -760,13 +780,9 @@ public class CachedConnection implements Connection {
                     || (dialect != null && dialect.isWorthRetrying(sql.getErrorCode()))) {
                     return true;
                 }
-                if (sql.getNextException() != null) {
-                    pending.add(sql.getNextException());
-                }
+                enqueue(pending, visited, sql.getNextException());
             }
-            if (t.getCause() != null) {
-                pending.add(t.getCause());
-            }
+            enqueue(pending, visited, t.getCause());
         }
         return false;
     }
@@ -779,7 +795,8 @@ public class CachedConnection implements Connection {
         if (now - startedAt < STALL_WARNING_AFTER_MS) {
             return;
         }
-        final AtomicLong lastOfThisUrl = lastStallWarning.computeIfAbsent(connectionString, url -> new AtomicLong());
+        final AtomicLong lastOfThisUrl =
+            lastStallWarning.computeIfAbsent(safeUrl(connectionString), url -> new AtomicLong());
         final long last = lastOfThisUrl.get();
         if (now - last >= STALL_WARNING_INTERVAL_MS && lastOfThisUrl.compareAndSet(last, now)) {
             logger.warn(LocalizableMessage.raw("%s", stallMessage(connectionString, attempts, now - startedAt, cause)));
@@ -825,24 +842,42 @@ public class CachedConnection implements Connection {
         return redacted;
     }
 
-    /** Whether anything in the chain of a failure names what a connection string keeps out of the log. */
+    /**
+     * Whether anything in the chain of a failure names what a connection string keeps out of the
+     * log. A chain longer than this walk is given answers "yes": what is reported unredacted is
+     * what this class has looked at whole, and a link it never reached is not that. The cost of
+     * being wrong that way is a chain rebuilt - bounded in its turn - while the cost of being
+     * wrong the other way is the password of the backend in the server error log.
+     */
     private static boolean holdsCredentials(Throwable failure, String connectionString) {
         final Deque<Throwable> pending = new ArrayDeque<>();
-        pending.add(failure);
-        for (int visited = 0; !pending.isEmpty() && visited < MAX_CHAIN_LENGTH; visited++) {
+        final Set<Throwable> visited = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
+        enqueue(pending, visited, failure);
+        for (int links = 0; !pending.isEmpty(); links++) {
+            if (links >= MAX_CHAIN_LENGTH) {
+                return true;
+            }
             final Throwable t = pending.poll();
             final String message = t.getMessage();
             if (message != null && !message.equals(redact(message, connectionString))) {
                 return true;
             }
-            if (t instanceof SQLException && ((SQLException) t).getNextException() != null) {
-                pending.add(((SQLException) t).getNextException());
+            if (t instanceof SQLException) {
+                enqueue(pending, visited, ((SQLException) t).getNextException());
             }
-            if (t.getCause() != null) {
-                pending.add(t.getCause());
-            }
+            enqueue(pending, visited, t.getCause());
         }
         return false;
+    }
+
+    // By identity rather than by equals(): a link of a chain carries a cause and a next exception
+    // both, and a driver is free to make the two the same failure. Enqueued twice, a chain of
+    // those fans out into a copy of itself at every step and spends the budget of a walk on links
+    // it has already looked at - five levels of one are enough to exhaust MAX_CHAIN_LENGTH.
+    private static void enqueue(Deque<Throwable> pending, Set<Throwable> visited, Throwable t) {
+        if (t != null && visited.add(t)) {
+            pending.add(t);
+        }
     }
 
     // The budget counts the links this rebuilds, the way holdsCredentials() counts the ones it
@@ -854,13 +889,22 @@ public class CachedConnection implements Connection {
         final SQLException copy =
             new SQLException(redact(e.getMessage(), connectionString), e.getSQLState(), e.getErrorCode());
         copy.setStackTrace(e.getStackTrace());
-        if (e.getNextException() != null && budget[0] > 0) {
-            copy.setNextException(redactedCopy(e.getNextException(), connectionString, budget));
+        if (e.getNextException() != null) {
+            copy.setNextException(budget[0] > 0
+                ? redactedCopy(e.getNextException(), connectionString, budget) : droppedTail());
         }
-        if (e.getCause() != null && budget[0] > 0) {
-            copy.initCause(redactedLink(e.getCause(), connectionString, budget));
+        if (e.getCause() != null) {
+            copy.initCause(budget[0] > 0 ? redactedLink(e.getCause(), connectionString, budget) : droppedTail());
         }
         return copy;
+    }
+
+    // What stands where the budget ran out. Without it the same failure logs its root cause when
+    // the url of the backend has no password in it and loses it without a word when it has, which
+    // is a report of a connect nobody can read against a report of one they can.
+    private static SQLException droppedTail() {
+        return new SQLException("the rest of this failure was left out: a chain of more than "
+            + MAX_CHAIN_LENGTH + " links is rebuilt only that far");
     }
 
     // A link that is no SQLException keeps its class name in the message: its type is not one this
@@ -873,8 +917,8 @@ public class CachedConnection implements Connection {
         final Throwable copy = new Throwable(t.getClass().getName()
             + (t.getMessage() == null ? "" : ": " + redact(t.getMessage(), connectionString)));
         copy.setStackTrace(t.getStackTrace());
-        if (t.getCause() != null && budget[0] > 0) {
-            copy.initCause(redactedLink(t.getCause(), connectionString, budget));
+        if (t.getCause() != null) {
+            copy.initCause(budget[0] > 0 ? redactedLink(t.getCause(), connectionString, budget) : droppedTail());
         }
         return copy;
     }
@@ -892,10 +936,35 @@ public class CachedConnection implements Connection {
             return message;
         }
         String redacted = message.replace(connectionString, safeUrl(connectionString));
+        // The parameter before the values: a password blanked here is one the loop below no longer
+        // finds, while the other way round a "<credentials hidden>" standing behind a "password="
+        // would be cut in half by a pattern that ends its value at the first space.
+        redacted = SECRET_PARAMETER.matcher(redacted).replaceAll("$1=***");
         for (final String secret : secretsOf(connectionString)) {
-            redacted = redacted.replace(secret, CREDENTIALS_HIDDEN);
+            redacted = secretPattern(secret).matcher(redacted)
+                .replaceAll(Matcher.quoteReplacement(CREDENTIALS_HIDDEN));
         }
-        return SECRET_PARAMETER.matcher(redacted).replaceAll("$1=***");
+        return redacted;
+    }
+
+    /**
+     * A secret as it is looked for in a message: the value itself, wherever it does not stand
+     * inside a longer run of letters and digits. A password is free to be one character long, and
+     * a bare one of those is a substring of half the lines a driver writes - a password of "1"
+     * takes "ORA-12541: TNS:no listener" apart into a line nobody can read, and it makes every
+     * failure of that backend one this class believes names the credentials, so the whole chain is
+     * rebuilt as well. A redaction that destroys the diagnostic it protects is the worse of the
+     * two failures. What a driver quotes back is a credential standing on its own - between the
+     * delimiters of a url, or in a sentence of its own - and that is still replaced.
+     */
+    private static Pattern secretPattern(String secret) {
+        final String before = isAlphanumeric(secret.charAt(0)) ? "(?<![A-Za-z0-9])" : "";
+        final String after = isAlphanumeric(secret.charAt(secret.length() - 1)) ? "(?![A-Za-z0-9])" : "";
+        return Pattern.compile(before + Pattern.quote(secret) + after);
+    }
+
+    private static boolean isAlphanumeric(char c) {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
     }
 
     /** What of a connection string must not stand in a message: the credentials safeUrl() takes out of it. */
@@ -1050,7 +1119,17 @@ public class CachedConnection implements Connection {
      */
     private static int startOfAuthority(String url, int scheme) {
         final int slashes = url.indexOf("//", scheme);
-        return slashes < 0 || url.lastIndexOf('@', slashes) >= scheme ? -1 : slashes + 2;
+        if (slashes < 0 || url.lastIndexOf('@', slashes) >= scheme) {
+            return -1;
+        }
+        // ... and so does a "/" in front of them: it is what separates the credentials of an
+        // oracle url ("thin:user/pw@..."), so a password holding a "//" of its own would start an
+        // authority inside itself. The "@" ending the credentials stands behind that point, the
+        // userinfo taken off is a piece of the password rather than the whole of it, and the "@"
+        // the guard of safeUrl() looks for is gone with it - leaving the user name and the head of
+        // the password in the message of a stall.
+        final int slash = url.indexOf('/', scheme);
+        return slash >= 0 && slash < slashes ? -1 : slashes + 2;
     }
 
     /**
