@@ -1444,6 +1444,42 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * A proof taken while the database was going away does not outlive the distrust that reported it.
+	 * <p>
+	 * The stamp stands for the moment the connection was asked, not the moment its answer was filed:
+	 * a validation is given {@link CachedConnection#VALIDATION_TIMEOUT_SECONDS}, and one that started
+	 * before another operation reported a drop and returned after it would otherwise be the younger of
+	 * the two. The connection would then be handed out unvalidated for the rest of the window - and
+	 * LIFO puts it at the head of the deque, so it is the very one the next borrow takes - by the
+	 * check that exists to stop exactly that.
+	 */
+	@Test(timeOut = 120000)
+	public void testAProofTakenWhileTheDatabaseWentAwayIsNotTrusted() throws Exception {
+		final String url = StubDriver.PREFIX + "proof-across-a-drop";
+		CachedConnection.aliveBypassNanos = TimeUnit.HOURS.toNanos(1); // nothing here ages out of the window
+		final AtomicInteger validations = new AtomicInteger();
+		final Connection parent = mock(Connection.class);
+		// the database goes away while this validation is in flight: another operation of the backend
+		// reports the drop of its own connection before this one has answered
+		when(parent.isValid(anyInt())).thenAnswer(invocation -> {
+			CachedConnection.distrustPool(url);
+			validations.incrementAndGet();
+			return true;
+		});
+		stub.answerWith(parent);
+
+		CachedConnection.getConnection(url).close(); // established and returned, proven by its login
+		CachedConnection.distrustPool(url);          // an operation reports a drop: what the pool holds predates it
+		CachedConnection.getConnection(url).close(); // validated, and a second drop is reported while it is
+
+		final Connection borrowed = CachedConnection.getConnection(url);
+
+		assertEquals(validations.get(), 2,
+			"a connection was trusted on a proof that started before the drop it is compared against");
+		assertSame(((CachedConnection) borrowed).parent, parent, "the connection answered and was still discarded");
+	}
+
+	/**
 	 * The pool hands out the connection returned last. Without it the window would rarely apply: a
 	 * connection reached only after a whole cycle of the pool has been idle far longer than it.
 	 */
@@ -1586,10 +1622,11 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
-	 * The window is clamped to the idle time the pool keeps a connection for: a value the unit
-	 * conversion saturates on would leave every connection of the pool trusted for the life of the
-	 * server, and one longer than the pool holds a connection is a window the pool can never back -
-	 * the connection it was meant for is gone before it closes.
+	 * The window is clamped twice: to the idle time the pool keeps a connection for, since a window
+	 * longer than that is one the pool can never back - the connection it was meant for is gone
+	 * before it closes - and to {@link CachedConnection#MAX_ALIVE_BYPASS_MS} behind it, since the
+	 * ttl has no upper bound of its own and a value the unit conversion saturates on would leave
+	 * every connection of the pool trusted for the life of the server.
 	 * <p>
 	 * About the value the class settles on at initialization: the field the pool reads is assigned
 	 * once, so a ttl set after that changes neither it nor the idle time it was clamped to.
@@ -1605,6 +1642,14 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 		System.setProperty(CachedConnection.TTL_PROPERTY, "100");
 		assertEquals(CachedConnection.getAliveBypassMillis(), 100L, "the clamp is the configured ttl, not the default");
+
+		// the ttl has no upper bound of its own, so the clamp to it does not bound the window either: both set
+		// to a value the conversion to nanoseconds saturates on would leave every connection of the pool
+		// trusted for the life of the server, which is the outcome this javadoc says the clamp rules out
+		System.setProperty(CachedConnection.TTL_PROPERTY, Long.toString(Long.MAX_VALUE));
+		System.setProperty(CachedConnection.ALIVE_BYPASS_PROPERTY, Long.toString(Long.MAX_VALUE));
+		assertEquals(CachedConnection.getAliveBypassMillis(), CachedConnection.MAX_ALIVE_BYPASS_MS,
+			"a window the ttl did not bound was left to saturate");
 	}
 
 	/**

@@ -72,6 +72,20 @@ public class CachedConnection implements Connection {
     static final String ALIVE_BYPASS_PROPERTY = "org.openidentityplatform.opendj.jdbc.alive.bypass";
     static final long DEFAULT_ALIVE_BYPASS_MS = 500;
 
+    /**
+     * The longest window this class uses, whatever {@value #ALIVE_BYPASS_PROPERTY} and the
+     * {@value #TTL_PROPERTY} it is clamped to say. The clamp to the ttl alone does not bound it:
+     * the ttl has no upper bound of its own, and with both set high enough the conversion to
+     * nanoseconds saturates - the window then outlasts every reading it is compared against, and
+     * no connection of the pool is ever validated again. An hour is already far past what this
+     * window is about, which is a connection that answered a moment ago.
+     * <p>
+     * A compile-time constant, so that it holds its value wherever it is read from: the initializer
+     * of {@link #aliveBypassNanos} reaches it, and a field initialized in declaration order would
+     * still be 0 there if it were ever moved below (JLS 12.4.2).
+     */
+    static final long MAX_ALIVE_BYPASS_MS = 60 * 60 * 1000L;
+
     // Read once, at class initialization: every operation of this backend borrows a connection,
     // and the borrow is not the place to parse a system property. Not final so that a test can
     // vary the window without a class loader of its own, and volatile because a non-final static
@@ -194,17 +208,18 @@ public class CachedConnection implements Connection {
 
     /**
      * Returns the alive window, clamped to the {@value #TTL_PROPERTY} an idle pooled connection is
-     * kept for. Both of the timeouts this property sits next to are clamped as well: a value the
-     * unit conversion saturates on would leave every connection of the pool trusted for the life
-     * of the server, and one longer than the pool keeps a connection is a window the pool cannot
-     * back - it goes on trusting the last answer of a connection past the point the pool would
-     * have closed and replaced it, which is a claim about a connection that is no longer there.
+     * kept for and to {@link #MAX_ALIVE_BYPASS_MS} behind it. A window longer than the ttl is one
+     * the pool cannot back: it goes on trusting the last answer of a connection past the point the
+     * pool would have closed and replaced it, which is a claim about a connection that is no longer
+     * there. The ttl has no upper bound of its own, though, so the second clamp is what keeps a
+     * value the unit conversion saturates on from leaving every connection of the pool trusted for
+     * the life of the server.
      * <p>
      * Read at class initialization, like the ttl it is clamped to, so a value set after that
      * changes neither.
      */
     static long getAliveBypassMillis() {
-        final long configured = getNonNegativeProperty(ALIVE_BYPASS_PROPERTY, DEFAULT_ALIVE_BYPASS_MS, "ms");
+        long configured = getNonNegativeProperty(ALIVE_BYPASS_PROPERTY, DEFAULT_ALIVE_BYPASS_MS, "ms");
         final long ttl = getCacheTtlMillis();
         if (configured > ttl) {
             warnOnce(ALIVE_BYPASS_PROPERTY + "=" + configured + ">" + ttl,
@@ -212,7 +227,15 @@ public class CachedConnection implements Connection {
                     + " and is used as %d ms: a connection trusted for longer than the pool keeps it would"
                     + " be trusted past the point the pool closed it",
                 ALIVE_BYPASS_PROPERTY, configured, ttl, TTL_PROPERTY, ttl);
-            return ttl;
+            configured = ttl;
+        }
+        if (configured > MAX_ALIVE_BYPASS_MS) { // the ttl it was just clamped to has no upper bound of its own
+            warnOnce(ALIVE_BYPASS_PROPERTY + ">" + MAX_ALIVE_BYPASS_MS,
+                "The %s window of %d ms is longer than the %d ms this pool trusts a connection for at most,"
+                    + " and is used as %d ms: a longer one saturates the arithmetic it is compared in and"
+                    + " leaves every connection of the pool trusted for the life of the server",
+                ALIVE_BYPASS_PROPERTY, configured, MAX_ALIVE_BYPASS_MS, MAX_ALIVE_BYPASS_MS);
+            return MAX_ALIVE_BYPASS_MS;
         }
         return configured;
     }
@@ -564,6 +587,12 @@ public class CachedConnection implements Connection {
      * and the stamp would prove nothing, while marking a connection the database may have dropped
      * as the freshest one in the pool. Stamping proof rather than use makes the window mean
      * "validated at most once per window", which is a claim this class can always back.
+     * <p>
+     * It stands for the moment the connection was <em>asked</em>, not the moment its answer was
+     * filed: {@link #distrustPool} is compared against it as an ordering of two moments, and a
+     * proof that took a second to arrive would otherwise outlive a drop reported while it was
+     * still in flight. Reading it early only ever ages the proof, which costs a validation and
+     * never skips one.
      */
     private volatile long lastKnownAliveNanos;
 
@@ -743,6 +772,12 @@ public class CachedConnection implements Connection {
             // avoid, and pooling it would hand out a connection carrying a bound of ours
             return false;
         }
+        // Read before the round trip rather than after it: this stamp is what distrustPool() is
+        // compared against, as an ordering of two moments. A validation is allowed
+        // VALIDATION_TIMEOUT_SECONDS, so a stamp filed once the answer is in can be younger than a
+        // drop another operation reported while it was still in flight - and the connection would
+        // then be trusted for the rest of the window by the very check that exists to stop it.
+        final long provenAt = System.nanoTime();
         boolean usable;
         try {
             usable = con.isValid(VALIDATION_TIMEOUT_SECONDS);
@@ -762,7 +797,7 @@ public class CachedConnection implements Connection {
                 "the connection is closed rather than pooled")) {
             return false; // it would carry the bound of the validation into every statement
         }
-        con.lastKnownAliveNanos = System.nanoTime();
+        con.lastKnownAliveNanos = provenAt;
         return true;
     }
 
@@ -871,6 +906,10 @@ public class CachedConnection implements Connection {
         final Properties properties = new Properties();
         final boolean readBoundSet = dialect != null && connectTimeoutSeconds > 0
             && dialect.bound(connectionString, properties, connectTimeoutSeconds);
+        // Read before the connect rather than after it, for the reason isUsable() reads it before
+        // the validation: the login answered somewhere inside this attempt, and a stamp taken once
+        // it returned could outlive a drop reported while it was still going on.
+        final long provenAt = System.nanoTime();
         final Connection conNew = DriverManager.getConnection(connectionString, properties);
         boolean poolable = true;
         try {
@@ -887,7 +926,9 @@ public class CachedConnection implements Connection {
             closeQuietly(conNew);
             throw e;
         }
-        return new CachedConnection(connectionString, conNew, poolable);
+        final CachedConnection established = new CachedConnection(connectionString, conNew, poolable);
+        established.lastKnownAliveNanos = provenAt;
+        return established;
     }
 
     // The second bound of the login is a socket read timeout on mysql, oracle and sql server, in

@@ -79,6 +79,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 */
 	private static final int MAX_CHAIN_LINKS = 64;
 
+	/** The budget of {@link #failureScope}, which walks to the end of the chains: see the comment above it. */
+	private static final int EVERY_LINK = Integer.MAX_VALUE;
+
 	/** SQL Server error number of the transaction picked as the deadlock victim: "Rerun the transaction". */
 	private static final int MSSQL_DEADLOCK_VICTIM = 1205;
 
@@ -617,45 +620,25 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		SESSION
 	}
 
-	// What a failed stamp says about trying again. Both chains of the failure are walked: a driver
-	// reports the vendor error of a rejected statement as the next exception of a generic one at
-	// least as often as it reports it as the cause, and reading only one of the two would classify
-	// a lock timeout as a rejection, which leaves the tree unstamped for the life of the backend
-	// over a moment of contention. Unbounded, unlike the walk of firstLinkMatching(): the seen set
-	// already terminates it, and the verdict this one returns weakens under truncation rather than
-	// simply going unnoticed - a SESSION past the budget would come back as TREE, which is what
-	// puts a tree in unstampableTrees for the life of the backend over a connection that broke.
+	// What a failed stamp says about trying again. Every chain of the failure is walked, by the walk
+	// every other classifier of this class uses: a driver reports the vendor error of a rejected
+	// statement as the next exception of a generic one at least as often as it reports it as the
+	// cause, the statement of a try-with-resources carries what its close() saw as a suppressed
+	// exception, and reading fewer of them than the others do would classify a connection that broke
+	// as a rejection - which leaves the tree unstamped for the life of the backend. Walked to its end
+	// rather than to MAX_CHAIN_LINKS: the seen set already terminates it, and the verdict weakens
+	// under truncation rather than simply going unnoticed - a SESSION past the budget would come back
+	// as TREE. The strongest verdict wins, so it is asked for in that order.
 	static FailureScope failureScope(Throwable failure, Dialect dialect) {
-		FailureScope scope=FailureScope.TREE;
-		final Deque<Throwable> pending=new ArrayDeque<>();
-		final Set<Throwable> seen=Collections.newSetFromMap(new IdentityHashMap<Throwable,Boolean>());
-		if (failure!=null) {
-			pending.push(failure);
+		if (firstLinkMatching(failure, WITH_THE_RELEASE, EVERY_LINK,
+				e -> scopeOf(e, dialect)==FailureScope.SESSION)!=null) {
+			return FailureScope.SESSION;
 		}
-		while (!pending.isEmpty()) {
-			final Throwable e=pending.pop();
-			if (!seen.add(e)) { // a driver that chains an exception back to itself must not loop this walk
-				continue;
-			}
-			if (e.getCause()!=null) {
-				pending.push(e.getCause());
-			}
-			if (!(e instanceof SQLException)) {
-				continue;
-			}
-			final SQLException sqlException=(SQLException) e;
-			if (sqlException.getNextException()!=null) {
-				pending.push(sqlException.getNextException());
-			}
-			final FailureScope found=scopeOf(sqlException, dialect);
-			if (found==FailureScope.SESSION) { // nothing further down either chain can weaken this one
-				return FailureScope.SESSION;
-			}
-			if (found==FailureScope.MOMENT) {
-				scope=FailureScope.MOMENT;
-			}
+		if (firstLinkMatching(failure, WITH_THE_RELEASE, EVERY_LINK,
+				e -> scopeOf(e, dialect)==FailureScope.MOMENT)!=null) {
+			return FailureScope.MOMENT;
 		}
-		return scope;
+		return FailureScope.TREE;
 	}
 
 	// What one exception of the chain says on its own.
@@ -970,7 +953,20 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				} finally { // the comment connection lives no longer than the trees it stamped, and no longer
 					// than the attempt that opened it: a replay stamps on a session of its own
 					partlyCommitted=txn.partlyCommitted;
-					txn.stampSession.close();
+					try {
+						txn.stampSession.close();
+					} catch (RuntimeException e) {
+						//the stamp is a diagnostic aid and must not become the outcome of the write: an unchecked
+						//throw out of a driver's close() would otherwise replace the failure being unwound (JLS
+						//14.20.2) - the very one the replay is decided on and the only one that says what went
+						//wrong - or turn a transaction that has just committed into a failure of its own
+						if (failure!=null) {
+							failure.addSuppressed(e);
+						} else {
+							logger.trace(LocalizableMessage.raw("jdbc: unable to close the comment connection: %s",
+									stackTraceToSingleLineString(e)));
+						}
+					}
 				}
 			} catch (Exception e) {
 				//anything the operation did not throw comes from around it - the name of the driver, the
@@ -1117,12 +1113,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 */
 	private static SQLException firstLinkMatching(Throwable failure, boolean withTheRelease,
 			Predicate<SQLException> matches) {
+		return firstLinkMatching(failure, withTheRelease, MAX_CHAIN_LINKS, matches);
+	}
+
+	/** The walk above, with the number of links it is allowed to look at. */
+	private static SQLException firstLinkMatching(Throwable failure, boolean withTheRelease, int links,
+			Predicate<SQLException> matches) {
 		final Deque<Throwable> pending=new ArrayDeque<>();
 		final Set<Throwable> seen=Collections.newSetFromMap(new IdentityHashMap<Throwable,Boolean>());
 		if (failure!=null) {
 			pending.push(failure);
 		}
-		while (!pending.isEmpty() && seen.size()<MAX_CHAIN_LINKS) {
+		while (!pending.isEmpty() && seen.size()<links) {
 			final Throwable e=pending.pop();
 			if (!seen.add(e)) { // a driver that chains an exception back to itself must not loop this walk
 				continue;
@@ -1241,7 +1243,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			named=firstLinkMatching(failure, WITH_THE_RELEASE, JDBCStorage::saysTheConnectionIsGone);
 		}
 		if (named==null) {
-			named=firstLinkMatching(failure, WITH_THE_RELEASE, e -> true);
+			// without the release, so that the line names the statement that failed rather than the rollback
+			// behind it: this is the fallback of a replay decided on isClosed(con) alone, where neither chain
+			// carries a verdict, and the walk reaches the suppressed exceptions before the cause
+			named=firstLinkMatching(failure, WITHOUT_THE_RELEASE, e -> true);
 		}
 		return named==null
 			? String.valueOf(failure)
@@ -1348,11 +1353,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * replay of {@link JDBCStorage#write}: what it did no longer rolls back as a whole, and a
 		 * {@link WriteOperation} is only idempotent in the database.
 		 * <p>
-		 * Raised immediately before each statement that commits rather than once for the method that may issue
-		 * one - a catalog read deciding that the statement is not needed commits nothing, and a transaction the
-		 * engine rolled back whole is still worth replaying. Before the statement rather than after its commit,
-		 * because mysql and oracle commit before a DDL statement whether asked to or not: the statement that
-		 * fails has committed everything before it just as surely as the one that succeeds.
+		 * Raised by {@link #commitStatement} alone, which is what every statement of this transaction that
+		 * commits goes through - never once for a method that may issue one: a catalog read deciding that the
+		 * statement is not needed commits nothing, and a transaction the engine rolled back whole is still worth
+		 * replaying. Which side of the statement the flag goes up on is the engine's answer, see there.
 		 */
 		boolean partlyCommitted;
 
@@ -1369,6 +1373,36 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (isReadOnly) {
 				throw new ReadOnlyStorageException();
 			}
+		}
+
+		/**
+		 * Issues a statement that ends in a commit, raising {@link #partlyCommitted} at the moment the attempt
+		 * stops rolling back as a whole.
+		 * <p>
+		 * mysql and oracle commit before a DDL statement whether asked to or not, so there the work behind it is
+		 * committed by the statement itself and the flag has to be up before it is issued: the statement that
+		 * fails has committed everything before it just as surely as the one that succeeds. postgresql and sql
+		 * server run DDL inside the transaction, and a DML statement commits of its own accord nowhere - one that
+		 * fails there has committed nothing, {@link JDBCStorage#write} rolls the attempt back whole, and a flag
+		 * raised in front of it would take a conflict the engine itself undid out of the replay. On those the
+		 * flag goes up in front of the commit instead, which is the call that leaves the outcome of the
+		 * transaction unknown when it fails.
+		 *
+		 * @param ddl whether the statement is a DDL one, which two of the four engines commit before
+		 */
+		private void commitStatement(String sql, boolean ddl) throws SQLException {
+			partlyCommitted|=ddl && commitsBeforeDdl();
+			try (final PreparedStatement statement=con.prepareStatement(sql)) {
+				execute(statement);
+				partlyCommitted=true; // a commit that fails leaves the outcome unknown, which is no more replayable
+				con.commit();
+			}
+		}
+
+		/** Whether this engine commits the transaction before a DDL statement whether asked to or not. */
+		private boolean commitsBeforeDdl() {
+			final String driverName=driverNameOf(con);
+			return driverName.contains("mysql") || driverName.contains("oracle");
 		}
 
 		boolean isExistsTable(TreeName treeName) {
@@ -1410,20 +1444,16 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		public void openTree(TreeName treeName, boolean createOnDemand) {
 			if (createOnDemand) {
 				checkReadOnly();
-				// Every statement below is a DDL that commits, and each raises partlyCommitted right
-				// before it is issued rather than once for the method: every one of them is guarded by a
+				// Every statement below is a DDL that commits, and each raises partlyCommitted through
+				// commitStatement() rather than once for the method: every one of them is guarded by a
 				// catalog read, so on an existing backend this method issues nothing at all. Raising the
 				// flag for a catalog read that commits nothing would make the whole attempt unreplayable -
 				// the conflict replay of #867 as much as the drop replay, since replayReason() reads the
 				// flag before it asks anything else - and RootContainer.open() opens every tree of every
 				// base DN in a single write, whose first act is one of these.
 				if (!isExistsTable(treeName)) {
-					// mysql and oracle commit before a DDL statement of their own accord, so the attempt
-					// stops being replayable at the statement rather than at the commit that follows it
-					partlyCommitted=true;
-					try (final PreparedStatement statement=con.prepareStatement("create table "+getTableName(treeName)+" ("+getTableDialect()+")")){
-						execute(statement);
-						con.commit();
+					try {
+						commitStatement("create table "+getTableName(treeName)+" ("+getTableDialect()+")", true);
 					}catch (SQLException e) {
 						throw new StorageRuntimeException(e);
 					}
@@ -1438,11 +1468,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 						// deployment - unguarded, it would take every write that opens a tree out of the
 						// conflict replay, RootContainer.open() and its ~25 trees per suffix included
 						if (!isExistsIndex(tableName,"k_"+tableName.substring("opendj_".length()))) {
-							partlyCommitted=true;
-							try (final PreparedStatement statement=con.prepareStatement("create index if not exists k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)")){
-								execute(statement);
-								con.commit();
-							}
+							commitStatement("create index if not exists k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)", true);
 						}
 					}catch (SQLException e) {
 						throw new StorageRuntimeException(e);
@@ -1450,11 +1476,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				}else if (driverName.contains("mysql")) {
 					try {
 						if (!isExistsIndex(tableName,"k_"+tableName.substring("opendj_".length()))) { // mysql has no "create index if not exists"
-							partlyCommitted=true;
-							try (final PreparedStatement statement=con.prepareStatement("create index k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)")){
-								execute(statement);
-								con.commit();
-							}
+							commitStatement("create index k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)", true);
 						}
 					}catch (SQLException e) {
 						throw new StorageRuntimeException(e);
@@ -1463,11 +1485,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					try {
 						// oracle has no "create index if not exists"; unquoted identifiers are stored in uppercase
 						if (!isExistsIndex(tableName.toUpperCase(),"k_"+tableName.substring("opendj_".length()))) {
-							partlyCommitted=true;
-							try (final PreparedStatement statement=con.prepareStatement("create index k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)")){
-								execute(statement);
-								con.commit();
-							}
+							commitStatement("create index k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)", true);
 						}
 					}catch (SQLException e) {
 						throw new StorageRuntimeException(e);
@@ -1494,10 +1512,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		
 		public void clearTree(TreeName treeName) {
 			checkReadOnly();
-			partlyCommitted=true; // it commits the delete, and everything the transaction did before it
-			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName))){
-				execute(statement);
-				con.commit();
+			try { // the commit takes the attempt out of the replay: it commits the delete, and everything before it
+				commitStatement("delete from "+getTableName(treeName), false);
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
@@ -1507,10 +1523,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		public void deleteTree(TreeName treeName) {
 			checkReadOnly();
 			if (isExistsTable(treeName)) {
-				partlyCommitted=true; // the drop commits, on the engines that do not commit before it anyway
-				try (final PreparedStatement statement = con.prepareStatement("drop table " + getTableName(treeName))) {
-					execute(statement);
-					con.commit();
+				try {
+					commitStatement("drop table " + getTableName(treeName), true);
 				} catch (SQLException e) {
 					throw new StorageRuntimeException(e);
 				}

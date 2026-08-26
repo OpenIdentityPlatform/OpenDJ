@@ -37,6 +37,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLRecoverableException;
+import java.sql.Statement;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,11 +46,14 @@ import java.util.logging.Logger;
 import static org.forgerock.i18n.LocalizableMessage.raw;
 import static org.forgerock.opendj.ldap.ResultCode.OTHER;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.startsWith;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -88,6 +92,24 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
 
   /** The statement a create of a test runs, so that a test can assert that it ran - or that it did not. */
   private PreparedStatement statements;
+
+  /** The connection behind the pool of a test, so that a test can assert the statement it was asked to prepare. */
+  private Connection engineConnection;
+
+  /**
+   * Connections whose class names carry the engine the way the drivers' own do - pgjdbc's
+   * {@code org.postgresql.jdbc.PgConnection}, Connector/J's {@code com.mysql.cj.jdbc.ConnectionImpl}. That name
+   * is what {@code driverNameOf()} matches an engine on, and the name of a mock is derived from the type it
+   * mocks, so a mock of plain {@link Connection} reaches no engine branch of {@code openTree()} at all. Lowercase
+   * because the match is case sensitive.
+   */
+  interface postgresConnection extends Connection
+  {
+  }
+
+  interface mysqlConnection extends Connection
+  {
+  }
 
   /** A failure whose cause chain is a cycle, to check that walking it terminates. */
   private static final class SelfCausedException extends RuntimeException
@@ -371,6 +393,28 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   {
     final String summary = JDBCStorage.conflictSummary(new StorageRuntimeException(sql(2627, "23000")), POSTGRES);
     assertTrue(summary.contains("23000"), summary);
+
+    // the fallback names the statement, not the rollback of the release behind it: this is where a replay
+    // decided on the closed flag of the connection alone lands - neither chain carries a verdict of its own -
+    // and the walk reaches the suppressed exceptions of a failure before its cause
+    final StorageRuntimeException killedSession = new StorageRuntimeException(sql(596, "S0001"));
+    killedSession.addSuppressed(sql(0, "25P02"));
+    final String decidedOnTheConnection = JDBCStorage.conflictSummary(killedSession, MSSQL);
+    assertTrue(decidedOnTheConnection.contains("S0001"), decidedOnTheConnection);
+    assertFalse(decidedOnTheConnection.contains("25P02"), decidedOnTheConnection);
+  }
+
+  /**
+   * The walk of a failure looks at a bounded number of links: mssql-jdbc chains every error of one message it
+   * received through {@code setNextException}, and a budget spent on those would never reach the cause a wrapper
+   * carries. Pinned from both sides - a drop on the last link of the budget is found and one link further is not
+   * - since a number nothing pins drifts unnoticed in either direction.
+   */
+  @Test
+  public void testTheWalkOfAFailureStopsAtItsBudget()
+  {
+    assertTrue(JDBCStorage.isConnectionFailure(chainEndingInADrop(64)), "a drop on the last link of the budget");
+    assertFalse(JDBCStorage.isConnectionFailure(chainEndingInADrop(65)), "a drop past the budget was walked to");
   }
 
   /**
@@ -506,8 +550,10 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       second.close();
 
       // from here the database has dropped the connection at the head of the pool: the operation is
-      // rejected for its own reasons, and the release that follows it is where the drop surfaces
-      doThrow(new SQLException("connection reset", "08006")).when(released).rollback();
+      // rejected for its own reasons, the rollback that unwinds the attempt goes through, and the release
+      // behind it is where the drop surfaces. Chained, so that the drop lands on the second rollback: an
+      // unchained stub fails the first one - the rollback of the attempt - and pins the sibling test above
+      doNothing().doThrow(new SQLException("connection reset", "08006")).when(released).rollback();
 
       final AtomicInteger attempts = new AtomicInteger();
       storage.write(txn -> {
@@ -518,12 +564,172 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       });
 
       assertEquals(attempts.get(), 2, "the drop suppressed into the failure was not replayed");
+      // the return to the pool that seeded it, the rollback of the attempt, and the release behind it - which
+      // is the one that reported, since the stub above lets the rollback of the attempt through
+      verify(released, times(3)).rollback();
+      // the distrust reached the pool from the release: the borrow of the replay validated instead of
+      // trusting the last answer of a connection established before the drop
       verify(pooled).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
     }
     finally
     {
       CachedConnection.aliveBypassNanos = window;
     }
+  }
+
+  /**
+   * A read is never replayed - two of the read operations of this server are not idempotent - but a drop it ran
+   * into still has to reach the pool, which has no other way of hearing of one: a borrow inside the window asks
+   * the database nothing, so the statement that broke is the only place the drop is ever seen. The release of
+   * the connection counts as such a statement: its rollback is the one round trip a read that found nothing
+   * makes.
+   */
+  @Test
+  public void testADropAReadRanIntoReachesThePool() throws Exception
+  {
+    final long window = CachedConnection.aliveBypassNanos;
+    CachedConnection.aliveBypassNanos = TimeUnit.HOURS.toNanos(1);
+    try
+    {
+      final Connection pooled = mock(Connection.class);
+      when(pooled.isValid(anyInt())).thenReturn(true);
+      final Connection released = mock(Connection.class);
+      when(released.isValid(anyInt())).thenReturn(true);
+
+      final JDBCStorage storage = storageOver(pooled, released);
+      final Connection first = storage.getConnection();
+      final Connection second = storage.getConnection();
+      first.close();
+      second.close();
+      // both are proven alive and inside the window: nothing has validated
+      verify(released, never()).isValid(anyInt());
+
+      // the read is rejected for its own reasons, and the release behind it - a read issues no rollback of its
+      // own - is where the connection the database dropped says so
+      doThrow(new SQLException("connection reset", "08006")).when(released).rollback();
+      try
+      {
+        storage.read(txn -> {
+          throw new StorageRuntimeException(sql(2627, "23000"));
+        });
+        fail("the failure of the read was swallowed");
+      }
+      catch (StorageRuntimeException expected)
+      {
+        assertTrue(JDBCStorage.isConnectionFailure(expected), "the drop of the release did not reach the failure");
+      }
+
+      storage.getConnection().close(); // the borrow that follows it validates instead of trusting
+
+      verify(pooled).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
+    }
+    finally
+    {
+      CachedConnection.aliveBypassNanos = window;
+    }
+  }
+
+  /**
+   * The create index of the postgres branch is asked of the catalog first, although postgresql has "create index
+   * if not exists": that statement commits whether it creates anything or not, and unguarded it would take every
+   * write that opens a tree out of the replay - {@code RootContainer.open()} and its ~25 trees per suffix
+   * included.
+   */
+  @Test
+  public void testThePostgresIndexIsAskedOfTheCatalogBeforeItIsCreated() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(postgresConnection.class, true);
+    final AtomicInteger attempts = new AtomicInteger();
+
+    storage.write(txn -> {
+      txn.openTree(TREE, true);
+      if (attempts.incrementAndGet() == 1)
+      {
+        throw new StorageRuntimeException(sql(0, "40001"));
+      }
+    });
+
+    assertEquals(attempts.get(), 2, "a transaction that committed nothing was not replayed");
+    verify(statements, never()).executeUpdate();
+  }
+
+  /**
+   * postgresql runs DDL inside the transaction, so a create index the engine rolled back has committed nothing:
+   * {@code write()} rolls the attempt back whole and replays it. Raising the flag in front of the statement -
+   * which is what mysql and oracle need, since they commit before a DDL of their own accord - would turn a
+   * deadlock the engine itself undid into a hard failure of the open.
+   */
+  @Test
+  public void testACreateIndexPostgresRolledBackLeavesTheAttemptReplayable() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(postgresConnection.class, false);
+    when(statements.executeUpdate()).thenThrow(sql(0, "40P01")).thenReturn(0);
+    final AtomicInteger attempts = new AtomicInteger();
+
+    storage.write(txn -> {
+      attempts.incrementAndGet();
+      txn.openTree(TREE, true);
+    });
+
+    assertEquals(attempts.get(), 2, "a create index the engine rolled back was not replayed");
+    verify(engineConnection, times(2)).prepareStatement(startsWith("create index if not exists k_"));
+  }
+
+  /**
+   * mysql commits before a DDL statement whether asked to or not, so a create index that failed there has
+   * committed everything the transaction did before it just as surely as one that succeeded: the attempt is out
+   * of the replay whatever the failure says.
+   */
+  @Test
+  public void testACreateIndexMysqlCommittedBeforeTakesTheAttemptOutOfTheReplay() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(mysqlConnection.class, false);
+    when(statements.executeUpdate()).thenThrow(sql(1213, "40001"));
+    final AtomicInteger attempts = new AtomicInteger();
+
+    try
+    {
+      storage.write(txn -> {
+        attempts.incrementAndGet();
+        txn.openTree(TREE, true);
+      });
+      fail("a transaction whose create index had committed before it was replayed");
+    }
+    catch (StorageRuntimeException expected)
+    {
+      assertTrue(JDBCStorage.isRetryableConflict(expected, MYSQL), "the conflict was not the failure raised");
+    }
+    assertEquals(attempts.get(), 1, "an attempt that committed part of its work was replayed");
+    verify(engineConnection).prepareStatement(startsWith("create index k_"));
+  }
+
+  /**
+   * The connection the tree names are stamped on is closed as the attempt is unwound, and an unchecked throw out
+   * of a driver's {@code close()} there would replace the exception being unwound (JLS 14.20.2) - the very one
+   * the replay is decided on, and the only one that says what went wrong. The stamp is a diagnostic aid: it is
+   * joined to the failure instead, and the replay goes ahead.
+   */
+  @Test
+  public void testAFailingCommentConnectionDoesNotReplaceTheFailureOfTheWrite() throws Exception
+  {
+    final Connection stamp = mock(Connection.class);
+    when(stamp.createStatement()).thenReturn(mock(Statement.class)); // the lock bound of the stamp session
+    // the readback of the stored comment fails, so the stamp is given up on - with its connection open
+    when(stamp.prepareStatement(anyString())).thenThrow(new SQLException("no readback in this test", "42000"));
+    doThrow(new IllegalStateException("the driver threw out of close()")).when(stamp).close();
+    final JDBCStorage storage = storageOverAnEngine(postgresConnection.class, true, stamp);
+    final AtomicInteger attempts = new AtomicInteger();
+
+    storage.write(txn -> {
+      txn.openTree(TREE, true); // opens the stamp session, which is closed as this attempt is unwound
+      if (attempts.incrementAndGet() == 1)
+      {
+        throw new StorageRuntimeException(sql(0, "40001"));
+      }
+    });
+
+    assertEquals(attempts.get(), 2, "the failure of the comment connection replaced the conflict being unwound");
+    verify(stamp).close();
   }
 
   @BeforeClass
@@ -563,6 +769,55 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     when(con.isValid(anyInt())).thenReturn(true);
     when(con.getMetaData()).thenReturn(metaData);
     when(con.prepareStatement(anyString())).thenReturn(statements);
+    return storage;
+  }
+
+  /**
+   * A storage whose pool hands out one connection of the given engine, over a catalog holding the table of
+   * {@link #TREE} and either holding its {@code k_} index or not. The index guard and the statement behind it
+   * are the branches {@code openTree()} takes per engine, and a mock of plain {@link Connection} reaches none
+   * of them - so the name the mock ends up with is asserted here rather than assumed.
+   */
+  private JDBCStorage storageOverAnEngine(Class<? extends Connection> engine, boolean theIndex,
+      Connection... behind) throws Exception
+  {
+    final Connection con = mock(engine);
+    final String engineName = engine.getSimpleName().replace("Connection", "");
+    assertTrue(JDBCStorage.driverNameOf(con).contains(engineName),
+        "a mock of " + engine.getSimpleName() + " reaches no " + engineName + " branch: "
+            + JDBCStorage.driverNameOf(con));
+    engineConnection = con;
+    // the connections behind it answer the connects the pool does not make: the stamp of a tree name opens one
+    // of its own, straight through the driver, since the caller of openTree() is holding a pooled connection
+    final Connection[] answers = new Connection[behind.length + 1];
+    answers[0] = con;
+    System.arraycopy(behind, 0, answers, 1, behind.length);
+    final JDBCStorage storage = storageOver(answers);
+
+    statements = mock(PreparedStatement.class);
+    final String tableName = storage.getTableName(TREE);
+    final DatabaseMetaData metaData = mock(DatabaseMetaData.class);
+    // a result set of its own per call, for the reason the catalog of the test above hands out one: a replayed
+    // attempt reading a result set the previous one had already walked to its end would find nothing there
+    when(metaData.getTables(any(), any(), any(), any())).thenAnswer(invocation -> {
+      final ResultSet tables = mock(ResultSet.class);
+      when(tables.next()).thenReturn(true, false);
+      when(tables.getString("TABLE_NAME")).thenReturn(tableName);
+      return tables;
+    });
+    when(metaData.getIndexInfo(any(), any(), any(), anyBoolean(), anyBoolean())).thenAnswer(invocation -> {
+      final ResultSet indexes = mock(ResultSet.class);
+      when(indexes.next()).thenReturn(theIndex, false);
+      when(indexes.getString("INDEX_NAME")).thenReturn("k_" + tableName.substring("opendj_".length()));
+      return indexes;
+    });
+
+    when(con.isValid(anyInt())).thenReturn(true);
+    when(con.getMetaData()).thenReturn(metaData);
+    when(con.prepareStatement(anyString())).thenReturn(statements);
+    // the tree name the sweep stamps the table with runs on a connection of its own and is a diagnostic aid: a
+    // failure of it only logs, and this fixture is about the index statement rather than about the comment
+    when(con.createStatement()).thenThrow(new SQLException("no session statement in this test", "42000"));
     return storage;
   }
 
@@ -654,6 +909,18 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   {
     first.setNextException(next);
     return first;
+  }
+
+  /** A chain of the given number of next exceptions whose last link is a connection that broke. */
+  private static SQLException chainEndingInADrop(int links)
+  {
+    final SQLException head = sql(2627, "23000");
+    SQLException tail = head;
+    for (int link = 2; link <= links; link++)
+    {
+      tail = chained(tail, sql(0, link == links ? "08006" : "23000")).getNextException();
+    }
+    return head;
   }
 
   /** The second failure suppressed into the first, the way a failing close() joins the failure of an operation. */
