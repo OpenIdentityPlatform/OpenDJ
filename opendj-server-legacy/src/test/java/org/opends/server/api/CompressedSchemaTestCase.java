@@ -242,6 +242,81 @@ public class CompressedSchemaTestCase extends APITestCase
   }
 
   /**
+   * The withdrawal has to take the element the failed registration appended, and only that one.
+   * On a decode map holding a single element every removal looks alike - index 0 is also the last
+   * index, and the sole element is also the one that was appended - so a withdrawal taking the
+   * wrong element is only visible once something was registered before the one that fails.
+   * <p>
+   * What it costs is this defect from the other end: removing an element the registration did not
+   * append shifts the ids of everything after it, and the entries already written carry them.
+   */
+  @Test
+  public void theAttributeWithdrawalTakesTheElementItAppended() throws Exception
+  {
+    final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+    final Attribute first = Attributes.create("description", "a value");
+    final Attribute second = Attributes.create("cn", "a value");
+    compressedSchema.encodeAttribute(new ByteStringBuilder(), first);
+
+    compressedSchema.failStore = true;
+    try
+    {
+      compressedSchema.encodeAttribute(new ByteStringBuilder(), second);
+      fail("the encode should have failed with the store");
+    }
+    catch (final DirectoryException expected)
+    {
+      // The operation fails, which is what the caller is told.
+    }
+
+    compressedSchema.failStore = false;
+    final ByteStringBuilder builder = new ByteStringBuilder();
+    compressedSchema.encodeAttribute(builder, second);
+    assertEquals(compressedSchema.attributeStoreCount, 3, "the failed registration was left behind");
+    assertEquals(tokenOf(builder.toByteString()), 1, "the withdrawn id was not allocated again");
+    assertEquals(compressedSchema.savedAttributeTokens(), Arrays.asList(0, 1),
+        "the whole content does not span the ids that were registered");
+    // The tokens alone do not separate a withdrawal of the last element from one of the first:
+    // both leave two elements behind, under the tokens 0 and 1. What they decode to does.
+    assertEquals(attributeNameAt(compressedSchema, 0), "description",
+        "the id registered before the failure decodes as another attribute");
+    assertEquals(attributeNameAt(compressedSchema, 1), "cn");
+  }
+
+  /** The same for an object class set. */
+  @Test
+  public void theObjectClassWithdrawalTakesTheElementItAppended() throws Exception
+  {
+    final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+    final Map<ObjectClass, String> first = objectClasses("top", "person");
+    final Map<ObjectClass, String> second = objectClasses("top", "organizationalUnit");
+    compressedSchema.encodeObjectClasses(new ByteStringBuilder(), first);
+
+    compressedSchema.failStore = true;
+    try
+    {
+      compressedSchema.encodeObjectClasses(new ByteStringBuilder(), second);
+      fail("the encode should have failed with the store");
+    }
+    catch (final DirectoryException expected)
+    {
+      // The operation fails, which is what the caller is told.
+    }
+
+    compressedSchema.failStore = false;
+    final ByteStringBuilder builder = new ByteStringBuilder();
+    compressedSchema.encodeObjectClasses(builder, second);
+    assertEquals(compressedSchema.objectClassStoreCount, 3, "the failed registration was left behind");
+    assertEquals(tokenOf(builder.toByteString()), 1, "the withdrawn id was not allocated again");
+    assertEquals(compressedSchema.savedObjectClassTokens(), Arrays.asList(0, 1),
+        "the whole content does not span the ids that were registered");
+    // As in theAttributeWithdrawalTakesTheElementItAppended().
+    assertEquals(objectClassesAt(compressedSchema, 0), first,
+        "the id registered before the failure decodes as another object class set");
+    assertEquals(objectClassesAt(compressedSchema, 1), second);
+  }
+
+  /**
    * The id of a registration reaches the encode map - the lock-free path an encode takes to it -
    * only once the definition is persisted, so that no other thread can write an entry carrying an
    * id that a failing store is about to withdraw.
@@ -314,6 +389,12 @@ public class CompressedSchemaTestCase extends APITestCase
    * this prove the encode reached the lock-free read of the encode map: a latch counted down
    * inside the task only proves the task body started, so a build that published an id before
    * storing it would be recorded as a pass whenever the thread was slow between the two.
+   * <p>
+   * Where the thread is parked is checked as well as that it is parked. A state on its own says
+   * nothing about what the thread waits for, and a build handing out an id before storing it
+   * parks nowhere: it takes the lock-free path, completes, and leaves the whole discrimination to
+   * a non-atomic isDone() sample - so any unrelated park, sampled in the instant before the task
+   * publishes its completion, would record that build as a pass.
    */
   private static void awaitParkedOnTheLock(final Future<Integer> encode, final AtomicReference<Thread> runningOn)
       throws Exception
@@ -326,17 +407,39 @@ public class CompressedSchemaTestCase extends APITestCase
         fail("the token was handed out before it was stored: " + encode.get());
       }
       final Thread thread = runningOn.get();
-      if (thread != null)
+      // WAITING alone: the exclusive lock is a ReentrantLock, which parks through LockSupport, so
+      // this is the state it puts a thread in. BLOCKED is monitor entry and cannot come from that
+      // lock at all - accepting it would admit only parks this test is not about.
+      if (thread != null && thread.getState() == Thread.State.WAITING && parkedOnTheLockOfAnId(thread))
       {
-        final Thread.State state = thread.getState();
-        if (state == Thread.State.WAITING || state == Thread.State.BLOCKED)
-        {
-          return;
-        }
+        return;
       }
       Thread.sleep(1);
     }
     fail("the concurrent encode never parked on the exclusive lock");
+  }
+
+  /**
+   * Returns whether the provided thread is parked on a lock taken on the way to an id of a
+   * compressed schema, rather than anywhere else - the executor parking its idle worker on the
+   * task queue is a park too, and so is a logger or a class initializer.
+   */
+  private static boolean parkedOnTheLockOfAnId(final Thread thread)
+  {
+    boolean parkedOnALock = false;
+    // The frames run from the park outwards, so the lock is seen before whoever is taking it.
+    for (final StackTraceElement frame : thread.getStackTrace())
+    {
+      if (frame.getClassName().startsWith("java.util.concurrent.locks."))
+      {
+        parkedOnALock = true;
+      }
+      else if (parkedOnALock && CompressedSchema.class.getName().equals(frame.getClassName()))
+      {
+        return "getAttributeId".equals(frame.getMethodName()) || "getObjectClassId".equals(frame.getMethodName());
+      }
+    }
+    return false;
   }
 
   private static Callable<Integer> encoding(final CompressedSchema compressedSchema, final Attribute attribute,
@@ -418,6 +521,109 @@ public class CompressedSchemaTestCase extends APITestCase
     }
   }
 
+  /**
+   * A record the token cannot even be read from - it ends inside the token, or the length of the
+   * token names more bytes than the record holds - is reported like a token no definition was
+   * stored for. The read is what precedes the lookup, so leaving it unguarded would let the
+   * decode path of a {@code PublicAPI} class raise NegativeArraySizeException or
+   * IndexOutOfBoundsException at a caller written for DirectoryException.
+   */
+  @Test
+  public void aTokenThatCannotBeReadIsReported() throws Exception
+  {
+    final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+    for (final ByteString unreadable : unreadableTokens())
+    {
+      try
+      {
+        compressedSchema.decodeAttribute(unreadable.asReader());
+        fail("the token of " + unreadable + " cannot be read and should have been reported");
+      }
+      catch (final DirectoryException expected)
+      {
+        assertMessageIs(expected, ERR_COMPRESSEDSCHEMA_UNREADABLE_AD_TOKEN.get(unreadable),
+            "the unreadable token " + unreadable);
+      }
+
+      try
+      {
+        compressedSchema.decodeObjectClasses(unreadable.asReader());
+        fail("the token of " + unreadable + " cannot be read and should have been reported");
+      }
+      catch (final DirectoryException expected)
+      {
+        assertMessageIs(expected, ERR_COMPRESSEDSCHEMA_UNREADABLE_OC_TOKEN.get(unreadable),
+            "the unreadable token " + unreadable);
+      }
+    }
+  }
+
+  /**
+   * A token padded past the four bytes an id is ever encoded in decodes to the same id as the
+   * canonical token of that id, because the decode folds whatever it is handed. A record carrying
+   * one would therefore read as a live definition rather than be reported, which is the one shape
+   * of a corrupt token that answers with data instead of an error.
+   */
+  @Test
+  public void anOverlongTokenIsNotDecodedAsTheIdItPadsTo() throws Exception
+  {
+    final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+    compressedSchema.loadAttributeAt(2, "description");
+    compressedSchema.loadObjectClassesAt(2, Arrays.asList("top", "person"));
+
+    // The canonical token of the id 2 is 0x03, and this is that value padded to five bytes.
+    final byte[] padded = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x03 };
+    try
+    {
+      compressedSchema.decodeAttribute(recordWithToken(padded, true).asReader());
+      fail("the token is longer than an id is ever encoded in and should have been reported");
+    }
+    catch (final DirectoryException expected)
+    {
+      assertMessageIs(expected, ERR_COMPRESSEDSCHEMA_UNREADABLE_AD_TOKEN.get("padded"), "the overlong token");
+    }
+
+    try
+    {
+      compressedSchema.decodeObjectClasses(recordWithToken(padded, false).asReader());
+      fail("the token is longer than an id is ever encoded in and should have been reported");
+    }
+    catch (final DirectoryException expected)
+    {
+      assertMessageIs(expected, ERR_COMPRESSEDSCHEMA_UNREADABLE_OC_TOKEN.get("padded"), "the overlong token");
+    }
+  }
+
+  /** A record carrying the provided token, with a single value where an attribute is asked for. */
+  private static ByteString recordWithToken(final byte[] idBytes, final boolean withAValue)
+  {
+    final ByteStringBuilder builder = new ByteStringBuilder();
+    builder.appendBERLength(idBytes.length);
+    builder.appendBytes(idBytes);
+    if (withAValue)
+    {
+      builder.appendBERLength(1);
+      builder.appendBERLength(1);
+      builder.appendBytes(new byte[] { 'x' });
+    }
+    return builder.toByteString();
+  }
+
+  /** Records a decode path cannot read a token from, as a corrupt or truncated store holds them. */
+  private static List<ByteString> unreadableTokens()
+  {
+    return Arrays.asList(
+        // The record ends before the length of the token.
+        ByteString.empty(),
+        // The length names one byte the record does not hold.
+        ByteString.wrap(new byte[] { 0x01 }),
+        // A four byte length composing to 0xFFFFFFFF, which is -1 as an int.
+        ByteString.wrap(new byte[] { (byte) 0x84, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF }),
+        // A four byte length of 0x7FFFFFFF: two gigabytes, which must not be allocated to find
+        // out that the record does not hold them.
+        ByteString.wrap(new byte[] { (byte) 0x84, 0x7F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF }));
+  }
+
   private static void assertAttributeTokenIsReported(final TestCompressedSchema compressedSchema,
       final int unknownToken) throws Exception
   {
@@ -430,7 +636,9 @@ public class CompressedSchemaTestCase extends APITestCase
     {
       // Reported as the unknown token it is, and named as such: nothing else in this decode path
       // is allowed to answer for a token, and the message the operator gets is what says which.
-      assertMessageIs(expected, ERR_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN.get(unknownToken), unknownToken);
+      assertMessageIs(expected, ERR_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN.get(unknownToken),
+          "the token " + unknownToken);
+      assertTokenIsNamed(expected, unknownToken);
     }
   }
 
@@ -444,18 +652,35 @@ public class CompressedSchemaTestCase extends APITestCase
     }
     catch (final DirectoryException expected)
     {
-      assertMessageIs(expected, ERR_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN.get(unknownToken), unknownToken);
+      assertMessageIs(expected, ERR_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN.get(unknownToken),
+          "the token " + unknownToken);
+      assertTokenIsNamed(expected, unknownToken);
     }
   }
 
   /** Asserts that the exception carries the expected message, by resource and id rather than text. */
   private static void assertMessageIs(final DirectoryException reported, final LocalizableMessage expected,
-      final int unknownToken)
+      final String context)
   {
     final LocalizableMessage message = reported.getMessageObject();
     assertEquals(message.resourceName() + "-" + message.ordinal(),
         expected.resourceName() + "-" + expected.ordinal(),
-        "the token " + unknownToken + " was reported as something else: " + message);
+        context + " was reported as something else: " + message);
+  }
+
+  /**
+   * Asserts that the message names the token the way an operator has to read it: the key the
+   * storage holds, with the id it decodes to. Asserted on the text, because comparing two
+   * messages by resource and ordinal says nothing about the arguments they carry - the accessors
+   * take an Object, so the id this test passes and the rendering production passes do not differ
+   * at compile time either, and a rendering returning an empty string would keep the suite green.
+   */
+  private static void assertTokenIsNamed(final DirectoryException reported, final int unknownToken)
+  {
+    final String named = String.format("0x%02X (id %d)", (unknownToken + 1) & 0xFF, unknownToken);
+    final LocalizableMessage message = reported.getMessageObject();
+    assertTrue(message.toString().contains(named),
+        "the token is not named as the storage holds it, expected " + named + " in: " + message);
   }
 
   /**
@@ -510,6 +735,20 @@ public class CompressedSchemaTestCase extends APITestCase
     // The whole content is still saveable, which is how DefaultCompressedSchema persists a store.
     assertEquals(compressedSchema.savedAttributeTokens(), Arrays.asList(2, 3));
     assertEquals(compressedSchema.savedObjectClassTokens(), Arrays.asList(2, 3));
+  }
+
+  /** The attribute the provided token decodes to, named as the schema names it. */
+  private static String attributeNameAt(final TestCompressedSchema compressedSchema, final int id) throws Exception
+  {
+    return compressedSchema.decodeAttribute(encodedAttribute(id).asReader())
+        .getAttributeDescription().getAttributeType().getNameOrOID();
+  }
+
+  /** The object class set the provided token decodes to. */
+  private static Map<ObjectClass, String> objectClassesAt(final TestCompressedSchema compressedSchema, final int id)
+      throws Exception
+  {
+    return compressedSchema.decodeObjectClasses(encodedToken(id, new ByteStringBuilder()).asReader());
   }
 
   private static Map<ObjectClass, String> objectClasses(final String... names)

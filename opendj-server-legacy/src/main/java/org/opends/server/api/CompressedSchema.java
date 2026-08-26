@@ -35,6 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
@@ -88,6 +90,9 @@ public class CompressedSchema
       this.ocEncodeMap = new ConcurrentHashMap<>(ocEncodeMapSize);
     }
   }
+
+  /** The most bytes {@link #encodeId(int)} ever writes a schema element ID in. */
+  private static final int MAX_ID_BYTES = 4;
 
   private final ServerContext serverContext;
   /** Lock serializing all mutations (id registration and schema reload). */
@@ -210,7 +215,7 @@ public class CompressedSchema
       throws DirectoryException
   {
     // First decode the encoded attribute description id.
-    final byte[] adIdBytes = readIdBytes(reader);
+    final byte[] adIdBytes = readIdBytes(reader, ERR_COMPRESSEDSCHEMA_UNREADABLE_AD_TOKEN);
     final int adId = decodeId(adIdBytes);
 
     // Before returning the attribute, make sure that the attribute type is not stale.
@@ -302,7 +307,7 @@ public class CompressedSchema
       final ByteSequenceReader reader) throws DirectoryException
   {
     // First decode the encoded object class id.
-    final byte[] ocIdBytes = readIdBytes(reader);
+    final byte[] ocIdBytes = readIdBytes(reader, ERR_COMPRESSEDSCHEMA_UNREADABLE_OC_TOKEN);
     final int ocId = decodeId(ocIdBytes);
 
     // Before returning the object classes, make sure that none of them are stale.
@@ -383,11 +388,9 @@ public class CompressedSchema
    * the last element of the decode map when it has to be withdrawn. The lock is reentrant, so
    * that holds only while the store stays out of this compressed schema: an implementation of
    * {@link #storeAttribute(byte[], String, Iterable)} must re-enter neither the encode, the load
-   * nor the decode path of it. Encoding or loading appends to the same decode map, and the
-   * withdrawal would take back whatever was appended last; decoding rebuilds the mappings when
-   * the schema has changed, and the withdrawal would then take the element out of a map that has
-   * already been replaced - leaving it in the live one, which is what this method exists to
-   * prevent.
+   * nor the decode path of it, which its own javadoc says as well. That it did stay out is
+   * checked by {@link #withdraw(Mappings, List, int, Object)} rather than assumed, since removing
+   * an element this registration did not append is worse than the leak it withdraws.
    */
   private int registerAttribute(final Mappings mappings, final AttributeDescription ad) throws DirectoryException
   {
@@ -411,13 +414,55 @@ public class CompressedSchema
     {
       if (!registered)
       {
-        // Withdrawn, so that the next attempt allocates the id again and stores it. Removed by
-        // index, and by the index of the last element: every append is made under the exclusive
-        // lock, so this is still the element appended above, and no other id shifts.
-        mappings.adDecodeMap.remove(mappings.adDecodeMap.size() - 1);
+        withdraw(mappings, mappings.adDecodeMap, id, ad);
       }
     }
     return id;
+  }
+
+  /**
+   * Withdraws the element a failed registration appended, so that the next attempt allocates the
+   * id again and stores it. Removed by index, and by the index of the last element: every append
+   * is made under the exclusive lock, so this is still the element appended by the registration
+   * being withdrawn, and no other id shifts.
+   * <p>
+   * That the element is still there is checked rather than assumed, because the lock is
+   * reentrant: a store re-entering the encode or the load path appends to the same decode map,
+   * and one re-entering the decode path replaces the mappings altogether. Neither is allowed by
+   * the contract of {@link #storeAttribute(byte[], String, Iterable)}, and neither is withdrawn
+   * from here - removing an element this registration did not append shifts the ids of everything
+   * after it, and the entries already written carry them. The violation is reported instead, and
+   * the element is left where it is: the registration leaks, which is what this method exists to
+   * prevent, but no id already handed out starts decoding as something else.
+   * <p>
+   * Reported rather than thrown, because this runs while the failure of the store is on its way
+   * out: that failure is what the caller has to be told.
+   *
+   * @param mappings
+   *          The mappings the registration appended to.
+   * @param decodeMap
+   *          The decode map of {@code mappings} the element was appended to.
+   * @param appendedAt
+   *          The index the element was appended at, which is the id allocated to it.
+   * @param appended
+   *          The element that was appended.
+   */
+  private void withdraw(final Mappings mappings, final List<?> decodeMap, final int appendedAt,
+      final Object appended)
+  {
+    if (mappings == this.mappings
+        && decodeMap.size() == appendedAt + 1
+        && decodeMap.get(appendedAt) == appended)
+    {
+      decodeMap.remove(appendedAt);
+      return;
+    }
+    logger.error(LocalizableMessage.raw(
+        "The registration of the compressed schema id %s could not be withdrawn after its store failed, "
+            + "because the store re-entered the compressed schema it was called from: the id is now taken "
+            + "by a definition that was never persisted. This is a defect of %s, whose store must re-enter "
+            + "neither the encode, the load nor the decode path of the compressed schema.",
+        appendedAt, getClass().getName()));
   }
 
   /**
@@ -498,7 +543,7 @@ public class CompressedSchema
     {
       if (!registered)
       {
-        mappings.ocDecodeMap.remove(mappings.ocDecodeMap.size() - 1);
+        withdraw(mappings, mappings.ocDecodeMap, id, objectClasses);
       }
     }
     return id;
@@ -810,6 +855,17 @@ public class CompressedSchema
    * assume that this method is not being called by other threads. Note that
    * this method is not thread-safe with respect to
    * {@link #storeObjectClasses(byte[], Collection)}.
+   * <p>
+   * Called with the exclusive lock of this compressed schema held, and that lock is reentrant, so
+   * an implementation must re-enter neither the encode, the load nor the decode path of the
+   * compressed schema it belongs to. The registration being persisted has already been appended
+   * to the decode map - so that an implementation persisting the whole content rather than the
+   * element it is handed, as {@code DefaultCompressedSchema} does, has it - and is withdrawn from
+   * there if this method throws. Encoding or loading appends to the same decode map, and the
+   * withdrawal would take back whatever was appended last; decoding rebuilds the mappings when the
+   * schema has changed, and the withdrawal would then have to take the element out of a map that
+   * has already been replaced. Neither is withdrawn: the violation is reported and the
+   * registration is left behind, holding an id no definition was persisted under.
    *
    * @param encodedAttribute
    *          The encoded attribute description.
@@ -833,6 +889,17 @@ public class CompressedSchema
    * can assume that this method is not being called by other threads. Note that
    * this method is not thread-safe with respect to
    * {@link #storeAttribute(byte[], String, Iterable)}.
+   * <p>
+   * Called with the exclusive lock of this compressed schema held, and that lock is reentrant, so
+   * an implementation must re-enter neither the encode, the load nor the decode path of the
+   * compressed schema it belongs to. The registration being persisted has already been appended
+   * to the decode map - so that an implementation persisting the whole content rather than the
+   * element it is handed, as {@code DefaultCompressedSchema} does, has it - and is withdrawn from
+   * there if this method throws. Encoding or loading appends to the same decode map, and the
+   * withdrawal would take back whatever was appended last; decoding rebuilds the mappings when the
+   * schema has changed, and the withdrawal would then have to take the element out of a map that
+   * has already been replaced. Neither is withdrawn: the violation is reported and the
+   * registration is left behind, holding an id no definition was persisted under.
    *
    * @param encodedObjectClasses
    *          The encoded object classes.
@@ -866,17 +933,71 @@ public class CompressedSchema
   }
 
   /**
-   * Reads the encoded schema element ID at the current position.
+   * Reads the encoded schema element ID at the current position, reporting a record the ID cannot
+   * be read from rather than letting the read out of the decode path as an unchecked exception -
+   * for the same reason the lookup the ID feeds does not: the callers of a {@code @PublicAPI}
+   * decode path are written for {@link DirectoryException}.
    *
    * @param reader
    *          The byte string reader positioned on an encoded schema element ID.
+   * @param unreadableToken
+   *          The message reporting a token this decode path cannot read.
    * @return The encoded schema element ID, as the storage holds it.
+   * @throws DirectoryException
+   *           If the record holds no readable schema element ID at the current position.
    */
-  private static byte[] readIdBytes(final ByteSequenceReader reader)
+  private static byte[] readIdBytes(final ByteSequenceReader reader,
+      final LocalizableMessageDescriptor.Arg1<Object> unreadableToken) throws DirectoryException
   {
-    final byte[] idBytes = new byte[reader.readBERLength()];
+    final int length;
+    try
+    {
+      length = reader.readBERLength();
+    }
+    catch (final IndexOutOfBoundsException e)
+    {
+      // Both of the conditions readBERLength() reports this way: the record ends inside the
+      // length itself, and a length header naming more than the four bytes a length is written in.
+      throw unreadable(unreadableToken,
+          "the record ends inside the length of the token, or that length names more than four bytes", e);
+    }
+    if (length < 0 || length > MAX_ID_BYTES)
+    {
+      // The length is composed from up to four bytes unsigned, so a corrupt record can name a
+      // negative count - 0xFFFFFFFF - or more bytes than an id is ever written in. The upper
+      // bound is what encodeId() emits, and it is not only a sanity check: decodeId() folds
+      // whatever it is handed, so a token padded with leading zeros decodes to the id its
+      // canonical token addresses, and a record carrying one would read as a live definition
+      // instead of being reported. Checked before the array is allocated, too - a length of
+      // 0x7FFFFFFF is a two gigabyte allocation no reader of a corrupt record should attempt.
+      throw unreadable(unreadableToken, "the token names " + (length & 0xFFFFFFFFL)
+          + " bytes, and an id is never encoded in more than " + MAX_ID_BYTES, null);
+    }
+    if (length > reader.remaining())
+    {
+      throw unreadable(unreadableToken,
+          "the token names " + length + " bytes and the record holds " + reader.remaining(), null);
+    }
+    final byte[] idBytes = new byte[length];
     reader.readBytes(idBytes);
     return idBytes;
+  }
+
+  /**
+   * Returns the exception reporting a token this decode path cannot read, tracing what the read
+   * raised where it raised anything: the callers of this path convert an exception of their own
+   * into a message, and where the record went wrong is worth keeping for a corrupt store.
+   */
+  private static DirectoryException unreadable(
+      final LocalizableMessageDescriptor.Arg1<Object> unreadableToken, final String reason,
+      final RuntimeException cause)
+  {
+    if (cause != null)
+    {
+      logger.traceException(cause);
+    }
+    return new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+        unreadableToken.get(reason), cause);
   }
 
   /**
