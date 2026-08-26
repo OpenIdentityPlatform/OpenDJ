@@ -251,9 +251,34 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	 * arrives wrapped in whatever the storage throws to its caller.
 	 */
 	private static boolean namesTheBound(Throwable failure, JDBCStorage.StatementBound bound) {
-		for (Throwable t = failure; t != null && t != t.getCause(); t = t.getCause()) {
-			if (t.getMessage() != null && t.getMessage().contains(bound.property)) {
+		return namedInTheChain(failure, bound.property);
+	}
+
+	/**
+	 * Whether the statement ran under the socket read timeout alone, which is what
+	 * {@code timedOut()} says of one whose driver would not take the cancel. That degradation is by
+	 * design - {@code JDBCStorage.setQueryTimeout()} warns once and carries on - and it is
+	 * therefore silent: with a ceiling wide enough for the second layer, a run with the first one
+	 * gone entirely ends at the backstop and passes as the bound doing its work.
+	 */
+	private static boolean ranUnderTheBackstopAlone(Throwable failure) {
+		return namedInTheChain(failure, JDBCStorage.BACKSTOP_ALONE);
+	}
+
+	/** Cause hops walked below, as {@code JDBCStorage} bounds its own classifier: a guard against a cycle. */
+	private static final int MAX_CAUSE_HOPS = 16;
+
+	private static boolean namedInTheChain(Throwable failure, String text) {
+		// bounded by hops rather than by t != t.getCause(), which only catches a cause that is its
+		// own: a wrapper re-attaching an exception it has already wrapped makes a cycle of two, and
+		// walking that one spins until the harness times the whole suite out
+		Throwable t = failure;
+		for (int hops = 0; t != null && hops < MAX_CAUSE_HOPS; t = t.getCause(), hops++) {
+			if (t.getMessage() != null && t.getMessage().contains(text)) {
 				return true;
+			}
+			if (t == t.getCause()) {
+				break;
 			}
 		}
 		return false;
@@ -312,6 +337,15 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					// classifies as reaching the bound.
 					assertTrue(namesTheBound(failure, bound), "gave up with " + stackTraceToSingleLineString(failure)
 						+ ", which does not name " + bound.property);
+					// And under the layer it is supposed to be under. The ceiling below has to be
+					// wide enough for the second one, since that is what ends the wait on oracle,
+					// and a ceiling that wide cannot tell a working first layer from a missing one:
+					// a driver that stops taking setQueryTimeout degrades to the backstop silently
+					// by design, ends there, and would be scored as the bound doing its work. The
+					// message says which layer it was, so this assertion can too.
+					assertFalse(ranUnderTheBackstopAlone(failure), "the driver would not take a query timeout, so "
+						+ "the statement ran under the socket read timeout alone: "
+						+ stackTraceToSingleLineString(failure));
 					// And it has to arrive at the bound rather than at something else that happens to
 					// end the wait inside a generous ceiling: with the bound deleted, mysql would still
 					// come back after its own innodb_lock_wait_timeout of 50 s, and the assertion has
@@ -332,7 +366,15 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					assertTrue(elapsed < ceilingSeconds * 1000L, "gave up only after " + elapsed + " ms, past the "
 						+ ceilingSeconds + " s this bound of " + boundSeconds + " s allows");
 				}finally {
-					blocker.rollback();
+					// in a catch of its own: a rollback that throws would otherwise replace the
+					// assertion above, and the run would report an unrelated connection problem
+					// instead of the bound that was missed. Nothing is lost by swallowing it - a
+					// session that cannot roll back has no rows left locked either.
+					try {
+						blocker.rollback();
+					} catch (SQLException releasingTheRows) {
+						// the assertions above are the outcome of this test, not this
+					}
 				}
 			}
 		} finally {

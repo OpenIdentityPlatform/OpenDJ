@@ -100,7 +100,7 @@ class VerifyJob
   /** The DN tree. */
   DN2ID dn2id;
   /** The children tree. */
-  private ID2ChildrenCount id2childrenCount;
+  ID2ChildrenCount id2childrenCount;
 
   /** A list of the attribute indexes to be verified. */
   private final ArrayList<AttributeIndex> attrIndexList = new ArrayList<>();
@@ -519,7 +519,10 @@ class VerifyJob
 
   private void verifyID2ChildrenCount(ReadableTransaction txn, ChildrenCount parent) {
     final long expected = parent.numberOfChildren;
-    final long currentValue = id2childrenCount.getCount(txn, parent.entryID);
+    // Part of the walk of dn2id above, and bounded as one: this runs once per DN of the tree, so
+    // reading it as a client operation would put the bound of an entry read over a read of a
+    // backend nobody is waiting on - which on the JDBC backend aborts a verify of a large one.
+    final long currentValue = id2childrenCount.getCount(txn, parent.entryID, true);
     if (expected != currentValue)
     {
       errorCount++;

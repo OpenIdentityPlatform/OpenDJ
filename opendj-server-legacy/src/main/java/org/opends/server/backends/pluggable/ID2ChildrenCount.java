@@ -58,9 +58,9 @@ final class ID2ChildrenCount extends AbstractTree
   }
 
   /**
-   * The only cursor over the children counts: {@code verify-index} walks the tree whole and no client
-   * operation opens one at all, so a walk of it cannot be given the bound of an operation by
-   * accident - there is no longer an overload of this method that would.
+   * Walks the children counts whole, which {@code verify-index} does and no client operation does:
+   * there is no overload of this method that would take the bound of an operation by accident.
+   * Reading the count of a single entry is another matter - see {@link #getCount}.
    *
    * @see ReadableTransaction#openBulkCursor(TreeName)
    */
@@ -148,7 +148,23 @@ final class ID2ChildrenCount extends AbstractTree
    */
   long getCount(ReadableTransaction txn, EntryID entryID)
   {
-    return counter.getCount(txn, toKey(entryID));
+    return getCount(txn, entryID, false);
+  }
+
+  /**
+   * Get the number of children for the given entry, as part of a walk of a whole tree rather than
+   * of a client operation. {@code verify-index} reads one of these per DN while it walks dn2id
+   * whole, and no client is waiting on any of them.
+   *
+   * @param txn storage transaction
+   * @param entryID The entryID identifying to the counter
+   * @param partOfAWholeTreeWalk whether this read belongs to a walk of a whole tree
+   * @return Value of the counter. 0 if no counter is associated yet.
+   * @see ReadableTransaction#openBulkCursor(TreeName)
+   */
+  long getCount(ReadableTransaction txn, EntryID entryID, boolean partOfAWholeTreeWalk)
+  {
+    return counter.getCount(txn, toKey(entryID), partOfAWholeTreeWalk);
   }
 
   /**

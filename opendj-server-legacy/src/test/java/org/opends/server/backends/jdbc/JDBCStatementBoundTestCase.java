@@ -23,9 +23,11 @@ import org.mockito.stubbing.Answer;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.backends.jdbc.JDBCStorage.StatementBound;
 import org.opends.server.backends.pluggable.spi.AccessMode;
+import org.opends.server.backends.pluggable.spi.ReadOnlyStorageException;
+import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.sql.Connection;
@@ -76,7 +78,15 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 
 	private JDBCStorage storage;
 
-	@BeforeClass
+	/**
+	 * A storage of its own for every test. Not merely tidy: a storage carries latches that are
+	 * meant to be one-shot for its whole life - the driver having no network timeout, and the
+	 * warnings for that and for a refused query timeout - so a test that trips one on a shared
+	 * instance would leave {@code applyBackstop()} returning at its first guard for every test
+	 * after it, turning their {@code verify(con, never())} assertions green on a run that reached
+	 * nothing. Constructing one costs a mock configuration and no connection at all.
+	 */
+	@BeforeMethod
 	public void createStorage() {
 		storage = new JDBCStorage(mockCfg(JDBCBackendCfg.class), null);
 	}
@@ -92,6 +102,26 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 
 	/** How long a test waits for a statement running on another thread before it fails. */
 	private static final long WAIT_MILLIS = 30000;
+
+	/**
+	 * A storage whose clock the test moves by hand. Whether a failure is the bound arriving turns
+	 * on a few milliseconds either side of it, and a sleep cannot pin that: a loaded box lengthens
+	 * one, so a test that oversleeps passes whether the slack under the bound exists or not - and
+	 * a bound of a second costs the suite a second of waiting to say so.
+	 */
+	private static final class SteppedClockStorage extends JDBCStorage {
+		/** Milliseconds since the statement under test started, as the classification will see it. */
+		volatile long millis;
+
+		SteppedClockStorage() {
+			super(mockCfg(JDBCBackendCfg.class), null);
+		}
+
+		@Override
+		long nanoTime() {
+			return millis * 1000000L;
+		}
+	}
 
 	private static void awaitOrFail(CountDownLatch latch, String what) throws InterruptedException {
 		assertTrue(latch.await(WAIT_MILLIS, TimeUnit.MILLISECONDS), what + " within " + WAIT_MILLIS + " ms");
@@ -462,20 +492,83 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 	@Test
 	public void testAFailureJustUnderTheBoundStillNamesTheProperty() throws Exception {
 		System.setProperty(StatementBound.OPERATION.property, "1");
+		final SteppedClockStorage clocked = new SteppedClockStorage();
 		final PreparedStatement statement = mock(PreparedStatement.class);
 		when(statement.executeUpdate()).thenAnswer(new Answer<Integer>() {
 			@Override
 			public Integer answer(InvocationOnMock invocation) throws Throwable {
-				Thread.sleep(1000 - JDBCStorage.CLOCK_SLACK_MILLIS / 2); // inside the slack, under the bound
+				// a literal, deliberately not derived from CLOCK_SLACK_MILLIS: a test computing its
+				// own input from the constant it pins follows that constant to zero and pins nothing
+				clocked.millis = 875; // 125 ms under the bound, inside a slack of 250
 				throw new SQLException("canceling statement due to user request", "57014", 0);
 			}
 		});
 
 		try {
-			storage.execute(statement);
+			clocked.execute(statement);
 			fail("the failure of the statement must reach the caller");
 		} catch (SQLTimeoutException e) {
 			assertTrue(e.getMessage().contains(StatementBound.OPERATION.property), e.getMessage());
+			// and the time it names is the one measured, so that this cannot pass on a clock that
+			// simply ran past the bound while the assertion above looked only at the message
+			assertTrue(e.getMessage().contains("875 ms"), e.getMessage());
+		}
+	}
+
+	/**
+	 * The other side of that slack, which is what keeps it a slack rather than a second bound: a
+	 * failure further under the bound than a driver's whole-second timer could account for is a
+	 * failure of its own, and the caller has to see it as one.
+	 */
+	@Test
+	public void testAFailureFurtherUnderTheBoundIsStillPassedThrough() throws Exception {
+		System.setProperty(StatementBound.OPERATION.property, "1");
+		final SteppedClockStorage clocked = new SteppedClockStorage();
+		final SQLException conflict = new SQLException("lock wait timeout exceeded", "40001", 1205);
+		final PreparedStatement statement = mock(PreparedStatement.class);
+		when(statement.executeUpdate()).thenAnswer(new Answer<Integer>() {
+			@Override
+			public Integer answer(InvocationOnMock invocation) throws Throwable {
+				clocked.millis = 749; // a millisecond further out than the slack of 250 reaches
+				throw conflict;
+			}
+		});
+
+		try {
+			clocked.execute(statement);
+			fail("the failure of the statement must reach the caller");
+		} catch (SQLException e) {
+			assertSame(e, conflict);
+		}
+	}
+
+	/**
+	 * A statement that neither layer bounded reaches its caller exactly as it is. Asking for the
+	 * second layer is not having it: a driver may have no network timeout at all, a connection may
+	 * refuse the call, one may already carry a timeout of a deployment's own, and a statement of an
+	 * unbounded class running beside this one takes the backstop off outright. A catalog lookup
+	 * takes no query timeout by construction, so with the backstop unarmed nothing ends its wait -
+	 * and the failure that finally does is the driver's own. Reported as the bound, it sent an
+	 * operator to raise a property that had bounded nothing about the wait they had just watched.
+	 */
+	@Test
+	public void testAFailureOfAStatementNeitherLayerBoundedIsPassedThrough() throws Exception {
+		System.setProperty(StatementBound.OPERATION.property, "1");
+		final SteppedClockStorage clocked = new SteppedClockStorage(); // its own, for its own latch
+		final Connection con = mock(Connection.class);
+		when(con.getNetworkTimeout()).thenReturn(0);
+		doThrow(new SQLFeatureNotSupportedException("no network timeout"))
+			.when(con).setNetworkTimeout(any(Executor.class), anyInt());
+		final SQLException reset = new SQLException("connection reset by peer", "08006", 0);
+
+		try {
+			clocked.bounded(con, StatementBound.OPERATION, () -> {
+				clocked.millis = 600000; // ten minutes on a metadata lock, with nothing to end it
+				throw reset;
+			});
+			fail("the failure of the lookup must reach the caller");
+		} catch (SQLException e) {
+			assertSame(e, reset, "a statement neither layer bounded was reported as having reached a bound");
 		}
 	}
 
@@ -664,7 +757,10 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 		System.setProperty(StatementBound.OPERATION.property, "7");
 		System.setProperty(StatementBound.BULK.property, "0");
 		final Connection parent = mock(Connection.class);
-		when(parent.getNetworkTimeout()).thenReturn(0); // no bound of its own
+		// a read timeout of a deployment's own, and deliberately not zero: restoring it and taking
+		// the backstop off are one and the same call when what came before was zero, and the
+		// assertions below would then hold whichever of the two the code did
+		when(parent.getNetworkTimeout()).thenReturn(90000);
 		final PreparedStatement statement = mock(PreparedStatement.class);
 		// the statement reports the connection it runs on, as CachedConnection.prepareStatement()
 		// has it: without this the import would be measured against the first layer alone, and the
@@ -685,7 +781,11 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 		final PreparedStatement operation = lingering(parent, running, mayFinish);
 		final Background entryRead = start("entry-read", () -> storage.execute(operation));
 		awaitOrFail(running, "the entry read never started");
-		verify(parent).setNetworkTimeout(any(Executor.class), eq((7 + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000));
+		// atLeastOnce, not the implicit times(1) of a bare verify: every statement of the import
+		// below takes the backstop off and its release arms it again while the entry read is still
+		// in flight, so this holds by where it stands in the method rather than by what it pins
+		verify(parent, atLeastOnce())
+			.setNetworkTimeout(any(Executor.class), eq((7 + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000));
 
 		importer.openCursor(tree).next();
 		importer.read(tree, ByteString.valueOfUtf8("key"));
@@ -693,8 +793,12 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 
 		verify(statement, never()).setQueryTimeout(anyInt());
 		// and none of them runs under the socket read timeout of the entry read beside it either:
-		// while that read is still in flight, the import takes the backstop off the connection
-		verify(parent, atLeastOnce()).setNetworkTimeout(any(Executor.class), eq(0));
+		// while that read is still in flight, the import takes the backstop off the connection,
+		// which is what putting the connection's own value back looks like
+		verify(parent, atLeastOnce()).setNetworkTimeout(any(Executor.class), eq(90000));
+		// and never a zero: nothing here has a zero to put back, so a run that reached this state
+		// by restoring one would be a run that read the previous value of another connection
+		verify(parent, never()).setNetworkTimeout(any(Executor.class), eq(0));
 
 		mayFinish.countDown();
 		entryRead.joinOrFail();
@@ -794,6 +898,102 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq((60 + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000));
 		inOrder.verify(statement).execute();
 		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq(0));
+	}
+
+	/**
+	 * A connection whose driver refuses the call mid-flight is given back what it carried before.
+	 * The entry holding that value is dropped as soon as the last statement on the connection is
+	 * through, so a backstop left armed goes back to the pool as the connection's own read timeout
+	 * - and the next borrower, which only ever tightens, reads it as the value of a deployment and
+	 * keeps it from then on, cutting a statement of an unbounded class at a bound it never had.
+	 */
+	@Test
+	public void testAConnectionThatFailedTheBackstopIsGivenBackWhatItCarried() throws Exception {
+		System.setProperty(StatementBound.OPERATION.property, "7");
+		System.setProperty(StatementBound.BULK.property, "100");
+		final Connection con = mock(Connection.class);
+		// a read timeout of a deployment's own, and looser than either bound in flight below: a
+		// tighter one is what the backstop declines to loosen, and it would put that value back
+		// instead of ever reaching the call that fails here
+		when(con.getNetworkTimeout()).thenReturn(200000);
+		// the arming of the tighter bound goes through, and the re-arm of the looser one does not
+		doThrow(new SQLException("the connection is closed", "08003", 0)).when(con)
+			.setNetworkTimeout(any(Executor.class), eq((100 + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000));
+		final CountDownLatch running = new CountDownLatch(1);
+		final CountDownLatch mayFinish = new CountDownLatch(1);
+		final PreparedStatement operation = lingering(con, running, mayFinish);
+		final PreparedStatement bulk = mock(PreparedStatement.class);
+		when(bulk.getConnection()).thenReturn(con);
+		when(bulk.executeUpdate()).thenReturn(1);
+
+		final Background entryRead = start("entry-read", () -> storage.execute(operation));
+		awaitOrFail(running, "the entry read never started");
+		assertEquals(storage.execute(bulk, StatementBound.BULK), 1); // its re-arm is what fails
+		mayFinish.countDown();
+		entryRead.joinOrFail();
+
+		final InOrder inOrder = inOrder(con);
+		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq((7 + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000));
+		inOrder.verify(con).setNetworkTimeout(any(Executor.class), eq(200000));
+	}
+
+	/**
+	 * The connection an import would have held goes back to the pool when the importer cannot be
+	 * built on it. That is a designed path rather than an accident: the transaction of a read-only
+	 * storage throws {@code ReadOnlyStorageException} in the constructor, and the connection
+	 * borrowed for the import - the one it keeps for its whole duration - was leaving the pool for
+	 * good there, with the transaction it had already begun.
+	 */
+	@Test
+	public void testStartImportGivesTheConnectionBackWhenTheImporterCannotBeBuilt() throws Exception {
+		final Connection con = mock(Connection.class);
+		final JDBCStorage readOnly = new JDBCStorage(mockCfg(JDBCBackendCfg.class), null) {
+			@Override
+			Connection getConnection() {
+				return con;
+			}
+
+			@Override
+			public StorageStatus getStorageStatus() {
+				return StorageStatus.working(); // open already, so that startImport() borrows and no more
+			}
+		};
+		readOnly.accessMode = AccessMode.READ_ONLY;
+
+		try {
+			readOnly.startImport();
+			fail("an import of a read-only storage must not be handed an importer");
+		} catch (ReadOnlyStorageException expected) {
+			// the designed path this test is about
+		}
+
+		verify(con).close();
+	}
+
+	/**
+	 * A row whose {@code v} is null is a row that exists, and reading it has to fail rather than
+	 * report the key as absent - which is what {@code read()} of the same row does. Reading the
+	 * rows inside the bound had turned the value into a raw {@code byte[]} on the way out of the
+	 * handler, and null then stood in for both.
+	 */
+	@Test
+	public void testARowWithoutAValueFailsRatherThanReportingTheKeyAsAbsent() throws Exception {
+		final ResultSet rows = mock(ResultSet.class);
+		when(rows.next()).thenReturn(true);
+		when(rows.getBytes("v")).thenReturn(null); // the schema allows it, however this backend writes
+		final PreparedStatement statement = mock(PreparedStatement.class);
+		when(statement.executeQuery()).thenReturn(rows);
+		final Connection parent = mock(Connection.class);
+		when(parent.prepareStatement(anyString())).thenReturn(statement);
+		final JDBCStorage.CursorImpl cursor = storage.new CursorImpl(true, new CachedConnection("jdbc:mock", parent),
+			new TreeName("dc=example,dc=com", "id2entry"), StatementBound.OPERATION);
+
+		try {
+			cursor.positionToKey(ByteString.valueOfUtf8("key"));
+			fail("a row whose value is null must not be read as a key that is not there");
+		} catch (NullPointerException expected) {
+			// as read() of the same row fails, rather than answering with a null of its own
+		}
 	}
 
 	// JDBCStorage.dialectOf() reads the engine off the class name of the connection, so a mock of

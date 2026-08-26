@@ -74,9 +74,10 @@ final class ShardedCounter extends AbstractTree
   }
 
   /**
-   * The only cursor over this counter: {@code verify-index} walks the tree whole and no client
-   * operation opens one at all, so a walk of it cannot be given the bound of an operation by
-   * accident - there is no longer an overload of this method that would.
+   * Walks this counter whole, which {@code verify-index} does and no client operation does: there
+   * is no overload of this method that would take the bound of an operation by accident. Reading a
+   * single counter is another matter - {@link #getCount} opens a cursor of its own, and one of a
+   * client operation unless the caller says otherwise.
    *
    * @see ReadableTransaction#openBulkCursor(TreeName)
    */
@@ -92,9 +93,10 @@ final class ShardedCounter extends AbstractTree
         CursorTransformer.<ByteString, ByteString, Void> constant(null)));
   }
 
-  private Cursor<ByteString, Long> openCursor0(ReadableTransaction txn)
+  private Cursor<ByteString, Long> openCursor0(ReadableTransaction txn, boolean partOfAWholeTreeWalk)
   {
-    return transformKeysAndValues(txn.openCursor(getName()), TO_KEY, TO_LONG);
+    return transformKeysAndValues(
+        partOfAWholeTreeWalk ? txn.openBulkCursor(getName()) : txn.openCursor(getName()), TO_KEY, TO_LONG);
   }
 
   void addCount(final WriteableTransaction txn, ByteSequence key, final long delta)
@@ -120,8 +122,28 @@ final class ShardedCounter extends AbstractTree
 
   long getCount(final ReadableTransaction txn, ByteSequence key)
   {
+    return getCount(txn, key, false);
+  }
+
+  /**
+   * The same read, told which kind of work it is part of. A client operation reads a counter of
+   * its own - {@code numSubordinates} of a search, a delete, a modify DN - and takes the bound of
+   * one, while {@code verify-index} reads one per DN of the whole tree it is walking, with nobody
+   * waiting on it: bounding those as client operations is what #877 exists to stop, and on the
+   * JDBC backend it aborted a verify of a backend large enough.
+   *
+   * @param txn storage transaction
+   * @param key the counter to read
+   * @param partOfAWholeTreeWalk whether this read belongs to a walk of a whole tree rather than to
+   *          a client operation
+   * @return Value of the counter. 0 if no counter is associated yet.
+   * @see ReadableTransaction#openBulkCursor(TreeName)
+   */
+  long getCount(final ReadableTransaction txn, ByteSequence key, boolean partOfAWholeTreeWalk)
+  {
     long counterValue = 0;
-    try (final SequentialCursor<ByteString, Long> cursor = new ShardCursor(openCursor0(txn), key))
+    try (final SequentialCursor<ByteString, Long> cursor =
+        new ShardCursor(openCursor0(txn, partOfAWholeTreeWalk), key))
     {
       while (cursor.next())
       {
@@ -134,7 +156,8 @@ final class ShardedCounter extends AbstractTree
   long removeCount(final WriteableTransaction txn, ByteSequence key)
   {
     long counterValue = 0;
-    try (final SequentialCursor<ByteString, Long> cursor = new ShardCursor(openCursor0(txn), key))
+    // a removal is always a client operation: an entry is being deleted or moved
+    try (final SequentialCursor<ByteString, Long> cursor = new ShardCursor(openCursor0(txn, false), key))
     {
       // Iterate over and remove all the thread local shards
       while (cursor.next())

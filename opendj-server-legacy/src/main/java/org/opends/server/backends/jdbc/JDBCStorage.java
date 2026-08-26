@@ -155,10 +155,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * The bound in seconds, as configured by {@link #property}: 0, or a negative value, leaves
 		 * the statement unbounded, as it was before this bound existed, while a value that is not a
 		 * number is ignored in favour of {@link #defaultSeconds} - {@code Integer.getInteger()}
-		 * falls back to its default rather than reading such a value as a zero.
+		 * falls back to its default rather than reading such a value as a zero. A value above
+		 * {@link JDBCStorage#MAX_BOUND_SECONDS} is taken down to it, for the reason recorded there.
 		 */
 		int seconds() {
-			return Math.max(0, Integer.getInteger(property, defaultSeconds));
+			return clampSeconds(Integer.getInteger(property, defaultSeconds));
 		}
 	}
 
@@ -242,6 +243,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * cancel is the only layer they can be given - and they do need one: they run once per tree on
 	 * every open of a backend, and the catalog is answered by the same engine, behind the same
 	 * locks, as the {@code create table} they guard.
+	 * <p>
+	 * That layer is only as good as what it actually arms, which is not always something: a driver
+	 * with no network timeout, a connection that failed the call, one already carrying a tighter
+	 * timeout of a deployment's own, and a statement of an unbounded class running beside this one
+	 * each leave such a lookup with no bound at all. It is then reported as what it is - see
+	 * {@link #timedOut} - rather than as a property that bounded nothing.
 	 */
 	<T> T bounded(Connection con, StatementBound bound, Execution<T> execution) throws SQLException {
 		// no cancel to arm: DatabaseMetaData takes no query timeout, so the socket read timeout behind
@@ -256,14 +263,33 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 */
 	private <T> T bounded(Connection con, String property, int seconds, boolean cancelArmed, Execution<T> execution)
 			throws SQLException {
-		final long startedAt=System.nanoTime();
+		final long startedAt=nanoTime();
 		final Backstop backstop=holdBackstop(con, seconds);
 		try {
 			return execution.run();
 		}catch (SQLException e) {
-			throw timedOut(e, property, seconds, cancelArmed, startedAt);
+			// what the second layer carries is read here rather than at the top: it is arbitrated
+			// between the statements in flight, so it is the value at the moment of the failure that
+			// bounded this statement - and it is read before the release below takes it back off
+			throw timedOut(e, property, seconds, cancelArmed, armedMillis(backstop), startedAt);
 		}finally {
 			releaseBackstop(backstop, con, seconds);
+		}
+	}
+
+	/**
+	 * What the socket read timeout of a connection carries for the statements on it right now, or 0
+	 * where this layer is not in force for them at all. It is not enough that a bound was asked for:
+	 * {@link #applyBackstop} arms nothing on a connection whose driver refused the call or has no
+	 * network timeout to give, nothing on one already carrying a timeout of a deployment's own that
+	 * is tighter than ours, and nothing while a statement of an unbounded class runs beside this one.
+	 */
+	private static int armedMillis(Backstop state) {
+		if (state == null) {
+			return 0; // no connection to arm it on: the cancel is the whole bound of such a statement
+		}
+		synchronized (state) {
+			return state.armed;
 		}
 	}
 
@@ -299,6 +325,36 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 	/** How far under its bound a driver may report the cancel, its timer being kept in whole seconds. */
 	static final long CLOCK_SLACK_MILLIS = 250;
+
+	/**
+	 * Ceiling of every bound this backend arms, in seconds. {@link #backstopMillis} turns a bound
+	 * into milliseconds of an {@code int}, which is what {@code setNetworkTimeout} takes, and a
+	 * property set above this would overflow that sum into a negative timeout: every driver refuses
+	 * such a call, and refusing it leaves the connection carrying whatever the statement before it
+	 * armed - a value the next borrower of that pooled connection then reads as its own. Clamped
+	 * rather than refused, since this is 24 855 days and anything past it was meant as "no bound".
+	 */
+	static final int MAX_BOUND_SECONDS = Integer.MAX_VALUE/1000 - BACKSTOP_MARGIN_SECONDS;
+
+	static int clampSeconds(int seconds) {
+		return Math.max(0, Math.min(MAX_BOUND_SECONDS, seconds));
+	}
+
+	/**
+	 * What {@link #timedOut} calls the second layer when that layer is the only one a statement ran
+	 * under, so that a test can tell the two apart in a message: a run where the first layer stopped
+	 * working degrades to this one by design, silently, and a suite that only measures how long a
+	 * statement waited would go green with the cancel gone entirely.
+	 */
+	static final String BACKSTOP_ALONE = "the socket read timeout behind ";
+
+	// The clock a bound is measured on, in one place so that a test can drive it: the classification
+	// below turns on a few milliseconds either side of the bound, and a mock statement cannot be made
+	// to take a real second without the suite taking one too. Monotonic, so that a step of the wall
+	// clock can neither lengthen nor shorten what a statement is measured to have taken.
+	long nanoTime() {
+		return System.nanoTime();
+	}
 
 	// setNetworkTimeout() takes the executor its timeout handling runs on; the drivers of this
 	// backend only set a socket option in it, so it costs a call rather than a thread.
@@ -429,6 +485,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 */
 	private void applyBackstop(Connection con, Backstop state) {
 		if (state.failed || backstopUnsupported.get()) {
+			// but a connection this backstop has already armed does not keep carrying it: the entry
+			// remembering what it carried before is dropped when its last statement is through, and the
+			// value would go back to the pool as the connection's own read timeout. Reachable through
+			// the second guard, which is a latch of the whole storage: a connection armed before it was
+			// set would otherwise never be disarmed. Where nothing was armed this costs no call.
+			restorePrevious(con, state);
 			return;
 		}
 		final int wanted=state.unbounded > 0 || state.bounds.isEmpty() ? 0 : state.bounds.lastKey();
@@ -460,6 +522,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			}
 		}catch (SQLException | RuntimeException e) {
 			state.failed=true; // whatever the cause, this connection is not asked again while it runs
+			// and what it carried before goes back, while there is still an entry saying what that was:
+			// this one is dropped as soon as the last statement on the connection is through, and a
+			// backstop left armed would go back to the pool as the connection's own read timeout - which
+			// is exactly how the next borrower reads it, tightening to it and never replacing it.
+			restorePrevious(con, state);
 			// The two causes are told apart, because they deserve opposite treatment and one of them
 			// would otherwise spend the single warning the other needs: a driver with no network
 			// timeout at all says so through SQLFeatureNotSupportedException, and there is nothing to
@@ -481,6 +548,26 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 	}
 
+	/**
+	 * Gives the connection back the read timeout it carried before this backstop armed one, and
+	 * forgets having armed it. Best effort by construction: the caller reaches this from a driver
+	 * call that has just failed, so the connection may well be gone - and where it is, it is the
+	 * driver that closes it rather than this backend.
+	 */
+	private static void restorePrevious(Connection con, Backstop state) {
+		if (state.armed == 0) {
+			return; // the connection carries its own value already
+		}
+		try {
+			con.setNetworkTimeout(DIRECT_EXECUTOR, state.previous);
+		}catch (SQLException | RuntimeException ignored) {
+			// nothing further can be done for this connection here, and the failure to report is the
+			// one that brought us into the catch above
+		}finally {
+			state.armed=0;
+		}
+	}
+
 	// Every driver reports a cancelled statement differently - postgresql as 57014, oracle as
 	// ORA-01013, and neither of them as a SQLTimeoutException - so the bound is recognized by the
 	// time the statement took rather than by the class or the state of its failure, and that time
@@ -491,22 +578,33 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// one a caller classifies: a mysql lock wait, reported in class 40, ends inside a longer bound
 	// and stays the replayable conflict it is. The statement itself is left out of the message: a
 	// driver renders it with its parameters bound, and those are entry data.
-	private SQLException timedOut(SQLException e, String property, int seconds, boolean cancelArmed, long startedAt) {
+	private SQLException timedOut(SQLException e, String property, int seconds, boolean cancelArmed,
+			int backstopArmedMillis, long startedAt) {
 		if (seconds <= 0) {
 			return e;
 		}
-		// Where the cancel is armed, the property ends the wait at its own value. Where it is not - a
-		// statement of DatabaseMetaData takes no query timeout, and a driver is free to refuse one -
-		// the socket read timeout behind it is the only layer there is, and that one arrives a margin
-		// later: measuring such a statement against the property alone reported a connection reset at
-		// 121 s as a query timeout of 120 s and sent the operator to a property that bounded nothing.
-		final long endsAfter=cancelArmed ? seconds : seconds+(long)BACKSTOP_MARGIN_SECONDS;
-		final long elapsedMillis=(System.nanoTime()-startedAt)/1000000L;
+		// Which layer was really in force, and until when. Where the cancel is armed, the property
+		// ends the wait at its own value. Where it is not - a statement of DatabaseMetaData takes no
+		// query timeout, and a driver is free to refuse one - the socket read timeout behind it is the
+		// only layer there is, and that one arrives a margin later: measuring such a statement against
+		// the property alone reported a connection reset at 121 s as a query timeout of 120 s and sent
+		// the operator to a property that bounded nothing. Asking for that layer is not having it,
+		// which is why the value armed is passed in rather than derived from the property here: a
+		// driver with no network timeout, a connection that failed the call, one already carrying a
+		// tighter timeout of its own, and a statement of an unbounded class running beside this one
+		// each leave it unarmed. A statement neither layer bounded reached no bound of ours at all, so
+		// its failure is the driver's own and is left exactly as it is: naming a property that armed
+		// nothing sends an operator to raise a value that changes nothing about the wait they saw.
+		final long endsAfterMillis=cancelArmed ? seconds*1000L : backstopArmedMillis;
+		if (endsAfterMillis <= 0) {
+			return e;
+		}
+		final long elapsedMillis=(nanoTime()-startedAt)/1000000L;
 		// The bound is allowed a little slack under it: a driver keeps its timer in whole seconds and
 		// reports the cancel a few milliseconds before the bound is arithmetically due, and measured
 		// to the millisecond such a statement would arrive as a bare 57014 or ORA-01013, naming
 		// neither the property that cancelled it nor the fact that it was cancelled at all.
-		if (elapsedMillis < endsAfter*1000L-CLOCK_SLACK_MILLIS) {
+		if (elapsedMillis < endsAfterMillis-CLOCK_SLACK_MILLIS) {
 			return e;
 		}
 		// The time is reported as measured rather than as the bound. Where the database does not act
@@ -515,9 +613,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// the 120s" of a statement that waited 150 s is a message an operator cannot put next to a
 		// clock. The property named still governs both layers, since backstopMillis() derives the
 		// second one from it, so raising it stays the remedy either way.
-		return new SQLTimeoutException("jdbc: the statement took "+elapsedMillis+" ms, reaching the "+endsAfter+"s of "
-			+(cancelArmed ? property : "the socket read timeout behind "+property+" ("+seconds+"s plus the margin of"
-				+" that layer, which is the only one bounding a statement taking no query timeout)")
+		return new SQLTimeoutException("jdbc: the statement took "+elapsedMillis+" ms, reaching the "
+			+(endsAfterMillis/1000L)+"s of "
+			+(cancelArmed ? property : BACKSTOP_ALONE+property+" (the only layer bounding a statement that takes no"
+				+" query timeout; it is armed at the loosest bound of the statements sharing this connection, this"
+				+" one's being "+seconds+"s plus the margin of that layer)")
 			+": raise that property, or set it to 0 for no bound", e.getSQLState(), e.getErrorCode(), e);
 	}
 
@@ -1102,7 +1202,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		if (dialect==null) { // no portable statistics refresh for other engines
 			return false; // nothing was refreshed: reporting success here would make the assertion of the tests vacuous
 		}
-		final int timeoutSeconds=Math.max(0,Integer.getInteger(STATISTICS_TIMEOUT_PROPERTY,STATISTICS_TIMEOUT_SECONDS_DEFAULT));
+		final int timeoutSeconds=clampSeconds(Integer.getInteger(STATISTICS_TIMEOUT_PROPERTY,STATISTICS_TIMEOUT_SECONDS_DEFAULT));
 		boolean allRefreshed=true;
 		for (final TreeName treeName : trees) {
 			final String tableName=getTableName(treeName);
@@ -1473,10 +1573,16 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		/**
 		 * {@inheritDoc}
 		 * <p>
-		 * Bulk whoever asks, which is the one place the class of the transaction is overridden
-		 * downwards: {@code select count(*)} is a scan of the whole table on every engine here, so
-		 * what it takes follows the size of the backend rather than the work the caller is doing -
-		 * and {@code BackendImpl.openBackend()} logs the entry count of every backend it starts.
+		 * Bulk whoever asks: {@code select count(*)} is a scan of the whole table on every engine
+		 * here, so what it takes follows the size of the backend rather than the work of the caller
+		 * that happens to ask. Its callers are administrative either way - {@code dbtest} through
+		 * {@code BackendStat}, and the counts {@code verify-index} reports - so the override costs a
+		 * client operation nothing. It is not the count behind {@code NOTE_BACKEND_STARTED}: that one
+		 * is {@code BackendImpl.getEntryCount()} through {@code RootContainer.getEntryCount()}, which
+		 * sums {@code id2childrenCount} and never reaches this method.
+		 * <p>
+		 * One of the three places the class of the transaction is overridden downwards, the others
+		 * being {@link #openBulkCursor(TreeName)} and {@link CursorImpl#positionToLastKey()}.
 		 */
 		@Override
 		public long getRecordCount(TreeName treeName) {
@@ -2085,22 +2191,33 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		try {
 			con=getConnection();
 		}catch (Exception e){
+			// and the storage this method opened goes back with it: ImporterImpl.close() is what closes
+			// it again when an import opened it, and no importer is going to be built to reach that
+			if (!wasOpen) {
+				close();
+			}
 			throw new StorageRuntimeException(e);
 		}
 		// outside the catch: a transaction of a read-only storage throws ReadOnlyStorageException,
 		// which a caller tells apart from any other failure of an import
+		boolean built=false;
 		try {
-			return new ImporterImpl(con, wasOpen);
-		}catch (RuntimeException e) {
-			// and the connection borrowed above goes back on that path too: it is the one an import
-			// holds for its whole duration, so leaking it here takes it out of the pool for good,
-			// with the transaction it had already begun
-			try {
-				con.close();
-			}catch (SQLException ignored) {
-				// the importer was never built; the failure to report is the one being thrown
+			final Importer importer=new ImporterImpl(con, wasOpen);
+			built=true;
+			return importer;
+		}finally {
+			// and the connection borrowed above goes back on every path that does not build an
+			// importer to hold it: it is the one an import keeps for its whole duration, so leaving it
+			// here takes it out of the pool for good, with the transaction it had already begun. A
+			// finally rather than a catch, so that it covers what a catch has to name - an Error
+			// leaves the pool one connection short exactly as ReadOnlyStorageException did.
+			if (!built) {
+				try {
+					con.close();
+				}catch (SQLException ignored) {
+					// the importer was never built; the failure to report is the one on its way out
+				}
 			}
-			throw e;
 		}
 	}
 	
