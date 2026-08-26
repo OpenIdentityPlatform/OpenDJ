@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -29,7 +30,17 @@ class PendingChange implements Comparable<PendingChange>
 {
   private final CSN csn;
   private boolean committed;
-  private UpdateMsg msg;
+  /**
+   * Written when the delivery which owns a remote change is taken over by the one which
+   * follows it, and read by the dependency checks without the pending changes lock.
+   */
+  private volatile UpdateMsg msg;
+  /**
+   * Whether a replay thread owns this change: it is being replayed, or it waits for the
+   * change it depends on. A remote change which no thread owns is one whose replay
+   * failed and which the replication server is expected to deliver again.
+   */
+  private boolean owned;
   private final PluginOperation op;
 
   /**
@@ -105,6 +116,28 @@ class PendingChange implements Comparable<PendingChange>
   public void setMsg(LDAPUpdateMsg msg)
   {
     this.msg = msg;
+  }
+
+  /**
+   * Returns whether a replay thread owns this change.
+   *
+   * @return {@code true} if a replay thread is replaying this change or waiting for the
+   *         change it depends on
+   */
+  public boolean isOwned()
+  {
+    return owned;
+  }
+
+  /**
+   * Sets whether a replay thread owns this change.
+   *
+   * @param owned {@code true} when a replay thread takes the change over, {@code false}
+   *              when its replay failed and the change must be delivered again
+   */
+  public void setOwned(boolean owned)
+  {
+    this.owned = owned;
   }
 
   /**

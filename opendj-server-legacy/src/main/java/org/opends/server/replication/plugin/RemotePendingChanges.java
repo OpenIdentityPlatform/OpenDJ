@@ -142,22 +142,42 @@ final class RemotePendingChanges
    * Add a new LDAPUpdateMsg that was received from the replication server
    * to the pendingList.
    * <p>
-   * A change which is already listed is left alone: the copy which is here knows
-   * whether it has been replayed and what it depends on, while the one which comes
-   * with the message the replication server sent again knows neither.
+   * A change which is already listed and which a replay thread owns - it is being
+   * replayed, it waits for the change it depends on, or it has been replayed and waits
+   * for the changes before it - is left alone: that copy knows what this one does not,
+   * and replaying it again is exactly what the duplicate check is there to prevent
+   * (OPENDJ-1115).
+   * <p>
+   * A change which is listed but which no replay thread owns anymore is one whose replay
+   * failed: it is deliberately left out of the ServerState, so the replication server
+   * sends it again over the session which was restarted (issue #889). This delivery
+   * takes over from the one which failed: it is the one to replay, and the copy which
+   * may still wait in the replay queue is dropped by
+   * {@link #markInProgress(LDAPUpdateMsg)}.
    *
    * @param update The LDAPUpdateMsg that was received from the replication
    *               server and that will be added to the pending list.
    * @return {@code false} if the update was already registered in the pending
-   *         changes.
+   *         changes and is owned by a replay thread.
    */
   public boolean putRemoteUpdate(LDAPUpdateMsg update)
   {
     pendingChangesWriteLock.lock();
     try
     {
-      CSN csn = update.getCSN();
-      return pendingChanges.putIfAbsent(csn, new PendingChange(csn, null, update)) == null;
+      final CSN csn = update.getCSN();
+      final PendingChange listed = pendingChanges.get(csn);
+      if (listed == null)
+      {
+        pendingChanges.put(csn, new PendingChange(csn, null, update));
+        return true;
+      }
+      if (listed.isCommitted() || listed.isOwned())
+      {
+        return false;
+      }
+      listed.setMsg(update);
+      return true;
     }
     finally
     {
@@ -182,6 +202,7 @@ final class RemotePendingChanges
         throw new NoSuchElementException();
       }
       curChange.setCommitted(true);
+      curChange.setOwned(false);
       activeAndDependentChanges.remove(curChange);
 
       final Iterator<PendingChange> it = pendingChanges.values().iterator();
@@ -206,39 +227,61 @@ final class RemotePendingChanges
   }
 
   /**
-   * Forgets the changes which have not been replayed yet, without updating the
-   * ServerState.
+   * Gives up the ownership a replay thread had on the change with the provided CSN,
+   * whose replay failed.
    * <p>
-   * Called when the replay of a change failed and the session to the
-   * replication server is restarted: the changes that were not committed must
-   * be replayed again, and {@link #putRemoteUpdate(LDAPUpdateMsg)} would
-   * otherwise discard the ones still listed here as duplicates.
+   * The change stays listed here and stays uncommitted: it is the barrier which keeps
+   * the ServerState - and every change which follows it - from moving past a change
+   * which is not in the data (issue #889), and it is what has the replication server
+   * send it again over the restarted session. Only the mark which says a replay thread
+   * owns it is dropped, so that {@link #putRemoteUpdate(LDAPUpdateMsg)} takes the next
+   * delivery instead of discarding it as a duplicate.
    * <p>
-   * The changes which have already been committed stay: they are held back by
-   * the change which failed, so the ServerState does not cover them yet and the
-   * replication server sends them again. Forgetting them would have them
-   * replayed a second time, which is exactly what the duplicate check of
-   * {@link #putRemoteUpdate(LDAPUpdateMsg)} is there to prevent (OPENDJ-1115).
-   * Keeping them is enough: the ServerState is updated over them as soon as the
-   * change which holds them back commits.
+   * It also stays listed among the changes the newer ones are checked against: a change
+   * which is not in the data yet is exactly what the changes which follow it must depend
+   * on, whether or not a replay thread owns it right now.
+   * <p>
+   * The changes another replay thread is applying right now are left alone: they are
+   * about to commit, and forgetting them would have their {@code commit()} fail, the
+   * ServerState stay behind them and the replication server replay them a second time.
+   *
+   * @param csn the CSN of the change whose replay failed
    */
-  public void clearUncommitted()
+  public void replayFailed(CSN csn)
+  {
+    pendingChangesWriteLock.lock();
+    try
+    {
+      final PendingChange change = pendingChanges.get(csn);
+      if (change != null && !change.isCommitted())
+      {
+        change.setOwned(false);
+      }
+    }
+    finally
+    {
+      pendingChangesWriteLock.unlock();
+    }
+  }
+
+  /**
+   * Forgets every change listed here, without updating the ServerState.
+   * <p>
+   * Called when the domain is disabled: its ServerState is saved and cleared from
+   * memory, and it is loaded again from the backend when the domain is enabled back, so
+   * the bookkeeping which goes with it must not outlive it. A change which stayed here
+   * would be discarded as a duplicate when the replication server sends it again, and
+   * nothing would ever replay it or record it in the ServerState.
+   */
+  public void clear()
   {
     pendingChangesWriteLock.lock();
     dependentChangesLock.lock();
     try
     {
-      final Iterator<PendingChange> it = pendingChanges.values().iterator();
-      while (it.hasNext())
-      {
-        final PendingChange change = it.next();
-        if (!change.isCommitted())
-        {
-          dependentChanges.remove(change);
-          activeAndDependentChanges.remove(change);
-          it.remove();
-        }
-      }
+      pendingChanges.clear();
+      dependentChanges.clear();
+      activeAndDependentChanges.clear();
     }
     finally
     {
@@ -253,27 +296,29 @@ final class RemotePendingChanges
    * @param msg
    *          the message whose change is being replayed
    * @return {@code false} if this message is not the delivery which is listed as
-   *         pending, which happens when the session was restarted after a failed
-   *         replay while this message was still waiting in the replay queue: the
-   *         change was either forgotten or the replication server sent it again,
-   *         so this copy must not be replayed.
+   *         pending, which happens when the session was restarted after a failed replay
+   *         while this message was still waiting in the replay queue: the replication
+   *         server delivered the change again and that delivery took over from this one,
+   *         or the domain was disabled and forgot the change, so this copy must not be
+   *         replayed.
    */
   public boolean markInProgress(LDAPUpdateMsg msg)
   {
-    pendingChangesReadLock.lock();
+    pendingChangesWriteLock.lock();
     try
     {
       final PendingChange change = pendingChanges.get(msg.getCSN());
-      if (change == null || change.getLDAPUpdateMsg() != msg)
+      if (change == null || change.isCommitted() || change.getLDAPUpdateMsg() != msg)
       {
         return false;
       }
+      change.setOwned(true);
       activeAndDependentChanges.add(change);
       return true;
     }
     finally
     {
-      pendingChangesReadLock.unlock();
+      pendingChangesWriteLock.unlock();
     }
   }
   /**
@@ -287,7 +332,7 @@ final class RemotePendingChanges
     dependentChangesLock.lock();
     try
     {
-      if (!dependentChanges.isEmpty())
+      if (!dependentChanges.isEmpty() && !pendingChanges.isEmpty())
       {
         PendingChange firstDependentChange = dependentChanges.first();
         if (pendingChanges.firstKey().isNewerThanOrEqualTo(firstDependentChange.getCSN()))
@@ -312,14 +357,25 @@ final class RemotePendingChanges
    */
   private void addDependency(PendingChange dependentChange)
   {
+    pendingChangesReadLock.lock();
     dependentChangesLock.lock();
     try
     {
-      dependentChanges.add(dependentChange);
+      /*
+       * A change which is not listed as pending anymore - the domain was disabled while
+       * its dependencies were computed - must not be listed as dependent either:
+       * getNextUpdate() reads both and would hand out a change nothing owns. The
+       * replication server sends it again when the domain is enabled back.
+       */
+      if (pendingChanges.containsKey(dependentChange.getCSN()))
+      {
+        dependentChanges.add(dependentChange);
+      }
     }
     finally
     {
       dependentChangesLock.unlock();
+      pendingChangesReadLock.unlock();
     }
   }
 

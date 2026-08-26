@@ -697,7 +697,7 @@ public abstract class ReplicationDomain
   }
 
   /** Increment the number of processed updates. */
-  private void incProcessedUpdates()
+  protected final void incProcessedUpdates()
   {
     numProcessedUpdates.incrementAndGet();
   }

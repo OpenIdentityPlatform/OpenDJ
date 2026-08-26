@@ -712,7 +712,12 @@ public class ShortCircuitPlugin
    */
   public static void registerShortCircuit(OperationType operation, String section, int resultCode)
   {
-    shortCircuits.put(operation + "/" + section.toLowerCase(), resultCode);
+    final String key = operation + "/" + section.toLowerCase();
+    // This registration applies to every operation, and it counts from zero: a limit or
+    // a count left behind by a previous registration is not part of it.
+    shortCircuitCounts.remove(key);
+    shortCircuitLimits.remove(key);
+    shortCircuits.put(key, resultCode);
   }
 
   /**
@@ -742,5 +747,8 @@ public class ShortCircuitPlugin
     final String key = operation + "/" + section.toLowerCase();
     shortCircuits.remove(key);
     shortCircuitLimits.remove(key);
+    // The count belongs to the registration which is being removed: a test which counts
+    // the operations it short circuits must not inherit the count of the previous one.
+    shortCircuitCounts.remove(key);
   }
 }

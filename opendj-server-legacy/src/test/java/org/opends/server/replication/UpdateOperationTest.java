@@ -84,6 +84,19 @@ public class UpdateOperationTest extends ReplicationTestCase
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /**
+   * How many times the domain retries the replay of a change straight away before it
+   * restarts its session and has the change delivered again: a short circuit is reached
+   * that many times per delivery.
+   */
+  private static final int IN_PLACE_REPLAY_ATTEMPTS = LDAPReplicationDomain.IN_PLACE_REPLAY_ATTEMPTS;
+  /**
+   * How long a change is retried in the tests which check that this replica gives up on
+   * a change it can never apply: long enough for the change to be delivered again a
+   * couple of times, short enough not to make the test wait out a real backend outage.
+   */
+  private static final long TEST_GIVE_UP_DELAY_IN_MS = 2000;
+
   /** An entry with a entryUUID. */
   private Entry personWithUUIDEntry;
   private Entry personWithSecondUniqueID;
@@ -1408,6 +1421,10 @@ public class UpdateOperationTest extends ReplicationTestCase
       final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
       domain.resetUnreplayedChangeAlertThrottle();
       final int initialAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE);
+      // A backend which is down for maintenance is waited out for minutes: this test can
+      // not, so the change is given up on after a couple of deliveries instead.
+      final long giveUpDelay = domain.getReplayGiveUpDelay();
+      domain.setReplayGiveUpDelay(TEST_GIVE_UP_DELAY_IN_MS);
 
       /*
        * Fail the replay the way a storage failure does: the backend reports it with the
@@ -1426,8 +1443,12 @@ public class UpdateOperationTest extends ReplicationTestCase
         /*
          * The replication server resumes from the ServerState of this replica, so it only
          * sends the change again as long as the state does not cover it: seeing the same
-         * change replayed more than once is what tells that it was not recorded as
+         * change delivered more than once is what tells that it was not recorded as
          * replayed.
+         *
+         * One delivery is retried in place IN_PLACE_REPLAY_ATTEMPTS times before the
+         * session is restarted, so it takes more than that many short circuits to prove
+         * that the change was delivered a second time.
          */
         TestTimer timer = new TestTimer.Builder()
           .maxSleep(60, SECONDS)
@@ -1438,7 +1459,8 @@ public class UpdateOperationTest extends ReplicationTestCase
           @Override
           public void call() throws Exception
           {
-            assertTrue(ShortCircuitPlugin.getShortCircuitCount(OperationType.DELETE, "PreParse") >= 2,
+            assertTrue(ShortCircuitPlugin.getShortCircuitCount(OperationType.DELETE, "PreParse")
+                    > IN_PLACE_REPLAY_ATTEMPTS,
                 "the change was not sent again after its replay failed");
           }
         });
@@ -1461,7 +1483,7 @@ public class UpdateOperationTest extends ReplicationTestCase
                 "the replica did not give up on a change it can never replay");
           }
         });
-        assertEquals(getMonitorAttrValue(baseDN, "replayed-updates-failed"), initialFailures + 1,
+        assertMonitorAttrValueEventually("replayed-updates-failed", initialFailures + 1,
             "a change which could not be replayed must be counted once, not once per attempt");
         Assertions.assertThat(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE))
             .as("the administrator must be told that this replica now diverges")
@@ -1470,6 +1492,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       finally
       {
         ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
+        domain.setReplayGiveUpDelay(giveUpDelay);
       }
     }
     finally
@@ -1523,6 +1546,8 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
       final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+      final long giveUpDelay = domain.getReplayGiveUpDelay();
+      domain.setReplayGiveUpDelay(TEST_GIVE_UP_DELAY_IN_MS);
 
       ShortCircuitPlugin.registerShortCircuit(
           OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
@@ -1548,14 +1573,15 @@ public class UpdateOperationTest extends ReplicationTestCase
                 "the replica did not give up on the second change it can never replay");
           }
         });
+        assertMonitorAttrValueEventually("replayed-updates-failed", initialFailures + 2,
+            "both changes must be counted as failed, once each");
         assertNotNull(getEntry(first.getName(), 1, true), "the first entry must not have been deleted");
         assertNotNull(getEntry(second.getName(), 1, true), "the second entry must not have been deleted");
-        assertEquals(getMonitorAttrValue(baseDN, "replayed-updates-failed"), initialFailures + 2,
-            "both changes must be counted as failed, once each");
       }
       finally
       {
         ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
+        domain.setReplayGiveUpDelay(giveUpDelay);
       }
     }
     finally
@@ -1565,10 +1591,10 @@ public class UpdateOperationTest extends ReplicationTestCase
   }
 
   /**
-   * Test case for [Issue 889]: a replay which fails on the server itself is retried in
-   * place, and a failure which clears while it is retried has the change applied exactly
-   * once, without the session being restarted and without the change being reported as
-   * failed.
+   * Test case for [Issue 889]: a replay which fails on the server itself has the session
+   * restarted and the change delivered again, and a failure which clears in the meantime
+   * has the change applied exactly once, without the change being given up on and without
+   * it being reported as failed.
    */
   @Test
   public void transientReplayFailureIsRetriedAndTheChangeApplied() throws Exception
@@ -1597,14 +1623,18 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
       final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+      final long initialReplayed = getMonitorAttrValue(baseDN, "replayed-updates-ok");
       final int initialAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE);
 
       /*
-       * The backend is unavailable for the first attempts, the way it is while a rebuild
-       * is performed or while it is offline (OPENDJ-49), then it serves the operation.
+       * The backend is unavailable the way it is while a rebuild is performed or while it
+       * is offline (OPENDJ-49), and it stays unavailable for longer than the replay is
+       * retried in place: the change is only applied if the session is restarted and the
+       * replication server delivers it a second time.
        */
-      ShortCircuitPlugin.registerShortCircuit(
-          OperationType.DELETE, "PreParse", ResultCode.UNAVAILABLE.intValue(), 3);
+      ShortCircuitPlugin.resetShortCircuitCount(OperationType.DELETE, "PreParse");
+      ShortCircuitPlugin.registerShortCircuit(OperationType.DELETE, "PreParse",
+          ResultCode.UNAVAILABLE.intValue(), IN_PLACE_REPLAY_ATTEMPTS + 2);
       try
       {
         final CSN csn = gen.newCSN();
@@ -1613,8 +1643,8 @@ public class UpdateOperationTest extends ReplicationTestCase
         assertNull(getEntry(tmp.getName(), 30000, false),
             "the change was not replayed once the backend served the operation again");
         Assertions.assertThat(ShortCircuitPlugin.getShortCircuitCount(OperationType.DELETE, "PreParse"))
-            .as("the replay must have been retried in place")
-            .isGreaterThanOrEqualTo(4);
+            .as("the change must have been delivered again after the session was restarted")
+            .isGreaterThan(IN_PLACE_REPLAY_ATTEMPTS);
 
         TestTimer timer = new TestTimer.Builder()
           .maxSleep(30, SECONDS)
@@ -1629,7 +1659,9 @@ public class UpdateOperationTest extends ReplicationTestCase
                 "a change which was replayed must be recorded as replayed");
           }
         });
-        assertEquals(getMonitorAttrValue(baseDN, "replayed-updates-failed"), initialFailures,
+        assertMonitorAttrValueEventually("replayed-updates-ok", initialReplayed + 1,
+            "a change which was delivered again must be applied exactly once");
+        assertMonitorAttrValueEventually("replayed-updates-failed", initialFailures,
             "a change which was replayed after a transient failure must not count as failed");
         assertEquals(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE), initialAlerts,
             "a transient failure must not tell the administrator that this replica diverged");
@@ -1643,6 +1675,36 @@ public class UpdateOperationTest extends ReplicationTestCase
     {
       broker.stop();
     }
+  }
+
+  /**
+   * Waits for a monitor attribute of the replication domain to reach the expected value.
+   * <p>
+   * The monitor entry of a domain is deregistered for as long as its session to the
+   * replication server is down, which is what a replay failure does to it, and a counter
+   * is bumped a moment after the change it counts reached the ServerState: reading the
+   * value once would be a race on both counts.
+   *
+   * @param attributeName the monitor attribute to read
+   * @param expected the value it must reach
+   * @param message what is being asserted
+   * @throws Exception if the value was not reached in time
+   */
+  private void assertMonitorAttrValueEventually(
+      final String attributeName, final long expected, final String message) throws Exception
+  {
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(30, SECONDS)
+      .sleepTimes(200, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        assertEquals(getMonitorAttrValue(baseDN, attributeName), expected, message);
+      }
+    });
   }
 
   /**

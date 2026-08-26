@@ -34,7 +34,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -52,7 +51,6 @@ import java.util.SortedMap;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -315,16 +313,34 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   /** The number of updates replayed successfully by the replication. */
   private final AtomicInteger numReplayedPostOpCalled = new AtomicInteger();
   /**
-   * How many times the replay of a change is attempted before this replica gives up on
-   * it and moves on to the changes which follow it.
+   * How many times the replay of a change is attempted straight away, before the session
+   * to the replication server is restarted and the change is asked for again: a lock or
+   * a storage which is busy for a moment (OPENDJ-885) is waited out here.
    */
-  private static final int MAX_REPLAY_ATTEMPTS = 3;
+  public static final int IN_PLACE_REPLAY_ATTEMPTS = 10;
+  /**
+   * How long the replay of a change is retried before this replica gives up on it and
+   * moves on to the changes which follow it.
+   * <p>
+   * The budget is a duration rather than a number of attempts because what
+   * {@link #isServerFailure(ResultCode)} reports is measured in minutes: a backend which
+   * is being rebuilt, imported into or restored (OPENDJ-49) serves nothing while it
+   * works, and a handful of attempts would have this replica give up on every change of
+   * a maintenance window it only had to wait out.
+   */
+  private static final long REPLAY_GIVE_UP_DELAY_IN_MS = 300000;
   /**
    * How long the session is left down before the change is asked for again, multiplied
    * by the number of attempts already made: a backend which keeps failing must not be
    * hammered with a session restart per failed change.
    */
   private static final long REPLAY_RETRY_DELAY_IN_MS = 1000;
+  /**
+   * The longest the session is left down between two attempts. The wait runs on one of
+   * the replay threads, which are shared by every domain of this server, so it is kept
+   * short enough not to starve the domains which are healthy.
+   */
+  private static final long MAX_REPLAY_RETRY_DELAY_IN_MS = 10000;
   /**
    * How many changes the replay failures are remembered for. Only the changes which are
    * failing are listed here, so the bound is never reached in practice: it is there so
@@ -342,26 +358,63 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   /** Set while a replay thread is restarting the session after a failed replay. */
   private final AtomicBoolean replayFailureRecovery = new AtomicBoolean();
   /**
-   * How many times the replay of a change failed, keyed on the CSN of the change.
-   * <p>
-   * The count has to be kept per change: a backend which is failing fails every change
-   * in flight, and a single slot would be reset by each of them in turn, so the give up
-   * after {@link #MAX_REPLAY_ATTEMPTS} would never be reached. Entries are dropped as
-   * soon as the change is replayed or given up on, and the oldest ones are evicted if
-   * more than {@link #MAX_FAILED_REPLAY_ATTEMPTS_TRACKED} changes are failing at once.
+   * Set when a change whose replay failed has to be delivered again, and cleared by the
+   * replay thread which restarts the session for it. A change released while the session
+   * was being restarted has to be asked for over yet another session: the delivery this
+   * one makes is turned down as a duplicate while a replay thread still owns it.
    */
-  private final ConcurrentSkipListMap<CSN, Integer> failedReplayAttempts = new ConcurrentSkipListMap<>();
+  private final AtomicBoolean sessionRestartRequested = new AtomicBoolean();
+  /**
+   * How many times in a row the session was restarted without a change being replayed in
+   * between. The backoff is computed from this rather than from the failures of the
+   * change which happens to open the recovery: an outage fails every change in flight,
+   * and the ones which are sent for the first time would otherwise keep the wait at its
+   * shortest for as long as the outage lasts.
+   */
+  private final AtomicInteger consecutiveSessionRestarts = new AtomicInteger();
+  /**
+   * The failures of the changes whose replay did not succeed yet.
+   * <p>
+   * They have to be kept per change: a backend which is failing fails every change in
+   * flight, and a single slot would be reset by each of them in turn, so the give up
+   * would never be reached. Entries are dropped as soon as the change is replayed or
+   * given up on.
+   */
+  private final ReplayFailures replayFailures = new ReplayFailures(MAX_FAILED_REPLAY_ATTEMPTS_TRACKED);
+  /**
+   * How long the replay of a change is retried before this replica gives up on it. Only
+   * the tests, which can not wait out {@link #REPLAY_GIVE_UP_DELAY_IN_MS}, set another
+   * value.
+   */
+  private volatile long replayGiveUpDelayInMs = REPLAY_GIVE_UP_DELAY_IN_MS;
+  /**
+   * Serialises the session of this domain being stopped and started again: the replay
+   * thread which restarts it after a failed replay must not race the domain being
+   * disabled for an import or a restore, or it would bring a broker and a listener
+   * thread back up on a domain which is supposed to be down.
+   */
+  private final Object serviceStateLock = new Object();
+  /**
+   * Stands for "the alert about a change this replica gave up on was never sent". The
+   * time it is compared with only moves forward from an origin which is arbitrary, so
+   * zero is not far enough in the past to say it.
+   */
+  private static final long UNREPLAYED_CHANGE_ALERT_NEVER_SENT = Long.MIN_VALUE / 2;
   /** When the alert about a change this replica gave up on was last sent. */
-  private final AtomicLong lastUnreplayedChangeAlertTime = new AtomicLong();
+  private final AtomicLong lastUnreplayedChangeAlertTime =
+      new AtomicLong(UNREPLAYED_CHANGE_ALERT_NEVER_SENT);
   /**
    * The result codes conflict resolution knows how to solve. The result code the server
    * puts on an internal error is configurable and is not validated as a result code, so
    * it could be set to one of these: it must never take a change away from
    * {@code solveNamingConflict()}, which is the only thing which can solve them.
    */
-  private static final Set<ResultCode> CONFLICT_RESULT_CODES = new HashSet<>(Arrays.asList(
-      ResultCode.NO_SUCH_OBJECT, ResultCode.ENTRY_ALREADY_EXISTS,
-      ResultCode.NOT_ALLOWED_ON_RDN, ResultCode.NOT_ALLOWED_ON_NONLEAF));
+  private static final Set<ResultCode> CONFLICT_RESULT_CODES = Collections.unmodifiableSet(
+      newHashSet(
+          ResultCode.NO_SUCH_OBJECT, ResultCode.ENTRY_ALREADY_EXISTS,
+          ResultCode.NOT_ALLOWED_ON_RDN, ResultCode.NOT_ALLOWED_ON_NONLEAF,
+          // solveNamingConflict(ModifyDNOperation) solves these two as well
+          ResultCode.UNWILLING_TO_PERFORM, ResultCode.OBJECTCLASS_VIOLATION));
 
   private final PersistentServerState state;
   private volatile boolean generationIdSavedStatus;
@@ -2053,8 +2106,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       if (op.isSynchronizationOperation())
       { // Replaying a sync operation
         numReplayedPostOpCalled.incrementAndGet();
-        // The change made it, the failures it went through are history.
-        failedReplayAttempts.remove(curCSN);
+        // The change made it, the failures it went through are history and the session
+        // is not being restarted in a row anymore.
+        replayFailures.forget(curCSN);
+        consecutiveSessionRestarts.set(0);
         try
         {
           remotePendingChanges.commit(curCSN);
@@ -2303,8 +2358,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         .deregisterLocalBackendInitializationListener(this);
       DirectoryServer.deregisterShutdownListener(this);
 
-      // stop the ReplicationDomain
-      disableService();
+      // stop the ReplicationDomain, under the lock which the replay thread restarting the
+      // session after a failed replay holds: it must not bring a broker and a listener
+      // thread back up on a domain whose alert generator, flush thread and RSUpdater have
+      // just been taken away.
+      synchronized (serviceStateLock)
+      {
+        disableService();
+      }
     }
 
     // wait for completion of the ServerStateFlush thread.
@@ -2330,7 +2391,18 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   boolean markInProgress(LDAPUpdateMsg msg)
   {
-    return remotePendingChanges.markInProgress(msg);
+    if (remotePendingChanges.markInProgress(msg))
+    {
+      return true;
+    }
+    /*
+     * This delivery is not replayed, but it was taken off the replay queue all the same:
+     * count it as processed, or replication-processed-updates would drift away from what
+     * the session delivered. No ack is owed for it: it came over a session which has been
+     * torn down since, and the delivery which took over from it carries the ack.
+     */
+    incProcessedUpdates();
+    return false;
   }
 
   /**
@@ -2362,12 +2434,17 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         Operation nextOp = op = msg.createOperation(conn);
         dependency = remotePendingChanges.checkDependencies(op, msg);
         boolean replayDone = false;
-        int retryCount = 10;
-        while (!dependency && !replayDone && !replayFailed && retryCount-- > 0)
+        int retryCount = IN_PLACE_REPLAY_ATTEMPTS;
+        while (!dependency && !replayDone && retryCount-- > 0)
         {
           if (replayThreadShutdown.get() || shutdown.get())
           {
-            // Either this replay thread or this domain is going away, let's leave.
+            /*
+             * Either this replay thread or this domain is going away, let's leave. The
+             * change was never applied, so it is given back to the replication server
+             * rather than left listed as being replayed by a thread which is gone.
+             */
+            abandonReplay(msg.getCSN());
             return;
           }
           // Try replay the operation
@@ -2404,7 +2481,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
               // renamed by a more recent modify DN.
               // The change is in the data: push it to the serverState.
               replayDone = true;
-              updateError(csn);
+              recordChangeResolved(csn);
             }
             else if (result == ResultCode.BUSY)
             {
@@ -2467,7 +2544,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
                   // of the conflict resolution phase is to do nothing.
                   // however we still need to push this change to the serverState
                   replayDone = true;
-                  updateError(csn);
+                  recordChangeResolved(csn);
                   break;
 
                 case FAILED:
@@ -2504,9 +2581,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           }
         }
 
-        if (!replayDone && !replayFailed && !dependency)
+        if (!replayDone && !dependency)
         {
-          if (isServerFailure(op.getResultCode()))
+          final ResultCode lastResult = op.getResultCode();
+          /*
+           * BUSY is a lock which could not be taken (OPENDJ-885): the in-place attempts
+           * only yield to the thread which holds it, so a lock held for a while burns
+           * every one of them in no time. It is as transient as a storage which failed,
+           * and the change is just as absent from the data.
+           */
+          if (isServerFailure(lastResult) || ResultCode.BUSY.equals(lastResult))
           {
             /*
              * The server kept failing to apply the change, so the change is not in the data.
@@ -2515,7 +2599,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
              * up to date.
              */
             final LocalizableMessage message = ERR_ERROR_REPLAYING_OPERATION.get(
-                op, csn, op.getResultCode(), op.getErrorMessage());
+                op, csn, lastResult, op.getErrorMessage());
             logger.error(message);
             replayErrorMsg = message.toString();
             replayFailed = true;
@@ -2559,6 +2643,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       {
         if (!dependency)
         {
+          /*
+           * The ack is per delivery, and it says what this delivery did: a change which
+           * failed is not in the data now, whether or not the delivery which follows
+           * manages to apply it. Holding the ack back until the change is resolved would
+           * not tell the truth any better - the session it came over is about to be torn
+           * down, so nothing would reach the server which is waiting for it, and an
+           * assured write would wait out its timeout rather than be told what happened.
+           */
           processUpdateDone(msg, replayErrorMsg);
         }
       }
@@ -2631,8 +2723,43 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       return true;
     }
-    return result.equals(getServerContext().getCoreConfigManager().getServerErrorResultCode())
-        && !CONFLICT_RESULT_CODES.contains(result);
+    /*
+     * The result code the server puts on an internal error is configurable and is not
+     * validated as a result code, so it may well be one conflict resolution knows how to
+     * solve: such a setting must not take a change away from solveNamingConflict(), which
+     * is the only thing which can solve them.
+     */
+    final ResultCode serverErrorResultCode = getServerContext().getCoreConfigManager().getServerErrorResultCode();
+    return !CONFLICT_RESULT_CODES.contains(serverErrorResultCode) && result.equals(serverErrorResultCode);
+  }
+
+  /**
+   * Returns a time which only ever moves forward, in milliseconds.
+   * <p>
+   * How long a change has been failing and how long ago the last alert was sent are
+   * durations rather than dates: the wall clock stepping backwards must not have this
+   * replica retry a change for good, and stepping forwards must not have it give up on a
+   * change it had only just started to retry.
+   *
+   * @return the number of milliseconds since an arbitrary origin
+   */
+  private static long monotonicNowInMs()
+  {
+    return TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+  }
+
+  /**
+   * Records a change which conflict resolution found nothing left to do for: the change
+   * is in the data, so it is recorded as replayed and the failures it went through - and
+   * the session restarts they caused - are history.
+   *
+   * @param csn the CSN of the change
+   */
+  private void recordChangeResolved(CSN csn)
+  {
+    replayFailures.forget(csn);
+    consecutiveSessionRestarts.set(0);
+    updateError(csn);
   }
 
   /**
@@ -2644,13 +2771,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private void skipUnreplayableChange(CSN csn, LocalizableMessage cause)
   {
-    failedReplayAttempts.remove(csn);
+    replayFailures.forget(csn);
     if (updateError(csn))
     {
       numFailedReplayedUpdates.incrementAndGet();
       sendUnreplayedChangeAlert(cause);
     }
-    // Otherwise the change is not listed as pending anymore - the session was restarted
+    // Otherwise the change is not listed as pending anymore - the domain was disabled
     // while it was being replayed - so it has not been skipped: the replication server
     // sends it again and this replica gives up on it then.
   }
@@ -2668,7 +2795,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private void sendUnreplayedChangeAlert(LocalizableMessage cause)
   {
-    final long now = System.currentTimeMillis();
+    final long now = monotonicNowInMs();
     final long lastSent = lastUnreplayedChangeAlertTime.get();
     if (now - lastSent >= UNREPLAYED_CHANGE_ALERT_INTERVAL_IN_MS
         && lastUnreplayedChangeAlertTime.compareAndSet(lastSent, now))
@@ -2688,25 +2815,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   @VisibleForTesting
   public void resetUnreplayedChangeAlertThrottle()
   {
-    lastUnreplayedChangeAlertTime.set(0);
-  }
-
-  /**
-   * Counts one more failed replay of the change with the provided CSN.
-   *
-   * @param csn the CSN of the change whose replay failed
-   * @return how many times the replay of that change failed in a row
-   */
-  private int countReplayFailure(CSN csn)
-  {
-    final int attempts = failedReplayAttempts.merge(csn, 1, Integer::sum);
-    while (failedReplayAttempts.size() > MAX_FAILED_REPLAY_ATTEMPTS_TRACKED)
-    {
-      // Every change in flight is failing: keep the counts of the most recent ones,
-      // the oldest ones have been given up on long ago.
-      failedReplayAttempts.pollFirstEntry();
-    }
-    return attempts;
+    lastUnreplayedChangeAlertTime.set(UNREPLAYED_CHANGE_ALERT_NEVER_SENT);
   }
 
   /**
@@ -2714,10 +2823,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * <p>
    * The change has deliberately been left out of the ServerState, so the replication
    * server still owns it: restart the session so that it is sent again and replayed on
-   * a backend which has hopefully recovered in the meantime. Give up once its replay
-   * failed {@link #MAX_REPLAY_ATTEMPTS} times and record it as replayed, so that a
-   * change which can never be applied here does not stop this replica for good: the
-   * administrator is told that this replica has diverged and must be reinitialized.
+   * a backend which has hopefully recovered in the meantime. Give up once its replay has
+   * been failing for {@link #REPLAY_GIVE_UP_DELAY_IN_MS} and record it as replayed, so
+   * that a change which can never be applied here does not stop this replica for good:
+   * the administrator is told that this replica has diverged and must be reinitialized.
    *
    * @param csn
    *          the CSN of the change which could not be replayed, {@code null} when the
@@ -2735,61 +2844,145 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // The message could not be decoded: there is nothing to ask for again.
       return false;
     }
-    final int attempts = countReplayFailure(csn);
-    if (attempts >= MAX_REPLAY_ATTEMPTS)
+    /*
+     * The change stays listed as pending and uncommitted - it holds the ServerState back
+     * so that the replication server sends it again - but this thread does not own it
+     * anymore: the next delivery is the one which is replayed, and the copy which may
+     * still wait in the shared replay queue is dropped when a replay thread takes it out,
+     * because markInProgress() only accepts the delivery which is listed as pending.
+     */
+    remotePendingChanges.replayFailed(csn);
+
+    final ReplayFailures.Failure failure = replayFailures.recordFailure(csn, monotonicNowInMs());
+    if (failure.getFailingForMs() >= replayGiveUpDelayInMs)
     {
       final LocalizableMessage message =
-          ERR_REPLAY_SKIPPING_CHANGE.get(csn, getBaseDN(), attempts);
+          ERR_REPLAY_SKIPPING_CHANGE.get(csn, getBaseDN(), failure.getAttempts());
       logger.error(message);
       skipUnreplayableChange(csn, message);
       return false;
     }
 
-    if (replayThreadShutdown.get() || shutdown.get() || disabled)
+    if (shutdown.get() || disabled)
     {
       /*
-       * This replay thread or this whole domain is going away: there is no session to
-       * have the change sent over again. Restarting the one which is being stopped would
-       * leave a broker and a listener thread behind on a domain whose alert generator,
-       * flush thread and RSUpdater are already gone.
+       * This whole domain is going away or is being imported into: there is no session of
+       * this thread's to restart. Restarting the one which is being stopped would leave a
+       * broker and a listener thread behind on a domain whose alert generator, flush
+       * thread and RSUpdater are already gone.
        */
+      replayFailures.forget(csn);
       return true;
     }
 
-    logger.warn(WARN_REPLAY_RETRYING_CHANGE, csn, getBaseDN(), attempts);
-    if (!replayFailureRecovery.compareAndSet(false, true))
+    logger.warn(WARN_REPLAY_RETRYING_CHANGE, csn, getBaseDN(), failure.getAttempts());
+    /*
+     * This change is not owned by anyone anymore, so the session has to be restarted for
+     * the replication server to deliver it again. Ask for the restart before trying to
+     * run it: a restart which is already under way may have started before this change
+     * was released, and the delivery it asked for would then have been turned down as a
+     * duplicate of a change a replay thread still owned.
+     */
+    sessionRestartRequested.set(true);
+    /*
+     * A replay thread which is stopping - the number of them is being changed - restarts
+     * the session all the same: nothing else would ask for the change it just released,
+     * and the ServerState would stay behind it for good. It does not sit through the
+     * backoff on its way out, though: the backend is not what is going away.
+     */
+    runRequestedSessionRestarts(!replayThreadShutdown.get());
+    return true;
+  }
+
+  /**
+   * Restarts the session as long as changes which could not be replayed are waiting to be
+   * delivered again.
+   *
+   * @param wait whether to leave the backend some time to recover between two restarts
+   */
+  private void runRequestedSessionRestarts(boolean wait)
+  {
+    /*
+     * The outer loop is what makes a request which was made while this thread was giving
+     * up the recovery its own: the thread which made it found the recovery taken and left
+     * it to this one.
+     */
+    while (sessionRestartRequested.get() && replayFailureRecovery.compareAndSet(false, true))
     {
-      // Another replay thread is already restarting the session: the change it could not
-      // replay is left out of the ServerState too, so it comes back over the new session.
-      return true;
+      try
+      {
+        while (sessionRestartRequested.getAndSet(false))
+        {
+          restartSession(wait);
+        }
+      }
+      finally
+      {
+        replayFailureRecovery.set(false);
+      }
     }
-    try
+  }
+
+  /**
+   * Gives a change back to the replication server when this replay thread stops before it
+   * could apply it.
+   * <p>
+   * The change is not owned by anyone anymore and it was never applied, so the session is
+   * restarted for it to be delivered again: it is left out of the ServerState, and the
+   * changes which follow it are held back until it is replayed.
+   *
+   * @param csn the CSN of the change this thread was replaying
+   */
+  private void abandonReplay(CSN csn)
+  {
+    remotePendingChanges.replayFailed(csn);
+    if (shutdown.get() || disabled)
     {
-      disableService();
-      /*
-       * The uncommitted changes are about to be sent again: forget the ones still listed
-       * as pending, or processUpdate() would discard them as duplicates. The messages
-       * they came with may still be waiting in the replay queue, which is shared by every
-       * domain and which no lock lets this thread drain in reasonable time: they are
-       * dropped when a replay thread takes them out, because markInProgress() only
-       * accepts the delivery which is listed as pending.
-       */
-      remotePendingChanges.clearUncommitted();
-      // Leave the backend some time to recover rather than ask for the change straight
-      // away: a session restart is not free for the replication server either.
-      waitBeforeSessionRestart(attempts);
+      // The domain owns its session, and it forgets its pending changes on its way down.
+      return;
+    }
+    sessionRestartRequested.set(true);
+    runRequestedSessionRestarts(false);
+  }
+
+  /**
+   * Stops the session to the replication server and starts it again, so that the changes
+   * this replica could not replay are delivered again.
+   */
+  private void restartSession(boolean wait)
+  {
+    synchronized (serviceStateLock)
+    {
       if (shutdown.get() || disabled)
       {
-        // The domain went away while this thread was waiting.
-        return true;
+        // The domain is going away or is being imported into: it owns its session.
+        return;
+      }
+      disableService();
+    }
+    if (wait)
+    {
+      /*
+       * Leave the backend some time to recover rather than ask for the change straight
+       * away: a session restart is not free for the replication server either. The wait
+       * is not held under the lock, or a domain being disabled for an import would wait
+       * it out.
+       */
+      waitBeforeSessionRestart(consecutiveSessionRestarts.incrementAndGet());
+    }
+    synchronized (serviceStateLock)
+    {
+      if (shutdown.get() || disabled || !isListenerShuttingDown())
+      {
+        /*
+         * The domain went away while this thread was waiting, or the session is up again
+         * because something else - a configuration change, the end of an import - started
+         * it in the meantime: this thread has nothing left to start.
+         */
+        return;
       }
       enableService();
     }
-    finally
-    {
-      replayFailureRecovery.set(false);
-    }
-    return true;
   }
 
   /**
@@ -2797,18 +2990,52 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * that a backend which keeps failing is not asked for every change it can not apply as
    * fast as the replication server can send them.
    *
-   * @param attempts how many times the replay of the change failed already
+   * @param restarts how many times in a row the session was restarted already
    */
-  private void waitBeforeSessionRestart(int attempts)
+  private void waitBeforeSessionRestart(int restarts)
   {
     try
     {
-      Thread.sleep(REPLAY_RETRY_DELAY_IN_MS * attempts);
+      Thread.sleep(Math.min(REPLAY_RETRY_DELAY_IN_MS * restarts, MAX_REPLAY_RETRY_DELAY_IN_MS));
     }
     catch (InterruptedException e)
     {
+      /*
+       * Do not wait, but do start the session again all the same: the session is down
+       * because this thread stopped it, and leaving it down would take this domain out of
+       * the topology until the server is restarted. The interrupt is left set for whoever
+       * asked this thread to stop.
+       */
       Thread.currentThread().interrupt();
     }
+  }
+
+  /**
+   * Returns how long the replay of a change is retried before this replica gives up on
+   * it.
+   * <p>
+   * Only there for the tests, which set another value and put this one back.
+   *
+   * @return how long a change is retried, in milliseconds
+   */
+  @VisibleForTesting
+  public long getReplayGiveUpDelay()
+  {
+    return replayGiveUpDelayInMs;
+  }
+
+  /**
+   * Sets how long the replay of a change is retried before this replica gives up on it.
+   * <p>
+   * Only there for the tests, which can not wait out the {@link
+   * #REPLAY_GIVE_UP_DELAY_IN_MS} a backend under maintenance is given.
+   *
+   * @param delayInMs how long a change is retried, in milliseconds
+   */
+  @VisibleForTesting
+  public void setReplayGiveUpDelay(long delayInMs)
+  {
+    this.replayGiveUpDelayInMs = delayInMs;
   }
 
   /**
@@ -3438,10 +3665,23 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    */
   public void disable()
   {
-    state.save();
-    state.clearInMemory();
-    disabled = true;
-    disableService(); // This will cut the session and wake up the listener
+    synchronized (serviceStateLock)
+    {
+      state.save();
+      state.clearInMemory();
+      disabled = true;
+      disableService(); // This will cut the session and wake up the listener
+      /*
+       * The ServerState this bookkeeping goes with is now gone from memory and is loaded
+       * again from the backend when the domain is enabled back, so the changes listed as
+       * pending must not outlive it: one which stayed would be discarded as a duplicate
+       * when the replication server sends it again, and nothing would ever replay it or
+       * record it in the ServerState. The listener thread is stopped first, or a change
+       * it lists after this would be the one left behind.
+       */
+      remotePendingChanges.clear();
+      replayFailures.clear();
+    }
   }
 
   /**
@@ -3472,23 +3712,26 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    */
   public void enable()
   {
-    try
+    synchronized (serviceStateLock)
     {
-      loadDataState();
-    }
-    catch (Exception e)
-    {
-      /* TODO should mark that replicationServer service is
-       * not available, log an error and retry upon timeout
-       * should we stop the modifications ?
-       */
-      logger.error(ERR_LOADING_GENERATION_ID, getBaseDN(), stackTraceToSingleLineString(e));
-      return;
-    }
+      try
+      {
+        loadDataState();
+      }
+      catch (Exception e)
+      {
+        /* TODO should mark that replicationServer service is
+         * not available, log an error and retry upon timeout
+         * should we stop the modifications ?
+         */
+        logger.error(ERR_LOADING_GENERATION_ID, getBaseDN(), stackTraceToSingleLineString(e));
+        return;
+      }
 
-    enableService();
+      enableService();
 
-    disabled = false;
+      disabled = false;
+    }
   }
 
   /**
@@ -4565,16 +4808,20 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       if (!remotePendingChanges.putRemoteUpdate(msg))
       {
         /*
-         * Already received this change so ignore it. This may happen if there
-         * are uncommitted changes in the queue and session failover occurs
-         * causing a recovery of all changes since the current committed server
-         * state. See OPENDJ-1115.
+         * A replay thread already owns this change, so this delivery is a duplicate:
+         * ignore it. This happens when there are uncommitted changes in the queue and
+         * session failover occurs causing a recovery of all changes since the current
+         * committed server state. See OPENDJ-1115.
          *
          * The copy which is already listed owns the change: it is the one which records
          * it in the ServerState once it really has been replayed. Report this delivery
          * as done - the window and the ack are per delivery - but as handled
          * asynchronously, so that the listener does not push the CSN to the ServerState
          * over a change which is still being replayed or is failing (issue #889).
+         *
+         * A change whose replay failed is not owned by anyone anymore, so this is not the
+         * path it takes: putRemoteUpdate() takes this delivery over from the one which
+         * failed and has it replayed again.
          */
         if (logger.isTraceEnabled())
         {
