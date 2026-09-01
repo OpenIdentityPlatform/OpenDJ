@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -22,6 +23,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.SortedSet;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
@@ -47,6 +49,20 @@ public final class ReplSessionSecurity
   private static final String REPLICATION_CLIENT_NAME = "Replication Client";
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /**
+   * Minimum interval between two warnings about a failed SSL handshake on the
+   * replication port. Every connection which is not a replication peer fails the
+   * handshake, network probes included, so only the first failure of an interval
+   * is logged as a warning and the following ones are logged at debug level.
+   */
+  private static final long HANDSHAKE_FAILURE_WARN_INTERVAL_MS = 5L * 60L * 1000L;
+
+  /**
+   * Time, in milliseconds, at which the last handshake failure was logged as a
+   * warning, or 0 if none has been logged yet.
+   */
+  private final AtomicLong lastHandshakeFailureWarnTime = new AtomicLong();
 
   /**
    * Whether replication sessions use SSL encryption.
@@ -253,10 +269,10 @@ public final class ReplSessionSecurity
     }
     catch (final SSLException e)
     {
-      // This is probably a connection attempt from an unexpected client
-      // log that to warn the administrator.
-      logger.debug(INFO_SSL_SERVER_CON_ATTEMPT_ERROR, socket.getRemoteSocketAddress(),
-          socket.getLocalSocketAddress(), e.getLocalizedMessage());
+      // This may be a connection attempt from an unexpected client, but it is
+      // also how a certificate misconfiguration shows up, so warn the
+      // administrator instead of failing silently.
+      logHandshakeFailure(socket, e);
       return null;
     }
     finally
@@ -270,6 +286,33 @@ public final class ReplSessionSecurity
   }
 
 
+
+  /**
+   * Logs a failed SSL handshake on the replication port, as a warning for the
+   * first failure of each {@link #HANDSHAKE_FAILURE_WARN_INTERVAL_MS} interval
+   * and at debug level for the following ones.
+   *
+   * @param socket
+   *          The socket the handshake failed on.
+   * @param e
+   *          The handshake failure.
+   */
+  private void logHandshakeFailure(final Socket socket, final SSLException e)
+  {
+    final long now = System.currentTimeMillis();
+    final long lastWarn = lastHandshakeFailureWarnTime.get();
+    if (now - lastWarn >= HANDSHAKE_FAILURE_WARN_INTERVAL_MS
+        && lastHandshakeFailureWarnTime.compareAndSet(lastWarn, now))
+    {
+      logger.warn(WARN_SSL_SERVER_CON_ATTEMPT_ERROR, socket.getRemoteSocketAddress(),
+          socket.getLocalSocketAddress(), e.getLocalizedMessage());
+    }
+    else
+    {
+      logger.debug(WARN_SSL_SERVER_CON_ATTEMPT_ERROR, socket.getRemoteSocketAddress(),
+          socket.getLocalSocketAddress(), e.getLocalizedMessage());
+    }
+  }
 
   /**
    * Determine whether sessions to a given replication server should be

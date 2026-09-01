@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -28,6 +28,8 @@ This chapter covers how to replace OpenDJ key pairs and public key certificates.
 * Replace a key pair for securing a connection handler
 
 * Replace a key pair used for replication
+
+* Use a CA-signed certificate for replication
 
 OpenDJ uses keystores (for private keys) and truststores (for public, signed certificates). Up to three sets of keystores are used, as shown in the following illustration.
 
@@ -54,7 +56,7 @@ This Java Keystore holds a copy of the administrative certificate, `admin-cert`.
 This Java Keystore holds public key certificates of all servers replicating with the current server. It also includes the `ads-certificate` key pair of the current server. The password is stored in `ads-truststore.pin`.
 
 +
-Do not change this keystore directly.
+Do not change this keystore directly, except to install a CA-signed certificate for replication as described in xref:#replace-ads-cert-ca["To Use a CA-Signed Certificate for Replication"].
 
 `keystore`::
 This Java Keystore holds the private key and server certificate, `server-cert`, used to protect TLS/SSL communications with client applications. The password, stored in `keystore.pin`, is also the key password for `server-cert`.
@@ -422,3 +424,128 @@ $ dsconfig \
 
 ====
 
+[#replace-ads-cert-ca]
+.To Use a CA-Signed Certificate for Replication
+====
+Replication connections use neither the `keystore` nor the `admin-keystore`. Both the key pair presented on the replication port and the certificates trusted on that port are read from the `ads-truststore`, and the alias to present is the `ssl-cert-nickname` property of the crypto manager, `ads-certificate` by default. To secure replication with certificates signed by your own Certificate Authority (CA), install the CA-signed key pair in the `ads-truststore` of every server.
+
+Servers authenticate each other on the replication port, so import the CA certificate everywhere first, in a separate pass. A server whose certificate changes before the other servers trust your CA can no longer connect to the topology.
+
+Each `keytool` command applies to a single server, and is run while that server is stopped. A running server keeps a copy of the `ads-truststore` in memory and can overwrite changes made to the file.
+
+. Take each server in turn and add your CA certificate and your CA-signed key pair to its `ads-truststore`. Replication continues to work during this pass, as the certificates presented by the servers do not change yet.
+
+.. Stop the server:
++
+
+[source, console]
+----
+$ /path/to/opendj/bin/stop-ds
+----
+
+.. Import the CA certificate, and any intermediate certificates, as trusted certificates:
++
+
+[source, console]
+----
+$ cd /path/to/opendj/config
+$ keytool \
+ -importcert \
+ -trustcacerts \
+ -alias ca-cert \
+ -file ca-cert.pem \
+ -keystore ads-truststore \
+ -storetype JKS \
+ -storepass `cat ads-truststore.pin`
+----
+
+.. Import the CA-signed key pair, with its full certificate chain, under a new alias.
++
+Leave the `ads-certificate` key pair in place. It is also the instance key that the crypto manager uses to unwrap the symmetric keys shared with the topology, and its fingerprint is published under `cn=instance keys,cn=admin data`.
++
+The key password must be identical to the keystore password, as the server unlocks the private key with the PIN of the `ads-truststore`:
++
+
+[source, console]
+----
+$ keytool \
+ -importkeystore \
+ -srckeystore server-cert.p12 \
+ -srcstoretype PKCS12 \
+ -srcalias server-cert \
+ -srcstorepass password \
+ -destkeystore ads-truststore \
+ -deststoretype JKS \
+ -destalias repl-cert \
+ -deststorepass `cat ads-truststore.pin` \
+ -destkeypass `cat ads-truststore.pin`
+----
+
+.. Check that the alias holds a private key entry and that the whole chain was imported:
++
+
+[source, console]
+----
+$ keytool \
+ -list \
+ -alias repl-cert \
+ -keystore ads-truststore \
+ -storepass `cat ads-truststore.pin`
+
+repl-cert, Sep 1, 2026, PrivateKeyEntry,
+Certificate fingerprint (SHA-256): 3F:...:1C
+----
+
+.. Start the server:
++
+
+[source, console]
+----
+$ /path/to/opendj/bin/start-ds
+----
+
+. When every server holds the CA certificate and its own CA-signed key pair, take each server in turn and switch it to the new alias.
+
+.. Configure the crypto manager to present the new certificate:
++
+
+[source, console]
+----
+$ dsconfig \
+ set-crypto-manager-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set ssl-cert-nickname:repl-cert \
+ --no-prompt
+----
+
+.. Restart the server for the change to take effect:
++
+
+[source, console]
+----
+$ /path/to/opendj/bin/stop-ds --restart
+----
+
+.. Check that replication still works, and that `logs/errors` shows no SSL handshake failure on the replication port:
++
+
+[source, console]
+----
+$ dsreplication \
+ status \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --adminUID admin \
+ --adminPassword password \
+ --no-prompt
+----
+
++
+[NOTE]
+======
+The server does not check the host name presented in the replication certificate, so a certificate whose subject does not match the host name of the server is accepted. Expiration dates are enforced, however. Unlike the self-signed `ads-certificate`, which is generated with a 20 year validity, CA-signed certificates usually have to be renewed: repeat this procedure before they expire.
+======
+====

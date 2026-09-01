@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
@@ -30,6 +31,7 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 
 import static org.opends.messages.ExtensionMessages.INFO_MISSING_KEY_TYPE_IN_ALIASES;
+import static org.opends.messages.ExtensionMessages.WARN_NO_CLIENT_CERT_IN_ALIASES;
 
 /**
  * This class implements an X.509 key manager that will be used to wrap an
@@ -105,7 +107,10 @@ public final class SelectableCertificateKeyManager
         return clientAlias;
       }
     }
-    logger.debug(INFO_MISSING_KEY_TYPE_IN_ALIASES, componentName, aliases.toString(), Arrays.toString(keyType));
+    // Every key type requested by the peer has been tried, so no client certificate
+    // will be sent at all. Peers requiring client authentication, such as replication
+    // servers, reject the connection: warn instead of failing silently.
+    logger.warn(WARN_NO_CLIENT_CERT_IN_ALIASES, componentName, aliases.toString(), Arrays.toString(keyType));
     return null;
   }
 
@@ -181,6 +186,9 @@ public final class SelectableCertificateKeyManager
         return serverAlias;
       }
     }
+    // The peer is asked for one key type at a time, so returning no alias here is part
+    // of a normal negotiation, for instance an EC key type against an RSA only key
+    // store. Keep this at debug level to avoid warning about healthy handshakes.
     logger.debug(INFO_MISSING_KEY_TYPE_IN_ALIASES, componentName, aliases.toString(), Arrays.toString(keyType));
     return null;
   }
