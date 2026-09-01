@@ -32,6 +32,7 @@ import org.testng.annotations.Test;
  * server: a change reaches the ServerState only once it really has been replayed.
  */
 @SuppressWarnings("javadoc")
+@Test(groups = { "precommit", "replication" }, sequential = true)
 public class RemotePendingChangesTest extends DirectoryServerTestCase
 {
   private static final int SERVER_ID = 42;
@@ -242,6 +243,148 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
     assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(failed, "uuid-1")),
         "the changes must be accepted again once the domain is enabled back");
     assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(replayed, "uuid-2")));
+  }
+
+  /**
+   * A backend which is failing fails every change in flight: the failures of one change
+   * must not reset the ones of another, or the replica would never give up on any of
+   * them.
+   */
+  @Test
+  public void replayFailuresAreCountedPerChange() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSNGenerator generator = new CSNGenerator(SERVER_ID, 0);
+    final CSN first = generator.newCSN();
+    final CSN second = generator.newCSN();
+
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(first, "uuid-1")));
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(second, "uuid-2")));
+
+    assertEquals(pendingChanges.recordReplayFailure(first, 1000).getAttempts(), 1);
+    assertEquals(pendingChanges.recordReplayFailure(second, 1100).getAttempts(), 1);
+    assertEquals(pendingChanges.recordReplayFailure(first, 1200).getAttempts(), 2);
+    assertEquals(pendingChanges.recordReplayFailure(second, 1300).getAttempts(), 2);
+
+    assertEquals(pendingChanges.recordReplayFailure(first, 1400).getFailingForMs(), 400);
+    assertEquals(pendingChanges.recordReplayFailure(second, 1500).getFailingForMs(), 400);
+  }
+
+  /**
+   * The failures belong to the change, which stays listed until it is applied, so they
+   * are kept across the deliveries which take over from one another: they are the budget
+   * this replica gives a change before it gives up on it, and a delivery which resets it
+   * is a replica which never gives up (issue #889).
+   */
+  @Test
+  public void replayFailuresSurviveTheDeliveryTakingOver() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSN csn = new CSNGenerator(SERVER_ID, 0).newCSN();
+    final DeleteMsg failedDelivery = deleteMsg(csn, "uuid-1");
+
+    assertTrue(pendingChanges.putRemoteUpdate(failedDelivery));
+    assertTrue(pendingChanges.markInProgress(failedDelivery));
+    assertEquals(pendingChanges.recordReplayFailure(csn, 1000).getAttempts(), 1);
+    pendingChanges.replayFailed(csn);
+
+    // The replication server delivers the change again over the restarted session.
+    final DeleteMsg nextDelivery = deleteMsg(csn, "uuid-1");
+    assertTrue(pendingChanges.putRemoteUpdate(nextDelivery));
+    assertTrue(pendingChanges.markInProgress(nextDelivery));
+
+    final RemotePendingChanges.ReplayFailure failure = pendingChanges.recordReplayFailure(csn, 301000);
+    assertEquals(failure.getAttempts(), 2);
+    assertEquals(failure.getFailingForMs(), 300000,
+        "the budget of a change must be measured from its first failure, whichever delivery failed");
+  }
+
+  /**
+   * However long a single delivery takes to fail - the replay is attempted in place
+   * several times and each attempt waits on the storage - the failures belong to the same
+   * run: a change which stops failing is applied or given up on, and it takes its
+   * failures with it.
+   */
+  @Test
+  public void replayFailuresFarApartStillBelongToTheSameRun() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSN csn = new CSNGenerator(SERVER_ID, 0).newCSN();
+
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")));
+    pendingChanges.recordReplayFailure(csn, 1000);
+
+    final RemotePendingChanges.ReplayFailure failure = pendingChanges.recordReplayFailure(csn, 601000);
+    assertEquals(failure.getAttempts(), 2);
+    assertEquals(failure.getFailingForMs(), 600000,
+        "a change must be given up on however long its deliveries take to fail");
+  }
+
+  /**
+   * A change which was replayed, or which the domain forgot on its way down, has no
+   * failures left to record: there is nothing left here to give up on.
+   */
+  @Test
+  public void replayFailuresGoAwayWithTheChange() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSNGenerator generator = new CSNGenerator(SERVER_ID, 0);
+    final CSN committed = generator.newCSN();
+    final CSN forgotten = generator.newCSN();
+
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(committed, "uuid-1")));
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(forgotten, "uuid-2")));
+    assertEquals(pendingChanges.recordReplayFailure(committed, 1000).getAttempts(), 1);
+    assertEquals(pendingChanges.recordReplayFailure(forgotten, 1000).getAttempts(), 1);
+
+    pendingChanges.commit(committed);
+    assertNull(pendingChanges.recordReplayFailure(committed, 1100),
+        "a change which was replayed must not be given up on");
+
+    pendingChanges.clear();
+    assertNull(pendingChanges.recordReplayFailure(forgotten, 1100),
+        "a change a disabled domain forgot must not be given up on");
+
+    // The replication server sends it again once the domain is enabled back.
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(forgotten, "uuid-2")));
+    final RemotePendingChanges.ReplayFailure failure =
+        pendingChanges.recordReplayFailure(forgotten, 301100);
+    assertEquals(failure.getAttempts(), 1);
+    assertEquals(failure.getFailingForMs(), 0,
+        "a change which was forgotten must not be given up on straight away");
+  }
+
+  /**
+   * An outage fails every change in flight, and there are more of those than any bound a
+   * side map of failures could carry: a change must keep the budget it has been failing
+   * for however many other changes are failing with it.
+   */
+  @Test
+  public void aFailingChangeKeepsItsBudgetHoweverManyOtherChangesAreFailing() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSNGenerator generator = new CSNGenerator(SERVER_ID, 0);
+    final CSN oldest = generator.newCSN();
+
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(oldest, "uuid-0")));
+    assertEquals(pendingChanges.recordReplayFailure(oldest, 1000).getAttempts(), 1);
+
+    // Every other change in flight fails in between, in the order they were delivered.
+    final int changesInFlight = 1500;
+    final CSN[] others = new CSN[changesInFlight];
+    for (int i = 0; i < changesInFlight; i++)
+    {
+      others[i] = generator.newCSN();
+      assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(others[i], "uuid-" + (i + 1))));
+      pendingChanges.recordReplayFailure(others[i], 1000 + i);
+    }
+
+    final RemotePendingChanges.ReplayFailure failure = pendingChanges.recordReplayFailure(oldest, 301000);
+    assertEquals(failure.getAttempts(), 2);
+    assertEquals(failure.getFailingForMs(), 300000,
+        "the change which has been failing the longest must be the one given up on");
+    assertEquals(pendingChanges.recordReplayFailure(others[0], 301000).getAttempts(), 2,
+        "the failures of a change must not be dropped to make room for another change");
   }
 
   private DeleteMsg deleteMsg(CSN csn, String entryUUID) throws Exception

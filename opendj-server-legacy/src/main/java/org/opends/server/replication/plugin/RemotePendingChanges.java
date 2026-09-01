@@ -112,6 +112,10 @@ final class RemotePendingChanges
 
   /**
    * Returns the number of changes actively being replayed.
+   * <p>
+   * A change whose replay failed counts here until it is applied or given up on: it stays
+   * a dependency of the changes which follow it, since a change which is not in the data
+   * is exactly what they must wait for, and the delivery which comes next takes it over.
    *
    * @return the number of changes actively being replayed.
    */
@@ -148,12 +152,17 @@ final class RemotePendingChanges
    * and replaying it again is exactly what the duplicate check is there to prevent
    * (OPENDJ-1115).
    * <p>
-   * A change which is listed but which no replay thread owns anymore is one whose replay
-   * failed: it is deliberately left out of the ServerState, so the replication server
-   * sends it again over the session which was restarted (issue #889). This delivery
-   * takes over from the one which failed: it is the one to replay, and the copy which
-   * may still wait in the replay queue is dropped by
-   * {@link #markInProgress(LDAPUpdateMsg)}.
+   * A change which is listed but which no replay thread owns is taken over by this
+   * delivery: it is the one to replay, and the copy which may still wait in the replay
+   * queue is dropped by {@link #markInProgress(LDAPUpdateMsg)}. That is a change whose
+   * replay failed - it is deliberately left out of the ServerState, so the replication
+   * server sends it again over the session which was restarted (issue #889) - and it is
+   * also, harmlessly, a change which was listed a moment ago by a delivery no replay
+   * thread has picked up yet: the two deliveries carry the same change, and the last one
+   * listed is the one replayed.
+   * <p>
+   * The failures the change went through are kept, whichever delivery replays it: they
+   * are what has this replica eventually give up on a change it can not apply.
    *
    * @param update The LDAPUpdateMsg that was received from the replication
    *               server and that will be added to the pending list.
@@ -257,6 +266,75 @@ final class RemotePendingChanges
       {
         change.setOwned(false);
       }
+    }
+    finally
+    {
+      pendingChangesWriteLock.unlock();
+    }
+  }
+
+  /** How long, and how many times, the replay of one change has been failing. */
+  static final class ReplayFailure
+  {
+    private final int attempts;
+    private final long failingForMs;
+
+    private ReplayFailure(int attempts, long failingForMs)
+    {
+      this.attempts = attempts;
+      this.failingForMs = failingForMs;
+    }
+
+    /**
+     * Returns how many times in a row the replay of the change failed.
+     *
+     * @return the number of failures, at least 1
+     */
+    int getAttempts()
+    {
+      return attempts;
+    }
+
+    /**
+     * Returns how long the replay of the change has been failing, that is the time
+     * between its first failure and the one which was just recorded.
+     *
+     * @return the duration in milliseconds, 0 for a first failure
+     */
+    long getFailingForMs()
+    {
+      return failingForMs;
+    }
+  }
+
+  /**
+   * Records that the replay of the change with the provided CSN failed once more.
+   * <p>
+   * The failures are kept on the change itself, which stays listed for as long as it has
+   * not been applied, so a change which keeps failing keeps its give-up budget across the
+   * deliveries which take over from one another, and a change which is replayed or given
+   * up on takes its failures away with it (issue #889).
+   *
+   * @param csn
+   *          the CSN of the change whose replay failed
+   * @param nowMs
+   *          when it failed, on a clock which only moves forward
+   * @return the failures of the change, or {@code null} when it is not listed as an
+   *         uncommitted change anymore, which happens when the domain was disabled while
+   *         it was being replayed: there is no change left here to give up on
+   */
+  public ReplayFailure recordReplayFailure(CSN csn, long nowMs)
+  {
+    pendingChangesWriteLock.lock();
+    try
+    {
+      final PendingChange change = pendingChanges.get(csn);
+      if (change == null || change.isCommitted())
+      {
+        return null;
+      }
+      change.recordReplayFailure(nowMs);
+      return new ReplayFailure(change.getReplayFailures(), change.getReplayFailingForMs(nowMs));
     }
     finally
     {

@@ -1591,19 +1591,36 @@ public class UpdateOperationTest extends ReplicationTestCase
   }
 
   /**
+   * The result codes a replay is retried on rather than skipped: the storage failing to
+   * serve the operation, and a lock which could not be taken (OPENDJ-885) - the ten
+   * in-place attempts only yield to the thread holding it, so a lock held for a while
+   * burns every one of them and the change is as absent from the data as after a storage
+   * failure.
+   */
+  @DataProvider(name = "transientReplayFailures")
+  public Object[][] transientReplayFailures()
+  {
+    return new Object[][] {
+      { ResultCode.UNAVAILABLE, 14, "user.889.3" },
+      { ResultCode.BUSY, 15, "user.889.4" },
+    };
+  }
+
+  /**
    * Test case for [Issue 889]: a replay which fails on the server itself has the session
    * restarted and the change delivered again, and a failure which clears in the meantime
    * has the change applied exactly once, without the change being given up on and without
    * it being reported as failed.
    */
-  @Test
-  public void transientReplayFailureIsRetriedAndTheChangeApplied() throws Exception
+  @Test(dataProvider = "transientReplayFailures")
+  public void transientReplayFailureIsRetriedAndTheChangeApplied(
+      final ResultCode transientFailure, final int serverId, final String uid) throws Exception
   {
-    testSetUp("transientReplayFailureIsRetriedAndTheChangeApplied");
+    testSetUp("transientReplayFailureIsRetriedAndTheChangeApplied." + uid);
     logger.error(LocalizableMessage.raw(
-        "Starting replication test : transientReplayFailureIsRetriedAndTheChangeApplied"));
+        "Starting replication test : transientReplayFailureIsRetriedAndTheChangeApplied "
+            + transientFailure));
 
-    final int serverId = 14;
     ReplicationBroker broker =
         openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
     try
@@ -1611,12 +1628,12 @@ public class UpdateOperationTest extends ReplicationTestCase
       CSNGenerator gen = new CSNGenerator(serverId, 0);
 
       Entry tmp = TestCaseUtils.addEntry(
-          "dn: uid=user.889.3," + baseDN,
+          "dn: uid=" + uid + "," + baseDN,
           "objectClass: top",
           "objectClass: person",
           "objectClass: organizationalPerson",
           "objectClass: inetOrgPerson",
-          "uid: user.889.3",
+          "uid: " + uid,
           "cn: Aaccf Amar",
           "sn: Amar");
       String uuid = getEntry(tmp.getName(), 1, true).parseAttribute("entryuuid").asString();
@@ -1634,7 +1651,7 @@ public class UpdateOperationTest extends ReplicationTestCase
        */
       ShortCircuitPlugin.resetShortCircuitCount(OperationType.DELETE, "PreParse");
       ShortCircuitPlugin.registerShortCircuit(OperationType.DELETE, "PreParse",
-          ResultCode.UNAVAILABLE.intValue(), IN_PLACE_REPLAY_ATTEMPTS + 2);
+          transientFailure.intValue(), IN_PLACE_REPLAY_ATTEMPTS + 2);
       try
       {
         final CSN csn = gen.newCSN();
@@ -1660,8 +1677,16 @@ public class UpdateOperationTest extends ReplicationTestCase
           }
         });
         assertMonitorAttrValueEventually("replayed-updates-ok", initialReplayed + 1,
+            "the change must be recorded as replayed");
+        /*
+         * A change applied twice - the delivery which failed and the one which took over
+         * from it, the OPENDJ-1115 regression the takeover is there to prevent - takes the
+         * counter through +1 on its way to +2, so the value has to be seen to stay put
+         * rather than to be reached once.
+         */
+        assertMonitorAttrValueStays("replayed-updates-ok", initialReplayed + 1,
             "a change which was delivered again must be applied exactly once");
-        assertMonitorAttrValueEventually("replayed-updates-failed", initialFailures,
+        assertMonitorAttrValueStays("replayed-updates-failed", initialFailures,
             "a change which was replayed after a transient failure must not count as failed");
         assertEquals(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE), initialAlerts,
             "a transient failure must not tell the administrator that this replica diverged");
@@ -1705,6 +1730,124 @@ public class UpdateOperationTest extends ReplicationTestCase
         assertEquals(getMonitorAttrValue(baseDN, attributeName), expected, message);
       }
     });
+  }
+
+  /**
+   * Test case for [Issue 889]: the result code the server puts on an internal error is
+   * configurable and is not validated as a result code, so it can be set to one conflict
+   * resolution knows how to solve. Such a change is left to conflict resolution, and when
+   * that can not solve it either the change is retried as the storage failure it is -
+   * recording it as replayed after one attempt would be issue #889 again.
+   */
+  @Test
+  public void changeConflictResolutionCanNotSolveOnTheServerErrorCodeIsRetried() throws Exception
+  {
+    testSetUp("changeConflictResolutionCanNotSolveOnTheServerErrorCodeIsRetried");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : changeConflictResolutionCanNotSolveOnTheServerErrorCodeIsRetried"));
+
+    final int serverId = 16;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    try
+    {
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+
+      Entry tmp = TestCaseUtils.addEntry(
+          "dn: uid=user.889.5," + baseDN,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "uid: user.889.5",
+          "cn: Aaccf Amar",
+          "sn: Amar");
+      String uuid = getEntry(tmp.getName(), 1, true).parseAttribute("entryuuid").asString();
+
+      final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+      final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+      domain.resetUnreplayedChangeAlertThrottle();
+      final int initialAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE);
+
+      /*
+       * UNWILLING_TO_PERFORM is one of the codes solveNamingConflict(ModifyDNOperation)
+       * solves, so it must not be treated as a failure of the server before conflict
+       * resolution had its chance - and it is what the storage reports here.
+       */
+      setServerErrorResultCode(ResultCode.UNWILLING_TO_PERFORM.intValue());
+      ShortCircuitPlugin.resetShortCircuitCount(OperationType.DELETE, "PreParse");
+      /*
+       * The failure lasts longer than the attempts made in place, so the change is only
+       * applied if it was left out of the ServerState and delivered again rather than
+       * recorded as replayed once conflict resolution reported it could not be solved.
+       */
+      ShortCircuitPlugin.registerShortCircuit(OperationType.DELETE, "PreParse",
+          ResultCode.UNWILLING_TO_PERFORM.intValue(), IN_PLACE_REPLAY_ATTEMPTS + 2);
+      try
+      {
+        final CSN csn = gen.newCSN();
+        broker.publish(new DeleteMsg(tmp.getName(), csn, uuid));
+
+        assertNull(getEntry(tmp.getName(), 120000, false),
+            "the change was skipped rather than retried once the storage served the operation");
+        Assertions.assertThat(ShortCircuitPlugin.getShortCircuitCount(OperationType.DELETE, "PreParse"))
+            .as("the change must have been delivered again rather than recorded as replayed")
+            .isGreaterThan(IN_PLACE_REPLAY_ATTEMPTS);
+        assertMonitorAttrValueStays("replayed-updates-failed", initialFailures,
+            "a change which was replayed in the end must not be counted as given up on");
+        assertEquals(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE), initialAlerts,
+            "a change which was replayed in the end must not tell the administrator that this replica diverged");
+      }
+      finally
+      {
+        ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
+        setServerErrorResultCode(ResultCode.OTHER.intValue());
+      }
+    }
+    finally
+    {
+      broker.stop();
+    }
+  }
+
+  /**
+   * Sets the result code this server puts on an internal error, the way an administrator
+   * would.
+   *
+   * @param resultCode the numeric result code
+   * @throws Exception if the configuration could not be changed
+   */
+  private void setServerErrorResultCode(int resultCode) throws Exception
+  {
+    assertEquals(TestCaseUtils.applyModifications(true,
+        "dn: cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-server-error-result-code",
+        "ds-cfg-server-error-result-code: " + resultCode), 0,
+        "the server error result code could not be changed");
+  }
+
+  /**
+   * Checks that a monitor attribute of the replication domain holds the expected value
+   * and keeps holding it.
+   * <p>
+   * Waiting for a value to be reached is not enough to tell that something happened only
+   * once: a counter which is bumped a second time goes through the expected value on its
+   * way, and the first poll which sees it passes.
+   *
+   * @param attributeName the monitor attribute to read
+   * @param expected the value it must hold
+   * @param message what is being asserted
+   * @throws Exception if the value changes, or if the monitor entry can not be read
+   */
+  private void assertMonitorAttrValueStays(
+      final String attributeName, final long expected, final String message) throws Exception
+  {
+    for (int i = 0; i < 5; i++)
+    {
+      assertEquals(getMonitorAttrValue(baseDN, attributeName), expected, message);
+      Thread.sleep(200);
+    }
   }
 
   /**

@@ -41,6 +41,18 @@ class PendingChange implements Comparable<PendingChange>
    * failed and which the replication server is expected to deliver again.
    */
   private boolean owned;
+  /**
+   * How many times in a row the replay of this change failed, and when the first of
+   * those failures happened - on a clock which only moves forward.
+   * <p>
+   * They live here, on the change which stays listed as the barrier holding the
+   * ServerState back, rather than in a map on the side: a bound on such a map would have
+   * a change evicted between two of its own failures and its give-up budget restarted,
+   * so a replica failing more changes than the bound would never give up on any of them
+   * (issue #889).
+   */
+  private int replayFailures;
+  private long firstReplayFailureTimeMs;
   private final PluginOperation op;
 
   /**
@@ -138,6 +150,43 @@ class PendingChange implements Comparable<PendingChange>
   public void setOwned(boolean owned)
   {
     this.owned = owned;
+  }
+
+  /**
+   * Records that the replay of this change failed once more.
+   *
+   * @param nowMs
+   *          when it failed, on a clock which only moves forward
+   */
+  public void recordReplayFailure(long nowMs)
+  {
+    if (replayFailures == 0)
+    {
+      firstReplayFailureTimeMs = nowMs;
+    }
+    replayFailures++;
+  }
+
+  /**
+   * Returns how many times in a row the replay of this change failed.
+   *
+   * @return the number of failures, 0 when its replay never failed
+   */
+  public int getReplayFailures()
+  {
+    return replayFailures;
+  }
+
+  /**
+   * Returns how long the replay of this change has been failing.
+   *
+   * @param nowMs
+   *          the current time, on the clock {@link #recordReplayFailure(long)} was given
+   * @return the duration in milliseconds, 0 when its replay never failed
+   */
+  public long getReplayFailingForMs(long nowMs)
+  {
+    return replayFailures == 0 ? 0 : nowMs - firstReplayFailureTimeMs;
   }
 
   /**

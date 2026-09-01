@@ -59,6 +59,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.DataFormatException;
 
+import net.jcip.annotations.GuardedBy;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -342,12 +344,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private static final long MAX_REPLAY_RETRY_DELAY_IN_MS = 10000;
   /**
-   * How many changes the replay failures are remembered for. Only the changes which are
-   * failing are listed here, so the bound is never reached in practice: it is there so
-   * that a replica failing every change it is sent can not grow the map without end.
-   */
-  private static final int MAX_FAILED_REPLAY_ATTEMPTS_TRACKED = 1000;
-  /**
    * How long the alert telling that this replica diverges is not sent again. A single
    * cause - a schema which does not match, a backend which is gone - makes every change
    * in flight unreplayable, and one alert per change would be a storm.
@@ -373,15 +369,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private final AtomicInteger consecutiveSessionRestarts = new AtomicInteger();
   /**
-   * The failures of the changes whose replay did not succeed yet.
-   * <p>
-   * They have to be kept per change: a backend which is failing fails every change in
-   * flight, and a single slot would be reset by each of them in turn, so the give up
-   * would never be reached. Entries are dropped as soon as the change is replayed or
-   * given up on.
-   */
-  private final ReplayFailures replayFailures = new ReplayFailures(MAX_FAILED_REPLAY_ATTEMPTS_TRACKED);
-  /**
    * How long the replay of a change is retried before this replica gives up on it. Only
    * the tests, which can not wait out {@link #REPLAY_GIVE_UP_DELAY_IN_MS}, set another
    * value.
@@ -394,6 +381,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * thread back up on a domain which is supposed to be down.
    */
   private final Object serviceStateLock = new Object();
+  /**
+   * Bumped every time the session of this domain is stopped or started. A replay thread
+   * which stopped the session only starts it back if this still is the session it
+   * stopped: a configuration change, or the end of an import, may have started another
+   * one while it was waiting for the backend to recover.
+   */
+  @GuardedBy("serviceStateLock")
+  private long sessionGeneration;
   /**
    * Stands for "the alert about a change this replica gave up on was never sent". The
    * time it is compared with only moves forward from an origin which is arbitrary, so
@@ -787,36 +782,49 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
     // Disable service if configuration changed
     final boolean needRestart = needReconnection && allowReconnection;
-    if (needRestart)
+    /*
+     * The session is stopped, the configuration it depends on is changed and the session
+     * is started again under the lock which the replay thread restarting the session after
+     * a failed replay holds too: a session brought up in the middle of this would be
+     * reading a fractional configuration which is half way through being changed. The
+     * pair has to be atomic, which the lock inside disableService()/enableService() does
+     * not make it.
+     */
+    synchronized (serviceStateLock)
     {
-      disableService();
-    }
-    // Set new configuration
-    int newFractionalMode = newFractionalConfig.fractionalConfigToInt();
-    fractionalConfig.setFractional(newFractionalMode !=
-      FractionalConfig.NOT_FRACTIONAL);
-    if (fractionalConfig.isFractional())
-    {
-      // Set new fractional configuration values
-      fractionalConfig.setFractionalExclusive(
-          newFractionalMode == FractionalConfig.EXCLUSIVE_FRACTIONAL);
-      fractionalConfig.setFractionalSpecificClassesAttributes(
-        newFractionalConfig.getFractionalSpecificClassesAttributes());
-      fractionalConfig.setFractionalAllClassesAttributes(
-        newFractionalConfig.fractionalAllClassesAttributes);
-    } else
-    {
-      // Reset default values
-      fractionalConfig.setFractionalExclusive(true);
-      fractionalConfig.setFractionalSpecificClassesAttributes(
-        new HashMap<String, Set<String>>());
-      fractionalConfig.setFractionalAllClassesAttributes(new HashSet<String>());
-    }
+      if (needRestart)
+      {
+        disableService();
+        sessionGeneration++;
+      }
+      // Set new configuration
+      int newFractionalMode = newFractionalConfig.fractionalConfigToInt();
+      fractionalConfig.setFractional(newFractionalMode !=
+        FractionalConfig.NOT_FRACTIONAL);
+      if (fractionalConfig.isFractional())
+      {
+        // Set new fractional configuration values
+        fractionalConfig.setFractionalExclusive(
+            newFractionalMode == FractionalConfig.EXCLUSIVE_FRACTIONAL);
+        fractionalConfig.setFractionalSpecificClassesAttributes(
+          newFractionalConfig.getFractionalSpecificClassesAttributes());
+        fractionalConfig.setFractionalAllClassesAttributes(
+          newFractionalConfig.fractionalAllClassesAttributes);
+      } else
+      {
+        // Reset default values
+        fractionalConfig.setFractionalExclusive(true);
+        fractionalConfig.setFractionalSpecificClassesAttributes(
+          new HashMap<String, Set<String>>());
+        fractionalConfig.setFractionalAllClassesAttributes(new HashSet<String>());
+      }
 
-    // Reconnect if required
-    if (needRestart)
-    {
-      enableService();
+      // Reconnect if required
+      if (needRestart)
+      {
+        enableService();
+        sessionGeneration++;
+      }
     }
   }
 
@@ -2106,9 +2114,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       if (op.isSynchronizationOperation())
       { // Replaying a sync operation
         numReplayedPostOpCalled.incrementAndGet();
-        // The change made it, the failures it went through are history and the session
-        // is not being restarted in a row anymore.
-        replayFailures.forget(curCSN);
+        // The change made it, so the session is not being restarted in a row anymore.
+        // The failures it went through go away with it when it commits.
         consecutiveSessionRestarts.set(0);
         try
         {
@@ -2365,6 +2372,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       synchronized (serviceStateLock)
       {
         disableService();
+        sessionGeneration++;
       }
     }
 
@@ -2398,8 +2406,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     /*
      * This delivery is not replayed, but it was taken off the replay queue all the same:
      * count it as processed, or replication-processed-updates would drift away from what
-     * the session delivered. No ack is owed for it: it came over a session which has been
-     * torn down since, and the delivery which took over from it carries the ack.
+     * the session delivered - that attribute counts the deliveries this replica took off
+     * the session, not the ones which reached the replay. No ack is owed for it: it came
+     * over a session which has been torn down since, and the delivery which took over
+     * from it carries the ack.
      */
     incProcessedUpdates();
     return false;
@@ -2422,6 +2432,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       Operation op = null; // the last operation on which replay was attempted
       boolean dependency = false;
       boolean replayFailed = false;
+      boolean replayAbandoned = false;
+      boolean serverFailedOnAConflictResultCode = false;
       String replayErrorMsg = null;
       CSN csn = null;
       try
@@ -2441,11 +2453,18 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           {
             /*
              * Either this replay thread or this domain is going away, let's leave. The
-             * change was never applied, so it is given back to the replication server
-             * rather than left listed as being replayed by a thread which is gone.
+             * change was never applied, so the ack says so - an assured write must not be
+             * told that a change this replica is asking for again is in the data here - and
+             * the change is given back to the replication server rather than left listed as
+             * being replayed by a thread which is gone. Handing it back stops and starts the
+             * session, so it waits until the ack has been published on the session this
+             * delivery came over.
              */
-            abandonReplay(msg.getCSN());
-            return;
+            replayErrorMsg =
+                NOTE_REPLAY_ABANDONED_CHANGE.get(msg.getCSN(), getBaseDN()).toString();
+            replayAbandoned = true;
+            replayDone = true;
+            break;
           }
           // Try replay the operation
           op = nextOp;
@@ -2548,6 +2567,23 @@ public final class LDAPReplicationDomain extends ReplicationDomain
                   break;
 
                 case FAILED:
+                  if (isConfiguredServerErrorResultCode(result))
+                  {
+                    /*
+                     * The result code is the one this server puts on an internal error and is
+                     * one conflict resolution knows how to solve, so the change was left to it
+                     * rather than treated as a failure of the server: it had its chance and
+                     * could not solve it, so the storage failing is what is left. Give it the
+                     * in-place attempts an UNAVAILABLE gets - a storage busy for a moment must
+                     * not cost a session restart - and leave the change out of the ServerState
+                     * once they are spent, which the failure of the server below the loop
+                     * reports and acts on. A change which is not in the data must not advance
+                     * the ServerState (issue #889).
+                     */
+                    serverFailedOnAConflictResultCode = true;
+                    Thread.sleep(50);
+                    break;
+                  }
                   /*
                    * The operation did not fail on a naming conflict and not on the server
                    * either: the change can not be applied on this replica. Skip it so that the
@@ -2588,9 +2624,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * BUSY is a lock which could not be taken (OPENDJ-885): the in-place attempts
            * only yield to the thread which holds it, so a lock held for a while burns
            * every one of them in no time. It is as transient as a storage which failed,
-           * and the change is just as absent from the data.
+           * and the change is just as absent from the data. So is a change which kept
+           * coming back with the configured server-error-result-code and which conflict
+           * resolution could not solve.
            */
-          if (isServerFailure(lastResult) || ResultCode.BUSY.equals(lastResult))
+          if (isServerFailure(lastResult) || ResultCode.BUSY.equals(lastResult)
+              || serverFailedOnAConflictResultCode)
           {
             /*
              * The server kept failing to apply the change, so the change is not in the data.
@@ -2653,6 +2692,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            */
           processUpdateDone(msg, replayErrorMsg);
         }
+      }
+
+      if (replayAbandoned)
+      {
+        /*
+         * The ack has been published, so the change can be handed back now and the session
+         * restarted for it: this thread is on its way out either way.
+         */
+        abandonReplay(msg.getCSN());
+        return;
       }
 
       if (replayFailed && recoverFromReplayFailure(csn, replayThreadShutdown))
@@ -2719,18 +2768,33 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private boolean isServerFailure(ResultCode result)
   {
-    if (ResultCode.UNAVAILABLE.equals(result))
-    {
-      return true;
-    }
     /*
      * The result code the server puts on an internal error is configurable and is not
      * validated as a result code, so it may well be one conflict resolution knows how to
      * solve: such a setting must not take a change away from solveNamingConflict(), which
-     * is the only thing which can solve them.
+     * is the only thing which can solve them. A change it could not solve either is a
+     * failure of the server all the same, which replay() acts on once conflict resolution
+     * has reported it.
      */
-    final ResultCode serverErrorResultCode = getServerContext().getCoreConfigManager().getServerErrorResultCode();
-    return !CONFLICT_RESULT_CODES.contains(serverErrorResultCode) && result.equals(serverErrorResultCode);
+    return ResultCode.UNAVAILABLE.equals(result)
+        || (isConfiguredServerErrorResultCode(result) && !CONFLICT_RESULT_CODES.contains(result));
+  }
+
+  /**
+   * Returns whether the provided result code is the one this server puts on an internal
+   * error, whether or not conflict resolution knows how to solve that code.
+   * <p>
+   * A change which failed with that code and which conflict resolution could not solve
+   * either is a change the storage failed to apply: the code being one of
+   * {@link #CONFLICT_RESULT_CODES} only means conflict resolution had to be given its
+   * chance first.
+   *
+   * @param result the result code of a replayed operation
+   * @return {@code true} if it is the result code configured for a server error
+   */
+  private boolean isConfiguredServerErrorResultCode(ResultCode result)
+  {
+    return result.equals(getServerContext().getCoreConfigManager().getServerErrorResultCode());
   }
 
   /**
@@ -2757,7 +2821,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private void recordChangeResolved(CSN csn)
   {
-    replayFailures.forget(csn);
     consecutiveSessionRestarts.set(0);
     updateError(csn);
   }
@@ -2771,11 +2834,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private void skipUnreplayableChange(CSN csn, LocalizableMessage cause)
   {
-    replayFailures.forget(csn);
     if (updateError(csn))
     {
       numFailedReplayedUpdates.incrementAndGet();
       sendUnreplayedChangeAlert(cause);
+      /*
+       * The ServerState moved past this change, so the session is not being restarted for
+       * it anymore: the change which fails next must be given the short wait rather than
+       * inherit the one this replica had reached on the change it just gave up on.
+       */
+      consecutiveSessionRestarts.set(0);
     }
     // Otherwise the change is not listed as pending anymore - the domain was disabled
     // while it was being replayed - so it has not been skipped: the replication server
@@ -2845,6 +2913,36 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       return false;
     }
     /*
+     * The failure is recorded, and the change given up on, while this thread still owns
+     * it: a change which is listed, uncommitted and unowned is what putRemoteUpdate()
+     * takes over, so releasing it before the decision is made would let another delivery
+     * be replayed by another thread while this one goes on to record the change as
+     * skipped.
+     */
+    final long now = monotonicNowInMs();
+    final RemotePendingChanges.ReplayFailure failure =
+        remotePendingChanges.recordReplayFailure(csn, now);
+    if (failure == null)
+    {
+      /*
+       * There is no uncommitted change left to give up on or to ask for again: the domain
+       * was disabled while this one was being replayed - its ServerState was saved and is
+       * read again from the backend when the domain is enabled back - or the change had
+       * already been recorded when this failure was reported. Carry on with the changes
+       * which were waiting for it; a domain on its way down lists none.
+       */
+      return false;
+    }
+    if (failure.getFailingForMs() >= replayGiveUpDelayInMs)
+    {
+      final LocalizableMessage message = ERR_REPLAY_SKIPPING_CHANGE.get(
+          csn, getBaseDN(), failure.getFailingForMs() / 1000, failure.getAttempts());
+      logger.error(message);
+      skipUnreplayableChange(csn, message);
+      return false;
+    }
+
+    /*
      * The change stays listed as pending and uncommitted - it holds the ServerState back
      * so that the replication server sends it again - but this thread does not own it
      * anymore: the next delivery is the one which is replayed, and the copy which may
@@ -2852,16 +2950,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * because markInProgress() only accepts the delivery which is listed as pending.
      */
     remotePendingChanges.replayFailed(csn);
-
-    final ReplayFailures.Failure failure = replayFailures.recordFailure(csn, monotonicNowInMs());
-    if (failure.getFailingForMs() >= replayGiveUpDelayInMs)
-    {
-      final LocalizableMessage message =
-          ERR_REPLAY_SKIPPING_CHANGE.get(csn, getBaseDN(), failure.getAttempts());
-      logger.error(message);
-      skipUnreplayableChange(csn, message);
-      return false;
-    }
 
     if (shutdown.get() || disabled)
     {
@@ -2871,7 +2959,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * broker and a listener thread behind on a domain whose alert generator, flush
        * thread and RSUpdater are already gone.
        */
-      replayFailures.forget(csn);
       return true;
     }
 
@@ -2941,6 +3028,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // The domain owns its session, and it forgets its pending changes on its way down.
       return;
     }
+    /*
+     * Logged here rather than where the change is abandoned: a server which is shutting
+     * down abandons every change in flight, and none of them is asked for again before it
+     * is started back - one line per change would say otherwise.
+     */
+    logger.info(NOTE_REPLAY_ABANDONED_CHANGE, csn, getBaseDN());
     sessionRestartRequested.set(true);
     runRequestedSessionRestarts(false);
   }
@@ -2951,6 +3044,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private void restartSession(boolean wait)
   {
+    final long stoppedSession;
     synchronized (serviceStateLock)
     {
       if (shutdown.get() || disabled)
@@ -2959,6 +3053,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         return;
       }
       disableService();
+      stoppedSession = ++sessionGeneration;
     }
     if (wait)
     {
@@ -2972,16 +3067,21 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
     synchronized (serviceStateLock)
     {
-      if (shutdown.get() || disabled || !isListenerShuttingDown())
+      if (shutdown.get() || disabled
+          || sessionGeneration != stoppedSession || !isListenerShuttingDown())
       {
         /*
-         * The domain went away while this thread was waiting, or the session is up again
-         * because something else - a configuration change, the end of an import - started
-         * it in the meantime: this thread has nothing left to start.
+         * The domain went away while this thread was waiting, or the session was stopped
+         * and started again by something else - a configuration change, the end of an
+         * import - in the meantime: the session this thread stopped is gone, so it has
+         * nothing left to start. The generation says a session was started under this
+         * lock; the listener says one is running, which is what a restart made outside it
+         * leaves behind.
          */
         return;
       }
       enableService();
+      sessionGeneration++;
     }
   }
 
@@ -3671,6 +3771,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       state.clearInMemory();
       disabled = true;
       disableService(); // This will cut the session and wake up the listener
+      sessionGeneration++;
       /*
        * The ServerState this bookkeeping goes with is now gone from memory and is loaded
        * again from the backend when the domain is enabled back, so the changes listed as
@@ -3680,7 +3781,13 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        * it lists after this would be the one left behind.
        */
       remotePendingChanges.clear();
-      replayFailures.clear();
+      /*
+       * The recovery from a failed replay is over as well: the change it was asking for
+       * is gone with the pending changes, so a leftover request would have a replay thread
+       * stop and start the session once for a delivery which can not come.
+       */
+      sessionRestartRequested.set(false);
+      consecutiveSessionRestarts.set(0);
     }
   }
 
@@ -3729,6 +3836,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       }
 
       enableService();
+      sessionGeneration++;
 
       disabled = false;
     }
@@ -4347,11 +4455,20 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
          ReplicationDomainCfg configuration)
   {
     this.config = configuration;
-    changeConfig(configuration);
+    /*
+     * Each of these stops and starts the session when what it changes calls for it, and
+     * the configuration they change is read as the session comes up: hold the lock the
+     * replay thread restarting the session after a failed replay takes, so that none of
+     * them is interleaved with a session it did not start itself.
+     */
+    synchronized (serviceStateLock)
+    {
+      changeConfig(configuration);
 
-    // Read assured + fractional configuration and each time reconnect if needed
-    readAssuredConfig(configuration, true);
-    readFractionalConfig(configuration, true);
+      // Read assured + fractional configuration and each time reconnect if needed
+      readAssuredConfig(configuration, true);
+      readFractionalConfig(configuration, true);
+    }
 
     solveConflictFlag = isSolveConflict(configuration);
 
