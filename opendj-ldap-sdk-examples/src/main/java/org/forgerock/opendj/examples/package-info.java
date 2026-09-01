@@ -12,11 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2012 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 /**
  * This package includes examples illustrating various use cases of the
- * OpenDJ LDAP SDK.
+ * OpenDJ LDAP SDK, and of the Embedded Server API.
  */
 package org.forgerock.opendj.examples;
 

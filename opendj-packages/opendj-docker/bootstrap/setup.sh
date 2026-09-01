@@ -1,5 +1,24 @@
 #!/usr/bin/env bash
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions copyright [year] [name of copyright owner]".
+#
+# Portions copyright 2026 3A Systems, LLC.
+
 # Default setup script
+#
+# What the instance is made of - the server itself, the backend, the entries the backend was
+# asked to hold - is left to fail this script, which is what run.sh reads to decide whether
+# the container may report itself healthy. The optional schema and data LDIFs below keep the
+# tolerance they were written with.
 
 echo "Setting up default OpenDJ instance"
 
@@ -30,7 +49,7 @@ fi
   --acceptLicense \
   --no-prompt \
   --noPropertiesFile \
-  $SETUP_ARGS
+  $SETUP_ARGS || exit 1
 
 BACKEND_TYPE=${BACKEND_TYPE:-je}
 BACKEND_DB_DIRECTORY=${BACKEND_DB_DIRECTORY:-db}
@@ -38,21 +57,21 @@ echo "creating backend: $BACKEND_TYPE db-directory: ${BACKEND_DB_DIRECTORY}"
 
 /opt/opendj/bin/dsconfig create-backend -h localhost -p $ADMIN_PORT --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD" \
   --backend-name=userRoot --type $BACKEND_TYPE --set base-dn:$BASE_DN --set "db-directory:$BACKEND_DB_DIRECTORY" \
-  --set enabled:true --no-prompt --trustAll
+  --set enabled:true --no-prompt --trustAll || exit 1
 
 if [ "$ADD_BASE_ENTRY" = "--addBaseEntry"  ]; then
   BASE_TEMPLATE=$(mktemp)
   if [ ! -z ${SAMPLE_DATA} ]; then
     echo "generating sample data..."
-    /opt/opendj/bin/makeldif -o $BASE_TEMPLATE -c suffix="$BASE_DN" -c numusers=$SAMPLE_DATA /opt/opendj/template/config/MakeLDIF/example.template
+    /opt/opendj/bin/makeldif -o $BASE_TEMPLATE -c suffix="$BASE_DN" -c numusers=$SAMPLE_DATA /opt/opendj/template/config/MakeLDIF/example.template || exit 1
     /opt/opendj/bin/import-ldif --ldifFile $BASE_TEMPLATE \
-        --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD"
+        --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD" || exit 1
   else
     echo "creating base entry..."
     BASE_TEMPLATE=$(mktemp)
     echo "branch: $BASE_DN" > $BASE_TEMPLATE
     /opt/opendj/bin/import-ldif --templateFile $BASE_TEMPLATE \
-        --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD"
+        --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD" || exit 1
   fi
   rm $BASE_TEMPLATE
 fi

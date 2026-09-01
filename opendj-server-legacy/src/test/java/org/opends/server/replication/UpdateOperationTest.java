@@ -729,7 +729,11 @@ public class UpdateOperationTest extends ReplicationTestCase
 
     assertNull(getEntry(personWithUUIDEntry.getName(), 10000, false),
         "The DELETE replication message was not replayed");
-    assertNull(getEntry(personWithSecondUniqueID.getName(), 10000, false),
+    // The second entry was created with the same DN as the first one, so waiting
+    // on that DN again returns as soon as the first delete is replayed. Wait on
+    // the DN the naming conflict renamed it to instead: the second delete then
+    // has resolved its conflict, and counted it, before the monitor is read below.
+    assertNull(getEntry(dn2, 10000, false),
         "The DELETE replication message was not replayed");
     /*
      * Check that and added entry is correctly added below it's

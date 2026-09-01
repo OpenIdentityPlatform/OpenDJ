@@ -598,29 +598,30 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     @Override
     public <T> T read(ReadOperation<T> operation) throws Exception
     {
+      /*
+       * A rolled back read is not replayed. Unlike WriteOperation, a ReadOperation is not required to be
+       * idempotent, and four of them are not: ExportJob has written entries to its LDIF stream, whose writer is
+       * opened once so that a replay appends rather than truncates; VerifyJob has accumulated its counters in
+       * instance fields that no attempt resets; and the two reads of BackendStat have printed records and
+       * appended to a map owned by their caller. Replaying corrupts their result rather than repairing it, so
+       * the failure goes to the caller, as it does in the JE, Cassandra and JDBC backends.
+       */
       final Transaction txn = db.getTransaction();
-      for (;;)
+      txn.begin();
+      try
       {
-        txn.begin();
-        try
-        {
-          final T result = operation.run(this);
-          txn.commit(commitPolicy);
-          return result;
-        }
-        catch (final RollbackException e)
-        {
-          // retry
-        }
-        catch (final Exception e)
-        {
-          txn.rollback();
-          throw e;
-        }
-        finally
-        {
-          txn.end();
-        }
+        final T result = operation.run(this);
+        txn.commit(commitPolicy);
+        return result;
+      }
+      catch (final Exception e)
+      {
+        txn.rollback();
+        throw e;
+      }
+      finally
+      {
+        txn.end();
       }
     }
 

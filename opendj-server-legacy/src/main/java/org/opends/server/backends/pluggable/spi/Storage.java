@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable.spi;
 
@@ -56,8 +57,10 @@ public interface Storage extends Closeable
   void open(AccessMode accessMode) throws Exception;
 
   /**
-   * Executes a read operation. In case of a read operation rollback, implementations must ensure
-   * the read operation is retried until it succeeds.
+   * Executes a read operation. In case of a read operation rollback, implementations must propagate the failure
+   * to the caller rather than replay the operation: unlike {@link WriteOperation}, a {@link ReadOperation} is not
+   * required to be idempotent, and several of them are not - they write to a stream, print, or accumulate state
+   * that a second attempt would double.
    *
    * @param <T>
    *          type of the value returned

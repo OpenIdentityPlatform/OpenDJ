@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable.spi;
 
@@ -26,6 +27,10 @@ public interface ReadOperation<T>
 {
   /**
    * Executes a read operation, and returns the read value.
+   * <p>
+   * Implementations need not be idempotent: unlike {@link WriteOperation}, a read operation is never replayed by
+   * {@link Storage#read(ReadOperation)}, so it is free to print, to write to a stream, or to accumulate state
+   * outside of the transaction.
    *
    * @param txn
    *          the read transaction where to execute the read operation

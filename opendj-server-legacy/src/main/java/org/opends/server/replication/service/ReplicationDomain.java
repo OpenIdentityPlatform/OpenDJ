@@ -13,8 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2025-2026 3A Systems LLC.
- * Portions Copyright 2026 3A Systems, LLC.
+ * Portions Copyright 2025-2026 3A Systems, LLC.
  */
 package org.opends.server.replication.service;
 
@@ -821,9 +820,12 @@ public abstract class ReplicationDomain
                   " Error Msg received: " + errorMsg);
             }
 
-            if (errorMsg.getCreationTime() > ieCtx.startTime)
+            // consider only ErrorMsg that relate to the current import/export.
+            // ">=" and not ">": with all servers on one host the whole
+            // request/rejection round-trip can complete within the millisecond
+            // this context was created in (issue #861)
+            if (errorMsg.getCreationTime() >= ieCtx.startTime)
             {
-              // consider only ErrorMsg that relate to the current import/export
               processErrorMsg(errorMsg, ieCtx);
             }
             else
@@ -1146,10 +1148,27 @@ public abstract class ReplicationDomain
     private InitializeRequestMsg initReqMsgSent;
 
     /**
-     * Start time of the initialization process. ErrorMsg timestamped before
-     * this startTime will be ignored.
+     * Start time of the initialization process. ErrorMsg timestamped strictly
+     * before this startTime will be ignored.
      */
     private final long startTime;
+
+    /**
+     * Time when {@link #initReqMsgSent} was last published. Volatile: written
+     * by the requesting and listener threads, read by the task thread running
+     * {@link ReplicationDomain#abortStalledInitializeFromRemote(long)}.
+     */
+    private volatile long requestSentTime;
+    /**
+     * Whether the InitializeTargetMsg answering {@link #initReqMsgSent} has
+     * been received. Guarded by this context's monitor.
+     */
+    private boolean startReceived;
+    /**
+     * Whether the stalled-request watchdog abandoned this context. Guarded by
+     * this context's monitor.
+     */
+    private boolean abandonedAsStalled;
 
     /** List for replicas (DS) connected to the topology when initialization started. */
     private final Set<Integer> startList = new HashSet<>(0);
@@ -1199,6 +1218,58 @@ public abstract class ReplicationDomain
     boolean importInProgress()
     {
       return importInProgress;
+    }
+
+    /**
+     * Returns the start time of this initialization, for tests.
+     *
+     * @return the creation time of this context in milliseconds
+     */
+    long getStartTime()
+    {
+      return startTime;
+    }
+
+    /** Arms (or re-arms, on a new attempt) the stalled-request watchdog. */
+    private synchronized void markInitRequestSent()
+    {
+      startReceived = false;
+      requestSentTime = System.currentTimeMillis();
+    }
+
+    /**
+     * Marks that the InitializeTargetMsg answering the published
+     * InitializeRequestMsg has been received.
+     *
+     * @return false when the stalled-request watchdog already abandoned this
+     *         context, in which case the start message must be ignored
+     */
+    private synchronized boolean markInitStartReceived()
+    {
+      if (abandonedAsStalled)
+      {
+        return false;
+      }
+      startReceived = true;
+      return true;
+    }
+
+    /**
+     * Abandons this context when the published request has received no answer
+     * within the provided delay.
+     *
+     * @param stalledTimeoutMs delay after which the request is considered lost
+     * @return whether this call abandoned the context
+     */
+    private synchronized boolean abandonIfStalled(long stalledTimeoutMs)
+    {
+      if (startReceived || abandonedAsStalled
+          || System.currentTimeMillis() - requestSentTime < stalledTimeoutMs)
+      {
+        return false;
+      }
+      abandonedAsStalled = true;
+      return true;
     }
 
     /**
@@ -1326,7 +1397,10 @@ public abstract class ReplicationDomain
      */
     public void setExceptionIfNoneSet(DirectoryException exception)
     {
-      if (exception == null)
+      // Historical upstream bug (since at least OpenDJ 3): the null check was
+      // made on the argument instead of the field, so no error was ever
+      // recorded and every failed total update completed "successfully"
+      if (this.exception == null)
       {
         this.exception = exception;
       }
@@ -1936,6 +2010,26 @@ public abstract class ReplicationDomain
   }
 
   /**
+   * Terminates the provided import/export context: the context is released
+   * before the initialize task is notified, so that nothing reacting to the
+   * completion can still observe {@link #ieRunning()} as true and see its own
+   * total update rejected as a simultaneous import/export (issue #868).
+   *
+   * @param ieCtx the context of the initialization being terminated, already
+   *              holding the exception to report - if any
+   */
+  private void completeInitializeTask(ImportExportContext ieCtx)
+  {
+    releaseIEContext();
+    if (ieCtx.initializeTask instanceof InitializeTask)
+    {
+      // Update the task that initiated the import
+      ((InitializeTask) ieCtx.initializeTask)
+          .updateTaskCompletionState(ieCtx.getException());
+    }
+  }
+
+  /**
    * Processes an error message received while an export is
    * on going, or an import will start.
    *
@@ -1959,11 +2053,7 @@ public abstract class ReplicationDomain
        */
       if (ieCtx.initializeTask instanceof InitializeTask)
       {
-        // Update the task that initiated the import
-        ((InitializeTask) ieCtx.initializeTask)
-            .updateTaskCompletionState(ieCtx.getException());
-
-        releaseIEContext();
+        completeInitializeTask(ieCtx);
       }
     }
   }
@@ -2064,7 +2154,7 @@ public abstract class ReplicationDomain
           if (ieCtx.getException() == null)
           {
             ErrorMsg errMsg = (ErrorMsg)msg;
-            if (errMsg.getCreationTime() > ieCtx.startTime)
+            if (errMsg.getCreationTime() >= ieCtx.startTime)
             {
               ieCtx.setException(
                   new DirectoryException(ResultCode.OTHER,errMsg.getDetails()));
@@ -2308,7 +2398,16 @@ public abstract class ReplicationDomain
       ieCtx.attemptCnt = 0;
       ieCtx.initReqMsgSent = new InitializeRequestMsg(
           getBaseDN(), getServerId(), source, getInitWindow());
-      broker.publish(ieCtx.initReqMsgSent);
+      ieCtx.markInitRequestSent();
+      // The broker silently drops the message when it is caught between two
+      // sessions (connection error, recovery pending after a reconnect) and
+      // only replays UpdateMsgs on reconnect: an unpublished request would
+      // leave the task waiting forever for an answer (issue #861).
+      if (!broker.publish(ieCtx.initReqMsgSent, true))
+      {
+        throw new DirectoryException(ResultCode.OTHER,
+            ERR_INITIALIZATION_FAILED_NOCONN.get(getBaseDN()));
+      }
 
       /*
       The normal success processing is now to receive InitTargetMsg then
@@ -2340,6 +2439,37 @@ public abstract class ReplicationDomain
   }
 
   /**
+   * Fails the on-going initialization from a remote replica when the request
+   * published by {@link #initializeFromRemote(int, Task)} has received no
+   * answer at all - neither the InitializeTargetMsg starting the import nor an
+   * ErrorMsg - within the provided delay. The request or its answer can be
+   * lost with no error ever coming back (issue #861), and nothing else bounds
+   * the wait: without this watchdog the initialize task hangs forever.
+   *
+   * @param stalledTimeoutMs
+   *          delay in milliseconds after which the unanswered request is
+   *          considered lost
+   * @return whether a stalled initialization was aborted by this call
+   */
+  public boolean abortStalledInitializeFromRemote(long stalledTimeoutMs)
+  {
+    final ImportExportContext ieCtx = importExportContext.get();
+    if (ieCtx == null || !ieCtx.importInProgress() || ieCtx.initReqMsgSent == null
+        || !ieCtx.abandonIfStalled(stalledTimeoutMs))
+    {
+      return false;
+    }
+    // Once abandonIfStalled() returned true a concurrently received
+    // InitializeTargetMsg is ignored by the listener, so releasing the
+    // context here cannot race the start of an import.
+    ieCtx.setExceptionIfNoneSet(new DirectoryException(ResultCode.OTHER,
+        ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(
+            getBaseDN(), ieCtx.initReqMsgSent.getDestination())));
+    completeInitializeTask(ieCtx);
+    return true;
+  }
+
+  /**
    * Processes an InitializeTargetMsg received from a remote server
    * meaning processes an initialization from the entries expected to be
    * received now.
@@ -2359,8 +2489,48 @@ public abstract class ReplicationDomain
     }
 
     InitializeTask initFromTask = null;
-    int source = initTargetMsgReceived.getSenderID();
-    ImportExportContext ieCtx = importExportContext.get();
+    final int source = initTargetMsgReceived.getSenderID();
+    final ImportExportContext ieCtx;
+    if (initTargetMsgReceived.getInitiatorID() == getServerId())
+    {
+      ieCtx = importExportContext.get();
+      if (ieCtx == null || !ieCtx.markInitStartReceived())
+      {
+        /*
+        The stalled-request watchdog abandoned the initialization this message
+        answers (issue #861): its task already failed and its context is (about
+        to be) released. The entries following this message are discarded by
+        the listener until the exporter completes.
+        */
+        if (logger.isTraceEnabled())
+        {
+          logger.trace("[IE] Ignoring InitializeTargetMsg from server " + source
+              + " for domain " + getBaseDN()
+              + ": the initialization was abandoned as stalled");
+        }
+        return;
+      }
+    }
+    else
+    {
+      /*
+      The initTargetMsgReceived is for an import initiated by the remote
+      server. Test and set if no import already in progress
+      */
+      try
+      {
+        ieCtx = acquireIEContext(true);
+      }
+      catch (DirectoryException e)
+      {
+        // A concurrent import/export owns the context: reject this
+        // initialization without touching that operation's context, and let
+        // the exporter know so that it does not export to a replica that
+        // will discard the entries
+        broker.publish(new ErrorMsg(requesterServerId, e.getMessageObject()));
+        return;
+      }
+    }
     try
     {
       // Log starting
@@ -2369,16 +2539,6 @@ public abstract class ReplicationDomain
 
       // Go into full update status
       setNewStatus(StatusMachineEvent.TO_FULL_UPDATE_STATUS_EVENT);
-
-      // Acquire an import context if no already done (and initialize).
-      if (initTargetMsgReceived.getInitiatorID() != getServerId())
-      {
-        /*
-        The initTargetMsgReceived is for an import initiated by the remote server.
-        Test and set if no import already in progress
-        */
-        ieCtx = acquireIEContext(true);
-      }
 
       // Initialize stuff
       ieCtx.importSource = source;
@@ -2435,7 +2595,15 @@ public abstract class ReplicationDomain
             logger.info(NOTE_RESENDING_INIT_FROM_REMOTE_REQUEST,
                 ieCtx.getException().getLocalizedMessage());
 
-            broker.publish(ieCtx.initReqMsgSent);
+            ieCtx.markInitRequestSent();
+            if (!broker.publish(ieCtx.initReqMsgSent, true))
+            {
+              // Same silent-drop hazard as the first request (issue #861):
+              // fail the attempt instead of waiting for an answer that
+              // cannot arrive
+              throw new DirectoryException(ResultCode.OTHER,
+                  ERR_INITIALIZATION_FAILED_NOCONN.get(getBaseDN()));
+            }
 
             ieCtx.initializeCounters(0);
             ieCtx.exception = null;
@@ -2477,23 +2645,22 @@ public abstract class ReplicationDomain
               ieCtx.getException().getMessageObject());
           broker.publish(errorMsg);
         }
-        /*
-        Update the task that initiated the import must be the last thing.
-        Particularly, broker.restart() after import success must be done
-        before some other operations/tasks to be launched,
-        like resetting the generation ID.
-        */
-        if (initFromTask != null)
-        {
-          initFromTask.updateTaskCompletionState(ieCtx.getException());
-        }
       }
       finally
       {
         String errorMsg = ieCtx.getException() != null ? ieCtx.getException().getLocalizedMessage() : "";
         logger.info(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END,
             getBaseDN(), initTargetMsgReceived.getSenderID(), getServerId(), errorMsg);
-        releaseIEContext();
+        /*
+        Update the task that initiated the import must be the last thing.
+        Particularly, broker.restart() after import success must be done
+        before some other operations/tasks to be launched,
+        like resetting the generation ID. It also must come after the context
+        is released, and from this finally block rather than from the try
+        above: a failure while notifying the exporter would otherwise leave
+        the task waiting forever (issues #861 and #868).
+        */
+        completeInitializeTask(ieCtx);
       } // finally
     } // finally
   }
