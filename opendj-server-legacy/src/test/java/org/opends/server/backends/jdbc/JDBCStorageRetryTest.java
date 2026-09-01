@@ -15,27 +15,36 @@
  */
 package org.opends.server.backends.jdbc;
 
+import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.backends.jdbc.JDBCStorage.Conflict;
+import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.WriteOperation;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.forgerock.i18n.LocalizableMessage.raw;
 import static org.forgerock.opendj.ldap.ResultCode.OTHER;
+import static org.mockito.Mockito.mock;
 import static org.opends.server.backends.jdbc.JDBCStorage.Conflict.AFTER_LOCK_WAIT;
 import static org.opends.server.backends.jdbc.JDBCStorage.Conflict.NONE;
 import static org.opends.server.backends.jdbc.JDBCStorage.Conflict.PROMPT;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 /**
  * Tests how a failure is classified as a transaction conflict, which is what decides whether
- * {@link JDBCStorage#write} replays the operation, how long the replays may go on for, and how long it waits
- * before each of them.
+ * {@link JDBCStorage#write} replays the operation and whether its first replay is granted regardless of the
+ * clock, how long the replays may go on for, and how long it waits before each of them.
  * <p>
  * Runs without a database: the failures the drivers report are reproduced as synthetic
  * {@link SQLException}s carrying the same vendor error number and SQLState.
@@ -124,17 +133,20 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       // number read to date that conflict refines a match its state has already made, and never makes one of its own
       { "mysql lock wait timeout, server state", sql(1205, "HY000"), MYSQL, NONE },
       { "cyclic cause chain", new SelfCausedException(), MSSQL, NONE },
+
+      // the chain is walked to its end, not stopped at its first conflict: a hop carrying a bare class 40 state
+      // is a conflict by itself, and returning it would hand the lock wait timeout it wraps - a wait MySQL has
+      // already bounded - the replay that only the conflicts nothing bounds are granted
+      { "lock wait timeout under a bare class 40 wrapper", sql(0, "40001", sql(1205, "40001")), MYSQL,
+        AFTER_LOCK_WAIT },
+      { "bare class 40 wrapper over a deadlock", sql(0, "40001", sql(1213, "40001")), MYSQL, PROMPT },
     };
   }
 
-  /** Whether a failure is replayed at all is what the classification decides first; the class does not change it. */
-  @Test(dataProvider = "failures")
-  public void testIsRetryableConflict(String name, Throwable failure, String driver, Conflict expected)
-  {
-    assertEquals(JDBCStorage.isRetryableConflict(failure, driver), expected != NONE, name);
-  }
-
-  /** Which class it lands in decides only how long its replays may go on for. */
+  /**
+   * Whether a failure is a conflict at all decides that it is replayed; which class of conflict it is decides
+   * only whether its first replay is granted regardless of the clock.
+   */
   @Test(dataProvider = "failures")
   public void testConflictClass(String name, Throwable failure, String driver, Conflict expected)
   {
@@ -142,34 +154,41 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   }
 
   /**
-   * Which replays happen. The first one is never denied, since the wait an engine spends before reporting a
-   * conflict is charged to the attempt that hit it and no window can be chosen that some wait does not outlast;
-   * the replays after it are bounded by the window of the class of the conflict.
+   * Which replays happen. The window bounds them from the first attempt, with one grant: a conflict its engine
+   * reports promptly is given its first replay whatever the clock says, since the wait charged to the attempt
+   * that hit it is unbounded and no window survives it. A conflict the engine reported only after a lock wait
+   * timeout of its own gets no such grant - that wait is bounded already, and repeating it is what the window
+   * refuses.
    */
   @DataProvider
   public Object[][] replays()
   {
     return new Object[][] {
-      // the engine asked for the transaction to be rerun, and no clock denies that first rerun. The failure of run
-      // 33010633197 is the case: SQL Server leaves the lock wait unbounded, so its deadlock monitor picked a victim
-      // ~12 s into the first attempt, and a window of any size is outlasted by some wait
+      // the engine asked for the transaction to be rerun after a wait nothing here bounds, and no clock denies
+      // that first rerun. The failure of run 33010633197 is the case: SQL Server leaves the lock wait unbounded,
+      // so its deadlock monitor picked a victim ~12 s into the first attempt, and master replayed it zero times
       { "deadlock reported after a long lock wait", 1, seconds(12), sql(1205, "40001"), MSSQL, true },
       { "deadlock reported later than any window", 1, seconds(600), sql(1205, "40001"), MSSQL, true },
-      // what granting it costs is one more wait of the engine that waits longest, and only once
-      { "mysql lock wait timeout, first attempt", 1, seconds(50), sql(1205, "40001"), MYSQL, true },
 
-      // the replays after the first are what the window bounds, so that a conflict which never clears is failed
-      // rather than never returned
-      { "deadlock within the window", 2, seconds(59), sql(1205, "40001"), MSSQL, true },
-      { "deadlock at the window", 2, seconds(60), sql(1205, "40001"), MSSQL, false },
-      { "deadlock past the window", 2, seconds(61), sql(1205, "40001"), MSSQL, false },
-      // MySQL reports a lock wait timeout only after innodb_lock_wait_timeout, 50 s by default: ten attempts of
-      // those park a worker thread for eight minutes, which is the wait the narrower window exists to bound
-      { "mysql lock wait timeout within its window", 2, seconds(9), sql(1205, "40001"), MYSQL, true },
-      { "mysql lock wait timeout at its window", 2, seconds(10), sql(1205, "40001"), MYSQL, false },
-      { "mysql lock wait timeout past its window", 2, seconds(12), sql(1205, "40001"), MYSQL, false },
-      // the two MySQL numbers part ways here: a deadlock is reported as promptly as any other engine reports one
-      { "mysql deadlock", 2, seconds(12), sql(1213, "40001"), MYSQL, true },
+      // the grant is one replay, not an exemption: from the second attempt on the window governs, so that a
+      // conflict which never clears is failed rather than never returned
+      { "deadlock within the window", 2, seconds(9), sql(1205, "40001"), MSSQL, true },
+      { "deadlock at the window", 2, seconds(10), sql(1205, "40001"), MSSQL, false },
+      // the same elapsed time that was granted on attempt 1 is refused on attempt 2: one grant, and only one
+      { "deadlock past the window", 2, seconds(12), sql(1205, "40001"), MSSQL, false },
+      // a MySQL deadlock is reported as promptly as any other engine reports one, so it is granted the same
+      { "mysql deadlock, first attempt", 1, seconds(12), sql(1213, "40001"), MYSQL, true },
+      { "mysql deadlock, past the window", 2, seconds(12), sql(1213, "40001"), MYSQL, false },
+
+      // MySQL reports a lock wait timeout only after innodb_lock_wait_timeout, 50 s by default: that wait is
+      // bounded by the engine, so the window is measured against it from the first attempt and a second 50 s wait
+      // is refused - which is the whole reason the window was introduced
+      { "mysql lock wait timeout at the default 50 s", 1, seconds(50), sql(1205, "40001"), MYSQL, false },
+      { "mysql lock wait timeout past the window", 1, seconds(12), sql(1205, "40001"), MYSQL, false },
+      // ... and a deployment that tuned innodb_lock_wait_timeout below the window still gets its replays
+      { "mysql lock wait timeout tuned under the window", 1, seconds(3), sql(1205, "40001"), MYSQL, true },
+      { "mysql lock wait timeout, second attempt within", 2, seconds(6), sql(1205, "40001"), MYSQL, true },
+      { "mysql lock wait timeout, second attempt at the window", 2, seconds(10), sql(1205, "40001"), MYSQL, false },
 
       // the attempt count bounds every class, whatever the window has left
       { "last attempt left", 9, 0L, sql(1205, "40001"), MSSQL, true },
@@ -234,8 +253,90 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     return new SQLException("synthetic failure", sqlState, errorCode);
   }
 
+  private static SQLException sql(int errorCode, String sqlState, Throwable cause)
+  {
+    return new SQLException("synthetic failure", sqlState, errorCode, cause);
+  }
+
   private static long seconds(long seconds)
   {
-    return seconds * 1000L * 1000L * 1000L;
+    return TimeUnit.SECONDS.toNanos(seconds);
+  }
+
+  /**
+   * How {@link JDBCStorage#write} drives the two decisions above, which the cases before this one cannot see:
+   * they are handed an elapsed time and an attempt number rather than producing them. The clock is scripted and
+   * advances a fixed step per read, so the attempts made and the reads taken are both exact.
+   * <p>
+   * Between them the rows pin the two lines the rest of the file would let a refactor take away. A single
+   * {@code startedAt} outside the retry loop is what makes the window bound the whole run rather than each
+   * attempt: moved inside, every attempt is measured against its own start, sees the step and nothing more, and
+   * replays to MAX_RETRIES. And the grant of the first replay is what issue #903 is about: without it an attempt
+   * that alone outlasts the window leaves the loop with no replay at all.
+   */
+  @DataProvider
+  public Object[][] writeRuns()
+  {
+    return new Object[][] {
+      // a step under the window, so the window is what ends the run: attempt 1 is granted its replay at 4 s,
+      // attempt 2 is inside the window at 8 s, attempt 3 is past it at 12 s. With startedAt inside the loop every
+      // attempt measures 4 s, never reaches the window, and the run goes to MAX_RETRIES instead
+      { "the window bounds the run, not the attempt", 4L, 3, 4 },
+      // a step past the window, so only the grant can produce a second attempt: remove it and the run ends on the
+      // first. With startedAt inside the loop the attempts still come to two, but each takes a read of its own
+      { "the first replay is granted past the window", 12L, 2, 3 },
+    };
+  }
+
+  @Test(dataProvider = "writeRuns")
+  public void testWriteDrivesTheRetryLoop(String name, final long stepSeconds, int expectedAttempts,
+      int expectedClockReads) throws Exception
+  {
+    final AtomicInteger clockReads = new AtomicInteger();
+    final AtomicInteger attempts = new AtomicInteger();
+    final Connection connection = mock(Connection.class);
+    // no driver name matches a mock, so this is classified by its class 40 state alone: a prompt conflict
+    final SQLException conflict = sql(0, "40001");
+
+    final JDBCStorage storage = new JDBCStorage(mock(JDBCBackendCfg.class), null)
+    {
+      @Override
+      Connection getConnection()
+      {
+        return connection;
+      }
+
+      @Override
+      long nanoTime()
+      {
+        return seconds(stepSeconds * clockReads.getAndIncrement());
+      }
+    };
+    storage.accessMode = AccessMode.READ_WRITE;
+
+    StorageRuntimeException thrown = null;
+    try
+    {
+      storage.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn)
+        {
+          attempts.incrementAndGet();
+          throw new StorageRuntimeException(conflict);
+        }
+      });
+    }
+    catch (StorageRuntimeException e)
+    {
+      thrown = e;
+    }
+
+    assertSame(thrown != null ? thrown.getCause() : null, conflict, name + ": the conflict reaches the caller");
+    assertEquals(attempts.get(), expectedAttempts, name + ": attempts made");
+    // read once before the loop and once after each attempt. The count is asserted, not just the placement,
+    // because the clock advances per read rather than per attempt: a second read added inside an attempt would
+    // halve the effective step and change the run without either row saying so
+    assertEquals(clockReads.get(), expectedClockReads, name + ": clock reads");
   }
 }

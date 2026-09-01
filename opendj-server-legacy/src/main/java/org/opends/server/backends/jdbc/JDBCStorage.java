@@ -41,6 +41,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import static org.opends.server.backends.pluggable.spi.StorageUtils.addErrorMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -53,28 +54,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	private static final int MAX_RETRIES = 10;
 
 	/**
-	 * Wall-clock budget the replays of a {@link #write} may spend on a {@link Conflict#AFTER_LOCK_WAIT} conflict,
-	 * in nanoseconds. It is checked between attempts, so an attempt already running is never interrupted, and it
-	 * bounds the replays after the first, which is granted unconditionally: the loop returns after two attempts,
-	 * or after this window plus one attempt, whichever comes later. It bounds what {@link #MAX_RETRIES} alone does
-	 * not - MySQL reports a lock wait timeout only after innodb_lock_wait_timeout, 50 s by default and not
-	 * overridden here, so ten attempts would park a worker thread for eight minutes where two release it after
-	 * 100 s.
+	 * Wall-clock budget the replays of a {@link #write} may spend, in nanoseconds, measured from the start of the
+	 * first attempt. It is checked between attempts, so an attempt already running is never interrupted, and it
+	 * applies from the first check, with the single exception {@link #replayable(int, long, Throwable, String)}
+	 * describes: a conflict its engine reports promptly is granted one replay whatever the clock says, because the
+	 * lock wait that precedes such a conflict is charged to the attempt and is unbounded on three of the four
+	 * engines here, so no window survives it. It bounds what {@link #MAX_RETRIES} alone does not - MySQL reports a
+	 * lock wait timeout only after innodb_lock_wait_timeout, 50 s by default and not overridden here, so ten
+	 * attempts would park a worker thread for eight minutes where one releases it after 50 s. Bounding the attempt
+	 * itself, with a session lock timeout on the transaction connection, is what would let this window bound the
+	 * prompt conflicts too; until it lands they cost one attempt more than the window.
 	 */
-	private static final long LOCK_WAIT_RETRY_WINDOW_NANOS = 10L * 1000L * 1000L * 1000L; //10 s
-
-	/**
-	 * Wall-clock budget the replays of a {@link #write} may spend on a {@link Conflict#PROMPT} conflict, in
-	 * nanoseconds. Wider, because an attempt ending in a deadlock is not short either, for a reason of its own:
-	 * detection is prompt, but the victim is charged the lock wait that precedes it, and SQL Server, Oracle and
-	 * PostgreSQL all leave that wait unbounded - a victim of concurrent writers took some 12 s to be picked in CI,
-	 * and under the window above the replays that followed the first were disarmed by a wait that belongs to the
-	 * attempt rather than to them. Widening it is paid for by the caller, which holds a worker thread for up to
-	 * this window plus one attempt where it held one for ten seconds plus an attempt before - six times as long in
-	 * the worst case, and still preferable to failing an operation the engine asked to have rerun, with
-	 * {@link #MAX_RETRIES} capping the attempts made inside it.
-	 */
-	private static final long PROMPT_CONFLICT_RETRY_WINDOW_NANOS = 60L * 1000L * 1000L * 1000L; //60 s
+	private static final long RETRY_WINDOW_NANOS = TimeUnit.SECONDS.toNanos(10);
 
 	/** Upper bound of the random delay before the second attempt, in milliseconds; it doubles with every attempt. */
 	private static final double BASE_SLEEP_ON_RETRY_MS = 50.0;
@@ -859,17 +850,16 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * exactly that reason; {@link org.opends.server.backends.pdb.PDBStorage#write(WriteOperation)} already does so
 	 * on the conflict exception of its own engine. The loop is bounded here, unlike PDBStorage: the database may be
 	 * shared with writers outside this server, so a conflict is not guaranteed to clear and failing the operation is
-	 * better than never returning. It is bounded twice - by {@link #MAX_RETRIES} attempts and by a wall-clock
-	 * window - because an attempt is not guaranteed to be short: a conflict an engine reports only after its own
-	 * lock wait timeout would otherwise multiply that wait by the attempt count. The window is the one the class
-	 * of the conflict is given - {@link #LOCK_WAIT_RETRY_WINDOW_NANOS} or
-	 * {@link #PROMPT_CONFLICT_RETRY_WINDOW_NANOS} - because a window shorter than the wait that precedes a conflict
-	 * does not bound that wait but only leaves the operation with no replay at all; see
-	 * {@link #replayable(int, long, Throwable, String)}. Either window is checked between attempts, so an attempt
-	 * already running is never interrupted, and it bounds the replays after the first: a conflicted operation holds
-	 * its caller for two attempts, or for the window of its class plus one attempt, whichever is later - a minute
-	 * plus an attempt for a deadlock, and for a MySQL lock wait timeout the two waits of 50 s the engine takes to
-	 * report it twice.
+	 * better than never returning. It is bounded twice - by {@link #MAX_RETRIES} attempts and by the
+	 * {@link #RETRY_WINDOW_NANOS} wall-clock window - because an attempt is not guaranteed to be short: a conflict
+	 * an engine reports only after its own lock wait timeout would otherwise multiply that wait by the attempt
+	 * count. The window alone is not enough either, in the other direction: it is shorter than the wait that
+	 * precedes a conflict the engine reports promptly, so measured against such a conflict it does not bound that
+	 * wait but only leaves the operation with no replay at all, which is what master did with the deadlock of
+	 * issue #903. One replay is therefore granted to a prompt conflict whatever the clock says; see
+	 * {@link #replayable(int, long, Throwable, String)}. The window is checked between attempts, so an attempt
+	 * already running is never interrupted: a conflicted operation holds its caller for the window plus one
+	 * attempt, and a prompt conflict for two attempts when that is longer.
 	 * <p>
 	 * Only the operation itself is replayed: a failure of {@link #getConnection()} or of the implicit
 	 * {@link Connection#close()} - which returns the connection to the pool after a rollback - leaves the loop, so
@@ -877,7 +867,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 */
 	@Override
 	public void write(WriteOperation writeOperation) throws Exception {
-		final long startedAt=System.nanoTime();
+		final long startedAt=nanoTime();
 		for (int attempt=1;;attempt++) {
 			Exception failure=null;
 			String driver=null;
@@ -907,14 +897,24 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					throw e;
 				}
 			}
-			//System.nanoTime()-startedAt is the overflow safe form of the elapsed time
-			if (!replayable(attempt, System.nanoTime()-startedAt, failure, driver)) {
+			//nanoTime()-startedAt is the overflow safe form of the elapsed time
+			final long elapsedNanos=nanoTime()-startedAt;
+			if (!replayable(attempt, elapsedNanos, failure, driver)) {
 				throw failure;
 			}
 			//logged rather than silently absorbed, so that a deployment retrying most of its writes stays observable;
-			//one line per replay, since an add can emit nine of them and a stack trace each time reads as a failure
-			logger.warn(LocalizableMessage.raw("jdbc: replaying the transaction after a conflict, attempt %d of %d: %s",
-					attempt, MAX_RETRIES, conflictSummary(failure)));
+			//one line per replay, since an add can emit nine of them and a stack trace each time reads as a failure.
+			//Both bounds are named, and the attempt count is the one that rarely fires: a replay usually stops
+			//because the window ran out, and a log naming only MAX_RETRIES leaves an operation that gave up at
+			//attempt 2 of a promised 10 with nothing saying why. Milliseconds rather than seconds, since the
+			//engines report a deadlock in a few of them and whole seconds would read "0" for most of a burst; and
+			//the one line that replays past its own window says so, rather than reading as a bound not honoured
+			logger.warn(LocalizableMessage.raw(
+					"jdbc: replaying the transaction after a %s conflict, attempt %d of %d, %d ms elapsed of the %d ms window%s: %s",
+					conflictOf(failure, driver), attempt, MAX_RETRIES, TimeUnit.NANOSECONDS.toMillis(elapsedNanos),
+					TimeUnit.NANOSECONDS.toMillis(RETRY_WINDOW_NANOS),
+					elapsedNanos>=RETRY_WINDOW_NANOS ? " (the first replay, granted past it)" : "",
+					conflictSummary(failure)));
 			if (logger.isTraceEnabled()) {
 				logger.trace("jdbc: the conflict being replayed was %s", stackTraceToSingleLineString(failure));
 			}
@@ -931,6 +931,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 	}
 
+	/**
+	 * The clock {@link #write} measures its retry window with, read once before the first attempt and once after
+	 * each. Overridable so that a test can script it: what the window bounds is the whole run of attempts, not
+	 * each attempt on its own, and the difference between the two is a single {@code startedAt} outside the loop.
+	 */
+	long nanoTime() {
+		return System.nanoTime();
+	}
+
 	/** Returns the randomized delay before the given attempt is replayed, doubling with each attempt up to a cap. */
 	static long retryDelayMillis(int attempt) {
 		final double bound=Math.min(MAX_SLEEP_ON_RETRY_MS, BASE_SLEEP_ON_RETRY_MS * (1 << Math.min(attempt-1, 5)));
@@ -938,32 +947,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	/**
-	 * Returns whether the given failure carries a transaction conflict that replaying the operation can resolve.
-	 * <p>
-	 * The conflict is looked up along the whole cause chain because it reaches this class wrapped: a deadlock in
-	 * {@code put} arrives as {@code StorageRuntimeException(SQLException)}, and a caller such as
-	 * {@code EntryContainer.addEntry} may wrap it once more.
-	 * <p>
-	 * The standard class 40 states carry the conflict of most engines - 40P01 for PostgreSQL, 40001 for SQL Server
-	 * and for MySQL, whose driver replaces the server side HY000 of a deadlock and of a lock wait timeout with
-	 * 40001 - but not of all of them, so the vendor error numbers are consulted as well, keyed by the driver in the
-	 * same way {@code getTableDialect} keys the column types. They cannot be matched driver-independently: Oracle
-	 * reports a deadlock as ORA-00060 with SQLState 61000, and gives 1205 to a fatal "not a data file" error that
-	 * no replay can resolve, while 1205 is exactly the deadlock victim of SQL Server. The SQL Server number is
-	 * matched beyond its class 40 state because a deployment may add {@code xopenStates=true} to its connection
-	 * URL, which reports the same deadlock as 42000. MySQL needs no number of its own, since its driver has already
-	 * mapped both conditions into class 40 - its number is read by {@link #conflictOf} alone, and only to tell the
-	 * two apart; see {@link #NON_REPLAYABLE_ROLLBACK_STATES} for the two class 40 states that are excluded from
-	 * that match.
-	 */
-	static boolean isRetryableConflict(Throwable t, String driver) {
-		return conflictOf(t, driver)!=Conflict.NONE;
-	}
-
-	/**
 	 * The class of a failure. Whether it is a conflict at all is what decides that the operation is replayed;
-	 * which of the two remaining classes it is decides only how long the replays may go on for, since the wait an
-	 * engine spends before reporting a conflict is charged to the attempt that hit it.
+	 * which of the two remaining classes it is decides only whether the first replay is granted unconditionally,
+	 * since the wait an engine spends before reporting a conflict is charged to the attempt that hit it.
 	 */
 	enum Conflict {
 		/** Not a conflict: no replay resolves it. */
@@ -975,19 +961,40 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	/**
-	 * Returns the class of the first conflict of the given cause chain, walked as
-	 * {@link #isRetryableConflict(Throwable, String)} describes, or {@link Conflict#NONE} if it carries none.
+	 * Returns the class of the conflict the given failure carries, or {@link Conflict#NONE} if it carries none,
+	 * which is what decides whether replaying the operation can resolve it.
+	 * <p>
+	 * The conflict is looked up along the whole cause chain because it reaches this class wrapped: a deadlock in
+	 * {@code put} arrives as {@code StorageRuntimeException(SQLException)}, and a caller such as
+	 * {@code EntryContainer.addEntry} may wrap it once more. The chain is walked to its end rather than stopped at
+	 * the first conflict found, so that the most specific class in it wins: a wrapper that carries a class 40 state
+	 * of its own but no vendor number would otherwise downgrade the {@link Conflict#AFTER_LOCK_WAIT} of the
+	 * {@link SQLException} it wraps, and hand a wait the engine already bounded a replay it does not need.
+	 * <p>
+	 * The standard class 40 states carry the conflict of most engines - 40P01 for PostgreSQL, 40001 for SQL Server
+	 * and for MySQL, whose driver replaces the server side HY000 of a deadlock and of a lock wait timeout with
+	 * 40001 - but not of all of them, so the vendor error numbers are consulted as well, keyed by the driver in the
+	 * same way {@code getTableDialect} keys the column types. They cannot be matched driver-independently: Oracle
+	 * reports a deadlock as ORA-00060 with SQLState 61000, and gives 1205 to a fatal "not a data file" error that
+	 * no replay can resolve, while 1205 is exactly the deadlock victim of SQL Server. The SQL Server number is
+	 * matched beyond its class 40 state because a deployment may add {@code xopenStates=true} to its connection
+	 * URL, which reports the same deadlock as 42000. MySQL needs no number of its own for the match, since its
+	 * driver has already mapped both conditions into class 40 - its number is read by {@link #classOf} alone, and
+	 * only to tell the two apart; see {@link #NON_REPLAYABLE_ROLLBACK_STATES} for the two class 40 states that are
+	 * excluded from that match.
 	 */
 	static Conflict conflictOf(Throwable t, String driver) {
+		Conflict found=Conflict.NONE;
 		for (int hop=0; t!=null && hop<MAX_CAUSE_HOPS; t=t.getCause(), hop++) {
 			if (t instanceof SQLException) {
 				final Conflict conflict=classOf((SQLException) t, driver);
-				if (conflict!=Conflict.NONE) {
+				if (conflict==Conflict.AFTER_LOCK_WAIT) { // the most specific there is: no later hop refines it
 					return conflict;
 				}
+				found=conflict!=Conflict.NONE ? conflict : found;
 			}
 		}
-		return Conflict.NONE;
+		return found;
 	}
 
 	/**
@@ -1005,28 +1012,28 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 	/**
 	 * Returns whether the failure of the given attempt is replayed: the decision {@link #write} takes after every
-	 * attempt, made here apart from the clock so that it can be tested without a database. The first replay of a
-	 * conflict is never denied, because the wait an engine spends before reporting one is charged to the attempt
-	 * that hit it and is unbounded on three of the four engines here, so there is no window that some wait does not
-	 * outlast; bounding that wait itself would take a session lock timeout on the transaction connection. The
-	 * replays after it are bounded by the window of the class of the conflict, against the time elapsed since the
-	 * first attempt began.
+	 * attempt, made here apart from the clock so that it can be tested without a database. Replays are bounded by
+	 * {@link #MAX_RETRIES} and by {@link #RETRY_WINDOW_NANOS} against the time elapsed since the first attempt
+	 * began, with one grant on top of those two bounds: the first replay of a {@link Conflict#PROMPT} conflict is
+	 * never denied by the clock. The wait an engine spends before reporting one of those is charged to the attempt
+	 * that hit it and is unbounded on three of the four engines here - SQL Server took some 12 s to pick a victim
+	 * in CI - so there is no window that some wait does not outlast, and measuring one against it only leaves the
+	 * operation with no replay at all. The grant does not extend to {@link Conflict#AFTER_LOCK_WAIT}, whose wait
+	 * the engine has already bounded for us: replaying that costs the same bounded wait again, which is exactly
+	 * what the window is here to refuse. Bounding the prompt wait too, with a session lock timeout on the
+	 * transaction connection, is what would let the window govern both classes and retire this grant.
 	 */
 	static boolean replayable(int attempt, long elapsedNanos, Throwable failure, String driver) {
 		final Conflict conflict=conflictOf(failure, driver);
 		if (conflict==Conflict.NONE || attempt>=MAX_RETRIES) {
 			return false;
 		}
-		//the engine asked for the transaction to be rerun: no clock denies that first rerun
-		if (attempt==1) {
+		//the engine asked for the transaction to be rerun after a wait nothing here bounds: no clock denies that
+		//first rerun, since the window it would be measured against was spent by the wait rather than by a replay
+		if (attempt==1 && conflict==Conflict.PROMPT) {
 			return true;
 		}
-		return elapsedNanos<windowOf(conflict);
-	}
-
-	/** Returns the window the replays of the given conflict are bounded by; {@link Conflict#NONE} never gets here. */
-	private static long windowOf(Conflict conflict) {
-		return conflict==Conflict.AFTER_LOCK_WAIT ? LOCK_WAIT_RETRY_WINDOW_NANOS : PROMPT_CONFLICT_RETRY_WINDOW_NANOS;
+		return elapsedNanos<RETRY_WINDOW_NANOS;
 	}
 
 	private static boolean isConflict(SQLException e, String driver) {
