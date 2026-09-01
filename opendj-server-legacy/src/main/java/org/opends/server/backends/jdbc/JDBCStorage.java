@@ -694,7 +694,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	Connection getConnection() throws Exception {
-		return CachedConnection.getConnection(config.getDBDirectory());
+		return getConnection(true);
 	}
 
 	/**
@@ -706,7 +706,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * per import or per removal buys back exactly what master did on every borrow.
 	 */
 	Connection getValidatedConnection() throws Exception {
-		return CachedConnection.getConnection(config.getDBDirectory(), false);
+		return getConnection(false);
+	}
+
+	// The one borrow of this storage: both methods above go through it, so that whatever stands in
+	// for the pool stands in for every path that takes a connection. A stand-in of the trusted
+	// borrow alone let the open, the import and the removal - the three that ask for a validated
+	// one - reach a real database instead.
+	Connection getConnection(boolean trusted) throws Exception {
+		return CachedConnection.getConnection(config.getDBDirectory(), trusted);
 	}
 
 
@@ -2512,6 +2520,17 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * entry read and then failed the import.
 		 */
 		ImporterImpl(Connection con, boolean isOpen) {
+			// An import writes by definition, so a storage that is not writeable refuses one where the
+			// importer is built - which is where it was refused until the write transaction of a read-only
+			// storage became one that is granted and checks per operation (#874). Left to that check, an
+			// import of such a storage would take a connection out of the pool, begin its transaction and
+			// fail at the first tree it clears rather than at its start.
+			// What arrives here read-only is a storage that was already open: import-ldif and
+			// rebuild-index both close it first, and startImport() opens a closed one READ_WRITE - an
+			// import of any storage of this server reopens it that way - so those two arrive writeable.
+			if (!accessMode.isWriteable()) {
+				throw new ReadOnlyStorageException();
+			}
 			this.con=con;
 			this.isOpen=isOpen;
 			txr=new ReadableTransactionImpl(con, StatementBound.BULK);
@@ -2604,7 +2623,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			}
 			throw new StorageRuntimeException(e);
 		}
-		// outside the catch: a transaction of a read-only storage throws ReadOnlyStorageException,
+		// outside the catch: the importer of a read-only storage throws ReadOnlyStorageException,
 		// which a caller tells apart from any other failure of an import
 		boolean built=false;
 		try {

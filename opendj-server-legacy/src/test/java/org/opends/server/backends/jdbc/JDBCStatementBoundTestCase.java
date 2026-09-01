@@ -998,8 +998,8 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 
 	/**
 	 * The connection an import would have held goes back to the pool when the importer cannot be
-	 * built on it. That is a designed path rather than an accident: the transaction of a read-only
-	 * storage throws {@code ReadOnlyStorageException} in the constructor, and the connection
+	 * built on it. That is a designed path rather than an accident: an import of a read-only storage
+	 * throws {@code ReadOnlyStorageException} where the importer is built, and the connection
 	 * borrowed for the import - the one it keeps for its whole duration - was leaving the pool for
 	 * good there, with the transaction it had already begun.
 	 */
@@ -1008,7 +1008,7 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 		final Connection con = mock(Connection.class);
 		final JDBCStorage readOnly = new JDBCStorage(mockCfg(JDBCBackendCfg.class), null) {
 			@Override
-			Connection getConnection() {
+			Connection getConnection(boolean trusted) {
 				return con;
 			}
 
@@ -1035,9 +1035,10 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 	 * failure between the open and the importer that would have held it leaves it open for good.
 	 * The borrow of the connection was already covered that way; the build of the importer was not.
 	 * <p>
-	 * What fails the build here is the write transaction of a storage that is not writeable, that
-	 * being the only failure of those two constructors reachable without instrumenting them - what
-	 * it stands for is any {@code Error} out of either, which is what the {@code finally} is for.
+	 * What fails the build here is a storage that is not writeable - the one failure of the
+	 * importer's constructor a test can produce from outside it, and it takes an open that leaves
+	 * the storage read-only to get there. What it stands for is any {@code Error} out of that
+	 * constructor, which is what the {@code finally} is for.
 	 */
 	@Test
 	public void testStartImportClosesTheStorageItOpenedWhenTheImporterCannotBeBuilt() throws Exception {
@@ -1046,7 +1047,7 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 		final AtomicInteger closes = new AtomicInteger();
 		final JDBCStorage notOpen = new JDBCStorage(mockCfg(JDBCBackendCfg.class), null) {
 			@Override
-			Connection getConnection() {
+			Connection getConnection(boolean trusted) {
 				return con;
 			}
 
