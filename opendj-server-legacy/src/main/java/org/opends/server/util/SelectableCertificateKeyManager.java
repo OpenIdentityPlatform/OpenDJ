@@ -31,7 +31,6 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 
 import static org.opends.messages.ExtensionMessages.INFO_MISSING_KEY_TYPE_IN_ALIASES;
-import static org.opends.messages.ExtensionMessages.WARN_NO_CLIENT_CERT_IN_ALIASES;
 
 /**
  * This class implements an X.509 key manager that will be used to wrap an
@@ -107,10 +106,12 @@ public final class SelectableCertificateKeyManager
         return clientAlias;
       }
     }
-    // Every key type requested by the peer has been tried, so no client certificate
-    // will be sent at all. Peers requiring client authentication, such as replication
-    // servers, reject the connection: warn instead of failing silently.
-    logger.warn(WARN_NO_CLIENT_CERT_IN_ALIASES, componentName, aliases.toString(), Arrays.toString(keyType));
+    // Every key type requested by the peer has been tried, so no client certificate is
+    // sent at all. The peer may well accept the connection, as client authentication is
+    // optional for most of them, so keep this at debug level. The components which build
+    // their SSL context from a configured nickname, the crypto manager and the connection
+    // handlers, report a nickname missing from their key store when they build it.
+    logger.debug(INFO_MISSING_KEY_TYPE_IN_ALIASES, componentName, aliases.toString(), Arrays.toString(keyType));
     return null;
   }
 

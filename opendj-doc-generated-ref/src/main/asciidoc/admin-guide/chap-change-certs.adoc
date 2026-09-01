@@ -431,7 +431,7 @@ Replication connections use neither the `keystore` nor the `admin-keystore`. Bot
 
 Servers authenticate each other on the replication port, so import the CA certificate everywhere first, in a separate pass. A server whose certificate changes before the other servers trust your CA can no longer connect to the topology.
 
-Each `keytool` command applies to a single server, and is run while that server is stopped. A running server keeps a copy of the `ads-truststore` in memory and can overwrite changes made to the file.
+Each `keytool` command applies to a single server, and is run while that server is stopped. A running server writes the whole `ads-truststore` back to disk when it adds the certificate of another server to it, which would discard the changes made meanwhile by `keytool`.
 
 . Take each server in turn and add your CA certificate and your CA-signed key pair to its `ads-truststore`. Replication continues to work during this pass, as the certificates presented by the servers do not change yet.
 
@@ -451,13 +451,17 @@ $ /path/to/opendj/bin/stop-ds
 $ cd /path/to/opendj/config
 $ keytool \
  -importcert \
+ -noprompt \
  -trustcacerts \
  -alias ca-cert \
  -file ca-cert.pem \
  -keystore ads-truststore \
- -storetype JKS \
  -storepass `cat ads-truststore.pin`
+
+Certificate was added to keystore
 ----
++
+Without `-noprompt`, `keytool` asks whether to trust the certificate. When the answer cannot be read, as in a script, it leaves the keystore untouched, prints `Certificate was not added to keystore`, and still exits with status 0.
 
 .. Import the CA-signed key pair, with its full certificate chain, under a new alias.
 +
@@ -470,31 +474,46 @@ The key password must be identical to the keystore password, as the server unloc
 ----
 $ keytool \
  -importkeystore \
+ -noprompt \
  -srckeystore server-cert.p12 \
  -srcstoretype PKCS12 \
  -srcalias server-cert \
  -srcstorepass password \
  -destkeystore ads-truststore \
- -deststoretype JKS \
  -destalias repl-cert \
  -deststorepass `cat ads-truststore.pin` \
  -destkeypass `cat ads-truststore.pin`
 ----
 
-.. Check that the alias holds a private key entry and that the whole chain was imported:
+.. Check that the alias holds a private key entry and that the whole chain was imported.
++
+Use `-v`: without it, `keytool` prints the same two lines whether the alias holds the full chain or the server certificate alone. A chain which stops at the server certificate is only rejected by the peers, once this server presents it:
 +
 
 [source, console]
 ----
 $ keytool \
  -list \
+ -v \
  -alias repl-cert \
  -keystore ads-truststore \
  -storepass `cat ads-truststore.pin`
 
-repl-cert, Sep 1, 2026, PrivateKeyEntry,
-Certificate fingerprint (SHA-256): 3F:...:1C
+Alias name: repl-cert
+Creation date: Sep 1, 2026
+Entry type: PrivateKeyEntry
+Certificate chain length: 2
+Certificate[1]:
+Owner: CN=opendj.example.com
+Issuer: CN=Example CA
+...
+Certificate[2]:
+Owner: CN=Example CA
+Issuer: CN=Example CA
+...
 ----
++
+The chain must end with the CA certificate imported in the previous step, `Certificate chain length` counting the server certificate and every certificate up to your root CA.
 
 .. Start the server:
 +
@@ -506,7 +525,9 @@ $ /path/to/opendj/bin/start-ds
 
 . When every server holds the CA certificate and its own CA-signed key pair, take each server in turn and switch it to the new alias.
 
-.. Configure the crypto manager to present the new certificate:
+.. Configure the crypto manager to present the new certificate.
++
+`ssl-cert-nickname` is multi-valued, and `--set` replaces every value it holds. The `ads-certificate` key pair stays in the `ads-truststore`, but its alias no longer has to be listed here, as the crypto manager reads its instance key from the `ads-certificate` alias directly. Where several nicknames are configured, to run certificates with different public key algorithms in parallel, list them all in a single `--set`:
 +
 
 [source, console]
@@ -521,7 +542,9 @@ $ dsconfig \
  --no-prompt
 ----
 
-.. Restart the server for the change to take effect:
+.. Restart the server for the change to take effect.
++
+The crypto manager reads `ssl-cert-nickname` when it starts, and replication keeps the value it read, so the property only takes effect on restart:
 +
 
 [source, console]
@@ -542,10 +565,14 @@ $ dsreplication \
  --adminPassword password \
  --no-prompt
 ----
++
+Move on to the next server only once this one has rejoined the topology. Should it fail to, set `ssl-cert-nickname` back to the alias it used to present, `ads-certificate` by default, and restart the server again. The administration connector does not use the `ads-truststore`, so it stays reachable for `dsconfig` while the replication port does not work.
 
 +
 [NOTE]
 ======
 The server does not check the host name presented in the replication certificate, so a certificate whose subject does not match the host name of the server is accepted. Expiration dates are enforced, however. Unlike the self-signed `ads-certificate`, which is generated with a 20 year validity, CA-signed certificates usually have to be renewed: repeat this procedure before they expire.
+
+Trusting your CA on the replication port means trusting every certificate it issues, as the certificate is the only credential a peer presents and its subject is not checked. Use a CA dedicated to the replication topology, or one whose issuance you constrain, rather than a corporate CA which also signs certificates for unrelated hosts.
 ======
 ====

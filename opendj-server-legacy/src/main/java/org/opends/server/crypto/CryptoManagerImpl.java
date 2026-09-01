@@ -217,6 +217,8 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
 
   /** The names of the local certificates to use for SSL. */
   private final SortedSet<String> sslCertNicknames;
+  /** Certificate nicknames already looked up in the trust store, as "component:nickname". */
+  private final Set<String> checkedCertNicknames = ConcurrentHashMap.newKeySet();
   /** Whether replication sessions use SSL encryption. */
   private final boolean sslEncryption;
   /** The set of SSL protocols enabled or null for the default set. */
@@ -2679,12 +2681,15 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       TrustManager[] trustManagers = trustStoreBackend.getTrustManagers();
 
       SSLContext sslContext = SSLContext.getInstance("TLS");
-      if (sslCertNicknames == null)
+      if (sslCertNicknames == null || sslCertNicknames.isEmpty())
       {
+        // No nickname is configured: let the key manager choose, as wrapping it with an
+        // empty set of aliases would present no certificate at all.
         sslContext.init(keyManagers, trustManagers, null);
       }
       else
       {
+        logMissingCertNicknames(componentName, sslCertNicknames, trustStoreBackend);
         KeyManager[] extendedKeyManagers =
             SelectableCertificateKeyManager.wrap(keyManagers, sslCertNicknames, componentName);
         sslContext.init(extendedKeyManagers, trustManagers, null);
@@ -2699,6 +2704,44 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
            ERR_CRYPTOMGR_SSL_CONTEXT_CANNOT_INITIALIZE.get(
                 getExceptionMessage(e));
       throw new ConfigException(message, e);
+    }
+  }
+
+  /**
+   * Logs an error for each configured certificate nickname which the trust store
+   * does not hold, so that a misconfigured nickname is reported for what it is
+   * instead of only showing up as a failed handshake. A new SSL context is built
+   * for every connection attempt, so each nickname is looked up once per component:
+   * a reconnection loop must not flood the error log, nor read the trust store an
+   * extra time on every attempt.
+   *
+   * @param componentName
+   *          The name of the component the SSL context is built for.
+   * @param sslCertNicknames
+   *          The configured certificate nicknames.
+   * @param trustStoreBackend
+   *          The trust store backend holding the key pairs.
+   * @throws DirectoryException
+   *           If the trust store cannot be read.
+   */
+  private void logMissingCertNicknames(String componentName, SortedSet<String> sslCertNicknames,
+      TrustStoreBackend trustStoreBackend) throws DirectoryException
+  {
+    for (String nickname : sslCertNicknames)
+    {
+      final String checked = componentName + ":" + nickname;
+      if (checkedCertNicknames.contains(checked))
+      {
+        continue;
+      }
+      // The look up comes first: a trust store which cannot be read must not leave the
+      // nickname recorded as checked, or it would never be looked up again.
+      final boolean found = trustStoreBackend.containsKeyWithAlias(nickname);
+      if (checkedCertNicknames.add(checked) && !found)
+      {
+        logger.error(ERR_CRYPTOMGR_SSL_CERT_NICKNAME_NOT_FOUND,
+            nickname, trustStoreBackend.getTrustStoreFile(), componentName);
+      }
     }
   }
 
