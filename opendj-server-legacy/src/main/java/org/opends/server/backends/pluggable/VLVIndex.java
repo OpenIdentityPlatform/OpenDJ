@@ -105,6 +105,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   /** The storage associated with this index. */
   private final Storage storage;
   private final State state;
+  private final EntryContainer entryContainer;
 
   /**
    * A flag to indicate if this vlvIndex should be trusted to be consistent with the entries tree.
@@ -131,15 +132,8 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     }
 
     this.state = state;
+    this.entryContainer = entryContainer;
     this.trusted = state.getIndexFlags(txn, getName()).contains(IndexFlag.TRUSTED);
-    if (!trusted && entryContainer.getHighestEntryID(txn).longValue() == 0)
-    {
-      /*
-       * If there are no entries in the entry container then there is no reason why this vlvIndex
-       * can't be upgraded to trusted.
-       */
-      setTrusted(txn, true);
-    }
 
     this.config.addChangeListener(this);
   }
@@ -163,6 +157,19 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   void afterOpen(final WriteableTransaction txn, boolean createOnDemand) throws StorageRuntimeException
   {
     counter.open(txn, createOnDemand);
+    if (createOnDemand && !trusted && entryContainer.isEmpty(txn))
+    {
+      /*
+       * If there are no entries in the entry container then there is no reason why this vlvIndex
+       * can't be upgraded to trusted.
+       *
+       * Guarded by createOnDemand - which is accessMode.isWriteable() - and done here rather than in the
+       * constructor, as DefaultIndex.afterOpen() does: the transaction a read-only container opens is not
+       * allowed to write, so upgrading an untrusted index of an empty backend used to fail the offline tools
+       * on it instead of leaving the flag alone (#874).
+       */
+      setTrusted(txn, true);
+    }
   }
 
   @Override
