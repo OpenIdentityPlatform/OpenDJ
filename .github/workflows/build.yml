@@ -96,11 +96,25 @@ jobs:
       run:   |
         echo "MAVEN_PROFILE_FLAG=-P precommit" >> $GITHUB_OUTPUT
 
+    # The per-module javadoc:jar that runs during verify only ever sees one
+    # module's sources, so it cannot report a package declared by two modules
+    # at once. Only the aggregate on the root reactor can, and it used to run
+    # nowhere but deploy.yml, after the merge and under continue-on-error, so a
+    # broken aggregate blocked nothing and went unnoticed. This is the gate for
+    # it. Appending the goal to the same Maven invocation keeps it in the
+    # reactor that just built; one cell is enough, and this is the platform and
+    # Java version deploy.yml aggregates with.
+    - name: Set Aggregate Javadoc Goal
+      id: javadoc
+      if: runner.os == 'Linux' && matrix.java == '11'
+      run:   |
+        echo "MAVEN_JAVADOC_GOAL=javadoc:aggregate" >> $GITHUB_OUTPUT
+
     - name: Build with Maven
       timeout-minutes: 180
       env:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
-      run: mvn --batch-mode --errors --update-snapshots verify --file pom.xml ${{ steps.failsafe.outputs.MAVEN_PROFILE_FLAG }}
+      run: mvn --batch-mode --errors --update-snapshots verify ${{ steps.javadoc.outputs.MAVEN_JAVADOC_GOAL }} --file pom.xml ${{ steps.failsafe.outputs.MAVEN_PROFILE_FLAG }}
     - name: Test on Unix
       if: runner.os == 'Linux'
       run:   |
