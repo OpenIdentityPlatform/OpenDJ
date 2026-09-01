@@ -22,6 +22,7 @@ import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
+import org.opends.server.backends.pluggable.spi.ReadOnlyStorageException;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -45,6 +46,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,6 +59,7 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -140,6 +143,40 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	protected abstract String getBackendId();
 
 	protected abstract String getJdbcUrl();
+
+	/**
+	 * The second property bounding a login is a socket read timeout on mysql, oracle and sql
+	 * server: in force for the whole life of the connection it would fail every statement slower
+	 * than it - an import batch, the statistics of a freshly loaded table - so it has to be lifted
+	 * as soon as the login is through (#872).
+	 */
+	@Test(timeOut = 120000)
+	public void testLoginBoundDoesNotOutliveTheLogin() throws Exception {
+		final String url = createBackendCfg().getDBDirectory();
+		final CachedConnection.ConnectDialect dialect = CachedConnection.ConnectDialect.of(url);
+		assertNotNull(dialect, "the dialect of the container is one this backend bounds: " + CachedConnection.safeUrl(url));
+		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, "2");
+		try {
+			// the bound this lifts has to be in force first, or the assertion below holds of a
+			// connection that never carried one: established here with the very properties the
+			// borrow uses, and read back off the socket of this driver
+			final Properties bounding = new Properties();
+			assertTrue(dialect.bound(url, bounding, 2),
+				"the read bound of the login is not set for this dialect, so there is nothing to lift");
+			try (final Connection bounded = DriverManager.getConnection(url, bounding)) {
+				assertEquals(bounded.getNetworkTimeout(), 2000,
+					"the property this dialect names does not bound the socket of its login");
+			}
+
+			// a pooled connection would be handed back without being established again
+			CachedConnection.cached.invalidate(url);
+			try (final Connection con = CachedConnection.getConnection(url)) {
+				assertEquals(con.getNetworkTimeout(), 0, "the read bound of the login is still in force");
+			}
+		} finally {
+			System.clearProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY);
+		}
+	}
 
 	private static ByteString key(int i) {
 		return ByteString.valueOfUtf8(String.format("key%02d", i));
@@ -476,6 +513,86 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			} catch (Exception ignored) {}
 			storage.close();
 		}
+	}
+
+	/**
+	 * A storage opened READ_ONLY must still hand out the write transaction {@code RootContainer.open()} asks for
+	 * there - otherwise the offline export-ldif, verify-index and backendstat fail before reading anything - and
+	 * that transaction must serve exactly what the open needs and nothing more: opening an existing tree, reads,
+	 * cursors and record counts, while every mutation, including a delete through a cursor it opened, is
+	 * refused (#874).
+	 */
+	@Test
+	public void testReadOnlyTransactionReadsButRefusesWrites() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName("testReadOnlyTransaction", "tree");
+		final TreeName absent = new TreeName("testReadOnlyTransaction", "absent");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					txn.put(tree, key(0), value(0));
+					txn.put(tree, key(1), value(1));
+				}
+			});
+			storage.close();
+
+			storage.open(AccessMode.READ_ONLY);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					// what RootContainer.open() does through this transaction in read-only mode
+					txn.openTree(tree, false);
+					assertEquals(txn.read(tree, key(0)), value(0));
+					assertEquals(txn.getRecordCount(tree), 2);
+					try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(tree)) {
+						assertTrue(cursor.next());
+						assertEquals(cursor.getKey(), key(0));
+						try {
+							cursor.delete();
+							fail("delete() through a cursor of a read-only transaction must fail");
+						} catch (UnsupportedOperationException expected) {}
+					}
+
+					assertReadOnly("openTree(createOnDemand)", () -> txn.openTree(absent, true));
+					assertReadOnly("put", () -> txn.put(tree, key(2), value(2)));
+					assertReadOnly("update", () -> txn.update(tree, key(0), old -> value(3)));
+					assertReadOnly("delete", () -> txn.delete(tree, key(0)));
+					assertReadOnly("deleteTree", () -> txn.deleteTree(tree));
+				}
+			});
+
+			// nothing above reached the database
+			storage.close();
+			storage.open(AccessMode.READ_WRITE);
+			storage.read(new ReadOperation<Void>() {
+				@Override
+				public Void run(ReadableTransaction txn) throws Exception {
+					assertEquals(txn.getRecordCount(tree), 2);
+					assertEquals(txn.read(tree, key(0)), value(0));
+					return null;
+				}
+			});
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	private static void assertReadOnly(String operation, Runnable mutation) {
+		try {
+			mutation.run();
+			fail(operation + " must fail on a read-only storage");
+		} catch (ReadOnlyStorageException expected) {}
 	}
 
 	/** Buffer-served repositioning relies on the database collating keys in unsigned byte order. */

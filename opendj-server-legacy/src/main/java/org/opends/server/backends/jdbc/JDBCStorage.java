@@ -1636,6 +1636,16 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			}
 		}
 	}
+	/**
+	 * A transaction able to write, unless the storage was opened read-only: then it may open an existing tree and
+	 * read it, and every mutating operation throws {@link ReadOnlyStorageException} instead.
+	 * <p>
+	 * The mode is checked per operation rather than refused here, because {@code RootContainer.open(AccessMode)}
+	 * asks for a write transaction even in read-only mode - that is where it opens the compressed schema and the
+	 * entry containers - so refusing to hand one out failed the offline {@code export-ldif}, {@code verify-index}
+	 * and {@code backendstat} before they read anything (#874). Both other storages of this server already have
+	 * this shape: {@code PDBStorage.ReadOnlyStorageImpl} and {@code CASStorage.TransactionImpl.checkReadOnly()}.
+	 */
 	private final class WriteableTransactionTransactionImpl extends ReadableTransactionImpl implements WriteableTransaction {
 
 		// Shared by every table this transaction stamps: opening a backend opens all its trees,
@@ -1649,10 +1659,17 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		WriteableTransactionTransactionImpl(Connection con, StatementBound bound) {
 			super(con, bound);
-			if (!accessMode.isWriteable()) {
+			//captured once rather than read per operation: the access mode of the storage is mutable state -
+			//ImporterImpl reopens the storage READ_WRITE under its caller - and a transaction has to keep the mode
+			//it was created with. It also drives isReadOnly, so that a cursor this transaction opens refuses
+			//delete() as well.
+			isReadOnly = !accessMode.isWriteable();
+		}
+
+		void checkReadOnly() {
+			if (isReadOnly) {
 				throw new ReadOnlyStorageException();
 			}
-			isReadOnly = false;
 		}
 
 		boolean isExistsTable(TreeName treeName) {
@@ -1698,6 +1715,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		@Override
 		public void openTree(TreeName treeName, boolean createOnDemand) {
 			if (createOnDemand) {
+				checkReadOnly();
 				if (!isExistsTable(treeName)) {
 					try (final PreparedStatement statement=con.prepareStatement("create table "+getTableName(treeName)+" ("+getTableDialect()+")")){
 						execute(statement, StatementBound.BULK);
@@ -1762,6 +1780,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 		
 		public void clearTree(TreeName treeName) {
+			checkReadOnly();
 			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName))){
 				execute(statement, StatementBound.BULK);
 				con.commit();
@@ -1772,6 +1791,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public void deleteTree(TreeName treeName) {
+			checkReadOnly();
 			if (isExistsTable(treeName)) {
 				try (final PreparedStatement statement = con.prepareStatement("drop table " + getTableName(treeName))) {
 					execute(statement, StatementBound.BULK);
@@ -1787,6 +1807,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
+			checkReadOnly();
 			try {
 				upsert(treeName, key, value);
 			} catch (SQLException e) {
@@ -1854,6 +1875,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public boolean update(TreeName treeName, ByteSequence key, UpdateFunction f) {
+			//checked before the read, so that a read-only transaction reports the mode rather than the value it
+			//computed being equal to the stored one
+			checkReadOnly();
 			final ByteString oldValue=read(treeName,key);
 			final ByteSequence newValue=f.computeNewValue(oldValue);
 			if (Objects.equals(newValue, oldValue))
@@ -1870,6 +1894,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public boolean delete(TreeName treeName, ByteSequence key) {
+			checkReadOnly();
 			try (final PreparedStatement statement=con.prepareStatement("delete from "+getTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));

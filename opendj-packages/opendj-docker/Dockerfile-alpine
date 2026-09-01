@@ -33,6 +33,8 @@ ENV OPENDJ_USER="opendj"
 ENV BACKEND_TYPE="je"
 ENV BACKEND_DB_DIRECTORY="db"
 #ENV SETUP_ARGS
+# written by run.sh once the bootstrap has succeeded, read by the health check below
+ENV BOOTSTRAP_COMPLETE="/opt/opendj/.bootstrap-complete"
 
 ARG OPENDJ_DIST_FILENAME=opendj.zip
 
@@ -70,6 +72,13 @@ EXPOSE $PORT/tcp $LDAPS_PORT/tcp $ADMIN_PORT/tcp
 
 USER $OPENDJ_USER
 
-HEALTHCHECK --interval=30s --timeout=30s --start-period=1s --retries=3 CMD opendj/bin/ldapsearch --hostname localhost --port $LDAPS_PORT --bindDN "$ROOT_USER_DN" --bindPassword "${ROOT_PASSWORD:-password}" --useSsl --trustAll --baseDN "" --searchScope base "(objectClass=*)" 1.1 || exit 1
+# "healthy" has to mean the instance is ready to serve, not just that it answers: setup
+# starts the server in the middle of the bootstrap, before the backend of BASE_DN is
+# created and its entries imported, so probing the root DSE alone reports ready while a
+# search of BASE_DN still fails with "No Such Entry". Testing the marker first also keeps
+# the probe from launching a JVM every interval until the bootstrap is through. The start
+# period is what a bootstrap importing SAMPLE_DATA into a small container can take; a
+# probe that succeeds ends it early, and a bootstrap that failed never writes the marker.
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5m --retries=3 CMD test -f "$BOOTSTRAP_COMPLETE" && opendj/bin/ldapsearch --hostname localhost --port $LDAPS_PORT --bindDN "$ROOT_USER_DN" --bindPassword "${ROOT_PASSWORD:-password}" --useSsl --trustAll --baseDN "" --searchScope base "(objectClass=*)" 1.1 || exit 1
 
 ENTRYPOINT ["/opt/opendj/run.sh"]
