@@ -214,12 +214,13 @@ public class StampConnectionTestCase extends DirectoryServerTestCase {
 
 	/**
 	 * A driver reports the vendor error of a failed statement as the next exception of a generic
-	 * one at least as often as it reports it as the cause. Reading only the cause chain classifies
-	 * a lock timeout as a rejection, which leaves the tree unstamped until the next start over a
-	 * moment of contention.
+	 * one at least as often as it reports it as the cause, and the statement of a try-with-resources
+	 * carries what its {@code close()} saw as a suppressed exception. Reading fewer chains than the
+	 * classifiers of a write read classifies a lock timeout - or a connection that broke - as a
+	 * rejection, which leaves the tree unstamped for the life of the backend.
 	 */
 	@Test
-	public void testFailureScopeWalksBothChains() {
+	public void testFailureScopeWalksEveryChain() {
 		final SQLException reportedAsTheCause = new SQLException("statement failed",
 			new SQLException("lock wait timeout exceeded", "HY000", 1205));
 		assertEquals(JDBCStorage.failureScope(reportedAsTheCause, JDBCStorage.Dialect.MYSQL),
@@ -235,6 +236,13 @@ public class StampConnectionTestCase extends DirectoryServerTestCase {
 		connectionGone.setNextException(new SQLException("communications link failure", "08S01"));
 		assertEquals(JDBCStorage.failureScope(connectionGone, JDBCStorage.Dialect.MYSQL),
 			JDBCStorage.FailureScope.SESSION, "a connection exception on the next-exception chain was missed");
+
+		// the close() of the statement is where a connection that broke under a stamp is often the
+		// only witness, and it joins the failure being unwound as a suppressed exception (JLS 14.20.3.1)
+		final SQLException reportedByTheClose = new SQLException("statement failed");
+		reportedByTheClose.addSuppressed(new SQLException("connection closed", "08006"));
+		assertEquals(JDBCStorage.failureScope(reportedByTheClose, JDBCStorage.Dialect.MYSQL),
+			JDBCStorage.FailureScope.SESSION, "a connection exception suppressed into the failure was missed");
 
 		// a driver that chains an exception back to itself must not make the walk loop
 		final SQLException selfReferring = new SQLException("statement failed");
