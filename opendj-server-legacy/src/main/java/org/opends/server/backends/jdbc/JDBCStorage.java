@@ -171,6 +171,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// what this storage knows of its catalog holds no longer than the open it learnt it in: the
 		// table may well be gone by the next one, dropped by an offline tool run in the meantime
 		catalogTableOpened=false;
+		enrolledTrees.clear();
 	}
 
 	final LoadingCache<TreeName,String> tree2table = Caffeine.newBuilder()
@@ -246,6 +247,22 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * there would cost a metadata round trip per tree.
 	 */
 	private volatile boolean catalogTableOpened=false;
+
+	/**
+	 * The trees the catalog already records at the table this version would record them at, read
+	 * from it when this storage first opens it and added to as it enrols. A tree named here needs no
+	 * row written for it: the row would be the one that is already there, and writing it is neither
+	 * free - it is committed where it is written, so that an open which creates no table still
+	 * leaves an enrolment behind - nor without cost to the caller, whose own pending work that
+	 * commit carries with it. A stock suffix has about 25 trees, and every open after the first
+	 * enrols none of them.
+	 * <p>
+	 * A row recording another table than {@link #getTableName} would give is not in here: what a
+	 * removal drops is the table the row records, so a row of a version naming its tables otherwise
+	 * has to be rewritten rather than trusted. Held no longer than the open it was read in, like
+	 * {@link #catalogTableOpened}, and given up whenever the catalog itself is.
+	 */
+	private final Set<TreeName> enrolledTrees=ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The form a catalog pattern has to take to match an identifier this backend created unquoted.
@@ -925,11 +942,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					dropped++;
 				}
 				con.commit();
-			} catch (SQLException e) {
+			} catch (Exception e) {
+				// every failure of the loop and not the SQLException alone: the lookup deciding each
+				// drop answers with a StorageRuntimeException of its own, and a drop left pending by one
+				// of those has to go back here rather than wait for the connection to be handed back
 				try {
 					con.rollback();
 				} catch (SQLException e2) {}
-				throw new StorageRuntimeException(e);
+				throw e instanceof StorageRuntimeException ? (StorageRuntimeException) e : new StorageRuntimeException(e);
 			}
 			// all tables are gone: a table recreated later deserves a fresh stamp attempt, and the
 			// memoized table name of a tree nothing holds any more is of no use to anyone
@@ -952,8 +972,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		} finally {
 			// the catalog went with the rest: the next tree enrolled creates its table again. The
 			// online import needs exactly that - the storage which has just dropped its tables is the
-			// one going on to open a root container and enrol every tree of it anew.
+			// one going on to open a root container and enrol every tree of it anew, which is what the
+			// forgotten enrolments make it do rather than skip as already recorded.
 			catalogTableOpened=false;
+			enrolledTrees.clear();
 			if (!isOpen) {
 				close();
 			}
@@ -1110,19 +1132,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	/**
-	 * The tree named by the comment this table carries (#866), or {@code null} where it carries none,
-	 * where what it carries is not the name of a tree, or where the engine has no comment readback of
-	 * its own here. The stamp is the only thing that attributes a table to a backend at all - a table
-	 * name is a bare hash - and stamping is best-effort, so the absence of one states nothing.
+	 * The tree named by the comment this table carries (#866), or {@code null} where it carries none
+	 * or where what it carries is not the name of a tree. The stamp is the only thing that attributes
+	 * a table to a backend at all - a table name is a bare hash - and stamping is best-effort, so the
+	 * absence of one states nothing.
 	 * <p>
 	 * A read the database refused is passed to the caller rather than answered as an absent stamp: the
 	 * two say different things, and the second would let a connection that died halfway be reported as
-	 * a row of tables nothing can be said about.
+	 * a row of tables nothing can be said about. An engine with no readback of its own is the same
+	 * distinction one step earlier, and is answered by the caller: it puts every table of such an
+	 * engine where nothing was asked of it belongs, which is not where a table without a stamp goes.
 	 */
 	private TreeName stampedTree(Connection con, Dialect dialect, String tableName) throws SQLException {
-		if (dialect==null) { // no readback known for this engine: no table of it can be attributed
-			return null;
-		}
 		final String comment=readStoredComment(con, dialect, tableName);
 		if (comment==null || comment.isEmpty()) {
 			return null;
@@ -1176,6 +1197,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * as weak as it ever was - a driver naming neither catalog nor schema is what {@link
 	 * #isExistsTable(Connection, String, String, String)} describes, and nothing here can make it say
 	 * more than it will.
+	 * <p>
+	 * A narrowed lookup is the narrower question in the other direction too: a table this backend
+	 * created under a schema the connection no longer works in - a postgres installation whose
+	 * search_path resolved to another schema when the tables were made, an oracle one reaching them
+	 * through a synonym - was found by the unnarrowed lookup of the version before this one and is
+	 * not found here, so an open recreates it empty in the schema this connection does work in. It is
+	 * the same question the backend answers everywhere else: it creates its tables unqualified, reads
+	 * them unqualified, and a table it cannot reach that way is not one it can be said to hold.
 	 */
 	static String catalogOf(Connection con) {
 		try {
@@ -1462,12 +1491,16 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		private String tableSchema;
 		private boolean tableScopeKnown;
 
-		boolean isExistsTable(TreeName treeName) {
+		private void takeTableScope() {
 			if (!tableScopeKnown) {
 				tableCatalog=catalogOf(con);
 				tableSchema=schemaOf(con);
 				tableScopeKnown=true;
 			}
+		}
+
+		boolean isExistsTable(TreeName treeName) {
+			takeTableScope();
 			return JDBCStorage.this.isExistsTable(con, tableCatalog, tableSchema, getTableName(treeName));
 		}
 
@@ -1486,11 +1519,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		public void openTree(TreeName treeName, boolean createOnDemand) {
 			if (createOnDemand) {
 				// what makes this tree nameable by a process which has opened nothing: see
-				// getCatalogTree(). Written before the table and not after it, so that the table is never
-				// there without a row naming it: on postgres and sql server the commit below carries row
-				// and table together, and on mysql and oracle the "create table" commits the row before
-				// it creates anything, DDL there committing the transaction it finds open. Of the two ways
-				// a half-done open can end, a catalog naming a table that is not there is the one the
+				// getCatalogTree(). Written before the table and not after it, and committed as it is
+				// written, so that the table is never there without a row naming it - on every engine,
+				// and not only on the ones whose DDL happens to carry the row along. Of the two ways a
+				// half-done open can end, a catalog naming a table that is not there is the one the
 				// removal is ready for - it skips such a row and says so - while a table nothing names is
 				// adopted with its stale rows by the next open of that tree and is dropped by no clear
 				// ever after. deleteTree() takes the row out after the drop for that same reason, which is
@@ -1552,9 +1584,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * removal, since the tree read may belong to another backend of the same database - the
 		 * unqualified compressed schema trees such a database may still hold, say (#873).
 		 * <p>
-		 * The row is written on every open rather than only when the table is created, so that a
-		 * backend of an installation upgraded to a version keeping a catalog fills it in at its first
-		 * read-write open instead of waiting for its trees to be created again.
+		 * The row is written whenever the catalog does not already record this tree at this table -
+		 * and not only when the table is created - so that a backend of an installation upgraded to a
+		 * version keeping a catalog fills it in at its first read-write open instead of waiting for
+		 * its trees to be created again. It is committed where it is written and not left to the
+		 * enclosing transaction, which is what makes that first open enough: it creates no table, so
+		 * nothing else of {@link #openTree} would commit it. What the catalog already records is read
+		 * once, when this storage first opens it; see {@link #enrolledTrees}.
 		 */
 		void enrolInCatalog(TreeName treeName) {
 			final TreeName catalog=getCatalogTree();
@@ -1572,11 +1608,51 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				// It costs one stamp per open of the storage, not one per tree: this runs behind the
 				// very flag that keeps the catalog from being opened again
 				commentTable(catalog, dialectOf(con), stampSession);
+				readEnrolledTrees();
 				catalogTableOpened=true;
+			}
+			if (enrolledTrees.contains(treeName)) {
+				return; // already recorded, at the table this open would record it at
 			}
 			try {
 				upsert(catalog, ByteString.valueOfUtf8(treeName.toString()),
 					ByteString.valueOfUtf8(getTableName(treeName)));
+				// The row carries a commit of its own, so that it is there before the table on every
+				// engine and not only where the "create table" below happens to carry it: postgres and
+				// sql server commit the row with the table they go on to create, and on mysql and oracle
+				// the "create table" commits it as its DDL begins - but the open which fills the catalog
+				// of a backend upgraded from a version keeping none creates no table at all, and that is
+				// the one open whose enrolment has to survive. A transaction failing after it would take
+				// every one of those rows back, leaving the tables named by nothing and the next clear
+				// dropping nothing - which is #888 over again.
+				// The commit is the transaction's and carries whatever else its caller has pending, so it
+				// is not issued for a row that is already there: see enrolledTrees, which is why an open
+				// of a backend whose catalog is complete - every open after the first - commits nothing
+				// here at all.
+				con.commit();
+				enrolledTrees.add(treeName);
+			} catch (SQLException e) {
+				throw new StorageRuntimeException(e);
+			}
+		}
+
+		/**
+		 * Reads what the catalog already records, so that the trees it names are not enrolled again on
+		 * an open which would write the rows that are already there; see {@link #enrolledTrees}. Run
+		 * once per open of the storage, behind the very flag that keeps the catalog from being opened
+		 * again, and it costs the one select a clear pays for anyway.
+		 */
+		void readEnrolledTrees() {
+			takeTableScope();
+			try {
+				for (final Map.Entry<TreeName,String> row : catalogTables(con, tableCatalog, tableSchema).entrySet()) {
+					// a row recording another table than this version would record is not the row this
+					// open would leave behind: a removal drops the table the row records, so such a row is
+					// rewritten - and committed - exactly like one that is not there at all
+					if (getTableName(row.getKey()).equals(row.getValue())) {
+						enrolledTrees.add(row.getKey());
+					}
+				}
 			} catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
@@ -1608,6 +1684,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			final TreeName catalog=getCatalogTree();
 			if (catalog.equals(treeName)) {
 				catalogTableOpened=false; // its own table is gone: the next enrolment creates it again
+				enrolledTrees.clear(); // and records every tree anew, this one having recorded nothing
 				return false;
 			}
 			if (SHARED_COMPRESSED_SCHEMA_BASE_DN.equals(treeName.getBaseDN())) {
@@ -1616,6 +1693,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				// what the catalog names and the catalog does not name them; see the constant
 				return false;
 			}
+			// taken out of what this storage knows the catalog records whether the delete below is
+			// issued or not: a tree the catalog does not name is not one an enrolment may skip
+			enrolledTrees.remove(treeName);
 			if (catalogTableOpened || isExistsTable(catalog)) {
 				delete(catalog, ByteString.valueOfUtf8(treeName.toString()));
 				return true;
@@ -1987,7 +2067,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * What a tool has to be shown is not what a clear may drop: the shared compressed schema trees
 	 * are deliberately not enrolled - a backend must not offer a tree another one may own for removal
 	 * - and would go unnamed by {@code dbtest} for it, so they are added here when their tables are
-	 * there. {@link #catalogTables(Connection)} is what the removal reads, and it names them not.
+	 * there. {@link #catalogTables(Connection, String, String)} is what the removal reads, and it
+	 * names them not.
+	 * <p>
+	 * The catalog itself is among the names, being a tree of this backend like any other: {@code
+	 * dbtest list-raw-dbs} counts it and {@code dump-raw-db} resolves its name, which is the one way
+	 * of seeing from outside the server what a clear of this backend would drop.
 	 */
 	@Override
 	public Set<TreeName> listTrees() {
@@ -2024,16 +2109,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * <p>
 	 * The table name is taken from the row rather than recomputed from the tree name, so that a
 	 * removal drops what was enrolled even if the naming of tables were ever to change.
-	 */
-	Map<TreeName,String> catalogTables(Connection con) throws SQLException {
-		return catalogTables(con, catalogOf(con), schemaOf(con));
-	}
-
-	/**
-	 * The same, for a caller which has already asked this connection where it works. Neither name is
-	 * free of a round trip - pgjdbc answers getSchema() with a "select current_schema()" of its own -
-	 * so a clear and a listTrees(), which both narrow a lookup of their own by them, pass what they
-	 * have rather than asking again.
+	 * <p>
+	 * The catalog and the schema are the caller's rather than asked for here: neither is free of a
+	 * round trip - pgjdbc answers getSchema() with a "select current_schema()" of its own - and a
+	 * clear and a listTrees() both narrow a lookup of their own by them, so they pass what they have
+	 * instead of every reader asking twice over.
 	 */
 	Map<TreeName,String> catalogTables(Connection con, String catalog, String schema) throws SQLException {
 		final TreeName catalogTree=getCatalogTree();
@@ -2047,7 +2127,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		try (final PreparedStatement statement=con.prepareStatement("select k,v from "+catalogTable);
 			 final ResultSet rs=executeResultSet(statement)) {
 			while (rs.next()) {
-				final String name=new String(db2real(rs.getBytes("k")), StandardCharsets.UTF_8);
+				final byte[] key=rs.getBytes("k");
+				if (key==null) { // no tree is named by a row with no key, and a clear must not fail over one
+					logger.warn(LocalizableMessage.raw("jdbc: table %s holds a row naming no tree at all: skipped",
+						catalogTable));
+					continue;
+				}
+				final String name=new String(db2real(key), StandardCharsets.UTF_8);
 				final TreeName treeName;
 				try {
 					treeName=TreeName.valueOf(name);

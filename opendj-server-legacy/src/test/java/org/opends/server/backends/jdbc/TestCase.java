@@ -41,6 +41,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -649,7 +650,10 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			storage.write(new WriteOperation() {
 				@Override
 				public void run(WriteableTransaction txn) throws Exception {
-					txn.put(written, key(1), value(1)); // pending in this transaction...
+					// pending in this transaction, and it has to still be pending when the stamp is
+					// attempted: both trees were enrolled by the storage above, so the openTree below
+					// records nothing in the catalog and commits nothing of what is written here
+					txn.put(written, key(1), value(1));
 					txn.openTree(stamped, true); // ...while the comment machinery fails
 				}
 			});
@@ -1585,8 +1589,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				@Override
 				public void run(WriteableTransaction txn) throws Exception {
 					txn.openTree(owned, true);
-					// created, never written to: the pair holds the compressed schema of this very
-					// database, and a row of a test in it would be read back as a schema definition
+					// opened, never written to: the pair holds the compressed schema of the backend this
+					// class opens in setUp(), which created these two tables, and a row of a test in them
+					// would be read back as a schema definition
 					for (final TreeName shared : JDBCStorage.SHARED_COMPRESSED_SCHEMA_TREES) {
 						txn.openTree(shared, true);
 					}
@@ -1609,14 +1614,12 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			}
 			assertFalse(isExistsTable(storage.getTableName(owned)), "the table of the backend's own tree survived the clear");
 		} finally {
-			// the shared pair is left where it lies, exactly as the backend leaves it
+			// the shared pair is left where it lies, exactly as the backend leaves it - and is left by
+			// this case too, rather than dropped by hand: the tables are not this case's to remove. The
+			// backend setUp() opened for the whole class made them, through PersistentCompressedSchema,
+			// and is still holding them; what this case did was open two trees that were already there.
+			// They go with the dropStaleTrees() of the next run of the class, like every other table
 			clearQuietly(storage);
-			// and is then dropped by hand: no clear of a backend ever removes it, so what this case
-			// created would otherwise stand for the rest of the class - PersistentCompressedSchema names
-			// these two trees, and the backend cases of this very class would go on using them
-			for (final TreeName shared : JDBCStorage.SHARED_COMPRESSED_SCHEMA_TREES) {
-				dropTableIfExists(storage.getTableName(shared));
-			}
 		}
 	}
 
@@ -1716,6 +1719,113 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	}
 
 	/**
+	 * The row of a tree whose table is already standing must not be left to the enclosing transaction
+	 * either. That is the open which fills the catalog of a backend upgraded from a version keeping
+	 * none: it creates no table, so nothing else of openTree() commits anything, and a transaction
+	 * failing after the enrolment would take the whole of it back - leaving a backend whose tables
+	 * are named by no catalog and whose next clear therefore drops nothing at all (#888).
+	 * <p>
+	 * Green on postgres whether the enrolment commits itself or not: openTree() asks there for the
+	 * cursor index of every tree on every open and commits that, carrying the row with it. The other
+	 * three engines ask for the index only when it is missing, and sql server takes none at all.
+	 */
+	@Test
+	public void testAReopenedTreeStaysInTheCatalogWhenItsTransactionFails() throws Exception {
+		final TreeName tree = new TreeName("testCatalogEnrolRollback", "tree");
+		final JDBCStorage setUp = new JDBCStorage(createBackendCfg(getBackendId() + "_enrol"), null);
+		try { // the tables of the backend, made by a storage that then goes away
+			setUp.open(AccessMode.READ_WRITE);
+			setUp.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+		} finally {
+			setUp.close();
+		}
+		// and the rest of what an installation upgraded to a version keeping a catalog holds: a
+		// catalog naming none of those tables
+		emptyTheCatalog(setUp.getTableName(setUp.getCatalogTree()));
+
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_enrol"), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			assertFalse(storage.listTrees().contains(tree), "the catalog of the case was not emptied");
+
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						// the table is there, so this open creates none: the enrolment is the only thing
+						// this transaction has written when it fails
+						txn.openTree(tree, true);
+						// terminal, and no conflict for write() to replay: everything this transaction
+						// still owes goes back, and the row naming a standing table must not be part of it
+						throw new IllegalStateException("the transaction of an openTree failed");
+					}
+				});
+				fail("the write was expected to fail");
+			} catch (Exception expected) {
+				// what the case is about is what the failure left behind
+			}
+
+			assertTrue(storage.listTrees().contains(tree),
+				"the catalog forgot a tree whose table is standing: a clear of this backend would drop nothing");
+		} finally {
+			clearQuietly(storage);
+		}
+	}
+
+	/**
+	 * A tree the catalog already records at the table this version records it at is not enrolled
+	 * again by an open: the row would be the row that is already there. A row recording any other
+	 * table is, though - a removal drops the table the row records, so a row naming one this backend
+	 * would not create leaves the real table standing, named by nothing and dropped by no clear ever
+	 * after. Which of the two a row is has to be decided by what it records and not by its presence.
+	 */
+	@Test
+	public void testARowRecordingAnotherTableIsEnrolledAgain() throws Exception {
+		final TreeName tree = new TreeName("testCatalogStaleRow", "tree");
+		final JDBCStorage setUp = new JDBCStorage(createBackendCfg(getBackendId() + "_staleRow"), null);
+		try { // the table and its row, by a storage that then goes away
+			setUp.open(AccessMode.READ_WRITE);
+			setUp.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+		} finally {
+			setUp.close();
+		}
+		final String catalogTable = setUp.getTableName(setUp.getCatalogTree());
+		// what a version naming its tables otherwise would have left: a row of the right tree
+		// recording a table this one would never create
+		recordAnotherTable(catalogTable, "opendj_00000000000000000000000000000000000000000000000000000000");
+
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_staleRow"), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+
+			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+				assertEquals(
+					storage.catalogTables(con, JDBCStorage.catalogOf(con), JDBCStorage.schemaOf(con)).get(tree),
+					storage.getTableName(tree),
+					"a row recording a table this backend does not hold was left as it was: its tree is named at a table no clear can drop");
+			}
+		} finally {
+			clearQuietly(storage);
+		}
+	}
+
+	/**
 	 * A clear drops the table its catalog records for a tree, not one it derives again from the tree
 	 * name, so that a removal drops what was enrolled even if the naming of tables were ever to
 	 * change. A row recording no table at all - all a version recording the name alone would have
@@ -1734,7 +1844,10 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				}
 			});
 			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
-				final Map<TreeName, String> recorded = storage.catalogTables(con);
+				// asked the way a clear asks it, narrowed to the database and the schema of the
+				// connection: what the removal reads is this and not a lookup of a shape of its own
+				final Map<TreeName, String> recorded =
+					storage.catalogTables(con, JDBCStorage.catalogOf(con), JDBCStorage.schemaOf(con));
 				assertEquals(recorded.get(tree), storage.getTableName(tree),
 					"the catalog does not record the table holding the tree its row names");
 				// the order is the order a clear drops in: what names the trees has to outlive them, so
@@ -1744,7 +1857,8 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					"a clear was not shown the catalog last, after every tree it names: " + order);
 
 				emptyTheRecordedTableNames(storage.getTableName(storage.getCatalogTree()));
-				assertEquals(storage.catalogTables(con).get(tree), storage.getTableName(tree),
+				assertEquals(storage.catalogTables(con, JDBCStorage.catalogOf(con), JDBCStorage.schemaOf(con)).get(tree),
+					storage.getTableName(tree),
 					"a row recording no table name did not fall back to the name derived from the tree");
 			}
 
@@ -1844,6 +1958,29 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			assertNotNull(theirs, "the database would not say which tables the neighbour is holding");
 			assertTrue(theirs.ours.toString().toLowerCase().contains(other.getTableName(otherTree).toLowerCase()),
 				"the table left unreported is one the scan does not reach at all: " + theirs.ours);
+		}
+	}
+
+	/**
+	 * Takes every row out of a catalog, leaving the tables it named standing: what a backend upgraded
+	 * from a version keeping no catalog holds before its first read-write open fills one in.
+	 */
+	private void emptyTheCatalog(String catalogTable) throws SQLException {
+		try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+			 final Statement st = con.createStatement()) {
+			st.executeUpdate("delete from " + catalogTable);
+		}
+	}
+
+	/**
+	 * Records the given table for every row of a catalog, as a version naming its tables otherwise
+	 * would have left them: the row names the right tree and a table this version never creates.
+	 */
+	private void recordAnotherTable(String catalogTable, String tableName) throws SQLException {
+		try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+			 final PreparedStatement statement = con.prepareStatement("update " + catalogTable + " set v=?")) {
+			statement.setBytes(1, tableName.getBytes(StandardCharsets.UTF_8));
+			statement.executeUpdate();
 		}
 	}
 
