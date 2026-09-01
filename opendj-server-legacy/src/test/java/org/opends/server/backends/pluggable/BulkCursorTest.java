@@ -61,7 +61,8 @@ import org.testng.annotations.Test;
  * <p>
  * Six call sites are pinned that way - {@code ExportJob}, the id2entry, dn2id and VLV walks of
  * {@code VerifyJob}, and both trees of {@code PersistentCompressedSchema} - together with the
- * children count each row of the dn2id walk reads. Three more are held by other means:
+ * children count each row of the dn2id walk reads and the total the progress report of a verify
+ * is sized with, the latter pinned one hop above its cursor. Three more are held by other means:
  * {@code ID2Entry.afterOpen()} has {@code ID2EntryTest}, the override that gives the class its
  * meaning has {@code JDBCStatementBoundTestCase}, and {@code VerifyJob.iterateID2ChildrenCount()}
  * cannot be reverted at all, since {@code ID2ChildrenCount} exposes no cursor but the bulk one and
@@ -285,8 +286,8 @@ public class BulkCursorTest extends DirectoryServerTestCase
 
   /**
    * And a count read outside such a walk is a client operation, which the bulk read above must not
-   * quietly turn into: an LDAP search asking for {@code numSubordinates}, a delete and a modify DN
-   * all read one, and there a bound of a client operation is exactly what they should take.
+   * quietly turn into: an LDAP search asking for {@code numSubordinates} reads one, and there a
+   * bound of a client operation is exactly what it should take.
    */
   @Test
   public void testAChildrenCountOfAClientOperationStaysAnOperation() throws Exception
@@ -298,5 +299,63 @@ public class BulkCursorTest extends DirectoryServerTestCase
 
     verify(txn).openCursor(id2childrenCountName);
     verify(txn, never()).openBulkCursor(any(TreeName.class));
+  }
+
+  /**
+   * The total is one such count read on one key, so it takes the class of whoever asks: the walk
+   * that reads it to size its progress report, or the client operation that reads the same total.
+   */
+  @Test
+  public void testTheTotalCountOfAWholeTreeWalkAsksForABulkCursor() throws Exception
+  {
+    final TreeName id2childrenCountName = new TreeName("dc=example,dc=com", "id2childrencount");
+    final ReadableTransaction txn = transactionWithEmptyCursors();
+
+    new ID2ChildrenCount(id2childrenCountName).getTotalCount(txn, true);
+
+    verify(txn).openBulkCursor(id2childrenCountName);
+    verify(txn, never()).openCursor(any(TreeName.class));
+  }
+
+  /** And {@code cn=monitor} reading the same total is a client operation. */
+  @Test
+  public void testTheTotalCountOfAClientOperationStaysAnOperation() throws Exception
+  {
+    final TreeName id2childrenCountName = new TreeName("dc=example,dc=com", "id2childrencount");
+    final ReadableTransaction txn = transactionWithEmptyCursors();
+
+    new ID2ChildrenCount(id2childrenCountName).getTotalCount(txn);
+
+    verify(txn).openCursor(id2childrenCountName);
+    verify(txn, never()).openBulkCursor(any(TreeName.class));
+  }
+
+  /**
+   * The count a verify reads to size its progress report belongs to the walk it measures. Its
+   * three siblings - the record counts of dn2id, of the children count tree and of a VLV index -
+   * are bulk by the tree they count, and this one was the branch left reading as a client
+   * operation: it is also the only one a plain {@code verify-index} reaches, the other three
+   * being the {@code --clean} path.
+   * <p>
+   * Pinned on the container rather than on a cursor, that read being one hop further down:
+   * {@code getNumberOfEntriesInBaseDN0} to {@code ID2ChildrenCount.getTotalCount} to the cursor
+   * the two tests above pin.
+   */
+  @Test
+  public void testTheProgressCountOfAVerifyIsReadAsPartOfItsWalk() throws Exception
+  {
+    final DN baseDN = DN.valueOf("dc=example,dc=com");
+    final VerifyConfig verifyConfig = mock(VerifyConfig.class);
+    when(verifyConfig.getBaseDN()).thenReturn(baseDN);
+    final EntryContainer entryContainer = mock(EntryContainer.class);
+    final RootContainer rootContainer = mock(RootContainer.class);
+    when(rootContainer.getEntryContainer(baseDN)).thenReturn(entryContainer);
+    final ReadableTransaction txn = transactionWithEmptyCursors();
+
+    // false: the entry iterator, which is what a verify-index runs unless it was given --clean
+    new VerifyJob(rootContainer, verifyConfig).new ProgressTask(false, txn);
+
+    verify(entryContainer).getNumberOfEntriesInBaseDN0(txn, true);
+    verify(entryContainer, never()).getNumberOfEntriesInBaseDN0(txn);
   }
 }

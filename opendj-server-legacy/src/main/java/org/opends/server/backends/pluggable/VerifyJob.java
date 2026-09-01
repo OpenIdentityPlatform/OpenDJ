@@ -992,8 +992,13 @@ class VerifyJob
     }
   }
 
-  /** This class reports progress of the verify job at fixed intervals. */
-  private final class ProgressTask extends TimerTask
+  /**
+   * This class reports progress of the verify job at fixed intervals.
+   * <p>
+   * Visible, with its constructor, to the test pinning the class of the reads it makes to size
+   * that report: they belong to the walk they measure rather than to a client operation (#877).
+   */
+  final class ProgressTask extends TimerTask
   {
     /** The total number of records to process. */
     private long totalCount;
@@ -1008,7 +1013,7 @@ class VerifyJob
      * through indexes or the entries.
      * @throws StorageRuntimeException An error occurred while accessing the storage.
      */
-    private ProgressTask(boolean indexIterator, ReadableTransaction txn) throws StorageRuntimeException
+    ProgressTask(boolean indexIterator, ReadableTransaction txn) throws StorageRuntimeException
     {
       previousTime = System.currentTimeMillis();
 
@@ -1038,7 +1043,12 @@ class VerifyJob
       }
       else
       {
-        totalCount = rootContainer.getEntryContainer(verifyConfig.getBaseDN()).getNumberOfEntriesInBaseDN0(txn);
+        // Part of this walk, like the counts of the branch above: it sizes a verify of the whole
+        // backend, and the branch above is only reached by "verify-index --clean" - a plain
+        // verify-index, with or without an index named, comes here. Read as a client operation it
+        // would take the bound of one on a storage engine that bounds a statement, which on a
+        // backend large enough aborts the verify before its first record (#877).
+        totalCount = rootContainer.getEntryContainer(verifyConfig.getBaseDN()).getNumberOfEntriesInBaseDN0(txn, true);
       }
     }
 

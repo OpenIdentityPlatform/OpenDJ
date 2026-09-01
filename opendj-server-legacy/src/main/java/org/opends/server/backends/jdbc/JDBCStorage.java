@@ -168,6 +168,35 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		T handle(ResultSet rows) throws SQLException;
 	}
 
+	/**
+	 * The value of a row that is there. A row whose {@code v} is null is one this backend never
+	 * wrote - the column is nullable, however it is written - and it must not be answered with the
+	 * {@code null} a single-row read uses, which is already taken and means "no such key": read that
+	 * way, a key that exists is reported as absent. Named rather than left to the bare
+	 * {@code NullPointerException} of {@code ByteString.wrap}, which names neither the fault nor the
+	 * table it is in, and a {@code RuntimeException} rather than an {@code SQLException}, so that a
+	 * corrupt row is never weighed against the bound of the statement that read it and reported as a
+	 * timeout of a property that would have changed nothing. The key is left out of the message for
+	 * the reason {@link #timedOut} leaves the statement out of its own: it is entry data.
+	 */
+	static ByteString valueOfRow(ResultSet rows, String tableName) throws SQLException {
+		return ByteString.wrap(valueOfRow(rows.getBytes("v"), tableName));
+	}
+
+	/**
+	 * The same check where a batch of a cursor reads the value beside its key, by position. Checked
+	 * as the rows are taken off the statement rather than as they are handed out one by one: there
+	 * the failure is inside the bound and inside the {@code catch} of the batch, while a batch
+	 * buffered whole and unwrapped later fails from {@code advanceFromBuffer()} - outside both, and
+	 * as the bare {@code NullPointerException} this exists to replace.
+	 */
+	static byte[] valueOfRow(byte[] value, String tableName) {
+		if (value == null) {
+			throw new StorageRuntimeException("jdbc: a row of "+tableName+" is present with no value");
+		}
+		return value;
+	}
+
 	<T> T executeResultSet(PreparedStatement statement, RowsHandler<T> rows) throws SQLException {
 		return executeResultSet(statement, StatementBound.OPERATION, rows);
 	}
@@ -327,12 +356,19 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	static final long CLOCK_SLACK_MILLIS = 250;
 
 	/**
-	 * Ceiling of every bound this backend arms, in seconds. {@link #backstopMillis} turns a bound
-	 * into milliseconds of an {@code int}, which is what {@code setNetworkTimeout} takes, and a
-	 * property set above this would overflow that sum into a negative timeout: every driver refuses
-	 * such a call, and refusing it leaves the connection carrying whatever the statement before it
-	 * armed - a value the next borrower of that pooled connection then reads as its own. Clamped
-	 * rather than refused, since this is 24 855 days and anything past it was meant as "no bound".
+	 * Ceiling of every bound this backend arms, in seconds - 24.9 days, which is what a socket read
+	 * timeout can hold at all: {@code setNetworkTimeout} takes milliseconds of an {@code int}, and a
+	 * bound past this one has no value of that layer to be given. It is <em>not</em> what keeps the
+	 * arithmetic of {@link #backstopMillis} in range - the {@code long} multiply under the
+	 * {@code Math.min} there does that on its own, up to the point where adding the margin overflows
+	 * an {@code int} before the multiply ever runs - so a reader who later takes that {@code Math.min}
+	 * away must not read this clamp as covering them.
+	 * <p>
+	 * Clamped rather than refused, and clamped rather than read as "no bound": a bound this large
+	 * cancels nothing a database will not have ended first, so taking a nonsensical value down to it
+	 * costs a deployment nothing, while reading it as an unbound would take a bound away from a
+	 * deployment that asked for one. A property set to {@code Integer.MAX_VALUE} therefore bounds a
+	 * statement at 24.9 days rather than leaving it unbounded; {@code 0} is what leaves it unbounded.
 	 */
 	static final int MAX_BOUND_SECONDS = Integer.MAX_VALUE/1000 - BACKSTOP_MARGIN_SECONDS;
 
@@ -1542,10 +1578,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
-			try (final PreparedStatement statement=con.prepareStatement("select v from "+getTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
+			final String tableName=getTableName(treeName);
+			try (final PreparedStatement statement=con.prepareStatement("select v from "+tableName+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
-				return executeResultSet(statement, bound, rc -> rc.next() ? ByteString.wrap(rc.getBytes("v")) : null);
+				return executeResultSet(statement, bound, rc -> rc.next() ? valueOfRow(rc, tableName) : null);
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
@@ -1581,8 +1618,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * is {@code BackendImpl.getEntryCount()} through {@code RootContainer.getEntryCount()}, which
 		 * sums {@code id2childrenCount} and never reaches this method.
 		 * <p>
-		 * One of the three places the class of the transaction is overridden downwards, the others
-		 * being {@link #openBulkCursor(TreeName)} and {@link CursorImpl#positionToLastKey()}.
+		 * One of the places the class of the transaction is overridden downwards, the others being
+		 * {@link #openBulkCursor(TreeName)}, {@link CursorImpl#positionToLastKey()} and the DDL a
+		 * write transaction issues - the {@code create table} and the three {@code create index} of
+		 * {@code openTree()}, the {@code delete from} of {@code clearTree()} and the {@code drop
+		 * table} of {@code deleteTree()} - which is where an operation-class transaction, the one
+		 * {@code write()} runs with, can take the shared backstop of its connection off. The count
+		 * is deliberately not given here: whoever audits that list has to read it off the class
+		 * rather than trust a number that a later hard-coded {@code BULK} would leave stale.
 		 */
 		@Override
 		public long getRecordCount(TreeName treeName) {
@@ -1905,7 +1948,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				statement.setLong(i,limit);
 				return executeResultSet(statement, bound, rc -> {
 					while (rc.next()) {
-						buffer.add(new byte[][]{rc.getBytes(1),rc.getBytes(2)});
+						buffer.add(new byte[][]{rc.getBytes(1),valueOfRow(rc.getBytes(2),tableName)});
 					}
 					return !buffer.isEmpty();
 				});
@@ -2008,12 +2051,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// The row is wrapped inside the handler rather than after it, so that null keeps meaning
 			// "no such key" and only that: a row whose v is null - which the schema allows, however
 			// this backend writes it - has to fail here as it fails in read(), rather than report a
-			// key that exists as absent.
+			// key that exists as absent. Both go through valueOfRow(), which is where that failure
+			// is named.
 			final ByteString value;
 			try (final PreparedStatement statement=con.prepareStatement("select v from "+tableName+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(real)));
 				statement.setBytes(2,real2db(real));
-				value=executeResultSet(statement, batchBound, rc -> rc.next() ? ByteString.wrap(rc.getBytes("v")) : null);
+				value=executeResultSet(statement, batchBound, rc -> rc.next() ? valueOfRow(rc, tableName) : null);
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
@@ -2216,6 +2260,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					con.close();
 				}catch (SQLException ignored) {
 					// the importer was never built; the failure to report is the one on its way out
+				}
+				// and the storage this method opened goes back with the connection, for the reason the
+				// borrow above gives: ImporterImpl.close() is what closes it again when an import
+				// opened it, and there is no importer here to reach that
+				if (!wasOpen) {
+					close();
 				}
 			}
 		}

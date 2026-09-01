@@ -2380,7 +2380,29 @@ public class EntryContainer
 
   long getNumberOfEntriesInBaseDN0(ReadableTransaction txn)
   {
-    return id2childrenCount.getTotalCount(txn);
+    return getNumberOfEntriesInBaseDN0(txn, false);
+  }
+
+  /**
+   * The same count, told which kind of work it is part of: {@code verify-index} reads it before
+   * walking the whole backend, with nobody waiting on the walk or on the count that sizes it, while
+   * {@code cn=monitor} and the searches of {@code GroupManager} and {@code SubentryManager} read it
+   * for a client.
+   * <p>
+   * The read behind {@code NOTE_BACKEND_STARTED} is deliberately left with the client callers,
+   * though nobody waits on it either: it goes through {@code BackendImpl.getEntryCount()}, which is
+   * the same method those three call, and what a bound costs it there is a log line reporting -1
+   * entries - that method answers -1 for any failure rather than failing the open.
+   *
+   * @param txn storage transaction
+   * @param partOfAWholeTreeWalk whether this read belongs to a walk of a whole tree rather than to
+   *          a client operation
+   * @return The number of entries stored in this entry container including the baseDN.
+   * @see ReadableTransaction#openBulkCursor(TreeName)
+   */
+  long getNumberOfEntriesInBaseDN0(ReadableTransaction txn, boolean partOfAWholeTreeWalk)
+  {
+    return id2childrenCount.getTotalCount(txn, partOfAWholeTreeWalk);
   }
 
   /**

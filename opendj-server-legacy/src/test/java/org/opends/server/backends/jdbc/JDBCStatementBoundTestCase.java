@@ -15,6 +15,7 @@
  */
 package org.opends.server.backends.jdbc;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
 import org.mockito.InOrder;
@@ -24,6 +25,7 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.backends.jdbc.JDBCStorage.StatementBound;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.ReadOnlyStorageException;
+import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.testng.annotations.AfterMethod;
@@ -39,6 +41,7 @@ import java.sql.SQLTimeoutException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -243,6 +246,33 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 		assertEquals(StatementBound.BULK.seconds(), 900);
 		System.setProperty(StatementBound.BULK.property, "as long as it takes");
 		assertEquals(StatementBound.BULK.seconds(), 0);
+	}
+
+	/**
+	 * A bound larger than the second layer can hold is taken down to what it can hold, and stays a
+	 * bound: that layer is a socket read timeout, which is milliseconds of an {@code int}, so
+	 * {@code Integer.MAX_VALUE} - the usual "no bound" idiom - has no value of it to be given, and
+	 * a negative one is a call every driver refuses, leaving the connection carrying whatever the
+	 * statement before it armed. {@code 0} is what says "no bound" here, and the ceiling is not it.
+	 */
+	@Test
+	public void testABoundLargerThanTheBackstopCanHoldIsTakenDownToIt() throws Exception {
+		assertEquals(JDBCStorage.clampSeconds(Integer.MAX_VALUE), JDBCStorage.MAX_BOUND_SECONDS);
+		System.setProperty(StatementBound.OPERATION.property, String.valueOf(Integer.MAX_VALUE));
+		assertEquals(StatementBound.OPERATION.seconds(), JDBCStorage.MAX_BOUND_SECONDS);
+
+		final Connection con = mock(Connection.class);
+		when(con.getNetworkTimeout()).thenReturn(0);
+		final PreparedStatement statement = mock(PreparedStatement.class);
+		when(statement.getConnection()).thenReturn(con);
+
+		storage.execute(statement);
+
+		verify(statement).setQueryTimeout(JDBCStorage.MAX_BOUND_SECONDS);
+		// and what the second layer is armed with is still a positive int of milliseconds, which is
+		// the whole of what the ceiling is for: a negative one is the call a driver refuses
+		verify(con).setNetworkTimeout(any(Executor.class),
+			eq((JDBCStorage.MAX_BOUND_SECONDS + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000));
 	}
 
 	@Test
@@ -539,6 +569,35 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 			fail("the failure of the statement must reach the caller");
 		} catch (SQLException e) {
 			assertSame(e, conflict);
+		}
+	}
+
+	/**
+	 * And the edge of that slack belongs to the bound. The two cases above sit either side of it,
+	 * so both of them pass whether the comparison is {@code <} or {@code <=} - the point where the
+	 * two differ is exactly a slack under the bound, and that is what this pins.
+	 */
+	@Test
+	public void testAFailureExactlyASlackUnderTheBoundIsStillTheBound() throws Exception {
+		System.setProperty(StatementBound.OPERATION.property, "1");
+		final SteppedClockStorage clocked = new SteppedClockStorage();
+		final PreparedStatement statement = mock(PreparedStatement.class);
+		when(statement.executeUpdate()).thenAnswer(new Answer<Integer>() {
+			@Override
+			public Integer answer(InvocationOnMock invocation) throws Throwable {
+				// a literal for the reason the case above gives: derived from CLOCK_SLACK_MILLIS it
+				// would follow that constant wherever it went and pin nothing
+				clocked.millis = 750; // the bound of a second, less a slack of 250
+				throw new SQLException("canceling statement due to user request", "57014", 0);
+			}
+		});
+
+		try {
+			clocked.execute(statement);
+			fail("the failure of the statement must reach the caller");
+		} catch (SQLTimeoutException e) {
+			assertTrue(e.getMessage().contains(StatementBound.OPERATION.property), e.getMessage());
+			assertTrue(e.getMessage().contains("750 ms"), e.getMessage());
 		}
 	}
 
@@ -971,6 +1030,55 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * And the storage goes back with the connection where this method is what opened it:
+	 * {@code ImporterImpl.close()} is the only thing that closes a storage an import opened, so a
+	 * failure between the open and the importer that would have held it leaves it open for good.
+	 * The borrow of the connection was already covered that way; the build of the importer was not.
+	 * <p>
+	 * What fails the build here is the write transaction of a storage that is not writeable, that
+	 * being the only failure of those two constructors reachable without instrumenting them - what
+	 * it stands for is any {@code Error} out of either, which is what the {@code finally} is for.
+	 */
+	@Test
+	public void testStartImportClosesTheStorageItOpenedWhenTheImporterCannotBeBuilt() throws Exception {
+		final Connection con = mock(Connection.class);
+		final AtomicInteger opens = new AtomicInteger();
+		final AtomicInteger closes = new AtomicInteger();
+		final JDBCStorage notOpen = new JDBCStorage(mockCfg(JDBCBackendCfg.class), null) {
+			@Override
+			Connection getConnection() {
+				return con;
+			}
+
+			@Override
+			public StorageStatus getStorageStatus() {
+				return StorageStatus.lockedDown(LocalizableMessage.raw("closed")); // so startImport() opens it
+			}
+
+			@Override
+			public void open(AccessMode accessMode) {
+				opens.incrementAndGet(); // and leaves this storage read-only, so that the build below fails
+			}
+
+			@Override
+			public void close() {
+				closes.incrementAndGet();
+			}
+		};
+
+		try {
+			notOpen.startImport();
+			fail("an import that cannot be given an importer must not report one");
+		} catch (ReadOnlyStorageException expected) {
+			// the build failing after this method opened the storage, which is the path under test
+		}
+
+		assertEquals(opens.get(), 1, "the storage was not opened by startImport(), so nothing was owed back");
+		verify(con).close();
+		assertEquals(closes.get(), 1, "the storage this method opened was left open");
+	}
+
+	/**
 	 * A row whose {@code v} is null is a row that exists, and reading it has to fail rather than
 	 * report the key as absent - which is what {@code read()} of the same row does. Reading the
 	 * rows inside the bound had turned the value into a raw {@code byte[]} on the way out of the
@@ -978,6 +1086,7 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 	 */
 	@Test
 	public void testARowWithoutAValueFailsRatherThanReportingTheKeyAsAbsent() throws Exception {
+		final TreeName treeName = new TreeName("dc=example,dc=com", "id2entry");
 		final ResultSet rows = mock(ResultSet.class);
 		when(rows.next()).thenReturn(true);
 		when(rows.getBytes("v")).thenReturn(null); // the schema allows it, however this backend writes
@@ -986,13 +1095,70 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 		final Connection parent = mock(Connection.class);
 		when(parent.prepareStatement(anyString())).thenReturn(statement);
 		final JDBCStorage.CursorImpl cursor = storage.new CursorImpl(true, new CachedConnection("jdbc:mock", parent),
-			new TreeName("dc=example,dc=com", "id2entry"), StatementBound.OPERATION);
+			treeName, StatementBound.OPERATION);
 
 		try {
 			cursor.positionToKey(ByteString.valueOfUtf8("key"));
 			fail("a row whose value is null must not be read as a key that is not there");
-		} catch (NullPointerException expected) {
-			// as read() of the same row fails, rather than answering with a null of its own
+		} catch (StorageRuntimeException expected) {
+			// the failure the production path names, not whatever null happens to reach first: a bare
+			// NullPointerException out of ByteString.wrap is satisfied by any unrelated one later
+			// introduced into positionToKey, and it says nothing about which table holds the row
+			assertTrue(expected.getMessage().contains("no value"), expected.getMessage());
+			assertTrue(expected.getMessage().contains(storage.getTableName(treeName)), expected.getMessage());
+		}
+	}
+
+	/**
+	 * And so does a batch of a cursor, which is the third reader of a value and the one that would
+	 * fail furthest from the row: a batch is buffered whole and unwrapped a row at a time
+	 * afterwards, so left unchecked it fails from {@code advanceFromBuffer()} - outside the bound
+	 * and outside the {@code catch} of the batch that read it.
+	 */
+	@Test
+	public void testABatchWithARowWithoutAValueFailsTheSameWay() throws Exception {
+		final TreeName treeName = new TreeName("dc=example,dc=com", "id2entry");
+		final ResultSet rows = mock(ResultSet.class);
+		when(rows.next()).thenReturn(true, false);
+		when(rows.getBytes(1)).thenReturn(ByteString.valueOfUtf8("key").toByteArray());
+		when(rows.getBytes(2)).thenReturn(null);
+		final PreparedStatement statement = mock(PreparedStatement.class);
+		when(statement.executeQuery()).thenReturn(rows);
+		final Connection parent = mock(Connection.class);
+		when(parent.prepareStatement(anyString())).thenReturn(statement);
+		final JDBCStorage.CursorImpl cursor = storage.new CursorImpl(true, new CachedConnection("jdbc:mock", parent),
+			treeName, StatementBound.OPERATION);
+
+		try {
+			cursor.next();
+			fail("a batch holding a row whose value is null must not hand that row out");
+		} catch (StorageRuntimeException expected) {
+			assertTrue(expected.getMessage().contains("no value"), expected.getMessage());
+			assertTrue(expected.getMessage().contains(storage.getTableName(treeName)), expected.getMessage());
+		}
+	}
+
+	/**
+	 * And a read of the same row fails the same way, which is the whole of what {@code null} means
+	 * here: the two answer with it for one reason only, and a row that exists is not that reason.
+	 */
+	@Test
+	public void testAReadOfARowWithoutAValueFailsTheSameWay() throws Exception {
+		final TreeName treeName = new TreeName("dc=example,dc=com", "id2entry");
+		final ResultSet rows = mock(ResultSet.class);
+		when(rows.next()).thenReturn(true);
+		when(rows.getBytes("v")).thenReturn(null);
+		final PreparedStatement statement = mock(PreparedStatement.class);
+		when(statement.executeQuery()).thenReturn(rows);
+		final Connection parent = mock(Connection.class);
+		when(parent.prepareStatement(anyString())).thenReturn(statement);
+
+		try {
+			storage.new ReadableTransactionImpl(new CachedConnection("jdbc:mock", parent))
+				.read(treeName, ByteString.valueOfUtf8("key"));
+			fail("a row whose value is null must not be read as a key that is not there");
+		} catch (StorageRuntimeException expected) {
+			assertTrue(expected.getMessage().contains("no value"), expected.getMessage());
 		}
 	}
 

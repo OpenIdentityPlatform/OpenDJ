@@ -174,7 +174,26 @@ final class ID2ChildrenCount extends AbstractTree
    */
   long getTotalCount(ReadableTransaction txn)
   {
-    return getCount(txn, TOTAL_COUNT_ENTRY_ID);
+    return getTotalCount(txn, false);
+  }
+
+  /**
+   * The same total, told which kind of work it is part of. It is a read of this tree like any
+   * other - a cursor positioned on one key, which on a storage engine that walks a table rather
+   * than an index is a scan of it - so what it may take follows who is waiting on it:
+   * {@code verify-index} reads it once to size the progress report of a walk of the whole backend,
+   * with nobody waiting, while {@code cn=monitor} and the searches of {@code GroupManager} and
+   * {@code SubentryManager} read the same total for a client.
+   *
+   * @param txn storage transaction
+   * @param partOfAWholeTreeWalk whether this read belongs to a walk of a whole tree rather than to
+   *          a client operation
+   * @return Sum of all the counter contained in this tree
+   * @see ReadableTransaction#openBulkCursor(TreeName)
+   */
+  long getTotalCount(ReadableTransaction txn, boolean partOfAWholeTreeWalk)
+  {
+    return getCount(txn, TOTAL_COUNT_ENTRY_ID, partOfAWholeTreeWalk);
   }
 
   /**

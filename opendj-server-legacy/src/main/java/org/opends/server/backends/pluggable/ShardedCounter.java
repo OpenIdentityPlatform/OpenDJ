@@ -126,11 +126,18 @@ final class ShardedCounter extends AbstractTree
   }
 
   /**
-   * The same read, told which kind of work it is part of. A client operation reads a counter of
-   * its own - {@code numSubordinates} of a search, a delete, a modify DN - and takes the bound of
-   * one, while {@code verify-index} reads one per DN of the whole tree it is walking, with nobody
-   * waiting on it: bounding those as client operations is what #877 exists to stop, and on the
-   * JDBC backend it aborted a verify of a backend large enough.
+   * The same read, told which kind of work it is part of. A client operation reads a counter of its
+   * own and takes the bound of one - {@code numSubordinates} of a search
+   * ({@code EntryContainer.getNumberOfChildren}), the entry count of a VLV index a search is paging
+   * through ({@code VLVIndex.getEntryCount}) - while {@code verify-index} reads one per DN of the
+   * tree it is walking, with nobody waiting on it: bounding those as client operations is what #877
+   * exists to stop, and on the JDBC backend it aborted a verify of a backend large enough.
+   * <p>
+   * The third caller is {@code ID2ChildrenCount.getTotalCount}, which is read both ways and is told
+   * which it is by its own caller: a verify sizes its progress report with it, {@code cn=monitor}
+   * and the searches of {@code GroupManager} and {@code SubentryManager} read it for a client. A
+   * delete and a modify DN reach neither form - they go through {@link #removeCount}, which is a
+   * client operation by construction.
    *
    * @param txn storage transaction
    * @param key the counter to read
