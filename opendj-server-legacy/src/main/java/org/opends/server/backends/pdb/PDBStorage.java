@@ -468,6 +468,12 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
 
     @Override
+    public boolean treeExists(TreeName treeName)
+    {
+      return PDBStorage.this.treeExists(treeName);
+    }
+
+    @Override
     public Cursor<ByteString, ByteString> openCursor(final TreeName treeName)
     {
       try
@@ -691,6 +697,12 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
 
     @Override
+    public boolean treeExists(TreeName treeName)
+    {
+      return delegate.treeExists(treeName);
+    }
+
+    @Override
     public void openTree(TreeName treeName, boolean createOnDemand)
     {
       if (createOnDemand)
@@ -820,6 +832,13 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
 
     @Override
+    public boolean treeExists(TreeName treeName)
+    {
+      // No volume was ever opened, so nothing is stored.
+      return false;
+    }
+
+    @Override
     public <T> T read(ReadOperation<T> operation) throws Exception
     {
       return operation.run(this);
@@ -829,6 +848,27 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     public void write(WriteOperation operation) throws Exception
     {
       operation.run(this);
+    }
+  }
+
+  /**
+   * Tells whether the volume holds a tree of that name. Deliberately not implemented by asking for
+   * an {@link Exchange}: {@code getExchange(volume, name, true)} would create the tree being tested,
+   * and with {@code false} Persistit reports its absence by throwing.
+   */
+  boolean treeExists(final TreeName treeName)
+  {
+    if (volume == null)
+    {
+      return false;
+    }
+    try
+    {
+      return volume.getTree(treeName.toString(), false) != null;
+    }
+    catch (PersistitException e)
+    {
+      throw new StorageRuntimeException(e);
     }
   }
 
