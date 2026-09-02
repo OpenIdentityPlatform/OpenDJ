@@ -41,6 +41,8 @@ import java.sql.Statement;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import static org.forgerock.i18n.LocalizableMessage.raw;
@@ -444,6 +446,37 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   }
 
   /**
+   * The first read-write open of a backend upgraded from a version keeping no catalog creates the catalog and
+   * writes one row per tree, and creates no table of its own: every tree it opens is already there. None of that
+   * may commit anything of the caller's - {@code RootContainer.open()} opens every tree of every base DN in a
+   * single write, and a commit anywhere inside it takes the whole open out of the replay for the life of that
+   * attempt, so a deadlock at the twentieth tree would fail the backend start-up that master replayed. The rows
+   * still have to be committed, since nothing else of this open would carry them: a connection of the catalog's
+   * own is what makes the two compatible.
+   */
+  @Test
+  public void testFillingTheCatalogOfAnUpgradedBackendLeavesTheAttemptReplayable() throws Exception
+  {
+    // every table of this backend is there except the one the catalog is kept in, which is the shape of an
+    // installation whose tables predate the catalog
+    final AtomicReference<String> catalogTable = new AtomicReference<>();
+    final JDBCStorage storage = storageOverTablesThatAre(tableName -> !tableName.equals(catalogTable.get()));
+    catalogTable.set(storage.getTableName(storage.getCatalogTree()));
+    final AtomicInteger attempts = new AtomicInteger();
+
+    storage.write(txn -> {
+      txn.openTree(TREE, true);
+      if (attempts.incrementAndGet() == 1)
+      {
+        throw new StorageRuntimeException(sql(0, "40001"));
+      }
+    });
+
+    assertEquals(attempts.get(), 2, "the write that created and filled the catalog was not replayed");
+    verify(statements, never()).executeUpdate();
+  }
+
+  /**
    * A tree that had to be created did commit - the create table commits, and mysql and oracle commit before a DDL
    * statement of their own accord - so the attempt is out of the replay whatever the failure says: a
    * {@link WriteOperation} is only idempotent in the database, and {@code RootContainer.open()} replayed after the
@@ -745,24 +778,38 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   }
 
   /**
-   * A storage whose pool hands out one connection of this test, over a catalog that either holds the table of
-   * {@link #TREE} or does not. The connection is a mock of no recognized driver, which is how the engines that
-   * guard their create index - and mssql, which has none - reach {@code openTree}.
+   * A storage whose pool hands out one connection of this test, over a database that either holds the tables
+   * this backend asks about or holds none of them - the table of {@link #TREE} and the table of the tree
+   * catalog alike. The connection is a mock of no recognized driver, which is how the engines that guard their
+   * create index - and mssql, which has none - reach {@code openTree}.
    */
   private JDBCStorage storageOverACatalogHolding(boolean theTable) throws Exception
   {
+    return storageOverTablesThatAre(tableName -> theTable);
+  }
+
+  /**
+   * The same, over a database holding exactly the tables the given rule accepts, and with a second connection
+   * behind the pooled one: the tree catalog is written on a connection of its own, so that its rows commit
+   * nothing of the caller's - which is the very thing {@code statements} is asserted on below.
+   */
+  private JDBCStorage storageOverTablesThatAre(Predicate<String> present) throws Exception
+  {
     final Connection con = mock(Connection.class);
-    final JDBCStorage storage = storageOver(con);
+    final JDBCStorage storage = storageOver(con, catalogConnection());
 
     statements = mock(PreparedStatement.class);
-    final String tableName = storage.getTableName(TREE);
     final DatabaseMetaData metaData = mock(DatabaseMetaData.class);
     // a result set of its own per call: the catalog is asked once per attempt, and a replayed attempt
     // reading a result set the previous one had already walked to its end would find no table there
     when(metaData.getTables(any(), any(), any(), any())).thenAnswer(invocation -> {
+      // the name asked about and not the one table of a fixture: openTree() asks about the table of the tree
+      // and about the table of the catalog, and answering the second with the name of the first would have
+      // the catalog created over again on every attempt
+      final String asked = (String) invocation.getArguments()[2];
       final ResultSet tables = mock(ResultSet.class);
-      when(tables.next()).thenReturn(theTable, false);
-      when(tables.getString("TABLE_NAME")).thenReturn(tableName);
+      when(tables.next()).thenReturn(present.test(asked), false);
+      when(tables.getString("TABLE_NAME")).thenReturn(asked);
       return tables;
     });
 
@@ -772,9 +819,36 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     return storage;
   }
 
+  /** A connection of no rows at all, for a query this fixture has nothing to answer with. */
+  private static ResultSet noRows() throws SQLException
+  {
+    final ResultSet rs = mock(ResultSet.class);
+    when(rs.next()).thenReturn(false);
+    return rs;
+  }
+
   /**
-   * A storage whose pool hands out one connection of the given engine, over a catalog holding the table of
-   * {@link #TREE} and either holding its {@code k_} index or not. The index guard and the statement behind it
+   * The connection the tree catalog of a storage of this test is written on: it opens one straight through the
+   * driver, for the reason a stamp opens one of its own - the caller of openTree() is holding a pooled
+   * connection already.
+   */
+  private static Connection catalogConnection() throws Exception
+  {
+    final Connection con = mock(Connection.class);
+    final PreparedStatement onIt = mock(PreparedStatement.class);
+    final ResultSet empty = noRows(); // the read of what the catalog records: nothing was ever enrolled
+    when(onIt.executeQuery()).thenReturn(empty);
+    when(con.prepareStatement(anyString())).thenReturn(onIt);
+    // the stamp of a tree name opens a connection of its own too, and a fixture that let it have this one
+    // would have it issue the session statement of its dialect here
+    when(con.createStatement()).thenThrow(new SQLException("no session statement in this test", "42000"));
+    return con;
+  }
+
+  /**
+   * A storage whose pool hands out one connection of the given engine, over a database holding every table
+   * this backend asks about - that of {@link #TREE} and that of its tree catalog - and either holding the
+   * {@code k_} index of the first or not. The index guard and the statement behind it
    * are the branches {@code openTree()} takes per engine, and a mock of plain {@link Connection} reaches none
    * of them - so the name the mock ends up with is asserted here rather than assumed.
    */
@@ -787,11 +861,15 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
         "a mock of " + engine.getSimpleName() + " reaches no " + engineName + " branch: "
             + JDBCStorage.driverNameOf(con));
     engineConnection = con;
-    // the connections behind it answer the connects the pool does not make: the stamp of a tree name opens one
-    // of its own, straight through the driver, since the caller of openTree() is holding a pooled connection
-    final Connection[] answers = new Connection[behind.length + 1];
+    // the connections behind it answer the connects the pool does not make: the tree catalog is read and
+    // written on one of its own, straight through the driver, since the caller of openTree() is holding a
+    // pooled connection already - and the stamp of a tree name opens one for the same reason. The catalog
+    // comes first because openTree() opens the catalog before anything else and stamping its table is the
+    // last thing that does, so a test naming a connection of its own names the one behind it
+    final Connection[] answers = new Connection[behind.length + 2];
     answers[0] = con;
-    System.arraycopy(behind, 0, answers, 1, behind.length);
+    answers[1] = catalogConnection();
+    System.arraycopy(behind, 0, answers, 2, behind.length);
     final JDBCStorage storage = storageOver(answers);
 
     statements = mock(PreparedStatement.class);
@@ -802,7 +880,8 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     when(metaData.getTables(any(), any(), any(), any())).thenAnswer(invocation -> {
       final ResultSet tables = mock(ResultSet.class);
       when(tables.next()).thenReturn(true, false);
-      when(tables.getString("TABLE_NAME")).thenReturn(tableName);
+      // the name asked about: openTree() asks about the table of the tree and about the table of the catalog
+      when(tables.getString("TABLE_NAME")).thenReturn((String) invocation.getArguments()[2]);
       return tables;
     });
     when(metaData.getIndexInfo(any(), any(), any(), anyBoolean(), anyBoolean())).thenAnswer(invocation -> {
@@ -829,7 +908,11 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   private JDBCStorage storageOver(Connection... connections) throws Exception
   {
     final JDBCBackendCfg cfg = mock(JDBCBackendCfg.class);
-    when(cfg.getDBDirectory()).thenReturn(StubDriver.PREFIX + pools.incrementAndGet());
+    final int pool = pools.incrementAndGet();
+    when(cfg.getDBDirectory()).thenReturn(StubDriver.PREFIX + pool);
+    // the tree catalog of a backend is named after its id: a mock answering null for it would name every
+    // storage of this class the same catalog, and the tables of these fixtures are named after that name
+    when(cfg.getBackendId()).thenReturn("retry" + pool);
     final JDBCStorage storage = new JDBCStorage(cfg, null);
     storage.accessMode = AccessMode.READ_WRITE;
     stub.answerWith(connections);
