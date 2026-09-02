@@ -60,6 +60,7 @@ import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.OperationContext;
+import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attribute;
@@ -1787,6 +1788,10 @@ public class UpdateOperationTest extends ReplicationTestCase
        * solves, so it must not be treated as a failure of the server before conflict
        * resolution had its chance - and it is what the storage reports here.
        */
+      // Put back whatever was configured, not the default: a suite which runs with
+      // another server-error-result-code must not be rewritten by this test.
+      final int previousServerErrorResultCode =
+          getServerContext().getCoreConfigManager().getServerErrorResultCode().intValue();
       setServerErrorResultCode(ResultCode.UNWILLING_TO_PERFORM.intValue());
       ShortCircuitPlugin.resetShortCircuitCount(OperationType.DELETE, "PreParse");
       /*
@@ -1814,13 +1819,148 @@ public class UpdateOperationTest extends ReplicationTestCase
       finally
       {
         ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
-        setServerErrorResultCode(ResultCode.OTHER.intValue());
+        setServerErrorResultCode(previousServerErrorResultCode);
       }
     }
     finally
     {
       broker.stop();
     }
+  }
+
+  /**
+   * Test case for [Issue 889]: a change whose message can not be turned into an operation
+   * must not hold this replica's ServerState back for good.
+   * <p>
+   * There is no operation to retry and no delivery which would decode any better, so the
+   * change has to be skipped rather than left listed as the barrier: a change which stays
+   * uncommitted holds back the ServerState - and every change which follows it, from
+   * every master - and the delivery which would replace it is turned down while a replay
+   * thread still owns it, so nothing would ever move it again.
+   */
+  @Test
+  public void aChangeWhichCanNotBeDecodedIsNotLeftHoldingTheServerStateBack() throws Exception
+  {
+    testSetUp("aChangeWhichCanNotBeDecodedIsNotLeftHoldingTheServerStateBack");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aChangeWhichCanNotBeDecodedIsNotLeftHoldingTheServerStateBack"));
+
+    final int serverId = 17;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    try
+    {
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+
+      Entry tmp = TestCaseUtils.addEntry(
+          "dn: uid=user.889.6," + baseDN,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "uid: user.889.6",
+          "cn: Aaccf Amar",
+          "sn: Amar");
+      String uuid = getEntry(tmp.getName(), 1, true).parseAttribute("entryuuid").asString();
+
+      final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+      final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+      domain.resetUnreplayedChangeAlertThrottle();
+      final int initialAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE);
+
+      final CSN csn = gen.newCSN();
+      broker.publish(undecodableModifyMsg(csn, tmp.getName(), uuid));
+
+      TestTimer timer = new TestTimer.Builder()
+        .maxSleep(60, SECONDS)
+        .sleepTimes(200, MILLISECONDS)
+        .toTimer();
+      timer.repeatUntilSuccess(new CallableVoid()
+      {
+        @Override
+        public void call() throws Exception
+        {
+          assertTrue(domain.getServerState().cover(csn),
+              "a change which can never be decoded must not hold the ServerState back");
+        }
+      });
+      assertMonitorAttrValueEventually("replayed-updates-failed", initialFailures + 1,
+          "a change which could not be decoded must be counted as failed");
+      assertMonitorAttrValueStays("replayed-updates-failed", initialFailures + 1,
+          "a change which could not be decoded must be counted once");
+      Assertions.assertThat(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE))
+          .as("the administrator must be told that this replica now diverges")
+          .isGreaterThan(initialAlerts);
+    }
+    finally
+    {
+      broker.stop();
+    }
+  }
+
+  /**
+   * Builds a ModifyMsg which travels the protocol intact and can not be turned into an
+   * operation.
+   * <p>
+   * The encoded modifications are carried as an opaque byte array and are only read by
+   * {@code createOperation()}, so a message whose modifications are corrupt is decoded,
+   * listed as pending and handed to a replay thread before it fails - which is the point
+   * of this test.
+   *
+   * @param csn the CSN to give the change
+   * @param dn the entry the change is on
+   * @param entryUUID the UUID of that entry
+   * @return a message whose replay can not build an operation
+   * @throws Exception if the message could not be built
+   */
+  private ModifyMsg undecodableModifyMsg(CSN csn, DN dn, String entryUUID) throws Exception
+  {
+    final List<Modification> mods = generatemods("description", "the decoding must fail here");
+    final byte[] bytes =
+        new ModifyMsg(csn, dn, mods, entryUUID).getBytes(ProtocolVersion.getCurrentVersion());
+
+    /*
+     * Break the length of the attribute description inside the encoded modifications, so
+     * that the ASN.1 reader runs past the end of them. The attribute name only appears
+     * there, and the byte before it is the length it is read with.
+     */
+    final int attributeName = indexOf(bytes, "description".getBytes("UTF-8"));
+    assertTrue(attributeName > 0, "the encoded modifications must carry the attribute name");
+    bytes[attributeName - 1] = (byte) 0x7F;
+
+    final ModifyMsg corrupted =
+        (ModifyMsg) ReplicationMsg.generateMsg(bytes, ProtocolVersion.getCurrentVersion());
+    try
+    {
+      corrupted.createOperation(getRootConnection());
+      fail("this test needs a message which can not be turned into an operation");
+    }
+    catch (Exception expected)
+    {
+      // Which is what the replay of this message hits.
+    }
+    return corrupted;
+  }
+
+  /**
+   * Returns the offset of the first occurrence of {@code needle} in {@code haystack}, or
+   * -1 when it does not occur.
+   */
+  private static int indexOf(byte[] haystack, byte[] needle)
+  {
+    for (int i = 0; i <= haystack.length - needle.length; i++)
+    {
+      int j = 0;
+      while (j < needle.length && haystack[i + j] == needle[j])
+      {
+        j++;
+      }
+      if (j == needle.length)
+      {
+        return i;
+      }
+    }
+    return -1;
   }
 
   /**

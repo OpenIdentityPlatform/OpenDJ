@@ -82,6 +82,19 @@ final class RemotePendingChanges
   private final ServerState state;
 
   /**
+   * How many of the changes listed here have a replay failure recorded against them.
+   * <p>
+   * A change is counted from its first failed replay until it leaves this map, and it is
+   * what tells a change which can not be applied from a backend which is serving again:
+   * an outage fails everything in flight, while a change which can never be applied here
+   * fails alone, among changes which replay perfectly well. The session restart backoff
+   * reads it, so that the successful replays which surround a failing change do not keep
+   * resetting the wait this domain has reached on it (issue #889).
+   */
+  @GuardedBy("pendingChangesLock")
+  private int failingChanges;
+
+  /**
    * Creates a new RemotePendingChanges using the provided ServerState.
    *
    * @param state   The ServerState that will be updated when LDAPUpdateMsg
@@ -226,6 +239,11 @@ final class RemotePendingChanges
         {
           state.update(pendingChange.getCSN());
         }
+        if (pendingChange.getReplayFailures() > 0)
+        {
+          // The change is leaving this map, so it is not one of the failing ones anymore.
+          failingChanges--;
+        }
         it.remove();
       }
     }
@@ -335,12 +353,42 @@ final class RemotePendingChanges
       {
         return null;
       }
+      if (change.getReplayFailures() == 0)
+      {
+        // Its first failure: this change joins the ones which are failing right now.
+        failingChanges++;
+      }
       change.recordReplayFailure(nowMs);
       return new ReplayFailure(change.getReplayFailures(), change.getReplayFailingForMs(nowMs));
     }
     finally
     {
       pendingChangesWriteLock.unlock();
+    }
+  }
+
+  /**
+   * Returns whether the replay of any change listed here is failing right now.
+   * <p>
+   * A change is failing from its first failed replay until it leaves this map, whether
+   * it leaves it applied or given up on. The session restart backoff reads this: a
+   * change which was replayed only says that this backend is serving again when it is
+   * the last one which was failing, and the successful replays which surround a change
+   * this replica can not apply must not keep resetting the wait it has reached on it.
+   *
+   * @return {@code true} while at least one listed change has a failed replay recorded
+   *         against it
+   */
+  boolean hasFailingChanges()
+  {
+    pendingChangesReadLock.lock();
+    try
+    {
+      return failingChanges > 0;
+    }
+    finally
+    {
+      pendingChangesReadLock.unlock();
     }
   }
 
@@ -362,6 +410,7 @@ final class RemotePendingChanges
       pendingChanges.clear();
       dependentChanges.clear();
       activeAndDependentChanges.clear();
+      failingChanges = 0;
     }
     finally
     {

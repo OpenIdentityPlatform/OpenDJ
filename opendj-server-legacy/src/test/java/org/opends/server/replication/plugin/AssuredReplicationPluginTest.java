@@ -1211,6 +1211,17 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
        */
       ShortCircuitPlugin.registerShortCircuit(
           OperationType.ADD, "PreParse", ResultCode.OTHER.intValue());
+      /*
+       * A change which keeps failing is asked for again over a restarted session until
+       * this replica gives up on it. That is right, and it is not what this test is
+       * about: the FakeReplicationServer is not built to be reconnected to, and the
+       * restarts would run on while the assertions and the teardown below take their
+       * course. Give up almost at once, so the domain settles instead.
+       */
+      final LDAPReplicationDomain domain =
+          MultimasterReplication.findDomain(DN.valueOf(SAFE_READ_DN), null);
+      final long giveUpDelay = domain.getReplayGiveUpDelay();
+      domain.setReplayGiveUpDelay(0);
       try
       {
         AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
@@ -1230,6 +1241,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       }
       finally
       {
+        domain.setReplayGiveUpDelay(giveUpDelay);
         ShortCircuitPlugin.deregisterShortCircuit(OperationType.ADD, "PreParse");
       }
     } finally

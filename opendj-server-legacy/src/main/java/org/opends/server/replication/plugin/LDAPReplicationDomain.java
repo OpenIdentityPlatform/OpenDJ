@@ -379,6 +379,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * thread which restarts it after a failed replay must not race the domain being
    * disabled for an import or a restore, or it would bring a broker and a listener
    * thread back up on a domain which is supposed to be down.
+   * <p>
+   * Holding it costs something, and knowingly: {@code enableService()} connects to the
+   * replication servers under this lock, so a shutdown, an import or a configuration
+   * change which arrives while a replay thread is bringing the session back waits for
+   * that connect - up to the configured connection timeout when the replication servers
+   * are unreachable, which is the same outage that failed the replay. Every one of those
+   * stops the session as its first act, so what they wait for is a session which is about
+   * to be stopped again. The wait between the stop and the start is deliberately left
+   * outside the lock, so the waiting is bounded by a connect rather than by the backoff.
    */
   private final Object serviceStateLock = new Object();
   /**
@@ -2123,9 +2132,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       if (op.isSynchronizationOperation())
       { // Replaying a sync operation
         numReplayedPostOpCalled.incrementAndGet();
-        // The change made it, so the session is not being restarted in a row anymore.
-        // The failures it went through go away with it when it commits.
-        consecutiveSessionRestarts.set(0);
         try
         {
           remotePendingChanges.commit(curCSN);
@@ -2134,6 +2140,19 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         {
           logger.error(ERR_OPERATION_NOT_FOUND_IN_PENDING, op, curCSN);
           return;
+        }
+        if (!remotePendingChanges.hasFailingChanges())
+        {
+          /*
+           * A change made it and nothing is failing anymore, so the backend is serving
+           * again and the session is not being restarted in a row: the change which fails
+           * next starts the backoff over. While something is still failing, this replay
+           * says nothing of the kind - a change which can never be applied here fails
+           * alone, among changes which replay perfectly well, and letting those reset the
+           * wait would have this domain tear its session down every second for as long as
+           * that one change takes to be given up on.
+           */
+          consecutiveSessionRestarts.set(0);
         }
       }
       else
@@ -2416,9 +2435,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * This delivery is not replayed, but it was taken off the replay queue all the same:
      * count it as processed, or replication-processed-updates would drift away from what
      * the session delivered - that attribute counts the deliveries this replica took off
-     * the session, not the ones which reached the replay. No ack is owed for it: it came
-     * over a session which has been torn down since, and the delivery which took over
-     * from it carries the ack.
+     * the session, not the ones which reached the replay. No ack is owed for it either
+     * way, though not always for the same reason. When the change was taken over, this
+     * copy came over a session which has been torn down since and the delivery which took
+     * over from it carries the ack. When a disabled domain forgot the change, no delivery
+     * takes over and none is acked: the session that one came over is gone as well, so an
+     * ack would reach nobody, and a server waiting on an assured write times it out the
+     * way it does for every change in flight when a domain is taken out of the topology
+     * for an import or a restore.
      */
     incProcessedUpdates();
     return false;
@@ -2454,19 +2478,28 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         Operation nextOp = op = msg.createOperation(conn);
         dependency = remotePendingChanges.checkDependencies(op, msg);
         boolean replayDone = false;
+        boolean firstAttempt = true;
         int retryCount = IN_PLACE_REPLAY_ATTEMPTS;
         while (!dependency && !replayDone && retryCount-- > 0)
         {
-          if (replayThreadShutdown.get() || shutdown.get())
+          if (replayThreadShutdown.get() || shutdown.get() || disabled)
           {
             /*
-             * Either this replay thread or this domain is going away, let's leave. The
-             * change was never applied, so the ack says so - an assured write must not be
-             * told that a change this replica is asking for again is in the data here - and
-             * the change is given back to the replication server rather than left listed as
-             * being replayed by a thread which is gone. Handing it back stops and starts the
+             * Either this replay thread or this domain is going away, or the domain is
+             * being imported into or restored, so let's leave. The change was never
+             * applied, so the ack says so - an assured write must not be told that a
+             * change this replica is asking for again is in the data here - and the change
+             * is given back to the replication server rather than left listed as being
+             * replayed by a thread which is gone. Handing it back stops and starts the
              * session, so it waits until the ack has been published on the session this
              * delivery came over.
+             *
+             * A disabled domain saved its ServerState, cleared it from memory and forgot
+             * its pending changes: a thread which kept applying changes into the backend
+             * being imported into would have every one of its commits fail on a map which
+             * is empty, one ERR_OPERATION_NOT_FOUND_IN_PENDING per change in flight, and
+             * would be writing into a backend the import owns. abandonReplay() knows there
+             * is nothing left to hand back in that case.
              */
             replayErrorMsg =
                 NOTE_REPLAY_ABANDONED_CHANGE.get(msg.getCSN(), getBaseDN()).toString();
@@ -2474,6 +2507,21 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             replayDone = true;
             break;
           }
+          if (!firstAttempt)
+          {
+            /*
+             * Every attempt runs an operation of its own. An Operation which already ran
+             * carries the request controls and the access log items of that run, so
+             * re-running the same one stacks one ManageDsaIT control - and one access log
+             * record - per attempt. It also picks up the new state of the UpdateMsg when
+             * conflict resolution rewrote it.
+             *  Note: When msg is a DeleteMsg, the DeleteOperation is properly created
+             *  with subtreeDelete request control when needed.
+             */
+            nextOp = msg.createOperation(conn);
+          }
+          firstAttempt = false;
+
           // Try replay the operation
           op = nextOp;
           op.setInternalOperation(true);
@@ -2608,12 +2656,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
                 default:
                   /*
-                   * Create a new operation reflecting the new state of the UpdateMsg after conflict resolution
-                   * modified it and try replaying it again. Dependencies might have been replayed by now.
-                   *  Note: When msg is a DeleteMsg, the DeleteOperation is properly
-                   *  created with subtreeDelete request control when needed.
+                   * Try replaying the change again: the next attempt creates an operation
+                   * reflecting the new state of the UpdateMsg after conflict resolution
+                   * modified it, and dependencies might have been replayed by now.
                    */
-                  nextOp = msg.createOperation(conn);
                   break;
                 }
               }
@@ -2730,11 +2776,28 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     } while (msg != null);
   }
 
+  /**
+   * Reports a message this replica can not turn into an operation, and gives up on the
+   * change it carries.
+   * <p>
+   * There is no operation to retry and no delivery which would decode any better, so the
+   * change is skipped rather than left out of the ServerState: a change which stays
+   * listed and uncommitted is the barrier which holds this domain's ServerState - and
+   * every change which follows it, from every master - back for good, since nothing asks
+   * for it again and the delivery which would is turned down while a replay thread still
+   * owns it. Skipping it says out loud what a wedged domain would only have implied: this
+   * replica has diverged and must be reinitialized.
+   *
+   * @param msg the message which could not be decoded
+   * @param e the failure to decode it
+   * @return the error to report in the ack of this delivery
+   */
   private String logDecodingOperationError(LDAPUpdateMsg msg, Exception e)
   {
     LocalizableMessage message =
         ERR_EXCEPTION_DECODING_OPERATION.get(msg + " " + stackTraceToSingleLineString(e));
     logger.error(message);
+    skipUnreplayableChange(msg.getCSN(), message);
     return message.toString();
   }
 
@@ -2833,8 +2896,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private void recordChangeResolved(CSN csn)
   {
-    consecutiveSessionRestarts.set(0);
     updateError(csn);
+    if (!remotePendingChanges.hasFailingChanges())
+    {
+      // The change is in the data and nothing is failing anymore: the change which fails
+      // next starts the backoff over rather than inherit the wait this one reached.
+      consecutiveSessionRestarts.set(0);
+    }
   }
 
   /**

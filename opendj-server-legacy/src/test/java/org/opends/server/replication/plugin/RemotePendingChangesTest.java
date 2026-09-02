@@ -387,6 +387,73 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
         "the failures of a change must not be dropped to make room for another change");
   }
 
+  /**
+   * The changes which are replayed around a change which keeps failing must not report
+   * that nothing is failing anymore: a change which can never be applied here fails
+   * alone, among changes which replay perfectly well, and the session restart backoff
+   * reads this to tell that apart from a backend which is serving again (issue #889).
+   */
+  @Test
+  public void aChangeKeepsFailingWhileTheChangesAroundItAreReplayed() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSNGenerator generator = new CSNGenerator(SERVER_ID, 0);
+    final CSN failing = generator.newCSN();
+    final CSN replayed = generator.newCSN();
+
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(failing, "uuid-1")));
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(replayed, "uuid-2")));
+    assertFalse(pendingChanges.hasFailingChanges(),
+        "no change has failed yet");
+
+    pendingChanges.recordReplayFailure(failing, 1000);
+    assertTrue(pendingChanges.hasFailingChanges(),
+        "the change whose replay failed must be reported as failing");
+
+    // The change which follows it is applied while the older one is still failing. It
+    // stays listed, since the ServerState can not move past the change which failed.
+    pendingChanges.commit(replayed);
+    assertTrue(pendingChanges.hasFailingChanges(),
+        "a change which was replayed must not report that the one which is failing stopped");
+
+    // Only the failing change being applied says that this backend is serving again.
+    pendingChanges.commit(failing);
+    assertFalse(pendingChanges.hasFailingChanges(),
+        "the change which was failing was applied, so nothing is failing anymore");
+  }
+
+  /**
+   * The failures a repeatedly failing change accumulates are counted once, and they go
+   * away with the change however it leaves - applied, or forgotten by a disabled domain.
+   */
+  @Test
+  public void failingChangesAreCountedOnceAndForgottenWithTheChange() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSNGenerator generator = new CSNGenerator(SERVER_ID, 0);
+    final CSN csn = generator.newCSN();
+
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")));
+    pendingChanges.recordReplayFailure(csn, 1000);
+    pendingChanges.recordReplayFailure(csn, 2000);
+    assertTrue(pendingChanges.hasFailingChanges());
+
+    // Failing twice must not have this change counted twice, or it would still be
+    // reported as failing once it is gone.
+    pendingChanges.commit(csn);
+    assertFalse(pendingChanges.hasFailingChanges(),
+        "a change which failed several times must stop being reported as failing once");
+
+    final CSN forgotten = generator.newCSN();
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(forgotten, "uuid-2")));
+    pendingChanges.recordReplayFailure(forgotten, 3000);
+    assertTrue(pendingChanges.hasFailingChanges());
+
+    pendingChanges.clear();
+    assertFalse(pendingChanges.hasFailingChanges(),
+        "a disabled domain forgot the change, so nothing is failing here anymore");
+  }
+
   private DeleteMsg deleteMsg(CSN csn, String entryUUID) throws Exception
   {
     return new DeleteMsg(DN.valueOf("cn=" + entryUUID + ",dc=example,dc=com"), csn, entryUUID);
