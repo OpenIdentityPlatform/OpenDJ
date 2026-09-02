@@ -1395,7 +1395,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * Whether the connection answered both questions. One it would not answer leaves the lookup as
 		 * wide as it ever was - fail-open, which is the safe direction for the schema and the weak one
 		 * for the database - so the caller asks again rather than latching that answer for the life of a
-		 * transaction; see {@link WriteableTransactionTransactionImpl#takeTableScope()}.
+		 * transaction; see {@link ReadableTransactionImpl#takeTableScope()}.
 		 */
 		final boolean answered;
 
