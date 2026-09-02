@@ -742,25 +742,60 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		unstampableTrees.clear();
 	}
 
+	// The trees this storage has taken an interest in, and the tables they map to. listTrees() -
+	// and through it removeStorageFiles() - reads this, so a tree only belongs here once this
+	// backend uses it: see toTableName() below for the trees that are merely asked about.
 	final LoadingCache<TreeName,String> tree2table = Caffeine.newBuilder()
-		.build(treeName -> {
-			try {
-				final MessageDigest md = MessageDigest.getInstance("SHA-224");
-				final byte[] messageDigest = md.digest(treeName.toString().getBytes());
-				final StringBuilder hashtext = new StringBuilder(56);
-				for (byte b : messageDigest) {
-					String hex = Integer.toHexString(0xff & b);
-					if (hex.length() == 1) hashtext.append('0');
-					hashtext.append(hex);
-				}
-				return "opendj_" + hashtext;
-			} catch (NoSuchAlgorithmException e) {
-				throw new RuntimeException(e);
+		.build(JDBCStorage::toTableName);
+
+	/**
+	 * The table a tree name maps to. A pure function of the name, so that a tree can be read
+	 * without being entered into tree2table: the compressed schema reads the tree its definitions
+	 * used to be shared under (#873), a tree this backend does not own, and removeStorageFiles()
+	 * drops every table tree2table names.
+	 * <p>
+	 * Which of the two a statement takes therefore says who owns the tree it names: a path that
+	 * creates or writes one - openTree(), clearTree(), deleteTree(), put(), update(), delete() -
+	 * takes the enrolling {@link #getTableName(TreeName)}, and a read-only path - read(),
+	 * getRecordCount(), isExistsTable() and the cursor - takes {@link #readTableName(TreeName)},
+	 * which computes this only for a tree that is not enrolled already. Every tree this backend
+	 * owns passes through openTree(name, true) as it is opened, so listTrees() still names the
+	 * complete owned set.
+	 */
+	static String toTableName(TreeName treeName) {
+		try {
+			final MessageDigest md = MessageDigest.getInstance("SHA-224");
+			final byte[] messageDigest = md.digest(treeName.toString().getBytes());
+			final StringBuilder hashtext = new StringBuilder(56);
+			for (byte b : messageDigest) {
+				String hex = Integer.toHexString(0xff & b);
+				if (hex.length() == 1) hashtext.append('0');
+				hashtext.append(hex);
 			}
-		});
+			return "opendj_" + hashtext;
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	String getTableName(TreeName treeName) {
 		return tree2table.get(treeName);
+	}
+
+	/**
+	 * The table a tree name maps to, for a statement that only reads it. Answered from the memo of
+	 * {@link #getTableName(TreeName)} where the tree is in it, and computed without being put there
+	 * otherwise.
+	 * <p>
+	 * Every tree this backend owns is enrolled as it is opened, so the per-entry read path stays a
+	 * map lookup: {@link #toTableName(TreeName)} takes a JCA provider lookup and a digest per call,
+	 * which read() would otherwise pay for every entry of every search. Only a tree this backend
+	 * does not own - the shared compressed schema tree the migration of #873 reads - is computed,
+	 * twice per open of the backend.
+	 */
+	String readTableName(TreeName treeName) {
+		final String enrolled=tree2table.getIfPresent(treeName);
+		return enrolled!=null ? enrolled : toTableName(treeName);
 	}
 
 	/**
@@ -1874,7 +1909,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
-			final String tableName=getTableName(treeName);
+			// the non-enrolling name: a read must not put a tree this backend does not own - the
+			// shared compressed schema tree of #873 - up for removal
+			final String tableName=readTableName(treeName);
 			try (final PreparedStatement statement=con.prepareStatement("select v from "+tableName+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
@@ -1925,9 +1962,49 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 */
 		@Override
 		public long getRecordCount(TreeName treeName) {
-			try (final PreparedStatement statement=con.prepareStatement("select count(*) from "+getTableName(treeName))){
+			try (final PreparedStatement statement=con.prepareStatement("select count(*) from "+readTableName(treeName))){
 				return executeResultSet(statement, StatementBound.BULK, rc -> rc.next() ? rc.getLong(1) : 0);
 			}catch (SQLException e) {
+				throw new StorageRuntimeException(e);
+			}
+		}
+
+		@Override
+		public boolean treeExists(TreeName treeName) {
+			return isExistsTable(treeName);
+		}
+
+		// Readable, not writeable: the caller that asks about a tree this backend does not own is
+		// the compressed schema migration (#873), which probes the shared tree from the writeable
+		// transaction of RootContainer.open() but must not create or enrol it. Answering that from
+		// the readable transaction keeps the probe available to every reader, and costs nothing:
+		// the writeable one inherits it.
+		boolean isExistsTable(TreeName treeName) {
+			final String tableName = readTableName(treeName);
+			// the catalog lookup guarding a create table is bounded as the operation it is, not as
+			// the bulk statement it guards, and not as the class of the transaction that happens to
+			// ask: it reads a data dictionary rather than the data, so a wait here is the metadata
+			// lock of another session
+			try {
+				return bounded(con, StatementBound.OPERATION, () -> {
+					final DatabaseMetaData metaData = con.getMetaData();
+					// asked of the catalog by name: openTree(createOnDemand) calls this for every tree
+					// of the backend - about 25 of them for a stock suffix, on every open - and listing
+					// every table of the database each time costs the whole catalog once per tree, on a
+					// database this backend may well be sharing with something else
+					try (final ResultSet rs = metaData.getTables(null, null,
+							storedIdentifier(metaData, tableName), new String[]{"TABLE"})) {
+						while (rs.next()) {
+							// the name still has to be compared: "_" is a single-character wildcard in a
+							// metadata pattern, so "opendj_<hash>" also matches a table named "opendjX<hash>"
+							if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
+								return true;
+							}
+						}
+					}
+					return false;
+				});
+			} catch (Exception e) {
 				throw new StorageRuntimeException(e);
 			}
 		}
@@ -2012,35 +2089,6 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		private boolean commitsBeforeDdl() {
 			final String driverName=driverNameOf(con);
 			return driverName.contains("mysql") || driverName.contains("oracle");
-		}
-
-		boolean isExistsTable(TreeName treeName) {
-			final String tableName = getTableName(treeName);
-			// the catalog lookup guarding a create table is bounded as the operation it is, not as
-			// the bulk statement it guards: it asks a data dictionary rather than doing work of
-			// its own, so a wait here is the metadata lock of another session
-			try {
-				return bounded(con, StatementBound.OPERATION, () -> {
-					final DatabaseMetaData metaData = con.getMetaData();
-					// asked of the catalog by name: openTree(createOnDemand) calls this for every tree
-					// of the backend - about 25 of them for a stock suffix, on every open - and listing
-					// every table of the database each time costs the whole catalog once per tree, on a
-					// database this backend may well be sharing with something else
-					try (final ResultSet rs = metaData.getTables(null, null,
-							storedIdentifier(metaData, tableName), new String[]{"TABLE"})) {
-						while (rs.next()) {
-							// the name still has to be compared: "_" is a single-character wildcard in a
-							// metadata pattern, so "opendj_<hash>" also matches a table named "opendjX<hash>"
-							if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
-								return true;
-							}
-						}
-					}
-					return false;
-				});
-			} catch (Exception e) {
-				throw new StorageRuntimeException(e);
-			}
 		}
 
 		String getTableDialect() {
@@ -2261,7 +2309,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// repositioning transfer "fetchsize" rows over the network (#860).
 	final class CursorImpl implements Cursor<ByteString, ByteString> {
 		final Connection con;
+		final TreeName treeName;
 		final String tableName;
+		// the enrolling name, resolved once and only if this cursor ever deletes
+		String writeTableName;
 		final boolean isReadOnly;
 		final int batchSize=Math.max(1,Integer.getInteger("org.openidentityplatform.opendj.jdbc.fetchsize",1000));
 		final int initialBatchSize=Math.min(batchSize,Math.max(1,Integer.getInteger("org.openidentityplatform.opendj.jdbc.fetchsize.initial",32)));
@@ -2285,7 +2336,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		public CursorImpl(boolean isReadOnly, Connection con, TreeName treeName, StatementBound batchBound) {
 			this.isReadOnly=isReadOnly;
 			this.con=con;
-			this.tableName=getTableName(treeName);
+			this.treeName=treeName;
+			// the read statements below take the non-enrolling name: a cursor is how the migration
+			// of #873 reads the shared tree, and reading a tree must not put it up for removal
+			this.tableName=readTableName(treeName);
 			this.batchBound=batchBound;
 			this.limitClause=((CachedConnection)con).parent.getClass().getName().contains("mysql")
 				? " limit ?,?" : " offset ? rows fetch next ? rows only";
@@ -2374,7 +2428,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (isReadOnly) {
 				throw new UnsupportedOperationException();
 			}
-			try (final PreparedStatement statement=con.prepareStatement("delete from "+tableName+" where h="+hashParam(con)+" and k=?")){
+			if (writeTableName==null) {
+				// the enrolling name, unlike the read statements above: this writes to the tree, so
+				// it is one this backend owns, and removeStorageFiles() has to know about it
+				writeTableName=getTableName(treeName);
+			}
+			try (final PreparedStatement statement=con.prepareStatement("delete from "+writeTableName+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(db2real(currentKeyDb))));
 				statement.setBytes(2,currentKeyDb);
 				execute(statement, batchBound);

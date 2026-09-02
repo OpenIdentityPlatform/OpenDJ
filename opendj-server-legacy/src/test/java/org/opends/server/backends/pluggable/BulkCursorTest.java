@@ -217,10 +217,14 @@ public class BulkCursorTest extends DirectoryServerTestCase
   public void testTheCompressedSchemaIsLoadedWithBulkCursors() throws Exception
   {
     final WriteableTransaction txn = mock(WriteableTransaction.class);
+    // both trees are there and empty: loadTrees() walks only a tree that exists (#873), and the
+    // record counts a mock answers with leave nothing to migrate from the legacy pair
+    when(txn.treeExists(any(TreeName.class))).thenReturn(true);
     when(txn.openBulkCursor(any(TreeName.class))).thenReturn(emptyCursor());
     when(txn.openCursor(any(TreeName.class))).thenReturn(emptyCursor());
 
-    new PersistentCompressedSchema(mock(ServerContext.class), mock(Storage.class), txn, AccessMode.READ_ONLY);
+    new PersistentCompressedSchema(mock(ServerContext.class), "bulkCursorTest", mock(Storage.class), txn,
+        AccessMode.READ_ONLY);
 
     verify(txn, times(2)).openBulkCursor(any(TreeName.class)); // the object classes and the attributes
     verify(txn, never()).openCursor(any(TreeName.class));
