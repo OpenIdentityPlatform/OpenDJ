@@ -773,11 +773,16 @@ That said, you may encounter errors. Replication uses its own error log file, `l
 
 [source]
 ----
-[27/Jun/2011:14:37:48 +0200] category=SYNC severity=INFORMATION msgID=14680169
+[27/Jun/2011:14:37:48 +0200] category=SYNC severity=WARNING msgID=105
  msg=Replication server accepted a connection from 10.10.0.10/10.10.0.10:52859
- to local address 0.0.0.0/0.0.0.0:8989 but the SSL handshake failed. This is
- probably benign, but may indicate a transient network outage or a
- misconfigured client application connecting to this replication server.
+ to local address 0.0.0.0/0.0.0.0:8989 but the SSL handshake failed. This may
+ be benign, for example a network probe or a client application connecting to
+ the replication port, but it also occurs when the replication certificates
+ are misconfigured: check that the certificate nickname configured in the
+ crypto manager exists in the ads-truststore, and that every server of the
+ topology trusts the certificates of the other servers. At most one such
+ failure is logged as a warning every 5 minutes; the others go to the debug
+ log, which is disabled by default (0 since the previous warning).
  The error was: Remote host closed connection during handshake
 ----
 OpenDJ maintains historical information about changes in order to bring replicas up to date, and to resolve replication conflicts. To prevent historical information from growing without limit, OpenDJ purges historical information after a configurable delay (`replication-purge-delay`, default: 3 days). A replica can become irrevocably out of sync if you restore it from a backup archive older than the purge delay, or if you stop it for longer than the purge delay. If this happens to you, disable the replica, and then reinitialize it from a recent backup or from a server that is up to date.

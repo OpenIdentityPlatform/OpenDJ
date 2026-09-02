@@ -44,7 +44,7 @@ public class ReplSessionSecurityTest extends DirectoryServerTestCase
         .as("the following one is the second").isEqualTo(-3);
 
     assertThat(security.recordHandshakeFailure(start + HANDSHAKE_FAILURE_WARN_INTERVAL_NANOS))
-        .as("the next warning counts the failures it stands for").isEqualTo(2);
+        .as("the next warning counts the failures logged at debug level before it").isEqualTo(2);
     assertThat(security.recordHandshakeFailure(start + 2 * HANDSHAKE_FAILURE_WARN_INTERVAL_NANOS))
         .as("the count starts again from the previous warning").isEqualTo(0);
   }

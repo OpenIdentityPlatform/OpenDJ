@@ -301,8 +301,10 @@ public final class ReplSessionSecurity
    * Logs a failed SSL handshake on the replication port, as a warning for the
    * first failure of each {@link #HANDSHAKE_FAILURE_WARN_INTERVAL_MINUTES}
    * interval and at debug level for the following ones. The warning reports how
-   * many failures it stands for, so that a single line cannot be mistaken for a
-   * single failed connection.
+   * many failures were logged at debug level before it, so that a single line
+   * cannot be mistaken for a single failed connection. That count looks backwards
+   * only: the failures which follow the last warning of a burst are counted but
+   * never reported, as nothing flushes the count when the failures stop.
    *
    * @param socket
    *          The socket the handshake failed on.
@@ -328,7 +330,8 @@ public final class ReplSessionSecurity
 
   /**
    * Records a handshake failure which happened at the provided time and tells how it
-   * must be logged, together with the number of failures the message stands for.
+   * must be logged, together with the number of failures logged at debug level since
+   * the previous warning.
    * <p>
    * Package private for testing.
    *
