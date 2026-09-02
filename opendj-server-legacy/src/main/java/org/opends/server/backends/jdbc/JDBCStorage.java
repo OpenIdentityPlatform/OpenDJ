@@ -211,22 +211,43 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		enrolledTrees.clear();
 	}
 
+	// The trees this storage has taken an interest in, and the tables they map to: a memo, so that
+	// naming the table of a tree costs a map lookup rather than a digest. What a backend owns is
+	// recorded in its catalog and not here (#888) - listTrees() and removeStorageFiles() read that
+	// - but the distinction the two names below draw is kept all the same: a tree merely asked
+	// about is not one this storage has taken an interest in, and it stays out of the memo.
 	final LoadingCache<TreeName,String> tree2table = Caffeine.newBuilder()
-		.build(treeName -> {
-			try {
-				final MessageDigest md = MessageDigest.getInstance("SHA-224");
-				final byte[] messageDigest = md.digest(treeName.toString().getBytes());
-				final StringBuilder hashtext = new StringBuilder(56);
-				for (byte b : messageDigest) {
-					String hex = Integer.toHexString(0xff & b);
-					if (hex.length() == 1) hashtext.append('0');
-					hashtext.append(hex);
-				}
-				return "opendj_" + hashtext;
-			} catch (NoSuchAlgorithmException e) {
-				throw new RuntimeException(e);
+		.build(JDBCStorage::toTableName);
+
+	/**
+	 * The table a tree name maps to. A pure function of the name, so that a tree can be read
+	 * without being entered into tree2table: the compressed schema reads the tree its definitions
+	 * used to be shared under (#873), a tree this backend does not own, and removeStorageFiles()
+	 * drops every table tree2table names.
+	 * <p>
+	 * Which of the two a statement takes therefore says who owns the tree it names: a path that
+	 * creates or writes one - openTree(), clearTree(), deleteTree(), put(), update(), delete() -
+	 * takes the enrolling {@link #getTableName(TreeName)}, and a read-only path - read(),
+	 * getRecordCount(), isExistsTable() and the cursor - takes {@link #readTableName(TreeName)},
+	 * which computes this only for a tree that is not enrolled already. Every tree this backend
+	 * owns passes through openTree(name, true) as it is opened, so listTrees() still names the
+	 * complete owned set.
+	 */
+	static String toTableName(TreeName treeName) {
+		try {
+			final MessageDigest md = MessageDigest.getInstance("SHA-224");
+			final byte[] messageDigest = md.digest(treeName.toString().getBytes());
+			final StringBuilder hashtext = new StringBuilder(56);
+			for (byte b : messageDigest) {
+				String hex = Integer.toHexString(0xff & b);
+				if (hex.length() == 1) hashtext.append('0');
+				hashtext.append(hex);
 			}
-		});
+			return "opendj_" + hashtext;
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	String getTableName(TreeName treeName) {
 		return tree2table.get(treeName);
@@ -240,20 +261,23 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	static final String CATALOG_BASE_DN="opendj_catalog";
 
 	/**
-	 * The base DN under which the compressed schema trees are named by versions naming them from a
-	 * literal. It carries no backend qualifier, so on a database addressed by several backends -
+	 * The base DN the compressed schema trees were named under before #881 gave each backend a pair
+	 * of its own. It carries no backend qualifier, so on a database addressed by several backends -
 	 * which nothing forbids (#873) - that pair of trees is the same pair for all of them, and a
-	 * backend must not put a tree another one may be the owner of up for removal. The pair is left
-	 * where it lies on purpose (#881): it may still be the only copy a backend has. Trees named from
-	 * the backend id instead are enrolled like any other.
+	 * backend must not put a tree another one may be the owner of up for removal. It is the pair
+	 * {@code PersistentCompressedSchema} migrates from and never writes to again, and it is left
+	 * exactly where it lies: the definitions of a backend that has not been started since the
+	 * upgrade are still in it. The pair each backend owns is named after its backend id, is under no
+	 * such literal, and is enrolled like any other tree.
 	 */
 	static final String SHARED_COMPRESSED_SCHEMA_BASE_DN="compressed_schema";
 
 	/**
 	 * The pair named under {@link #SHARED_COMPRESSED_SCHEMA_BASE_DN}, spelled out here because the
-	 * names are private to {@code PersistentCompressedSchema}. They are never enrolled, so nothing
-	 * but this constant can name them - and a tool asking a backend what trees it holds has to be
-	 * told about them all the same, which is what {@link #listTrees()} uses this for.
+	 * names are private to {@code PersistentCompressedSchema} - where they are the LEGACY_ pair of
+	 * #881. They are never enrolled, so nothing but this constant can name them - and a tool asking
+	 * a backend what trees it holds has to be told about them all the same, which is what {@link
+	 * #listTrees()} uses this for.
 	 */
 	static final List<TreeName> SHARED_COMPRESSED_SCHEMA_TREES=Collections.unmodifiableList(Arrays.asList(
 		new TreeName(SHARED_COMPRESSED_SCHEMA_BASE_DN, "compressed_attributes"),
@@ -305,6 +329,22 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * {@link #catalogTableOpened}, and given up whenever the catalog itself is.
 	 */
 	private final Set<TreeName> enrolledTrees=ConcurrentHashMap.newKeySet();
+
+	/**
+	 * The table a tree name maps to, for a statement that only reads it. Answered from the memo of
+	 * {@link #getTableName(TreeName)} where the tree is in it, and computed without being put there
+	 * otherwise.
+	 * <p>
+	 * Every tree this backend owns is enrolled as it is opened, so the per-entry read path stays a
+	 * map lookup: {@link #toTableName(TreeName)} takes a JCA provider lookup and a digest per call,
+	 * which read() would otherwise pay for every entry of every search. Only a tree this backend
+	 * does not own - the shared compressed schema tree the migration of #873 reads - is computed,
+	 * twice per open of the backend.
+	 */
+	String readTableName(TreeName treeName) {
+		final String enrolled=tree2table.getIfPresent(treeName);
+		return enrolled!=null ? enrolled : toTableName(treeName);
+	}
 
 	/**
 	 * The form a catalog pattern has to take to match an identifier this backend created unquoted.
@@ -1207,7 +1247,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// from a version that commented no table at all.
 		final Set<String> leftOnPurpose=new HashSet<>();
 		for (final TreeName treeName : SHARED_COMPRESSED_SCHEMA_TREES) {
-			leftOnPurpose.add(getTableName(treeName).toLowerCase());
+			leftOnPurpose.add(readTableName(treeName).toLowerCase());
 		}
 		final ClearLeftovers leftovers=new ClearLeftovers();
 		try {
@@ -2010,7 +2050,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
-			try (final PreparedStatement statement=con.prepareStatement("select v from "+getTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
+			try (final PreparedStatement statement=con.prepareStatement("select v from "+readTableName(treeName)+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 				statement.setBytes(2,real2db(key.toByteArray()));
 				try(ResultSet rc=executeResultSet(statement)) {
@@ -2028,12 +2068,50 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public long getRecordCount(TreeName treeName) {
-			try (final PreparedStatement statement=con.prepareStatement("select count(*) from "+getTableName(treeName));
+			try (final PreparedStatement statement=con.prepareStatement("select count(*) from "+readTableName(treeName));
 				 final ResultSet rc=executeResultSet(statement)){
 				return rc.next() ? rc.getLong(1) : 0;
 			}catch (SQLException e) {
 				throw new StorageRuntimeException(e);
 			}
+		}
+
+		@Override
+		public boolean treeExists(TreeName treeName) {
+			return isExistsTable(treeName);
+		}
+
+		/**
+		 * Where an unqualified name of this transaction's connection resolves, asked of it once. Every
+		 * lookup of a table below is narrowed to it - the reason is in {@link TableScope} - and asking
+		 * per lookup would cost a round trip per tree of the backend on every open: pgjdbc answers both
+		 * halves of it with a select of its own. A transaction holds one connection for the whole of its
+		 * life, so one answer serves it all.
+		 */
+		// not private: a private member is not inherited, and the writeable transaction below asks
+		// for the scope of its own lookups through it
+		TableScope tableScope;
+
+		TableScope takeTableScope() {
+			// a connection that would not answer is asked again rather than latched: what it says
+			// decides a create and a drop, and one refused question would otherwise leave every lookup
+			// of this transaction as wide as the whole server
+			if (tableScope==null || !tableScope.answered) {
+				tableScope=TableScope.of(con);
+			}
+			return tableScope;
+		}
+
+		// Readable, not writeable: the caller that asks about a tree this backend does not own is
+		// the compressed schema migration (#873), which probes the shared tree from the writeable
+		// transaction of RootContainer.open() but must not create or enrol it. Answering that from
+		// the readable transaction keeps the probe available to every reader, and costs nothing:
+		// the writeable one inherits it.
+		// The name it asks about is the non-enrolling one for that same reason, and the question is
+		// narrowed to where an unqualified name of this connection resolves, like every other table
+		// lookup of this class: see isExistsTable(Connection, TableScope, String).
+		boolean isExistsTable(TreeName treeName) {
+			return JDBCStorage.this.isExistsTable(con, takeTableScope(), readTableName(treeName));
 		}
 	}
 	/**
@@ -2085,25 +2163,6 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 
 		/**
-		 * Where an unqualified name of this transaction's connection resolves, asked of it once. Every
-		 * lookup of a table below is narrowed to it - the reason is in {@link TableScope} - and asking
-		 * per lookup would cost a round trip per tree of the backend on every open: pgjdbc answers both
-		 * halves of it with a select of its own. A transaction holds one connection for the whole of its
-		 * life, so one answer serves it all.
-		 */
-		private TableScope tableScope;
-
-		private TableScope takeTableScope() {
-			// a connection that would not answer is asked again rather than latched: what it says
-			// decides a create and a drop, and one refused question would otherwise leave every lookup
-			// of this transaction as wide as the whole server
-			if (tableScope==null || !tableScope.answered) {
-				tableScope=TableScope.of(con);
-			}
-			return tableScope;
-		}
-
-		/**
 		 * Issues a statement that ends in a commit, raising {@link #partlyCommitted} at the moment the attempt
 		 * stops rolling back as a whole.
 		 * <p>
@@ -2131,10 +2190,6 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		private boolean commitsBeforeDdl() {
 			final String driverName=driverNameOf(con);
 			return driverName.contains("mysql") || driverName.contains("oracle");
-		}
-
-		boolean isExistsTable(TreeName treeName) {
-			return JDBCStorage.this.isExistsTable(con, takeTableScope(), getTableName(treeName));
 		}
 
 		String getTableDialect() {
@@ -2612,7 +2667,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// repositioning transfer "fetchsize" rows over the network (#860).
 	final class CursorImpl implements Cursor<ByteString, ByteString> {
 		final Connection con;
+		final TreeName treeName;
 		final String tableName;
+		// the enrolling name, resolved once and only if this cursor ever deletes
+		String writeTableName;
 		final boolean isReadOnly;
 		final int batchSize=Math.max(1,Integer.getInteger("org.openidentityplatform.opendj.jdbc.fetchsize",1000));
 		final int initialBatchSize=Math.min(batchSize,Math.max(1,Integer.getInteger("org.openidentityplatform.opendj.jdbc.fetchsize.initial",32)));
@@ -2629,7 +2687,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		public CursorImpl(boolean isReadOnly, Connection con, TreeName treeName) {
 			this.isReadOnly=isReadOnly;
 			this.con=con;
-			this.tableName=getTableName(treeName);
+			this.treeName=treeName;
+			// the read statements below take the non-enrolling name: a cursor is how the migration
+			// of #873 reads the shared tree, and reading a tree must not put it up for removal
+			this.tableName=readTableName(treeName);
 			this.limitClause=((CachedConnection)con).parent.getClass().getName().contains("mysql")
 				? " limit ?,?" : " offset ? rows fetch next ? rows only";
 		}
@@ -2710,7 +2771,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (isReadOnly) {
 				throw new UnsupportedOperationException();
 			}
-			try (final PreparedStatement statement=con.prepareStatement("delete from "+tableName+" where h="+hashParam(con)+" and k=?")){
+			if (writeTableName==null) {
+				// the enrolling name, unlike the read statements above: this writes to the tree, so
+				// it is one this backend owns, and removeStorageFiles() has to know about it
+				writeTableName=getTableName(treeName);
+			}
+			try (final PreparedStatement statement=con.prepareStatement("delete from "+writeTableName+" where h="+hashParam(con)+" and k=?")){
 				statement.setString(1,key2hash.get(ByteBuffer.wrap(db2real(currentKeyDb))));
 				statement.setBytes(2,currentKeyDb);
 				execute(statement);
@@ -2834,7 +2900,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// once #881 gives each backend a pair of its own an installation may hold neither table.
 			// Narrowed to this database: a pair of the same name in another database of the server
 			// would otherwise have this backend name two trees it does not hold
-			if (isExistsTable(con, scope, getTableName(treeName))) {
+			if (isExistsTable(con, scope, readTableName(treeName))) {
 				trees.add(treeName);
 			}
 		}
@@ -2905,7 +2971,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				}
 				final byte[] table=rs.getBytes("v");
 				final String tableName=table==null || table.length==0
-					? getTableName(treeName) // a row of a version which recorded the name and not the table
+					? readTableName(treeName) // a row of a version which recorded the name and not the table
 					: new String(table, StandardCharsets.UTF_8);
 				// the prefix and not the whole of the name: the table recorded is taken from the row
 				// rather than derived again so that a removal drops what was enrolled even if the naming
