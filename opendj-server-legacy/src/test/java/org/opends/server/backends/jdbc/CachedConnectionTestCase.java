@@ -47,6 +47,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Executor;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -60,6 +62,7 @@ import org.mockito.InOrder;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.inOrder;
@@ -151,7 +154,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		// are nested by definition, and a nested one is allowed past the bound on purpose.
 		final Connection first = borrowOnAThreadOfItsOwn(url);
 		final Connection second = borrowOnAThreadOfItsOwn(url);
-		assertEquals(CachedConnection.poolOf(url).liveCount(), 2);
+		assertEquals(CachedConnection.poolOf(url).meteredCount(), 2);
 		try {
 			borrowOnAThreadOfItsOwn(url);
 			fail("a third connection was opened past the bound of two");
@@ -167,7 +170,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertSame(third, first);
 		third.close();
 		second.close();
-		CachedConnection.invalidate(url);
+		CachedConnection.poolOf(url).drainIdle();
 	}
 
 	/** Borrows the way the server does, one operation to a thread. */
@@ -209,7 +212,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 		outer.close();
 		assertEquals(CachedConnection.poolOf(url).idleCount(), 1);
-		CachedConnection.invalidate(url);
+		CachedConnection.poolOf(url).drainIdle();
 	}
 
 	/**
@@ -233,7 +236,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertNotSame(second, first, "a connection idle far longer than the TTL was handed out");
 		verify(first.parent).close();
 		second.close();
-		CachedConnection.invalidate(url);
+		CachedConnection.poolOf(url).drainIdle();
 	}
 
 	/**
@@ -258,7 +261,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 		assertEquals(pool.idleCount(), 0);
 		verify(con.parent).close();
-		assertEquals(pool.liveCount(), 0, "a swept connection kept its place in the pool");
+		assertEquals(pool.meteredCount(), 0, "a swept connection kept its place in the pool");
 	}
 
 	/** A closed backend has no use for its connections; they used to be left open (#878). */
@@ -275,7 +278,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 		assertEquals(CachedConnection.poolOf(url).idleCount(), 0);
 		verify(con.parent).close();
-		assertEquals(CachedConnection.poolOf(url).liveCount(), 0);
+		assertEquals(CachedConnection.poolOf(url).meteredCount(), 0);
 	}
 
 	/**
@@ -355,7 +358,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 			} catch (IllegalArgumentException expected) {
 				// reported to the caller, as a configuration error has to be
 			}
-			assertEquals(pool.liveCount(), 0, "attempt " + i + " kept a permit of the pool");
+			assertEquals(pool.meteredCount(), 0, "attempt " + i + " kept a permit of the pool");
 		}
 
 		// and the pool still serves, rather than reporting connections it does not hold as in use
@@ -363,7 +366,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final Connection con = CachedConnection.getConnection(url);
 		assertNotNull(con);
 		con.close();
-		CachedConnection.invalidate(url);
+		CachedConnection.poolOf(url).drainIdle();
 	}
 
 	/**
@@ -379,13 +382,60 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 		final Connection held = CachedConnection.getConnection(first);
 		final Connection other = CachedConnection.getConnection(second);
-		assertEquals(CachedConnection.poolOf(second).liveCount(), 1, "the borrow passed the bound of the other pool");
+		assertEquals(CachedConnection.poolOf(second).meteredCount(), 1, "the borrow passed the bound of the other pool");
 		other.close();
 
 		assertEquals(CachedConnection.poolOf(second).idleCount(), 1, "the borrow was taken for a nested one and closed");
 		held.close();
-		CachedConnection.invalidate(first);
-		CachedConnection.invalidate(second);
+		CachedConnection.poolOf(first).drainIdle();
+		CachedConnection.poolOf(second).drainIdle();
+	}
+
+	/**
+	 * A connection returned on a thread other than the one that borrowed it still lowers the depth
+	 * of the borrower. The depth used to be lowered only where the returning thread was the
+	 * borrowing one, and nulled either way, so a cross-thread return left the borrower standing at a
+	 * depth it could never come down from: that thread was taken for a nested borrow for the life of
+	 * the server, exempt from the wait at the bound, and every operation on it opened an unmetered
+	 * connection that the return then closed - a physical connect apiece, past a bound the operator
+	 * set (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testAReturnOnAnotherThreadLowersTheDepthOfTheBorrower() throws Exception {
+		final String url = StubDriver.PREFIX + "cross-thread-return";
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, "1");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "1");
+		stub.answerWith(null);
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+		final ExecutorService borrower = Executors.newSingleThreadExecutor(runnable -> {
+			final Thread thread = new Thread(runnable, "cross-thread-borrower");
+			thread.setDaemon(true);
+			return thread;
+		});
+
+		try {
+			// borrowed there, returned here
+			final Connection borrowed = borrower.submit(() -> CachedConnection.getConnection(url))
+				.get(120, TimeUnit.SECONDS);
+			borrowed.close();
+			assertEquals(pool.idleCount(), 1, "the connection was not pooled by the return");
+
+			// the one place of the pool goes to somebody else, so the borrower thread has to wait
+			// for it - and, having no connection of its own any more, has to give up when it does
+			// not come
+			final Connection held = borrowOnAThreadOfItsOwn(url);
+			try {
+				borrower.submit(() -> CachedConnection.getConnection(url)).get(120, TimeUnit.SECONDS);
+				fail("the borrower thread was taken for a nested borrow and passed the bound of the pool");
+			} catch (ExecutionException expected) {
+				assertTrue(expected.getCause() instanceof SQLTimeoutException,
+					"the bound was passed rather than waited out: " + expected.getCause());
+			}
+			held.close();
+		} finally {
+			borrower.shutdownNow();
+		}
+		CachedConnection.poolOf(url).drainIdle();
 	}
 
 	/** JDBC makes close() on a closed connection a no-op; a second return would pool the same one twice. */
@@ -398,7 +448,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		con.close();
 
 		assertEquals(CachedConnection.poolOf(url).idleCount(), 1, "one connection was pooled twice");
-		CachedConnection.invalidate(url);
+		CachedConnection.poolOf(url).drainIdle();
 	}
 
 	/**
@@ -425,7 +475,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 		handedOff.get(0).run();
 		verify(con.parent).close();
-		assertEquals(pool.liveCount(), 0, "a swept connection kept its permit");
+		assertEquals(pool.meteredCount(), 0, "a swept connection kept its permit");
 	}
 
 	/**
@@ -491,7 +541,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertNotNull(borrowed);
 		assertTrue(elapsed < 3500, "the borrow drained the pool past its deadline: " + elapsed + " ms");
 		borrowed.close();
-		CachedConnection.invalidate(url);
+		CachedConnection.poolOf(url).drainIdle();
 	}
 
 	/** 0 means "no bound" for the size of the pool, and an invalid value means "the default". */
@@ -528,7 +578,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final Connection served = waiting.get(120, TimeUnit.SECONDS);
 		assertSame(served, held, "the borrow was served by something other than the returned connection");
 		served.close();
-		CachedConnection.invalidate(url);
+		CachedConnection.poolOf(url).drainIdle();
 	}
 
 	/** 0 means "keep nothing" for the TTL: an idle connection is not handed out again. */
@@ -546,7 +596,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertNotSame(second, first, "a connection was kept although the TTL keeps none");
 		verify(first.parent).close();
 		second.close();
-		CachedConnection.invalidate(url);
+		CachedConnection.poolOf(url).drainIdle();
 	}
 
 	/**
@@ -572,12 +622,50 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 			assertEquals(((CachedConnection) con).connectionString, registered,
 				"the borrow left the pool this storage registered with");
 		}
-		assertEquals(CachedConnection.poolOf(changed).liveCount(), 0, "a pool with no user was borrowed from");
+		assertEquals(CachedConnection.poolOf(changed).meteredCount(), 0, "a pool with no user was borrowed from");
 
 		storage.close();
 
 		assertEquals(CachedConnection.poolOf(registered).idleCount(), 0,
 			"close() left the connections of the pool it registered with behind");
+	}
+
+	/**
+	 * An open that failed has to leave the storage saying so. The status used to be set inside the
+	 * try-with-resources of the validating borrow, so a throw from the implicit close() - the return
+	 * rolls back, and the rollback goes to the database - left the storage at working() while open()
+	 * failed and gave the registration of the pool back. write() and ImporterImpl both skip the
+	 * re-open when the status says working, so the pool was left with no user at all: every
+	 * connection returned to it destroyed on the spot, pooling off for that database for as long as
+	 * the server runs (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testAnOpenThatFailsOnTheReturnLeavesTheStorageClosed() throws Exception {
+		final String url = StubDriver.PREFIX + "open-return-failure";
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		doThrow(new SQLException("the socket went away")).when(parent).rollback();
+		stub.answerWith(parent);
+		final JDBCBackendCfg cfg = mock(JDBCBackendCfg.class);
+		when(cfg.getDBDirectory()).thenReturn(url);
+		final JDBCStorage storage = new JDBCStorage(cfg, null);
+
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			fail("a validated borrow that could not be returned must be reported");
+		} catch (SQLException expected) {
+			assertEquals(expected.getMessage(), "the socket went away");
+		}
+		assertFalse(storage.getStorageStatus().isWorking(), "an open that failed left the storage reporting working");
+
+		// and the open that follows is not skipped: it registers with the pool again, which is what
+		// makes the connections returned to it pooled rather than destroyed on the spot
+		doNothing().when(parent).rollback();
+		storage.open(AccessMode.READ_WRITE);
+		assertTrue(storage.getStorageStatus().isWorking(), "the storage did not reopen");
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1,
+			"the reopened storage stopped pooling its connections");
+		storage.close();
 	}
 
 	/**
@@ -609,7 +697,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 		assertEquals(CachedConnection.poolOf(url).idleCount(), 1, "the import kept the connection of the pool");
 		storage.close();
-		assertEquals(CachedConnection.poolOf(url).liveCount(), 0, "the import kept a permit of the pool");
+		assertEquals(CachedConnection.poolOf(url).meteredCount(), 0, "the import kept a permit of the pool");
 	}
 
 	/**
@@ -1217,6 +1305,37 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		}
 		verify(parent).close();
 		assertEquals(CachedConnection.poolOf(url).idleCount(), 0, "a connection that cannot be rolled back was pooled");
+	}
+
+	/**
+	 * The same for the unchecked failure a driver is free to throw instead of a SQLException. close()
+	 * runs past the CAS that makes it the one return of this connection, so a rollback escaping it
+	 * leaves the connection closed by nothing at all - and its permit released by nothing either,
+	 * since only destroy() gives one back. A pool is never removed from the map, so that place in
+	 * the bound would be gone for the life of the server, and enough of them leave every borrow to
+	 * fail with a SQLTimeoutException while the pool holds no connection at all (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectionWhoseRollbackFailsUncheckedIsClosed() throws Exception {
+		final String url = StubDriver.PREFIX + "rollback-unchecked";
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		doThrow(new IllegalStateException("the connection handle is no longer valid")).when(parent).rollback();
+		stub.answerWith(parent);
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+
+		final Connection con = CachedConnection.getConnection(url);
+		assertEquals(pool.meteredCount(), 1, "the borrow took no permit of the pool");
+		try {
+			con.close();
+			fail("a rollback that failed unchecked must be reported");
+		} catch (IllegalStateException expected) {
+			assertEquals(expected.getMessage(), "the connection handle is no longer valid");
+		}
+
+		verify(parent).close();
+		assertEquals(pool.idleCount(), 0, "a connection that could not be rolled back was pooled");
+		assertEquals(pool.meteredCount(), 0, "the return kept a permit of the pool");
 	}
 
 	@Test

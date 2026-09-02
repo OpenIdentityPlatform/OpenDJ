@@ -216,22 +216,50 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 	@Override
 	public void open(AccessMode accessMode) throws Exception {
-		final boolean registeredHere=poolRegistered.compareAndSet(false, true);
-		if (registeredHere) {
-			poolConnectionString=config.getDBDirectory();
-			CachedConnection.openPool(poolConnectionString);
-		}
-		try (final Connection con=getValidatedConnection()) {
-			this.accessMode = accessMode;
-			storageStatus = StorageStatus.working();
-		} catch (Exception e) {
+		final boolean claimedHere=poolRegistered.compareAndSet(false, true);
+		// Raised once openPool() has returned, which is when a user has actually been added. The
+		// claim alone cannot answer for that: releasePool() on a claim openPool() never made would
+		// take a user off a pool this storage never added one to - and the pool of a database two
+		// backends share would lose the user of the other one, draining connections it is still
+		// borrowing.
+		boolean registeredHere=false;
+		try {
+			// Inside the try, so that the registration this call made is given back however the open
+			// ends - the registration is taken before the pool is of any use, and a pool holding a
+			// user that never borrows keeps its connections for a borrower that is not going to come.
+			if (claimedHere) {
+				poolConnectionString=config.getDBDirectory();
+				CachedConnection.openPool(poolConnectionString);
+				registeredHere=true;
+			}
+			// The validated borrow is the whole of the open, and nothing is taken from it here: the
+			// status is set below rather than inside the block, or a throw from the implicit close()
+			// - the rollback of the return goes to the database - would leave the storage reporting
+			// working() while this method fails and the catch takes its registration back. write()
+			// and ImporterImpl both skip the re-open when the status says working, so the pool would
+			// be left with no user at all: every connection returned to it destroyed on the spot,
+			// pooling off for that database for as long as the server runs (issue #878).
+			try (final Connection con=getValidatedConnection()) {
+			}
+		} catch (Throwable e) {
+			// Throwable rather than Exception: an Error out of the borrow - a NoClassDefFoundError
+			// from the static initializer of a driver is the one to expect here - would otherwise
+			// leave the pool holding a user that never leaves.
 			// Only what this call registered is given back: an open that found the registration
 			// already made took nothing, and giving it back would release a pool still in use.
 			if (registeredHere) {
 				releasePool();
+			} else if (claimedHere) {
+				// The claim was won but no user was added. The claim goes back on its own, without
+				// touching the pool: left standing it would send the close() of this storage to
+				// releasePool() for a registration it never made.
+				poolConnectionString=null;
+				poolRegistered.set(false);
 			}
 			throw e;
 		}
+		this.accessMode = accessMode;
+		storageStatus = StorageStatus.working();
 	}
 
 	/** Gives up the registration of this storage with the pool of the database it opened. */
@@ -460,7 +488,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	Connection newStampConnection(Dialect dialect) throws SQLException {
 		final Properties properties=new Properties();
 		properties.putAll(dialect.connectProperties);
-		final Connection con=DriverManager.getConnection(config.getDBDirectory(), properties);
+		// poolKey() rather than the configuration as it stands: this connection is not pooled, but it
+		// is a connection to the database of this storage, and db-directory may be changed on a
+		// running backend. Reading it again here would stamp the trees of this backend in whichever
+		// database the configuration names now, while every other connection of it stays with the
+		// one open() registered (issue #878).
+		final Connection con=DriverManager.getConnection(poolKey(), properties);
 		try {
 			con.setAutoCommit(false);
 			executeSessionStatement(con, dialect.lockTimeoutSql); // give up instead of waiting for another session
@@ -1938,14 +1971,30 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				txw =new WriteableTransactionTransactionImpl(borrowed);
 				con = borrowed;
 				borrowed=null;
-			}catch (Exception e){
+			}catch (Throwable e){
+				// Throwable rather than Exception, the way close() below catches it and for the same
+				// reason: the borrow is handed off to nothing until this constructor returns, and
+				// only its close() gives back the permit it took. new WriteableTransactionTransactionImpl
+				// runs a StampSession in a field initializer, so an Error out of a bulk import - an
+				// OutOfMemoryError is the one to expect - would leave the connection borrowed for the
+				// life of the server, and enough of them walk the bound of the pool down to nothing
+				// (issue #878).
 				if (borrowed!=null) {
 					try {
 						borrowed.close();
-					}catch (SQLException e2) {}
+					}catch (Throwable e2) {
+						// suppressed rather than dropped: the failure being unwound is the one the
+						// caller asked about, and a return that failed on top of it is worth reading
+						e.addSuppressed(e2);
+					}
 				}
 				if (!isOpen) {
 					JDBCStorage.this.close();
+				}
+				if (e instanceof Error) {
+					// on its way out as it is: an Error says the JVM is in no state to have this
+					// wrapped and reported as a failure of the storage
+					throw (Error) e;
 				}
 				throw e instanceof StorageRuntimeException ? (StorageRuntimeException) e : new StorageRuntimeException(e);
 			}
@@ -1965,11 +2014,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		private SQLException releaseConnection(SQLException failure) {
 			try {
 				con.close();
-			} catch (SQLException e) {
+			} catch (Throwable e) {
+				// Throwable rather than SQLException: this close() is the return to the pool, whose
+				// rollback a driver is free to fail unchecked. Reported rather than thrown, since a
+				// throw out of here would leave with the failure the caller actually came for - the
+				// commit above, and in the Throwable branch of close() the Error that branch exists
+				// to preserve - dropped on the floor (issue #878).
+				final SQLException reported=e instanceof SQLException ? (SQLException) e
+					: new SQLException("the connection of the import could not be returned to the pool", e);
 				if (failure==null) {
-					failure=e;
+					failure=reported;
 				}else {
-					failure.addSuppressed(e);
+					failure.addSuppressed(reported);
 				}
 			} finally {
 				txw.stampSession.close();
