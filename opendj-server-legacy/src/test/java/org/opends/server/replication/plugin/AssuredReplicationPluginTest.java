@@ -1216,7 +1216,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
        * this replica gives up on it. That is right, and it is not what this test is
        * about: the FakeReplicationServer is not built to be reconnected to, and the
        * restarts would run on while the assertions and the teardown below take their
-       * course. Give up almost at once, so the domain settles instead.
+       * course. A give-up delay of zero has the first failure spend the whole budget, so
+       * the change is given up on where it is reported and no session is restarted: the
+       * ack of this delivery is published either way - it is sent before the give-up is
+       * decided - and the domain settles instead of reconnecting.
        */
       final LDAPReplicationDomain domain =
           MultimasterReplication.findDomain(DN.valueOf(SAFE_READ_DN), null);
@@ -1235,9 +1238,20 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         Assertions.assertThat(ackMsg.getFailedServers()).containsExactly(1);
 
         /*
-         * No monitoring assertion here: the domain restarts its session to have the change
-         * sent again, which takes its monitor entry away and resets the assured counters.
+         * The change is counted as failed once the give-up is decided, which is after the
+         * ack above was published: waiting for that count is what makes the assured
+         * counters below safe to read, since they are bumped just after the publish.
          */
+        final DN baseDN = DN.valueOf(SAFE_READ_DN);
+        assertMonitorAttrValueEventually(baseDN, "replayed-updates-failed", 1,
+            "the change which could not be replayed must be counted as failed");
+        new MonitorAssertions(baseDN)
+            .assertValue("assured-sr-received-updates", 1)
+            .assertValue("assured-sr-received-updates-not-acked", 1)
+            .assertRemainingValuesAreZero();
+        // The failure is this replica's own, and it is in the ack it sent: nothing this
+        // domain sent went unacknowledged.
+        assertNoServerErrors(baseDN);
       }
       finally
       {

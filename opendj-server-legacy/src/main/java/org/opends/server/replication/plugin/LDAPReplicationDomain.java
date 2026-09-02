@@ -2716,25 +2716,39 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
       } catch (DecodeException | LDAPException | DataFormatException e)
       {
-        replayErrorMsg = logDecodingOperationError(msg, e);
+        replayErrorMsg = giveUpOnUndecodableChange(msg, e);
       } catch (Exception e)
       {
-        if (csn != null)
+        if (op == null)
+        {
+          /*
+           * The message could not be turned into an operation, it only failed to say so
+           * with a decoding exception. There is still nothing to retry and no delivery
+           * which would build any better, so this is the same give-up as above.
+           */
+          replayErrorMsg = giveUpOnUndecodableChange(msg, e);
+        }
+        else
         {
           /*
            * An Exception happened during the replay process: the change is not in the
            * data, so it must not be recorded as replayed.
            * Let the repair tool know about this.
+           *
+           * The operation was built, so whatever failed is a failure of this attempt
+           * rather than a verdict on every delivery of the change - including a failure
+           * before the CSN of the operation was read, such as the entry DN of a
+           * ModifyMsg which does not parse leaving getEntryDN() null. Giving up on it
+           * where it is reported would record a change which never reached the backend
+           * in the ServerState, which is issue #889 by another route; it is left out of
+           * the ServerState and asked for again instead, and the give-up budget bounds
+           * how long this replica keeps asking.
            */
-          LocalizableMessage message =
-              ERR_EXCEPTION_REPLAYING_OPERATION.get(
-                  stackTraceToSingleLineString(e), op);
+          final LocalizableMessage message =
+              ERR_EXCEPTION_REPLAYING_OPERATION.get(stackTraceToSingleLineString(e), op);
           logger.error(message);
           replayErrorMsg = message.toString();
           replayFailed = true;
-        } else
-        {
-          replayErrorMsg = logDecodingOperationError(msg, e);
         }
       } finally
       {
@@ -2762,7 +2776,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         return;
       }
 
-      if (replayFailed && recoverFromReplayFailure(csn, replayThreadShutdown))
+      /*
+       * The CSN of the change is read off the message rather than off the operation: the
+       * two are the same - the operation carries the CSN of the message it was built from
+       * - but a failure which happened before the operation was built, or before its CSN
+       * was read, has a change to ask for again all the same.
+       */
+      if (replayFailed && recoverFromReplayFailure(msg.getCSN(), replayThreadShutdown))
       {
         // The ack has been published and the change, still owned by the replication
         // server, is being delivered again: there is nothing left to replay here.
@@ -2787,12 +2807,17 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * for it again and the delivery which would is turned down while a replay thread still
    * owns it. Skipping it says out loud what a wedged domain would only have implied: this
    * replica has diverged and must be reinitialized.
+   * <p>
+   * Only a message which no operation could be built from comes here. A failure of the
+   * replay of an operation which was built, whenever it happens, keeps its change out of
+   * the ServerState and has it delivered again instead: that one is a failure of an
+   * attempt, not of every delivery of the change.
    *
    * @param msg the message which could not be decoded
    * @param e the failure to decode it
    * @return the error to report in the ack of this delivery
    */
-  private String logDecodingOperationError(LDAPUpdateMsg msg, Exception e)
+  private String giveUpOnUndecodableChange(LDAPUpdateMsg msg, Exception e)
   {
     LocalizableMessage message =
         ERR_EXCEPTION_DECODING_OPERATION.get(msg + " " + stackTraceToSingleLineString(e));
@@ -2978,8 +3003,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * the administrator is told that this replica has diverged and must be reinitialized.
    *
    * @param csn
-   *          the CSN of the change which could not be replayed, {@code null} when the
-   *          message could not even be decoded
+   *          the CSN of the change which could not be replayed
    * @param replayThreadShutdown
    *          whether the replay thread was asked to stop
    * @return {@code true} when the caller must stop replaying because the session is
@@ -2988,11 +3012,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private boolean recoverFromReplayFailure(CSN csn, AtomicBoolean replayThreadShutdown)
   {
-    if (csn == null)
-    {
-      // The message could not be decoded: there is nothing to ask for again.
-      return false;
-    }
     /*
      * The failure is recorded, and the change given up on, while this thread still owns
      * it: a change which is listed, uncommitted and unowned is what putRemoteUpdate()

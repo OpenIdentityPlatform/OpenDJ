@@ -417,9 +417,24 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
         "a change which was replayed must not report that the one which is failing stopped");
 
     // Only the failing change being applied says that this backend is serving again.
+    // Both changes leave the list here: the failing one, which is the head, and the one
+    // which was waiting behind it for the ServerState to be allowed past.
     pendingChanges.commit(failing);
     assertFalse(pendingChanges.hasFailingChanges(),
         "the change which was failing was applied, so nothing is failing anymore");
+
+    /*
+     * The count must be back to none, not below it: a change which is drained without
+     * ever having failed must not be counted out. A counter which went negative reads as
+     * "nothing is failing" for as long as it takes the next failures to bring it back to
+     * zero, which is what has the session restarts start over from their shortest wait
+     * while a change is failing - the very loop this counter is here to stop.
+     */
+    final CSN failingAgain = generator.newCSN();
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(failingAgain, "uuid-3")));
+    pendingChanges.recordReplayFailure(failingAgain, 2000);
+    assertTrue(pendingChanges.hasFailingChanges(),
+        "the change which is failing now must be reported, whatever was drained before it");
   }
 
   /**

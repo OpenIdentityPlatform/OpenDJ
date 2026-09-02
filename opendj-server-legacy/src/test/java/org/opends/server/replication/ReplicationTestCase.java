@@ -495,6 +495,63 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     });
   }
 
+  /**
+   * Waits for a monitor attribute of a replication domain to reach the expected value.
+   * <p>
+   * The monitor entry of a domain is deregistered for as long as its session to the
+   * replication server is down, which is what a replay failure does to it, and a counter
+   * is bumped a moment after the change or the delivery it counts was dealt with:
+   * reading the value once would be a race on both counts.
+   *
+   * @param baseDN the base DN of the domain whose monitor entry to read
+   * @param attributeName the monitor attribute to read
+   * @param expected the value it must reach
+   * @param message what is being asserted
+   * @throws Exception if the value was not reached in time
+   */
+  protected void assertMonitorAttrValueEventually(
+      final DN baseDN, final String attributeName, final long expected, final String message)
+      throws Exception
+  {
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(30, SECONDS)
+      .sleepTimes(200, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        assertEquals(getMonitorAttrValue(baseDN, attributeName), expected, message);
+      }
+    });
+  }
+
+  /**
+   * Checks that a monitor attribute of a replication domain holds the expected value and
+   * keeps holding it.
+   * <p>
+   * Waiting for a value to be reached is not enough to tell that something happened only
+   * once: a counter which is bumped a second time goes through the expected value on its
+   * way, and the first poll which sees it passes.
+   *
+   * @param baseDN the base DN of the domain whose monitor entry to read
+   * @param attributeName the monitor attribute to read
+   * @param expected the value it must hold
+   * @param message what is being asserted
+   * @throws Exception if the value changes, or if the monitor entry can not be read
+   */
+  protected void assertMonitorAttrValueStays(
+      final DN baseDN, final String attributeName, final long expected, final String message)
+      throws Exception
+  {
+    for (int i = 0; i < 5; i++)
+    {
+      assertEquals(getMonitorAttrValue(baseDN, attributeName), expected, message);
+      Thread.sleep(200);
+    }
+  }
+
   protected void checkEntryHasAttributeValue(final DN dn, final String attrTypeStr, final String valueString,
       int timeoutInSecs, String notFoundErrorMsg) throws Exception
   {

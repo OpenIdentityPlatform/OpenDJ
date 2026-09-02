@@ -1484,14 +1484,14 @@ public class UpdateOperationTest extends ReplicationTestCase
                 "the replica did not give up on a change it can never replay");
           }
         });
-        assertMonitorAttrValueEventually("replayed-updates-failed", initialFailures + 1,
+        assertMonitorAttrValueEventually(baseDN, "replayed-updates-failed", initialFailures + 1,
             "a change which could not be replayed must be counted once, not once per attempt");
         /*
          * A counter bumped once per attempt rather than once per change goes through the
          * expected value on its way, so the value has to be seen to stay put rather than
          * to be reached once.
          */
-        assertMonitorAttrValueStays("replayed-updates-failed", initialFailures + 1,
+        assertMonitorAttrValueStays(baseDN, "replayed-updates-failed", initialFailures + 1,
             "a change which could not be replayed must be counted once, not once per attempt");
         Assertions.assertThat(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE))
             .as("the administrator must be told that this replica now diverges")
@@ -1581,13 +1581,13 @@ public class UpdateOperationTest extends ReplicationTestCase
                 "the replica did not give up on the second change it can never replay");
           }
         });
-        assertMonitorAttrValueEventually("replayed-updates-failed", initialFailures + 2,
+        assertMonitorAttrValueEventually(baseDN, "replayed-updates-failed", initialFailures + 2,
             "both changes must be counted as failed, once each");
         /*
          * Two changes counted more than once each climb past +2, and the poll which lands
          * on it would pass: the value has to be seen to stay put.
          */
-        assertMonitorAttrValueStays("replayed-updates-failed", initialFailures + 2,
+        assertMonitorAttrValueStays(baseDN, "replayed-updates-failed", initialFailures + 2,
             "both changes must be counted as failed, once each");
         assertNotNull(getEntry(first.getName(), 1, true), "the first entry must not have been deleted");
         assertNotNull(getEntry(second.getName(), 1, true), "the second entry must not have been deleted");
@@ -1690,7 +1690,7 @@ public class UpdateOperationTest extends ReplicationTestCase
                 "a change which was replayed must be recorded as replayed");
           }
         });
-        assertMonitorAttrValueEventually("replayed-updates-ok", initialReplayed + 1,
+        assertMonitorAttrValueEventually(baseDN, "replayed-updates-ok", initialReplayed + 1,
             "the change must be recorded as replayed");
         /*
          * A change applied twice - the delivery which failed and the one which took over
@@ -1698,9 +1698,9 @@ public class UpdateOperationTest extends ReplicationTestCase
          * counter through +1 on its way to +2, so the value has to be seen to stay put
          * rather than to be reached once.
          */
-        assertMonitorAttrValueStays("replayed-updates-ok", initialReplayed + 1,
+        assertMonitorAttrValueStays(baseDN, "replayed-updates-ok", initialReplayed + 1,
             "a change which was delivered again must be applied exactly once");
-        assertMonitorAttrValueStays("replayed-updates-failed", initialFailures,
+        assertMonitorAttrValueStays(baseDN, "replayed-updates-failed", initialFailures,
             "a change which was replayed after a transient failure must not count as failed");
         assertEquals(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE), initialAlerts,
             "a transient failure must not tell the administrator that this replica diverged");
@@ -1714,36 +1714,6 @@ public class UpdateOperationTest extends ReplicationTestCase
     {
       broker.stop();
     }
-  }
-
-  /**
-   * Waits for a monitor attribute of the replication domain to reach the expected value.
-   * <p>
-   * The monitor entry of a domain is deregistered for as long as its session to the
-   * replication server is down, which is what a replay failure does to it, and a counter
-   * is bumped a moment after the change it counts reached the ServerState: reading the
-   * value once would be a race on both counts.
-   *
-   * @param attributeName the monitor attribute to read
-   * @param expected the value it must reach
-   * @param message what is being asserted
-   * @throws Exception if the value was not reached in time
-   */
-  private void assertMonitorAttrValueEventually(
-      final String attributeName, final long expected, final String message) throws Exception
-  {
-    TestTimer timer = new TestTimer.Builder()
-      .maxSleep(30, SECONDS)
-      .sleepTimes(200, MILLISECONDS)
-      .toTimer();
-    timer.repeatUntilSuccess(new CallableVoid()
-    {
-      @Override
-      public void call() throws Exception
-      {
-        assertEquals(getMonitorAttrValue(baseDN, attributeName), expected, message);
-      }
-    });
   }
 
   /**
@@ -1811,7 +1781,7 @@ public class UpdateOperationTest extends ReplicationTestCase
         Assertions.assertThat(ShortCircuitPlugin.getShortCircuitCount(OperationType.DELETE, "PreParse"))
             .as("the change must have been delivered again rather than recorded as replayed")
             .isGreaterThan(IN_PLACE_REPLAY_ATTEMPTS);
-        assertMonitorAttrValueStays("replayed-updates-failed", initialFailures,
+        assertMonitorAttrValueStays(baseDN, "replayed-updates-failed", initialFailures,
             "a change which was replayed in the end must not be counted as given up on");
         assertEquals(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE), initialAlerts,
             "a change which was replayed in the end must not tell the administrator that this replica diverged");
@@ -1884,9 +1854,9 @@ public class UpdateOperationTest extends ReplicationTestCase
               "a change which can never be decoded must not hold the ServerState back");
         }
       });
-      assertMonitorAttrValueEventually("replayed-updates-failed", initialFailures + 1,
+      assertMonitorAttrValueEventually(baseDN, "replayed-updates-failed", initialFailures + 1,
           "a change which could not be decoded must be counted as failed");
-      assertMonitorAttrValueStays("replayed-updates-failed", initialFailures + 1,
+      assertMonitorAttrValueStays(baseDN, "replayed-updates-failed", initialFailures + 1,
           "a change which could not be decoded must be counted once");
       Assertions.assertThat(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE))
           .as("the administrator must be told that this replica now diverges")
@@ -1978,29 +1948,6 @@ public class UpdateOperationTest extends ReplicationTestCase
         "replace: ds-cfg-server-error-result-code",
         "ds-cfg-server-error-result-code: " + resultCode), 0,
         "the server error result code could not be changed");
-  }
-
-  /**
-   * Checks that a monitor attribute of the replication domain holds the expected value
-   * and keeps holding it.
-   * <p>
-   * Waiting for a value to be reached is not enough to tell that something happened only
-   * once: a counter which is bumped a second time goes through the expected value on its
-   * way, and the first poll which sees it passes.
-   *
-   * @param attributeName the monitor attribute to read
-   * @param expected the value it must hold
-   * @param message what is being asserted
-   * @throws Exception if the value changes, or if the monitor entry can not be read
-   */
-  private void assertMonitorAttrValueStays(
-      final String attributeName, final long expected, final String message) throws Exception
-  {
-    for (int i = 0; i < 5; i++)
-    {
-      assertEquals(getMonitorAttrValue(baseDN, attributeName), expected, message);
-      Thread.sleep(200);
-    }
   }
 
   /**
