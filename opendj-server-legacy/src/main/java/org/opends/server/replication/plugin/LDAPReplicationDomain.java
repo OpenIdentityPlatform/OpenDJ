@@ -382,10 +382,19 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private final Object serviceStateLock = new Object();
   /**
-   * Bumped every time the session of this domain is stopped or started. A replay thread
-   * which stopped the session only starts it back if this still is the session it
-   * stopped: a configuration change, or the end of an import, may have started another
-   * one while it was waiting for the backend to recover.
+   * Bumped every time the session of this domain is stopped or started under
+   * {@link #serviceStateLock}. A replay thread which stopped the session only starts it
+   * back if this still is the session it stopped: a configuration change, or the end of
+   * an import, may have started another one while it was waiting for the backend to
+   * recover.
+   * <p>
+   * It does not count the sessions {@code changeConfig()} and {@code readAssuredConfig()}
+   * stop and start, which they do without knowing about it: they run under the lock, so a
+   * replay thread never observes one of theirs, but a session it stopped may well have
+   * been replaced by one of theirs while it was waiting. That is why the guard in
+   * {@link #restartSession(boolean)} reads {@code isListenerShuttingDown()} as well - a
+   * session started outside this counter leaves it untouched, and only the listener says
+   * that one is running.
    */
   @GuardedBy("serviceStateLock")
   private long sessionGeneration;
@@ -2433,7 +2442,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       boolean dependency = false;
       boolean replayFailed = false;
       boolean replayAbandoned = false;
-      boolean serverFailedOnAConflictResultCode = false;
       String replayErrorMsg = null;
       CSN csn = null;
       try
@@ -2577,10 +2585,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
                      * in-place attempts an UNAVAILABLE gets - a storage busy for a moment must
                      * not cost a session restart - and leave the change out of the ServerState
                      * once they are spent, which the failure of the server below the loop
-                     * reports and acts on. A change which is not in the data must not advance
-                     * the ServerState (issue #889).
+                     * reports and acts on, reading the result of the attempt which spent the
+                     * last of them. A change which is not in the data must not advance the
+                     * ServerState (issue #889).
                      */
-                    serverFailedOnAConflictResultCode = true;
                     Thread.sleep(50);
                     break;
                   }
@@ -2624,12 +2632,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * BUSY is a lock which could not be taken (OPENDJ-885): the in-place attempts
            * only yield to the thread which holds it, so a lock held for a while burns
            * every one of them in no time. It is as transient as a storage which failed,
-           * and the change is just as absent from the data. So is a change which kept
-           * coming back with the configured server-error-result-code and which conflict
-           * resolution could not solve.
+           * and the change is just as absent from the data. So is a change whose last
+           * attempt came back with the configured server-error-result-code, whether or
+           * not conflict resolution owns that code: it had its chance, and what is left
+           * is the storage failing to serve the operation. The result of that attempt is
+           * what decides, so that this branch reports the failure it is acting on: an
+           * attempt which ended on something conflict resolution kept rewriting is the
+           * loop below, however the attempts before it ended.
            */
           if (isServerFailure(lastResult) || ResultCode.BUSY.equals(lastResult)
-              || serverFailedOnAConflictResultCode)
+              || isConfiguredServerErrorResultCode(lastResult))
           {
             /*
              * The server kept failing to apply the change, so the change is not in the data.
@@ -2828,6 +2840,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   /**
    * Records a change which could not be replayed as replayed anyway, so that this replica
    * keeps replaying the changes which follow it, and warns that the data now diverge.
+   * <p>
+   * The backoff between the session restarts is deliberately left alone: giving up on a
+   * change is not a change being replayed, and whatever made this one unreplayable is
+   * still failing the ones which are in flight with it. Restarting it from its shortest
+   * wait would have a replica which gives up on a change now and then ask for every
+   * change of an outage as fast as the replication server can send them, which is what
+   * {@link #consecutiveSessionRestarts} is there to prevent.
    *
    * @param csn the CSN of the change which could not be replayed
    * @param cause the message describing why it could not be replayed
@@ -2838,12 +2857,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       numFailedReplayedUpdates.incrementAndGet();
       sendUnreplayedChangeAlert(cause);
-      /*
-       * The ServerState moved past this change, so the session is not being restarted for
-       * it anymore: the change which fails next must be given the short wait rather than
-       * inherit the one this replica had reached on the change it just gave up on.
-       */
-      consecutiveSessionRestarts.set(0);
     }
     // Otherwise the change is not listed as pending anymore - the domain was disabled
     // while it was being replayed - so it has not been skipped: the replication server
@@ -2936,7 +2949,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     if (failure.getFailingForMs() >= replayGiveUpDelayInMs)
     {
       final LocalizableMessage message = ERR_REPLAY_SKIPPING_CHANGE.get(
-          csn, getBaseDN(), failure.getFailingForMs() / 1000, failure.getAttempts());
+          csn, getBaseDN(), failure.getFailingForMs(), failure.getAttempts());
       logger.error(message);
       skipUnreplayableChange(csn, message);
       return false;

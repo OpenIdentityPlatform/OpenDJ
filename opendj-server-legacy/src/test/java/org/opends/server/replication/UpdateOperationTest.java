@@ -1485,6 +1485,13 @@ public class UpdateOperationTest extends ReplicationTestCase
         });
         assertMonitorAttrValueEventually("replayed-updates-failed", initialFailures + 1,
             "a change which could not be replayed must be counted once, not once per attempt");
+        /*
+         * A counter bumped once per attempt rather than once per change goes through the
+         * expected value on its way, so the value has to be seen to stay put rather than
+         * to be reached once.
+         */
+        assertMonitorAttrValueStays("replayed-updates-failed", initialFailures + 1,
+            "a change which could not be replayed must be counted once, not once per attempt");
         Assertions.assertThat(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE))
             .as("the administrator must be told that this replica now diverges")
             .isGreaterThan(initialAlerts);
@@ -1574,6 +1581,12 @@ public class UpdateOperationTest extends ReplicationTestCase
           }
         });
         assertMonitorAttrValueEventually("replayed-updates-failed", initialFailures + 2,
+            "both changes must be counted as failed, once each");
+        /*
+         * Two changes counted more than once each climb past +2, and the poll which lands
+         * on it would pass: the value has to be seen to stay put.
+         */
+        assertMonitorAttrValueStays("replayed-updates-failed", initialFailures + 2,
             "both changes must be counted as failed, once each");
         assertNotNull(getEntry(first.getName(), 1, true), "the first entry must not have been deleted");
         assertNotNull(getEntry(second.getName(), 1, true), "the second entry must not have been deleted");

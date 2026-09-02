@@ -286,9 +286,11 @@ final class RemotePendingChanges
     }
 
     /**
-     * Returns how many times in a row the replay of the change failed.
+     * Returns how many deliveries of the change failed to replay it in a row. A delivery
+     * is attempted several times in place before it is counted here, so this is a count
+     * of deliveries rather than of attempts made on the backend.
      *
-     * @return the number of failures, at least 1
+     * @return the number of failed deliveries, at least 1
      */
     int getAttempts()
     {
