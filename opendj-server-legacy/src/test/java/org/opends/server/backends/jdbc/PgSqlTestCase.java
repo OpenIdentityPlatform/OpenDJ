@@ -34,7 +34,15 @@ import static org.testng.Assert.assertTrue;
 
 //docker run --rm -it -p 5432:5432 -e POSTGRES_PASSWORD=password --name postgres postgres
 
-@Test
+/**
+ * The class-level annotation governs the cases declared here, and it has to carry
+ * {@code sequential = true} of its own: {@code TestListener.enforceTestClassTypeAndAnnotations()}
+ * looks it up on the class declaring the case rather than on the one running it, so the
+ * {@code @Test(groups = ..., sequential = true)} of {@code PluggableBackendImplTestCase} answers for
+ * the inherited cases alone and a bare {@code @Test} here fails every case this class declares.
+ * {@code OracleTestCase} carries it for the same reason.
+ */
+@Test(sequential = true)
 public class PgSqlTestCase extends TestCase {
 
     @Override
