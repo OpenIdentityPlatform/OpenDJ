@@ -164,15 +164,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 
 	/** Asked of the database itself, by listing its tables, so that no folding rule of the backend is trusted here. */
 	protected boolean isExistsTable(String tableName) throws SQLException {
-		try (final Connection con = DriverManager.getConnection(getJdbcUrl());
-			 final ResultSet rs = con.getMetaData().getTables(null, null, null, new String[]{"TABLE"})) {
-			while (rs.next()) {
-				if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
-					return true;
-				}
-			}
+		try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+			return isExistingTable(con, tableName);
 		}
-		return false;
 	}
 
 	/** Drops a table behind the back of the storage that owns it, which no code path of the backend does. */
@@ -470,7 +464,11 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		});
 		owner.close();
 
-		// a storage that never opened that tree, so nothing but the delete can enrol it
+		// a second storage of the same backend, which never opened that tree itself: the delete takes
+		// the enrolling name and the table it writes to is the one the tree names. What puts a tree up
+		// for removal is the row its backend's catalog holds (#888) - written by the openTree above and
+		// outliving the storage that made it - so this asserts the listing of a backend and not a
+		// side effect of the statement, which is what a listing of a catalog can assert
 		final JDBCStorage other = new JDBCStorage(createBackendCfg(), null);
 		try {
 			other.open(AccessMode.READ_WRITE);

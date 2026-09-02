@@ -88,29 +88,29 @@ public class PgSqlTestCase extends TestCase {
         final String backendId = getBackendId() + "_searchPath";
         // the tables of an installation made before anything was put in front of the schema they are in
         final JDBCStorage created = new JDBCStorage(createBackendCfg(backendId), null);
-        try {
-            created.open(AccessMode.READ_WRITE);
-            created.write(new WriteOperation() {
-                @Override
-                public void run(WriteableTransaction txn) throws Exception {
-                    txn.openTree(tree, true);
-                }
-            });
-        } finally {
-            created.close();
-        }
         final String tableName = created.getTableName(tree);
-        assertTrue(isExistsTable(tableName), "the case did not make the table it is about");
-
-        try (final Connection con = DriverManager.getConnection(getJdbcUrl());
-             final Statement st = con.createStatement()) {
-            st.execute("create schema if not exists " + AHEAD_ON_THE_PATH);
-        }
-        // the same backend, over connections resolving in that schema first and in the one the tables are in
-        // behind it: what they reach unqualified is unchanged, what they create is not
+        // the same backend, over connections resolving in a schema of its own first and in the one the
+        // tables are in behind it: what they reach unqualified is unchanged, what they create is not
         final String aheadOfThem = getJdbcUrl() + "&currentSchema=" + AHEAD_ON_THE_PATH + ",public";
         final JDBCStorage storage = new JDBCStorage(createBackendCfg(backendId, aheadOfThem), null);
         try {
+            try {
+                created.open(AccessMode.READ_WRITE);
+                created.write(new WriteOperation() {
+                    @Override
+                    public void run(WriteableTransaction txn) throws Exception {
+                        txn.openTree(tree, true);
+                    }
+                });
+            } finally {
+                created.close();
+            }
+            assertTrue(isExistsTable(tableName), "the case did not make the table it is about");
+
+            try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+                 final Statement st = con.createStatement()) {
+                st.execute("create schema if not exists " + AHEAD_ON_THE_PATH);
+            }
             storage.open(AccessMode.READ_WRITE);
             try (final Connection con = DriverManager.getConnection(aheadOfThem)) {
                 // the fixture is the whole of the case: without this the two schemas are the same one and
@@ -128,7 +128,11 @@ public class PgSqlTestCase extends TestCase {
             assertFalse(isExistsTable(tableName),
                 "the clear left a table it reaches unqualified standing, for living in another schema of the search path");
         } finally {
+            // the same backend id, so this clears what either half of the case created - including the
+            // run where the clear under test drops nothing and the tables would otherwise be left for
+            // whatever case of this class runs next
             clearQuietly(storage);
+            clearQuietly(new JDBCStorage(createBackendCfg(backendId), null));
             try (final Connection con = DriverManager.getConnection(getJdbcUrl());
                  final Statement st = con.createStatement()) {
                 st.execute("drop schema if exists " + AHEAD_ON_THE_PATH + " cascade");
