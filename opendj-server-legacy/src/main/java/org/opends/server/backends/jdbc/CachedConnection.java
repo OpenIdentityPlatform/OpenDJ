@@ -199,6 +199,24 @@ public class CachedConnection implements Connection {
         .build(conStr -> new LinkedBlockingDeque<>());
 
     /**
+     * Returns the bound of one attempt to establish a connection, as configured by the {@value
+     * #CONNECT_TIMEOUT_PROPERTY} system property; 0 for the operator asking for no bound of its own.
+     * A value beyond what a millisecond bound can carry is taken down to it: three of the four
+     * dialects state their properties in milliseconds, and a value that saturates the conversion
+     * bounds nothing.
+     * <p>
+     * Read here rather than at each connect so that every connection this backend establishes is
+     * bounded by the same configured value - the borrows of this pool and the connection {@code
+     * JDBCStorage} opens outside it for the tree catalog of a backend (#888) alike. A connect
+     * bounded tighter than the login of the deployment takes is a backend that stops opening, and
+     * one place to read the property is what keeps the two from drifting apart.
+     */
+    static long getConnectTimeoutSeconds() {
+        return Math.min(getNonNegativeProperty(CONNECT_TIMEOUT_PROPERTY, DEFAULT_CONNECT_TIMEOUT_SECONDS, "s"),
+            Integer.MAX_VALUE / 1000);
+    }
+
+    /**
      * Returns the time after which an idle pooled connection is closed, as configured by the
      * {@value #TTL_PROPERTY} system property. An invalid value is ignored in favor of the default.
      */
@@ -632,9 +650,7 @@ public class CachedConnection implements Connection {
     static Connection getConnection(String connectionString, boolean trusted) throws Exception {
         final ConnectDialect dialect = ConnectDialect.of(connectionString);
         reportUnknownDialect(connectionString, dialect);
-        final long connectTimeoutSeconds = Math.min(
-            getNonNegativeProperty(CONNECT_TIMEOUT_PROPERTY, DEFAULT_CONNECT_TIMEOUT_SECONDS, "s"),
-            Integer.MAX_VALUE / 1000);
+        final long connectTimeoutSeconds = getConnectTimeoutSeconds();
         final long poolTimeoutSeconds = getNonNegativeProperty(POOL_TIMEOUT_PROPERTY, DEFAULT_POOL_TIMEOUT_SECONDS, "s");
         final long startedAt = System.currentTimeMillis();
         final long deadline = (poolTimeoutSeconds == 0 || poolTimeoutSeconds >= Long.MAX_VALUE / 1000)

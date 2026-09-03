@@ -51,6 +51,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -97,6 +98,13 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
 
   /** The connection behind the pool of a test, so that a test can assert the statement it was asked to prepare. */
   private Connection engineConnection;
+
+  /**
+   * The connection the tree catalog of a storage of this test is written on, so that a test can assert what was
+   * written there. Nothing else can: it is opened straight through the driver rather than borrowed from the pool,
+   * and the rows it carries are the ones {@code statements} is asserted never to have carried.
+   */
+  private Connection catalogConnection;
 
   /**
    * Connections whose class names carry the engine the way the drivers' own do - pgjdbc's
@@ -474,6 +482,14 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
 
     assertEquals(attempts.get(), 2, "the write that created and filled the catalog was not replayed");
     verify(statements, never()).executeUpdate();
+    // and the catalog was filled, on the connection of its own: without this every assertion above holds of a
+    // storage that enrolled nothing at all - an attempt issuing no statement is replayed the same way, and the
+    // caller's connection is exactly as untouched. The row is the ANSI upsert of a plain mock, which tries an
+    // update before an insert; the create is the table this fixture is missing
+    verify(catalogConnection, atLeastOnce()).prepareStatement(startsWith("create table " + catalogTable.get()));
+    verify(catalogConnection, atLeastOnce()).prepareStatement(startsWith("update " + catalogTable.get()));
+    // committed where it is written, which is what keeps a row of an attempt that failed afterwards recorded
+    verify(catalogConnection, atLeastOnce()).commit();
   }
 
   /**
@@ -832,7 +848,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
    * driver, for the reason a stamp opens one of its own - the caller of openTree() is holding a pooled
    * connection already.
    */
-  private static Connection catalogConnection() throws Exception
+  private Connection catalogConnection() throws Exception
   {
     final Connection con = mock(Connection.class);
     final PreparedStatement onIt = mock(PreparedStatement.class);
@@ -842,6 +858,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     // the stamp of a tree name opens a connection of its own too, and a fixture that let it have this one
     // would have it issue the session statement of its dialect here
     when(con.createStatement()).thenThrow(new SQLException("no session statement in this test", "42000"));
+    catalogConnection = con;
     return con;
   }
 

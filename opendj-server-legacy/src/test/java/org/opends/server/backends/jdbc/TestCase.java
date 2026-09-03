@@ -2118,9 +2118,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				@Override
 				public void run(WriteableTransaction txn) throws Exception {
 					txn.openTree(owned, true);
-					// opened, never written to: the pair holds the compressed schema of the backend this
-					// class opens in setUp(), which created these two tables, and a row of a test in them
-					// would be read back as a schema definition
+					// opened, never written to: since #881 no backend of this class makes the literal-named
+					// pair, so this openTree is what creates these two tables - and the finally below is what
+					// removes them again, a clear being required to leave them exactly where they lie
 					for (final TreeName shared : JDBCStorage.SHARED_COMPRESSED_SCHEMA_TREES) {
 						txn.openTree(shared, true);
 					}
@@ -2356,12 +2356,57 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 
 			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
 				assertEquals(
-					storage.catalogTables(con, JDBCStorage.TableScope.of(con)).get(tree),
+					storage.catalogTables(con, JDBCStorage.TableScope.of(storage, con)).get(tree),
 					storage.getTableName(tree),
 					"a row recording a table this backend does not hold was left as it was: its tree is named at a table no clear can drop");
 			}
 		} finally {
 			clearQuietly(storage);
+		}
+	}
+
+	/**
+	 * A row recording a name outside the namespace this backend names its tables in is passed over
+	 * rather than reaching a {@code drop table} built from a value read back out of a table - and the
+	 * clear accounts for it, no other line of its report being able to: what such a row records is
+	 * outside the {@code opendj} names the scan of what a clear left standing walks, and neither the
+	 * row nor whatever it points at is dropped by anything.
+	 * <p>
+	 * Nothing this version writes makes such a row, which is why the case makes one by hand.
+	 */
+	@Test
+	public void testAClearAccountsForACatalogRowItCannotActOn() throws Exception {
+		final TreeName tree = new TreeName("testCatalogForeignRow", "tree");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_foreignRow"), null);
+		final String tableName = storage.getTableName(tree);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			final String catalogTable = storage.getTableName(storage.getCatalogTree());
+			recordAnotherTable(catalogTable, "a_table_of_something_else");
+
+			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+				final List<String> skipped = new ArrayList<>();
+				assertFalse(storage.readCatalogRows(con, catalogTable, skipped).containsKey(tree),
+					"a row recording a name no table of this backend goes by was read as a tree to drop");
+				assertEquals(skipped.size(), 1, "the row the read passed over was not described to its caller: " + skipped);
+				assertTrue(skipped.get(0).contains("a_table_of_something_else"),
+					"what the row records is named by nothing the clear could report: " + skipped);
+			}
+
+			// the clear still drops what it can: the catalog itself, which it names last
+			storage.removeStorageFiles();
+			assertTrue(isExistsTable(tableName),
+				"the clear dropped the table of a tree its catalog names at another name than that table's");
+		} finally {
+			clearQuietly(storage);
+			// left standing on purpose above, so this case removes it rather than the next one meeting it
+			dropTableIfExists(tableName);
 		}
 	}
 
@@ -2387,12 +2432,12 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				// asked the way a clear asks it, narrowed to where an unqualified name of the connection
 				// resolves: what the removal reads is this and not a lookup of a shape of its own
 				final Map<TreeName, String> recorded =
-					storage.catalogTables(con, JDBCStorage.TableScope.of(con));
+					storage.catalogTables(con, JDBCStorage.TableScope.of(storage, con));
 				assertEquals(recorded.get(tree), storage.getTableName(tree),
 					"the catalog does not record the table holding the tree its row names");
 
 				emptyTheRecordedTableNames(storage.getTableName(storage.getCatalogTree()));
-				assertEquals(storage.catalogTables(con, JDBCStorage.TableScope.of(con)).get(tree),
+				assertEquals(storage.catalogTables(con, JDBCStorage.TableScope.of(storage, con)).get(tree),
 					storage.getTableName(tree),
 					"a row recording no table name did not fall back to the name derived from the tree");
 			}
@@ -2498,7 +2543,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				// catalog with an empty string names no catalog, and a metadata pattern reads that as
 				// "the tables belonging to no catalog at all", which would answer nothing
 				final JDBCStorage.ClearLeftovers leftovers =
-					storage.leftoverTables(con, JDBCStorage.TableScope.of(con));
+					storage.leftoverTables(con, JDBCStorage.TableScope.of(storage, con));
 				assertNotNull(leftovers, "the database would not say which tables the clear left standing");
 				assertTrue(leftovers.ours.toString().toLowerCase().contains(storage.getTableName(owned).toLowerCase()),
 					"a table of a base DN this backend serves was not reported as its own: " + leftovers.ours);
@@ -2526,7 +2571,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	private void assertReportsNothingOf(JDBCStorage cleared, JDBCStorage other, TreeName otherTree) throws SQLException {
 		try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
 			final JDBCStorage.ClearLeftovers leftovers =
-				cleared.leftoverTables(con, JDBCStorage.TableScope.of(con));
+				cleared.leftoverTables(con, JDBCStorage.TableScope.of(cleared, con));
 			assertNotNull(leftovers, "the database would not say which tables the clear left standing");
 			final String reported =
 				(leftovers.ours + " " + leftovers.unattributed + " " + leftovers.unreadable).toLowerCase();
@@ -2536,7 +2581,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				"the clear of one backend reported the catalog of another: " + reported);
 
 			final JDBCStorage.ClearLeftovers theirs =
-				other.leftoverTables(con, JDBCStorage.TableScope.of(con));
+				other.leftoverTables(con, JDBCStorage.TableScope.of(other, con));
 			assertNotNull(theirs, "the database would not say which tables the neighbour is holding");
 			assertTrue(theirs.ours.toString().toLowerCase().contains(other.getTableName(otherTree).toLowerCase()),
 				"the table left unreported is one the scan does not reach at all: " + theirs.ours);

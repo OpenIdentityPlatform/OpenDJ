@@ -757,18 +757,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		.build(JDBCStorage::toTableName);
 
 	/**
-	 * The table a tree name maps to. A pure function of the name, so that a tree can be read
-	 * without being entered into tree2table: the compressed schema reads the tree its definitions
-	 * used to be shared under (#873), a tree this backend does not own, and removeStorageFiles()
-	 * drops every table tree2table names.
+	 * The table a tree name maps to. A pure function of the name, so that a tree can be read without
+	 * being entered into tree2table: the compressed schema reads the tree its definitions used to be
+	 * shared under (#873), which is a tree this backend does not own.
 	 * <p>
-	 * Which of the two a statement takes therefore says who owns the tree it names: a path that
-	 * creates or writes one - openTree(), clearTree(), deleteTree(), put(), update(), delete() -
-	 * takes the enrolling {@link #getTableName(TreeName)}, and a read-only path - read(),
-	 * getRecordCount(), isExistsTable() and the cursor - takes {@link #readTableName(TreeName)},
-	 * which computes this only for a tree that is not enrolled already. Every tree this backend
-	 * owns passes through openTree(name, true) as it is opened, so listTrees() still names the
-	 * complete owned set.
+	 * Which of the two names a statement takes therefore says whether this backend is claiming the
+	 * tree it names: a path that creates or writes one - openTree(), clearTree(), deleteTree(), put(),
+	 * update(), delete() - takes the enrolling {@link #getTableName(TreeName)}, and a path that only
+	 * asks - read(), getRecordCount(), isExistsTable(), the cursor, and the read of what the catalog
+	 * records - takes {@link #readTableName(TreeName)}, which computes this only for a tree that is not
+	 * enrolled already. What a clear may drop is decided by the catalog of the backend (#888) and no
+	 * longer by this memo, so an entry of it puts no table up for removal; the two names are what keeps
+	 * the memo an account of the trees this backend claims all the same.
 	 */
 	static String toTableName(TreeName treeName) {
 		try {
@@ -833,10 +833,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * <p>
 	 * The catalog is per backend and named after the backend id alone: a process that has opened
 	 * nothing can still find its table, and backends sharing one database URL - which nothing
-	 * forbids (#873) - never name each other's trees.
+	 * forbids (#873) - never name each other's trees. The id goes in escaped, for the reason {@link
+	 * #escapedBackendId} states: a name that does not survive being read back is a table of this
+	 * backend that its own clear cannot recognize.
 	 */
 	TreeName getCatalogTree() {
-		return new TreeName(CATALOG_BASE_DN, config.getBackendId());
+		return new TreeName(CATALOG_BASE_DN, escapedBackendId());
 	}
 
 	/**
@@ -1093,17 +1095,50 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * ordinary DML of this class, and the repeatable read a mysql server defaults to gap-locks a
 	 * catalog two transactions enrol into.
 	 * <p>
-	 * The bound of the connect is the default of the pool and not what the property of the pool was
-	 * tuned to: this is one connect per read-write open of a storage, and tuning it is tuning the
-	 * pool.
+	 * The bound of the connect is the one the pool bounds its own connects by, read from {@link
+	 * CachedConnection#CONNECT_TIMEOUT_PROPERTY} where an operator set it: a login of this database
+	 * takes what it takes whoever is asking, so a deployment which had to raise that property because
+	 * its login is slower than the default must not meet a second, tighter bound here - the connect
+	 * would fail in {@code 08001}, which is no conflict {@link #write} replays, and the backend would
+	 * stop opening on an installation that opened before this connection existed. A property of 0 is
+	 * the operator asking for no bound of the connect, and it is honoured here as it is by the pool.
+	 * <p>
+	 * With one difference at that value, and it is worth stating rather than glossing as parity: what
+	 * still bounds a pooled attempt of a property of 0 is the deadline of the borrow ({@link
+	 * CachedConnection#POOL_TIMEOUT_PROPERTY}, 60 s by default), and this connect has no borrow to
+	 * take a deadline from - it waits for no peer to return a connection, so there is none to expire.
+	 * A deployment that turns the connect bound off and meets a database which accepts the socket and
+	 * never finishes the login therefore parks here, inside the lock {@code openCatalog()} holds, and
+	 * with it every other transaction of this storage that goes on to open a tree. Both properties at
+	 * 0 park a borrow of the pool in exactly the same way; what differs is that this one is reached
+	 * with the first of them alone.
 	 */
 	Connection newCatalogConnection() throws SQLException {
 		final String connectionString=config.getDBDirectory();
 		final Properties properties=new Properties();
 		final CachedConnection.ConnectDialect dialect=CachedConnection.ConnectDialect.of(connectionString);
-		final boolean readBoundSet=dialect!=null
-			&& dialect.bound(connectionString, properties, CachedConnection.DEFAULT_CONNECT_TIMEOUT_SECONDS);
-		final Connection con=DriverManager.getConnection(connectionString, properties);
+		final long timeoutSeconds=CachedConnection.getConnectTimeoutSeconds();
+		final boolean readBoundSet=dialect!=null && timeoutSeconds>0
+			&& dialect.bound(connectionString, properties, timeoutSeconds);
+		final Connection con;
+		try {
+			con=DriverManager.getConnection(connectionString, properties);
+		}catch (SQLException e) {
+			// redacted the way the pool redacts the failure of its own connects: a driver renders the
+			// connection string it could not use into its message as readily as not, and the connection
+			// string of this backend carries the password of the account it works as. This failure is
+			// reported in full - ERR_OPEN_ENV_FAIL, or the log of a clear - so it must not carry one
+			throw CachedConnection.reported(e, connectionString);
+		}catch (RuntimeException e) {
+			// a driver reporting a connect it will not make as an unchecked failure names the connection
+			// string just as readily; reportedUnchecked() answers with the original where it holds no
+			// credential, so nothing of a plain programming error is hidden by this
+			final Exception reported=CachedConnection.reportedUnchecked(e, connectionString);
+			if (reported instanceof SQLException) { // redacted, and reported as the connect failure it is
+				throw (SQLException) reported;
+			}
+			throw (RuntimeException) reported; // the original: it holds no credential of this backend
+		}
 		try {
 			con.setAutoCommit(false);
 			con.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
@@ -1180,7 +1215,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (con!=null) {
 				try {
 					con.rollback();
-				}catch (SQLException e) {
+				}catch (SQLException | RuntimeException e) {
+					// the unchecked one as well: a driver is free to answer a rollback on a connection the
+					// database dropped with one, and this runs from the catch of a failure it must not
+					// replace - the caller goes on to report that failure, and in createCatalogTable() to
+					// tolerate a table another session created while this one was creating it
 					close();
 				}
 			}
@@ -1250,7 +1289,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (con!=null) {
 				try {
 					con.rollback();
-				}catch (SQLException e) {
+				}catch (SQLException | RuntimeException e) {
+					// the unchecked one as well: a driver is free to answer a rollback on a connection the
+					// database dropped with one, and this runs from the catch of a failure it must not
+					// replace - the caller goes on to report that failure, and in createCatalogTable() to
+					// tolerate a table another session created while this one was creating it
 					close();
 				}
 			}
@@ -1638,11 +1681,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// the table it names, and a table of that name in another database of the server must not
 			// be allowed to answer for this one - nor a table of this backend go unfound for living in
 			// another schema of the search path than the one the connection works in
-			final TableScope scope=TableScope.of(con);
+			final TableScope scope=TableScope.of(this, con);
 			// the catalog names what this backend owns, and only that: listTrees() also names the
 			// shared compressed schema trees, which another backend of this database may be the only
 			// owner of and which a clear must therefore leave exactly where they lie (#881)
-			final Map<TreeName,String> trees=catalogTables(con, scope);
+			final List<String> skippedRows=new ArrayList<>(); // rows the read could not act on: reported below
+			final Map<TreeName,String> trees=catalogTables(con, scope, skippedRows);
 			int dropped=0;
 			int missing=0;
 			try {
@@ -1675,7 +1719,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				unstampableTrees.remove(treeName);
 			}
 			try {
-				reportClearOutcome(con, scope, dropped, missing);
+				reportClearOutcome(con, scope, dropped, missing, skippedRows);
 			} catch (RuntimeException e) {
 				// the clear itself is done and committed: an account of what it left standing must not be
 				// the thing that reports it as failed, and a caller retrying it would find nothing to drop
@@ -1749,8 +1793,17 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * clear that left nothing than one that left something, and the count of what it did drop is the
 	 * only thing that can still be stated: reporting it through the line above would say "the clear
 	 * dropped no table at all" of a clear that dropped a dozen.
+	 * <p>
+	 * A row of the catalog the read passed over is reported wherever the clear got to, that line
+	 * depending on nothing this database was asked afterwards: it is the one thing left standing that
+	 * no other line here can name, since what such a row records is outside the namespace {@link
+	 * #leftoverTables} scans, and the row itself is dropped by no clear either. Nothing this version
+	 * writes makes such a row - {@link #getTableName} names every table {@code opendj_<hash>} - so it
+	 * is the account of a database written into by something else, and it is no term of the "dropped
+	 * nothing" line above: a catalog whose table is there always names itself, so a clear reading any
+	 * row at all drops that one.
 	 */
-	void reportClearOutcome(Connection con, TableScope scope, int dropped, int missing) {
+	void reportClearOutcome(Connection con, TableScope scope, int dropped, int missing, List<String> skippedRows) {
 		final ClearLeftovers leftovers=leftoverTables(con, scope);
 		if (leftovers==null) {
 			// a line of its own and not a clause of the one below: this says nothing about whether
@@ -1759,6 +1812,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// the whole of #888
 			logger.warn(LocalizableMessage.raw("jdbc: backend %s: the clear dropped %d table(s) and %d of the trees its catalog names had lost their table already; what else is standing could not be read off this database, so this clear says nothing about it.%s",
 				config.getBackendId(), dropped, missing, dropped==0 ? " "+CLEAR_DROPPED_NOTHING : ""));
+			reportSkippedRows(skippedRows); // read off the catalog and not off this database: still worth stating
 			return;
 		}
 		final int ours=leftovers.ours.size();
@@ -1776,6 +1830,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			logger.warn(LocalizableMessage.raw("jdbc: backend %s: the clear dropped no table at all: %d of the trees its catalog names had lost their table already, and %d table(s) of this backend were named by no catalog, %d could not be attributed to anyone and %d could not be read. %s",
 				config.getBackendId(), missing, ours, unattributed, unreadable, CLEAR_DROPPED_NOTHING));
 		}
+		reportSkippedRows(skippedRows); // after the reason above and among the lists, being a list itself
 		if (ours>0) {
 			logger.warn(LocalizableMessage.raw("jdbc: backend %s: %d table(s) of %s hold trees of this backend that its catalog does not name, and the clear left them where they are: %s. A tree is enrolled as it is opened read-write and by no other means, so such a table is one of a tree of a base DN this backend still serves that was taken out of the configuration while it was disabled - an attribute index, say - or one left by a version keeping no catalog: it is this backend's own and can be removed by hand, and re-adding the tree it belongs to adopts it with the rows it still holds",
 				config.getBackendId(), ours, scope.name(), leftovers.ours));
@@ -1788,6 +1843,19 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			logger.warn(LocalizableMessage.raw("jdbc: backend %s: the stamp of %d opendj table(s) of %s could not be read, so this clear says nothing about whose they are: %s. They were left exactly where they are",
 				config.getBackendId(), unreadable, scope.name(), leftovers.unreadable));
 		}
+	}
+
+	/**
+	 * Reports the rows of the catalog the clear could not act on; see {@link #readCatalogRows} for
+	 * what makes a row one of these and {@link #reportClearOutcome} for why they are a line of their
+	 * own. Silent where there are none, which is every clear of a catalog this backend wrote.
+	 */
+	private void reportSkippedRows(List<String> skippedRows) {
+		if (skippedRows.isEmpty()) {
+			return;
+		}
+		logger.warn(LocalizableMessage.raw("jdbc: backend %s: %d row(s) of its catalog name nothing this clear could drop and were passed over: %s. Neither the row nor whatever it records was removed, and no other line of this clear names them: the tables of this backend are named after the hash of a tree name, so what such a row records is outside the names a clear can account for. A catalog holding one was written into by something other than this backend",
+			config.getBackendId(), skippedRows.size(), skippedRows));
 	}
 
 	/**
@@ -1910,7 +1978,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * carries this backend's id in plain text, so a clear that finds one standing can say whose it is.
 	 */
 	private String ownCompressedSchemaBaseDN() {
-		return SHARED_COMPRESSED_SCHEMA_BASE_DN+"_"+config.getBackendId().replace("%", "%25").replace("/", "%2F");
+		return SHARED_COMPRESSED_SCHEMA_BASE_DN+"_"+escapedBackendId();
+	}
+
+	/**
+	 * The backend id as one component of a tree name. A tree name is {@code /<base DN>/<id>} and is
+	 * read back by splitting on its slashes ({@code TreeName.valueOf}), so an id carrying one of them
+	 * would name a tree that parses into another tree than it was built from - and a table is stamped
+	 * with that name (#866), so a clear reading the stamp of a table of this backend's own would then
+	 * fail to recognize it and pass it over in silence. The escape is the one {@code
+	 * PersistentCompressedSchema} spells its own prefix with, percent first so that the escape of the
+	 * slash cannot be produced twice, and it leaves an id of the ordinary shape exactly as it is -
+	 * which is what keeps the table names of an installation unchanged.
+	 */
+	private String escapedBackendId() {
+		return config.getBackendId().replace("%", "%25").replace("/", "%2F");
 	}
 
 	/**
@@ -1991,9 +2073,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			this.answered=answered;
 		}
 
-		/** What this connection says about where an unqualified name of it resolves. */
-		static TableScope of(Connection con) {
-			return of(con, true);
+		/**
+		 * What this connection says about where an unqualified name of it resolves. The storage is
+		 * taken because one engine is asked with a statement rather than with a method of its driver,
+		 * and a statement of this backend takes the bound of its class (#882).
+		 */
+		static TableScope of(JDBCStorage storage, Connection con) {
+			return of(storage, con, true);
 		}
 
 		/**
@@ -2002,7 +2088,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * create and a drop - and one refusal per tree of the backend is one line per tree in the log,
 		 * each with a stack trace, for a thing that was already said.
 		 */
-		static TableScope of(Connection con, boolean report) {
+		static TableScope of(JDBCStorage storage, Connection con, boolean report) {
 			String catalog=null;
 			List<String> schemas=null;
 			boolean answered=true;
@@ -2019,7 +2105,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				log(report, "jdbc: this connection would not name the database it works in, so a table of another database of this server may answer for one of this backend's: %s", e);
 			}
 			try {
-				schemas=schemaPathOf(con);
+				schemas=schemaPathOf(storage, con);
 			} catch (Exception e) {
 				answered=false;
 				log(report, "jdbc: this connection would not name the schemas an unqualified name of it resolves in, so a table of any schema may answer for one of this backend's: %s", e);
@@ -2037,7 +2123,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 
 		/** The schemas an unqualified name resolves in, in the order this engine resolves them. */
-		private static List<String> schemaPathOf(Connection con) throws SQLException {
+		private static List<String> schemaPathOf(JDBCStorage storage, Connection con) throws SQLException {
 			final String driverName=driverNameOf(con);
 			if (driverName.contains("mysql")) {
 				// the schema of Connector/J is the database, and which of the two names it answers with is
@@ -2055,15 +2141,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				// engine turns out not to have - pgjdbc talks to more than one of them - would otherwise
 				// surface as the next statement of the caller failing, with the cause nowhere near it
 				final Savepoint before=savepoint(con);
-				try (final PreparedStatement statement=con.prepareStatement("select unnest(current_schemas(true))");
-					 final ResultSet rs=statement.executeQuery()) {
-					final List<String> path=new ArrayList<>();
-					while (rs.next()) {
-						final String schema=emptyToNull(rs.getString(1));
-						if (schema!=null) {
-							path.add(schema);
+				try (final PreparedStatement statement=con.prepareStatement("select unnest(current_schemas(true))")) {
+					// bounded like every other statement of this backend (#882), and by the class the lookups
+					// this scope narrows take: it reads a session setting rather than the data, and what the
+					// savepoint and the fallback below answer for is a query this engine refuses - not one it
+					// never answers at all, which is a wait holding the open of a tree with nothing to end it
+					final List<String> path=storage.executeResultSet(statement, StatementBound.OPERATION, rs -> {
+						final List<String> read=new ArrayList<>();
+						while (rs.next()) {
+							final String schema=emptyToNull(rs.getString(1));
+							if (schema!=null) {
+								read.add(schema);
+							}
 						}
-					}
+						return read;
+					});
 					release(con, before);
 					if (!path.isEmpty()) {
 						return Collections.unmodifiableList(path);
@@ -2752,7 +2844,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// is reported: the ones behind it are the same connection saying the same thing, once per
 			// tree of the backend
 			if (tableScope==null || !tableScope.answered) {
-				tableScope=TableScope.of(con, tableScope==null);
+				tableScope=TableScope.of(JDBCStorage.this, con, tableScope==null);
 			}
 			return tableScope;
 		}
@@ -2982,9 +3074,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				// catalog's own connection, so that this commit is none of the caller's: see above
 				catalogSession.commit();
 				enrolledTrees.add(treeName);
-			} catch (SQLException e) {
-				catalogSession.reset(); // what a failed statement left behind must not poison the next row
-				throw new StorageRuntimeException(e);
+			} catch (SQLException | RuntimeException e) {
+				// the unchecked one as well, exactly as unenrolFromCatalog() takes it: upsert() answers a
+				// failed statement with a StorageRuntimeException of its own, and what that statement left
+				// behind has to be rolled back all the same. This connection outlives the row that failed
+				// on it and carries every remaining tree of this open - postgres refuses every further
+				// statement of a transaction whose statement failed (25P02), so a reset skipped here fails
+				// the twenty-odd enrolments behind it with a cause nowhere near the one that started it
+				catalogSession.reset();
+				throw e instanceof StorageRuntimeException ? (StorageRuntimeException) e : new StorageRuntimeException(e);
 			}
 		}
 
@@ -3044,15 +3142,20 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				for (final Map.Entry<TreeName,String> row : readCatalogRows(catalogCon, getTableName(catalog)).entrySet()) {
 					// a row recording another table than this version would record is not the row this
 					// open would leave behind: a removal drops the table the row records, so such a row is
-					// rewritten - and committed - exactly like one that is not there at all
-					if (getTableName(row.getKey()).equals(row.getValue())) {
+					// rewritten - and committed - exactly like one that is not there at all. Asked through
+					// the non-enrolling name of #881: reading what the catalog records is not taking an
+					// interest in the tree it names, and a row this decides not to trust must not have put
+					// its tree in the memo of the trees this backend names its tables for
+					if (readTableName(row.getKey()).equals(row.getValue())) {
 						enrolledTrees.add(row.getKey());
 					}
 				}
 				catalogCon.commit(); // the read ends here and holds nothing of the catalog after it
-			} catch (SQLException e) {
+			} catch (SQLException | RuntimeException e) {
+				// the unchecked one as well, for the reason enrolInCatalog() takes it: this connection is
+				// the one every enrolment of this open goes on to write its row on
 				catalogSession.reset();
-				throw new StorageRuntimeException(e);
+				throw e instanceof StorageRuntimeException ? (StorageRuntimeException) e : new StorageRuntimeException(e);
 			}
 		}
 
@@ -3079,7 +3182,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					execute(statement, StatementBound.BULK);
 				}
 				catalogCon.commit();
-			} catch (SQLException e) {
+			} catch (SQLException | RuntimeException e) {
+				// the unchecked one as well, for the reason enrolInCatalog() takes it: what the statement
+				// left behind has to be rolled back whatever class the failure arrived in, this connection
+				// being the one the rows of this open are written on
 				catalogSession.reset();
 				// a table that turned up between the lookup and this statement is what was wanted, whoever
 				// made it: the lock this runs under orders the transactions of one storage, and an offline
@@ -3601,7 +3707,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 */
 	@Override
 	public Set<TreeName> listTrees() {
-		try (final Connection con=getConnection()) {
+		// validated, like the borrows of open() and removeStorageFiles(): since the catalog this reads
+		// from, this borrow issues its statements far from itself and compensates a dropped connection
+		// in no other way - a write is replayed and a read tells the pool, and this does neither, so a
+		// connection dropped inside the alive window would surface out of a listing of tree names
+		try (final Connection con=getValidatedConnection()) {
 			return listTrees(con);
 		} catch (StorageRuntimeException e) {
 			throw e;
@@ -3611,7 +3721,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	Set<TreeName> listTrees(Connection con) throws SQLException {
-		final TableScope scope=TableScope.of(con);
+		final TableScope scope=TableScope.of(this, con);
 		final Set<TreeName> trees=new HashSet<>(catalogTables(con, scope).keySet());
 		for (final TreeName treeName : SHARED_COMPRESSED_SCHEMA_TREES) {
 			// asked of the database, not assumed: the pair belongs to no backend in particular, and
@@ -3639,6 +3749,16 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * lookup of their own by it, so they pass what they have instead of every reader asking twice over.
 	 */
 	Map<TreeName,String> catalogTables(Connection con, TableScope scope) throws SQLException {
+		return catalogTables(con, scope, new ArrayList<>()); // nobody to tell: the descriptions go nowhere
+	}
+
+	/**
+	 * The same, telling the caller what the read passed over: a clear accounts for every row of its
+	 * catalog, and a row it could not act on is one nothing else in its report would name - the table
+	 * such a row records is outside the namespace {@link #leftoverTables} scans. See {@link
+	 * #reportClearOutcome}.
+	 */
+	Map<TreeName,String> catalogTables(Connection con, TableScope scope, List<String> skippedRows) throws SQLException {
 		final TreeName catalogTree=getCatalogTree();
 		final String catalogTable=getTableName(catalogTree);
 		// narrowed to this database: a catalog of the same name in another database of the server
@@ -3646,7 +3766,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		if (!isExistsTable(con, scope, catalogTable)) {
 			return Collections.emptyMap();
 		}
-		final Map<TreeName,String> trees=readCatalogRows(con, catalogTable);
+		final Map<TreeName,String> trees=readCatalogRows(con, catalogTable, skippedRows);
 		// The catalog names every tree of the backend but itself, and is put last on purpose: the
 		// removal drops the trees in this order, and what names them has to outlive them. Dropping a
 		// table is DDL, which mysql and oracle commit as they go, so a removal that fails halfway is
@@ -3666,8 +3786,20 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * namespace this backend names its tables in points at a table that is nobody's business of this
 	 * one's - and a row naming no tree at all, or naming one that is not a tree name, would otherwise
 	 * fail every clear from here on rather than the one thing it describes.
+	 * <p>
+	 * Every row passed over is described into {@code skippedRows}, the warn above being addressed to
+	 * whoever is reading the log at that moment and this to the account a clear gives of itself: such
+	 * a row is a tree the clear cannot see, and neither the row nor what it records is dropped by
+	 * anything. A reader with nobody to tell - a read of {@code dbtest}, or the one an enrolment makes
+	 * - hands in a list of its own and lets it go, which is one allocation per read of a whole table
+	 * and no convention to get wrong.
 	 */
 	Map<TreeName,String> readCatalogRows(Connection con, String catalogTable) throws SQLException {
+		return readCatalogRows(con, catalogTable, new ArrayList<>());
+	}
+
+	Map<TreeName,String> readCatalogRows(Connection con, String catalogTable, List<String> skippedRows)
+			throws SQLException {
 		final Map<TreeName,String> trees=new LinkedHashMap<>();
 		// the rows are read inside the bound rather than from a live ResultSet: #882 took the
 		// executeResultSet() that returned one away, so a transfer cannot run with nothing bounding it
@@ -3678,6 +3810,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					if (key==null) { // no tree is named by a row with no key, and a clear must not fail over one
 						logger.warn(LocalizableMessage.raw("jdbc: table %s holds a row naming no tree at all: skipped",
 							catalogTable));
+						skippedRows.add("a row naming no tree at all");
 						continue;
 					}
 					final String name=new String(db2real(key), StandardCharsets.UTF_8);
@@ -3687,6 +3820,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					} catch (RuntimeException e) { // reported rather than passed off as a backend with fewer trees
 						logger.warn(LocalizableMessage.raw("jdbc: table %s holds \"%s\", which is not the name of a tree: skipped",
 							catalogTable, name));
+						skippedRows.add("\""+name+"\", which is not the name of a tree");
 						continue;
 					}
 					final byte[] table=rs.getBytes("v");
@@ -3702,6 +3836,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					if (!isOwnTableName(tableName)) {
 						logger.warn(LocalizableMessage.raw("jdbc: table %s records tree %s at \"%s\", which is no table of this backend: skipped",
 							catalogTable, treeName, tableName));
+						skippedRows.add(treeName+" at \""+tableName+"\", which is no table of this backend");
 						continue;
 					}
 					trees.put(treeName, tableName);

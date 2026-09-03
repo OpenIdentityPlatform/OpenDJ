@@ -25,6 +25,9 @@ import org.testng.annotations.Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import static org.testng.Assert.assertEquals;
@@ -131,6 +134,23 @@ public class PgSqlTestCase extends TestCase {
             assertTrue(storage.listTrees().contains(tree),
                 "a tree whose table this connection reads unqualified was named by none of them");
 
+            // the other half of what the narrowing decides, and the destructive one: openTree() creates a
+            // table where its lookup answers that there is none, and an unqualified "create table" lands in
+            // current_schema() - the schema ahead of the tables. A lookup asking about that schema alone
+            // would answer no here and leave the populated table in public orphaned behind a second, empty
+            // one, from this commit on. The clear below drops what the catalog names and would go on
+            // passing while it happened, which is why this is asserted here rather than left to it
+            storage.write(new WriteOperation() {
+                @Override
+                public void run(WriteableTransaction txn) throws Exception {
+                    txn.openTree(tree, true);
+                }
+            });
+            assertFalse(isExistsTableInSchema(AHEAD_ON_THE_PATH, tableName),
+                "the open created a second table in the schema ahead of the tables, shadowing the populated one");
+            assertTrue(isExistsTableInSchema("public", tableName),
+                "the open did not leave the populated table where it is");
+
             storage.removeStorageFiles();
 
             assertFalse(isExistsTable(tableName),
@@ -144,6 +164,26 @@ public class PgSqlTestCase extends TestCase {
             try (final Connection con = DriverManager.getConnection(getJdbcUrl());
                  final Statement st = con.createStatement()) {
                 st.execute("drop schema if exists " + AHEAD_ON_THE_PATH + " cascade");
+            }
+        }
+    }
+
+    /**
+     * Whether the table is in that one schema, which is the question the case above asks and the one
+     * {@code TestCase.isExistsTable} cannot answer: it walks every schema the connection can see, so a
+     * table created in the wrong one of the two reads there exactly like a table created in the right
+     * one. Asked of {@code information_schema} with the schema and the name bound rather than through
+     * {@code getTables()}, whose schema is a pattern - {@code opendj_ahead} would match a schema named
+     * {@code opendjXahead} as readily, {@code _} being a single-character wildcard there.
+     */
+    private boolean isExistsTableInSchema(String schema, String tableName) throws SQLException {
+        try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+             final PreparedStatement st = con.prepareStatement(
+                 "select 1 from information_schema.tables where table_schema=? and lower(table_name)=lower(?)")) {
+            st.setString(1, schema);
+            st.setString(2, tableName);
+            try (final ResultSet rs = st.executeQuery()) {
+                return rs.next();
             }
         }
     }
