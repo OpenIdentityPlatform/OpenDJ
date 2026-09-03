@@ -349,7 +349,7 @@ final class PersistentCompressedSchema extends CompressedSchema
       return 0;
     }
     long copied = 0;
-    try (Cursor<ByteString, ByteString> cursor = txn.openCursor(from))
+    try (Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(from))
     {
       while (cursor.next())
       {
@@ -375,9 +375,10 @@ final class PersistentCompressedSchema extends CompressedSchema
     // Cursor through the object class database and load the object class set
     // definitions. At the same time, figure out the highest token value and
     // initialize the object class counter to one greater than that.
+    // Both trees are read whole while the backend opens, with no client operation waiting on it.
     if (txn.treeExists(ocTree))
     {
-      try (Cursor<ByteString, ByteString> ocCursor = txn.openCursor(ocTree))
+      try (Cursor<ByteString, ByteString> ocCursor = txn.openBulkCursor(ocTree))
       {
         while (ocCursor.next())
         {
@@ -403,7 +404,7 @@ final class PersistentCompressedSchema extends CompressedSchema
     // Cursor through the attribute description database and load the attribute set definitions.
     if (txn.treeExists(adTree))
     {
-      try (Cursor<ByteString, ByteString> adCursor = txn.openCursor(adTree))
+      try (Cursor<ByteString, ByteString> adCursor = txn.openBulkCursor(adTree))
       {
         while (adCursor.next())
         {

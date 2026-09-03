@@ -55,6 +55,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.mockito.Mockito.when;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
@@ -439,6 +440,199 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * A statement of this backend has to end even when another session holds what it needs: a row
+	 * locked by a transaction that never commits used to park the worker thread that issued the
+	 * write for good, with nothing in the log to say so (#877).
+	 */
+	@Test(timeOut = 600000)
+	public void testWriteBlockedByAnotherSessionGivesUpAtItsBound() throws Exception {
+		assertBoundedWhileRowsAreLocked("testStatementBound", JDBCStorage.StatementBound.OPERATION,
+			new BlockedOperation() {
+				@Override
+				public void run(JDBCStorage storage, TreeName tree) throws Exception {
+					storage.write(new WriteOperation() {
+						@Override
+						public void run(WriteableTransaction txn) throws Exception {
+							txn.put(tree, key(1), value(2));
+						}
+					});
+				}
+			});
+	}
+
+	/**
+	 * The bulk class keeps a bound of its own: a count or the delete that empties a tree before an
+	 * import legitimately takes minutes, so it must not be cut at the bound of an entry read - and
+	 * must still be able to give up (#877).
+	 */
+	@Test(timeOut = 600000)
+	public void testBulkStatementGivesUpAtItsOwnBound() throws Exception {
+		assertBoundedWhileRowsAreLocked("testBulkBound", JDBCStorage.StatementBound.BULK,
+			new BlockedOperation() {
+				@Override
+				public void run(JDBCStorage storage, TreeName tree) throws Exception {
+					// the importer is where "delete from <table>" - the bulk class - is reachable:
+					// AbstractTwoPhaseImportStrategy clears every tree before an import writes to it
+					try (final Importer importer = storage.startImport()) {
+						importer.clearTree(tree);
+					}
+				}
+			});
+	}
+
+	private interface BlockedOperation {
+		void run(JDBCStorage storage, TreeName tree) throws Exception;
+	}
+
+	/**
+	 * Whether the failure the operation gave up with is the one its bound produced: the message of
+	 * a statement classified as having reached its bound names the property that bounded it, and it
+	 * arrives wrapped in whatever the storage throws to its caller.
+	 */
+	private static boolean namesTheBound(Throwable failure, JDBCStorage.StatementBound bound) {
+		return namedInTheChain(failure, bound.property);
+	}
+
+	/**
+	 * Whether the statement ran under the socket read timeout alone, which is what
+	 * {@code timedOut()} says of one whose driver would not take the cancel. That degradation is by
+	 * design - {@code JDBCStorage.setQueryTimeout()} warns once and carries on - and it is
+	 * therefore silent: with a ceiling wide enough for the second layer, a run with the first one
+	 * gone entirely ends at the backstop and passes as the bound doing its work.
+	 */
+	private static boolean ranUnderTheBackstopAlone(Throwable failure) {
+		return namedInTheChain(failure, JDBCStorage.BACKSTOP_ALONE);
+	}
+
+	/** Cause hops walked below, as {@code JDBCStorage} bounds its own classifier: a guard against a cycle. */
+	private static final int MAX_CAUSE_HOPS = 16;
+
+	private static boolean namedInTheChain(Throwable failure, String text) {
+		// bounded by hops rather than by t != t.getCause(), which only catches a cause that is its
+		// own: a wrapper re-attaching an exception it has already wrapped makes a cycle of two, and
+		// walking that one spins until the harness times the whole suite out
+		Throwable t = failure;
+		for (int hops = 0; t != null && hops < MAX_CAUSE_HOPS; t = t.getCause(), hops++) {
+			if (t.getMessage() != null && t.getMessage().contains(text)) {
+				return true;
+			}
+			if (t == t.getCause()) {
+				break;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Runs the given operation while another session holds every row of the tree in an uncommitted
+	 * transaction, with only the property of the given class bounding it: the operation must give
+	 * up inside that bound instead of waiting for a lock that is never released.
+	 */
+	private void assertBoundedWhileRowsAreLocked(String treeId, JDBCStorage.StatementBound bound, BlockedOperation blocked)
+			throws Exception {
+		final int boundSeconds = 5;
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName(treeId, "tree");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					txn.put(tree, key(1), value(1));
+				}
+			});
+			// another session takes an exclusive lock on every row of the table and keeps it: the
+			// same statement clearTree() issues, so it is known to parse on all four dialects
+			try (final Connection blocker = DriverManager.getConnection(getJdbcUrl())) {
+				blocker.setAutoCommit(false);
+				try (final Statement lock = blocker.createStatement()) {
+					lock.executeUpdate("delete from " + storage.getTableName(tree));
+				}
+				// the rows go back whatever the assertions below do with the run: the cleanup of
+				// this method drops the table, which is a bulk statement and unbounded here, so a
+				// lock still held would park it until the timeout of the harness and turn one
+				// failed assertion into a stalled build
+				try {
+					// only the class under test is bounded, so a pass through the other one cannot
+					// be mistaken for the bound working
+					for (final JDBCStorage.StatementBound each : JDBCStorage.StatementBound.values()) {
+						System.setProperty(each.property, each == bound ? Integer.toString(boundSeconds) : "0");
+					}
+					// the monotonic clock, which is what timedOut() measures the bound with: a step of
+					// the wall clock can neither lengthen nor shorten what the assertions below allow
+					final long startedAt = System.nanoTime();
+					Exception failure = null;
+					try {
+						blocked.run(storage, tree);
+						fail("the operation must give up while the rows it needs are locked");
+					} catch (Exception expected) {
+						failure = expected; // the bound was reached and the transaction rolled back
+					}
+					final long elapsed = (System.nanoTime() - startedAt) / 1000000L;
+					// The failure has to be the one the bound produces, not any failure at all: an
+					// operation that fell over at once for an unrelated reason would otherwise pass
+					// this test at t=0. timedOut() names the property in the message of everything it
+					// classifies as reaching the bound.
+					assertTrue(namesTheBound(failure, bound), "gave up with " + stackTraceToSingleLineString(failure)
+						+ ", which does not name " + bound.property);
+					// And under the layer it is supposed to be under. The ceiling below has to be
+					// wide enough for the second one, since that is what ends the wait on oracle,
+					// and a ceiling that wide cannot tell a working first layer from a missing one:
+					// a driver that stops taking setQueryTimeout degrades to the backstop silently
+					// by design, ends there, and would be scored as the bound doing its work. The
+					// message says which layer it was, so this assertion can too.
+					assertFalse(ranUnderTheBackstopAlone(failure), "the driver would not take a query timeout, so "
+						+ "the statement ran under the socket read timeout alone: "
+						+ stackTraceToSingleLineString(failure));
+					// And it has to arrive at the bound rather than at something else that happens to
+					// end the wait inside a generous ceiling: with the bound deleted, mysql would still
+					// come back after its own innodb_lock_wait_timeout of 50 s, and the assertion has
+					// to fail then. The ceiling is what the bound really allows a statement, which is
+					// the second layer rather than the property: holdBackstop() arms the socket read
+					// timeout at the bound plus its margin on every engine, not only on oracle, and a
+					// run where the cancel of the driver does not land ends there. Scoring that as a
+					// failure would fail this suite for the second layer doing exactly what it exists
+					// to do - and on oracle, where a session in a row-lock enqueue never acts on the
+					// break its driver sends, that is not an edge case but the normal path.
+					final long ceilingSeconds = boundSeconds + JDBCStorage.BACKSTOP_MARGIN_SECONDS + 10;
+					// with a little slack under the bound: a driver keeps its timer in whole seconds and
+					// may report the cancel a few milliseconds before the bound is arithmetically due,
+					// which is the slack timedOut() classifies such a statement with
+					assertTrue(elapsed >= boundSeconds * 1000L - JDBCStorage.CLOCK_SLACK_MILLIS,
+						"gave up after " + elapsed + " ms, before its bound of "
+						+ boundSeconds + " s: something other than the bound ended the wait");
+					assertTrue(elapsed < ceilingSeconds * 1000L, "gave up only after " + elapsed + " ms, past the "
+						+ ceilingSeconds + " s this bound of " + boundSeconds + " s allows");
+				}finally {
+					// in a catch of its own: a rollback that throws would otherwise replace the
+					// assertion above, and the run would report an unrelated connection problem
+					// instead of the bound that was missed. Nothing is lost by swallowing it - a
+					// session that cannot roll back has no rows left locked either.
+					try {
+						blocker.rollback();
+					} catch (SQLException releasingTheRows) {
+						// the assertions above are the outcome of this test, not this
+					}
+				}
+			}
+		} finally {
+			for (final JDBCStorage.StatementBound each : JDBCStorage.StatementBound.values()) {
+				System.clearProperty(each.property);
+			}
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
 	}
 
 	/**
