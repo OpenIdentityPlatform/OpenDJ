@@ -1629,6 +1629,12 @@ final class OnDiskMergeImporter
     }
 
     @Override
+    public boolean treeExists(TreeName treeName)
+    {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public long getRecordCount(TreeName treeName)
     {
       throw new UnsupportedOperationException();
@@ -4205,6 +4211,12 @@ final class OnDiskMergeImporter
         }
       }
       return counter;
+    }
+
+    @Override
+    public boolean treeExists(TreeName treeName)
+    {
+      throw new UnsupportedOperationException();
     }
 
     @Override

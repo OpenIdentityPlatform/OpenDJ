@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -22,6 +23,8 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.SortedSet;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
@@ -47,6 +50,29 @@ public final class ReplSessionSecurity
   private static final String REPLICATION_CLIENT_NAME = "Replication Client";
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /**
+   * Minimum interval, in minutes, between two warnings about a failed SSL handshake
+   * on the replication port. Every connection which is not a replication peer fails
+   * the handshake, network probes included, so only the first failure of an interval
+   * is logged as a warning and the following ones are logged at debug level.
+   */
+  private static final long HANDSHAKE_FAILURE_WARN_INTERVAL_MINUTES = 5;
+
+  /** Package private for testing. */
+  static final long HANDSHAKE_FAILURE_WARN_INTERVAL_NANOS =
+      TimeUnit.MINUTES.toNanos(HANDSHAKE_FAILURE_WARN_INTERVAL_MINUTES);
+
+  /**
+   * Value of {@link System#nanoTime()} at which the last handshake failure was
+   * logged as a warning. It starts one interval in the past so that the first
+   * failure is warned about.
+   */
+  private final AtomicLong lastHandshakeFailureWarnNanos =
+      new AtomicLong(System.nanoTime() - HANDSHAKE_FAILURE_WARN_INTERVAL_NANOS);
+
+  /** Number of handshake failures logged at debug level since the last warning. */
+  private final AtomicLong suppressedHandshakeFailures = new AtomicLong();
 
   /**
    * Whether replication sessions use SSL encryption.
@@ -253,10 +279,10 @@ public final class ReplSessionSecurity
     }
     catch (final SSLException e)
     {
-      // This is probably a connection attempt from an unexpected client
-      // log that to warn the administrator.
-      logger.debug(INFO_SSL_SERVER_CON_ATTEMPT_ERROR, socket.getRemoteSocketAddress(),
-          socket.getLocalSocketAddress(), e.getLocalizedMessage());
+      // This may be a connection attempt from an unexpected client, but it is
+      // also how a certificate misconfiguration shows up, so warn the
+      // administrator instead of failing silently.
+      logHandshakeFailure(socket, e);
       return null;
     }
     finally
@@ -270,6 +296,63 @@ public final class ReplSessionSecurity
   }
 
 
+
+  /**
+   * Logs a failed SSL handshake on the replication port, as a warning for the
+   * first failure of each {@link #HANDSHAKE_FAILURE_WARN_INTERVAL_MINUTES}
+   * interval and at debug level for the following ones. The warning reports how
+   * many failures were logged at debug level before it, so that a single line
+   * cannot be mistaken for a single failed connection. That count looks backwards
+   * only: the failures which follow the last warning of a burst are counted but
+   * never reported, as nothing flushes the count when the failures stop.
+   *
+   * @param socket
+   *          The socket the handshake failed on.
+   * @param e
+   *          The handshake failure.
+   */
+  private void logHandshakeFailure(final Socket socket, final SSLException e)
+  {
+    final long recorded = recordHandshakeFailure(System.nanoTime());
+    if (recorded >= 0)
+    {
+      logger.warn(WARN_SSL_SERVER_CON_ATTEMPT_ERROR, socket.getRemoteSocketAddress(),
+          socket.getLocalSocketAddress(), HANDSHAKE_FAILURE_WARN_INTERVAL_MINUTES,
+          recorded, e.getLocalizedMessage());
+    }
+    else
+    {
+      logger.debug(WARN_SSL_SERVER_CON_ATTEMPT_ERROR, socket.getRemoteSocketAddress(),
+          socket.getLocalSocketAddress(), HANDSHAKE_FAILURE_WARN_INTERVAL_MINUTES,
+          -recorded - 1, e.getLocalizedMessage());
+    }
+  }
+
+  /**
+   * Records a handshake failure which happened at the provided time and tells how it
+   * must be logged, together with the number of failures logged at debug level since
+   * the previous warning.
+   * <p>
+   * Package private for testing.
+   *
+   * @param nowNanos
+   *          The value of {@link System#nanoTime()} at which the handshake failed.
+   * @return A number greater than or equal to zero if this failure is to be logged as a
+   *         warning, which is then the number of failures logged at debug level since
+   *         the previous warning, or {@code -count - 1} if this failure is itself to be
+   *         logged at debug level, where {@code count} is the number of failures logged
+   *         at debug level since the previous warning, this one included.
+   */
+  long recordHandshakeFailure(final long nowNanos)
+  {
+    final long lastWarn = lastHandshakeFailureWarnNanos.get();
+    if (nowNanos - lastWarn >= HANDSHAKE_FAILURE_WARN_INTERVAL_NANOS
+        && lastHandshakeFailureWarnNanos.compareAndSet(lastWarn, nowNanos))
+    {
+      return suppressedHandshakeFailures.getAndSet(0);
+    }
+    return -suppressedHandshakeFailures.incrementAndGet() - 1;
+  }
 
   /**
    * Determine whether sessions to a given replication server should be
