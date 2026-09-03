@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -87,9 +88,15 @@ public class ServerWriter extends DirectoryThread
     LocalizableMessage errMessage = null;
     try
     {
+      /*
+       * Looping here to wait for a pending ReplicaOfflineMsg would achieve nothing: this writer
+       * only stops once its handler has been shut down, which deactivates the consumer, clears
+       * the message queue and closes the session. The shutdown of the domain waits for the
+       * message to be forwarded before it stops the handlers - see
+       * ReplicationServerDomain.shutdown() and OPENDJ-1453.
+       */
       boolean shutdown = false;
-      while (!shutdown
-          || !dsrsShutdownSync.canShutdown(replicationServerDomain.getBaseDN()))
+      while (!shutdown)
       {
         final UpdateMsg updateMsg = this.handler.take();
         if (updateMsg == null)
@@ -105,7 +112,8 @@ public class ServerWriter extends DirectoryThread
           session.publish(updateMsg);
           if (updateMsg instanceof ReplicaOfflineMsg)
           {
-            dsrsShutdownSync.replicaOfflineMsgForwarded(replicationServerDomain.getBaseDN());
+            dsrsShutdownSync.replicaOfflineMsgForwarded(
+                replicationServerDomain.getBaseDN(), updateMsg.getCSN().getServerId());
           }
         }
       }

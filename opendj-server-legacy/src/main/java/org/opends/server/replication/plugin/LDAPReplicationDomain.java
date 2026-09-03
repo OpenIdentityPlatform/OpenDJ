@@ -1976,7 +1976,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public void publishReplicaOfflineMsg()
   {
     pendingChanges.putReplicaOfflineMsg();
-    dsrsShutdownSync.replicaOfflineMsgSent(getBaseDN());
+    dsrsShutdownSync.replicaOfflineMsgSent(getBaseDN(), getServerId());
   }
 
   /**

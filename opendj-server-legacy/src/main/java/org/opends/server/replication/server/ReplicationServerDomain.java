@@ -1666,6 +1666,22 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     DirectoryServer.deregisterMonitorProvider(this);
 
+    /*
+     * Let a ReplicaOfflineMsg sent by a collocated DS be forwarded to the other RSs before the
+     * server handlers are stopped: stopping them deactivates their consumer, clears their message
+     * queue and closes their session, after which the message can no longer be sent - see
+     * OPENDJ-1453. With no RS connected there is nobody to forward the message to, and waiting
+     * would only delay the shutdown by the whole grace period.
+     * <p>
+     * This waits before the assured timer is cancelled below, so that an assured update still
+     * waiting for acks keeps timing out during the wait instead of holding its sender until the
+     * sessions are closed.
+     */
+    if (!connectedRSs.isEmpty())
+    {
+      localReplicationServer.getDSRSShutdownSync().awaitReplicaOfflineMsgForwarded(baseDN);
+    }
+
     // Terminate the assured timer
     assuredTimeoutTimer.cancel();
 
