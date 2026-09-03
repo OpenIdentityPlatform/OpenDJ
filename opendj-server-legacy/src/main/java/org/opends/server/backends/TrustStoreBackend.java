@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends;
 
@@ -819,6 +820,45 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
           trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    message, e);
+    }
+  }
+
+  /**
+   * Retrieves the path to the file which holds this trust store.
+   *
+   * @return  The path to the file which holds this trust store.
+   */
+  public String getTrustStoreFile()
+  {
+    return trustStoreFile;
+  }
+
+  /**
+   * Indicates whether this trust store holds a key entry, that is a private key
+   * and its certificate, under the provided alias. The alias is matched the way
+   * the key store itself matches it, without regard to case for the JKS and
+   * PKCS12 store types.
+   *
+   * @param  alias  The alias to look for.
+   *
+   * @return  {@code true} if this trust store holds a key entry under the
+   *          provided alias, {@code false} otherwise.
+   *
+   * @throws  DirectoryException  If the trust store cannot be read.
+   */
+  public boolean containsKeyWithAlias(String alias) throws DirectoryException
+  {
+    final KeyStore keyStore = loadKeyStore();
+    try
+    {
+      return keyStore.isKeyEntry(alias);
+    }
+    catch (KeyStoreException e)
+    {
+      logger.traceException(e);
+
+      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(trustStoreFile, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
   }
 

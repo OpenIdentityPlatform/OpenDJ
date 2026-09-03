@@ -55,6 +55,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.mockito.Mockito.when;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
@@ -232,6 +233,404 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				}
 			});
 		} finally {
+			storage.close();
+		}
+	}
+
+	/**
+	 * treeExists() has to answer for a table that was never created rather than fail: it is how the
+	 * compressed schema tells a backend with nothing to migrate from one whose definitions are still
+	 * under the shared prefix (#873), and every other statement of this storage fails outright on a
+	 * table that does not exist.
+	 */
+	@Test
+	public void testTreeExistsAnswersForAMissingTable() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName present = new TreeName("testTreeExists", "present");
+		final TreeName absent = new TreeName("testTreeExists", "absent");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(present, true);
+					assertTrue(txn.treeExists(present));
+					assertFalse(txn.treeExists(absent));
+				}
+			});
+			// the read path has to answer as well: export-ldif and verify-index open read-only, where
+			// no tree is created and the question cannot be settled by writing one
+			storage.read(new ReadOperation<Void>() {
+				@Override
+				public Void run(ReadableTransaction txn) throws Exception {
+					assertTrue(txn.treeExists(present));
+					assertFalse(txn.treeExists(absent));
+					return null;
+				}
+			});
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.deleteTree(present);
+					assertFalse(txn.treeExists(present));
+				}
+			});
+		} finally {
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(present);
+					}
+				});
+			} catch (Exception ignored) {}
+			storage.close();
+		}
+	}
+
+	/**
+	 * The compressed schema definitions of this backend must live in a table of its own. The tree
+	 * name they used to carry held no backend qualifier, so its table name was a constant that every
+	 * JDBC backend of every server sharing the database mapped to, and two of them overwrote each
+	 * other's token definitions there (#873). The backend of this suite has been opened and populated
+	 * by PluggableBackendImplTestCase#setUp, so its own table exists by now.
+	 */
+	@Test
+	public void testCompressedSchemaTableIsQualifiedByBackendId() throws Exception {
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			final String shared = JDBCStorage.toTableName(new TreeName("compressed_schema", "compressed_attributes"));
+			final String own = JDBCStorage.toTableName(
+					new TreeName("compressed_schema_" + getBackendId(), "compressed_attributes"));
+			assertFalse(shared.equals(own), "the qualified tree name must map to a table of its own");
+			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+				assertTrue(isExistingTable(con, own), own + " (this backend's own definitions) is missing");
+				assertFalse(isExistingTable(con, shared), shared + " is the table every backend used to share");
+			}
+		} finally {
+			storage.close();
+		}
+	}
+
+	/**
+	 * Reading a tree must not enrol it in the storage's tree map: removeStorageFiles() drops every
+	 * table that map names, and the compressed schema reads the tree its definitions used to be
+	 * shared under - which on a shared database is another backend's to keep (#873). Asking whether
+	 * the tree is there is only the first of those reads: the migration counts it and copies it out
+	 * too, so one guarded statement would not be enough.
+	 */
+	@Test
+	public void testProbingATreeDoesNotPutItUpForRemoval() throws Exception {
+		final TreeName foreign = new TreeName("testProbe", "foreign");
+		final JDBCStorage owner = new JDBCStorage(createBackendCfg(), null);
+		owner.open(AccessMode.READ_WRITE);
+		owner.write(new WriteOperation() {
+			@Override
+			public void run(WriteableTransaction txn) throws Exception {
+				txn.openTree(foreign, true);
+				txn.put(foreign, key(1), value(1));
+			}
+		});
+		owner.close();
+
+		// a second storage on the same database, which never opened that tree - the shape of two
+		// backends addressing one database
+		final JDBCStorage other = new JDBCStorage(createBackendCfg(), null);
+		try {
+			other.open(AccessMode.READ_WRITE);
+			other.read(new ReadOperation<Void>() {
+				@Override
+				public Void run(ReadableTransaction txn) throws Exception {
+					// every read the compressed schema runs against a tree it does not own: it asks
+					// whether the tree is there, counts it, reads a key of it and walks it (#873)
+					assertTrue(txn.treeExists(foreign));
+					assertEquals(txn.getRecordCount(foreign), 1);
+					assertEquals(txn.read(foreign, key(1)), value(1));
+					try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(foreign)) {
+						assertTrue(cursor.next());
+						assertEquals(cursor.getKey(), key(1));
+					}
+					return null;
+				}
+			});
+			assertFalse(other.listTrees().contains(foreign), "a tree only read must not be listed for removal");
+
+			other.removeStorageFiles();
+
+			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+				assertTrue(isExistingTable(con, JDBCStorage.toTableName(foreign)),
+						"clearing one backend dropped a table it had only asked about");
+			}
+		} finally {
+			other.close();
+			final JDBCStorage cleanup = new JDBCStorage(createBackendCfg(), null);
+			try {
+				cleanup.open(AccessMode.READ_WRITE);
+				cleanup.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(foreign);
+					}
+				});
+			} catch (Exception ignored) {
+			} finally {
+				cleanup.close();
+			}
+		}
+	}
+
+	/**
+	 * The other side of the same rule: a cursor reads through the non-enrolling name, but deleting
+	 * through one writes to the tree, so it is a tree this backend owns and removeStorageFiles()
+	 * has to be able to name it.
+	 */
+	@Test
+	public void testDeletingThroughACursorPutsTheTreeUpForRemoval() throws Exception {
+		final TreeName tree = new TreeName("testCursorDelete", "tree");
+		final JDBCStorage owner = new JDBCStorage(createBackendCfg(), null);
+		owner.open(AccessMode.READ_WRITE);
+		owner.write(new WriteOperation() {
+			@Override
+			public void run(WriteableTransaction txn) throws Exception {
+				txn.openTree(tree, true);
+				txn.put(tree, key(1), value(1));
+			}
+		});
+		owner.close();
+
+		// a storage that never opened that tree, so nothing but the delete can enrol it
+		final JDBCStorage other = new JDBCStorage(createBackendCfg(), null);
+		try {
+			other.open(AccessMode.READ_WRITE);
+			other.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(tree)) {
+						assertTrue(cursor.next());
+						cursor.delete();
+					}
+				}
+			});
+			assertTrue(other.listTrees().contains(tree), "a tree written through a cursor must be listed for removal");
+		} finally {
+			other.close();
+			final JDBCStorage cleanup = new JDBCStorage(createBackendCfg(), null);
+			try {
+				cleanup.open(AccessMode.READ_WRITE);
+				cleanup.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {
+			} finally {
+				cleanup.close();
+			}
+		}
+	}
+
+	private static boolean isExistingTable(Connection con, String tableName) throws SQLException {
+		try (final ResultSet rs = con.getMetaData().getTables(null, null, null, new String[]{"TABLE"})) {
+			while (rs.next()) {
+				if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * A statement of this backend has to end even when another session holds what it needs: a row
+	 * locked by a transaction that never commits used to park the worker thread that issued the
+	 * write for good, with nothing in the log to say so (#877).
+	 */
+	@Test(timeOut = 600000)
+	public void testWriteBlockedByAnotherSessionGivesUpAtItsBound() throws Exception {
+		assertBoundedWhileRowsAreLocked("testStatementBound", JDBCStorage.StatementBound.OPERATION,
+			new BlockedOperation() {
+				@Override
+				public void run(JDBCStorage storage, TreeName tree) throws Exception {
+					storage.write(new WriteOperation() {
+						@Override
+						public void run(WriteableTransaction txn) throws Exception {
+							txn.put(tree, key(1), value(2));
+						}
+					});
+				}
+			});
+	}
+
+	/**
+	 * The bulk class keeps a bound of its own: a count or the delete that empties a tree before an
+	 * import legitimately takes minutes, so it must not be cut at the bound of an entry read - and
+	 * must still be able to give up (#877).
+	 */
+	@Test(timeOut = 600000)
+	public void testBulkStatementGivesUpAtItsOwnBound() throws Exception {
+		assertBoundedWhileRowsAreLocked("testBulkBound", JDBCStorage.StatementBound.BULK,
+			new BlockedOperation() {
+				@Override
+				public void run(JDBCStorage storage, TreeName tree) throws Exception {
+					// the importer is where "delete from <table>" - the bulk class - is reachable:
+					// AbstractTwoPhaseImportStrategy clears every tree before an import writes to it
+					try (final Importer importer = storage.startImport()) {
+						importer.clearTree(tree);
+					}
+				}
+			});
+	}
+
+	private interface BlockedOperation {
+		void run(JDBCStorage storage, TreeName tree) throws Exception;
+	}
+
+	/**
+	 * Whether the failure the operation gave up with is the one its bound produced: the message of
+	 * a statement classified as having reached its bound names the property that bounded it, and it
+	 * arrives wrapped in whatever the storage throws to its caller.
+	 */
+	private static boolean namesTheBound(Throwable failure, JDBCStorage.StatementBound bound) {
+		return namedInTheChain(failure, bound.property);
+	}
+
+	/**
+	 * Whether the statement ran under the socket read timeout alone, which is what
+	 * {@code timedOut()} says of one whose driver would not take the cancel. That degradation is by
+	 * design - {@code JDBCStorage.setQueryTimeout()} warns once and carries on - and it is
+	 * therefore silent: with a ceiling wide enough for the second layer, a run with the first one
+	 * gone entirely ends at the backstop and passes as the bound doing its work.
+	 */
+	private static boolean ranUnderTheBackstopAlone(Throwable failure) {
+		return namedInTheChain(failure, JDBCStorage.BACKSTOP_ALONE);
+	}
+
+	/** Cause hops walked below, as {@code JDBCStorage} bounds its own classifier: a guard against a cycle. */
+	private static final int MAX_CAUSE_HOPS = 16;
+
+	private static boolean namedInTheChain(Throwable failure, String text) {
+		// bounded by hops rather than by t != t.getCause(), which only catches a cause that is its
+		// own: a wrapper re-attaching an exception it has already wrapped makes a cycle of two, and
+		// walking that one spins until the harness times the whole suite out
+		Throwable t = failure;
+		for (int hops = 0; t != null && hops < MAX_CAUSE_HOPS; t = t.getCause(), hops++) {
+			if (t.getMessage() != null && t.getMessage().contains(text)) {
+				return true;
+			}
+			if (t == t.getCause()) {
+				break;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Runs the given operation while another session holds every row of the tree in an uncommitted
+	 * transaction, with only the property of the given class bounding it: the operation must give
+	 * up inside that bound instead of waiting for a lock that is never released.
+	 */
+	private void assertBoundedWhileRowsAreLocked(String treeId, JDBCStorage.StatementBound bound, BlockedOperation blocked)
+			throws Exception {
+		final int boundSeconds = 5;
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		final TreeName tree = new TreeName(treeId, "tree");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					txn.put(tree, key(1), value(1));
+				}
+			});
+			// another session takes an exclusive lock on every row of the table and keeps it: the
+			// same statement clearTree() issues, so it is known to parse on all four dialects
+			try (final Connection blocker = DriverManager.getConnection(getJdbcUrl())) {
+				blocker.setAutoCommit(false);
+				try (final Statement lock = blocker.createStatement()) {
+					lock.executeUpdate("delete from " + storage.getTableName(tree));
+				}
+				// the rows go back whatever the assertions below do with the run: the cleanup of
+				// this method drops the table, which is a bulk statement and unbounded here, so a
+				// lock still held would park it until the timeout of the harness and turn one
+				// failed assertion into a stalled build
+				try {
+					// only the class under test is bounded, so a pass through the other one cannot
+					// be mistaken for the bound working
+					for (final JDBCStorage.StatementBound each : JDBCStorage.StatementBound.values()) {
+						System.setProperty(each.property, each == bound ? Integer.toString(boundSeconds) : "0");
+					}
+					// the monotonic clock, which is what timedOut() measures the bound with: a step of
+					// the wall clock can neither lengthen nor shorten what the assertions below allow
+					final long startedAt = System.nanoTime();
+					Exception failure = null;
+					try {
+						blocked.run(storage, tree);
+						fail("the operation must give up while the rows it needs are locked");
+					} catch (Exception expected) {
+						failure = expected; // the bound was reached and the transaction rolled back
+					}
+					final long elapsed = (System.nanoTime() - startedAt) / 1000000L;
+					// The failure has to be the one the bound produces, not any failure at all: an
+					// operation that fell over at once for an unrelated reason would otherwise pass
+					// this test at t=0. timedOut() names the property in the message of everything it
+					// classifies as reaching the bound.
+					assertTrue(namesTheBound(failure, bound), "gave up with " + stackTraceToSingleLineString(failure)
+						+ ", which does not name " + bound.property);
+					// And under the layer it is supposed to be under. The ceiling below has to be
+					// wide enough for the second one, since that is what ends the wait on oracle,
+					// and a ceiling that wide cannot tell a working first layer from a missing one:
+					// a driver that stops taking setQueryTimeout degrades to the backstop silently
+					// by design, ends there, and would be scored as the bound doing its work. The
+					// message says which layer it was, so this assertion can too.
+					assertFalse(ranUnderTheBackstopAlone(failure), "the driver would not take a query timeout, so "
+						+ "the statement ran under the socket read timeout alone: "
+						+ stackTraceToSingleLineString(failure));
+					// And it has to arrive at the bound rather than at something else that happens to
+					// end the wait inside a generous ceiling: with the bound deleted, mysql would still
+					// come back after its own innodb_lock_wait_timeout of 50 s, and the assertion has
+					// to fail then. The ceiling is what the bound really allows a statement, which is
+					// the second layer rather than the property: holdBackstop() arms the socket read
+					// timeout at the bound plus its margin on every engine, not only on oracle, and a
+					// run where the cancel of the driver does not land ends there. Scoring that as a
+					// failure would fail this suite for the second layer doing exactly what it exists
+					// to do - and on oracle, where a session in a row-lock enqueue never acts on the
+					// break its driver sends, that is not an edge case but the normal path.
+					final long ceilingSeconds = boundSeconds + JDBCStorage.BACKSTOP_MARGIN_SECONDS + 10;
+					// with a little slack under the bound: a driver keeps its timer in whole seconds and
+					// may report the cancel a few milliseconds before the bound is arithmetically due,
+					// which is the slack timedOut() classifies such a statement with
+					assertTrue(elapsed >= boundSeconds * 1000L - JDBCStorage.CLOCK_SLACK_MILLIS,
+						"gave up after " + elapsed + " ms, before its bound of "
+						+ boundSeconds + " s: something other than the bound ended the wait");
+					assertTrue(elapsed < ceilingSeconds * 1000L, "gave up only after " + elapsed + " ms, past the "
+						+ ceilingSeconds + " s this bound of " + boundSeconds + " s allows");
+				}finally {
+					// in a catch of its own: a rollback that throws would otherwise replace the
+					// assertion above, and the run would report an unrelated connection problem
+					// instead of the bound that was missed. Nothing is lost by swallowing it - a
+					// session that cannot roll back has no rows left locked either.
+					try {
+						blocker.rollback();
+					} catch (SQLException releasingTheRows) {
+						// the assertions above are the outcome of this test, not this
+					}
+				}
+			}
+		} finally {
+			for (final JDBCStorage.StatementBound each : JDBCStorage.StatementBound.values()) {
+				System.clearProperty(each.property);
+			}
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {}
 			storage.close();
 		}
 	}

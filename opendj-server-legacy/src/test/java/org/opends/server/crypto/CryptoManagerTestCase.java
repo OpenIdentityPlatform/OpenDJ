@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.crypto;
 
@@ -22,6 +23,7 @@ import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.crypto.CryptoManagerImpl.CERT_NICKNAME_CHECK_INTERVAL_NANOS;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.types.Attributes.*;
@@ -52,6 +54,7 @@ import org.forgerock.util.Options;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.backends.TrustStoreBackend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -84,6 +87,48 @@ public class CryptoManagerTestCase extends CryptoTestCase {
   public void CleanUp() throws Exception {
     // Removes at least secret keys added in this test case.
     TestCaseUtils.restartServer();
+  }
+
+  /**
+   The nickname check must answer for the trust store the SSL context is built from: the
+   instance key pair the server generated for itself is held under its alias, a nickname
+   which was never imported is not.
+   */
+  @Test
+  public void testTrustStoreKnowsWhichCertNicknamesItHolds() throws Exception
+  {
+    // Generates the ads-certificate key pair if the trust store does not hold it yet.
+    assertNotNull(CryptoManagerImpl.getInstanceKeyCertificateFromLocalTruststore());
+    final TrustStoreBackend trustStore = (TrustStoreBackend) getServerContext()
+        .getBackendConfigManager().getLocalBackendById(ID_ADS_TRUST_STORE_BACKEND);
+
+    assertThat(trustStore.containsKeyWithAlias(ADS_CERTIFICATE_ALIAS)).isTrue();
+    assertThat(trustStore.containsKeyWithAlias("no-such-nickname")).isFalse();
+  }
+
+  /**
+   A server which cannot present its certificate reconnects every 500 ms and a new SSL
+   context is built for every attempt, so a certificate nickname missing from the trust
+   store is looked up, and reported, at most once per interval and per component -- but
+   again on the next interval, for as long as it is missing.
+   */
+  @Test
+  public void testMissingCertNicknameIsReportedOncePerInterval()
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final String checked = "Replication Server:" + UUID.randomUUID();
+    final long start = System.nanoTime();
+
+    assertThat(cm.isCertNicknameCheckDue(checked, start))
+        .as("the nickname has never been looked up").isTrue();
+    assertThat(cm.isCertNicknameCheckDue(checked, start + 1))
+        .as("the next connection attempt does not look it up again").isFalse();
+    assertThat(cm.isCertNicknameCheckDue(checked, start + CERT_NICKNAME_CHECK_INTERVAL_NANOS - 1))
+        .as("nor does the last attempt of the interval").isFalse();
+    assertThat(cm.isCertNicknameCheckDue(checked, start + CERT_NICKNAME_CHECK_INTERVAL_NANOS))
+        .as("a whole interval later it is looked up again").isTrue();
+    assertThat(cm.isCertNicknameCheckDue(checked, start + CERT_NICKNAME_CHECK_INTERVAL_NANOS + 1))
+        .as("and the next interval starts from that look up").isFalse();
   }
 
   @Test

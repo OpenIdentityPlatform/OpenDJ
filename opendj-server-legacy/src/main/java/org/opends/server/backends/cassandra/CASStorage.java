@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -63,6 +64,7 @@ import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.cql.Statement;
+import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
@@ -204,6 +206,13 @@ public class CASStorage implements org.opends.server.backends.pluggable.spi.Stor
 			System.setProperty("datastax-java-driver.profiles."+profile+".basic.request.timeout", "30 seconds");
 		}
 	}
+	// The wordings a server uses for a table or a keyspace that is not there. Matched rather than
+	// the exception type, which covers the whole INVALID protocol code: see namesAnAbsentTable().
+	// "Undefined column name ..." deliberately does not match - that table exists.
+	static final Pattern ABSENT_TABLE=Pattern.compile(
+		"unconfigured (table|columnfamily)|(table|keyspace)[^,]* does not exist|undefined (table|keyspace)",
+		Pattern.CASE_INSENSITIVE);
+
 	private final class TransactionImpl implements ReadableTransaction,WriteableTransaction {
 		
 		final AccessMode accessMode;
@@ -245,6 +254,57 @@ public class CASStorage implements org.opends.server.backends.pluggable.spi.Stor
 				prepared.get("SELECT count(*) FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId").bind()
 					.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId())
 			).one().getLong(0);
+		}
+
+		@Override
+		public boolean treeExists(TreeName treeName) {
+			// Every tree of this backend is a partition of the one table named after the backend id,
+			// so a tree has no existence apart from its rows: "exists" here means "holds at least one
+			// record". A LIMIT 1 lookup rather than getRecordCount() to avoid the full partition scan
+			// a count would run.
+			try {
+				return execute(
+					prepared.get("SELECT key FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId LIMIT 1").bind()
+						.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId())
+				).one()!=null;
+			}catch (InvalidQueryException e) {
+				// The backend's own table has not been created yet - a read-only open of a backend
+				// that was never written, where openTree() creates nothing - so none of its trees
+				// can exist either. The driver reports it from prepare() as much as from execute().
+				//
+				// Narrowly, twice over, because calling a populated tree absent would have the
+				// compressed schema restart its token allocation from zero and overwrite the
+				// definitions the entries already written were encoded with (#873):
+				//
+				// - InvalidQueryException carries the whole INVALID protocol code, so the rejection
+				//   has to name an absent table or keyspace. An undefined column, say, means the
+				//   table is there with a shape this backend did not write, and answering "absent"
+				//   for it would be that same corruption;
+				// - and only a read-only open may answer it at all. A writeable open has just run
+				//   CREATE TABLE IF NOT EXISTS through openTree(), so a rejection there is a fault
+				//   and must fail the open, as it did before this method existed and loadTrees()
+				//   opened its cursor unconditionally. This is also where a table a coordinator has
+				//   not caught up with lands - what a rolling upgrade produces, since schema
+				//   agreement is never reached in a mixed-version cluster - and it fails loudly
+				//   rather than being taken for a table that was never created.
+				if (accessMode.isWriteable() || !namesAnAbsentTable(e)) {
+					throw e;
+				}
+				return false;
+			}
+		}
+
+		/**
+		 * Whether a rejected query says that the table or the keyspace is not there, as opposed to
+		 * anything else the INVALID protocol code covers. The driver offers nothing finer than the
+		 * server's own message - the code is one value for the whole bucket - so the wordings of
+		 * the server are matched, across the versions that changed them ("unconfigured
+		 * columnfamily" became "unconfigured table", and a keyspace is reported as not existing).
+		 * A wording that is not among them is not read as an absent table: it fails the open, which
+		 * is the side to err on.
+		 */
+		private boolean namesAnAbsentTable(InvalidQueryException e) {
+			return e.getMessage()!=null && ABSENT_TABLE.matcher(e.getMessage()).find();
 		}
 
 		@Override

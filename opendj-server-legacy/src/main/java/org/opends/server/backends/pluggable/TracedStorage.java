@@ -288,11 +288,29 @@ final class TracedStorage implements Storage
     }
 
     @Override
+    public boolean treeExists(TreeName name)
+    {
+      traceEnter("treeExists", "name", name);
+      final boolean exists = txn.treeExists(name);
+      traceLeave("treeExists", "name", name, "exists", exists);
+      return exists;
+    }
+
+    @Override
     public Cursor<ByteString, ByteString> openCursor(final TreeName name)
     {
       traceEnter("openCursor", "name", name);
       final Cursor<ByteString, ByteString> cursor = txn.openCursor(name);
       traceLeave("openCursor", "name", name);
+      return new TracedCursor(cursor);
+    }
+
+    @Override
+    public Cursor<ByteString, ByteString> openBulkCursor(final TreeName name)
+    {
+      traceEnter("openBulkCursor", "name", name);
+      final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(name);
+      traceLeave("openBulkCursor", "name", name);
       return new TracedCursor(cursor);
     }
 
@@ -366,11 +384,29 @@ final class TracedStorage implements Storage
     }
 
     @Override
+    public boolean treeExists(TreeName name)
+    {
+      traceEnter("treeExists", "name", name);
+      final boolean exists = txn.treeExists(name);
+      traceLeave("treeExists", "name", name, "exists", exists);
+      return exists;
+    }
+
+    @Override
     public Cursor<ByteString, ByteString> openCursor(final TreeName name)
     {
       traceEnter("openCursor", "name", name);
       final Cursor<ByteString, ByteString> cursor = txn.openCursor(name);
       traceLeave("openCursor", "name", name);
+      return new TracedCursor(cursor);
+    }
+
+    @Override
+    public Cursor<ByteString, ByteString> openBulkCursor(final TreeName name)
+    {
+      traceEnter("openBulkCursor", "name", name);
+      final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(name);
+      traceLeave("openBulkCursor", "name", name);
       return new TracedCursor(cursor);
     }
 

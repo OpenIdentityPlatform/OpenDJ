@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
@@ -105,6 +106,11 @@ public final class SelectableCertificateKeyManager
         return clientAlias;
       }
     }
+    // Every key type requested by the peer has been tried, so no client certificate is
+    // sent at all. The peer may well accept the connection, as client authentication is
+    // optional for most of them, so keep this at debug level. The components which build
+    // their SSL context from a configured nickname, the crypto manager and the connection
+    // handlers, report a nickname missing from their key store when they build it.
     logger.debug(INFO_MISSING_KEY_TYPE_IN_ALIASES, componentName, aliases.toString(), Arrays.toString(keyType));
     return null;
   }
@@ -181,6 +187,9 @@ public final class SelectableCertificateKeyManager
         return serverAlias;
       }
     }
+    // The peer is asked for one key type at a time, so returning no alias here is part
+    // of a normal negotiation, for instance an EC key type against an RSA only key
+    // store. Keep this at debug level to avoid warning about healthy handshakes.
     logger.debug(INFO_MISSING_KEY_TYPE_IN_ALIASES, componentName, aliases.toString(), Arrays.toString(keyType));
     return null;
   }
