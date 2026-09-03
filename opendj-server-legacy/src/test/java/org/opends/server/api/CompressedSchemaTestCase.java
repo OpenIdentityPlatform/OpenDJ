@@ -16,6 +16,8 @@
 package org.opends.server.api;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.api.CompressedSchema.MAX_LOAD_ID;
+import static org.opends.server.util.StaticUtils.bytesToHexNoSpace;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
@@ -35,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
@@ -132,6 +135,21 @@ public class CompressedSchemaTestCase extends APITestCase
     private void loadObjectClassesAt(final int id, final Collection<String> objectClassNames)
     {
       loadObjectClasses(encodedToken(id), objectClassNames);
+    }
+
+    /**
+     * Loads a definition under the provided key, as an implementation does at startup for every
+     * record it read - the key being whatever the storage holds rather than one this test composed.
+     */
+    private AttributeDescription loadAttributeUnder(final byte[] token, final String attributeName)
+    {
+      return loadAttribute(token, attributeName, Collections.<String> emptySet());
+    }
+
+    private Map<ObjectClass, String> loadObjectClassesUnder(final byte[] token,
+        final Collection<String> objectClassNames)
+    {
+      return loadObjectClasses(token, objectClassNames);
     }
 
     /** The tokens the whole content would be saved under, as DefaultCompressedSchema saves it. */
@@ -594,6 +612,270 @@ public class CompressedSchemaTestCase extends APITestCase
     }
   }
 
+  /**
+   * A definition stored under a key no compressed schema hands out is skipped rather than loaded.
+   * The load path folds whatever key the storage holds into an id and hands it straight to the
+   * decode map, so a corrupt or truncated key reached that map as a negative index, or - where it
+   * folds to an id that is live - as an overwrite of the definition that id belongs to. One
+   * unreadable record must cost the definition it carries and nothing else: the open goes on, and
+   * the token it was stored under is left with no definition, which the decode path reports.
+   */
+  @Test
+  public void aTokenNoCompressedSchemaHandsOutIsSkippedWhenLoaded() throws Exception
+  {
+    for (final byte[] unusable : unusableTokens())
+    {
+      final String token = "0x" + bytesToHexNoSpace(unusable);
+      final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+      compressedSchema.loadAttributeAt(0, "description");
+      compressedSchema.loadObjectClassesAt(0, Arrays.asList("top", "person"));
+
+      assertNull(compressedSchema.loadAttributeUnder(unusable, "cn"),
+          "the attribute description stored under " + token + " should have been skipped");
+      assertNull(compressedSchema.loadObjectClassesUnder(unusable, Arrays.asList("top", "organizationalUnit")),
+          "the object classes stored under " + token + " should have been skipped");
+
+      assertEquals(compressedSchema.savedAttributeTokens(), Collections.singletonList(0),
+          "the definition stored under " + token + " reached the attribute description maps");
+      assertEquals(compressedSchema.savedObjectClassTokens(), Collections.singletonList(0),
+          "the definition stored under " + token + " reached the object class maps");
+      assertEquals(attributeNameAt(compressedSchema, 0), "description",
+          "the definition stored under " + token + " displaced the one the id 0 belongs to");
+      assertEquals(objectClassesAt(compressedSchema, 0), objectClasses("top", "person"),
+          "the definition stored under " + token + " displaced the one the id 0 belongs to");
+    }
+  }
+
+  /**
+   * A key folding to an id past the highest one a definition may be loaded under is skipped. The
+   * decode map is indexed by the id, so loading one under an id of that size pads the map up to it,
+   * and it happens under the exclusive lock - inside the write transaction a pluggable backend
+   * opens in, where nothing reports what the open is waiting for.
+   */
+  @Test
+  public void aTokenBeyondTheHighestLoadableIdIsSkipped() throws Exception
+  {
+    final List<byte[]> beyond = Arrays.asList(
+        encodedToken(MAX_LOAD_ID + 1),
+        // The largest id a four byte key folds to, which is what the issue this guards was raised
+        // for: two billion slots, appended one at a time.
+        new byte[] { (byte) 0x7F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF });
+    for (final byte[] unusable : beyond)
+    {
+      final String token = "0x" + bytesToHexNoSpace(unusable);
+      final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+
+      assertNull(compressedSchema.loadAttributeUnder(unusable, "description"),
+          "the attribute description stored under " + token + " should have been skipped");
+      assertNull(compressedSchema.loadObjectClassesUnder(unusable, Arrays.asList("top", "person")),
+          "the object classes stored under " + token + " should have been skipped");
+
+      assertEquals(compressedSchema.savedAttributeTokens(), Collections.<Integer> emptyList(),
+          "the definition stored under " + token + " reached the attribute description maps");
+      assertEquals(compressedSchema.savedObjectClassTokens(), Collections.<Integer> emptyList(),
+          "the definition stored under " + token + " reached the object class maps");
+    }
+  }
+
+  /**
+   * The decode map is padded to the id of a definition in one pass, and rebuilt in one pass when
+   * the schema changes. It is a {@link java.util.concurrent.CopyOnWriteArrayList}, so appending the
+   * slots of the ids with no definition one at a time copies the whole backing array per slot: the
+   * highest id a definition may be loaded under is what a corrupt key can still cost an open, and
+   * a quadratic cost there is one an open never finishes paying.
+   */
+  @Test
+  public void theDecodeMapIsPaddedToALoadedAttributeIdInOnePass() throws Exception
+  {
+    final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+
+    final long loadStart = System.nanoTime();
+    assertNotNull(compressedSchema.loadAttributeUnder(encodedToken(MAX_LOAD_ID), "description"),
+        "the highest loadable id is one an encode hands out and its definition was skipped");
+    final long loadMs = millisSince(loadStart);
+
+    // The first decode rebuilds the maps for the current schema, walking the whole decode map.
+    final long decodeStart = System.nanoTime();
+    final Attribute decoded =
+        compressedSchema.decodeAttribute(recordWithToken(encodedToken(MAX_LOAD_ID), true).asReader());
+    final long decodeMs = millisSince(decodeStart);
+
+    assertEquals(decoded.getAttributeDescription().getAttributeType().getNameOrOID(), "description");
+    assertTrue(loadMs < PADDING_BUDGET_MS,
+        "padding the decode map to the id " + MAX_LOAD_ID + " took " + loadMs + " ms");
+    assertTrue(decodeMs < PADDING_BUDGET_MS,
+        "rebuilding the decode map of " + MAX_LOAD_ID + " ids took " + decodeMs + " ms");
+  }
+
+  /** The same for the object class maps, which grow through a path of their own. */
+  @Test
+  public void theDecodeMapIsPaddedToALoadedObjectClassIdInOnePass() throws Exception
+  {
+    final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+
+    final long loadStart = System.nanoTime();
+    assertNotNull(
+        compressedSchema.loadObjectClassesUnder(encodedToken(MAX_LOAD_ID), Arrays.asList("top", "person")),
+        "the highest loadable id is one an encode hands out and its definition was skipped");
+    final long loadMs = millisSince(loadStart);
+
+    final long decodeStart = System.nanoTime();
+    final Map<ObjectClass, String> decoded =
+        compressedSchema.decodeObjectClasses(recordWithToken(encodedToken(MAX_LOAD_ID), false).asReader());
+    final long decodeMs = millisSince(decodeStart);
+
+    assertEquals(decoded, objectClasses("top", "person"));
+    assertTrue(loadMs < PADDING_BUDGET_MS,
+        "padding the decode map to the id " + MAX_LOAD_ID + " took " + loadMs + " ms");
+    assertTrue(decodeMs < PADDING_BUDGET_MS,
+        "rebuilding the decode map of " + MAX_LOAD_ID + " ids took " + decodeMs + " ms");
+  }
+
+  /**
+   * A skipped definition leaves nothing behind in the encode map. The load puts the element in the
+   * encode map as well, and a key folding to an id that is live would otherwise leave the skipped
+   * element mapped to that id: an encode would hand out a token that decodes to another definition,
+   * and entries would be written under it - silently, which is worse than the open that fails.
+   */
+  @Test
+  public void aSkippedDefinitionIsNotLeftInTheEncodeMap() throws Exception
+  {
+    final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+    // The canonical token of the id 0 is 0x01, and this is that value padded to two bytes. Loaded
+    // before the definition the id 0 belongs to: the order a cursor over a corrupt store reads its
+    // records in is not this test's to choose, and neither order may publish the skipped element.
+    compressedSchema.loadAttributeUnder(new byte[] { 0x00, 0x01 }, "cn");
+    compressedSchema.loadAttributeAt(0, "description");
+
+    final ByteStringBuilder builder = new ByteStringBuilder();
+    compressedSchema.encodeAttribute(builder, Attributes.create("cn", "a value"));
+    final Attribute decoded = compressedSchema.decodeAttribute(builder.toByteString().asReader());
+    assertEquals(decoded.getAttributeDescription().getAttributeType().getNameOrOID(), "cn",
+        "an entry was written under a token that decodes to another attribute description");
+  }
+
+  /**
+   * A skipped definition still costs the id its key folds to. A key mangled from the canonical one
+   * folds to the id that key addressed, and entries carrying that id are still out there, so
+   * leaving it out of the decode map would let the next registration hand it out again and those
+   * entries would decode as whatever that registration stored. Held as the gap it is - which is
+   * what the reload carries over for the same reason, and what the decode path reports.
+   */
+  @Test
+  public void aSkippedDefinitionStillCostsTheIdItsKeyNames() throws Exception
+  {
+    final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+    compressedSchema.loadAttributeAt(0, "sn");
+    compressedSchema.loadObjectClassesAt(0, Arrays.asList("top", "person"));
+    // The canonical token of the id 2 is 0x03, and this is that value padded to two bytes: what is
+    // lost is the definition of the id 2, an id entries already written carry.
+    compressedSchema.loadAttributeUnder(new byte[] { 0x00, 0x03 }, "cn");
+    compressedSchema.loadObjectClassesUnder(new byte[] { 0x00, 0x03 }, Arrays.asList("top", "device"));
+
+    final ByteStringBuilder attributeBuilder = new ByteStringBuilder();
+    compressedSchema.encodeAttribute(attributeBuilder, Attributes.create("description", "a value"));
+    final ByteStringBuilder objectClassBuilder = new ByteStringBuilder();
+    compressedSchema.encodeObjectClasses(objectClassBuilder, objectClasses("top", "organizationalUnit"));
+
+    assertEquals(tokenOf(attributeBuilder.toByteString()), 3,
+        "the id of the skipped definition was handed out again");
+    assertEquals(tokenOf(objectClassBuilder.toByteString()), 3,
+        "the id of the skipped definition was handed out again");
+    assertAttributeTokenIsReported(compressedSchema, 2);
+    assertObjectClassTokenIsReported(compressedSchema, 2);
+  }
+
+  /**
+   * A token past the highest id a definition is loaded back under is never handed out. The decode
+   * map is padded to the ids read out of a storage, so a key accepted at the ceiling leaves the
+   * next registration at an id the next open would refuse: the entry written with it would decode
+   * as nothing once the server is restarted, which is the one thing a registration may not do.
+   */
+  @Test
+  public void aTokenBeyondTheHighestLoadableIdIsNeverHandedOut() throws Exception
+  {
+    final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+    compressedSchema.loadAttributeUnder(encodedToken(MAX_LOAD_ID), "description");
+    compressedSchema.loadObjectClassesUnder(encodedToken(MAX_LOAD_ID), Arrays.asList("top", "person"));
+
+    try
+    {
+      compressedSchema.encodeAttribute(new ByteStringBuilder(), Attributes.create("cn", "a value"));
+      fail("a token no open would take back should not have been handed out");
+    }
+    catch (final DirectoryException expected)
+    {
+      assertMessageIs(expected, ERR_COMPRESSEDSCHEMA_NO_TOKEN_LEFT.get(0, 0), "the exhausted token space");
+    }
+    try
+    {
+      compressedSchema.encodeObjectClasses(new ByteStringBuilder(), objectClasses("top", "device"));
+      fail("a token no open would take back should not have been handed out");
+    }
+    catch (final DirectoryException expected)
+    {
+      assertMessageIs(expected, ERR_COMPRESSEDSCHEMA_NO_TOKEN_LEFT.get(0, 0), "the exhausted token space");
+    }
+    assertEquals(compressedSchema.attributeStoreCount, 0, "a token no open would take back was stored");
+    assertEquals(compressedSchema.objectClassStoreCount, 0, "a token no open would take back was stored");
+  }
+
+  /**
+   * Every key an encode writes is one a load takes back. The keys are checked against what this
+   * schema would have written for the id they fold to, so the check has to accept each of the
+   * lengths an id is written in rather than the one byte the small ids of a test fit in.
+   */
+  @Test
+  public void everyTokenAnEncodeWritesIsLoadedBack() throws Exception
+  {
+    // The ids either side of the byte an encode adds at 0xFF and at 0xFFFF.
+    for (final int id : new int[] { 0, 1, 254, 255, 256, 65534, 65535, 65536 })
+    {
+      final TestCompressedSchema compressedSchema = new TestCompressedSchema();
+      assertNotNull(compressedSchema.loadAttributeUnder(encodedToken(id), "description"),
+          "the id " + id + " is one an encode hands out and its definition was skipped");
+      assertNotNull(compressedSchema.loadObjectClassesUnder(encodedToken(id), Arrays.asList("top", "person")),
+          "the id " + id + " is one an encode hands out and its definition was skipped");
+
+      final Attribute decoded =
+          compressedSchema.decodeAttribute(recordWithToken(encodedToken(id), true).asReader());
+      assertEquals(decoded.getAttributeDescription().getAttributeType().getNameOrOID(), "description",
+          "the definition loaded under the id " + id + " is not the one that token decodes to");
+      assertEquals(compressedSchema.decodeObjectClasses(recordWithToken(encodedToken(id), false).asReader()),
+          objectClasses("top", "person"),
+          "the definition loaded under the id " + id + " is not the one that token decodes to");
+    }
+  }
+
+  /**
+   * What padding a decode map to the highest loadable id may cost. One pass over a map of that size
+   * is milliseconds; a pass per slot is minutes, which is what this separates rather than any
+   * measure of how fast the one pass is.
+   */
+  private static final long PADDING_BUDGET_MS = 30000;
+
+  private static long millisSince(final long start)
+  {
+    return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+  }
+
+  /** Keys a compressed schema never hands out, as a corrupt or truncated store holds them. */
+  private static List<byte[]> unusableTokens()
+  {
+    return Arrays.asList(
+        // Empty, all zero in one byte, and all zero in the four bytes an id is at most written
+        // in: every one of them folds to the id -1, which is not an index of anything.
+        new byte[0],
+        new byte[] { 0x00 },
+        new byte[] { 0x00, 0x00, 0x00, 0x00 },
+        // 0xFFFFFFFF, which folds to the id -2.
+        new byte[] { (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF },
+        // The canonical token of the id 0 padded to two bytes, and past the four bytes an id is
+        // ever written in. Both fold to the id 0, whose definition is live.
+        new byte[] { 0x00, 0x01 },
+        new byte[] { 0x00, 0x00, 0x00, 0x00, 0x01 });
+  }
+
   /** A record carrying the provided token, with a single value where an attribute is asked for. */
   private static ByteString recordWithToken(final byte[] idBytes, final boolean withAValue)
   {
@@ -780,10 +1062,14 @@ public class CompressedSchemaTestCase extends APITestCase
     return builder.toByteString();
   }
 
-  /** Encodes a token the way CompressedSchema does, one byte being enough for the tests. */
+  /**
+   * The key a compressed schema writes the definition of the provided id under, through the
+   * encoder production writes it with: a load now takes a definition back only under that exact
+   * key, so a second encoder here would let this suite pass against keys the server rejects.
+   */
   private static byte[] encodedToken(final int id)
   {
-    return new byte[] { (byte) ((id + 1) & 0xFF) };
+    return CompressedSchema.encodeId(id);
   }
 
   /** Decodes a token the way CompressedSchema does. */

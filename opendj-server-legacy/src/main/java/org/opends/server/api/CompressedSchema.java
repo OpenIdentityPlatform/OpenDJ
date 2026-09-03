@@ -21,6 +21,8 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.bytesToHexNoSpace;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -45,6 +47,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.util.annotations.VisibleForTesting;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.Attribute;
@@ -93,6 +96,29 @@ public class CompressedSchema
 
   /** The most bytes {@link #encodeId(int)} ever writes a schema element ID in. */
   private static final int MAX_ID_BYTES = 4;
+
+  /**
+   * The highest ID a definition may be loaded under.
+   * <p>
+   * The decode maps are indexed by the ID, so an ID read out of a storage is also the size the map
+   * has to be padded to, and the padding runs under {@link #exclusiveLock} while a backend opens.
+   * Nothing in a token says whether the ID it folds to is one this server allocated or one a
+   * corrupt record composed, so the ceiling is what keeps the second from costing the memory of the
+   * first: four bytes address two billion slots, and {@link #encodeId(int)} writes four of them for
+   * every ID past 16777214, so a truncated or partially written record is enough to name one.
+   * <p>
+   * An ID is allocated per distinct attribute description - the type together with its options -
+   * and per distinct object class set, once and for the life of the storage. A deployment encodes
+   * those in the hundreds, and a large one in the thousands, so this leaves a hundredfold headroom
+   * over what a compressed schema is asked to hold. Above it a definition is skipped and reported:
+   * a definition wrongly skipped is one the decode path reports as an unknown token, which is loud,
+   * whereas an ID taken at face value is an open that does not finish.
+   * <p>
+   * The same ceiling bounds what {@link #allocatable(int)} hands out, and it has to: a token this
+   * schema writes but would not take back leaves an entry that cannot be decoded after a restart.
+   */
+  @VisibleForTesting
+  static final int MAX_LOAD_ID = 1 << 20;
 
   private final ServerContext serverContext;
   /** Lock serializing all mutations (id registration and schema reload). */
@@ -143,8 +169,8 @@ public class CompressedSchema
         // build new maps from one stable snapshot of the existing ones
         final Mappings oldMappings = mappings;
         Mappings newMappings = new Mappings(oldMappings.adEncodeMap.size(), oldMappings.ocEncodeMap.size());
-        reloadAttributeTypeMaps(oldMappings, newMappings);
-        reloadObjectClassesMap(oldMappings, newMappings);
+        reloadAttributeTypeMaps(oldMappings, newMappings, currentSchema);
+        reloadObjectClassesMap(oldMappings, newMappings, currentSchema);
 
         mappings = newMappings;
         schema = currentSchema;
@@ -161,44 +187,68 @@ public class CompressedSchema
    * Reload the attribute types maps. This should be called when schema has changed, because some
    * types may be out dated.
    */
-  private void reloadAttributeTypeMaps(Mappings mappings, Mappings newMappings)
+  private void reloadAttributeTypeMaps(Mappings mappings, Mappings newMappings, Schema newSchema)
   {
-    for(int id=0;id<mappings.adDecodeMap.size();id++){
+    // Built whole and handed to the decode map in one go: it is a CopyOnWriteArrayList, so
+    // appending the elements one at a time copies the whole backing array per element, and this
+    // walks every id the compressed schema holds while readers of every backend wait on the lock.
+    final int size = mappings.adDecodeMap.size();
+    final List<AttributeDescription> reloaded = new ArrayList<>(size);
+    for (int id = 0; id < size; id++)
+    {
       final AttributeDescription ad = mappings.adDecodeMap.get(id);
-      if (ad != null)
-      {
-        loadAttributeToMaps(id, ad.getAttributeType().getNameOrOID(), ad.getOptions(), newMappings);
-      }
-      else
+      if (ad == null)
       {
         // A decode map can carry a gap: it is padded with null for the ids missing from the
-        // compressed schema it was loaded from. Carry the gap over rather than dereferencing it,
-        // and carry it over as a gap - dropping it would shift the ids of the elements after it,
-        // and would let the next registration hand out an id an already written entry carries.
-        // The ids are walked in order from zero, so the new map holds exactly id elements here.
-        newMappings.adDecodeMap.add(null);
+        // compressed schema it was loaded from, and for the ids of the definitions it skipped.
+        // Carried over rather than dereferenced, and carried over as a gap - dropping it would
+        // shift the ids of the elements after it, and would let the next registration hand out an
+        // id an already written entry carries.
+        reloaded.add(null);
+        continue;
       }
+      final AttributeDescription reloadedAd = AttributeDescription.create(
+          newSchema.getAttributeType(ad.getAttributeType().getNameOrOID()), getOptions(ad.getOptions()));
+      newMappings.adEncodeMap.put(reloadedAd, id);
+      reloaded.add(reloadedAd);
     }
+    newMappings.adDecodeMap.addAll(reloaded);
   }
 
   /**
    * Reload the object classes maps. This should be called when schema has changed, because some
    * classes may be out dated.
    */
-  private void reloadObjectClassesMap(Mappings mappings, Mappings newMappings)
+  private void reloadObjectClassesMap(Mappings mappings, Mappings newMappings, Schema newSchema)
   {
-    for(int id=0;id<mappings.ocDecodeMap.size();id++){
+    // Built whole and handed over in one go, and the gaps are carried, as in
+    // reloadAttributeTypeMaps().
+    final int size = mappings.ocDecodeMap.size();
+    final List<Map<ObjectClass, String>> reloaded = new ArrayList<>(size);
+    for (int id = 0; id < size; id++)
+    {
       final Map<ObjectClass, String> ocMap = mappings.ocDecodeMap.get(id);
-      if (ocMap != null)
+      if (ocMap == null)
       {
-        loadObjectClassesToMaps(id, ocMap.values(), newMappings, false);
+        reloaded.add(null);
+        continue;
       }
-      else
-      {
-        // A gap, as in reloadAttributeTypeMaps().
-        newMappings.ocDecodeMap.add(null);
-      }
+      final Map<ObjectClass, String> reloadedOcMap = objectClassMap(newSchema, ocMap.values());
+      newMappings.ocEncodeMap.put(reloadedOcMap, id);
+      reloaded.add(reloadedOcMap);
     }
+    newMappings.ocDecodeMap.addAll(reloaded);
+  }
+
+  /** The object class set a compressed schema holds for the provided names, resolved against a schema. */
+  private static Map<ObjectClass, String> objectClassMap(final Schema schema, final Collection<String> names)
+  {
+    final LinkedHashMap<ObjectClass, String> ocMap = new LinkedHashMap<>(names.size());
+    for (final String name : names)
+    {
+      ocMap.put(schema.getObjectClass(name), name);
+    }
+    return ocMap;
   }
 
   /**
@@ -394,7 +444,7 @@ public class CompressedSchema
    */
   private int registerAttribute(final Mappings mappings, final AttributeDescription ad) throws DirectoryException
   {
-    final int id = mappings.adDecodeMap.size();
+    final int id = allocatable(mappings.adDecodeMap.size());
     // Appended to the decode map first: storeAttribute() is free to persist the whole content of
     // this compressed schema rather than the single element it is handed - DefaultCompressedSchema
     // rewrites its file from getAllAttributes() - so the element being registered has to be part
@@ -530,7 +580,7 @@ public class CompressedSchema
   private int registerObjectClasses(final Mappings mappings, final Map<ObjectClass, String> objectClasses)
       throws DirectoryException
   {
-    final int id = mappings.ocDecodeMap.size();
+    final int id = allocatable(mappings.ocDecodeMap.size());
     mappings.ocDecodeMap.add(objectClasses);
     boolean registered = false;
     try
@@ -693,14 +743,112 @@ public class CompressedSchema
    *          The user provided attribute type name.
    * @param attributeOptions
    *          The non-null but possibly empty set of attribute options.
-   * @return The attribute type description.
+   * @return The attribute type description, or {@code null} if the definition was skipped because
+   *         the key it is stored under is not one a compressed schema hands out.
    */
   protected final AttributeDescription loadAttribute(
       final byte[] encodedAttribute, final String attributeName,
       final Collection<String> attributeOptions)
   {
     final int id = decodeId(encodedAttribute);
+    if (!isLoadable(encodedAttribute, id))
+    {
+      logger.error(ERR_COMPRESSEDSCHEMA_UNUSABLE_AD_TOKEN, attributeName,
+          tokenInMessage(encodedAttribute, id));
+      reserve(getMappings().adDecodeMap, id);
+      return null;
+    }
     return loadAttributeToMaps(id, attributeName, attributeOptions, getMappings());
+  }
+
+  /**
+   * Tells whether a definition may be loaded under the key a storage holds it under, which is the
+   * one thing the load path knows about that key: {@link #decodeId(byte[])} folds whatever it is
+   * handed, so every key reads as an ID and nothing after this can tell one a compressed schema
+   * wrote from one a corrupt or truncated record composed. A record failing this is skipped rather
+   * than loaded - the ID it names is left with no definition, which the decode path already
+   * reports - because the alternative is an open that fails or never finishes for one bad record.
+   * <p>
+   * The key has to be the one {@link #encodeId(int)} writes for the ID it folds to. A key padded
+   * with leading zeros, or longer than the four bytes an ID is ever written in, folds to the ID its
+   * canonical key addresses, and loading it would displace the definition that ID belongs to: the
+   * decode map is only overwritten there, so entries carrying that token would go on decoding, as
+   * another attribute description. The sign is checked on its own because the canonical key of the
+   * ID -1 is the all-zero key that folds to it, and an ID is checked against
+   * {@link #MAX_LOAD_ID} because the decode map is padded up to it.
+   *
+   * @param idBytes
+   *          The key the definition is stored under.
+   * @param id
+   *          The ID that key folds to.
+   * @return {@code true} if the definition may be loaded under that key.
+   */
+  private boolean isLoadable(final byte[] idBytes, final int id)
+  {
+    return id >= 0 && id <= MAX_LOAD_ID && Arrays.equals(idBytes, encodeId(id));
+  }
+
+  /**
+   * Holds the ID of a definition that was skipped, so that no registration hands it out again.
+   * <p>
+   * A key mangled from the one it was written under folds to the ID that key addressed, and the
+   * entries carrying that ID are still in the backend. Were the ID left out of the decode map, the
+   * next registration would take it - a registration takes the size of the map - and those entries
+   * would decode as whatever it stored, silently. Held as the gap it is, they are reported as the
+   * unknown token they now carry instead, which is what the decode path does with a gap.
+   * <p>
+   * An ID that no registration can reach is not held: a negative one is no index at all, and one
+   * past {@link #MAX_LOAD_ID} is one {@link #registerAttribute} refuses to allocate, so neither can
+   * be handed out to begin with and padding a map up to either is the cost this ceiling exists to
+   * refuse.
+   *
+   * @param decodeMap
+   *          The decode map the skipped definition would have gone into.
+   * @param id
+   *          The ID its key folds to.
+   */
+  /**
+   * Returns the ID a registration is about to allocate, having checked that a load would take it
+   * back. An ID past {@link #MAX_LOAD_ID} is refused rather than handed out: an entry written under
+   * a token the next open skips cannot be decoded once the server is restarted, which is the same
+   * reason a registration whose store failed is withdrawn rather than published.
+   * <p>
+   * Only reachable where a stored definition named an ID near the ceiling - no registration walks
+   * there on its own, since every ID it hands out is the size of a map it grows one element at a
+   * time - so this reports a storage to be exported and imported again rather than a limit a
+   * running server is expected to meet.
+   *
+   * @param id
+   *          The ID the registration would allocate.
+   * @return That ID.
+   * @throws DirectoryException
+   *           If no load would take a definition back under it.
+   */
+  private static int allocatable(final int id) throws DirectoryException
+  {
+    if (id > MAX_LOAD_ID)
+    {
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+          ERR_COMPRESSEDSCHEMA_NO_TOKEN_LEFT.get(id, MAX_LOAD_ID));
+    }
+    return id;
+  }
+
+  private <T> void reserve(final List<T> decodeMap, final int id)
+  {
+    if (id < 0 || id > MAX_LOAD_ID)
+    {
+      return;
+    }
+    exclusiveLock.lock();
+    try
+    {
+      padTo(decodeMap, id + 1);
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
   }
 
   /**
@@ -719,8 +867,7 @@ public class CompressedSchema
   private AttributeDescription loadAttributeToMaps(final int id, final String attributeName,
       final Iterable<String> attributeOptions, final Mappings mappings)
   {
-    Schema schema2 = DirectoryServer.getInstance().getServerContext().getSchema();
-    final AttributeType type = schema2.getAttributeType(attributeName);
+    final AttributeType type = serverContext.getSchema().getAttributeType(attributeName);
     final Set<String> options = getOptions(attributeOptions);
     final AttributeDescription ad = AttributeDescription.create(type, options);
     exclusiveLock.lock();
@@ -733,11 +880,8 @@ public class CompressedSchema
       }
       else
       {
-        // Grow the decode array.
-        while (id > mappings.adDecodeMap.size())
-        {
-          mappings.adDecodeMap.add(null);
-        }
+        // Grow the decode array, in one pass rather than a slot at a time.
+        padTo(mappings.adDecodeMap, id);
         mappings.adDecodeMap.add(ad);
       }
       return ad;
@@ -778,14 +922,22 @@ public class CompressedSchema
    *          The encoded object classes.
    * @param objectClassNames
    *          The user provided set of object class names.
-   * @return The object class set.
+   * @return The object class set, or {@code null} if the definition was skipped because the key it
+   *         is stored under is not one a compressed schema hands out.
    */
   protected final Map<ObjectClass, String> loadObjectClasses(
       final byte[] encodedObjectClasses,
       final Collection<String> objectClassNames)
   {
     final int id = decodeId(encodedObjectClasses);
-    return loadObjectClassesToMaps(id, objectClassNames, mappings, true);
+    if (!isLoadable(encodedObjectClasses, id))
+    {
+      logger.error(ERR_COMPRESSEDSCHEMA_UNUSABLE_OC_TOKEN, objectClassNames,
+          tokenInMessage(encodedObjectClasses, id));
+      reserve(getMappings().ocDecodeMap, id);
+      return null;
+    }
+    return loadObjectClassesToMaps(id, objectClassNames, mappings);
   }
 
   /**
@@ -804,34 +956,23 @@ public class CompressedSchema
    *          indicates if update of maps should be synchronized
    * @return The object class set.
    */
-  private final Map<ObjectClass, String> loadObjectClassesToMaps(int id, final Collection<String> objectClassNames,
-      Mappings mappings, boolean sync)
+  private Map<ObjectClass, String> loadObjectClassesToMaps(int id, final Collection<String> objectClassNames,
+      Mappings mappings)
   {
-    final LinkedHashMap<ObjectClass, String> ocMap = new LinkedHashMap<>(objectClassNames.size());
-    for (final String name : objectClassNames)
-    {
-      ocMap.put(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(name), name);
-    }
-    if (sync)
-    {
-      exclusiveLock.lock();
-      try
-      {
-        updateObjectClassesMaps(id, mappings, ocMap);
-      }
-      finally
-      {
-        exclusiveLock.unlock();
-      }
-    }
-    else
+    final Map<ObjectClass, String> ocMap = objectClassMap(serverContext.getSchema(), objectClassNames);
+    exclusiveLock.lock();
+    try
     {
       updateObjectClassesMaps(id, mappings, ocMap);
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
     return ocMap;
   }
 
-  private void updateObjectClassesMaps(int id, Mappings mappings, LinkedHashMap<ObjectClass, String> ocMap)
+  private void updateObjectClassesMaps(int id, Mappings mappings, Map<ObjectClass, String> ocMap)
   {
     mappings.ocEncodeMap.put(ocMap, id);
     if (id < mappings.ocDecodeMap.size())
@@ -840,12 +981,33 @@ public class CompressedSchema
     }
     else
     {
-      // Grow the decode array.
-      while (id > mappings.ocDecodeMap.size())
-      {
-        mappings.ocDecodeMap.add(null);
-      }
+      // Grow the decode array, in one pass rather than a slot at a time.
+      padTo(mappings.ocDecodeMap, id);
       mappings.ocDecodeMap.add(ocMap);
+    }
+  }
+
+  /**
+   * Pads a decode map with the slots of the IDs it holds no definition for, up to the provided
+   * size, and leaves a map already that long alone.
+   * <p>
+   * In one pass, because a decode map is a {@link CopyOnWriteArrayList}: appending the slots one at
+   * a time copies the whole backing array per slot, so padding a map to an ID costs the square of
+   * it. That is paid under {@link #exclusiveLock}, and for the pluggable backends inside the write
+   * transaction the root container opens in, where nothing says what the open is waiting for - and
+   * the IDs are read out of a storage, so how far a map is padded is not this server's to choose.
+   *
+   * @param decodeMap
+   *          The decode map to pad.
+   * @param size
+   *          The size to pad it to.
+   */
+  private static <T> void padTo(final List<T> decodeMap, final int size)
+  {
+    final int missing = size - decodeMap.size();
+    if (missing > 0)
+    {
+      decodeMap.addAll(Collections.<T> nCopies(missing, null));
     }
   }
 
@@ -1018,13 +1180,15 @@ public class CompressedSchema
   }
 
   /**
-   * Encodes the provided schema element ID.
+   * Encodes the provided schema element ID, in as few bytes as it fits in - which is what
+   * {@link #isLoadable(byte[], int)} holds a stored key to, so nothing else may encode one.
    *
    * @param id
    *          The schema element ID.
    * @return The encoded schema element ID.
    */
-  private byte[] encodeId(final int id)
+  @VisibleForTesting
+  static byte[] encodeId(final int id)
   {
     final int value = id + 1; // Add 1 to compensate for old behavior.
     final byte[] idBytes;
