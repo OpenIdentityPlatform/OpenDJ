@@ -789,25 +789,6 @@ public class CompressedSchema
   }
 
   /**
-   * Holds the ID of a definition that was skipped, so that no registration hands it out again.
-   * <p>
-   * A key mangled from the one it was written under folds to the ID that key addressed, and the
-   * entries carrying that ID are still in the backend. Were the ID left out of the decode map, the
-   * next registration would take it - a registration takes the size of the map - and those entries
-   * would decode as whatever it stored, silently. Held as the gap it is, they are reported as the
-   * unknown token they now carry instead, which is what the decode path does with a gap.
-   * <p>
-   * An ID that no registration can reach is not held: a negative one is no index at all, and one
-   * past {@link #MAX_LOAD_ID} is one {@link #registerAttribute} refuses to allocate, so neither can
-   * be handed out to begin with and padding a map up to either is the cost this ceiling exists to
-   * refuse.
-   *
-   * @param decodeMap
-   *          The decode map the skipped definition would have gone into.
-   * @param id
-   *          The ID its key folds to.
-   */
-  /**
    * Returns the ID a registration is about to allocate, having checked that a load would take it
    * back. An ID past {@link #MAX_LOAD_ID} is refused rather than handed out: an entry written under
    * a token the next open skips cannot be decoded once the server is restarted, which is the same
@@ -834,6 +815,25 @@ public class CompressedSchema
     return id;
   }
 
+  /**
+   * Holds the ID of a definition that was skipped, so that no registration hands it out again.
+   * <p>
+   * A key mangled from the one it was written under folds to the ID that key addressed, and the
+   * entries carrying that ID are still in the backend. Were the ID left out of the decode map, the
+   * next registration would take it - a registration takes the size of the map - and those entries
+   * would decode as whatever it stored, silently. Held as the gap it is, they are reported as the
+   * unknown token they now carry instead, which is what the decode path does with a gap.
+   * <p>
+   * An ID that no registration can reach is not held: a negative one is no index at all, and one
+   * past {@link #MAX_LOAD_ID} is one {@link #registerAttribute} refuses to allocate, so neither can
+   * be handed out to begin with and padding a map up to either is the cost this ceiling exists to
+   * refuse.
+   *
+   * @param decodeMap
+   *          The decode map the skipped definition would have gone into.
+   * @param id
+   *          The ID its key folds to.
+   */
   private <T> void reserve(final List<T> decodeMap, final int id)
   {
     if (id < 0 || id > MAX_LOAD_ID)
