@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -168,11 +169,17 @@ class ExportJob
    * @throws  LDIFException  If an error occurs while trying to determine
    *                         whether to write an entry.
    */
-  private void exportContainer(ReadableTransaction txn, EntryContainer entryContainer)
+  // Visible to the test that pins the class of the cursor opened here: a walk of the whole of
+  // id2entry with nobody waiting on it, which a storage engine that bounds a statement must not
+  // bound as it bounds an operation (#877).
+  void exportContainer(ReadableTransaction txn, EntryContainer entryContainer)
        throws StorageRuntimeException, IOException, LDIFException
   {
     ID2Entry id2entry = entryContainer.getID2Entry();
-    try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(id2entry.getName()))
+    // The whole of id2entry with nobody waiting on the walk: an export-ldif, or the generation ID
+    // a replicated domain computes for itself the first time it starts (LDAPReplicationDomain
+    // .computeGenerationId), which is why this must not be bounded as the work of an operation.
+    try (final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(id2entry.getName()))
     {
       while (cursor.next())
       {

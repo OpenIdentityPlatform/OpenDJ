@@ -43,6 +43,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -188,6 +190,17 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
    */
   private static final int CIPHERTEXT_PROLOGUE_VERSION = 1 ;
 
+  /**
+   * Minimum interval between two errors about the same certificate nickname missing from
+   * the trust store. A new SSL context is built for every connection attempt and a server
+   * which cannot present its certificate reconnects every 500 ms, so the error cannot be
+   * logged on every attempt; it cannot be logged once and never again either, as the error
+   * log is rotated while the misconfiguration outlives it.
+   * <p>
+   * Package private for testing.
+   */
+  static final long CERT_NICKNAME_CHECK_INTERVAL_NANOS = TimeUnit.MINUTES.toNanos(5);
+
   private final CipherKeyManager cipherCryptoManager = new CipherKeyManager();
   private final MacKeyManager macCryptoManager = new MacKeyManager();
 
@@ -217,6 +230,11 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
 
   /** The names of the local certificates to use for SSL. */
   private final SortedSet<String> sslCertNicknames;
+  /**
+   * Value of {@link System#nanoTime()} at which each certificate nickname was last looked
+   * up in the trust store, keyed by "component:nickname".
+   */
+  private final ConcurrentMap<String, Long> certNicknameChecks = new ConcurrentHashMap<>();
   /** Whether replication sessions use SSL encryption. */
   private final boolean sslEncryption;
   /** The set of SSL protocols enabled or null for the default set. */
@@ -2679,12 +2697,15 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       TrustManager[] trustManagers = trustStoreBackend.getTrustManagers();
 
       SSLContext sslContext = SSLContext.getInstance("TLS");
-      if (sslCertNicknames == null)
+      if (sslCertNicknames == null || sslCertNicknames.isEmpty())
       {
+        // No nickname is configured: let the key manager choose, as wrapping it with an
+        // empty set of aliases would present no certificate at all.
         sslContext.init(keyManagers, trustManagers, null);
       }
       else
       {
+        logMissingCertNicknames(componentName, sslCertNicknames, trustStoreBackend);
         KeyManager[] extendedKeyManagers =
             SelectableCertificateKeyManager.wrap(keyManagers, sslCertNicknames, componentName);
         sslContext.init(extendedKeyManagers, trustManagers, null);
@@ -2700,6 +2721,68 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
                 getExceptionMessage(e));
       throw new ConfigException(message, e);
     }
+  }
+
+  /**
+   * Logs an error for each configured certificate nickname which the trust store
+   * does not hold, so that a misconfigured nickname is reported for what it is
+   * instead of only showing up as a failed handshake. A new SSL context is built
+   * for every connection attempt, so each nickname is looked up at most once per
+   * {@link #CERT_NICKNAME_CHECK_INTERVAL_NANOS} interval and per component: a
+   * reconnection loop neither floods the error log nor reads the trust store an
+   * extra time on every attempt, while a nickname which stays missing is reported
+   * again for as long as it is missing.
+   *
+   * @param componentName
+   *          The name of the component the SSL context is built for.
+   * @param sslCertNicknames
+   *          The configured certificate nicknames.
+   * @param trustStoreBackend
+   *          The trust store backend holding the key pairs.
+   * @throws DirectoryException
+   *           If the trust store cannot be read.
+   */
+  private void logMissingCertNicknames(String componentName, SortedSet<String> sslCertNicknames,
+      TrustStoreBackend trustStoreBackend) throws DirectoryException
+  {
+    final long nowNanos = System.nanoTime();
+    for (String nickname : sslCertNicknames)
+    {
+      if (isCertNicknameCheckDue(componentName + ":" + nickname, nowNanos)
+          && !trustStoreBackend.containsKeyWithAlias(nickname))
+      {
+        logger.error(ERR_CRYPTOMGR_SSL_CERT_NICKNAME_NOT_FOUND,
+            nickname, trustStoreBackend.getTrustStoreFile(), componentName);
+      }
+    }
+  }
+
+  /**
+   * Indicates whether the provided certificate nickname is to be looked up in the trust
+   * store now, and records the look up if it is. Only one connection attempt at a time is
+   * given the look up and the next one comes a whole interval later, so that the trust
+   * store is read, and the error logged, once per interval however often a peer which
+   * cannot present its certificate reconnects. A look up which then fails to read the
+   * trust store only delays the next one by an interval, and cannot go unnoticed: the SSL
+   * context is not built at all when the trust store cannot be read.
+   * <p>
+   * Package private for testing.
+   *
+   * @param checked
+   *          The "component:nickname" pair to look up.
+   * @param nowNanos
+   *          The value of {@link System#nanoTime()} at which the look up would happen.
+   * @return {@code true} if the nickname is to be looked up now, {@code false} otherwise.
+   */
+  boolean isCertNicknameCheckDue(String checked, long nowNanos)
+  {
+    final Long lastCheck = certNicknameChecks.get(checked);
+    if (lastCheck == null)
+    {
+      return certNicknameChecks.putIfAbsent(checked, nowNanos) == null;
+    }
+    return nowNanos - lastCheck >= CERT_NICKNAME_CHECK_INTERVAL_NANOS
+        && certNicknameChecks.replace(checked, lastCheck, nowNanos);
   }
 
   @Override

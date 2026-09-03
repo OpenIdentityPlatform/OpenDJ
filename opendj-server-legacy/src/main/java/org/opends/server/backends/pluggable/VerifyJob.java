@@ -92,12 +92,15 @@ class VerifyJob
   /** Indicates whether the children count tree is to be verified. */
   private boolean verifyID2ChildrenCount;
 
+  // The trees below, and the iterate* methods that walk them, are visible to the test pinning the
+  // class of the cursors they open: every one of these walks a tree whole with nobody waiting on
+  // it, which a storage engine that bounds a statement must not bound as an operation (#877).
   /** The entry tree. */
-  private ID2Entry id2entry;
+  ID2Entry id2entry;
   /** The DN tree. */
-  private DN2ID dn2id;
+  DN2ID dn2id;
   /** The children tree. */
-  private ID2ChildrenCount id2childrenCount;
+  ID2ChildrenCount id2childrenCount;
 
   /** A list of the attribute indexes to be verified. */
   private final ArrayList<AttributeIndex> attrIndexList = new ArrayList<>();
@@ -343,9 +346,10 @@ class VerifyJob
    *
    * @throws StorageRuntimeException If an error occurs in the storage.
    */
-  private void iterateID2Entry(ReadableTransaction txn) throws StorageRuntimeException
+  void iterateID2Entry(ReadableTransaction txn) throws StorageRuntimeException
   {
-    try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(id2entry.getName()))
+    // Every tree this job walks, it walks whole, and no client operation is waiting on it.
+    try(final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(id2entry.getName()))
     {
       long storedEntryCount = id2entry.getRecordCount(txn);
       while (cursor.next())
@@ -437,12 +441,12 @@ class VerifyJob
    *
    * @throws StorageRuntimeException If an error occurs in the storage.
    */
-  private void iterateDN2ID(ReadableTransaction txn) throws StorageRuntimeException
+  void iterateDN2ID(ReadableTransaction txn) throws StorageRuntimeException
   {
     final Deque<ChildrenCount> childrenCounters = new LinkedList<>();
     ChildrenCount currentNode = null;
 
-    try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName()))
+    try(final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(dn2id.getName()))
     {
       while (cursor.next())
       {
@@ -515,7 +519,10 @@ class VerifyJob
 
   private void verifyID2ChildrenCount(ReadableTransaction txn, ChildrenCount parent) {
     final long expected = parent.numberOfChildren;
-    final long currentValue = id2childrenCount.getCount(txn, parent.entryID);
+    // Part of the walk of dn2id above, and bounded as one: this runs once per DN of the tree, so
+    // reading it as a client operation would put the bound of an entry read over a read of a
+    // backend nobody is waiting on - which on the JDBC backend aborts a verify of a large one.
+    final long currentValue = id2childrenCount.getCount(txn, parent.entryID, true);
     if (expected != currentValue)
     {
       errorCount++;
@@ -525,7 +532,7 @@ class VerifyJob
 
   private void iterateID2ChildrenCount(ReadableTransaction txn) throws StorageRuntimeException
   {
-    try (final SequentialCursor<EntryID, Void> cursor = id2childrenCount.openCursor(txn))
+    try (final SequentialCursor<EntryID, Void> cursor = id2childrenCount.openBulkCursor(txn))
     {
       while (cursor.next())
       {
@@ -599,7 +606,7 @@ class VerifyJob
    * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If an error occurs reading values in the index.
    */
-  private void iterateVLVIndex(ReadableTransaction txn, VLVIndex vlvIndex, boolean verifyID)
+  void iterateVLVIndex(ReadableTransaction txn, VLVIndex vlvIndex, boolean verifyID)
       throws StorageRuntimeException, DirectoryException
   {
     if(vlvIndex == null || !verifyID)
@@ -607,7 +614,7 @@ class VerifyJob
       return;
     }
 
-    try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(vlvIndex.getName()))
+    try(final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(vlvIndex.getName()))
     {
       while (cursor.next())
       {
@@ -655,7 +662,7 @@ class VerifyJob
       return;
     }
 
-    try(final Cursor<ByteString,EntryIDSet> cursor = index.openCursor(txn))
+    try(final Cursor<ByteString,EntryIDSet> cursor = index.openBulkCursor(txn))
     {
       while (cursor.next())
       {
@@ -985,8 +992,13 @@ class VerifyJob
     }
   }
 
-  /** This class reports progress of the verify job at fixed intervals. */
-  private final class ProgressTask extends TimerTask
+  /**
+   * This class reports progress of the verify job at fixed intervals.
+   * <p>
+   * Visible, with its constructor, to the test pinning the class of the reads it makes to size
+   * that report: they belong to the walk they measure rather than to a client operation (#877).
+   */
+  final class ProgressTask extends TimerTask
   {
     /** The total number of records to process. */
     private long totalCount;
@@ -1001,7 +1013,7 @@ class VerifyJob
      * through indexes or the entries.
      * @throws StorageRuntimeException An error occurred while accessing the storage.
      */
-    private ProgressTask(boolean indexIterator, ReadableTransaction txn) throws StorageRuntimeException
+    ProgressTask(boolean indexIterator, ReadableTransaction txn) throws StorageRuntimeException
     {
       previousTime = System.currentTimeMillis();
 
@@ -1031,7 +1043,12 @@ class VerifyJob
       }
       else
       {
-        totalCount = rootContainer.getEntryContainer(verifyConfig.getBaseDN()).getNumberOfEntriesInBaseDN0(txn);
+        // Part of this walk, like the counts of the branch above: it sizes a verify of the whole
+        // backend, and the branch above is only reached by "verify-index --clean" - a plain
+        // verify-index, with or without an index named, comes here. Read as a client operation it
+        // would take the bound of one on a storage engine that bounds a statement, which on a
+        // backend large enough aborts the verify before its first record (#877).
+        totalCount = rootContainer.getEntryContainer(verifyConfig.getBaseDN()).getNumberOfEntriesInBaseDN0(txn, true);
       }
     }
 
