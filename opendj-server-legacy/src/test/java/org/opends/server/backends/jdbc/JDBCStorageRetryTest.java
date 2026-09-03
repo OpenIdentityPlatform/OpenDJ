@@ -249,19 +249,58 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       { "mysql lock wait timeout, second attempt within", 2, seconds(6), sql(1205, "40001"), MYSQL, true },
       { "mysql lock wait timeout, second attempt at the window", 2, seconds(10), sql(1205, "40001"), MYSQL, false },
 
-      // the attempt count bounds every class, whatever the window has left
+      // the attempt count bounds every class, whatever the window has left. It is the bound that rarely fires:
+      // reaching it takes ten attempts inside a 10 s window, which only a conflict reported in milliseconds
+      // leaves room for - a conflict preceded by a wait longer than the window stops at two attempts, the
+      // granted one included, and the line reporting the replay names the window for that reason
       { "last attempt left", 9, 0L, sql(1205, "40001"), MSSQL, true },
       { "attempts exhausted", 10, 0L, sql(1205, "40001"), MSSQL, false },
-      // and nothing a replay resolves is replayed, the first attempt included
-      { "not a conflict", 1, 0L, sql(2627, "23000"), MSSQL, false },
+      // a failure carrying no conflict class at all still passes these bounds: what makes it replayable is
+      // replayReason(), which write() asks first, and a dropped connection carries no class 40 state
+      { "a drop, which no class describes", 1, 0L, sql(2627, "23000"), MSSQL, true },
     };
   }
 
+  /**
+   * Composed the way {@code write()} composes it: the class is read off the failure once, and the bounds are
+   * asked of the class. Whether the failure is worth replaying at all is {@code replayReason()}, tested apart.
+   */
   @Test(dataProvider = "replays")
   public void testReplayable(String name, int attempt, long elapsedNanos, Throwable failure, String driver,
       boolean expected)
   {
-    assertEquals(JDBCStorage.replayable(attempt, elapsedNanos, failure, driver), expected, name);
+    assertEquals(JDBCStorage.replayableWithin(attempt, elapsedNanos, JDBCStorage.conflictOf(failure, driver)),
+        expected, name);
+  }
+
+  /**
+   * The grant is reported rather than inferred: the line reporting a replay says "granted past it" only where
+   * the loop really took that branch. Pinned apart from {@link #testReplayable} because the two agree today by
+   * construction - a replay past the window can only be the grant - and it is that coincidence, not the claim,
+   * that a later change to the bounds would take away.
+   */
+  @Test
+  public void testTheGrantIsTheOnlyReplayPastTheWindow()
+  {
+    // the grant, and the only shape of it: the first replay of a conflict reported past the window
+    assertTrue(JDBCStorage.grantedPastTheWindow(1, seconds(12), PROMPT), "the conflict of #903 was not granted");
+    // inside the window nothing is granted - the window itself allows the replay, and the line says nothing
+    assertFalse(JDBCStorage.grantedPastTheWindow(1, seconds(9), PROMPT), "a replay inside the window was granted");
+    // and past the first attempt, or for a wait the engine already bounded, there is no grant at all
+    assertFalse(JDBCStorage.grantedPastTheWindow(2, seconds(12), PROMPT), "a second replay was granted");
+    assertFalse(JDBCStorage.grantedPastTheWindow(1, seconds(12), AFTER_LOCK_WAIT), "a bounded wait was granted");
+    assertFalse(JDBCStorage.grantedPastTheWindow(1, seconds(12), NONE), "a failure carrying no conflict");
+
+    // every replay the bounds allow past the window is that grant, which is what lets the line name it
+    for (int attempt = 1; attempt < 12; attempt++)
+    {
+      for (Conflict conflict : Conflict.values())
+      {
+        final boolean pastTheWindow = JDBCStorage.replayableWithin(attempt, seconds(11), conflict);
+        assertEquals(pastTheWindow, JDBCStorage.grantedPastTheWindow(attempt, seconds(11), conflict),
+            "attempt " + attempt + " of a " + conflict + " conflict past the window");
+      }
+    }
   }
 
   @DataProvider
@@ -324,9 +363,9 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   public void testADroppedConnectionIsReplayedOnlyBeforeTheCommit()
   {
     final SQLException dropped = sql(0, "08006");
-    assertEquals(JDBCStorage.replayReason(dropped, POSTGRES, false, false, false),
+    assertEquals(replayReason(dropped, POSTGRES, false, false, false),
         "a connection the database dropped");
-    assertNull(JDBCStorage.replayReason(dropped, POSTGRES, true, false, false),
+    assertNull(replayReason(dropped, POSTGRES, true, false, false),
         "an in doubt transaction was replayed");
   }
 
@@ -338,10 +377,10 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   public void testAConnectionTheDriverClosedIsADroppedOne()
   {
     final SQLException killed = sql(596, "S0001");
-    assertNull(JDBCStorage.replayReason(killed, MSSQL, false, false, false), "S0001 was replayed on its own");
-    assertEquals(JDBCStorage.replayReason(killed, MSSQL, false, false, true),
+    assertNull(replayReason(killed, MSSQL, false, false, false), "S0001 was replayed on its own");
+    assertEquals(replayReason(killed, MSSQL, false, false, true),
         "a connection the database dropped");
-    assertNull(JDBCStorage.replayReason(killed, MSSQL, true, false, true),
+    assertNull(replayReason(killed, MSSQL, true, false, true),
         "an in doubt transaction was replayed");
   }
 
@@ -354,9 +393,9 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   @Test
   public void testAnAttemptThatCommittedPartOfItsWorkIsNotReplayed()
   {
-    assertNull(JDBCStorage.replayReason(sql(0, "40001"), POSTGRES, false, true, false), "a conflict was replayed");
-    assertNull(JDBCStorage.replayReason(sql(0, "08006"), POSTGRES, false, true, false), "a drop was replayed");
-    assertNull(JDBCStorage.replayReason(sql(596, "S0001"), MSSQL, false, true, true), "a drop was replayed");
+    assertNull(replayReason(sql(0, "40001"), POSTGRES, false, true, false), "a conflict was replayed");
+    assertNull(replayReason(sql(0, "08006"), POSTGRES, false, true, false), "a drop was replayed");
+    assertNull(replayReason(sql(596, "S0001"), MSSQL, false, true, true), "a drop was replayed");
   }
 
   /**
@@ -370,8 +409,8 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   public void testAConflictIsNotReadFromTheReleaseOfTheConnection()
   {
     final SQLException onRelease = suppressing(sql(2627, "23000"), sql(0, "40000"));
-    assertFalse(JDBCStorage.isRetryableConflict(onRelease, POSTGRES), "a conflict was read from the release");
-    assertNull(JDBCStorage.replayReason(onRelease, POSTGRES, true, false, false),
+    assertEquals(JDBCStorage.conflictOf(onRelease, POSTGRES), NONE, "a conflict was read from the release");
+    assertNull(replayReason(onRelease, POSTGRES, true, false, false),
         "a transaction the commit left in doubt was replayed");
 
     // the same shape carrying a drop instead: read, since the release is where a drop is stated at all
@@ -401,16 +440,16 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   public void testAConflictIsReplayedFromEitherPhase()
   {
     final SQLException conflict = sql(0, "40001");
-    assertEquals(JDBCStorage.replayReason(conflict, POSTGRES, false, false, false), "a conflict");
-    assertEquals(JDBCStorage.replayReason(conflict, POSTGRES, true, false, false), "a conflict");
+    assertEquals(replayReason(conflict, POSTGRES, false, false, false), "a conflict");
+    assertEquals(replayReason(conflict, POSTGRES, true, false, false), "a conflict");
   }
 
   /** Everything else fails the operation, as it did before either replay existed. */
   @Test
   public void testAFailureOfTheStatementIsNotReplayed()
   {
-    assertNull(JDBCStorage.replayReason(sql(2627, "23000"), MSSQL, false, false, false));
-    assertNull(JDBCStorage.replayReason(sql(2627, "23000"), MSSQL, true, false, false));
+    assertNull(replayReason(sql(2627, "23000"), MSSQL, false, false, false));
+    assertNull(replayReason(sql(2627, "23000"), MSSQL, true, false, false));
   }
 
   /** The delay grows with the attempt, so that the replays outlast a contention lasting more than a few ms. */
@@ -459,6 +498,27 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
         new StorageRuntimeException(suppressing(sql(2627, "23000"), sql(0, "08006"))), POSTGRES);
     assertTrue(summary.contains("08006"), summary);
     assertFalse(summary.contains("23000"), summary);
+  }
+
+  /**
+   * The line names the link the class was decided on, which is not always the first conflict of the chain:
+   * {@code conflictOf()} keeps the most specific class it finds, so a wrapper carrying a bare class 40 state is
+   * walked past to the lock wait timeout underneath it. Naming the wrapper would print "error 0" for a replay
+   * whose whole bound was chosen by the 1205 it never shows.
+   */
+  @Test
+  public void testConflictSummaryNamesTheLinkTheClassWasDecidedOn()
+  {
+    final SQLException lateUnderAWrapper = sql(0, "40001", sql(1205, "40001"));
+    assertEquals(JDBCStorage.conflictOf(lateUnderAWrapper, MYSQL), AFTER_LOCK_WAIT);
+    final String summary = JDBCStorage.conflictSummary(lateUnderAWrapper, MYSQL);
+    assertTrue(summary.contains("1205"), summary);
+
+    // the same chain under a driver that gives 1205 no such meaning is a prompt conflict, and the first link
+    // of it is the one the decision was taken on
+    assertEquals(JDBCStorage.conflictOf(sql(0, "40001", sql(1205, "40001")), POSTGRES), PROMPT);
+    final String firstLink = JDBCStorage.conflictSummary(sql(0, "40001", sql(1205, "40001")), POSTGRES);
+    assertTrue(firstLink.contains("error 0"), firstLink);
   }
 
   /** A failure carrying no SQLException at all, and a cyclic cause chain, still have to yield something loggable. */
@@ -549,7 +609,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     }
     catch (StorageRuntimeException expected)
     {
-      assertTrue(JDBCStorage.isRetryableConflict(expected, POSTGRES), "the conflict was not the failure raised");
+      assertEquals(JDBCStorage.conflictOf(expected, POSTGRES), PROMPT, "the conflict was not the failure raised");
     }
     assertEquals(attempts.get(), 1, "a transaction that committed part of its work was replayed");
     verify(statements).executeUpdate();
@@ -780,7 +840,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     }
     catch (StorageRuntimeException expected)
     {
-      assertTrue(JDBCStorage.isRetryableConflict(expected, MYSQL), "the conflict was not the failure raised");
+      assertEquals(JDBCStorage.conflictOf(expected, MYSQL), PROMPT, "the conflict was not the failure raised");
     }
     assertEquals(attempts.get(), 1, "an attempt that committed part of its work was replayed");
     verify(engineConnection).prepareStatement(startsWith("create index k_"));
@@ -982,6 +1042,17 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     }
   }
 
+  /**
+   * The two questions {@code write()} asks after a failed attempt, composed here the way it composes them: the
+   * conflict class is read off the failure once and handed to the reason, rather than being asked for again.
+   */
+  private static String replayReason(Throwable failure, String driver, boolean committing, boolean partlyCommitted,
+      boolean connectionClosed)
+  {
+    return JDBCStorage.replayReason(JDBCStorage.conflictOf(failure, driver), failure, committing, partlyCommitted,
+        connectionClosed);
+  }
+
   private static SQLException sql(int errorCode, String sqlState)
   {
     return new SQLException("synthetic failure", sqlState, errorCode);
@@ -1000,7 +1071,9 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   /**
    * How {@link JDBCStorage#write} drives the two decisions above, which the cases before this one cannot see:
    * they are handed an elapsed time and an attempt number rather than producing them. The clock is scripted and
-   * advances a fixed step per read, so the attempts made and the reads taken are both exact.
+   * advances a fixed step per attempt - not per read of it - so that the timeline the loop sees depends on what
+   * it does rather than on how often it asks the time: a read added anywhere in {@code write()} leaves every row
+   * of this provider answering exactly as it does now.
    * <p>
    * Between them the rows pin the two lines the rest of the file would let a refactor take away. A single
    * {@code startedAt} outside the retry loop is what makes the window bound the whole run rather than each
@@ -1015,18 +1088,19 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       // a step under the window, so the window is what ends the run: attempt 1 is granted its replay at 4 s,
       // attempt 2 is inside the window at 8 s, attempt 3 is past it at 12 s. With startedAt inside the loop every
       // attempt measures 4 s, never reaches the window, and the run goes to MAX_RETRIES instead
-      { "the window bounds the run, not the attempt", 4L, 3, 4 },
-      // a step past the window, so only the grant can produce a second attempt: remove it and the run ends on the
-      // first. With startedAt inside the loop the attempts still come to two, but each takes a read of its own
-      { "the first replay is granted past the window", 12L, 2, 3 },
+      { "the window bounds the run, not the attempt", 4L, 3 },
+      // a step past the window, so only the grant can produce a second attempt: remove it and the run ends on
+      // the first. This is the row that pins the grant end to end, and the row above is the one that pins
+      // startedAt - at 12 s a per-attempt startedAt also stops at two attempts, and at 4 s the window alone
+      // already allows the replay of attempt 1. Neither row is redundant
+      { "the first replay is granted past the window", 12L, 2 },
     };
   }
 
   @Test(dataProvider = "writeRuns")
-  public void testWriteDrivesTheRetryLoop(String name, final long stepSeconds, int expectedAttempts,
-      int expectedClockReads) throws Exception
+  public void testWriteDrivesTheRetryLoop(String name, final long stepSeconds, int expectedAttempts)
+      throws Exception
   {
-    final AtomicInteger clockReads = new AtomicInteger();
     final AtomicInteger attempts = new AtomicInteger();
     final Connection connection = mock(Connection.class);
     // no driver name matches a mock, so this is classified by its class 40 state alone: a prompt conflict
@@ -1043,7 +1117,8 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       @Override
       long nanoTime()
       {
-        return seconds(stepSeconds * clockReads.getAndIncrement());
+        // the attempts made are what moves this clock, so the run is the same however often write() reads it
+        return seconds(stepSeconds * attempts.get());
       }
     };
     storage.accessMode = AccessMode.READ_WRITE;
@@ -1068,10 +1143,6 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
 
     assertSame(thrown != null ? thrown.getCause() : null, conflict, name + ": the conflict reaches the caller");
     assertEquals(attempts.get(), expectedAttempts, name + ": attempts made");
-    // read once before the loop and once after each attempt. The count is asserted, not just the placement,
-    // because the clock advances per read rather than per attempt: a second read added inside an attempt would
-    // halve the effective step and change the run without either row saying so
-    assertEquals(clockReads.get(), expectedClockReads, name + ": clock reads");
   }
 
   /** The second failure as the next exception of the first, the way a driver chains the errors of one message. */

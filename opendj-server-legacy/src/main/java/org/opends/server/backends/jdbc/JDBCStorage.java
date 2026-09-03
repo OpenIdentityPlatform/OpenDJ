@@ -57,14 +57,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	/**
 	 * Wall-clock budget the replays of a {@link #write} may spend, in nanoseconds, measured from the start of the
 	 * first attempt. It is checked between attempts, so an attempt already running is never interrupted, and it
-	 * applies from the first check, with the single exception {@link #replayable(int, long, Throwable, String)}
-	 * describes: a conflict its engine reports promptly is granted one replay whatever the clock says, because the
-	 * lock wait that precedes such a conflict is charged to the attempt and is unbounded on three of the four
-	 * engines here, so no window survives it. It bounds what {@link #MAX_RETRIES} alone does not - MySQL reports a
-	 * lock wait timeout only after innodb_lock_wait_timeout, 50 s by default and not overridden here, so ten
-	 * attempts would park a worker thread for eight minutes where one releases it after 50 s. Bounding the attempt
-	 * itself, with a session lock timeout on the transaction connection, is what would let this window bound the
-	 * prompt conflicts too; until it lands they cost one attempt more than the window.
+	 * applies from the first check, with the single exception {@link #grantedPastTheWindow} describes: a conflict
+	 * its engine reports promptly is granted one replay whatever the clock says, because the lock wait that
+	 * precedes such a conflict is charged to the attempt and is unbounded on three of the four engines here, so no
+	 * window survives it. It bounds what {@link #MAX_RETRIES} alone does not - MySQL reports a lock wait timeout
+	 * only after innodb_lock_wait_timeout, 50 s by default and not overridden here, so ten attempts would park a
+	 * worker thread for eight minutes where one releases it after 50 s.
+	 * <p>
+	 * What that costs, stated rather than left to be read off a test row: at the stock innodb_lock_wait_timeout a
+	 * MySQL lock wait timeout is reported at ~50 s, which is past this window on the first check, so such a write
+	 * is never replayed at all - the one conflict class of the set that a MySQL deployment sees most, and the one
+	 * whose replay would most reliably succeed. It is the deliberate half of the trade the other half of which is
+	 * #903: one bounded wait beats two, and a deployment that tunes innodb_lock_wait_timeout below this window
+	 * gets its replays back. The trade only exists because nothing here bounds the attempt: with a session lock
+	 * timeout on the transaction connection (#915) every wait would be shorter than this window, the tuned-down
+	 * case would become the normal one, and this window would govern both classes with no grant needed at all.
 	 */
 	private static final long RETRY_WINDOW_NANOS = TimeUnit.SECONDS.toNanos(10);
 
@@ -93,11 +100,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	private static final int ORACLE_DEADLOCK_DETECTED = 60;
 
 	/**
-	 * MySQL error number of a lock wait timeout, ER_LOCK_WAIT_TIMEOUT. Connector/J maps it to the same class 40
-	 * state as a deadlock, so it is a conflict like any other and this number is only what tells the two apart:
-	 * of every conflict handled here it is the one an engine reports late rather than promptly. It is keyed by the
-	 * driver like the numbers above, since the engines collide on it - the same 1205 is the deadlock victim of
-	 * SQL Server and a fatal "not a data file" on Oracle.
+	 * MySQL error number of a lock wait timeout, ER_LOCK_WAIT_TIMEOUT: the one conflict of the set an engine
+	 * reports late rather than promptly. Connector/J maps it to the same class 40 state as a deadlock, so this
+	 * number is not what matches it - it only tells the two apart, and only under a MySQL driver. That it repeats
+	 * the literal of {@link #MSSQL_DEADLOCK_VICTIM} is the collision {@link #conflictOf} keys every vendor number
+	 * by the driver for, and is stated there rather than again here.
 	 */
 	private static final int MYSQL_LOCK_WAIT_TIMEOUT = 1205;
 
@@ -909,9 +916,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * precedes a conflict the engine reports promptly, so measured against such a conflict it does not bound that
 	 * wait but only leaves the operation with no replay at all, which is what master did with the deadlock of
 	 * issue #903. One replay is therefore granted to a prompt conflict whatever the clock says; see
-	 * {@link #replayable(int, long, Throwable, String)}. The window is checked between attempts, so an attempt
-	 * already running is never interrupted: a conflicted operation holds its caller for the window plus one
-	 * attempt, and a prompt conflict for two attempts when that is longer.
+	 * {@link #grantedPastTheWindow}. The window is checked between attempts, so an attempt already running is
+	 * never interrupted: a conflicted operation holds its caller for the window plus one attempt, and a prompt
+	 * conflict for two attempts when that is longer.
 	 * <p>
 	 * Only the operation itself is replayed: a failure of {@link #getConnection()} or of the implicit
 	 * {@link Connection#close()} - which returns the connection to the pool after a rollback - leaves the loop, so
@@ -922,7 +929,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * connection handed out unvalidated and found dead costs an attempt rather than the operation, and a write of
 	 * the replication replay - which records a failed operation as applied and advances the server state past it,
 	 * see #889 - never sees it. Only while nothing of the attempt may have been committed yet, though: see
-	 * {@link #replayReason(Throwable, String, boolean, boolean, boolean)}.
+	 * {@link #replayReason(Conflict, Throwable, boolean, boolean, boolean)}.
 	 */
 	@Override
 	public void write(WriteOperation writeOperation) throws Exception {
@@ -1013,10 +1020,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			//still allowed, which is the attempt count and the window of #903. Neither subsumes the other: a
 			//dropped connection is worth replaying and carries no conflict class, while a conflict past both
 			//bounds is not replayed however plainly it is one
-			final String reason=replayReason(failure,driver,committing,partlyCommitted,dropped);
+			//classified once and handed to both questions: the walk of the chains is bounded but not free, and
+			//two callers asking it apart could drift into disagreeing about the same failure
+			final Conflict conflict=conflictOf(failure,driver);
+			final String reason=replayReason(conflict,failure,committing,partlyCommitted,dropped);
 			//nanoTime()-startedAt is the overflow safe form of the elapsed time
 			final long elapsedNanos=nanoTime()-startedAt;
-			if (reason==null || !replayableWithin(attempt, elapsedNanos, failure, driver)) {
+			if (reason==null || !replayableWithin(attempt, elapsedNanos, conflict)) {
 				throw failure;
 			}
 			//logged rather than silently absorbed, so that a deployment retrying most of its writes stays observable;
@@ -1025,13 +1035,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			//because the window ran out, and a log naming only MAX_RETRIES leaves an operation that gave up at
 			//attempt 2 of a promised 10 with nothing saying why. Milliseconds rather than seconds, since the
 			//engines report a deadlock in a few of them and whole seconds would read "0" for most of a burst; and
-			//the one line that replays past its own window says so, rather than reading as a bound not honoured
-			logger.warn(LocalizableMessage.raw(
-					"jdbc: replaying the transaction after %s, attempt %d of %d, %d ms elapsed of the %d ms window%s: %s",
-					reason, attempt, MAX_RETRIES, TimeUnit.NANOSECONDS.toMillis(elapsedNanos),
-					TimeUnit.NANOSECONDS.toMillis(RETRY_WINDOW_NANOS),
-					elapsedNanos>=RETRY_WINDOW_NANOS ? " (the first replay, granted past it)" : "",
-					conflictSummary(failure, driver)));
+			//the one line that replays past its own window says so, rather than reading as a bound not honoured -
+			//asked of the predicate the loop just acted on rather than re-derived from the clock, so that the
+			//claim cannot outlive the grant that justifies it
+			if (logger.isWarnEnabled()) {
+				logger.warn(LocalizableMessage.raw(
+						"jdbc: replaying the transaction after %s, attempt %d of %d, %d ms elapsed of the %d ms window%s: %s",
+						reason, attempt, MAX_RETRIES, TimeUnit.NANOSECONDS.toMillis(elapsedNanos),
+						TimeUnit.NANOSECONDS.toMillis(RETRY_WINDOW_NANOS),
+						grantedPastTheWindow(attempt, elapsedNanos, conflict)
+								? " (the first replay, granted past it)" : "",
+						conflictSummary(failure, driver)));
+			}
 			if (logger.isTraceEnabled()) {
 				logger.trace("jdbc: the failure being replayed was %s", stackTraceToSingleLineString(failure));
 			}
@@ -1063,9 +1078,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * <p>
 	 * A transaction conflict is replayable whichever phase reported it: the engine rolled the transaction back
 	 * before it answered. It is read from the failure of the operation only, never from the release of the
-	 * connection - see {@link #isRetryableConflict} - since the release runs after the outcome was decided and
-	 * cannot make that claim for it. A connection the database dropped is replayable only while the transaction
-	 * had not been committed yet. A drop reported by {@code commit()} leaves the outcome unknown - the server may
+	 * connection - see {@link #conflictOf} - since the release runs after the outcome was decided and cannot make
+	 * that claim for it. A connection the database dropped is replayable only while the transaction had not been
+	 * committed yet. A drop reported by {@code commit()} leaves the outcome unknown - the server may
 	 * have committed and died before the answer reached us - and replaying a write that in fact committed applies
 	 * it twice, which is the very reason 40003 is one of {@link #NON_REPLAYABLE_ROLLBACK_STATES}.
 	 * <p>
@@ -1078,17 +1093,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * second time and fails with ERR_ENTRY_CONTAINER_ALREADY_REGISTERED, which masks the failure that caused the
 	 * replay and leaves the indexes of the previous attempt behind with their configuration listeners.
 	 *
+	 * @param conflict the class {@link #conflictOf} read from the failure, asked of it once by the caller
 	 * @param committing whether the failure was reported by {@code commit()}, which leaves the outcome unknown
 	 * @param partlyCommitted whether the attempt committed part of its work before it failed
 	 * @param connectionClosed whether the driver closed the connection under the failure - evidence no SQLState
 	 * carries on mssql-jdbc, which reports a killed session as S0001 and closes the connection behind it
 	 */
-	static String replayReason(Throwable failure, String driver, boolean committing, boolean partlyCommitted,
+	static String replayReason(Conflict conflict, Throwable failure, boolean committing, boolean partlyCommitted,
 			boolean connectionClosed) {
 		if (partlyCommitted) {
 			return null;
 		}
-		if (isRetryableConflict(failure, driver)) {
+		if (conflict!=Conflict.NONE) {
 			return "a conflict";
 		}
 		if (!committing && (connectionClosed || isConnectionFailure(failure))) {
@@ -1280,6 +1296,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * Returns the class of a single failure. The vendor number only refines a failure {@link #isConflict} has
 	 * already matched and never widens that match, which the engines colliding on 1205 do not allow: the number is
 	 * read here to tell the late conflict of MySQL from the deadlock its driver reports under the same state.
+	 * <p>
+	 * A conflict raised under a driver none of the four engines is recognised in is {@link Conflict#PROMPT}, the
+	 * same answer the rest of this class gives an unrecognised driver: {@code getTableDialect} hands it the
+	 * PostgreSQL column types, {@code upsert} the ANSI statement, and PostgreSQL has no late conflict to tell
+	 * apart - its lock_timeout is unlimited by default, so 40001 and 40P01 are both reported as soon as they are
+	 * detected. A MySQL-wire-compatible driver would be classified that way too, and would take the grant that a
+	 * lock wait timeout must not have; it cannot reach this code, because such a deployment fails long before a
+	 * transaction of it can conflict - {@code openTree(createOnDemand)} issues {@code create table ... k bytea},
+	 * a type no MySQL-wire engine has.
 	 */
 	private static Conflict classOf(SQLException e, String driver) {
 		if (!isConflict(e, driver)) {
@@ -1290,51 +1315,48 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	/**
-	 * Returns whether the failure of the given attempt is replayed: the decision {@link #write} takes after every
-	 * attempt, made here apart from the clock so that it can be tested without a database. Replays are bounded by
-	 * {@link #MAX_RETRIES} and by {@link #RETRY_WINDOW_NANOS} against the time elapsed since the first attempt
-	 * began, with one grant on top of those two bounds: the first replay of a {@link Conflict#PROMPT} conflict is
-	 * never denied by the clock. The wait an engine spends before reporting one of those is charged to the attempt
-	 * that hit it and is unbounded on three of the four engines here - SQL Server took some 12 s to pick a victim
-	 * in CI - so there is no window that some wait does not outlast, and measuring one against it only leaves the
-	 * operation with no replay at all. The grant does not extend to {@link Conflict#AFTER_LOCK_WAIT}, whose wait
-	 * the engine has already bounded for us: replaying that costs the same bounded wait again, which is exactly
-	 * what the window is here to refuse. Bounding the prompt wait too, with a session lock timeout on the
-	 * transaction connection, is what would let the window govern both classes and retire this grant.
+	 * Whether another attempt is still allowed: the bounds half of the decision {@link #write} takes after every
+	 * attempt, asked of a failure {@link #replayReason} has already found worth replaying and made here apart
+	 * from the clock so that it can be tested without a database. It is asked of the conflict class rather than
+	 * of the failure because not every replayable failure carries one - a connection the database dropped is
+	 * replayed on the evidence of the drop, and would be refused by a bound that first insisted on a class 40
+	 * state - and because {@code write()} has already read that class off the failure once.
+	 * <p>
+	 * Replays are bounded by {@link #MAX_RETRIES} and by {@link #RETRY_WINDOW_NANOS} against the time elapsed
+	 * since the first attempt began, with the one grant {@link #grantedPastTheWindow} states on top of them.
 	 */
-	static boolean replayable(int attempt, long elapsedNanos, Throwable failure, String driver) {
-		return conflictOf(failure, driver)!=Conflict.NONE
-				&& replayableWithin(attempt, elapsedNanos, failure, driver);
-	}
-
-	/**
-	 * The bounds half of {@link #replayable}, asked of a failure {@link #replayReason} has already found worth
-	 * replaying. Split from the class half because the two answer different questions and not every replayable
-	 * failure carries a conflict class: a connection the database dropped is replayed on the evidence of the drop,
-	 * and would be refused by a bound that first insisted on a class 40 state.
-	 */
-	static boolean replayableWithin(int attempt, long elapsedNanos, Throwable failure, String driver) {
+	static boolean replayableWithin(int attempt, long elapsedNanos, Conflict conflict) {
 		if (attempt>=MAX_RETRIES) {
 			return false;
 		}
-		//the engine asked for the transaction to be rerun after a wait nothing here bounds: no clock denies that
-		//first rerun, since the window it would be measured against was spent by the wait rather than by a replay
-		if (attempt==1 && conflictOf(failure, driver)==Conflict.PROMPT) {
+		if (grantedPastTheWindow(attempt, elapsedNanos, conflict)) {
 			return true;
 		}
 		return elapsedNanos<RETRY_WINDOW_NANOS;
 	}
 
 	/**
-	 * Whether the failure carries a transaction conflict, which is {@link #conflictOf} asked as a yes or no. Read
-	 * without the suppressed exceptions, unlike {@link #isConnectionFailure}: a conflict is replayed whichever
-	 * phase reported it, on the strength of the engine having rolled the transaction back before it answered - and
-	 * the release of the connection runs after the outcome was decided and cannot make that claim. A class 40
-	 * raised there would otherwise replay a transaction commit() left in doubt, which is what the committing
-	 * guard of replayReason() exists to prevent.
+	 * Whether this replay is the one {@link #RETRY_WINDOW_NANOS} does not get to deny: the first replay of a
+	 * conflict its engine reports promptly, taken although the window is already spent. The wait an engine spends
+	 * before reporting such a conflict is charged to the attempt that hit it and is unbounded on three of the four
+	 * engines here - SQL Server took some 12 s to pick a victim in CI - so there is no window that some wait does
+	 * not outlast, and measuring one against it only leaves the operation with no replay at all, which is issue
+	 * #903. The grant does not extend to {@link Conflict#AFTER_LOCK_WAIT}, whose wait the engine has already
+	 * bounded for us: replaying that costs the same bounded wait again, which is exactly what the window is here
+	 * to refuse.
+	 * <p>
+	 * Asked as a question of its own so that the line reporting the replay can name the bound that was actually
+	 * applied instead of inferring it from the clock: {@code elapsed >= window} coincides with this grant only
+	 * for as long as this stays the sole way past the window, and a line that keeps claiming "the first replay"
+	 * after that would be describing a decision nobody took.
+	 * <p>
+	 * {@code attempt==1} is a proxy and not the invariant: the invariant is that no clock can bound a wait
+	 * nothing else bounds, and that holds on every attempt, not only the first. Widening the grant to all of them
+	 * would leave {@link #MAX_RETRIES} as the only real cap, so it is held to one replay until the attempt itself
+	 * carries a lock bound - see #915, which retires this method rather than widening it.
 	 */
-	static boolean isRetryableConflict(Throwable t, String driver) {
-		return conflictOf(t, driver)!=Conflict.NONE;
+	static boolean grantedPastTheWindow(int attempt, long elapsedNanos, Conflict conflict) {
+		return attempt==1 && conflict==Conflict.PROMPT && elapsedNanos>=RETRY_WINDOW_NANOS;
 	}
 
 	private static boolean isConflict(SQLException e, String driver) {
@@ -1361,9 +1383,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * none.
 	 */
 	static String conflictSummary(Throwable failure, String driver) {
-		// asked in the order replayReason() asks it, and of the same chains, so that the line names the link the
-		// decision was taken on rather than one that merely resembles it
-		SQLException named=firstLinkMatching(failure, WITHOUT_THE_RELEASE, e -> isConflict(e, driver));
+		// asked in the order conflictOf() asks it, and of the same chains, so that the line names the link the
+		// decision was taken on rather than one that merely resembles it: the most specific class first, since a
+		// wrapper carrying a bare class 40 state is a conflict of its own and naming it would leave the vendor
+		// number that decided the class out of the only record the replay leaves
+		SQLException named=firstLinkMatching(failure, WITHOUT_THE_RELEASE,
+				e -> classOf(e, driver)==Conflict.AFTER_LOCK_WAIT);
+		if (named==null) {
+			named=firstLinkMatching(failure, WITHOUT_THE_RELEASE, e -> isConflict(e, driver));
+		}
 		if (named==null) {
 			named=firstLinkMatching(failure, WITH_THE_RELEASE, JDBCStorage::saysTheConnectionIsGone);
 		}
