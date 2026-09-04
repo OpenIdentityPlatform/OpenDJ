@@ -119,6 +119,57 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 	private JDBCBackendCfg config;
 
+	/** Not read yet: the url of the backend is part of its configuration, so a change of it is read again. */
+	private static final int STANDING_READ_BOUND_UNREAD = -1;
+	private volatile int standingReadBound = STANDING_READ_BOUND_UNREAD;
+
+	/**
+	 * The read bound this backend puts on its connections at their login, in milliseconds, or 0
+	 * where it puts none - what {@link #applyBackstop} takes off a connection for the length of a
+	 * statement that carries no bound of its own. Read once and remembered rather than per
+	 * statement: it follows a system property and the url of this backend, and neither of them
+	 * changes under a running statement.
+	 */
+	int standingReadBoundMillis() {
+		int millis=standingReadBound;
+		if (millis < 0) {
+			millis=CachedConnection.standingReadBoundMillis(config.getDBDirectory());
+			reportABoundNoStatementCanOutlive(millis);
+			standingReadBound=millis;
+		}
+		return millis;
+	}
+
+	/**
+	 * Whether a standing read bound cuts a statement carrying a bound of its own short of it. Such
+	 * a statement then dies on the socket - which costs the connection the driver closes, and names
+	 * neither of the two properties that decided it - instead of being cancelled at the bound of its
+	 * own class. A statement of a class with no bound at all is not weighed here: {@link
+	 * #applyBackstop} takes the standing bound off for as long as one of those runs.
+	 */
+	static boolean cutsStatementsShort(int standingMillis, int statementSeconds) {
+		return standingMillis > 0 && statementSeconds > 0 && standingMillis <= statementSeconds * 1000L;
+	}
+
+	/**
+	 * Says once that the two bounds were set the wrong way round. The socket read timeout is the
+	 * layer behind the cancel of a statement, not in front of it: under the bound of the statement
+	 * it is the one that fires, and what the operator then sees is a connection closed by its driver
+	 * under a bare state of class 08 - {@link #timedOut} weighs the statement against its own bound,
+	 * finds it well inside, and passes the failure through as it found it.
+	 */
+	private void reportABoundNoStatementCanOutlive(int millis) {
+		final int statementSeconds=StatementBound.OPERATION.seconds();
+		if (cutsStatementsShort(millis, statementSeconds) && standingReadBoundWarned.compareAndSet(false, true)) {
+			logger.warn(LocalizableMessage.raw("jdbc: the read bound of %s is %d ms, which an ordinary statement of this"
+				+ " backend reaches before the %d s of %s it is given: such a statement is cut by the socket read"
+				+ " timeout, closing the connection and naming neither property, rather than being cancelled at the"
+				+ " bound of its own class. A standing read bound stands behind the bound of a statement, so it has to"
+				+ " be the longer of the two", CachedConnection.READ_TIMEOUT_PROPERTY, millis, statementSeconds,
+				StatementBound.OPERATION.property));
+		}
+	}
+
 	public JDBCStorage(JDBCBackendCfg cfg, ServerContext serverContext) {
 		this.config = cfg;
 		cfg.addJDBCChangeListener(this);
@@ -136,6 +187,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		try
 		{
 			this.config = cfg;
+			standingReadBound = STANDING_READ_BOUND_UNREAD; // the url of the backend may be another one now
 		}
 		catch (Exception e)
 		{
@@ -430,6 +482,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	private final AtomicBoolean backstopUnsupportedWarned = new AtomicBoolean();
 	private final AtomicBoolean backstopFailedWarned = new AtomicBoolean();
 	private final AtomicBoolean queryTimeoutWarned = new AtomicBoolean();
+	private final AtomicBoolean standingReadBoundWarned = new AtomicBoolean();
 
 	/**
 	 * The socket read timeout of one connection, and the statements running on it. This second
@@ -458,6 +511,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		int previous;
 		/** What the backstop has armed, or 0 when the connection carries {@link #previous}. */
 		int armed;
+		/**
+		 * Set while the read bound of the connection is taken off for a statement that carries no
+		 * bound of its own, {@link #previous} holding what it was taken off from. Told apart from
+		 * {@link #armed} being 0, which means the connection carries its own value: a lift arms
+		 * nothing and is still ours to give back.
+		 */
+		boolean lifted;
 		/**
 		 * Set when the driver would not take a network timeout on this connection: it is not asked
 		 * again while the statements holding this entry run. A connection is the right scope for
@@ -557,13 +617,35 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		final int wanted=state.unbounded > 0 || state.bounds.isEmpty() ? 0 : state.bounds.lastKey();
 		try {
 			if (wanted == 0) {
-				if (state.armed != 0) {
-					con.setNetworkTimeout(DIRECT_EXECUTOR, state.previous);
-					state.armed=0;
+				// A statement of an unbounded class is running, and the connection carries the read
+				// bound this backend gave it at its login (CachedConnection.READ_TIMEOUT_PROPERTY):
+				// that bound comes off for as long as the statement does, since a statement told it
+				// may take as long as it needs must not be cut by a value armed for another one.
+				// Only ours is taken off - a read timeout standing in the connection string is the
+				// deployment's own, and lifting it would hand the connection back to the pool with
+				// the one bound its url asked for gone.
+				if (state.unbounded > 0 && standingReadBoundMillis() > 0) {
+					if (state.armed == 0 && !state.lifted) {
+						state.previous=con.getNetworkTimeout();
+					}
+					if (state.previous > 0) {
+						if (!state.lifted) { // and armed is 0 wherever that holds: the two are set together
+							con.setNetworkTimeout(DIRECT_EXECUTOR, 0);
+							state.armed=0;
+							state.lifted=true;
+						}
+						return;
+					}
 				}
+				giveBack(con, state);
 				return;
 			}
-			if (state.armed == 0) {
+			// What the connection carried is read once and remembered until it is given back. Read
+			// again while the lift above holds, it would be the 0 of that lift - and the read bound
+			// of the connection would go back to the pool gone for the rest of its life, which is
+			// how a statement of an unbounded class outliving a bounded one on the same connection
+			// takes the deployment's bound away for good.
+			if (state.armed == 0 && !state.lifted) {
 				state.previous=con.getNetworkTimeout();
 			}
 			// only ever tighten: a connection that already carries a read timeout carries one a
@@ -571,15 +653,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// upon, not to relax anything. 0 is "no timeout" in the JDBC contract, so it is the
 			// one value there is always something to gain by replacing.
 			if (state.previous > 0 && state.previous <= wanted) {
-				if (state.armed != 0) {
-					con.setNetworkTimeout(DIRECT_EXECUTOR, state.previous);
-					state.armed=0;
-				}
+				giveBack(con, state);
 				return;
 			}
 			if (state.armed != wanted) {
 				con.setNetworkTimeout(DIRECT_EXECUTOR, wanted);
 				state.armed=wanted;
+				state.lifted=false;
 			}
 		}catch (SQLException | RuntimeException e) {
 			state.failed=true; // whatever the cause, this connection is not asked again while it runs
@@ -610,13 +690,26 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	/**
-	 * Gives the connection back the read timeout it carried before this backstop armed one, and
-	 * forgets having armed it. Best effort by construction: the caller reaches this from a driver
-	 * call that has just failed, so the connection may well be gone - and where it is, it is the
-	 * driver that closes it rather than this backend.
+	 * Gives the connection back the read timeout it carried before this backstop touched it -
+	 * whether that was a bound armed for a statement or the lift of one that carries none - and
+	 * forgets having touched it. Nothing to do for a connection this backstop left alone.
+	 */
+	private static void giveBack(Connection con, Backstop state) throws SQLException {
+		if (state.armed == 0 && !state.lifted) {
+			return; // the connection carries its own value already
+		}
+		con.setNetworkTimeout(DIRECT_EXECUTOR, state.previous);
+		state.armed=0;
+		state.lifted=false;
+	}
+
+	/**
+	 * The same, best effort by construction: the caller reaches this from a driver call that has
+	 * just failed, so the connection may well be gone - and where it is, it is the driver that
+	 * closes it rather than this backend.
 	 */
 	private static void restorePrevious(Connection con, Backstop state) {
-		if (state.armed == 0) {
+		if (state.armed == 0 && !state.lifted) {
 			return; // the connection carries its own value already
 		}
 		try {
@@ -626,6 +719,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// one that brought us into the catch above
 		}finally {
 			state.armed=0;
+			state.lifted=false;
 		}
 	}
 

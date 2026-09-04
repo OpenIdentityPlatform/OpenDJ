@@ -178,6 +178,33 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		}
 	}
 
+	/**
+	 * And the bound that replaces it reaches the socket of the driver: set with setNetworkTimeout
+	 * once the login is through, it is read back off the connection the pool hands out (#885). The
+	 * unit tests pin which value is set, on a mock that can only answer that it was asked; this is
+	 * the driver of a real engine answering that it took it.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheStandingReadBoundReachesTheSocket() throws Exception {
+		final String url = createBackendCfg().getDBDirectory();
+		final int configured = CachedConnection.readTimeoutMillis;
+		CachedConnection.readTimeoutMillis = 5000;
+		try {
+			assertEquals(CachedConnection.standingReadBoundMillis(url), 5000,
+				"the url of this container carries a read bound of its own, so no bound of ours is set on it");
+			// a pooled connection would be handed back without being established again
+			CachedConnection.poolOf(url).drainIdle();
+			try (final Connection con = CachedConnection.getConnection(url)) {
+				assertEquals(con.getNetworkTimeout(), 5000,
+					"the read bound of this backend did not reach the socket of this driver");
+			}
+		} finally {
+			CachedConnection.readTimeoutMillis = configured;
+			// and nothing carrying the bound of this test goes back to the pool the suite goes on using
+			CachedConnection.poolOf(url).drainIdle();
+		}
+	}
+
 	private static ByteString key(int i) {
 		return ByteString.valueOfUtf8(String.format("key%02d", i));
 	}

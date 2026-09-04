@@ -111,6 +111,98 @@ public class CachedConnection implements Connection {
     static final String POOL_TIMEOUT_PROPERTY = "org.openidentityplatform.opendj.jdbc.pool.timeout";
     static final long DEFAULT_POOL_TIMEOUT_SECONDS = 60;
 
+    /**
+     * The socket read timeout a connection of this pool carries for the whole of its life, in
+     * seconds; 0 for none, which is what every connection of this backend carried before this
+     * property existed, and the default.
+     * <p>
+     * It bounds what neither of the two bounds before it reaches. The bound of
+     * {@value #CONNECT_TIMEOUT_PROPERTY} covers the connect and the login and is taken off as soon
+     * as the login is through, and the socket read timeout {@code JDBCStorage} arms behind a
+     * cancelled statement is armed for the length of that statement alone - so a commit, a
+     * rollback, a lookup of the catalog and the rows a cursor drains are all read from a socket
+     * with no deadline of any kind, and an operation that meets a database which stopped answering
+     * after the login stays parked.
+     * <p>
+     * The default is a consequence rather than caution: a bound standing on the connection has to
+     * exceed the longest silence the database may legitimately produce, and the class the longest
+     * statements belong to ({@code JDBCStorage.StatementBound.BULK}) ships unbounded for reasons of
+     * its own. There is no value here that does not contradict it - so the deployment that knows how
+     * long its database may go without answering is the one that sets this, and the statements of
+     * that class run with it taken off for as long as they do.
+     * <p>
+     * That silence is what this is sized against, rather than the longest statement, because the
+     * lift covers statements alone: the commit at the end of an import is a call of its own with no
+     * statement in flight behind it - {@code ImporterImpl.close()} commits a whole import in one -
+     * and so are the rollback of every borrow and the reads of the catalog. Every one of them runs
+     * under this bound whatever the class of the statements before it. It has to exceed the bound of
+     * an ordinary statement as well ({@code JDBCStorage.StatementBound.OPERATION}, two minutes by
+     * default): under it, such a statement dies on the socket at this value instead of being
+     * cancelled at its own, which costs the connection the driver then closes and reports neither
+     * property. A backend opening with the two set that way says so once.
+     * <p>
+     * A read bound standing in the connection string is the deployment's own and is left alone by
+     * every part of this: it is not replaced here, and it is not the one taken off there. A value of
+     * 0 there is no bound of theirs, though - it is the default of the driver, written out - and
+     * this one goes on top of it.
+     */
+    static final String READ_TIMEOUT_PROPERTY = "org.openidentityplatform.opendj.jdbc.read.timeout";
+    static final int DEFAULT_READ_TIMEOUT_SECONDS = 0;
+
+    // Read once, at class initialization, for the reason aliveBypassNanos is: it is read on every
+    // connect and on every statement that has to take it off again, and neither is the place to
+    // parse a system property. Not final so that a test can vary it without a class loader of its
+    // own, and volatile because a non-final static is written neither atomically nor visibly to the
+    // threads reading it (JLS 17.7).
+    static volatile int readTimeoutMillis = getReadTimeoutMillis();
+
+    /**
+     * The bound of {@value #READ_TIMEOUT_PROPERTY} in milliseconds, which is the unit
+     * {@code setNetworkTimeout} takes. A value that is not a number, and a negative one, are
+     * reported once and ignored in favour of the default - a deployment that asked for a bound and
+     * misspelled it gets none, and that is the one thing this property exists to keep from
+     * happening quietly. A value past {@link JDBCStorage#MAX_BOUND_SECONDS} is taken down to it: the
+     * ceiling there is what a socket read timeout can hold at all, and a value beyond it would reach
+     * the driver as a negative timeout - outside the contract of the call, and a value a driver is
+     * free to read as anything.
+     */
+    static int getReadTimeoutMillis() {
+        // Clamped against the ceiling rather than through JDBCStorage.clampSeconds(): that ceiling is
+        // a compile-time constant and reaches this class inlined, while the call would be a
+        // package-private call into another class - and this runs in the initializer of this one,
+        // which is loaded by whatever loader defines it. Across two loaders that is an
+        // IllegalAccessError rather than a call, and it would leave the class uninitializable.
+        final long seconds = Math.min(JDBCStorage.MAX_BOUND_SECONDS,
+            getNonNegativeProperty(READ_TIMEOUT_PROPERTY, DEFAULT_READ_TIMEOUT_SECONDS, "s"));
+        return (int) (seconds * 1000);
+    }
+
+    /**
+     * The read bound this class put on a connection of this url, in milliseconds, or 0 for a
+     * connection carrying none of ours. What {@code JDBCStorage} has to know before it takes that
+     * bound off for a statement of a class that carries no bound of its own: a read timeout
+     * standing in the connection string is the deployment's own, and a driver whose property names
+     * are not known here was never given one - taking either off would leave the connection
+     * unbounded for the rest of its life in the pool, which is a bound taken away from a deployment
+     * that asked for one.
+     * <p>
+     * The dialect is read off the connection string here, the way {@link #getConnection} reads the
+     * one it hands {@link #connect}: the two have to answer the same, or the bound taken off would
+     * not be the bound that was set.
+     */
+    static int standingReadBoundMillis(String connectionString) {
+        return connectionString == null ? 0
+            : standingReadBoundMillis(connectionString, ConnectDialect.of(connectionString));
+    }
+
+    private static int standingReadBoundMillis(String connectionString, ConnectDialect dialect) {
+        final int millis = readTimeoutMillis;
+        if (millis <= 0 || dialect == null || dialect.bounds(connectionString, dialect.readProperties)) {
+            return 0;
+        }
+        return millis;
+    }
+
     /** Bound of the validation of a pooled connection: isValid(0) means "no timeout" in the JDBC contract. */
     static final int VALIDATION_TIMEOUT_SECONDS = 5;
 
@@ -888,6 +980,35 @@ public class CachedConnection implements Connection {
         // with -Doracle.jdbc.ReadTimeout, and a property supplied to a driver outranks the system
         // property without a word - and would then be lifted after the login as if it were ours,
         // leaving a connection with no read bound where the administrator had set one.
+        /**
+         * Whether one of these is bounded by the connection string, or by a system property this
+         * driver reads, as the bound of an established connection has to ask it. Told apart from
+         * {@link #declared} by what a 0 means: there the question is whether a property of ours is
+         * to be supplied to the connect at all, and on postgresql a parameter of the url outranks
+         * that property whatever it says - while a bound put on an established connection with
+         * setNetworkTimeout is outranked by nothing, so a "socketTimeout=0" is no bound of the
+         * deployment's to stay out of the way of. It is the default of the driver, written out, and
+         * reading it as theirs would leave a deployment that asked for a standing bound with none.
+         */
+        private boolean bounds(String connectionString, String... properties) {
+            for (final String property : properties) {
+                if (isBound(valueInUrl(connectionString, property)) || setAsSystemProperty(property)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /** What this url gives the property, under its own name or the last segment of it. */
+        private String valueInUrl(String connectionString, String property) {
+            final String value = parameterValue(connectionString, property);
+            if (value != null) {
+                return value;
+            }
+            final int dot = property.lastIndexOf('.');
+            return dot >= 0 ? parameterValue(connectionString, property.substring(dot + 1)) : null;
+        }
+
         private boolean declared(String connectionString, String... properties) {
             for (final String property : properties) {
                 if (declaredInUrl(connectionString, property) || setAsSystemProperty(property)) {
@@ -1392,12 +1513,10 @@ public class CachedConnection implements Connection {
             // still under the read bound: both of these are round trips of their own
             conNew.setAutoCommit(false);
             conNew.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
-            if (readBoundSet) {
-                // a driver that will not take the bound back has warned about it already: the
-                // connection serves the borrower that is waiting for it and is closed rather than
-                // pooled, so the bound of the login does not outlive it in the pool
-                poolable = relaxReadBound(conNew, connectTimeoutSeconds);
-            }
+            // whatever the driver will not take here it has warned about already: a connection left
+            // carrying the read bound of its login serves the borrower that is waiting for it and is
+            // closed rather than pooled, so that bound does not outlive it in the pool
+            poolable = applyStandingReadBound(conNew, connectionString, dialect, connectTimeoutSeconds, readBoundSet);
         } catch (SQLException | RuntimeException e) { // nothing holds this connection yet: it would leak
             closeQuietly(conNew);
             throw e;
@@ -1407,19 +1526,41 @@ public class CachedConnection implements Connection {
         return established;
     }
 
-    // The second bound of the login is a socket read timeout on mysql, oracle and sql server, in
-    // force for the whole life of the connection: left in place it would break every statement
-    // slower than it - an import batch, the statistics of a freshly loaded table - so it is lifted
-    // as soon as the login is through, restoring the behaviour of a connection this class
-    // established before. A read bound the connection string sets itself is never touched here:
-    // it is not set at all, so nothing of the administrator's is lifted along with it. Returns
-    // whether the bound is gone - a connection still carrying it must not be pooled.
-    // Named by the bound the login was given rather than by the property it came from: with
-    // CONNECT_TIMEOUT_PROPERTY at 0 the attempt takes its bound from what is left of the deadline
-    // of the borrow, so naming that property would point at the one setting that is not in force.
-    private static boolean relaxReadBound(Connection con, long boundSeconds) {
-        return setNetworkTimeout(con, 0, "statements taking longer than the " + boundSeconds
-            + "s the login of this connection was bounded by fail on it, and it is closed rather than pooled");
+    /**
+     * Gives an established connection the read bound it carries from here on, which is the same
+     * call that takes the read bound of its login off.
+     * <p>
+     * The second is not optional. On mysql, oracle and sql server the second bound of the login is
+     * a socket read timeout in force for the whole life of the connection, and left in place it
+     * breaks every statement slower than a connect - an import batch, the statistics of a freshly
+     * loaded table. What replaces it is {@value #READ_TIMEOUT_PROPERTY}, or the 0 this class has
+     * always put here where a deployment asks for nothing.
+     * <p>
+     * A read bound the connection string sets itself is neither replaced nor lifted: it was not set
+     * by us at the login either, so nothing of the administrator's is touched here.
+     * <p>
+     * Called whether or not the login had a bound to lift, since the standing bound is not the
+     * login's: with {@value #CONNECT_TIMEOUT_PROPERTY} at 0 the login is bounded by what is left of
+     * the deadline of the borrow instead, and a deployment running that way would otherwise set the
+     * property here and get nothing for it.
+     * <p>
+     * Returns whether the connection may be pooled. A connection still carrying the bound of its
+     * login must not be: it would fail the statements of every borrower after this one. A
+     * connection that merely never took the standing bound may be - that is the connection this
+     * pool handed out before the property existed.
+     */
+    private static boolean applyStandingReadBound(Connection con, String connectionString, ConnectDialect dialect,
+                                                  long loginBoundSeconds, boolean readBoundSet) {
+        final int millis = standingReadBoundMillis(connectionString, dialect);
+        if (millis == 0 && !readBoundSet) {
+            return true; // nothing of ours on this connection: nothing to set here, and nothing to lift
+        }
+        final String consequence = readBoundSet
+            ? "statements taking longer than the " + loginBoundSeconds
+                + "s the login of this connection was bounded by fail on it, and it is closed rather than pooled"
+            : "this connection carries no read bound of its own, so a read of it the database stops answering waits"
+                + " with no deadline able to reach it";
+        return setNetworkTimeout(con, millis, consequence) || !readBoundSet;
     }
 
     /**
