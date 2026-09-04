@@ -62,6 +62,7 @@ import static org.mockito.Mockito.when;
 import static org.opends.server.backends.jdbc.JDBCStorage.Conflict.AFTER_LOCK_WAIT;
 import static org.opends.server.backends.jdbc.JDBCStorage.Conflict.NONE;
 import static org.opends.server.backends.jdbc.JDBCStorage.Conflict.PROMPT;
+import static org.opends.server.backends.jdbc.JDBCStorage.Conflict.UNKNOWN_ENGINE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -88,6 +89,8 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   private static final String MYSQL = "com.mysql.cj.jdbc.ConnectionImpl";
   private static final String ORACLE = "oracle.jdbc.driver.T4CConnection";
   private static final String POSTGRES = "org.postgresql.jdbc.PgConnection";
+  /** A MySQL-wire-compatible driver, whose class name carries no engine this backend recognises. */
+  private static final String MARIADB = "org.mariadb.jdbc.Connection";
 
   /** The tree every write of this test opens; the table name behind it is a hash of this name. */
   private static final TreeName TREE = new TreeName("dc=example,dc=com", "id2entry");
@@ -115,6 +118,16 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   }
 
   interface mysqlConnection extends Connection
+  {
+  }
+
+  /**
+   * A MySQL-wire-compatible driver none of the four engines is recognised in - MariaDB Connector/J, an Aurora-
+   * or Percona-branded one. It reports a lock wait timeout as 1205 under class 40 exactly as Connector/J does,
+   * and a backend created under {@code com.mysql.cj.jdbc} opens through it: every DDL of {@code openTree()} is
+   * guarded by a catalog read, so an existing backend issues none of it.
+   */
+  interface mariadbConnection extends Connection
   {
   }
 
@@ -173,11 +186,15 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       // transaction unknown, and 40002 is an integrity constraint violation that a replay would only hit again
       { "statement completion unknown", sql(0, "40003"), POSTGRES, NONE },
       { "transaction integrity constraint violation", sql(0, "40002"), POSTGRES, NONE },
-      // ... but the state of a conflict is still matched whatever vendor number carries it
-      { "class 40 is driver independent", sql(0, "40001"), null, PROMPT },
-      // the number that makes a conflict slow is a MySQL number too, so a class 40 state carrying it under any
-      // other driver is classified by its state alone, and keeps the window of a conflict reported promptly
-      { "class 40 with 1205, no driver", sql(1205, "40001"), null, PROMPT },
+      // ... but the state of a conflict is still matched whatever vendor number carries it, which is what makes
+      // an unrecognised engine replayable at all. Which class of conflict it is cannot be told, though: the
+      // grant rests on the engine not having bounded the wait already, and of this engine that is not known
+      { "class 40 is driver independent", sql(0, "40001"), null, UNKNOWN_ENGINE },
+      // the case that costs: a MySQL-wire-compatible driver reports innodb_lock_wait_timeout as 1205 under
+      // class 40 exactly as Connector/J does, and reading the number only under a name carrying "mysql" would
+      // hand it the grant - a second full 50 s wait, the one thing the window exists to refuse
+      { "mysql wire compatible lock wait timeout", sql(1205, "40001"), MARIADB, UNKNOWN_ENGINE },
+      { "class 40 with 1205, no driver", sql(1205, "40001"), null, UNKNOWN_ENGINE },
 
       // nothing a replay can resolve
       { "primary key violation", sql(2627, "23000"), MSSQL, NONE },
@@ -248,6 +265,11 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       { "mysql lock wait timeout tuned under the window", 1, seconds(3), sql(1205, "40001"), MYSQL, true },
       { "mysql lock wait timeout, second attempt within", 2, seconds(6), sql(1205, "40001"), MYSQL, true },
       { "mysql lock wait timeout, second attempt at the window", 2, seconds(10), sql(1205, "40001"), MYSQL, false },
+      // the same 1205 under a MySQL-wire-compatible driver, which is what a backend created under Connector/J
+      // and opened through MariaDB Connector/J reports: the window governs it from the first attempt too, since
+      // a grant here would buy the second innodb_lock_wait_timeout the rows above refuse
+      { "mysql wire compatible lock wait timeout", 1, seconds(12), sql(1205, "40001"), MARIADB, false },
+      { "mysql wire compatible conflict within the window", 1, seconds(3), sql(1205, "40001"), MARIADB, true },
 
       // the attempt count bounds every class, whatever the window has left. It is the bound that rarely fires:
       // reaching it takes ten attempts inside a 10 s window, which only a conflict reported in milliseconds
@@ -289,6 +311,8 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     // and past the first attempt, or for a wait the engine already bounded, there is no grant at all
     assertFalse(JDBCStorage.grantedPastTheWindow(2, seconds(12), PROMPT), "a second replay was granted");
     assertFalse(JDBCStorage.grantedPastTheWindow(1, seconds(12), AFTER_LOCK_WAIT), "a bounded wait was granted");
+    assertFalse(JDBCStorage.grantedPastTheWindow(1, seconds(12), UNKNOWN_ENGINE),
+        "an engine whose wait cannot be vouched for was granted");
     assertFalse(JDBCStorage.grantedPastTheWindow(1, seconds(12), NONE), "a failure carrying no conflict");
 
     // every replay the bounds allow past the window is that grant, which is what lets the line name it
@@ -558,6 +582,33 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   {
     assertTrue(JDBCStorage.isConnectionFailure(chainEndingInADrop(64)), "a drop on the last link of the budget");
     assertFalse(JDBCStorage.isConnectionFailure(chainEndingInADrop(65)), "a drop past the budget was walked to");
+  }
+
+  /**
+   * The class of a conflict is the one walk that budget must not bound, and it is the reason
+   * {@code failureScope()} does not bound its own either: truncation does not leave this verdict unanswered, it
+   * weakens it. A lock wait timeout past the budget, with a bare class 40 link inside it, would come back
+   * {@link Conflict#PROMPT} and be handed the one replay the class exists to refuse - a second full
+   * {@code innodb_lock_wait_timeout}. Truncation here grants a replay rather than losing one.
+   */
+  @Test
+  public void testTheConflictClassIsReadFromEveryLinkOfTheChain()
+  {
+    // a bare class 40 wrapper, then 64 links of a rejected statement, then the timeout that decided the class
+    final SQLException bareClass40 = sql(0, "40001");
+    SQLException tail = bareClass40;
+    for (int link = 0; link < 64; link++)
+    {
+      tail = chained(tail, sql(2627, "23000")).getNextException();
+    }
+    chained(tail, sql(1205, "40001"));
+
+    assertEquals(JDBCStorage.conflictOf(bareClass40, MYSQL), AFTER_LOCK_WAIT,
+        "a lock wait timeout past MAX_CHAIN_LINKS came back as a conflict the window does not bound");
+    assertFalse(JDBCStorage.replayableWithin(1, seconds(12), JDBCStorage.conflictOf(bareClass40, MYSQL)),
+        "and was granted the replay past the window");
+    // the line reporting a replay names that same link, since one walk produced both
+    assertTrue(JDBCStorage.conflictSummary(bareClass40, MYSQL).contains("1205"));
   }
 
   /**
@@ -1075,11 +1126,13 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
    * it does rather than on how often it asks the time: a read added anywhere in {@code write()} leaves every row
    * of this provider answering exactly as it does now.
    * <p>
-   * Between them the rows pin the two lines the rest of the file would let a refactor take away. A single
+   * Between them the rows pin the three lines the rest of the file would let a refactor take away. A single
    * {@code startedAt} outside the retry loop is what makes the window bound the whole run rather than each
    * attempt: moved inside, every attempt is measured against its own start, sees the step and nothing more, and
-   * replays to MAX_RETRIES. And the grant of the first replay is what issue #903 is about: without it an attempt
-   * that alone outlasts the window leaves the loop with no replay at all.
+   * replays to MAX_RETRIES. The grant of the first replay is what issue #903 is about: without it an attempt
+   * that alone outlasts the window leaves the loop with no replay at all. And the class the grant is asked of is
+   * read off the failure of this very run, rather than off a driver the loop does not carry: the last two rows
+   * fail as plainly as the first two and are replayed no times at all.
    */
   @DataProvider
   public Object[][] writeRuns()
@@ -1088,25 +1141,38 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       // a step under the window, so the window is what ends the run: attempt 1 is granted its replay at 4 s,
       // attempt 2 is inside the window at 8 s, attempt 3 is past it at 12 s. With startedAt inside the loop every
       // attempt measures 4 s, never reaches the window, and the run goes to MAX_RETRIES instead
-      { "the window bounds the run, not the attempt", 4L, 3 },
+      { "the window bounds the run, not the attempt", postgresConnection.class, sql(0, "40P01"), 4L, 3 },
       // a step past the window, so only the grant can produce a second attempt: remove it and the run ends on
       // the first. This is the row that pins the grant end to end, and the row above is the one that pins
       // startedAt - at 12 s a per-attempt startedAt also stops at two attempts, and at 4 s the window alone
       // already allows the replay of attempt 1. Neither row is redundant
-      { "the first replay is granted past the window", 12L, 2 },
+      { "the first replay is granted past the window", postgresConnection.class, sql(0, "40P01"), 12L, 2 },
+      // the same step, and the same class 40 state, for the one conflict the engine had already bounded: a
+      // single attempt. The predicate rows pin that decision, but only these rows pin that write() hands the
+      // predicate the class of its own failure - dropped on the way to replayableWithin(), or read off a null
+      // driver, and the run above stays green while this one buys a second innodb_lock_wait_timeout
+      { "a lock wait timeout is granted no replay", mysqlConnection.class, sql(1205, "40001"), 12L, 1 },
+      // and the driver that reports that same timeout under a name this backend does not recognise: no grant
+      // there either, since what the grant rests on - the engine having bounded nothing - is unknown of it
+      { "an unrecognised engine is granted no replay", mariadbConnection.class, sql(1205, "40001"), 12L, 1 },
     };
   }
 
   @Test(dataProvider = "writeRuns")
-  public void testWriteDrivesTheRetryLoop(String name, final long stepSeconds, int expectedAttempts)
-      throws Exception
+  public void testWriteDrivesTheRetryLoop(String name, Class<? extends Connection> engine,
+      final SQLException conflict, final long stepSeconds, int expectedAttempts) throws Exception
   {
     final AtomicInteger attempts = new AtomicInteger();
-    final Connection connection = mock(Connection.class);
-    // no driver name matches a mock, so this is classified by its class 40 state alone: a prompt conflict
-    final SQLException conflict = sql(0, "40001");
+    // the class name of the mock is what write() reads the engine off, the way storageOverAnEngine() does it
+    final Connection connection = mock(engine);
 
-    final JDBCStorage storage = new JDBCStorage(mock(JDBCBackendCfg.class), null)
+    // a url of its own, as storageOver() gives every fixture of this file: getConnection() is overridden below,
+    // but distrustPool() is not, and a null one would reach ConcurrentHashMap.merge(null, ...) rather than the
+    // assertion under test the moment a row of this provider scripts a connection failure
+    final JDBCBackendCfg cfg = mock(JDBCBackendCfg.class);
+    when(cfg.getDBDirectory()).thenReturn(StubDriver.PREFIX + pools.incrementAndGet());
+
+    final JDBCStorage storage = new JDBCStorage(cfg, null)
     {
       @Override
       Connection getConnection()
