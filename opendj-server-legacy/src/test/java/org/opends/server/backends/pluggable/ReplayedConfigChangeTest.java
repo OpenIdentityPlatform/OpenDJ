@@ -9,9 +9,9 @@
  * When distributing Covered Software, include this CDDL Header Notice in each file and include
  * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
- * information: "Portions Copyright [year] [name of copyright owner]".
+ * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Portions Copyright 2026 3A Systems, LLC.
+ * Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -254,6 +254,70 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
     }
   }
 
+  /**
+   * A failure which the storage engine neither replays nor rolls back - the DDL of mysql and oracle
+   * commits of its own accord, and cassandra has no transaction at all - leaves the trees of a
+   * removed base DN gone. That base DN has to stop being reachable, or every operation against it
+   * meets a storage error rather than the "no such entry" its removal was meant to leave.
+   */
+  @Test
+  public void aFailureWhichIsNotRolledBackGivesUpTheBaseDNsWhoseTreesAreGone() throws Exception
+  {
+    final ReplayingBackend backend = openBackend(newTreeSet(KEPT, REMOVED));
+    try
+    {
+      final RootContainer rootContainer = backend.getRootContainer();
+      final Set<TreeName> removedTrees = treesOf(rootContainer.getEntryContainer(REMOVED));
+
+      backend.storage.failAfterCommit();
+      final ConfigChangeResult ccr = backend.applyConfigurationChange(backendCfg(newTreeSet(KEPT, ADDED)));
+
+      assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.adminActionRequired()).isTrue();
+      assertThat(ccr.getMessages().toString()).contains(REMOVED.toString()).contains(ADDED.toString());
+
+      // The trees are gone, so the base DN is given up rather than left routed at them.
+      assertThat(rootContainer.getStorage().listTrees()).doesNotContainAnyElementsOf(removedTrees);
+      assertThat(rootContainer.getBaseDNs()).doesNotContain(REMOVED);
+      assertThat(backend.getBaseDNs()).doesNotContain(REMOVED);
+      assertThat(serverContext.getBackendConfigManager().getLocalBackendWithBaseDN(REMOVED)).isNull();
+
+      // The added base DN is not registered, since the change it belongs to failed.
+      assertThat(rootContainer.getBaseDNs()).doesNotContain(ADDED);
+      assertThat(backend.getBaseDNs()).doesNotContain(ADDED);
+      assertThat(serverContext.getBackendConfigManager().getLocalBackendWithBaseDN(ADDED)).isNull();
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * A configuration change which leaves the base DNs alone - every change to index-entry-limit,
+   * db-cache-percent and the rest - has no storage work to do, so it opens no transaction to
+   * commit nothing.
+   */
+  @Test
+  public void aChangeWhichLeavesTheBaseDNsAloneOpensNoTransaction() throws Exception
+  {
+    final ReplayingBackend backend = openBackend(newTreeSet(KEPT, REMOVED));
+    try
+    {
+      final int writesBefore = backend.storage.writes();
+      final ConfigChangeResult ccr = backend.applyConfigurationChange(backendCfg(newTreeSet(KEPT, REMOVED)));
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.getMessages()).isEmpty();
+      assertThat(backend.storage.writes()).isEqualTo(writesBefore);
+      assertThat(backend.getBaseDNs()).contains(KEPT, REMOVED);
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
   private static Set<TreeName> treesOf(EntryContainer ec)
   {
     final Set<TreeName> names = new HashSet<>();
@@ -342,13 +406,19 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       /** Once the operation has run to completion, as a conflict reported by {@code commit()}. */
       COMMIT,
       /** Once the operation has run to completion, as a failure which is not replayed at all. */
-      NO_REPLAY
+      NO_REPLAY,
+      /**
+       * Once the operation has committed, as a failure which is not replayed either: what an engine
+       * whose tree deletions do not belong to the transaction leaves behind.
+       */
+      NO_REPLAY_AFTER_COMMIT
     }
 
     private final Storage delegate;
     private ConflictPoint conflictPoint;
     private int conflictsLeft;
     private int attempts;
+    private int writes;
 
     ReplayingStorage(Storage delegate)
     {
@@ -370,6 +440,11 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       arm(ConflictPoint.NO_REPLAY, 1);
     }
 
+    void failAfterCommit()
+    {
+      arm(ConflictPoint.NO_REPLAY_AFTER_COMMIT, 1);
+    }
+
     private void arm(ConflictPoint where, int conflicts)
     {
       conflictPoint = where;
@@ -383,9 +458,16 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       return attempts;
     }
 
+    /** How many write operations this storage was asked for, armed or not. */
+    int writes()
+    {
+      return writes;
+    }
+
     @Override
     public void write(final WriteOperation writeOperation) throws Exception
     {
+      writes++;
       final ConflictPoint armed = conflictPoint;
       if (armed == null)
       {
@@ -393,6 +475,21 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
         return;
       }
       conflictPoint = null;
+      if (armed == ConflictPoint.NO_REPLAY_AFTER_COMMIT)
+      {
+        // Committed, then reported as a failure: the operation's work outlives the failure, as it
+        // does where the storage engine does not roll a tree deletion back.
+        delegate.write(new WriteOperation()
+        {
+          @Override
+          public void run(WriteableTransaction txn) throws Exception
+          {
+            attempts++;
+            writeOperation.run(txn);
+          }
+        });
+        throw new UnreplayableFailure();
+      }
       // A single call, so that the replay is the delegate's own and keeps whatever the delegate
       // holds for the duration of a write, rather than starting afresh as a second call would.
       delegate.write(new WriteOperation()

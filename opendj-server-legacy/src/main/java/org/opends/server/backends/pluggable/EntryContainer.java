@@ -2401,8 +2401,11 @@ public class EntryContainer
   }
 
   /**
-   * Delete this entry container from disk. The entry container should be
-   * closed before calling this method.
+   * Deletes this entry container from disk, that is, every tree {@link #listTrees()} enumerates.
+   * The entry container may be open or closed: the trees are taken from the attribute and VLV index
+   * maps, which {@link #close()} closes the indexes of but leaves populated, so the same set is
+   * deleted either way. A {@code close()} which cleared those maps would turn a call made after it
+   * into a partial deletion, silently. Either way the container is not to be used afterwards.
    *
    * @param txn a non null transaction
    * @throws StorageRuntimeException If an error occurs while removing the entry container.
