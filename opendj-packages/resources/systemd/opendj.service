@@ -1,0 +1,56 @@
+#
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions Copyright [year] [name of copyright owner]".
+#
+# Copyright 2026 3A Systems, LLC
+
+[Unit]
+Description=OpenDJ LDAPv3 Directory Server
+Documentation=https://github.com/OpenIdentityPlatform/OpenDJ
+After=network-online.target
+Wants=network-online.target
+# Do not attempt to start (and burst-fail) until the instance has been
+# configured with /opt/opendj/setup. The OR-group (|) also passes when the
+# instance root has been relocated with instance.loc (split layout); the
+# ExecCondition below then checks the resolved instance root precisely.
+ConditionPathExists=|/opt/opendj/config/config.ldif
+ConditionPathExists=|/opt/opendj/instance.loc
+ConditionPathExists=|/etc/opendj/instance.loc
+
+[Service]
+Type=simple
+User=opendj
+Group=opendj
+# Allow the non-root service to bind privileged ports (e.g. LDAP 389, LDAPS 636).
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+# Optional admin overrides (OPENDJ_JAVA_HOME / OPENDJ_JAVA_BIN / OPENDJ_JAVA_ARGS).
+# The leading "-" makes the file optional; deb ships /etc/default, rpm /etc/sysconfig.
+EnvironmentFile=-/etc/default/opendj
+EnvironmentFile=-/etc/sysconfig/opendj
+# Skip the start (a no-op, not a failure) while the instance root - resolved
+# instance.loc-aware, exactly as _script-util.sh does - has no config.ldif
+# yet. "$$" is systemd's escape for a literal "$".
+ExecCondition=/bin/sh -c 'IR=/opt/opendj; if [ -f /etc/opendj/instance.loc ]; then read IR < /etc/opendj/instance.loc; elif [ -f "$$IR/instance.loc" ]; then read L < "$$IR/instance.loc"; case "$$L" in /*) IR="$$L";; *) IR="$$IR/$$L";; esac; fi; [ -f "$$IR/config/config.ldif" ]'
+# start-ds --nodetach keeps the JVM in the foreground so systemd supervises it
+# directly. No --quiet: a failed start must leave its message in the journal.
+ExecStart=/opt/opendj/bin/start-ds --nodetach
+# No ExecStop: the server shuts down gracefully on systemd's default SIGTERM,
+# and stop-ds would only add two cold JVM starts to every stop. Closing a
+# large JE backend can be slow - allow more than the 90 s default.
+TimeoutStopSec=300
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

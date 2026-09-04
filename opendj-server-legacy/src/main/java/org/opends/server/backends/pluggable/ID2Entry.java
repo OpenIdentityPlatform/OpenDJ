@@ -382,7 +382,11 @@ class ID2Entry extends AbstractTree
   {
     // Make sure the tree is there and readable, even if the storage is READ_ONLY.
     // Would be nice if there were a better way...
-    try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
+    // Bulk: the first batch of a cursor carries no seek predicate, so this is a walk of the whole
+    // tree as far as the storage is concerned, and it runs on every open of the backend. A bound
+    // meant for an entry read would keep a large backend from opening at all on an engine where
+    // such a batch is not a step along an index.
+    try (final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(getName()))
     {
       cursor.next();
     }
@@ -498,6 +502,12 @@ class ID2Entry extends AbstractTree
 
   /**
    * Check that a record entry exists in the entry tree.
+   * <p>
+   * Bulk, like the walk it belongs to: {@code VerifyJob.iterateID2ChildrenCount()} is its one
+   * caller and asks this once per record of the children count tree, inside a cursor over the
+   * whole of it. Read as a client operation those would put the bound of an entry read over a
+   * job nobody is waiting on, once per record - the same hazard the walk around them was given
+   * {@link ReadableTransaction#openBulkCursor(TreeName)} for (#877).
    *
    * @param txn a non null transaction
    * @param entryID The entry ID which forms the key.
@@ -508,7 +518,7 @@ class ID2Entry extends AbstractTree
   {
     checkNotNull(txn, "txn must not be null");
     checkNotNull(entryID, "entryID must not be null");
-    try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName())) {
+    try(final Cursor<ByteString, ByteString> cursor = txn.openBulkCursor(getName())) {
       return cursor.positionToKey(entryID.toByteString());
     }
   }

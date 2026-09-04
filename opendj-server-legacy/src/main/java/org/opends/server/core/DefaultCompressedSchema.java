@@ -36,6 +36,7 @@ import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.util.annotations.VisibleForTesting;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.types.DirectoryException;
 
@@ -154,6 +155,40 @@ public final class DefaultCompressedSchema extends CompressedSchema
   }
 
   /**
+   * Returns the counter to record once the provided token has been written: the token after the
+   * highest one written so far, rather than the number of records written. A decode map carrying a
+   * gap - the compressed schema was loaded from a storage holding no definition for some of its
+   * ids - emits fewer records than the ids it spans, and a counter taken from the count would name
+   * a token that is live. Both ends of this file read the counters as "No longer used", but a
+   * release old enough to seed from them would re-issue those tokens.
+   * <p>
+   * A gap at the end is the one case this cannot cover: where the definition that was lost is the
+   * one under the highest id, that id has no slot in the decode map at all - a load pads the map
+   * up to the ids it holds definitions for and no further - so it is never iterated here and
+   * contributes no token. The counter then names the token after the highest one that survived,
+   * and a release seeding from it re-issues an id that entries already carry. Nothing in the file
+   * says otherwise, so nothing here can fix it; a compressed schema written by this release does
+   * not carry that gap, because a registration whose store fails is withdrawn.
+   *
+   * @param counter
+   *          The counter as it stands.
+   * @param encodedToken
+   *          The token just written.
+   * @return The counter to record.
+   */
+  @VisibleForTesting
+  static int counterAfter(final int counter, final byte[] encodedToken)
+  {
+    int token = 0;
+    for (final byte b : encodedToken)
+    {
+      token <<= 8;
+      token |= b & 0xFF;
+    }
+    return Math.max(counter, token + 1);
+  }
+
+  /**
    * Writes the compressed schema information to disk.
    *
    * @throws DirectoryException
@@ -189,7 +224,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
             writer.writeOctetString(ocName);
           }
           writer.writeEndSequence();
-          ocCounter++;
+          ocCounter = counterAfter(ocCounter, mapEntry.getKey());
         }
         writer.writeEndSequence();
 
@@ -214,7 +249,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
             writer.writeOctetString(option);
           }
           writer.writeEndSequence();
-          adCounter++;
+          adCounter = counterAfter(adCounter, mapEntry.getKey());
         }
         writer.writeEndSequence();
 

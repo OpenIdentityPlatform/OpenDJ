@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -36,6 +37,23 @@ interface Index extends Tree
   boolean isTrusted();
 
   Cursor<ByteString, EntryIDSet> openCursor(ReadableTransaction txn);
+
+  /**
+   * Opens a cursor over the whole index for a task no client operation is waiting on, such as
+   * {@code verify-index} or {@code dbtest}.
+   * <p>
+   * Abstract rather than a {@code default} answering as {@link #openCursor(ReadableTransaction)}
+   * does, which is the compatibility the SPI needs for engines outside this repository: this
+   * interface is package-private with one implementor, and a second one inheriting that default
+   * would silently walk a whole index under the bound of a client operation. A compile error is
+   * the better answer here.
+   *
+   * @param txn
+   *          the transaction to read the index with
+   * @return a cursor over every key of this index
+   * @see ReadableTransaction#openBulkCursor(org.opends.server.backends.pluggable.spi.TreeName)
+   */
+  Cursor<ByteString, EntryIDSet> openBulkCursor(ReadableTransaction txn);
 
   boolean setIndexEntryLimit(int indexEntryLimit);
 

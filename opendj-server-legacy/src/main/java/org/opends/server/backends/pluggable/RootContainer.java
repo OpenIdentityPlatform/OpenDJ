@@ -137,10 +137,13 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          compressedSchema = new PersistentCompressedSchema(serverContext, storage, txn, accessMode);
+          compressedSchema = new PersistentCompressedSchema(serverContext, backendId, storage, txn, accessMode);
           openAndRegisterEntryContainers(txn, config.getBaseDN(), accessMode);
         }
       });
+      // after the write, never inside it: a compressed schema migration is only worth reporting
+      // once the transaction that copied it has committed, and a replayed operation runs twice
+      compressedSchema.reportMigration();
     }
     catch(StorageRuntimeException e)
     {

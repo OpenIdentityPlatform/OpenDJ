@@ -57,9 +57,16 @@ final class ID2ChildrenCount extends AbstractTree
     this.counter = new ShardedCounter(name);
   }
 
-  SequentialCursor<EntryID, Void> openCursor(ReadableTransaction txn)
+  /**
+   * Walks the children counts whole, which {@code verify-index} does and no client operation does:
+   * there is no overload of this method that would take the bound of an operation by accident.
+   * Reading the count of a single entry is another matter - see {@link #getCount}.
+   *
+   * @see ReadableTransaction#openBulkCursor(TreeName)
+   */
+  SequentialCursor<EntryID, Void> openBulkCursor(ReadableTransaction txn)
   {
-    return transformKeysAndValues(counter.openCursor(txn),
+    return transformKeysAndValues(counter.openBulkCursor(txn),
         TO_ENTRY_ID, CursorTransformer.<ByteString, Void> keepValuesUnchanged());
   }
 
@@ -141,7 +148,23 @@ final class ID2ChildrenCount extends AbstractTree
    */
   long getCount(ReadableTransaction txn, EntryID entryID)
   {
-    return counter.getCount(txn, toKey(entryID));
+    return getCount(txn, entryID, false);
+  }
+
+  /**
+   * Get the number of children for the given entry, as part of a walk of a whole tree rather than
+   * of a client operation. {@code verify-index} reads one of these per DN while it walks dn2id
+   * whole, and no client is waiting on any of them.
+   *
+   * @param txn storage transaction
+   * @param entryID The entryID identifying to the counter
+   * @param partOfAWholeTreeWalk whether this read belongs to a walk of a whole tree
+   * @return Value of the counter. 0 if no counter is associated yet.
+   * @see ReadableTransaction#openBulkCursor(TreeName)
+   */
+  long getCount(ReadableTransaction txn, EntryID entryID, boolean partOfAWholeTreeWalk)
+  {
+    return counter.getCount(txn, toKey(entryID), partOfAWholeTreeWalk);
   }
 
   /**
@@ -151,7 +174,26 @@ final class ID2ChildrenCount extends AbstractTree
    */
   long getTotalCount(ReadableTransaction txn)
   {
-    return getCount(txn, TOTAL_COUNT_ENTRY_ID);
+    return getTotalCount(txn, false);
+  }
+
+  /**
+   * The same total, told which kind of work it is part of. It is a read of this tree like any
+   * other - a cursor positioned on one key, which on a storage engine that walks a table rather
+   * than an index is a scan of it - so what it may take follows who is waiting on it:
+   * {@code verify-index} reads it once to size the progress report of a walk of the whole backend,
+   * with nobody waiting, while {@code cn=monitor} and the searches of {@code GroupManager} and
+   * {@code SubentryManager} read the same total for a client.
+   *
+   * @param txn storage transaction
+   * @param partOfAWholeTreeWalk whether this read belongs to a walk of a whole tree rather than to
+   *          a client operation
+   * @return Sum of all the counter contained in this tree
+   * @see ReadableTransaction#openBulkCursor(TreeName)
+   */
+  long getTotalCount(ReadableTransaction txn, boolean partOfAWholeTreeWalk)
+  {
+    return getCount(txn, TOTAL_COUNT_ENTRY_ID, partOfAWholeTreeWalk);
   }
 
   /**

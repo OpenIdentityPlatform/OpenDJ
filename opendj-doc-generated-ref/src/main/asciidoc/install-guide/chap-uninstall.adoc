@@ -124,12 +124,10 @@ Stopping Server...
 [03/Jun/2013:10:00:49 +0200] category=CORE severity=NOTICE
  msgID=458955 msg=The Directory Server is now stopped
 
-*OpenDJ successfully removed
-
 $
 ----
 +
-Removing the package does not remove your data or configuration. You must remove `/opt/opendj` manually to get rid of all files.
+Removing the package stops the server but does not remove your data or configuration, nor the dedicated `opendj` system user it created. Remove `/opt/opendj` manually to delete all files, and remove the `opendj` user if you no longer need it.
 
 ====
 
@@ -151,11 +149,13 @@ Stopping Server...
 [03/Jun/2013:10:42:46 +0200] category=CORE severity=NOTICE
  msgID=458955 msg=The Directory Server is now stopped
 Post Uninstall - uninstall
-OpenDJ successfully removed.
+OpenDJ package removed. Server data (config, db, changelogDb, logs)
+and the opendj system account are kept; remove them manually if they
+are no longer needed.
 #
 ----
 +
-Removing the package does not remove your data or configuration. You must remove `/opt/opendj` manually to get rid of all files.
+Removing the package stops the server but does not remove your data or configuration, nor the dedicated `opendj` system user it created. Remove `/opt/opendj` manually to delete all files, and remove the `opendj` user if you no longer need it.
 
 ====
 

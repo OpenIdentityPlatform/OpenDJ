@@ -19,8 +19,14 @@ import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.sql.Connection;
@@ -52,11 +58,13 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
@@ -83,6 +91,9 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 
 	private final StubDriver stub = new StubDriver();
 
+	/** The window as this JVM was started with it, put back after every test that varies it. */
+	private static final long CONFIGURED_ALIVE_BYPASS_NANOS = CachedConnection.aliveBypassNanos;
+
 	@BeforeClass
 	public void registerStubDriver() throws Exception {
 		DriverManager.registerDriver(stub);
@@ -93,13 +104,26 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		DriverManager.deregisterDriver(stub);
 	}
 
+	/**
+	 * Most of the tests below seed the pool by hand, and a connection built a moment ago is inside
+	 * the alive window - they are about what the validation of a borrow does, so the window is off
+	 * unless the test at hand is one of the window's own.
+	 */
+	@BeforeMethod
+	public void validateEveryBorrow() {
+		CachedConnection.aliveBypassNanos = 0;
+	}
+
 	@AfterMethod
 	public void clearProperties() {
 		System.clearProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY);
 		System.clearProperty(CachedConnection.POOL_TIMEOUT_PROPERTY);
+		System.clearProperty(CachedConnection.TTL_PROPERTY);
+		System.clearProperty(CachedConnection.ALIVE_BYPASS_PROPERTY);
 		// what has been reported once is remembered for the life of the jvm: left standing, the key
 		// of one test is what the next one finds when it asserts that it reported something itself
 		CachedConnection.warnedOnce.clear();
+		CachedConnection.aliveBypassNanos = CONFIGURED_ALIVE_BYPASS_NANOS;
 	}
 
 	/**
@@ -546,7 +570,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final Connection pooled = mock(Connection.class);
 		when(pooled.isValid(anyInt())).thenReturn(true);
 		when(pooled.getNetworkTimeout()).thenReturn(0);
-		CachedConnection.cached.get(url).add(new CachedConnection(url, pooled));
+		seedPool(url, pooled);
 
 		final Connection borrowed = CachedConnection.getConnection(url);
 
@@ -572,7 +596,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		when(pooled.isValid(anyInt())).thenReturn(true);
 		doThrow(new SQLException("the driver took the bound and then failed"))
 			.when(pooled).setNetworkTimeout(any(Executor.class), anyInt());
-		CachedConnection.cached.get(url).add(new CachedConnection(url, pooled));
+		seedPool(url, pooled);
 		final Connection fresh = mock(Connection.class);
 		stub.answerWith(fresh);
 
@@ -615,7 +639,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final Connection pooled = mock(Connection.class);
 		when(pooled.isValid(anyInt())).thenReturn(true);
 		when(pooled.getNetworkTimeout()).thenReturn(2000);
-		CachedConnection.cached.get(url).add(new CachedConnection(url, pooled));
+		seedPool(url, pooled);
 
 		assertNotNull(CachedConnection.getConnection(url));
 
@@ -639,7 +663,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 				Thread.sleep(500); // a database that no longer answers: every validation waits out its bound
 				return false;
 			});
-			CachedConnection.cached.get(url).add(new CachedConnection(url, stale));
+			seedPool(url, stale);
 		}
 		final Connection fresh = mock(Connection.class);
 		stub.answerWith(fresh);
@@ -658,7 +682,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final String url = StubDriver.PREFIX + "broken-pooled";
 		final Connection stale = mock(Connection.class);
 		when(stale.isValid(anyInt())).thenReturn(false);
-		CachedConnection.cached.get(url).add(new CachedConnection(url, stale));
+		seedPool(url, stale);
 		final Connection fresh = mock(Connection.class);
 		when(fresh.isValid(anyInt())).thenReturn(true);
 		stub.answerWith(fresh);
@@ -682,7 +706,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final String url = StubDriver.PREFIX + "validation-unchecked";
 		final Connection broken = mock(Connection.class);
 		when(broken.isValid(anyInt())).thenThrow(new IllegalStateException("driver internal"));
-		CachedConnection.cached.get(url).add(new CachedConnection(url, broken));
+		seedPool(url, broken);
 		final Connection fresh = mock(Connection.class);
 		stub.answerWith(fresh);
 
@@ -1273,8 +1297,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		});
 		final Connection good = mock(Connection.class);
 		when(good.isValid(anyInt())).thenReturn(true);
-		CachedConnection.cached.get(url).add(new CachedConnection(url, stale));
-		CachedConnection.cached.get(url).add(new CachedConnection(url, good));
+		seedPool(url, stale, good);
 		final Connection fresh = mock(Connection.class);
 		stub.answerWith(fresh);
 		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "1");
@@ -1300,7 +1323,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final Connection reaped = mock(Connection.class);
 		when(reaped.getNetworkTimeout()).thenReturn(0);
 		when(reaped.isValid(anyInt())).thenReturn(false);
-		CachedConnection.cached.get(url).add(new CachedConnection(url, reaped));
+		seedPool(url, reaped);
 		final Connection fresh = mock(Connection.class);
 		stub.answerWith(fresh);
 
@@ -1331,6 +1354,387 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		verify(parent).close();
 		assertTrue(CachedConnection.cached.get(url).isEmpty(),
 			"a connection still carrying the read bound of its login went back into the pool");
+	}
+
+	/**
+	 * The case the window exists for: the connection this borrow takes out answered the database a
+	 * moment ago, and asking it again costs the round trip the operation came to make.
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectionProvenAliveIsNotValidatedAgainWithinTheWindow() throws Exception {
+		final String url = StubDriver.PREFIX + "within-the-window";
+		CachedConnection.aliveBypassNanos = TimeUnit.HOURS.toNanos(1);
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(parent);
+
+		final Connection first = CachedConnection.getConnection(url); // established: it has just answered
+		first.close();
+		final Connection second = CachedConnection.getConnection(url);
+
+		assertSame(second, first, "the pooled connection was not the one handed back");
+		assertEquals(stub.attempts.get(), 1, "the pool established a second connection");
+		verify(parent, never()).isValid(anyInt());
+	}
+
+	/** Past the window it is the connection the database or a firewall may have dropped meanwhile. */
+	@Test(timeOut = 120000)
+	public void testAConnectionIsValidatedAgainOnceTheWindowHasPassed() throws Exception {
+		final String url = StubDriver.PREFIX + "past-the-window";
+		CachedConnection.aliveBypassNanos = TimeUnit.MILLISECONDS.toNanos(1);
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(parent);
+
+		final Connection first = CachedConnection.getConnection(url);
+		first.close();
+		Thread.sleep(20);
+		final Connection second = CachedConnection.getConnection(url);
+
+		assertSame(second, first);
+		verify(parent).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
+	}
+
+	/** The window switched off validates every borrow, the way this pool did before it existed. */
+	@Test(timeOut = 120000)
+	public void testAWindowOfZeroValidatesEveryBorrow() throws Exception {
+		final String url = StubDriver.PREFIX + "window-of-zero";
+		CachedConnection.aliveBypassNanos = 0;
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(parent);
+
+		final Connection first = CachedConnection.getConnection(url);
+		first.close();
+		final Connection second = CachedConnection.getConnection(url);
+
+		assertSame(second, first);
+		verify(parent).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
+	}
+
+	/**
+	 * A connection is trusted for the window that follows the last answer it gave, never for the
+	 * window that follows its return to the pool. pgjdbc short-circuits both rollback() and
+	 * commit() when the transaction state is IDLE, so a borrow that issued no statement - the open
+	 * of a backend, a configuration change that leaves the base DNs alone, an import of nothing -
+	 * puts a connection back without a byte reaching the server: stamping the return would mark a
+	 * connection the database dropped meanwhile as the freshest one in the pool.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheReturnToThePoolIsNotTakenForProofOfLife() throws Exception {
+		final String url = StubDriver.PREFIX + "silent-return";
+		CachedConnection.aliveBypassNanos = TimeUnit.MILLISECONDS.toNanos(50);
+		final Connection dropped = mock(Connection.class);
+		when(dropped.isValid(anyInt())).thenReturn(false); // dropped while it was out of the pool
+		stub.answerWith(dropped);
+
+		final Connection borrowed = CachedConnection.getConnection(url);
+		Thread.sleep(80); // the answer of the login ages out of the window
+		borrowed.close(); // and the rollback of this return never leaves the driver
+		final Connection fresh = mock(Connection.class);
+		when(fresh.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(fresh);
+
+		final Connection next = CachedConnection.getConnection(url);
+
+		verify(dropped).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
+		verify(dropped).close();
+		assertSame(((CachedConnection) next).parent, fresh,
+			"a connection the database dropped was handed out on the strength of its return to the pool");
+	}
+
+	/**
+	 * A proof taken while the database was going away does not outlive the distrust that reported it.
+	 * <p>
+	 * The stamp stands for the moment the connection was asked, not the moment its answer was filed:
+	 * a validation is given {@link CachedConnection#VALIDATION_TIMEOUT_SECONDS}, and one that started
+	 * before another operation reported a drop and returned after it would otherwise be the younger of
+	 * the two. The connection would then be handed out unvalidated for the rest of the window - and
+	 * LIFO puts it at the head of the deque, so it is the very one the next borrow takes - by the
+	 * check that exists to stop exactly that.
+	 */
+	@Test(timeOut = 120000)
+	public void testAProofTakenWhileTheDatabaseWentAwayIsNotTrusted() throws Exception {
+		final String url = StubDriver.PREFIX + "proof-across-a-drop";
+		CachedConnection.aliveBypassNanos = TimeUnit.HOURS.toNanos(1); // nothing here ages out of the window
+		final AtomicInteger validations = new AtomicInteger();
+		final Connection parent = mock(Connection.class);
+		// the database goes away while this validation is in flight: another operation of the backend
+		// reports the drop of its own connection before this one has answered
+		when(parent.isValid(anyInt())).thenAnswer(invocation -> {
+			CachedConnection.distrustPool(url);
+			validations.incrementAndGet();
+			return true;
+		});
+		stub.answerWith(parent);
+
+		CachedConnection.getConnection(url).close(); // established and returned, proven by its login
+		CachedConnection.distrustPool(url);          // an operation reports a drop: what the pool holds predates it
+		CachedConnection.getConnection(url).close(); // validated, and a second drop is reported while it is
+
+		final Connection borrowed = CachedConnection.getConnection(url);
+
+		assertEquals(validations.get(), 2,
+			"a connection was trusted on a proof that started before the drop it is compared against");
+		assertSame(((CachedConnection) borrowed).parent, parent, "the connection answered and was still discarded");
+	}
+
+	/**
+	 * The pool hands out the connection returned last. Without it the window would rarely apply: a
+	 * connection reached only after a whole cycle of the pool has been idle far longer than it.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheConnectionReturnedLastIsBorrowedFirst() throws Exception {
+		final String url = StubDriver.PREFIX + "returned-last";
+		CachedConnection.aliveBypassNanos = TimeUnit.HOURS.toNanos(1);
+		final Connection older = mock(Connection.class);
+		when(older.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(older);
+		final Connection first = CachedConnection.getConnection(url);
+		final Connection newer = mock(Connection.class);
+		when(newer.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(newer);
+		final Connection second = CachedConnection.getConnection(url);
+		assertNotSame(second, first);
+		first.close();
+		second.close();
+
+		final Connection borrowed = CachedConnection.getConnection(url);
+
+		assertSame(((CachedConnection) borrowed).parent, newer, "the pool cycled round to its coldest connection");
+	}
+
+	/**
+	 * Whatever dropped one connection - a restart, a failover, a network that went away - dropped
+	 * every connection established before it, and a borrow inside the window asks the database
+	 * nothing: so the operation that saw the failure tells the pool, and the rest of that
+	 * generation is validated once before it is trusted again.
+	 */
+	@Test(timeOut = 120000)
+	public void testThePoolIsValidatedAgainAfterTheDatabaseDroppedAConnection() throws Exception {
+		final String url = StubDriver.PREFIX + "distrusted-generation";
+		CachedConnection.aliveBypassNanos = TimeUnit.HOURS.toNanos(1);
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(parent);
+		CachedConnection.getConnection(url).close();
+
+		CachedConnection.distrustPool(url);
+		final Connection next = CachedConnection.getConnection(url);
+		next.close();
+		CachedConnection.getConnection(url).close();
+
+		// once for the generation the drop condemned, and not again for the borrow behind it
+		verify(parent, times(1)).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
+	}
+
+	/**
+	 * The whole of the trade the window makes, end to end: a connection the database dropped
+	 * inside the window is handed out unvalidated - that is the cost - the operation it broke
+	 * reports the drop, and from there the pool validates the generation the drop condemned
+	 * instead of handing out the rest of it the same way.
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectionDroppedInsideTheWindowIsHandedOutOnceAndThenValidated() throws Exception {
+		final String url = StubDriver.PREFIX + "dropped-inside-the-window";
+		CachedConnection.aliveBypassNanos = TimeUnit.HOURS.toNanos(1);
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(parent);
+		CachedConnection.getConnection(url).close();
+
+		when(parent.isValid(anyInt())).thenReturn(false); // the database dropped it where it lay
+		final Connection dropped = CachedConnection.getConnection(url);
+		assertSame(((CachedConnection) dropped).parent, parent, "the pooled connection was not the one handed back");
+		verify(parent, never()).isValid(anyInt()); // handed out on the strength of its last answer
+
+		// the statement of the caller is where the drop surfaces, and the caller reports it
+		CachedConnection.distrustPool(url);
+		dropped.close();
+		final Connection fresh = mock(Connection.class);
+		when(fresh.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(fresh);
+
+		final Connection next = CachedConnection.getConnection(url);
+
+		verify(parent).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
+		verify(parent).close();
+		assertSame(((CachedConnection) next).parent, fresh, "the rest of the generation was handed out unvalidated");
+	}
+
+	/**
+	 * Seeds the pool the way {@link CachedConnection#close()} fills it - at the end a borrow takes
+	 * from - so that the connection named first here is the one the next borrow gets.
+	 */
+	private static void seedPool(String url, Connection... parents) {
+		for (int i = parents.length - 1; i >= 0; i--) {
+			CachedConnection.cached.get(url).addFirst(new CachedConnection(url, parents[i]));
+		}
+	}
+
+	/**
+	 * The borrows nothing compensates a dropped connection on - the open of a backend, the removal
+	 * of its files, the start of an import - ask for a connection the pool validates whatever the
+	 * window says. Each of them is one borrow of a cold path, and the one that opens a backend
+	 * issues no statement at all: a connection dropped inside the window would surface there out of
+	 * the rollback that releases it, with no statement to replay and nothing to tell the pool.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheBorrowsNothingCompensatesAreValidated() throws Exception {
+		final String url = StubDriver.PREFIX + "validated-borrow";
+		CachedConnection.aliveBypassNanos = TimeUnit.HOURS.toNanos(1);
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(parent);
+		CachedConnection.getConnection(url).close();
+
+		final Connection borrowed = CachedConnection.getConnection(url, false);
+
+		assertSame(((CachedConnection) borrowed).parent, parent, "the pooled connection was not the one handed back");
+		verify(parent).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
+	}
+
+	/**
+	 * A connection closed under the borrow is not handed out on the strength of its last answer:
+	 * the removal listener of the pool closes every connection it finds in the deque when the pool
+	 * expires, and it iterates a weakly consistent view. The validation the window replaces
+	 * answered that as well, out of a flag of the driver rather than out of a round trip.
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectionThePoolClosedIsNotHandedOut() throws Exception {
+		final String url = StubDriver.PREFIX + "closed-inside-the-window";
+		CachedConnection.aliveBypassNanos = TimeUnit.HOURS.toNanos(1);
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(parent);
+		CachedConnection.getConnection(url).close();
+		// closed where it lay, by the expiry of the pool: a closed connection answers isValid() with
+		// false as well, which is what discards it once the window stops trusting it
+		when(parent.isClosed()).thenReturn(true);
+		when(parent.isValid(anyInt())).thenReturn(false);
+		final Connection fresh = mock(Connection.class);
+		when(fresh.isValid(anyInt())).thenReturn(true);
+		stub.answerWith(fresh);
+
+		final Connection borrowed = CachedConnection.getConnection(url);
+
+		assertSame(((CachedConnection) borrowed).parent, fresh, "a closed connection was handed out on its last answer");
+	}
+
+	/**
+	 * The window is clamped twice: to the idle time the pool keeps a connection for, since a window
+	 * longer than that is one the pool can never back - the connection it was meant for is gone
+	 * before it closes - and to {@link CachedConnection#MAX_ALIVE_BYPASS_MS} behind it, since the
+	 * ttl has no upper bound of its own and a value the unit conversion saturates on would leave
+	 * every connection of the pool trusted for the life of the server.
+	 * <p>
+	 * About the value the class settles on at initialization: the field the pool reads is assigned
+	 * once, so a ttl set after that changes neither it nor the idle time it was clamped to.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheWindowIsClampedToTheIdleTimeOfThePool() {
+		System.setProperty(CachedConnection.TTL_PROPERTY, "15000");
+		System.setProperty(CachedConnection.ALIVE_BYPASS_PROPERTY, "500");
+		assertEquals(CachedConnection.getAliveBypassMillis(), 500L, "a window inside the ttl was not left alone");
+
+		System.setProperty(CachedConnection.ALIVE_BYPASS_PROPERTY, Long.toString(Long.MAX_VALUE));
+		assertEquals(CachedConnection.getAliveBypassMillis(), 15000L, "a window of Long.MAX_VALUE was not clamped");
+
+		System.setProperty(CachedConnection.TTL_PROPERTY, "100");
+		assertEquals(CachedConnection.getAliveBypassMillis(), 100L, "the clamp is the configured ttl, not the default");
+
+		// the ttl has no upper bound of its own, so the clamp to it does not bound the window either: both set
+		// to a value the conversion to nanoseconds saturates on would leave every connection of the pool
+		// trusted for the life of the server, which is the outcome this javadoc says the clamp rules out
+		System.setProperty(CachedConnection.TTL_PROPERTY, Long.toString(Long.MAX_VALUE));
+		System.setProperty(CachedConnection.ALIVE_BYPASS_PROPERTY, Long.toString(Long.MAX_VALUE));
+		assertEquals(CachedConnection.getAliveBypassMillis(), CachedConnection.MAX_ALIVE_BYPASS_MS,
+			"a window the ttl did not bound was left to saturate");
+	}
+
+	/**
+	 * A setting worth warning about must leave the class usable. Both properties are read by the
+	 * initializer of {@code aliveBypassNanos}, and both report an unusable value through the set of
+	 * what has been said once already - which, declared below that initializer, would still be null
+	 * when the initializer reaches it (JLS 12.4.2). A window longer than the ttl is exactly the
+	 * tuning the javadoc of the property invites, and it would turn a log line into an
+	 * ExceptionInInitializerError on the first borrow and a causeless NoClassDefFoundError on every
+	 * one after it: no connection can be borrowed, so the backend cannot open at all.
+	 * <p>
+	 * Asserted on the class loaded afresh rather than on this one, which was initialized long
+	 * before the property was set.
+	 */
+	@Test(timeOut = 120000, dataProvider = "settingsWorthWarningAbout")
+	public void testASettingWorthWarningAboutStillInitializesTheClass(String ttl, String window, long expectedMillis)
+			throws Exception {
+		System.setProperty(CachedConnection.TTL_PROPERTY, ttl);
+		System.setProperty(CachedConnection.ALIVE_BYPASS_PROPERTY, window);
+
+		final Class<?> reloaded = loadedAfresh(CachedConnection.class);
+
+		assertNotSame(reloaded, CachedConnection.class, "the class under test was not loaded afresh");
+		final Field field = reloaded.getDeclaredField("aliveBypassNanos");
+		field.setAccessible(true);
+		assertEquals(field.getLong(null), TimeUnit.MILLISECONDS.toNanos(expectedMillis),
+			"the window the reloaded class settled on");
+	}
+
+	@DataProvider
+	public Object[][] settingsWorthWarningAbout() {
+		return new Object[][]{
+			// a window longer than the ttl: reported once and used as the ttl
+			{"15000", "60000", 15000L},
+			// not a number, and negative: reported once and ignored in favour of the default
+			{"15000", "half a second", CachedConnection.DEFAULT_ALIVE_BYPASS_MS},
+			{"15000", "-1", CachedConnection.DEFAULT_ALIVE_BYPASS_MS},
+			// the ttl is read by the same initializer, and reports its own value the same way
+			{"30s", "500", 500L}
+		};
+	}
+
+	/**
+	 * The class again, defined by a loader of this test rather than taken from the one that has
+	 * already initialized it: a static initializer runs once per loader, and this is about what it
+	 * does. Every other class is delegated to the parent, so the reloaded one shares the types it
+	 * is written against.
+	 */
+	private static Class<?> loadedAfresh(Class<?> type) throws Exception {
+		final String name = type.getName();
+		final ClassLoader parent = type.getClassLoader();
+		final ClassLoader loader = new ClassLoader(parent) {
+			@Override
+			protected Class<?> loadClass(String candidate, boolean resolve) throws ClassNotFoundException {
+				if (!name.equals(candidate)) {
+					return super.loadClass(candidate, resolve);
+				}
+				Class<?> defined = findLoadedClass(candidate);
+				if (defined == null) {
+					final byte[] bytecode = bytecodeOf(candidate, parent);
+					defined = defineClass(candidate, bytecode, 0, bytecode.length);
+				}
+				if (resolve) {
+					resolveClass(defined);
+				}
+				return defined;
+			}
+		};
+		return Class.forName(name, true, loader);
+	}
+
+	private static byte[] bytecodeOf(String name, ClassLoader from) throws ClassNotFoundException {
+		try (final InputStream in = from.getResourceAsStream(name.replace('.', '/') + ".class")) {
+			if (in == null) {
+				throw new ClassNotFoundException(name);
+			}
+			final ByteArrayOutputStream bytecode = new ByteArrayOutputStream();
+			final byte[] chunk = new byte[8192];
+			for (int read; (read = in.read(chunk)) >= 0; ) {
+				bytecode.write(chunk, 0, read);
+			}
+			return bytecode.toByteArray();
+		} catch (IOException e) {
+			throw new ClassNotFoundException(name, e);
+		}
 	}
 
 	private static SQLException tooManyConnections() {
