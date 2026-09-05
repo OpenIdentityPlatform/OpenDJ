@@ -1768,6 +1768,18 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertFalse(stall.contains("S3cret"), stall);
 		assertTrue(stall.contains("jdbc:postgresql://h:5432/db"), stall);
 		assertTrue(stall.contains("4000 ms") && stall.contains("(3 attempts)"), stall);
+
+		// and so is the stall of a connect made outside the pool - the connection the tree catalog of a
+		// backend is written on (#888) - which is under the same rule and describes the same url
+		final String outside = CachedConnection.outsidePoolStallMessage(url, "tree catalog", 3, 4000,
+			new SQLException("FATAL: too many connections for " + url));
+		assertFalse(outside.contains("S3cret"), outside);
+		assertTrue(outside.contains("jdbc:postgresql://h:5432/db"), outside);
+		assertTrue(outside.contains("4000 ms") && outside.contains("(3 attempts)"), outside);
+		assertTrue(outside.contains("tree catalog"), outside);
+		// and says what it is: a borrow of the pool is what this connect is not, and an operator
+		// reading it must not be sent to the pool for a stall the pool has no part in
+		assertFalse(outside.contains("pooled one"), outside);
 	}
 
 	/**

@@ -15,8 +15,10 @@
  */
 package org.opends.server.backends.jdbc;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
 import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
 import org.opends.server.backends.pluggable.spi.AccessMode;
@@ -41,12 +43,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -121,10 +127,66 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 
 	@Override
 	protected JDBCBackendCfg createBackendCfg() {
+		return createBackendCfg(getBackendId());
+	}
+
+	/**
+	 * A configuration of another backend on the database of this suite: backends sharing one database
+	 * URL is a configuration nothing forbids, and what one of them clears must be its own tables.
+	 */
+	protected JDBCBackendCfg createBackendCfg(String backendId) {
 		JDBCBackendCfg backendCfg = mockCfg(JDBCBackendCfg.class);
-		when(backendCfg.getBackendId()).thenReturn(getBackendId());
+		when(backendCfg.getBackendId()).thenReturn(backendId);
 		when(backendCfg.getDBDirectory()).thenReturn(getJdbcUrl());
 		return backendCfg;
+	}
+
+	/**
+	 * The same, reached over a connection string of the caller's own: the pools of this backend are
+	 * keyed by it, so a case wanting connections established differently - in another schema of the
+	 * search path, say - asks for them by asking for another url.
+	 */
+	protected JDBCBackendCfg createBackendCfg(String backendId, String jdbcUrl) {
+		final JDBCBackendCfg backendCfg = createBackendCfg(backendId);
+		when(backendCfg.getDBDirectory()).thenReturn(jdbcUrl);
+		return backendCfg;
+	}
+
+	/**
+	 * The same, serving the given base DN: what a clear compares the tree stamp of a table against
+	 * when it says whether the table is this backend's own or another's (#866).
+	 */
+	protected JDBCBackendCfg createBackendCfg(String backendId, DN baseDN) {
+		final JDBCBackendCfg backendCfg = createBackendCfg(backendId);
+		final TreeSet<DN> baseDNs = new TreeSet<>();
+		baseDNs.add(baseDN);
+		when(backendCfg.getBaseDN()).thenReturn(baseDNs);
+		return backendCfg;
+	}
+
+	/** Asked of the database itself, by listing its tables, so that no folding rule of the backend is trusted here. */
+	protected boolean isExistsTable(String tableName) throws SQLException {
+		try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+			return isExistingTable(con, tableName);
+		}
+	}
+
+	/** Drops a table behind the back of the storage that owns it, which no code path of the backend does. */
+	private void dropTableBehindTheBackend(String tableName) throws SQLException {
+		try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+			 final Statement st = con.createStatement()) {
+			st.execute("drop table " + tableName);
+		}
+	}
+
+	/** Clears a backend of a test without letting the failure of the clear replace the failure being reported. */
+	protected static void clearQuietly(JDBCStorage storage) {
+		try {
+			storage.removeStorageFiles();
+		} catch (Exception ignored) {
+		} finally {
+			storage.close();
+		}
 	}
 
 	@AfterClass
@@ -314,11 +376,16 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	}
 
 	/**
-	 * Reading a tree must not enrol it in the storage's tree map: removeStorageFiles() drops every
-	 * table that map names, and the compressed schema reads the tree its definitions used to be
-	 * shared under - which on a shared database is another backend's to keep (#873). Asking whether
-	 * the tree is there is only the first of those reads: the migration counts it and copies it out
-	 * too, so one guarded statement would not be enough.
+	 * Reading a tree must not put it up for removal: a clear drops what the catalog of the backend
+	 * names (#888), and the compressed schema reads the tree its definitions used to be shared under
+	 * - which on a shared database is another backend's to keep (#873). Asking whether the tree is
+	 * there is only the first of those reads: the migration counts it and copies it out too, so one
+	 * guarded statement would not be enough.
+	 * <p>
+	 * The two storages are two backends and not one addressing the same database, which is what the
+	 * case is about: what a backend owns is recorded in a catalog named after its backend id and
+	 * outlives the process that opened the tree, so a second storage of the same id would be shown
+	 * the tree its own earlier open had enrolled - and would be right to be.
 	 */
 	@Test
 	public void testProbingATreeDoesNotPutItUpForRemoval() throws Exception {
@@ -334,9 +401,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		});
 		owner.close();
 
-		// a second storage on the same database, which never opened that tree - the shape of two
+		// a second backend on the same database, which never opened that tree - the shape of two
 		// backends addressing one database
-		final JDBCStorage other = new JDBCStorage(createBackendCfg(), null);
+		final JDBCStorage other = new JDBCStorage(createBackendCfg(getBackendId() + "_probe"), null);
 		try {
 			other.open(AccessMode.READ_WRITE);
 			other.read(new ReadOperation<Void>() {
@@ -399,7 +466,11 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		});
 		owner.close();
 
-		// a storage that never opened that tree, so nothing but the delete can enrol it
+		// a second storage of the same backend, which never opened that tree itself: the delete takes
+		// the enrolling name and the table it writes to is the one the tree names. What puts a tree up
+		// for removal is the row its backend's catalog holds (#888) - written by the openTree above and
+		// outliving the storage that made it - so this asserts the listing of a backend and not a
+		// side effect of the statement, which is what a listing of a catalog can assert
 		final JDBCStorage other = new JDBCStorage(createBackendCfg(), null);
 		try {
 			other.open(AccessMode.READ_WRITE);
@@ -1109,7 +1180,10 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			storage.write(new WriteOperation() {
 				@Override
 				public void run(WriteableTransaction txn) throws Exception {
-					txn.put(written, key(1), value(1)); // pending in this transaction...
+					// pending in this transaction, and it has to still be pending when the stamp is
+					// attempted: both trees were enrolled by the storage above, so the openTree below
+					// records nothing in the catalog and commits nothing of what is written here
+					txn.put(written, key(1), value(1));
 					txn.openTree(stamped, true); // ...while the comment machinery fails
 				}
 			});
@@ -1120,9 +1194,12 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					return null;
 				}
 			});
-			// the failure is remembered: an unstampable table is not asked again while this backend is open
+			// the failure is remembered: an unstampable table is not asked again while this backend is open.
+			// Counted from what the open itself attempted rather than from one: the open stamps the tree and
+			// the catalog of the backend, and how many tables an open has to stamp is not what this is about
+			final int attemptsOfTheOpen = stampAttempts.get();
 			assertEquals(storage.commentTable(stamped, dialect()), JDBCStorage.CommentResult.FAILED);
-			assertEquals(stampAttempts.get(), 1, "a failed stamp was reissued");
+			assertEquals(stampAttempts.get(), attemptsOfTheOpen, "a failed stamp was reissued");
 		} finally {
 			try {
 				storage.write(new WriteOperation() {
@@ -1830,6 +1907,833 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				});
 			} catch (Exception ignored) {}
 			storage.close();
+		}
+	}
+
+	/**
+	 * removeStorageFiles() has to clear a backend this process has never opened: offline import-ldif
+	 * configures the backend and calls it before anything opens the root container, so answering from
+	 * the trees this process happens to have touched dropped nothing at all - an offline
+	 * "import-ldif --clearBackend" cleared a JDBC backend of nothing (#888).
+	 */
+	@Test
+	public void testABackendIsClearedByAProcessThatNeverOpenedIt() throws Exception {
+		final TreeName tree = new TreeName("testOfflineClear", "tree");
+		// the neighbour serves a base DN of its own, so that its table is one it reports as its own:
+		// what this case asserts of the clear next door is then an absence and not a vacuity
+		final DN neighbourBaseDN = DN.valueOf("dc=offline-clear-neighbour,dc=com");
+		final TreeName neighbourTree = new TreeName(neighbourBaseDN.toNormalizedUrlSafeString(), "tree");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_cleared"), null);
+		final JDBCStorage neighbour =
+			new JDBCStorage(createBackendCfg(getBackendId() + "_neighbour", neighbourBaseDN), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					txn.put(tree, key(1), value(1));
+				}
+			});
+			neighbour.open(AccessMode.READ_WRITE);
+			neighbour.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(neighbourTree, true);
+					txn.put(neighbourTree, key(1), value(1));
+				}
+			});
+		} catch (Exception e) {
+			// the clears of the case below are reached by no failure of this half, and nothing but
+			// @BeforeClass ever drops what it leaves behind
+			clearQuietly(storage);
+			clearQuietly(neighbour);
+			throw e;
+		} finally {
+			storage.close();
+			neighbour.close();
+		}
+
+		// configured and never opened, nothing touched: what BackendImpl.importLDIF holds offline
+		final JDBCStorage offline = new JDBCStorage(createBackendCfg(getBackendId() + "_cleared"), null);
+		try {
+			assertTrue(offline.listTrees().contains(tree),
+				"the tree of a backend this process never opened has to be named by its catalog");
+
+			offline.removeStorageFiles();
+
+			assertFalse(isExistsTable(offline.getTableName(tree)), "the table of the tree survived the clear");
+			assertFalse(isExistsTable(offline.getTableName(offline.getCatalogTree())), "the catalog survived the clear");
+			final Set<TreeName> cleared = offline.listTrees();
+			assertFalse(cleared.contains(tree), "a cleared backend still names its tree");
+			assertFalse(cleared.contains(offline.getCatalogTree()), "a cleared backend still names its catalog");
+			// the neighbour is named by a catalog of its own: what one backend clears is never another's
+			assertTrue(isExistsTable(neighbour.getTableName(neighbourTree)),
+				"the clear of one backend dropped the table of another backend of the same database");
+			// nor does it report another backend's tables as tables of its own: a table is named after
+			// the hash of its tree name and says nothing about whose it is, but it is stamped with that
+			// tree name (#866), and the neighbour's trees are trees of no base DN this backend serves
+			assertReportsNothingOf(offline, neighbour, neighbourTree);
+		} finally {
+			// in a finally of their own: a failed assertion above must not leave the tables of either
+			// backend behind for the rest of the class, which nothing but @BeforeClass ever drops
+			clearQuietly(neighbour);
+			clearQuietly(offline);
+		}
+	}
+
+	/**
+	 * A dropped tree has to leave the catalog together with its table: a row outliving its table
+	 * would make backendstat name a tree that is not there, and would put a table that is already
+	 * gone up for removal (#888).
+	 */
+	@Test
+	public void testADeletedTreeIsNoLongerNamedByTheCatalog() throws Exception {
+		final TreeName kept = new TreeName("testCatalogDelete", "kept");
+		final TreeName dropped = new TreeName("testCatalogDelete", "dropped");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_deleted"), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(kept, true);
+					txn.openTree(dropped, true);
+				}
+			});
+			final Set<TreeName> opened = storage.listTrees();
+			assertTrue(opened.contains(kept) && opened.contains(dropped), "an opened tree is not named by the catalog");
+
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.deleteTree(dropped);
+				}
+			});
+
+			final Set<TreeName> remaining = storage.listTrees();
+			assertTrue(remaining.contains(kept), "the catalog forgot a tree that is still there");
+			assertFalse(remaining.contains(dropped), "the catalog still names a tree that was deleted");
+			// and the removal that follows must not stumble over the tree it no longer names
+			storage.removeStorageFiles();
+			assertFalse(isExistsTable(storage.getTableName(kept)), "the table of the tree survived the clear");
+		} finally {
+			clearQuietly(storage);
+		}
+	}
+
+	/**
+	 * A row of the catalog whose table is not there any more must not fail the clear, and must not
+	 * stop it dropping the rest. Nothing of the backend leaves such a row behind - deleteTree() takes
+	 * it out in the commit that drops the table - but a table dropped by hand, or a catalog restored
+	 * from a backup older than the database, leaves exactly this (#888).
+	 */
+	@Test
+	public void testAClearSkipsACatalogRowWhoseTableIsGone() throws Exception {
+		final TreeName kept = new TreeName("testStaleCatalogRow", "kept");
+		final TreeName vanished = new TreeName("testStaleCatalogRow", "vanished");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_stale"), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(kept, true);
+					txn.openTree(vanished, true);
+				}
+			});
+			dropTableBehindTheBackend(storage.getTableName(vanished));
+			assertTrue(storage.listTrees().contains(vanished),
+				"the catalog was expected to go on naming the tree whose table was dropped behind its back");
+
+			storage.removeStorageFiles();
+
+			assertFalse(isExistsTable(storage.getTableName(kept)),
+				"a row of the catalog whose table is gone stopped the clear dropping the rest");
+			assertFalse(isExistsTable(storage.getTableName(storage.getCatalogTree())), "the catalog survived the clear");
+		} finally {
+			clearQuietly(storage);
+		}
+	}
+
+	/**
+	 * Naming a tree in order to read it must never put it up for removal: the tree read may be held
+	 * by another backend of the same database, which nothing forbids (#873). Only
+	 * openTree(createOnDemand) enrols.
+	 */
+	@Test
+	public void testReadingATreeDoesNotPutItUpForRemoval() throws Exception {
+		final TreeName owned = new TreeName("testReadDoesNotEnrol", "owned");
+		final TreeName foreign = new TreeName("testReadDoesNotEnrolForeign", "tree");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_reader"), null);
+		final JDBCStorage owner = new JDBCStorage(createBackendCfg(getBackendId() + "_owner"), null);
+		try {
+			owner.open(AccessMode.READ_WRITE);
+			owner.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(foreign, true);
+					txn.put(foreign, key(1), value(1));
+				}
+			});
+
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(owned, true); // the catalog of this backend comes into being here
+					txn.openTree(foreign, false); // read, not owned
+				}
+			});
+			assertEquals(storage.read(new ReadOperation<ByteString>() {
+				@Override
+				public ByteString run(ReadableTransaction txn) throws Exception {
+					return txn.read(foreign, key(1));
+				}
+			}), value(1), "the tree of the other backend could not be read");
+
+			assertFalse(storage.listTrees().contains(foreign), "reading a tree enrolled it in the catalog");
+			storage.removeStorageFiles();
+			assertTrue(isExistsTable(owner.getTableName(foreign)),
+				"the clear dropped a tree this backend had only read");
+			assertFalse(isExistsTable(storage.getTableName(owned)), "the table of the backend's own tree survived the clear");
+		} finally {
+			clearQuietly(owner);
+			clearQuietly(storage);
+		}
+	}
+
+	/**
+	 * The compressed schema trees named from a literal carry no backend qualifier, so on a database
+	 * addressed by several backends they are the same pair for all of them: a clear must leave them
+	 * where they lie (#881). A tool asking a backend what trees it holds has to be shown them all the
+	 * same, which is what keeps them out of the catalog and inside listTrees().
+	 */
+	@Test
+	public void testTheSharedCompressedSchemaTreesAreNamedButNeverCleared() throws Exception {
+		final TreeName owned = new TreeName("testSharedCompressedSchema", "owned");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_schema"), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(owned, true);
+					// opened, never written to: since #881 no backend of this class makes the literal-named
+					// pair, so this openTree is what creates these two tables - and the finally below is what
+					// removes them again, a clear being required to leave them exactly where they lie
+					for (final TreeName shared : JDBCStorage.SHARED_COMPRESSED_SCHEMA_TREES) {
+						txn.openTree(shared, true);
+					}
+				}
+			});
+			// both of them: the pair is a hand-copy of two privates of PersistentCompressedSchema, and
+			// a literal naming a tree that does not exist would go unseen if one of them were never asked
+			// for - the tree it names would be neither shown by listTrees() nor spared by a clear
+			final Set<TreeName> named = storage.listTrees();
+			for (final TreeName shared : JDBCStorage.SHARED_COMPRESSED_SCHEMA_TREES) {
+				assertTrue(named.contains(shared),
+					"a tool asking this backend for its trees was not shown " + shared);
+			}
+
+			storage.removeStorageFiles();
+
+			for (final TreeName shared : JDBCStorage.SHARED_COMPRESSED_SCHEMA_TREES) {
+				assertTrue(isExistsTable(JDBCStorage.toTableName(shared)),
+					"the clear dropped " + shared + ", which another backend of this database may be the only owner of");
+			}
+			assertFalse(isExistsTable(storage.getTableName(owned)), "the table of the backend's own tree survived the clear");
+		} finally {
+			// the pair is dropped by hand here, and by nothing of the backend: a clear must leave it
+			// where it lies, which is the whole of what this case asserts. It is this case's to remove
+			// because it is this case that made it - since #881 each backend keeps its definitions in a
+			// pair of its own, so the literal-named pair belongs to no backend of this class any more
+			// and the openTree above is what created these two tables. Left standing they would be a
+			// legacy pair this database does not have, which
+			// testCompressedSchemaTableIsQualifiedByBackendId asserts about and TestNG may run after
+			// this case as easily as before it
+			clearQuietly(storage);
+			for (final TreeName shared : JDBCStorage.SHARED_COMPRESSED_SCHEMA_TREES) {
+				try {
+					dropTableBehindTheBackend(JDBCStorage.toTableName(shared));
+				} catch (SQLException ignored) { // a case that failed before it made them leaves none to drop
+				}
+			}
+		}
+	}
+
+	/**
+	 * The row of a deleted tree must not be left to the enclosing transaction: a terminal failure
+	 * later in it - write() replays a class 40 conflict and rethrows everything else - would roll the
+	 * row back over a table that is already gone, and nothing would put it right, a deleted tree not
+	 * being opened again (#888).
+	 */
+	@Test
+	public void testADeletedTreeStaysOutOfTheCatalogWhenItsTransactionFails() throws Exception {
+		final TreeName kept = new TreeName("testCatalogDeleteRollback", "kept");
+		final TreeName deleted = new TreeName("testCatalogDeleteRollback", "deleted");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_rollback"), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(kept, true);
+					txn.openTree(deleted, true);
+				}
+			});
+
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(deleted);
+						// terminal, and no conflict for write() to replay: everything this transaction
+						// still owes goes back, and the row of the deleted tree must not be part of it
+						throw new IllegalStateException("the transaction of a deleteTree failed");
+					}
+				});
+				fail("the write was expected to fail");
+			} catch (Exception expected) {
+				// what the case is about is what the failure left behind
+			}
+
+			assertFalse(isExistsTable(storage.getTableName(deleted)), "the failed transaction brought a dropped table back");
+			final Set<TreeName> remaining = storage.listTrees();
+			assertFalse(remaining.contains(deleted),
+				"the catalog names a tree whose table the failed transaction left dropped");
+			assertTrue(remaining.contains(kept), "the catalog forgot a tree that is still there");
+		} finally {
+			clearQuietly(storage);
+		}
+	}
+
+	/**
+	 * The same, for the branch a deleteTree takes when the table is not there any more: nothing is
+	 * dropped, so there is no commit of a drop for the row to be carried out of the catalog by, and
+	 * the commit the delete is given on the catalog's own connection is the whole of what takes it
+	 * out. Left to the enclosing transaction, the row would go back with it and the catalog would name
+	 * a tree with no table for good - the state a clear can only skip and report, never repair (#888).
+	 */
+	@Test
+	public void testADeletedTreeStaysOutOfTheCatalogWhenItsTableIsAlreadyGone() throws Exception {
+		final TreeName kept = new TreeName("testCatalogDeleteNoTable", "kept");
+		final TreeName deleted = new TreeName("testCatalogDeleteNoTable", "deleted");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_noTable"), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(kept, true);
+					txn.openTree(deleted, true);
+				}
+			});
+			// what an interrupted change of an earlier run leaves: a row of the catalog naming a table
+			// that is not there any more. The deleteTree below therefore drops nothing at all
+			dropTableBehindTheBackend(storage.getTableName(deleted));
+
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(deleted);
+						// terminal, and no conflict for write() to replay: everything this transaction
+						// still owes goes back, and the row of the deleted tree must not be part of it
+						throw new IllegalStateException("the transaction of a deleteTree failed");
+					}
+				});
+				fail("the write was expected to fail");
+			} catch (Exception expected) {
+				// what the case is about is what the failure left behind
+			}
+
+			final Set<TreeName> remaining = storage.listTrees();
+			assertFalse(remaining.contains(deleted),
+				"the catalog names a tree whose table was already gone when it was deleted");
+			assertTrue(remaining.contains(kept), "the catalog forgot a tree that is still there");
+		} finally {
+			clearQuietly(storage);
+		}
+	}
+
+	/**
+	 * The row of a tree whose table is already standing must not be left to the enclosing transaction
+	 * either. That is the open which fills the catalog of a backend upgraded from a version keeping
+	 * none: it creates no table, so nothing else of openTree() commits anything, and a transaction
+	 * failing after the enrolment would take the whole of it back - leaving a backend whose tables
+	 * are named by no catalog and whose next clear therefore drops nothing at all (#888).
+	 * <p>
+	 * The row is written and committed on a connection of the catalog's own, so this holds on every
+	 * engine for the same reason: nothing the caller's transaction does - or fails to do - reaches it.
+	 * On the branch before this one the row rode the caller's connection, and the case was green on
+	 * postgres for a reason of that engine alone (openTree() asks there for the cursor index of every
+	 * tree on every open and commits that, carrying the row with it) while the other three lost it.
+	 */
+	@Test
+	public void testAReopenedTreeStaysInTheCatalogWhenItsTransactionFails() throws Exception {
+		final TreeName tree = new TreeName("testCatalogEnrolRollback", "tree");
+		final JDBCStorage setUp = new JDBCStorage(createBackendCfg(getBackendId() + "_enrol"), null);
+		try { // the tables of the backend, made by a storage that then goes away
+			setUp.open(AccessMode.READ_WRITE);
+			setUp.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+		} finally {
+			setUp.close();
+		}
+		// and the rest of what an installation upgraded to a version keeping a catalog holds: a
+		// catalog naming none of those tables
+		emptyTheCatalog(setUp.getTableName(setUp.getCatalogTree()));
+
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_enrol"), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			assertFalse(storage.listTrees().contains(tree), "the catalog of the case was not emptied");
+
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						// the table is there, so this open creates none: the enrolment is the only thing
+						// this transaction has written when it fails
+						txn.openTree(tree, true);
+						// terminal, and no conflict for write() to replay: everything this transaction
+						// still owes goes back, and the row naming a standing table must not be part of it
+						throw new IllegalStateException("the transaction of an openTree failed");
+					}
+				});
+				fail("the write was expected to fail");
+			} catch (Exception expected) {
+				// what the case is about is what the failure left behind
+			}
+
+			assertTrue(storage.listTrees().contains(tree),
+				"the catalog forgot a tree whose table is standing: a clear of this backend would drop nothing");
+		} finally {
+			clearQuietly(storage);
+		}
+	}
+
+	/**
+	 * A tree the catalog already records at the table this version records it at is not enrolled
+	 * again by an open: the row would be the row that is already there. A row recording any other
+	 * table is, though - a removal drops the table the row records, so a row naming one this backend
+	 * would not create leaves the real table standing, named by nothing and dropped by no clear ever
+	 * after. Which of the two a row is has to be decided by what it records and not by its presence.
+	 */
+	@Test
+	public void testARowRecordingAnotherTableIsEnrolledAgain() throws Exception {
+		final TreeName tree = new TreeName("testCatalogStaleRow", "tree");
+		final JDBCStorage setUp = new JDBCStorage(createBackendCfg(getBackendId() + "_staleRow"), null);
+		try { // the table and its row, by a storage that then goes away
+			setUp.open(AccessMode.READ_WRITE);
+			setUp.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+		} finally {
+			setUp.close();
+		}
+		final String catalogTable = setUp.getTableName(setUp.getCatalogTree());
+		// what a version naming its tables otherwise would have left: a row of the right tree
+		// recording a table this one would never create
+		recordAnotherTable(catalogTable, "opendj_00000000000000000000000000000000000000000000000000000000");
+
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_staleRow"), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+
+			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+				assertEquals(
+					storage.catalogTables(con, JDBCStorage.TableScope.of(storage, con)).get(tree),
+					storage.getTableName(tree),
+					"a row recording a table this backend does not hold was left as it was: its tree is named at a table no clear can drop");
+			}
+		} finally {
+			clearQuietly(storage);
+		}
+	}
+
+	/**
+	 * A clear which removed no tree of its backend says why, and says it where the one table it did
+	 * drop was its own catalog: a catalog standing over rows that name nothing - the state a backup
+	 * restored beside older tables leaves - is one drop and no tree removed, which is the outcome of
+	 * #888 exactly and not a clear that did something.
+	 * <p>
+	 * Decided on the drops of trees and not on every drop for that reason. Counted the other way the
+	 * line is silent here, since dropping the catalog makes the count one.
+	 */
+	@Test
+	public void testAClearWhichRemovedNoTreeSaysWhyEvenWhereItDroppedItsCatalog() throws Exception {
+		final DN baseDN = DN.valueOf("dc=clear-catalog-only,dc=com");
+		final TreeName owned = new TreeName(baseDN.toNormalizedUrlSafeString(), "id2entry");
+		final ReportingStorage storage =
+			new ReportingStorage(createBackendCfg(getBackendId() + "_catalogOnly", baseDN));
+		final String catalogTable = storage.getTableName(storage.getCatalogTree());
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(owned, true);
+				}
+			});
+			// the catalog table is there and names nothing, so the clear below has exactly one table to
+			// drop - its own - and leaves the tree standing, named by nothing
+			emptyTheCatalog(catalogTable);
+			storage.close();
+
+			storage.removeStorageFiles();
+
+			assertFalse(isExistsTable(catalogTable), "the clear left its own catalog table standing");
+			assertTrue(isExistsTable(storage.getTableName(owned)),
+				"a table named by no catalog was dropped: nothing may be dropped that cannot be attributed");
+			storage.assertReported("a clear which dropped its catalog and removed no tree of the backend"
+					+ " said nothing about why, which is the silence of #888",
+				"removed no tree of this backend", "has to be started once");
+		} finally {
+			clearQuietly(storage);
+			// left standing on purpose above: its catalog is gone, so no clear of this backend names it
+			dropTableIfExists(storage.getTableName(owned));
+		}
+	}
+
+	/**
+	 * A row recording a name outside the namespace this backend names its tables in is passed over
+	 * rather than reaching a {@code drop table} built from a value read back out of a table - and the
+	 * clear accounts for it, no other line of its report being able to: what such a row records is
+	 * outside the {@code opendj} names the scan of what a clear left standing walks, and is dropped
+	 * by nothing. The row is not there to be read again either - the catalog names itself last, so
+	 * the clear drops that table with the row still in it - which is why the line is asserted here
+	 * along with the drop: it is the only surviving copy of what the row said.
+	 * <p>
+	 * Nothing this version writes makes such a row, which is why the case makes one by hand.
+	 */
+	@Test
+	public void testAClearAccountsForACatalogRowItCannotActOn() throws Exception {
+		final TreeName tree = new TreeName("testCatalogForeignRow", "tree");
+		final ReportingStorage storage = new ReportingStorage(createBackendCfg(getBackendId() + "_foreignRow"));
+		final String tableName = storage.getTableName(tree);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			final String catalogTable = storage.getTableName(storage.getCatalogTree());
+			recordAnotherTable(catalogTable, "a_table_of_something_else");
+
+			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+				final List<String> skipped = new ArrayList<>();
+				assertFalse(storage.readCatalogRows(con, catalogTable, skipped).containsKey(tree),
+					"a row recording a name no table of this backend goes by was read as a tree to drop");
+				assertEquals(skipped.size(), 1, "the row the read passed over was not described to its caller: " + skipped);
+				assertTrue(skipped.get(0).contains("a_table_of_something_else"),
+					"what the row records is named by nothing the clear could report: " + skipped);
+			}
+
+			// the clear still drops what it can: the catalog itself, which it names last
+			storage.removeStorageFiles();
+			assertTrue(isExistsTable(tableName),
+				"the clear dropped the table of a tree its catalog names at another name than that table's");
+			assertFalse(isExistsTable(catalogTable),
+				"the clear left its own catalog table standing, so the row it passed over is still readable"
+					+ " and the line reporting it is not the last copy of what it said");
+			// the report itself and not the read behind it: reportSkippedRows() writes to nothing else,
+			// so both of its call sites could be deleted and every assertion above would still hold
+			storage.assertReported("the row the clear could not act on was reported by no line of it",
+				"a_table_of_something_else", "passed over");
+		} finally {
+			clearQuietly(storage);
+			// left standing on purpose above, so this case removes it rather than the next one meeting it
+			dropTableIfExists(tableName);
+		}
+	}
+
+	/**
+	 * A clear drops the table its catalog records for a tree, not one it derives again from the tree
+	 * name, so that a removal drops what was enrolled even if the naming of tables were ever to
+	 * change. A row recording no table at all - all a version recording the name alone would have
+	 * left - falls back to the derived name rather than naming nothing.
+	 */
+	@Test
+	public void testAClearDropsTheTableTheCatalogRecords() throws Exception {
+		final TreeName tree = new TreeName("testCatalogValue", "tree");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_value"), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+				// asked the way a clear asks it, narrowed to where an unqualified name of the connection
+				// resolves: what the removal reads is this and not a lookup of a shape of its own
+				final Map<TreeName, String> recorded =
+					storage.catalogTables(con, JDBCStorage.TableScope.of(storage, con));
+				assertEquals(recorded.get(tree), storage.getTableName(tree),
+					"the catalog does not record the table holding the tree its row names");
+
+				emptyTheRecordedTableNames(storage.getTableName(storage.getCatalogTree()));
+				assertEquals(storage.catalogTables(con, JDBCStorage.TableScope.of(storage, con)).get(tree),
+					storage.getTableName(tree),
+					"a row recording no table name did not fall back to the name derived from the tree");
+			}
+
+			storage.removeStorageFiles();
+
+			assertFalse(isExistsTable(storage.getTableName(tree)), "the table the catalog named survived the clear");
+		} finally {
+			clearQuietly(storage);
+		}
+	}
+
+	/**
+	 * A clear drops the catalog last, after every tree it names: what names the trees has to outlive
+	 * them. Dropping a table is DDL, which mysql and oracle commit as they go, so a clear that fails
+	 * halfway leaves a catalog still naming what is left - and the next attempt finishes it - where one
+	 * that had dropped the catalog first would leave tables nothing names any more and no clear could
+	 * ever reach.
+	 * <p>
+	 * Taken from the drops themselves and not from the map the loop walks: the map is built with the
+	 * catalog put last by hand, so an assertion on it would hold of any loop at all - one that sorted
+	 * the keys, or copied them into a HashSet, included.
+	 */
+	@Test
+	public void testAClearDropsTheCatalogAfterEveryTreeItNames() throws Exception {
+		final TreeName first = new TreeName("testCatalogDropOrder", "first");
+		final TreeName second = new TreeName("testCatalogDropOrder", "second");
+		final List<String> order = new ArrayList<>();
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_order"), null) {
+			@Override
+			void dropTable(Connection con, String tableName) throws SQLException {
+				order.add(tableName);
+				super.dropTable(con, tableName);
+			}
+		};
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(first, true);
+					txn.openTree(second, true);
+				}
+			});
+
+			storage.removeStorageFiles();
+
+			final String catalogTable = storage.getTableName(storage.getCatalogTree());
+			assertTrue(order.contains(storage.getTableName(first)) && order.contains(storage.getTableName(second)),
+				"the clear did not drop the tables of the trees its catalog names: " + order);
+			assertEquals(order.get(order.size() - 1), catalogTable,
+				"the clear dropped the catalog before a tree it names, which no later clear could reach: " + order);
+			assertEquals(order.indexOf(catalogTable), order.size() - 1,
+				"the catalog was dropped more than once: " + order);
+		} finally {
+			clearQuietly(storage);
+		}
+	}
+
+	/**
+	 * What a clear leaves standing it reports, and it reports it as what it is: a table stamped with a
+	 * tree of a base DN this backend serves is its own and can be removed by hand, while a table of a
+	 * backend sharing this database (#873) is that backend's business and no part of this outcome.
+	 * Told apart by the stamp of #866 and by nothing else - a table name is a bare hash.
+	 */
+	@Test
+	public void testAClearReportsTheTablesItCanAttributeToThisBackend() throws Exception {
+		final DN baseDN = DN.valueOf("dc=clear-report,dc=com");
+		final TreeName owned = new TreeName(baseDN.toNormalizedUrlSafeString(), "id2entry");
+		// a base DN of its own, so that the neighbour is a backend that reports this table as its own:
+		// what this case asserts about the clear of the other one is then an absence and not a vacuity
+		final DN neighbourBaseDN = DN.valueOf("dc=clear-report-neighbour,dc=com");
+		final TreeName neighbourTree = new TreeName(neighbourBaseDN.toNormalizedUrlSafeString(), "id2entry");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_reported", baseDN), null);
+		final JDBCStorage neighbour =
+			new JDBCStorage(createBackendCfg(getBackendId() + "_reportedNeighbour", neighbourBaseDN), null);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(owned, true);
+				}
+			});
+			neighbour.open(AccessMode.READ_WRITE);
+			neighbour.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(neighbourTree, true);
+				}
+			});
+			// the state of a backend upgraded from a version keeping no catalog: its tables are there
+			// and nothing names them, so the clear that follows drops nothing at all
+			dropTableBehindTheBackend(storage.getTableName(storage.getCatalogTree()));
+			storage.close();
+
+			storage.removeStorageFiles();
+
+			assertTrue(isExistsTable(storage.getTableName(owned)),
+				"a table named by no catalog was dropped: nothing may be dropped that cannot be attributed");
+			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+				// asked the way a clear asks it, through the same normalisation: a driver naming its
+				// catalog with an empty string names no catalog, and a metadata pattern reads that as
+				// "the tables belonging to no catalog at all", which would answer nothing
+				final JDBCStorage.ClearLeftovers leftovers =
+					storage.leftoverTables(con, JDBCStorage.TableScope.of(storage, con));
+				assertNotNull(leftovers, "the database would not say which tables the clear left standing");
+				assertTrue(leftovers.ours.toString().toLowerCase().contains(storage.getTableName(owned).toLowerCase()),
+					"a table of a base DN this backend serves was not reported as its own: " + leftovers.ours);
+				assertFalse(leftovers.unattributed.toString().toLowerCase().contains(storage.getTableName(owned).toLowerCase()),
+					"a table this backend can name was reported as attributable to nobody: " + leftovers.unattributed);
+				assertTrue(leftovers.unreadable.isEmpty(),
+					"the stamp of a table this database does give up was reported as unreadable: " + leftovers.unreadable);
+			}
+			assertReportsNothingOf(storage, neighbour, neighbourTree);
+		} finally {
+			clearQuietly(neighbour);
+			// the catalog of this one is gone, so its clear names nothing: the table it left standing on
+			// purpose is dropped here by hand, as the report says such a table has to be
+			clearQuietly(storage);
+			dropTableIfExists(storage.getTableName(owned));
+		}
+	}
+
+	/**
+	 * Asserts that the clear of one backend says nothing whatsoever about the tables of another - and
+	 * that the silence is one about tables the scan does reach: the backend those tables belong to is
+	 * asked the same question and reports them as its own, so an absence here is a decision and not a
+	 * scan that enumerated nothing.
+	 */
+	private void assertReportsNothingOf(JDBCStorage cleared, JDBCStorage other, TreeName otherTree) throws SQLException {
+		try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+			final JDBCStorage.ClearLeftovers leftovers =
+				cleared.leftoverTables(con, JDBCStorage.TableScope.of(cleared, con));
+			assertNotNull(leftovers, "the database would not say which tables the clear left standing");
+			final String reported =
+				(leftovers.ours + " " + leftovers.unattributed + " " + leftovers.unreadable).toLowerCase();
+			assertFalse(reported.contains(other.getTableName(otherTree).toLowerCase()),
+				"the clear of one backend reported the table of another: " + reported);
+			assertFalse(reported.contains(other.getTableName(other.getCatalogTree()).toLowerCase()),
+				"the clear of one backend reported the catalog of another: " + reported);
+
+			final JDBCStorage.ClearLeftovers theirs =
+				other.leftoverTables(con, JDBCStorage.TableScope.of(other, con));
+			assertNotNull(theirs, "the database would not say which tables the neighbour is holding");
+			assertTrue(theirs.ours.toString().toLowerCase().contains(other.getTableName(otherTree).toLowerCase()),
+				"the table left unreported is one the scan does not reach at all: " + theirs.ours);
+		}
+	}
+
+	/**
+	 * Takes every row out of a catalog, leaving the tables it named standing: what a backend upgraded
+	 * from a version keeping no catalog holds before its first read-write open fills one in.
+	 */
+	private void emptyTheCatalog(String catalogTable) throws SQLException {
+		try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+			 final Statement st = con.createStatement()) {
+			st.executeUpdate("delete from " + catalogTable);
+		}
+	}
+
+	/**
+	 * Records the given table for every row of a catalog, as a version naming its tables otherwise
+	 * would have left them: the row names the right tree and a table this version never creates.
+	 */
+	private void recordAnotherTable(String catalogTable, String tableName) throws SQLException {
+		try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+			 final PreparedStatement statement = con.prepareStatement("update " + catalogTable + " set v=?")) {
+			statement.setBytes(1, tableName.getBytes(StandardCharsets.UTF_8));
+			statement.executeUpdate();
+		}
+	}
+
+	/** Empties the recorded table name of every row of a catalog, as a version recording none would have left it. */
+	private void emptyTheRecordedTableNames(String catalogTable) throws SQLException {
+		try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+			 final PreparedStatement statement = con.prepareStatement("update " + catalogTable + " set v=?")) {
+			statement.setBytes(1, new byte[0]);
+			statement.executeUpdate();
+		}
+	}
+
+	/**
+	 * Drops a table a clear left standing on purpose, so that it is not left behind for the rest of
+	 * the class. A failure here is swallowed rather than replacing the failure of the case it cleans
+	 * up after: what it leaves is dropped by the dropStaleTrees() of the next run of the class.
+	 */
+	private void dropTableIfExists(String tableName) {
+		try {
+			if (isExistsTable(tableName)) {
+				dropTableBehindTheBackend(tableName);
+			}
+		} catch (SQLException ignored) {
+		}
+	}
+
+	/**
+	 * A storage which keeps the lines every clear it runs reports, so that a case can hold that
+	 * account to what it says.
+	 * <p>
+	 * Those lines change no state whatsoever, so a case asserting on the database a clear leaves
+	 * behind passes just as well with all of them deleted - which is how this report came to be
+	 * changed in three rounds of review with nothing able to fail. Here rather than in the case that
+	 * needed it first, for the same reason: the next line of the report wants an assertion too, and a
+	 * helper per case is what got the report where it was. See {@link JDBCStorage#reportClearLine}.
+	 */
+	protected static final class ReportingStorage extends JDBCStorage {
+		private final List<String> lines = Collections.synchronizedList(new ArrayList<String>());
+
+		ReportingStorage(JDBCBackendCfg cfg) {
+			super(cfg, null);
+		}
+
+		@Override
+		void reportClearLine(LocalizableMessage line) {
+			lines.add(line.toString());
+			super.reportClearLine(line); // and on to the log, which is where an operator meets it
+		}
+
+		/** Every line reported so far, in the order the clears that reported them ran. */
+		List<String> reported() {
+			synchronized (lines) {
+				return new ArrayList<>(lines);
+			}
+		}
+
+		/**
+		 * Fails unless one reported line holds every one of the fragments. By fragments and not by the
+		 * whole line: what a case is entitled to pin is the thing the line is about, and a report
+		 * asserted word for word is a report nobody may improve the wording of.
+		 */
+		void assertReported(String whatWentUnsaid, String... fragments) {
+			for (final String line : reported()) {
+				boolean holdsAll = true;
+				for (final String fragment : fragments) {
+					holdsAll &= line.contains(fragment);
+				}
+				if (holdsAll) {
+					return;
+				}
+			}
+			fail(whatWentUnsaid + "; the clear reported: " + reported());
 		}
 	}
 }
