@@ -21,7 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011-2013 ForgeRock AS
-  !      Portions Copyright 2024 3A Systems, LLC
+  !      Portions Copyright 2024-2026 3A Systems, LLC
   !    
 -->
 <chapter xml:id='chap-monitoring'
@@ -981,6 +981,14 @@ $ dsconfig
     <listitem>
      <para>Multimaster replication cannot resolve a conflict
      automatically.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.replication.UnreplayedChange</literal></term>
+    <listitem>
+     <para>Multimaster replication gave up on a change it could not replay.
+     This replica now diverges from the rest of the topology and must be
+     reinitialized.</para>
     </listitem>
    </varlistentry>
    <varlistentry>

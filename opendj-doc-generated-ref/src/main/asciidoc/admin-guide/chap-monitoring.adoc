@@ -2179,6 +2179,9 @@ The directory server detects that its configuration has been manually edited wit
 `org.opends.server.replication.UnresolvedConflict`::
 Multimaster replication cannot resolve a conflict automatically.
 
+`org.opends.server.replication.UnreplayedChange`::
+Multimaster replication gave up on a change it could not replay. This replica now diverges from the rest of the topology and must be reinitialized.
+
 `org.opends.server.UncaughtException`::
 A directory server thread has encountered an uncaught exception that caused that thread to terminate abnormally. The impact that this problem has on the server depends on which thread was impacted and the nature of the exception.
 
