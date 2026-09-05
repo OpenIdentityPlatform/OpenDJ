@@ -21,6 +21,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.fail;
 
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -244,6 +246,46 @@ public class PersistentCompressedSchemaTest extends DirectoryServerTestCase
     {
       assertThat(e).isSameAs(conflict);
     }
+  }
+
+  /**
+   * A record stored under a key no compressed schema hands out must cost the definition it carries
+   * and nothing else: the backend still opens, and the definitions stored under the keys this
+   * schema did write are still there (issue #897).
+   * <p>
+   * The load path folds whatever key a record is stored under into an id and hands it straight to
+   * the decode map, so an all-zero key - what a truncated record leaves - reached it as the index
+   * -1 and left the open as an IndexOutOfBoundsException, while a key folding to the largest id
+   * four bytes address left it padding the map two billion slots, one at a time, with nothing in
+   * the log to say what the open was waiting for.
+   */
+  @Test
+  public void aDefinitionStoredUnderAnUnusableKeyDoesNotStopTheOpen() throws Exception
+  {
+    final ByteString encoded = encode(open("backendA", AccessMode.READ_WRITE), "cn");
+    // Read before the definition of "cn", whose key is 0x01: a cursor walks the keys in order, so
+    // the open used to end on this one before it reached anything else.
+    storeDefinitionUnder(ownTree("backendA", AD), ByteString.wrap(new byte[] { 0x00 }), "description");
+    storeDefinitionUnder(ownTree("backendA", AD),
+        ByteString.wrap(new byte[] { 0x7F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF }), "sn");
+
+    final PersistentCompressedSchema reopened = open("backendA", AccessMode.READ_WRITE);
+
+    assertThat(decode(reopened, encoded)).isEqualTo("cn");
+    // and a definition that was skipped is registered afresh when it is next encoded, rather than
+    // taken from the key it was stored under: it gets a token this schema hands out and stores.
+    assertThat(decode(reopened, encode(reopened, "description"))).isEqualTo("description");
+  }
+
+  /** Writes an attribute description definition under a key of this test's choosing. */
+  private void storeDefinitionUnder(TreeName treeName, ByteString key, String attributeName) throws Exception
+  {
+    final ByteStringBuilder definition = new ByteStringBuilder();
+    final ASN1Writer writer = ASN1.getWriter(definition);
+    writer.writeStartSequence();
+    writer.writeOctetString(attributeName);
+    writer.writeEndSequence();
+    txn.put(treeName, key, definition);
   }
 
   private PersistentCompressedSchema open(String backendId, AccessMode accessMode) throws Exception

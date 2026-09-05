@@ -829,8 +829,22 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 		when(statement.executeQuery()).thenReturn(mock(ResultSet.class));
 		when(parent.prepareStatement(anyString())).thenReturn(statement);
 		storage.accessMode = AccessMode.READ_WRITE; // an import has the storage open for writing
-		final JDBCStorage.ImporterImpl importer =
-			storage.new ImporterImpl(new CachedConnection("jdbc:mock", parent), true);
+		// Borrowed through the seam rather than handed to the constructor: the importer takes its own
+		// connection now (#878). It is the same physical connection the entry read below runs on,
+		// which is what this test pins - the backstop is keyed on the connection, not on the storage.
+		final JDBCStorage importing = new JDBCStorage(mockCfg(JDBCBackendCfg.class), null) {
+			@Override
+			Connection getConnection(boolean trusted) {
+				return new CachedConnection("jdbc:mock", parent);
+			}
+
+			@Override
+			public StorageStatus getStorageStatus() {
+				return StorageStatus.working(); // open already, so the importer borrows and no more
+			}
+		};
+		importing.accessMode = AccessMode.READ_WRITE;
+		final JDBCStorage.ImporterImpl importer = importing.new ImporterImpl();
 		final TreeName tree = new TreeName("dc=example,dc=com", "id2entry");
 
 		// an entry read of a client arms the backstop on the very connection the import writes to,
@@ -1006,9 +1020,11 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 	@Test
 	public void testStartImportGivesTheConnectionBackWhenTheImporterCannotBeBuilt() throws Exception {
 		final Connection con = mock(Connection.class);
+		final AtomicInteger borrows = new AtomicInteger();
 		final JDBCStorage readOnly = new JDBCStorage(mockCfg(JDBCBackendCfg.class), null) {
 			@Override
 			Connection getConnection(boolean trusted) {
+				borrows.incrementAndGet();
 				return con;
 			}
 
@@ -1026,7 +1042,13 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 			// the designed path this test is about
 		}
 
-		verify(con).close();
+		// Nothing to give back. With the borrow inside the importer's constructor (#878) the refusal
+		// stands in front of it, so an import of a read-only storage takes no connection at all
+		// rather than taking one and returning it. Pinned as never borrowed rather than dropped: the
+		// leak this covers - a connection out of the pool for good, holding a transaction it had
+		// already begun - is the same one, and never taking it is the state that cannot leak it.
+		assertEquals(borrows.get(), 0);
+		verify(con, never()).close();
 	}
 
 	/**
@@ -1074,9 +1096,11 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 			// the build failing after this method opened the storage, which is the path under test
 		}
 
-		assertEquals(opens.get(), 1, "the storage was not opened by startImport(), so nothing was owed back");
-		verify(con).close();
-		assertEquals(closes.get(), 1, "the storage this method opened was left open");
+		assertEquals(opens.get(), 1, "the storage was not opened by the importer, so nothing was owed back");
+		// the connection is not owed back here either: the refusal stands in front of the borrow now
+		// (#878), so what this path has to give back is the storage alone
+		verify(con, never()).close();
+		assertEquals(closes.get(), 1, "the storage the importer opened was left open");
 	}
 
 	/**
