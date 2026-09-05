@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -123,8 +124,10 @@ class PendingChanges
 
   /**
    * Add a replica offline message to the pending list.
+   *
+   * @return the CSN of the message which was added
    */
-  public synchronized void putReplicaOfflineMsg()
+  public synchronized CSN putReplicaOfflineMsg()
   {
     final CSN offlineCSN = csnGenerator.newCSN();
     final PendingChange pendingChange =
@@ -133,6 +136,7 @@ class PendingChanges
 
     pendingChanges.put(offlineCSN, pendingChange);
     pushCommittedChanges();
+    return offlineCSN;
   }
 
   /**

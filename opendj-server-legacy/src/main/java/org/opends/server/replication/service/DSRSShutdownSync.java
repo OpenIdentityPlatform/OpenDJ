@@ -16,10 +16,15 @@
  */
 package org.opends.server.replication.service;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.forgerock.opendj.ldap.DN;
+import org.opends.server.replication.common.CSN;
 
 /**
  * Class useful for the case where DS/RS instances are collocated inside the
@@ -46,20 +51,20 @@ public class DSRSShutdownSync
   private final long gracePeriod;
 
   /**
-   * Time at which a ReplicaOfflineMsg was sent, per domain and per replica of
-   * that domain, for the messages which have not been forwarded yet.
+   * The ReplicaOfflineMsg which has not been forwarded yet, per domain and per
+   * replica of that domain.
    * <p>
-   * The time is kept per domain because a domain sends this message whenever
-   * its replication service is disabled - an online import, a restore, a
+   * It is kept per domain because a domain sends this message whenever its
+   * replication service is disabled - an online import, a restore, a
    * configuration change - and not only when the process shuts down. A single
-   * time for the whole process would be the time of the first such message and
+   * entry for the whole process would be the one of the first such message and
    * would leave no grace period at all to the shutdown this class exists for.
    * <p>
    * It is kept per replica because the collocated RS relays the message of
    * every replica connected to it, and the forward of another replica's
    * message says nothing about this one.
    */
-  private final ConcurrentMap<DN, ConcurrentMap<Integer, Long>> replicaOfflineMsgs =
+  private final ConcurrentMap<DN, ConcurrentMap<Integer, PendingOfflineMsg>> replicaOfflineMsgs =
       new ConcurrentHashMap<>();
   /** Monitor notified whenever a ReplicaOfflineMsg has been forwarded. */
   private final Object forwardedMonitor = new Object();
@@ -86,22 +91,15 @@ public class DSRSShutdownSync
    *
    * @param baseDN
    *          the domain for which the message has been sent
-   * @param serverId
-   *          the replica which announced itself offline
+   * @param offlineCSN
+   *          the CSN of the message, which identifies both the replica which announced itself
+   *          offline and the announcement being waited for
    */
-  public void replicaOfflineMsgSent(DN baseDN, int serverId)
+  public void replicaOfflineMsgSent(DN baseDN, CSN offlineCSN)
   {
-    ConcurrentMap<Integer, Long> msgs = replicaOfflineMsgs.get(baseDN);
-    if (msgs == null)
-    {
-      msgs = new ConcurrentHashMap<>();
-      final ConcurrentMap<Integer, Long> existing = replicaOfflineMsgs.putIfAbsent(baseDN, msgs);
-      if (existing != null)
-      {
-        msgs = existing;
-      }
-    }
-    msgs.put(serverId, System.currentTimeMillis());
+    replicaOfflineMsgs
+        .computeIfAbsent(baseDN, dn -> new ConcurrentHashMap<Integer, PendingOfflineMsg>())
+        .put(offlineCSN.getServerId(), new PendingOfflineMsg(offlineCSN, System.nanoTime()));
   }
 
   /**
@@ -109,15 +107,27 @@ public class DSRSShutdownSync
    *
    * @param baseDN
    *          the domain for which the message has been sent
-   * @param serverId
-   *          the replica the forwarded message belongs to
+   * @param forwardedCSN
+   *          the CSN of the forwarded message
    */
-  public void replicaOfflineMsgForwarded(DN baseDN, int serverId)
+  public void replicaOfflineMsgForwarded(DN baseDN, CSN forwardedCSN)
   {
-    final ConcurrentMap<Integer, Long> msgs = replicaOfflineMsgs.get(baseDN);
+    final ConcurrentMap<Integer, PendingOfflineMsg> msgs = replicaOfflineMsgs.get(baseDN);
     if (msgs != null)
     {
-      msgs.remove(serverId);
+      final int serverId = forwardedCSN.getServerId();
+      final PendingOfflineMsg pending = msgs.get(serverId);
+      /*
+       * A replica announces itself offline on every disableService(), so the message which is
+       * forwarded now may be an older one - queued behind a backlog since an earlier import, or
+       * synthesized from the offline CSN of the changelog for a server which is catching up.
+       * Such a forward says nothing about the announcement the shutdown is waiting for, and must
+       * not consume its grace period.
+       */
+      if (pending != null && pending.csn.isOlderThanOrEqualTo(forwardedCSN))
+      {
+        msgs.remove(serverId, pending);
+      }
     }
     synchronized (forwardedMonitor)
     {
@@ -128,10 +138,14 @@ public class DSRSShutdownSync
   /**
    * Whether the shutdown of a domain can proceed, i.e. its ReplicaOfflineMsg
    * has been forwarded or its grace period has expired.
+   * <p>
+   * The shutdown itself blocks on {@link #awaitReplicaOfflineMsgsForwarded(Collection, long)}
+   * rather than polling this; it is the same state, observable without waiting for it.
    *
    * @param baseDN
    *          the baseDN of the domain being shut down
-   * @return true if the caller can shutdown, false otherwise
+   * @return true if the shutdown of this domain need not wait any longer, i.e. its message was
+   *         forwarded or its grace period has expired, false otherwise
    */
   public boolean canShutdown(DN baseDN)
   {
@@ -139,25 +153,52 @@ public class DSRSShutdownSync
   }
 
   /**
-   * Waits for the ReplicaOfflineMsg of the provided domain to be forwarded, or for its grace
-   * period to expire.
+   * Returns the time by which every wait of one shutdown must be over.
    * <p>
-   * This must be called before the server handlers of the domain are stopped: stopping them
+   * A process shuts its domains down one after the other and each of them may have a message
+   * pending, so a deadline computed once and shared by all of them keeps the whole shutdown
+   * bounded by one grace period instead of one per domain.
+   *
+   * @return the point in time, on the {@link System#nanoTime()} clock, by which the waits must
+   *         be over
+   */
+  public long newShutdownDeadline()
+  {
+    return System.nanoTime() + MILLISECONDS.toNanos(gracePeriod);
+  }
+
+  /**
+   * Waits for the ReplicaOfflineMsg of every provided domain to be forwarded, or for their grace
+   * periods or the provided deadline to expire.
+   * <p>
+   * This must be called before the server handlers of those domains are stopped: stopping them
    * deactivates their consumer, clears their message queue and closes their session, after which
    * the message can no longer be forwarded.
+   * <p>
+   * All the domains of one shutdown wait together rather than one after the other, so that the
+   * shutdown is bounded by one grace period without the wait of one domain spending the grace
+   * period of the next.
    *
-   * @param baseDN
-   *          the baseDN of the domain whose message must be forwarded
+   * @param baseDNs
+   *          the baseDNs of the domains whose messages must be forwarded
+   * @param deadline
+   *          the point in time, on the {@link System#nanoTime()} clock, by which this wait must
+   *          be over whatever the domains announce in the meantime - see
+   *          {@link #newShutdownDeadline()}. A deadline which is not in the future returns
+   *          without waiting at all, for a caller which has nothing to wait for.
    */
-  public void awaitReplicaOfflineMsgForwarded(DN baseDN)
+  public void awaitReplicaOfflineMsgsForwarded(Collection<DN> baseDNs, long deadline)
   {
-    // Bound the wait even if the domain keeps announcing itself offline while we are waiting.
-    final long deadline = System.currentTimeMillis() + gracePeriod;
+    if (deadline - System.nanoTime() <= 0)
+    {
+      return;
+    }
     synchronized (forwardedMonitor)
     {
-      while (!canShutdown(baseDN))
+      while (true)
       {
-        final long timeout = Math.min(remainingGracePeriod(baseDN), deadline - System.currentTimeMillis());
+        final long timeout = Math.min(remainingGracePeriod(baseDNs),
+            NANOSECONDS.toMillis(deadline - System.nanoTime()));
         if (timeout <= 0)
         {
           return;
@@ -180,22 +221,65 @@ public class DSRSShutdownSync
   }
 
   /**
-   * Returns the time left to forward the ReplicaOfflineMsg of the replica of this domain which
-   * has the longest to wait, zero or less if no message of this domain is pending.
+   * Returns the time left, in milliseconds, to forward the ReplicaOfflineMsg of the replica of
+   * the provided domains which has the longest to wait, zero or less if none of them has a
+   * message pending.
+   */
+  private long remainingGracePeriod(Collection<DN> baseDNs)
+  {
+    long remaining = 0;
+    for (DN baseDN : baseDNs)
+    {
+      remaining = Math.max(remaining, remainingGracePeriod(baseDN));
+    }
+    return remaining;
+  }
+
+  /**
+   * Returns the time left, in milliseconds, to forward the ReplicaOfflineMsg of the replica of
+   * this domain which has the longest to wait, zero or less if no message of this domain is
+   * pending.
    */
   private long remainingGracePeriod(DN baseDN)
   {
-    final ConcurrentMap<Integer, Long> msgs = replicaOfflineMsgs.get(baseDN);
+    final ConcurrentMap<Integer, PendingOfflineMsg> msgs = replicaOfflineMsgs.get(baseDN);
     if (msgs == null)
     {
       return 0;
     }
-    final long now = System.currentTimeMillis();
+    final long now = System.nanoTime();
     long remaining = 0;
-    for (Long msgSentTime : msgs.values())
+    for (PendingOfflineMsg pending : msgs.values())
     {
-      remaining = Math.max(remaining, msgSentTime + gracePeriod - now);
+      remaining = Math.max(remaining, gracePeriod - NANOSECONDS.toMillis(now - pending.sentTime));
     }
     return remaining;
+  }
+
+  /**
+   * A ReplicaOfflineMsg a replica announced and which has not been forwarded yet.
+   * <p>
+   * This deliberately does not override {@code equals}: the two-argument
+   * {@link ConcurrentMap#remove(Object, Object)} of the forward guard must match the very
+   * announcement it read, not another one which happens to carry the same values.
+   */
+  private static final class PendingOfflineMsg
+  {
+    /** The CSN of the message, so that the forward of an older one is not taken for this one. */
+    private final CSN csn;
+    /** When the message was announced, on the {@link System#nanoTime()} clock. */
+    private final long sentTime;
+
+    private PendingOfflineMsg(CSN csn, long sentTime)
+    {
+      this.csn = csn;
+      this.sentTime = sentTime;
+    }
+
+    @Override
+    public String toString()
+    {
+      return "PendingOfflineMsg(" + csn + ")";
+    }
   }
 }

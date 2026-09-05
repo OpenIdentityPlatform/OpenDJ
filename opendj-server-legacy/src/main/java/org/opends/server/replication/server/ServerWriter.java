@@ -95,8 +95,7 @@ public class ServerWriter extends DirectoryThread
        * message to be forwarded before it stops the handlers - see
        * ReplicationServerDomain.shutdown() and OPENDJ-1453.
        */
-      boolean shutdown = false;
-      while (!shutdown)
+      while (true)
       {
         final UpdateMsg updateMsg = this.handler.take();
         if (updateMsg == null)
@@ -104,16 +103,25 @@ public class ServerWriter extends DirectoryThread
           // this connection is closing
           errMessage = LocalizableMessage.raw(
            "Connection closure: null update returned by domain.");
-          shutdown = true;
+          break;
         }
-        else if (!isUpdateMsgFiltered(updateMsg))
+        if (!isUpdateMsgFiltered(updateMsg))
         {
           // Publish the update to the remote server using a protocol version it supports
           session.publish(updateMsg);
-          if (updateMsg instanceof ReplicaOfflineMsg)
+          /*
+           * Only the forward to a peer RS ends the wait of the shutdown: what the grace period
+           * buys is the rest of the topology learning that the replica went offline.
+           * ReplicationServerDomain.put() never queues this message for a directory server - its
+           * isUpdateMsgFiltered() drops it there - but a directory server which is catching up
+           * reads its updates from the changelog, where ReplicaCursor synthesizes a
+           * ReplicaOfflineMsg from the offline CSN of the replica. Publishing that one says
+           * nothing about the peer RSs the shutdown is waiting for.
+           */
+          if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
           {
             dsrsShutdownSync.replicaOfflineMsgForwarded(
-                replicationServerDomain.getBaseDN(), updateMsg.getCSN().getServerId());
+                replicationServerDomain.getBaseDN(), updateMsg.getCSN());
           }
         }
       }
