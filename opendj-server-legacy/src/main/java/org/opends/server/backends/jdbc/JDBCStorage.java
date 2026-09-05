@@ -42,6 +42,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
@@ -56,15 +57,25 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	private static final int MAX_RETRIES = 10;
 
 	/**
-	 * Wall-clock budget the replays of a {@link #write} may spend, in nanoseconds. It is checked between attempts,
-	 * so an attempt already running is never interrupted: the loop returns after at most this window plus one
-	 * attempt. It bounds the conflicts that are slow to report, which {@link #MAX_RETRIES} alone does not - MySQL
-	 * reports a lock wait timeout only after innodb_lock_wait_timeout, 50 s by default and not overridden here, so
-	 * ten attempts would park a worker thread for eight minutes where a single one released it after 50 s. The
-	 * deadlocks this retry exists for keep their full attempt budget, since every engine reports one in well under
-	 * a second.
+	 * Wall-clock budget the replays of a {@link #write} may spend, in nanoseconds, measured from the start of the
+	 * first attempt. It is checked between attempts, so an attempt already running is never interrupted, and it
+	 * applies from the first check, with the single exception {@link #grantedPastTheWindow} describes: a conflict
+	 * its engine reports promptly is granted one replay whatever the clock says, because the lock wait that
+	 * precedes such a conflict is charged to the attempt and is unbounded on three of the four engines here, so no
+	 * window survives it. It bounds what {@link #MAX_RETRIES} alone does not - MySQL reports a lock wait timeout
+	 * only after innodb_lock_wait_timeout, 50 s by default and not overridden here, so ten attempts would park a
+	 * worker thread for eight minutes where one releases it after 50 s.
+	 * <p>
+	 * What that costs, stated rather than left to be read off a test row: at the stock innodb_lock_wait_timeout a
+	 * MySQL lock wait timeout is reported at ~50 s, which is past this window on the first check, so such a write
+	 * is never replayed at all - the one conflict class of the set that a MySQL deployment sees most, and the one
+	 * whose replay would most reliably succeed. It is the deliberate half of the trade the other half of which is
+	 * #903: one bounded wait beats two, and a deployment that tunes innodb_lock_wait_timeout below this window
+	 * gets its replays back. The trade only exists because nothing here bounds the attempt: with a session lock
+	 * timeout on the transaction connection (#915) every wait would be shorter than this window, the tuned-down
+	 * case would become the normal one, and this window would govern both classes with no grant needed at all.
 	 */
-	private static final long MAX_RETRY_WINDOW_NANOS = 10L * 1000L * 1000L * 1000L; //10 s
+	private static final long RETRY_WINDOW_NANOS = TimeUnit.SECONDS.toNanos(10);
 
 	/** Upper bound of the random delay before the second attempt, in milliseconds; it doubles with every attempt. */
 	private static final double BASE_SLEEP_ON_RETRY_MS = 50.0;
@@ -73,15 +84,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	private static final double MAX_SLEEP_ON_RETRY_MS = 1000.0;
 
 	/**
-	 * Number of links walked when classifying a failure, also a guard against a chain long enough to matter. One
-	 * number for three chains at once - the causes, the next exceptions and the suppressed exceptions are walked
-	 * together and counted together - so it is set well above the depth a wrapped failure of this backend reaches:
-	 * mssql-jdbc chains every error of one message it received through {@code setNextException}, and a budget spent
-	 * on those would never reach the cause the wrapper carries.
+	 * Number of links walked when asking a failure a question truncation can only leave unanswered, which is
+	 * {@link #isConnectionFailure} and the fallbacks of {@link #conflictSummary}: a guard against a chain long
+	 * enough to matter, at the cost of a replay not taken. One number for three chains at once - the causes, the
+	 * next exceptions and the suppressed exceptions are walked together and counted together - so it is set well
+	 * above the depth a wrapped failure of this backend reaches: mssql-jdbc chains every error of one message it
+	 * received through {@code setNextException}, and a budget spent on those would never reach the cause the
+	 * wrapper carries.
 	 */
 	private static final int MAX_CHAIN_LINKS = 64;
 
-	/** The budget of {@link #failureScope}, which walks to the end of the chains: see the comment above it. */
+	/**
+	 * The budget of the two walks whose verdict would weaken rather than go unnoticed under truncation:
+	 * {@link #failureScope} and {@link #conflictVerdict}. See the comments above them; the {@code seen} set of
+	 * the walk terminates it either way.
+	 */
 	private static final int EVERY_LINK = Integer.MAX_VALUE;
 
 	/** SQL Server error number of the transaction picked as the deadlock victim: "Rerun the transaction". */
@@ -89,6 +106,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 	/** Oracle error number of a detected deadlock: ORA-00060, reported with SQLState 61000 rather than class 40. */
 	private static final int ORACLE_DEADLOCK_DETECTED = 60;
+
+	/**
+	 * MySQL error number of a lock wait timeout, ER_LOCK_WAIT_TIMEOUT: the one conflict of the set an engine
+	 * reports late rather than promptly. Connector/J maps it to the same class 40 state as a deadlock, so this
+	 * number is not what matches it - it only tells the two apart, and only under a MySQL driver. That it repeats
+	 * the literal of {@link #MSSQL_DEADLOCK_VICTIM} is the collision {@link #conflictOf} keys every vendor number
+	 * by the driver for, and is stated there rather than again here.
+	 */
+	private static final int MYSQL_LOCK_WAIT_TIMEOUT = 1205;
 
 	/**
 	 * Class 40 states that are transaction rollbacks but must not be replayed. 40003 leaves the outcome of the
@@ -413,6 +439,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// below turns on a few milliseconds either side of the bound, and a mock statement cannot be made
 	// to take a real second without the suite taking one too. Monotonic, so that a step of the wall
 	// clock can neither lengthen nor shorten what a statement is measured to have taken.
+	//
+	// The retry window of write() is read off this same clock, once before the first attempt and once
+	// after each: what that window bounds is the whole run of attempts rather than each attempt on its
+	// own, which is a single startedAt outside the loop. #877 and #903 each added a clock of their own
+	// here, for the same reason and with the same body; this is the one they share.
 	long nanoTime() {
 		return System.nanoTime();
 	}
@@ -997,14 +1028,26 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// The dialect behind a pooled connection, or null for an engine none of the statements of this
 	// class fit: it is left unstamped and its statistics untouched rather than fed untested SQL.
 	static Dialect dialectOf(Connection con) {
-		final String driverName=driverNameOf(con);
-		if (driverName.contains("postgres")) {
+		return dialectOf(driverNameOf(con));
+	}
+
+	/**
+	 * The engine a driver class name names, or null for one this class does not recognise. Every question this
+	 * class asks about the engine is keyed on this one answer - the column types, the upsert, the paging clause,
+	 * whether a DDL statement commits, and the class of a conflict - so that they cannot disagree about a driver.
+	 * A cascade of its own per question is how a deployment ends up given one engine's SQL and another engine's
+	 * conflict class; what an unrecognised engine gets is a decision per question, taken and stated at each of
+	 * them rather than falling out of the order the {@code contains} calls happen to be written in.
+	 */
+	static Dialect dialectOf(String driverName) {
+		final String name=String.valueOf(driverName);
+		if (name.contains("postgres")) {
 			return Dialect.POSTGRES;
-		}else if (driverName.contains("mysql")) {
+		}else if (name.contains("mysql")) {
 			return Dialect.MYSQL;
-		}else if (driverName.contains("oracle")) {
+		}else if (name.contains("oracle")) {
 			return Dialect.ORACLE;
-		}else if (driverName.contains("microsoft")) {
+		}else if (name.contains("microsoft")) {
 			return Dialect.MICROSOFT;
 		}
 		return null;
@@ -1570,10 +1613,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * on the conflict exception of its own engine. The loop is bounded here, unlike PDBStorage: the database may be
 	 * shared with writers outside this server, so a conflict is not guaranteed to clear and failing the operation is
 	 * better than never returning. It is bounded twice - by {@link #MAX_RETRIES} attempts and by the
-	 * {@link #MAX_RETRY_WINDOW_NANOS} wall-clock window - because an attempt is not guaranteed to be short: a
-	 * conflict an engine reports only after its own lock wait timeout would otherwise multiply that wait by the
-	 * attempt count. A conflict that slow consumes the whole window in one attempt and is not replayed, which is
-	 * what master did with it.
+	 * {@link #RETRY_WINDOW_NANOS} wall-clock window - because an attempt is not guaranteed to be short: a conflict
+	 * an engine reports only after its own lock wait timeout would otherwise multiply that wait by the attempt
+	 * count. The window alone is not enough either, in the other direction: it is shorter than the wait that
+	 * precedes a conflict the engine reports promptly, so measured against such a conflict it does not bound that
+	 * wait but only leaves the operation with no replay at all, which is what master did with the deadlock of
+	 * issue #903. One replay is therefore granted to a prompt conflict whatever the clock says; see
+	 * {@link #grantedPastTheWindow}. The window is checked between attempts, so an attempt already running is
+	 * never interrupted: a conflicted operation holds its caller for the window plus one attempt, and a prompt
+	 * conflict for two attempts when that is longer.
 	 * <p>
 	 * Only the operation itself is replayed: a failure of {@link #getConnection()} or of the implicit
 	 * {@link Connection#close()} - which returns the connection to the pool after a rollback - leaves the loop, so
@@ -1584,11 +1632,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * connection handed out unvalidated and found dead costs an attempt rather than the operation, and a write of
 	 * the replication replay - which records a failed operation as applied and advances the server state past it,
 	 * see #889 - never sees it. Only while nothing of the attempt may have been committed yet, though: see
-	 * {@link #replayReason(Throwable, String, boolean, boolean, boolean)}.
+	 * {@link #replayReason(Conflict, Throwable, boolean, boolean, boolean)}.
 	 */
 	@Override
 	public void write(WriteOperation writeOperation) throws Exception {
-		final long giveUpAt=System.nanoTime()+MAX_RETRY_WINDOW_NANOS;
+		final long startedAt=nanoTime();
 		for (int attempt=1;;attempt++) {
 			Exception failure=null;
 			String driver=null;
@@ -1670,15 +1718,42 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (!dropped && isConnectionFailure(failure)) {
 				distrustPool();
 			}
-			final String reason=replayReason(failure,driver,committing,partlyCommitted,dropped);
-			//System.nanoTime()-giveUpAt is the overflow safe form of the comparison
-			if (reason==null || attempt>=MAX_RETRIES || System.nanoTime()-giveUpAt>=0) {
+			//Two questions, asked apart: what the failure is - which replayReason() answers, and which is the
+			//only place that reads committing, partlyCommitted and dropped - and whether another attempt is
+			//still allowed, which is the attempt count and the window of #903. Neither subsumes the other: a
+			//dropped connection is worth replaying and carries no conflict class, while a conflict past both
+			//bounds is not replayed however plainly it is one
+			//classified once and handed to every question below - the two decisions and the line reporting
+			//them: the walk of the chains is not free, and callers asking it apart could drift into
+			//disagreeing about the same failure. Not asked at all where the answer is discarded: replayReason()
+			//refuses a partly committed attempt its replay before anything about the failure matters, and that
+			//is also the path most likely to carry deeply wrapped chains, since RootContainer.open() commits
+			//DDL and raises the flag for the rest of the write
+			final ConflictVerdict verdict=partlyCommitted ? NOT_CLASSIFIED : conflictVerdict(failure,driver);
+			final String reason=replayReason(verdict.conflict,failure,committing,partlyCommitted,dropped);
+			//nanoTime()-startedAt is the overflow safe form of the elapsed time
+			final long elapsedNanos=nanoTime()-startedAt;
+			if (reason==null || !replayableWithin(attempt, elapsedNanos, verdict.conflict)) {
 				throw failure;
 			}
 			//logged rather than silently absorbed, so that a deployment retrying most of its writes stays observable;
-			//one line per replay, since an add can emit nine of them and a stack trace each time reads as a failure
-			logger.warn(LocalizableMessage.raw("jdbc: replaying the transaction after %s, attempt %d of %d: %s",
-					reason, attempt, MAX_RETRIES, conflictSummary(failure, driver)));
+			//one line per replay, since an add can emit nine of them and a stack trace each time reads as a failure.
+			//Both bounds are named, and the attempt count is the one that rarely fires: a replay usually stops
+			//because the window ran out, and a log naming only MAX_RETRIES leaves an operation that gave up at
+			//attempt 2 of a promised 10 with nothing saying why. Milliseconds rather than seconds, since the
+			//engines report a deadlock in a few of them and whole seconds would read "0" for most of a burst; and
+			//the one line that replays past its own window says so, rather than reading as a bound not honoured -
+			//asked of the predicate the loop just acted on rather than re-derived from the clock, so that the
+			//claim cannot outlive the grant that justifies it
+			if (logger.isWarnEnabled()) {
+				logger.warn(LocalizableMessage.raw(
+						"jdbc: replaying the transaction after %s, attempt %d of %d, %d ms elapsed of the %d ms window%s: %s",
+						reason, attempt, MAX_RETRIES, TimeUnit.NANOSECONDS.toMillis(elapsedNanos),
+						TimeUnit.NANOSECONDS.toMillis(RETRY_WINDOW_NANOS),
+						grantedPastTheWindow(attempt, elapsedNanos, verdict.conflict)
+								? " (the first replay, granted past it)" : "",
+						conflictSummary(verdict, failure)));
+			}
 			if (logger.isTraceEnabled()) {
 				logger.trace("jdbc: the failure being replayed was %s", stackTraceToSingleLineString(failure));
 			}
@@ -1701,9 +1776,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * <p>
 	 * A transaction conflict is replayable whichever phase reported it: the engine rolled the transaction back
 	 * before it answered. It is read from the failure of the operation only, never from the release of the
-	 * connection - see {@link #isRetryableConflict} - since the release runs after the outcome was decided and
-	 * cannot make that claim for it. A connection the database dropped is replayable only while the transaction
-	 * had not been committed yet. A drop reported by {@code commit()} leaves the outcome unknown - the server may
+	 * connection - see {@link #conflictOf} - since the release runs after the outcome was decided and cannot make
+	 * that claim for it. A connection the database dropped is replayable only while the transaction had not been
+	 * committed yet. A drop reported by {@code commit()} leaves the outcome unknown - the server may
 	 * have committed and died before the answer reached us - and replaying a write that in fact committed applies
 	 * it twice, which is the very reason 40003 is one of {@link #NON_REPLAYABLE_ROLLBACK_STATES}.
 	 * <p>
@@ -1716,17 +1791,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * second time and fails with ERR_ENTRY_CONTAINER_ALREADY_REGISTERED, which masks the failure that caused the
 	 * replay and leaves the indexes of the previous attempt behind with their configuration listeners.
 	 *
+	 * @param conflict the class {@link #conflictOf} read from the failure, asked of it once by the caller
 	 * @param committing whether the failure was reported by {@code commit()}, which leaves the outcome unknown
 	 * @param partlyCommitted whether the attempt committed part of its work before it failed
 	 * @param connectionClosed whether the driver closed the connection under the failure - evidence no SQLState
 	 * carries on mssql-jdbc, which reports a killed session as S0001 and closes the connection behind it
 	 */
-	static String replayReason(Throwable failure, String driver, boolean committing, boolean partlyCommitted,
+	static String replayReason(Conflict conflict, Throwable failure, boolean committing, boolean partlyCommitted,
 			boolean connectionClosed) {
 		if (partlyCommitted) {
 			return null;
 		}
-		if (isRetryableConflict(failure, driver)) {
+		if (conflict!=Conflict.NONE) {
 			return "a conflict";
 		}
 		if (!committing && (connectionClosed || isConnectionFailure(failure))) {
@@ -1799,6 +1875,27 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	/** The walk above, with the number of links it is allowed to look at. */
 	private static SQLException firstLinkMatching(Throwable failure, boolean withTheRelease, int links,
 			Predicate<SQLException> matches) {
+		final SQLException[] found=new SQLException[1];
+		walkLinks(failure, withTheRelease, links, e -> {
+			if (!matches.test(e)) {
+				return false;
+			}
+			found[0]=e;
+			return true;
+		});
+		return found[0];
+	}
+
+	/**
+	 * Hands every {@link SQLException} of the chains of a failure to the given reader, in walk order, until it
+	 * says it has read enough. The single traversal of this class: a reader that can answer from the first link
+	 * it matches stops here, and one that has to see them all - {@link #conflictVerdict}, which keeps the
+	 * strongest class any of them carries - does not, so that neither has a walk of its own to drift from the
+	 * other's. The {@code seen} set terminates the walk whatever budget it is given: a driver that chains an
+	 * exception back to itself is walked once.
+	 */
+	private static void walkLinks(Throwable failure, boolean withTheRelease, int links,
+			Predicate<SQLException> readEnough) {
 		final Deque<Throwable> pending=new ArrayDeque<>();
 		final Set<Throwable> seen=Collections.newSetFromMap(new IdentityHashMap<Throwable,Boolean>());
 		if (failure!=null) {
@@ -1824,11 +1921,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (sqlException.getNextException()!=null) {
 				pending.push(sqlException.getNextException());
 			}
-			if (matches.test(sqlException)) {
-				return sqlException;
+			if (readEnough.test(sqlException)) {
+				return;
 			}
 		}
-		return null;
 	}
 
 	/**
@@ -1866,13 +1962,87 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	/**
-	 * Returns whether the given failure carries a transaction conflict that replaying the operation can resolve.
+	 * The class of a failure. Whether it is a conflict at all is what decides that the operation is replayed;
+	 * which of the remaining classes it is decides only whether the first replay is granted unconditionally,
+	 * since the wait an engine spends before reporting a conflict is charged to the attempt that hit it.
+	 * <p>
+	 * Declared in order of how much they restrict the replay, which is the order {@link #conflictVerdict}
+	 * compares them in: the strongest class any link of a failure carries is the class of that failure. Only
+	 * {@link #PROMPT} is granted the replay past the window, so every class this list gains - #915 adds one -
+	 * has to be placed against that grant rather than merely appended.
+	 */
+	enum Conflict {
+		/** Not a conflict: no replay resolves it. */
+		NONE,
+		/** A conflict reported as soon as the engine detects it, however long the attempt waited to reach it. */
+		PROMPT,
+		/**
+		 * A conflict under a driver none of the four engines is recognised in. Whether the engine bounded the
+		 * wait that preceded it is not something this class can tell, and the grant of {@link #PROMPT} rests on
+		 * knowing that it did not, so an unrecognised engine is refused it: see {@link #classOf}.
+		 */
+		UNKNOWN_ENGINE,
+		/** A conflict an engine reports only once a lock wait timeout of its own has elapsed. */
+		AFTER_LOCK_WAIT
+	}
+
+	/**
+	 * The strongest class of the list above, which {@link #conflictVerdict} stops its walk at: nothing further
+	 * along the chains can outrank it. Read off the list rather than named, so that a class added to the end of
+	 * it does not leave this walk stopping early on the second strongest.
+	 */
+	private static final Conflict STRONGEST_CONFLICT=Conflict.values()[Conflict.values().length-1];
+
+	/**
+	 * The verdict of a failure nothing asked about, handed to the questions {@link #write} asks of a partly
+	 * committed attempt: every one of them is answered by that flag alone, so its chains are never walked. It is
+	 * not a claim that the failure carries no conflict - it may carry one, and is refused a replay either way.
+	 */
+	private static final ConflictVerdict NOT_CLASSIFIED=new ConflictVerdict(Conflict.NONE, null);
+
+	/**
+	 * The class of the conflict a failure carries and the link that class was read from, which are one answer
+	 * rather than two: the line reporting a replay names the link the decision was taken on, and a summary that
+	 * walked the chains again to find it could name a different one - see {@link #conflictSummary}.
+	 */
+	static final class ConflictVerdict {
+		final Conflict conflict;
+		/** Null where the failure carries no conflict at all, which is what {@link Conflict#NONE} says. */
+		final SQLException link;
+
+		ConflictVerdict(Conflict conflict, SQLException link) {
+			this.conflict=conflict;
+			this.link=link;
+		}
+	}
+
+	/**
+	 * Returns the class of the conflict the given failure carries, or {@link Conflict#NONE} if it carries none,
+	 * which is what decides whether replaying the operation can resolve it.
 	 * <p>
 	 * The conflict is looked up along every chain of the failure, for the reason {@link #isConnectionFailure} walks
 	 * them all: it reaches this class wrapped - a deadlock in {@code put} arrives as
 	 * {@code StorageRuntimeException(SQLException)}, and a caller such as {@code EntryContainer.addEntry} may wrap it
 	 * once more - and a driver reports the error that says what happened as the next exception of a generic one at
-	 * least as often as it reports it as the cause.
+	 * least as often as it reports it as the cause. The suppressed links of the release are left out of it, for the
+	 * reason {@link #replayReason} gives: the release runs after the outcome was decided.
+	 * <p>
+	 * The strongest class in those chains wins rather than the first one found: a wrapper that carries a class
+	 * 40 state of its own but no vendor number would otherwise downgrade the {@link Conflict#AFTER_LOCK_WAIT} of
+	 * the {@link SQLException} it wraps, and hand a wait the engine already bounded a replay it does not need.
+	 * That rule is deliberately not restricted to the wrapper it was introduced for, although the walk reaches
+	 * links that are not ancestors of the operative failure - a deadlock whose chain also carries a lock wait
+	 * timeout is classed by the timeout and loses the grant. The two errors are not equally costly to get wrong:
+	 * granting a replay to a wait the engine had already bounded pays that bound a second time, while refusing
+	 * one to a deadlock costs a replay the window was about to refuse anyway, wherever the bound that sibling
+	 * names is longer than the window. So the class is read the conservative way, and the whole chain of a
+	 * failure is evidence for it.
+	 * <p>
+	 * Every link is looked at, rather than {@link #MAX_CHAIN_LINKS} of them, for the reason {@link #failureScope}
+	 * walks to the end: the verdict weakens under truncation rather than simply going unnoticed. An
+	 * {@link Conflict#AFTER_LOCK_WAIT} link past the budget with a bare class 40 link inside it comes back
+	 * {@link Conflict#PROMPT}, and truncation there does not lose a replay - it grants one, which is the single
+	 * thing this classification exists to refuse. The {@code seen} set terminates the walk regardless.
 	 * <p>
 	 * The standard class 40 states carry the conflict of most engines - 40P01 for PostgreSQL, 40001 for SQL Server
 	 * and for MySQL, whose driver replaces the server side HY000 of a deadlock and of a lock wait timeout with
@@ -1881,17 +2051,111 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * reports a deadlock as ORA-00060 with SQLState 61000, and gives 1205 to a fatal "not a data file" error that
 	 * no replay can resolve, while 1205 is exactly the deadlock victim of SQL Server. The SQL Server number is
 	 * matched beyond its class 40 state because a deployment may add {@code xopenStates=true} to its connection
-	 * URL, which reports the same deadlock as 42000. MySQL needs no number of its own, since its driver has already
-	 * mapped both conditions into class 40; see {@link #NON_REPLAYABLE_ROLLBACK_STATES} for the two class 40 states
-	 * that are excluded from that match.
+	 * URL, which reports the same deadlock as 42000. MySQL needs no number of its own for the match, since its
+	 * driver has already mapped both conditions into class 40 - its number is read by {@link #classOf} alone, and
+	 * only to tell the two apart; see {@link #NON_REPLAYABLE_ROLLBACK_STATES} for the two class 40 states that are
+	 * excluded from that match.
 	 */
-	static boolean isRetryableConflict(Throwable t, String driver) {
-		// without the suppressed exceptions, unlike isConnectionFailure(): a conflict is replayed whichever phase
-		// reported it, on the strength of the engine having rolled the transaction back before it answered - and
-		// the release of the connection runs after the outcome was decided and cannot make that claim. A class 40
-		// raised there would otherwise replay a transaction commit() left in doubt, which is what the committing
-		// guard of replayReason() exists to prevent
-		return firstLinkMatching(t, WITHOUT_THE_RELEASE, e -> isConflict(e, driver))!=null;
+	static Conflict conflictOf(Throwable t, String driver) {
+		return conflictVerdict(t, driver).conflict;
+	}
+
+	/**
+	 * The class {@link #conflictOf} answers with, together with the link it was read from: one walk of the chains
+	 * that keeps the strongest class it meets, rather than one walk per class asked in the right order. Asking
+	 * per class is what let the two walks of the earlier form be given different budgets, and the ordering of an
+	 * added class is then a rule its author has to find rather than one the enum states - see {@link Conflict}.
+	 */
+	static ConflictVerdict conflictVerdict(Throwable failure, String driver) {
+		final Conflict[] strongest={Conflict.NONE};
+		final SQLException[] link=new SQLException[1];
+		walkLinks(failure, WITHOUT_THE_RELEASE, EVERY_LINK, e -> {
+			final Conflict conflict=classOf(e, driver);
+			if (conflict.compareTo(strongest[0])>0) {
+				strongest[0]=conflict;
+				link[0]=e;
+			}
+			return strongest[0]==STRONGEST_CONFLICT;
+		});
+		return new ConflictVerdict(strongest[0], link[0]);
+	}
+
+	/**
+	 * Returns the class of a single failure. The vendor number only refines a failure {@link #isConflict} has
+	 * already matched and never widens that match, which the engines colliding on 1205 do not allow: the number is
+	 * read here to tell the late conflict of MySQL from the deadlock its driver reports under the same state.
+	 * <p>
+	 * A conflict raised under a driver {@link #dialectOf(String)} does not recognise is
+	 * {@link Conflict#UNKNOWN_ENGINE}: still replayed, since replayability is what the class 40 state says and it
+	 * says it whatever the engine, but not granted the replay past the window. The grant rests on knowing that
+	 * the wait preceding the conflict was not bounded by the engine, and of an unrecognised engine that is not
+	 * known. It is a MySQL-wire-compatible driver - MariaDB Connector/J, an Aurora- or Percona-branded one -
+	 * that makes the difference concrete: it reports a lock wait timeout as 1205 under class 40 exactly as
+	 * Connector/J does, this class would read the number only under a name carrying {@code mysql}, and granting
+	 * a free replay there buys a second full {@code innodb_lock_wait_timeout}. Such a deployment does reach this
+	 * code: a backend created under {@code com.mysql.cj.jdbc} and later opened through one of those drivers
+	 * issues no DDL at all - every {@code create table} and {@code create index} of
+	 * {@code openTree(createOnDemand)} is guarded by a catalog read - and its writes go down the ANSI branch of
+	 * {@code upsert}, which is an {@code update} and an {@code insert}, not a statement a MySQL-wire engine
+	 * refuses. The cost of the class is one replay of the window's own length for an engine whose conflicts are
+	 * in fact prompt, which is the direction worth being wrong in; #915 removes the trade by bounding the
+	 * attempt itself.
+	 */
+	private static Conflict classOf(SQLException e, String driver) {
+		if (!isConflict(e, driver)) {
+			return Conflict.NONE;
+		}
+		final Dialect dialect=dialectOf(driver);
+		if (dialect==null) {
+			return Conflict.UNKNOWN_ENGINE;
+		}
+		return dialect==Dialect.MYSQL && e.getErrorCode()==MYSQL_LOCK_WAIT_TIMEOUT
+				? Conflict.AFTER_LOCK_WAIT : Conflict.PROMPT;
+	}
+
+	/**
+	 * Whether another attempt is still allowed: the bounds half of the decision {@link #write} takes after every
+	 * attempt, asked of a failure {@link #replayReason} has already found worth replaying and made here apart
+	 * from the clock so that it can be tested without a database. It is asked of the conflict class rather than
+	 * of the failure because not every replayable failure carries one - a connection the database dropped is
+	 * replayed on the evidence of the drop, and would be refused by a bound that first insisted on a class 40
+	 * state - and because {@code write()} has already read that class off the failure once.
+	 * <p>
+	 * Replays are bounded by {@link #MAX_RETRIES} and by {@link #RETRY_WINDOW_NANOS} against the time elapsed
+	 * since the first attempt began, with the one grant {@link #grantedPastTheWindow} states on top of them.
+	 */
+	static boolean replayableWithin(int attempt, long elapsedNanos, Conflict conflict) {
+		if (attempt>=MAX_RETRIES) {
+			return false;
+		}
+		if (grantedPastTheWindow(attempt, elapsedNanos, conflict)) {
+			return true;
+		}
+		return elapsedNanos<RETRY_WINDOW_NANOS;
+	}
+
+	/**
+	 * Whether this replay is the one {@link #RETRY_WINDOW_NANOS} does not get to deny: the first replay of a
+	 * conflict its engine reports promptly, taken although the window is already spent. The wait an engine spends
+	 * before reporting such a conflict is charged to the attempt that hit it and is unbounded on three of the four
+	 * engines here - SQL Server took some 12 s to pick a victim in CI - so there is no window that some wait does
+	 * not outlast, and measuring one against it only leaves the operation with no replay at all, which is issue
+	 * #903. The grant does not extend to {@link Conflict#AFTER_LOCK_WAIT}, whose wait the engine has already
+	 * bounded for us: replaying that costs the same bounded wait again, which is exactly what the window is here
+	 * to refuse. Nor to {@link Conflict#UNKNOWN_ENGINE}, of which the same cannot be ruled out.
+	 * <p>
+	 * Asked as a question of its own so that the line reporting the replay can name the bound that was actually
+	 * applied instead of inferring it from the clock: {@code elapsed >= window} coincides with this grant only
+	 * for as long as this stays the sole way past the window, and a line that keeps claiming "the first replay"
+	 * after that would be describing a decision nobody took.
+	 * <p>
+	 * {@code attempt==1} is a proxy and not the invariant: the invariant is that no clock can bound a wait
+	 * nothing else bounds, and that holds on every attempt, not only the first. Widening the grant to all of them
+	 * would leave {@link #MAX_RETRIES} as the only real cap, so it is held to one replay until the attempt itself
+	 * carries a lock bound - see #915, which retires this method rather than widening it.
+	 */
+	static boolean grantedPastTheWindow(int attempt, long elapsedNanos, Conflict conflict) {
+		return attempt==1 && conflict==Conflict.PROMPT && elapsedNanos>=RETRY_WINDOW_NANOS;
 	}
 
 	private static boolean isConflict(SQLException e, String driver) {
@@ -1899,10 +2163,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		if (state.startsWith("40") && !NON_REPLAYABLE_ROLLBACK_STATES.contains(state)) {
 			return true;
 		}
-		final String driverName=String.valueOf(driver);
-		if (driverName.contains("oracle")) {
+		final Dialect dialect=dialectOf(driver);
+		if (dialect==Dialect.ORACLE) {
 			return e.getErrorCode()==ORACLE_DEADLOCK_DETECTED;
-		} else if (driverName.contains("microsoft")) {
+		} else if (dialect==Dialect.MICROSOFT) {
 			return e.getErrorCode()==MSSQL_DEADLOCK_VICTIM;
 		}
 		return false;
@@ -1918,9 +2182,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * none.
 	 */
 	static String conflictSummary(Throwable failure, String driver) {
-		// asked in the order replayReason() asks it, and of the same chains, so that the line names the link the
-		// decision was taken on rather than one that merely resembles it
-		SQLException named=firstLinkMatching(failure, WITHOUT_THE_RELEASE, e -> isConflict(e, driver));
+		return conflictSummary(conflictVerdict(failure, driver), failure);
+	}
+
+	/** The summary above, for the caller that has already had the failure classified: {@link #write}. */
+	static String conflictSummary(ConflictVerdict verdict, Throwable failure) {
+		// the link the class was read from, handed over by the walk that read it rather than looked up again in
+		// the order that walk happens to use: repeated by hand, the two drift, and the line then names a link
+		// that merely resembles the one the decision was taken on
+		SQLException named=verdict.link;
 		if (named==null) {
 			named=firstLinkMatching(failure, WITH_THE_RELEASE, JDBCStorage::saysTheConnectionIsGone);
 		}
@@ -1974,7 +2244,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * Casting the parameter back to char keeps the comparison seekable.
 	 */
 	static String hashParam(Connection con) {
-		return driverNameOf(con).contains("microsoft") ? "cast(? as char(128))" : "?";
+		return dialectOf(con)==Dialect.MICROSOFT ? "cast(? as char(128))" : "?";
 	}
 
 	class ReadableTransactionImpl implements ReadableTransaction {
@@ -2181,19 +2451,20 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		/** Whether this engine commits the transaction before a DDL statement whether asked to or not. */
 		private boolean commitsBeforeDdl() {
-			final String driverName=driverNameOf(con);
-			return driverName.contains("mysql") || driverName.contains("oracle");
+			final Dialect dialect=dialectOf(con);
+			return dialect==Dialect.MYSQL || dialect==Dialect.ORACLE;
 		}
 
 		String getTableDialect() {
-			if (driverNameOf(con).contains("oracle")) {
+			final Dialect dialect=dialectOf(con);
+			if (dialect==Dialect.ORACLE) {
 				return "h char(128),k raw(2000),v blob,primary key(h,k)";
-			}else if (driverNameOf(con).contains("mysql")) {
+			}else if (dialect==Dialect.MYSQL) {
 				return "h char(128),k varbinary(255),v longblob,primary key(h,k)";
-			}else if (driverNameOf(con).contains("microsoft")) {
+			}else if (dialect==Dialect.MICROSOFT) {
 				return "h char(128),k varbinary(max),v image,primary key(h)";
 			}
-			return "h char(128),k bytea,v bytea,primary key(h,k)";
+			return "h char(128),k bytea,v bytea,primary key(h,k)"; // postgres, and an unrecognised engine with it
 		}
 
 		@Override
@@ -2215,9 +2486,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}
 				}
 				// CursorImpl iterates with "where k>? order by k" batches: primary key (h,k) cannot serve them
-				final String driverName=driverNameOf(con);
+				final Dialect dialect=dialectOf(con);
 				final String tableName=getTableName(treeName);
-				if (driverName.contains("postgres")) {
+				if (dialect==Dialect.POSTGRES) {
 					try {
 						// asked although postgresql has "create index if not exists": that statement commits
 						// whether it creates anything or not, and this is the engine of every default
@@ -2229,7 +2500,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}catch (SQLException e) {
 						throw new StorageRuntimeException(e);
 					}
-				}else if (driverName.contains("mysql")) {
+				}else if (dialect==Dialect.MYSQL) {
 					try {
 						if (!isExistsIndex(tableName,"k_"+tableName.substring("opendj_".length()))) { // mysql has no "create index if not exists"
 							commitStatement("create index k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)", true);
@@ -2237,7 +2508,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}catch (SQLException e) {
 						throw new StorageRuntimeException(e);
 					}
-				}else if (driverName.contains("oracle")) {
+				}else if (dialect==Dialect.ORACLE) {
 					try {
 						// oracle has no "create index if not exists"; unquoted identifiers are stored in uppercase
 						if (!isExistsIndex(tableName.toUpperCase(),"k_"+tableName.substring("opendj_".length()))) {
@@ -2306,29 +2577,29 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 
 		boolean upsert(TreeName treeName, ByteSequence key, ByteSequence value) throws SQLException {
-			final String driverName=driverNameOf(con);
-			if (driverName.contains("postgres")) { //postgres upsert
+			final Dialect dialect=dialectOf(con);
+			if (dialect==Dialect.POSTGRES) { //postgres upsert
 				try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) values (?,?,?) ON CONFLICT (h, k) DO UPDATE set v=excluded.v")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
 					return (execute(statement, bound) == 1 && statement.getUpdateCount() > 0);
 				}
-			}else if (driverName.contains("mysql")) { //mysql upsert
+			}else if (dialect==Dialect.MYSQL) { //mysql upsert
 				try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) values (?,?,?) as new ON DUPLICATE KEY UPDATE v=new.v")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
 					return (execute(statement, bound) == 1 && statement.getUpdateCount() > 0);
 				}
-			}else if (driverName.contains("oracle")) { //ANSI MERGE without ;
+			}else if (dialect==Dialect.ORACLE) { //ANSI MERGE without ;
 				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " old using (select ? h,? k,? v from dual) new on (old.h=new.h and old.k=new.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v)")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
 					return (execute(statement, bound) == 1 && statement.getUpdateCount() > 0);
 				}
-			}else if (driverName.contains("microsoft")) { //ANSI MERGE with ; WITH (HOLDLOCK) makes the upsert atomic: without it SQL Server MERGE can race two concurrent NOT MATCHED inserts of the same key into a PRIMARY KEY violation. UPDLOCK is required on top of it: with HOLDLOCK alone the search phase takes a shared lock that the WHEN MATCHED update then has to convert to an exclusive one, so two concurrent upserts of the same key deadlock on the conversion; an update lock is taken right away and makes the second transaction wait instead. h is cast back to char so that the join can seek the primary key instead of scanning the whole table under those locks, see hashParam()
+			}else if (dialect==Dialect.MICROSOFT) { //ANSI MERGE with ; WITH (HOLDLOCK) makes the upsert atomic: without it SQL Server MERGE can race two concurrent NOT MATCHED inserts of the same key into a PRIMARY KEY violation. UPDLOCK is required on top of it: with HOLDLOCK alone the search phase takes a shared lock that the WHEN MATCHED update then has to convert to an exclusive one, so two concurrent upserts of the same key deadlock on the conversion; an update lock is taken right away and makes the second transaction wait instead. h is cast back to char so that the join can seek the primary key instead of scanning the whole table under those locks, see hashParam()
 				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " WITH (HOLDLOCK, UPDLOCK) old using (select cast(? as char(128)) h,? k,? v) new on (old.h=new.h and old.k=new.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v);")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
@@ -2435,7 +2706,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// of #873 reads the shared tree, and reading a tree must not put it up for removal
 			this.tableName=readTableName(treeName);
 			this.batchBound=batchBound;
-			this.limitClause=((CachedConnection)con).parent.getClass().getName().contains("mysql")
+			this.limitClause=dialectOf(con)==Dialect.MYSQL
 				? " limit ?,?" : " offset ? rows fetch next ? rows only";
 		}
 
