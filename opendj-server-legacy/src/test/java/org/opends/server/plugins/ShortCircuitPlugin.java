@@ -692,17 +692,6 @@ public class ShortCircuitPlugin
     return count != null ? count.get() : 0;
   }
 
-  /**
-   * Forgets how many times the short circuit registered for the given operation type and
-   * plugin point was applied.
-   *
-   * @param operation The type of operation the short circuit applies to.
-   * @param section The plugin point the short circuit applies to.
-   */
-  public static void resetShortCircuitCount(OperationType operation, String section)
-  {
-    shortCircuitCounts.remove(operation + "/" + section.toLowerCase());
-  }
 
   /**
    * Register a short circuit for the given operation type and plugin point.

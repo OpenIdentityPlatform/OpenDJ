@@ -1203,30 +1203,33 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           "objectClass: organizationalUnit");
       String parentUid = getEntryUUID(DN.valueOf(SAFE_READ_DN));
 
-      /*
-       * Fail the replay the way a storage failure does: the backend reports it with the
-       * server-error-result-code, 80 by default. The short circuit has to be set at the
-       * pre-parse plugin point, the pre-operation ones are not invoked for synchronization
-       * operations.
-       */
-      ShortCircuitPlugin.registerShortCircuit(
-          OperationType.ADD, "PreParse", ResultCode.OTHER.intValue());
-      /*
-       * A change which keeps failing is asked for again over a restarted session until
-       * this replica gives up on it. That is right, and it is not what this test is
-       * about: the FakeReplicationServer is not built to be reconnected to, and the
-       * restarts would run on while the assertions and the teardown below take their
-       * course. A give-up delay of zero has the first failure spend the whole budget, so
-       * the change is given up on where it is reported and no session is restarted: the
-       * ack of this delivery is published either way - it is sent before the give-up is
-       * decided - and the domain settles instead of reconnecting.
-       */
       final LDAPReplicationDomain domain =
           MultimasterReplication.findDomain(DN.valueOf(SAFE_READ_DN), null);
       final long giveUpDelay = domain.getReplayGiveUpDelay();
-      domain.setReplayGiveUpDelay(0);
       try
       {
+        /*
+         * Fail the replay the way a storage failure does: the backend reports it with the
+         * server-error-result-code, 80 by default. The short circuit has to be set at the
+         * pre-parse plugin point, the pre-operation ones are not invoked for
+         * synchronization operations. It is registered here rather than before the try,
+         * so that the finally below takes it back whatever happens next: the plugin is
+         * consulted for every add in this server, so one left registered would fail the
+         * fixtures of the tests which follow.
+         */
+        ShortCircuitPlugin.registerShortCircuit(
+            OperationType.ADD, "PreParse", ResultCode.OTHER.intValue());
+        /*
+         * A change which keeps failing is asked for again over a restarted session until
+         * this replica gives up on it. That is right, and it is not what this test is
+         * about: the FakeReplicationServer is not built to be reconnected to, and the
+         * restarts would run on while the assertions and the teardown below take their
+         * course. A give-up delay of zero has the first failure spend the whole budget, so
+         * the change is given up on where it is reported and no session is restarted: the
+         * ack of this delivery is published either way - it is sent before the give-up is
+         * decided - and the domain settles instead of reconnecting.
+         */
+        domain.setReplayGiveUpDelay(0);
         AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
 
         assertNull(DirectoryServer.getEntry(entry.getName()), "the entry must not have been added");

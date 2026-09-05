@@ -57,7 +57,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.zip.DataFormatException;
 
 import net.jcip.annotations.GuardedBy;
 
@@ -142,7 +141,6 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.types.LDAPException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
@@ -325,10 +323,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * moves on to the changes which follow it.
    * <p>
    * The budget is a duration rather than a number of attempts because what
-   * {@link #isServerFailure(ResultCode)} reports is measured in minutes: a backend which
-   * is being rebuilt, imported into or restored (OPENDJ-49) serves nothing while it
-   * works, and a handful of attempts would have this replica give up on every change of
-   * a maintenance window it only had to wait out.
+   * {@link #isServerFailure(ResultCode, ResultCode)} reports is measured in minutes: a
+   * backend which is being rebuilt, imported into or restored (OPENDJ-49) serves nothing
+   * while it works, and a handful of attempts would have this replica give up on every
+   * change of a maintenance window it only had to wait out.
    */
   private static final long REPLAY_GIVE_UP_DELAY_IN_MS = 300000;
   /**
@@ -2141,19 +2139,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           logger.error(ERR_OPERATION_NOT_FOUND_IN_PENDING, op, curCSN);
           return;
         }
-        if (!remotePendingChanges.hasFailingChanges())
-        {
-          /*
-           * A change made it and nothing is failing anymore, so the backend is serving
-           * again and the session is not being restarted in a row: the change which fails
-           * next starts the backoff over. While something is still failing, this replay
-           * says nothing of the kind - a change which can never be applied here fails
-           * alone, among changes which replay perfectly well, and letting those reset the
-           * wait would have this domain tear its session down every second for as long as
-           * that one change takes to be given up on.
-           */
-          consecutiveSessionRestarts.set(0);
-        }
+        resetSessionRestartBackoff();
       }
       else
       {
@@ -2476,6 +2462,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         // "op" is already initialized to the next Operation because of the
         // error handling paths.
         Operation nextOp = op = msg.createOperation(conn);
+        /*
+         * The code this server puts on an internal error is a configuration knob: it is
+         * read once here so that every attempt of this delivery, and the verdict which
+         * follows them, are judged against the same one. Read inside the try - the ack of
+         * a delivery is published in the finally below, whatever the delivery ran into -
+         * and once the operation is built, so that a failure of the read is a failure of
+         * an attempt rather than a message no operation could be built from.
+         */
+        final ResultCode serverErrorResultCode =
+            getServerContext().getCoreConfigManager().getServerErrorResultCode();
         dependency = remotePendingChanges.checkDependencies(op, msg);
         boolean replayDone = false;
         boolean firstAttempt = true;
@@ -2567,7 +2563,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
               Thread.yield();
               continue;
             }
-            else if (isServerFailure(result))
+            else if (isServerFailure(result, serverErrorResultCode))
             {
               /*
                * It can happen when a rebuild is performed or the backend is
@@ -2623,7 +2619,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
                   break;
 
                 case FAILED:
-                  if (isConfiguredServerErrorResultCode(result))
+                  if (serverErrorResultCode.equals(result))
                   {
                     /*
                      * The result code is the one this server puts on an internal error and is
@@ -2686,8 +2682,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * attempt which ended on something conflict resolution kept rewriting is the
            * loop below, however the attempts before it ended.
            */
-          if (isServerFailure(lastResult) || ResultCode.BUSY.equals(lastResult)
-              || isConfiguredServerErrorResultCode(lastResult))
+          if (isServerFailure(lastResult, serverErrorResultCode)
+              || ResultCode.BUSY.equals(lastResult)
+              || serverErrorResultCode.equals(lastResult))
           {
             /*
              * The server kept failing to apply the change, so the change is not in the data.
@@ -2714,17 +2711,19 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             skipUnreplayableChange(csn, message);
           }
         }
-      } catch (DecodeException | LDAPException | DataFormatException e)
-      {
-        replayErrorMsg = giveUpOnUndecodableChange(msg, e);
       } catch (Exception e)
       {
         if (op == null)
         {
           /*
-           * The message could not be turned into an operation, it only failed to say so
-           * with a decoding exception. There is still nothing to retry and no delivery
-           * which would build any better, so this is the same give-up as above.
+           * No operation could be built from this message: createOperation() threw,
+           * whether it said so with a decoding exception or with an unchecked one. There
+           * is nothing to retry and no delivery which would build one any better.
+           *
+           * The decoding exceptions are caught here rather than in a catch of their
+           * own because such a catch would span the whole replay: addConflict(), which
+           * solveNamingConflict() calls once the operation has run, declares one, and a
+           * change whose operation ran must never be given up on where it failed.
            */
           replayErrorMsg = giveUpOnUndecodableChange(msg, e);
         }
@@ -2745,7 +2744,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * how long this replica keeps asking.
            */
           final LocalizableMessage message =
-              ERR_EXCEPTION_REPLAYING_OPERATION.get(stackTraceToSingleLineString(e), op);
+              ERR_EXCEPTION_REPLAYING_OPERATION.get(op, stackTraceToSingleLineString(e));
           logger.error(message);
           replayErrorMsg = message.toString();
           replayFailed = true;
@@ -2808,10 +2807,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * owns it. Skipping it says out loud what a wedged domain would only have implied: this
    * replica has diverged and must be reinitialized.
    * <p>
-   * Only a message which no operation could be built from comes here. A failure of the
-   * replay of an operation which was built, whenever it happens, keeps its change out of
-   * the ServerState and has it delivered again instead: that one is a failure of an
-   * attempt, not of every delivery of the change.
+   * Only a message which no operation could be built from comes here, and it is the
+   * {@code op == null} of its single caller which says so rather than the type of the
+   * exception: a decoding exception is declared past the point where the operation ran
+   * as well - by addConflict() - so a catch which read the type would give up on a
+   * change the backend may well have applied. A failure of the replay of an operation
+   * which was built, whenever it happens, keeps its change out of the ServerState and
+   * has it delivered again instead: that one is a failure of an attempt, not of every
+   * delivery of the change.
    *
    * @param msg the message which could not be decoded
    * @param e the failure to decode it
@@ -2864,9 +2867,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * (OPENDJ-49), or the storage failing to serve the operation.
    *
    * @param result the result code of a replayed operation
+   * @param serverErrorResultCode the result code this server puts on an internal error
    * @return {@code true} if the operation failed on the server itself
    */
-  private boolean isServerFailure(ResultCode result)
+  private static boolean isServerFailure(ResultCode result, ResultCode serverErrorResultCode)
   {
     /*
      * The result code the server puts on an internal error is configurable and is not
@@ -2877,24 +2881,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * has reported it.
      */
     return ResultCode.UNAVAILABLE.equals(result)
-        || (isConfiguredServerErrorResultCode(result) && !CONFLICT_RESULT_CODES.contains(result));
-  }
-
-  /**
-   * Returns whether the provided result code is the one this server puts on an internal
-   * error, whether or not conflict resolution knows how to solve that code.
-   * <p>
-   * A change which failed with that code and which conflict resolution could not solve
-   * either is a change the storage failed to apply: the code being one of
-   * {@link #CONFLICT_RESULT_CODES} only means conflict resolution had to be given its
-   * chance first.
-   *
-   * @param result the result code of a replayed operation
-   * @return {@code true} if it is the result code configured for a server error
-   */
-  private boolean isConfiguredServerErrorResultCode(ResultCode result)
-  {
-    return result.equals(getServerContext().getCoreConfigManager().getServerErrorResultCode());
+        || (serverErrorResultCode.equals(result) && !CONFLICT_RESULT_CODES.contains(result));
   }
 
   /**
@@ -2922,10 +2909,24 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private void recordChangeResolved(CSN csn)
   {
     updateError(csn);
+    resetSessionRestartBackoff();
+  }
+
+  /**
+   * Has the change which fails next start the backoff between the session restarts over,
+   * if this replica is not failing any change anymore.
+   * <p>
+   * A change made it and nothing is failing anymore, so the backend is serving again and
+   * the session is not being restarted in a row. While something is still failing, a
+   * change which was replayed says nothing of the kind - a change which can never be
+   * applied here fails alone, among changes which replay perfectly well, and letting
+   * those reset the wait would have this domain tear its session down every second for as
+   * long as that one change takes to be given up on.
+   */
+  private void resetSessionRestartBackoff()
+  {
     if (!remotePendingChanges.hasFailingChanges())
     {
-      // The change is in the data and nothing is failing anymore: the change which fails
-      // next starts the backoff over rather than inherit the wait this one reached.
       consecutiveSessionRestarts.set(0);
     }
   }

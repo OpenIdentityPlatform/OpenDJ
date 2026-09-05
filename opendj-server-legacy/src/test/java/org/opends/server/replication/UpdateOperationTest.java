@@ -36,7 +36,9 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
@@ -47,8 +49,10 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.extensions.DummyAlertHandler;
 import org.opends.server.plugins.ShortCircuitPlugin;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
@@ -57,6 +61,7 @@ import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.HeartbeatThread;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
+import org.opends.server.replication.protocol.ModifyContext;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.OperationContext;
@@ -66,9 +71,11 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
+import org.opends.server.types.RawModification;
 import org.opends.server.util.TestTimer;
 import org.opends.server.util.TestTimer.CallableVoid;
 import org.opends.server.util.TimeThread;
@@ -85,12 +92,6 @@ public class UpdateOperationTest extends ReplicationTestCase
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * How many times the domain retries the replay of a change straight away before it
-   * restarts its session and has the change delivered again: a short circuit is reached
-   * that many times per delivery.
-   */
-  private static final int IN_PLACE_REPLAY_ATTEMPTS = LDAPReplicationDomain.IN_PLACE_REPLAY_ATTEMPTS;
   /**
    * How long a change is retried in the tests which check that this replica gives up on
    * a change it can never apply: long enough for the change to be delivered again a
@@ -1422,22 +1423,23 @@ public class UpdateOperationTest extends ReplicationTestCase
       final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
       domain.resetUnreplayedChangeAlertThrottle();
       final int initialAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE);
-      // A backend which is down for maintenance is waited out for minutes: this test can
-      // not, so the change is given up on after a couple of deliveries instead.
       final long giveUpDelay = domain.getReplayGiveUpDelay();
-      domain.setReplayGiveUpDelay(TEST_GIVE_UP_DELAY_IN_MS);
-
-      /*
-       * Fail the replay the way a storage failure does: the backend reports it with the
-       * server-error-result-code, 80 by default. The short circuit has to be set at the
-       * pre-parse plugin point, the pre-operation ones are not invoked for synchronization
-       * operations.
-       */
-      ShortCircuitPlugin.resetShortCircuitCount(OperationType.DELETE, "PreParse");
-      ShortCircuitPlugin.registerShortCircuit(
-          OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
       try
       {
+        // A backend which is down for maintenance is waited out for minutes: this test
+        // can not, so the change is given up on after a couple of deliveries instead.
+        // Set inside the try which puts it back, like the short circuit below: both are
+        // the domain's and the server's for as long as they are left behind.
+        domain.setReplayGiveUpDelay(TEST_GIVE_UP_DELAY_IN_MS);
+        /*
+         * Fail the replay the way a storage failure does: the backend reports it with the
+         * server-error-result-code, 80 by default. The short circuit has to be set at the
+         * pre-parse plugin point, the pre-operation ones are not invoked for
+         * synchronization operations.
+         */
+        ShortCircuitPlugin.registerShortCircuit(
+            OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
+
         final CSN csn = gen.newCSN();
         broker.publish(new DeleteMsg(tmp.getName(), csn, uuid));
 
@@ -1555,12 +1557,13 @@ public class UpdateOperationTest extends ReplicationTestCase
       final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
       final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
       final long giveUpDelay = domain.getReplayGiveUpDelay();
-      domain.setReplayGiveUpDelay(TEST_GIVE_UP_DELAY_IN_MS);
-
-      ShortCircuitPlugin.registerShortCircuit(
-          OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
       try
       {
+        // Both are put back by the finally below, so both are set inside the try.
+        domain.setReplayGiveUpDelay(TEST_GIVE_UP_DELAY_IN_MS);
+        ShortCircuitPlugin.registerShortCircuit(
+            OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
+
         final CSN firstCSN = gen.newCSN();
         final CSN secondCSN = gen.newCSN();
         broker.publish(new DeleteMsg(first.getName(), firstCSN, firstUuid));
@@ -1663,11 +1666,13 @@ public class UpdateOperationTest extends ReplicationTestCase
        * retried in place: the change is only applied if the session is restarted and the
        * replication server delivers it a second time.
        */
-      ShortCircuitPlugin.resetShortCircuitCount(OperationType.DELETE, "PreParse");
-      ShortCircuitPlugin.registerShortCircuit(OperationType.DELETE, "PreParse",
-          transientFailure.intValue(), IN_PLACE_REPLAY_ATTEMPTS + 2);
       try
       {
+        // Registered inside the try which deregisters it: the plugin is consulted for
+        // every delete in this server, so one left behind fails the tests which follow.
+        ShortCircuitPlugin.registerShortCircuit(OperationType.DELETE, "PreParse",
+            transientFailure.intValue(), IN_PLACE_REPLAY_ATTEMPTS + 2);
+
         final CSN csn = gen.newCSN();
         broker.publish(new DeleteMsg(tmp.getName(), csn, uuid));
 
@@ -1696,11 +1701,15 @@ public class UpdateOperationTest extends ReplicationTestCase
          * A change applied twice - the delivery which failed and the one which took over
          * from it, the OPENDJ-1115 regression the takeover is there to prevent - takes the
          * counter through +1 on its way to +2, so the value has to be seen to stay put
-         * rather than to be reached once.
+         * rather than to be reached once. It has to be watched for longer than the
+         * session restart which brings that second delivery, too, or the assertion stops
+         * looking before the delivery it is looking for could arrive.
          */
         assertMonitorAttrValueStays(baseDN, "replayed-updates-ok", initialReplayed + 1,
+            MONITOR_ATTR_SAMPLES_ACROSS_A_REDELIVERY,
             "a change which was delivered again must be applied exactly once");
         assertMonitorAttrValueStays(baseDN, "replayed-updates-failed", initialFailures,
+            MONITOR_ATTR_SAMPLES_ACROSS_A_REDELIVERY,
             "a change which was replayed after a transient failure must not count as failed");
         assertEquals(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE), initialAlerts,
             "a transient failure must not tell the administrator that this replica diverged");
@@ -1762,17 +1771,22 @@ public class UpdateOperationTest extends ReplicationTestCase
       // another server-error-result-code must not be rewritten by this test.
       final int previousServerErrorResultCode =
           getServerContext().getCoreConfigManager().getServerErrorResultCode().intValue();
-      setServerErrorResultCode(ResultCode.UNWILLING_TO_PERFORM.intValue());
-      ShortCircuitPlugin.resetShortCircuitCount(OperationType.DELETE, "PreParse");
-      /*
-       * The failure lasts longer than the attempts made in place, so the change is only
-       * applied if it was left out of the ServerState and delivered again rather than
-       * recorded as replayed once conflict resolution reported it could not be solved.
-       */
-      ShortCircuitPlugin.registerShortCircuit(OperationType.DELETE, "PreParse",
-          ResultCode.UNWILLING_TO_PERFORM.intValue(), IN_PLACE_REPLAY_ATTEMPTS + 2);
       try
       {
+        /*
+         * Changed inside the try which puts it back: the result code this server reports
+         * an internal error with is server-wide, so one left behind would change which
+         * road every later replay of this suite takes.
+         */
+        setServerErrorResultCode(ResultCode.UNWILLING_TO_PERFORM.intValue());
+        /*
+         * The failure lasts longer than the attempts made in place, so the change is only
+         * applied if it was left out of the ServerState and delivered again rather than
+         * recorded as replayed once conflict resolution reported it could not be solved.
+         */
+        ShortCircuitPlugin.registerShortCircuit(OperationType.DELETE, "PreParse",
+            ResultCode.UNWILLING_TO_PERFORM.intValue(), IN_PLACE_REPLAY_ATTEMPTS + 2);
+
         final CSN csn = gen.newCSN();
         broker.publish(new DeleteMsg(tmp.getName(), csn, uuid));
 
@@ -1782,6 +1796,7 @@ public class UpdateOperationTest extends ReplicationTestCase
             .as("the change must have been delivered again rather than recorded as replayed")
             .isGreaterThan(IN_PLACE_REPLAY_ATTEMPTS);
         assertMonitorAttrValueStays(baseDN, "replayed-updates-failed", initialFailures,
+            MONITOR_ATTR_SAMPLES_ACROSS_A_REDELIVERY,
             "a change which was replayed in the end must not be counted as given up on");
         assertEquals(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE), initialAlerts,
             "a change which was replayed in the end must not tell the administrator that this replica diverged");
@@ -1905,11 +1920,145 @@ public class UpdateOperationTest extends ReplicationTestCase
       corrupted.createOperation(getRootConnection());
       fail("this test needs a message which can not be turned into an operation");
     }
-    catch (Exception expected)
+    catch (LDAPException | DecodeException expected)
     {
-      // Which is what the replay of this message hits.
+      /*
+       * Which is what the replay of this message hits: the ASN.1 reader reports a
+       * DecodeException, which RawModification.decode() reports as an LDAPException and
+       * ModifyCommonMsg.decodeRawMods() lets through as it is when the over-read lands
+       * between two modifications rather than inside one. The two are named rather than
+       * caught as an Exception so that this test says what the message does, but neither
+       * is what decides its fate: this change is given up on because no operation could
+       * be built from it, and a failure of an operation which was built takes the other
+       * road whatever it was thrown as, which
+       * aChangeWhoseOperationWasBuiltIsNotGivenUpOnWhereItFailed pins.
+       */
     }
     return corrupted;
+  }
+
+  /**
+   * Test case for [Issue 889]: a change whose operation was built is delivered again
+   * rather than recorded as replayed when the replay fails before that operation could
+   * tell which change it carries.
+   * <p>
+   * Which of the two roads a failure takes is decided by the operation rather than by
+   * its CSN: a message no operation could be built from will not build one on the next
+   * delivery either, so it is given up on where it is reported, while an operation which
+   * was built may well have reached the backend - so its change is kept out of the
+   * ServerState and asked for again, wherever in the replay the failure happened. The
+   * entry DN of a ModifyMsg which does not parse is that case: it leaves
+   * {@code getEntryDN()} null and the replay throws before the CSN of the operation is
+   * read, so a give-up keyed off that CSN would record a change which never reached the
+   * backend as replayed, which is this issue by another route.
+   */
+  @Test
+  public void aChangeWhoseOperationWasBuiltIsNotGivenUpOnWhereItFailed() throws Exception
+  {
+    testSetUp("aChangeWhoseOperationWasBuiltIsNotGivenUpOnWhereItFailed");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aChangeWhoseOperationWasBuiltIsNotGivenUpOnWhereItFailed"));
+
+    Entry tmp = TestCaseUtils.addEntry(
+        "dn: uid=user.889.7," + baseDN,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: user.889.7",
+        "cn: Aaccf Amar",
+        "sn: Amar");
+    final DN dn = tmp.getName();
+    final String uuid = getEntry(dn, 1, true).parseAttribute("entryuuid").asString();
+
+    final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+    final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+    domain.resetUnreplayedChangeAlertThrottle();
+    final int initialAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE);
+
+    final CSNGenerator gen = new CSNGenerator(18, TimeThread.getTime());
+    final CSN csn = gen.newCSN();
+    final String description = "the replay must fail once the operation is built";
+    final List<Modification> mods = generatemods("description", description);
+
+    domain.processUpdate(new ModifyMsgWithAnUnparseableOperationDN(csn, dn, mods, uuid));
+
+    /*
+     * Long enough to outlast the session restart the failure asks for: a change which is
+     * being asked for again is not in the data at any point of it.
+     */
+    for (int i = 0; i < MONITOR_ATTR_SAMPLES_ACROSS_A_REDELIVERY; i++)
+    {
+      assertFalse(domain.getServerState().cover(csn),
+          "a change whose operation was built must be asked for again, not recorded as replayed");
+      Thread.sleep(200);
+    }
+    assertMonitorAttrValueStays(baseDN, "replayed-updates-failed", initialFailures,
+        "a change which is still to be delivered again must not be counted as given up on");
+    assertEquals(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE), initialAlerts,
+        "a change which is still to be delivered again must not be alerted on as a divergence");
+
+    /*
+     * The failed change is the barrier which holds this domain's ServerState back until
+     * it is replayed, and the replication server sending it again is what replays it.
+     * Nothing sends this one - it never travelled a session - so the delivery which takes
+     * over from the one which failed is made here, and it is made until it is taken: a
+     * delivery is dropped rather than queued while the listener thread is down, which it
+     * is for as long as the recovery is restarting the session, and the monitor entry
+     * read above comes back with the broker rather than with the listener. A delivery of
+     * a change a replay thread owns is refused as the duplicate it is, and the ServerState
+     * keeps this from delivering a change which was replayed a second time.
+     */
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(60, SECONDS)
+      .sleepTimes(200, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        if (!domain.getServerState().cover(csn))
+        {
+          domain.processUpdate(new ModifyMsg(csn, dn, mods, uuid));
+        }
+        assertTrue(domain.getServerState().cover(csn),
+            "the change must be recorded as replayed once it has been delivered again");
+      }
+    });
+    checkEntryHasAttributeValue(dn, "description", description, 30,
+        "the change must be applied by the delivery which took over from the failed one");
+  }
+
+  /**
+   * A ModifyMsg whose operation can not tell which change it carries.
+   * <p>
+   * The operation is built - so the replay is past the point where a message is given up
+   * on - and its entry DN does not parse, which is what has
+   * {@code ModifyOperationBasis.getEntryDN()} return null and the replay throw before
+   * {@code OperationContext.getCSN(op)} is reached. Such a message can not travel the
+   * protocol: the DN of a ModifyMsg is decoded on the way in and the operation is built
+   * from its {@code toString()}, so this one is handed to the domain rather than
+   * published.
+   */
+  private static final class ModifyMsgWithAnUnparseableOperationDN extends ModifyMsg
+  {
+    private ModifyMsgWithAnUnparseableOperationDN(
+        CSN csn, DN dn, List<Modification> mods, String entryUUID)
+    {
+      super(csn, dn, mods, entryUUID);
+    }
+
+    @Override
+    public ModifyOperation createOperation(InternalClientConnection connection, DN newDN)
+    {
+      final ModifyOperation op = new ModifyOperationBasis(connection, nextOperationID(),
+          nextMessageID(), null, ByteString.valueOfUtf8("this is not a DN"),
+          new ArrayList<RawModification>());
+      op.setAttachment(OperationContext.SYNCHROCONTEXT,
+          new ModifyContext(getCSN(), getEntryUUID()));
+      return op;
+    }
   }
 
   /**
