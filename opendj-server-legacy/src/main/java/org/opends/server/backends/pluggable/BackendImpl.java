@@ -18,11 +18,13 @@
 package org.opends.server.backends.pluggable;
 
 import static org.forgerock.util.Reject.*;
+import static org.forgerock.util.Utils.closeSilently;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -50,9 +52,11 @@ import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageInUseException;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
@@ -845,83 +849,269 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     return true;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * {@link Storage#write(WriteOperation)} replays its operation after a transaction conflict, so
+   * the operation below is confined to work a rollback undoes: the trees are deleted and opened
+   * there, while the registries, which no rollback reaches, are updated once the write has
+   * committed. Getting this the wrong way round leaves the change half applied, and its replay
+   * reports the missing half rather than the conflict that caused it.
+   * <p>
+   * What makes the operation replayable is that the base DNs to remove and to add are worked out
+   * once, ahead of the write, so that no attempt can see different work to do than the attempt it
+   * is replacing.
+   */
   @Override
   public ConfigChangeResult applyConfigurationChange(final PluggableBackendCfg newCfg)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
+    // Read once: importLDIF, rebuildBackend, exportLDIF and verifyBackend all assign this field
+    // and null it out again, and this method now goes on using it past the commit.
+    final RootContainer rc = rootContainer;
+    if (rc == null)
+    {
+      return ccr;
+    }
+
+    final SortedSet<DN> newBaseDNs = newCfg.getBaseDN();
+    // Ask the root container what this backend holds rather than the configuration it was last
+    // given: a base DN which an earlier, failed change left behind is work to do, and a
+    // configuration which was never applied is not. RootContainer.getBaseDNs() is a live view of
+    // the registered containers, so take a copy of it before anything registers one.
+    final Set<DN> currentBaseDNs = new HashSet<>(rc.getBaseDNs());
+    final List<EntryContainer> deleted = new ArrayList<>();
+    for (DN baseDN : currentBaseDNs)
+    {
+      if (!newBaseDNs.contains(baseDN))
+      {
+        deleted.add(rc.getEntryContainer(baseDN));
+      }
+    }
+    final List<DN> added = new ArrayList<>();
+    for (DN baseDN : newBaseDNs)
+    {
+      if (!currentBaseDNs.contains(baseDN))
+      {
+        added.add(baseDN);
+      }
+    }
+    if (deleted.isEmpty() && added.isEmpty())
+    {
+      // The common case - index-entry-limit, db-cache-percent, preload-time-limit and the rest,
+      // which the entry containers apply through their own listeners. There is no storage work to
+      // do, so no transaction is opened to commit nothing.
+      baseDNs = new HashSet<>(newBaseDNs);
+      cfg = newCfg;
+      return ccr;
+    }
+    // Opened by the write operation, registered only once it has committed.
+    final List<EntryContainer> created = new ArrayList<>();
+
+    // The trees of a removed base DN are now deleted while it is still registered, so hold its
+    // entry container exclusively for as long as the write runs, retries included, as
+    // RootContainer.close(), EntryContainer's index delete listener and AttributeIndex all do.
+    // That keeps out the operations which arrive during that window; an operation which had taken
+    // hold of the container before the lock still ends up in a closed one once it is released, as
+    // it did before this ordering.
+    final List<EntryContainer> locked = new ArrayList<>(deleted.size());
     try
     {
-      if(rootContainer != null)
+      for (EntryContainer ec : deleted)
       {
-        rootContainer.getStorage().write(new WriteOperation()
+        ec.lock();
+        locked.add(ec);
+      }
+
+      try
+      {
+        rc.getStorage().write(new WriteOperation()
         {
           @Override
           public void run(WriteableTransaction txn) throws Exception
           {
-            SortedSet<DN> newBaseDNs = newCfg.getBaseDN();
+            // Give up what a previous, rolled back attempt had opened: its trees are gone, and its
+            // entry containers still hold the configuration listeners they registered.
+            closeSilently(created);
+            created.clear();
 
-            // Check for changes to the base DNs.
-            removeDeletedBaseDNs(newBaseDNs, txn);
-            if (!createNewBaseDNs(newBaseDNs, ccr, txn))
+            // Opening the added base DNs comes first, so that the failure this operation is most
+            // likely to meet is met while everything is still there to roll back to. Once a tree
+            // has been deleted, a storage engine which does not undo that has nothing to give
+            // back.
+            for (DN baseDN : added)
             {
-              return;
+              created.add(rc.openEntryContainer(baseDN, txn, AccessMode.READ_WRITE));
             }
-
-            baseDNs = new HashSet<>(newBaseDNs);
-
-            // Put the new configuration in place.
-            cfg = newCfg;
+            for (EntryContainer ec : deleted)
+            {
+              ec.delete(txn);
+            }
           }
         });
       }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+
+        closeSilently(created);
+        ccr.setResultCode(serverContext.getCoreConfigManager().getServerErrorResultCode());
+        // On a storage engine whose deleteTree the rollback undoes with the rest - persistit, je,
+        // and the jdbc backend on postgresql and sql server - nothing at all has been applied and
+        // neither registry is touched below. The failure alone never says which base DNs the
+        // change was about, so name them.
+        ccr.addMessage(ERR_BACKEND_CANNOT_CHANGE_BASEDNS.get(
+            getBackendID(), baseDNsOf(deleted), added, stackTraceToSingleLineString(e)));
+        deregisterBaseDNsWhoseTreesAreGone(rc, deleted, ccr);
+        return ccr;
+      }
+
+      // The change is durable from here on, so every base DN is seen through even if one fails.
+      deregisterDeletedBaseDNs(rc, deleted, ccr);
+      registerNewBaseDNs(rc, created, ccr);
+
+      // Put the new configuration in place.
+      cfg = newCfg;
     }
-    catch (Exception e)
+    finally
     {
-      ccr.setResultCode(serverContext.getCoreConfigManager().getServerErrorResultCode());
-      ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
+      // What the root container ended up holding, not what was asked for: a base DN whose
+      // registration failed is not one this backend serves, and getBaseDNs() is what the monitors,
+      // isIndexed() and closeBackend() are answered from. Taken on the way out of every path, the
+      // failed ones included, so that the two never disagree.
+      baseDNs = new HashSet<>(rc.getBaseDNs());
+      for (EntryContainer ec : locked)
+      {
+        ec.unlock();
+      }
     }
     return ccr;
   }
 
-  private void removeDeletedBaseDNs(SortedSet<DN> newBaseDNs, WriteableTransaction txn) throws DirectoryException
+  /**
+   * Gives up the base DNs whose trees the failed write took with it, which is what a storage engine
+   * that commits its DDL of its own accord (mysql, oracle) or has no transaction to roll back
+   * (cassandra) leaves behind. A base DN kept registered without its trees answers every operation
+   * with a storage error, where its removal was meant to leave a plain "no such entry"; one whose
+   * trees the rollback put back is left exactly as it was.
+   */
+  private void deregisterBaseDNsWhoseTreesAreGone(RootContainer rc, List<EntryContainer> deleted,
+      ConfigChangeResult ccr)
   {
-    for (DN baseDN : cfg.getBaseDN())
+    if (deleted.isEmpty())
     {
-      if (!newBaseDNs.contains(baseDN))
+      return;
+    }
+    final Set<TreeName> storedTrees;
+    try
+    {
+      storedTrees = rc.getStorage().listTrees();
+    }
+    catch (Exception e)
+    {
+      // Nothing can be said about what survived, so nothing is given up on the strength of it.
+      logger.traceException(e);
+      ccr.setAdminActionRequired(true);
+      return;
+    }
+    for (EntryContainer ec : deleted)
+    {
+      if (!allTreesStored(ec, storedTrees))
       {
-        // The base DN was deleted.
-        serverContext.getBackendConfigManager().deregisterBaseDN(baseDN);
-        EntryContainer ec = rootContainer.unregisterEntryContainer(baseDN);
-        ec.close();
-        ec.delete(txn);
+        ccr.setAdminActionRequired(true);
+        deregisterDeletedBaseDN(rc, ec, ccr);
       }
     }
   }
 
-  private boolean createNewBaseDNs(Set<DN> newBaseDNs, ConfigChangeResult ccr, WriteableTransaction txn)
+  private static boolean allTreesStored(EntryContainer ec, Set<TreeName> storedTrees)
   {
-    for (DN baseDN : newBaseDNs)
+    for (Tree tree : ec.listTrees())
     {
-      if (!rootContainer.getBaseDNs().contains(baseDN))
+      if (!storedTrees.contains(tree.getName()))
       {
-        try
-        {
-          // The base DN was added.
-          EntryContainer ec = rootContainer.openEntryContainer(baseDN, txn, AccessMode.READ_WRITE);
-          rootContainer.registerEntryContainer(baseDN, ec);
-          serverContext.getBackendConfigManager().registerBaseDN(baseDN, this, false);
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-
-          ccr.setResultCode(serverContext.getCoreConfigManager().getServerErrorResultCode());
-          ccr.addMessage(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(baseDN, e));
-          return false;
-        }
+        return false;
       }
     }
     return true;
+  }
+
+  private void deregisterDeletedBaseDNs(RootContainer rc, List<EntryContainer> deleted, ConfigChangeResult ccr)
+  {
+    for (EntryContainer ec : deleted)
+    {
+      deregisterDeletedBaseDN(rc, ec, ccr);
+    }
+  }
+
+  private void deregisterDeletedBaseDN(RootContainer rc, EntryContainer ec, ConfigChangeResult ccr)
+  {
+    final DN baseDN = ec.getBaseDN();
+    final BackendConfigManager backendConfigManager = serverContext.getBackendConfigManager();
+    try
+    {
+      backendConfigManager.deregisterBaseDN(baseDN);
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+
+      if (backendConfigManager.getLocalBackendWithBaseDN(baseDN) == this)
+      {
+        // deregisterBaseDN puts its new registry in place only once it has succeeded, so this base
+        // DN is still routed here. Leave the entry container registered: closeBackend() reclaims a
+        // base DN through rootContainer.getBaseDNs(), and one taken out of there would stay claimed
+        // by a backend which no longer holds it until the server is restarted.
+        ccr.setResultCode(serverContext.getCoreConfigManager().getServerErrorResultCode());
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(ERR_BACKEND_CANNOT_DEREGISTER_BASEDN.get(baseDN, stackTraceToSingleLineString(e)));
+        return;
+      }
+      // It is not registered here, which is what an earlier change whose registerBaseDN failed
+      // leaves behind. Nothing routes to it, so there is nothing to hold on to.
+    }
+    rc.unregisterEntryContainer(baseDN);
+    closeSilently(ec);
+  }
+
+  private void registerNewBaseDNs(RootContainer rc, List<EntryContainer> created, ConfigChangeResult ccr)
+  {
+    for (EntryContainer ec : created)
+    {
+      final DN baseDN = ec.getBaseDN();
+      boolean registered = false;
+      try
+      {
+        rc.registerEntryContainer(baseDN, ec);
+        registered = true;
+        serverContext.getBackendConfigManager().registerBaseDN(baseDN, this, false);
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+
+        ccr.setResultCode(serverContext.getCoreConfigManager().getServerErrorResultCode());
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(baseDN, e));
+        if (!registered)
+        {
+          // Nothing else can reclaim it: closeBackend() and RootContainer.close() both work from
+          // the registered containers, and this one keeps the configuration listeners its
+          // constructor registered for as long as it is alive.
+          closeSilently(ec);
+        }
+      }
+    }
+  }
+
+  private static List<DN> baseDNsOf(List<EntryContainer> entryContainers)
+  {
+    final List<DN> baseDNs = new ArrayList<>(entryContainers.size());
+    for (EntryContainer ec : entryContainers)
+    {
+      baseDNs.add(ec.getBaseDN());
+    }
+    return baseDNs;
   }
 
   /**
