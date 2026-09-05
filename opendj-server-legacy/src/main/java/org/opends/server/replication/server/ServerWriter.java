@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -87,9 +88,14 @@ public class ServerWriter extends DirectoryThread
     LocalizableMessage errMessage = null;
     try
     {
-      boolean shutdown = false;
-      while (!shutdown
-          || !dsrsShutdownSync.canShutdown(replicationServerDomain.getBaseDN()))
+      /*
+       * Looping here to wait for a pending ReplicaOfflineMsg would achieve nothing: this writer
+       * only stops once its handler has been shut down, which deactivates the consumer, clears
+       * the message queue and closes the session. The shutdown of the domain waits for the
+       * message to be forwarded before it stops the handlers - see
+       * ReplicationServerDomain.shutdown() and OPENDJ-1453.
+       */
+      while (true)
       {
         final UpdateMsg updateMsg = this.handler.take();
         if (updateMsg == null)
@@ -97,15 +103,25 @@ public class ServerWriter extends DirectoryThread
           // this connection is closing
           errMessage = LocalizableMessage.raw(
            "Connection closure: null update returned by domain.");
-          shutdown = true;
+          break;
         }
-        else if (!isUpdateMsgFiltered(updateMsg))
+        if (!isUpdateMsgFiltered(updateMsg))
         {
           // Publish the update to the remote server using a protocol version it supports
           session.publish(updateMsg);
-          if (updateMsg instanceof ReplicaOfflineMsg)
+          /*
+           * Only the forward to a peer RS ends the wait of the shutdown: what the grace period
+           * buys is the rest of the topology learning that the replica went offline.
+           * ReplicationServerDomain.put() never queues this message for a directory server - its
+           * isUpdateMsgFiltered() drops it there - but a directory server which is catching up
+           * reads its updates from the changelog, where ReplicaCursor synthesizes a
+           * ReplicaOfflineMsg from the offline CSN of the replica. Publishing that one says
+           * nothing about the peer RSs the shutdown is waiting for.
+           */
+          if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
           {
-            dsrsShutdownSync.replicaOfflineMsgForwarded(replicationServerDomain.getBaseDN());
+            dsrsShutdownSync.replicaOfflineMsgForwarded(
+                replicationServerDomain.getBaseDN(), updateMsg.getCSN());
           }
         }
       }
