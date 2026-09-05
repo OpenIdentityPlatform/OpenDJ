@@ -15,6 +15,7 @@
  */
 package org.opends.server.backends.jdbc;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
@@ -2366,18 +2367,64 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	}
 
 	/**
+	 * A clear which removed no tree of its backend says why, and says it where the one table it did
+	 * drop was its own catalog: a catalog standing over rows that name nothing - the state a backup
+	 * restored beside older tables leaves - is one drop and no tree removed, which is the outcome of
+	 * #888 exactly and not a clear that did something.
+	 * <p>
+	 * Decided on the drops of trees and not on every drop for that reason. Counted the other way the
+	 * line is silent here, since dropping the catalog makes the count one.
+	 */
+	@Test
+	public void testAClearWhichRemovedNoTreeSaysWhyEvenWhereItDroppedItsCatalog() throws Exception {
+		final DN baseDN = DN.valueOf("dc=clear-catalog-only,dc=com");
+		final TreeName owned = new TreeName(baseDN.toNormalizedUrlSafeString(), "id2entry");
+		final ReportingStorage storage =
+			new ReportingStorage(createBackendCfg(getBackendId() + "_catalogOnly", baseDN));
+		final String catalogTable = storage.getTableName(storage.getCatalogTree());
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(owned, true);
+				}
+			});
+			// the catalog table is there and names nothing, so the clear below has exactly one table to
+			// drop - its own - and leaves the tree standing, named by nothing
+			emptyTheCatalog(catalogTable);
+			storage.close();
+
+			storage.removeStorageFiles();
+
+			assertFalse(isExistsTable(catalogTable), "the clear left its own catalog table standing");
+			assertTrue(isExistsTable(storage.getTableName(owned)),
+				"a table named by no catalog was dropped: nothing may be dropped that cannot be attributed");
+			storage.assertReported("a clear which dropped its catalog and removed no tree of the backend"
+					+ " said nothing about why, which is the silence of #888",
+				"removed no tree of this backend", "has to be started once");
+		} finally {
+			clearQuietly(storage);
+			// left standing on purpose above: its catalog is gone, so no clear of this backend names it
+			dropTableIfExists(storage.getTableName(owned));
+		}
+	}
+
+	/**
 	 * A row recording a name outside the namespace this backend names its tables in is passed over
 	 * rather than reaching a {@code drop table} built from a value read back out of a table - and the
 	 * clear accounts for it, no other line of its report being able to: what such a row records is
-	 * outside the {@code opendj} names the scan of what a clear left standing walks, and neither the
-	 * row nor whatever it points at is dropped by anything.
+	 * outside the {@code opendj} names the scan of what a clear left standing walks, and is dropped
+	 * by nothing. The row is not there to be read again either - the catalog names itself last, so
+	 * the clear drops that table with the row still in it - which is why the line is asserted here
+	 * along with the drop: it is the only surviving copy of what the row said.
 	 * <p>
 	 * Nothing this version writes makes such a row, which is why the case makes one by hand.
 	 */
 	@Test
 	public void testAClearAccountsForACatalogRowItCannotActOn() throws Exception {
 		final TreeName tree = new TreeName("testCatalogForeignRow", "tree");
-		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_foreignRow"), null);
+		final ReportingStorage storage = new ReportingStorage(createBackendCfg(getBackendId() + "_foreignRow"));
 		final String tableName = storage.getTableName(tree);
 		try {
 			storage.open(AccessMode.READ_WRITE);
@@ -2403,6 +2450,13 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			storage.removeStorageFiles();
 			assertTrue(isExistsTable(tableName),
 				"the clear dropped the table of a tree its catalog names at another name than that table's");
+			assertFalse(isExistsTable(catalogTable),
+				"the clear left its own catalog table standing, so the row it passed over is still readable"
+					+ " and the line reporting it is not the last copy of what it said");
+			// the report itself and not the read behind it: reportSkippedRows() writes to nothing else,
+			// so both of its call sites could be deleted and every assertion above would still hold
+			storage.assertReported("the row the clear could not act on was reported by no line of it",
+				"a_table_of_something_else", "passed over");
 		} finally {
 			clearQuietly(storage);
 			// left standing on purpose above, so this case removes it rather than the next one meeting it
@@ -2631,6 +2685,55 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				dropTableBehindTheBackend(tableName);
 			}
 		} catch (SQLException ignored) {
+		}
+	}
+
+	/**
+	 * A storage which keeps the lines every clear it runs reports, so that a case can hold that
+	 * account to what it says.
+	 * <p>
+	 * Those lines change no state whatsoever, so a case asserting on the database a clear leaves
+	 * behind passes just as well with all of them deleted - which is how this report came to be
+	 * changed in three rounds of review with nothing able to fail. Here rather than in the case that
+	 * needed it first, for the same reason: the next line of the report wants an assertion too, and a
+	 * helper per case is what got the report where it was. See {@link JDBCStorage#reportClearLine}.
+	 */
+	protected static final class ReportingStorage extends JDBCStorage {
+		private final List<String> lines = Collections.synchronizedList(new ArrayList<String>());
+
+		ReportingStorage(JDBCBackendCfg cfg) {
+			super(cfg, null);
+		}
+
+		@Override
+		void reportClearLine(LocalizableMessage line) {
+			lines.add(line.toString());
+			super.reportClearLine(line); // and on to the log, which is where an operator meets it
+		}
+
+		/** Every line reported so far, in the order the clears that reported them ran. */
+		List<String> reported() {
+			synchronized (lines) {
+				return new ArrayList<>(lines);
+			}
+		}
+
+		/**
+		 * Fails unless one reported line holds every one of the fragments. By fragments and not by the
+		 * whole line: what a case is entitled to pin is the thing the line is about, and a report
+		 * asserted word for word is a report nobody may improve the wording of.
+		 */
+		void assertReported(String whatWentUnsaid, String... fragments) {
+			for (final String line : reported()) {
+				boolean holdsAll = true;
+				for (final String fragment : fragments) {
+					holdsAll &= line.contains(fragment);
+				}
+				if (holdsAll) {
+					return;
+				}
+			}
+			fail(whatWentUnsaid + "; the clear reported: " + reported());
 		}
 	}
 }

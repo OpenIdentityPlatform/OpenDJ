@@ -37,6 +37,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -214,6 +215,36 @@ public class CachedConnection implements Connection {
     static long getConnectTimeoutSeconds() {
         return Math.min(getNonNegativeProperty(CONNECT_TIMEOUT_PROPERTY, DEFAULT_CONNECT_TIMEOUT_SECONDS, "s"),
             Integer.MAX_VALUE / 1000);
+    }
+
+    /**
+     * Returns the deadline of a whole borrow, as configured by the {@value #POOL_TIMEOUT_PROPERTY}
+     * system property; 0 for the operator asking for no deadline at all.
+     * <p>
+     * Read here for the reason the bound of a connect is: it is what a database taking no
+     * connection for the moment is waited out for, and the connection {@code JDBCStorage} opens
+     * outside this pool for the tree catalog of a backend (#888) waits it out for exactly as long -
+     * one property, one meaning, whichever of the two is asking.
+     */
+    static long getPoolTimeoutSeconds() {
+        return getNonNegativeProperty(POOL_TIMEOUT_PROPERTY, DEFAULT_POOL_TIMEOUT_SECONDS, "s");
+    }
+
+    /**
+     * The moment a borrow of this length gives up, or {@link Long#MAX_VALUE} where it gives up
+     * never - a property of 0, and a value so large that the milliseconds of it would overflow.
+     * <p>
+     * The sum is guarded and not only the product: a value under the clamp above but large enough
+     * that the moment it names is past the end of the epoch would wrap to a deadline already behind
+     * us, and a borrow configured to wait practically forever would give up on its first retryable
+     * failure - the opposite of what was asked for.
+     */
+    static long deadlineOf(long startedAt, long poolTimeoutSeconds) {
+        if (poolTimeoutSeconds == 0 || poolTimeoutSeconds >= Long.MAX_VALUE / 1000) {
+            return Long.MAX_VALUE;
+        }
+        final long deadline = startedAt + poolTimeoutSeconds * 1000;
+        return deadline < startedAt ? Long.MAX_VALUE : deadline;
     }
 
     /**
@@ -651,10 +682,9 @@ public class CachedConnection implements Connection {
         final ConnectDialect dialect = ConnectDialect.of(connectionString);
         reportUnknownDialect(connectionString, dialect);
         final long connectTimeoutSeconds = getConnectTimeoutSeconds();
-        final long poolTimeoutSeconds = getNonNegativeProperty(POOL_TIMEOUT_PROPERTY, DEFAULT_POOL_TIMEOUT_SECONDS, "s");
+        final long poolTimeoutSeconds = getPoolTimeoutSeconds();
         final long startedAt = System.currentTimeMillis();
-        final long deadline = (poolTimeoutSeconds == 0 || poolTimeoutSeconds >= Long.MAX_VALUE / 1000)
-            ? Long.MAX_VALUE : startedAt + poolTimeoutSeconds * 1000;
+        final long deadline = deadlineOf(startedAt, poolTimeoutSeconds);
         long waitMs = 0;
         long backoffMs = 0;
         int attempts = 0;
@@ -1020,16 +1050,51 @@ public class CachedConnection implements Connection {
     // is indistinguishable from a hang. Throttled, since every operation of the backend borrows
     // through here and would otherwise log a copy of its own.
     private static void warnStall(String connectionString, int attempts, long startedAt, SQLException cause) {
+        warnStall(connectionString, "", startedAt,
+            waitedMs -> stallMessage(connectionString, attempts, waitedMs, cause));
+    }
+
+    /**
+     * The same for a connect this class makes for somebody outside the pool - the connection the
+     * tree catalog of a backend is written on (#888) - which waits for no pooled connection and
+     * must not be described as one.
+     * <p>
+     * Throttled apart from the borrows of the same url as well as worded apart from them: the two
+     * stall on the same database for the same reason, so a borrow that warned a moment ago would
+     * otherwise silence the connect that is about to fail - the one of the two an operator has no
+     * other line about.
+     */
+    static void warnStallOutsidePool(String connectionString, String what, int attempts, long startedAt,
+            SQLException cause) {
+        warnStall(connectionString, "|" + what, startedAt,
+            waitedMs -> outsidePoolStallMessage(connectionString, what, attempts, waitedMs, cause));
+    }
+
+    private static void warnStall(String connectionString, String throttleKeySuffix, long startedAt,
+            LongFunction<String> message) {
         final long now = System.currentTimeMillis();
         if (now - startedAt < STALL_WARNING_AFTER_MS) {
             return;
         }
         final AtomicLong lastOfThisUrl =
-            lastStallWarning.computeIfAbsent(safeUrl(connectionString), url -> new AtomicLong());
+            lastStallWarning.computeIfAbsent(safeUrl(connectionString) + throttleKeySuffix, url -> new AtomicLong());
         final long last = lastOfThisUrl.get();
         if (now - last >= STALL_WARNING_INTERVAL_MS && lastOfThisUrl.compareAndSet(last, now)) {
-            logger.warn(LocalizableMessage.raw("%s", stallMessage(connectionString, attempts, now - startedAt, cause)));
+            logger.warn(LocalizableMessage.raw("%s", message.apply(now - startedAt)));
         }
+    }
+
+    /**
+     * The stall of a connect made outside the pool, as it reaches the log. Built apart from the
+     * logging of it for the reason {@link #stallMessage} is: the rule it has to keep - neither the
+     * connection string nor the message of the driver reaches a log as it stands - is a rule a test
+     * can hold it to.
+     */
+    static String outsidePoolStallMessage(String connectionString, String what, int attempts, long waitedMs,
+            SQLException cause) {
+        return String.format("%s takes no further connection: the %s connection of this backend is opened outside the"
+            + " pool and has been retrying for %d ms (%d attempts), last error: %s", safeUrl(connectionString), what,
+            waitedMs, attempts, redact(cause.getMessage(), connectionString));
     }
 
     /**
