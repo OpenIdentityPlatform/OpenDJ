@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015-2016 ForgeRock AS.
-  Portions Copyright 2018 Open Identity Platform Community
+  Portions Copyright 2018-2026 3A Systems, LLC
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -29,265 +29,155 @@
     <name>OpenDJ MSI Standard Package</name>
 
     <description>
-        This module generates an OpenDJ MSI package.
+        This module generates an OpenDJ MSI package using the WiX Toolset v5 .NET tool
+        (Windows only: WiX's build task P/Invokes msi.dll). The `wix` tool must be on the
+        PATH with the UI extension installed:
+          set DOTNET_ROLL_FORWARD=Major
+          dotnet tool install --global wix --version 5.0.2
+          wix extension add -g WixToolset.UI.wixext/5.0.2
+        The module itself is part of every reactor so that the release plugin keeps its
+        version in step with the rest of the build; the toolchain profile below is what
+        turns the MSI build on, and only when %USERPROFILE%\.dotnet\tools\wix.exe exists.
     </description>
 
     <properties>
         <msi.resources>${basedir}/resources/msi</msi.resources>
         <package.dir>${project.build.directory}/${product.name.lowercase}</package.dir>
+        <!-- Exclusions are done here (Ant), not in WiX <Files> (which only takes Include in WiX 5):
+             stagingRoot = payload minus lib; stagingLib = lib minus the Unix scripts. -->
+        <staging.root>${project.build.directory}/msi-staging</staging.root>
+        <staging.lib>${project.build.directory}/msi-staging-lib</staging.lib>
+        <msi.file>${project.build.directory}/${product.name.lowercase}-${project.version}.msi</msi.file>
     </properties>
-	
-	<dependencies>
 
-	</dependencies>
+    <dependencies>
+    </dependencies>
+
+    <!-- Everything that needs Windows lives in this profile rather than in the module list
+         that pulls the project in: a module outside the reactor is a module the release
+         plugin cannot version-bump (see the note in opendj-packages/pom.xml). Off, the
+         module is a pom that builds nothing; on, it produces the MSI. The activation is the
+         one the packages pom used to carry - Windows plus an installed WiX v5 .NET tool,
+         both conditions required - so a plain `mvn install` on a contributor's Windows
+         machine without wix no longer fails mid-reactor with "Cannot run program wix".
+         Name it explicitly (-Pdistribution-windows-msi) when wix lives outside the dotnet
+         global-tools directory; release.yml does exactly that. -->
+    <profiles>
+      <profile>
+        <id>distribution-windows-msi</id>
+        <activation>
+            <os><family>windows</family></os>
+            <file><exists>${env.USERPROFILE}/.dotnet/tools/wix.exe</exists></file>
+        </activation>
     <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
+            <!-- Unpacks the opendj-server-legacy distribution (unpack-archive execution inherited
+                 from the opendj-packages parent pluginManagement). -->
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-            </plugin>
-
-			<plugin>
-				<groupId>org.openidentityplatform.commons</groupId>
-				<artifactId>maven-external-dependency-plugin</artifactId>
-				<inherited>false</inherited>
-				<configuration>
-					<stagingDirectory>
-						${project.build.directory}/dependencies/
-                    </stagingDirectory>
-					<createChecksum>false</createChecksum>
-					<skipChecksumVerification>true</skipChecksumVerification>
-					<force>false</force>
-					<artifactItems>
-						<artifactItem>
-							<groupId>openidentityplatform.org</groupId>
-							<artifactId>wixtoolset</artifactId>
-							<version>3.11.1</version>
-							<packaging>zip</packaging>
-							<downloadUrl>
-									https://github.com/wixtoolset/wix3/releases/download/wix3111rtm/wix311-binaries.zip
-	                        </downloadUrl>
-	                        <deploy>false</deploy>
-						</artifactItem>
-						<artifactItem>
-							<groupId>openidentityplatform.org</groupId>
-							<artifactId>winetricks</artifactId>
-							<version>LAST</version>
-							<packaging>sh</packaging>
-							<downloadUrl>
-								https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
-	                        </downloadUrl>
-	                        <deploy>false</deploy>
-						</artifactItem>
-					</artifactItems>
-				</configuration>
-				<executions>
-					<execution>
-						<id>clean-external-dependencies</id>
-						<phase>clean</phase>
-						<goals>
-							<goal>clean-external</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>resolve-install-external-dependencies</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>resolve-external</goal>
-							<goal>install-external</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>deploy-external-dependencies</id>
-						<phase>deploy</phase>
-						<goals>
-							<goal>deploy-external</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack-wix</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-			                 	<artifactItem>
-				                   	<groupId>openidentityplatform.org</groupId>
-								   	<artifactId>wixtoolset</artifactId>
-								    <version>3.11.1</version>
-									<type>zip</type>
-			                		 </artifactItem>
-			                </artifactItems>
-                            <outputDirectory>
-                                ${project.build.directory}/wix
-                            </outputDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>unpack-winetricks</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-			                 	<artifactItem>
-				                   	<groupId>openidentityplatform.org</groupId>
-									<artifactId>winetricks</artifactId>
-									<version>LAST</version>
-									<type>sh</type>
-			                		 </artifactItem>
-			                </artifactItems>
-                            <outputDirectory>
-                                ${project.build.directory}/winetricks
-                            </outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
+
+            <!-- Stage the payload to harvest: keep Windows files, drop macOS *.app and Unix scripts. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>build-msi-package-prepare</id>
+                        <id>stage-msi-payload</id>
                         <phase>package</phase>
                         <goals>
                             <goal>run</goal>
                         </goals>
                         <configuration>
                             <target>
-                            	<delete dir="${user.home}/.msi" />
-                                <mkdir dir="${user.home}/.msi" />
-                                <copy toDir="${user.home}/.msi">
+                                <!-- Everything except lib (and macOS/Unix bits) -> stagingRoot -->
+                                <delete dir="${staging.root}"/>
+                                <mkdir dir="${staging.root}"/>
+                                <copy toDir="${staging.root}">
                                     <fileset dir="${package.dir}">
-                                        <!-- Exclude Mac apps -->
-                                        <exclude name="QuickSetup.app/**" />
-                                        <exclude name="Uninstall.app/**" />
-
-                                        <!-- Exclude shell scripts -->
-                                        <exclude name="bin/**" />
-                                        <exclude name="setup" />
-                                        <exclude name="uninstall" />
-                                        <exclude name="upgrade" />
-                                        <exclude name="**/*.sh" />
+                                        <exclude name="QuickSetup.app/**"/>
+                                        <exclude name="Uninstall.app/**"/>
+                                        <exclude name="bin/**"/>
+                                        <exclude name="lib/**"/>
+                                        <exclude name="setup"/>
+                                        <exclude name="uninstall"/>
+                                        <exclude name="upgrade"/>
+                                        <exclude name="**/*.sh"/>
                                     </fileset>
                                 </copy>
-
-                                <copy file="${msi.resources}/package.wxs" toDir="${project.build.directory}" />
-                                <copy file="${msi.resources}/opendjbanner.bmp" toDir="${project.build.directory}" />
-                                <copy file="${msi.resources}/opendjdialog.bmp" toDir="${project.build.directory}" />
-
-								<exec osfamily="windows" executable="${project.build.directory}\wix\heat.exe" dir="${project.build.directory}" failifexecutionfails="false" resultproperty="heatStatusCode">
-								   <arg value="dir" /> <arg value="${user.home}\.msi" />
-                                    <arg value="-nologo" />
-                                    <arg value="-cg" /><arg value="all" />
-                                    <arg value="-gg" />
-                                    <arg value="-sfrag" />
-                                    <arg value="-srd" />
-                                    <arg value="-ke" />
-                                    <arg value="-dr" /><arg value="OPENDJ" />
-                                    <arg value="-var" /><arg value="var.src" />
-                                    <arg value="-template" /><arg value="fragment" />
-                                    <arg value="-o" /><arg value="payload.wxs" />
-                                    <arg value="-v" />
-                                </exec>
-                                <exec osfamily="windows" executable="${project.build.directory}\wix\candle.exe" dir="${project.build.directory}" resultproperty="candleStatusCode">
-                                	<arg value="-nologo" />
-                                    <arg value="-dsrc=${user.home}\.msi" />
-                                    <arg value="-dname=${product.name}" />
-                                    <arg value="-dmajor=${parsedVersion.majorVersion}" />
-                                    <arg value="-dminor=${parsedVersion.minorVersion}" />
-                                    <arg value="-dpoint=${parsedVersion.incrementalVersion}" />
-                                    <arg value="package.wxs" />
-                                    <arg value="payload.wxs" />
-                                    <arg value="-v" />
-                                </exec>
-                                <exec osfamily="windows" executable="${project.build.directory}\wix\light.exe" dir="${project.build.directory}" resultproperty="lightStatusCode">
-                                    <arg value="-nologo" />
-                                    <arg value="-ext" /> <arg value="WixUIExtension" />
-                                    <arg value="-out" /> <arg value="${product.name.lowercase}-${project.version}.msi" />
-                                    <arg value="-sval" />
-                                    <arg value="-v" />
-                                    <arg value="package.wixobj" />
-                                    <arg value="payload.wixobj" />
-                                </exec>
-
-
-								<exec osfamily="unix" executable="wine" resultproperty="WineExitStatusCode" failifexecutionfails="false">
-									<arg value="wineboot" />
-									<arg value="--init" />
-								</exec>
-								
-								<exec osfamily="unix" executable="sh" resultproperty="WineTricksExitStatusCode" failifexecutionfails="false">
-									<arg value="${project.build.directory}/winetricks/winetricks-LAST.sh" />
-									<arg value="--unattended" />
-									<arg value="dotnet40" />
-									<arg value="dotnet_verifier" />
-								</exec>
-								
-								<property name="exec.heat" value="wine" /><property name="param.heat" value="${project.build.directory}/wix/heat.exe" />
-								<property name="exec.candle" value="wine" /><property name="param.candle" value="${project.build.directory}/wix/candle.exe" />
-								<property name="exec.light" value="wine" /><property name="param.light" value="${project.build.directory}/wix/light.exe" />
-							    <echo>------------------- ${exec.heat} ${param.heat} -------------------</echo>
-								<exec osfamily="unix" executable="${exec.heat}" dir="${project.build.directory}" failifexecutionfails="false" resultproperty="heatStatusCode">
-								   <arg value="${param.heat}" />
-                                    <arg value="dir" /> <arg value="${user.home}/.msi" />
-                                    <arg value="-nologo" />
-                                    <arg value="-cg" /><arg value="all" />
-                                    <arg value="-gg" />
-                                    <arg value="-sfrag" />
-                                    <arg value="-srd" />
-                                    <arg value="-ke" />
-                                    <arg value="-dr" /><arg value="OPENDJ" />
-                                    <arg value="-var" /><arg value="var.src" />
-                                    <arg value="-template" /><arg value="fragment" />
-                                    <arg value="-o" /><arg value="payload.wxs" />
-                                    <arg value="-v" />
-                                </exec>
-                                <echo>------------------- ${exec.candle} ${param.candle} -------------------</echo>
-                                <exec osfamily="unix" executable="${exec.candle}" dir="${project.build.directory}" resultproperty="candleStatusCode">
-                                	<arg value="${param.candle}" />
-                                    <arg value="-nologo" />
-                                    <arg value="-dsrc=${user.home}/.msi" />
-                                    <arg value="-dname=${product.name}" />
-                                    <arg value="-dmajor=${parsedVersion.majorVersion}" />
-                                    <arg value="-dminor=${parsedVersion.minorVersion}" />
-                                    <arg value="-dpoint=${parsedVersion.incrementalVersion}" />
-                                    <arg value="package.wxs" />
-                                    <arg value="payload.wxs" />
-                                    <arg value="-v" />
-                                </exec>
-                                <echo>------------------- ${exec.light} ${param.light} -------------------</echo>
-                                <exec osfamily="unix" executable="${exec.light}" dir="${project.build.directory}" resultproperty="lightStatusCode">
-                                	<arg value="${param.light}" />
-                                    <arg value="-nologo" />
-                                    <arg value="-ext" /> <arg value="WixUIExtension" />
-                                    <arg value="-out" /> <arg value="${product.name.lowercase}-${project.version}.msi" />
-                                    <arg value="-sval" />
-                                    <arg value="-v" />
-                                    <arg value="package.wixobj" />
-                                    <arg value="payload.wixobj" />
-                                </exec>
-                                <chmod file="${project.build.directory}/${product.name.lowercase}-${project.version}.msi" perm="ugo+r" verbose="true" />
-								<exec osfamily="unix" executable="ls" dir="${project.build.directory}">
-                                	<arg value="-laht" />
-                                </exec>
-
-                                <delete dir="${user.home}/.msi" />
-                                <attachartifact file="${project.build.directory}/${product.name.lowercase}-${project.version}.msi" />
+                                <!-- lib (the Windows launchers included) -> stagingLib -->
+                                <delete dir="${staging.lib}"/>
+                                <mkdir dir="${staging.lib}"/>
+                                <copy toDir="${staging.lib}">
+                                    <fileset dir="${package.dir}/lib">
+                                        <exclude name="**/*.sh"/>
+                                    </fileset>
+                                </copy>
                             </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Build the x64 MSI with the WiX v5 .NET tool (exec-maven-plugin version
+                 managed in the root pom). -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>wix-build-msi</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>wix</executable>
+                            <workingDirectory>${project.build.directory}</workingDirectory>
+                            <arguments>
+                                <argument>build</argument>
+                                <argument>${msi.resources}/package.wxs</argument>
+                                <argument>-arch</argument><argument>x64</argument>
+                                <argument>-ext</argument><argument>WixToolset.UI.wixext</argument>
+                                <argument>-bindpath</argument><argument>${msi.resources}</argument>
+                                <argument>-d</argument><argument>name=${product.name}</argument>
+                                <argument>-d</argument><argument>major=${parsedVersion.majorVersion}</argument>
+                                <argument>-d</argument><argument>minor=${parsedVersion.minorVersion}</argument>
+                                <argument>-d</argument><argument>point=${parsedVersion.incrementalVersion}</argument>
+                                <argument>-d</argument><argument>stagingRoot=${staging.root}</argument>
+                                <argument>-d</argument><argument>stagingLib=${staging.lib}</argument>
+                                <argument>-o</argument><argument>${msi.file}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Attach the MSI produced by the wix execution above. Declared after it so the
+                 attachment happens once the file exists: `target` is not cleaned between runs,
+                 and attaching first would silently pick up a stale MSI if the wix build were
+                 skipped. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-msi</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact><file>${msi.file}</file><type>msi</type></artifact>
+                            </artifacts>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
+      </profile>
+    </profiles>
 </project>

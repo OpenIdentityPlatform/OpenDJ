@@ -259,25 +259,26 @@ $
 ====
 Before starting this procedure, follow the steps in xref:#before-you-upgrade["Before You Upgrade"]. Installing the newer `.msi` performs a major upgrade that replaces the installed program files, so make a full file-system backup of the current installation first.
 
-. Stop the current OpenDJ server.
-
-. If OpenDJ is registered as a Windows service, disable the service:
+. Stop the current OpenDJ server; if it runs as a Windows service, stop the service with `net stop "OpenDJ Server"` from an elevated prompt and let the command finish. The installer also tries to stop it, but only succeeds when it is itself running elevated: started by double-click, it cannot, and refuses the upgrade with Windows Installer error 1722 naming the `CheckServiceStopped` action rather than replacing the files under a running server. It refuses in the same way while the service is still starting, and gives a stop that is already under way 90 seconds to complete.
 +
-
-[source, console]
-----
-C:\path\to\opendj\bat> windows-service.bat --disableService
-----
+A server started with `start-ds.bat` rather than as a service is refused in the same way, by the `CheckServerNotRunning` action: it holds the same program files, and the installer will not replace them underneath it. Stop it with `stop-ds.bat` and let the command finish. The check allows 60 seconds for a stop that is already under way, because a stop command returning is not the same as the server having released its files.
 
 . Back up the file-system directory where OpenDJ is installed.
 
-. Install the newer package (GUI or silent), using the same installation directory as the current server. Your configured instance data (`config`, `db`, `logs`) is kept; only the program files are replaced:
+. Install the newer package (GUI or silent). The installer detects the existing installation — the location recorded in the registry by a previous x64 package, or the default directory of the older 32-bit package (`C:\Program Files (x86)\OpenDJ`) — and installs into the same directory, so your configured instance data (`config`, `db`, `logs`) is kept and only the program files are replaced. If the older server was installed in a custom directory the installer cannot detect, select that directory in the wizard or pass it explicitly on the command line: rather than installing a fresh server into the default directory while emptying the old one, the installer refuses to continue whenever nothing has recorded where the old server lives and the directory it is about to install into holds no OpenDJ server -- which also catches a mistyped directory name. That refusal also covers an old server that really is installed in `C:\Program Files\OpenDJ`, because the 32-bit packages recorded no location at all — and that one case the wizard cannot resolve: choosing the default directory in the wizard leaves the installer with the same values it would have had if you had chosen nothing, so pass `OPENDJ` on the command line instead — it can be given with or without `/quiet`, so a wizard installation takes it just as a silent one does. The installer further refuses to install into a directory other than the one it detected, unless the directory you name holds an OpenDJ server itself (see the note below): it replaces an installation in place and cannot move one, so uninstall the existing server first if you want it somewhere else.
 +
 
 [source, console, subs="attributes"]
 ----
 C:\> msiexec /i opendj-{opendj-version}.msi /quiet OPENDJ="C:\path\to\opendj"
 ----
++
+[NOTE]
+======
+Pass `OPENDJ` explicitly whenever an unrelated OpenDJ directory tree — a Zip installation, a copy, a decommissioned instance — sits in `C:\Program Files (x86)\OpenDJ` while the server you are upgrading lives somewhere else and was installed by a package that recorded no location (5.1.x and earlier). Detection can only ask whether that directory holds a server, not which server, so left to itself it adopts the stray tree: the upgrade then replaces the files there while removing the installation you meant to upgrade. Naming the directory settles it — the installer takes an explicitly named directory that holds a server as the one to upgrade, and only refuses the name if that directory holds no server, which is what relocating an installation looks like.
+======
++
+A registered Windows service survives the upgrade untouched: it names the service wrapper inside the installation directory, which the upgrade replaces in place, so the registration — including a dedicated service account, recovery actions or dependencies you configured — keeps working against the refreshed server. No `--disableService`/`--enableService` cycle is needed.
 
 . Run the `upgrade` command, described in xref:../reference/admin-tools-ref.adoc#upgrade-1[upgrade(1)] in the __Reference__, to bring the configuration and application data up to date with the new binary and script files:
 +
@@ -287,14 +288,12 @@ C:\> msiexec /i opendj-{opendj-version}.msi /quiet OPENDJ="C:\path\to\opendj"
 C:\path\to\opendj> upgrade.bat --no-prompt --acceptLicense
 ----
 
-. Start the upgraded OpenDJ server.
-
-. If you disabled the Windows service, enable it again:
+. Start the upgraded OpenDJ server; if it is registered as a Windows service, start the service again:
 +
 
 [source, console]
 ----
-C:\path\to\opendj\bat> windows-service.bat --enableService
+C:\> net start "OpenDJ Server"
 ----
 
 ====

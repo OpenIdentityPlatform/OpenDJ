@@ -26,36 +26,155 @@ concurrency:
 
 # contents: write is required to push the generated documentation to the project wiki
 # with github.token. The doc site push uses a separate PAT, not this token.
+# actions: read is required to download the MSI artifact from the triggering Build run
+# (a permissions block sets every unlisted scope to none).
 permissions:
   contents: write
+  actions: read
 
 jobs:
   package-deploy-maven:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event=='push'}}
+    # head_repository states the trust boundary instead of leaving it to be re-derived.
+    # The checkout below takes its ref from the triggering run, and the branches filter
+    # above matches that run's head branch NAME - which a fork can also call master. What
+    # actually keeps the ref trusted is event=='push': a Build run for a pull request
+    # carries event 'pull_request', and a push to a fork runs the fork's own workflows,
+    # never ours. The repository check makes that explicit for the next reader, and for
+    # the next person tempted to relax the event condition.
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository }}
     runs-on: 'ubuntu-latest'
     steps:
       - name: Print github context
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: echo "$GITHUB_CONTEXT"
-      - name: Install wine+rpm for distribution
+      - name: Install rpm for distribution
         if: runner.os == 'Linux'
         shell: bash
         run:   |
-          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
-          sudo dpkg --add-architecture i386
-          sudo mkdir -pm755 /etc/apt/keyrings && sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
-          sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/$(lsb_release -c -s)/winehq-$(lsb_release -c -s).sources
           sudo apt-get update
-          sudo apt install --install-recommends winehq-stable || sudo apt install --install-recommends winehq-staging
-          wine --version
-          version="9.4.0"; sudo wget "https://dl.winehq.org/wine/wine-mono/$version/wine-mono-$version-x86.msi" -O /tmp/wine-mono.msi
-          wine msiexec /i /tmp/wine-mono.msi
+          sudo apt-get install -y rpm
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: recursive
           ref: ${{ github.event.workflow_run.head_branch }}
+      # The committed opendj-server-legacy/lib/*.exe are what every Linux-built server zip
+      # ships - the snapshots this job publishes, and later the tagged releases and their
+      # Maven Central artifacts - while only a Windows job can rebuild them. Nothing used
+      # to make the two meet, so a native source change that was never re-committed as a
+      # refreshed binary shipped the old wrapper while CI stayed green (master carried such
+      # a gap for weeks). The triggering Build run compiled them from source already, so
+      # take its binaries and commit them here rather than rebuild.
+      #
+      # Here rather than in build.yml: this workflow already holds contents: write for the
+      # wiki push, so build-maven - which runs the whole Maven plugin tree - stays
+      # read-only, and it only runs at all once the Build succeeded on a push to a release
+      # branch. The cost is latency: the refresh lands after the full matrix, not minutes
+      # into it. Committing before the Maven steps below also means the snapshot zip this
+      # job publishes carries the fresh launchers.
+      #
+      # This only works because the Makefile passes /Brepro to both cl and link: the output
+      # is a function of the sources, not of the build time. Without it every run would
+      # produce different bytes and this would commit on every push. An MSVC toolchain bump
+      # on the runner image does change them, and that refresh commit is correct - the
+      # committed binary then matches what CI verifies. Pushes made with GITHUB_TOKEN do
+      # not start new workflow runs, so this cannot loop; a PAT would break that.
+      - name: Download the launchers built by the triggering Build run
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-exe-11
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/windows-exe
+      - name: Commit the rebuilt launchers
+        shell: bash
+        env:
+          # NOT github.ref: on a workflow_run event that is the default branch, not the
+          # branch the triggering run was for.
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          BUILT: ${{ runner.temp }}/windows-exe
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -e
+          if ! ls "$BUILT"/*.exe >/dev/null 2>&1; then
+            echo "::warning title=No launcher binaries from the Build run::windows-exe-11 could not be downloaded, leaving opendj-server-legacy/lib/*.exe as committed."
+            exit 0
+          fi
+          cp "$BUILT"/*.exe opendj-server-legacy/lib/
+          # status --porcelain, not diff: it reports a brand-new launcher that was never
+          # git-added just as well as a modified one.
+          if [ -z "$(git status --porcelain -- opendj-server-legacy/lib)" ]; then
+            echo "Committed launchers already match the sources."
+            exit 0
+          fi
+          git status --porcelain -- opendj-server-legacy/lib
+          git config user.name "Open Identity Platform Community"
+          git config user.email "open-identity-platform-opendj@googlegroups.com"
+          git add -- opendj-server-legacy/lib
+          git commit --quiet \
+            -m "Refresh the Windows native launchers" \
+            -m "Rebuilt from opendj-server-legacy/src/build-tools/windows for ${HEAD_SHA} by the Build workflow (run ${RUN_ID})."
+          # The checkout is of the branch, which may have moved on since the Build run, and
+          # it can move again while we push: rebase onto the current tip and retry. An
+          # identical refresh already there leaves an empty commit that rebase drops, and
+          # the push then has nothing to send.
+          #
+          # This step runs before the Maven deploy, the package uploads and the wiki push,
+          # so it must not be the thing that costs them: a refresh that cannot be landed
+          # warns and lets the job carry on. The next push to this branch retries it, and
+          # nothing downstream depends on the committed binaries being current - the Build
+          # run that produced them compiled its own.
+          #
+          # The Maven steps below must build the tree the triggering Build validated. The
+          # rebase moves the worktree onto the branch tip, which can carry commits that
+          # Build run never saw, so remember the refresh as it was made - the tree as
+          # checked out, plus the launchers - and come back to it however this step ends.
+          # (The checkout above takes the branch by NAME, not the triggering run's SHA, so
+          # that tree is the tip as of a moment ago rather than HEAD_SHA itself; what this
+          # keeps is the rebase from widening the gap.)
+          REFRESHED=$(git rev-parse HEAD)
+          # A trap rather than a line on the push-success path: all four ways out of the
+          # loop below - fetch failure, rebase conflict, three lost races, and the push
+          # that lands - can be taken after a rebase has already moved the worktree, and
+          # 'git rebase --abort' returns to the state that rebase started from, which on
+          # attempt 2 or 3 is the result of the previous attempt rather than $REFRESHED.
+          #
+          # --force matters: when the abort above fails - it is masked by '|| true' - a
+          # plain 'checkout --detach' stops on "you need to resolve your current index
+          # first" and leaves the worktree mid-rebase for the Maven steps.
+          trap 'git checkout --quiet --force --detach "$REFRESHED" || echo "::warning title=Could not restore the validated tree::the build continues on the current $BRANCH tip."' EXIT
+          for attempt in 1 2 3; do
+            # Guarded like everything else in this block: bare, it is the one command left
+            # that could still take the job down with it. The step runs under set -e with
+            # no continue-on-error, so a transient fetch failure would skip the Maven
+            # deploy, all nine artifact uploads, the MSI attachment and both documentation
+            # pushes over a refresh that is allowed to fail.
+            if ! git fetch --quiet origin "$BRANCH"; then
+              echo "::warning title=Could not refresh the launcher binaries::$BRANCH could not be fetched. Refresh opendj-server-legacy/lib/*.exe from the windows-exe-11 artifact of Build run ${RUN_ID} and commit them."
+              exit 0
+            fi
+            if ! git rebase --quiet FETCH_HEAD; then
+              git rebase --abort || true
+              echo "::warning title=Could not refresh the launcher binaries::$BRANCH moved on and the rebuilt launchers conflict with it. Refresh opendj-server-legacy/lib/*.exe from the windows-exe-11 artifact of Build run ${RUN_ID} and commit them."
+              exit 0
+            fi
+            if git push --quiet origin "HEAD:refs/heads/$BRANCH"; then
+              # A refresh that already landed leaves the rebase with nothing to replay and
+              # the push with nothing to send, both of them silently successful: report
+              # what happened rather than claiming a push that was a no-op.
+              if [ "$(git rev-parse HEAD)" = "$(git rev-parse FETCH_HEAD)" ]; then
+                echo "The launchers committed on $BRANCH already match the rebuilt ones."
+              else
+                echo "Refreshed launchers pushed to $BRANCH."
+              fi
+              exit 0
+            fi
+            echo "$BRANCH moved while pushing - retrying ($attempt/3)."
+          done
+          echo "::warning title=Could not refresh the launcher binaries::$BRANCH kept moving under this job. Refresh opendj-server-legacy/lib/*.exe from the windows-exe-11 artifact of Build run ${RUN_ID} and commit them."
       - name: Set up Java for publishing to Maven Central Repository OSS
         uses: actions/setup-java@v5
         with:
@@ -114,11 +233,25 @@ jobs:
         with:
          name: OpenDJ RPM Package
          path: opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
+      # The MSI can only be built on Windows; reuse the one already built by the triggering
+      # Build run (windows-latest-11 artifact) instead of rebuilding it here.
+      - name: Download Windows build artifact (contains the MSI)
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-latest-11
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: windows-build
       - name: Upload artifacts OpenDJ MSI Package
+        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
          name: OpenDJ MSI Package
-         path: opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
+         path: windows-build/opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
+         # Make a silently-missing MSI visible: the step fails (job continues via
+         # continue-on-error) instead of warning and publishing nothing.
+         if-no-files-found: error
       - name: Upload artifacts OpenDJ Docker Packages
         uses: actions/upload-artifact@v7
         with:
@@ -193,3 +326,4 @@ jobs:
             git commit -a -m "upload ${{github.event.repository.name}} docs after deploy ${{ github.sha }}"
             git push --force https://github.com/OpenIdentityPlatform/doc.openidentityplatform.org.git
           fi
+

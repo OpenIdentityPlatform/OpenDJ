@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -79,11 +80,24 @@
                 <os><family>windows</family></os>
             </activation>
             <modules>
-            	<module>opendj-msi</module>
+                <module>opendj-msi</module>
     	 		<module>opendj-docker</module>
             </modules>
         </profile>
     </profiles>
+    <!-- opendj-msi stays in every module list, including the ones that cannot build an MSI:
+         maven-release-plugin only rewrites the versions of ${reactorProjects}, and release.yml
+         runs release:prepare on ubuntu-latest with no -P. Leaving the module out of the Linux
+         reactor - as an earlier revision of this PR did, gating it on Windows plus wix.exe -
+         freezes opendj-msi/pom.xml and opendj-msi-standard/pom.xml at the parent version they
+         happen to carry. Maven does not fail on that skew; it resolves the parent from the
+         repository instead, so the MSI module keeps building as the old version: it would
+         unpack the previous line's published snapshot instead of the server zip built beside
+         it, name the package after that version and hand parse-version the wrong numbers for
+         the ProductVersion the upgrade guards key on. What actually cannot run outside Windows
+         is the wix invocation, so that is what the toolchain profile in opendj-msi-standard
+         gates - the module itself is a no-op pom everywhere else. -->
+
 
     <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <pluginManagement>
