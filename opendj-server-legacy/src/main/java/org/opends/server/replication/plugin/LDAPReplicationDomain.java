@@ -1975,8 +1975,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   @Override
   public void publishReplicaOfflineMsg()
   {
-    pendingChanges.putReplicaOfflineMsg();
-    dsrsShutdownSync.replicaOfflineMsgSent(getBaseDN());
+    final CSN offlineCSN = pendingChanges.putReplicaOfflineMsg();
+    dsrsShutdownSync.replicaOfflineMsgSent(getBaseDN(), offlineCSN);
   }
 
   /**
