@@ -32,6 +32,7 @@ import static org.testng.Assert.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -56,6 +57,10 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.ErrorLogPublisher;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
@@ -825,6 +830,73 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected static ReplSessionSecurity getReplSessionSecurity() throws ConfigException
   {
     return new ReplSessionSecurity(null, null, null, true);
+  }
+
+  /**
+   * Runs the provided action and returns the records the error log received while it ran.
+   * <p>
+   * A publisher of its own is registered for the duration rather than reading the one the
+   * test harness installs, whose contents span the whole test JVM.
+   * <p>
+   * It publishes every severity, so that a record a throttle kept out of the warnings is
+   * captured too. That is server wide while the action runs, so the records of other
+   * threads are captured as well and a caller has to pick out its own.
+   *
+   * @param action
+   *          The action to run.
+   * @return The error log records written while the action ran, in order.
+   * @throws Exception
+   *           Whatever the action throws.
+   */
+  // The publisher is built raw and handed to a parameterized addLogPublisher: the
+  // conversion is unchecked, and it is the one the test harness makes as well.
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  protected static List<String> errorLogRecordsOf(Callable<Void> action) throws Exception
+  {
+    final List<String> records = Collections.synchronizedList(new ArrayList<String>());
+    final ErrorLogPublisher capture =
+        TextErrorLogPublisher.getToolStartupTextErrorPublisher(new TextWriter()
+        {
+          @Override
+          public void writeRecord(String record)
+          {
+            records.add(record);
+          }
+
+          @Override
+          public void flush()
+          {
+            // Nothing is buffered.
+          }
+
+          @Override
+          public void shutdown()
+          {
+            // Nothing is buffered.
+          }
+
+          @Override
+          public long getBytesWritten()
+          {
+            return 0;
+          }
+        });
+    ErrorLogger.getInstance().addLogPublisher(capture);
+    try
+    {
+      action.call();
+    }
+    finally
+    {
+      ErrorLogger.getInstance().removeLogPublisher(capture);
+    }
+    // Copied under the monitor: the publishers are iterated from a snapshot, so a thread
+    // which is already inside it can still write a record after this one was removed, and
+    // the caller must not have to synchronize to read what it got.
+    synchronized (records)
+    {
+      return new ArrayList<>(records);
+    }
   }
 
   protected void executeTask(Entry taskEntry, long maxWaitTimeInMillis) throws Exception

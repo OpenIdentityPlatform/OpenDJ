@@ -781,10 +781,23 @@ That said, you may encounter errors. Replication uses its own error log file, `l
  are misconfigured: check that the certificate nickname configured in the
  crypto manager exists in the ads-truststore, and that every server of the
  topology trusts the certificates of the other servers. At most one such
- failure is logged as a warning every 5 minutes; the others go to the debug
- log, which is disabled by default (0 since the previous warning).
+ failure is logged as a warning every 5 minutes; the others are recorded with
+ the information severity, which the error log does not publish by default
+ (0 since the previous warning).
  The error was: Remote host closed connection during handshake
 ----
+A connection can also fail before it becomes a replication session for a reason which is not a failed handshake, and further messages report that:
+
+* `Replication server RS(1) accepted a connection from ... but could not start a replication session on it, and closed it` reports an inbound connection dropped for such a reason. An `ads-truststore` which was deleted, truncated, or made unreadable after the server started fails every inbound connection this way: the file is read again for each of them, so a server which is running is not a server whose trust store is still there.
+
+* `Replication server RS(1) could not accept a connection on ...` reports a failure of the listen socket itself, the process running out of file descriptors being the usual one. When such a failure repeats at once, the listen thread waits 100 ms before accepting again, so that it does not spin on it.
+
+* `Replication server RS(1) could not connect to replication server ... for domain ...` reports the outgoing half, which used to be visible only in the log of the peer, that is on the machine whose configuration is right. It is logged once for each outage, and `Replication server RS(1) connected to replication server ...` reports the end of the outage, so a replication server stopped for maintenance costs two lines rather than one every few seconds.
+
+* On the directory server side, the reason each replication server could not be used is now logged for every one of them, before the `was unable to connect to any replication servers for domain` summary which names none: `Please check that there is a replication server listening at this address` for a refused connection, `timed out while connecting to replication server` for an unanswered one, and `encountered an unexpected error while connecting to replication server` followed by the cause for the rest, a rejected certificate included. Only the summary used to be logged when no replication server answered at all.
+
+Every connection reaching the replication port goes through the first two of these, and through the failed handshake above, so each of the three is logged as a warning at most once every five minutes, and each warning reports how many failures it stands for. The failures they suppress are still recorded, with the `information` severity, which the error log does not publish by default: add `information` to the `default-severity` property of the error log publisher to see them. They do not go to the debug log.
+
 OpenDJ maintains historical information about changes in order to bring replicas up to date, and to resolve replication conflicts. To prevent historical information from growing without limit, OpenDJ purges historical information after a configurable delay (`replication-purge-delay`, default: 3 days). A replica can become irrevocably out of sync if you restore it from a backup archive older than the purge delay, or if you stop it for longer than the purge delay. If this happens to you, disable the replica, and then reinitialize it from a recent backup or from a server that is up to date.
 
 

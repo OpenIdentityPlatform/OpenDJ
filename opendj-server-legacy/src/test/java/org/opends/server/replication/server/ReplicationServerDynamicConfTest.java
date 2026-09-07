@@ -22,6 +22,7 @@ import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -34,6 +35,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -514,6 +517,114 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       ReplicationBroker broker = openReplicationSession(
           DN.valueOf(TEST_ROOT_DN_STRING), 1, 10, ports[1], 1000);
       assertTrue(broker.getCurrentSendWindow() != 0);
+    }
+    finally
+    {
+      remove(replicationServer);
+    }
+  }
+
+  /**
+   * Tests that the listen thread reports a failure of {@code accept()} and waits before
+   * accepting again when it keeps failing on a socket which stays open, instead of
+   * spinning on the failure in silence.
+   * <p>
+   * A process which ran out of file descriptors fails every {@code accept()} without ever
+   * closing the listen socket, so the loop comes straight back to it. The wait is what
+   * bounds that spin, and nothing but the time the loop takes tells a thread which waits
+   * from one which does not.
+   */
+  @Test
+  public void listenThreadReportsAcceptFailuresAndWaitsBeforeAcceptingAgain() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    ReplicationServer replicationServer = null;
+    try
+    {
+      final int[] ports = TestCaseUtils.findFreePorts(1);
+      replicationServer = new ReplicationServer(new ReplServerFakeConfiguration(
+          ports[0], "listenThreadWaitsBeforeAcceptingAgainDb", 0, 1, 0, 0, null));
+      final ReplicationServer listeningServer = replicationServer;
+
+      final int failures = 3;
+      final String acceptFailure = "accept() fails the way it fails without a file descriptor left";
+      final AtomicInteger accepts = new AtomicInteger();
+      // When each accept() was entered: the wait is between two of them, and measuring
+      // the whole loop instead would put the cost of everything else in the same budget.
+      final long[] acceptNanos = new long[failures];
+      /*
+       * A socket which fails every accept() and closes itself once it has failed enough
+       * of them: the listen loop ends on a closed socket, which is what returns
+       * runListen(). It closes itself for real rather than overriding isClosed(), which
+       * ServerSocket.close() consults before closing anything up to Java 17: the port and
+       * its file descriptor would be held for the rest of the test JVM.
+       */
+      final ServerSocket failingSocket = new ServerSocket(0)
+      {
+        @Override
+        public Socket accept() throws IOException
+        {
+          final int attempt = accepts.incrementAndGet();
+          acceptNanos[attempt - 1] = System.nanoTime();
+          if (attempt >= failures)
+          {
+            super.close();
+          }
+          throw new IOException(acceptFailure);
+        }
+      };
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        try
+        {
+          listeningServer.runListen(failingSocket);
+        }
+        finally
+        {
+          close(failingSocket);
+        }
+        return null;
+      });
+
+      assertTrue(failingSocket.isClosed(), "the socket the listen loop ended on should be closed");
+      assertEquals(accepts.get(), failures, "the listen loop should have ended on the closed socket");
+      // Of the three failures, only the second one is waited on: the first of a row is
+      // not, so that an isolated failure costs the connections behind it nothing, and the
+      // third closes the socket, which ends the loop before it would wait.
+      // Compared in nanoseconds: converting to milliseconds first floors the measurement,
+      // so a wait of exactly the backoff would read as one millisecond short of it.
+      final long waitedNanos = acceptNanos[2] - acceptNanos[1];
+      assertTrue(waitedNanos >= TimeUnit.MILLISECONDS.toNanos(ReplicationServer.ACCEPT_FAILURE_BACKOFF_MS),
+          "the listen thread should have waited " + ReplicationServer.ACCEPT_FAILURE_BACKOFF_MS
+              + " ms after the failure repeated before accepting again, but only "
+              + TimeUnit.NANOSECONDS.toMicros(waitedNanos)
+              + " microseconds passed between the second attempt and the third");
+
+      int warnings = 0;
+      int suppressed = 0;
+      for (String record : records)
+      {
+        if (record.contains(acceptFailure))
+        {
+          // A suppressed failure is still recorded, at a severity which the error log
+          // does not publish by default. This capture publishes every severity.
+          if (record.contains("severity=WARNING"))
+          {
+            warnings++;
+          }
+          else
+          {
+            suppressed++;
+          }
+        }
+      }
+      // The first failure is warned about, the second is suppressed by the throttle, and
+      // the third one, on the closed socket, is how the loop is told to end.
+      assertEquals(warnings, 1, "the listen thread should have warned about the first failure only,"
+          + " but the error log holds " + warnings + " warnings about it: " + records);
+      assertEquals(suppressed, 1, "the failure which follows should have been suppressed and kept,"
+          + " but the error log holds " + suppressed + " suppressed records about it: " + records);
     }
     finally
     {

@@ -37,12 +37,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -81,6 +85,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.util.FailureLogThrottle;
 
 /**
  * ReplicationServer Listener. This singleton is the main object of the
@@ -134,6 +139,39 @@ public class ReplicationServer
   private final ReplSessionSecurity replSessionSecurity;
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /**
+   * Minimum interval, in minutes, between two warnings about the same failure of the
+   * listen thread. Every connection reaching the replication port goes through that
+   * thread, so the rate has to be bounded. Each message reports the interval it was
+   * logged under, so this one is free to differ from the one a failed handshake is
+   * reported with, which happens to be the same five minutes.
+   */
+  private static final long FAILURE_WARN_INTERVAL_MINUTES = 5;
+
+  /**
+   * Time, in milliseconds, the listen thread waits before accepting again after
+   * {@link ServerSocket#accept()} failed.
+   * <p>
+   * Package private for testing: a test which makes {@code accept()} fail asserts that
+   * the thread waited instead of spinning, so the wait has to be a value it can name.
+   */
+  static final long ACCEPT_FAILURE_BACKOFF_MS = 100;
+
+  /** {@link #ACCEPT_FAILURE_BACKOFF_MS}, which is also how close two failures have to be to count as repeating. */
+  private static final long ACCEPT_FAILURE_BACKOFF_NANOS =
+      TimeUnit.MILLISECONDS.toNanos(ACCEPT_FAILURE_BACKOFF_MS);
+
+  /** Bounds how often a failure of {@link ServerSocket#accept()} is warned about. */
+  private final FailureLogThrottle acceptFailures =
+      new FailureLogThrottle(FAILURE_WARN_INTERVAL_MINUTES, TimeUnit.MINUTES);
+
+  /** Bounds how often an accepted connection which cannot be turned into a session is warned about. */
+  private final FailureLogThrottle sessionSetupFailures =
+      new FailureLogThrottle(FAILURE_WARN_INTERVAL_MINUTES, TimeUnit.MINUTES);
+
+  /** Reports a peer this replication server cannot connect to once per outage. */
+  private final ConnectFailureReporter connectFailures = new ConnectFailureReporter();
 
   /** To know whether a domain is enabled for the external changelog. */
   private final ECLEnabledDomainPredicate domainPredicate;
@@ -288,18 +326,42 @@ public class ReplicationServer
         socket.getInetAddress().getHostAddress(),
         socket.getLocalPort());
 
+    /*
+     * When accept() last failed on this socket, confined to this thread: a listen port
+     * change runs a second listen thread, and each of them times the socket it accepts on.
+     *
+     * A failure which follows one closely is what the wait below is for, rather than a run
+     * of consecutive failures: a socket which frees a descriptor now and then lets an
+     * accept through between two failures, and counting only consecutive ones would let
+     * that alternation spin. It starts a whole interval in the past, so an isolated
+     * failure does not wait.
+     */
+    long lastAcceptFailureNanos = System.nanoTime() - ACCEPT_FAILURE_BACKOFF_NANOS;
+
     while (!shutdown.get() && !socket.isClosed())
     {
       // Wait on the replicationServer port.
       // Read incoming messages and create LDAP or ReplicationServer listener
       // and Publisher.
+      Session session = null;
       try
       {
-        Session session;
-        Socket newSocket = null;
+        final Socket newSocket;
         try
         {
           newSocket = socket.accept();
+        }
+        catch (Exception e)
+        {
+          final long failedAtNanos = System.nanoTime();
+          final boolean repeated = failedAtNanos - lastAcceptFailureNanos < ACCEPT_FAILURE_BACKOFF_NANOS;
+          lastAcceptFailureNanos = failedAtNanos;
+          handleAcceptFailure(socket, e, repeated);
+          continue;
+        }
+
+        try
+        {
           newSocket.setTcpNoDelay(true);
           newSocket.setKeepAlive(true);
           int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
@@ -311,12 +373,13 @@ public class ReplicationServer
         }
         catch (Exception e)
         {
-          // If problems happen during the SSL handshake, it is necessary
-          // to close the socket to free the associated resources.
-          if (newSocket != null)
-          {
-            newSocket.close();
-          }
+          logSessionSetupFailure(newSocket, e);
+          // createServerSession() closes the socket itself when it does not return a
+          // session, so this closes the one whose options could not be set, and closes a
+          // second time, harmlessly, the one it already released. Through the helper: a
+          // close which throws here would escape this catch into the one of the loop,
+          // which reports it as a failure to listen, without a throttle.
+          close(newSocket);
           continue;
         }
 
@@ -349,6 +412,16 @@ public class ReplicationServer
       }
       catch (Exception e)
       {
+        /*
+         * A session which reaches here is owned by nothing else: both handlers started
+         * above abort a handshake they cannot complete themselves, closing the session
+         * and returning, so what lands here is the session of a peer which failed after
+         * its handshake -- receive() on a peer which was killed, or which stopped
+         * answering past the connection timeout. Leaving it open leaked the socket and
+         * its file descriptor for the life of the process, one per such peer, towards the
+         * very exhaustion the accept loop above now has to survive.
+         */
+        close(session);
         // The socket has probably been closed as part of the
         // shutdown or changing the port number process.
         // Just log debug information and loop.
@@ -359,6 +432,114 @@ public class ReplicationServer
           logger.error(ERR_EXCEPTION_LISTENING, e.getLocalizedMessage());
         }
       }
+    }
+  }
+
+  /**
+   * Reports a failure of {@link ServerSocket#accept()} and, when it is not the first one
+   * in a row, waits before accepting again.
+   * <p>
+   * The listen socket stays open across such a failure, so the loop would come straight
+   * back to {@code accept()} and, when the cause is the process running out of file
+   * descriptors, spin on it without ever logging anything. The wait is what bounds that
+   * spin; the throttle is what bounds the log.
+   * <p>
+   * Only a failure which repeats is waited on: a connection reset between the handshake
+   * and {@code accept()} fails it once, and making the listen thread pause for a
+   * connection nobody is waiting for any more would slow down the ones which follow it.
+   *
+   * @param socket
+   *          The socket connections are accepted on.
+   * @param e
+   *          The failure.
+   * @param repeated
+   *          Whether {@code accept()} already failed on that socket less than
+   *          {@link #ACCEPT_FAILURE_BACKOFF_MS} ago.
+   */
+  private void handleAcceptFailure(final ServerSocket socket, final Exception e, final boolean repeated)
+  {
+    if (shutdown.get() || socket.isClosed())
+    {
+      // The socket was closed to stop this thread or to change the listen port: the loop
+      // is about to end, and this failure is how it is told to.
+      logger.traceException(e);
+      return;
+    }
+
+    logThrottledFailure(acceptFailures, WARN_REPLICATION_SERVER_ACCEPT_ERROR,
+        socket.getLocalSocketAddress(), e);
+    if (repeated)
+    {
+      // The wait is not interruptible on purpose: the flag is left alone, as restoring it
+      // would make every wait which follows return at once and bring the spin back.
+      // Nothing is lost by that -- the only interrupt the listen thread gets, from
+      // abortInitialization(), comes after the shutdown flag is set and the socket
+      // closed, which is what ends this loop.
+      sleep(ACCEPT_FAILURE_BACKOFF_MS);
+    }
+  }
+
+  /**
+   * Reports a connection which was accepted but on which no replication session could be
+   * started, and which is therefore about to be closed.
+   * <p>
+   * A failed SSL handshake is reported by {@link ReplSessionSecurity#createServerSession}
+   * itself, so what reaches here is everything else: a trust store which cannot be read,
+   * which makes every inbound connection fail this way, and a peer which stops
+   * responding during the handshake. Every connection reaching the replication port goes
+   * through this path, so the log has to be throttled the way the handshake failure next
+   * door is.
+   *
+   * @param socket
+   *          The accepted socket, which {@code createServerSession} has usually closed
+   *          already, in its own {@code finally}: a closed socket still names the peer it
+   *          was connected to, which is what this reads from it.
+   * @param e
+   *          The failure.
+   */
+  private void logSessionSetupFailure(final Socket socket, final Exception e)
+  {
+    logThrottledFailure(sessionSetupFailures, WARN_REPLICATION_SERVER_SESSION_SETUP_ERROR,
+        socket.getRemoteSocketAddress(), e);
+  }
+
+  /**
+   * Logs a failure of the listen thread as a warning when the provided throttle lets it
+   * through, reporting how many failures that line stands for.
+   * <p>
+   * A failure the throttle suppresses is still recorded, with the information severity:
+   * {@code logger.debug} of a localized message publishes to the error log, which does
+   * not publish that severity by default, and not to the debug log.
+   *
+   * @param throttle
+   *          The throttle bounding how often this failure is warned about.
+   * @param message
+   *          The message reporting it, which takes the server id, the address, the cause,
+   *          the interval and the number of failures suppressed since the previous warning.
+   * @param address
+   *          The address the failure happened on.
+   * @param e
+   *          The failure.
+   */
+  private void logThrottledFailure(final FailureLogThrottle throttle,
+      final LocalizableMessageDescriptor.Arg5<Number, Object, Object, Number, Number> message,
+      final Object address, final Exception e)
+  {
+    // The stack trace goes to the trace log, which formats it only when it is enabled.
+    logger.traceException(e);
+
+    final long recorded = throttle.record(System.nanoTime());
+    // Not a stack trace: the arguments of a message are built whether or not the record
+    // they go into is published, and this one is written in a state the server has to
+    // survive.
+    final LocalizableMessage cause = getExceptionMessage(e);
+    if (recorded >= 0)
+    {
+      logger.warn(message, getServerId(), address, cause, FAILURE_WARN_INTERVAL_MINUTES, recorded);
+    }
+    else
+    {
+      logger.debug(message, getServerId(), address, cause, FAILURE_WARN_INTERVAL_MINUTES, -recorded - 1);
     }
   }
 
@@ -376,8 +557,11 @@ public class ReplicationServer
       while (!shutdown.get())
       {
         HostPort localAddress = HostPort.localAddress(getReplicationPort());
+        final Set<HostPort> configuredRSAddresses = getConfiguredRSAddresses();
+        final Set<DN> domainBaseDNs = new HashSet<>();
         for (ReplicationServerDomain domain : getReplicationServerDomains())
         {
+          domainBaseDNs.add(domain.getBaseDN());
           /*
            * If there are N RSs configured then we will usually be connected to
            * N-1 of them, since one of them is usually this RS. However, we
@@ -386,11 +570,16 @@ public class ReplicationServer
            */
           final Set<HostPort> connectedRSAddresses =
               getConnectedRSAddresses(domain);
-          for (HostPort rsAddress : getConfiguredRSAddresses())
+          for (HostPort rsAddress : configuredRSAddresses)
           {
             if (connectedRSAddresses.contains(rsAddress))
             {
-              continue; // Skip: already connected.
+              // Skip: already connected. The connection may be the one that peer made to
+              // this server, which connect() never sees, so this is where a failure
+              // reported for a peer which came back on its own is closed: leaving it
+              // recorded would silence the next outage of that peer.
+              reportConnectionRestored(rsAddress, domain.getBaseDN());
+              continue;
             }
 
             // FIXME: this will need changing if we ever support listening on
@@ -412,6 +601,12 @@ public class ReplicationServer
             }
           }
         }
+
+        // A peer or a domain which is no longer configured is never connected to again,
+        // so nothing would ever clear a failure recorded for it. Forget those: a peer
+        // taken out of the configuration while it is down, and put back while it still
+        // is, would otherwise have its first failure silenced.
+        connectFailures.retainAll(configuredRSAddresses, domainBaseDNs);
 
         // Notify any threads waiting with domain tickets after each iteration.
         synchronized (domainTicketLock)
@@ -495,11 +690,146 @@ public class ReplicationServer
     catch (Exception e)
     {
       logger.traceException(e);
+      if (connectFailures.recordFailure(remoteServerAddress, baseDN))
+      {
+        // The failure used to be traced and nothing else, so a replication server whose
+        // outgoing handshake failed logged nothing at all: the only log naming the problem
+        // was the one of the peer, which is the machine whose configuration is right.
+        logger.warn(WARN_REPLICATION_SERVER_CONNECT_ERROR, getServerId(), remoteServerAddress,
+            baseDN, getExceptionMessage(e));
+      }
       close(session);
       close(socket);
       return false;
     }
+    /*
+     * A returning connect() is not a connection: ReplicationServerHandler.connect() aborts
+     * a handshake it cannot complete -- a remote StopMsg, a simultaneous cross connect, an
+     * unexpected message -- by closing the session and returning, and it reports the ones
+     * worth reporting itself.
+     *
+     * So forget the recorded failure in any case, and report the recovery only once the
+     * handler is registered with the domain, which is what a started one does. Forgetting
+     * it unconditionally is the safe half of the trade: a record which nothing clears
+     * silences the next outage, while clearing one too early costs at most a second
+     * warning for the same outage. The registration is read by address, and resolving one
+     * costs a name lookup, so it is asked for only when there is a recovery to report.
+     */
+    if (connectFailures.recordSuccess(remoteServerAddress, baseDN)
+        && isConnectedToRS(remoteServerAddress, baseDN))
+    {
+      logger.info(NOTE_REPLICATION_SERVER_CONNECT_RESTORED, getServerId(), remoteServerAddress, baseDN);
+    }
     return true;
+  }
+
+  /** Returns whether a replication server handler for the provided peer and domain is registered. */
+  private boolean isConnectedToRS(final HostPort remoteServerAddress, final DN baseDN)
+  {
+    final ReplicationServerDomain domain = getReplicationServerDomain(baseDN);
+    return domain != null && getConnectedRSAddresses(domain).contains(remoteServerAddress);
+  }
+
+  /**
+   * Reports that this replication server is connected to a peer it had reported it could
+   * not connect to, and does nothing when it had reported nothing about that peer.
+   *
+   * @param remoteServerAddress
+   *          The address of the peer which is connected.
+   * @param baseDN
+   *          The base DN of the domain the connection is for.
+   */
+  private void reportConnectionRestored(final HostPort remoteServerAddress, final DN baseDN)
+  {
+    if (connectFailures.recordSuccess(remoteServerAddress, baseDN))
+    {
+      logger.info(NOTE_REPLICATION_SERVER_CONNECT_RESTORED, getServerId(), remoteServerAddress, baseDN);
+    }
+  }
+
+  /**
+   * Remembers which replication servers this replication server has already reported it
+   * cannot connect to, so that a peer which stays unreachable is reported once instead of
+   * on every attempt to reach it.
+   * <p>
+   * The connect thread retries a failed peer every few seconds, for as long as it is down,
+   * and a peer being down is a normal state: one stopped for maintenance would otherwise
+   * fill the error log for the duration. The failure is reported when it starts and, through
+   * {@link #recordSuccess}, when it ends, so that neither end of it has to be inferred from
+   * a silence.
+   * <p>
+   * Package private for testing.
+   */
+  static final class ConnectFailureReporter
+  {
+    /**
+     * The domains, by peer, whose failure was reported and whose recovery was not.
+     * <p>
+     * Keyed by {@link HostPort} rather than by its string form, which is the raw host
+     * while equality is on the normalized one: two spellings of the same peer would
+     * otherwise be two keys, and a failure recorded under one would never be cleared by
+     * the connection recorded under the other.
+     * <p>
+     * A HostPort holds the resolution its host had when it was built, and is documented as
+     * not meant to be cached. {@link #retainAll} is what makes holding one here bounded: it
+     * runs on every pass of the connect thread against freshly built addresses, so a key
+     * whose resolution has drifted is dropped within one pass, and the outage under it is
+     * reported a second time rather than never reported again.
+     * <p>
+     * The connect thread is the only one which connects to peers, but a configuration
+     * change replaces it, so this is a map two threads may hand over.
+     */
+    private final ConcurrentMap<HostPort, Set<DN>> reported = new ConcurrentHashMap<>();
+
+    /**
+     * Records a failure to connect to the provided peer for the provided domain.
+     *
+     * @param peer
+     *          The address of the replication server which could not be connected to.
+     * @param baseDN
+     *          The base DN of the domain the connection was for.
+     * @return {@code true} if this failure is to be reported, {@code false} if that peer is
+     *         already known to be unreachable for that domain.
+     */
+    boolean recordFailure(final HostPort peer, final DN baseDN)
+    {
+      return reported.computeIfAbsent(peer, unused -> ConcurrentHashMap.newKeySet()).add(baseDN);
+    }
+
+    /**
+     * Records a connection established to the provided peer for the provided domain.
+     *
+     * @param peer
+     *          The address of the replication server which was connected to.
+     * @param baseDN
+     *          The base DN of the domain the connection is for.
+     * @return {@code true} if this connection ends a failure which was reported and is
+     *         therefore to be reported as well, {@code false} if nothing was reported about
+     *         that peer.
+     */
+    boolean recordSuccess(final HostPort peer, final DN baseDN)
+    {
+      final Set<DN> domains = reported.get(peer);
+      return domains != null && domains.remove(baseDN);
+    }
+
+    /**
+     * Forgets what was recorded for the peers and the domains which are no longer
+     * configured, and which nothing can therefore report a recovery for.
+     *
+     * @param peers
+     *          The addresses of the replication servers which are configured.
+     * @param baseDNs
+     *          The base DNs of the domains which exist.
+     */
+    void retainAll(final Set<HostPort> peers, final Set<DN> baseDNs)
+    {
+      reported.keySet().retainAll(peers);
+      for (Set<DN> domains : reported.values())
+      {
+        domains.retainAll(baseDNs);
+      }
+    }
   }
 
   /**

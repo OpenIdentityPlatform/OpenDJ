@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
@@ -35,6 +34,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.CryptoManager;
+import org.opends.server.util.FailureLogThrottle;
 
 /**
  * This class represents the security configuration for replication protocol
@@ -63,16 +63,9 @@ public final class ReplSessionSecurity
   static final long HANDSHAKE_FAILURE_WARN_INTERVAL_NANOS =
       TimeUnit.MINUTES.toNanos(HANDSHAKE_FAILURE_WARN_INTERVAL_MINUTES);
 
-  /**
-   * Value of {@link System#nanoTime()} at which the last handshake failure was
-   * logged as a warning. It starts one interval in the past so that the first
-   * failure is warned about.
-   */
-  private final AtomicLong lastHandshakeFailureWarnNanos =
-      new AtomicLong(System.nanoTime() - HANDSHAKE_FAILURE_WARN_INTERVAL_NANOS);
-
-  /** Number of handshake failures logged at debug level since the last warning. */
-  private final AtomicLong suppressedHandshakeFailures = new AtomicLong();
+  /** Bounds how often a failed handshake is warned about. */
+  private final FailureLogThrottle handshakeFailures =
+      new FailureLogThrottle(HANDSHAKE_FAILURE_WARN_INTERVAL_MINUTES, TimeUnit.MINUTES);
 
   /**
    * Whether replication sessions use SSL encryption.
@@ -345,13 +338,7 @@ public final class ReplSessionSecurity
    */
   long recordHandshakeFailure(final long nowNanos)
   {
-    final long lastWarn = lastHandshakeFailureWarnNanos.get();
-    if (nowNanos - lastWarn >= HANDSHAKE_FAILURE_WARN_INTERVAL_NANOS
-        && lastHandshakeFailureWarnNanos.compareAndSet(lastWarn, nowNanos))
-    {
-      return suppressedHandshakeFailures.getAndSet(0);
-    }
-    return -suppressedHandshakeFailures.incrementAndGet() - 1;
+    return handshakeFailures.record(nowNanos);
   }
 
   /**

@@ -1172,16 +1172,40 @@ public class ReplicationBroker
         close(socket);
       }
 
-      if (!hasConnected && errorMessage != null && !connectionError)
+      if (!hasConnected && errorMessage != null)
       {
-        // There was no server waiting on this host:port
-        // Log a notice and will try the next replicationServer in the list
-        if (keepSession) // Log error message only for final connection
+        if (!connectionError)
         {
-          // log the error message only once to avoid overflowing the error log
-          logger.error(errorMessage);
+          /*
+           * Report the cause for every replication server contacted, and not only for the
+           * elected one: none is ever elected when none of them answers, and this is then
+           * the only place naming why -- a refused connection, a rejected certificate, a
+           * wrong port -- next to the "unable to connect to any replication servers"
+           * summary which names none of them.
+           *
+           * connectionError is what bounds the volume, and it bounds it to one line per
+           * replication server and per attempt to connect this broker makes. It is set
+           * when an attempt reaches no replication server at all, and stays set until a
+           * session is established, so the 500 ms loop which retries a total outage
+           * reports its first pass only. It is not set while this broker is connected, so
+           * a replication server which stays unreachable while another one serves this
+           * broker is reported once for each reconnection, which is as often as the
+           * reconnection itself is reported.
+           *
+           * The elected server keeps the severity it was reported with; the ones which
+           * were only contacted are reported as the warnings their messages are named
+           * for, so that a broker which does find a server to work with does not raise an
+           * error over the one it did not need.
+           */
+          if (keepSession)
+          {
+            logger.error(errorMessage);
+          }
+          else
+          {
+            logger.warn(errorMessage);
+          }
         }
-
         logger.trace(errorMessage);
       }
     }
