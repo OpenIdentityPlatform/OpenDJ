@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -55,6 +56,12 @@ class PersistentServerState
    private final DN baseDN;
    private final int serverId;
    private final ServerState state;
+   /**
+    * Serialises the saves. Kept apart from the monitor of this object, which
+    * {@link #checkAndUpdateServerState()} holds, so that loading the state does
+    * not queue behind the backend write of a save.
+    */
+   private final Object saveLock = new Object();
 
    /**
     * The attribute name used to store the state in the backend.
@@ -104,12 +111,48 @@ class PersistentServerState
 
   /**
    * Save this object to persistent storage.
+   * <p>
+   * Saves exclude each other: two of them would otherwise each take their own
+   * snapshot, and the write of the older one landing last would leave a state
+   * on disk that is both stale and marked as saved.
    */
   public void save()
   {
-    if (!state.isSaved())
+    if (state.isSaved())
     {
-      state.setSaved(updateStateEntry());
+      // Nothing to write: stay out of the queue of whoever is writing.
+      return;
+    }
+
+    synchronized (saveLock)
+    {
+      if (!state.isSaved())
+      {
+        /*
+         * Mark the state as saved before the snapshot that goes to the backend
+         * is taken, so that an update landing while the write is in flight
+         * clears the flag again and gets written by the next save. Marking it
+         * afterwards would swallow such an update: it is not part of the write
+         * it raced with, yet the state would look saved. The persisted state
+         * would then stay stale until some later update happened to dirty it
+         * again - which, on a domain as quiet as cn=schema, may never happen.
+         */
+        state.setSaved(true);
+        boolean written = false;
+        try
+        {
+          written = updateStateEntry();
+        }
+        finally
+        {
+          if (!written)
+          {
+            // The write reported a failure, or blew up on its way to the
+            // backend: the state is not on disk, so leave it to the next save.
+            state.setSaved(false);
+          }
+        }
+      }
     }
   }
 
@@ -118,6 +161,10 @@ class PersistentServerState
    */
   public void loadState()
   {
+    // Whatever the state holds on the way in has, as far as this object knows,
+    // never been written: what follows only merges in what the backend holds.
+    final boolean hadCSNs = state.iterator().hasNext();
+
     // try to load the state from the base entry.
     SearchResultEntry stateEntry = searchBaseEntry();
     if (stateEntry == null)
@@ -141,6 +188,11 @@ class PersistentServerState
      * Inconsistencies may append after a crash.
      */
     checkAndUpdateServerState();
+
+    if (hadCSNs)
+    {
+      state.setSaved(false);
+    }
   }
 
   /**
@@ -262,9 +314,8 @@ class PersistentServerState
     op.setInternalOperation(true);
     op.setSynchronizationOperation(true);
     op.setDontSynchronize(true);
-    op.run();
 
-    final ResultCode resultCode = op.getResultCode();
+    final ResultCode resultCode = runModify(op);
     if (resultCode != ResultCode.SUCCESS
         && !(resultCode == ResultCode.NO_SUCH_OBJECT && serverStateEntryDN.equals(baseDN)))
     {
@@ -274,20 +325,36 @@ class PersistentServerState
   }
 
   /**
-   * Empty the ServerState.
-   * After this call the Server State will be in the same state
-   * as if it was just created.
+   * Runs the modify operation that writes the state to the backend.
+   * <p>
+   * Kept separate, and overridable, so that a test can reach the point where
+   * the snapshot has been taken but the write has not gone through yet: see
+   * {@code PersistentServerStateTest}. Do not inline it.
+   *
+   * @param op The modify operation carrying the state to be written.
+   * @return A ResultCode indicating if the operation was successful.
+   */
+  ResultCode runModify(ModifyOperationBasis op)
+  {
+    op.run();
+    return op.getResultCode();
+  }
+
+  /**
+   * Empty the ServerState in memory.
+   * <p>
+   * The emptied state is marked as not saved, so the next save writes the empty
+   * state out - which is what {@link #clear()} is after. A caller that only
+   * means to drop the in-memory copy, and expects the backend to keep what it
+   * holds, has to keep saves away until it has loaded the state back.
    */
   public void clearInMemory()
   {
     state.clear();
-    state.setSaved(false);
   }
 
   /**
-   * Empty the ServerState.
-   * After this call the Server State will be in the same state
-   * as if it was just created.
+   * Empty the ServerState and write the emptied state to persistent storage.
    */
   void clear()
   {

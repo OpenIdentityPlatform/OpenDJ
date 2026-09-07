@@ -46,7 +46,12 @@ public class ServerState implements Iterable<CSN>
   private final ConcurrentMap<Integer, CSN> serverIdToCSN = new ConcurrentSkipListMap<>();
   /**
    * Whether the state has been saved to persistent storage. It starts at true,
-   * and moves to false when an update is made to the current object.
+   * and moves to false when a change is actually made to the current object.
+   * <p>
+   * It is cleared once the change it advertises is visible in
+   * {@link #serverIdToCSN}, never before. A saver marks the state as saved
+   * before taking the snapshot it writes, so clearing the flag any earlier
+   * would let it be overwritten by a write which does not carry the change.
    */
   private volatile boolean saved = true;
 
@@ -58,12 +63,14 @@ public class ServerState implements Iterable<CSN>
 
   /**
    * Empty the ServerState.
-   * After this call the Server State will be in the same state
-   * as if it was just created.
+   * After this call the Server State no longer holds any CSN, and is marked as
+   * not saved: emptying it is a change like any other, which persistent storage
+   * has yet to be told about.
    */
   public void clear()
   {
     serverIdToCSN.clear();
+    saved = false;
   }
 
   /**
@@ -82,8 +89,6 @@ public class ServerState implements Iterable<CSN>
       return false;
     }
 
-    saved = false;
-
     final int serverId = csn.getServerId();
     while (true)
     {
@@ -92,6 +97,7 @@ public class ServerState implements Iterable<CSN>
       {
         if (serverIdToCSN.putIfAbsent(serverId, csn) == null)
         {
+          saved = false;
           return true;
         }
         // oops, a concurrent modification happened, run the same process again
@@ -101,6 +107,7 @@ public class ServerState implements Iterable<CSN>
       {
         if (serverIdToCSN.replace(serverId, existingCSN, csn))
         {
+          saved = false;
           return true;
         }
         // oops, a concurrent modification happened, run the same process again
