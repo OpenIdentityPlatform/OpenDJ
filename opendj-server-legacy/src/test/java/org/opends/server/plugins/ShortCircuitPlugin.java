@@ -23,9 +23,12 @@ import static org.opends.server.util.CollectionUtils.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -616,7 +619,7 @@ public class ShortCircuitPlugin
     }
 
     // Check for registered short circuits.
-    final String key = operation.getOperationType() + "/" + section.toLowerCase();
+    final String key = keyFor(operation.getOperationType(), section);
     Integer resultCode = shortCircuits.get(key);
     if (resultCode != null)
     {
@@ -628,6 +631,26 @@ public class ShortCircuitPlugin
       }
       // The short circuit was applied as many times as it was asked for: from now on the
       // operations are let through, which is how a transient failure is simulated.
+    }
+
+    /*
+     * A parked replay is held here, which is inside the run() of the operation and before
+     * anything of the backend was taken: the thread which is replaying a change sits on
+     * this monitor while it still owns that change, which is what lets a test act on the
+     * thread rather than race it. It is consulted last, so that a park never takes an
+     * operation away from a control or from a registered short circuit.
+     */
+    if (operation.isSynchronizationOperation())
+    {
+      final ParkedReplay park = parks.get(key);
+      if (park != null)
+      {
+        final int parkResultCode = park.hold();
+        if (parkResultCode >= 0)
+        {
+          return parkResultCode;
+        }
+      }
     }
 
     // If we've gotten here, then we shouldn't short-circuit the operation
@@ -688,7 +711,7 @@ public class ShortCircuitPlugin
    */
   public static int getShortCircuitCount(OperationType operation, String section)
   {
-    final AtomicInteger count = shortCircuitCounts.get(operation + "/" + section.toLowerCase());
+    final AtomicInteger count = shortCircuitCounts.get(keyFor(operation, section));
     return count != null ? count.get() : 0;
   }
 
@@ -701,7 +724,7 @@ public class ShortCircuitPlugin
    */
   public static void registerShortCircuit(OperationType operation, String section, int resultCode)
   {
-    final String key = operation + "/" + section.toLowerCase();
+    final String key = keyFor(operation, section);
     // This registration applies to every operation, and it counts from zero: a limit or
     // a count left behind by a previous registration is not part of it.
     shortCircuitCounts.remove(key);
@@ -720,7 +743,7 @@ public class ShortCircuitPlugin
    */
   public static void registerShortCircuit(OperationType operation, String section, int resultCode, int maxTimes)
   {
-    final String key = operation + "/" + section.toLowerCase();
+    final String key = keyFor(operation, section);
     shortCircuitCounts.remove(key);
     shortCircuitLimits.put(key, maxTimes);
     shortCircuits.put(key, resultCode);
@@ -733,11 +756,220 @@ public class ShortCircuitPlugin
    */
   public static void deregisterShortCircuit(OperationType operation, String section)
   {
-    final String key = operation + "/" + section.toLowerCase();
+    final String key = keyFor(operation, section);
     shortCircuits.remove(key);
     shortCircuitLimits.remove(key);
     // The count belongs to the registration which is being removed: a test which counts
     // the operations it short circuits must not inherit the count of the previous one.
     shortCircuitCounts.remove(key);
+  }
+
+  /** Registered parks for the replayed operations, keyed like the short circuits. */
+  private static final Map<String, ParkedReplay> parks = new ConcurrentHashMap<>();
+
+  /**
+   * Holds the replayed operations of one type where they are, one at a time, until the
+   * test lets each of them go.
+   * <p>
+   * The hold is taken at a plugin point which runs inside {@code op.run()}, so the thread
+   * which is replaying a change is stopped while it still owns that change: a test can
+   * then do something to that thread - stop it, disable its domain - and know the change
+   * is in flight rather than hope it is. Nothing of the backend has been taken at that
+   * point, so a parked operation blocks the replay and nothing else.
+   */
+  public static final class ParkedReplay
+  {
+    /** Result codes are not negative, so this cannot be one: it lets the operation run. */
+    private static final int LET_THROUGH = -1;
+
+    private final String key;
+    private final Object lock = new Object();
+    /** Whether an operation is parked right now. */
+    private boolean occupied;
+    /**
+     * The thread of the operation which parked last. It is never cleared, so that a test
+     * which waited for a park is handed the thread of that park even when the operation
+     * has left the park since - a park which is let go of by {@link #deregister()}, or by
+     * the thread it holds being interrupted, would otherwise hand out no thread at all
+     * and have an assertion on which thread replays the change pass without asserting it.
+     */
+    private Thread lastParkedThread;
+    /** How many operations were parked, which is what tells one park from the next. */
+    private int parkedOperations;
+    /** How many of them the test has waited for already. */
+    private int awaitedOperations;
+    private boolean released;
+    private int releasedResultCode;
+    private boolean deregistered;
+
+    private ParkedReplay(String key)
+    {
+      this.key = key;
+    }
+
+    /**
+     * Parks the calling operation until the test releases it. Runs on the thread which is
+     * replaying the change.
+     *
+     * @return the result code the operation must be short circuited with, or a negative
+     *         value to let it run
+     */
+    private int hold()
+    {
+      synchronized (lock)
+      {
+        // One operation at a time, so that a release belongs to the operation the test
+        // waited for rather than to whichever of them the scheduler let in first.
+        while (occupied && !deregistered)
+        {
+          if (!waitOnLock())
+          {
+            return LET_THROUGH;
+          }
+        }
+        if (deregistered)
+        {
+          return LET_THROUGH;
+        }
+        occupied = true;
+        lastParkedThread = Thread.currentThread();
+        parkedOperations++;
+        released = false;
+        lock.notifyAll();
+        try
+        {
+          while (!released && !deregistered)
+          {
+            if (!waitOnLock())
+            {
+              return LET_THROUGH;
+            }
+          }
+          return released ? releasedResultCode : LET_THROUGH;
+        }
+        finally
+        {
+          occupied = false;
+          lock.notifyAll();
+        }
+      }
+    }
+
+    /** Waits on the monitor, reporting whether waiting can go on. */
+    private boolean waitOnLock()
+    {
+      try
+      {
+        lock.wait();
+        return true;
+      }
+      catch (InterruptedException e)
+      {
+        // Whatever wants this thread to stop wins over the park: let the operation run
+        // rather than hold a thread which is being taken down.
+        Thread.currentThread().interrupt();
+        return false;
+      }
+    }
+
+    /**
+     * Waits for a replayed operation which was not waited for yet to be parked, and
+     * reports which thread is replaying it. The operations are parked one at a time, so
+     * that thread is the one which was parked when this returns; the thread of the last
+     * park is reported when several of them were let go of without being waited for.
+     *
+     * @param timeout how long to wait for it
+     * @param unit the unit of the timeout
+     * @return the thread which is replaying the parked operation
+     * @throws InterruptedException if this thread is interrupted while waiting
+     * @throws TimeoutException if no operation was parked in time
+     */
+    public Thread awaitParked(long timeout, TimeUnit unit)
+        throws InterruptedException, TimeoutException
+    {
+      final long deadline = System.nanoTime() + unit.toNanos(timeout);
+      synchronized (lock)
+      {
+        while (parkedOperations <= awaitedOperations)
+        {
+          final long leftInNanos = deadline - System.nanoTime();
+          if (leftInNanos <= 0)
+          {
+            throw new TimeoutException("no replayed operation was parked on " + key
+                + " within " + timeout + " " + unit);
+          }
+          // Rounded up, so that a budget shorter than a millisecond is still waited out
+          // rather than truncated to a wait with no timeout at all.
+          lock.wait(TimeUnit.NANOSECONDS.toMillis(leftInNanos + 999999L));
+        }
+        awaitedOperations = parkedOperations;
+        return lastParkedThread;
+      }
+    }
+
+    /** Lets the parked operation run. */
+    public void release()
+    {
+      release(LET_THROUGH);
+    }
+
+    /**
+     * Lets the parked operation go, short circuiting it with the provided result code.
+     *
+     * @param resultCode the result code the operation must report
+     */
+    public void release(int resultCode)
+    {
+      synchronized (lock)
+      {
+        released = true;
+        releasedResultCode = resultCode;
+        lock.notifyAll();
+      }
+    }
+
+    /**
+     * Stops parking the replayed operations and lets go of the one which is parked, if
+     * any. A test must call this however it ends, or it leaves a replay thread of this
+     * server parked for good.
+     */
+    public void deregister()
+    {
+      parks.remove(key, this);
+      synchronized (lock)
+      {
+        deregistered = true;
+        lock.notifyAll();
+      }
+    }
+  }
+
+  /**
+   * Parks the replayed operations of the given type at the given plugin point, until the
+   * test releases each of them.
+   *
+   * @param operation the type of operation to park
+   * @param section the plugin point to park them at
+   * @return the park, which the test must {@link ParkedReplay#deregister()} when it is
+   *         done with it
+   */
+  public static ParkedReplay parkReplayedOperations(OperationType operation, String section)
+  {
+    final String key = keyFor(operation, section);
+    final ParkedReplay park = new ParkedReplay(key);
+    final ParkedReplay previous = parks.put(key, park);
+    if (previous != null)
+    {
+      // A park a test left behind holds a replay thread of this server for good once the
+      // map stops pointing at it: let go of it rather than lose the last reference to it.
+      previous.deregister();
+    }
+    return park;
+  }
+
+  /** Returns the key a short circuit or a park of the given operations is kept under. */
+  private static String keyFor(OperationType operation, String section)
+  {
+    return operation + "/" + section.toLowerCase(Locale.ROOT);
   }
 }
