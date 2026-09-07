@@ -361,15 +361,23 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     // Push the message to the replication servers
     if (sourceHandler.isDataServer())
     {
-      for (ReplicationServerHandler rsHandler : connectedRSs.values())
+      if (updateMsg instanceof ReplicaOfflineMsg)
       {
-        /**
-         * Ignore updates to RS with bad gen id
-         * (no system managed status for a RS)
-         */
-        if (!isDifferentGenerationId(rsHandler, updateMsg))
+        pushReplicaOfflineMsgToReplicationServers(
+            updateMsg, notAssuredUpdateMsg, assuredServers);
+      }
+      else
+      {
+        for (ReplicationServerHandler rsHandler : connectedRSs.values())
         {
-          addUpdate(rsHandler, updateMsg, notAssuredUpdateMsg, assuredServers);
+          /**
+           * Ignore updates to RS with bad gen id
+           * (no system managed status for a RS)
+           */
+          if (!isDifferentGenerationId(rsHandler, updateMsg))
+          {
+            addUpdate(rsHandler, updateMsg, notAssuredUpdateMsg, assuredServers);
+          }
         }
       }
     }
@@ -382,6 +390,49 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           && !isUpdateMsgFiltered(updateMsg, dsHandler))
       {
         addUpdate(dsHandler, updateMsg, notAssuredUpdateMsg, assuredServers);
+      }
+    }
+  }
+
+  /**
+   * Pushes a ReplicaOfflineMsg to the replication servers which have to relay it, recording
+   * which of them it goes to before any of them can forward it.
+   * <p>
+   * Each of them is served by its own writer, and the shutdown of a collocated directory server
+   * waits for every one of them to have forwarded the message before it stops the handlers - see
+   * DSRSShutdownSync. The recipients are recorded first because a forward reported before they
+   * are known ends that wait at once.
+   */
+  private void pushReplicaOfflineMsgToReplicationServers(UpdateMsg offlineMsg,
+      NotAssuredUpdateMsg notAssuredUpdateMsg, List<Integer> assuredServers)
+  {
+    final List<ReplicationServerHandler> recipients = new ArrayList<>(connectedRSs.size());
+    final List<Integer> recipientIds = new ArrayList<>(connectedRSs.size());
+    for (ReplicationServerHandler rsHandler : connectedRSs.values())
+    {
+      // Ignore updates to RS with bad gen id (no system managed status for a RS)
+      if (!isDifferentGenerationId(rsHandler, offlineMsg))
+      {
+        recipients.add(rsHandler);
+        recipientIds.add(rsHandler.getServerId());
+      }
+    }
+    localReplicationServer.getDSRSShutdownSync()
+        .replicaOfflineMsgDispatched(baseDN, offlineMsg.getCSN(), recipientIds);
+    for (ReplicationServerHandler rsHandler : recipients)
+    {
+      /*
+       * A recipient whose teardown started while the list was being built has had its message
+       * queue cleared already, and its own give-up ran before it was recorded here: queueing for
+       * it would only leave the shutdown waiting for a forward which can no longer happen.
+       */
+      if (rsHandler.shuttingDown())
+      {
+        noLongerAwaitTheForwardOf(rsHandler);
+      }
+      else
+      {
+        addUpdate(rsHandler, offlineMsg, notAssuredUpdateMsg, assuredServers);
       }
     }
   }
@@ -1101,7 +1152,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
         if (connectedRSs.containsKey(sHandler.getServerId()))
         {
+          // after the unregistration, which must not be skipped if this throws
           unregisterServerHandler(sHandler, shutdown, false);
+          noLongerAwaitTheForwardOf(sHandler);
         }
         else if (connectedDSs.containsKey(sHandler.getServerId()))
         {
@@ -1120,6 +1173,17 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         }
       }
     }
+  }
+
+  /**
+   * A peer replication server which is gone can no longer forward the ReplicaOfflineMsg it was
+   * given, so the shutdown of a collocated directory server must stop waiting for it - see
+   * DSRSShutdownSync.
+   */
+  void noLongerAwaitTheForwardOf(ServerHandler rsHandler)
+  {
+    localReplicationServer.getDSRSShutdownSync()
+        .replicaOfflineMsgNotForwarded(baseDN, rsHandler.getServerId());
   }
 
   private void unregisterServerHandler(ServerHandler sHandler, boolean shutdown,
@@ -1193,6 +1257,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     if (!connectedServers.remove(sHandler.getServerId(), sHandler))
     {
       return;
+    }
+    if (!isDataServer)
+    {
+      noLongerAwaitTheForwardOf(sHandler);
     }
 
     if (connectedDSs.isEmpty() && connectedRSs.isEmpty())

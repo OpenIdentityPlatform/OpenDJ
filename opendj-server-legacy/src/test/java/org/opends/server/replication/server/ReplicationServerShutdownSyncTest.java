@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.util.CollectionUtils.newArrayList;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -29,6 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.TestCaseUtils;
@@ -37,12 +39,14 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.TopologyMsg;
+import org.opends.server.replication.protocol.WindowMsg;
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.util.StaticUtils;
@@ -57,8 +61,9 @@ import org.testng.annotations.Test;
  * <p>
  * Most tests drive {@link DSRSShutdownSync} directly rather than through a collocated directory
  * server: the contract they pin is when the shutdown of the replication server waits, and how
- * long. {@link #thePeerReceivesTheReplicaOfflineMsgBeforeTheShutdownReturns()} pins the outcome
- * those waits exist for, on a peer connected through the real handshake.
+ * long. {@link #thePeerReceivesTheReplicaOfflineMsgBeforeTheShutdownReturns()} and
+ * {@link #theShutdownWaitsForEveryPeerToBeToldTheReplicaWentOffline()} pin the outcome those
+ * waits exist for, on peers connected through the real handshake.
  */
 @SuppressWarnings("javadoc")
 public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
@@ -70,6 +75,15 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
   private static final int REMOTE_DS_ID = 93;
   /** The collocated replica whose ReplicaOfflineMsg the shutdown waits for. */
   private static final int LOCAL_DS_ID = 94;
+  /** The peer replication server whose writer is held back by a full send window. */
+  private static final int HELD_BACK_RS_ID = 95;
+  /** Send window a peer advertises when nothing has to hold its writer back. */
+  private static final int PEER_WINDOW = 100;
+  /**
+   * Send window of the peer which is held back: one change fills it, and the message which
+   * follows stays with its writer until the peer gives it credit again.
+   */
+  private static final int HELD_BACK_PEER_WINDOW = 1;
   /** Time given to the forwarding thread before it releases the shutdown. */
   private static final long FORWARD_DELAY = 500;
   /** How often the domains of {@link #theGracePeriodIsSharedByAllTheDomainsOfOneShutdown()}
@@ -170,8 +184,8 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
 
       final ReplicationServerDomain domain =
           replicationServer.getReplicationServerDomain(baseDN, true);
-      waitForConnectedReplicationServer(domain);
-      final Future<ReplicaOfflineMsg> received = peer.receiveReplicaOfflineMsg();
+      waitForConnectedReplicationServer(domain, REMOTE_RS_ID);
+      final Future<ReplicaOfflineMsg> received = peer.receive(ReplicaOfflineMsg.class);
 
       /*
        * The replica announces itself offline once the shutdown of the replication server is
@@ -189,7 +203,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       final ReplicaOfflineMsg forwarded = received.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
       assertThat(forwarded)
           .as("the peer replication server was never told that the replica went offline, its "
-              + "read ended with: %s", peer.readerFailure())
+              + "read ended with: %s", peer.failure())
           .isNotNull();
       assertThat(forwarded.getCSN().getServerId()).isEqualTo(LOCAL_DS_ID);
       assertThat(elapsed).isGreaterThanOrEqualTo(FORWARD_DELAY)
@@ -261,6 +275,139 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     finally
     {
       stop(broker);
+      removeQuietly(replicationServer);
+    }
+  }
+
+  /**
+   * The grace period covers every peer replication server, not only the fastest of them. The
+   * message is queued for each of them and published by its own writer, and the shutdown clears
+   * the queue and closes the session of whoever has not published it yet: a peer whose writer is
+   * held back would be left unaware that the replica went offline, and its change number indexer
+   * would keep the medium consistency point pinned to the last change of that replica.
+   */
+  @Test
+  public void theShutdownWaitsForEveryPeerToBeToldTheReplicaWentOffline() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync();
+    ReplicationServer replicationServer = null;
+    ReplicationBroker broker = null;
+    FakePeerReplicationServer peer = null;
+    FakePeerReplicationServer heldBackPeer = null;
+    Thread windowOpener = null;
+    try
+    {
+      final int replicationPort = TestCaseUtils.findFreePort();
+      replicationServer =
+          newReplicationServer(shutdownSync, "shutdownSyncEveryPeerDb", 8229, replicationPort);
+      broker =
+          openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      peer = new FakePeerReplicationServer(
+          replicationPort, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID, PEER_WINDOW);
+      heldBackPeer = new FakePeerReplicationServer(
+          replicationPort, HELD_BACK_RS_ID, baseDN, EMPTY_DN_GENID, HELD_BACK_PEER_WINDOW);
+
+      final ReplicationServerDomain domain =
+          replicationServer.getReplicationServerDomain(baseDN, true);
+      waitForConnectedReplicationServer(domain, REMOTE_RS_ID);
+      waitForConnectedReplicationServer(domain, HELD_BACK_RS_ID);
+
+      /*
+       * One change fills the send window of the held back peer: its writer publishes that one and
+       * then blocks on the permit of the next message, so the ReplicaOfflineMsg stays with it
+       * while its neighbour forwards the same message right away.
+       */
+      final CSNGenerator csns = new CSNGenerator(LOCAL_DS_ID, 0);
+      final Future<DeleteMsg> windowFiller = heldBackPeer.receive(DeleteMsg.class);
+      broker.publish(new DeleteMsg(DN.valueOf("uid=offline," + TEST_ROOT_DN_STRING),
+          csns.newCSN(), "offline-entry-uuid"));
+      assertThat(windowFiller.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+          .as("the send window of the held back peer was never filled, its exchange ended "
+              + "with: %s", heldBackPeer.failure())
+          .isNotNull();
+
+      final Future<ReplicaOfflineMsg> received = peer.receive(ReplicaOfflineMsg.class);
+      final Future<ReplicaOfflineMsg> receivedWhenHeldBack =
+          heldBackPeer.receive(ReplicaOfflineMsg.class);
+      final CSN offlineCSN = csns.newCSN();
+      shutdownSync.replicaOfflineMsgSent(baseDN, offlineCSN);
+      broker.publish(new ReplicaOfflineMsg(offlineCSN));
+      windowOpener = newWindowOpenerThread(heldBackPeer);
+
+      final long startTime = System.nanoTime();
+      windowOpener.start();
+      replicationServer.shutdown();
+      final long elapsed = elapsedMillis(startTime);
+
+      assertThat(received.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+          .as("the peer which was not held back never received the message, its read ended "
+              + "with: %s", peer.failure())
+          .isNotNull();
+      assertThat(receivedWhenHeldBack.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+          .as("the wait ended on the first peer forwarding the message, and the peer which was "
+              + "held back never learned that the replica went offline, its exchange ended "
+              + "with: %s", heldBackPeer.failure())
+          .isNotNull();
+      assertThat(elapsed).isGreaterThanOrEqualTo(FORWARD_DELAY)
+          .isLessThan(DSRSShutdownSync.REPLICA_OFFLINE_GRACE_PERIOD);
+    }
+    finally
+    {
+      joinQuietly(windowOpener);
+      closeQuietly(heldBackPeer);
+      closeQuietly(peer);
+      stop(broker);
+      removeQuietly(replicationServer);
+    }
+  }
+
+  /**
+   * A message its writer drops on the way out will never be forwarded, so the shutdown must stop
+   * waiting for the peer it was queued for. The filter of the writer is wider than the one
+   * ReplicationServerDomain.put() applies when it queues the message - it drops anything for a
+   * peer whose generation id is unknown as well - so a peer can be given a message which is then
+   * dropped, and nothing would ever report a forward for it.
+   */
+  @Test
+  public void theShutdownStopsWaitingForAPeerWhoseMessageTheWriterDropped() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync();
+    ReplicationServer replicationServer = null;
+    FakePeerReplicationServer peer = null;
+    try
+    {
+      final int replicationPort = TestCaseUtils.findFreePort();
+      replicationServer =
+          newReplicationServer(shutdownSync, "shutdownSyncDroppedMsgDb", 8230, replicationPort);
+      peer = new FakePeerReplicationServer(replicationPort, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID);
+
+      final ReplicationServerDomain domain =
+          replicationServer.getReplicationServerDomain(baseDN, true);
+      waitForConnectedReplicationServer(domain, REMOTE_RS_ID);
+      final ReplicationServerHandler rsHandler = domain.getConnectedRSs().get(REMOTE_RS_ID);
+
+      final CSN offlineCSN = newOfflineCSN();
+      shutdownSync.replicaOfflineMsgSent(baseDN, offlineCSN);
+      shutdownSync.replicaOfflineMsgDispatched(
+          baseDN, offlineCSN, newArrayList(REMOTE_RS_ID));
+      // the peer no longer shares the generation id of the domain, so its writer drops whatever
+      // was queued for it before that
+      rsHandler.setGenerationId(domain.getGenerationId() + 1);
+      rsHandler.add(new ReplicaOfflineMsg(offlineCSN));
+
+      final long startTime = System.nanoTime();
+      replicationServer.shutdown();
+      final long elapsed = elapsedMillis(startTime);
+
+      assertThat(elapsed)
+          .as("the shutdown kept waiting for a forward its own writer had already dropped")
+          .isLessThan(DSRSShutdownSync.REPLICA_OFFLINE_GRACE_PERIOD);
+    }
+    finally
+    {
+      closeQuietly(peer);
       removeQuietly(replicationServer);
     }
   }
@@ -454,8 +601,8 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     }
   }
 
-  private void waitForConnectedReplicationServer(final ReplicationServerDomain domain)
-      throws Exception
+  private void waitForConnectedReplicationServer(
+      final ReplicationServerDomain domain, final int serverId) throws Exception
   {
     newConnectionTimer().repeatUntilSuccess(new TestTimer.CallableVoid()
     {
@@ -463,7 +610,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       public void call() throws Exception
       {
         assertThat(domain.getConnectedRSs())
-            .as("the peer replication server never connected").containsKey(REMOTE_RS_ID);
+            .as("the peer replication server %s never connected", serverId).containsKey(serverId);
       }
     });
   }
@@ -503,7 +650,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
         {
           return;
         }
-        shutdownSync.replicaOfflineMsgForwarded(baseDN, offlineCSN);
+        shutdownSync.replicaOfflineMsgForwarded(baseDN, offlineCSN, REMOTE_RS_ID);
       }
     });
   }
@@ -520,6 +667,26 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
           return;
         }
         broker.publish(new ReplicaOfflineMsg(offlineCSN));
+      }
+    });
+  }
+
+  /**
+   * Gives the held back peer credit to receive again, once the shutdown has had time to end on
+   * the forward of the peer which was not held back.
+   */
+  private Thread newWindowOpenerThread(final FakePeerReplicationServer heldBackPeer)
+  {
+    return new Thread(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        if (!sleepQuietly(FORWARD_DELAY))
+        {
+          return;
+        }
+        heldBackPeer.openSendWindow(PEER_WINDOW);
       }
     });
   }
@@ -699,11 +866,22 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
   {
     private final Session session;
     private final ExecutorService reader = Executors.newSingleThreadExecutor();
-    /** Why the peer stopped reading, so that a missing message can be told from a failed one. */
-    private volatile Exception readerFailure;
+    /**
+     * What ended the exchange with the replication server, so that a message which never arrived
+     * can be told from an exchange which failed. The reader and the thread which opens the send
+     * window both report here, and the first failure is the one kept: it is the one which
+     * explains the rest.
+     */
+    private final AtomicReference<Exception> failure = new AtomicReference<>();
 
     FakePeerReplicationServer(int replicationPort, int serverId, DN baseDN, long generationId)
         throws Exception
+    {
+      this(replicationPort, serverId, baseDN, generationId, PEER_WINDOW);
+    }
+
+    FakePeerReplicationServer(int replicationPort, int serverId, DN baseDN, long generationId,
+        int windowSize) throws Exception
     {
       final Socket socket = new Socket();
       Session newSession = null;
@@ -716,7 +894,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
 
         final String serverURL = "127.0.0.1:" + socket.getLocalPort();
         final byte groupId = (byte) 1;
-        newSession.publish(new ReplServerStartMsg(serverId, serverURL, baseDN, 100,
+        newSession.publish(new ReplServerStartMsg(serverId, serverURL, baseDN, windowSize,
             new ServerState(), generationId, false, groupId, 5000));
         final ReplServerStartMsg inStartMsg =
             waitForSpecificMsg(newSession, ReplServerStartMsg.class);
@@ -748,22 +926,25 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       session = newSession;
     }
 
-    /** Returns the first ReplicaOfflineMsg this peer receives, or null if its session ends first. */
-    Future<ReplicaOfflineMsg> receiveReplicaOfflineMsg()
+    /**
+     * Returns the first message of the given type this peer receives, or null if its session
+     * ends first.
+     */
+    <T extends ReplicationMsg> Future<T> receive(final Class<T> msgClass)
     {
-      return reader.submit(new Callable<ReplicaOfflineMsg>()
+      return reader.submit(new Callable<T>()
       {
         @Override
-        public ReplicaOfflineMsg call()
+        public T call()
         {
           try
           {
             while (true)
             {
               final ReplicationMsg msg = session.receive();
-              if (msg instanceof ReplicaOfflineMsg)
+              if (msgClass.isInstance(msg))
               {
-                return (ReplicaOfflineMsg) msg;
+                return msgClass.cast(msg);
               }
             }
           }
@@ -771,17 +952,35 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
           {
             // The session is closed when the replication server completes its shutdown: whatever
             // has not arrived by then never will.
-            readerFailure = e;
+            failed(e);
             return null;
           }
         }
       });
     }
 
-    /** Returns what ended the read of this peer, null if nothing did. */
-    Exception readerFailure()
+    /** Gives the replication server credit to publish again, as a peer which keeps up does. */
+    void openSendWindow(int credits)
     {
-      return readerFailure;
+      try
+      {
+        session.publish(new WindowMsg(credits));
+      }
+      catch (IOException e)
+      {
+        failed(e);
+      }
+    }
+
+    private void failed(Exception e)
+    {
+      failure.compareAndSet(null, e);
+    }
+
+    /** Returns what ended the exchange with this peer, null if nothing did. */
+    Exception failure()
+    {
+      return failure.get();
     }
 
     void close()
