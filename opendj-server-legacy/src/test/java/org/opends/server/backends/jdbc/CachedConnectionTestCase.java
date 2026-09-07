@@ -15,8 +15,10 @@
  */
 package org.opends.server.backends.jdbc;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Importer;
 import org.testng.annotations.AfterClass;
@@ -36,6 +38,7 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 import java.util.ArrayDeque;
@@ -61,6 +64,7 @@ import org.mockito.InOrder;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -685,6 +689,10 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final String url = StubDriver.PREFIX + "import-unchecked-commit";
 		final Connection parent = mock(Connection.class);
 		when(parent.isValid(anyInt())).thenReturn(true);
+		// the statement of the write below, which is what gives the commit of close() something to do:
+		// a connection an import wrote nothing through is not committed at all (#891), so an import
+		// that writes nothing would reach neither the Error this test injects nor the return it is about
+		when(parent.prepareStatement(anyString())).thenReturn(mock(PreparedStatement.class));
 		doThrow(new Error("out of memory while importing")).when(parent).commit();
 		stub.answerWith(parent);
 		final JDBCBackendCfg cfg = mock(JDBCBackendCfg.class);
@@ -692,12 +700,17 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final JDBCStorage storage = new JDBCStorage(cfg, null);
 		storage.open(AccessMode.READ_WRITE);
 		final Importer importer = storage.startImport();
+		importer.put(new TreeName("dc=example,dc=com", "id2entry"),
+			ByteString.valueOfUtf8("key"), ByteString.valueOfUtf8("value"));
 
 		try {
 			importer.close();
 			fail("the failure of the commit was not reported");
 		} catch (Error expected) {
-			// reported to the caller, which is what an Error out of an import has to be
+			// reported to the caller, which is what an Error out of an import has to be. Asserted
+			// rather than accepted whole: an AssertionError of the fail() above is an Error too, and
+			// would otherwise be caught here and read as the injected one
+			assertEquals(expected.getMessage(), "out of memory while importing");
 		}
 
 		assertEquals(CachedConnection.poolOf(url).idleCount(), 1, "the import kept the connection of the pool");

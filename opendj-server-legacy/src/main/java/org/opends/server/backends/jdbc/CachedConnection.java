@@ -522,8 +522,10 @@ public class CachedConnection implements Connection {
      * <p>
      * A lower bound than that is what is reported, not every way past it: the replay threads of
      * replication default to the same count again and borrow on top of the workers, and an import or
-     * a rebuild borrows besides. So this names one difference the operator can act on rather than
-     * standing for the whole demand on the pool.
+     * a rebuild borrows besides - one connection per tree it writes at a time, up to the bound of
+     * {@code JDBCStorage.IMPORT_CONNECTIONS_PROPERTY}, and it holds them for its whole duration
+     * (#891). So this names one difference the operator can act on rather than standing for the
+     * whole demand on the pool.
      * <p>
      * Nothing fails for the difference alone: the surplus waits for a connection to be returned,
      * which is what the bound is there for. But every one of those waits is paid on an operation,
@@ -809,8 +811,12 @@ public class CachedConnection implements Connection {
      * Returns the value of a numeric system property, ignoring a value that is not a non-negative
      * number in favor of the default. The unit is the one the property is read in, so that the
      * value the message names is not mistaken for another.
+     * <p>
+     * Package private rather than private: every bound this backend takes from a property is read
+     * through here, the connections of an import ({@code JDBCStorage.IMPORT_CONNECTIONS_PROPERTY})
+     * included, so that an operator who mistypes one is told rather than left with a default.
      */
-    private static long getNonNegativeProperty(String name, long defaultValue, String unit) {
+    static long getNonNegativeProperty(String name, long defaultValue, String unit) {
         final String value = System.getProperty(name);
         if (value != null) {
             try {
@@ -1260,11 +1266,28 @@ public class CachedConnection implements Connection {
      * them is one borrow of a cold path, where the round trip the window saves is worth nothing.
      */
     static Connection getConnection(String connectionString, boolean trusted) throws Exception {
+        return getConnection(connectionString, trusted, 0);
+    }
+
+    /**
+     * Borrows a connection, waiting at the bound of the pool no longer than the given number of
+     * seconds where {@value #POOL_TIMEOUT_PROPERTY} says to wait for as long as it takes.
+     *
+     * @param unboundedWaitFallbackSeconds the wait to use in place of an unbounded one, or 0 to wait
+     * as the property says. For a caller whose own connections are what the pool is full of - an
+     * import holds one per tree it writes until it ends (#891) - a wait with no bound is a deadlock
+     * rather than a queue: nothing is going to return the connection it is waiting for but itself.
+     */
+    static Connection getConnection(String connectionString, boolean trusted, long unboundedWaitFallbackSeconds)
+            throws Exception {
         final Pool pool = poolOf(connectionString);
         final ConnectDialect dialect = ConnectDialect.of(connectionString);
         reportUnknownDialect(connectionString, dialect);
         final long connectTimeoutSeconds = getConnectTimeoutSeconds();
-        final long poolTimeoutSeconds = getPoolTimeoutSeconds();
+        long poolTimeoutSeconds = getPoolTimeoutSeconds();
+        if (poolTimeoutSeconds == 0 && unboundedWaitFallbackSeconds > 0) {
+            poolTimeoutSeconds = unboundedWaitFallbackSeconds; // see the parameter
+        }
         final long ttlMillis = getCacheTtlMillis();
         final long startedAt = System.currentTimeMillis();
         final long deadline = deadlineOf(startedAt, poolTimeoutSeconds);

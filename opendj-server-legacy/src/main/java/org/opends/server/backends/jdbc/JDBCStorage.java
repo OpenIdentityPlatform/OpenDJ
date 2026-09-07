@@ -43,8 +43,11 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 
 import static org.opends.server.backends.pluggable.spi.StorageUtils.addErrorMessage;
@@ -560,12 +563,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * The socket read timeout of one connection, and the statements running on it. This second
 	 * layer of the bound is a property of the socket rather than of a statement, so it cannot be
 	 * armed and put back per statement wherever a connection carries more than one at a time: an
-	 * {@code ImporterImpl} holds a single connection for the whole of an import and writes to it
-	 * from every phase-one worker and every phase-two task, and there the first statement to finish
-	 * would take the backstop away from every statement still in flight - while a statement whose
-	 * class carries no bound at all would run under whatever value a concurrent one happened to
-	 * arm, dying at it with nothing to say which property cut it, since such a statement never
-	 * reaches {@link #timedOut}.
+	 * {@code ImporterImpl} held a single connection for the whole of an import and wrote to it from
+	 * every phase-one worker and every phase-two task until the trees of an import were given
+	 * connections of their own (#891), and there the first statement to finish would take the
+	 * backstop away from every statement still in flight - while a statement whose class carries no
+	 * bound at all would run under whatever value a concurrent one happened to arm, dying at it
+	 * with nothing to say which property cut it, since such a statement never reaches
+	 * {@link #timedOut}. The arbitration stays now that no path of this class puts two threads on
+	 * one connection: what it holds is a property of the socket, so a connection that carries two
+	 * statements again must not have either of them cut by the bound of the other.
 	 * <p>
 	 * So the value armed is the loosest of the bounds of the statements in flight, and a statement
 	 * with no bound of its own takes it off for as long as it runs: this backstop exists to end a
@@ -909,7 +915,19 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// unregistered pool is drained the moment another backend that did register with it closes,
 	// with this one still borrowing from it (issue #878).
 	Connection getConnection(boolean trusted) throws Exception {
-		return CachedConnection.getConnection(poolKey(), trusted);
+		return getConnection(trusted, 0);
+	}
+
+	/**
+	 * The borrow every path of this class makes, and the seam a test stands in for the pool at.
+	 *
+	 * @param unboundedWaitFallbackSeconds how long to wait at the bound of the pool where the
+	 * deployment asked for that wait to be unbounded - 0 to wait as it says. Only the connections an
+	 * import takes after its first pass a number here: they are held until the import ends, so a
+	 * pool full of them has nothing to return to the thread waiting for one (#891).
+	 */
+	Connection getConnection(boolean trusted, long unboundedWaitFallbackSeconds) throws Exception {
+		return CachedConnection.getConnection(poolKey(), trusted, unboundedWaitFallbackSeconds);
 	}
 
 
@@ -4590,10 +4608,167 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		return true;
 	}
 
+	/**
+	 * How many connections one import may write through; unset for the default of
+	 * {@link #importConnections()}, and 0 or 1 for the single connection an import had before #891 -
+	 * serialized, and the least a database sees of one.
+	 */
+	static final String IMPORT_CONNECTIONS_PROPERTY = "org.openidentityplatform.opendj.jdbc.import.connections";
+
+	/**
+	 * How many connections one import writes through, which is how many of its threads can write
+	 * at the same time.
+	 * <p>
+	 * More than one because {@code Importer} is thread-safe by contract and a
+	 * {@code java.sql.Connection} is not: phase two of {@code OnDiskMergeImporter} runs a thread
+	 * per tree and phase one clears the trees of a container while another thread writes id2entry,
+	 * so a shared connection has two threads issuing statements on it at once. The drivers differ
+	 * in what they make of that - pgjdbc and Connector/J serialize the work of a connection behind
+	 * a lock of their own - but the sql server driver keeps the reconnect listeners of a
+	 * connection in a plain {@code ArrayList} that every {@code prepareStatement()} and every
+	 * statement {@code close()} mutates, and two import threads walked it past the end of its
+	 * array (issue #891).
+	 * <p>
+	 * Bounded because an import holds what it takes for its whole duration, out of a pool that is
+	 * bounded since #878 and shared with every other backend on that database: a default backend
+	 * has trees enough - one per index, three per attribute index - for a connection per tree to
+	 * empty a default pool and leave the LDAP traffic of an online rebuild waiting at its bound.
+	 * <p>
+	 * Half the bound of the pool by default, and no more than half of what the default bound would
+	 * be: a deployment that turned the bound off ({@code pool.max=0}) asked for its operations not
+	 * to queue behind one another, not for an import to open a connection per tree.
+	 * <p>
+	 * A number the operator set is taken as given, up to the bound of the pool: an import-ldif of a
+	 * backend that is offline has no traffic of its own to leave room for, and whoever raises this
+	 * on a server that is answering is making that trade knowingly - the default is where the
+	 * caution belongs.
+	 * <p>
+	 * What this bounds is how many connections one import holds, which is not the same as staying
+	 * inside the bound of the pool: a thread that already holds one connection of a pool is exempt
+	 * from waiting at its bound (see {@code CachedConnection.Pool}), and every thread of an import
+	 * takes a connection per tree it touches - so the borrows after the first go unmetered where the
+	 * pool stands at its bound, and are destroyed rather than pooled when they come back. That
+	 * exemption is what keeps the threads of an import from waiting on each other: they hold their
+	 * connections until the import ends, so a pool full of them has nothing left to return, and a
+	 * bound they had to wait at would be a deadlock rather than a queue.
+	 */
+	int importConnections() {
+		final int poolMax=poolMax();
+		final long byDefault=Math.max(1, Math.min(poolMax, CachedConnection.DEFAULT_POOL_MAX)/2);
+		// read the way every other bound of this backend is: a value that is not a non-negative
+		// number is reported to the operator rather than quietly replaced. The default is handed to
+		// it rather than a zero, so that the number the warning names is the number the import goes
+		// on to use.
+		final long configured=CachedConnection.getNonNegativeProperty(IMPORT_CONNECTIONS_PROPERTY, byDefault, "connections");
+		// clamped to the pool: connections past its bound are not there to be had, so a number above
+		// it buys nothing and costs the borrow deadline of every tree over the bound
+		// (CachedConnection.POOL_TIMEOUT_PROPERTY) before the fallback of connectionOf() takes over
+		return (int) Math.max(1, Math.min(configured, poolMax));
+	}
+
+	/**
+	 * The bound of the pool this storage borrows from. A seam of its own, like
+	 * {@link #getConnection(boolean)}: a test that stands in for the pool must not have this reach
+	 * past it into the static registry, which would intern a pool for its connection string.
+	 */
+	int poolMax() {
+		return CachedConnection.poolOf(poolKey()).max();
+	}
+
 	final class ImporterImpl implements Importer {
-		final Connection con;
-		final ReadableTransactionImpl txr;
-		final WriteableTransactionTransactionImpl txw;
+		/**
+		 * One connection of an import, the two transactions over it and the monitor that keeps one
+		 * thread at a time on it. Every statement of an import is issued under that monitor: what
+		 * the threads of an import must not do is share a connection, and the trees of an import
+		 * outnumber the connections it may take.
+		 */
+		final class ImportConnection {
+			final Connection con;
+			final ReadableTransactionImpl txr;
+			final WriteableTransactionTransactionImpl txw;
+			/**
+			 * When this connection was last written, taken from {@link ImporterImpl#writes}, and
+			 * zero while it has nothing to commit. Written under the monitor of this object, so that
+			 * it says what the connection holds rather than what it held; volatile so that a clear
+			 * can pass over a connection with nothing to commit without taking that monitor, which
+			 * is one the thread writing through it holds for the length of a statement.
+			 */
+			volatile long lastWrite;
+
+			ImportConnection(Connection con) {
+				this.con=con;
+				this.txr=new ReadableTransactionImpl(con, StatementBound.BULK);
+				this.txw=new WriteableTransactionTransactionImpl(con, StatementBound.BULK);
+				// the mode this import was started with rather than the one the storage carries now:
+				// the transaction reads that mutable field as it is built, and these are built as the
+				// trees of an import are first touched - so a storage reopened read-only under a
+				// running import would have the connections it opened before that keep writing while
+				// every one after it refused, halfway through and with the clears already committed
+				this.txw.isReadOnly=false;
+			}
+
+			/** Called under this monitor by whoever writes through this connection. */
+			void written() {
+				lastWrite=writes.incrementAndGet();
+			}
+		}
+
+		/** The connections this import has taken, by the index the trees are handed out against. */
+		private final ConcurrentMap<Integer,ImportConnection> connections = new ConcurrentHashMap<>();
+		/** The connection index each tree is written through: a tree keeps the one it was first given. */
+		private final ConcurrentMap<TreeName,Integer> connectionOfTree = new ConcurrentHashMap<>();
+		/** Handed out round-robin, so that the first trees of an import get connections of their own. */
+		private final AtomicInteger nextConnection = new AtomicInteger();
+		/** One per index, so that the connection of an index is borrowed once however many trees want it. */
+		private final ConcurrentMap<Integer,Object> borrowing = new ConcurrentHashMap<>();
+		/**
+		 * The indexes the pool had no connection to spare for, whose trees write through the first
+		 * connection of this import instead. Remembered rather than asked again per tree: there are
+		 * at most {@link #maxConnections} of them, and a tree that lands on one would otherwise pay
+		 * the borrow deadline of the pool over again for the answer the tree before it already got.
+		 */
+		private final Set<Integer> sharedIndexes = ConcurrentHashMap.newKeySet();
+		/**
+		 * Read once rather than per statement: this is a property of the whole import, and reading
+		 * it per record would be a property lookup per entry of an import-ldif.
+		 */
+		final int maxConnections;
+
+		/**
+		 * The connection the constructor borrows. Also the one a borrow that cannot be made falls
+		 * back to, so it is the one connection of an import that is always there.
+		 */
+		private static final int FIRST_CONNECTION = 0;
+
+		/**
+		 * Set by {@code close()} before it commits, after which this import has no transaction left
+		 * for a write to belong to. Phase two gives its threads five seconds to answer an interrupt
+		 * and closes the importer whether they answered or not
+		 * ({@code OnDiskMergeImporter.invokeParallel}), so a write can arrive with the connections
+		 * of the import already committed and back in the pool.
+		 */
+		private volatile boolean closed;
+
+		/**
+		 * Numbers the writes of this import, so that {@code close()} can commit its connections in
+		 * the order they were last written to.
+		 * <p>
+		 * The connections of an import are transactions of their own, so {@code close()} cannot make
+		 * them durable as one - and the last thing an import writes is the flag that says the rest of
+		 * it is good: {@code afterPhaseTwo} sets the trust flag of every index of a container once
+		 * phase two has written them all, one write per base DN. Committed in that order, those flags
+		 * go last, and an earlier commit that fails takes them down with it: a failed import cannot
+		 * leave an index marked trusted over data that never got there.
+		 * <p>
+		 * That the flags are the last writes is the caller's doing rather than this class's:
+		 * {@code OnDiskMergeImporter} waits for every phase-two task before it runs
+		 * {@code afterPhaseTwo}, and nothing here refuses a write that arrives after the flags while
+		 * the importer is still open. An importer whose writes did not end there would order its
+		 * commits by what its last writes actually were, which is what this counter says and all it
+		 * says.
+		 */
+		private final AtomicLong writes = new AtomicLong();
+
 		// The trees this import wrote: close() refreshes the statistics of these and only these,
 		// so rebuilding a single index does not gather statistics for the whole backend. A full
 		// import legitimately covers every tree - AbstractTwoPhaseImportStrategy.beforePhaseOne
@@ -4647,10 +4822,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				if (!accessMode.isWriteable()) {
 					throw new ReadOnlyStorageException();
 				}
+				// Inside the try like the refusal above: the pool this asks about is the one the open
+				// just registered with, so a failure here has the storage this constructor opened to
+				// give back as well.
+				maxConnections=importConnections();
+				// What an import takes out of the pool is worth reading when a borrow of one fails at
+				// the bound: the pool names the property that bounds it, and this names the one that
+				// bounds the demand.
+				logger.debug(LocalizableMessage.raw("jdbc: import writes through up to %d connections (%s)",
+					maxConnections, IMPORT_CONNECTIONS_PROPERTY));
 				borrowed=getValidatedConnection();
-				txr =new ReadableTransactionImpl(borrowed, StatementBound.BULK);
-				txw =new WriteableTransactionTransactionImpl(borrowed, StatementBound.BULK);
-				con = borrowed;
+				// The first connection is taken here rather than on the first tree, as it was before
+				// the connections of an import became several (#891): an import of a database that
+				// takes no connection is refused where it is started, and a storage this constructor
+				// opened is given back by the catch below rather than by a put() far from it.
+				connections.put(FIRST_CONNECTION, new ImportConnection(borrowed));
 				borrowed=null;
 			}catch (Throwable e){
 				// Throwable rather than Exception, the way close() below catches it and for the same
@@ -4687,73 +4873,445 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 
 		/**
-		 * Hands the connection back to the pool and closes the sessions the transaction opened
-		 * beside it - the stamp one and the catalog one (#888), both outside the pool and neither
-		 * outliving the import that opened it - whatever went before. Returns the failure the
-		 * caller is to report: the return rolls back, and the rollback fails on exactly the
-		 * connection whose commit just did, so the commit stays the exception the caller sees and
-		 * this one rides along with it instead of replacing it.
+		 * The connection the given tree is written through, borrowed from the pool the first time
+		 * this import touches the tree.
+		 * <p>
+		 * Bound to the tree rather than to the thread, although it is the threads of an import that
+		 * must not share one: the connections of an import are transactions of their own, so two of
+		 * them writing one row would have the second wait for the first to commit - and an import
+		 * commits at {@code close()}, when every thread of it is long done. That is not a shape to
+		 * leave lying about: {@code setTrust()} writes the state tree of a container from
+		 * {@code beforePhaseOne} on an import thread and again from {@code afterPhaseTwo} on the
+		 * thread that closes the importer, and bound to the thread those two writes would be two
+		 * transactions waiting for each other with nothing left to break the wait - the bulk class
+		 * carries no bound, and the default lock wait is forever on three of the four engines.
+		 * Bound to the tree they are one transaction that waits for nothing, and phase two - which
+		 * runs a thread per tree - still gets the connection per thread this is all about.
 		 */
-		private SQLException releaseConnection(SQLException failure) {
+		ImportConnection connectionOf(TreeName treeName) {
+			// The lookup before the assignment, not for want of a computeIfAbsent: this runs once per
+			// record of an import-ldif, and the mapping function below allocates a capture of this
+			// importer on every call however long the tree has had a connection.
+			final Integer assigned=connectionOfTree.get(treeName);
+			if (assigned!=null) {
+				final ImportConnection open=connections.get(assigned);
+				if (open!=null) {
+					return open;
+				}
+			}
+			checkOpen();
+			// floorMod rather than %: the counter is shared by every thread of the import and an
+			// index of its own is all a tree needs, so it is never reset - and a negative index
+			// would be one no connection is ever opened for
+			final Integer index=connectionOfTree.computeIfAbsent(treeName,
+				tree -> Math.floorMod(nextConnection.getAndIncrement(), maxConnections));
+			final ImportConnection open=connections.get(index);
+			if (open!=null) {
+				return open;
+			}
+			final ImportConnection taken=sharedIndexes.contains(index) ? sharedConnection() : openConnection(index);
+			if (connections.get(index)!=taken) {
+				// this tree was given a connection of another index, the pool having none to spare:
+				// pointed at it, every record of the tree takes the lookup at the top of this method
+				// rather than this path, which allocates a capture of this importer per call
+				connectionOfTree.put(treeName, FIRST_CONNECTION);
+			}
+			return taken;
+		}
+
+		/**
+		 * Takes the connection of an index, or the one this import already has where the pool has
+		 * none left to give.
+		 * <p>
+		 * The borrow is made outside the map rather than in a {@code computeIfAbsent}: it waits for a
+		 * connection to be returned where the pool stands at its bound - up to
+		 * {@code CachedConnection.POOL_TIMEOUT_PROPERTY} - and a wait of that length inside a mapping
+		 * function holds the bin of that key against every other index that hashes to it, which the
+		 * contract of {@code ConcurrentHashMap} says not to do. One borrow per index all the same:
+		 * two threads first touching trees of one index would otherwise each take a connection, and
+		 * the loser's would be a borrow of the pool made and given back for nothing.
+		 * <p>
+		 * A connection that does not end up in the map is given back here rather than left behind:
+		 * only its {@code close()} returns the permit it took, and a pool is never removed from the
+		 * map, so one lost here would be lost for the life of the server (#878).
+		 */
+		private ImportConnection openConnection(Integer index) {
+			synchronized (borrowing.computeIfAbsent(index, i -> new Object())) {
+				final ImportConnection opened=connections.get(index);
+				if (opened!=null) {
+					return opened; // another thread of this import got here first
+				}
+				if (sharedIndexes.contains(index)) {
+					// ... and found the pool with nothing to spare: this thread has the same answer
+					// waiting for it, and would pay the borrow deadline of the pool again to get it
+					return sharedConnection();
+				}
+				return openConnectionOnce(index);
+			}
+		}
+
+		private ImportConnection openConnectionOnce(Integer index) {
+			final Connection borrowed=borrowedOrShared(index);
+			if (borrowed==null) { // shared, see borrowedOrShared()
+				return sharedConnection();
+			}
+			final ImportConnection built;
 			try {
-				con.close();
-			} catch (Throwable e) {
-				// Throwable rather than SQLException: this close() is the return to the pool, whose
-				// rollback a driver is free to fail unchecked. Reported rather than thrown, since a
-				// throw out of here would leave with the failure the caller actually came for - the
-				// commit above, and in the Throwable branch of close() the Error that branch exists
-				// to preserve - dropped on the floor (issue #878).
-				final SQLException reported=e instanceof SQLException ? (SQLException) e
-					: new SQLException("the connection of the import could not be returned to the pool", e);
-				if (failure==null) {
-					failure=reported;
-				}else {
-					failure.addSuppressed(reported);
-				}
-			} finally {
+				// nothing holds the borrow until this returns: new WriteableTransactionTransactionImpl
+				// runs a StampSession in a field initializer, and an Error out of a bulk import - an
+				// OutOfMemoryError is the one to expect - would otherwise leave it out of the pool
+				built=new ImportConnection(borrowed);
+			}catch (Throwable e) {
 				try {
-					txw.stampSession.close();
-				} finally {
-					txw.catalogSession.close();
+					borrowed.close();
+				}catch (Throwable e2) {
+					// suppressed rather than logged, the way the constructor of this importer joins the
+					// same pair: the failure being unwound is the one the caller asked about, and a
+					// return that failed on top of it is worth reading
+					e.addSuppressed(e2);
 				}
+				throw e;
+			}
+			// Entered under the monitor of the map, which close() takes to mark this import closed and
+			// to take its connections away: without it a borrow in flight could be put back after
+			// close() had walked the map, leaving a connection nothing would commit or return - or,
+			// worse, be released twice, the second time onto a connection the pool had already handed
+			// to somebody else.
+			boolean tooLate=false;
+			synchronized (connections) {
+				if (closed) {
+					tooLate=true;
+				}else {
+					connections.put(index, built);
+				}
+			}
+			if (tooLate) {
+				// outside the monitor: a return is a round trip, and close() must not wait behind it
+				releaseUnwatched(built);
+				throw importIsClosed();
+			}
+			return built;
+		}
+
+		/**
+		 * A connection of the pool for the given index, or null for a tree that is to share the
+		 * connection this import already has.
+		 * <p>
+		 * The pool having none left is not a reason to fail an import: what an import must not do is
+		 * put two threads on one connection, and the monitor of an {@link ImportConnection} sees to
+		 * that whether one tree writes through it or five. So a tree that cannot be given a
+		 * connection of its own is given the first one instead - the import runs with less of the
+		 * parallelism it asked for, rather than stopping halfway through with its clears already
+		 * committed. Before #891 an import held one connection for all of its trees and this is what
+		 * that looked like.
+		 * <p>
+		 * A borrow that ran out of time is answered this way whichever end ran out: the pool at its
+		 * bound, and a database that would take no further connection for the moment - its own
+		 * {@code max_connections}, or one on its way up - are both a connection this import cannot
+		 * have now and has no reason to fail over, holding working connections as it does. Anything
+		 * else - a database that is down, a password that is not accepted, a driver that is not
+		 * there - is the failure of the import it belongs to: sharing a connection would only
+		 * postpone it to the next statement.
+		 */
+		private Connection borrowedOrShared(Integer index) {
+			try {
+				// bounded however the deployment set the wait of a borrow: the connections this one
+				// waits for are held by this import until it ends, so an unbounded wait here is a
+				// thread waiting for itself
+				return getConnection(false, CachedConnection.DEFAULT_POOL_TIMEOUT_SECONDS);
+			}catch (SQLTimeoutException e) {
+				logger.debug(LocalizableMessage.raw("jdbc: the pool has no connection to spare for a tree of this import,"
+					+ " which writes it through one it already holds: %s", stackTraceToSingleLineString(e)));
+				sharedIndexes.add(index);
+				return null;
+			}catch (Exception e) {
+				throw e instanceof StorageRuntimeException ? (StorageRuntimeException) e : new StorageRuntimeException(e);
+			}
+		}
+
+		/**
+		 * The connection every tree of this import falls back to, which is the one its constructor
+		 * borrowed - the only connection an import is sure to have.
+		 */
+		private ImportConnection sharedConnection() {
+			final ImportConnection shared=connections.get(FIRST_CONNECTION);
+			if (shared==null) {
+				throw importIsClosed(); // close() took the connections away
+			}
+			return shared;
+		}
+
+		/**
+		 * Refuses what arrives after {@code close()}: there is no transaction of this import left to
+		 * join, and the connection a write would go to is committed and back in the pool, serving
+		 * whoever borrowed it next.
+		 * <p>
+		 * Asked again under the monitor of the connection by everything that issues a statement. The
+		 * flag alone is a moment in time: a thread that read it before {@code close()} raised it, and
+		 * reached the connection after, would write on a connection of another borrower. Read under
+		 * the monitor it cannot: {@code close()} takes that same monitor to commit and to return the
+		 * connection, so either this thread is in front of the commit and part of the import, or it
+		 * is behind the return and refused.
+		 */
+		private void checkOpen() {
+			if (closed) {
+				throw importIsClosed();
+			}
+		}
+
+		private StorageRuntimeException importIsClosed() {
+			return new StorageRuntimeException(new IllegalStateException(
+				"this import is closed: its connections are committed and back in the pool"));
+		}
+
+		/**
+		 * Hands one connection back to the pool and closes the sessions its transaction opened
+		 * beside it - the stamp one and the catalog one (#888), both outside the pool and neither
+		 * outliving the import that opened it - under the monitor of the connection: the return
+		 * rolls back and hands the connection to the next borrower, so a statement of a straggling
+		 * import thread must not still be in flight on it - that is the
+		 * two-threads-on-one-connection of #891 with another borrower's operation on the other side
+		 * of it.
+		 * <p>
+		 * The failure of a return is returned rather than thrown: a throw out of here would leave
+		 * with the failure the caller actually came for - the commit of {@code close()}, and in its
+		 * {@code Throwable} branch the {@code Error} that branch exists to preserve - dropped on the
+		 * floor, and the connections after this one unreturned (#878).
+		 *
+		 * @return what went wrong on the way back, or null
+		 */
+		private SQLException release(ImportConnection connection) {
+			synchronized (connection) {
+				try {
+					connection.con.close();
+					return null;
+				} catch (Throwable e) {
+					// Throwable rather than SQLException: this close() is the return to the pool, whose
+					// rollback a driver is free to fail unchecked.
+					return e instanceof SQLException ? (SQLException) e
+						: new SQLException("a connection of the import could not be returned to the pool", e);
+				} finally {
+					// under the monitor with the return itself: each of these sessions holds a connection
+					// of its own in a plain field that its close() reads and nulls without one
+					try {
+						connection.txw.stampSession.close();
+					} finally {
+						connection.txw.catalogSession.close();
+					}
+				}
+			}
+		}
+
+		/**
+		 * The return of a connection no caller is waiting on - the loser of a race to open one, and
+		 * one borrowed into an import that closed underneath it - which has no failure of an
+		 * operation for a failure of the return to ride along with.
+		 */
+		private void releaseUnwatched(ImportConnection connection) {
+			final SQLException failure=release(connection);
+			if (failure!=null) {
+				logger.trace(LocalizableMessage.raw("jdbc: unable to return a connection of the import: %s",
+					stackTraceToSingleLineString(failure)));
+			}
+		}
+
+		/** The return of one connection, joined to the failure the caller is going to report. */
+		private SQLException release(ImportConnection connection, SQLException failure) {
+			final SQLException reported=release(connection);
+			if (reported==null) {
+				return failure;
+			}
+			if (failure==null) {
+				return reported;
+			}
+			failure.addSuppressed(reported);
+			return failure;
+		}
+
+		/**
+		 * Commits one connection of this import under its monitor, which is what keeps the commit
+		 * from being the second statement in flight on it: an import thread that did not answer the
+		 * interrupt of phase two can still be inside a statement while {@code close()} runs
+		 * ({@code OnDiskMergeImporter.invokeParallel} waits five seconds for its threads and closes
+		 * the importer whether they stopped or not), and two threads on one connection is the whole
+		 * of #891.
+		 * <p>
+		 * So a close waits for a statement of a straggler to finish, and a bulk statement carries no
+		 * bound of its own. That wait is not new: pgjdbc and Connector/J serialize the work of a
+		 * connection behind a lock of their own, so a commit issued beside a statement in flight
+		 * already waited there - what is new is that it waits on every dialect, sql server included,
+		 * rather than corrupting the driver's state on the one that does not lock.
+		 * <p>
+		 * A connection with nothing written since its last commit is left alone: the clears of
+		 * {@code beforePhaseOne} pass through here for every tree of a container, and a commit of an
+		 * empty transaction is a round trip to the database for nothing.
+		 */
+		private void commit(ImportConnection connection) throws SQLException {
+			synchronized (connection) {
+				if (connection.lastWrite==0) {
+					return;
+				}
+				connection.con.commit();
+				connection.lastWrite=0;
+			}
+		}
+
+		/**
+		 * Commits the other connections of this import, which is what the one connection an import
+		 * used to hold did of its own accord: {@code clearTree()} ends in a commit, and that commit
+		 * made durable every write the import had made so far - the {@code setTrust(false)} of
+		 * {@code beforePhaseOne} among them. Left to {@code close()}, that flag would still be
+		 * uncommitted while the table it describes was emptied and committed, and a server that
+		 * stopped in between would come back to an index that is empty and marked trusted.
+		 * <p>
+		 * Run in front of the clear rather than after it, so that a peer whose commit fails leaves
+		 * the import with the tree not yet emptied: the destructive half of a clear is the one thing
+		 * that must not be durable while a write it is meant to invalidate is not.
+		 * <p>
+		 * One connection is held at a time, so no thread of an import ever holds two of these
+		 * monitors and two threads clearing at once cannot wait for each other.
+		 */
+		private void commitPeersOf(ImportConnection cleared) {
+			for (final ImportConnection peer : connections.values()) {
+				// the volatile read before the monitor: a peer with nothing to commit is most of them
+				// at the start of an import - beforePhaseOne clears every tree of a container - and
+				// the monitor of one is held for the length of the statement running through it
+				if (peer==cleared || peer.lastWrite==0) {
+					continue;
+				}
+				try {
+					synchronized (peer) {
+						// under the monitor, like every other statement of an import: a clear that
+						// arrives once close() has committed and returned this connection would
+						// otherwise commit the transaction of whoever borrowed it next
+						checkOpen();
+						commit(peer);
+					}
+				}catch (SQLException e) {
+					// reported the way the commit of the clear itself is: what these make durable is
+					// the work the clear is the commit point for
+					throw new StorageRuntimeException(e);
+				}
+			}
+		}
+
+		/**
+		 * Commits the given connections in the order they were last written to - see {@link #writes}.
+		 * <p>
+		 * The order is taken from a copy of what each connection carries rather than read as the sort
+		 * goes: a straggling import thread that got in front of {@code close()} can raise the number
+		 * of the connection it holds while this runs, and a sort whose keys move under it is reported
+		 * by {@code TimSort} as a comparator that violates its contract rather than as the race it is.
+		 */
+		private void commitAll(List<ImportConnection> taken) throws SQLException {
+			final Map<ImportConnection,Long> lastWrites=new IdentityHashMap<>();
+			for (final ImportConnection connection : taken) {
+				synchronized (connection) {
+					lastWrites.put(connection, connection.lastWrite);
+				}
+			}
+			final List<ImportConnection> byLastWrite=new ArrayList<>(taken);
+			byLastWrite.sort(Comparator.comparingLong(lastWrites::get));
+			for (final ImportConnection connection : byLastWrite) {
+				commit(connection);
+			}
+		}
+
+		/**
+		 * Hands every connection this import took back to the pool, whatever went before. Returns
+		 * the failure the caller is to report: the return rolls back, and the rollback fails on
+		 * exactly the connection whose commit just did, so the commit stays the exception the caller
+		 * sees and this one rides along with it instead of replacing it.
+		 * <p>
+		 * Every connection is released even when one of them fails on the way: what a connection
+		 * left behind holds is a permit of the pool, and a pool is never removed from the map.
+		 */
+		private SQLException releaseConnections(List<ImportConnection> taken, SQLException failure) {
+			for (final ImportConnection connection : taken) {
+				failure=release(connection, failure);
 			}
 			return failure;
 		}
 
-		// The connection goes back whatever the commit does, and the storage this importer opened
-		// is closed whatever the connection does: an importer is closed on the way out of a failed
-		// import as readily as a finished one - a clearTree() that reaches the bulk bound is one
-		// way there - and a commit that throws on the way would otherwise leave the connection
-		// out of the pool for good, holding the transaction and the locks of that import.
+		// The connections go back whatever the commit does, and the storage this importer opened
+		// is closed whatever they do: an importer is closed on the way out of a failed import as
+		// readily as a finished one - a clearTree() that reaches the bulk bound is one way there -
+		// and a commit that throws on the way would otherwise leave the connections out of the
+		// pool for good, holding the transactions and the locks of that import.
+		//
+		// Every connection is committed, not only the one the constructor borrowed: each is a
+		// transaction of its own, and what one of them holds uncommitted is the work of every tree
+		// it was given (#891).
 		@Override
 		public void close() {
 			try {
+				// Taken out of the map rather than walked in it, under the monitor that guards it:
+				// from here this import has no transaction left for a write to belong to, a borrow
+				// still in flight is refused rather than left behind, and a second close() finds
+				// nothing to commit or return - one that walked the map again would roll back and
+				// re-pool connections the pool had already handed to somebody else.
+				final List<ImportConnection> taken;
+				final ImportConnection describing;
+				synchronized (connections) {
+					closed=true;
+					describing=connections.get(FIRST_CONNECTION);
+					taken=new ArrayList<>(connections.values());
+					connections.clear();
+				}
 				SQLException failure=null;
 				try {
-					con.commit();
-					if (aborted) {
-						logger.debug(LocalizableMessage.raw("jdbc: import aborted: statistics of the trees it wrote are left alone"));
-					}else {
-						updateTableStatistics(con, writtenTrees);
-					}
+					commitAll(taken);
 				} catch (SQLException e) {
 					failure=e;
 				} catch (Throwable t) {
 					// Back to the pool whatever came out of the commit, not only on the SQLException
-					// a driver is supposed to throw: nothing else holds this connection, and only
-					// its close() gives back the permit it took. A pool is never removed from the
-					// map, so a permit lost to an Error out of a bulk import - or to a driver
+					// a driver is supposed to throw: nothing else holds these connections, and only
+					// their close() gives back the permits they took. A pool is never removed from
+					// the map, so a permit lost to an Error out of a bulk import - or to a driver
 					// failing unchecked - is lost for the life of the server, and enough of them
 					// walk the bound down to nothing (issue #878).
-					final SQLException onTheWayOut=releaseConnection(null);
+					final SQLException onTheWayOut=releaseConnections(taken, null);
 					if (onTheWayOut!=null) {
 						t.addSuppressed(onTheWayOut);
 					}
 					throw t;
 				}
-				// Back to the pool even when the commit failed: nothing else holds this connection,
+				// Everything but the connection that describes goes back before the statistics are
+				// gathered: that is one statement per tree the import wrote, a full scan of the table
+				// on oracle and bounded by a property of its own, and the connections of an import are
+				// the pool's to hand to the operations of the server as soon as they are committed.
+				for (final ImportConnection connection : taken) {
+					if (connection!=describing) {
+						failure=release(connection, failure);
+					}
+				}
+				try {
+					if (aborted) {
+						logger.debug(LocalizableMessage.raw("jdbc: import aborted: statistics of the trees it wrote are left alone"));
+					}else if (describing!=null && failure==null) {
+						// On the connection the constructor borrowed, under its monitor like every
+						// other statement of an import: the statements below describe a table to the
+						// optimizer rather than read one, and they run once every connection of this
+						// import is committed - so there is no work of another one left for them to
+						// miss.
+						synchronized (describing) {
+							updateTableStatistics(describing.con, writtenTrees);
+						}
+					}
+				} catch (Throwable t) {
+					if (describing!=null) {
+						final SQLException onTheWayOut=release(describing, null);
+						if (onTheWayOut!=null) {
+							t.addSuppressed(onTheWayOut);
+						}
+					}
+					throw t;
+				}
+				// Back to the pool even when a commit failed: nothing else holds this connection,
 				// so leaving it behind would leak it along with the failure.
-				failure=releaseConnection(failure);
+				if (describing!=null) {
+					failure=release(describing, failure);
+				}
 				if (failure!=null) {
 					throw new StorageRuntimeException(failure);
 				}
@@ -4766,21 +5324,36 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public void clearTree(TreeName name) {
-			txw.clearTree(name);
+			final ImportConnection connection=connectionOf(name);
+			commitPeersOf(connection); // in front of the clear, see there
+			synchronized (connection) {
+				checkOpen();
+				connection.txw.clearTree(name);
+				connection.lastWrite=0; // the clear ends in a commit of this connection
+			}
 			writtenTrees.add(name);
 		}
 
 		@Override
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
-			txw.put(treeName, key, value);
+			final ImportConnection connection=connectionOf(treeName);
+			synchronized (connection) {
+				checkOpen();
+				connection.txw.put(treeName, key, value);
+				connection.written();
+			}
 			writtenTrees.add(treeName);
 		}
-		
+
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
-			return txr.read(treeName, key);
+			final ImportConnection connection=connectionOf(treeName);
+			synchronized (connection) {
+				checkOpen();
+				return connection.txr.read(treeName, key);
+			}
 		}
-		
+
 		// Bulk like every other statement of an import, by the class of the transaction it comes
 		// from: this walks a whole tree with no client waiting on it - phase one of a rebuild-index
 		// reads every record of id2entry through this cursor (OnDiskMergeImporter.ID2EntrySource) -
@@ -4788,7 +5361,88 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// rather than a step along an index.
 		@Override
 		public SequentialCursor<ByteString, ByteString> openCursor(TreeName treeName) {
-			return txr.openCursor(treeName);
+			final ImportConnection connection=connectionOf(treeName);
+			synchronized (connection) {
+				checkOpen();
+				return new ImportCursor(connection, connection.txr.openCursor(treeName));
+			}
+		}
+
+		/**
+		 * A cursor of an import, every method of which runs under the monitor of the connection it
+		 * walks. An import has more trees than connections, so the tree this cursor walks shares
+		 * its connection with the trees written through it, and a batch of this cursor must not be
+		 * in flight there beside a statement of one of them.
+		 * <p>
+		 * The methods that issue no statement take the monitor as well, rather than being excused
+		 * on the ground that the thread which opened the cursor is the only one to call them:
+		 * nothing here enforces that, and what they read - the batch the last {@code next()} left
+		 * in {@link CursorImpl}, an {@code ArrayDeque} and four plain fields - is written under
+		 * that monitor and carries no memory barrier of its own. An uncontended monitor is what
+		 * that costs.
+		 */
+		private final class ImportCursor implements SequentialCursor<ByteString, ByteString> {
+			private final ImportConnection connection;
+			private final SequentialCursor<ByteString, ByteString> cursor;
+
+			ImportCursor(ImportConnection connection, SequentialCursor<ByteString, ByteString> cursor) {
+				this.connection=connection;
+				this.cursor=cursor;
+			}
+
+			@Override
+			public boolean next() {
+				synchronized (connection) {
+					checkOpen();
+					return cursor.next();
+				}
+			}
+
+			// A cursor of an import is opened on the read transaction of its connection, whose
+			// isReadOnly CursorImpl carries, so this forwards the refusal that transaction answers
+			// with rather than a delete. Nothing is recorded against the connection for that reason:
+			// a mark here would be a write number this cursor never made, and the highest one at
+			// that - it would move its connection to the end of the order close() commits in, which
+			// is where the trust flags of afterPhaseTwo belong. An importer that ever opens a
+			// writeable cursor has to record the write there, next to the delete that made it.
+			@Override
+			public void delete() {
+				synchronized (connection) {
+					checkOpen();
+					cursor.delete();
+				}
+			}
+
+			@Override
+			public boolean isDefined() {
+				synchronized (connection) {
+					return cursor.isDefined();
+				}
+			}
+
+			@Override
+			public ByteString getKey() {
+				synchronized (connection) {
+					return cursor.getKey();
+				}
+			}
+
+			@Override
+			public ByteString getValue() {
+				synchronized (connection) {
+					return cursor.getValue();
+				}
+			}
+
+			// Not refused after close() the way a read or a write of the importer is: this frees what
+			// the last batch left in the cursor and reaches no connection, and the try-with-resources
+			// of a cancelled phase-two task closes its cursor after the importer it walked.
+			@Override
+			public void close() {
+				synchronized (connection) {
+					cursor.close();
+				}
+			}
 		}
 	}
 	
@@ -4796,9 +5450,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	@Override
 	public Importer startImport() throws ConfigException, StorageRuntimeException {
 		// Everything this used to do before building the importer - opening a closed storage, and
-		// borrowing the connection an import keeps for its whole duration - is the importer's own now
-		// (#878). Split between the two, a failure in between had to be given back by whichever of them
-		// had taken what, and the constructor's own throw was covered by neither.
+		// borrowing the first of the connections an import keeps for its whole duration - is the
+		// importer's own now (#878). Split between the two, a failure in between had to be given back
+		// by whichever of them had taken what, and the constructor's own throw was covered by neither.
 		return new ImporterImpl();
 	}
 	
