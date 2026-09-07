@@ -73,13 +73,18 @@ public interface Storage extends Closeable
   <T> T read(ReadOperation<T> readOperation) throws Exception;
 
   /**
-   * Executes a write operation. In case of a write operation rollback, implementations must ensure
-   * the write operation is retried until it succeeds.
+   * Executes a write operation. In case of a write operation rollback, implementations may replay the write
+   * operation rather than propagate the failure: a {@link WriteOperation} is required to be idempotent for
+   * exactly that reason. A replay must be bounded - by a number of attempts, by a window of time, or by both -
+   * so that a conflict which does not clear reaches the caller instead of being retried forever. The pluggable
+   * backend holds locks across this method, up to the exclusive lock of an entry container, and every thread
+   * waiting on one of those locks waits for as long as this method does.
    *
    * @param writeOperation
    *          the write operation to execute
    * @throws Exception
-   *           if a problem occurs with the underlying storage engine
+   *           if a problem occurs with the underlying storage engine, including a conflict that outlasted the
+   *           replays the implementation makes
    */
   void write(WriteOperation writeOperation) throws Exception;
 

@@ -21,11 +21,17 @@ import static org.forgerock.opendj.config.ConfigurationMock.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.server.config.server.PDBBackendCfg;
 import org.opends.server.backends.pluggable.spi.AccessMode;
+import org.opends.server.backends.pluggable.spi.ReadOperation;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
+import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
@@ -38,6 +44,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.persistit.Exchange;
+import com.persistit.exception.RollbackException;
 
 public class PDBStorageTest extends DirectoryServerTestCase
 {
@@ -64,7 +71,17 @@ public class PDBStorageTest extends DirectoryServerTestCase
   @AfterMethod
   public void tearDown()
   {
-    storage.close();
+    try
+    {
+      storage.close();
+    }
+    finally
+    {
+      // this test class shares a fixed db-directory across methods and across builds: leaving the volume behind
+      // would let a value written by an earlier method answer the reads of a later one, so it is removed even
+      // when close() fails - which is exactly when something is left behind
+      storage.removeStorageFiles();
+    }
   }
 
   @Test
@@ -120,6 +137,248 @@ public class PDBStorageTest extends DirectoryServerTestCase
     });
 
     assertThat(storage.getNewExchange(treeName, true)).isNotSameAs(initial);
+  }
+
+  @Test
+  public void testWriteGivesUpAfterTheAttemptCap() throws Exception
+  {
+    createTree();
+
+    final RollbackException conflict = new RollbackException();
+    final AtomicInteger attempts = new AtomicInteger();
+    try
+    {
+      storage.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          attempts.incrementAndGet();
+          txn.put(treeName, valueOfUtf8("abandoned"), valueOfUtf8("value"));
+          throw conflict;
+        }
+      });
+      failBecauseExceptionWasNotThrown(StorageRuntimeException.class);
+    }
+    catch (StorageRuntimeException e)
+    {
+      assertThat(e.getSuppressed()).contains(conflict);
+    }
+    assertThat(attempts.get()).isEqualTo(PDBStorage.MAX_RETRIES);
+    assertThat(read("abandoned")).isNull();
+  }
+
+  @Test
+  public void testWriteIsReplayedUntilTheConflictClears() throws Exception
+  {
+    createTree();
+
+    final AtomicInteger attempts = new AtomicInteger();
+    storage.write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        if (attempts.incrementAndGet() <= 3)
+        {
+          throw new RollbackException();
+        }
+        txn.put(treeName, valueOfUtf8("applied"), valueOfUtf8("value"));
+      }
+    });
+
+    assertThat(attempts.get()).isEqualTo(4);
+    assertThat(read("applied")).isEqualTo(valueOfUtf8("value"));
+  }
+
+  /**
+   * PersistIt reports a write-write conflict only once it has waited on it - up to
+   * {@code SharedResource.DEFAULT_MAX_WAIT_TIME}, a minute, which this backend never lowers - so a single attempt
+   * can outlast the whole window. Giving up on the window alone would then replay nothing, in the very case where
+   * the replay is likeliest to succeed: the transaction that was blocking this one has just finished.
+   */
+  @Test
+  public void testWriteIsReplayedOnceWhenTheFirstAttemptOutlastsTheWindow() throws Exception
+  {
+    createTree();
+
+    final AtomicInteger attempts = new AtomicInteger();
+    storage.write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        if (attempts.incrementAndGet() == 1)
+        {
+          Thread.sleep(11000);
+          throw new RollbackException();
+        }
+        txn.put(treeName, valueOfUtf8("outlasted"), valueOfUtf8("written"));
+      }
+    });
+
+    assertThat(attempts.get()).isEqualTo(2);
+    assertThat(read("outlasted")).isEqualTo(valueOfUtf8("written"));
+  }
+
+  @Test
+  public void testExhaustedWriteNamesTheAttemptsItSpent() throws Exception
+  {
+    createTree();
+
+    try
+    {
+      storage.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          throw new RollbackException();
+        }
+      });
+      failBecauseExceptionWasNotThrown(StorageRuntimeException.class);
+    }
+    catch (StorageRuntimeException e)
+    {
+      assertThat(e.getMessage()).contains("PDBStorageTest").contains(PDBStorage.MAX_RETRIES + " attempts");
+      // and which of the two bounds ran out, since the attempt count alone does not say
+      assertThat(e.getMessage()).contains("attempt cap");
+      // write() unwraps a StorageRuntimeException that carries a cause, which would replace this message with
+      // the bare RollbackException, and it is the message the config change paths report
+      assertThat(e.getCause()).isNull();
+    }
+  }
+
+  @Test
+  public void testWriteGivesUpOnTheWindowWhenAttemptsAreSlow() throws Exception
+  {
+    createTree();
+
+    final AtomicInteger attempts = new AtomicInteger();
+    try
+    {
+      storage.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          attempts.incrementAndGet();
+          // a conflict this slow to report spends the wall clock window long before the attempt cap
+          Thread.sleep(6000);
+          throw new RollbackException();
+        }
+      });
+      failBecauseExceptionWasNotThrown(StorageRuntimeException.class);
+    }
+    catch (StorageRuntimeException expected)
+    {
+      // the write gave up, which is what the attempt count below says it did on the window
+    }
+    assertThat(attempts.get()).isLessThan(PDBStorage.MAX_RETRIES);
+  }
+
+  @Test
+  public void testInterruptedWriteReportsTheConflictItWasReplaying() throws Exception
+  {
+    createTree();
+
+    final RollbackException conflict = new RollbackException();
+    final AtomicInteger attempts = new AtomicInteger();
+    final boolean interruptedAfterwards;
+    try
+    {
+      storage.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          attempts.incrementAndGet();
+          // interrupted here rather than before the write, where the transaction this attempt begins would
+          // report the interrupt itself and the loop would never reach the backoff being tested
+          Thread.currentThread().interrupt();
+          throw conflict;
+        }
+      });
+      failBecauseExceptionWasNotThrown(StorageRuntimeException.class);
+      return;
+    }
+    catch (StorageRuntimeException e)
+    {
+      interruptedAfterwards = Thread.interrupted();
+      // the conflict, not the interrupt, is what the caller is told about - but through the same shape the
+      // exhausted loop uses, since a bare RollbackException reaches every caller as its own class name
+      assertThat(e.getMessage()).contains("PDBStorageTest").contains("interrupted");
+      assertThat(e.getSuppressed()).contains(conflict).hasAtLeastOneElementOfType(InterruptedException.class);
+      assertThat(e.getCause()).isNull();
+    }
+    finally
+    {
+      Thread.interrupted();
+    }
+    // sleep() cleared the flag, so the caller only learns of the interrupt if the loop restores it
+    assertThat(interruptedAfterwards).isTrue();
+    // one attempt even though the first backoff is a random 0-49 ms and so is sometimes 0: Thread.sleep() checks
+    // the interrupt flag before it checks for a zero duration, so the replay is never reached
+    assertThat(attempts.get()).isEqualTo(1);
+  }
+
+  /**
+   * The delay grows with the attempt and stays under the cap, so that a contention the first delays did not
+   * outlast still has a chance to clear without the replays overrunning the window on sleep alone.
+   */
+  @Test
+  public void testRetryDelayGrowsAndStaysBounded()
+  {
+    long previousBound = 0;
+    for (int attempt = 1; attempt <= PDBStorage.MAX_RETRIES; attempt++)
+    {
+      long bound = 0;
+      for (int i = 0; i < 100; i++)
+      {
+        final long delay = PDBStorage.retryDelayMillis(attempt);
+        assertThat(delay).as("attempt %d", attempt).isGreaterThanOrEqualTo(0).isLessThan(1000);
+        bound = Math.max(bound, delay);
+      }
+      if (attempt == 1)
+      {
+        // the flat sleep this loop took before it was bounded, unchanged: only the later attempts back off
+        assertThat(bound).as("attempt 1 delays past the sleep this loop always took").isLessThan(50);
+      }
+      assertThat(bound).as("attempt %d did not grow past attempt %d", attempt, attempt - 1)
+          .isGreaterThanOrEqualTo(previousBound / 2);
+      previousBound = bound;
+    }
+    // and the growth is real rather than a delay that never leaves the first tier
+    long grown = 0;
+    for (int i = 0; i < 100; i++)
+    {
+      grown = Math.max(grown, PDBStorage.retryDelayMillis(PDBStorage.MAX_RETRIES));
+    }
+    assertThat(grown).as("the last attempts still sleep within the first attempt's bound").isGreaterThan(500);
+  }
+
+  private void createTree() throws Exception
+  {
+    storage.write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        txn.openTree(treeName, true);
+      }
+    });
+  }
+
+  private ByteString read(final String key) throws Exception
+  {
+    return storage.read(new ReadOperation<ByteString>()
+    {
+      @Override
+      public ByteString run(ReadableTransaction txn) throws Exception
+      {
+        return txn.read(treeName, valueOfUtf8(key));
+      }
+    });
   }
 
   protected PDBBackendCfg createBackendCfg()
