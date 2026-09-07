@@ -547,7 +547,11 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
           ports[0], "listenThreadWaitsBeforeAcceptingAgainDb", 0, 1, 0, 0, null));
       final ReplicationServer listeningServer = replicationServer;
 
-      final int failures = 3;
+      // Four, so that two waits in a row are measured: a backoff timed from the previous
+      // failure rather than from the previous wait grants one, and the failure which
+      // follows it then looks isolated -- half of a continuous run goes unwaited, and only
+      // a second interval in a row tells that apart.
+      final int failures = 4;
       final String acceptFailure = "accept() fails the way it fails without a file descriptor left";
       final AtomicInteger accepts = new AtomicInteger();
       // When each accept() was entered: the wait is between two of them, and measuring
@@ -589,17 +593,33 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
 
       assertTrue(failingSocket.isClosed(), "the socket the listen loop ended on should be closed");
       assertEquals(accepts.get(), failures, "the listen loop should have ended on the closed socket");
-      // Of the three failures, only the second one is waited on: the first of a row is
-      // not, so that an isolated failure costs the connections behind it nothing, and the
-      // third closes the socket, which ends the loop before it would wait.
-      // Compared in nanoseconds: converting to milliseconds first floors the measurement,
-      // so a wait of exactly the backoff would read as one millisecond short of it.
-      final long waitedNanos = acceptNanos[2] - acceptNanos[1];
-      assertTrue(waitedNanos >= TimeUnit.MILLISECONDS.toNanos(ReplicationServer.ACCEPT_FAILURE_BACKOFF_MS),
-          "the listen thread should have waited " + ReplicationServer.ACCEPT_FAILURE_BACKOFF_MS
-              + " ms after the failure repeated before accepting again, but only "
-              + TimeUnit.NANOSECONDS.toMicros(waitedNanos)
-              + " microseconds passed between the second attempt and the third");
+      /*
+       * Of the four failures, the second and the third are waited on: the first of a row
+       * is not, so that an isolated failure costs the connections behind it nothing, and
+       * the fourth closes the socket, which ends the loop before it would wait.
+       *
+       * Compared in nanoseconds: converting to milliseconds first floors the measurement,
+       * so a wait of exactly the backoff would read as one millisecond short of it.
+       */
+      final long backoffNanos = TimeUnit.MILLISECONDS.toNanos(ReplicationServer.ACCEPT_FAILURE_BACKOFF_MS);
+      for (int attempt = 2; attempt <= 3; attempt++)
+      {
+        final long waitedNanos = acceptNanos[attempt] - acceptNanos[attempt - 1];
+        assertTrue(waitedNanos >= backoffNanos,
+            "the listen thread should have waited " + ReplicationServer.ACCEPT_FAILURE_BACKOFF_MS
+                + " ms after failure " + attempt + " of a row before accepting again, but only "
+                + TimeUnit.NANOSECONDS.toMicros(waitedNanos)
+                + " microseconds passed before attempt " + (attempt + 1));
+      }
+      // And the first failure of the row is not waited on. Bounded by the backoff itself,
+      // which is what waiting on it would cost: what separates the first two attempts is
+      // one log record and the turn of the loop, three orders of magnitude below it.
+      final long firstIntervalNanos = acceptNanos[1] - acceptNanos[0];
+      assertTrue(firstIntervalNanos < backoffNanos,
+          "the listen thread should not have waited after the first failure, so that an isolated"
+              + " one costs the connections behind it nothing, but "
+              + TimeUnit.NANOSECONDS.toMicros(firstIntervalNanos)
+              + " microseconds passed between the first attempt and the second");
 
       int warnings = 0;
       int suppressed = 0;
@@ -607,24 +627,37 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       {
         if (record.contains(acceptFailure))
         {
-          // A suppressed failure is still recorded, at a severity which the error log
-          // does not publish by default. This capture publishes every severity.
+          // A suppressed failure is still recorded, with the information severity, which
+          // the replication log publishes and the error log does not. This capture
+          // publishes every severity, so it holds both.
           if (record.contains("severity=WARNING"))
           {
             warnings++;
+            // The warning stands for the failures suppressed since the previous one, and
+            // this is the first, so it stands for itself alone. Read out of the message
+            // to pin which of its two numbers is the count and which is the interval.
+            assertTrue(record.contains("every 5 minutes") && record.contains("(0 since the previous warning)"),
+                "the warning should report the interval it is bounded by and the 0 failures it"
+                    + " stands for, but it reads: " + record);
           }
           else
           {
+            // Each suppressed record counts itself in what the next warning will stand
+            // for, so they are numbered in the order they were written.
             suppressed++;
+            assertTrue(record.contains("every 5 minutes")
+                && record.contains("(" + suppressed + " since the previous warning)"),
+                "suppressed record " + suppressed + " should report the interval it is bounded by"
+                    + " and the " + suppressed + " failures counted so far, but it reads: " + record);
           }
         }
       }
-      // The first failure is warned about, the second is suppressed by the throttle, and
-      // the third one, on the closed socket, is how the loop is told to end.
+      // The first failure is warned about, the second and the third are suppressed by the
+      // throttle, and the fourth, on the closed socket, is how the loop is told to end.
       assertEquals(warnings, 1, "the listen thread should have warned about the first failure only,"
           + " but the error log holds " + warnings + " warnings about it: " + records);
-      assertEquals(suppressed, 1, "the failure which follows should have been suppressed and kept,"
-          + " but the error log holds " + suppressed + " suppressed records about it: " + records);
+      assertEquals(suppressed, 2, "the failures which follow should have been suppressed and kept,"
+          + " but the error log holds " + suppressed + " suppressed records about them: " + records);
     }
     finally
     {

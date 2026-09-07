@@ -162,10 +162,6 @@ public class ReplicationServer
   private static final long ACCEPT_FAILURE_BACKOFF_NANOS =
       TimeUnit.MILLISECONDS.toNanos(ACCEPT_FAILURE_BACKOFF_MS);
 
-  /** Bounds how often a failure of {@link ServerSocket#accept()} is warned about. */
-  private final FailureLogThrottle acceptFailures =
-      new FailureLogThrottle(FAILURE_WARN_INTERVAL_MINUTES, TimeUnit.MINUTES);
-
   /** Bounds how often an accepted connection which cannot be turned into a session is warned about. */
   private final FailureLogThrottle sessionSetupFailures =
       new FailureLogThrottle(FAILURE_WARN_INTERVAL_MINUTES, TimeUnit.MINUTES);
@@ -327,16 +323,34 @@ public class ReplicationServer
         socket.getLocalPort());
 
     /*
-     * When accept() last failed on this socket, confined to this thread: a listen port
-     * change runs a second listen thread, and each of them times the socket it accepts on.
+     * When the last failure of accept() on this socket was done being handled, confined to
+     * this thread: a listen port change runs a second listen thread, and each of them times
+     * the socket it accepts on.
      *
-     * A failure which follows one closely is what the wait below is for, rather than a run
-     * of consecutive failures: a socket which frees a descriptor now and then lets an
-     * accept through between two failures, and counting only consecutive ones would let
-     * that alternation spin. It starts a whole interval in the past, so an isolated
-     * failure does not wait.
+     * A failure which follows one closely is what the wait below is for. It starts a whole
+     * interval in the past, so an isolated failure does not wait, and a successful accept
+     * puts it back there: a loop which is serving connections is doing work rather than
+     * spinning, and what paced it before is not what the next failure repeats. Without that
+     * reset, a stream of connections aborted between the handshake and accept() -- a health
+     * check or a port scan -- would charge the whole listen port a wait per probe, and the
+     * peers queued behind them would pay it.
+     *
+     * Read when the previous failure was handled rather than when it happened, so that the
+     * wait it was granted is not what makes the next failure look isolated: timing from the
+     * failure would leave every second one of a continuous run unwaited, and bound the spin
+     * to twice the rate the wait is chosen for.
      */
-    long lastAcceptFailureNanos = System.nanoTime() - ACCEPT_FAILURE_BACKOFF_NANOS;
+    long handledAcceptFailureNanos = System.nanoTime() - ACCEPT_FAILURE_BACKOFF_NANOS;
+
+    /*
+     * Bounds how often a failure of accept() on this socket is warned about, and is
+     * confined to this thread for the same reason the clock above is: a listen port change
+     * runs a second listen thread, and a five minute window opened on the port which was
+     * left would otherwise suppress the first failure on the port which replaced it --
+     * silence right after the administrator changed the port to get out of trouble.
+     */
+    final FailureLogThrottle acceptFailures =
+        new FailureLogThrottle(FAILURE_WARN_INTERVAL_MINUTES, TimeUnit.MINUTES);
 
     while (!shutdown.get() && !socket.isClosed())
     {
@@ -353,12 +367,14 @@ public class ReplicationServer
         }
         catch (Exception e)
         {
-          final long failedAtNanos = System.nanoTime();
-          final boolean repeated = failedAtNanos - lastAcceptFailureNanos < ACCEPT_FAILURE_BACKOFF_NANOS;
-          lastAcceptFailureNanos = failedAtNanos;
-          handleAcceptFailure(socket, e, repeated);
+          final boolean repeated =
+              System.nanoTime() - handledAcceptFailureNanos < ACCEPT_FAILURE_BACKOFF_NANOS;
+          handleAcceptFailure(acceptFailures, socket, e, repeated);
+          handledAcceptFailureNanos = System.nanoTime();
           continue;
         }
+        // A connection served is not a spin: the failures before it stop pacing the loop.
+        handledAcceptFailureNanos = System.nanoTime() - ACCEPT_FAILURE_BACKOFF_NANOS;
 
         try
         {
@@ -448,16 +464,24 @@ public class ReplicationServer
    * and {@code accept()} fails it once, and making the listen thread pause for a
    * connection nobody is waiting for any more would slow down the ones which follow it.
    *
+   * @param throttle
+   *          The throttle of the calling listen thread, which bounds how often this
+   *          failure is warned about.
    * @param socket
    *          The socket connections are accepted on.
    * @param e
    *          The failure.
    * @param repeated
-   *          Whether {@code accept()} already failed on that socket less than
-   *          {@link #ACCEPT_FAILURE_BACKOFF_MS} ago.
+   *          Whether the previous failure of {@code accept()} on that socket was handled
+   *          less than {@link #ACCEPT_FAILURE_BACKOFF_MS} ago.
    */
-  private void handleAcceptFailure(final ServerSocket socket, final Exception e, final boolean repeated)
+  private void handleAcceptFailure(final FailureLogThrottle throttle, final ServerSocket socket,
+      final Exception e, final boolean repeated)
   {
+    // Read before the socket is tested rather than after it is reported: a socket closed
+    // in between is one this method returns on, while a closed socket names no address at
+    // all, and the warning would report the port the administrator needs as "null".
+    final Object listenAddress = socket.getLocalSocketAddress();
     if (shutdown.get() || socket.isClosed())
     {
       // The socket was closed to stop this thread or to change the listen port: the loop
@@ -466,8 +490,7 @@ public class ReplicationServer
       return;
     }
 
-    logThrottledFailure(acceptFailures, WARN_REPLICATION_SERVER_ACCEPT_ERROR,
-        socket.getLocalSocketAddress(), e);
+    logThrottledFailure(throttle, WARN_REPLICATION_SERVER_ACCEPT_ERROR, listenAddress, e);
     if (repeated)
     {
       // The wait is not interruptible on purpose: the flag is left alone, as restoring it
@@ -508,8 +531,11 @@ public class ReplicationServer
    * through, reporting how many failures that line stands for.
    * <p>
    * A failure the throttle suppresses is still recorded, with the information severity:
-   * {@code logger.debug} of a localized message publishes to the error log, which does
-   * not publish that severity by default, and not to the debug log.
+   * {@code logger.debug} of a localized message publishes to the error log and not to the
+   * debug log. What reads that severity is the replication log, whose shipped publisher
+   * overrides it on for the {@code SYNC} category; the error log does not publish it by
+   * default. So the throttle bounds what the error log holds, and what the replication log
+   * holds is one record per failure, which is what the messages say.
    *
    * @param throttle
    *          The throttle bounding how often this failure is warned about.
@@ -643,13 +669,19 @@ public class ReplicationServer
 
   /**
    * Establish a connection to the server with the address and port.
+   * <p>
+   * Package private for testing: what a peer costs the error log is decided here, and a
+   * test of the bookkeeping alone cannot see how it is called.
    *
    * @param remoteServerAddress
    *          The address and port for the server
    * @param baseDN
    *          The baseDN of the connection
+   * @return {@code false} if the connection could not be established, {@code true}
+   *         otherwise, which is not the same as being connected: a handshake this server
+   *         aborts also returns here without throwing.
    */
-  private boolean connect(HostPort remoteServerAddress, DN baseDN)
+  boolean connect(HostPort remoteServerAddress, DN baseDN)
   {
     boolean sslEncryption = replSessionSecurity.isSslEncryption();
 
@@ -708,26 +740,28 @@ public class ReplicationServer
      * unexpected message -- by closing the session and returning, and it reports the ones
      * worth reporting itself.
      *
-     * So forget the recorded failure in any case, and report the recovery only once the
-     * handler is registered with the domain, which is what a started one does. Forgetting
-     * it unconditionally is the safe half of the trade: a record which nothing clears
-     * silences the next outage, while clearing one too early costs at most a second
-     * warning for the same outage. The registration is read by address, and resolving one
-     * costs a name lookup, so it is asked for only when there is a recovery to report.
+     * What tells the two apart is the session: abortStart() closes it to abort, and a
+     * handshake which completed leaves it open, so an open session is a connection and is
+     * what ends the outage. It is read first, and the record is cleared only once it says
+     * there is one: recordSuccess() mutates, so asking it first would clear the record of a
+     * peer this pass did not connect to, and the outage would then be reported open and
+     * never reported closed -- the recovery reaching the already connected branch of
+     * runConnect() a pass later would find nothing left to report.
+     *
+     * Read from the session rather than from the registration with the domain, which is
+     * what a started handler also does: ReplicationServerHandler.connect() registers only
+     * above protocol version 1, the FIXME there being older than this, so a peer which
+     * negotiates V1 is connected and never registered. Keying on the registration would
+     * leave its record uncleared for good, and silence every outage of it after the first.
+     * A peer whose handler advertises an address which does not resolve to the configured
+     * one -- the multi homing the HostPort javadoc names -- is the same shape, and its
+     * session is open here as well.
      */
-    if (connectFailures.recordSuccess(remoteServerAddress, baseDN)
-        && isConnectedToRS(remoteServerAddress, baseDN))
+    if (!session.closeInitiated())
     {
-      logger.info(NOTE_REPLICATION_SERVER_CONNECT_RESTORED, getServerId(), remoteServerAddress, baseDN);
+      reportConnectionRestored(remoteServerAddress, baseDN);
     }
     return true;
-  }
-
-  /** Returns whether a replication server handler for the provided peer and domain is registered. */
-  private boolean isConnectedToRS(final HostPort remoteServerAddress, final DN baseDN)
-  {
-    final ReplicationServerDomain domain = getReplicationServerDomain(baseDN);
-    return domain != null && getConnectedRSAddresses(domain).contains(remoteServerAddress);
   }
 
   /**

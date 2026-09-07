@@ -55,7 +55,8 @@ public final class ReplSessionSecurity
    * Minimum interval, in minutes, between two warnings about a failed SSL handshake
    * on the replication port. Every connection which is not a replication peer fails
    * the handshake, network probes included, so only the first failure of an interval
-   * is logged as a warning and the following ones are logged at debug level.
+   * is logged as a warning and the following ones are recorded with the information
+   * severity, which the replication log publishes and the error log does not.
    */
   private static final long HANDSHAKE_FAILURE_WARN_INTERVAL_MINUTES = 5;
 
@@ -293,8 +294,9 @@ public final class ReplSessionSecurity
   /**
    * Logs a failed SSL handshake on the replication port, as a warning for the
    * first failure of each {@link #HANDSHAKE_FAILURE_WARN_INTERVAL_MINUTES}
-   * interval and at debug level for the following ones. The warning reports how
-   * many failures were logged at debug level before it, so that a single line
+   * interval and with the information severity for the following ones, which the
+   * replication log publishes and the error log does not. The warning reports how
+   * many failures were recorded that way before it, so that a single line
    * cannot be mistaken for a single failed connection. That count looks backwards
    * only: the failures which follow the last warning of a burst are counted but
    * never reported, as nothing flushes the count when the failures stop.
@@ -323,18 +325,18 @@ public final class ReplSessionSecurity
 
   /**
    * Records a handshake failure which happened at the provided time and tells how it
-   * must be logged, together with the number of failures logged at debug level since
-   * the previous warning.
+   * must be logged, together with the number of failures suppressed since the previous
+   * warning.
    * <p>
    * Package private for testing.
    *
    * @param nowNanos
    *          The value of {@link System#nanoTime()} at which the handshake failed.
    * @return A number greater than or equal to zero if this failure is to be logged as a
-   *         warning, which is then the number of failures logged at debug level since
-   *         the previous warning, or {@code -count - 1} if this failure is itself to be
-   *         logged at debug level, where {@code count} is the number of failures logged
-   *         at debug level since the previous warning, this one included.
+   *         warning, which is then the number of failures suppressed since the previous
+   *         warning, or {@code -count - 1} if this failure is itself to be suppressed,
+   *         where {@code count} is the number of failures suppressed since the previous
+   *         warning, this one included.
    */
   long recordHandshakeFailure(final long nowNanos)
   {

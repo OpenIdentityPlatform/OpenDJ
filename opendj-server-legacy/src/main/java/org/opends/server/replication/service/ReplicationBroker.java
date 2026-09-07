@@ -1161,8 +1161,18 @@ public class ReplicationBroker
     catch (Exception e)
     {
       logger.traceException(e);
-      errorMessage = WARN_EXCEPTION_STARTING_SESSION_PHASE.get(
-          getServerId(), serverURL, getBaseDN(), stackTraceToSingleLineString(e));
+      /*
+       * The whole trace, on one line, for the server this broker is electing, which is
+       * what this message carried before it was reported for the others as well; the
+       * message alone for a server which was only contacted, whose report is not
+       * throttled. An SSLException lands here, is not paced by a connect timeout the way
+       * a refused connection is, and collectReplicationServersInfo() reruns over every
+       * URL on each reconnection: one bad certificate among several replication servers
+       * would otherwise write a full stack trace per flap cycle. The trace of those is in
+       * the trace log, which traceException() above wrote it to.
+       */
+      errorMessage = WARN_EXCEPTION_STARTING_SESSION_PHASE.get(getServerId(), serverURL, getBaseDN(),
+          keepSession ? stackTraceToSingleLineString(e) : getExceptionMessage(e));
     }
     finally
     {
@@ -1187,15 +1197,26 @@ public class ReplicationBroker
            * replication server and per attempt to connect this broker makes. It is set
            * when an attempt reaches no replication server at all, and stays set until a
            * session is established, so the 500 ms loop which retries a total outage
-           * reports its first pass only. It is not set while this broker is connected, so
-           * a replication server which stays unreachable while another one serves this
-           * broker is reported once for each reconnection, which is as often as the
-           * reconnection itself is reported.
+           * reports its first pass only.
            *
-           * The elected server keeps the severity it was reported with; the ones which
-           * were only contacted are reported as the warnings their messages are named
-           * for, so that a broker which does find a server to work with does not raise an
-           * error over the one it did not need.
+           * It is not set while this broker is connected, so the unreachable servers of a
+           * topology which still serves this broker are reported again on each
+           * reconnection -- one line each, so a reconnection costs as many lines as there
+           * are servers it could not reach, where it used to cost none. That is the volume
+           * this reporting is worth: a broker reconnects when its session is lost, not on
+           * a schedule, and a server which cannot be reached over several reconnections is
+           * a server whose configuration or certificate needs looking at.
+           *
+           * The severity says what the failure cost this broker, not what the message is
+           * named: the elected server keeps the error it was reported with, and a server
+           * which was only contacted is a warning, so that a broker which does find a
+           * server to work with does not raise an error over the one it did not need.
+           * ERR_DS_DN_DOES_NOT_MATCH is the one message which reaches the second branch
+           * under an ERR_ name -- it is set without setting hasConnected -- and it is a
+           * permanent misconfiguration rather than a transient. It still goes out as an
+           * error for the server this broker is electing, which is the one it cannot work
+           * without, and where it is only contacted the broker has another server to work
+           * with. Before this, that path logged nothing above trace either way.
            */
           if (keepSession)
           {

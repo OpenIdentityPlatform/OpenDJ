@@ -72,6 +72,16 @@ public class ReplicationBrokerConnectFailureTest extends ReplicationTestCase
       assertThat(logged)
           .as("the summary of the outage should still be logged next to the cause")
           .contains(WARN_NO_AVAILABLE_CHANGELOGS.get(serverId, baseDN).toString());
+      /*
+       * A replication server which was only contacted is reported as a warning, and the
+       * one this broker elects keeps the error it was reported with. No server answers
+       * here, so none is elected and every record about one is a warning: the severity is
+       * part of what this reports, not a detail of how, and asserting the text alone would
+       * leave the split which decides it untested.
+       */
+      assertThat(recordOf(records, WARN_NO_CHANGELOG_SERVER_LISTENING.get(serverId, deadServer, baseDN)))
+          .as("the cause of a replication server which was only contacted is a warning")
+          .contains("severity=WARNING");
     }
     finally
     {
