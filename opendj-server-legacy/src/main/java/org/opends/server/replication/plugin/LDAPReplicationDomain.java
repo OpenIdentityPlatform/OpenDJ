@@ -319,17 +319,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   public static final int IN_PLACE_REPLAY_ATTEMPTS = 10;
   /**
-   * How long the replay of a change is retried before this replica gives up on it and
-   * moves on to the changes which follow it.
-   * <p>
-   * The budget is a duration rather than a number of attempts because what
-   * {@link #isServerFailure(ResultCode, ResultCode)} reports is measured in minutes: a
-   * backend which is being rebuilt, imported into or restored (OPENDJ-49) serves nothing
-   * while it works, and a handful of attempts would have this replica give up on every
-   * change of a maintenance window it only had to wait out.
-   */
-  private static final long REPLAY_GIVE_UP_DELAY_IN_MS = 300000;
-  /**
    * How long the session is left down before the change is asked for again, multiplied
    * by the number of attempts already made: a backend which keeps failing must not be
    * hammered with a session restart per failed change.
@@ -366,12 +355,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * shortest for as long as the outage lasts.
    */
   private final AtomicInteger consecutiveSessionRestarts = new AtomicInteger();
-  /**
-   * How long the replay of a change is retried before this replica gives up on it. Only
-   * the tests, which can not wait out {@link #REPLAY_GIVE_UP_DELAY_IN_MS}, set another
-   * value.
-   */
-  private volatile long replayGiveUpDelayInMs = REPLAY_GIVE_UP_DELAY_IN_MS;
   /**
    * Serialises the session of this domain being stopped and started again: the replay
    * thread which restarts it after a failed replay must not race the domain being
@@ -2999,9 +2982,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * The change has deliberately been left out of the ServerState, so the replication
    * server still owns it: restart the session so that it is sent again and replayed on
    * a backend which has hopefully recovered in the meantime. Give up once its replay has
-   * been failing for {@link #REPLAY_GIVE_UP_DELAY_IN_MS} and record it as replayed, so
-   * that a change which can never be applied here does not stop this replica for good:
-   * the administrator is told that this replica has diverged and must be reinitialized.
+   * been failing for the {@code replay-give-up-delay} of this domain and record it as
+   * replayed, so that a change which can never be applied here does not stop this replica
+   * for good: the administrator is told that this replica has diverged and must be
+   * reinitialized.
    *
    * @param csn
    *          the CSN of the change which could not be replayed
@@ -3034,7 +3018,20 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        */
       return false;
     }
-    if (failure.getFailingForMs() >= replayGiveUpDelayInMs)
+    /*
+     * The budget is read from the configuration at every decision rather than kept in a
+     * field of its own: an administrator who raises it because a maintenance window is
+     * going to outlast it is not made to restart this server for that, and
+     * applyConfigurationChange() replaces the configuration object as a whole. A negative
+     * value is the "unlimited" of the duration syntax - this replica then keeps asking for
+     * the change rather than ever recording one it did not apply, which is the choice of
+     * an operator who would rather have the replication of this domain stop than have it
+     * diverge. The generated getter yields the value in the base unit the property is
+     * declared with, which is milliseconds here, so it is comparable to what the failure
+     * reports as it is.
+     */
+    final long giveUpDelayInMs = config.getReplayGiveUpDelay();
+    if (giveUpDelayInMs >= 0 && failure.getFailingForMs() >= giveUpDelayInMs)
     {
       final LocalizableMessage message = ERR_REPLAY_SKIPPING_CHANGE.get(
           csn, getBaseDN(), failure.getFailingForMs(), failure.getAttempts());
@@ -3209,34 +3206,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        */
       Thread.currentThread().interrupt();
     }
-  }
-
-  /**
-   * Returns how long the replay of a change is retried before this replica gives up on
-   * it.
-   * <p>
-   * Only there for the tests, which set another value and put this one back.
-   *
-   * @return how long a change is retried, in milliseconds
-   */
-  @VisibleForTesting
-  public long getReplayGiveUpDelay()
-  {
-    return replayGiveUpDelayInMs;
-  }
-
-  /**
-   * Sets how long the replay of a change is retried before this replica gives up on it.
-   * <p>
-   * Only there for the tests, which can not wait out the {@link
-   * #REPLAY_GIVE_UP_DELAY_IN_MS} a backend under maintenance is given.
-   *
-   * @param delayInMs how long a change is retried, in milliseconds
-   */
-  @VisibleForTesting
-  public void setReplayGiveUpDelay(long delayInMs)
-  {
-    this.replayGiveUpDelayInMs = delayInMs;
   }
 
   /**
@@ -5091,6 +5060,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     attributes.add("remote-pending-changes-size", remotePendingChanges.getQueueSize());
     attributes.add("dependent-changes-size", remotePendingChanges.getDependentChangesSize());
     attributes.add("changes-in-progress-size", remotePendingChanges.changesInProgressSize());
+    attributes.add("failing-changes", remotePendingChanges.getFailingChangesSize());
   }
 
   /**

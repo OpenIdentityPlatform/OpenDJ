@@ -14,6 +14,7 @@
 
   Copyright 2007-2010 Sun Microsystems, Inc.
   Portions Copyright 2011-2015 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <adm:managed-object name="replication-domain"
   plural-name="replication-domains"
@@ -556,6 +557,46 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-conflicts-historical-purge-delay</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="replay-give-up-delay">
+    <adm:synopsis>
+      Specifies how long this directory server retries the replay of a change which its
+      backend could not apply, before it gives up on that change and moves on to the
+      changes which follow it.
+    </adm:synopsis>
+    <adm:description>
+      The change is asked for again and retried for as long as this budget lasts, over as
+      many deliveries as it takes. The budget is a duration rather than a number of
+      attempts because a backend which is being imported into, rebuilt or restored serves
+      nothing for as long as that operation runs: raise this value before such a
+      maintenance operation when it is going to outlast the default. Once the budget is
+      spent, the change is recorded as replayed although it never was - this replica then
+      diverges from the rest of the topology, raises the
+      org.opends.server.replication.UnreplayedChange alert and has to be reinitialized. A
+      value of "unlimited" has this server retry the change for as long as it keeps
+      failing, which holds the replication of this domain back until an administrator
+      intervenes: a change which is retried on and on keeps one of the replay threads this
+      server shares between all of its domains busy waiting for it, and has a warning
+      logged for every delivery of it, so a domain left like this is paid for by the
+      healthy ones too. A value of 0 has this server give up on a change as soon as one
+      delivery of it failed, the attempts made in place within that delivery still being
+      taken. The budget is measured from the first failure of the change rather than from
+      the moment it was set, so lowering it gives up straight away on a change which has
+      been failing for longer than the new value.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>300000ms</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="ms" lower-limit="0" allow-unlimited="true" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-replay-give-up-delay</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
