@@ -102,6 +102,40 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   /** Generation id for a fully empty domain. */
   public static final long EMPTY_DN_GENID = GenerationIdChecksum.EMPTY_BACKEND_GENERATION_ID;
 
+  /** How many times {@link #assertMonitorAttrValueStays} reads a value by default. */
+  private static final int MONITOR_ATTR_SAMPLES = 5;
+
+  /** How long {@link #assertMonitorAttrValueStays} waits between two reads. */
+  private static final long MONITOR_ATTR_SAMPLE_INTERVAL_IN_MS = 200;
+
+  /**
+   * How long {@link #assertMonitorAttrValueStays} waits for the monitor entry of a domain
+   * to be registered again before it gives up on reading it: longer than the
+   * {@code MAX_REPLAY_RETRY_DELAY_IN_MS} a session restart holds it down for.
+   */
+  private static final long MONITOR_ATTR_SAMPLE_GRACE_IN_MS = 30000;
+
+  /**
+   * How much longer than the samples it asks for {@link #assertMonitorAttrValueStays}
+   * runs before it gives up: the samples of a domain which keeps restarting its session
+   * are taken a restart apart, and waiting for all of them would outlast the fork.
+   */
+  private static final long MONITOR_ATTR_SAMPLES_DEADLINE_IN_MS = 60000;
+
+  /**
+   * How many samples it takes for {@link #assertMonitorAttrValueStays} to outlast the
+   * session restart which brings a change back, so that a counter only that delivery
+   * could bump a second time is watched while it arrives.
+   * <p>
+   * It covers a domain which restarts its session for the first time, which waits
+   * {@code LDAPReplicationDomain.REPLAY_RETRY_DELAY_IN_MS} before reconnecting. The wait
+   * of a domain which has been restarting its session in a row is longer - it climbs to
+   * {@code MAX_REPLAY_RETRY_DELAY_IN_MS} - so a redelivery is outside this window there;
+   * sampling for ten seconds at every call site to cover it would cost more than the
+   * assertions are worth.
+   */
+  protected static final int MONITOR_ATTR_SAMPLES_ACROSS_A_REDELIVERY = 12;
+
   /** The internal connection used for operation. */
   protected InternalClientConnection connection;
 
@@ -484,15 +518,168 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       @Override
       public Long call() throws Exception
       {
-        String monitorFilter = "(&(cn=Directory server*)(domain-name=" + baseDN + "))";
-        InternalSearchOperation op =
-            connection.processSearch(newSearchRequest("cn=replication,cn=monitor", WHOLE_SUBTREE, monitorFilter));
-        Assertions.assertThat(op.getSearchEntries()).as("Could not read monitoring information").isNotEmpty();
-
-        SearchResultEntry entry = op.getSearchEntries().getFirst();
-        return entry.parseAttribute(attr).asLong();
+        Long value = readMonitorAttrValue(baseDN, attr);
+        Assertions.assertThat(value)
+            .as("the monitor entry of %s is not registered", baseDN).isNotNull();
+        return value;
       }
     });
+  }
+
+  /**
+   * Reads a monitor attribute of a replication domain, once.
+   *
+   * @param baseDN the base DN of the domain whose monitor entry to read
+   * @param attr the monitor attribute to read
+   * @return the value of the attribute, or {@code null} when the monitor entry of the
+   *         domain is not registered - which it is not for as long as its session to the
+   *         replication server is down
+   * @throws Exception if the monitor could not be searched, or if the entry is there and
+   *                   does not publish the attribute, which is a wrong name rather than
+   *                   something to wait for
+   */
+  private Long readMonitorAttrValue(final DN baseDN, final String attr) throws Exception
+  {
+    String monitorFilter = "(&(cn=Directory server*)(domain-name=" + baseDN + "))";
+    InternalSearchOperation op =
+        connection.processSearch(newSearchRequest("cn=replication,cn=monitor", WHOLE_SUBTREE, monitorFilter));
+    if (op.getSearchEntries().isEmpty())
+    {
+      return null;
+    }
+    SearchResultEntry entry = op.getSearchEntries().getFirst();
+    Long value = entry.parseAttribute(attr).asLong();
+    Assertions.assertThat(value)
+        .as("the monitor entry of %s does not publish %s", baseDN, attr).isNotNull();
+    return value;
+  }
+
+  /**
+   * Waits for a monitor attribute of a replication domain to reach the expected value.
+   * <p>
+   * The monitor entry of a domain is deregistered for as long as its session to the
+   * replication server is down, which is what a replay failure does to it, and a counter
+   * is bumped a moment after the change or the delivery it counts was dealt with:
+   * reading the value once would be a race on both counts.
+   * <p>
+   * The read is deliberately {@link #readMonitorAttrValue(DN, String)} rather than the
+   * retrying {@link #getMonitorAttrValue(DN, String)}: a {@link TestTimer} budget is a
+   * number of steps rather than a deadline, so one timer waiting on another multiplies
+   * them - 150 steps around a read which sleeps ten seconds of its own is 25 minutes,
+   * long past the {@code org.opends.test.timeout} the fork is killed on. One timer owns
+   * the deadline here, and a monitor entry which is not registered is one failed poll -
+   * so the deadline has to be wide enough for a domain which is restarting its session to
+   * register it again, which takes the backoff of that restart.
+   *
+   * @param baseDN the base DN of the domain whose monitor entry to read
+   * @param attributeName the monitor attribute to read
+   * @param expected the value it must reach
+   * @param message what is being asserted
+   * @throws Exception if the value was not reached in time
+   */
+  protected void assertMonitorAttrValueEventually(
+      final DN baseDN, final String attributeName, final long expected, final String message)
+      throws Exception
+  {
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(60, SECONDS)
+      .sleepTimes(200, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        assertEquals(readMonitorAttrValue(baseDN, attributeName), (Long) expected, message);
+      }
+    });
+  }
+
+  /**
+   * Checks that a monitor attribute of a replication domain holds the expected value and
+   * keeps holding it, over {@link #MONITOR_ATTR_SAMPLES} samples.
+   *
+   * @param baseDN the base DN of the domain whose monitor entry to read
+   * @param attributeName the monitor attribute to read
+   * @param expected the value it must hold
+   * @param message what is being asserted
+   * @throws Exception if the value changes, or if the monitor entry can not be read
+   */
+  protected void assertMonitorAttrValueStays(
+      final DN baseDN, final String attributeName, final long expected, final String message)
+      throws Exception
+  {
+    assertMonitorAttrValueStays(baseDN, attributeName, expected, MONITOR_ATTR_SAMPLES, message);
+  }
+
+  /**
+   * Checks that a monitor attribute of a replication domain holds the expected value and
+   * keeps holding it, over the provided number of samples.
+   * <p>
+   * Waiting for a value to be reached is not enough to tell that something happened only
+   * once: a counter which is bumped a second time goes through the expected value on its
+   * way, and the first poll which sees it passes.
+   * <p>
+   * The samples have to outlast whatever could bump the counter a second time, or the
+   * assertion only reads like it is watching for it. The default is enough for a second
+   * attempt of the same delivery, which is fifty milliseconds away; a counter which a
+   * change delivered again could bump has to be watched for longer than the session
+   * restart which brings that delivery, so those call sites pass
+   * {@link #MONITOR_ATTR_SAMPLES_ACROSS_A_REDELIVERY}.
+   * <p>
+   * The monitor entry of a domain is gone for as long as its session is down, which a
+   * session restart in the middle of the window does: a read which comes back with
+   * nothing is not a sample rather than a failure, and the samples asked for are taken
+   * once it is back. So a restart stretches the window rather than shortening it, which
+   * is the right way round for what is being asserted, and the entry staying away for
+   * {@link #MONITOR_ATTR_SAMPLE_GRACE_IN_MS} is what fails the assertion. The samples are
+   * bounded all the same: a domain which restarts its session over and over would
+   * otherwise have this wait for one readable moment per restart until the fork is killed
+   * for taking too long, which says nothing about the value being watched.
+   *
+   * @param baseDN the base DN of the domain whose monitor entry to read
+   * @param attributeName the monitor attribute to read
+   * @param expected the value it must hold
+   * @param samples how many times to read the value, at least
+   *                {@link #MONITOR_ATTR_SAMPLE_INTERVAL_IN_MS} apart
+   * @param message what is being asserted
+   * @throws Exception if the value changes, or if the monitor entry can not be read
+   */
+  protected void assertMonitorAttrValueStays(final DN baseDN, final String attributeName,
+      final long expected, final int samples, final String message) throws Exception
+  {
+    final long now = System.currentTimeMillis();
+    final long deadline = now + samples * MONITOR_ATTR_SAMPLE_INTERVAL_IN_MS
+        + MONITOR_ATTR_SAMPLES_DEADLINE_IN_MS;
+    long readableBy = now + MONITOR_ATTR_SAMPLE_GRACE_IN_MS;
+    int taken = 0;
+    while (taken < samples)
+    {
+      final Long value = readMonitorAttrValue(baseDN, attributeName);
+      if (value != null)
+      {
+        assertEquals(value, (Long) expected, message);
+        taken++;
+        if (taken == samples)
+        {
+          // Every sample which was asked for held the value: how long they took to take
+          // is not what this is asserting.
+          return;
+        }
+        readableBy = System.currentTimeMillis() + MONITOR_ATTR_SAMPLE_GRACE_IN_MS;
+      }
+      else if (System.currentTimeMillis() > readableBy)
+      {
+        fail("the monitor entry of " + baseDN + " was not registered again in "
+            + MONITOR_ATTR_SAMPLE_GRACE_IN_MS + "ms: " + message);
+      }
+      if (System.currentTimeMillis() > deadline)
+      {
+        fail("only " + taken + " of " + samples + " samples of " + attributeName
+            + " could be read before the deadline: " + message);
+      }
+      Thread.sleep(MONITOR_ATTR_SAMPLE_INTERVAL_IN_MS);
+    }
   }
 
   protected void checkEntryHasAttributeValue(final DN dn, final String attrTypeStr, final String valueString,

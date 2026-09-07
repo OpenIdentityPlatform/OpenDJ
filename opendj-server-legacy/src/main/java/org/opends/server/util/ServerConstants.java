@@ -3064,6 +3064,26 @@ public final class ServerConstants
           "org.opends.server.replication.UnresolvedConflict";
 
 
+  /**
+   * The description for the alert type string that will be used for the alert
+   * notification generated when multimaster replication gives up on a change
+   * it could not replay.
+   */
+  public static final String ALERT_DESCRIPTION_REPLICATION_UNREPLAYED_CHANGE =
+          "This alert type will be used to notify administrators when " +
+          "multimaster replication gives up on a change it could not replay, " +
+          "leaving this replica diverging from the rest of the topology.";
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated when multimaster replication gives up on a change it could not
+   * replay.
+   */
+  public static final String ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE =
+          "org.opends.server.replication.UnreplayedChange";
+
+
 
   /**
    * The extensible indexer identifier string that will be used for a substring
