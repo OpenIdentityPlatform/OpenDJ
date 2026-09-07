@@ -178,6 +178,87 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		}
 	}
 
+	/**
+	 * The DDL of this backend is the part of it that takes locks, and three engines out of four wait
+	 * for one essentially forever: a drop queued behind an unrelated transaction of another session
+	 * used to hang the backend that issued it, with no property to say otherwise (#885). It gives up
+	 * at the bound now, and says which property ended the wait.
+	 * <p>
+	 * Oracle asserts the other half of the same contract: nothing of ours is set there, because its
+	 * own {@code ddl_lock_timeout} gives up at once - so the drop still fails rather than hanging, and
+	 * the failure names the engine's own doing rather than a property of ours that armed nothing.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheDdlGivesUpOnALockAnotherSessionHolds() throws Exception {
+		final TreeName tree = new TreeName("testDdlLockBound", "tree");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		System.setProperty(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY, "2");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					txn.put(tree, key(1), value(1));
+				}
+			});
+
+			// a session of its own, holding a lock the drop below conflicts with on every one of these
+			// engines: an uncommitted write takes a lock on the table that a drop cannot share
+			try (final Connection holder = DriverManager.getConnection(getJdbcUrl())) {
+				holder.setAutoCommit(false);
+				try (final PreparedStatement write = holder.prepareStatement(
+						"insert into " + JDBCStorage.toTableName(tree) + " (h,k,v) values (?,?,?)")) {
+					write.setString(1, "a lock this session holds");
+					write.setBytes(2, new byte[]{ 1 });
+					write.setBytes(3, new byte[]{ 1 });
+					write.executeUpdate();
+				}
+				final JDBCStorage.Dialect dialect = JDBCStorage.dialectOf(holder);
+				assertNotNull(dialect, "the engine of this container is one this backend knows");
+
+				final long startedAt = System.nanoTime();
+				String reported = null;
+				try {
+					storage.write(new WriteOperation() {
+						@Override
+						public void run(WriteableTransaction txn) throws Exception {
+							txn.deleteTree(tree);
+						}
+					});
+					fail("the drop went through while another session held the table locked");
+				} catch (Exception e) {
+					reported = stackTraceToSingleLineString(e);
+				}
+				final long tookSeconds = (System.nanoTime() - startedAt) / 1000000000L;
+				// generous, and still far under what an unbounded wait costs: mysql waits a year for a
+				// metadata lock by default, sql server and postgres wait for one without limit at all
+				assertTrue(tookSeconds < 60, "the drop waited " + tookSeconds + " s for the lock: " + reported);
+				if (dialect == JDBCStorage.Dialect.ORACLE) {
+					assertFalse(reported.contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY),
+							"oracle is left to its own ddl_lock_timeout: " + reported);
+				} else {
+					assertTrue(reported.contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY),
+							"the failure names neither the wait nor the property that ended it: " + reported);
+				}
+				holder.rollback();
+			}
+		} finally {
+			System.clearProperty(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY);
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {
+			} finally {
+				storage.close();
+			}
+		}
+	}
+
 	private static ByteString key(int i) {
 		return ByteString.valueOfUtf8(String.format("key%02d", i));
 	}
