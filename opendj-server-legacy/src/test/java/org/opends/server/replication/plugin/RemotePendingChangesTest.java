@@ -17,6 +17,9 @@ package org.opends.server.replication.plugin;
 
 import static org.testng.Assert.*;
 
+import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.DN;
@@ -562,6 +565,88 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
         "the change the thread which took it gave back must be taken over by the next delivery");
   }
 
+  /**
+   * A thread which reports on a change it gave back a moment ago must not record it as
+   * replayed: the delivery which took the change over is being applied right now, so the
+   * ServerState would move past a change which is not in the data yet (issue #889), and
+   * the thread which is applying it would find nothing left to commit.
+   * <p>
+   * The give-back on the way out of an unwound replay is what makes this reachable: it
+   * runs wherever the replay was left, so the decision a thread carries and the record it
+   * makes of it can be a delivery apart (issue #922).
+   */
+  @Test
+  public void commitIsRefusedForAThreadWhichDoesNotOwnTheChange() throws Exception
+  {
+    final ServerState state = new ServerState();
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(state);
+    final CSN csn = new CSNGenerator(SERVER_ID, 0).newCSN();
+    final DeleteMsg delivery = deleteMsg(csn, "uuid-1");
+
+    assertTrue(pendingChanges.putRemoteUpdate(delivery));
+    assertTrue(pendingChanges.markInProgress(delivery));
+
+    // The thread which gave up on an earlier delivery of this change records it as
+    // replayed while this delivery is being applied.
+    runAndJoin(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        try
+        {
+          pendingChanges.commit(csn);
+          fail("a change another replay thread owns must not be recorded as replayed");
+        }
+        catch (NoSuchElementException expected)
+        {
+          // There is no change here for that thread to record, which is what its caller
+          // reports as ERR_OPERATION_NOT_FOUND_IN_PENDING.
+        }
+      }
+    });
+
+    assertTrue(state.isEmpty(),
+        "a change which is being applied must not be recorded in the ServerState");
+    assertEquals(pendingChanges.getQueueSize(), 1, "the change must stay listed as pending");
+
+    // The thread which owns the change records it once it really has been applied.
+    pendingChanges.commit(csn);
+
+    assertTrue(state.cover(csn));
+    assertEquals(pendingChanges.getQueueSize(), 0);
+  }
+
+  /**
+   * The same holds for the failures which decide when this replica gives up on a change:
+   * a thread which does not own the change reports none, so the give-up budget of the
+   * delivery which took it over is left alone rather than spent by the one before it
+   * (issue #922).
+   */
+  @Test
+  public void recordReplayFailureIsIgnoredForAThreadWhichDoesNotOwnTheChange() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSN csn = new CSNGenerator(SERVER_ID, 0).newCSN();
+    final DeleteMsg delivery = deleteMsg(csn, "uuid-1");
+
+    assertTrue(pendingChanges.putRemoteUpdate(delivery));
+    assertTrue(pendingChanges.markInProgress(delivery));
+
+    runAndJoin(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        assertNull(pendingChanges.recordReplayFailure(csn, 1000),
+            "a change another replay thread owns is not this one's to give up on");
+      }
+    });
+
+    assertEquals(pendingChanges.recordReplayFailure(csn, 2000).getAttempts(), 1,
+        "only the failures of the delivery which owns the change must be counted");
+  }
+
   /** A rename of an entry into the DN {@code deleteMsg(csn, "uuid-1")} deletes. */
   private ModifyDNMsg renameIntoDeletedEntry(CSN csn) throws Exception
   {
@@ -569,11 +654,39 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
         null, false, null, "cn=uuid-1");
   }
 
-  private static void runAndJoin(Runnable runnable) throws InterruptedException
+  /**
+   * Runs the provided work on a thread of its own, waits for it and reports what it
+   * threw.
+   * <p>
+   * What the work throws has to be carried back here: an assertion which fails on another
+   * thread is lost to a bare {@link Thread#join()}, and every assertion these tests make
+   * about what a thread which does not own a change is answered is made on that thread.
+   */
+  private static void runAndJoin(Runnable runnable) throws Exception
   {
-    final Thread thread = new Thread(runnable, "another replay thread");
+    final FutureTask<Void> task = new FutureTask<>(runnable, null);
+    final Thread thread = new Thread(task, "another replay thread");
     thread.start();
     thread.join();
+    try
+    {
+      task.get();
+    }
+    catch (ExecutionException e)
+    {
+      // Report what the work threw rather than the wrapper this task put around it: an
+      // assertion which failed is an Error, and it is the failure worth reading.
+      final Throwable cause = e.getCause();
+      if (cause instanceof Error)
+      {
+        throw (Error) cause;
+      }
+      if (cause instanceof Exception)
+      {
+        throw (Exception) cause;
+      }
+      throw e;
+    }
   }
 
   private DeleteMsg deleteMsg(CSN csn, String entryUUID) throws Exception

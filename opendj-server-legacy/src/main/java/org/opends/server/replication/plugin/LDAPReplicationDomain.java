@@ -338,6 +338,17 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * in flight unreplayable, and one alert per change would be a storm.
    */
   private static final long UNREPLAYED_CHANGE_ALERT_INTERVAL_IN_MS = 60000;
+  /**
+   * What the ack of a delivery whose replay ran out of memory says did not apply the
+   * change.
+   * <p>
+   * A constant rather than a message built from the change, because this is read on the
+   * road out of an {@code OutOfMemoryError}: formatting one asks the JVM for the memory
+   * it has just refused, and what {@code processUpdateDone()} needs of this string is
+   * that there is one - it sets {@code hasReplayError} on the ack and never sends the
+   * text, which is why no ordinal is spent on it either.
+   */
+  private static final String REPLAY_RAN_OUT_OF_MEMORY = "the replay of this change ran out of memory";
   /** The number of updates this replica gave up replaying. */
   private final AtomicInteger numFailedReplayedUpdates = new AtomicInteger();
   /** Set while a replay thread is restarting the session after a failed replay. */
@@ -3031,12 +3042,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * ends.
          *
          * The change is given back, counted as failing and asked for again on the way out
-         * (issue #922). The one thing built here is the ack this delivery publishes below,
-         * which is made to say that the change was not applied: a replica which is asking
-         * for a change again must not have told an assured write that it is in the data
-         * here.
+         * (issue #922). The one thing done here is to make the ack this delivery publishes
+         * below say that the change was not applied: a replica which is asking for a change
+         * again must not have told an assured write that it is in the data here. It is a
+         * constant rather than a message built from the change, because building one asks
+         * the JVM for the memory it has just refused.
          */
-        replayErrorMsg = NOTE_REPLAY_ABANDONED_CHANGE.get(msg.getCSN(), getBaseDN()).toString();
+        replayErrorMsg = REPLAY_RAN_OUT_OF_MEMORY;
         throw e;
       }
       catch (Error e)
@@ -3056,8 +3068,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * the replay, not that the message is one no delivery could ever build an operation
          * from.
          */
-        final LocalizableMessage message = ERR_ERROR_CAUGHT_REPLAYING_CHANGE.get(
-            op != null ? op : msg, stackTraceToSingleLineString(e));
+        final LocalizableMessage message = ERR_ERROR_REPLAYING_CHANGE.get(
+            msg.getCSN(), getBaseDN(), stackTraceToSingleLineString(e));
         logger.error(message);
         replayErrorMsg = message.toString();
         replayFailed = true;

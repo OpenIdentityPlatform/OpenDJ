@@ -209,9 +209,25 @@ final class RemotePendingChanges
 
   /**
    * Mark an update message as committed.
+   * <p>
+   * A change another replay thread owns is not this thread's to record: it is reported as
+   * a change which is not here, the way one which is not listed anymore is. A thread
+   * decides that a change is in the data, or that it is to be given up on, and records
+   * that decision a turn of this lock later - long enough for the change to have been
+   * handed back, delivered again and taken over in between. Recording it then would
+   * advance the ServerState over a change which is not in the data yet (issue #889) and
+   * have the thread which is applying it right now fail to commit.
+   * <p>
+   * The give-back on the way out of an unwound replay is what makes this reachable: it
+   * runs wherever the replay was left, so the checks which keep it from taking a change
+   * away from the thread which owns it now belong on every road which reads ownership,
+   * not only on {@link #replayFailed(CSN)} (issue #922).
    *
    * @param csn
    *          The CSN of the update message that must be set as committed.
+   * @throws NoSuchElementException
+   *          if there is no change with that CSN for this thread to record: it is not
+   *          listed as pending anymore, or another replay thread owns it
    */
   public void commit(CSN csn)
   {
@@ -219,7 +235,8 @@ final class RemotePendingChanges
     try
     {
       PendingChange curChange = pendingChanges.get(csn);
-      if (curChange == null)
+      if (curChange == null
+          || (curChange.isOwned() && !curChange.isOwnedBy(Thread.currentThread())))
       {
         throw new NoSuchElementException();
       }
@@ -345,9 +362,13 @@ final class RemotePendingChanges
    *          the CSN of the change whose replay failed
    * @param nowMs
    *          when it failed, on a clock which only moves forward
-   * @return the failures of the change, or {@code null} when it is not listed as an
-   *         uncommitted change anymore, which happens when the domain was disabled while
-   *         it was being replayed: there is no change left here to give up on
+   * @return the failures of the change, or {@code null} when there is no change left here
+   *         for this thread to give up on: it is not listed as an uncommitted change
+   *         anymore, which happens when the domain was disabled while it was being
+   *         replayed, or another replay thread owns it, which is that change having been
+   *         delivered again and taken over while this thread was on its way to reporting
+   *         on it. Spending the give-up budget of a change another thread is applying
+   *         would have this replica skip a change which is being written (issue #922)
    */
   public ReplayFailure recordReplayFailure(CSN csn, long nowMs)
   {
@@ -355,7 +376,8 @@ final class RemotePendingChanges
     try
     {
       final PendingChange change = pendingChanges.get(csn);
-      if (change == null || change.isCommitted())
+      if (change == null || change.isCommitted()
+          || (change.isOwned() && !change.isOwnedBy(Thread.currentThread())))
       {
         return null;
       }
