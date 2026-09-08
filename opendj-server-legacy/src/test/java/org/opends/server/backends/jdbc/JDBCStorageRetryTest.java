@@ -622,6 +622,31 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   }
 
   /**
+   * The widening that reading every link brings, which is the one behaviour change of #903 outside the grant: a
+   * chain whose only conflict-bearing link sits past the budget was not a conflict at all on master - the
+   * truncating walk never reached it - so {@code replayReason()} answered null and the operation was failed.
+   * The case above pins the *class* of such a chain, since it puts a bare class 40 state at the head that the
+   * truncating walk already matched; this one pins that the conflict is found at all.
+   */
+  @Test
+  public void testAConflictOnlyPastTheBudgetIsFoundAtAll()
+  {
+    // 64 links of a rejected statement - the whole budget - and the conflict on the 65th
+    final SQLException head = sql(2627, "23000");
+    SQLException tail = head;
+    for (int link = 2; link <= 64; link++)
+    {
+      tail = chained(tail, sql(2627, "23000")).getNextException();
+    }
+    chained(tail, sql(0, "40001"));
+
+    assertEquals(conflictOf(head, POSTGRES), PROMPT,
+        "a conflict whose only link sits past MAX_CHAIN_LINKS was not found at all");
+    assertEquals(replayReason(head, POSTGRES, false, false, false), "a conflict",
+        "and the operation carrying it was not replayed");
+  }
+
+  /**
    * What that walk stops at is the strongest class the engine of its driver can report, not the last constant of
    * {@link Conflict}: only MySQL reports a lock wait timeout of its own, so a walk stopping at
    * {@link Conflict#AFTER_LOCK_WAIT} never stops early on the other three engines and reads every link of every
