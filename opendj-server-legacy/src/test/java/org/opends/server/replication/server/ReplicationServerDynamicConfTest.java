@@ -666,6 +666,130 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
   }
 
   /**
+   * Tests that a failure of {@code accept()} which follows a connection is not waited on,
+   * and that a connection which cannot be turned into a session is reported.
+   * <p>
+   * The wait bounds a listen loop which is spinning on a failure in silence. A loop which
+   * accepted a connection in between is doing work instead, and charging it a wait per
+   * failure would make a stream of connections aborted between the handshake and
+   * {@code accept()} -- a health check, a port scan -- pace the whole listen port. What
+   * that gives up is the failure which alternates with a connection, under a process which
+   * frees a file descriptor now and then: the accept it lets through resets the clock, and
+   * the failure behind it is timed as isolated. Both halves are this line, so both are
+   * pinned here rather than left to the comment above it.
+   * <p>
+   * The connection served is one no session can be built on, which is the other half of
+   * what the listen loop reports: the accepted socket is closed, so setting its options
+   * fails at once where a socket connected to nothing would spend the whole connection
+   * timeout inside the SSL handshake. It was connected before it was closed, so it still
+   * names the peer the report is about, which is what the report is read for here.
+   */
+  @Test
+  public void listenThreadDoesNotWaitAfterAFailureWhichFollowedAConnection() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    ReplicationServer replicationServer = null;
+    ServerSocket connectedTo = null;
+    try
+    {
+      final int[] ports = TestCaseUtils.findFreePorts(1);
+      replicationServer = new ReplicationServer(new ReplServerFakeConfiguration(
+          ports[0], "listenThreadResetsBackoffOnAConnectionDb", 0, 2, 0, 0, null));
+      final ReplicationServer listeningServer = replicationServer;
+
+      connectedTo = new ServerSocket(0);
+      final Socket served = new Socket();
+      served.connect(new InetSocketAddress("127.0.0.1", connectedTo.getLocalPort()), 10000);
+      final String servedAddress = served.getRemoteSocketAddress().toString();
+      served.close();
+
+      final int attempts = 4;
+      final String acceptFailure = "accept() fails the way it fails without a file descriptor left";
+      final AtomicInteger accepts = new AtomicInteger();
+      // When each accept() was entered: what is measured is between two of them.
+      final long[] acceptNanos = new long[attempts];
+      /*
+       * Fails, serves one connection, fails again, and closes itself on the fourth attempt:
+       * the listen loop ends on a closed socket, which is what returns runListen(). It
+       * closes itself for real rather than overriding isClosed(), which
+       * ServerSocket.close() consults before closing anything up to Java 17: the port and
+       * its file descriptor would be held for the rest of the test JVM.
+       */
+      final ServerSocket failingSocket = new ServerSocket(0)
+      {
+        @Override
+        public Socket accept() throws IOException
+        {
+          final int attempt = accepts.incrementAndGet();
+          acceptNanos[attempt - 1] = System.nanoTime();
+          if (attempt == 2)
+          {
+            return served;
+          }
+          if (attempt >= attempts)
+          {
+            super.close();
+          }
+          throw new IOException(acceptFailure);
+        }
+      };
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        try
+        {
+          listeningServer.runListen(failingSocket);
+        }
+        finally
+        {
+          close(failingSocket);
+        }
+        return null;
+      });
+
+      assertTrue(failingSocket.isClosed(), "the socket the listen loop ended on should be closed");
+      assertEquals(accepts.get(), attempts, "the listen loop should have ended on the closed socket");
+      /*
+       * The third attempt fails right after the second served a connection, so the fourth
+       * follows it without a wait. Without the reset the third failure would be timed from
+       * the first, which is a few microseconds behind it, and read as repeating it.
+       *
+       * Compared in nanoseconds: converting to milliseconds first floors the measurement,
+       * so a wait of exactly the backoff would read as one millisecond short of it.
+       */
+      final long backoffNanos = TimeUnit.MILLISECONDS.toNanos(ReplicationServer.ACCEPT_FAILURE_BACKOFF_MS);
+      final long afterConnectionNanos = acceptNanos[3] - acceptNanos[2];
+      assertTrue(afterConnectionNanos < backoffNanos,
+          "the listen thread should not have waited after a failure which followed a connection,"
+              + " but " + TimeUnit.NANOSECONDS.toMicros(afterConnectionNanos)
+              + " microseconds passed between the third attempt and the fourth");
+
+      int sessionSetupWarnings = 0;
+      for (String record : records)
+      {
+        if (record.contains("accepted a connection from " + servedAddress)
+            && record.contains("severity=WARNING"))
+        {
+          sessionSetupWarnings++;
+          // Read out of the message to pin which of its two numbers is the count and which
+          // is the interval, and that the address is the peer rather than the listen port.
+          assertTrue(record.contains("every 5 minutes") && record.contains("(0 since the previous warning)"),
+              "the warning should report the interval it is bounded by and the 0 failures it"
+                  + " stands for, but it reads: " + record);
+        }
+      }
+      assertEquals(sessionSetupWarnings, 1, "the connection no session could be built on should"
+          + " have been reported once, but the error log holds " + sessionSetupWarnings
+          + " warnings about it: " + records);
+    }
+    finally
+    {
+      close(connectedTo);
+      remove(replicationServer);
+    }
+  }
+
+  /**
    * Waits for the listen thread of the provided replication server and port to be inside
    * {@code accept()}, or to have left it.
    * <p>

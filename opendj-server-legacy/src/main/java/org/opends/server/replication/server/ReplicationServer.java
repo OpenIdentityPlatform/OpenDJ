@@ -162,10 +162,6 @@ public class ReplicationServer
   private static final long ACCEPT_FAILURE_BACKOFF_NANOS =
       TimeUnit.MILLISECONDS.toNanos(ACCEPT_FAILURE_BACKOFF_MS);
 
-  /** Bounds how often an accepted connection which cannot be turned into a session is warned about. */
-  private final FailureLogThrottle sessionSetupFailures =
-      new FailureLogThrottle(FAILURE_WARN_INTERVAL_MINUTES, TimeUnit.MINUTES);
-
   /** Reports a peer this replication server cannot connect to once per outage. */
   private final ConnectFailureReporter connectFailures = new ConnectFailureReporter();
 
@@ -335,6 +331,14 @@ public class ReplicationServer
      * check or a port scan -- would charge the whole listen port a wait per probe, and the
      * peers queued behind them would pay it.
      *
+     * What the reset gives up is the failure which alternates with a connection: a process
+     * out of file descriptors frees one now and then, the accept it lets through resets the
+     * clock, and the failure after it is timed as isolated and not waited on. The loop then
+     * turns as fast as the connections arrive. That is the trade -- a probe must not cost
+     * the peers behind it a wait, and a loop which is accepting is not the silent spin the
+     * wait was added for -- and the warning is throttled either way, so the error log holds
+     * one line per five minutes of it whichever side of the trade the failure falls on.
+     *
      * Read when the previous failure was handled rather than when it happened, so that the
      * wait it was granted is not what makes the next failure look isolated: timing from the
      * failure would leave every second one of a continuous run unwaited, and bound the spin
@@ -343,13 +347,17 @@ public class ReplicationServer
     long handledAcceptFailureNanos = System.nanoTime() - ACCEPT_FAILURE_BACKOFF_NANOS;
 
     /*
-     * Bounds how often a failure of accept() on this socket is warned about, and is
-     * confined to this thread for the same reason the clock above is: a listen port change
-     * runs a second listen thread, and a five minute window opened on the port which was
-     * left would otherwise suppress the first failure on the port which replaced it --
-     * silence right after the administrator changed the port to get out of trouble.
+     * Bound how often a failure of accept() on this socket, and a connection accepted on it
+     * which cannot be turned into a session, are warned about. Both are confined to this
+     * thread for the same reason the clock above is: a listen port change runs a second
+     * listen thread -- switchListenPort() starts it before it stops this one -- and a five
+     * minute window opened on the port which was left would otherwise suppress the first
+     * failure on the port which replaced it, silence right after the administrator changed
+     * the port to get out of trouble.
      */
     final FailureLogThrottle acceptFailures =
+        new FailureLogThrottle(FAILURE_WARN_INTERVAL_MINUTES, TimeUnit.MINUTES);
+    final FailureLogThrottle sessionSetupFailures =
         new FailureLogThrottle(FAILURE_WARN_INTERVAL_MINUTES, TimeUnit.MINUTES);
 
     while (!shutdown.get() && !socket.isClosed())
@@ -373,7 +381,8 @@ public class ReplicationServer
           handledAcceptFailureNanos = System.nanoTime();
           continue;
         }
-        // A connection served is not a spin: the failures before it stop pacing the loop.
+        // A connection served is not a spin: the failures before it stop pacing the loop,
+        // and a failure alternating with a connection is therefore never waited on.
         handledAcceptFailureNanos = System.nanoTime() - ACCEPT_FAILURE_BACKOFF_NANOS;
 
         try
@@ -389,7 +398,7 @@ public class ReplicationServer
         }
         catch (Exception e)
         {
-          logSessionSetupFailure(newSocket, e);
+          logSessionSetupFailure(sessionSetupFailures, newSocket, e);
           // createServerSession() closes the socket itself when it does not return a
           // session, so this closes the one whose options could not be set, and closes a
           // second time, harmlessly, the one it already released. Through the helper: a
@@ -513,6 +522,9 @@ public class ReplicationServer
    * through this path, so the log has to be throttled the way the handshake failure next
    * door is.
    *
+   * @param throttle
+   *          The throttle of the listen thread which accepted the connection, which is
+   *          confined to it: see where it is built.
    * @param socket
    *          The accepted socket, which {@code createServerSession} has usually closed
    *          already, in its own {@code finally}: a closed socket still names the peer it
@@ -520,9 +532,10 @@ public class ReplicationServer
    * @param e
    *          The failure.
    */
-  private void logSessionSetupFailure(final Socket socket, final Exception e)
+  private void logSessionSetupFailure(final FailureLogThrottle throttle, final Socket socket,
+      final Exception e)
   {
-    logThrottledFailure(sessionSetupFailures, WARN_REPLICATION_SERVER_SESSION_SETUP_ERROR,
+    logThrottledFailure(throttle, WARN_REPLICATION_SERVER_SESSION_SETUP_ERROR,
         socket.getRemoteSocketAddress(), e);
   }
 
@@ -735,32 +748,36 @@ public class ReplicationServer
       return false;
     }
     /*
-     * A returning connect() is not a connection: ReplicationServerHandler.connect() aborts
-     * a handshake it cannot complete -- a remote StopMsg, a simultaneous cross connect, an
-     * unexpected message -- by closing the session and returning, and it reports the ones
-     * worth reporting itself.
+     * The outage closed here is a failure to connect, and reaching this line is the
+     * connection which closes it. Everything WARN_REPLICATION_SERVER_CONNECT_ERROR is
+     * reported for is above it -- the socket and the session built on it, the handshake
+     * throwing nothing of its own -- so an attempt which gets this far is one whose peer
+     * answered on its replication port. What the handshake did next is a different failure
+     * with messages of its own, abortStart() logging the ones worth logging, and holding
+     * the outage open across it would keep reporting a peer unreachable while it answers.
      *
-     * What tells the two apart is the session: abortStart() closes it to abort, and a
-     * handshake which completed leaves it open, so an open session is a connection and is
-     * what ends the outage. It is read first, and the record is cleared only once it says
-     * there is one: recordSuccess() mutates, so asking it first would clear the record of a
-     * peer this pass did not connect to, and the outage would then be reported open and
-     * never reported closed -- the recovery reaching the already connected branch of
-     * runConnect() a pass later would find nothing left to report.
+     * Every narrower reading holes on a peer whose connection this server does not see under
+     * the address it dialled, and there is one for each of them:
      *
-     * Read from the session rather than from the registration with the domain, which is
-     * what a started handler also does: ReplicationServerHandler.connect() registers only
-     * above protocol version 1, the FIXME there being older than this, so a peer which
-     * negotiates V1 is connected and never registered. Keying on the registration would
-     * leave its record uncleared for good, and silence every outage of it after the first.
-     * A peer whose handler advertises an address which does not resolve to the configured
-     * one -- the multi homing the HostPort javadoc names -- is the same shape, and its
-     * session is open here as well.
+     * the registration with the domain misses a peer which negotiates protocol version 1.
+     * ReplicationServerHandler.connect() registers only above V1, the FIXME there being
+     * older than this, so such a peer is connected and never registered.
+     *
+     * the address, and the session left open with it, miss a peer which dials out from an
+     * address other than the one it is configured under -- multi homing, NAT. Its inbound
+     * handler is registered under the source address of its own connection,
+     * ServerHandler.toServerAddressURL() reading the host from the session, so the already
+     * connected branch of runConnect() compares the configured address against one it never
+     * matches, and the handshake this server offers that same peer aborts on a duplicate
+     * server id: abortStart() closes the session, and an open session is never seen here
+     * again.
+     *
+     * A record left uncleared is not a line too few but a peer gone silent: recordFailure()
+     * returns false from then on, so the next real outage of it is not reported at all.
+     * reportConnectionRestored() clears the record and reports the recovery together, so an
+     * outage cannot be closed in the record without being closed in the log either.
      */
-    if (!session.closeInitiated())
-    {
-      reportConnectionRestored(remoteServerAddress, baseDN);
-    }
+    reportConnectionRestored(remoteServerAddress, baseDN);
     return true;
   }
 
