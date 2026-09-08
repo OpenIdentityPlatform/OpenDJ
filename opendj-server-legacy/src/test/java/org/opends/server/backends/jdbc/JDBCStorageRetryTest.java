@@ -42,6 +42,7 @@ import java.sql.SQLRecoverableException;
 import java.sql.Statement;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -226,7 +227,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   @Test(dataProvider = "failures")
   public void testConflictClass(String name, Throwable failure, String driver, Conflict expected)
   {
-    assertEquals(JDBCStorage.conflictOf(failure, driver), expected, name);
+    assertEquals(conflictOf(failure, driver), expected, name);
   }
 
   /**
@@ -245,6 +246,10 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       // so its deadlock monitor picked a victim ~12 s into the first attempt, and master replayed it zero times
       { "deadlock reported after a long lock wait", 1, seconds(12), sql(1205, "40001"), MSSQL, true },
       { "deadlock reported later than any window", 1, seconds(600), sql(1205, "40001"), MSSQL, true },
+      // and exactly at the window, which is the boundary the grant is decided on: elapsed >= window, not > it.
+      // The rows around this one bracket that point without standing on it, and a > there would refuse the first
+      // replay of #903 to every conflict reported at the window to the nanosecond
+      { "deadlock at the window, first attempt", 1, seconds(10), sql(1205, "40001"), MSSQL, true },
 
       // the grant is one replay, not an exemption: from the second attempt on the window governs, so that a
       // conflict which never clears is failed rather than never returned
@@ -291,7 +296,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   public void testReplayable(String name, int attempt, long elapsedNanos, Throwable failure, String driver,
       boolean expected)
   {
-    assertEquals(JDBCStorage.replayableWithin(attempt, elapsedNanos, JDBCStorage.conflictOf(failure, driver)),
+    assertEquals(JDBCStorage.replayableWithin(attempt, elapsedNanos, conflictOf(failure, driver)),
         expected, name);
   }
 
@@ -433,7 +438,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   public void testAConflictIsNotReadFromTheReleaseOfTheConnection()
   {
     final SQLException onRelease = suppressing(sql(2627, "23000"), sql(0, "40000"));
-    assertEquals(JDBCStorage.conflictOf(onRelease, POSTGRES), NONE, "a conflict was read from the release");
+    assertEquals(conflictOf(onRelease, POSTGRES), NONE, "a conflict was read from the release");
     assertNull(replayReason(onRelease, POSTGRES, true, false, false),
         "a transaction the commit left in doubt was replayed");
 
@@ -503,7 +508,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   @Test
   public void testConflictSummaryNamesTheStateAndTheNumber()
   {
-    final String summary = JDBCStorage.conflictSummary(
+    final String summary = conflictSummary(
         new DirectoryException(OTHER, raw("unchecked"), new StorageRuntimeException(sql(1205, "40001"))), POSTGRES);
     assertTrue(summary.contains("40001"), summary);
     assertTrue(summary.contains("1205"), summary);
@@ -518,7 +523,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   @Test
   public void testConflictSummaryNamesTheFailureTheReplayWasDecidedOn()
   {
-    final String summary = JDBCStorage.conflictSummary(
+    final String summary = conflictSummary(
         new StorageRuntimeException(suppressing(sql(2627, "23000"), sql(0, "08006"))), POSTGRES);
     assertTrue(summary.contains("08006"), summary);
     assertFalse(summary.contains("23000"), summary);
@@ -526,22 +531,26 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
 
   /**
    * The line names the link the class was decided on, which is not always the first conflict of the chain:
-   * {@code conflictOf()} keeps the most specific class it finds, so a wrapper carrying a bare class 40 state is
-   * walked past to the lock wait timeout underneath it. Naming the wrapper would print "error 0" for a replay
-   * whose whole bound was chosen by the 1205 it never shows.
+   * {@code conflictVerdict()} keeps the most specific class it finds, so a wrapper carrying a bare class 40 state
+   * is walked past to the lock wait timeout underneath it. Naming the wrapper would print "error 0" for a replay
+   * whose whole bound was chosen by the 1205 it never shows. Asked of one verdict per chain, the way
+   * {@code write()} asks it: the class and the link are one answer, and two walks could disagree about them.
    */
   @Test
   public void testConflictSummaryNamesTheLinkTheClassWasDecidedOn()
   {
     final SQLException lateUnderAWrapper = sql(0, "40001", sql(1205, "40001"));
-    assertEquals(JDBCStorage.conflictOf(lateUnderAWrapper, MYSQL), AFTER_LOCK_WAIT);
-    final String summary = JDBCStorage.conflictSummary(lateUnderAWrapper, MYSQL);
+    final JDBCStorage.ConflictVerdict late = JDBCStorage.conflictVerdict(lateUnderAWrapper, MYSQL);
+    assertEquals(late.conflict, AFTER_LOCK_WAIT);
+    final String summary = JDBCStorage.conflictSummary(late, lateUnderAWrapper);
     assertTrue(summary.contains("1205"), summary);
 
     // the same chain under a driver that gives 1205 no such meaning is a prompt conflict, and the first link
     // of it is the one the decision was taken on
-    assertEquals(JDBCStorage.conflictOf(sql(0, "40001", sql(1205, "40001")), POSTGRES), PROMPT);
-    final String firstLink = JDBCStorage.conflictSummary(sql(0, "40001", sql(1205, "40001")), POSTGRES);
+    final SQLException sameChain = sql(0, "40001", sql(1205, "40001"));
+    final JDBCStorage.ConflictVerdict prompt = JDBCStorage.conflictVerdict(sameChain, POSTGRES);
+    assertEquals(prompt.conflict, PROMPT);
+    final String firstLink = JDBCStorage.conflictSummary(prompt, sameChain);
     assertTrue(firstLink.contains("error 0"), firstLink);
   }
 
@@ -549,16 +558,16 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   @Test
   public void testConflictSummaryTerminatesWithoutASQLException()
   {
-    assertTrue(JDBCStorage.conflictSummary(new IllegalStateException("connection closed"), POSTGRES).contains("closed"));
-    assertTrue(JDBCStorage.conflictSummary(new SelfCausedException(), POSTGRES).contains("SelfCausedException"));
-    assertEquals(JDBCStorage.conflictSummary(null, POSTGRES), "null");
+    assertTrue(conflictSummary(new IllegalStateException("connection closed"), POSTGRES).contains("closed"));
+    assertTrue(conflictSummary(new SelfCausedException(), POSTGRES).contains("SelfCausedException"));
+    assertEquals(conflictSummary(null, POSTGRES), "null");
   }
 
   /** A statement that carries neither a conflict nor a drop is still the one the summary names. */
   @Test
   public void testConflictSummaryFallsBackToTheFirstFailureOfTheChain()
   {
-    final String summary = JDBCStorage.conflictSummary(new StorageRuntimeException(sql(2627, "23000")), POSTGRES);
+    final String summary = conflictSummary(new StorageRuntimeException(sql(2627, "23000")), POSTGRES);
     assertTrue(summary.contains("23000"), summary);
 
     // the fallback names the statement, not the rollback of the release behind it: this is where a replay
@@ -566,7 +575,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     // and the walk reaches the suppressed exceptions of a failure before its cause
     final StorageRuntimeException killedSession = new StorageRuntimeException(sql(596, "S0001"));
     killedSession.addSuppressed(sql(0, "25P02"));
-    final String decidedOnTheConnection = JDBCStorage.conflictSummary(killedSession, MSSQL);
+    final String decidedOnTheConnection = conflictSummary(killedSession, MSSQL);
     assertTrue(decidedOnTheConnection.contains("S0001"), decidedOnTheConnection);
     assertFalse(decidedOnTheConnection.contains("25P02"), decidedOnTheConnection);
   }
@@ -603,12 +612,66 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     }
     chained(tail, sql(1205, "40001"));
 
-    assertEquals(JDBCStorage.conflictOf(bareClass40, MYSQL), AFTER_LOCK_WAIT,
+    final JDBCStorage.ConflictVerdict verdict = JDBCStorage.conflictVerdict(bareClass40, MYSQL);
+    assertEquals(verdict.conflict, AFTER_LOCK_WAIT,
         "a lock wait timeout past MAX_CHAIN_LINKS came back as a conflict the window does not bound");
-    assertFalse(JDBCStorage.replayableWithin(1, seconds(12), JDBCStorage.conflictOf(bareClass40, MYSQL)),
+    assertFalse(JDBCStorage.replayableWithin(1, seconds(12), verdict.conflict),
         "and was granted the replay past the window");
     // the line reporting a replay names that same link, since one walk produced both
-    assertTrue(JDBCStorage.conflictSummary(bareClass40, MYSQL).contains("1205"));
+    assertTrue(JDBCStorage.conflictSummary(verdict, bareClass40).contains("1205"));
+  }
+
+  /**
+   * What that walk stops at is the strongest class the engine of its driver can report, not the last constant of
+   * {@link Conflict}: only MySQL reports a lock wait timeout of its own, so a walk stopping at
+   * {@link Conflict#AFTER_LOCK_WAIT} never stops early on the other three engines and reads every link of every
+   * failed write on the driver whose chains are longest. Pinned from both sides - no failure of an engine is
+   * classed above its own ceiling, and every ceiling is reached by some failure - since a ceiling set too low
+   * would end the walk on a class weaker than the chain carries, and one set too high never ends it early.
+   */
+  @Test
+  public void testTheWalkStopsAtTheStrongestClassItsEngineCanReport()
+  {
+    // one shape per branch of the classification: a bare class 40, the two numbers the engines collide on, a
+    // deadlock of oracle, the state MySQL reports before its driver remaps it, and a failure that is no conflict
+    final SQLException[] shapes = {
+      sql(0, "40001"), sql(1205, "40001"), sql(1213, "40001"), sql(60, "61000"), sql(1205, "HY000"),
+      sql(2627, "23000") };
+
+    for (String driver : new String[] { POSTGRES, MYSQL, ORACLE, MSSQL, MARIADB, null })
+    {
+      final Conflict ceiling = JDBCStorage.ceilingOf(JDBCStorage.dialectOf(driver));
+      Conflict strongest = NONE;
+      for (SQLException shape : shapes)
+      {
+        final Conflict conflict = conflictOf(shape, driver);
+        assertTrue(conflict.compareTo(ceiling) <= 0,
+            driver + " classed " + shape.getSQLState() + "/" + shape.getErrorCode() + " as " + conflict
+                + ", above the ceiling its walk stops at");
+        strongest = conflict.compareTo(strongest) > 0 ? conflict : strongest;
+      }
+      assertEquals(strongest, ceiling, "the walk of " + driver + " stops at a class it can never reach");
+    }
+
+    // and the walk really stops there: a link behind a conflict already at its engine's ceiling is not looked
+    // at. This is what makes reading every link affordable - write() classifies before it knows the failure is
+    // replayable at all, so a plain 23000 from adding an entry that is already there reaches this walk too
+    final AtomicBoolean walkedPast = new AtomicBoolean();
+    final SQLException behindTheCeiling = new SQLException("synthetic failure", "23000", 2627)
+    {
+      @Override
+      public String getSQLState()
+      {
+        walkedPast.set(true);
+        return super.getSQLState();
+      }
+    };
+    assertEquals(conflictOf(sql(0, "40P01", behindTheCeiling), POSTGRES), PROMPT);
+    assertFalse(walkedPast.get(), "an engine reporting no lock wait timeout of its own walked past its ceiling");
+
+    // under mysql the same head is not the ceiling - a lock wait timeout could still be behind it - so it is
+    assertEquals(conflictOf(sql(0, "40001", behindTheCeiling), MYSQL), PROMPT);
+    assertTrue(walkedPast.get(), "mysql stopped before the link a lock wait timeout could have been on");
   }
 
   /**
@@ -660,7 +723,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     }
     catch (StorageRuntimeException expected)
     {
-      assertEquals(JDBCStorage.conflictOf(expected, POSTGRES), PROMPT, "the conflict was not the failure raised");
+      assertEquals(conflictOf(expected, POSTGRES), PROMPT, "the conflict was not the failure raised");
     }
     assertEquals(attempts.get(), 1, "a transaction that committed part of its work was replayed");
     verify(statements).executeUpdate();
@@ -891,7 +954,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     }
     catch (StorageRuntimeException expected)
     {
-      assertEquals(JDBCStorage.conflictOf(expected, MYSQL), PROMPT, "the conflict was not the failure raised");
+      assertEquals(conflictOf(expected, MYSQL), PROMPT, "the conflict was not the failure raised");
     }
     assertEquals(attempts.get(), 1, "an attempt that committed part of its work was replayed");
     verify(engineConnection).prepareStatement(startsWith("create index k_"));
@@ -967,6 +1030,22 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   }
 
   /**
+   * A mock of the given connection type, with the name every engine branch of {@code JDBCStorage} is keyed on
+   * asserted rather than assumed. The name of a mock is derived from the type it mocks, so a renamed fixture -
+   * or a Mockito that names its mocks differently - would move a case into another engine's branch with no test
+   * saying so, and there are cases no count of attempts would catch that in.
+   */
+  private static Connection mockOfEngine(Class<? extends Connection> engine)
+  {
+    final Connection con = mock(engine);
+    final String engineName = engine.getSimpleName().replace("Connection", "");
+    assertTrue(JDBCStorage.driverNameOf(con).contains(engineName),
+        "a mock of " + engine.getSimpleName() + " reaches no " + engineName + " branch: "
+            + JDBCStorage.driverNameOf(con));
+    return con;
+  }
+
+  /**
    * A storage whose pool hands out one connection of the given engine, over a catalog holding the table of
    * {@link #TREE} and either holding its {@code k_} index or not. The index guard and the statement behind it
    * are the branches {@code openTree()} takes per engine, and a mock of plain {@link Connection} reaches none
@@ -975,11 +1054,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   private JDBCStorage storageOverAnEngine(Class<? extends Connection> engine, boolean theIndex,
       Connection... behind) throws Exception
   {
-    final Connection con = mock(engine);
-    final String engineName = engine.getSimpleName().replace("Connection", "");
-    assertTrue(JDBCStorage.driverNameOf(con).contains(engineName),
-        "a mock of " + engine.getSimpleName() + " reaches no " + engineName + " branch: "
-            + JDBCStorage.driverNameOf(con));
+    final Connection con = mockOfEngine(engine);
     engineConnection = con;
     // the connections behind it answer the connects the pool does not make: the stamp of a tree name opens one
     // of its own, straight through the driver, since the caller of openTree() is holding a pooled connection
@@ -1100,8 +1175,26 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   private static String replayReason(Throwable failure, String driver, boolean committing, boolean partlyCommitted,
       boolean connectionClosed)
   {
-    return JDBCStorage.replayReason(JDBCStorage.conflictOf(failure, driver), failure, committing, partlyCommitted,
+    return JDBCStorage.replayReason(conflictOf(failure, driver), failure, committing, partlyCommitted,
         connectionClosed);
+  }
+
+  /**
+   * The class of a failure, composed of the pieces {@code write()} composes it of. Forms of this and of
+   * {@link #conflictSummary} taking a failure and a driver used to live in {@code JDBCStorage} with no caller of
+   * their own in {@code src/main}, which left the classification javadoc hanging off methods production never
+   * called and made every test asking both questions walk the chains twice. The convenience is a test's, so it
+   * is written here.
+   */
+  private static Conflict conflictOf(Throwable failure, String driver)
+  {
+    return JDBCStorage.conflictVerdict(failure, driver).conflict;
+  }
+
+  /** The line reporting a replay, composed the way {@code write()} composes it: one walk, then the summary of it. */
+  private static String conflictSummary(Throwable failure, String driver)
+  {
+    return JDBCStorage.conflictSummary(JDBCStorage.conflictVerdict(failure, driver), failure);
   }
 
   private static SQLException sql(int errorCode, String sqlState)
@@ -1141,30 +1234,43 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       // a step under the window, so the window is what ends the run: attempt 1 is granted its replay at 4 s,
       // attempt 2 is inside the window at 8 s, attempt 3 is past it at 12 s. With startedAt inside the loop every
       // attempt measures 4 s, never reaches the window, and the run goes to MAX_RETRIES instead
-      { "the window bounds the run, not the attempt", postgresConnection.class, sql(0, "40P01"), 4L, 3 },
+      { "the window bounds the run, not the attempt", postgresConnection.class, sql(0, "40P01"), 4L, PROMPT, 3 },
       // a step past the window, so only the grant can produce a second attempt: remove it and the run ends on
       // the first. This is the row that pins the grant end to end, and the row above is the one that pins
       // startedAt - at 12 s a per-attempt startedAt also stops at two attempts, and at 4 s the window alone
       // already allows the replay of attempt 1. Neither row is redundant
-      { "the first replay is granted past the window", postgresConnection.class, sql(0, "40P01"), 12L, 2 },
+      { "the first replay is granted past the window", postgresConnection.class, sql(0, "40P01"), 12L, PROMPT, 2 },
       // the same step, and the same class 40 state, for the one conflict the engine had already bounded: a
       // single attempt. The predicate rows pin that decision, but only these rows pin that write() hands the
-      // predicate the class of its own failure - dropped on the way to replayableWithin(), or read off a null
-      // driver, and the run above stays green while this one buys a second innodb_lock_wait_timeout
-      { "a lock wait timeout is granted no replay", mysqlConnection.class, sql(1205, "40001"), 12L, 1 },
+      // predicate the class of its own failure - dropped on the way to replayableWithin() and the run above
+      // stays green while this one buys a second innodb_lock_wait_timeout
+      { "a lock wait timeout is granted no replay", mysqlConnection.class, sql(1205, "40001"), 12L,
+        AFTER_LOCK_WAIT, 1 },
       // and the driver that reports that same timeout under a name this backend does not recognise: no grant
-      // there either, since what the grant rests on - the engine having bounded nothing - is unknown of it
-      { "an unrecognised engine is granted no replay", mariadbConnection.class, sql(1205, "40001"), 12L, 1 },
+      // there either, since what the grant rests on - the engine having bounded nothing - is unknown of it.
+      // No number of attempts separates this row from the one above: AFTER_LOCK_WAIT and UNKNOWN_ENGINE are
+      // refused the grant and bounded by the window identically, so the mysql row misread as unrecognised
+      // produces exactly the count expected of it. That is why each row names the class its engine gives its
+      // failure and the case asserts it of the mock it actually built
+      { "an unrecognised engine is granted no replay", mariadbConnection.class, sql(1205, "40001"), 12L,
+        UNKNOWN_ENGINE, 1 },
     };
   }
 
   @Test(dataProvider = "writeRuns")
   public void testWriteDrivesTheRetryLoop(String name, Class<? extends Connection> engine,
-      final SQLException conflict, final long stepSeconds, int expectedAttempts) throws Exception
+      final SQLException conflict, final long stepSeconds, Conflict expectedClass, int expectedAttempts)
+      throws Exception
   {
     final AtomicInteger attempts = new AtomicInteger();
-    // the class name of the mock is what write() reads the engine off, the way storageOverAnEngine() does it
-    final Connection connection = mock(engine);
+    // the class name of the mock is what write() reads the engine off, asserted here the way
+    // storageOverAnEngine() asserts it
+    final Connection connection = mockOfEngine(engine);
+    // which branch of the classification the row reaches, asserted rather than inferred from the count: the
+    // count cannot tell AFTER_LOCK_WAIT from UNKNOWN_ENGINE, since both are refused the grant and bounded by
+    // the window alike, so a fixture renamed out of the mysql branch would leave that row green
+    assertEquals(conflictOf(conflict, JDBCStorage.driverNameOf(connection)), expectedClass,
+        name + ": the mock does not reach the branch the row names");
 
     // a url of its own, as storageOver() gives every fixture of this file: getConnection() is overridden below,
     // but distrustPool() is not, and a null one would reach ConcurrentHashMap.merge(null, ...) rather than the
