@@ -33,6 +33,7 @@ import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.Isolatio
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
@@ -40,8 +41,10 @@ import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
+import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.Entry;
+import org.opends.server.types.OperationType;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -242,6 +245,108 @@ public class NamingConflictTest extends ReplicationTestCase
         "the deleted entry was brought back by the replayed ModifyDN");
     assertTrue(domain.getServerState().cover(csn),
         "a ModifyDN which the delete of its entry has settled must be recorded as replayed");
+  }
+
+  /**
+   * Test case for [Issue 956]: conflict resolution reads the data with a search of the
+   * entryUUID, and a search which did not run is no evidence about the data - the entry
+   * it did not report is not an entry which was deleted.
+   * <p>
+   * The change replayed here was made on the master under a DN this replica does not
+   * have: the entry lives under another one, the way it does after a rename which was
+   * replayed first, and only the entryUUID search finds it. So the change is applied
+   * only if that search is given another chance once the storage serves it again.
+   * Reading its failure as "the entry has been deleted" answers NOTHING_TO_DO, which
+   * records the change as replayed and loses it for good - the replication server never
+   * sends a change this replica reports itself past.
+   */
+  @Test
+  public void modifyIsRetriedWhileTheEntryUUIDSearchCanNotRun() throws Exception
+  {
+    final Entry entry = createAndAddEntry("modifyWhoseSearchCanNotRun");
+    final String entryUUID = getEntryUUID(entry.getName());
+    final String phoneNumber = "01 02 45";
+
+    // The DN the change carries is the one the entry had on the master. Here the entry
+    // is the one which was just added, which only the entryUUID search finds.
+    final DN staleDN = DN.valueOf("cn=movedAway," + TEST_ROOT_DN_STRING);
+    final CSN csn = gen.newCSN();
+
+    /*
+     * The storage does not serve the search for the first attempts and serves it after
+     * them: a failure which lasts less than the attempts made in place, the way a
+     * backend which is being rebuilt or a connection which was lost does. The short
+     * circuit is put in force right before the replay and dropped right after it - it
+     * applies to every search of this server while it is registered, and the replay
+     * here runs on this thread.
+     */
+    ShortCircuitPlugin.registerShortCircuit(
+        OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue(), 2);
+    try
+    {
+      replayMsg(new ModifyMsg(csn, staleDN, generatemods("telephonenumber", phoneNumber), entryUUID));
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+    }
+
+    final Entry replayedEntry = DirectoryServer.getEntry(entry.getName());
+    assertEquals(replayedEntry.parseAttribute("telephonenumber").asString(), phoneNumber,
+        "the change was not applied: a search which could not run was read as a deleted entry");
+    assertTrue(domain.getServerState().cover(csn),
+        "a change which was applied must be recorded as replayed");
+  }
+
+  /**
+   * Test case for [Issue 956]: the entryUUID searches which check a replayed Add for a
+   * conflict read the data the same way, and a search which did not run is no evidence
+   * about it either - a parent it did not report is not a parent which was deleted.
+   * <p>
+   * Reading them that way renames the entry under the base DN as a conflicting entry:
+   * a divergence which is left for an administrator to repair by hand, where the entry
+   * only had to be added again once the storage served the searches.
+   */
+  @Test
+  public void addIsRetriedWhileTheEntryUUIDSearchesCanNotRun() throws Exception
+  {
+    final Entry parent = TestCaseUtils.addEntry(
+        "dn: ou=addWhoseSearchesCanNotRun," + TEST_ROOT_DN_STRING,
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "ou: addWhoseSearchesCanNotRun");
+    final String parentUUID = getEntryUUID(parent.getName());
+
+    final Entry child = TestCaseUtils.makeEntry(
+        "dn: cn=addedWhileTheSearchesFailed," + parent.getName(),
+        "objectClass: top",
+        "objectClass: person",
+        "cn: addedWhileTheSearchesFailed",
+        "sn: Amar");
+    final CSN csn = gen.newCSN();
+
+    /*
+     * Every search this attempt makes fails: the one which checks whether the Add was
+     * replayed here already, the one which checks that the parent is still the one the
+     * change was made under, and the one conflict resolution reads the data with once
+     * the Add failed. The next attempt has them all served again.
+     */
+    ShortCircuitPlugin.registerShortCircuit(
+        OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue(), 3);
+    try
+    {
+      replayMsg(addMsg(child, csn, parentUUID, "0b2b1b3c-1a4d-4a8e-9f6b-2c4d5e6f7a8b"));
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+    }
+
+    assertTrue(entryExists(child.getName()),
+        "the entry was not added under its parent: searches which could not run were read "
+            + "as a parent which is gone");
+    assertTrue(domain.getServerState().cover(csn),
+        "a change which was applied must be recorded as replayed");
   }
 
   /**
