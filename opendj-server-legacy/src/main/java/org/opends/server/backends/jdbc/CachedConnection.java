@@ -359,16 +359,28 @@ public class CachedConnection implements Connection {
     }
 
     /**
-     * The moment a borrow of this length gives up, or {@link Long#MAX_VALUE} where it gives up
-     * never - a property of 0, and a value so large that the milliseconds of it would overflow.
+     * Whether a wait of this many seconds is one with no bound at all.
      * <p>
-     * The sum is guarded and not only the product: a value under the clamp above but large enough
+     * Two spellings of it, and one predicate for both so that they cannot drift: zero, which is how
+     * {@value #POOL_TIMEOUT_PROPERTY} says "wait for as long as it takes", and a number so large
+     * that the milliseconds it stands for do not fit in a {@code long} - a deadline computed from
+     * one of those overflows into the past, which is the opposite of what it asked for.
+     */
+    static boolean isUnboundedWait(long seconds) {
+        return seconds == 0 || seconds >= Long.MAX_VALUE / 1000;
+    }
+
+    /**
+     * The moment a borrow of this length gives up, or {@link Long#MAX_VALUE} where it gives up
+     * never - the two readings {@link #isUnboundedWait} names.
+     * <p>
+     * The sum is guarded and not only the product: a value that predicate lets through but large enough
      * that the moment it names is past the end of the epoch would wrap to a deadline already behind
      * us, and a borrow configured to wait practically forever would give up on its first retryable
      * failure - the opposite of what was asked for.
      */
     static long deadlineOf(long startedAt, long poolTimeoutSeconds) {
-        if (poolTimeoutSeconds == 0 || poolTimeoutSeconds >= Long.MAX_VALUE / 1000) {
+        if (isUnboundedWait(poolTimeoutSeconds)) {
             return Long.MAX_VALUE;
         }
         final long deadline = startedAt + poolTimeoutSeconds * 1000;
@@ -812,9 +824,12 @@ public class CachedConnection implements Connection {
      * number in favor of the default. The unit is the one the property is read in, so that the
      * value the message names is not mistaken for another.
      * <p>
-     * Package private rather than private: every bound this backend takes from a property is read
-     * through here, the connections of an import ({@code JDBCStorage.IMPORT_CONNECTIONS_PROPERTY})
-     * included, so that an operator who mistypes one is told rather than left with a default.
+     * Package private rather than private so that the bound on the connections of an import
+     * ({@code JDBCStorage.IMPORT_CONNECTIONS_PROPERTY}) can be read through it too, the way the
+     * bounds of the pool are: an operator who mistypes one of those is told rather than left with a
+     * default. Not every number this backend takes from a property comes through here - the
+     * statistics timeout and the fetch sizes of {@code JDBCStorage} are read with
+     * {@code Integer.getInteger}, which replaces a value it cannot parse in silence.
      */
     static long getNonNegativeProperty(String name, long defaultValue, String unit) {
         final String value = System.getProperty(name);
@@ -1270,24 +1285,41 @@ public class CachedConnection implements Connection {
     }
 
     /**
-     * Borrows a connection, waiting at the bound of the pool no longer than the given number of
-     * seconds where {@value #POOL_TIMEOUT_PROPERTY} says to wait for as long as it takes.
+     * The wait a borrow that carries a bound of its own actually gets: the shorter of what the
+     * deployment asked for and what the caller can afford, and the caller's where the deployment
+     * asked for no bound at all.
      *
-     * @param unboundedWaitFallbackSeconds the wait to use in place of an unbounded one, or 0 to wait
+     * @param maxWaitSeconds 0 for a caller that has no bound of its own, which takes the wait of
+     * the deployment whatever it is
+     */
+    static long boundedWait(long poolTimeoutSeconds, long maxWaitSeconds) {
+        if (isUnboundedWait(maxWaitSeconds)) {
+            return poolTimeoutSeconds;
+        }
+        return isUnboundedWait(poolTimeoutSeconds)
+            ? maxWaitSeconds : Math.min(poolTimeoutSeconds, maxWaitSeconds);
+    }
+
+    /**
+     * Borrows a connection, waiting at the bound of the pool no longer than the given number of
+     * seconds however long {@value #POOL_TIMEOUT_PROPERTY} says to wait.
+     *
+     * @param maxWaitSeconds the longest this borrow may wait at the bound of the pool, or 0 to wait
      * as the property says. For a caller whose own connections are what the pool is full of - an
      * import holds one per tree it writes until it ends (#891) - a wait with no bound is a deadlock
      * rather than a queue: nothing is going to return the connection it is waiting for but itself.
+     * A caller that names one has somewhere to go when it runs out, so the wait of the deployment
+     * is capped rather than merely replaced where it is unbounded: an import that has to ask the
+     * pool once per tree would otherwise pay a long {@value #POOL_TIMEOUT_PROPERTY} over again for
+     * every tree the pool has nothing to spare for.
      */
-    static Connection getConnection(String connectionString, boolean trusted, long unboundedWaitFallbackSeconds)
+    static Connection getConnection(String connectionString, boolean trusted, long maxWaitSeconds)
             throws Exception {
         final Pool pool = poolOf(connectionString);
         final ConnectDialect dialect = ConnectDialect.of(connectionString);
         reportUnknownDialect(connectionString, dialect);
         final long connectTimeoutSeconds = getConnectTimeoutSeconds();
-        long poolTimeoutSeconds = getPoolTimeoutSeconds();
-        if (poolTimeoutSeconds == 0 && unboundedWaitFallbackSeconds > 0) {
-            poolTimeoutSeconds = unboundedWaitFallbackSeconds; // see the parameter
-        }
+        final long poolTimeoutSeconds = boundedWait(getPoolTimeoutSeconds(), maxWaitSeconds);
         final long ttlMillis = getCacheTtlMillis();
         final long startedAt = System.currentTimeMillis();
         final long deadline = deadlineOf(startedAt, poolTimeoutSeconds);

@@ -38,17 +38,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
@@ -57,6 +60,7 @@ import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -73,12 +77,18 @@ import static org.testng.Assert.fail;
  * mutates, and two import threads on one connection walked it past the end of its array
  * (issue #891).
  * <p>
- * Needs no database: the connections are handed out by a driver of this test, which records which
- * thread issues a statement on which connection - and which thread commits, rolls back or returns
- * one while another is inside a statement on it - and holds the first statement of each thread at a
- * rendezvous until its peers have one in flight of their own. What that records is the defect
- * itself - two threads on one connection at the same time - rather than an exception of one driver,
- * so it holds for every dialect this backend takes.
+ * Needs no database: the connections are handed out by a driver of this test, which records every
+ * thread inside a statement of a connection - and which thread commits, rolls back or returns one
+ * while another is in there - so what it records is the defect itself, two threads on one
+ * connection at the same time, rather than an exception of one driver. It therefore holds for every
+ * dialect this backend takes.
+ * <p>
+ * Two ways of getting the threads to overlap, because trees that get connections of their own and
+ * trees that share one cannot be asked the same question. Where the connections differ, the driver
+ * holds the first statement of each thread at a rendezvous until its peers have one in flight of
+ * their own. Where they do not, a second thread never reaches such a rendezvous - the monitor of
+ * the connection is what this is about - so the threads line up before they write instead, and the
+ * first one in holds the connection for a moment to see whether the other turns up beside it.
  */
 @SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "jdbc" }, sequential = true)
@@ -86,6 +96,16 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 
 	/** Long enough for a peer thread to reach a statement on a loaded machine, and no longer. */
 	private static final long RENDEZVOUS_SECONDS = 30;
+
+	/**
+	 * How long the first thread inside a statement holds the connection it is on. Paid in full by
+	 * every run where the importer serializes its threads as it should - which is the point: a peer
+	 * that is let in arrives at once, having been waiting on the monitor since the starting line.
+	 */
+	private static final long HOLD_SECONDS = 2;
+
+	/** How long a close of an import may take before a thread of the test is taken to be stuck. */
+	private static final long CLOSE_SECONDS = 30;
 
 	private static final TreeName ID2ENTRY = new TreeName("dc=example,dc=com", "id2entry");
 	private static final TreeName DN2ID = new TreeName("dc=example,dc=com", "dn2id");
@@ -100,9 +120,15 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 	private final List<Connection> usedInOrder = Collections.synchronizedList(new ArrayList<Connection>());
 	/** Every commit of the import, in the order the connections took them. */
 	private final List<Connection> commits = Collections.synchronizedList(new ArrayList<Connection>());
-	/** The thread inside a statement of a connection right now, one entry per connection in flight. */
-	private final Map<Connection, Thread> inStatement =
-		Collections.synchronizedMap(new IdentityHashMap<Connection, Thread>());
+	/**
+	 * The threads inside a statement of a connection right now - every one of them, rather than the
+	 * first to arrive: a thread that finds a peer there records the pair and stays out of the map,
+	 * and the peer's exit would then leave the map saying the connection is free while it is not.
+	 * What comes after - another statement, a commit, the rollback of a return - would be recorded
+	 * against nobody, which is the one thing this suite is here to notice.
+	 */
+	private final Map<Connection, Set<Thread>> inStatement =
+		Collections.synchronizedMap(new IdentityHashMap<Connection, Set<Thread>>());
 	/** Every pair of threads that was inside a statement of one connection at the same time. */
 	private final List<String> shared = Collections.synchronizedList(new ArrayList<String>());
 
@@ -110,6 +136,20 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 	private volatile CyclicBarrier rendezvous;
 	/** Whether this thread has already met its peers: a thread waits there once, whatever it issues after. */
 	private final ThreadLocal<Boolean> met = ThreadLocal.withInitial(() -> Boolean.FALSE);
+
+	/**
+	 * Where the threads of a test line up before they write, which is in front of every monitor the
+	 * importer takes - unlike {@link #rendezvous}, which they reach once they are already inside a
+	 * statement, and which two threads sharing a connection therefore cannot both reach.
+	 */
+	private volatile CyclicBarrier startingLine;
+	/**
+	 * Counted down by every thread that gets inside a statement, and waited on by the first of them:
+	 * it holds the connection long enough for a peer to get in there beside it, if anything lets it.
+	 */
+	private volatile CountDownLatch insideAStatement;
+	/** Whether this thread has already held a connection: it holds the first statement it issues. */
+	private final ThreadLocal<Boolean> held = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
 	private ExecutorService threads;
 	/** The pool bound and its borrow deadline as this JVM had them, put back after every test. */
@@ -148,11 +188,14 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 		putBack(CachedConnection.POOL_TIMEOUT_PROPERTY, poolTimeoutOfTheJvm);
 		// the rendezvous of the next test is not the one this thread already went to
 		met.remove();
+		held.remove();
 		if (threads != null) {
 			threads.shutdownNow();
 			threads = null;
 		}
 		rendezvous = null;
+		startingLine = null;
+		insideAStatement = null;
 		forgetTheConnections();
 		inStatement.clear();
 		shared.clear();
@@ -188,7 +231,7 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 			// anything: a run where one finished before the other started shares no connection
 			// however the importer borrows them
 			rendezvous = new CyclicBarrier(2);
-			threads = Executors.newFixedThreadPool(2);
+			threads = daemonThreads(2, "import-writer");
 			final Future<?> id2entry = put(importer, ID2ENTRY);
 			final Future<?> dn2id = put(importer, DN2ID);
 			id2entry.get(RENDEZVOUS_SECONDS * 2, TimeUnit.SECONDS);
@@ -198,7 +241,43 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 				"two import threads issued a statement on one connection at the same time");
 			assertEquals(used.size(), 2, "the two trees of the import did not get a connection each");
 		} finally {
-			importer.close();
+			closeWithoutHanging(importer);
+			storage.close();
+		}
+	}
+
+	/**
+	 * Two trees that share one connection are not written at the same time. The bound of an import,
+	 * and a pool with nothing to spare, both put several trees on one connection - and what #891 is
+	 * about is two threads issuing statements on one connection, not how many connections an import
+	 * holds: the monitor of the connection is what has to keep the second thread out.
+	 * <p>
+	 * The two threads cannot be brought together at a barrier inside their statements the way the
+	 * test above does it - the second one never gets in to reach it - so the first one in holds the
+	 * connection for {@link #HOLD_SECONDS} instead, having lined up with its peer beforehand. A
+	 * second thread let in beside it arrives at once, since it has been waiting on that monitor
+	 * since the starting line, and both are then recorded in {@link #shared}.
+	 */
+	@Test(timeOut = 120000)
+	public void testTwoTreesOnOneConnectionAreNotWrittenAtTheSameTime() throws Exception {
+		System.setProperty(JDBCStorage.IMPORT_CONNECTIONS_PROPERTY, "1"); // both trees on one connection
+		final String url = StubDriver.PREFIX + "importer-serialized";
+		final JDBCStorage storage = importingStorage(url);
+		final Importer importer = storage.startImport();
+		try {
+			startingLine = new CyclicBarrier(2);
+			insideAStatement = new CountDownLatch(2);
+			threads = daemonThreads(2, "import-writer");
+			final Future<?> id2entry = put(importer, ID2ENTRY);
+			final Future<?> dn2id = put(importer, DN2ID);
+			id2entry.get(RENDEZVOUS_SECONDS * 2, TimeUnit.SECONDS);
+			dn2id.get(RENDEZVOUS_SECONDS * 2, TimeUnit.SECONDS);
+
+			assertEquals(used.size(), 1, "the two trees of this import did not share one connection");
+			assertEquals(shared, Collections.emptyList(),
+				"two import threads issued a statement on one connection at the same time");
+		} finally {
+			closeWithoutHanging(importer);
 			storage.close();
 		}
 	}
@@ -229,6 +308,34 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 		} finally {
 			importer.close();
 			storage.close();
+		}
+	}
+
+	/**
+	 * The bound an import takes where the operator set none, which is the branch every real install
+	 * takes: half the bound of the pool, and no more than half of what the default bound would be.
+	 * An import holds what it takes for its whole duration out of a pool that is shared with the
+	 * LDAP traffic of every backend on that database (#878), so the deployment that raised the
+	 * bound of its pool did not thereby ask for an import to take half of it.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheBoundOfAnImportDefaultsToHalfThePool() throws Exception {
+		// set by no test of this suite, and cleared after every one of them: this is the default
+		System.clearProperty(JDBCStorage.IMPORT_CONNECTIONS_PROPERTY);
+		final JDBCStorage half = importingStorage(StubDriver.PREFIX + "importer-default-bound");
+		try {
+			// the bound pinThePoolBound() put on the pools of this suite
+			assertEquals(half.importConnections(), 8, "an import did not default to half the bound of the pool");
+		} finally {
+			half.close();
+		}
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, String.valueOf(CachedConnection.DEFAULT_POOL_MAX * 4));
+		final JDBCStorage capped = importingStorage(StubDriver.PREFIX + "importer-default-bound-large-pool");
+		try {
+			assertEquals(capped.importConnections(), CachedConnection.DEFAULT_POOL_MAX / 2,
+				"an import of a pool larger than the default took more than half of what the default bound would be");
+		} finally {
+			capped.close();
 		}
 	}
 
@@ -288,7 +395,7 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 
 			assertEquals(used.size(), 1, "one tree was written through more than one connection");
 		} finally {
-			importer.close();
+			closeWithoutHanging(importer);
 			storage.close();
 		}
 	}
@@ -324,12 +431,14 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
-	 * A clear commits every connection of the import, not only the one whose tree it clears. The
-	 * one connection an import used to hold made that so of its own accord - {@code clearTree()}
-	 * ends in a commit, and that commit made durable every write the import had made so far, the
-	 * {@code setTrust(false)} of {@code beforePhaseOne} among them. Left to {@code close()}, that
-	 * flag would still be uncommitted while the table it describes was emptied and committed, and a
-	 * server that stopped in between would come back to an index that is empty and marked trusted.
+	 * A clear commits every connection of the import, not only the one whose tree it clears, and it
+	 * does so before it empties anything. The one connection an import used to hold made that so of
+	 * its own accord - {@code clearTree()} ends in a commit, and that commit made durable every
+	 * write the import had made so far. What that is worth to a {@code rebuild-index} is the
+	 * {@code setTrust(false)} of {@code RebuildIndexStrategy.beforePhaseOne}, which is written just
+	 * in front of the clear of the tree it describes: left to {@code close()} that flag would still
+	 * be uncommitted while the table was emptied and committed, and a server that stopped in
+	 * between would come back to an index that is empty and marked trusted.
 	 */
 	@Test(timeOut = 120000)
 	public void testAClearCommitsTheOtherConnectionsOfTheImport() throws Exception {
@@ -343,8 +452,12 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 			importer.put(STATE, ByteString.valueOfUtf8("k"), ByteString.valueOfUtf8("v"));
 			importer.clearTree(ID2ENTRY);
 
-			assertEquals(connectionsCommitted(), 2,
-				"the clear left the writes of the other connection of the import uncommitted");
+			// asserted in order rather than counted: the destructive half of a clear is the one
+			// thing that must not be durable while a write it is meant to invalidate is not, so the
+			// commit of the peer belongs in front of the one the clear itself ends in - a count of
+			// two is the same whichever way round they happened
+			assertEquals(commits, Arrays.asList(usedInOrder.get(0), usedInOrder.get(1)),
+				"the clear did not commit the other connection of the import before it emptied its own tree");
 		} finally {
 			importer.close();
 			storage.close();
@@ -425,9 +538,12 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
-	 * A commit that fails still gives every connection of the import back. What one left behind
-	 * holds is a permit of a pool that is never removed from the map, so a permit lost to a failed
-	 * import is lost for the life of the server (#878).
+	 * A commit that fails still gives every connection of the import back, and takes the ones after
+	 * it down with it. What a connection left behind holds is a permit of a pool that is never
+	 * removed from the map, so a permit lost to a failed import is lost for the life of the server
+	 * (#878) - and what a connection committed after the failure of an earlier one would hold is
+	 * the trust flags of {@code afterPhaseTwo}, which {@code close()} commits last for exactly this
+	 * reason: a failed import must not leave an index marked trusted over data that never got there.
 	 */
 	@Test(timeOut = 120000)
 	public void testAFailedCommitStillReturnsEveryConnection() throws Exception {
@@ -448,6 +564,10 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 				assertEquals(expected.getCause().getMessage(), "the socket went away");
 			}
 
+			// the connections are committed in the order they were last written to, so this one
+			// stands where the trust flags of afterPhaseTwo stand: behind the connection that just
+			// failed, and rolled back by the return rather than committed on top of a failed import
+			verify(usedInOrder.get(2), never()).commit();
 			assertEquals(CachedConnection.poolOf(url).idleCount(), 3, "a failed import kept a connection of the pool");
 		} finally {
 			storage.close();
@@ -481,7 +601,7 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 
 				assertEquals(used.size(), 1, "the tree the pool had no connection for did not share one");
 			} finally {
-				importer.close();
+				closeWithoutHanging(importer);
 				heldByAnOperation.close();
 			}
 		} finally {
@@ -520,16 +640,6 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 		assertEquals(CachedConnection.poolOf(url).meteredCount(), 0, "a connection of the import was lost");
 	}
 
-	/** How many distinct connections of the import have been committed so far. */
-	private int connectionsCommitted() {
-		final Set<Connection> committed =
-			Collections.newSetFromMap(new IdentityHashMap<Connection, Boolean>());
-		synchronized (commits) {
-			committed.addAll(commits);
-		}
-		return committed.size();
-	}
-
 	/** A storage open for writing over the driver of this test, which is what an import needs. */
 	private JDBCStorage importingStorage(String url) throws Exception {
 		// mockCfg rather than a bare mock: it answers every getter with the value declared in
@@ -547,14 +657,16 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 	}
 
 	private Future<?> put(final Importer importer, final TreeName treeName) {
-		return threads.submit(() ->
-			importer.put(treeName, ByteString.valueOfUtf8("k"), ByteString.valueOfUtf8("v")));
+		return threads.submit(() -> {
+			toTheStartingLine();
+			importer.put(treeName, ByteString.valueOfUtf8("k"), ByteString.valueOfUtf8("v"));
+		});
 	}
 
 	/** A write of a thread that has written nothing before, the way every thread of an import starts. */
 	private void putOnAThreadOfItsOwn(final Importer importer, final TreeName treeName) throws Exception {
 		final AtomicReference<Throwable> failure = new AtomicReference<>();
-		final Thread thread = new Thread(() -> {
+		final Thread thread = daemon(() -> {
 			try {
 				importer.put(treeName, ByteString.valueOfUtf8("k"), ByteString.valueOfUtf8("v"));
 			} catch (Throwable t) {
@@ -570,6 +682,64 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 		// connection, or on a borrow - would otherwise leave the assertions of the test standing on
 		// a run that never made the state they are about
 		assertFalse(thread.isAlive(), "the write of " + treeName + " did not finish");
+	}
+
+	/**
+	 * A thread of this suite. Daemon, every one of them: a write left standing on the monitor of a
+	 * connection by a failing run must not keep the JVM of the build alive once the test that
+	 * started it has been reported.
+	 */
+	private static Thread daemon(Runnable body, String name) {
+		final Thread thread = new Thread(body, name);
+		thread.setDaemon(true);
+		return thread;
+	}
+
+	/** The threads a test writes through, so that a stuck one is not a build that never ends. */
+	private static ExecutorService daemonThreads(int count, final String name) {
+		final AtomicInteger numbered = new AtomicInteger();
+		return Executors.newFixedThreadPool(count,
+			runnable -> daemon(runnable, name + "-" + numbered.incrementAndGet()));
+	}
+
+	/**
+	 * Closes an importer without waiting for a straggling thread of the test forever.
+	 * <p>
+	 * {@code close()} commits and returns every connection under the monitor of that connection, so
+	 * a write of this test that is stuck on one holds it - and a failure the test had already found
+	 * would then be reported as the {@code timeOut} of the method, two minutes later and under a
+	 * name that says nothing about what actually went wrong.
+	 */
+	private void closeWithoutHanging(Importer importer) {
+		final AtomicReference<Throwable> failure = new AtomicReference<>();
+		final Thread closing = daemon(() -> {
+			try {
+				importer.close();
+			} catch (Throwable t) {
+				failure.set(t);
+			}
+		}, "import-close");
+		closing.start();
+		try {
+			closing.join(TimeUnit.SECONDS.toMillis(CLOSE_SECONDS));
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("interrupted while closing the import", e);
+		}
+		if (closing.isAlive()) {
+			throw new IllegalStateException("the import did not close within " + CLOSE_SECONDS
+				+ "s: a thread of this test is holding the monitor of one of its connections");
+		}
+		final Throwable reported = failure.get();
+		if (reported instanceof RuntimeException) {
+			throw (RuntimeException) reported;
+		}
+		if (reported instanceof Error) {
+			throw (Error) reported;
+		}
+		if (reported != null) {
+			throw new IllegalStateException("the import failed to close", reported);
+		}
 	}
 
 	private List<Connection> connectionsUsed() {
@@ -610,26 +780,94 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 			if (used.add(con)) {
 				usedInOrder.add(con);
 			}
-			final Thread peer = inStatement.putIfAbsent(con, Thread.currentThread());
-			if (peer != null && peer != Thread.currentThread()) {
-				shared.add(peer.getName() + " and " + Thread.currentThread().getName());
-			}
+			enterAStatement(con);
 			try {
+				// the hold outside the monitor of the map above, and after this thread has entered
+				// it: what it is waiting for is a peer thread getting in here and recording itself
+				holdTheConnection();
 				meetPeers();
 				return statement;
 			} finally {
-				inStatement.remove(con, Thread.currentThread());
+				leaveAStatement(con);
 			}
 		});
 		return con;
 	}
 
+	/** Records this thread as inside a statement of the given connection, with whoever is already there. */
+	private void enterAStatement(Connection con) {
+		synchronized (inStatement) {
+			final Set<Thread> inside = inStatement.get(con);
+			final Set<Thread> threadsInside = inside != null ? inside : new LinkedHashSet<Thread>();
+			for (final Thread peer : threadsInside) {
+				if (peer != Thread.currentThread()) {
+					shared.add(peer.getName() + " and " + Thread.currentThread().getName());
+				}
+			}
+			threadsInside.add(Thread.currentThread());
+			inStatement.put(con, threadsInside);
+		}
+	}
+
+	private void leaveAStatement(Connection con) {
+		synchronized (inStatement) {
+			final Set<Thread> threadsInside = inStatement.get(con);
+			if (threadsInside != null && threadsInside.remove(Thread.currentThread()) && threadsInside.isEmpty()) {
+				inStatement.remove(con);
+			}
+		}
+	}
+
 	/** Records a connection touched from one thread while another is inside a statement on it. */
 	private void recordAThreadInsideAStatement(Connection con, String what) {
-		final Thread inside = inStatement.get(con);
-		if (inside != null && inside != Thread.currentThread()) {
-			shared.add(what + " of " + Thread.currentThread().getName() + " while " + inside.getName()
-				+ " was inside a statement");
+		synchronized (inStatement) {
+			final Set<Thread> threadsInside = inStatement.get(con);
+			if (threadsInside == null) {
+				return;
+			}
+			for (final Thread inside : threadsInside) {
+				if (inside != Thread.currentThread()) {
+					shared.add(what + " of " + Thread.currentThread().getName() + " while " + inside.getName()
+						+ " was inside a statement");
+				}
+			}
+		}
+	}
+
+	/**
+	 * Holds the first statement of a thread on the connection it is on, until a peer thread has one
+	 * of its own in flight there or the hold runs out.
+	 * <p>
+	 * How a test asks whether two threads can be inside a statement of one connection at the same
+	 * time: they cannot be brought together at a barrier the way the threads of two connections are
+	 * - a second thread held on the monitor of the connection never reaches one - so the first
+	 * thread in waits there instead, and the peer either turns up beside it, which is #891, or does
+	 * not, which is the hold being paid in full.
+	 */
+	private void holdTheConnection() {
+		final CountDownLatch inside = insideAStatement;
+		if (inside == null || held.get()) {
+			return;
+		}
+		held.set(Boolean.TRUE);
+		inside.countDown();
+		try {
+			inside.await(HOLD_SECONDS, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+	}
+
+	/** Where the threads of a test start together, in front of the monitors of the importer. */
+	private void toTheStartingLine() {
+		final CyclicBarrier line = startingLine;
+		if (line == null) {
+			return;
+		}
+		try {
+			line.await(RENDEZVOUS_SECONDS, TimeUnit.SECONDS);
+		} catch (InterruptedException | TimeoutException | BrokenBarrierException e) {
+			throw new IllegalStateException("the threads of this test did not reach the starting line", e);
 		}
 	}
 

@@ -921,13 +921,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	/**
 	 * The borrow every path of this class makes, and the seam a test stands in for the pool at.
 	 *
-	 * @param unboundedWaitFallbackSeconds how long to wait at the bound of the pool where the
-	 * deployment asked for that wait to be unbounded - 0 to wait as it says. Only the connections an
-	 * import takes after its first pass a number here: they are held until the import ends, so a
-	 * pool full of them has nothing to return to the thread waiting for one (#891).
+	 * @param maxWaitSeconds the longest this borrow may wait at the bound of the pool, whatever the
+	 * deployment asked for - 0 to wait as it says. Only the connections an import takes after its
+	 * first pass a number here: they are held until the import ends, so a pool full of them has
+	 * nothing to return to the thread waiting for one (#891).
 	 */
-	Connection getConnection(boolean trusted, long unboundedWaitFallbackSeconds) throws Exception {
-		return CachedConnection.getConnection(poolKey(), trusted, unboundedWaitFallbackSeconds);
+	Connection getConnection(boolean trusted, long maxWaitSeconds) throws Exception {
+		return CachedConnection.getConnection(poolKey(), trusted, maxWaitSeconds);
 	}
 
 
@@ -5015,9 +5015,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 */
 		private Connection borrowedOrShared(Integer index) {
 			try {
-				// bounded however the deployment set the wait of a borrow: the connections this one
-				// waits for are held by this import until it ends, so an unbounded wait here is a
-				// thread waiting for itself
+				// bounded, and by the default wait of a borrow however much longer the deployment
+				// made that wait: the connections this one waits for are held by this import until
+				// it ends, so an unbounded wait here is a thread waiting for itself - and a long one
+				// is paid over again for every index the pool has no connection to spare for
 				return getConnection(false, CachedConnection.DEFAULT_POOL_TIMEOUT_SECONDS);
 			}catch (SQLTimeoutException e) {
 				logger.debug(LocalizableMessage.raw("jdbc: the pool has no connection to spare for a tree of this import,"
@@ -5159,10 +5160,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		/**
 		 * Commits the other connections of this import, which is what the one connection an import
 		 * used to hold did of its own accord: {@code clearTree()} ends in a commit, and that commit
-		 * made durable every write the import had made so far - the {@code setTrust(false)} of
-		 * {@code beforePhaseOne} among them. Left to {@code close()}, that flag would still be
-		 * uncommitted while the table it describes was emptied and committed, and a server that
-		 * stopped in between would come back to an index that is empty and marked trusted.
+		 * made durable every write the import had made so far. Split over several connections and
+		 * left to {@code close()}, those writes would stay uncommitted while the tables they are
+		 * about were emptied and committed one after another.
+		 * <p>
+		 * What that is worth depends on the order the caller writes in, and the two strategies of
+		 * {@code OnDiskMergeImporter} differ. A {@code rebuild-index} writes the
+		 * {@code setTrust(false)} of {@code RebuildIndexStrategy.beforePhaseOne} before it empties
+		 * the trees that flag describes, so this makes the flag durable in front of the clear it
+		 * belongs to: a server that stops in between comes back to an index that is empty and says
+		 * so. An {@code import-ldif} takes {@code AbstractTwoPhaseImportStrategy.beforePhaseOne},
+		 * which empties every tree of the container first and writes the flags after - so there this
+		 * bounds how much of an import stays uncommitted (the flags of one container are made
+		 * durable by the clears of the next), rather than closing that window. Not a regression of
+		 * the connections an import now takes: the one connection it held before #891 committed in
+		 * exactly the same places, because the caller writes in exactly the same order.
 		 * <p>
 		 * Run in front of the clear rather than after it, so that a peer whose commit fails leaves
 		 * the import with the tree not yet emptied: the destructive half of a clear is the one thing

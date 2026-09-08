@@ -1708,6 +1708,32 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertEquals(CachedConnection.deadlineOf(startedAt, 60), startedAt + 60_000);
 	}
 
+	/**
+	 * A borrow that carries a bound of its own waits for the shorter of the two, whichever way the
+	 * deployment spelled a wait with no bound at all.
+	 * <p>
+	 * Only an import carries one: it holds a connection per tree it writes until it ends (#891), so
+	 * the pool it waits at may be full of nothing but its own connections and the wait would be a
+	 * deadlock rather than a queue. It has somewhere to go when the wait runs out - the tree is
+	 * written through a connection the import already holds - so a long wait of the deployment is
+	 * capped rather than merely replaced: paid over again for every tree the pool has nothing to
+	 * spare for, it would be the duration of an import rather than a bound on it.
+	 */
+	@Test
+	public void testABorrowWithABoundOfItsOwnWaitsForTheShorterOfTheTwo() {
+		assertEquals(CachedConnection.boundedWait(30, 60), 30, "the wait of the deployment was inside the bound");
+		assertEquals(CachedConnection.boundedWait(600, 60), 60, "a long finite wait was not capped");
+		assertEquals(CachedConnection.boundedWait(0, 60), 60, "0 stands for a wait with no bound");
+		// the other spelling of a wait with no bound: seconds enough that the milliseconds they
+		// stand for do not fit in a long, which the deadline of the borrow reads as forever
+		assertEquals(CachedConnection.boundedWait(Long.MAX_VALUE / 1000, 60), 60,
+			"a wait whose milliseconds overflow a long is unbounded too");
+		assertEquals(CachedConnection.boundedWait(Long.MAX_VALUE, 60), 60);
+		// ... and a borrow that carries no bound of its own takes the wait of the deployment whole
+		assertEquals(CachedConnection.boundedWait(600, 0), 600);
+		assertEquals(CachedConnection.boundedWait(0, 0), 0);
+	}
+
 	/** The connection string holds the credentials of the backend: a stall report must not carry them. */
 	@Test
 	public void testLoggedConnectionStringCarriesNoCredentials() throws Exception {
