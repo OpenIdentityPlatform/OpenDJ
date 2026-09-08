@@ -20,6 +20,7 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.backends.jdbc.JDBCStorage.Dialect;
 import org.opends.server.backends.jdbc.JDBCStorage.StatementBound;
 import org.opends.server.backends.pluggable.spi.AccessMode;
+import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.testng.annotations.AfterMethod;
@@ -33,6 +34,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
+import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -161,7 +163,7 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	 */
 	@Test
 	public void testOracleIsLeftToItsOwnDdlLockTimeout() {
-		assertNull(Dialect.ORACLE.ddlLockBoundSql(5));
+		assertNull(Dialect.ORACLE.ddlLockBoundSql(5, null));
 	}
 
 	/** An engine none of these statements fit is fed none of them, as its statistics are left alone. */
@@ -203,9 +205,10 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 
 	/**
 	 * A setting can reach the server and still fail on the close() of the statement that carried it -
-	 * a connection that broke in between. The session has it either way, so it is taken off again
-	 * before the DDL runs: this connection goes back to a pool, and on sql server a lock_timeout left
-	 * behind ends every lock wait of whoever borrows it next, row locks included.
+	 * a connection that broke in between - and no driver tells that apart from a setting that never
+	 * arrived. The session has it either way, so it is taken off again once the DDL is through: this
+	 * connection goes back to a pool, and on sql server a lock_timeout left behind ends every lock wait
+	 * of whoever borrows it next, row locks included.
 	 */
 	@Test
 	public void testASettingThatBrokeOnTheCloseOfItsStatementIsStillTakenOff() throws Exception {
@@ -214,7 +217,27 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 		storage.withDdlLockBound(con, Dialect.MYSQL, theDdl());
 
 		assertEquals(issued, asList("select @@session.lock_wait_timeout", "set session lock_wait_timeout=5",
-			"set session lock_wait_timeout=31536000", THE_DDL));
+			THE_DDL, "set session lock_wait_timeout=31536000"));
+	}
+
+	/**
+	 * And the DDL it wrapped is reported the way a bounded one is. The setting reached the server, so
+	 * the wait really was bounded - reporting that failure as the bare 55P03 it arrives as is the gap
+	 * this bound exists to close, and the log line above it says only that the bound may not be there.
+	 */
+	@Test
+	public void testADdlBoundedByASettingWhoseCloseFailedStillNamesTheProperty() throws Exception {
+		final SQLException lockWait = new SQLException("Lock wait timeout exceeded", "40001", 1205);
+		try {
+			storage.withDdlLockBound(breakingOnTheCloseOfASetting(mock(Connection.class), "31536000"),
+				Dialect.MYSQL, () -> {
+					throw lockWait;
+				});
+			fail("the lock timeout was swallowed");
+		}catch (SQLException e) {
+			assertTrue(e.getMessage().contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY), e.getMessage());
+			assertSame(e.getCause(), lockWait, "the failure of the engine was not chained");
+		}
 	}
 
 	/**
@@ -411,9 +434,14 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	public void testTheDeleteThatEmptiesATreeIsNotBounded() throws Exception {
 		final JDBCStorage bounded = storageHandingOut(engine(postgresConnection.class, "0"));
 
-		bounded.new ImporterImpl().clearTree(TREE);
+		// closed the way an import closes one: the importer holds a borrowed connection, and only its
+		// close() gives that connection - and the permit it took - back. The statements of that close are
+		// no part of this case, so what was issued is read before it.
+		try (final Importer importer = bounded.new ImporterImpl()) {
+			importer.clearTree(TREE);
 
-		assertEquals(issued, singletonList("delete from " + JDBCStorage.toTableName(TREE)));
+			assertEquals(issued, singletonList("delete from " + JDBCStorage.toTableName(TREE)));
+		}
 	}
 
 	/**
@@ -428,6 +456,153 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 		assertEquals(issued, asList("set local lock_timeout = 5000",
 			"drop table " + JDBCStorage.toTableName(TREE),
 			"drop table " + JDBCStorage.toTableName(OTHER_TREE)));
+	}
+
+	/**
+	 * A session already giving up sooner than this bound keeps exactly what it has: a deployment that
+	 * set {@code lock_wait_timeout} tighter did so on purpose, and loosening it to ours for the length
+	 * of a DDL is the very thing that leaves oracle alone. Nothing is set, so nothing is put back
+	 * either.
+	 */
+	@Test
+	public void testAMysqlSessionAlreadyTighterThanTheBoundKeepsWhatItHas() throws Exception {
+		storage.withDdlLockBound(recording(mock(Connection.class), "1"), Dialect.MYSQL, theDdl());
+
+		assertEquals(issued, asList("select @@session.lock_wait_timeout", THE_DDL));
+	}
+
+	/**
+	 * On sql server 0 is "do not wait at all", which is tighter than any bound of ours, while -1 is
+	 * "wait forever" and is replaced - the case the data provider above covers. A value read as a
+	 * number that happens to be negative must not be mistaken for a tight one.
+	 */
+	@Test
+	public void testASqlServerSessionThatDoesNotWaitAtAllKeepsWhatItHas() throws Exception {
+		storage.withDdlLockBound(recording(mock(Connection.class), "0"), Dialect.MICROSOFT, theDdl());
+
+		assertEquals(issued, asList("select @@lock_timeout", THE_DDL));
+	}
+
+	/**
+	 * Outside a transaction block postgres answers {@code SET LOCAL} with a warning and does nothing
+	 * with it: the driver raises nothing, so the DDL would run with no bound at all and the log would
+	 * read exactly like a bounded one. The setting is not issued there.
+	 */
+	@Test
+	public void testAConnectionInAutoCommitIsGivenNoSetLocal() throws Exception {
+		final Connection con = recording(mock(Connection.class), "0");
+		when(con.getAutoCommit()).thenReturn(true);
+
+		storage.withDdlLockBound(con, Dialect.POSTGRES, theDdl());
+
+		assertEquals(issued, singletonList(THE_DDL));
+	}
+
+	/**
+	 * A statement that fails inside a postgres transaction aborts it, and the DDL after it would then
+	 * fail with 25P02 rather than running unbounded as it did before this bound existed - a backend
+	 * that used to open would stop opening because of the bound meant to protect it. The transaction is
+	 * taken back to the point before the setting, which also undoes a {@code set local} that did reach
+	 * the server.
+	 */
+	@Test
+	public void testTheTransactionIsTakenBackToBeforeASettingThatFailed() throws Exception {
+		final Connection con = mock(Connection.class);
+		final Savepoint beforeTheBound = mock(Savepoint.class);
+		when(con.setSavepoint()).thenReturn(beforeTheBound);
+		when(con.createStatement()).thenThrow(new SQLException("current transaction is aborted", "25P02"));
+
+		storage.withDdlLockBound(con, Dialect.POSTGRES, theDdl());
+
+		verify(con).rollback(beforeTheBound);
+		assertEquals(issued, singletonList(THE_DDL));
+	}
+
+	/** And a setting that went through is left standing: it is what bounds the DDL that follows it. */
+	@Test
+	public void testATransactionWhoseSettingWentThroughIsNotTakenBack() throws Exception {
+		final Connection con = recording(mock(Connection.class), "0");
+		final Savepoint beforeTheBound = mock(Savepoint.class);
+		when(con.setSavepoint()).thenReturn(beforeTheBound);
+
+		storage.withDdlLockBound(con, Dialect.POSTGRES, theDdl());
+
+		verify(con, never()).rollback(beforeTheBound);
+		assertEquals(issued, asList("set local lock_timeout = 5000", THE_DDL));
+	}
+
+	/**
+	 * More than one wait of an engine reports the same number: mysql reports the row lock of
+	 * {@code innodb_lock_wait_timeout} - 50 s by default, and what a create index under
+	 * {@code ALGORITHM=COPY} waits on - as the same ERROR 1205 as a metadata lock. A wait that ran far
+	 * longer than this bound was ended by something else, and naming this property for it would send an
+	 * operator to raise the one setting that cannot help.
+	 */
+	@Test
+	public void testALockWaitFarPastTheBoundIsLeftExactlyAsItIs() {
+		final SQLException rowLock = new SQLException("Lock wait timeout exceeded; try restarting transaction",
+			"40001", 1205);
+		final long fiftySecondsAgo = System.nanoTime() - 50L * 1000 * 1000 * 1000;
+
+		assertSame(storage.gaveUpOnTheLock(rowLock, Dialect.MYSQL, 5, fiftySecondsAgo), rowLock,
+			"a wait of innodb_lock_wait_timeout was reported as the bound this backend sets");
+	}
+
+	/** While one that ended where this bound is is renamed, which is what the bound exists to say. */
+	@Test
+	public void testALockWaitTheBoundCouldHaveEndedIsRenamed() {
+		final SQLException lockWait = new SQLException("Lock wait timeout exceeded", "40001", 1205);
+
+		final SQLException renamed = storage.gaveUpOnTheLock(lockWait, Dialect.MYSQL, 5, System.nanoTime());
+
+		assertTrue(renamed.getMessage().contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY), renamed.getMessage());
+		assertSame(renamed.getCause(), lockWait, "the failure of the engine was not chained");
+	}
+
+	/**
+	 * A connection left carrying a bound this backend could not take off again does not go back into
+	 * the pool. Leaving it to the next borrow to notice does not work: that validation is
+	 * {@code isValid()}, a liveness check such a connection passes - and on sql server the setting left
+	 * on it would cut every lock wait of the next borrower, row locks included, which
+	 * {@code isConflict()} classifies as no replayable conflict.
+	 */
+	@Test
+	public void testAConnectionWhoseBoundCouldNotBeTakenOffIsKeptOutOfThePool() throws Exception {
+		final AtomicBoolean keptOut = new AtomicBoolean();
+		final Connection parent = refusingToGiveTheValueBack(mock(Connection.class), "31536000");
+		try (final CachedConnection con = new CachedConnection("jdbc:mock", parent) {
+			@Override
+			void keepOutOfThePool() {
+				keptOut.set(true);
+				super.keepOutOfThePool();
+			}
+		}) {
+			storage.withDdlLockBound(con, Dialect.MYSQL, theDdl());
+		}
+
+		assertTrue(keptOut.get(), "a connection left carrying our bound was handed back to the pool");
+	}
+
+	/**
+	 * The round trips of the bound itself carry a bound of their own. Unbounded, a readback on a
+	 * connection whose peer went quiet with the socket still open parks the thread opening a backend
+	 * for good - the hang #877 and #882 exist to end - and the restore does it from the finally of a
+	 * DDL that has already failed. The DDL between them keeps the class it had, which ships unbounded.
+	 */
+	@Test
+	public void testTheRoundTripsOfTheBoundCarryOneOfTheirOwn() throws Exception {
+		final List<Integer> armed = new ArrayList<>();
+		final Connection con = recording(mock(Connection.class), "31536000");
+		doAnswer(invocation -> {
+			armed.add((Integer) invocation.getArguments()[1]);
+			return null;
+		}).when(con).setNetworkTimeout(any(), anyInt());
+
+		storage.withDdlLockBound(con, Dialect.MYSQL, theDdl());
+
+		assertTrue(armed.contains((JDBCStorage.SESSION_STATEMENT_BOUND_SECONDS
+				+ JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000),
+			"the session statements of the bound armed no socket read timeout: " + armed);
 	}
 
 	/** The DDL itself, recording that it ran in among the session statements issued around it. */
