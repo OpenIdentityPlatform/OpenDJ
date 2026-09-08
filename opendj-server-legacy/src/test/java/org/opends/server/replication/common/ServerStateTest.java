@@ -166,7 +166,8 @@ public class ServerStateTest extends ReplicationTestCase
 
   /**
    * Emptying the state is a change like any other: it must not leave the state
-   * looking like what persistent storage holds.
+   * looking like what persistent storage holds. Emptying one that is already
+   * empty changes nothing, and must leave the saved status alone.
    */
   @Test
   public void clearMarksTheStateUnsaved() throws Exception
@@ -177,5 +178,9 @@ public class ServerStateTest extends ReplicationTestCase
 
     state.clear();
     assertFalse(state.isSaved(), "clearing the state must not leave it marked as saved");
+
+    state.setSaved(true);
+    state.clear();
+    assertTrue(state.isSaved(), "clearing an already empty state must not clear the saved status");
   }
 }

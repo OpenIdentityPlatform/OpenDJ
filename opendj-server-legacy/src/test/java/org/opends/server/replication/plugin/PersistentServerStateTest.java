@@ -17,10 +17,14 @@
  */
 package org.opends.server.replication.plugin;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.replication.ReplicationTestCase;
@@ -112,7 +116,7 @@ public class PersistentServerStateTest extends ReplicationTestCase
     final AtomicReference<CSN> racing = new AtomicReference<>();
 
     // the update in racing lands inside the write, once its snapshot was taken
-    final PersistentServerState state = new HookedWrite(baseDn, 1, serverState, null, () -> {
+    final PersistentServerState state = new HookedWrite(baseDn, 1, serverState, null, entryDN -> {
       final CSN racingCSN = racing.getAndSet(null);
       if (racingCSN != null)
       {
@@ -212,7 +216,7 @@ public class PersistentServerStateTest extends ReplicationTestCase
     final DN baseDn = DN.valueOf(TEST_ROOT_DN_STRING);
     final ServerState serverState = new ServerState();
     final IllegalStateException blowUp = new IllegalStateException("the write blows up");
-    final PersistentServerState state = new HookedWrite(baseDn, 1, serverState, null, () -> {
+    final PersistentServerState state = new HookedWrite(baseDn, 1, serverState, null, entryDN -> {
       throw blowUp;
     });
     try
@@ -237,79 +241,122 @@ public class PersistentServerStateTest extends ReplicationTestCase
   }
 
   /**
-   * Two saves must not write the state at the same time: the write of the older
-   * snapshot could otherwise land last, leaving a state on disk that is both
-   * stale and marked as saved.
+   * A save which finds another one writing gives up its turn. It must neither
+   * reach the write - two writes at the same time can land in the order of
+   * their snapshots reversed, leaving a state on disk that is both stale and
+   * marked as saved - nor wait for the write in flight, which would close a
+   * lock cycle with the configuration listener that write calls into.
+   * <p>
+   * The write in flight is held open until the second save has run and been
+   * checked, so nothing here is inferred from a timing window: the write is
+   * provably still in flight while that save runs and returns.
    */
   @Test
-  public void concurrentSavesDoNotWriteTheStateAtTheSameTime() throws Exception
+  public void aSaveGivesUpItsTurnWhileAnotherOneIsWriting() throws Exception
   {
     final DN baseDn = DN.valueOf(TEST_ROOT_DN_STRING);
     final ServerState serverState = new ServerState();
 
-    final AtomicInteger writersInside = new AtomicInteger();
-    final AtomicInteger mostWritersInside = new AtomicInteger();
-    final AtomicBoolean secondWriteGotIn = new AtomicBoolean();
-    final AtomicBoolean firstWrite = new AtomicBoolean(true);
-    final CountDownLatch firstWriteStarted = new CountDownLatch(1);
-    final CountDownLatch secondWriteStarted = new CountDownLatch(1);
+    final AtomicInteger writesStarted = new AtomicInteger();
+    final AtomicBoolean writeInFlightWasReleased = new AtomicBoolean();
+    final CountDownLatch writeInFlight = new CountDownLatch(1);
+    final CountDownLatch releaseTheWrite = new CountDownLatch(1);
 
-    final PersistentServerState state = new HookedWrite(baseDn, 1, serverState, null, () -> {
-      mostWritersInside.accumulateAndGet(writersInside.incrementAndGet(), Math::max);
-      if (firstWrite.compareAndSet(true, false))
+    final PersistentServerState state = new HookedWrite(baseDn, 1, serverState, null, entryDN -> {
+      if (writesStarted.incrementAndGet() > 1)
       {
-        firstWriteStarted.countDown();
-        try
-        {
-          // The second save, if nothing keeps it out, reaches this same hook
-          // and counts the latch down while this write is still in flight. The
-          // wait is what gives it the chance; it is expected to time out.
-          secondWriteGotIn.set(secondWriteStarted.await(2, SECONDS));
-        }
-        catch (InterruptedException e)
-        {
-          Thread.currentThread().interrupt();
-          throw new AssertionError("interrupted while holding the first write", e);
-        }
+        // a second write: reported by the assertions below, not from in here
+        return;
       }
-      else
+      writeInFlight.countDown();
+      try
       {
-        secondWriteStarted.countDown();
+        // The timeout is what turns a save that waits - as one would without
+        // the tryLock - into a failure rather than a suite that never ends.
+        releaseTheWrite.await(30, SECONDS);
       }
-      writersInside.decrementAndGet();
+      catch (InterruptedException e)
+      {
+        Thread.currentThread().interrupt();
+        throw new AssertionError("interrupted while holding the write in flight", e);
+      }
+      writeInFlightWasReleased.set(true);
     });
 
-    final AtomicReference<Throwable> checkpointerFailure = new AtomicReference<>();
-    final Thread checkpointer = new Thread(state::save, "test state checkpointer");
-    checkpointer.setDaemon(true);
-    checkpointer.setUncaughtExceptionHandler((t, e) -> checkpointerFailure.set(e));
+    final AtomicReference<Throwable> writerFailure = new AtomicReference<>();
+    final Thread writer = new Thread(state::save, "test state checkpointer");
+    writer.setDaemon(true);
+    writer.setUncaughtExceptionHandler((t, e) -> writerFailure.set(e));
     try
     {
       final CSNGenerator gen = new CSNGenerator(1, serverState);
-      assertTrue(state.update(gen.newCSN()));
-      checkpointer.start();
-      assertTrue(firstWriteStarted.await(10, SECONDS), "the first save never reached its write");
+      final CSN writtenCSN = gen.newCSN();
+      assertTrue(state.update(writtenCSN));
+      writer.start();
+      assertTrue(writeInFlight.await(30, SECONDS), "the first save never reached its write");
 
-      // dirty the state so that the second save has something to write
-      assertTrue(state.update(gen.newCSN()));
+      // dirty the state, so that the save below has something to write and
+      // would go through to the backend if nothing kept it out
+      final CSN laterCSN = gen.newCSN();
+      assertTrue(state.update(laterCSN));
+
       state.save();
 
-      checkpointer.join(SECONDS.toMillis(30));
-      assertFalse(checkpointer.isAlive(), "the first save never completed");
-      assertNull(checkpointerFailure.get(), "the first save failed: " + checkpointerFailure.get());
-      assertFalse(secondWriteGotIn.get(),
-          "the second save reached its write while the first one was still writing");
-      assertEquals(mostWritersInside.get(), 1, "two saves wrote the state at the same time");
+      assertFalse(writeInFlightWasReleased.get(),
+          "the second save only returned once the write in flight had been released");
+      assertEquals(writesStarted.get(), 1, "the second save wrote while the first one was writing");
+      assertFalse(serverState.isSaved(),
+          "a save which gave up its turn must leave the state to the next one");
+
+      releaseTheWrite.countDown();
+      writer.join(SECONDS.toMillis(30));
+      assertFalse(writer.isAlive(), "the first save never completed");
+      assertNull(writerFailure.get(), "the first save failed: " + writerFailure.get());
+      assertEquals(loadMaxCSN(baseDn, 1), writtenCSN, "the write in flight carried its own snapshot");
+
+      // the next tick of the checkpointer, once the write in flight is over
+      state.save();
+      assertTrue(serverState.isSaved());
+      assertEquals(loadMaxCSN(baseDn, 1), laterCSN,
+          "what the save which gave up its turn had to write must be written by the next save");
     }
     finally
     {
-      // Only touch the state once the other thread is out of it: clear() saves,
-      // and a save waiting on a wedged one would hang instead of reporting.
-      checkpointer.join(SECONDS.toMillis(30));
-      if (!checkpointer.isAlive())
-      {
-        state.clear();
-      }
+      releaseTheWrite.countDown();
+      writer.join(SECONDS.toMillis(30));
+      // Cleared through a state of its own, unconditionally: a save on the one
+      // above would give up its turn should the writer thread still hold it,
+      // and leave a CSN of this test behind for the ones that follow.
+      new PersistentServerState(baseDn, 1, new ServerState()).clear();
+    }
+  }
+
+  /**
+   * A write which reports that the base entry is gone falls back to the domain
+   * configuration entry. When there is no such entry - no replication domain is
+   * configured over this suffix here - the state has reached no storage at all,
+   * and must not be left marked as saved.
+   */
+  @Test
+  public void writeWithNoBaseEntryAndNoConfigEntryLeavesTheStateUnsaved() throws Exception
+  {
+    final DN baseDn = DN.valueOf(TEST_ROOT_DN_STRING);
+    final ServerState serverState = new ServerState();
+    final List<String> writtenTo = new CopyOnWriteArrayList<>();
+    final PersistentServerState state =
+        new HookedWrite(baseDn, 1, serverState, ResultCode.NO_SUCH_OBJECT, writtenTo::add);
+    try
+    {
+      assertTrue(state.update(new CSNGenerator(1, serverState).newCSN()));
+
+      state.save();
+      assertEquals(writtenTo, Collections.singletonList(baseDn.toString()),
+          "the fallback wrote somewhere although no configuration entry holds this suffix");
+      assertFalse(serverState.isSaved(), "a state which reached no entry at all must be left unsaved");
+    }
+    finally
+    {
+      new PersistentServerState(baseDn, 1, new ServerState()).clear();
     }
   }
 
@@ -326,10 +373,13 @@ public class PersistentServerStateTest extends ReplicationTestCase
   {
     /** Optional: when set, is returned instead of running the modify. */
     private final ResultCode failure;
-    /** Optional: when set, runs inside the write, before the modify. */
-    private final Runnable insideWrite;
+    /**
+     * Optional: when set, runs inside the write, before the modify, and is
+     * handed the DN of the entry that write targets.
+     */
+    private final Consumer<String> insideWrite;
 
-    HookedWrite(DN baseDN, int serverId, ServerState state, ResultCode failure, Runnable insideWrite)
+    HookedWrite(DN baseDN, int serverId, ServerState state, ResultCode failure, Consumer<String> insideWrite)
     {
       super(baseDN, serverId, state);
       this.failure = failure;
@@ -341,7 +391,7 @@ public class PersistentServerStateTest extends ReplicationTestCase
     {
       if (insideWrite != null)
       {
-        insideWrite.run();
+        insideWrite.accept(op.getRawEntryDN().toString());
       }
       return failure != null ? failure : super.runModify(op);
     }
