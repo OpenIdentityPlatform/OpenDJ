@@ -209,9 +209,20 @@ final class RemotePendingChanges
 
   /**
    * Mark an update message as committed.
+   * <p>
+   * A change another replay thread owns is not this thread's to record: it reports that
+   * there is no such change here, the way it does for one which is not listed anymore.
+   * A thread reaches this having decided that a change is in the data or is to be given
+   * up on, and the decision and the record are two turns of this lock apart - long enough
+   * for the change to have been handed back, delivered again and taken over in between -
+   * so the record is refused rather than made over a change which is being applied right
+   * now: recording it would advance the ServerState over a change which is not in the
+   * data yet (issue #889) and have the thread which is applying it fail to commit.
    *
    * @param csn
    *          The CSN of the update message that must be set as committed.
+   * @throws NoSuchElementException
+   *          if there is no change with that CSN for this thread to record
    */
   public void commit(CSN csn)
   {
@@ -219,12 +230,13 @@ final class RemotePendingChanges
     try
     {
       PendingChange curChange = pendingChanges.get(csn);
-      if (curChange == null)
+      if (curChange == null
+          || (curChange.isOwned() && !curChange.isOwnedBy(Thread.currentThread())))
       {
         throw new NoSuchElementException();
       }
       curChange.setCommitted(true);
-      curChange.setOwned(false);
+      curChange.setOwner(null);
       activeAndDependentChanges.remove(curChange);
 
       final Iterator<PendingChange> it = pendingChanges.values().iterator();
@@ -268,9 +280,12 @@ final class RemotePendingChanges
    * which is not in the data yet is exactly what the changes which follow it must depend
    * on, whether or not a replay thread owns it right now.
    * <p>
-   * The changes another replay thread is applying right now are left alone: they are
-   * about to commit, and forgetting them would have their {@code commit()} fail, the
-   * ServerState stay behind them and the replication server replay them a second time.
+   * Only the thread which owns the change gives it back. A thread reports a failure
+   * wherever its replay was left - including on a road out which no failure road ran -
+   * and the change may have been delivered again and taken over by another thread by
+   * then: a release which does not check who owns the change now would hand it to a
+   * second replay thread while the first is applying it, which is the double replay the
+   * ownership is there to prevent (OPENDJ-1115).
    *
    * @param csn the CSN of the change whose replay failed
    */
@@ -280,9 +295,9 @@ final class RemotePendingChanges
     try
     {
       final PendingChange change = pendingChanges.get(csn);
-      if (change != null && !change.isCommitted())
+      if (change != null && !change.isCommitted() && change.isOwnedBy(Thread.currentThread()))
       {
-        change.setOwned(false);
+        change.setOwner(null);
       }
     }
     finally
@@ -339,9 +354,14 @@ final class RemotePendingChanges
    *          the CSN of the change whose replay failed
    * @param nowMs
    *          when it failed, on a clock which only moves forward
-   * @return the failures of the change, or {@code null} when it is not listed as an
-   *         uncommitted change anymore, which happens when the domain was disabled while
-   *         it was being replayed: there is no change left here to give up on
+   * @return the failures of the change, or {@code null} when there is no change left here
+   *         for this thread to give up on: it is not listed as an uncommitted change
+   *         anymore, which happens when the domain was disabled while it was being
+   *         replayed, or another replay thread owns it, which is that change being
+   *         delivered again and taken over while this thread was reporting on it. Giving
+   *         up on a change another thread is applying would record it as replayed while
+   *         it is being written, and have that thread's commit fail on a change which is
+   *         not listed anymore.
    */
   public ReplayFailure recordReplayFailure(CSN csn, long nowMs)
   {
@@ -349,7 +369,8 @@ final class RemotePendingChanges
     try
     {
       final PendingChange change = pendingChanges.get(csn);
-      if (change == null || change.isCommitted())
+      if (change == null || change.isCommitted()
+          || (change.isOwned() && !change.isOwnedBy(Thread.currentThread())))
       {
         return null;
       }
@@ -441,7 +462,7 @@ final class RemotePendingChanges
       {
         return false;
       }
-      change.setOwned(true);
+      change.setOwner(Thread.currentThread());
       activeAndDependentChanges.add(change);
       return true;
     }
@@ -452,12 +473,35 @@ final class RemotePendingChanges
   }
   /**
    * Get the first update in the list that have some dependencies cleared.
+   * <p>
+   * The change is handed to the thread which asks for it, and that thread takes it over:
+   * a change which waits for the one it depends on is owned by the thread which parked
+   * it, which is not the one which replays it - it is replayed by whichever thread
+   * applied the change it was waiting for. The thread which replays it is the one which
+   * has to be able to give it back when its replay fails.
    *
    * @return The LDAPUpdateMsg to be handled.
    */
   public LDAPUpdateMsg getNextUpdate()
   {
-    pendingChangesReadLock.lock();
+    /*
+     * Whether there is a change to hand over is read under the read lock, and the write
+     * lock is taken only to hand one over: this is called once per replayed change, and
+     * the answer is nearly always that there is none - while a change which is failing is
+     * being asked for again, it is that there is one which is not ready yet, over and
+     * over. Taking the write lock to find that out would have every replay thread queue
+     * on it, and a fair lock has the readers of the pending changes queue behind them.
+     *
+     * The state is read again under the write lock, so a change which is parked between
+     * the two reads is handed out by the call which follows rather than by this one -
+     * which is where it would have waited had it been parked a moment later.
+     */
+    if (!hasUpdateToHandOver())
+    {
+      return null;
+    }
+
+    pendingChangesWriteLock.lock();
     dependentChangesLock.lock();
     try
     {
@@ -467,10 +511,34 @@ final class RemotePendingChanges
         if (pendingChanges.firstKey().isNewerThanOrEqualTo(firstDependentChange.getCSN()))
         {
           dependentChanges.remove(firstDependentChange);
+          firstDependentChange.setOwner(Thread.currentThread());
           return firstDependentChange.getLDAPUpdateMsg();
         }
       }
       return null;
+    }
+    finally
+    {
+      dependentChangesLock.unlock();
+      pendingChangesWriteLock.unlock();
+    }
+  }
+
+  /**
+   * Returns whether a change which waits for the change it depends on is ready to be
+   * replayed, that is whether every change older than it has left this list.
+   *
+   * @return {@code true} if {@link #getNextUpdate()} has a change to hand over
+   */
+  private boolean hasUpdateToHandOver()
+  {
+    pendingChangesReadLock.lock();
+    dependentChangesLock.lock();
+    try
+    {
+      return !dependentChanges.isEmpty()
+          && !pendingChanges.isEmpty()
+          && pendingChanges.firstKey().isNewerThanOrEqualTo(dependentChanges.first().getCSN());
     }
     finally
     {

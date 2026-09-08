@@ -32,6 +32,7 @@ import static org.testng.Assert.*;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
@@ -2032,6 +2033,160 @@ public class UpdateOperationTest extends ReplicationTestCase
     });
     checkEntryHasAttributeValue(dn, "description", description, 30,
         "the change must be applied by the delivery which took over from the failed one");
+  }
+
+  /**
+   * Test case for [Issue 922]: a change whose replay throws must be given back to the
+   * replication server rather than left owned by a thread which is not replaying it.
+   * <p>
+   * A change is owned by the replay thread which took it from {@code markInProgress()}
+   * until it is committed or given back, and every delivery of a change a replay thread
+   * owns is refused as the duplicate it would be (OPENDJ-1115). An {@code Error} escapes
+   * the {@code catch (Exception)} of both the replay and the replay thread, so it used to
+   * leave the change owned by a thread which is not replaying it anymore: nothing could
+   * replay it, and this domain's ServerState - with every change behind it, from every
+   * master - stopped there for as long as the server was up.
+   */
+  @Test(dataProvider = "replayErrors")
+  public void aChangeWhoseReplayThrowsIsGivenBackToTheReplicationServer(
+      String uid, int serverId, Error error) throws Exception
+  {
+    testSetUp("aChangeWhoseReplayThrowsIsGivenBackToTheReplicationServer" + uid);
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aChangeWhoseReplayThrowsIsGivenBackToTheReplicationServer "
+            + error.getClass().getSimpleName()));
+
+    Entry tmp = TestCaseUtils.addEntry(
+        "dn: uid=" + uid + "," + baseDN,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: " + uid,
+        "cn: Aaccf Amar",
+        "sn: Amar");
+    final DN dn = tmp.getName();
+    final String uuid = getEntry(dn, 1, true).parseAttribute("entryuuid").asString();
+
+    final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+    final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+    final CSNGenerator gen = new CSNGenerator(serverId, TimeThread.getTime());
+    final CSN csn = gen.newCSN();
+    final String description = "the replay of this change throws an Error";
+    final List<Modification> mods = generatemods("description", description);
+
+    /*
+     * The delivery is made until it is taken: one made while the listener thread is down -
+     * which it is for as long as a session is being restarted, here and below - is dropped
+     * rather than queued. Each one is a message of its own, as the deliveries which travel
+     * a session are: two of them carry the same change, and markInProgress() replays the
+     * one which is listed and drops the other.
+     *
+     * A message whose replay throws an Error can not be built from the bytes which travel
+     * the protocol, so these deliveries are handed to the domain rather than published, as
+     * the one of aChangeWhoseOperationWasBuiltIsNotGivenUpOnWhereItFailed is.
+     */
+    final AtomicBoolean thrown = new AtomicBoolean();
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(60, SECONDS)
+      .sleepTimes(200, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        if (!thrown.get())
+        {
+          domain.processUpdate(
+              new ModifyMsgWhoseReplayThrowsAnError(csn, dn, mods, uuid, error, thrown));
+        }
+        assertTrue(thrown.get(), "the replay of this change must have thrown");
+      }
+    });
+    assertFalse(domain.getServerState().cover(csn),
+        "a change whose replay threw must not be recorded as replayed");
+
+    /*
+     * Nothing sends this change again - it never travelled a session - so the delivery
+     * which takes over from the one whose replay threw is made here, and it is made until
+     * it is taken: a delivery is dropped rather than queued while the listener thread is
+     * down, which it is for as long as the recovery is restarting the session. Without
+     * the give-back every one of them is refused as a duplicate of a change a thread which
+     * is gone still owns, and this loop runs out of time.
+     */
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        if (!domain.getServerState().cover(csn))
+        {
+          domain.processUpdate(new ModifyMsg(csn, dn, mods, uuid));
+        }
+        assertTrue(domain.getServerState().cover(csn),
+            "a change whose replay threw must be replayed by the delivery which follows");
+      }
+    });
+    checkEntryHasAttributeValue(dn, "description", description, 30,
+        "the change must be applied by the delivery which took over from the one which threw");
+    assertEquals(getMonitorAttrValue(baseDN, "replayed-updates-failed"), initialFailures,
+        "a change which was replayed must not be counted as one this replica gave up on");
+  }
+
+  /**
+   * The Errors a replay can throw, and the entry each of them is tried on.
+   * <p>
+   * An {@code OutOfMemoryError} is the one which decides where the change is handed back:
+   * everything the replay does about an Error afterwards - the report it builds, the
+   * session restart it asks for - can fail in its turn on a JVM which has just run out of
+   * memory, so it has to be shown giving the change back as well.
+   */
+  @DataProvider
+  public Object[][] replayErrors()
+  {
+    // A server id of its own for each of them, so that the change one carries can not be
+    // the change the other one already had recorded in the ServerState.
+    return new Object[][] {
+      { "user.922", 19, new ReplayError() },
+      { "user.922.vm", 20, new OutOfMemoryError("the replay of this change ran out of memory") },
+    };
+  }
+
+  /**
+   * A ModifyMsg whose replay throws an Error.
+   * <p>
+   * It is thrown from {@code createOperation()} rather than from the operation itself
+   * because that is where a replay is furthest from every road which gives the change
+   * back: no operation was built, so a failure reported there used to be a change given
+   * up on rather than one asked for again. Such a message can not travel the protocol,
+   * so it is handed to the domain rather than published.
+   */
+  private static final class ModifyMsgWhoseReplayThrowsAnError extends ModifyMsg
+  {
+    private final Error error;
+    private final AtomicBoolean thrown;
+
+    private ModifyMsgWhoseReplayThrowsAnError(CSN csn, DN dn, List<Modification> mods,
+        String entryUUID, Error error, AtomicBoolean thrown)
+    {
+      super(csn, dn, mods, entryUUID);
+      this.error = error;
+      this.thrown = thrown;
+    }
+
+    @Override
+    public ModifyOperation createOperation(InternalClientConnection connection, DN newDN)
+    {
+      thrown.set(true);
+      throw error;
+    }
+  }
+
+  /** The Error the replay of {@link ModifyMsgWhoseReplayThrowsAnError} throws. */
+  private static final class ReplayError extends Error
+  {
+    private static final long serialVersionUID = 1L;
   }
 
   /**

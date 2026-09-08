@@ -347,6 +347,17 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * in flight unreplayable, and one alert per change would be a storm.
    */
   private static final long UNREPLAYED_CHANGE_ALERT_INTERVAL_IN_MS = 60000;
+  /**
+   * What the ack of a delivery whose replay threw an Error says until the report of that
+   * Error has been built.
+   * <p>
+   * A constant, because it is what the ack falls back on when nothing can be built: the
+   * report of an {@code OutOfMemoryError} is itself an allocation, and a delivery whose
+   * report could not be built must still be acked as one which did not apply the change -
+   * {@code processUpdateDone()} reads this as the flag which says so, and an assured write
+   * waiting on this replica must never be told that a change which is not in the data is.
+   */
+  private static final String REPLAY_ERROR_NOT_REPORTED = "the replay of this change threw an Error";
   /** The number of updates this replica gave up replaying. */
   private final AtomicInteger numFailedReplayedUpdates = new AtomicInteger();
   /** Set while a replay thread is restarting the session after a failed replay. */
@@ -2749,6 +2760,61 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           replayErrorMsg = message.toString();
           replayFailed = true;
         }
+      }
+      catch (Error e)
+      {
+        /*
+         * An Error is not what the catch above sees, and it is not what ReplayThread sees
+         * either (issue #923): letting it out unwinds a replay thread which nothing
+         * replaces, and it leaves this change owned by a thread which is not replaying it
+         * anymore - nothing would replay it, every delivery of it would be refused as a
+         * duplicate, and this domain's ServerState, with every change behind it from every
+         * master, would stop there for as long as the server is up (issue #922).
+         *
+         * The change is given back first, before anything which can fail on its own is
+         * attempted: this road runs on a JVM which may have just run out of something, and
+         * a report or a session restart which throws in its turn must not be what leaves
+         * the change owned. Giving it back here rather than below the failure road is safe
+         * because ownership has an owner: a delivery which takes the change over while
+         * this thread is still reporting on it owns it, and neither the failure this
+         * thread records nor the give-up it may decide on touches a change owned by
+         * somebody else.
+         *
+         * The ack reason is set to a constant before the report is built, so that a
+         * delivery whose report can not be built is still acked as one which did not apply
+         * the change - an assured write must never be told otherwise.
+         *
+         * What follows is the ordinary failure road, whether or not an operation was
+         * built: the change is not in the data, so it is kept out of the ServerState and
+         * asked for again rather than given up on where it is reported, and the give-up
+         * budget bounds how long this replica keeps asking. An Error which repeats then
+         * has this replica give up on the change, rather than take a replay thread with
+         * every delivery of it until the pool which every domain of this server shares is
+         * empty. What is left of issue #923 is the Errors thrown outside this replay.
+         */
+        remotePendingChanges.replayFailed(msg.getCSN());
+        replayErrorMsg = REPLAY_ERROR_NOT_REPORTED;
+        replayFailed = true;
+        try
+        {
+          final LocalizableMessage message = ERR_ERROR_REPLAYING_CHANGE.get(
+              msg.getCSN(), getBaseDN(), stackTraceToSingleLineString(e));
+          logger.error(message);
+          replayErrorMsg = message.toString();
+        }
+        catch (Error reportFailure)
+        {
+          /*
+           * Reporting an Error which is a resource running out asks for that resource: an
+           * OutOfMemoryError is reported by formatting a stack trace and writing it. A
+           * report which fails is a line missing from the log, and it must not be what
+           * takes this delivery off the failure road below - the change would then be one
+           * nobody owns and nobody asks for again, which stops this domain's ServerState
+           * just as surely as a change owned by a thread which is gone (issue #922). The
+           * ack already carries the constant which says that this delivery did not apply
+           * the change.
+           */
+        }
       } finally
       {
         if (!dependency)
@@ -2952,9 +3018,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       numFailedReplayedUpdates.incrementAndGet();
       sendUnreplayedChangeAlert(cause);
     }
-    // Otherwise the change is not listed as pending anymore - the domain was disabled
-    // while it was being replayed - so it has not been skipped: the replication server
-    // sends it again and this replica gives up on it then.
+    // Otherwise there was no change here to skip: the domain was disabled while it was
+    // being replayed and forgot it, or it was handed back and another replay thread owns
+    // it now, which is that thread's to record. Either way the replication server has the
+    // change, and this replica gives up on it when the delivery which follows fails too.
   }
 
   /**
@@ -3016,9 +3083,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     /*
      * The failure is recorded, and the change given up on, while this thread still owns
      * it: a change which is listed, uncommitted and unowned is what putRemoteUpdate()
-     * takes over, so releasing it before the decision is made would let another delivery
-     * be replayed by another thread while this one goes on to record the change as
-     * skipped.
+     * takes over, so the decision is made before the change is handed back rather than
+     * after it.
+     *
+     * A road which has to hand the change back earlier - the one an Error takes, which
+     * must not leave it owned should the report throw in its turn - is safe all the same,
+     * because ownership has an owner: recordReplayFailure() reports no failure against a
+     * change another replay thread owns, so the give-up below can not record a change
+     * which is being applied right now as replayed.
      */
     final long now = monotonicNowInMs();
     final RemotePendingChanges.ReplayFailure failure =
