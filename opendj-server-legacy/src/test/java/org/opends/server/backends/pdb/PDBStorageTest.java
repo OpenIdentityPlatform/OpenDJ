@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pdb;
 
@@ -48,7 +49,15 @@ import com.persistit.exception.RollbackException;
 
 public class PDBStorageTest extends DirectoryServerTestCase
 {
+  /** A window no run of replays can spend, so that a test of the attempt cap is only ever ended by the cap. */
+  private static final long UNREACHABLE_RETRY_WINDOW_NANOS = 300L * 1000L * 1000L * 1000L; //5 min
+  /** A window a single attempt outlasts, so that a test of the window reaches it without seconds of build time. */
+  private static final long SHORT_RETRY_WINDOW_NANOS = 200L * 1000L * 1000L; //200 ms
+  /** An attempt long enough to outlast {@link #SHORT_RETRY_WINDOW_NANOS} on its own, in milliseconds. */
+  private static final long ATTEMPT_LONGER_THAN_SHORT_WINDOW_MS = 300;
+
   private final TreeName treeName = new TreeName("dc=test", "test");
+  private ServerContext serverContext;
   private PDBStorage storage;
 
   @BeforeClass
@@ -60,28 +69,72 @@ public class PDBStorageTest extends DirectoryServerTestCase
   @BeforeMethod
   public void setUp() throws ConfigException
   {
-    ServerContext serverContext = mock(ServerContext.class);
+    serverContext = mock(ServerContext.class);
     when(serverContext.getMemoryQuota()).thenReturn(new MemoryQuota());
     when(serverContext.getDiskSpaceMonitor()).thenReturn(mock(DiskSpaceMonitor.class));
 
     storage = new PDBStorage(createBackendCfg(), serverContext);
+    // the volume is removed on the way in as well as on the way out: a build whose JVM died never ran tearDown(),
+    // and this class shares a fixed db-directory across methods and across builds, so what that run left behind
+    // would still be here to answer this method's reads
+    storage.removeStorageFiles();
     storage.open(AccessMode.READ_WRITE);
   }
 
   @AfterMethod
   public void tearDown()
   {
+    closeAndRemove(storage);
+  }
+
+  /**
+   * Closes the storage and removes its volume, keeping whichever of the two failed first. Removing it from a
+   * finally would let a removal failure replace the close() failure (JLS 14.20.2) - and a close() that throws is
+   * exactly the case the removal is here for.
+   */
+  private static void closeAndRemove(PDBStorage storage)
+  {
+    RuntimeException failure = null;
     try
     {
       storage.close();
     }
-    finally
+    catch (RuntimeException e)
     {
-      // this test class shares a fixed db-directory across methods and across builds: leaving the volume behind
-      // would let a value written by an earlier method answer the reads of a later one, so it is removed even
-      // when close() fails - which is exactly when something is left behind
+      failure = e;
+    }
+    try
+    {
       storage.removeStorageFiles();
     }
+    catch (RuntimeException e)
+    {
+      if (failure == null)
+      {
+        failure = e;
+      }
+      else
+      {
+        failure.addSuppressed(e);
+      }
+    }
+    if (failure != null)
+    {
+      throw failure;
+    }
+  }
+
+  /**
+   * Replaces the storage under test with one bounded by the given values, so that the bound a test is about is
+   * the one that ends its replays. With the shipped values the two race: the nine backoffs of a full ladder draw
+   * from 50+100+200+400+800+1000x4, so an attempt cap test can be ended by the ten second window instead, and a
+   * window test has to make every attempt outlast seconds of that window to reach it.
+   */
+  private void reopenWithReplayBounds(int maxRetries, long retryWindowNanos) throws Exception
+  {
+    closeAndRemove(storage);
+    storage = new PDBStorage(createBackendCfg(), serverContext, maxRetries, retryWindowNanos);
+    storage.open(AccessMode.READ_WRITE);
   }
 
   @Test
@@ -142,6 +195,9 @@ public class PDBStorageTest extends DirectoryServerTestCase
   @Test
   public void testWriteGivesUpAfterTheAttemptCap() throws Exception
   {
+    // the shipped cap, against a window the ladder of backoffs cannot reach: on the shipped window those nine
+    // backoffs draw from up to 5550 ms, so a loaded machine ends this loop on the window and the cap goes untested
+    reopenWithReplayBounds(PDBStorage.MAX_RETRIES, UNREACHABLE_RETRY_WINDOW_NANOS);
     createTree();
 
     final RollbackException conflict = new RollbackException();
@@ -200,6 +256,7 @@ public class PDBStorageTest extends DirectoryServerTestCase
   @Test
   public void testWriteIsReplayedOnceWhenTheFirstAttemptOutlastsTheWindow() throws Exception
   {
+    reopenWithReplayBounds(PDBStorage.MAX_RETRIES, SHORT_RETRY_WINDOW_NANOS);
     createTree();
 
     final AtomicInteger attempts = new AtomicInteger();
@@ -210,7 +267,7 @@ public class PDBStorageTest extends DirectoryServerTestCase
       {
         if (attempts.incrementAndGet() == 1)
         {
-          Thread.sleep(11000);
+          Thread.sleep(ATTEMPT_LONGER_THAN_SHORT_WINDOW_MS);
           throw new RollbackException();
         }
         txn.put(treeName, valueOfUtf8("outlasted"), valueOfUtf8("written"));
@@ -224,6 +281,9 @@ public class PDBStorageTest extends DirectoryServerTestCase
   @Test
   public void testExhaustedWriteNamesTheAttemptsItSpent() throws Exception
   {
+    // the message is the same at any cap, so this one is spent in two backoffs rather than in the shipped ladder
+    final int maxRetries = 3;
+    reopenWithReplayBounds(maxRetries, UNREACHABLE_RETRY_WINDOW_NANOS);
     createTree();
 
     try
@@ -240,7 +300,7 @@ public class PDBStorageTest extends DirectoryServerTestCase
     }
     catch (StorageRuntimeException e)
     {
-      assertThat(e.getMessage()).contains("PDBStorageTest").contains(PDBStorage.MAX_RETRIES + " attempts");
+      assertThat(e.getMessage()).contains("PDBStorageTest").contains(maxRetries + " attempts");
       // and which of the two bounds ran out, since the attempt count alone does not say
       assertThat(e.getMessage()).contains("attempt cap");
       // write() unwraps a StorageRuntimeException that carries a cause, which would replace this message with
@@ -252,6 +312,7 @@ public class PDBStorageTest extends DirectoryServerTestCase
   @Test
   public void testWriteGivesUpOnTheWindowWhenAttemptsAreSlow() throws Exception
   {
+    reopenWithReplayBounds(PDBStorage.MAX_RETRIES, SHORT_RETRY_WINDOW_NANOS);
     createTree();
 
     final AtomicInteger attempts = new AtomicInteger();
@@ -264,17 +325,21 @@ public class PDBStorageTest extends DirectoryServerTestCase
         {
           attempts.incrementAndGet();
           // a conflict this slow to report spends the wall clock window long before the attempt cap
-          Thread.sleep(6000);
+          Thread.sleep(ATTEMPT_LONGER_THAN_SHORT_WINDOW_MS);
           throw new RollbackException();
         }
       });
       failBecauseExceptionWasNotThrown(StorageRuntimeException.class);
     }
-    catch (StorageRuntimeException expected)
+    catch (StorageRuntimeException e)
     {
-      // the write gave up, which is what the attempt count below says it did on the window
+      // the window is what ended it, and it says so: an assertion on the attempt count alone would also pass for
+      // a give up on attempt 1, which is the regression the attempt > 1 exemption exists to prevent
+      assertThat(e.getMessage()).contains("retry window");
     }
-    assertThat(attempts.get()).isLessThan(PDBStorage.MAX_RETRIES);
+    // one attempt beyond the first: the first spends the window, the exemption grants the replay, and the check
+    // after that replay is the one that gives up
+    assertThat(attempts.get()).isEqualTo(2);
   }
 
   @Test

@@ -79,6 +79,12 @@ public interface Storage extends Closeable
    * so that a conflict which does not clear reaches the caller instead of being retried forever. The pluggable
    * backend holds locks across this method, up to the exclusive lock of an entry container, and every thread
    * waiting on one of those locks waits for as long as this method does.
+   * <p>
+   * A caller that mutates state around this method must handle that bound being spent. Removing an entry from an
+   * in-memory map before the write so that a replay still finds the work to do, or reading configuration back out
+   * of the operation once it returns, both assume the write is applied; when it is not, this method throws with
+   * that state already changed and the transaction not applied, and the caller is the only place that can reconcile
+   * the two.
    *
    * @param writeOperation
    *          the write operation to execute
