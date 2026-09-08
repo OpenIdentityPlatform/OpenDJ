@@ -491,6 +491,28 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     addConfigEntry(synchroServerEntry, "Unable to add the synchronized server");
   }
 
+  /**
+   * Sets the result code this server puts on an internal error, the way an administrator
+   * would, and asserts that the change was applied.
+   * <p>
+   * The setting is server-wide, so a test which changes it owns putting it back - after
+   * a failure of its own as well, which is why the caller's tearDown() is the place for
+   * that rather than a finally in the test body: an assertion failure raised while
+   * restoring would otherwise replace the failure the test was reporting.
+   *
+   * @param resultCode the numeric result code
+   * @throws Exception if the modification could not be run at all
+   */
+  protected static void setServerErrorResultCode(int resultCode) throws Exception
+  {
+    assertEquals(TestCaseUtils.applyModifications(true,
+        "dn: cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-server-error-result-code",
+        "ds-cfg-server-error-result-code: " + resultCode), 0,
+        "the server error result code could not be changed");
+  }
+
   private void addConfigEntry(Entry configEntry, String errorMessage) throws Exception
   {
     if (configEntry != null)

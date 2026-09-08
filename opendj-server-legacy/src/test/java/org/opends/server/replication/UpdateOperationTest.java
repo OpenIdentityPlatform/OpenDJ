@@ -2087,23 +2087,6 @@ public class UpdateOperationTest extends ReplicationTestCase
   }
 
   /**
-   * Sets the result code this server puts on an internal error, the way an administrator
-   * would.
-   *
-   * @param resultCode the numeric result code
-   * @throws Exception if the configuration could not be changed
-   */
-  private void setServerErrorResultCode(int resultCode) throws Exception
-  {
-    assertEquals(TestCaseUtils.applyModifications(true,
-        "dn: cn=config",
-        "changetype: modify",
-        "replace: ds-cfg-server-error-result-code",
-        "ds-cfg-server-error-result-code: " + resultCode), 0,
-        "the server error result code could not be changed");
-  }
-
-  /**
    * Enable or disable the receive status of a synchronization provider.
    *
    * @param syncConfigDN The DN of the synchronization provider configuration
