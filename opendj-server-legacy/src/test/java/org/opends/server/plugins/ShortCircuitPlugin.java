@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -227,6 +228,24 @@ public class ShortCircuitPlugin
                                     " for the short circuit plugin."));
       }
     }
+  }
+
+
+
+  /** {@inheritDoc} */
+  @Override
+  public void finalizePlugin()
+  {
+    /*
+     * A park which outlives the test which took it holds a replay thread of this server,
+     * and every replayed operation queued behind it, for as long as this plugin is
+     * loaded: the map is static and nothing but the test itself removes an entry from it.
+     */
+    for (ParkedReplay park : parks.values())
+    {
+      park.deregister();
+    }
+    parks.clear();
   }
 
 
@@ -643,7 +662,7 @@ public class ShortCircuitPlugin
     if (operation.isSynchronizationOperation())
     {
       final ParkedReplay park = parks.get(key);
-      if (park != null)
+      if (park != null && park.parks(operation))
       {
         final int parkResultCode = park.hold();
         if (parkResultCode >= 0)
@@ -779,10 +798,30 @@ public class ShortCircuitPlugin
    */
   public static final class ParkedReplay
   {
-    /** Result codes are not negative, so this cannot be one: it lets the operation run. */
+    /**
+     * The value which lets the operation run rather than short circuit it.
+     * <p>
+     * {@code ResultCode.UNDEFINED} is registered on {@code -1} as well, so
+     * {@code release(ResultCode.UNDEFINED.intValue())} lets the operation run instead of
+     * making it report that code - the same hole {@code registerShortCircuit(-1)} has.
+     * No caller has a use for it, and a park releases with a real result code or with
+     * none at all.
+     */
     private static final int LET_THROUGH = -1;
 
+    /**
+     * How long an operation is held before this park gives up on the test which took it.
+     * <p>
+     * It is far longer than any release a test waits for - the fixture itself waits a
+     * minute for a park - and it exists for the test which never releases at all: a park
+     * leaked by a method killed on a timeout would otherwise hold a replay thread of this
+     * server, and every replayed operation queued behind it, for the life of the JVM.
+     */
+    private static final long MAX_HOLD_IN_MS = TimeUnit.MINUTES.toMillis(5);
+
     private final String key;
+    /** Which of the replayed operations of that type this park is for. */
+    private final Predicate<PluginOperation> parked;
     private final Object lock = new Object();
     /** Whether an operation is parked right now. */
     private boolean occupied;
@@ -802,9 +841,16 @@ public class ShortCircuitPlugin
     private int releasedResultCode;
     private boolean deregistered;
 
-    private ParkedReplay(String key)
+    private ParkedReplay(String key, Predicate<PluginOperation> parked)
     {
       this.key = key;
+      this.parked = parked;
+    }
+
+    /** Returns whether the provided operation is one this park is for. */
+    private boolean parks(PluginOperation operation)
+    {
+      return parked.test(operation);
     }
 
     /**
@@ -816,13 +862,14 @@ public class ShortCircuitPlugin
      */
     private int hold()
     {
+      final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(MAX_HOLD_IN_MS);
       synchronized (lock)
       {
         // One operation at a time, so that a release belongs to the operation the test
         // waited for rather than to whichever of them the scheduler let in first.
         while (occupied && !deregistered)
         {
-          if (!waitOnLock())
+          if (!waitOnLock(deadline))
           {
             return LET_THROUGH;
           }
@@ -840,7 +887,7 @@ public class ShortCircuitPlugin
         {
           while (!released && !deregistered)
           {
-            if (!waitOnLock())
+            if (!waitOnLock(deadline))
             {
               return LET_THROUGH;
             }
@@ -855,12 +902,25 @@ public class ShortCircuitPlugin
       }
     }
 
-    /** Waits on the monitor, reporting whether waiting can go on. */
-    private boolean waitOnLock()
+    /**
+     * Waits on the monitor until the provided deadline, reporting whether waiting can go
+     * on. A deadline which has passed gives up on this park altogether rather than only
+     * on the operation which reached it: the operations behind it would each pay the
+     * whole wait again otherwise.
+     */
+    private boolean waitOnLock(long deadlineInNanos)
     {
+      final long leftInNanos = deadlineInNanos - System.nanoTime();
+      if (leftInNanos <= 0)
+      {
+        giveUpOnTheTest();
+        return false;
+      }
       try
       {
-        lock.wait();
+        // Rounded up, so that a budget shorter than a millisecond is still waited out
+        // rather than truncated to a wait with no timeout at all.
+        lock.wait(TimeUnit.NANOSECONDS.toMillis(leftInNanos + 999999L));
         return true;
       }
       catch (InterruptedException e)
@@ -870,6 +930,15 @@ public class ShortCircuitPlugin
         Thread.currentThread().interrupt();
         return false;
       }
+    }
+
+    /** Stops parking anything and says so, after a test held an operation for too long. */
+    private void giveUpOnTheTest()
+    {
+      System.err.println("***** ERROR:  a replayed operation was parked on " + key
+          + " for " + MAX_HOLD_IN_MS + " ms and was never released:  the test which took"
+          + " this park left it behind.  Letting the operation run and parking no more.");
+      deregister();
     }
 
     /**
@@ -883,6 +952,8 @@ public class ShortCircuitPlugin
      * @return the thread which is replaying the parked operation
      * @throws InterruptedException if this thread is interrupted while waiting
      * @throws TimeoutException if no operation was parked in time
+     * @throws IllegalStateException if this park is gone, so that nothing can be parked
+     *           on it any more
      */
     public Thread awaitParked(long timeout, TimeUnit unit)
         throws InterruptedException, TimeoutException
@@ -892,6 +963,14 @@ public class ShortCircuitPlugin
       {
         while (parkedOperations <= awaitedOperations)
         {
+          if (deregistered)
+          {
+            // Waiting out the budget here would report a timeout naming the operations
+            // which never parked, rather than the park which cannot park them any more.
+            throw new IllegalStateException("the park on " + key + " is gone - it was"
+                + " deregistered, or displaced by another park of the same operations -"
+                + " so no replayed operation will be parked on it again");
+          }
           final long leftInNanos = deadline - System.nanoTime();
           if (leftInNanos <= 0)
           {
@@ -907,7 +986,10 @@ public class ShortCircuitPlugin
       }
     }
 
-    /** Lets the parked operation run. */
+    /**
+     * Lets the parked operation run. Valid once {@link #awaitParked} has reported that
+     * operation: see there for what a release which arrives before it costs.
+     */
     public void release()
     {
       release(LET_THROUGH);
@@ -915,6 +997,11 @@ public class ShortCircuitPlugin
 
     /**
      * Lets the parked operation go, short circuiting it with the provided result code.
+     * <p>
+     * Valid once {@link #awaitParked} has reported the operation being released. A
+     * release which arrives before an operation is parked is wiped by the park it was
+     * meant for - a park starts out unreleased - and that operation then waits for a
+     * release which has already been spent.
      *
      * @param resultCode the result code the operation must report
      */
@@ -922,6 +1009,12 @@ public class ShortCircuitPlugin
     {
       synchronized (lock)
       {
+        if (!occupied)
+        {
+          throw new IllegalStateException("nothing is parked on " + key + " to release:"
+              + " a release is spent by the park it arrives before, and the operation"
+              + " which parks next then waits for one which has already been given");
+        }
         released = true;
         releasedResultCode = resultCode;
         lock.notifyAll();
@@ -949,14 +1042,30 @@ public class ShortCircuitPlugin
    * test releases each of them.
    *
    * @param operation the type of operation to park
-   * @param section the plugin point to park them at
+   * @param section the plugin point to park them at, which can only be {@code PreParse}
+   * @param parked which of them to park - the change a test acts on rather than whatever
+   *          of that type reaches this point first, which is somebody else's change as
+   *          soon as more than one of them is in flight
    * @return the park, which the test must {@link ParkedReplay#deregister()} when it is
    *         done with it
+   * @throws IllegalArgumentException if asked for any plugin point but {@code PreParse}
    */
-  public static ParkedReplay parkReplayedOperations(OperationType operation, String section)
+  public static ParkedReplay parkReplayedOperations(
+      OperationType operation, String section, Predicate<PluginOperation> parked)
   {
+    if (!"PreParse".equalsIgnoreCase(section))
+    {
+      /*
+       * The pre-operation plugins are not invoked for synchronization operations at all,
+       * so a park anywhere else is never reached: the test which took it would wait out
+       * its whole budget for an operation which cannot park, and be told that none did
+       * rather than that none could.
+       */
+      throw new IllegalArgumentException("replayed operations can only be parked at"
+          + " PreParse, which is the only plugin point they reach, not at " + section);
+    }
     final String key = keyFor(operation, section);
-    final ParkedReplay park = new ParkedReplay(key);
+    final ParkedReplay park = new ParkedReplay(key, parked);
     final ParkedReplay previous = parks.put(key, park);
     if (previous != null)
     {
