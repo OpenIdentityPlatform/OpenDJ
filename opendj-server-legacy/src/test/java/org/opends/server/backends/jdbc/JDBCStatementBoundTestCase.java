@@ -462,33 +462,120 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 	 */
 	@Test(timeOut = 120000)
 	public void testAStandingReadBoundUnderTheBoundOfAStatementCutsItShort() {
+		final int backstop = (120 + JDBCStorage.BACKSTOP_MARGIN_SECONDS) * 1000;
 		assertTrue(JDBCStorage.cutsStatementsShort(60000, 120), "a bound under the bound of the statement");
 		assertTrue(JDBCStorage.cutsStatementsShort(120000, 120), "a bound the statement reaches at the same moment");
-		assertFalse(JDBCStorage.cutsStatementsShort(150000, 120), "a bound the cancel of the statement comes before");
+		// Weighed against the socket layer of that bound, not against its cancel: the catalog lookups
+		// of openTree() are given no cancel at all, so what ends them is the layer a margin later -
+		// and a standing bound anywhere below that ends them earlier, with the backstop arming
+		// nothing on top of it because the connection already carries the tighter of the two.
+		assertTrue(JDBCStorage.cutsStatementsShort(140000, 120),
+			"a bound between the cancel of the statement and the socket layer behind it");
+		assertTrue(JDBCStorage.cutsStatementsShort(backstop, 120), "a bound that layer reaches at the same moment");
+		assertFalse(JDBCStorage.cutsStatementsShort(backstop + 1, 120), "a bound both layers come before");
 		assertFalse(JDBCStorage.cutsStatementsShort(0, 120), "no standing bound at all");
 		assertFalse(JDBCStorage.cutsStatementsShort(60000, 0), "a statement of an unbounded class, which is lifted");
 	}
 
 	/**
-	 * The bound follows the url of the backend as well as the property, so a change of the
-	 * configuration is read again: it is remembered rather than resolved per statement, and a
-	 * storage left holding the answer for the url it was configured with would lift a bound the
-	 * connections of the new one never carried.
+	 * What a standing read bound has to stand behind is the loosest bound a statement of this
+	 * backend carries, not the bound of an ordinary one. The statistics refresh after an import has
+	 * a property of its own - ten minutes by default, and it legitimately takes as long as a scan of
+	 * the table it describes - so a standing bound of five cuts it on the socket, closing the
+	 * importer's connection under a bare class-08 state naming neither property, and the statistics
+	 * of #859 are then never refreshed. A bulk.timeout a deployment sets is in the same place: the
+	 * class is no longer lifted, so its bound is weighed like any other.
 	 */
 	@Test(timeOut = 120000)
-	public void testTheStandingReadBoundIsReadAgainAfterAConfigurationChange() {
-		final JDBCBackendCfg cfg = mockCfg(JDBCBackendCfg.class);
-		final JDBCStorage configured = new JDBCStorage(cfg, null);
+	public void testTheLoosestBoundOfAStatementIsWhatAStandingBoundHasToOutlive() {
+		assertEquals(JDBCStorage.loosestStatementBound().property, JDBCStorage.STATISTICS_TIMEOUT_PROPERTY,
+			"the statistics refresh is the loosest bound this backend gives a statement by default");
+		assertEquals(JDBCStorage.loosestStatementBound().seconds, 600);
+		assertTrue(JDBCStorage.cutsStatementsShort(300000, JDBCStorage.loosestStatementBound().seconds),
+			"a standing bound of five minutes was not weighed against the ten of the statistics refresh");
+
+		System.setProperty(JDBCStorage.STATISTICS_TIMEOUT_PROPERTY, "0"); // the refresh left unbounded
+		assertEquals(JDBCStorage.loosestStatementBound().property, StatementBound.OPERATION.property);
+		assertEquals(JDBCStorage.loosestStatementBound().seconds, 120);
+
+		System.setProperty(StatementBound.BULK.property, "3600"); // a class the lift no longer covers
+		assertEquals(JDBCStorage.loosestStatementBound().property, StatementBound.BULK.property);
+		assertEquals(JDBCStorage.loosestStatementBound().seconds, 3600);
+	}
+
+	/**
+	 * The bound follows the connection string the pool was registered with, the way every other path
+	 * that names a pool does. db-directory may be changed on a running backend and the borrow still
+	 * leaves the pool open() registered with, so a bound resolved against the url config names now
+	 * would be the answer for a pool this storage never borrows from: a bulk statement of the
+	 * registered one would find the lift gated off and die at a bound bulk.timeout=0 promises it will
+	 * not meet, and the reverse pairing would lift a bound that is the deployment's own.
+	 * <p>
+	 * It is not resolved again after the change either. Read again while a lift is in flight, the
+	 * answer of another url would send applyBackstop() to giveBack() and re-arm the bound under the
+	 * statements the lift took it off for - both of them dying at it, and neither naming a property.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheStandingReadBoundFollowsTheUrlThePoolWasRegisteredWith() throws Exception {
 		CachedConnection.readTimeoutMillis = 90000;
-		assertEquals(configured.standingReadBoundMillis(), 90000);
+		final JDBCBackendCfg cfg = mockCfg(JDBCBackendCfg.class);
+		when(cfg.getDBDirectory()).thenReturn("jdbc:mysql://registered/db");
+		final JDBCStorage registered = openedOn(cfg);
+		try {
+			assertEquals(registered.standingReadBoundMillis(), 90000, "the bound of the url it registered with");
 
-		CachedConnection.readTimeoutMillis = 37000;
-		assertEquals(configured.standingReadBoundMillis(), 90000, "the bound is read once and remembered");
+			// the configuration changed under the running backend, to a url whose own read bound is
+			// the deployment's: the borrow still leaves the pool of the url above
+			when(cfg.getDBDirectory()).thenReturn("jdbc:mysql://changed/db?socketTimeout=600");
+			registered.applyConfigurationChange(cfg);
 
-		configured.applyConfigurationChange(cfg);
+			assertEquals(registered.standingReadBoundMillis(), 90000,
+				"the lift was decided against a pool this storage does not borrow from");
+		} finally {
+			registered.close();
+		}
+	}
 
-		assertEquals(configured.standingReadBoundMillis(), 37000,
-			"the bound was not read again after a change of the configuration it follows");
+	/**
+	 * And it is resolved while the backend opens, not at the first statement that needs it.
+	 * applyBackstop() is the only place production asks, and it asks only behind a statement of a
+	 * class carrying no bound of its own - a deployment that gives bulk.timeout a value of its own
+	 * has no such statement anywhere, so the word owed to an operator whose two bounds are set the
+	 * wrong way round would never be said at all.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheStandingReadBoundIsResolvedWhileTheBackendOpens() throws Exception {
+		System.setProperty(StatementBound.BULK.property, "3600"); // no statement of an unbounded class anywhere
+		CachedConnection.readTimeoutMillis = 90000;
+		final JDBCBackendCfg cfg = mockCfg(JDBCBackendCfg.class);
+		when(cfg.getDBDirectory()).thenReturn("jdbc:mysql://resolved-at-open/db");
+		final JDBCStorage opened = openedOn(cfg);
+		try {
+			// what the answer would be if it were resolved now, on the first statement to ask
+			CachedConnection.readTimeoutMillis = 37000;
+
+			assertEquals(opened.standingReadBoundMillis(), 90000,
+				"the bound was not resolved while the backend opened");
+		} finally {
+			opened.close();
+		}
+	}
+
+	/**
+	 * A storage opened on a configuration, borrowing nothing from a database: open() registers the
+	 * pool of the url - which costs no connect - and the validating borrow of the open is answered
+	 * with a mock, so what is left is the registration this suite is about.
+	 */
+	private static JDBCStorage openedOn(JDBCBackendCfg cfg) throws Exception {
+		final Connection con = mock(Connection.class);
+		final JDBCStorage opening = new JDBCStorage(cfg, null) {
+			@Override
+			Connection getConnection(boolean trusted) {
+				return con;
+			}
+		};
+		opening.open(AccessMode.READ_WRITE);
+		return opening;
 	}
 
 	/**

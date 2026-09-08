@@ -2129,6 +2129,26 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * The predicate deciding whether a url bounds the read reads the same set of names as the one
+	 * deciding whether it declares it. It used to stop at the first name present even where the
+	 * value there was a zero, so a url naming the bound under both names of the oracle driver - the
+	 * dotted one turned off, the last segment set - was declared() and not bounds(): the login kept
+	 * the administrator's value, because a property of ours is not supplied over a declared one, and
+	 * a bound of ours then went on top of it with setNetworkTimeout. Contrived, but "the bound taken
+	 * off is the bound that was set" holds only while the two look at the same names.
+	 */
+	@Test(timeOut = 120000)
+	public void testAReadBoundUnderEitherNameOfTheUrlIsTheDeploymentsOwn() {
+		CachedConnection.readTimeoutMillis = 90000;
+		assertEquals(CachedConnection.standingReadBoundMillis(
+			"jdbc:oracle:thin:@//localhost:1521/db?oracle.jdbc.ReadTimeout=0&ReadTimeout=600"), 0,
+			"a bound standing under the last segment of the name was read as no bound at all");
+		assertEquals(CachedConnection.standingReadBoundMillis(
+			"jdbc:oracle:thin:@//localhost:1521/db?oracle.jdbc.ReadTimeout=0&ReadTimeout=0"), 90000,
+			"a url turning the read bound off under both of its names is no bound of the deployment's");
+	}
+
+	/**
 	 * With nothing configured this is the lift and nothing else - the read bound of the login comes
 	 * off and no bound of ours goes on top of it, which is what every connection of this pool
 	 * carried before the property existed. The default of this property is what makes the change

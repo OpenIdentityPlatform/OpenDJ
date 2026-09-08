@@ -970,6 +970,46 @@ public class CachedConnection implements Connection {
             return false;
         }
 
+        /**
+         * Whether one of these is bounded by the connection string, or by a system property this
+         * driver reads, as the bound of an established connection has to ask it. Told apart from
+         * {@link #declared} by what a 0 means: there the question is whether a property of ours is
+         * to be supplied to the connect at all, and on postgresql a parameter of the url outranks
+         * that property whatever it says - while a bound put on an established connection with
+         * setNetworkTimeout is outranked by nothing, so a "socketTimeout=0" is no bound of the
+         * deployment's to stay out of the way of. It is the default of the driver, written out, and
+         * reading it as theirs would leave a deployment that asked for a standing bound with none.
+         * <p>
+         * The names are recognized in the url the way {@link #declared} recognizes them, and out of
+         * the system properties from the same list - see the comment on that method.
+         */
+        private boolean bounds(String connectionString, String... properties) {
+            for (final String property : properties) {
+                if (boundInUrl(connectionString, property) || setAsSystemProperty(property)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Whether the connection string bounds this property, under its own name or the last segment
+         * of it. The two names are asked independently, the way {@link #declaredInUrl} asks them:
+         * stopping at the first name present, even where its value is a zero, let a
+         * "...?oracle.jdbc.ReadTimeout=0&ReadTimeout=600" answer with the zero of the name that comes
+         * first and hide the bound standing behind it. Such a url is declared() and would then not
+         * be bounds(): the login keeps the administrator's 600 s and one of ours goes on top of it
+         * with setNetworkTimeout. The two predicates have to look at the same set of names for "the
+         * bound taken off is the bound that was set" to hold.
+         */
+        private boolean boundInUrl(String connectionString, String property) {
+            if (isBound(parameterValue(connectionString, property))) {
+                return true;
+            }
+            final int dot = property.lastIndexOf('.');
+            return dot >= 0 && isBound(parameterValue(connectionString, property.substring(dot + 1)));
+        }
+
         // Whether the administrator bounded one of these properties themselves. The dialects
         // separate their parameters differently - "?a=1&b=2" (postgresql, mysql), ";a=1;b=2" (sql
         // server), "(A=1)" inside the descriptor of an oracle tns url, where the property also goes
@@ -980,35 +1020,6 @@ public class CachedConnection implements Connection {
         // with -Doracle.jdbc.ReadTimeout, and a property supplied to a driver outranks the system
         // property without a word - and would then be lifted after the login as if it were ours,
         // leaving a connection with no read bound where the administrator had set one.
-        /**
-         * Whether one of these is bounded by the connection string, or by a system property this
-         * driver reads, as the bound of an established connection has to ask it. Told apart from
-         * {@link #declared} by what a 0 means: there the question is whether a property of ours is
-         * to be supplied to the connect at all, and on postgresql a parameter of the url outranks
-         * that property whatever it says - while a bound put on an established connection with
-         * setNetworkTimeout is outranked by nothing, so a "socketTimeout=0" is no bound of the
-         * deployment's to stay out of the way of. It is the default of the driver, written out, and
-         * reading it as theirs would leave a deployment that asked for a standing bound with none.
-         */
-        private boolean bounds(String connectionString, String... properties) {
-            for (final String property : properties) {
-                if (isBound(valueInUrl(connectionString, property)) || setAsSystemProperty(property)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /** What this url gives the property, under its own name or the last segment of it. */
-        private String valueInUrl(String connectionString, String property) {
-            final String value = parameterValue(connectionString, property);
-            if (value != null) {
-                return value;
-            }
-            final int dot = property.lastIndexOf('.');
-            return dot >= 0 ? parameterValue(connectionString, property.substring(dot + 1)) : null;
-        }
-
         private boolean declared(String connectionString, String... properties) {
             for (final String property : properties) {
                 if (declaredInUrl(connectionString, property) || setAsSystemProperty(property)) {
@@ -1309,6 +1320,13 @@ public class CachedConnection implements Connection {
      * are the ones of a driver, so a driver outside the four leaves every attempt unbounded - and
      * the deadline of the borrow cannot reach into a connect that is already under way, since the
      * driver is the only thing holding the socket.
+     * <p>
+     * The connect is not the whole of it. {@value #READ_TIMEOUT_PROPERTY} is not put on the
+     * connections of such a pool either: {@link #standingReadBoundMillis(String)} answers 0 for a
+     * dialect this class does not know, so a read timeout the url may already carry under a name of
+     * its own is left alone rather than covered by one of ours. That silence is what this says out
+     * loud, since the strict parsing of that property exists precisely so that a deployment which
+     * asked for a bound is never quietly left with none.
      */
     private static void reportUnknownDialect(String connectionString, ConnectDialect dialect) {
         if (dialect != null) {
@@ -1318,11 +1336,19 @@ public class CachedConnection implements Connection {
         for (final ConnectDialect candidate : ConnectDialect.values()) {
             known.append(known.length() > 0 ? ", " : "").append(candidate.urlPrefix);
         }
+        // Only where one was asked for: a deployment running on the default of that property asked
+        // for no standing bound anywhere, and has nothing to act on here.
+        final String standingBound = readTimeoutMillis > 0
+            ? ", and the " + READ_TIMEOUT_PROPERTY + " asked for is not put on the connections of this pool"
+                + " either - a read of one whose database stops answering after the login waits with no deadline"
+                + " able to reach it. Such a url may bound the read under a name this backend does not know, which"
+                + " is why none is set on top of it: bound it in the url instead"
+            : "";
         warnOnce(safeUrl(connectionString) + "|unknown-dialect",
             "%s names a driver whose timeout properties are not known to this backend (%s are): a connect to a"
                 + " database that accepts it and does not answer is left without a bound, and the %s property"
-                + " cannot end it",
-            safeUrl(connectionString), known, POOL_TIMEOUT_PROPERTY);
+                + " cannot end it%s",
+            safeUrl(connectionString), known, POOL_TIMEOUT_PROPERTY, standingBound);
     }
 
     /**
