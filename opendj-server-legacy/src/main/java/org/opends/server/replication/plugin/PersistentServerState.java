@@ -370,16 +370,20 @@ class PersistentServerState
   }
 
   /**
-   * Empty the ServerState in memory.
+   * Drop the in-memory copy of the ServerState, leaving persistent storage
+   * holding whatever it holds.
    * <p>
-   * The emptied state is marked as not saved, so the next save writes the empty
-   * state out - which is what {@link #clear()} is after. A caller that only
-   * means to drop the in-memory copy, and expects the backend to keep what it
-   * holds, has to keep saves away until it has loaded the state back.
+   * The emptied state is marked as saved, because nothing about it is waiting
+   * to be written: the callers - a domain being disabled, and a domain about to
+   * load its state back - drop the copy in memory without meaning the base
+   * entry to lose its position. Marking it as not saved would have the next
+   * checkpoint, or the last save the state checkpointer runs on its way out,
+   * replace the CSNs on the base entry with nothing.
    */
   public void clearInMemory()
   {
     state.clear();
+    state.setSaved(true);
   }
 
   /**
@@ -388,6 +392,9 @@ class PersistentServerState
   void clear()
   {
     clearInMemory();
+    // Emptying persistent storage too is the point of this method, so the
+    // emptied state does have to be written out.
+    state.setSaved(false);
     save();
   }
 
