@@ -3936,10 +3936,39 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
         return;
       }
 
-      enableService();
-      sessionGeneration++;
-
+      /*
+       * The flag is cleared before the session is started, where disable() sets it before
+       * stopping one: enableService() ends with startListenService(), so the listener it
+       * starts can list a delivery and hand it to a replay thread while this method is
+       * still running. A replay thread which reads a flag that still says "disabled"
+       * gives the change up at the top of its replay loop, and abandonReplay() does not
+       * ask for it again - a domain on its way down owns its session - so the change is
+       * left listed, uncommitted and owned by nobody. Nothing would replay it: the
+       * replication server only sends it again over a session which is restarted, so this
+       * domain's ServerState, and every change which depends on that one, would be held
+       * back for as long as the session lives.
+       */
       disabled = false;
+      boolean started = false;
+      try
+      {
+        enableService();
+        sessionGeneration++;
+        started = true;
+      }
+      finally
+      {
+        if (!started)
+        {
+          /*
+           * The other half of the same invariant: a domain whose session could not be
+           * started owns that session the way a disabled one does, so the flag goes back
+           * where it was rather than leave the replay threads believing there is a session
+           * of theirs to restart.
+           */
+          disabled = true;
+        }
+      }
     }
   }
 
