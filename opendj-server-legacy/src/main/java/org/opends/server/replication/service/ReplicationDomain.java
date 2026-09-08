@@ -2736,6 +2736,24 @@ public abstract class ReplicationDomain
   }
 
   /**
+   * Returns a boolean indicating if a total update <em>into</em> this replica is currently
+   * processed, that is an import which is replacing the data of this domain.
+   * <p>
+   * The other direction, an export which is initializing another replica from this one,
+   * leaves the data of this domain and its ServerState alone: it is reported by
+   * {@link #ieRunning()} just the same, so anything which is guarding against the data
+   * being replaced has to ask this rather than that.
+   *
+   * @return {@code true} when an import is being processed, {@code false} when nothing is
+   *         or when what is being processed is an export
+   */
+  protected boolean importInProgress()
+  {
+    final ImportExportContext ieCtx = importExportContext.get();
+    return ieCtx != null && ieCtx.importInProgress();
+  }
+
+  /**
    * Check the value of the Replication Servers generation ID.
    *
    * @param generationID        The expected value of the generation ID.

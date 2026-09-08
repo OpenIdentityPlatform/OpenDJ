@@ -241,14 +241,28 @@ public class PausePreParsePlugin extends DirectoryServerPlugin<PluginCfg>
    * @param timeout how long to wait
    * @param unit the unit of the timeout
    * @return {@code true} when an operation reached the pause, {@code false} when the wait
-   *         timed out or no pause is registered for that type
+   *         timed out
+   * @throws IllegalStateException when no pause is registered for that operation type,
+   *         which is a caller waiting for something nothing can report rather than an
+   *         operation which is slow to come
    * @throws InterruptedException when the wait was interrupted
    */
   public static boolean awaitPaused(OperationType operation, long timeout, TimeUnit unit)
       throws InterruptedException
   {
     final Pause pause = pauses.get(operation);
-    return pause != null && pause.reached.await(timeout, unit);
+    if (pause == null)
+    {
+      /*
+       * Told apart from the timeout, and loudly: a pause registered for another operation
+       * type - the whole of the mistake - would otherwise be reported as the operation
+       * never coming, after the caller waited its whole budget out for it.
+       */
+      throw new IllegalStateException(
+          "no pause is registered for " + operation + ": nothing can park on it, and nothing"
+              + " will report that it did");
+    }
+    return pause.reached.await(timeout, unit);
   }
 
   /**
@@ -258,6 +272,10 @@ public class PausePreParsePlugin extends DirectoryServerPlugin<PluginCfg>
    * A test which took something down while an operation was parked reads this to say that
    * it really did come down without waiting for it: the pause is only released by the test
    * itself, so an operation which is still parked here never finished.
+   * <p>
+   * To be read before the pause is released, and not after: the count is decremented by the
+   * parked thread itself, on its way out, so a release does not bring it back to zero by the
+   * time it returns.
    *
    * @param operation the type of operation which was registered
    * @return the number of operations parked right now, 0 when no pause is registered

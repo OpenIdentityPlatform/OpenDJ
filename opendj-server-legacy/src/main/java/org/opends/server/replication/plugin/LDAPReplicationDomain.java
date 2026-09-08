@@ -144,6 +144,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
@@ -449,13 +450,26 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * How long this domain waits for the replay threads which are applying one of its changes
    * before it saves its ServerState and goes down.
    * <p>
-   * Long enough for any operation a backend which is serving can take - they are counted
-   * in milliseconds - and short enough to be paid several times over: it is held under
-   * serviceStateLock and, when a backend is being deregistered, inside
-   * BackendConfigManager's write lock, and a server going down spends it once per domain
-   * because the domains are shut down one after the other.
+   * Derived from the ceiling the server itself puts on an operation which is waiting for an
+   * entry rather than picked: {@link LockManager} gives the subtree lock and the entry lock
+   * {@link LockManager#DEFAULT_LOCK_TIMEOUT} each, so a replayed change whose target is held
+   * by a concurrent local operation - a client deleting the subtree above it, say - is
+   * inside its attempt for twice that before it gives up with BUSY. A bound under that
+   * ceiling would be spent by ordinary lock contention, and the change which is applied
+   * after it would be the one this whole barrier exists to keep out of that window: no
+   * import, no index rebuild and no wedged backend needed.
+   * <p>
+   * A ceiling rather than a guarantee: an operation also waits for the subtree lock of every
+   * entry above its target, one timeout each, so a deep contended chain outlasts this. What
+   * it buys is that the wait is not lost to the contention a serving backend has anyway.
+   * <p>
+   * It is paid in three places - held under serviceStateLock, inside BackendConfigManager's
+   * write lock when a backend is being deregistered, and once per domain by a server going
+   * down - which is why it is bounded at all. It is only ever spent in full by a replay
+   * which is genuinely stuck: the wait ends the moment the attempt does.
    */
-  private static final long REPLAY_DRAIN_TIMEOUT_IN_MS = 5000;
+  private static final long REPLAY_DRAIN_TIMEOUT_IN_MS =
+      2 * LockManager.DEFAULT_LOCK_TIMEOUT_UNITS.toMillis(LockManager.DEFAULT_LOCK_TIMEOUT) + 1000;
   /**
    * How long this domain waits for the replay of its changes on its way down. Only the
    * tests, which can not hold a replay thread for {@link #REPLAY_DRAIN_TIMEOUT_IN_MS}, set
@@ -631,13 +645,23 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
       }
       /*
-       * Guarded like the save in the loop above. A disabled domain saved its ServerState
-       * and cleared it from memory, and an import or a restore is about to replace the
-       * data: saving here would write that empty state over the saved one, which is a
-       * REPLACE of ds-sync-state with no value at all - the replica would come back with no
-       * ServerState rather than with the one it saved on its way down.
+       * A disabled domain saved its ServerState and cleared it from memory, and an import
+       * or a restore is about to replace the data: saving here would write that empty state
+       * over the saved one, which is a REPLACE of ds-sync-state with no value at all - the
+       * replica would come back with no ServerState rather than with the one it saved on
+       * its way down. The disabled flag does not catch the total update this replica is the
+       * target of: preBackendImport() sets ignoreBackendInitializationEvent, so disable() is
+       * not called on that road and only the import says the data is being replaced.
+       *
+       * The direction is asked for rather than ieRunning(), which the save in the loop above
+       * settles for: an export leaves the data and the ServerState of this domain alone, and
+       * the replay of this domain keeps running for the whole of it - a remote-requested
+       * export is dispatched to a thread pool for that very reason. Since the save in the
+       * loop is skipped for either direction, this is the only one which persists the
+       * changes replayed since the export began, and there is no repair for them afterwards:
+       * checkAndUpdateServerState() only repairs the CSNs of this server.
        */
-      if (!disabled && !ieRunning())
+      if (!disabled && !importInProgress())
       {
         state.save();
       }
@@ -2557,10 +2581,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           /*
            * The flag which says this domain is going down is read before the lock as well
            * as under it. The replay threads are a pool shared by every domain of this
-           * server, so a thread which took a change of a domain which is going down must
+           * server, so a thread which took a change of a domain which is going down should
            * not queue behind the wait for that domain: the changes of every other domain
-           * are behind it in the same pool. The read under the lock is the one which
-           * decides, the one above it only keeps this thread out of the queue.
+           * are behind it in the same pool.
+           *
+           * The read under the lock is the one which decides; the one above it is a
+           * scheduling optimisation for the common case and nothing more. It cannot keep
+           * this thread out of the queue: the flag can be set and the writer can queue
+           * between the two reads, and a reader which arrives behind a queued writer blocks
+           * even on a lock which is not the fair kind.
            */
           boolean goingDown = replayThreadShutdown.get() || shutdown.get() || disabled;
           if (!goingDown)
@@ -4030,6 +4059,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   private void awaitReplayDrained()
   {
     boolean drained = false;
+    boolean interrupted = false;
     try
     {
       drained = replayWriteLock.tryLock(replayDrainTimeoutInMs, TimeUnit.MILLISECONDS);
@@ -4037,12 +4067,14 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     catch (InterruptedException e)
     {
       /*
-       * Give up waiting, and put the interrupt back: the caller is a task being cancelled
-       * - an import, a restore - and it needs the interrupt to stop at its next chance. The
-       * cost is on the shutdown road, whose wait for the last ServerState flush is a
+       * Give up waiting, and put the interrupt back rather than swallow it: whoever
+       * interrupted this thread - the server going down, a thread pool taking its threads
+       * away - is still waiting for it to stop, and this is not the last thing it does.
+       * The cost is on the shutdown road, whose wait for the last ServerState flush is a
        * Thread.sleep() which ends on its first call once the flag is set: the flush thread
        * still runs that save, this one just stops waiting for it.
        */
+      interrupted = true;
       Thread.currentThread().interrupt();
     }
     if (drained)
@@ -4056,8 +4088,19 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
      * replayed a second time. Better than holding an administrative task - an import, a
      * restore, a backend being taken offline - for as long as a backend which stopped
      * answering takes to answer.
+     *
+     * An interrupted wait is reported as what it is: it says nothing about how long the
+     * replay of this domain takes, and the timeout it never spent would have an operator
+     * reading a backend which is slow into it.
      */
-    logger.warn(WARN_REPLAY_NOT_DRAINED, getBaseDN(), replayDrainTimeoutInMs);
+    if (interrupted)
+    {
+      logger.warn(WARN_REPLAY_DRAIN_INTERRUPTED, getBaseDN());
+    }
+    else
+    {
+      logger.warn(WARN_REPLAY_NOT_DRAINED, getBaseDN(), replayDrainTimeoutInMs);
+    }
   }
 
   /**
