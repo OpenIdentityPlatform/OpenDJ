@@ -368,6 +368,24 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
   }
 
   /**
+   * A peer going away says nothing about a message it was never given, which is the opposite of
+   * what a forward says: with no peer recorded the first forward ends the wait, and a give-up
+   * must leave it running. Otherwise any peer disconnecting would release a message the
+   * collocated replication server has not queued for anybody yet - the very bug the recipients
+   * were introduced to close, in a new shape.
+   */
+  @Test
+  public void aPeerStoppingBeforeTheMessageIsQueuedDoesNotEndTheWait() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, newCSN(SERVER_ID));
+    shutdownSync.replicaOfflineMsgNotForwarded(baseDN1, RS_ID);
+
+    assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
+  }
+
+  /**
    * A replica announces itself offline on every disableService(), so the peers recorded for an
    * earlier announcement say nothing about the one the shutdown is waiting for.
    */

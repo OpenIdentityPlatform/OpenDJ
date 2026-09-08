@@ -53,8 +53,12 @@ public class DSRSShutdownSync
   private final long gracePeriod;
 
   /**
-   * The ReplicaOfflineMsg which has not been forwarded yet, per domain and per
+   * The ReplicaOfflineMsg which is still owed a forward, per domain and per
    * replica of that domain.
+   * <p>
+   * An entry lives until every replication server the message was queued for
+   * has forwarded it, so it legitimately holds a message some of them have
+   * already sent: what is pending is the forward, not the message.
    * <p>
    * It is kept per domain because a domain sends this message whenever its
    * replication service is disabled - an online import, a restore, a

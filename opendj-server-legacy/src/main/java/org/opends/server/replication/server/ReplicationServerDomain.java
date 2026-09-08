@@ -425,6 +425,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
        * A recipient whose teardown started while the list was being built has had its message
        * queue cleared already, and its own give-up ran before it was recorded here: queueing for
        * it would only leave the shutdown waiting for a forward which can no longer happen.
+       * <p>
+       * This is read after the recipients were recorded, and every teardown - stopServer() and
+       * unregisterFailedHandshake() - raises the flag before it gives up. So of the two, at
+       * least one always sees the other: a teardown whose give-up came too early to find this
+       * recipient has necessarily raised the flag this reads.
        */
       if (rsHandler.shuttingDown())
       {
@@ -1119,57 +1124,73 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     if (!sHandler.engageShutdown())
       // Only do this once (prevent other thread to enter here again)
     {
-      if (!shutdown)
-      {
-        try
-        {
-          // Acquire lock on domain (see more details in comment of start()
-          // method of ServerHandler)
-          lock();
-        }
-        catch (InterruptedException ex)
-        {
-          // We can't deal with this here, so re-interrupt thread so that it is
-          // caught during subsequent IO.
-          Thread.currentThread().interrupt();
-          return;
-        }
-      }
-
       try
-      {
-        // Stop useless monitoring publisher if no more RS or DS in domain
-        if ( (connectedDSs.size() + connectedRSs.size() )== 1)
-        {
-          if (logger.isTraceEnabled())
-          {
-            debug("remote server " + sHandler
-                + " is the last RS/DS to be stopped:"
-                + " stopping monitoring publisher");
-          }
-          stopMonitoringPublisher();
-        }
-
-        if (connectedRSs.containsKey(sHandler.getServerId()))
-        {
-          // after the unregistration, which must not be skipped if this throws
-          unregisterServerHandler(sHandler, shutdown, false);
-          noLongerAwaitTheForwardOf(sHandler);
-        }
-        else if (connectedDSs.containsKey(sHandler.getServerId()))
-        {
-          unregisterServerHandler(sHandler, shutdown, true);
-        }
-      }
-      catch(Exception e)
-      {
-        logger.error(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
-      }
-      finally
       {
         if (!shutdown)
         {
-          release();
+          try
+          {
+            // Acquire lock on domain (see more details in comment of start()
+            // method of ServerHandler)
+            lock();
+          }
+          catch (InterruptedException ex)
+          {
+            // We can't deal with this here, so re-interrupt thread so that it is
+            // caught during subsequent IO.
+            Thread.currentThread().interrupt();
+            return;
+          }
+        }
+
+        try
+        {
+          // Stop useless monitoring publisher if no more RS or DS in domain
+          if ( (connectedDSs.size() + connectedRSs.size() )== 1)
+          {
+            if (logger.isTraceEnabled())
+            {
+              debug("remote server " + sHandler
+                  + " is the last RS/DS to be stopped:"
+                  + " stopping monitoring publisher");
+            }
+            stopMonitoringPublisher();
+          }
+
+          if (connectedRSs.containsKey(sHandler.getServerId()))
+          {
+            unregisterServerHandler(sHandler, shutdown, false);
+          }
+          else if (connectedDSs.containsKey(sHandler.getServerId()))
+          {
+            unregisterServerHandler(sHandler, shutdown, true);
+          }
+        }
+        catch(Exception e)
+        {
+          logger.error(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
+        }
+        finally
+        {
+          if (!shutdown)
+          {
+            release();
+          }
+        }
+      }
+      finally
+      {
+        /*
+         * On every exit of this block, including the interrupted lock acquisition above and an
+         * unregistration which threw: the flag engageShutdown() has just set is one-shot, so no
+         * later stopServer() will run for this handler and nothing else would strike it off.
+         * Every caller closed the session before getting here or is stopping the handler on
+         * purpose, so this peer can no longer be told anything whatever this method managed to
+         * do.
+         */
+        if (sHandler.isReplicationServer())
+        {
+          noLongerAwaitTheForwardOf(sHandler);
         }
       }
     }
@@ -1258,6 +1279,18 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     {
       return;
     }
+    /*
+     * This handler is stopping, and nothing else will ever say so for it: the reader and writer
+     * threads whose death normally reaches stopServer() were never started, so no teardown of
+     * its own will run. The flag has to be set before the give-up below, because that is the
+     * order put() reads the two in - it records the recipients of a ReplicaOfflineMsg and only
+     * then asks each of them whether it is shutting down. Skip it and a message being pushed
+     * concurrently slips between the two: the give-up runs while nothing is recorded yet and
+     * does nothing, the recipients are then recorded with this handler among them, and the loop
+     * queues the message for a handler whose queue is about to be cleared - leaving the shutdown
+     * to wait out its whole grace period for a forward nobody can report.
+     */
+    sHandler.engageShutdown();
     if (!isDataServer)
     {
       noLongerAwaitTheForwardOf(sHandler);
