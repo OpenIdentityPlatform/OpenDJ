@@ -2643,6 +2643,65 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	}
 
 	/**
+	 * A clear which dropped nothing at all says why, where the only thing it had to say is a row it
+	 * could not act on: the catalog table went between the read of its rows and the loop that drops
+	 * what they named - an offline tool clearing the same backend, and the one state in which a clear
+	 * passes a row over and still drops nothing - so the account of it has no drop, no tree that had
+	 * lost its table and no leftover of this backend to be decided by. The row is what is left, and
+	 * the line reporting it is the only copy of what that row said.
+	 * <p>
+	 * What the case pins is one term of that condition. It pins it on a database holding nothing of
+	 * anybody else that the scan cannot attribute - the fragments asserted are the counts this case
+	 * owns, and a neighbour of another suite leaving an unstamped table would make the line fire for
+	 * a reason of its own rather than fail this.
+	 */
+	@Test
+	public void testAClearWhichDroppedNothingSaysWhyWhereARowItPassedOverIsAllItHad() throws Exception {
+		final DN baseDN = DN.valueOf("dc=clear-catalog-race,dc=com");
+		final TreeName owned = new TreeName(baseDN.toNormalizedUrlSafeString(), "id2entry");
+		final ReportingStorage storage =
+			new ReportingStorage(createBackendCfg(getBackendId() + "_catalogRace", baseDN));
+		final String catalogTable = storage.getTableName(storage.getCatalogTree());
+		final String ownedTable = storage.getTableName(owned);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(owned, true);
+				}
+			});
+			// the one row of the catalog now records a name outside the namespace this backend names
+			// its tables in, so the read passes it over and the catalog names itself alone
+			recordAnotherTable(catalogTable, "a_table_of_something_else");
+			// and nothing of this backend is left standing for the scan to attribute to it
+			dropTableBehindTheBackend(ownedTable);
+			storage.close();
+
+			// the table goes while the clear is running, which is what leaves the clear with nothing
+			// dropped: an offline tool clearing the same backend a moment earlier. At the second
+			// lookup and not the first, so that the rows are read before the table goes - the first
+			// is catalogTables() asking whether there is a catalog at all
+			storage.takeAwayAtLookupNumber(catalogTable, 2);
+
+			storage.removeStorageFiles();
+
+			assertFalse(isExistsTable(catalogTable), "the catalog table this case takes away was still there");
+			storage.assertReported("a clear which dropped nothing at all and passed a row over said nothing"
+					+ " about why, which is the silence of #888",
+				"the clear removed no tree of this backend", "it dropped 0 table(s) in all",
+				"0 of the trees its catalog names had lost their table already",
+				"and 0 table(s) of this backend were named by no catalog");
+			storage.assertReported("the row the clear could not act on was named by no line of it",
+				"a_table_of_something_else", "passed over");
+		} finally {
+			clearQuietly(storage);
+			dropTableIfExists(ownedTable);
+			dropTableIfExists(catalogTable);
+		}
+	}
+
+	/**
 	 * Takes every row out of a catalog, leaving the tables it named standing: what a backend upgraded
 	 * from a version keeping no catalog holds before its first read-write open fills one in.
 	 */
@@ -2701,6 +2760,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	protected static final class ReportingStorage extends JDBCStorage {
 		private final List<String> lines = Collections.synchronizedList(new ArrayList<String>());
 
+		private volatile String tableToTakeAway;
+		private final AtomicInteger lookupsToLetPass = new AtomicInteger();
+
 		ReportingStorage(JDBCBackendCfg cfg) {
 			super(cfg, null);
 		}
@@ -2709,6 +2771,43 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		void reportClearLine(LocalizableMessage line) {
 			lines.add(line.toString());
 			super.reportClearLine(line); // and on to the log, which is where an operator meets it
+		}
+
+		/**
+		 * Takes the named table away just before the given lookup of it, counting from the next one,
+		 * so that the lookup answers as another process taking the table a moment earlier would have
+		 * made it answer. What it models is the one state a clear cannot be put into from outside: a
+		 * table going between the read of the catalog and the loop that drops what that read named.
+		 * <p>
+		 * Which lookup matters, and the count is not decoration: a clear asks about its catalog table
+		 * twice - once in {@code catalogTables()} to decide whether there is a catalog to read at all,
+		 * and once in the drop loop, per entry. Taken away before the first, the clear reads no row,
+		 * passes none over and reports nothing, which is a different case from this one.
+		 * <p>
+		 * Dropped on the very connection the lookup is made on, and not on one of the test's own: the
+		 * clear holds its read of the catalog table until it commits, so a {@code drop table} issued
+		 * from a second session would queue behind the transaction that is waiting for this call to
+		 * return. Inside that transaction the drop takes no lock it does not already hold, and it is
+		 * committed with the loop - or, on the two engines committing DDL as they go, at once.
+		 */
+		void takeAwayAtLookupNumber(String tableName, int nth) {
+			lookupsToLetPass.set(nth - 1);
+			tableToTakeAway = tableName;
+		}
+
+		@Override
+		boolean isExistsTable(Connection con, JDBCStorage.TableScope scope, String tableName) {
+			final String taking = tableToTakeAway;
+			if (taking != null && taking.equalsIgnoreCase(tableName)
+					&& lookupsToLetPass.getAndDecrement() <= 0) {
+				tableToTakeAway = null; // once: every later lookup is answered by the database alone
+				try (final PreparedStatement statement = con.prepareStatement("drop table " + taking)) {
+					statement.execute();
+				} catch (SQLException e) {
+					throw new IllegalStateException("the table this case takes away could not be dropped", e);
+				}
+			}
+			return super.isExistsTable(con, scope, tableName);
 		}
 
 		/** Every line reported so far, in the order the clears that reported them ran. */

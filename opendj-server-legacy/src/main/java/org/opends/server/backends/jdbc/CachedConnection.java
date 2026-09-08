@@ -448,7 +448,10 @@ public class CachedConnection implements Connection {
         if (borrowers <= pool.max()) {
             return;
         }
-        final long poolTimeoutSeconds = getNonNegativeProperty(POOL_TIMEOUT_PROPERTY, DEFAULT_POOL_TIMEOUT_SECONDS, "s");
+        // through the helper the borrows and the catalog connect both read it by: the same property
+        // has to mean the same thing wherever it is asked, and a clamp that helper grows the day the
+        // deadline needs one - getConnectTimeoutSeconds() already has one - must not be missed here
+        final long poolTimeoutSeconds = getPoolTimeoutSeconds();
         final String wait = poolTimeoutSeconds == 0
             ? "waits for one to be returned for as long as that takes"
             : "waits up to " + poolTimeoutSeconds + "s for one to be returned and fails if none is";
@@ -1562,15 +1565,35 @@ public class CachedConnection implements Connection {
     private static void warnStall(String connectionString, String throttleKeySuffix, long startedAt,
             LongFunction<String> message) {
         final long now = System.currentTimeMillis();
+        if (stallWarningDue(connectionString, throttleKeySuffix, startedAt, now)) {
+            logger.warn(LocalizableMessage.raw("%s", message.apply(now - startedAt)));
+        }
+    }
+
+    /**
+     * Whether a stall of this wait is to be reported now: a wait shorter than
+     * {@link #STALL_WARNING_AFTER_MS} is no stall yet, and one already reported for this url within
+     * {@link #STALL_WARNING_INTERVAL_MS} is not reported again - every worker thread of a server
+     * meets a database taking no connection at the same moment, and one line an interval is what
+     * an operator can read.
+     * <p>
+     * Built apart from the logging of it for the reason {@link #stallMessage} is: what it has to
+     * keep is a rule a test can hold it to, and the shipped path reaches the throttle only where a
+     * connect really has stalled for a second. The suffix is what keeps the two waits apart - a
+     * borrow of the pool and the connect the tree catalog of a backend is made on (#888) stall on
+     * the same database for the same reason, and a borrow that reported a moment ago must not
+     * silence the connect that is about to fail, which has no other line about it at all.
+     * <p>
+     * Filing the moment is part of deciding it, so that two threads asking at once report once.
+     */
+    static boolean stallWarningDue(String connectionString, String throttleKeySuffix, long startedAt, long now) {
         if (now - startedAt < STALL_WARNING_AFTER_MS) {
-            return;
+            return false;
         }
         final AtomicLong lastOfThisUrl =
             lastStallWarning.computeIfAbsent(safeUrl(connectionString) + throttleKeySuffix, url -> new AtomicLong());
         final long last = lastOfThisUrl.get();
-        if (now - last >= STALL_WARNING_INTERVAL_MS && lastOfThisUrl.compareAndSet(last, now)) {
-            logger.warn(LocalizableMessage.raw("%s", message.apply(now - startedAt)));
-        }
+        return now - last >= STALL_WARNING_INTERVAL_MS && lastOfThisUrl.compareAndSet(last, now);
     }
 
     /**

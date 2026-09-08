@@ -1234,22 +1234,62 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * It does not park the rest of this storage: {@code openCatalog()} establishes this connection
 	 * before it takes its lock, for that very reason.
 	 * <p>
-	 * What every wait here does hold, and what no property of the pool bounds, is the caller: this runs
-	 * inside the write transaction that reached {@code openTree}, so a retry that waits out a database
-	 * refusing connections holds that transaction's pooled connection and every lock it has already
-	 * taken for as long as it waits. On a stock suffix {@code RootContainer.open()} is one such write
-	 * over every tree of the backend. The deadline is therefore the thing that bounds it, and a
-	 * deployment which cannot afford a minute of that sets {@link
-	 * CachedConnection#POOL_TIMEOUT_PROPERTY} to what it can afford - the same property, bounding the
-	 * same wait, as it bounds a borrow.
+	 * What every wait here does hold is the caller: this runs inside the write transaction that reached
+	 * {@code openTree}, so a retry that waits out a database refusing connections holds that
+	 * transaction's pooled connection, the permit of the pool that connection carries (#878) and every
+	 * lock the transaction has already taken, for as long as it waits. On a stock suffix {@code
+	 * RootContainer.open()} is one such write over every tree of the backend.
+	 * <p>
+	 * And what it spends besides is the window {@link #write} bounds its own replay by, which is the
+	 * shorter of the two by default - ten seconds against a minute - and is <em>spent</em> by this wait
+	 * rather than added to it: this loop runs inside one attempt of that one. A refusal {@code write()}
+	 * would replay - mysql answers its connection limit with {@code 08004}, postgres reports a database
+	 * still coming up as {@code 57P03}, and both are read as a connection this backend lost - waited out
+	 * here for a minute reaches that loop with its window six times over, so it is thrown unreplayed:
+	 * the retry would have cost the caller the very replay it had before there was any retry here at
+	 * all. So the deadline is the shorter of {@link CachedConnection#POOL_TIMEOUT_PROPERTY} and what is
+	 * left of that window, taken from the caller by {@link CatalogSession#boundedAlsoBy}. The window is
+	 * not something the property could express: lowering it under ten seconds shortens every borrow of
+	 * the pool with it. A path carrying no such window - the importer, which has no replay above it -
+	 * waits the property out in full, and a deployment which cannot afford a minute of that sets the
+	 * property to what it can afford, the same property bounding the same wait as it bounds a borrow.
+	 * <p>
+	 * What the window does <em>not</em> bound is one attempt, which is taken from the deadline of the
+	 * pool as it always was. The two are different questions: the window says how long it is worth
+	 * waiting before handing the failure to a loop that can still replay it, while a login takes what
+	 * this database takes whoever is asking. Cut to what is left of a ten second window, a deployment
+	 * that raised {@link CachedConnection#CONNECT_TIMEOUT_PROPERTY} to two minutes because its login
+	 * needs them would meet a catalog connect failing where the pooled connection beside it succeeds -
+	 * the backend that stops opening. So one slow attempt may outlast the window, exactly as one slow
+	 * conflict outlasts it in {@link #write} itself; what may not is a second attempt begun after the
+	 * window has already run out, which is a wait bought with a replay that no longer exists.
+	 *
+	 * @param budgetDeadline the moment the replay window of the caller runs out, as {@link
+	 *        System#currentTimeMillis()} reads it, or {@link Long#MAX_VALUE} where nothing above this
+	 *        connect replays - the same "no deadline at all" this class reads out of {@link
+	 *        CachedConnection#deadlineOf}, so that the shorter of the two is a plain {@code min}.
 	 */
-	Connection newCatalogConnection() throws SQLException {
-		final String connectionString=config.getDBDirectory();
+	Connection newCatalogConnection(long budgetDeadline) throws SQLException {
+		// poolKey() rather than the configuration as it stands, for the reason newStampConnection()
+		// gives: this connection is not pooled, but it is a connection to the database of this
+		// storage, and db-directory may be changed on a running backend. Reading it again here would
+		// write the catalog of this backend into whichever database the configuration names now,
+		// while its tables are created, read and dropped over the connection open() registered -
+		// rows in one database and tables in another, which is #888 again by another route (#878)
+		final String connectionString=poolKey();
 		final CachedConnection.ConnectDialect dialect=CachedConnection.ConnectDialect.of(connectionString);
 		final long connectTimeoutSeconds=CachedConnection.getConnectTimeoutSeconds();
 		final long poolTimeoutSeconds=CachedConnection.getPoolTimeoutSeconds();
 		final long startedAt=System.currentTimeMillis();
-		final long deadline=CachedConnection.deadlineOf(startedAt, poolTimeoutSeconds);
+		final long poolDeadline=CachedConnection.deadlineOf(startedAt, poolTimeoutSeconds);
+		// the deadline of the whole wait, which is the shorter of the pool's own and what is left of
+		// the replay window of the caller. The bound of one attempt below is taken from the pool's
+		// alone, deliberately: a login the operator bounded at two minutes because that is what this
+		// database takes must not be cut to what is left of a ten second window - that is the connect
+		// dying where the pooled one beside it succeeds, which is a backend that stops opening. One
+		// slow attempt may still outlast the window, exactly as one slow conflict does; what may not
+		// is a second attempt begun after the window has run out, which is a wait for nothing
+		final long deadline=Math.min(poolDeadline, budgetDeadline);
 		long backoffMs=0;
 		int attempts=0;
 		while (true) {
@@ -1257,9 +1297,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			try {
 				// the bound of one attempt and not of the whole wait, the way the pool bounds its own:
 				// an attempt left to run its bound out past the deadline would overrun it by a full
-				// connect timeout, and turning the per-attempt bound off must not turn this one off
+				// connect timeout, and turning the per-attempt bound off must not turn this one off.
+				// Taken from the deadline of the pool and not from the shorter of the two: see above
 				return connectCatalog(connectionString, dialect,
-					CachedConnection.attemptSeconds(connectTimeoutSeconds, deadline));
+					CachedConnection.attemptSeconds(connectTimeoutSeconds, poolDeadline));
 			}catch (SQLException e) {
 				if (!CachedConnection.isWorthRetrying(e, dialect)) {
 					// redacted the way the pool redacts the failure of its own connects: a driver renders
@@ -1268,9 +1309,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					// This failure is reported in full - ERR_OPEN_ENV_FAIL, or the log of a clear
 					throw CachedConnection.reported(e, connectionString);
 				}
-				final long remaining=deadline-System.currentTimeMillis();
+				final long now=System.currentTimeMillis();
+				final long remaining=deadline-now;
 				if (remaining<=0) {
-					throw catalogConnectTimedOut(connectionString, poolTimeoutSeconds, attempts, e);
+					// which of the two bounds ended it, so that an operator reading the line knows whether
+					// the property is the thing to raise: where the replay window of the caller is the
+					// shorter one, raising the property moves nothing
+					throw catalogConnectTimedOut(connectionString, poolTimeoutSeconds,
+						deadline==budgetDeadline, now-startedAt, attempts, e);
 				}
 				CachedConnection.warnStallOutsidePool(connectionString, "tree catalog", attempts, startedAt, e);
 				backoffMs=Math.min(backoffMs==0 ? 1 : backoffMs*2, CachedConnection.MAX_BACKOFF_MS);
@@ -1321,12 +1367,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * cause of this one and every chain of a failure being walked. What this keeps is the promise that
 	 * the retry changes no classification: a refusal reaches {@code write()} as the same thing it
 	 * reached it as before there was any retry here at all.
+	 * <p>
+	 * Which of the two bounds ended the wait is named rather than left to be guessed: the property is
+	 * the thing to raise only where the property is what ran out, and where the replay window of the
+	 * caller is the shorter one - the default has it at a sixth of the property - raising the property
+	 * moves nothing at all.
 	 */
 	private static SQLTimeoutException catalogConnectTimedOut(String connectionString, long poolTimeoutSeconds,
-			int attempts, SQLException last) {
+			boolean endedByReplayWindow, long waitedMs, int attempts, SQLException last) {
 		final SQLTimeoutException timeout=new SQLTimeoutException("no connection to "
 			+CachedConnection.safeUrl(connectionString)+" could be opened for the tree catalog within "
-			+poolTimeoutSeconds+"s ("+attempts+" attempts): the database took no connection for the moment,"
+			+waitedMs+"ms ("+attempts+" attempts, "+(endedByReplayWindow
+				? "what was left of the replay window of the write that asked for it, which is the shorter"
+					+" bound here: "+CachedConnection.POOL_TIMEOUT_PROPERTY+" is "+poolTimeoutSeconds+"s"
+				: CachedConnection.POOL_TIMEOUT_PROPERTY+"="+poolTimeoutSeconds+"s")
+			+"): the database took no connection for the moment,"
 			+" last error: "+CachedConnection.redact(last.getMessage(), connectionString),
 			last.getSQLState(), last.getErrorCode());
 		timeout.initCause(CachedConnection.reported(last, connectionString));
@@ -1415,10 +1470,45 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		private Connection con;
 		private WriteableTransactionTransactionImpl txn;
 
+		// The moment the replay window of the write() this session belongs to runs out, as
+		// System.nanoTime() reads it - null where nothing above this session replays, which is the
+		// importer and nothing else. Boxed rather than given a sentinel: nanoTime() is documented to
+		// return an arbitrary long, so there is no reading of it that could stand for "no window".
+		private Long replayWindowEndsAt;
+
+		/**
+		 * Tells this session the wall-clock window the {@link JDBCStorage#write} above it bounds its
+		 * replay by, which the connect of the catalog may not outlast: the connect runs inside one
+		 * attempt of that loop, so a wait longer than what is left of the window reaches it with the
+		 * window already spent and is thrown unreplayed - see {@link JDBCStorage#newCatalogConnection}.
+		 * Called once per attempt, before the operation runs; a session nobody calls it on waits the
+		 * pool timeout out in full, which is what the importer does.
+		 */
+		void boundedAlsoBy(long replayWindowEndsAtNanos) {
+			replayWindowEndsAt=replayWindowEndsAtNanos;
+		}
+
+		/**
+		 * That window as a deadline of the clock the connect measures itself by, or {@link
+		 * Long#MAX_VALUE} where there is no window - the value {@link CachedConnection#deadlineOf}
+		 * gives a wait with no end, so that the shorter of the two is a plain {@code min}. The two
+		 * readings are taken here rather than one of them being carried in: a nanoTime window and a
+		 * currentTimeMillis deadline are two clocks, and they can only be put together at one moment.
+		 * A window already spent gives the moment itself, which is one attempt and then a timeout.
+		 */
+		private long budgetDeadline() {
+			if (replayWindowEndsAt==null) {
+				return Long.MAX_VALUE;
+			}
+			final long leftNanos=replayWindowEndsAt-System.nanoTime();
+			final long now=System.currentTimeMillis();
+			return leftNanos<=0 ? now : now+leftNanos/1_000_000L;
+		}
+
 		/** The connection, opened at the first read or write the catalog needs and shared by the rest. */
 		Connection connection() throws SQLException {
 			if (con==null) {
-				con=newCatalogConnection();
+				con=newCatalogConnection(budgetDeadline());
 			}
 			return con;
 		}
@@ -2095,9 +2185,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * row still in it - which is why the line is the only surviving copy of what the row said, and
 	 * why it names what the row recorded rather than telling an operator to go and look. Nothing this
 	 * version writes makes such a row - {@link #getTableName} names every table {@code opendj_<hash>}
-	 * - so it is the account of a database written into by something else, and it is no term of the
-	 * "dropped nothing" line above: a catalog whose table is there always names itself, so a clear
-	 * reading any row at all drops that one.
+	 * - so it is the account of a database written into by something else.
+	 * <p>
+	 * It is a term of the "dropped nothing" line all the same, and for one state only: a catalog whose
+	 * table is there names itself, so a clear reading any row at all normally drops that one and the
+	 * term is carried by the drop count beside it. Where it is not is where the catalog table went
+	 * between the read of its rows and the loop that drops them - another process clearing the same
+	 * backend - and there the clear has read a row, dropped nothing, and has this row as the whole of
+	 * what it can say. Without the term it says nothing at all, which is the silence of #888.
 	 */
 	void reportClearOutcome(Connection con, TableScope scope, int dropped, int droppedTrees, int missingTrees,
 			List<String> skippedRows) {
@@ -2128,6 +2223,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// whether or not the scan afterwards found anything to attribute. Without the two terms on the
 		// right the line is silent in that case while the same clear on a database whose listing failed
 		// announces itself - the same clear, told two ways.
+		// The last of them is not spare: a clear normally drops the catalog table it read its rows out
+		// of, so a passed-over row comes with a drop - except where that table went while this clear was
+		// running, which is a clear that read a row, dropped nothing, and has that row as all it can say
 		if (droppedTrees==0 && (missingTrees>0 || ours>0 || unattributed>0 || unreadable>0
 				|| dropped>0 || !skippedRows.isEmpty())) {
 			reportClearLine(LocalizableMessage.raw("jdbc: backend %s: %s (it dropped %d table(s) in all, its own catalog among them where there was one): %d of the trees its catalog names had lost their table already, and %d table(s) of this backend were named by no catalog, %d could not be attributed to anyone and %d could not be read. %s",
@@ -2683,6 +2781,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			try (con) {
 				driver=driverNameOf(con);
 				final WriteableTransactionTransactionImpl txn=new WriteableTransactionTransactionImpl(con);
+				//the connect of the catalog is made inside this attempt and retries the way a borrow does,
+				//up to the pool timeout - six times this window at the defaults. Left to its own deadline
+				//it would spend a window it does not own and hand the loop a failure it has classified as
+				//replayable with nothing left to replay it in, so it is told where the window ends
+				txn.catalogSession.boundedAlsoBy(giveUpAt);
 				try {
 					writeOperation.run(txn);
 					committing=true;
@@ -3493,7 +3596,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					// the rest of the transaction, and the session being lazy, the rarer loser that does
 					// have a tree to enrol opens another. Outside the lock, for the reason the connect is:
 					// a close is a round trip of its own, and against a database that has stopped answering
-					// it takes the read bound of the login to return - or does not return at all
+					// it does not return at all - connectCatalog() lifts the read bound of the login on
+					// every connection it hands back, so there is no bound of ours left to end this one
 					catalogSession.close();
 				}
 				return;
@@ -4211,8 +4315,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * <p>
 	 * Every row passed over is described into {@code skippedRows}, the warn above being addressed to
 	 * whoever is reading the log at that moment and this to the account a clear gives of itself: such
-	 * a row is a tree the clear cannot see, and neither the row nor what it records is dropped by
-	 * anything. A reader with nobody to tell - a read of {@code dbtest}, or the one an enrolment makes
+	 * a row is a tree the clear cannot see, so what the row records is dropped by nothing - while the
+	 * row itself goes with the catalog table it sits in, which the clear names last and drops. That is
+	 * what makes the line the only surviving copy of what such a row said, and why it carries the
+	 * recorded name. A reader with nobody to tell - a read of {@code dbtest}, or the one an enrolment makes
 	 * - hands in a list of its own and lets it go, which is one allocation per read of a whole table
 	 * and no convention to get wrong.
 	 */
