@@ -3393,7 +3393,15 @@ public abstract class ReplicationDomain
     }
   }
 
-  private void restartService()
+  /**
+   * Stops the session of this domain and starts it again, so that it comes up on the
+   * configuration which has just changed.
+   * <p>
+   * A subclass may leave it alone: a domain which is shutting down, or which was disabled
+   * for a total update, owns its session and is not given one back by a configuration
+   * change.
+   */
+  protected void restartService()
   {
     disableService();
     enableService();
@@ -3837,9 +3845,11 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * Gets and stores the assured replication configuration parameters. Returns a
-   * boolean indicating if the passed configuration has changed compared to
-   * previous values and the changes require a reconnection.
+   * Gets and stores the assured replication configuration parameters.
+   * <p>
+   * The configuration is stored whether or not the session has to be restarted for it:
+   * the assured timeout is read off it as the acknowledgements are waited for, and needs
+   * no reconnection at all.
    *
    * @param config
    *          The configuration object
@@ -3852,12 +3862,29 @@ public abstract class ReplicationDomain
     // Disconnect if required: changing configuration values before
     // disconnection would make assured replication used immediately and
     // disconnection could cause some timeouts error.
-    if (needReconnection(config) && allowReconnection)
+    final boolean needReconnection = needReconnection(config);
+    if (needReconnection && !allowReconnection)
+    {
+      /*
+       * The session has to be restarted for this one and the caller cannot: leave the
+       * configuration in place rather than have assured replication used on a session
+       * which was started without it. The domain reads it again as its session comes up.
+       */
+      return;
+    }
+    if (needReconnection)
     {
       disableService();
-
-      assuredConfig = config;
-
+    }
+    /*
+     * The assured timeout is the one property of this configuration a session does not
+     * have to be restarted for, so it is read here rather than only along a reconnection:
+     * a change carrying it alone needs no reconnection at all, and used to be reported as
+     * applied and then dropped.
+     */
+    assuredConfig = config;
+    if (needReconnection)
+    {
       enableService();
     }
   }

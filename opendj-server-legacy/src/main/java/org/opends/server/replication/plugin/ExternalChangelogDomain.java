@@ -13,8 +13,12 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
+
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.List;
 
@@ -36,7 +40,8 @@ public class ExternalChangelogDomain
 {
 
   private LDAPReplicationDomain domain;
-  private boolean isEnabled;
+  /** Published by a configuration change, read by the changelog threads without a lock. */
+  private volatile boolean isEnabled;
 
   /**
    * Constructor from a provided LDAPReplicationDomain.
@@ -91,9 +96,24 @@ public class ExternalChangelogDomain
       return ccr;
     }
 
+    /*
+     * Stored before the domain restarts its session for the attributes below, so that
+     * what the restarted session publishes to the external changelog is decided by this
+     * configuration rather than by the one it replaces. The failure of that restart is
+     * reported rather than thrown at the configuration framework, which would leave the
+     * listeners after this one uncalled - it does leave the attributes it had already
+     * applied in place, as any listener of an entry written before it runs does.
+     */
     this.isEnabled = configuration.isEnabled();
-    domain.changeConfig(configuration.getECLInclude(),
-        configuration.getECLIncludeForDeletes());
+    try
+    {
+      domain.changeConfig(configuration.getECLInclude(),
+          configuration.getECLIncludeForDeletes());
+    }
+    catch (Exception e)
+    {
+      return refused(configuration, stackTraceToSingleLineString(e));
+    }
     return new ConfigChangeResult();
   }
 
@@ -111,10 +131,17 @@ public class ExternalChangelogDomain
     }
     catch (Exception e)
     {
-      final ConfigChangeResult ccr = new ConfigChangeResult();
-      ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-      return ccr;
+      return refused(configuration, stackTraceToSingleLineString(e));
     }
+  }
+
+  private ConfigChangeResult refused(ExternalChangelogDomainCfg configuration, String reason)
+  {
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+    ccr.addMessage(NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
+        "External Changelog Domain " + configuration.dn(), reason));
+    return ccr;
   }
 
 

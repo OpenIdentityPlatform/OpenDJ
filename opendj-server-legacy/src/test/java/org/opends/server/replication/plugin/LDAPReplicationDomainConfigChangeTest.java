@@ -1,0 +1,368 @@
+/*
+ * The contents of this file are subject to the terms of the Common Development and
+ * Distribution License (the License). You may not use this file except in compliance with the
+ * License.
+ *
+ * You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+ * specific language governing permission and limitations under the License.
+ *
+ * When distributing Covered Software, include this CDDL Header Notice in each file and include
+ * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+ * Header, with the fields enclosed by brackets [] replaced by your own identifying
+ * information: "Portions copyright [year] [name of copyright owner]".
+ *
+ * Copyright 2026 3A Systems, LLC.
+ */
+package org.opends.server.replication.plugin;
+
+import static java.util.concurrent.TimeUnit.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.testng.Assert.*;
+
+import java.lang.management.LockInfo;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.reflect.Field;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.AssuredType;
+import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.IsolationPolicy;
+import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.replication.ReplicationTestCase;
+import org.testng.annotations.Test;
+
+/**
+ * Tests what a configuration change does, and does not, publish to a running
+ * {@link LDAPReplicationDomain}.
+ */
+@SuppressWarnings("javadoc")
+public class LDAPReplicationDomainConfigChangeTest extends ReplicationTestCase
+{
+  private static final int SERVER_ID = 1;
+  private static final long HEARTBEAT_INTERVAL_IN_MS = 100000;
+  private static final long ASSURED_TIMEOUT_IN_MS = 3000;
+  private static final long NEW_ASSURED_TIMEOUT_IN_MS = 7000;
+
+  /**
+   * A configuration whose {@code cn=external changelog} child entry cannot be decoded:
+   * the one thing {@code applyConfigurationChange()} does which can fail.
+   */
+  private static final class UndecodableEclDomainFakeCfg extends DomainFakeCfg
+  {
+    UndecodableEclDomainFakeCfg(DN baseDN, int serverId, SortedSet<String> replServers)
+    {
+      super(baseDN, serverId, replServers);
+    }
+
+    @Override
+    public ExternalChangelogDomainCfg getExternalChangelogDomain() throws ConfigException
+    {
+      throw new ConfigException(
+          LocalizableMessage.raw("the external changelog configuration cannot be decoded"));
+    }
+  }
+
+  /** An ECL domain which refuses every change it is handed. */
+  private static final class RejectingExternalChangelogDomain extends ExternalChangelogDomain
+  {
+    RejectingExternalChangelogDomain(LDAPReplicationDomain domain, ExternalChangelogDomainCfg cfg)
+    {
+      super(domain, cfg);
+    }
+
+    @Override
+    public ConfigChangeResult applyConfigurationChange(ExternalChangelogDomainCfg configuration)
+    {
+      final ConfigChangeResult ccr = new ConfigChangeResult();
+      ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+      ccr.addMessage(LocalizableMessage.raw("the ECL domain refused the change"));
+      return ccr;
+    }
+  }
+
+  @Test
+  public void changeWhichCouldNotBeAppliedLeavesThePreviousConfigurationRunning() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    try
+    {
+      final SortedSet<String> replServers = unstartedReplicationServer();
+      final LDAPReplicationDomain domain = startDomain(new DomainFakeCfg(baseDN, SERVER_ID, replServers));
+
+      // Connected to no replication server, the default isolation policy rejects the updates.
+      assertEquals(modifyBaseEntry(baseDN).getResultCode(), ResultCode.UNWILLING_TO_PERFORM);
+
+      final DomainFakeCfg refused = new UndecodableEclDomainFakeCfg(baseDN, SERVER_ID, replServers);
+      refused.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
+      domain.applyConfigurationChange(refused);
+
+      assertEquals(modifyBaseEntry(baseDN).getResultCode(), ResultCode.UNWILLING_TO_PERFORM,
+          "the domain went on running the isolation policy of a change it reported as failed");
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+    }
+  }
+
+  @Test
+  public void changeWhichCouldNotBeAppliedSaysWhy() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    try
+    {
+      final SortedSet<String> replServers = unstartedReplicationServer();
+      final LDAPReplicationDomain domain = startDomain(new DomainFakeCfg(baseDN, SERVER_ID, replServers));
+
+      final ConfigChangeResult ccr =
+          domain.applyConfigurationChange(new UndecodableEclDomainFakeCfg(baseDN, SERVER_ID, replServers));
+
+      assertEquals(ccr.getResultCode(), ResultCode.OTHER);
+      assertFalse(ccr.getMessages().isEmpty(),
+          "the administrator was told the change failed, but not what failed");
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+    }
+  }
+
+  @Test
+  public void changeIsRefusedWhenTheExternalChangelogDomainRejectsIt() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    try
+    {
+      final SortedSet<String> replServers = unstartedReplicationServer();
+      final DomainFakeCfg cfg = new DomainFakeCfg(baseDN, SERVER_ID, replServers);
+      final LDAPReplicationDomain domain = startDomain(cfg);
+      replaceEclDomain(domain,
+          new RejectingExternalChangelogDomain(domain, cfg.getExternalChangelogDomain()));
+
+      final ConfigChangeResult ccr =
+          domain.applyConfigurationChange(new DomainFakeCfg(baseDN, SERVER_ID, replServers));
+
+      assertNotEquals(ccr.getResultCode(), ResultCode.SUCCESS,
+          "the ECL domain refused the change and the domain reported it as applied");
+      assertFalse(ccr.getMessages().isEmpty(), "the refusal of the ECL domain was not passed on");
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+    }
+  }
+
+  @Test
+  public void assuredTimeoutIsAppliedAlthoughItNeedsNoReconnection() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    try
+    {
+      final SortedSet<String> replServers = unstartedReplicationServer();
+      final LDAPReplicationDomain domain = startDomain(
+          assuredCfg(baseDN, replServers, ASSURED_TIMEOUT_IN_MS));
+      assertEquals(domain.getAssuredTimeout(), ASSURED_TIMEOUT_IN_MS);
+
+      // Only the timeout changes, which is the one assured property a session does not
+      // have to be restarted for.
+      domain.applyConfigurationChange(assuredCfg(baseDN, replServers, NEW_ASSURED_TIMEOUT_IN_MS));
+
+      assertEquals(domain.getAssuredTimeout(), NEW_ASSURED_TIMEOUT_IN_MS,
+          "the new assured timeout was dropped although the change reported success");
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+    }
+  }
+
+  @Test
+  public void externalChangelogConfigurationChangesTheSessionUnderTheServiceStateLock()
+      throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    Thread eclChange = null;
+    try
+    {
+      final SortedSet<String> replServers = unstartedReplicationServer();
+      final LDAPReplicationDomain domain = startDomain(new DomainFakeCfg(baseDN, SERVER_ID, replServers));
+
+      final SortedSet<String> eclIncludes = new TreeSet<>();
+      eclIncludes.add("cn");
+      final CountDownLatch applied = new CountDownLatch(1);
+      eclChange = new Thread(() -> {
+        domain.changeConfig(eclIncludes, new TreeSet<String>());
+        applied.countDown();
+      }, "ECL configuration change");
+
+      /*
+       * Asserted outside the block: a failure inside it would leave the thread running on
+       * a domain the cleanup below is about to delete. What is waited for is the thread
+       * blocking on the monitor rather than merely being slow, or the assertion would
+       * hold for a change which simply took its time.
+       */
+      final Object serviceStateLock = serviceStateLockOf(domain);
+      final boolean blockedOnTheLock;
+      synchronized (serviceStateLock)
+      {
+        eclChange.start();
+        blockedOnTheLock = waitForBlockedOn(eclChange, serviceStateLock);
+      }
+
+      assertTrue(blockedOnTheLock,
+          "the ECL configuration changed the session of the domain without holding serviceStateLock");
+      assertTrue(applied.await(30, SECONDS), "the ECL configuration change never completed");
+    }
+    finally
+    {
+      if (eclChange != null)
+      {
+        eclChange.join(SECONDS.toMillis(30));
+      }
+      MultimasterReplication.deleteDomain(baseDN);
+    }
+  }
+
+  @Test
+  public void externalChangelogConfigurationGivesNoSessionBackToADisabledDomain() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    try
+    {
+      final SortedSet<String> replServers = unstartedReplicationServer();
+      final LDAPReplicationDomain domain = startDomain(new DomainFakeCfg(baseDN, SERVER_ID, replServers));
+
+      // Disabled is what the domain is for the length of a total update: it owns its session.
+      domain.disable();
+      waitForListenerThread(baseDN, false);
+
+      final SortedSet<String> eclIncludes = new TreeSet<>();
+      eclIncludes.add("cn");
+      domain.changeConfig(eclIncludes, new TreeSet<String>());
+
+      assertFalse(hasListenerThread(baseDN),
+          "the external changelog configuration started a session on a disabled domain");
+      assertTrue(domain.getEclIncludes().contains("cn"),
+          "the attributes published to the external changelog were dropped");
+
+      // Left as a total update leaves it: enabled back, with its ServerState loaded again.
+      domain.enable();
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+    }
+  }
+
+  /**
+   * The listener thread of a domain is the one which says a session is running. Named
+   * after the server id as well, or a domain another test class left behind on the same
+   * base DN would answer for this one.
+   */
+  private static boolean hasListenerThread(DN baseDN)
+  {
+    final String listenerName =
+        "Replica DS(" + SERVER_ID + ") listener for domain \"" + baseDN + "\"";
+    for (Thread thread : Thread.getAllStackTraces().keySet())
+    {
+      if (thread.getName().contains(listenerName) && thread.isAlive())
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static void waitForListenerThread(DN baseDN, boolean running) throws Exception
+  {
+    final long deadline = System.currentTimeMillis() + SECONDS.toMillis(30);
+    while (hasListenerThread(baseDN) != running && System.currentTimeMillis() < deadline)
+    {
+      Thread.sleep(100);
+    }
+    assertEquals(hasListenerThread(baseDN), running,
+        "the listener thread of " + baseDN + " never " + (running ? "started" : "stopped"));
+  }
+
+  private DomainFakeCfg assuredCfg(DN baseDN, SortedSet<String> replServers, long assuredTimeout)
+  {
+    final DomainFakeCfg cfg = new DomainFakeCfg(baseDN, SERVER_ID, replServers,
+        AssuredType.SAFE_DATA, 1, -1, assuredTimeout, null);
+    // The same as the configuration in place, or the broker would restart the session for
+    // the heartbeat interval and the change would no longer be the timeout alone.
+    cfg.setHeartbeatInterval(HEARTBEAT_INTERVAL_IN_MS);
+    return cfg;
+  }
+
+  /** A replication server which is not started, so that the domain never connects. */
+  private SortedSet<String> unstartedReplicationServer() throws Exception
+  {
+    final SortedSet<String> replServers = new TreeSet<>();
+    replServers.add("localhost:" + TestCaseUtils.findFreePort());
+    return replServers;
+  }
+
+  private LDAPReplicationDomain startDomain(DomainFakeCfg cfg) throws Exception
+  {
+    cfg.setHeartbeatInterval(HEARTBEAT_INTERVAL_IN_MS);
+    final LDAPReplicationDomain domain = MultimasterReplication.createNewDomain(cfg);
+    domain.start();
+    return domain;
+  }
+
+  private ModifyOperation modifyBaseEntry(DN baseDN)
+  {
+    return getRootConnection().processModify(modifyRequest(baseDN, REPLACE, "description", "test"));
+  }
+
+  /**
+   * Whether the thread ends up waiting for this very monitor, rather than running to
+   * completion or blocking on an unrelated one.
+   */
+  private static boolean waitForBlockedOn(Thread thread, Object monitor) throws Exception
+  {
+    final long deadline = System.currentTimeMillis() + SECONDS.toMillis(10);
+    while (System.currentTimeMillis() < deadline)
+    {
+      if (thread.getState() == Thread.State.TERMINATED)
+      {
+        return false;
+      }
+      final ThreadInfo info = ManagementFactory.getThreadMXBean().getThreadInfo(thread.getId());
+      final LockInfo blockedOn = info != null ? info.getLockInfo() : null;
+      if (blockedOn != null
+          && blockedOn.getIdentityHashCode() == System.identityHashCode(monitor))
+      {
+        return true;
+      }
+      Thread.sleep(20);
+    }
+    return false;
+  }
+
+  private static Object serviceStateLockOf(LDAPReplicationDomain domain) throws Exception
+  {
+    final Field serviceStateLock = LDAPReplicationDomain.class.getDeclaredField("serviceStateLock");
+    serviceStateLock.setAccessible(true);
+    return serviceStateLock.get(domain);
+  }
+
+  private static void replaceEclDomain(LDAPReplicationDomain domain, ExternalChangelogDomain eclDomain)
+      throws Exception
+  {
+    final Field field = LDAPReplicationDomain.class.getDeclaredField("eclDomain");
+    field.setAccessible(true);
+    field.set(domain, eclDomain);
+  }
+}
