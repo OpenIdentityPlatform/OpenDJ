@@ -2564,6 +2564,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
   /**
    * Create and replay a synchronized Operation from an UpdateMsg.
+   * <p>
+   * The change is given back on the way out of a replay which was unwound before it
+   * reached one of the roads which give it back: a change which stays owned by a thread
+   * which is not replaying it anymore is refused as a duplicate on every later delivery,
+   * so this domain's ServerState would never move past it (issue #922).
    *
    * @param msg
    *          The UpdateMsg to be replayed.
@@ -2571,6 +2576,92 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    *          whether the replay thread was asked to stop
    */
   void replay(LDAPUpdateMsg msg, AtomicBoolean replayThreadShutdown)
+  {
+    try
+    {
+      replayChangeAndTheChangesWaitingForIt(msg, replayThreadShutdown);
+    }
+    catch (Throwable t)
+    {
+      /*
+       * The roads which run to their end give the change back themselves, so what is left
+       * to give back here is a change whose replay was unwound over them: by an
+       * OutOfMemoryError, or by an exception raised publishing the ack of a delivery on a
+       * session which is being torn down - the ack is published in a finally, which is the
+       * one road out of a replay that no catch of the replay itself runs on.
+       *
+       * It takes the road of a failed replay rather than being handed back on the spot, so
+       * that a change which keeps unwinding the replays it is given to is counted as
+       * failing and is eventually given up on: handing it back bare would have this domain
+       * ask for it, and restart its session for it, for as long as the server is up.
+       *
+       * The changes this thread parked as waiting for another change are left alone: they
+       * are handed to whichever thread clears the change they are waiting for, and that
+       * thread takes them over.
+       */
+      CSN owned = null;
+      try
+      {
+        owned = remotePendingChanges.getChangeOwnedByCurrentThread();
+        if (owned != null)
+        {
+          if (replayThreadShutdown.get() || shutdown.get() || disabled)
+          {
+            /*
+             * The replay was not failing, it was being abandoned: this thread is stopping
+             * because their number is being changed, or the domain is going away or is
+             * being imported into. The change is handed back without being counted against
+             * its give-up budget, which is the road a replay abandoned that way takes.
+             */
+            abandonReplay(owned);
+          }
+          else
+          {
+            recoverFromReplayFailure(owned, replayThreadShutdown);
+          }
+        }
+      }
+      catch (Throwable recoveryFailure)
+      {
+        /*
+         * The give-back is the road which hands the change over, so a throw out of it - an
+         * allocation which fails in its turn, where what unwound the replay was a JVM out
+         * of memory - would leave the change owned by this thread after all. Hand it back
+         * bare, without the failure count that road did not reach, and ask for a session
+         * restart without running one: the request is picked up by the next recovery this
+         * domain runs, and any session restart delivers the change again, since it is not
+         * in the ServerState and nobody owns it anymore.
+         */
+        if (owned != null)
+        {
+          remotePendingChanges.replayFailed(owned);
+          sessionRestartRequested.set(true);
+        }
+        if (recoveryFailure != t)
+        {
+          /*
+           * A JVM out of memory hands out an error it prepared before it ran out, so the
+           * two can be the same one - and a throwable can not suppress itself. The error
+           * which unwound the replay is the one reported either way.
+           */
+          t.addSuppressed(recoveryFailure);
+        }
+      }
+      throw t;
+    }
+  }
+
+  /**
+   * Replays the change of the provided message, then the changes which were waiting for
+   * it, for as long as there are some.
+   *
+   * @param msg
+   *          The UpdateMsg to be replayed.
+   * @param replayThreadShutdown
+   *          whether the replay thread was asked to stop
+   */
+  private void replayChangeAndTheChangesWaitingForIt(
+      LDAPUpdateMsg msg, AtomicBoolean replayThreadShutdown)
   {
     // Try replay the operation, then flush (replaying) any pending operation
     // whose dependency has been replayed until no more left.
@@ -2922,7 +3013,56 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           replayErrorMsg = message.toString();
           replayFailed = true;
         }
-      } finally
+      }
+      catch (OutOfMemoryError e)
+      {
+        /*
+         * The JVM is out of memory, which is not something to carry on replaying from: the
+         * error is left to unwind the replay thread, which ends on it (issue #923). It is
+         * not turned into a report of its own here either - the stack trace of an error
+         * which can be raised anywhere says little, and the uncaught exception handler of
+         * DirectoryThread writes the one line this is worth, with an alert.
+         *
+         * The other errors of the JVM take the road below. A StackOverflowError is met by
+         * the thread which recursed and is gone once the stack has unwound, and the entry
+         * being replayed is what raises it rather than the state of this server: ending a
+         * thread on it would have one change this replica can not replay cost it a replay
+         * thread per delivery, and nothing creates a replay thread to replace one which
+         * ends.
+         *
+         * The change is given back, counted as failing and asked for again on the way out
+         * (issue #922). The one thing built here is the ack this delivery publishes below,
+         * which is made to say that the change was not applied: a replica which is asking
+         * for a change again must not have told an assured write that it is in the data
+         * here.
+         */
+        replayErrorMsg = NOTE_REPLAY_ABANDONED_CHANGE.get(msg.getCSN(), getBaseDN()).toString();
+        throw e;
+      }
+      catch (Error e)
+      {
+        /*
+         * An Error out of the replay - a LinkageError met where a plugin or a backend class
+         * is loaded, an AssertionError - unwinds every road this replay has out of here, the
+         * ones which give the change back among them. The change is not in the data, so it
+         * is reported and given back here, on the road every other failed replay takes: the
+         * ack below says it was not applied, the failure counts against the give-up budget
+         * of the change, the session is restarted for it to be delivered again (issue #922)
+         * and the changes which were waiting for this one are replayed rather than left
+         * waiting for a thread to hand them out.
+         *
+         * It is not given up on where no operation could be built from the message, which is
+         * what an Exception at that point means: an Error says that this server could not run
+         * the replay, not that the message is one no delivery could ever build an operation
+         * from.
+         */
+        final LocalizableMessage message = ERR_ERROR_CAUGHT_REPLAYING_CHANGE.get(
+            op != null ? op : msg, stackTraceToSingleLineString(e));
+        logger.error(message);
+        replayErrorMsg = message.toString();
+        replayFailed = true;
+      }
+      finally
       {
         if (!dependency)
         {

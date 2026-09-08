@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
@@ -2584,13 +2585,238 @@ public class UpdateOperationTest extends ReplicationTestCase
     logger.error(LocalizableMessage.raw(
         "Starting replication test : aChangeWhoseOperationWasBuiltIsNotGivenUpOnWhereItFailed"));
 
+    assertChangeIsDeliveredAgainAfter(ModifyMsgWhoseOperationRefusesAControl::new,
+        18, "user.889.7", "the replay must fail once the operation is built");
+  }
+
+  /**
+   * The errors a replay meets which say nothing about the changes which follow: a class
+   * which could not be linked, and a stack which ran out on the entry being replayed. The
+   * second is an error of the JVM, but the thread which met it is whole again once the
+   * stack has unwound and the entry is what raised it, so ending the thread would have one
+   * change this replica can not replay cost it one replay thread per delivery.
+   * <p>
+   * Each row builds its error where it is thrown rather than here, so that the stack trace
+   * it carries is the one of the replay it unwound.
+   */
+  @DataProvider(name = "recoverableReplayErrors")
+  public Object[][] recoverableReplayErrors()
+  {
+    return new Object[][] {
+      { (Supplier<Error>) () -> new LinkageError("the replay of this change meets an Error"),
+        19, "user.922.1", "a LinkageError" },
+      { (Supplier<Error>) StackOverflowError::new, 23, "user.922.5", "a StackOverflowError" },
+    };
+  }
+
+  /**
+   * Test case for [Issue 922] and [Issue 923]: a change whose replay threw an Error is
+   * given back, and the thread which was replaying it is still there to take the changes
+   * which follow.
+   * <p>
+   * A change is owned by the replay thread which took it, and that ownership is what
+   * keeps a change being replayed from being replayed a second time (OPENDJ-1115): every
+   * later delivery of it is refused as a duplicate. Ownership is given back on the roads
+   * which run to their end, so an Error - which unwinds the replay out of every one of
+   * them - would leave the change listed, uncommitted and owned by a thread which is not
+   * replaying it anymore: nobody could replay it, and this domain's ServerState would
+   * never move past it again. The thread itself is not replaced once it ends, so the
+   * shared replay queue would have one consumer fewer as well.
+   */
+  @Test(dataProvider = "recoverableReplayErrors")
+  public void aChangeWhoseReplayThrewAnErrorIsDeliveredAgain(
+      final Supplier<Error> error, int serverId, String uid, String what) throws Exception
+  {
+    testSetUp("aChangeWhoseReplayThrewAnErrorIsDeliveredAgain." + uid);
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aChangeWhoseReplayThrewAnErrorIsDeliveredAgain " + uid));
+
+    final int replayThreads = liveReplayThreads();
+    assertChangeIsDeliveredAgainAfter(
+        (csn, dn, mods, entryUUID) ->
+            new ModifyMsgWhoseReplayThrows(csn, dn, mods, entryUUID, error),
+        serverId, uid, "the replay of this change throws " + what);
+    assertEquals(liveReplayThreads(), replayThreads,
+        "an Error met in a replay must not end the thread which met it (issue #923)");
+  }
+
+  /**
+   * Test case for [Issue 922] and [Issue 923]: the change a replay thread was replaying
+   * when the JVM ran out of memory is given back before the error is left to end that
+   * thread.
+   * <p>
+   * An OutOfMemoryError is not turned into a failed replay and reported the way the other
+   * errors are - building the report asks for more of what the JVM has run out of - and
+   * the thread it unwinds is not replaced. The change it was replaying must not go with
+   * it: it is handed back so that the delivery which follows can replay it.
+   */
+  @Test
+  public void aChangeWhoseReplayRanOutOfMemoryIsDeliveredAgain() throws Exception
+  {
+    testSetUp("aChangeWhoseReplayRanOutOfMemoryIsDeliveredAgain");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aChangeWhoseReplayRanOutOfMemoryIsDeliveredAgain"));
+
+    /*
+     * The replay thread this ends is not replaced - which is what makes the give-back
+     * matter - and the pool it belongs to keeps the other threads it was created with, so
+     * the changes of the tests which follow are replayed by those.
+     */
+    final int replayThreads = liveReplayThreads();
+    assertChangeIsDeliveredAgainAfter(
+        (csn, dn, mods, entryUUID) -> new ModifyMsgWhoseReplayThrows(csn, dn, mods, entryUUID,
+            () -> new OutOfMemoryError("the JVM is out of memory")),
+        20, "user.922.2", "the replay of this change meets an OutOfMemoryError");
+    /*
+     * The change is given back, and so replayed by another thread, while the thread which
+     * met the error is still unwinding - through the session restart, and then through the
+     * uncaught exception handler which raises the alert - so its end is waited for rather
+     * than read off the pool the moment the change lands.
+     */
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(30, SECONDS)
+      .sleepTimes(200, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        assertEquals(liveReplayThreads(), replayThreads - 1,
+            "an OutOfMemoryError must end the thread which met it, and nothing replaces it");
+      }
+    });
+  }
+
+  /**
+   * Test case for [Issue 922]: a change whose ack threw on the way out of the replay is
+   * given back.
+   * <p>
+   * The ack of a delivery is published in a finally which every road out of the replay
+   * runs through, the roads which give the change back among them, and it is published on
+   * the session that delivery came over - which is being torn down when the replay of the
+   * change failed. A throw there steps over the give-back which follows it, and leaves the
+   * change owned by a thread which is not replaying it anymore.
+   * <p>
+   * The throw is an Error here, so this also pins the widened catch of the replay thread
+   * (issue #923): a thread which ends on it is one the pool never replaces.
+   */
+  @Test
+  public void aChangeWhoseAckThrewOnTheWayOutIsDeliveredAgain() throws Exception
+  {
+    testSetUp("aChangeWhoseAckThrewOnTheWayOutIsDeliveredAgain");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aChangeWhoseAckThrewOnTheWayOutIsDeliveredAgain"));
+
+    final int replayThreads = liveReplayThreads();
+    assertChangeIsDeliveredAgainAfter(ModifyMsgWhoseAckThrows::new,
+        21, "user.922.3", "the ack of this change throws on the way out of the replay");
+    assertEquals(liveReplayThreads(), replayThreads,
+        "an exception on the way to the ack must not end the thread which met it");
+  }
+
+  /**
+   * Test case for [Issue 922]: a change whose replay keeps throwing an Error is given up
+   * on rather than asked for forever.
+   * <p>
+   * An Error takes the road every other failed replay takes, so the failures it leaves
+   * behind count against the give-up budget of the change: a change this replica can never
+   * apply must not hold its ServerState - and every change which follows it, from every
+   * master - back for good, whether its replay reported the failure or threw it.
+   */
+  @Test
+  public void aChangeWhoseReplayKeepsThrowingAnErrorIsGivenUpOn() throws Exception
+  {
+    testSetUp("aChangeWhoseReplayKeepsThrowingAnErrorIsGivenUpOn");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aChangeWhoseReplayKeepsThrowingAnErrorIsGivenUpOn"));
+
     Entry tmp = TestCaseUtils.addEntry(
-        "dn: uid=user.889.7," + baseDN,
+        "dn: uid=user.922.4," + baseDN,
         "objectClass: top",
         "objectClass: person",
         "objectClass: organizationalPerson",
         "objectClass: inetOrgPerson",
-        "uid: user.889.7",
+        "uid: user.922.4",
+        "cn: Aaccf Amar",
+        "sn: Amar");
+    final DN dn = tmp.getName();
+    final String uuid = getEntry(dn, 1, true).parseAttribute("entryuuid").asString();
+
+    final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+    final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+    domain.resetUnreplayedChangeAlertThrottle();
+    final int initialAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE);
+    final long giveUpDelay = domain.getReplayGiveUpDelay();
+    try
+    {
+      domain.setReplayGiveUpDelay(TEST_GIVE_UP_DELAY_IN_MS);
+
+      final CSN csn = new CSNGenerator(22, TimeThread.getTime()).newCSN();
+      final List<Modification> mods =
+          generatemods("description", "the replay of this change keeps throwing");
+
+      /*
+       * Nothing sends this change again - it never travelled a session - so every delivery
+       * of it is made here, until this replica gives up on the change it can not replay.
+       */
+      TestTimer timer = new TestTimer.Builder()
+        .maxSleep(120, SECONDS)
+        .sleepTimes(200, MILLISECONDS)
+        .toTimer();
+      timer.repeatUntilSuccess(new CallableVoid()
+      {
+        @Override
+        public void call() throws Exception
+        {
+          if (!domain.getServerState().cover(csn))
+          {
+            domain.processUpdate(new ModifyMsgWhoseReplayThrows(csn, dn, mods, uuid,
+                () -> new LinkageError("the replay of this change meets an Error")));
+          }
+          assertTrue(domain.getServerState().cover(csn),
+              "a change whose replay keeps throwing must be given up on");
+        }
+      });
+      assertMonitorAttrValueEventually(baseDN, "replayed-updates-failed", initialFailures + 1,
+          "the change which was given up on must be counted as failed, once");
+      Assertions.assertThat(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE))
+          .as("the administrator must be told that this replica now diverges")
+          .isGreaterThan(initialAlerts);
+    }
+    finally
+    {
+      domain.setReplayGiveUpDelay(giveUpDelay);
+    }
+  }
+
+  /** A delivery of a change whose replay does not run to its end. */
+  private interface FailingDelivery
+  {
+    ModifyMsg newDelivery(CSN csn, DN dn, List<Modification> mods, String entryUUID);
+  }
+
+  /**
+   * Delivers a change whose replay does not run to its end, then checks that the change is
+   * neither recorded as replayed nor lost: the delivery which follows must be able to
+   * replay it.
+   *
+   * @param delivery the delivery whose replay is to be unwound
+   * @param serverId the replica the change comes from, one per test so that the CSNs of
+   *                 one are never covered by the ServerState another left behind
+   * @param uid the entry the change is made on
+   * @param description the value the change writes, once it is replayed
+   */
+  private void assertChangeIsDeliveredAgainAfter(
+      FailingDelivery delivery, int serverId, String uid, final String description) throws Exception
+  {
+    Entry tmp = TestCaseUtils.addEntry(
+        "dn: uid=" + uid + "," + baseDN,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: " + uid,
         "cn: Aaccf Amar",
         "sn: Amar");
     final DN dn = tmp.getName();
@@ -2601,12 +2827,10 @@ public class UpdateOperationTest extends ReplicationTestCase
     domain.resetUnreplayedChangeAlertThrottle();
     final int initialAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE);
 
-    final CSNGenerator gen = new CSNGenerator(18, TimeThread.getTime());
-    final CSN csn = gen.newCSN();
-    final String description = "the replay must fail once the operation is built";
+    final CSN csn = new CSNGenerator(serverId, TimeThread.getTime()).newCSN();
     final List<Modification> mods = generatemods("description", description);
 
-    domain.processUpdate(new ModifyMsgWhoseOperationRefusesAControl(csn, dn, mods, uuid));
+    domain.processUpdate(delivery.newDelivery(csn, dn, mods, uuid));
 
     /*
      * Long enough to outlast the session restart the failure asks for: a change which is
@@ -2615,24 +2839,22 @@ public class UpdateOperationTest extends ReplicationTestCase
     for (int i = 0; i < MONITOR_ATTR_SAMPLES_ACROSS_A_REDELIVERY; i++)
     {
       assertFalse(domain.getServerState().cover(csn),
-          "a change whose operation was built must be asked for again, not recorded as replayed");
+          "a change whose replay was unwound must be asked for again, not recorded as replayed");
       Thread.sleep(200);
     }
     assertMonitorAttrValueStays(baseDN, "replayed-updates-failed", initialFailures,
         "a change which is still to be delivered again must not be counted as given up on");
-    assertEquals(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE), initialAlerts,
-        "a change which is still to be delivered again must not be alerted on as a divergence");
+    assertEquals(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE),
+        initialAlerts, "a change which is still to be delivered again must not be alerted on"
+            + " as a divergence");
 
     /*
-     * The failed change is the barrier which holds this domain's ServerState back until
-     * it is replayed, and the replication server sending it again is what replays it.
-     * Nothing sends this one - it never travelled a session - so the delivery which takes
-     * over from the one which failed is made here, and it is made until it is taken: a
-     * delivery is dropped rather than queued while the listener thread is down, which it
-     * is for as long as the recovery is restarting the session, and the monitor entry
-     * read above comes back with the broker rather than with the listener. A delivery of
-     * a change a replay thread owns is refused as the duplicate it is, and the ServerState
-     * keeps this from delivering a change which was replayed a second time.
+     * Nothing sends this change again - it never travelled a session - so the delivery
+     * which takes over from the one which was unwound is made here, and it is made until
+     * it is taken: a delivery is dropped rather than queued while the listener thread is
+     * down, which it is for as long as the recovery is restarting the session. A delivery
+     * of a change a replay thread owns is refused as the duplicate it is, so this is where
+     * a change left owned by a thread which is gone never comes back.
      */
     TestTimer timer = new TestTimer.Builder()
       .maxSleep(60, SECONDS)
@@ -2652,7 +2874,82 @@ public class UpdateOperationTest extends ReplicationTestCase
       }
     });
     checkEntryHasAttributeValue(dn, "description", description, 30,
-        "the change must be applied by the delivery which took over from the failed one");
+        "the change must be applied by the delivery which took over from the one which failed");
+  }
+
+  /**
+   * Returns how many replay threads are running.
+   * <p>
+   * They are created when the first replication domain of this server is, and on a change
+   * of their number: a thread which ends is not replaced, so the shared replay queue would
+   * have one consumer fewer for every domain of the server for as long as it is up.
+   */
+  private static int liveReplayThreads()
+  {
+    int live = 0;
+    for (Thread thread : Thread.getAllStackTraces().keySet())
+    {
+      if (thread.isAlive() && thread.getName().startsWith("Replica replay thread "))
+      {
+        live++;
+      }
+    }
+    return live;
+  }
+
+  /**
+   * A ModifyMsg whose replay throws an Error.
+   * <p>
+   * It is thrown where the operation is built, which is inside the replay and past the
+   * point where the change was marked as being replayed by the thread which took it: what
+   * this pins is the road out of a replay which no {@code catch} of the replay itself used
+   * to run on.
+   */
+  private static final class ModifyMsgWhoseReplayThrows extends ModifyMsg
+  {
+    private final Supplier<Error> error;
+
+    private ModifyMsgWhoseReplayThrows(
+        CSN csn, DN dn, List<Modification> mods, String entryUUID, Supplier<Error> error)
+    {
+      super(csn, dn, mods, entryUUID);
+      this.error = error;
+    }
+
+    @Override
+    public ModifyOperation createOperation(InternalClientConnection connection, DN newDN)
+    {
+      throw error.get();
+    }
+  }
+
+  /**
+   * A ModifyMsg whose replay fails and whose ack throws on the way out of it.
+   * <p>
+   * Its operation is built and can not be prepared for its replay, the way
+   * {@code ModifyMsgWhoseOperationRefusesAControl} has it, so the replay fails with the
+   * change owned by the replay thread. The ack of the delivery is then published in the
+   * finally every road out of the replay runs through, and this one throws there - which is
+   * what a session being torn down does.
+   */
+  private static final class ModifyMsgWhoseAckThrows
+      extends ModifyMsgWhoseOperationRefusesAControl
+  {
+    private ModifyMsgWhoseAckThrows(CSN csn, DN dn, List<Modification> mods, String entryUUID)
+    {
+      super(csn, dn, mods, entryUUID);
+    }
+
+    @Override
+    public boolean isAssured()
+    {
+      /*
+       * An Error rather than the exception a session being torn down raises: the two take
+       * the same road out of the replay, and an Error is also the throw a replay thread
+       * only lives through because its catch was widened to Throwable (issue #923).
+       */
+      throw new LinkageError("the ack of this delivery can not be published");
+    }
   }
 
   /**
@@ -3066,7 +3363,7 @@ public class UpdateOperationTest extends ReplicationTestCase
    * protocol: {@code ModifyMsg.createOperation()} builds an operation whose controls can
    * be added to, so this one is handed to the domain rather than published.
    */
-  private static final class ModifyMsgWhoseOperationRefusesAControl extends ModifyMsg
+  private static class ModifyMsgWhoseOperationRefusesAControl extends ModifyMsg
   {
     private ModifyMsgWhoseOperationRefusesAControl(
         CSN csn, DN dn, List<Modification> mods, String entryUUID)

@@ -224,7 +224,7 @@ final class RemotePendingChanges
         throw new NoSuchElementException();
       }
       curChange.setCommitted(true);
-      curChange.setOwned(false);
+      curChange.setOwner(null);
       activeAndDependentChanges.remove(curChange);
 
       final Iterator<PendingChange> it = pendingChanges.values().iterator();
@@ -271,6 +271,12 @@ final class RemotePendingChanges
    * The changes another replay thread is applying right now are left alone: they are
    * about to commit, and forgetting them would have their {@code commit()} fail, the
    * ServerState stay behind them and the replication server replay them a second time.
+   * <p>
+   * Only the thread which owns the change gives it back. A release which arrives from
+   * another one is a release of a change which has been taken over since - the failure of
+   * a delivery is reported after the change it carried was handed to the delivery which
+   * follows it - and taking the change away from the thread which is replaying it right
+   * now is the double replay the ownership is there to prevent (issue #922).
    *
    * @param csn the CSN of the change whose replay failed
    */
@@ -280,9 +286,9 @@ final class RemotePendingChanges
     try
     {
       final PendingChange change = pendingChanges.get(csn);
-      if (change != null && !change.isCommitted())
+      if (change != null && !change.isCommitted() && change.isOwnedBy(Thread.currentThread()))
       {
-        change.setOwned(false);
+        change.setOwner(null);
       }
     }
     finally
@@ -465,8 +471,15 @@ final class RemotePendingChanges
       {
         return false;
       }
-      change.setOwned(true);
+      /*
+       * Listed as being replayed before it is owned, and not the other way round: the
+       * caller enters the replay - where the give-back on the way out lives - once this
+       * returns, so nothing which allocates must run between the owner being stamped and
+       * that. A change listed here without an owner is the state a failed replay leaves
+       * behind, and the dependency checks which read this set do not read the owner.
+       */
       activeAndDependentChanges.add(change);
+      change.setOwner(Thread.currentThread());
       return true;
     }
     finally
@@ -475,23 +488,28 @@ final class RemotePendingChanges
     }
   }
   /**
-   * Get the first update in the list that have some dependencies cleared.
+   * Returns the CSN of the change the calling thread is replaying, when it still owns one.
+   * <p>
+   * A thread owns the change it is replaying and the ones it parked as waiting for another
+   * change. The parked ones are left out: they are handed to whichever thread clears the
+   * change they are waiting for, and that thread takes them over, so giving one back here
+   * would have the same change handed to two threads (issue #922).
    *
-   * @return The LDAPUpdateMsg to be handled.
+   * @return the CSN of the change this thread is replaying, or {@code null} when it does
+   *         not own one anymore - the road its replay took gave it back, or it was applied
    */
-  public LDAPUpdateMsg getNextUpdate()
+  CSN getChangeOwnedByCurrentThread()
   {
+    final Thread current = Thread.currentThread();
     pendingChangesReadLock.lock();
     dependentChangesLock.lock();
     try
     {
-      if (!dependentChanges.isEmpty() && !pendingChanges.isEmpty())
+      for (PendingChange change : pendingChanges.values())
       {
-        PendingChange firstDependentChange = dependentChanges.first();
-        if (pendingChanges.firstKey().isNewerThanOrEqualTo(firstDependentChange.getCSN()))
+        if (change.isOwnedBy(current) && !change.isCommitted() && !dependentChanges.contains(change))
         {
-          dependentChanges.remove(firstDependentChange);
-          return firstDependentChange.getLDAPUpdateMsg();
+          return change.getCSN();
         }
       }
       return null;
@@ -501,6 +519,76 @@ final class RemotePendingChanges
       dependentChangesLock.unlock();
       pendingChangesReadLock.unlock();
     }
+  }
+
+  /**
+   * Get the first update in the list that have some dependencies cleared.
+   * <p>
+   * The change is handed to the calling thread, which owns it from then on: it is
+   * replayed by whichever replay thread cleared the change it was waiting for rather than
+   * by the one which parked it, and a change is given back by the thread which owns it
+   * and by nobody else (issue #922).
+   *
+   * @return The LDAPUpdateMsg to be handled.
+   */
+  public LDAPUpdateMsg getNextUpdate()
+  {
+    pendingChangesReadLock.lock();
+    dependentChangesLock.lock();
+    try
+    {
+      if (!hasChangeToHandOut())
+      {
+        /*
+         * Nothing is waiting, or what waits is still held back by the changes before it.
+         * This is called at the end of every replay, by every replay thread, so the answer
+         * is looked for under the read lock: taking the write lock here would have a
+         * backlog of waiting changes serialize the replay of the changes which have none.
+         */
+        return null;
+      }
+    }
+    finally
+    {
+      dependentChangesLock.unlock();
+      pendingChangesReadLock.unlock();
+    }
+
+    /*
+     * There is one to hand out, and handing it out writes its owner, which is written
+     * under the write lock as the rest of the state of a change is. It is looked for again
+     * under that lock: another replay thread may have been handed it in between.
+     */
+    pendingChangesWriteLock.lock();
+    dependentChangesLock.lock();
+    try
+    {
+      if (hasChangeToHandOut())
+      {
+        final PendingChange firstDependentChange = dependentChanges.first();
+        dependentChanges.remove(firstDependentChange);
+        firstDependentChange.setOwner(Thread.currentThread());
+        return firstDependentChange.getLDAPUpdateMsg();
+      }
+      return null;
+    }
+    finally
+    {
+      dependentChangesLock.unlock();
+      pendingChangesWriteLock.unlock();
+    }
+  }
+
+  /**
+   * Returns whether the first change waiting for another one can be replayed now, that is
+   * whether every change before it has left the pending changes.
+   */
+  @GuardedBy("pendingChangesLock, dependentChangesLock")
+  private boolean hasChangeToHandOut()
+  {
+    return !dependentChanges.isEmpty()
+        && !pendingChanges.isEmpty()
+        && pendingChanges.firstKey().isNewerThanOrEqualTo(dependentChanges.first().getCSN());
   }
 
   /**
