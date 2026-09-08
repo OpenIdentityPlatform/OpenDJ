@@ -3862,28 +3862,22 @@ public abstract class ReplicationDomain
     // Disconnect if required: changing configuration values before
     // disconnection would make assured replication used immediately and
     // disconnection could cause some timeouts error.
-    final boolean needReconnection = needReconnection(config);
-    if (needReconnection && !allowReconnection)
-    {
-      /*
-       * The session has to be restarted for this one and the caller cannot: leave the
-       * configuration in place rather than have assured replication used on a session
-       * which was started without it. The domain reads it again as its session comes up.
-       */
-      return;
-    }
-    if (needReconnection)
+    final boolean needRestart = needReconnection(config) && allowReconnection;
+    if (needRestart)
     {
       disableService();
     }
     /*
-     * The assured timeout is the one property of this configuration a session does not
-     * have to be restarted for, so it is read here rather than only along a reconnection:
-     * a change carrying it alone needs no reconnection at all, and used to be reported as
-     * applied and then dropped.
+     * Stored whether or not the session was restarted for it, as the fractional
+     * configuration is: the assured timeout is the one property a session does not have to
+     * be restarted for, so a change carrying it alone - reported as applied and then
+     * dropped, before - is applied here. A caller which does not allow the reconnection
+     * has no session running assured replication either: the domain is being built, is
+     * shutting down, or is disabled for the length of a total update, and the session its
+     * enable() starts reads what is stored here.
      */
     assuredConfig = config;
-    if (needReconnection)
+    if (needRestart)
     {
       enableService();
     }

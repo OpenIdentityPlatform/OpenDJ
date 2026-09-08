@@ -25,6 +25,8 @@ import java.lang.management.LockInfo;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
@@ -40,6 +42,7 @@ import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.common.AssuredMode;
 import org.testng.annotations.Test;
 
 /**
@@ -53,6 +56,10 @@ public class LDAPReplicationDomainConfigChangeTest extends ReplicationTestCase
   private static final long HEARTBEAT_INTERVAL_IN_MS = 100000;
   private static final long ASSURED_TIMEOUT_IN_MS = 3000;
   private static final long NEW_ASSURED_TIMEOUT_IN_MS = 7000;
+  /** The reason the external changelog configuration of the tests below cannot be read. */
+  private static final String UNDECODABLE_ECL_REASON =
+      "the external changelog configuration cannot be decoded";
+  private static final String DOMAIN_CONFIG_NAME = "config change test";
 
   /**
    * A configuration whose {@code cn=external changelog} child entry cannot be decoded:
@@ -60,16 +67,37 @@ public class LDAPReplicationDomainConfigChangeTest extends ReplicationTestCase
    */
   private static final class UndecodableEclDomainFakeCfg extends DomainFakeCfg
   {
+    private final DN configEntryDN;
+
     UndecodableEclDomainFakeCfg(DN baseDN, int serverId, SortedSet<String> replServers)
     {
+      this(baseDN, serverId, replServers, null);
+    }
+
+    /**
+     * @param configEntryDN
+     *          The entry this configuration is stored in, or {@code null} to keep the DN
+     *          of {@link DomainFakeCfg}, which the server configuration does not carry:
+     *          what an unreadable external changelog configuration does depends on
+     *          whether the entry which would carry it is there.
+     */
+    UndecodableEclDomainFakeCfg(DN baseDN, int serverId, SortedSet<String> replServers,
+        DN configEntryDN)
+    {
       super(baseDN, serverId, replServers);
+      this.configEntryDN = configEntryDN;
+    }
+
+    @Override
+    public DN dn()
+    {
+      return configEntryDN != null ? configEntryDN : super.dn();
     }
 
     @Override
     public ExternalChangelogDomainCfg getExternalChangelogDomain() throws ConfigException
     {
-      throw new ConfigException(
-          LocalizableMessage.raw("the external changelog configuration cannot be decoded"));
+      throw new ConfigException(LocalizableMessage.raw(UNDECODABLE_ECL_REASON));
     }
   }
 
@@ -120,17 +148,86 @@ public class LDAPReplicationDomainConfigChangeTest extends ReplicationTestCase
   public void changeWhichCouldNotBeAppliedSaysWhy() throws Exception
   {
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final DN configEntryDN = addDomainConfigurationEntry(baseDN);
+    try
+    {
+      final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+      assertNotNull(domain, "the domain was not created from its configuration entry");
+
+      final ConfigChangeResult ccr = domain.applyConfigurationChange(new UndecodableEclDomainFakeCfg(
+          baseDN, SERVER_ID, unstartedReplicationServer(), configEntryDN));
+
+      assertEquals(ccr.getResultCode(), ResultCode.OTHER);
+      assertTrue(ccr.getMessages().toString().contains(UNDECODABLE_ECL_REASON),
+          "the administrator was told the change failed, but not what failed: "
+              + ccr.getMessages());
+    }
+    finally
+    {
+      removeDomainConfigurationEntry(configEntryDN);
+    }
+  }
+
+  @Test
+  public void changeWhoseExternalChangelogConfigurationCannotBeReadIsRefusedBeforeItIsWritten()
+      throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final DN configEntryDN = addDomainConfigurationEntry(baseDN);
+    try
+    {
+      final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+      assertNotNull(domain, "the domain was not created from its configuration entry");
+
+      final List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
+      final boolean acceptable = domain.isConfigurationChangeAcceptable(
+          new UndecodableEclDomainFakeCfg(
+              baseDN, SERVER_ID, unstartedReplicationServer(), configEntryDN),
+          unacceptableReasons);
+
+      assertFalse(acceptable,
+          "the change was accepted, so the modified entry is written to the server "
+              + "configuration before the domain finds out it cannot be applied");
+      assertTrue(unacceptableReasons.toString().contains(UNDECODABLE_ECL_REASON),
+          "the administrator was not told what could not be read: " + unacceptableReasons);
+    }
+    finally
+    {
+      removeDomainConfigurationEntry(configEntryDN);
+    }
+  }
+
+  @Test
+  public void assuredConfigurationIsAppliedToADomainWhichOwnsItsSession() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     try
     {
       final SortedSet<String> replServers = unstartedReplicationServer();
-      final LDAPReplicationDomain domain = startDomain(new DomainFakeCfg(baseDN, SERVER_ID, replServers));
+      final LDAPReplicationDomain domain =
+          startDomain(assuredCfg(baseDN, replServers, ASSURED_TIMEOUT_IN_MS));
+      assertEquals(domain.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
 
-      final ConfigChangeResult ccr =
-          domain.applyConfigurationChange(new UndecodableEclDomainFakeCfg(baseDN, SERVER_ID, replServers));
+      // Disabled is what an online import leaves the domain: it owns its session, so this
+      // change is applied to it without a session being restarted for it.
+      domain.disable();
+      waitForListenerThread(baseDN, false);
 
-      assertEquals(ccr.getResultCode(), ResultCode.OTHER);
-      assertFalse(ccr.getMessages().isEmpty(),
-          "the administrator was told the change failed, but not what failed");
+      final DomainFakeCfg safeRead = new DomainFakeCfg(baseDN, SERVER_ID, replServers,
+          AssuredType.SAFE_READ, 1, -1, NEW_ASSURED_TIMEOUT_IN_MS, null);
+      safeRead.setHeartbeatInterval(HEARTBEAT_INTERVAL_IN_MS);
+      final ConfigChangeResult ccr = domain.applyConfigurationChange(safeRead);
+
+      assertEquals(ccr.getResultCode(), ResultCode.SUCCESS, ccr.getMessages().toString());
+      assertFalse(hasListenerThread(baseDN),
+          "the change started a session on a domain which was disabled for a total update");
+      assertEquals(domain.getAssuredMode(), AssuredMode.SAFE_READ_MODE,
+          "the assured configuration was dropped although the change reported success");
+      assertEquals(domain.getAssuredTimeout(), NEW_ASSURED_TIMEOUT_IN_MS,
+          "the assured timeout was dropped although the change reported success");
+
+      // Left as a total update leaves it: enabled back, on the configuration it was given.
+      domain.enable();
     }
     finally
     {
@@ -311,6 +408,39 @@ public class LDAPReplicationDomainConfigChangeTest extends ReplicationTestCase
     final SortedSet<String> replServers = new TreeSet<>();
     replServers.add("localhost:" + TestCaseUtils.findFreePort());
     return replServers;
+  }
+
+  /**
+   * Configures a domain the way the server does, through its configuration entries: what
+   * an unreadable external changelog configuration does depends on whether the entry
+   * which carries it is there, and the fake configurations of the other tests are stored
+   * in no entry at all.
+   *
+   * @return the DN of the entry the configuration of the domain is stored in
+   */
+  private DN addDomainConfigurationEntry(DN baseDN) throws Exception
+  {
+    addSynchroServerEntry(
+        "dn: cn=" + DOMAIN_CONFIG_NAME + ",cn=domains," + SYNCHRO_PLUGIN_DN + "\n"
+        + "objectClass: top\n"
+        + "objectClass: ds-cfg-replication-domain\n"
+        + "cn: " + DOMAIN_CONFIG_NAME + "\n"
+        + "ds-cfg-base-dn: " + baseDN + "\n"
+        + "ds-cfg-replication-server: localhost:" + TestCaseUtils.findFreePort() + "\n"
+        + "ds-cfg-server-id: " + SERVER_ID + "\n");
+    final DN configEntryDN = synchroServerEntry.getName();
+    assertTrue(getServerContext().getConfigurationHandler()
+            .hasEntry(DN.valueOf("cn=external changelog," + configEntryDN)),
+        "the domain was configured without the external changelog entry these tests need");
+    return configEntryDN;
+  }
+
+  private void removeDomainConfigurationEntry(DN configEntryDN) throws Exception
+  {
+    // Deletes the "cn=external changelog" entry below it as well.
+    deleteEntry(configEntryDN);
+    configEntriesToCleanup.remove(configEntryDN);
+    synchroServerEntry = null;
   }
 
   private LDAPReplicationDomain startDomain(DomainFakeCfg cfg) throws Exception

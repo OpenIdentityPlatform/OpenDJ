@@ -4819,15 +4819,16 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
     /*
-     * The step which can fail comes first, and none of this configuration is published
-     * before it succeeded. isConfigurationChangeAcceptable() has read this configuration
-     * already, which is where a change carrying an unreadable one is refused for good:
-     * the modified entry is written to the server configuration between that method and
-     * this one, and it is not rolled back when this one reports an error. What is left
-     * here is the entry a domain without an external changelog configuration is given,
-     * and the failure this last mile can still bring. What it reads is read again under
-     * the lock, so that a change of that entry which lands in between is applied rather
-     * than reverted by this snapshot of it.
+     * The step which can fail comes first, so that none of the domain configuration is
+     * published before it succeeded. It is not free of writes of its own: a domain
+     * without an external changelog configuration is given the default entry here, and
+     * that entry stays written whether or not the rest of this succeeds. Refusing a
+     * change before anything at all is written is what isConfigurationChangeAcceptable()
+     * is for, and it is where a change carrying an unreadable configuration is refused
+     * for good - the modified entry is written to the server configuration between that
+     * method and this one, and it is not rolled back when this one reports an error. What
+     * this reads is read again under the lock, so that a change of that entry which lands
+     * in between is applied rather than reverted by this snapshot of it.
      */
     try
     {
@@ -4840,7 +4841,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     catch (Exception e)
     {
       ccr.setResultCode(ResultCode.OTHER);
-      ccr.addMessage(unableToEnableECL(configuration, e));
+      ccr.addMessage(configChangeFailed(configuration, e));
       return ccr;
     }
 
@@ -4882,7 +4883,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       catch (Exception e)
       {
         ccr.setResultCode(ResultCode.OTHER);
-        ccr.addMessage(unableToEnableECL(configuration, e));
+        ccr.addMessage(configChangeFailed(configuration, e));
       }
     }
 
@@ -4917,14 +4918,24 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     }
   }
 
-  private LocalizableMessage unableToEnableECL(ReplicationDomainCfg domCfg, Exception e)
+  /**
+   * What the administrator is told a configuration change failed with.
+   * <p>
+   * The reason a {@link ConfigException} carries is passed on as it is: it names the step
+   * which raised it, the external changelog configuration this listener reads included.
+   * Anything else comes out of applying the domain configuration - the broker, the
+   * assured and the fractional configuration - and is reported as such rather than as a
+   * failure of the external changelog, which most of what this listener does has nothing
+   * to do with.
+   */
+  private LocalizableMessage configChangeFailed(ReplicationDomainCfg domCfg, Exception e)
   {
     if (e instanceof ConfigException)
     {
       return ((ConfigException) e).getMessageObject();
     }
-    return NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
-        "Replication Domain on " + domCfg.getBaseDN(), stackTraceToSingleLineString(e));
+    return ERR_REPLICATION_DOMAIN_CONFIG_CHANGE_FAILED.get(
+        domCfg.getBaseDN(), stackTraceToSingleLineString(e));
   }
 
   /**
@@ -5047,9 +5058,9 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * <p>
    * This is what {@link #isConfigurationChangeAcceptable} checks, so it leaves the server
    * configuration as it found it - the entry the domain is missing is created by
-   * {@link #readOrCreateECLConfiguration} once the change is accepted. It is read off the
-   * provided configuration rather than off {@link #config}, which the caller of the
-   * latter has not published yet.
+   * {@link #createECLConfigurationEntryIfMissing} once the change is accepted. It is read
+   * off the provided configuration rather than off {@link #config}, which the caller of
+   * the latter has not published yet.
    *
    * @param  domCfg       The provided configuration.
    * @return The ECL configuration, or {@code null} when the domain has none yet.
