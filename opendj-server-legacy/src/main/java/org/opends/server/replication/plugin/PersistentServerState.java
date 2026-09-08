@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -222,24 +223,26 @@ class PersistentServerState
   /**
    * Save the current values of this PersistentState object
    * in the appropriate entry of the database.
+   * <p>
+   * A base entry which is not in the backend - a suffix waiting to be initialized by an
+   * import - leaves this state unwritten until the entry appears. The state used to be
+   * written to the domain configuration entry instead, and must not be again: that write
+   * goes through the configuration backend, which holds its update lock while it calls
+   * every change listener of the entry back, and the domain is one of them -
+   * {@code LDAPReplicationDomain.applyConfigurationChange()} takes the very lock
+   * {@code disable()} holds while it calls this, so the two orders deadlock.
+   * <p>
+   * Nothing is lost by not writing it. A suffix whose base entry is missing holds no entry
+   * at all, so no change of this replica is in this state, and a change from another one
+   * can not be replayed into it either. The value a former version left on the
+   * configuration entry is still read back by {@link #loadState()}.
    *
    * @return a boolean indicating if the method was successful.
    */
   private boolean updateStateEntry()
   {
     // Generate a modify operation on the Server State baseDN Entry.
-    ResultCode result = runUpdateStateEntry(baseDN);
-    if (result == ResultCode.NO_SUCH_OBJECT)
-    {
-      // The base entry does not exist yet in the database or has been deleted,
-      // save the state to the config entry instead.
-      SearchResultEntry configEntry = searchConfigEntry();
-      if (configEntry != null)
-      {
-        result = runUpdateStateEntry(configEntry.getName());
-      }
-    }
-    return result == ResultCode.SUCCESS;
+    return runUpdateStateEntry(baseDN) == ResultCode.SUCCESS;
   }
 
   /**

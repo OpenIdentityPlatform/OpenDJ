@@ -386,6 +386,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * stops the session as its first act, so what they wait for is a session which is about
    * to be stopped again. The wait between the stop and the start is deliberately left
    * outside the lock, so the waiting is bounded by a connect rather than by the backoff.
+   * <p>
+   * It comes after the configuration backend's update lock and never before it: a write to
+   * the domain configuration entry holds that lock while it calls
+   * {@link #applyConfigurationChange(ReplicationDomainCfg)}, which takes this one. So
+   * nothing may write a configuration entry while holding this lock - that is why neither
+   * the state {@link #disable()} saves nor the generationId {@link #enable()} stores falls
+   * back to the domain configuration entry when the base entry of the suffix is missing.
    */
   private final Object serviceStateLock = new Object();
   /**
@@ -3986,6 +3993,17 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
 
   /**
    * Stores the value of the generationId.
+   * <p>
+   * A base entry which is not in the backend leaves the generationId unstored until the
+   * entry appears, and is not an error - it is what a suffix waiting to be initialized by
+   * an import looks like. The generationId used to be stored on the domain configuration
+   * entry instead, and must not be again: that write reaches
+   * {@link #applyConfigurationChange(ReplicationDomainCfg)} with the configuration
+   * backend's update lock held, and so takes {@link #serviceStateLock} in the order
+   * opposite to the one {@link #disable()} takes the two in. The generationId of a suffix
+   * with no entry is a constant which {@code loadGenerationId()} computes again for free,
+   * and a value a former version left on the configuration entry is still read back.
+   *
    * @param generationId The value of the generationId.
    * @return a ResultCode indicating if the method was successful.
    */
@@ -3995,14 +4013,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     if (result != ResultCode.SUCCESS)
     {
       generationIdSavedStatus = false;
-      if (result == ResultCode.NO_SUCH_OBJECT)
-      {
-        // If the base entry does not exist, save the generation
-        // ID in the config entry
-        result = runSaveGenerationId(config.dn(), generationId);
-      }
-
-      if (result != ResultCode.SUCCESS)
+      if (result != ResultCode.NO_SUCH_OBJECT)
       {
         logger.error(ERR_UPDATING_GENERATION_ID, getBaseDN(), result.getName());
       }
