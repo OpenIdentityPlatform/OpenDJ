@@ -30,6 +30,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
@@ -70,7 +71,6 @@ import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -2721,9 +2721,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * is nothing to retry and no delivery which would build one any better.
            *
            * The decoding exceptions are caught here rather than in a catch of their
-           * own because such a catch would span the whole replay: addConflict(), which
-           * solveNamingConflict() calls once the operation has run, declares one, and a
-           * change whose operation ran must never be given up on where it failed.
+           * own because such a catch would span the whole replay, including what runs
+           * after the operation did - solveNamingConflict() calls addConflict() there -
+           * and a change whose operation ran must never be given up on where it failed.
            */
           replayErrorMsg = giveUpOnUndecodableChange(msg, e);
         }
@@ -2809,12 +2809,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * <p>
    * Only a message which no operation could be built from comes here, and it is the
    * {@code op == null} of its single caller which says so rather than the type of the
-   * exception: a decoding exception is declared past the point where the operation ran
-   * as well - by addConflict() - so a catch which read the type would give up on a
-   * change the backend may well have applied. A failure of the replay of an operation
-   * which was built, whenever it happens, keeps its change out of the ServerState and
-   * has it delivered again instead: that one is a failure of an attempt, not of every
-   * delivery of the change.
+   * exception: the replay throws past the point where the operation ran as well -
+   * addConflict() does, once solveNamingConflict() has seen the result - so a catch which
+   * read the type would give up on a change the backend may well have applied. A failure
+   * of the replay of an operation which was built, whenever it happens, keeps its change
+   * out of the ServerState and has it delivered again instead: that one is a failure of an
+   * attempt, not of every delivery of the change.
    *
    * @param msg the message which could not be decoded
    * @param e the failure to decode it
@@ -3793,10 +3793,9 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    *
    * @param msg            The conflicting Add Operation.
    *
-   * @throws DecodeException When an encoding error happened manipulating the
-   *                       msg.
+   * @throws IOException When the conflict marker could not be added to the msg.
    */
-  private void addConflict(AddMsg msg) throws DecodeException
+  private void addConflict(AddMsg msg) throws IOException
   {
     String normalizedDN = msg.getDN().toString();
 
