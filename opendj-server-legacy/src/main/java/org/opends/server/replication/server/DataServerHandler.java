@@ -282,6 +282,19 @@ public class DataServerHandler extends ServerHandler
     return status;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * A directory server with a bad generation id, or one being initialized, is refused the updates
+   * of the domain - see {@code ReplicationServerDomain.isUpdateMsgFiltered()}.
+   */
+  @Override
+  boolean isFedByTheDomain()
+  {
+    final ServerStatus dsStatus = getStatus();
+    return dsStatus != BAD_GEN_ID_STATUS && dsStatus != FULL_UPDATE_STATUS;
+  }
+
   @Override
   public boolean isDataServer()
   {

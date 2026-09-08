@@ -81,6 +81,17 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   /** Specifies whether the consumer is following the producer (is not late). */
   private boolean following;
   /**
+   * Whether the previous check of {@link #stopFollowingWhenChangesAreMissing()} found the domain
+   * ahead of this handler while its queue was empty. Guarded by {@link #msgQueue}.
+   */
+  private boolean changesLookedMissing;
+  /**
+   * The state of the domain the changelog was last read again for by
+   * {@link #stopFollowingWhenChangesAreMissing()}, or {@code null} when it never was. Guarded by
+   * {@link #msgQueue}.
+   */
+  private ServerState lastMissingChangesDomainState;
+  /**
    * Specifies whether the last update message returned by
    * {@link #getNextMessage()} was re-read from the changelog DB (catch-up
    * path) rather than taken from the in-memory {@link #msgQueue}. Only ever
@@ -392,10 +403,16 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
               {
                 return null;
               }
+              stopFollowingWhenChangesAreMissing();
             }
           } catch (InterruptedException e)
           {
             return null;
+          }
+          if (msgQueue.isEmpty())
+          {
+            // this handler is going back to the changelog, see stopFollowingWhenChangesAreMissing()
+            continue;
           }
           UpdateMsg msg = msgQueue.removeFirst();
           if (updateServerState(msg))
@@ -417,6 +434,71 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
        */
     }
     return null;
+  }
+
+  /**
+   * Leaves the in-memory queue path when the domain holds changes this handler was never given.
+   * <p>
+   * A handler which is following is served by {@link #add(UpdateMsg)} alone, so an empty queue
+   * means the consumer has everything the domain received. A change which reached the changelog
+   * without reaching that queue breaks this: {@link #fillLateQueue()} is the only reader of the
+   * changelog and is not called again while the handler follows, so the change would never be
+   * sent and the consumer would be considered up to date forever - see issue #963. Going back to
+   * the catch-up path reads the changelog again and delivers it.
+   * <p>
+   * The domain is seen ahead for as long as one wait before this concludes anything: the state of
+   * the domain is advanced by {@code ReplicationServerDomain.publishUpdateMsg()} slightly before
+   * {@code addUpdate()} queues the change, and a check landing in between would otherwise report
+   * a change which is on its way.
+   * <p>
+   * Must be called while holding the {@link #msgQueue} monitor.
+   */
+  private void stopFollowingWhenChangesAreMissing()
+  {
+    if (!msgQueue.isEmpty() || !following || !isFedByTheDomain())
+    {
+      changesLookedMissing = false;
+      return;
+    }
+    final ServerState domainState = replicationServerDomain.getLatestServerState();
+    if (ServerState.diffChanges(domainState, serverState) <= 0)
+    {
+      changesLookedMissing = false;
+      return;
+    }
+    if (!changesLookedMissing)
+    {
+      // wait for the next check to tell a missing change from one which is being queued
+      changesLookedMissing = true;
+      return;
+    }
+    if (lastMissingChangesDomainState != null
+        && ServerState.diffChanges(domainState, lastMissingChangesDomainState) <= 0)
+    {
+      // the changelog has already been read again for these changes and gave nothing: reading it
+      // once more would give nothing either until the domain receives something new
+      return;
+    }
+    changesLookedMissing = false;
+    lastMissingChangesDomainState = domainState;
+    following = false;
+    logger.warn(WARN_CHANGELOG_READ_AGAIN_FOR_MISSING_CHANGES, replicationServer.getServerId(),
+        baseDN, getMonitorInstanceName(), serverState, domainState);
+  }
+
+  /**
+   * Whether the domain hands the updates it receives to this handler.
+   * <p>
+   * The state of a handler the domain filters out is legitimately behind the state of the domain,
+   * and the changelog must not be read on its behalf: every change read would be dropped by the
+   * writer while the state of the handler moved past it.
+   *
+   * @return {@code true} when {@code ReplicationServerDomain.put()} queues its updates for this
+   *         handler
+   */
+  boolean isFedByTheDomain()
+  {
+    return true;
   }
 
   /**

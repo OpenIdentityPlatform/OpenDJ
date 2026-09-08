@@ -540,6 +540,18 @@ public class ReplicationServerHandler extends ServerHandler
   }
 
   /**
+   * {@inheritDoc}
+   * <p>
+   * A replication server whose generation id differs from the one of the domain is refused its
+   * updates - see {@code ReplicationServerDomain.isDifferentGenerationId()}.
+   */
+  @Override
+  boolean isFedByTheDomain()
+  {
+    return !replicationServerDomain.isDifferentGenerationId(getGenerationId());
+  }
+
+  /**
    * Add the DSinfos of the connected Directory Servers
    * to the List of DSInfo provided as a parameter.
    *
