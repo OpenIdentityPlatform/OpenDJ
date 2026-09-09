@@ -2547,13 +2547,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       }
 
       // stop the thread in charge of flushing the ServerState.
-      if (flushThread != null)
+      flushThread.initiateShutdown();
+      synchronized (flushThread)
       {
-        flushThread.initiateShutdown();
-        synchronized (flushThread)
-        {
-          flushThread.notifyAll();
-        }
+        flushThread.notifyAll();
       }
 
       DirectoryServer.deregisterAlertGenerator(this);
