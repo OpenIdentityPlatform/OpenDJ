@@ -1453,6 +1453,35 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 *        CachedConnection#deadlineOf}, so that the shorter of the two is a plain {@code min}.
 	 */
 	Connection newCatalogConnection(long budgetDeadline) throws SQLException {
+		// the one place this connect reads the two settings, and it reads them on every connect the way
+		// the pool reads them on every borrow: an operator may change either on a running server
+		return newCatalogConnection(budgetDeadline, CachedConnection.getConnectTimeoutSeconds(),
+			CachedConnection.getPoolTimeoutSeconds());
+	}
+
+	/**
+	 * The same connect with its two bounds handed in, for the cases of this connect that are not about
+	 * where the bounds come from.
+	 * <p>
+	 * Both are read from system properties, here and on every borrow of the pool, so a case pinning
+	 * them by setting the properties holds them for the whole jvm while it runs - and a borrow made
+	 * anywhere else in that window computes a deadline it was never meant to have (#932). The cases
+	 * about the reading itself go on setting the properties, that being the thing they assert; every
+	 * other one hands its values in here, and the jvm hears nothing about it.
+	 * <p>
+	 * Not a seam for the product: {@link #newCatalogConnection(long)} is what every caller uses, and
+	 * the pair it reads is the pair a borrow of the pool reads beside it - one property, one meaning,
+	 * whichever of the two is asking.
+	 *
+	 * @param budgetDeadline as {@link #newCatalogConnection(long)} takes it.
+	 * @param connectTimeoutSeconds the bound of one attempt, the way {@link
+	 *        CachedConnection#getConnectTimeoutSeconds()} reads it; 0 for an attempt with no bound of
+	 *        its own.
+	 * @param poolTimeoutSeconds the deadline of the whole wait, the way {@link
+	 *        CachedConnection#getPoolTimeoutSeconds()} reads it; 0 for no deadline of its own.
+	 */
+	Connection newCatalogConnection(long budgetDeadline, long connectTimeoutSeconds, long poolTimeoutSeconds)
+			throws SQLException {
 		// poolKey() rather than the configuration as it stands, for the reason newStampConnection()
 		// gives: this connection is not pooled, but it is a connection to the database of this
 		// storage, and db-directory may be changed on a running backend. Reading it again here would
@@ -1461,8 +1490,6 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// rows in one database and tables in another, which is #888 again by another route (#878)
 		final String connectionString=poolKey();
 		final CachedConnection.ConnectDialect dialect=CachedConnection.ConnectDialect.of(connectionString);
-		final long connectTimeoutSeconds=CachedConnection.getConnectTimeoutSeconds();
-		final long poolTimeoutSeconds=CachedConnection.getPoolTimeoutSeconds();
 		final long startedAt=System.currentTimeMillis();
 		final long poolDeadline=CachedConnection.deadlineOf(startedAt, poolTimeoutSeconds);
 		// the deadline of the whole wait, which is the shorter of the pool's own and what is left of
