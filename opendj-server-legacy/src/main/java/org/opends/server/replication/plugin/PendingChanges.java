@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -122,9 +123,19 @@ class PendingChanges
   }
 
   /**
-   * Add a replica offline message to the pending list.
+   * Add a replica offline message to the pending list and publish it, if the changes which
+   * come before it have all been published.
+   * <p>
+   * The message carries the newest CSN of the replica, so a change which is still in flight
+   * holds it back - and there is nobody left to publish it afterwards: the caller announces
+   * the replica offline while its service is being disabled, and the broker stops right after.
+   * Such a message is given up on rather than left queued, so that it is neither reported as
+   * sent nor published later on the session which follows.
+   *
+   * @return the CSN of the message which was published, or {@code null} if it could not be
+   *         published
    */
-  public synchronized void putReplicaOfflineMsg()
+  public synchronized CSN putReplicaOfflineMsg()
   {
     final CSN offlineCSN = csnGenerator.newCSN();
     final PendingChange pendingChange =
@@ -133,6 +144,10 @@ class PendingChanges
 
     pendingChanges.put(offlineCSN, pendingChange);
     pushCommittedChanges();
+    // pushCommittedChanges() removes whatever it published, so the message is still listed
+    // here if and only if a change before it held it back.
+    final boolean heldBack = pendingChanges.remove(offlineCSN) != null;
+    return heldBack ? null : offlineCSN;
   }
 
   /**

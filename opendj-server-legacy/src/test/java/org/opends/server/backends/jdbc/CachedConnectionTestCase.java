@@ -15,7 +15,10 @@
  */
 package org.opends.server.backends.jdbc;
 
+import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.backends.pluggable.spi.AccessMode;
+import org.opends.server.backends.pluggable.spi.Importer;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -39,20 +42,27 @@ import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.IdentityHashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Executor;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
 import org.mockito.InOrder;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.inOrder;
@@ -94,6 +104,9 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	/** The window as this JVM was started with it, put back after every test that varies it. */
 	private static final long CONFIGURED_ALIVE_BYPASS_NANOS = CachedConnection.aliveBypassNanos;
 
+	/** The standing read bound as this JVM was started with it, put back after every test that varies it. */
+	private static final int CONFIGURED_READ_TIMEOUT_MILLIS = CachedConnection.readTimeoutMillis;
+
 	@BeforeClass
 	public void registerStubDriver() throws Exception {
 		DriverManager.registerDriver(stub);
@@ -118,12 +131,578 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	public void clearProperties() {
 		System.clearProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY);
 		System.clearProperty(CachedConnection.POOL_TIMEOUT_PROPERTY);
+		System.clearProperty(CachedConnection.POOL_MAX_PROPERTY);
 		System.clearProperty(CachedConnection.TTL_PROPERTY);
 		System.clearProperty(CachedConnection.ALIVE_BYPASS_PROPERTY);
+		System.clearProperty(CachedConnection.READ_TIMEOUT_PROPERTY);
 		// what has been reported once is remembered for the life of the jvm: left standing, the key
 		// of one test is what the next one finds when it asserts that it reported something itself
 		CachedConnection.warnedOnce.clear();
 		CachedConnection.aliveBypassNanos = CONFIGURED_ALIVE_BYPASS_NANOS;
+		CachedConnection.readTimeoutMillis = CONFIGURED_READ_TIMEOUT_MILLIS;
+	}
+
+	/**
+	 * Nothing used to limit how many connections a backend opened: the pool was an unbounded queue
+	 * behind a cache with no maximum size, so a burst of concurrent operations opened as many
+	 * connections as there were threads asking, and the only ceiling left was the max_connections of
+	 * the database itself (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testThePoolDoesNotGrowPastItsBound() throws Exception {
+		final String url = StubDriver.PREFIX + "bounded";
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, "2");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "1");
+		stub.answerWith(null);
+
+		// One thread per borrow, as the worker threads of the server are: two borrows on one thread
+		// are nested by definition, and a nested one is allowed past the bound on purpose.
+		final Connection first = borrowOnAThreadOfItsOwn(url);
+		final Connection second = borrowOnAThreadOfItsOwn(url);
+		assertEquals(CachedConnection.poolOf(url).meteredCount(), 2);
+		try {
+			borrowOnAThreadOfItsOwn(url);
+			fail("a third connection was opened past the bound of two");
+		} catch (ExecutionException e) {
+			assertTrue(e.getCause() instanceof SQLTimeoutException, String.valueOf(e.getCause()));
+			assertTrue(e.getCause().getMessage().contains("all 2 connections"), e.getCause().getMessage());
+		}
+
+		// The bound waits for a returned connection rather than refusing outright: it is a ceiling
+		// on the connections held, not on the operations served.
+		first.close();
+		final Connection third = borrowOnAThreadOfItsOwn(url);
+		assertSame(third, first);
+		third.close();
+		second.close();
+		CachedConnection.poolOf(url).drainIdle();
+	}
+
+	/** Borrows the way the server does, one operation to a thread. */
+	private static Connection borrowOnAThreadOfItsOwn(String url) throws Exception {
+		return startBorrow(url).get(120, TimeUnit.SECONDS);
+	}
+
+	/** The same, left running: a borrow that waits has to be looked at while it does. */
+	private static FutureTask<Connection> startBorrow(String url) {
+		final FutureTask<Connection> borrow = new FutureTask<>(() -> CachedConnection.getConnection(url));
+		final Thread thread = new Thread(borrow, "borrow-" + url);
+		thread.setDaemon(true);
+		thread.start();
+		return borrow;
+	}
+
+	/**
+	 * A borrow made while this thread already holds a connection must not wait for the bound: the
+	 * two are held at once, so it would wait for itself. PersistentCompressedSchema.store() opens a
+	 * write of its own and is reached from inside a transaction by EntryContainer.importEntry and
+	 * EntryContainer.modifyDN, both of which encode the entry inside it.
+	 */
+	@Test(timeOut = 120000)
+	public void testABorrowNestedInAnotherMayPassTheBound() throws Exception {
+		final String url = StubDriver.PREFIX + "reentrant";
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, "1");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "1");
+		stub.answerWith(null);
+
+		final Connection outer = CachedConnection.getConnection(url);
+		final Connection nested = CachedConnection.getConnection(url);
+		assertNotSame(nested, outer);
+
+		// It holds no permit of the pool, so pooling it would leave the pool one connection over
+		// its bound for good: it is closed instead.
+		nested.close();
+		verify(((CachedConnection) nested).parent).close();
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 0);
+
+		outer.close();
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1);
+		CachedConnection.poolOf(url).drainIdle();
+	}
+
+	/**
+	 * The TTL used to sit on the pool rather than on a connection - keyed by the connection string,
+	 * and touched by every borrow and every return - so under continuous traffic nothing in it ever
+	 * expired (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testAnIdleConnectionIsClosedAfterItsTtl() throws Exception {
+		final String url = StubDriver.PREFIX + "ttl";
+		stub.answerWith(null);
+
+		final CachedConnection first = (CachedConnection) CachedConnection.getConnection(url);
+		first.close();
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1);
+		first.returnedAtMillis = System.currentTimeMillis() - 60000;
+		System.setProperty(CachedConnection.TTL_PROPERTY, "1000");
+
+		final Connection second = CachedConnection.getConnection(url);
+
+		assertNotSame(second, first, "a connection idle far longer than the TTL was handed out");
+		verify(first.parent).close();
+		second.close();
+		CachedConnection.poolOf(url).drainIdle();
+	}
+
+	/**
+	 * Expiry has to happen without a borrow behind it: the cache was built without a scheduler, so
+	 * an entry was only ever expired by a later cache operation - and a backend that has gone idle,
+	 * the one case the TTL exists for, performs none (#878). This is what the sweeper thread runs.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheSweepClosesAnIdleConnectionWithNoBorrowBehindIt() throws Exception {
+		final String url = StubDriver.PREFIX + "sweep";
+		stub.answerWith(null);
+		final CachedConnection con = (CachedConnection) CachedConnection.getConnection(url);
+		con.close();
+		// The sweeper of the server is running while this case does, over every pool and reading
+		// the TTL as it goes: out of its reach, so that the sweep asserted here is the one below.
+		System.setProperty(CachedConnection.TTL_PROPERTY, "600000");
+		con.returnedAtMillis = System.currentTimeMillis() - 60000;
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+		assertEquals(pool.idleCount(), 1);
+
+		pool.sweep(1000);
+
+		assertEquals(pool.idleCount(), 0);
+		verify(con.parent).close();
+		assertEquals(pool.meteredCount(), 0, "a swept connection kept its place in the pool");
+	}
+
+	/** A closed backend has no use for its connections; they used to be left open (#878). */
+	@Test(timeOut = 120000)
+	public void testClosingTheLastUserReleasesTheConnections() throws Exception {
+		final String url = StubDriver.PREFIX + "release";
+		stub.answerWith(null);
+		CachedConnection.openPool(url);
+		final CachedConnection con = (CachedConnection) CachedConnection.getConnection(url);
+		con.close();
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1);
+
+		CachedConnection.closePool(url);
+
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 0);
+		verify(con.parent).close();
+		assertEquals(CachedConnection.poolOf(url).meteredCount(), 0);
+	}
+
+	/**
+	 * A pool belongs to a database rather than to a backend: two backends may address one database,
+	 * and closing one of them must not take the connections of the other with it.
+	 */
+	@Test(timeOut = 120000)
+	public void testConnectionsSurviveWhileAnotherBackendStillUsesTheDatabase() throws Exception {
+		final String url = StubDriver.PREFIX + "shared";
+		stub.answerWith(null);
+		CachedConnection.openPool(url);
+		CachedConnection.openPool(url);
+		final CachedConnection con = (CachedConnection) CachedConnection.getConnection(url);
+		con.close();
+
+		CachedConnection.closePool(url);
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1, "the second backend lost its connections");
+
+		CachedConnection.closePool(url);
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 0);
+		verify(con.parent).close();
+	}
+
+	/** A connection out on loan when the last backend closed is closed when it comes back. */
+	@Test(timeOut = 120000)
+	public void testAConnectionReturnedAfterTheLastUserLeftIsClosed() throws Exception {
+		final String url = StubDriver.PREFIX + "return-after-close";
+		stub.answerWith(null);
+		CachedConnection.openPool(url);
+		final CachedConnection con = (CachedConnection) CachedConnection.getConnection(url);
+
+		CachedConnection.closePool(url);
+		con.close();
+
+		verify(con.parent).close();
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 0);
+	}
+
+	/** A backend closed and opened again pools its connections as before: addUser() clears the flag. */
+	@Test(timeOut = 120000)
+	public void testABackendClosedAndOpenedAgainPoolsItsConnections() throws Exception {
+		final String url = StubDriver.PREFIX + "reopen";
+		stub.answerWith(null);
+		CachedConnection.openPool(url);
+		CachedConnection.getConnection(url).close();
+		CachedConnection.closePool(url);
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 0);
+
+		CachedConnection.openPool(url);
+		CachedConnection.getConnection(url).close();
+
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1, "a reopened backend stopped pooling its connections");
+		CachedConnection.closePool(url);
+	}
+
+	/**
+	 * A connect that fails with something other than a SQLException must not cost the pool a
+	 * permit. DriverManager catches SQLException alone, so an unchecked failure of a driver reaches
+	 * the borrow: Connector/J hands a url with a "%" in it to URLDecoder, and this backend keeps
+	 * its credentials in the url. Only a live connection carries a permit, so one left behind is
+	 * left behind for good - after as many failures as the bound the pool would report that every
+	 * connection is in use while holding none (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectFailingUncheckedCostsThePoolNothing() throws Exception {
+		final String url = StubDriver.PREFIX + "unchecked";
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, "2");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "1");
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+		stub.failWith(new IllegalArgumentException("URLDecoder: Illegal hex characters in escape (%) pattern"),
+			StubDriver.ALWAYS);
+
+		for (int i = 1; i <= 2 * pool.max(); i++) {
+			try {
+				CachedConnection.getConnection(url);
+				fail("the connect did not fail");
+			} catch (IllegalArgumentException expected) {
+				// reported to the caller, as a configuration error has to be
+			}
+			assertEquals(pool.meteredCount(), 0, "attempt " + i + " kept a permit of the pool");
+		}
+
+		// and the pool still serves, rather than reporting connections it does not hold as in use
+		stub.answerWith(null);
+		final Connection con = CachedConnection.getConnection(url);
+		assertNotNull(con);
+		con.close();
+		CachedConnection.poolOf(url).drainIdle();
+	}
+
+	/**
+	 * The exemption of a nested borrow belongs to one pool: a thread holding a connection to one
+	 * database holds nothing of another, so the bound of that other pool applies and its connection
+	 * comes back to it rather than being closed.
+	 */
+	@Test(timeOut = 120000)
+	public void testHoldingAConnectionToOneDatabaseDoesNotExemptABorrowFromAnother() throws Exception {
+		final String first = StubDriver.PREFIX + "held-first";
+		final String second = StubDriver.PREFIX + "held-second";
+		stub.answerWith(null);
+
+		final Connection held = CachedConnection.getConnection(first);
+		final Connection other = CachedConnection.getConnection(second);
+		assertEquals(CachedConnection.poolOf(second).meteredCount(), 1, "the borrow passed the bound of the other pool");
+		other.close();
+
+		assertEquals(CachedConnection.poolOf(second).idleCount(), 1, "the borrow was taken for a nested one and closed");
+		held.close();
+		CachedConnection.poolOf(first).drainIdle();
+		CachedConnection.poolOf(second).drainIdle();
+	}
+
+	/**
+	 * A connection returned on a thread other than the one that borrowed it still lowers the depth
+	 * of the borrower. The depth used to be lowered only where the returning thread was the
+	 * borrowing one, and nulled either way, so a cross-thread return left the borrower standing at a
+	 * depth it could never come down from: that thread was taken for a nested borrow for the life of
+	 * the server, exempt from the wait at the bound, and every operation on it opened an unmetered
+	 * connection that the return then closed - a physical connect apiece, past a bound the operator
+	 * set (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testAReturnOnAnotherThreadLowersTheDepthOfTheBorrower() throws Exception {
+		final String url = StubDriver.PREFIX + "cross-thread-return";
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, "1");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "1");
+		stub.answerWith(null);
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+		final ExecutorService borrower = Executors.newSingleThreadExecutor(runnable -> {
+			final Thread thread = new Thread(runnable, "cross-thread-borrower");
+			thread.setDaemon(true);
+			return thread;
+		});
+
+		try {
+			// borrowed there, returned here
+			final Connection borrowed = borrower.submit(() -> CachedConnection.getConnection(url))
+				.get(120, TimeUnit.SECONDS);
+			borrowed.close();
+			assertEquals(pool.idleCount(), 1, "the connection was not pooled by the return");
+
+			// the one place of the pool goes to somebody else, so the borrower thread has to wait
+			// for it - and, having no connection of its own any more, has to give up when it does
+			// not come
+			final Connection held = borrowOnAThreadOfItsOwn(url);
+			try {
+				borrower.submit(() -> CachedConnection.getConnection(url)).get(120, TimeUnit.SECONDS);
+				fail("the borrower thread was taken for a nested borrow and passed the bound of the pool");
+			} catch (ExecutionException expected) {
+				assertTrue(expected.getCause() instanceof SQLTimeoutException,
+					"the bound was passed rather than waited out: " + expected.getCause());
+			}
+			held.close();
+		} finally {
+			borrower.shutdownNow();
+		}
+		CachedConnection.poolOf(url).drainIdle();
+	}
+
+	/** JDBC makes close() on a closed connection a no-op; a second return would pool the same one twice. */
+	@Test(timeOut = 120000)
+	public void testASecondCloseDoesNotPoolTheConnectionTwice() throws Exception {
+		final String url = StubDriver.PREFIX + "double-close";
+		stub.answerWith(null);
+		final Connection con = CachedConnection.getConnection(url);
+		con.close();
+		con.close();
+
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1, "one connection was pooled twice");
+		CachedConnection.poolOf(url).drainIdle();
+	}
+
+	/**
+	 * What the sweeper runs hands the close elsewhere instead of running it. The sweep of every
+	 * pool shares one thread and scheduleWithFixedDelay never overlaps its runs, so one close that
+	 * does not return would stop the expiry of every pool in the JVM, silently (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testTheSweepDoesNotCloseOnTheSweeperThread() throws Exception {
+		final String url = StubDriver.PREFIX + "sweep-elsewhere";
+		stub.answerWith(null);
+		final CachedConnection con = (CachedConnection) CachedConnection.getConnection(url);
+		con.close();
+		System.setProperty(CachedConnection.TTL_PROPERTY, "600000"); // see the case above
+		con.returnedAtMillis = System.currentTimeMillis() - 60000;
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+		final List<Runnable> handedOff = new ArrayList<>();
+
+		pool.sweep(1000, handedOff::add);
+
+		assertEquals(pool.idleCount(), 0, "the expired connection kept its place in the pool");
+		verify(con.parent, never()).close();
+		assertEquals(handedOff.size(), 1);
+
+		handedOff.get(0).run();
+		verify(con.parent).close();
+		assertEquals(pool.meteredCount(), 0, "a swept connection kept its permit");
+	}
+
+	/**
+	 * And the sweep the scheduled sweeper actually runs closes elsewhere too: the case above
+	 * supplies an executor of its own, so it would pass just as well with the production one left
+	 * closing inline.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheScheduledSweepClosesOnAThreadOfItsOwn() throws Exception {
+		final String url = StubDriver.PREFIX + "sweeper-thread";
+		stub.answerWith(null);
+		final CachedConnection con = (CachedConnection) CachedConnection.getConnection(url);
+		con.close();
+		final AtomicReference<String> closedOn = new AtomicReference<>();
+		doAnswer(invocation -> {
+			closedOn.set(Thread.currentThread().getName());
+			return null;
+		}).when(con.parent).close();
+		con.returnedAtMillis = System.currentTimeMillis() - 60000;
+		System.setProperty(CachedConnection.TTL_PROPERTY, "1000");
+
+		CachedConnection.sweep(); // what the scheduled sweeper runs, with nothing supplied to it
+
+		for (int i = 0; i < 200 && closedOn.get() == null; i++) {
+			Thread.sleep(50);
+		}
+		assertNotNull(closedOn.get(), "the sweep never closed the expired connection");
+		assertFalse(closedOn.get().contains("sweeper"), "the close ran on the sweeper thread: " + closedOn.get());
+		assertTrue(closedOn.get().startsWith("JDBC backend connection pool closer"), closedOn.get());
+	}
+
+	/**
+	 * A borrow may not outlast the deadline it was given while emptying the pool. A poll of no
+	 * duration still hands out whatever the deque holds, and a connection whose socket is half-open
+	 * - a moved VIP, a firewall that dropped the idle sockets - costs the validation timeout to
+	 * discard, so draining a pool of its full bound overran the deadline by minutes, before the
+	 * connect that follows it had even started (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testABorrowStopsAtItsDeadlineRatherThanDrainingThePool() throws Exception {
+		final String url = StubDriver.PREFIX + "deadline-drain";
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, "6");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "1");
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+
+		// Fresh by the TTL, and each one a second to find broken: the pool a burst of traffic left
+		// behind, against a database that has stopped answering.
+		for (int i = 0; i < 6; i++) {
+			final Connection halfOpen = mock(Connection.class);
+			when(halfOpen.isValid(anyInt())).thenAnswer(invocation -> {
+				Thread.sleep(1000);
+				return false;
+			});
+			assertTrue(pool.tryReserve());
+			pool.addIdle(new CachedConnection(url, halfOpen, pool, true, true));
+		}
+		stub.answerWith(null);
+
+		final long startedAt = System.currentTimeMillis();
+		final Connection borrowed = CachedConnection.getConnection(url);
+		final long elapsed = System.currentTimeMillis() - startedAt;
+
+		assertNotNull(borrowed);
+		assertTrue(elapsed < 3500, "the borrow drained the pool past its deadline: " + elapsed + " ms");
+		borrowed.close();
+		CachedConnection.poolOf(url).drainIdle();
+	}
+
+	/** 0 means "no bound" for the size of the pool, and an invalid value means "the default". */
+	@Test(timeOut = 120000)
+	public void testTheBoundOfThePoolReadsItsBoundaryValues() throws Exception {
+		assertEquals(poolWithMax("unbounded", "0").max(), Integer.MAX_VALUE, "0 must mean no bound");
+		assertEquals(poolWithMax("negative", "-1").max(), CachedConnection.DEFAULT_POOL_MAX);
+		assertEquals(poolWithMax("not-a-number", "sixteen").max(), CachedConnection.DEFAULT_POOL_MAX);
+	}
+
+	private static CachedConnection.Pool poolWithMax(String name, String max) {
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, max);
+		return CachedConnection.poolOf(StubDriver.PREFIX + "bound-" + name); // read when the pool is built
+	}
+
+	/** 0 means "wait without limit" for a borrow, rather than "give up at once". */
+	@Test(timeOut = 120000)
+	public void testABorrowWithNoDeadlineWaitsForAReturnedConnection() throws Exception {
+		final String url = StubDriver.PREFIX + "no-deadline";
+		System.setProperty(CachedConnection.POOL_MAX_PROPERTY, "1");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "0");
+		stub.answerWith(null);
+
+		final Connection held = borrowOnAThreadOfItsOwn(url);
+		final FutureTask<Connection> waiting = startBorrow(url);
+		try {
+			waiting.get(1500, TimeUnit.MILLISECONDS);
+			fail("the borrow gave up although it was given no deadline");
+		} catch (TimeoutException expected) {
+			// still waiting for the connection of the pool to come back, which is the point
+		}
+
+		held.close();
+		final Connection served = waiting.get(120, TimeUnit.SECONDS);
+		assertSame(served, held, "the borrow was served by something other than the returned connection");
+		served.close();
+		CachedConnection.poolOf(url).drainIdle();
+	}
+
+	/** 0 means "keep nothing" for the TTL: an idle connection is not handed out again. */
+	@Test(timeOut = 120000)
+	public void testAZeroTtlKeepsNoIdleConnection() throws Exception {
+		final String url = StubDriver.PREFIX + "zero-ttl";
+		stub.answerWith(null);
+		final CachedConnection first = (CachedConnection) CachedConnection.getConnection(url);
+		first.close();
+		first.returnedAtMillis = System.currentTimeMillis() - 5;
+		System.setProperty(CachedConnection.TTL_PROPERTY, "0");
+
+		final Connection second = CachedConnection.getConnection(url);
+
+		assertNotSame(second, first, "a connection was kept although the TTL keeps none");
+		verify(first.parent).close();
+		second.close();
+		CachedConnection.poolOf(url).drainIdle();
+	}
+
+	/**
+	 * The storage borrows from the pool it registered with, and gives that registration back when
+	 * it closes. db-directory may be changed on a running backend - applyConfigurationChange takes
+	 * it and nothing refuses it - and a borrow that followed the change would leave the pool this
+	 * storage registered with holding a user that never borrows, while the pool it borrowed from
+	 * has none: the leak of #878 back through the configuration, and a pool another backend may
+	 * drain while this one is still borrowing from it.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheStorageBorrowsFromThePoolItRegisteredWith() throws Exception {
+		final String registered = StubDriver.PREFIX + "storage-registered";
+		final String changed = StubDriver.PREFIX + "storage-changed";
+		stub.answerWith(null);
+		final JDBCBackendCfg cfg = mock(JDBCBackendCfg.class);
+		when(cfg.getDBDirectory()).thenReturn(registered);
+		final JDBCStorage storage = new JDBCStorage(cfg, null);
+		storage.open(AccessMode.READ_WRITE);
+
+		when(cfg.getDBDirectory()).thenReturn(changed); // the configuration changed under it
+		try (final Connection con = storage.getConnection()) {
+			assertEquals(((CachedConnection) con).connectionString, registered,
+				"the borrow left the pool this storage registered with");
+		}
+		assertEquals(CachedConnection.poolOf(changed).meteredCount(), 0, "a pool with no user was borrowed from");
+
+		storage.close();
+
+		assertEquals(CachedConnection.poolOf(registered).idleCount(), 0,
+			"close() left the connections of the pool it registered with behind");
+	}
+
+	/**
+	 * An open that failed has to leave the storage saying so. The status used to be set inside the
+	 * try-with-resources of the validating borrow, so a throw from the implicit close() - the return
+	 * rolls back, and the rollback goes to the database - left the storage at working() while open()
+	 * failed and gave the registration of the pool back. write() and ImporterImpl both skip the
+	 * re-open when the status says working, so the pool was left with no user at all: every
+	 * connection returned to it destroyed on the spot, pooling off for that database for as long as
+	 * the server runs (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testAnOpenThatFailsOnTheReturnLeavesTheStorageClosed() throws Exception {
+		final String url = StubDriver.PREFIX + "open-return-failure";
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		doThrow(new SQLException("the socket went away")).when(parent).rollback();
+		stub.answerWith(parent);
+		final JDBCBackendCfg cfg = mock(JDBCBackendCfg.class);
+		when(cfg.getDBDirectory()).thenReturn(url);
+		final JDBCStorage storage = new JDBCStorage(cfg, null);
+
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			fail("a validated borrow that could not be returned must be reported");
+		} catch (SQLException expected) {
+			assertEquals(expected.getMessage(), "the socket went away");
+		}
+		assertFalse(storage.getStorageStatus().isWorking(), "an open that failed left the storage reporting working");
+
+		// and the open that follows is not skipped: it registers with the pool again, which is what
+		// makes the connections returned to it pooled rather than destroyed on the spot
+		doNothing().when(parent).rollback();
+		storage.open(AccessMode.READ_WRITE);
+		assertTrue(storage.getStorageStatus().isWorking(), "the storage did not reopen");
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1,
+			"the reopened storage stopped pooling its connections");
+		storage.close();
+	}
+
+	/**
+	 * An import gives its connection back however its commit went. The commit used to be guarded
+	 * against SQLException alone, so an Error out of a bulk import - or a driver failing unchecked
+	 * - left the connection borrowed and its permit with it; a pool is never removed from the map,
+	 * so that permit was gone for the life of the server and enough imports walked the bound of
+	 * the pool down to nothing (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testAnImportGivesItsConnectionBackWhenTheCommitFailsUnchecked() throws Exception {
+		final String url = StubDriver.PREFIX + "import-unchecked-commit";
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		doThrow(new Error("out of memory while importing")).when(parent).commit();
+		stub.answerWith(parent);
+		final JDBCBackendCfg cfg = mock(JDBCBackendCfg.class);
+		when(cfg.getDBDirectory()).thenReturn(url);
+		final JDBCStorage storage = new JDBCStorage(cfg, null);
+		storage.open(AccessMode.READ_WRITE);
+		final Importer importer = storage.startImport();
+
+		try {
+			importer.close();
+			fail("the failure of the commit was not reported");
+		} catch (Error expected) {
+			// reported to the caller, which is what an Error out of an import has to be
+		}
+
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1, "the import kept the connection of the pool");
+		storage.close();
+		assertEquals(CachedConnection.poolOf(url).meteredCount(), 0, "the import kept a permit of the pool");
 	}
 
 	/**
@@ -620,7 +1199,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final Connection pooled = mock(Connection.class);
 		when(pooled.isValid(anyInt())).thenReturn(true);
 		when(pooled.getNetworkTimeout()).thenReturn(-1);
-		CachedConnection.cached.get(url).add(new CachedConnection(url, pooled));
+		CachedConnection.poolOf(url).addIdle(new CachedConnection(url, pooled));
 
 		final Connection borrowed = CachedConnection.getConnection(url);
 
@@ -730,7 +1309,38 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 			assertEquals(expected.getMessage(), "connection is closed");
 		}
 		verify(parent).close();
-		assertTrue(CachedConnection.cached.get(url).isEmpty(), "a connection that cannot be rolled back was pooled");
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 0, "a connection that cannot be rolled back was pooled");
+	}
+
+	/**
+	 * The same for the unchecked failure a driver is free to throw instead of a SQLException. close()
+	 * runs past the CAS that makes it the one return of this connection, so a rollback escaping it
+	 * leaves the connection closed by nothing at all - and its permit released by nothing either,
+	 * since only destroy() gives one back. A pool is never removed from the map, so that place in
+	 * the bound would be gone for the life of the server, and enough of them leave every borrow to
+	 * fail with a SQLTimeoutException while the pool holds no connection at all (#878).
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectionWhoseRollbackFailsUncheckedIsClosed() throws Exception {
+		final String url = StubDriver.PREFIX + "rollback-unchecked";
+		final Connection parent = mock(Connection.class);
+		when(parent.isValid(anyInt())).thenReturn(true);
+		doThrow(new IllegalStateException("the connection handle is no longer valid")).when(parent).rollback();
+		stub.answerWith(parent);
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+
+		final Connection con = CachedConnection.getConnection(url);
+		assertEquals(pool.meteredCount(), 1, "the borrow took no permit of the pool");
+		try {
+			con.close();
+			fail("a rollback that failed unchecked must be reported");
+		} catch (IllegalStateException expected) {
+			assertEquals(expected.getMessage(), "the connection handle is no longer valid");
+		}
+
+		verify(parent).close();
+		assertEquals(pool.idleCount(), 0, "a connection that could not be rolled back was pooled");
+		assertEquals(pool.meteredCount(), 0, "the return kept a permit of the pool");
 	}
 
 	@Test
@@ -1063,6 +1673,28 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertEquals(CachedConnection.attemptSeconds(30, Long.MAX_VALUE), 30);
 	}
 
+	/**
+	 * A deadline so far off that naming it overflows is a wait with no end, and not one already
+	 * behind us: a borrow configured to wait practically forever would otherwise give up on its
+	 * first retryable failure, which is the opposite of what was asked for. The sum is what has to
+	 * be guarded and not only the product - a value under the clamp of the product can still name a
+	 * moment past the end of the epoch.
+	 */
+	@Test
+	public void testADeadlineTooFarOffToNameIsAWaitWithNoEnd() throws Exception {
+		final long startedAt = System.currentTimeMillis();
+		// 0 is the operator asking for no deadline at all
+		assertEquals(CachedConnection.deadlineOf(startedAt, 0), Long.MAX_VALUE);
+		// ... and so is a value whose milliseconds would not fit a long at all
+		assertEquals(CachedConnection.deadlineOf(startedAt, Long.MAX_VALUE / 1000), Long.MAX_VALUE);
+		// the one the product guard lets through, which is the largest value it does: a second under
+		// the clamp, so the milliseconds of it still fit a long - by 1807 of them - while the moment
+		// they name, counted from now, does not. Guarded by the sum alone
+		assertEquals(CachedConnection.deadlineOf(startedAt, Long.MAX_VALUE / 1000 - 1), Long.MAX_VALUE);
+		// and an ordinary value still names the moment it says
+		assertEquals(CachedConnection.deadlineOf(startedAt, 60), startedAt + 60_000);
+	}
+
 	/** The connection string holds the credentials of the backend: a stall report must not carry them. */
 	@Test
 	public void testLoggedConnectionStringCarriesNoCredentials() throws Exception {
@@ -1163,6 +1795,18 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertFalse(stall.contains("S3cret"), stall);
 		assertTrue(stall.contains("jdbc:postgresql://h:5432/db"), stall);
 		assertTrue(stall.contains("4000 ms") && stall.contains("(3 attempts)"), stall);
+
+		// and so is the stall of a connect made outside the pool - the connection the tree catalog of a
+		// backend is written on (#888) - which is under the same rule and describes the same url
+		final String outside = CachedConnection.outsidePoolStallMessage(url, "tree catalog", 3, 4000,
+			new SQLException("FATAL: too many connections for " + url));
+		assertFalse(outside.contains("S3cret"), outside);
+		assertTrue(outside.contains("jdbc:postgresql://h:5432/db"), outside);
+		assertTrue(outside.contains("4000 ms") && outside.contains("(3 attempts)"), outside);
+		assertTrue(outside.contains("tree catalog"), outside);
+		// and says what it is: a borrow of the pool is what this connect is not, and an operator
+		// reading it must not be sent to the pool for a stall the pool has no part in
+		assertFalse(outside.contains("pooled one"), outside);
 	}
 
 	/**
@@ -1307,7 +1951,8 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertSame(((CachedConnection) borrowed).parent, fresh, "the drain must stop at the deadline");
 		verify(stale).close();
 		verify(good, never()).close();
-		assertFalse(CachedConnection.cached.get(url).isEmpty(), "a connection the deadline was reached in front of was lost");
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 1,
+			"a connection the deadline was reached in front of was lost");
 	}
 
 	/**
@@ -1348,12 +1993,267 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 			.when(parent).setNetworkTimeout(any(Executor.class), eq(0));
 		stub.answerWith(parent);
 
-		final CachedConnection borrowed = CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 30);
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+		final CachedConnection borrowed = CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 30,
+			pool, false);
 		borrowed.close();
 
 		verify(parent).close();
-		assertTrue(CachedConnection.cached.get(url).isEmpty(),
+		assertEquals(CachedConnection.poolOf(url).idleCount(), 0,
 			"a connection still carrying the read bound of its login went back into the pool");
+	}
+
+	/**
+	 * What a connection carries once the login is through, where a deployment asked for a read
+	 * bound of its own: that bound rather than the bound of the login, which is a value nothing
+	 * slower than a connect is meant to be measured against. Without one, this is the lift above -
+	 * the behaviour of every connection this backend established before the property existed.
+	 */
+	@Test(timeOut = 120000)
+	public void testAnEstablishedConnectionCarriesTheReadBoundAskedFor() throws Exception {
+		final String url = StubDriver.PREFIX + "standing-read-bound";
+		CachedConnection.readTimeoutMillis = 90000;
+		final Connection parent = mock(Connection.class);
+		stub.answerWith(parent);
+
+		CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 30,
+			CachedConnection.poolOf(url), false);
+
+		verify(parent).setNetworkTimeout(any(Executor.class), eq(90000));
+		verify(parent, never()).setNetworkTimeout(any(Executor.class), eq(0));
+	}
+
+	/**
+	 * And it carries it whether or not the login had a bound of its own to lift. The read bound of
+	 * a login is only ever set where the connect is bounded, so a deployment that runs with
+	 * {@code connect.timeout=0} - the one setting that leaves a connect to the deadline of the
+	 * borrow alone - would otherwise set this property and get nothing for it.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheReadBoundIsSetWhereTheLoginHadNoneToLift() throws Exception {
+		final String url = StubDriver.PREFIX + "read-bound-without-a-login-bound";
+		CachedConnection.readTimeoutMillis = 90000;
+		final Connection parent = mock(Connection.class);
+		stub.answerWith(parent);
+
+		CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 0,
+			CachedConnection.poolOf(url), false);
+
+		verify(parent).setNetworkTimeout(any(Executor.class), eq(90000));
+	}
+
+	/**
+	 * A read bound standing in the connection string is the deployment's own: the connect does not
+	 * replace it with this one, exactly as it does not set the read bound of a login on top of it.
+	 */
+	@Test(timeOut = 120000)
+	public void testAReadBoundOfTheUrlIsNotReplacedByTheConfiguredOne() throws Exception {
+		final String url = StubDriver.PREFIX + "own-read-bound?socketTimeout=1000";
+		CachedConnection.readTimeoutMillis = 90000;
+		final Connection parent = mock(Connection.class);
+		stub.answerWith(parent);
+
+		CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 30,
+			CachedConnection.poolOf(url), false);
+
+		verify(parent, never()).setNetworkTimeout(any(Executor.class), anyInt());
+	}
+
+	/**
+	 * Which connections carry a read bound of this backend's own making, as the backstop of
+	 * {@code JDBCStorage} has to know it: a statement of an unbounded class takes that bound off
+	 * for as long as it runs, and it may only take off what this class put on. A bound of the url
+	 * is the deployment's, and a driver whose property names are not known here was never given
+	 * one - lifting either would leave the connection unbounded for the rest of its life.
+	 */
+	@Test(timeOut = 120000)
+	public void testOnlyTheReadBoundThisClassSetsIsItsOwnToLift() {
+		CachedConnection.readTimeoutMillis = 90000;
+		assertEquals(CachedConnection.standingReadBoundMillis("jdbc:mysql://localhost:3306/db"), 90000,
+			"the bound this class sets on a connection of a dialect it knows");
+		assertEquals(CachedConnection.standingReadBoundMillis("jdbc:mysql://localhost:3306/db?socketTimeout=1000"), 0,
+			"a read bound of the url was reported as this backend's own");
+		assertEquals(CachedConnection.standingReadBoundMillis("jdbc:h2:mem:db"), 0,
+			"a driver this class sets no read bound on was reported as bounded by it");
+
+		CachedConnection.readTimeoutMillis = 0;
+		assertEquals(CachedConnection.standingReadBoundMillis("jdbc:mysql://localhost:3306/db"), 0,
+			"a connection carries no standing bound where none is configured");
+	}
+
+	/**
+	 * The bound is configured in seconds and reaches the driver in milliseconds; 0, a negative
+	 * value and a value that is no number all leave a connection unbounded, which is what this
+	 * backend did before the property existed. A value past the ceiling of a socket read timeout is
+	 * taken down to it rather than left to overflow the {@code int} of setNetworkTimeout, where it
+	 * would arrive as a negative timeout - a value outside the contract, and one a driver is free
+	 * to read as anything at all.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheReadBoundIsConfiguredInSeconds() {
+		assertEquals(CachedConnection.getReadTimeoutMillis(), 0, "a connection is unbounded by default");
+
+		System.setProperty(CachedConnection.READ_TIMEOUT_PROPERTY, "90");
+		assertEquals(CachedConnection.getReadTimeoutMillis(), 90000);
+
+		System.setProperty(CachedConnection.READ_TIMEOUT_PROPERTY, "0");
+		assertEquals(CachedConnection.getReadTimeoutMillis(), 0);
+
+		System.setProperty(CachedConnection.READ_TIMEOUT_PROPERTY, "-1");
+		assertEquals(CachedConnection.getReadTimeoutMillis(), 0, "a negative value was not read as no bound");
+
+		System.setProperty(CachedConnection.READ_TIMEOUT_PROPERTY, "a minute and a half");
+		assertEquals(CachedConnection.getReadTimeoutMillis(), 0,
+			"a value that is no number was not ignored in favour of the default");
+
+		System.setProperty(CachedConnection.READ_TIMEOUT_PROPERTY, Integer.toString(Integer.MAX_VALUE));
+		assertEquals(CachedConnection.getReadTimeoutMillis(), JDBCStorage.MAX_BOUND_SECONDS * 1000,
+			"a value past the ceiling of a socket read timeout was not taken down to it");
+	}
+
+	/**
+	 * A driver that will not take the standing bound leaves a connection with no bound of ours on
+	 * it, which is what every connection of this pool carried before the property existed and no
+	 * reason to keep this one out of the pool. The connection that must not be pooled is the one
+	 * still carrying the read bound of its login: there the call that failed was a call to take
+	 * something off, and the bound left on it fails every statement slower than a connect.
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectionThatWouldNotTakeTheStandingBoundIsStillPooled() throws Exception {
+		final String url = StubDriver.PREFIX + "unsettable-standing-bound";
+		CachedConnection.readTimeoutMillis = 90000;
+		final Connection parent = mock(Connection.class);
+		doThrow(new SQLException("setNetworkTimeout is not supported"))
+			.when(parent).setNetworkTimeout(any(Executor.class), anyInt());
+		stub.answerWith(parent);
+
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+		// Metered, and holding a permit of the pool as a borrow does: an unmetered connection is
+		// closed rather than pooled whatever bound it carries, which would answer this on the
+		// accounting of the pool instead of on the bound the case is about.
+		assertTrue(pool.tryReserve(), "the pool of this url would not reserve a place for the connection");
+		final CachedConnection borrowed = CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 0,
+			pool, true);
+		borrowed.close();
+
+		verify(parent, never()).close();
+		assertEquals(pool.idleCount(), 1,
+			"a connection carrying no bound of ours was kept out of the pool");
+	}
+
+	/**
+	 * A read parameter of the url set to 0 is no bound of the deployment's: 0 is what every one of
+	 * these drivers reads as "wait as long as it takes", which is the default this property exists
+	 * to replace. It tells the two bounds apart, and only on postgresql, where a parameter of the
+	 * url outranks the property this class supplies: the login there is left carrying no bound of
+	 * ours, and rightly so, while the bound of this property is no property of a connect at all - it
+	 * is a setNetworkTimeout of an established connection, which no url outranks. Read as a bound of
+	 * theirs, a "socketTimeout=0" - the default of pgjdbc, written out - would leave a deployment
+	 * that asked for this one with no bound and no report of why.
+	 */
+	@Test(timeOut = 120000)
+	public void testAReadParameterOfTheUrlSetToZeroIsNoBoundOfTheDeployments() {
+		CachedConnection.readTimeoutMillis = 90000;
+		assertEquals(CachedConnection.standingReadBoundMillis("jdbc:postgresql://localhost/db?socketTimeout=0"), 90000,
+			"a postgresql url turning the read bound off was read as a bound of the deployment's own");
+		assertEquals(CachedConnection.standingReadBoundMillis("jdbc:mysql://localhost:3306/db?socketTimeout=0"), 90000,
+			"a mysql url turning the read bound off was read as a bound of the deployment's own");
+		assertEquals(CachedConnection.standingReadBoundMillis("jdbc:postgresql://localhost/db?socketTimeout=30"), 0,
+			"a read bound of a postgresql url is the deployment's own and stands");
+	}
+
+	/**
+	 * The predicate deciding whether a url bounds the read reads the same set of names as the one
+	 * deciding whether it declares it. It used to stop at the first name present even where the
+	 * value there was a zero, so a url naming the bound under both names of the oracle driver - the
+	 * dotted one turned off, the last segment set - was declared() and not bounds(): the login kept
+	 * the administrator's value, because a property of ours is not supplied over a declared one, and
+	 * a bound of ours then went on top of it with setNetworkTimeout. Contrived, but "the bound taken
+	 * off is the bound that was set" holds only while the two look at the same names.
+	 */
+	@Test(timeOut = 120000)
+	public void testAReadBoundUnderEitherNameOfTheUrlIsTheDeploymentsOwn() {
+		CachedConnection.readTimeoutMillis = 90000;
+		assertEquals(CachedConnection.standingReadBoundMillis(
+			"jdbc:oracle:thin:@//localhost:1521/db?oracle.jdbc.ReadTimeout=0&ReadTimeout=600"), 0,
+			"a bound standing under the last segment of the name was read as no bound at all");
+		assertEquals(CachedConnection.standingReadBoundMillis(
+			"jdbc:oracle:thin:@//localhost:1521/db?oracle.jdbc.ReadTimeout=0&ReadTimeout=0"), 90000,
+			"a url turning the read bound off under both of its names is no bound of the deployment's");
+	}
+
+	/**
+	 * With nothing configured this is the lift and nothing else - the read bound of the login comes
+	 * off and no bound of ours goes on top of it, which is what every connection of this pool
+	 * carried before the property existed. The default of this property is what makes the change
+	 * that introduced it no change at all for a deployment that does not ask for one.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheDefaultTakesTheBoundOfTheLoginOffAndPutsNothingOnTopOfIt() throws Exception {
+		final String url = StubDriver.PREFIX + "default-read-bound";
+		CachedConnection.readTimeoutMillis = 0;
+		final Connection parent = mock(Connection.class);
+		stub.answerWith(parent);
+
+		CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 30,
+			CachedConnection.poolOf(url), false);
+
+		verify(parent).setNetworkTimeout(any(Executor.class), eq(0));
+		verify(parent, times(1)).setNetworkTimeout(any(Executor.class), anyInt());
+	}
+
+	/**
+	 * A driver that would take neither the standing bound nor the lift leaves the connection that
+	 * must not be pooled: what it is left carrying is the read bound of a connect, and every borrow
+	 * after this one would meet it - which is the case above, reached by the other of the two paths
+	 * that call for a setNetworkTimeout once the login is through.
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectionThatWouldTakeNeitherTheStandingBoundNorTheLiftIsNotPooled() throws Exception {
+		final String url = StubDriver.PREFIX + "unsettable-over-a-login-bound";
+		CachedConnection.readTimeoutMillis = 90000;
+		final Connection parent = mock(Connection.class);
+		doThrow(new SQLException("setNetworkTimeout is not supported"))
+			.when(parent).setNetworkTimeout(any(Executor.class), anyInt());
+		stub.answerWith(parent);
+
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+		// Metered, and holding a permit of the pool as a borrow does: an unmetered connection is
+		// closed rather than pooled whatever bound it carries, which would answer this on the
+		// accounting of the pool instead of on the bound the case is about.
+		assertTrue(pool.tryReserve(), "the pool of this url would not reserve a place for the connection");
+		final CachedConnection borrowed = CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 30,
+			pool, true);
+		borrowed.close();
+
+		verify(parent).close();
+		assertEquals(pool.idleCount(), 0,
+			"a connection still carrying the read bound of its login went back into the pool");
+	}
+
+	/**
+	 * The initializer reads this property the way it reads the two windows above - a value that is
+	 * no number, or a negative one, is reported once and ignored in favour of the default - and
+	 * reporting it has to leave the class usable: the set that report is deduplicated through is
+	 * declared above every field whose initializer can reach it (JLS 12.4.2), so a field of this
+	 * one moved above that set would turn a typo in a property into an ExceptionInInitializerError
+	 * that no test of a class already initialized would ever meet.
+	 */
+	@Test(timeOut = 120000, dataProvider = "readBoundsWorthWarningAbout")
+	public void testAReadBoundWorthWarningAboutStillInitializesTheClass(String configured) throws Exception {
+		System.setProperty(CachedConnection.READ_TIMEOUT_PROPERTY, configured);
+
+		final Class<?> reloaded = loadedAfresh(CachedConnection.class);
+
+		assertNotSame(reloaded, CachedConnection.class, "the class under test was not loaded afresh");
+		final Field field = reloaded.getDeclaredField("readTimeoutMillis");
+		field.setAccessible(true);
+		assertEquals(field.getInt(null), 0, "the bound the reloaded class settled on");
+	}
+
+	@DataProvider
+	public Object[][] readBoundsWorthWarningAbout() {
+		return new Object[][]{{"a minute and a half"}, {"-1"}};
 	}
 
 	/**
@@ -1567,8 +2467,9 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	 * from - so that the connection named first here is the one the next borrow gets.
 	 */
 	private static void seedPool(String url, Connection... parents) {
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
 		for (int i = parents.length - 1; i >= 0; i--) {
-			CachedConnection.cached.get(url).addFirst(new CachedConnection(url, parents[i]));
+			pool.addIdle(new CachedConnection(url, parents[i]));
 		}
 	}
 
@@ -1799,11 +2700,12 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		static final int ALWAYS = -1;
 
 		final AtomicInteger attempts = new AtomicInteger();
-		private volatile SQLException failure;
+		/** A SQLException, or the unchecked failure a driver is free to throw at DriverManager instead. */
+		private volatile Throwable failure;
 		private volatile int failuresLeft;
 		private volatile Connection answer;
 
-		void failWith(SQLException failure, int times) {
+		void failWith(Throwable failure, int times) {
 			this.failure = failure;
 			this.failuresLeft = times;
 			this.answer = null;
@@ -1827,7 +2729,10 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 				if (failuresLeft > 0) {
 					failuresLeft--;
 				}
-				throw failure;
+				if (failure instanceof SQLException) {
+					throw (SQLException) failure;
+				}
+				throw (RuntimeException) failure;
 			}
 			if (answer != null) {
 				return answer;

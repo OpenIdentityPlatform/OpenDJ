@@ -178,6 +178,11 @@ public class ReplicationServer
 
   /**
    * Creates a new Replication server using the provided configuration entry.
+   * <p>
+   * The synchronization object this creates is its own, so the resulting server does not
+   * synchronize its shutdown with a collocated directory server. A server which has to must be
+   * built with {@link #ReplicationServer(ReplicationServerCfg, DSRSShutdownSync)}, passing the
+   * instance the directory server side records its ReplicaOfflineMsgs on.
    *
    * @param cfg The configuration of this replication server.
    * @throws ConfigException When Configuration is invalid.
@@ -802,6 +807,9 @@ public class ReplicationServer
     // listen port which cannot be bound, would otherwise leave them behind. Shut them down
     // before the changelog they write to, and one unchecked exception at a time: the changelog
     // this one is built on is known to be broken, and what follows still has to run.
+    // Nothing in an instance which never finished coming up can forward a pending
+    // ReplicaOfflineMsg, so this path does not wait for one: it would only delay the failure
+    // which is being reported by a grace period which cannot pay off.
     for (ReplicationServerDomain domain : getReplicationServerDomains())
     {
       try
@@ -1181,7 +1189,19 @@ public class ReplicationServer
       listenThread.interrupt();
     }
 
-    // shutdown all the replication domains
+    /*
+     * Let the ReplicaOfflineMsgs a collocated DS sent be forwarded while every handler is still
+     * up, and only then stop the domains: shutting a domain down deactivates the consumer of its
+     * handlers, clears their message queue and closes their session - see OPENDJ-1453. All the
+     * domains wait together and share one deadline, so the shutdown is bounded by one grace
+     * period and the wait of one domain does not spend the grace period of the next.
+     * <p>
+     * This also runs before the assured timer of any domain is cancelled, so an assured update
+     * still waiting for acks keeps timing out during the wait instead of holding its sender
+     * until the sessions are closed.
+     */
+    awaitReplicaOfflineMsgsForwarded();
+
     for (ReplicationServerDomain domain : getReplicationServerDomains())
     {
       domain.shutdown();
@@ -1200,6 +1220,28 @@ public class ReplicationServer
 
     // Remove this instance from the global instance list
     allInstances.remove(this);
+  }
+
+  /**
+   * Waits for the ReplicaOfflineMsg of every domain which has a replication server to forward it
+   * to. With no such server connected there is nobody to forward the message to, and waiting
+   * would only delay the shutdown by the whole grace period.
+   */
+  private void awaitReplicaOfflineMsgsForwarded()
+  {
+    final List<DN> domainsToWaitFor = new ArrayList<>();
+    for (ReplicationServerDomain domain : getReplicationServerDomains())
+    {
+      if (!domain.getConnectedRSs().isEmpty())
+      {
+        domainsToWaitFor.add(domain.getBaseDN());
+      }
+    }
+    if (!domainsToWaitFor.isEmpty())
+    {
+      dsrsShutdownSync.awaitReplicaOfflineMsgsForwarded(
+          domainsToWaitFor, dsrsShutdownSync.newShutdownDeadline());
+    }
   }
 
   /**

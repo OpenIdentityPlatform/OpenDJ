@@ -13,14 +13,66 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2013-2015 ForgeRock AS.
+# Portions Copyright 2026 3A Systems, LLC
 
 set -e
-# Pre rm script
-# Unlink the symlink to the process ID if it exists.
-test -h "/var/run/opendj.pid" && unlink /var/run/opendj.pid
+# Pre rm script.
 
-# Stops the server if the instance has been configured
-if [ "$1" = "remove" ] && ( [ -f ${deb.prefix}/config/buildinfo ] && [ "$(ls -A ${deb.prefix}/config/archived-configs)" ] ) ; then
-    ${deb.prefix}/bin/./stop-ds
+# The instance root may have been relocated with instance.loc (split layout):
+# resolve it the way the server scripts (_script-util.sh) do. Empty-file reads
+# are tolerated; the result then simply fails the file checks below.
+resolve_instance_root() {
+    INSTANCE_ROOT=${deb.prefix}
+    if [ -f /etc/opendj/instance.loc ] ; then
+        read INSTANCE_ROOT < /etc/opendj/instance.loc || true
+    elif [ -f ${deb.prefix}/instance.loc ] ; then
+        read _loc < ${deb.prefix}/instance.loc || true
+        case "$_loc" in
+            /*) INSTANCE_ROOT=$_loc ;;
+            *)  INSTANCE_ROOT=${deb.prefix}/$_loc ;;
+        esac
+    fi
+}
+
+# Stop the service before the package files are removed. Act on "remove" only:
+# "deconfigure" is a temporary state while dpkg unpacks an unrelated package,
+# and nothing would restart the server afterwards.
+if [ "$1" = "remove" ] ; then
+    resolve_instance_root
+    if [ -d /run/systemd/system ] ; then
+        deb-systemd-invoke stop opendj.service || true
+    fi
+    # Stop a still-running instance directly - keyed on a live PID, so an
+    # instance that was never upgraded is stopped too. Run the tree's own
+    # script as the owner of the server *process*, never as root for a
+    # non-root server.
+    SERVER_PID=$(cat "$INSTANCE_ROOT/logs/server.pid" 2>/dev/null || true)
+    if [ -x ${deb.prefix}/bin/stop-ds ] && [ -n "$SERVER_PID" ] && [ -d "/proc/$SERVER_PID" ] ; then
+        echo "*Stopping OpenDJ server..."
+        OWNER=$(stat -c %U "/proc/$SERVER_PID" 2>/dev/null || echo root)
+        if [ "$OWNER" != root ] && command -v runuser >/dev/null 2>&1 ; then
+            runuser -u "$OWNER" -- ${deb.prefix}/bin/stop-ds || true
+        else
+            ${deb.prefix}/bin/stop-ds || true
+        fi
+        # The package files must not be deleted under a live JVM: verify the
+        # stop happened (the stop errors above are deliberately swallowed).
+        for _i in 1 2 3 4 5 6 7 8 9 10 ; do
+            [ -d "/proc/$SERVER_PID" ] || break
+            sleep 2
+        done
+        if [ -d "/proc/$SERVER_PID" ] ; then
+            echo "Unable to stop the running OpenDJ server (pid $SERVER_PID); stop it manually and retry." >&2
+            exit 1
+        fi
+    fi
+    # A stale restart flag must not survive into a later re-install.
+    rm -f "$INSTANCE_ROOT/logs/status"
 fi
-# End prem script
+
+# Clean up the legacy PID symlink created by the SysV init script.
+[ -h /run/opendj.pid ] && rm -f /run/opendj.pid || true
+[ -h /var/run/opendj.pid ] && rm -f /var/run/opendj.pid || true
+
+exit 0
+# End prerm script

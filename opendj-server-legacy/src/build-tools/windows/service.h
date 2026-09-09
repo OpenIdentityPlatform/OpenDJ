@@ -79,7 +79,13 @@ typedef struct {
 typedef enum {
     SERVICE_RETURN_OK, SERVICE_RETURN_ERROR, SERVICE_IN_USE,
   SERVICE_NOT_IN_USE, DUPLICATED_SERVICE_NAME, SERVICE_ALREADY_EXISTS,
-  SERVICE_MARKED_FOR_DELETION
+  SERVICE_MARKED_FOR_DELETION, SERVICE_LIST_UNAVAILABLE,
+  // The service list was read, no entry matched, and at least one entry could
+  // not be examined - so the non-match does not prove the service is absent.
+  // Between SERVICE_LIST_UNAVAILABLE ("could not be read at all") and
+  // SERVICE_RETURN_ERROR ("read, and held no match"), which are not the only
+  // two answers the SCM can give.
+  SERVICE_LIST_PARTIAL
 } ServiceReturnCode;
 
 

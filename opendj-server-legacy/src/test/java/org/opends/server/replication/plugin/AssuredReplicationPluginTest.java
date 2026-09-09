@@ -50,6 +50,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.replication.ReplicationTestCase;
@@ -73,6 +74,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.StaticUtils;
@@ -1170,22 +1172,95 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
         return;
       }
+    } finally
+    {
+      endTest(testcase);
+    }
+  }
 
-      /* Send an update with error from the RS and get the ack with error */
+  /**
+   * Tests that a DS which could not replay an update in safe read mode acks the replay
+   * error instead of reporting the update as applied (issue #889).
+   */
+  @Test
+  public void testSafeReadModeReplyWithReplayError() throws Exception
+  {
+    int TIMEOUT = 5000;
+    String testcase = "testSafeReadModeReplyWithReplayError";
+    try
+    {
+      // Create and start a RS expecting clients in safe read assured mode
+      replicationServer = new FakeReplicationServer((byte) 1, replServerPort, RS_SERVER_ID,
+        true, testcase);
+      replicationServer.start(NO_READ);
 
-      // Make the RS send a not possible assured add message
+      safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0, TIMEOUT);
+      waitForConnectionToRs(testcase, replicationServer);
 
-      // TODO: make the domain return an error: use a plugin ?
-      // The resolution code does not generate any error so we need to find a
-      // way to have the replay not working to test this...
+      Entry entry = makeEntry(
+          "dn: ou=assured-sr-replay-error-entry," + SAFE_READ_DN,
+          "objectClass: top",
+          "objectClass: organizationalUnit");
+      String parentUid = getEntryUUID(DN.valueOf(SAFE_READ_DN));
 
-      // Check that DS replied an ack with errors
-//      assertFalse(ackMsg.hasTimeout());
-//      assertTrue(ackMsg.hasReplayError());
-//      assertFalse(ackMsg.hasWrongStatus());
-//      List<Integer> failedServers = ackMsg.getFailedServers();
-//      assertEquals(failedServers.size(), 1);
-//      assertEquals((integer)failedServers.get(0), (integer)1);
+      final LDAPReplicationDomain domain =
+          MultimasterReplication.findDomain(DN.valueOf(SAFE_READ_DN), null);
+      final long giveUpDelay = domain.getReplayGiveUpDelay();
+      try
+      {
+        /*
+         * Fail the replay the way a storage failure does: the backend reports it with the
+         * server-error-result-code, 80 by default. The short circuit has to be set at the
+         * pre-parse plugin point, the pre-operation ones are not invoked for
+         * synchronization operations. It is registered here rather than before the try,
+         * so that the finally below takes it back whatever happens next: the plugin is
+         * consulted for every add in this server, so one left registered would fail the
+         * fixtures of the tests which follow.
+         */
+        ShortCircuitPlugin.registerShortCircuit(
+            OperationType.ADD, "PreParse", ResultCode.OTHER.intValue());
+        /*
+         * A change which keeps failing is asked for again over a restarted session until
+         * this replica gives up on it. That is right, and it is not what this test is
+         * about: the FakeReplicationServer is not built to be reconnected to, and the
+         * restarts would run on while the assertions and the teardown below take their
+         * course. A give-up delay of zero has the first failure spend the whole budget, so
+         * the change is given up on where it is reported and no session is restarted: the
+         * ack of this delivery is published either way - it is sent before the give-up is
+         * decided - and the domain settles instead of reconnecting.
+         */
+        domain.setReplayGiveUpDelay(0);
+        AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
+
+        assertNull(DirectoryServer.getEntry(entry.getName()), "the entry must not have been added");
+
+        // Check that DS replied an ack reporting the replay error
+        assertFalse(ackMsg.hasTimeout());
+        assertTrue(ackMsg.hasReplayError(), "the ack must report the failed replay");
+        assertFalse(ackMsg.hasWrongStatus());
+        Assertions.assertThat(ackMsg.getFailedServers()).containsExactly(1);
+
+        /*
+         * The change is counted as failed once the give-up is decided, which is after the
+         * ack above was published: waiting for that count is what makes the assured
+         * counters below safe to read, since they are bumped just after the publish.
+         */
+        final DN baseDN = DN.valueOf(SAFE_READ_DN);
+        assertMonitorAttrValueEventually(baseDN, "replayed-updates-failed", 1,
+            "the change which could not be replayed must be counted as failed");
+        new MonitorAssertions(baseDN)
+            .assertValue("assured-sr-received-updates", 1)
+            .assertValue("assured-sr-received-updates-not-acked", 1)
+            .assertRemainingValuesAreZero();
+        // The failure is this replica's own, and it is in the ack it sent: nothing this
+        // domain sent went unacknowledged.
+        assertNoServerErrors(baseDN);
+      }
+      finally
+      {
+        domain.setReplayGiveUpDelay(giveUpDelay);
+        ShortCircuitPlugin.deregisterShortCircuit(OperationType.ADD, "PreParse");
+      }
     } finally
     {
       endTest(testcase);
