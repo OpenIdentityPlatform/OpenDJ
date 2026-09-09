@@ -416,9 +416,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       new AtomicLong(UNREPLAYED_CHANGE_ALERT_NEVER_SENT);
   /**
    * The result codes conflict resolution knows how to solve. The result code the server
-   * puts on an internal error is configurable and is not validated as a result code, so
-   * it could be set to one of these: it must never take a change away from
-   * {@code solveNamingConflict()}, which is the only thing which can solve them.
+   * puts on an internal error is configurable, and every one of these reports a failure -
+   * which is all the configuration asks of it - so it can be set to one of them: it must
+   * never take a change away from {@code solveNamingConflict()}, which is the only thing
+   * which can solve them.
    */
   private static final Set<ResultCode> CONFLICT_RESULT_CODES = Collections.unmodifiableSet(
       newHashSet(
@@ -426,6 +427,23 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           ResultCode.NOT_ALLOWED_ON_RDN, ResultCode.NOT_ALLOWED_ON_NONLEAF,
           // solveNamingConflict(ModifyDNOperation) solves these two as well
           ResultCode.UNWILLING_TO_PERFORM, ResultCode.OBJECTCLASS_VIOLATION));
+
+  /**
+   * The attachment which says that conflict resolution turned this operation into a
+   * no-op, so that {@link #replay} reads that decision rather than the result code which
+   * reports it.
+   * <p>
+   * The code conflict resolution reports for a no-op is {@code NO_OPERATION}, and the
+   * code this server puts on an internal error is a configuration knob: while nothing
+   * validated it, the two could be the same code, and every change an internal error kept
+   * out of the backend was then read as a change conflict resolution had found already
+   * applied and recorded in the ServerState - the silent divergence of issue #889, one
+   * branch earlier (issue #953). The configuration refuses a code which does not report a
+   * failure now, so they can not be the same code anymore; the decision travels on the
+   * operation all the same, so that what the replay acts on is what conflict resolution
+   * decided rather than a value an administrator owns.
+   */
+  private static final String CONFLICT_RESOLUTION_NO_OP = "replicationConflictResolutionNoOp";
 
   private final PersistentServerState state;
   private volatile boolean generationIdSavedStatus;
@@ -1778,8 +1796,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       String uuid = ctx.getEntryUUID();
       if (findEntryDN(uuid) != null)
       {
-        return new SynchronizationProviderResult.StopProcessing(
-            ResultCode.NO_OPERATION, null);
+        return conflictResolutionFoundNothingToDo(addOperation);
       }
 
       /* The parent entry may have been renamed here since the change was done
@@ -1945,8 +1962,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           modifyDNOperation.getOriginalEntry());
       if (hist.addedOrRenamedAfter(ctx.getCSN()))
       {
-        return new SynchronizationProviderResult.StopProcessing(
-            ResultCode.NO_OPERATION, null);
+        return conflictResolutionFoundNothingToDo(modifyDNOperation);
       }
     }
     else
@@ -2001,8 +2017,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         {
           // Every modifications filtered in this operation: the operation
           // becomes a no-op
-          return new SynchronizationProviderResult.StopProcessing(
-            ResultCode.NO_OPERATION, null);
+          return conflictResolutionFoundNothingToDo(modifyOperation);
         }
       }
       else
@@ -2544,7 +2559,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
           if (result != ResultCode.SUCCESS)
           {
-            if (result == ResultCode.NO_OPERATION)
+            if (isConflictResolutionNoOp(op))
             {
               // Pre-operation conflict resolution detected that the operation
               // was a no-op. For example, an add which has already been
@@ -2862,6 +2877,37 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   }
 
   /**
+   * Stops an operation conflict resolution found nothing left to do for, and marks it so
+   * that the replay reads that decision off the operation rather than off the result code
+   * this answer carries.
+   *
+   * @param op the operation conflict resolution turned into a no-op
+   * @return the answer which stops the operation
+   */
+  private static SynchronizationProviderResult conflictResolutionFoundNothingToDo(PluginOperation op)
+  {
+    op.setAttachment(CONFLICT_RESOLUTION_NO_OP, Boolean.TRUE);
+    return new SynchronizationProviderResult.StopProcessing(ResultCode.NO_OPERATION, null);
+  }
+
+  /**
+   * Returns whether conflict resolution turned the replayed operation into a no-op, which
+   * says that the change it carries is in the data and can be recorded as replayed.
+   * <p>
+   * Only {@link #conflictResolutionFoundNothingToDo} answers {@code true} here. The
+   * result code that answer carries says the same thing, but it is a code the
+   * configuration can name as well - see {@link #CONFLICT_RESOLUTION_NO_OP} - and a
+   * change which failed must never be read as one which was already applied.
+   *
+   * @param op the operation which was replayed
+   * @return {@code true} if conflict resolution found nothing left to do for the change
+   */
+  private static boolean isConflictResolutionNoOp(Operation op)
+  {
+    return Boolean.TRUE.equals(op.getAttachment(CONFLICT_RESOLUTION_NO_OP));
+  }
+
+  /**
    * Returns whether the provided result code reports a failure of this server rather
    * than a change which can not be applied: the backend being offline or rebuilt
    * (OPENDJ-49), or the storage failing to serve the operation.
@@ -2873,10 +2919,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private static boolean isServerFailure(ResultCode result, ResultCode serverErrorResultCode)
   {
     /*
-     * The result code the server puts on an internal error is configurable and is not
-     * validated as a result code, so it may well be one conflict resolution knows how to
-     * solve: such a setting must not take a change away from solveNamingConflict(), which
-     * is the only thing which can solve them. A change it could not solve either is a
+     * The result code the server puts on an internal error is configurable and only has
+     * to report a failure, so it may well be one conflict resolution knows how to solve:
+     * such a setting must not take a change away from solveNamingConflict(), which is
+     * the only thing which can solve them. A change it could not solve either is a
      * failure of the server all the same, which replay() acts on once conflict resolution
      * has reported it.
      */

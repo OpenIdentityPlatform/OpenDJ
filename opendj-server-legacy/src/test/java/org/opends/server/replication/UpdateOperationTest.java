@@ -1731,7 +1731,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
   /**
    * Test case for [Issue 889]: the result code the server puts on an internal error is
-   * configurable and is not validated as a result code, so it can be set to one conflict
+   * configurable and only has to report a failure, so it can be set to one conflict
    * resolution knows how to solve. Such a change is left to conflict resolution, and when
    * that can not solve it either the change is retried as the storage failure it is -
    * recording it as replayed after one attempt would be issue #889 again.
