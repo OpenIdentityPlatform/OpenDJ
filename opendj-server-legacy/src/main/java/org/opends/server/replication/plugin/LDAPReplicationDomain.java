@@ -361,6 +361,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private final AtomicBoolean sessionRestartRequested = new AtomicBoolean();
   /**
+   * Whether a replay thread which was stopped gave back changes it had parked in this
+   * domain, so that the thread which stopped it restarts the session for them once the
+   * pool it creates is up (issue #986).
+   */
+  private final AtomicBoolean changesGivenBackByStoppedThreads = new AtomicBoolean();
+  /**
    * How many times in a row the session was restarted without a change being replayed in
    * between. The backoff is computed from this rather than from the failures of the
    * change which happens to open the recovery: an outage fails every change in flight,
@@ -3634,6 +3640,42 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   }
 
   /**
+   * Gives back the changes a replay thread which is stopping parked in this domain.
+   * <p>
+   * Called by that thread on its way out, and it records that this domain is waiting for
+   * them: the session which brings them back is restarted by the thread which stopped it,
+   * once the pool it creates is up (issue #986).
+   */
+  void giveBackChangesParkedByStoppingThread()
+  {
+    if (giveBackParkedChanges())
+    {
+      changesGivenBackByStoppedThreads.set(true);
+    }
+  }
+
+  /**
+   * Restarts the session of this domain when a replay thread which was stopped gave back
+   * changes it had parked, so that they are delivered again.
+   * <p>
+   * Only the restart those changes asked for is run here. A restart which was requested by
+   * a failed replay is left to the replay thread which asked for it: that one sits through
+   * the backoff this domain has reached on the change it can not apply, and running it from
+   * here would spend that wait on a road which never failed (issue #889).
+   */
+  void restartSessionForChangesGivenBackByStoppedThreads()
+  {
+    if (changesGivenBackByStoppedThreads.compareAndSet(true, false))
+    {
+      /*
+       * Without the backoff: what went away is a replay thread, not the backend, and these
+       * changes were never applied here.
+       */
+      runRequestedSessionRestarts(false);
+    }
+  }
+
+  /**
    * Restarts the session as long as changes which could not be replayed are waiting to be
    * delivered again.
    *
@@ -3720,6 +3762,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * deliveries this replica took off the session, and these are over. The window they hold
    * is not given back either, and does not need to be: the session they came over is about
    * to be restarted, and a session which starts is given its receive window anew.
+   * <p>
+   * A replay thread which is stopping calls this through
+   * {@link #giveBackChangesParkedByStoppingThread()}, for every domain of this server: what
+   * it parked would be left owned by a thread which does not exist anymore, and every
+   * redelivery of a change a replay thread owns is refused as a duplicate (issue #986).
    *
    * @return whether any change was handed back, so that the caller restarts the session for
    *         them: a change which nobody owns is one only a new delivery brings back

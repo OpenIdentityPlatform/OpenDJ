@@ -3434,6 +3434,119 @@ public class UpdateOperationTest extends ReplicationTestCase
   }
 
   /**
+   * Test case for [Issue 986]: a change parked as waiting for another one is given back
+   * when the replay thread which parked it is stopped with the pool.
+   * <p>
+   * A parked change stays owned by the replay thread which parked it while that thread
+   * goes back to the pool and takes the changes which follow: {@code getNextUpdate()} is
+   * what hands it out again, to whichever replay thread clears the change it was waiting
+   * for. Changing the number of replay threads stops the whole pool and creates another
+   * one, so a thread which parked a change and went back to the queue is joined while it
+   * is idle, and it would end still recorded as the owner of that change - a thread which
+   * does not exist anymore, while every redelivery of a change a replay thread owns is
+   * refused as a duplicate. On a domain which then goes quiet that change is where this
+   * replica's ServerState, and every change behind it from every master, stops.
+   */
+  @Test
+  public void aChangeParkedByAThreadThePoolStoppedIsDeliveredAgain() throws Exception
+  {
+    testSetUp("aChangeParkedByAThreadThePoolStoppedIsDeliveredAgain");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aChangeParkedByAThreadThePoolStoppedIsDeliveredAgain"));
+
+    final DN waitedOn = addEntryForChange("user.986.1");
+    final String waitedOnUUID = getEntry(waitedOn, 1, true).parseAttribute("entryuuid").asString();
+
+    final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+    domain.resetUnreplayedChangeAlertThrottle();
+    final long inProgress = getMonitorAttrValue(baseDN, "changes-in-progress-size");
+    assertEquals(getMonitorAttrValue(baseDN, "dependent-changes-size"), 0,
+        "no change of this domain is waiting for another one when this test starts");
+
+    final CSNGenerator gen = new CSNGenerator(26, TimeThread.getTime());
+    final CSN failing = gen.newCSN();
+    final CSN parked = gen.newCSN();
+    final List<Modification> failingMods = generatemods("description", "the replay of this change fails");
+    final String parkedDescription = "the change which was parked by a thread the pool stopped";
+    final List<Modification> parkedMods = generatemods("description", parkedDescription);
+
+    /*
+     * One replay thread, so that the change which is parked is parked by the thread the
+     * pool then stops: a parked change is left owned by the thread which parked it, and
+     * this is about a thread which is not there anymore to be given it back.
+     */
+    setNumUpdateReplayThreads(1);
+    try
+    {
+      /*
+       * A change whose replay failed stays listed and uncommitted - it is what holds this
+       * domain's ServerState back - and stays among the changes the newer ones are checked
+       * against, so a change which follows it on the same entry has to wait for it.
+       */
+      deliverUntilMonitorReaches(domain, "changes-in-progress-size", inProgress + 1,
+          () -> new ModifyMsgWhoseOperationRefusesAControl(failing, waitedOn, failingMods, waitedOnUUID),
+          "the change whose replay fails must stay listed as one which is not in the data");
+
+      /*
+       * The change which is parked as waiting for it. The replay thread it was given to
+       * parks it and goes back to the pool: nothing is waiting for it there, so it is idle
+       * and it still owns the change it parked.
+       */
+      deliverUntilMonitorReaches(domain, "dependent-changes-size", 1,
+          () -> new ModifyMsg(parked, waitedOn, parkedMods, waitedOnUUID),
+          "a change which waits for one that is not in the data must be parked");
+
+      /*
+       * The pool is stopped and created again, the way an administrator changing the
+       * number of replay threads has it: the thread which parked the change is joined
+       * where it waits for the next delivery, and the change it owns is nobody's.
+       */
+      setNumUpdateReplayThreads(2);
+
+      assertMonitorAttrValueEventually(baseDN, "dependent-changes-size", 0,
+          "a change parked by a replay thread the pool stopped must be given back");
+
+      /*
+       * Nothing sends these changes again - they never travelled a session - so the
+       * deliveries which take over from the ones the stopped pool left behind are made
+       * here. The change no delivery can replay is given up on, which lets the ServerState
+       * past it, and the change which was parked behind it is applied.
+       */
+      setReplayGiveUpDelay(TEST_GIVE_UP_DELAY);
+      TestTimer timer = new TestTimer.Builder()
+        .maxSleep(120, SECONDS)
+        .sleepTimes(500, MILLISECONDS)
+        .toTimer();
+      timer.repeatUntilSuccess(new CallableVoid()
+      {
+        @Override
+        public void call() throws Exception
+        {
+          final ServerState state = domain.getServerState();
+          if (!state.cover(failing))
+          {
+            domain.processUpdate(
+                new ModifyMsgWhoseOperationRefusesAControl(failing, waitedOn, failingMods, waitedOnUUID));
+          }
+          if (!state.cover(parked))
+          {
+            domain.processUpdate(new ModifyMsg(parked, waitedOn, parkedMods, waitedOnUUID));
+          }
+          assertTrue(state.cover(parked),
+              "the change which was given back must be replayed by the delivery which takes it over");
+        }
+      });
+      checkEntryHasAttributeValue(waitedOn, "description", parkedDescription, 30,
+          "the change which was parked must be applied by the delivery which took it over");
+    }
+    finally
+    {
+      resetReplayGiveUpDelay();
+      resetNumUpdateReplayThreads();
+    }
+  }
+
+  /**
    * Delivers a change until a monitor attribute of the domain reaches the expected value.
    * <p>
    * A delivery is dropped rather than queued while the listener thread is down, which it

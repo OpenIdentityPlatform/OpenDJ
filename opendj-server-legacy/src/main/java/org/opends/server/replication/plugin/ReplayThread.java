@@ -77,6 +77,47 @@ public class ReplayThread extends DirectoryThread
       logger.trace("Replication Replay thread starting.");
     }
 
+    try
+    {
+      replayUntilStopped();
+    }
+    finally
+    {
+      /*
+       * The changes this thread parked as waiting for another change are handed out again
+       * by getNextUpdate() alone, which every replay loop of a domain runs once it is done
+       * with a change: a parked change is replayed by whichever thread clears the change it
+       * was waiting for. A thread which is stopping is not on that road anymore, so what it
+       * parked would be left owned by a thread which does not exist, while every redelivery
+       * of a change a replay thread owns is refused as a duplicate: on a domain which then
+       * goes quiet that change is where the ServerState of this replica, and every change
+       * behind it from every master, stops (issue #986).
+       *
+       * Given back by the thread which owns them, so that the rule every road which reads
+       * ownership follows holds on this one as well: a change is given back by the thread it
+       * was handed to and by nobody else (issue #922). It is also the one place which sees
+       * them all - the pool is shared by every domain of this server, while a replay knows
+       * only the domain it was replaying for.
+       *
+       * The session which brings them back is restarted by the thread which stopped this
+       * one, once the pool it creates is up: a thread on its way out must not be held for a
+       * session, and a change delivered again while the pool is empty would wait there for a
+       * replay thread rather than be replayed.
+       */
+      giveBackParkedChanges();
+    }
+    if (logger.isTraceEnabled())
+    {
+      logger.trace("Replication Replay thread stopping.");
+    }
+  }
+
+  /**
+   * Takes the deliveries of the domains of this server off the shared replay queue and
+   * replays them, until this thread is stopped.
+   */
+  private void replayUntilStopped()
+  {
     while (!shutdown.get())
     {
       try
@@ -145,9 +186,22 @@ public class ReplayThread extends DirectoryThread
         logger.error(ERR_EXCEPTION_REPLAYING_REPLICATION_MESSAGE, stackTraceToSingleLineString(t));
       }
     }
-    if (logger.isTraceEnabled())
+  }
+
+  /**
+   * Gives back the changes this thread parked as waiting for another change, in every
+   * domain of this server.
+   * <p>
+   * A change which is given back stays listed and uncommitted, the way a change whose replay
+   * failed does: it is not in the data, so it holds the ServerState of its domain back and
+   * the changes which follow it keep waiting for it, until the delivery which takes it over
+   * replays it.
+   */
+  private void giveBackParkedChanges()
+  {
+    for (LDAPReplicationDomain domain : MultimasterReplication.getDomains())
     {
-      logger.trace("Replication Replay thread stopping.");
+      domain.giveBackChangesParkedByStoppingThread();
     }
   }
 }
