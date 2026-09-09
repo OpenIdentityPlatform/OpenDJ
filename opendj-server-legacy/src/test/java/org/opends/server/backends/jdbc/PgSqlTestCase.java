@@ -15,6 +15,7 @@
  */
 package org.opends.server.backends.jdbc;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
@@ -185,6 +186,108 @@ public class PgSqlTestCase extends TestCase {
             try (final ResultSet rs = st.executeQuery()) {
                 return rs.next();
             }
+        }
+    }
+
+    /** The schema of the case below: one no connection of this suite resolves in. */
+    private static final String OFF_THE_PATH = "opendj_offpath";
+
+    /**
+     * A table this connection does not reach unqualified answers for none of this backend's, and neither
+     * does its index (#902).
+     * <p>
+     * A table is named after the hash of its tree name and its index after the table, so both names follow
+     * from the configuration alone: two directories sharing one database, each with a schema and a
+     * {@code search_path} of its own - the routine way to host two of them on one server - hold a table of
+     * the same name and an index of the same name, and nothing about either name tells the two apart. Asked
+     * with no schema at all, as the JDBC contract reads it, the catalog answers for the neighbour's, and both
+     * guards of {@code openTree()} then skip a create this backend needs: the table one leaves every
+     * statement of the backend addressing a relation that is not there, and the index one - the quiet half -
+     * leaves the {@code where k>? order by k} batches of every cursor running unindexed for the life of the
+     * deployment, nothing failing and nothing being logged.
+     * <p>
+     * The neighbour is made by hand rather than by a second storage: what the case needs is a schema the
+     * connections of this one do not resolve in, and the tables of a storage of this suite are made in the
+     * schema they do.
+     */
+    @Test
+    public void testAnOpenIsAnsweredForByNoTableOfASchemaOffTheSearchPath() throws Exception {
+        final TreeName tree = new TreeName("testOffThePath", "tree");
+        final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_offPath"), null);
+        final String tableName = storage.getTableName(tree);
+        final String indexName = "k_" + tableName.substring("opendj_".length());
+        try {
+            // the schema an unqualified create of this storage lands in, which is where the table and the
+            // index this case is about have to end up
+            final String working;
+            try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+                working = con.getSchema();
+            }
+            assertNotEquals(working, OFF_THE_PATH,
+                "the connections of this suite work in the very schema the neighbour of this case is in");
+
+            try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+                 final Statement st = con.createStatement()) {
+                st.execute("create schema if not exists " + OFF_THE_PATH);
+                // the neighbouring directory: the same table and the same index, in a schema this storage
+                // reaches through no unqualified name of its own. Spelled out rather than opened by a
+                // storage, so that the fixture is the collision and nothing else
+                st.execute("create table " + OFF_THE_PATH + "." + tableName
+                    + " (h char(128),k bytea,v bytea,primary key(h,k))");
+                st.execute("create index " + indexName + " on " + OFF_THE_PATH + "." + tableName + " (k)");
+            }
+            assertFalse(isExistsTableInSchema(working, tableName),
+                "the case did not start with the table of this backend absent from the schema it works in");
+
+            storage.open(AccessMode.READ_WRITE);
+            storage.write(new WriteOperation() {
+                @Override
+                public void run(WriteableTransaction txn) throws Exception {
+                    txn.openTree(tree, true);
+                    // the destructive half of the table guard, and the reason it is loud: found abroad, the
+                    // table is created nowhere and this statement addresses a relation that is not there
+                    txn.put(tree, ByteString.valueOfUtf8("a key of this backend"),
+                        ByteString.valueOfUtf8("a value of this backend"));
+                }
+            });
+
+            assertTrue(isExistsTableInSchema(working, tableName),
+                "the open took the table of a schema it does not reach unqualified for its own and created none");
+            assertTrue(isExistsIndexInSchema(working, indexName),
+                "the open took the index of a schema it does not reach unqualified for its own: the cursor batches of this tree are full scans behind it");
+            assertEquals(rowCountInSchema(OFF_THE_PATH, tableName), 0,
+                "the write of this backend landed in the table of the neighbouring schema");
+        } finally {
+            clearQuietly(storage);
+            try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+                 final Statement st = con.createStatement()) {
+                st.execute("drop schema if exists " + OFF_THE_PATH + " cascade");
+            }
+        }
+    }
+
+    /**
+     * Whether that one schema holds the index, which is the index half of the case above and the question
+     * {@code getIndexInfo()} cannot be trusted with here: it is the very lookup under test.
+     */
+    private boolean isExistsIndexInSchema(String schema, String indexName) throws SQLException {
+        try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+             final PreparedStatement st = con.prepareStatement(
+                 "select 1 from pg_indexes where schemaname=? and lower(indexname)=lower(?)")) {
+            st.setString(1, schema);
+            st.setString(2, indexName);
+            try (final ResultSet rs = st.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    /** What the table of that one schema holds, which says which of the two tables a write went to. */
+    private int rowCountInSchema(String schema, String tableName) throws SQLException {
+        try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+             final Statement st = con.createStatement();
+             final ResultSet rs = st.executeQuery("select count(*) from " + schema + "." + tableName)) {
+            return rs.next() ? rs.getInt(1) : -1;
         }
     }
 
