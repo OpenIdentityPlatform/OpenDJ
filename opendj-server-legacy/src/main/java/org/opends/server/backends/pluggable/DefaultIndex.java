@@ -53,7 +53,12 @@ class DefaultIndex extends AbstractTree implements Index
   /** The limit on the number of entry IDs that may be indexed by one key. */
   private int indexEntryLimit;
 
-  private EntryIDSetCodec codec;
+  /**
+   * Volatile because {@link #afterOpen} binds it to the confidentiality then in force, and an index
+   * whose configuration gives that setting up - or asks for it - is opened again while operations of
+   * other threads are holding this instance.
+   */
+  private volatile EntryIDSetCodec codec;
   private CryptoSuite cryptoSuite;
 
   /**
@@ -304,12 +309,6 @@ class DefaultIndex extends AbstractTree implements Index
     final boolean rebuildRequired = this.indexEntryLimit < indexEntryLimit;
     this.indexEntryLimit = indexEntryLimit;
     return rebuildRequired;
-  }
-
-  @Override
-  public boolean setConfidential(boolean indexConfidential)
-  {
-    return cryptoSuite.isEncrypted() != indexConfidential;
   }
 
   @Override
