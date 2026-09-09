@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
@@ -56,6 +57,7 @@ import static org.opends.messages.UtilityMessages.ERR_CERTMGR_ALIAS_INVALID;
 import static org.opends.messages.UtilityMessages.ERR_CERTMGR_CERT_REPLIES_INVALID;
 import static org.opends.messages.UtilityMessages.ERR_CERTMGR_DELETE_ALIAS;
 import static org.opends.messages.UtilityMessages.ERR_CERTMGR_GEN_SELF_SIGNED_CERT;
+import static org.opends.messages.UtilityMessages.ERR_CERTMGR_IMPORT_KEY_ENTRY;
 import static org.opends.messages.UtilityMessages.ERR_CERTMGR_KEYSTORE_NONEXISTANT;
 import static org.opends.messages.UtilityMessages.ERR_CERTMGR_TRUSTED_CERT;
 
@@ -187,6 +189,51 @@ public final class Platform
       catch (Exception e)
       {
         throw new KeyStoreException(ERR_CERTMGR_ADD_CERT.get(alias, e.getMessage()).toString(), e);
+      }
+    }
+
+    private final void importKeyEntry(KeyStore ks, String ksType, String ksPath, String alias, char[] pwd,
+                                      Key privateKey, Certificate[] chain) throws KeyStoreException
+    {
+      try
+      {
+        if (ks == null)
+        {
+          ks = KeyStore.getInstance(ksType);
+          ks.load(null, pwd);
+        }
+        // The key is re-encrypted with the password of this key store: the key managers of
+        // the server are initialised with the store password only, so a key which kept the
+        // password of the key store it comes from could not be read back.
+        ks.setKeyEntry(alias, privateKey, pwd, chain);
+        try (FileOutputStream fileOutStream = new FileOutputStream(ksPath)) {
+          ks.store(fileOutStream, pwd);
+        }
+      }
+      catch (Exception e)
+      {
+        throw new KeyStoreException(ERR_CERTMGR_IMPORT_KEY_ENTRY.get(alias, e.getMessage()).toString(), e);
+      }
+    }
+
+    private final void addTrustedCertificate(KeyStore ks, String ksType, String ksPath, String alias, char[] pwd,
+                                             Certificate certificate) throws KeyStoreException
+    {
+      try
+      {
+        if (ks == null)
+        {
+          ks = KeyStore.getInstance(ksType);
+          ks.load(null, pwd);
+        }
+        ks.setCertificateEntry(alias, certificate);
+        try (FileOutputStream fileOutStream = new FileOutputStream(ksPath)) {
+          ks.store(fileOutStream, pwd);
+        }
+      }
+      catch (Exception e)
+      {
+        throw new KeyStoreException(ERR_CERTMGR_TRUSTED_CERT.get(alias, e.getMessage()).toString(), e);
       }
     }
 
@@ -330,6 +377,61 @@ public final class Platform
                                     String alias, char[] pwd, String certPath) throws KeyStoreException
   {
     IMPL.addCertificate(ks, ksType, ksPath, alias, pwd, certPath);
+  }
+
+  /**
+   * Copy a key entry, that is a private key and its certificate chain, into the provided
+   * keystore; creating the keystore with the provided type and path if it doesn't exist.
+   * The private key is re-encrypted with the password of the destination keystore.
+   *
+   * @param ks
+   *          The keystore to add the key entry to, may be null if it doesn't exist.
+   * @param ksType
+   *          The type to use if the keystore is created.
+   * @param ksPath
+   *          The path to the keystore.
+   * @param alias
+   *          The alias to store the key entry under.
+   * @param pwd
+   *          The keystore password, used for the private key as well.
+   * @param privateKey
+   *          The private key to store.
+   * @param chain
+   *          The certificate chain of the private key, the certificate it belongs to first.
+   * @throws KeyStoreException
+   *           If an error occurred adding the key entry to the keystore.
+   */
+  public static void importKeyEntry(KeyStore ks, String ksType, String ksPath, String alias, char[] pwd,
+                                    Key privateKey, Certificate[] chain) throws KeyStoreException
+  {
+    IMPL.importKeyEntry(ks, ksType, ksPath, alias, pwd, privateKey, chain);
+  }
+
+  /**
+   * Add the provided certificate to the provided keystore as a trusted certificate entry;
+   * creating the keystore with the provided type and path if it doesn't exist. Only such
+   * an entry is a trust anchor: the certificate chain of a key entry is not, the trust
+   * managers take the certificate the key belongs to and none of its issuers.
+   *
+   * @param ks
+   *          The keystore to add the certificate to, may be null if it doesn't exist.
+   * @param ksType
+   *          The type to use if the keystore is created.
+   * @param ksPath
+   *          The path to the keystore.
+   * @param alias
+   *          The alias to store the certificate under.
+   * @param pwd
+   *          The keystore password.
+   * @param certificate
+   *          The certificate to trust.
+   * @throws KeyStoreException
+   *           If an error occurred adding the certificate to the keystore.
+   */
+  public static void addTrustedCertificate(KeyStore ks, String ksType, String ksPath, String alias, char[] pwd,
+                                           Certificate certificate) throws KeyStoreException
+  {
+    IMPL.addTrustedCertificate(ks, ksType, ksPath, alias, pwd, certificate);
   }
 
   /**

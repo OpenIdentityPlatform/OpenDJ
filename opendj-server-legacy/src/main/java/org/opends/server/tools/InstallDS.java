@@ -855,7 +855,18 @@ public class InstallDS extends ConsoleApplication
 
     final SecurityOptions securityOptions = SecurityOptions.createOptionsForCertificatType(
         certType, pathToCertificat, pwd, enableSSL, enableStartTLS, sslPort, certNicknames);
+    securityOptions.setReplicationUsesKeyStore(argParser.useKeyStoreForReplicationArg.isPresent());
+    securityOptions.setReplicationCaCertFiles(getReplicationCaCertFiles());
     uData.setSecurityOptions(securityOptions);
+  }
+
+  private List<File> getReplicationCaCertFiles() {
+    final List<File> caCertFiles = new ArrayList<>();
+    for (String path : argParser.replicationCaCertFileArg.getValues())
+    {
+      caCertFiles.add(new File(path));
+    }
+    return caCertFiles;
   }
 
   private List<String> getCertNickNames() {
@@ -1747,6 +1758,8 @@ public class InstallDS extends ConsoleApplication
         throw new IllegalStateException("Unexpected cert type: "+ certType);
       }
     }
+    securityOptions.setReplicationUsesKeyStore(argParser.useKeyStoreForReplicationArg.isPresent());
+    securityOptions.setReplicationCaCertFiles(getReplicationCaCertFiles());
     return securityOptions;
   }
 

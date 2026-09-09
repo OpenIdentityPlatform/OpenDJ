@@ -267,6 +267,7 @@ public class ConfigureDS
   private StringArgument keyManagerProviderDN;
   private StringArgument trustManagerProviderDN;
   private StringArgument certNickNames;
+  private StringArgument adsCertNickNames;
   private StringArgument keyManagerPath;
   private StringArgument serverRoot;
   private StringArgument backendType;
@@ -324,6 +325,7 @@ public class ConfigureDS
       updateStartTLS();
       updateKeyManager();
       updateTrustManager();
+      updateCryptoManagerCertNickname();
       updateRootUser(rootDN, rootPW);
       addFQDNDigestMD5();
       updateCryptoCipher();
@@ -437,6 +439,12 @@ public class ConfigureDS
               StringArgument.builder("certNickName")
                       .shortIdentifier('a')
                       .description(INFO_CONFIGDS_DESCRIPTION_CERTNICKNAME.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_NICKNAME_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      adsCertNickNames =
+              StringArgument.builder("adsCertNickName")
+                      .description(INFO_CONFIGDS_DESCRIPTION_ADS_CERTNICKNAME.get())
                       .multiValued()
                       .valuePlaceholder(INFO_NICKNAME_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
@@ -1155,6 +1163,39 @@ public class ConfigureDS
     catch (final Exception e)
     {
       throw new ConfigureDSException(e, ERR_CONFIGDS_CANNOT_UPDATE_DIGEST_MD5_FQDN.get(e));
+    }
+  }
+
+  /**
+   * Sets the certificate nicknames the crypto manager presents for server to server
+   * communication, that is on the replication port.  The property replaces the value the
+   * template configuration holds, {@code ads-certificate}, which is the self-signed key
+   * pair the trust store backend generates: with a key pair of its own provisioned into
+   * the trust store, the server presents that one instead.
+   * <p>
+   * The value is written to the configuration rather than set with dsconfig once the
+   * server runs because the crypto manager reads the property once, when it is created at
+   * startup, and replication caches the value when a replication server or a replicated
+   * domain is created.
+   */
+  private void updateCryptoManagerCertNickname() throws ConfigureDSException
+  {
+    if (!adsCertNickNames.isPresent())
+    {
+      return;
+    }
+    final List<String> attrValues = adsCertNickNames.getValues();
+    try
+    {
+      updateConfigEntryWithAttribute(
+          DN_CRYPTO_MANAGER,
+          ATTR_SSL_CERT_NICKNAME,
+          CoreSchema.getDirectoryStringSyntax(),
+          attrValues.toArray(new Object[attrValues.size()]));
+    }
+    catch (final Exception e)
+    {
+      throw new ConfigureDSException(e, ERR_CONFIGDS_CANNOT_UPDATE_CERT_NICKNAME.get(e));
     }
   }
 

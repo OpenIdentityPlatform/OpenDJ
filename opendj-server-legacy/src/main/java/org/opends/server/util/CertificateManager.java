@@ -13,11 +13,14 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.util;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.security.GeneralSecurityException;
+import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
@@ -81,6 +84,8 @@ public final class CertificateManager {
   private static final String CERT_ALIAS_MSG = "certificate alias";
   private static final String CERT_REQUEST_FILE_MSG =
                                                     "certificate request file";
+  private static final String SOURCE_KEYSTORE_MSG = "source key store";
+  private static final String CERT_MSG = "certificate";
   /** The parsed key store backing this certificate manager. */
   private KeyStore keyStore;
 
@@ -191,6 +196,17 @@ public final class CertificateManager {
 
 
   /**
+   * Retrieves the path of the key store this certificate manager works on.
+   *
+   * @return  The path of the key store.
+   */
+  public String getKeyStorePath() {
+    return keyStorePath;
+  }
+
+
+
+  /**
    * Indicates whether the provided alias is in use in the key store.
    *
    * @param  alias  The alias for which to make the determination.  It must not
@@ -264,6 +280,104 @@ public final class CertificateManager {
       throw new KeyStoreException(msg.toString());
     }
     return ks.getCertificate(alias);
+  }
+
+
+  /**
+   * Retrieves the certificate chain of the key entry with the specified alias from the
+   * key store, the certificate the key belongs to first and its issuers next.
+   *
+   * @param  alias  The alias of the key entry whose chain to retrieve.  It must not be
+   *                {@code null} or empty.
+   *
+   * @return  The certificate chain, or {@code null} if the key store holds no key entry
+   *          under the specified alias.
+   *
+   * @throws  KeyStoreException  If a problem occurs while interacting with the key store,
+   *                             or the key store does not exist.
+   */
+  public Certificate[] getCertificateChain(String alias)
+  throws KeyStoreException {
+    ensureValid(alias, CERT_ALIAS_MSG);
+    KeyStore ks = getKeyStore();
+    if (ks == null) {
+      LocalizableMessage msg = ERR_CERTMGR_KEYSTORE_NONEXISTANT.get();
+      throw new KeyStoreException(msg.toString());
+    }
+    return ks.getCertificateChain(alias);
+  }
+
+
+  /**
+   * Copies the key entry with the specified alias from the provided key store into this
+   * one, with its whole certificate chain.  The private key is re-encrypted with the
+   * password of this key store: the key managers of the server are initialised with the
+   * store password only, so a key which kept the password of the key store it comes from
+   * could not be read back.
+   * <p>
+   * The certificates of the chain are not added as trusted certificates, as only a
+   * trusted certificate entry is a trust anchor.  Use {@link #addTrustedCertificate} for
+   * the issuers which have to be trusted.
+   *
+   * @param  alias          The alias to store the key entry under in this key store.  It
+   *                        must not be {@code null} or empty.
+   * @param  sourceManager  The certificate manager of the key store holding the key entry
+   *                        to copy.  It must not be {@code null}.
+   * @param  sourceAlias    The alias of the key entry to copy.  It must not be
+   *                        {@code null} or empty.
+   *
+   * @throws  KeyStoreException  If the source key store holds no key entry under the
+   *                             provided alias, or a problem occurs while interacting
+   *                             with either key store.
+   */
+  public void importKeyEntry(String alias, CertificateManager sourceManager, String sourceAlias)
+  throws KeyStoreException {
+    ensureValid(alias, CERT_ALIAS_MSG);
+    ensureValid(sourceAlias, CERT_ALIAS_MSG);
+    if (sourceManager == null) {
+      LocalizableMessage msg = ERR_CERTMGR_VALUE_INVALID.get(SOURCE_KEYSTORE_MSG);
+      throw new NullPointerException(msg.toString());
+    }
+
+    final Certificate[] chain = sourceManager.getCertificateChain(sourceAlias);
+    final Key privateKey;
+    try {
+      privateKey = sourceManager.getKeyStore().getKey(sourceAlias, sourceManager.password);
+    } catch (GeneralSecurityException e) {
+      throw new KeyStoreException(
+          ERR_CERTMGR_IMPORT_KEY_ENTRY.get(sourceAlias, e.getMessage()).toString(), e);
+    }
+    if (privateKey == null || chain == null || chain.length == 0) {
+      LocalizableMessage msg =
+          ERR_CERTMGR_NO_KEY_ENTRY.get(sourceAlias, sourceManager.keyStorePath);
+      throw new KeyStoreException(msg.toString());
+    }
+
+    keyStore = null;
+    Platform.importKeyEntry(getKeyStore(), keyStoreType, keyStorePath, alias, password, privateKey, chain);
+  }
+
+
+  /**
+   * Adds the provided certificate to the key store as a trusted certificate entry.  Only
+   * such an entry is a trust anchor: of a key entry, the trust managers take the
+   * certificate the key belongs to and none of its issuers.
+   *
+   * @param  alias        The alias to use for the certificate.  It must not be
+   *                      {@code null} or empty.
+   * @param  certificate  The certificate to trust.  It must not be {@code null}.
+   *
+   * @throws  KeyStoreException  If a problem occurs while interacting with the key store.
+   */
+  public void addTrustedCertificate(String alias, Certificate certificate)
+  throws KeyStoreException {
+    ensureValid(alias, CERT_ALIAS_MSG);
+    if (certificate == null) {
+      LocalizableMessage msg = ERR_CERTMGR_VALUE_INVALID.get(CERT_MSG);
+      throw new NullPointerException(msg.toString());
+    }
+    keyStore = null;
+    Platform.addTrustedCertificate(getKeyStore(), keyStoreType, keyStorePath, alias, password, certificate);
   }
 
 
