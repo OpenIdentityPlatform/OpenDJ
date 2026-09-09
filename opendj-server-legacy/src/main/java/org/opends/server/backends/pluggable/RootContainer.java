@@ -17,6 +17,7 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.forgerock.util.Utils.closeSilently;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -119,6 +120,15 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
 
   /**
    * Opens the root container.
+   * <p>
+   * {@link Storage#write(WriteOperation)} replays its operation after a transaction conflict, so
+   * the operation below is confined to work a rollback undoes: the entry containers are opened
+   * there, while the registry, which no rollback reaches, is filled in once the write has
+   * committed. Registering them inside the write instead is what a replay then fails on - the
+   * attempt it replaces left every base DN it had reached in {@link #entryContainers}, so
+   * {@link #registerEntryContainer} reports ERR_ENTRY_CONTAINER_ALREADY_REGISTERED and the backend
+   * does not open at all, on a message which says nothing about the conflict that caused the
+   * replay.
    *
    * @param accessMode specifies how the container has to be opened (read-write or read-only)
    *
@@ -129,6 +139,8 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    */
   void open(final AccessMode accessMode) throws StorageRuntimeException, ConfigException
   {
+    // Opened by the write operation, registered only once it has committed.
+    final List<EntryContainer> opened = new ArrayList<>();
     try
     {
       storage.open(accessMode);
@@ -137,20 +149,34 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
+          // Give up what a previous, rolled back attempt had opened: its trees are gone, and its
+          // entry containers still hold the configuration listeners they registered.
+          closeSilently(opened);
+          opened.clear();
           compressedSchema = new PersistentCompressedSchema(serverContext, backendId, storage, txn, accessMode);
-          openAndRegisterEntryContainers(txn, config.getBaseDN(), accessMode);
+          openEntryContainers(txn, config.getBaseDN(), accessMode, opened);
         }
       });
+      // Cannot fail: the base DNs come from a set, and the map of a root container being opened is
+      // empty until here.
+      for (EntryContainer ec : opened)
+      {
+        registerEntryContainer(ec.getBaseDN(), ec);
+      }
       // after the write, never inside it: a compressed schema migration is only worth reporting
       // once the transaction that copied it has committed, and a replayed operation runs twice
       compressedSchema.reportMigration();
     }
     catch(StorageRuntimeException e)
     {
+      // Nothing else holds them: an open which fails is an open whose root container the caller
+      // drops, and the listeners of an entry container outlive it until its close() takes them off.
+      closeSilently(opened);
       throw e;
     }
     catch (Exception e)
     {
+      closeSilently(opened);
       throw new StorageRuntimeException(e);
     }
   }
@@ -203,30 +229,30 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   }
 
   /**
-   * Opens the entry containers for multiple base DNs.
+   * Opens the entry containers for multiple base DNs, collecting them for the caller to register
+   * once the write they are opened by has committed - see {@link #open(AccessMode)}.
    *
    * @param baseDNs
    *          The base DNs of the entry containers to open.
    * @param accessMode specifies how the containers have to be opened (read-write or read-only)
+   * @param opened
+   *          Collects the containers this method opens, in the order it opened them.
    *
    * @throws StorageRuntimeException
    *           If an error occurs while opening the entry container.
-   * @throws InitializationException
-   *           If an initialization error occurs while opening the entry
-   *           container.
    * @throws ConfigException
    *           If a configuration error occurs while opening the entry
    *           container.
    */
-  private void openAndRegisterEntryContainers(WriteableTransaction txn, Set<DN> baseDNs, AccessMode accessMode)
-      throws StorageRuntimeException, InitializationException, ConfigException
+  private void openEntryContainers(WriteableTransaction txn, Set<DN> baseDNs, AccessMode accessMode,
+      List<EntryContainer> opened) throws StorageRuntimeException, ConfigException
   {
     EntryID highestID = null;
     for (DN baseDN : baseDNs)
     {
       EntryContainer ec = openEntryContainer(baseDN, txn, accessMode);
       EntryID id = ec.getHighestEntryID(txn);
-      registerEntryContainer(baseDN, ec);
+      opened.add(ec);
       if (highestID == null || id.compareTo(highestID) > 0)
       {
         highestID = id;
