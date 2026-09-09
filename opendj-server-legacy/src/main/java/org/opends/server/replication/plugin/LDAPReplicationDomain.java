@@ -2865,12 +2865,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * Returns whether the provided result code reports a failure of this server rather
    * than a change which can not be applied: the backend being offline or rebuilt
    * (OPENDJ-49), or the storage failing to serve the operation.
+   * <p>
+   * Package private for the tests, which pin what it answers for every registered result
+   * code directly rather than through a running server.
    *
    * @param result the result code of a replayed operation
    * @param serverErrorResultCode the result code this server puts on an internal error
    * @return {@code true} if the operation failed on the server itself
    */
-  private static boolean isServerFailure(ResultCode result, ResultCode serverErrorResultCode)
+  @VisibleForTesting
+  static boolean isServerFailure(ResultCode result, ResultCode serverErrorResultCode)
   {
     /*
      * The result code the server puts on an internal error is configurable and is not
