@@ -1706,9 +1706,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		private WriteableTransactionTransactionImpl txn;
 
 		// The moment the replay window of the write() this session belongs to runs out, as
-		// System.nanoTime() reads it - null where nothing above this session replays, which is the
-		// importer and nothing else. Boxed rather than given a sentinel: nanoTime() is documented to
-		// return an arbitrary long, so there is no reading of it that could stand for "no window".
+		// JDBCStorage.nanoTime() reads it - null where nothing above this session replays, which is the
+		// importer and nothing else. That clock and not System.nanoTime() directly: the window this is a
+		// reading of was taken from it, and the two are the same clock everywhere except the one place
+		// they would be compared as a mixed pair. Boxed rather than given a sentinel: nanoTime() is
+		// documented to return an arbitrary long, so there is no reading of it that could stand for
+		// "no window".
 		private Long replayWindowEndsAt;
 
 		/**
@@ -1735,7 +1738,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (replayWindowEndsAt==null) {
 				return Long.MAX_VALUE;
 			}
-			final long leftNanos=replayWindowEndsAt-System.nanoTime();
+			final long leftNanos=replayWindowEndsAt-nanoTime();
 			final long now=System.currentTimeMillis();
 			return leftNanos<=0 ? now : now+leftNanos/1_000_000L;
 		}
