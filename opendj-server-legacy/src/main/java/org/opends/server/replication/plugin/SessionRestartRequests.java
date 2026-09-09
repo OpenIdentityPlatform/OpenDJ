@@ -58,6 +58,21 @@ class SessionRestartRequests
   private final AtomicReference<SessionRestart> requested =
       new AtomicReference<>(SessionRestart.NONE);
 
+  SessionRestartRequests()
+  {
+    /*
+     * Every request is made on a replay-failure road, where an allocation may be what has
+     * just failed, and the first execution of merge() in a JVM allocates: the call site
+     * of its lambda and the VarHandle site inside accumulateAndGet() are linked when they
+     * are first run, and nothing runs them before a replay fails. Run once here, on a
+     * thread which can allocate, so that a request made on the road out of an
+     * OutOfMemoryError asks for nothing the JVM has just refused (issue #954). The same
+     * goes for what takes a request, which is run on the same roads.
+     */
+    merge(SessionRestart.NONE);
+    take();
+  }
+
   /**
    * Asks this domain to restart its session.
    *

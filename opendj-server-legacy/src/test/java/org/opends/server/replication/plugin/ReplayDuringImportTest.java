@@ -50,6 +50,7 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Entry;
 import org.opends.server.types.OperationType;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -66,7 +67,9 @@ import org.testng.annotations.Test;
  * over that session, so a replay which fails while it is on its way must not restart it.
  * A restart asked for before the total update took the session, and left standing for the
  * length of it, is not run once it is over either: the change it was asked for is gone with
- * the ServerState the import replaced.
+ * the ServerState the import replaced. The changes a replay which is unwound had parked as
+ * waiting for another one are released on the same terms, and nothing more is done for them
+ * (issue #954).
  * <p>
  * The exporter is a broker of this test, so that the test says when the entries arrive: the
  * change is replayed while the import is waiting for them - or, for the request, while the
@@ -281,6 +284,115 @@ public class ReplayDuringImportTest extends ReplicationTestCase
             + " request arrives over")
         .isEmpty();
     assertTrue(domain.isConnected(), "the session the request was made over was stopped");
+
+    answerImportRequest(exported.length);
+    finishImport(exported);
+    for (String ldif : exported)
+    {
+      final DN dn = dnOf(ldif);
+      assertTrue(entryExists(dn), "the import ended before " + dn
+          + " arrived: the answer to the request was lost with the session it was made over");
+    }
+  }
+
+  /**
+   * The changes a replay which is unwound had parked as waiting for another change are
+   * released and nothing more while a total update owns the session (issue #954): no
+   * session restart is asked for them - the one it would ask for is refused where it runs,
+   * and the request would be spent on it - and they are neither reported as changes the
+   * replication server sends again, which it does not before the import has replaced the
+   * data, nor counted as processed. That is the road a change a stopping replay thread
+   * abandons takes on this domain, and the give-back of the parked changes takes it too.
+   * <p>
+   * Pinned on the import road because it is the one road with an owner which a test holds
+   * open for as long as it needs: the request is on its way until the exporter answers it,
+   * and the backend is live meanwhile, so the change which is parked and the replay which
+   * is unwound run as they would on any domain. The domain going away, or being disabled,
+   * forgets its pending changes a moment after it takes the session and clears every
+   * request and every count on its way, so a give-back on that road is a race with the
+   * forgetting and leaves nothing to read.
+   * <p>
+   * The replay is unwound on the thread of this test - it applied its change, and the ack
+   * of its delivery runs out of memory - so the parked change is this thread's to give
+   * back, and the error which ends a replay thread is caught here instead.
+   */
+  @Test(timeOut = 120_000)
+  public void aParkedChangeGivenBackWhileTheRequestIsOnItsWayIsNotAskedForAgain() throws Exception
+  {
+    final Entry entry = TestCaseUtils.addEntry(
+        "dn: cn=renamedSince," + EXAMPLE_DN,
+        "objectClass: top",
+        "objectClass: person",
+        "cn: renamedSince",
+        "sn: renamedSince");
+    final String entryUUID = getEntryUUID(entry.getName());
+    final String[] exported = exportedEntries();
+
+    // The request is out, and the exporter holds it until the give-back below has run.
+    domain.initializeFromRemote(EXPORTER_ID, null);
+    assertNotNull(waitForSpecificMsg(exporter, InitializeRequestMsg.class));
+
+    /*
+     * The barrier: a change whose replay fails stays listed and uncommitted - the attempts
+     * in place end on an entryUUID search which does not run, the way they do in the case
+     * above - and stays among the changes the newer ones are checked against, so a change
+     * which follows it on the same entry has to wait for it. The restart which would have
+     * followed is refused, the total update owning the session, and the search is let
+     * through again before anything below reads a monitor.
+     */
+    final DN movedAway = DN.valueOf("cn=movedAway," + EXAMPLE_DN);
+    final CSN failing = gen.newCSN();
+    ShortCircuitPlugin.registerShortCircuit(
+        OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue());
+    try
+    {
+      replayMsg(new ModifyMsg(failing, movedAway,
+          generatemods("description", "the replay of this change fails"), entryUUID));
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+    }
+    assertFalse(domain.getServerState().cover(failing),
+        "the change whose replay fails must stay listed as one which is not in the data");
+
+    // Parked as waiting for it by this thread, which owns it from here on.
+    final CSN parked = gen.newCSN();
+    replayMsg(new ModifyMsg(parked, movedAway,
+        generatemods("description", "the change which was parked as a dependency"), entryUUID));
+    assertEquals(getMonitorAttrValue(baseDN, "dependent-changes-size"), 1,
+        "a change which waits for one that is not in the data must be parked");
+
+    /*
+     * The replay which is unwound while this thread still holds the parked change: its own
+     * change is applied and committed, so the give-back on the way out finds the parked
+     * change alone. The count is read once the parked change is listed, since a parked
+     * change publishes no ack and is not counted until the delivery which replays it is.
+     */
+    final long processed = getMonitorAttrValue(baseDN, "replayed-updates");
+    final CSN unwound = gen.newCSN();
+    try
+    {
+      replayMsg(new ModifyMsgWhoseAckRunsOutOfMemoryOnceApplied(unwound, entry.getName(),
+          generatemods("description", "the replay of this change is unwound once it is applied"),
+          entryUUID));
+      Assert.fail("the replay was not unwound: the ack of the delivery must run out of memory");
+    }
+    catch (OutOfMemoryError unwinding)
+    {
+      // The error is the fixture's own, and this is the thread it would have ended.
+    }
+
+    assertEquals(getMonitorAttrValue(baseDN, "dependent-changes-size"), 0,
+        "the change parked by the replay which was unwound must be given back");
+    assertEquals(getMonitorAttrValue(baseDN, "replayed-updates"), processed,
+        "a change released while a total update owns the session must not be counted as"
+            + " processed: no session sends it again before the import has replaced the data");
+    assertThat(errorLogRecordsOf(NOTE_REPLAY_PARKED_CHANGE_GIVEN_BACK.ordinal(), parked))
+        .as("the change was reported as one the replication server sends again, which it does"
+            + " not before the import has replaced the data")
+        .isEmpty();
+    assertTrue(domain.isConnected(), "the session the answer to the request arrives over was stopped");
 
     answerImportRequest(exported.length);
     finishImport(exported);
