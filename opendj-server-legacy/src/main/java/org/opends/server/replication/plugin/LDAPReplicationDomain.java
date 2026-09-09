@@ -4036,6 +4036,25 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   }
 
   /**
+   * Gives back the changes a replay thread which is stopping parked in this domain.
+   * <p>
+   * Called by that thread on its way out (issue #986). The restart which brings them back
+   * is asked for and left standing, the way the thread leaves the request it makes for the
+   * change it abandons: the threads of the pool are stopped one after the other and joined,
+   * and each running a restart on its way out would have the configuration change which is
+   * stopping them wait for one restart per thread. The state checkpointer of this domain
+   * runs one restart for the lot within its tick, and holds it while a total update runs
+   * over the session, in either direction - a change delivered again before the pool which
+   * replaces this thread is up waits in the replay queue for it. Asked for without the
+   * backoff: what went away is a replay thread, not the backend, and these changes were
+   * never applied here.
+   */
+  void giveBackChangesParkedByStoppingThread()
+  {
+    giveBackParkedChanges(SessionRestart.NOW);
+  }
+
+  /**
    * Restarts the session as long as changes which could not be replayed are waiting to be
    * delivered again.
    */
@@ -4179,6 +4198,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * line which says the replication server sends the change again would not hold on any
    * of these - a server which is shutting down abandons every change in flight, and none
    * of them is delivered again before it is started back.
+   * <p>
+   * A replay thread which is stopping calls this through
+   * {@link #giveBackChangesParkedByStoppingThread()}, for every domain of this server: what
+   * it parked would be left owned by a thread which does not exist anymore, and every
+   * redelivery of a change a replay thread owns is refused as a duplicate (issue #986). The
+   * request it makes here is left standing for the state checkpointer, the way that thread
+   * leaves the request it makes for the change it abandons.
    *
    * @param restart what the session restart is asked for as: with the backoff a failing
    *          backend is owed, or without it on a thread which is stopping or which an
