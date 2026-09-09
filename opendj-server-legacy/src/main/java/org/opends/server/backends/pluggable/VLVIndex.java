@@ -65,7 +65,6 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
@@ -73,7 +72,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.util.StaticUtils;
 
 /**
  * This class represents a VLV index.
@@ -229,71 +227,96 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   @Override
   public synchronized ConfigChangeResult applyConfigurationChange(final BackendVLVIndexCfg cfg)
   {
-    try
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    /*
+     * What this change asks for is worked out here, before the write which applies it, and what it
+     * changes is published after that write has committed. Asked and answered from within a
+     * WriteOperation the storage may replay, every question below is asked of the configuration
+     * this vlvIndex holds and answered into the result of the change, and neither is rolled back
+     * with the transaction: an attempt which rolls back leaves this vlvIndex already holding the
+     * new definition, so the replay of it finds nothing changed, and it leaves the result already
+     * asking for the rebuild, which is the only thing that keeps the replay removing the TRUSTED
+     * flag the rollback put back. The operator is told to rebuild the index once per attempt, and
+     * what stops the storage from committing a vlvIndex it still records as trusted - answering a
+     * sorted search after a restart out of a tree built for the definition it no longer has - is
+     * that repetition. See OpenDJ issue #991, which reports this of AttributeIndex, where the
+     * index itself holds the answer and the replay does commit a stale index as trusted.
+     */
+    final boolean baseDNChanged = !config.getBaseDN().equals(cfg.getBaseDN());
+    if (baseDNChanged)
     {
-      final ConfigChangeResult ccr = new ConfigChangeResult();
-      storage.write(new WriteOperation()
-      {
-        @Override
-        public void run(final WriteableTransaction txn) throws Exception
-        {
-          applyConfigurationChange0(txn, cfg, ccr);
-        }
-      });
-      return ccr;
-    }
-    catch (final Exception e)
-    {
-      throw new StorageRuntimeException(e);
-    }
-  }
-
-  private synchronized void applyConfigurationChange0(
-      final WriteableTransaction txn, final BackendVLVIndexCfg cfg, final ConfigChangeResult ccr)
-  {
-    // Update base DN only if changed
-    if (!config.getBaseDN().equals(cfg.getBaseDN()))
-    {
-      this.baseDN = cfg.getBaseDN();
       ccr.setAdminActionRequired(true);
     }
-
-    // Update scope only if changed
-    if (!config.getScope().equals(cfg.getScope()))
+    final boolean scopeChanged = !config.getScope().equals(cfg.getScope());
+    if (scopeChanged)
     {
-      this.scope = convertScope(cfg.getScope());
       ccr.setAdminActionRequired(true);
     }
-
-    // Update the filter only if changed
-    if (!config.getFilter().equals(cfg.getFilter()))
+    // parseSearchFilter() asks for the administrative action itself, and only once it has parsed.
+    final boolean filterChanged = !config.getFilter().equals(cfg.getFilter());
+    final SearchFilter newFilter = filterChanged ? parseSearchFilter(cfg, getName().toString(), ccr) : filter;
+    final boolean sortOrderChanged = !config.getSortOrder().equals(cfg.getSortOrder());
+    final List<SortKey> newSortKeys;
+    if (sortOrderChanged)
     {
-      this.filter = parseSearchFilter(cfg, getName().toString(), ccr);
-    }
-
-    // Update the sort order only if changed
-    if (!config.getSortOrder().equals(cfg.getSortOrder()))
-    {
-      this.sortKeys = parseSortKeys(cfg.getSortOrder(), ccr);
+      newSortKeys = parseSortKeys(cfg.getSortOrder(), ccr);
       ccr.setAdminActionRequired(true);
     }
-
-    if (ccr.adminActionRequired())
+    else
     {
-      trusted = false;
-      ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(getName()));
+      newSortKeys = sortKeys;
+    }
+
+    final boolean requiresRebuild = ccr.adminActionRequired();
+    if (requiresRebuild)
+    {
+      // The only part of this change which is written down. A change asking for nothing this
+      // vlvIndex has to be rebuilt for opens no transaction, rather than one a bounded storage
+      // could give up on with nothing to give up. A failure to remove the flag is raised rather
+      // than reported: caught inside the operation, as it used to be, it is a conflict swallowed
+      // where the storage was waiting to be told to replay, and the attempt commits having done
+      // nothing. Reported the way every other storage failure of this method already is.
       try
       {
-        state.removeFlagsFromIndex(txn, getName(), IndexFlag.TRUSTED);
+        storage.write(new WriteOperation()
+        {
+          @Override
+          public void run(final WriteableTransaction txn) throws Exception
+          {
+            setTrusted(txn, false);
+          }
+        });
       }
-      catch (final StorageRuntimeException de)
+      catch (final Exception e)
       {
-        ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-        ccr.setResultCodeIfSuccess(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
+        throw new StorageRuntimeException(e);
       }
     }
 
+    if (baseDNChanged)
+    {
+      this.baseDN = cfg.getBaseDN();
+    }
+    if (scopeChanged)
+    {
+      this.scope = convertScope(cfg.getScope());
+    }
+    if (filterChanged)
+    {
+      this.filter = newFilter;
+    }
+    if (sortOrderChanged)
+    {
+      this.sortKeys = newSortKeys;
+    }
+    if (requiresRebuild)
+    {
+      // Reported here rather than from within the write, since a message an attempt which rolls
+      // back added to the result stays there, and the operator would be told once per attempt.
+      ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(getName()));
+    }
     this.config = cfg;
+    return ccr;
   }
 
   private List<SortKey> parseSortKeys(final String sortOrder, ConfigChangeResult ccr)
