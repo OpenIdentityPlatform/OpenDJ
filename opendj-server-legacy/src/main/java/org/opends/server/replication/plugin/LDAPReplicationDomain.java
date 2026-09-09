@@ -2105,7 +2105,21 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public void publishReplicaOfflineMsg()
   {
     final CSN offlineCSN = pendingChanges.putReplicaOfflineMsg();
-    dsrsShutdownSync.replicaOfflineMsgSent(getBaseDN(), offlineCSN);
+    if (offlineCSN != null)
+    {
+      /*
+       * Only a message which really was published is announced: the shutdown of a collocated
+       * replication server waits for it to be forwarded, and would spend the whole grace
+       * period waiting for one which never reached the wire.
+       */
+      dsrsShutdownSync.replicaOfflineMsgSent(getBaseDN(), offlineCSN);
+    }
+    else if (logger.isTraceEnabled())
+    {
+      logger.trace("Replica " + getServerId() + " of domain baseDN=" + getBaseDN()
+          + " could not announce itself offline: a change which is still in flight holds"
+          + " the message back, and " + pendingChanges.size() + " change(s) are pending");
+    }
   }
 
   /**
