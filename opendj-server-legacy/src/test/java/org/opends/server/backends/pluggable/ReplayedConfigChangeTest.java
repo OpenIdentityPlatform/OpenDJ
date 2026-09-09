@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.opends.messages.BackendMessages.ERR_BACKEND_BASEDN_NO_LONGER_HELD;
 import static org.opends.messages.BackendMessages.ERR_BACKEND_CANNOT_LIST_TREES_AFTER_BASEDN_CHANGE;
 import static org.opends.messages.BackendMessages.ERR_BACKEND_CANNOT_REGISTER_BASEDN;
+import static org.opends.messages.BackendMessages.NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
+import static org.opends.messages.BackendMessages.NOTE_INDEX_ADD_REQUIRES_REBUILD;
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -46,11 +48,14 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
+import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn.Scope;
 import org.forgerock.opendj.server.config.server.BackendIndexCfg;
+import org.forgerock.opendj.server.config.server.BackendVLVIndexCfg;
 import org.forgerock.opendj.server.config.server.PDBBackendCfg;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.pdb.PDBStorage;
+import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.State.IndexFlag;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -63,6 +68,7 @@ import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
+import org.opends.server.core.AddOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
@@ -95,6 +101,8 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
   private static final DN ADDED = DN.valueOf("dc=b907c,dc=com");
   /** Hierarchically related to {@link #KEPT}, which one backend is not allowed to serve as well. */
   private static final DN UNREGISTRABLE = DN.valueOf("dc=b907d,dc=b907a,dc=com");
+  /** Held in lower case, which is how an entry container keys the vlvIndexes it holds. */
+  private static final String VLV_INDEX_NAME = "b907vlv";
 
   private ServerContext serverContext;
   private AttributeType cnType;
@@ -545,6 +553,16 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
     }
   }
 
+  private static Set<TreeName> treesOf(EntryContainer ec)
+  {
+    final Set<TreeName> names = new HashSet<>();
+    for (Tree tree : ec.listTrees())
+    {
+      names.add(tree.getName());
+    }
+    return names;
+  }
+
   /** The messages a change result carries, by identity rather than by their formatted text. */
   private static Set<Integer> ordinalsOf(ConfigChangeResult ccr)
   {
@@ -556,14 +574,118 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
     return ordinals;
   }
 
-  private static Set<TreeName> treesOf(EntryContainer ec)
+  /**
+   * An index a change adds is opened untrusted while the backend holds entries, and the operator is
+   * told to rebuild it. That message belongs to the attempt which commits: added to the result from
+   * inside the operation, a replay repeats it once per attempt.
+   */
+  @Test
+  public void anIndexAddedByAChangeIsReportedOnceWhenTheTransactionIsReplayed() throws Exception
   {
-    final Set<TreeName> names = new HashSet<>();
-    for (Tree tree : ec.listTrees())
+    final ReplayingBackend backend = openBackend(newTreeSet(KEPT));
+    try
     {
-      names.add(tree.getName());
+      addBaseEntry(backend, KEPT, "b907a");
+      final AttributeIndex index = backend.getRootContainer().getEntryContainer(KEPT).getAttributeIndex(cnType);
+
+      // The first of the three writes a change makes is the one which opens the indexes it adds.
+      backend.storage.conflictAtCommit(1);
+      final ConfigChangeResult ccr =
+          index.applyConfigurationChange(indexCfg(newTreeSet(IndexType.EQUALITY, IndexType.PRESENCE), 4000));
+
+      assertThat(backend.storage.attempts()).isEqualTo(2);
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.adminActionRequired()).isTrue();
+      assertThat(ccr.getMessages()).as("the rebuild the added index needs, asked for once").hasSize(1);
+      assertThat(ordinalsOf(ccr)).containsOnly(NOTE_INDEX_ADD_REQUIRES_REBUILD.ordinal());
+      assertThat(index.isIndexed(IndexType.PRESENCE)).as("the index type the change added").isTrue();
     }
-    return names;
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * Raising the entry limit of an index leaves it holding the keys it gave up under the lower limit,
+   * so it has to be rebuilt and may not be trusted until it is. The limit an index holds is not
+   * rolled back with the transaction while the removal of its persisted TRUSTED flag is, so an
+   * attempt which rolls back must not be what decides that the limit went up.
+   */
+  @Test
+  public void aRaisedEntryLimitUntrustsTheIndexWhenTheTransactionIsReplayed() throws Exception
+  {
+    final ReplayingBackend backend = openBackend(newTreeSet(KEPT));
+    try
+    {
+      final RootContainer rootContainer = backend.getRootContainer();
+      final EntryContainer ec = rootContainer.getEntryContainer(KEPT);
+      final AttributeIndex index = ec.getAttributeIndex(cnType);
+      final MatchingRuleIndex cnIndex = index.getNameToIndexes().values().iterator().next();
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).contains(TRUSTED);
+
+      // The third write is the one which applies the entry limit: the first two open the indexes
+      // the change adds and delete the ones it removes, and it neither adds nor removes any.
+      backend.storage.conflictAtCommitOnWrite(3, 1);
+      final ConfigChangeResult ccr = index.applyConfigurationChange(indexCfg(newTreeSet(IndexType.EQUALITY), 8000));
+
+      assertThat(backend.storage.attempts()).isEqualTo(2);
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.adminActionRequired()).isTrue();
+      assertThat(ccr.getMessages()).as("the rebuild the raised limit needs, asked for once").hasSize(1);
+      assertThat(ordinalsOf(ccr)).containsOnly(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.ordinal());
+      assertThat(cnIndex.getIndexEntryLimit()).as("the limit the change applied").isEqualTo(8000);
+      assertThat(cnIndex.isTrusted()).isFalse();
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName()))
+          .as("the flag the attempt which committed had to remove").doesNotContain(TRUSTED);
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * A vlvIndex whose sort order changes holds a tree sorted under the order it no longer has, so it
+   * may not be trusted until it is rebuilt. Every question it asks is asked of the configuration it
+   * holds, and no rollback takes that configuration back, so the replay of an attempt which rolled
+   * back finds nothing changed: the rebuild it goes on asking for is the administrative action the
+   * rolled back attempt left in the result, told to the operator once per attempt.
+   */
+  @Test
+  public void aChangedSortOrderUntrustsTheVlvIndexWhenTheTransactionIsReplayed() throws Exception
+  {
+    final ReplayingBackend backend = openBackendWithVlvIndex();
+    try
+    {
+      final RootContainer rootContainer = backend.getRootContainer();
+      final EntryContainer ec = rootContainer.getEntryContainer(KEPT);
+      final VLVIndex vlvIndex = ec.getVLVIndex(VLV_INDEX_NAME);
+      assertThat(persistedFlags(rootContainer, ec, vlvIndex.getName())).contains(TRUSTED);
+
+      backend.storage.conflictAtCommit(1);
+      final ConfigChangeResult ccr = vlvIndex.applyConfigurationChange(vlvIndexCfg("+sn"));
+
+      assertThat(backend.storage.attempts()).isEqualTo(2);
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.adminActionRequired()).isTrue();
+      assertThat(ccr.getMessages()).as("the rebuild the new sort order needs, asked for once").hasSize(1);
+      assertThat(ordinalsOf(ccr)).containsOnly(NOTE_INDEX_ADD_REQUIRES_REBUILD.ordinal());
+      assertThat(vlvIndex.isTrusted()).isFalse();
+      assertThat(persistedFlags(rootContainer, ec, vlvIndex.getName()))
+          .as("the flag the attempt which committed had to remove").doesNotContain(TRUSTED);
+
+      // The definition the change applied is the one this vlvIndex holds from now on, so asking for
+      // it a second time asks for nothing.
+      final ConfigChangeResult again = vlvIndex.applyConfigurationChange(vlvIndexCfg("+sn"));
+      assertThat(again.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(again.adminActionRequired()).as("a change which changes nothing").isFalse();
+      assertThat(again.getMessages()).isEmpty();
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
   }
 
   /** Reads back the flags an index was given when it was opened, as they are stored. */
@@ -576,9 +698,20 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
 
   private ReplayingBackend openBackend(SortedSet<DN> baseDNs) throws Exception
   {
+    return openBackend(baseDNs, false);
+  }
+
+  /** The vlvIndex is opened only where a test is about one, since every base DN gets a copy of it. */
+  private ReplayingBackend openBackendWithVlvIndex() throws Exception
+  {
+    return openBackend(newTreeSet(KEPT), true);
+  }
+
+  private ReplayingBackend openBackend(SortedSet<DN> baseDNs, boolean withVlvIndex) throws Exception
+  {
     final ReplayingBackend backend = new ReplayingBackend();
     backend.setBackendID(BACKEND_ID);
-    backend.configuredWith = backendCfg(baseDNs);
+    backend.configuredWith = backendCfg(baseDNs, withVlvIndex);
     backend.configureBackend(backend.configuredWith, serverContext);
     // Start from a pristine on-disk state so that a previous run cannot mask the defect.
     backend.storage.removeStorageFiles();
@@ -618,6 +751,11 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
 
   private PDBBackendCfg backendCfg(SortedSet<DN> baseDNs) throws ConfigException
   {
+    return backendCfg(baseDNs, false);
+  }
+
+  private PDBBackendCfg backendCfg(SortedSet<DN> baseDNs, boolean withVlvIndex) throws ConfigException
+  {
     final PDBBackendCfg cfg = mockCfg(PDBBackendCfg.class);
     when(cfg.dn()).thenReturn(DN.valueOf("ds-cfg-backend-id=" + BACKEND_ID + ",cn=Backends,cn=config"));
     when(cfg.getBackendId()).thenReturn(BACKEND_ID);
@@ -627,15 +765,50 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
     when(cfg.getDBCachePercent()).thenReturn(20);
     when(cfg.getBaseDN()).thenReturn(baseDNs);
     when(cfg.listBackendIndexes()).thenReturn(new String[] { "cn" });
-    when(cfg.listBackendVLVIndexes()).thenReturn(new String[0]);
-
-    final BackendIndexCfg indexCfg = mock(BackendIndexCfg.class);
-    when(indexCfg.getIndexType()).thenReturn(newTreeSet(IndexType.EQUALITY));
-    when(indexCfg.getAttribute()).thenReturn(cnType);
-    when(indexCfg.getIndexEntryLimit()).thenReturn(4000);
-    when(indexCfg.getSubstringLength()).thenReturn(6);
-    when(cfg.getBackendIndex("cn")).thenReturn(indexCfg);
+    // Built before it is handed over: stubbing a mock from inside a when() of another mock leaves
+    // that when() unfinished, and Mockito fails the next test to touch either of them.
+    final BackendIndexCfg cnIndexCfg = indexCfg(newTreeSet(IndexType.EQUALITY), 4000);
+    when(cfg.getBackendIndex("cn")).thenReturn(cnIndexCfg);
+    if (withVlvIndex)
+    {
+      final BackendVLVIndexCfg vlvCfg = vlvIndexCfg("+cn");
+      when(cfg.listBackendVLVIndexes()).thenReturn(new String[] { VLV_INDEX_NAME });
+      when(cfg.getBackendVLVIndex(VLV_INDEX_NAME)).thenReturn(vlvCfg);
+    }
+    else
+    {
+      when(cfg.listBackendVLVIndexes()).thenReturn(new String[0]);
+    }
     return cfg;
+  }
+
+  private BackendIndexCfg indexCfg(SortedSet<IndexType> indexTypes, int indexEntryLimit)
+  {
+    final BackendIndexCfg cfg = mock(BackendIndexCfg.class);
+    when(cfg.getIndexType()).thenReturn(indexTypes);
+    when(cfg.getAttribute()).thenReturn(cnType);
+    when(cfg.getIndexEntryLimit()).thenReturn(indexEntryLimit);
+    when(cfg.getSubstringLength()).thenReturn(6);
+    return cfg;
+  }
+
+  private BackendVLVIndexCfg vlvIndexCfg(String sortOrder)
+  {
+    final BackendVLVIndexCfg cfg = mock(BackendVLVIndexCfg.class);
+    when(cfg.getName()).thenReturn(VLV_INDEX_NAME);
+    when(cfg.getBaseDN()).thenReturn(KEPT);
+    when(cfg.getScope()).thenReturn(Scope.WHOLE_SUBTREE);
+    when(cfg.getFilter()).thenReturn("(objectClass=*)");
+    when(cfg.getSortOrder()).thenReturn(sortOrder);
+    return cfg;
+  }
+
+  /** An index of an empty backend is trusted when it is opened, whatever its tree holds. */
+  private static void addBaseEntry(ReplayingBackend backend, DN baseDN, String domainComponent) throws Exception
+  {
+    backend.addEntry(
+        TestCaseUtils.makeEntry("dn: " + baseDN, "objectClass: top", "objectClass: domain", "dc: " + domainComponent),
+        mock(AddOperation.class));
   }
 
   /** A backend whose storage makes the next write operation conflict, and so be replayed. */
@@ -723,6 +896,8 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
     private final Storage delegate;
     private Runnable onListTrees;
     private ConflictPoint conflictPoint;
+    /** Which write, counted over the life of this storage, is armed; zero for the next one. */
+    private int armedWrite;
     private int conflictsLeft;
     private int attempts;
     private int writes;
@@ -742,6 +917,16 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       arm(ConflictPoint.COMMIT, conflicts);
     }
 
+    /**
+     * Conflicts at commit time on the {@code nth} write asked for from now on, the next one being
+     * the first: a configuration change which makes several writes has to arm the one it is about.
+     */
+    void conflictAtCommitOnWrite(int nth, int conflicts)
+    {
+      arm(ConflictPoint.COMMIT, conflicts);
+      armedWrite = writes + nth;
+    }
+
     void failWithoutReplay()
     {
       arm(ConflictPoint.NO_REPLAY, 1);
@@ -756,6 +941,7 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
     {
       conflictPoint = where;
       conflictsLeft = conflicts;
+      armedWrite = 0;
       attempts = 0;
     }
 
@@ -776,12 +962,13 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
     {
       writes++;
       final ConflictPoint armed = conflictPoint;
-      if (armed == null)
+      if (armed == null || (armedWrite != 0 && writes != armedWrite))
       {
         delegate.write(writeOperation);
         return;
       }
       conflictPoint = null;
+      armedWrite = 0;
       if (armed == ConflictPoint.NO_REPLAY_AFTER_COMMIT)
       {
         // Committed, then reported as a failure: the operation's work outlives the failure, as it
