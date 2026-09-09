@@ -17,6 +17,7 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.forgerock.util.Utils.closeSilently;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -129,9 +130,12 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    */
   void open(final AccessMode accessMode) throws StorageRuntimeException, ConfigException
   {
+    boolean opened = false;
+    boolean storageOpened = false;
     try
     {
       storage.open(accessMode);
+      storageOpened = true;
       storage.write(new WriteOperation()
       {
         @Override
@@ -144,6 +148,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
       // after the write, never inside it: a compressed schema migration is only worth reporting
       // once the transaction that copied it has committed, and a replayed operation runs twice
       compressedSchema.reportMigration();
+      opened = true;
     }
     catch(StorageRuntimeException e)
     {
@@ -152,6 +157,50 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     catch (Exception e)
     {
       throw new StorageRuntimeException(e);
+    }
+    finally
+    {
+      if (!opened)
+      {
+        giveUpAfterFailedOpen(storageOpened);
+      }
+    }
+  }
+
+  /**
+   * Gives back what a root container which failed to open took. Nothing else will: the caller
+   * throws it away - {@link BackendImpl#newRootContainer} lets every failure through without a
+   * reference to it left anywhere - and {@code BackendConfigManager} releases the backend's shared
+   * lock without calling {@code closeBackend()} for a backend which never opened. What is left here
+   * is left for the life of the JVM: entry containers and this root container go on answering the
+   * configuration changes of a backend which is not running, and every later attempt to enable that
+   * backend adds another set of them.
+   * <p>
+   * The failure being given up after is the one worth reporting, so nothing here is allowed to
+   * replace it.
+   *
+   * @param storageOpened whether this call is the one which opened the storage. A read only root
+   *          container is opened over the very storage instance the backend holds - see
+   *          {@code BackendImpl.getReadOnlyRootContainer} - and closing one it did not open would
+   *          take the volume from under the root container which does hold it.
+   */
+  private void giveUpAfterFailedOpen(boolean storageOpened)
+  {
+    try
+    {
+      for (DN baseDN : entryContainers.keySet())
+      {
+        closeSilently(unregisterEntryContainer(baseDN));
+      }
+      config.removePluggableChangeListener(this);
+      if (storageOpened)
+      {
+        storage.close();
+      }
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
     }
   }
 
@@ -221,6 +270,19 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   private void openAndRegisterEntryContainers(WriteableTransaction txn, Set<DN> baseDNs, AccessMode accessMode)
       throws StorageRuntimeException, InitializationException, ConfigException
   {
+    // Give up what a previous, rolled back attempt registered: this runs inside the write
+    // Storage.write may replay, and an entry container left registered fails the attempt which
+    // replaces it with ERR_ENTRY_CONTAINER_ALREADY_REGISTERED - so a write-write conflict, which
+    // the replay is there to absorb, would leave the backend unopened instead - while keeping the
+    // configuration listeners it opened with, which only its close() takes back. The same shape as
+    // BackendImpl.changeBaseDNTrees, which opens its entry containers inside a write for the same
+    // reason. Nothing else can reach these containers: the backend registers its base DNs only once
+    // this has returned, so they are closed without being locked.
+    for (DN baseDN : baseDNs)
+    {
+      closeSilently(unregisterEntryContainer(baseDN));
+    }
+
     EntryID highestID = null;
     for (DN baseDN : baseDNs)
     {
