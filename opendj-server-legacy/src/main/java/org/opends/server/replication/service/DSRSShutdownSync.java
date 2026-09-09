@@ -46,7 +46,7 @@ public class DSRSShutdownSync
 {
   /**
    * How long a ReplicaOfflineMsg may hold back the shutdown of the collocated
-   * RS, in milliseconds, counted from the moment the message was sent.
+   * RS, in milliseconds, counted from the moment the message was announced.
    */
   public static final long REPLICA_OFFLINE_GRACE_PERIOD = 5000;
 
@@ -97,19 +97,90 @@ public class DSRSShutdownSync
   }
 
   /**
-   * Message has been sent.
+   * Message is about to be sent.
+   * <p>
+   * The announcement comes before the message is published rather than after: a collocated
+   * replication server can forward the message as soon as it is on the wire, and a forward which
+   * finds nothing announced has nothing to clear. The announcement of a message the broker then
+   * refuses is taken back by {@link #replicaOfflineMsgNotSent(DN, CSN)}.
+   * <p>
+   * A replica announces itself offline on every disableService(), so this may take the place of
+   * an earlier announcement of the same replica which is still owed its forward. The earlier one
+   * is kept behind the new one: a forward of the newer message, which the replication server
+   * queued behind the earlier one, covers both, and a withdrawal of the newer one gives the
+   * earlier one its wait back. It is kept only while its own grace period runs: past it, the
+   * announcement holds nothing back any more, and keeping it would chain every announcement of
+   * a replica whose message nobody in this process forwards - a directory server without a
+   * collocated replication server, or connected to a remote one - for the life of the process.
    *
    * @param baseDN
-   *          the domain for which the message has been sent
+   *          the domain for which the message is being sent
    * @param offlineCSN
-   *          the CSN of the message, which identifies both the replica which announced itself
+   *          the CSN of the message, which identifies both the replica which announces itself
    *          offline and the announcement being waited for
    */
   public void replicaOfflineMsgSent(DN baseDN, CSN offlineCSN)
   {
+    final long announcedAt = System.nanoTime();
     replicaOfflineMsgs
         .computeIfAbsent(baseDN, dn -> new ConcurrentHashMap<Integer, PendingOfflineMsg>())
-        .put(offlineCSN.getServerId(), new PendingOfflineMsg(offlineCSN, System.nanoTime()));
+        .compute(offlineCSN.getServerId(), (serverId, displaced) ->
+            new PendingOfflineMsg(offlineCSN, announcedAt,
+                displaced != null && gracePeriodLeft(displaced, announcedAt) > 0 ? displaced : null));
+  }
+
+  /**
+   * The message which was announced was not sent after all: the broker had no session to write
+   * it to, or was stopped before it could.
+   * <p>
+   * The announcement is made before the message is published, since a collocated replication
+   * server can forward it as soon as it is on the wire, so the announcement of a message the
+   * broker then refused has to be taken back: nobody will forward it, and the shutdown would
+   * spend the whole grace period waiting for that forward. Only the announcement carrying that
+   * CSN is withdrawn, and the announcement it displaced - an earlier message of the same replica
+   * which did go out and is still owed its forward - takes its place again.
+   * <p>
+   * Whatever is reported about that earlier message while the announcement of the refused one
+   * stands in its place is not seen by it. A forward, or the loss of a peer it was queued for,
+   * is lost, and the shutdown then waits out what is left of the earlier message's own grace
+   * period; the peers it is queued for, if they are recorded in that window, are lost too, with
+   * the opposite effect - the first forward ends its wait, as for a message no peer was recorded
+   * for. That window is the one publish the broker refuses: at once on a connection error or a
+   * pending recovery, the broker's retry loop up to the reconnect when it has no session. The
+   * wait it can cost is bounded by a grace period which is already running.
+   *
+   * @param baseDN
+   *          the domain for which the message was announced
+   * @param offlineCSN
+   *          the CSN of the message which was not sent
+   */
+  public void replicaOfflineMsgNotSent(DN baseDN, CSN offlineCSN)
+  {
+    final ConcurrentMap<Integer, PendingOfflineMsg> msgs = replicaOfflineMsgs.get(baseDN);
+    if (msgs != null)
+    {
+      final int serverId = offlineCSN.getServerId();
+      final PendingOfflineMsg pending = msgs.get(serverId);
+      if (pending != null && pending.csn.equals(offlineCSN))
+      {
+        /*
+         * The displaced announcement may owe nothing any more: the forward which released it
+         * can have been reported while this announcement was being made, so that its remove(),
+         * which matches the entry it read, found this one in its place. Given its place back,
+         * such an announcement would hold the shutdown for the rest of its grace period, since
+         * nobody will report that forward again.
+         */
+        if (pending.displaced != null && !pending.displaced.isFullyForwarded())
+        {
+          msgs.replace(serverId, pending, pending.displaced);
+        }
+        else
+        {
+          msgs.remove(serverId, pending);
+        }
+      }
+    }
+    notifyForwarded();
   }
 
   /**
@@ -338,9 +409,18 @@ public class DSRSShutdownSync
     long remaining = 0;
     for (PendingOfflineMsg pending : msgs.values())
     {
-      remaining = Math.max(remaining, gracePeriod - NANOSECONDS.toMillis(now - pending.sentTime));
+      remaining = Math.max(remaining, gracePeriodLeft(pending, now));
     }
     return remaining;
+  }
+
+  /**
+   * Returns the time left, in milliseconds, of the grace period of one announcement, zero or
+   * less once it has expired.
+   */
+  private long gracePeriodLeft(PendingOfflineMsg pending, long now)
+  {
+    return gracePeriod - NANOSECONDS.toMillis(now - pending.sentTime);
   }
 
   /**
@@ -357,15 +437,22 @@ public class DSRSShutdownSync
     /** When the message was announced, on the {@link System#nanoTime()} clock. */
     private final long sentTime;
     /**
+     * The announcement of the same replica this one took the place of and which is still owed its
+     * forward, null when there was none or when its grace period had already expired. It is
+     * given its place back if this message is withdrawn.
+     */
+    private final PendingOfflineMsg displaced;
+    /**
      * The replication servers the message was queued for and which have not forwarded it yet,
      * null as long as it has not been queued for anybody.
      */
     private volatile Set<Integer> awaitedForwarders;
 
-    private PendingOfflineMsg(CSN csn, long sentTime)
+    private PendingOfflineMsg(CSN csn, long sentTime, PendingOfflineMsg displaced)
     {
       this.csn = csn;
       this.sentTime = sentTime;
+      this.displaced = displaced;
     }
 
     /**
@@ -391,9 +478,8 @@ public class DSRSShutdownSync
       {
         /*
          * The message never went through the collocated RS - a replica which picked a remote one
-         * announcing itself offline, or an announcement recorded after the message it belongs to
-         * was already relayed. Nobody is known to owe a forward, so keep the behaviour the wait
-         * had before the recipients were tracked: the first forward ends it.
+         * is announcing itself offline. Nobody is known to owe a forward, so keep the behaviour
+         * the wait had before the recipients were tracked: the first forward ends it.
          */
         return true;
       }
@@ -410,6 +496,16 @@ public class DSRSShutdownSync
     {
       final Set<Integer> awaited = awaitedForwarders;
       return awaited != null && awaited.remove(replicationServerId) && awaited.isEmpty();
+    }
+
+    /**
+     * Returns whether every replication server the message was queued for has forwarded it, or
+     * has been given up on: nothing is left to wait for. False while no recipient is known.
+     */
+    private boolean isFullyForwarded()
+    {
+      final Set<Integer> awaited = awaitedForwarders;
+      return awaited != null && awaited.isEmpty();
     }
 
     @Override
