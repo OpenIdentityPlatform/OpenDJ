@@ -647,6 +647,109 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
         "only the failures of the delivery which owns the change must be counted");
   }
 
+  /**
+   * The change a thread parked as waiting for another one is not the change it is
+   * replaying: it is handed to whichever thread clears what it waits for, so a give-back on
+   * the way out of an unwound replay must leave it alone. Releasing it without taking it out
+   * of the changes which are waiting would have the same change handed to two threads
+   * (issue #922).
+   */
+  @Test
+  public void theChangesParkedAsDependenciesAreNotOwnedByTheThreadWhichParkedThem()
+      throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSNGenerator generator = new CSNGenerator(SERVER_ID, 0);
+    final CSN deleted = generator.newCSN();
+    final CSN renamed = generator.newCSN();
+
+    final DeleteMsg delete = deleteMsg(deleted, "uuid-1");
+    assertTrue(pendingChanges.putRemoteUpdate(delete));
+    assertTrue(pendingChanges.markInProgress(delete));
+
+    // A rename into the DN that delete is on, parked by this very thread.
+    final ModifyDNMsg rename = renameIntoDeletedEntry(renamed);
+    assertTrue(pendingChanges.putRemoteUpdate(rename));
+    assertTrue(pendingChanges.markInProgress(rename));
+    assertTrue(pendingChanges.checkDependencies(rename),
+        "the rename must wait for the delete of the entry it renames into");
+
+    assertEquals(pendingChanges.getChangeOwnedByCurrentThread(), deleted,
+        "the change this thread is replaying is the one it must give back, not the one it"
+            + " parked as waiting for it");
+  }
+
+  /**
+   * A change which is in the data is not one to give back either, and it stays listed for as
+   * long as an older change holds the ServerState back: a give-back on the way out of an
+   * unwound replay must not ask for a change this replica has already applied (issue #922).
+   * <p>
+   * What this pins is that behaviour rather than one of the two conditions which hold it:
+   * {@code commit()} marks the change and clears its owner in the same write-locked step, so
+   * a committed change is never an owned one and the {@code isCommitted} arm of
+   * {@code getChangeOwnedByCurrentThread()} can not be told from the owner check by any test.
+   */
+  @Test
+  public void aChangeWhichWasAppliedIsNotOwnedAnymore() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSNGenerator generator = new CSNGenerator(SERVER_ID, 0);
+    final CSN held = generator.newCSN();
+    final CSN applied = generator.newCSN();
+
+    // An older change nobody has replayed holds the ServerState back, so the change this
+    // thread applies stays listed here once it has been committed.
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(held, "uuid-1")));
+    final DeleteMsg delivery = deleteMsg(applied, "uuid-2");
+    assertTrue(pendingChanges.putRemoteUpdate(delivery));
+    assertTrue(pendingChanges.markInProgress(delivery));
+
+    assertEquals(pendingChanges.getChangeOwnedByCurrentThread(), applied,
+        "the change this thread is replaying must be the one it owns");
+
+    pendingChanges.commit(applied);
+
+    assertEquals(pendingChanges.getQueueSize(), 2,
+        "the change which was applied is held back by the one before it");
+    assertNull(pendingChanges.getChangeOwnedByCurrentThread(),
+        "a change which is in the data must not be given back on the way out of a replay");
+  }
+
+  /**
+   * A change which was waiting is handed out once: the thread it is handed to owns it from
+   * then on, and the threads which ask next are told there is nothing to take. Two threads
+   * handed the same change would replay it twice, which is what the ownership is there to
+   * prevent (OPENDJ-1115).
+   */
+  @Test
+  public void aChangeWhichWasWaitingIsHandedOutOnce() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSNGenerator generator = new CSNGenerator(SERVER_ID, 0);
+    final CSN deleted = generator.newCSN();
+    final CSN renamed = generator.newCSN();
+
+    final DeleteMsg delete = deleteMsg(deleted, "uuid-1");
+    assertTrue(pendingChanges.putRemoteUpdate(delete));
+    assertTrue(pendingChanges.markInProgress(delete));
+
+    final ModifyDNMsg rename = renameIntoDeletedEntry(renamed);
+    assertTrue(pendingChanges.putRemoteUpdate(rename));
+    assertTrue(pendingChanges.markInProgress(rename));
+    assertTrue(pendingChanges.checkDependencies(rename),
+        "the rename must wait for the delete of the entry it renames into");
+
+    assertNull(pendingChanges.getNextUpdate(),
+        "a change whose dependency still stands must not be handed out");
+
+    pendingChanges.commit(deleted);
+
+    assertSame(pendingChanges.getNextUpdate(), rename,
+        "the change which was waiting must be handed to the thread which cleared it");
+    assertNull(pendingChanges.getNextUpdate(),
+        "a change which has been handed out must not be handed out again");
+  }
+
   /** A rename of an entry into the DN {@code deleteMsg(csn, "uuid-1")} deletes. */
   private ModifyDNMsg renameIntoDeletedEntry(CSN csn) throws Exception
   {

@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -246,6 +247,9 @@ public class ShortCircuitPlugin
       park.deregister();
     }
     parks.clear();
+    // Same shape: a throw which outlives the test which asked for it unwinds the replays of
+    // every test which follows, for as long as this plugin is loaded.
+    replayThrows.clear();
   }
 
 
@@ -661,6 +665,23 @@ public class ShortCircuitPlugin
      */
     if (operation.isSynchronizationOperation())
     {
+      /*
+       * An error thrown here is thrown from inside the run() of the operation, which is
+       * where a plugin or a backend class which can not be loaded raises one: it unwinds
+       * the replay the way a real one does, rather than being reported as a result code the
+       * replay decides on. It comes before the park because it is the whole point of the
+       * delivery which asked for it, and no test asks for both on one operation.
+       */
+      final ThrownFromReplay thrower = replayThrows.get(key);
+      if (thrower != null)
+      {
+        final Error error = thrower.errorFor(operation);
+        if (error != null)
+        {
+          throw error;
+        }
+      }
+
       final ParkedReplay park = parks.get(key);
       if (park != null && park.parks(operation))
       {
@@ -785,6 +806,82 @@ public class ShortCircuitPlugin
 
   /** Registered parks for the replayed operations, keyed like the short circuits. */
   private static final Map<String, ParkedReplay> parks = new ConcurrentHashMap<>();
+
+  /** The errors the replayed operations of one type throw, by operation type and section. */
+  private static final Map<String, ThrownFromReplay> replayThrows = new ConcurrentHashMap<>();
+
+  /**
+   * Throws an error out of the replay of the operations of one type, as many times as the
+   * test asked for.
+   * <p>
+   * The throw is made at a plugin point which runs inside {@code op.run()}, so it unwinds
+   * the replay from where a plugin or a backend class which can not be loaded raises one -
+   * past the point where the change was marked as being replayed by the thread which took
+   * it. That is what tells it apart from a delivery which reports a result code: a result
+   * code is a verdict the replay decided on, an error is the replay not running at all.
+   * <p>
+   * It is bounded rather than standing: the delivery which takes over from the one which
+   * was unwound has to be able to apply the change, or the test would watch this replica
+   * give up on a change it was never going to replay.
+   */
+  public static final class ThrownFromReplay
+  {
+    private final String key;
+    /** Which of the replayed operations of that type this throws out of. */
+    private final Predicate<PluginOperation> matches;
+    /** Built where it is thrown, so that it carries the stack of the replay it unwound. */
+    private final Supplier<? extends Error> error;
+    private final int maxTimes;
+    private final AtomicInteger thrown = new AtomicInteger();
+
+    private ThrownFromReplay(String key, Predicate<PluginOperation> matches,
+        Supplier<? extends Error> error, int maxTimes)
+    {
+      this.key = key;
+      this.matches = matches;
+      this.error = error;
+      this.maxTimes = maxTimes;
+    }
+
+    /**
+     * Returns the error to throw out of the provided operation, or {@code null} when this
+     * is not one of the operations it is for, or when it has been thrown as many times as
+     * the test asked for.
+     */
+    private Error errorFor(PluginOperation operation)
+    {
+      if (!matches.test(operation))
+      {
+        return null;
+      }
+      // Claimed before it is built, so that two replays of one change - the retry in place
+      // makes them - never take the same one twice.
+      if (thrown.incrementAndGet() > maxTimes)
+      {
+        return null;
+      }
+      return error.get();
+    }
+
+    /**
+     * Returns how many replays this threw out of.
+     *
+     * @return the number of replays which were unwound by this
+     */
+    public int thrownCount()
+    {
+      return Math.min(thrown.get(), maxTimes);
+    }
+
+    /**
+     * Stops throwing out of the replayed operations. A test must call this however it ends,
+     * or it leaves the deliveries of the tests which follow being unwound.
+     */
+    public void deregister()
+    {
+      replayThrows.remove(key, this);
+    }
+  }
 
   /**
    * Holds the replayed operations of one type where they are, one at a time, until the
@@ -1074,6 +1171,40 @@ public class ShortCircuitPlugin
       previous.deregister();
     }
     return park;
+  }
+
+  /**
+   * Throws the provided error out of the replay of the operations of the given type, at the
+   * given plugin point, as many times as asked for and no more.
+   *
+   * @param operation the type of operation to throw out of
+   * @param section the plugin point to throw at, which can only be {@code PreParse}
+   * @param matches which of them to throw out of - the change a test acts on rather than
+   *          whatever of that type reaches this point first
+   * @param error builds the error where it is thrown, so that it carries the stack trace of
+   *          the replay it unwound
+   * @param maxTimes how many replays to unwind, after which the operations are let through:
+   *          the delivery which takes over from the one which was unwound is what applies
+   *          the change
+   * @return the throw, which the test must {@link ThrownFromReplay#deregister()} when it is
+   *         done with it
+   * @throws IllegalArgumentException if asked for any plugin point but {@code PreParse}
+   */
+  public static ThrownFromReplay throwFromReplayedOperations(OperationType operation,
+      String section, Predicate<PluginOperation> matches, Supplier<? extends Error> error,
+      int maxTimes)
+  {
+    if (!"PreParse".equalsIgnoreCase(section))
+    {
+      // The pre-operation plugins are not invoked for synchronization operations at all, so
+      // a throw asked for anywhere else is one no replay would ever meet.
+      throw new IllegalArgumentException("replayed operations can only be thrown out of at"
+          + " PreParse, which is the only plugin point they reach, not at " + section);
+    }
+    final String key = keyFor(operation, section);
+    final ThrownFromReplay thrower = new ThrownFromReplay(key, matches, error, maxTimes);
+    replayThrows.put(key, thrower);
+    return thrower;
   }
 
   /** Returns the key a short circuit or a park of the given operations is kept under. */

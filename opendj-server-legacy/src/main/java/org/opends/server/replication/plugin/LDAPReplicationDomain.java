@@ -2597,9 +2597,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       /*
        * The roads which run to their end give the change back themselves, so what is left
        * to give back here is a change whose replay was unwound over them: by an
-       * OutOfMemoryError, or by an exception raised publishing the ack of a delivery on a
-       * session which is being torn down - the ack is published in a finally, which is the
-       * one road out of a replay that no catch of the replay itself runs on.
+       * OutOfMemoryError, which is left to end this thread, or by a throw from what the
+       * replay runs once the ack of the delivery has been published - the give-back of the
+       * change and the hand-out of the changes which were waiting for it are on that road.
        *
        * It takes the road of a failed replay rather than being handed back on the spot, so
        * that a change which keeps unwinding the replays it is given to is counted as
@@ -2628,7 +2628,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           }
           else
           {
-            recoverFromReplayFailure(owned, replayThreadShutdown);
+            /*
+             * A JVM which has run out of memory is told apart here rather than reported on
+             * its own road: the change is given back counted, the way every other unwound
+             * replay gives it back, but nothing is formatted on the way - that asks the JVM
+             * for the memory it has just refused - and the session is restarted without
+             * sitting through the backoff, since the thread which is doing it is on its way
+             * out.
+             */
+            recoverFromReplayFailure(owned, replayThreadShutdown, t instanceof OutOfMemoryError);
           }
         }
       }
@@ -2638,27 +2646,69 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * The give-back is the road which hands the change over, so a throw out of it - an
          * allocation which fails in its turn, where what unwound the replay was a JVM out
          * of memory - would leave the change owned by this thread after all. Hand it back
-         * bare, without the failure count that road did not reach, and ask for a session
-         * restart without running one: the request is picked up by the next recovery this
-         * domain runs, and any session restart delivers the change again, since it is not
-         * in the ServerState and nobody owns it anymore.
+         * bare, without the failure count that road did not reach, and restart the session
+         * so that it is delivered again: this is the last resort, the throwable is rethrown
+         * whatever happens here, and the thread this runs on may well be ending on it - so
+         * a request left for the next recovery of this domain to pick up is a request which
+         * may never be run.
          */
         if (owned != null)
         {
           remotePendingChanges.replayFailed(owned);
           sessionRestartRequested.set(true);
-        }
-        if (recoveryFailure != t)
-        {
           /*
-           * A JVM out of memory hands out an error it prepared before it ran out, so the
-           * two can be the same one - and a throwable can not suppress itself. The error
-           * which unwound the replay is the one reported either way.
+           * Reported and restarted under guards of their own, and in that order: the report
+           * is the line an operator acts on, and the restart is what has the change
+           * delivered again - so a report which can not be formatted, on a road an
+           * OutOfMemoryError leads to, must not cost the restart.
            */
-          t.addSuppressed(recoveryFailure);
+          try
+          {
+            logger.error(ERR_REPLAY_GIVE_BACK_FAILED, owned, getBaseDN(),
+                stackTraceToSingleLineString(recoveryFailure));
+          }
+          catch (Throwable reportFailure)
+          {
+            suppress(recoveryFailure, reportFailure);
+          }
+          try
+          {
+            runRequestedSessionRestarts(false);
+          }
+          catch (Throwable restartFailure)
+          {
+            /*
+             * Nothing is left to try: the change is listed, uncommitted and unowned, so any
+             * later session restart of this domain delivers it again. This goes with the
+             * throwable which is rethrown below rather than being reported on its own.
+             */
+            suppress(recoveryFailure, restartFailure);
+          }
         }
+        // The error which unwound the replay is the one reported, whatever the give-back
+        // ran into on top of it.
+        suppress(t, recoveryFailure);
       }
       throw t;
+    }
+  }
+
+  /**
+   * Records the second throwable as one the first suppressed, unless the two are one and
+   * the same.
+   * <p>
+   * A JVM which has run out of memory hands out the error it prepared before it ran out as
+   * often as it is asked for one, so the roads out of a replay can carry the same instance
+   * twice - and a throwable can not suppress itself.
+   *
+   * @param thrown the throwable which is reported
+   * @param alsoThrown what was met on the way out of it
+   */
+  private static void suppress(Throwable thrown, Throwable alsoThrown)
+  {
+    if (thrown != alsoThrown)
+    {
+      thrown.addSuppressed(alsoThrown);
     }
   }
 
@@ -2684,6 +2734,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       boolean replayAbandoned = false;
       String replayErrorMsg = null;
       CSN csn = null;
+      /*
+       * Read once, before anything of this delivery has run, so that the report of an ack
+       * which could not be published names the change even when reading it off the message
+       * is what threw: that report is written on the way out of a road which is already
+       * failing, and it must not be the throw which unwinds the replay.
+       */
+      final CSN delivered = msg.getCSN();
       try
       {
         // The next operation for which to attempt replay.
@@ -3086,7 +3143,29 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * down, so nothing would reach the server which is waiting for it, and an
            * assured write would wait out its timeout rather than be told what happened.
            */
-          processUpdateDone(msg, replayErrorMsg);
+          try
+          {
+            processUpdateDone(msg, replayErrorMsg);
+          }
+          catch (Throwable ackFailure)
+          {
+            /*
+             * Publishing the ack says nothing about whether the change was applied, so a
+             * throw here must not be a road out of the replay. It would step over the
+             * give-back of the change and, where the change was committed, over the
+             * getNextUpdate() below - the one drain of the changes this thread parked as
+             * waiting for it - leaving them waiting for a thread which is not replaying
+             * anything anymore.
+             *
+             * What raises it is the session this ack was to be published on being torn
+             * down, and the master which is waiting for the ack waits out its assured
+             * timeout either way. So it is reported and the replay carries on to the road
+             * the change itself decided: applied, failed and asked for again, or given up
+             * on.
+             */
+            logger.error(ERR_ACK_NOT_PUBLISHED, delivered, getBaseDN(),
+                stackTraceToSingleLineString(ackFailure));
+          }
         }
       }
 
@@ -3343,6 +3422,28 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private boolean recoverFromReplayFailure(CSN csn, AtomicBoolean replayThreadShutdown)
   {
+    return recoverFromReplayFailure(csn, replayThreadShutdown, false);
+  }
+
+  /**
+   * Recovers from a change which could not be replayed, telling apart the replay which was
+   * unwound by a JVM out of memory.
+   *
+   * @param csn
+   *          the CSN of the change which could not be replayed
+   * @param replayThreadShutdown
+   *          whether the replay thread was asked to stop
+   * @param outOfMemory
+   *          whether what unwound the replay was the JVM running out of memory, in which
+   *          case nothing is formatted on the way out and the session is restarted without
+   *          the backoff
+   * @return {@code true} when the caller must stop replaying because the session is
+   *         being restarted or is going away, {@code false} when it may carry on with
+   *         the changes which follow
+   */
+  private boolean recoverFromReplayFailure(
+      CSN csn, AtomicBoolean replayThreadShutdown, boolean outOfMemory)
+  {
     /*
      * The failure is recorded, and the change given up on, while this thread still owns
      * it: a change which is listed, uncommitted and unowned is what putRemoteUpdate()
@@ -3406,7 +3507,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       return true;
     }
 
-    logger.warn(WARN_REPLAY_RETRYING_CHANGE, csn, getBaseDN(), failure.getAttempts());
+    if (!outOfMemory)
+    {
+      /*
+       * Not on the road out of a JVM which has run out of memory: building this line asks
+       * it for the memory it has just refused, and the ack of the delivery already says
+       * that the change was not applied. The constant that ack carries exists for the same
+       * reason.
+       */
+      logger.warn(WARN_REPLAY_RETRYING_CHANGE, csn, getBaseDN(), failure.getAttempts());
+    }
     /*
      * This change is not owned by anyone anymore, so the session has to be restarted for
      * the replication server to deliver it again. Ask for the restart before trying to
@@ -3419,9 +3529,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * A replay thread which is stopping - the number of them is being changed - restarts
      * the session all the same: nothing else would ask for the change it just released,
      * and the ServerState would stay behind it for good. It does not sit through the
-     * backoff on its way out, though: the backend is not what is going away.
+     * backoff on its way out, though: the backend is not what is going away. Neither does
+     * the thread an OutOfMemoryError is ending, for the same reason - and the restart is
+     * run rather than left to be asked for again, because that thread will not be there to
+     * run it, and a change nobody asks for again holds this domain's ServerState back.
      */
-    runRequestedSessionRestarts(!replayThreadShutdown.get());
+    runRequestedSessionRestarts(!replayThreadShutdown.get() && !outOfMemory);
     return true;
   }
 
