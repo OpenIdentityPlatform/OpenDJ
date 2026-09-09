@@ -2391,7 +2391,12 @@ public class ReplicationBroker
         }
       }
     }
-    return true;
+    /*
+     * The loop also ends when the broker is stopped, and then nothing was written to any
+     * session: a caller told the message was published would report as sent a message which
+     * never reached the wire.
+     */
+    return done;
   }
 
   /**
