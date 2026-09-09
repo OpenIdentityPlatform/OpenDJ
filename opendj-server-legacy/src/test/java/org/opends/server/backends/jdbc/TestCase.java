@@ -713,6 +713,93 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			});
 	}
 
+	/**
+	 * A write queued behind a row lock another session holds gives up at
+	 * {@code ROW_LOCK_TIMEOUT_PROPERTY} and is replayed, and the replay goes through once that session
+	 * lets the rows go: the wait ends inside the replay window instead of consuming it, which is what
+	 * left the operation with no replay at all before (#903, #915).
+	 * <p>
+	 * On an engine with no session setting for that wait - oracle - the same write waits the blocker
+	 * out on its first attempt and needs no replay, which is what "left alone" means there. That is
+	 * asserted rather than skipped: it is the difference this bound makes, read from the one place it
+	 * shows.
+	 */
+	@Test(timeOut = 300000)
+	public void testAWriteBlockedByARowLockIsReplayedInsideTheWindow() throws Exception {
+		final int boundSeconds = 2;
+		final TreeName tree = new TreeName("testRowLockBound", "tree");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		System.setProperty(JDBCStorage.ROW_LOCK_TIMEOUT_PROPERTY, Integer.toString(boundSeconds));
+		final ExecutorService releasing = Executors.newSingleThreadExecutor();
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					txn.put(tree, key(1), value(1));
+				}
+			});
+
+			// a session of its own, taking an exclusive lock on the row the write below wants: an update
+			// that changes nothing takes the same lock as one that does, and it parses on all four engines
+			try (final Connection holder = DriverManager.getConnection(getJdbcUrl())) {
+				holder.setAutoCommit(false);
+				try (final PreparedStatement lock = holder.prepareStatement(
+						"update " + storage.getTableName(tree) + " set v=v")) {
+					lock.executeUpdate();
+				}
+				// held for twice the bound, so that the first attempt of the write gives up on it and the
+				// replay finds the row free - both inside the replay window, which is what this is about
+				final Future<?> released = releasing.submit(new Callable<Void>() {
+					@Override
+					public Void call() throws Exception {
+						Thread.sleep(boundSeconds * 2 * 1000L);
+						holder.rollback(); // the rows go back exactly as they were
+						return null;
+					}
+				});
+
+				final AtomicInteger attempts = new AtomicInteger();
+				final long startedAt = System.nanoTime();
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						attempts.incrementAndGet();
+						txn.put(tree, key(1), value(2));
+					}
+				});
+				final long elapsedMillis = (System.nanoTime() - startedAt) / 1000000L;
+				released.get(); // the failure of the holder, if it had one, rather than a stuck rollback
+
+				if (dialect() == JDBCStorage.Dialect.ORACLE) {
+					assertEquals(attempts.get(), 1, "oracle has no session setting for a row lock enqueue, so the"
+						+ " write should have waited the holder out on its first attempt (" + elapsedMillis + " ms)");
+				} else {
+					assertTrue(attempts.get() >= 2, "the write was not replayed: it waited " + elapsedMillis
+						+ " ms for a row lock that this engine was told to give up on after " + boundSeconds + " s");
+					assertTrue(elapsedMillis >= boundSeconds * 1000L - JDBCStorage.CLOCK_SLACK_MILLIS,
+						"the write came back after " + elapsedMillis + " ms, before the bound it was given:"
+						+ " something other than the row lock ended its first attempt");
+				}
+			}
+		} finally {
+			System.clearProperty(JDBCStorage.ROW_LOCK_TIMEOUT_PROPERTY);
+			releasing.shutdownNow();
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {
+			} finally {
+				storage.close();
+			}
+		}
+	}
+
 	private interface BlockedOperation {
 		void run(JDBCStorage storage, TreeName tree) throws Exception;
 	}
@@ -792,6 +879,11 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					for (final JDBCStorage.StatementBound each : JDBCStorage.StatementBound.values()) {
 						System.setProperty(each.property, each == bound ? Integer.toString(boundSeconds) : "0");
 					}
+					// and the row lock bound of a write is off here for the same reason: it is tighter
+					// than the bound under test, so it - and not the statement bound this case is about -
+					// would be what ended the wait, and the failure would name no property of this class
+					// (#915). testAWriteBlockedByARowLockIsReplayedInsideTheWindow covers that layer
+					System.setProperty(JDBCStorage.ROW_LOCK_TIMEOUT_PROPERTY, "0");
 					// the monotonic clock, which is what timedOut() measures the bound with: a step of
 					// the wall clock can neither lengthen nor shorten what the assertions below allow
 					final long startedAt = System.nanoTime();
@@ -853,6 +945,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			for (final JDBCStorage.StatementBound each : JDBCStorage.StatementBound.values()) {
 				System.clearProperty(each.property);
 			}
+			System.clearProperty(JDBCStorage.ROW_LOCK_TIMEOUT_PROPERTY);
 			try {
 				storage.write(new WriteOperation() {
 					@Override
