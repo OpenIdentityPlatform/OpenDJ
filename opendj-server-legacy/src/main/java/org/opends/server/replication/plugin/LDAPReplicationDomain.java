@@ -535,10 +535,17 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   /** Published by a configuration change, read by the changelog threads without a lock. */
   private volatile ExternalChangelogDomain eclDomain;
 
-  /** A boolean indicating if the thread used to save the persistentServerState is terminated. */
-  private volatile boolean done = true;
-
   private final ServerStateFlush flushThread;
+
+  /**
+   * How long {@link #shutdown()} waits for the state checkpointer to stop before it goes on
+   * without it. The checkpointer has one last state to write when it is asked to stop, so it
+   * normally stops within a modify: a checkpointer which is still writing after this went to
+   * a backend which is not answering, and waiting for it any longer would hang the shutdown
+   * of the whole server. This is the budget {@code ServerShutdownMonitor} gives a thread
+   * before it starts interrupting them.
+   */
+  private static final long FLUSH_THREAD_SHUTDOWN_TIMEOUT_IN_MS = 30000;
 
   /** The attribute name used to store the generation id in the backend. */
   private static final String REPLICATION_GENERATION_ID = "ds-sync-generation-id";
@@ -626,8 +633,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     @Override
     public void run()
     {
-      done = false;
-
       while (!isShutdownInitiated())
       {
         try
@@ -635,10 +640,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           synchronized (this)
           {
             wait(1000);
-            if (!disabled && !ieRunning())
-            {
-              state.save();
-            }
+          }
+          if (!disabled && !ieRunning())
+          {
+            saveState();
           }
         }
         catch (InterruptedException e)
@@ -666,10 +671,34 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        */
       if (!disabled && !importInProgress())
       {
+        saveState();
+      }
+    }
+
+    /**
+     * Writes the state of the domain to the backend, keeping a failure to itself.
+     * <p>
+     * A checkpoint which throws is not a reason to stop checkpointing: the state is still
+     * marked as unsaved, so the next checkpoint writes it again. Letting the exception out
+     * would end this thread - and with it the checkpointing of this domain for the rest of
+     * the life of the server, and the {@link LDAPReplicationDomain#shutdown()} which waits
+     * for the thread to stop.
+     * <p>
+     * The write is run outside the monitor of this thread, which
+     * {@link LDAPReplicationDomain#shutdown()} takes to wake it up: holding the monitor
+     * across a write which does not come back would block a shutdown before it ever reaches
+     * the bounded wait it does for this thread.
+     */
+    private void saveState()
+    {
+      try
+      {
         state.save();
       }
-
-      done = true;
+      catch (RuntimeException e)
+      {
+        logger.error(ERR_CHECKPOINTING_STATE_FAILED, getBaseDN(), stackTraceToSingleLineString(e));
+      }
     }
   }
 
@@ -2518,12 +2547,19 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       }
     }
 
-    // wait for completion of the ServerStateFlush thread.
+    /*
+     * Wait for completion of the ServerStateFlush thread, but not for longer than the budget
+     * it is given: a thread which is gone - killed by an Error on its way to the backend, say
+     * - is never going to report that it is done, and a shutdown which waits for it forever
+     * takes the shutdown of the server down with it. join() covers both, and a thread which
+     * was never started as well.
+     */
     try
     {
-      while (!done)
+      flushThread.join(FLUSH_THREAD_SHUTDOWN_TIMEOUT_IN_MS);
+      if (flushThread.isAlive())
       {
-        Thread.sleep(50);
+        logger.error(ERR_STATE_CHECKPOINTER_NOT_STOPPED, getBaseDN(), FLUSH_THREAD_SHUTDOWN_TIMEOUT_IN_MS);
       }
     } catch (InterruptedException e)
     {
