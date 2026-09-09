@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -101,7 +102,37 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 {
   private static final int IMPORT_DB_CACHE_SIZE = 32 * MB;
 
-  private static final double MAX_SLEEP_ON_RETRY_MS = 50.0;
+  /**
+   * Number of attempts a {@link WriteableStorageImpl#write} makes before it propagates the conflict to the caller.
+   * <p>
+   * It is a budget of attempts and not of time, so it is only ever reached by the conflicts that report quickly.
+   * PersistIt reports a write-write conflict only once it has waited on it, up to
+   * {@code SharedResource.DEFAULT_MAX_WAIT_TIME} - a minute, which this backend never lowers - so a conflict slower
+   * to report than {@link #MAX_RETRY_WINDOW_NANOS} spends the whole window inside its first attempt, is granted the
+   * single replay that window's exemption guarantees, and gives up on the window after two attempts rather than
+   * after this many.
+   */
+  static final int MAX_RETRIES = 10;
+
+  /**
+   * Wall-clock budget the replays of a {@link WriteableStorageImpl#write} may spend, in nanoseconds. It is checked
+   * between attempts, so an attempt already running is never interrupted, and never before one replay has been
+   * made: the loop returns after at most this window plus two attempts. It bounds the conflicts that are slow to
+   * report, which {@link #MAX_RETRIES} alone does not - an operation whose own work takes seconds would otherwise
+   * multiply that wait by the attempt count.
+   */
+  static final long MAX_RETRY_WINDOW_NANOS = 10L * 1000L * 1000L * 1000L; //10 s
+
+  /**
+   * Upper bound of the random delay before the second attempt, in milliseconds; it doubles with every attempt. This
+   * is the bound of the flat sleep this loop took before it was bounded, so the first replay is delayed exactly as
+   * it was and only the later ones back off.
+   */
+  private static final double BASE_SLEEP_ON_RETRY_MS = 50.0;
+
+  /** Upper bound the doubled delay is capped at, in milliseconds. */
+  private static final double MAX_SLEEP_ON_RETRY_MS = 1000.0;
+
   private static final String VOLUME_NAME = "dj";
   private static final String JOURNAL_NAME = VOLUME_NAME + "_journal";
   /** The buffer / page size used by the PersistIt storage. */
@@ -635,8 +666,11 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     public void write(WriteOperation operation) throws Exception
     {
       final Transaction txn = db.getTransaction();
-      for (;;)
+      final long startedAt = System.nanoTime();
+      final long giveUpAt = startedAt + retryWindowNanos;
+      for (int attempt = 1;; attempt++)
       {
+        final RollbackException conflict;
         txn.begin();
         try
         {
@@ -653,8 +687,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         }
         catch (final RollbackException e)
         {
-          // retry after random sleep (reduces transactions collision. Drawback: increased latency)
-          Thread.sleep((long) (Math.random() * MAX_SLEEP_ON_RETRY_MS));
+          conflict = e;
         }
         catch (final Exception e)
         {
@@ -664,6 +697,68 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         finally
         {
           txn.end();
+        }
+        // decided and slept for outside the try statement: the sleep used to run before the finally ended the
+        // rolled back transaction, holding it open for the whole backoff and lengthening the window every other
+        // writer collides with
+        //System.nanoTime() - giveUpAt is the overflow safe form of the comparison, and attempt > 1 keeps the
+        //window from ending the loop before a single replay: persistit reports a write-write conflict only once
+        //it has waited on it, up to SharedResource.DEFAULT_MAX_WAIT_TIME - a minute, which this backend never
+        //lowers - so one attempt can outlast the window on its own, and it is the attempt after that one which
+        //is likeliest to succeed, the transaction that blocked it having just finished
+        //one clock sample for both, so that the elapsed time reported is the one the give up was decided on
+        final long now = System.nanoTime();
+        final boolean capSpent = attempt >= maxRetries;
+        if (capSpent || (attempt > 1 && now - giveUpAt >= 0))
+        {
+          final long elapsedMs = TimeUnit.NANOSECONDS.toMillis(now - startedAt);
+          //which of the two bounds was spent, so that the config change paths - which report this as a bare stack
+          //trace with no message id - say whether raising the attempts or the window is what would have helped
+          final String boundSpent = capSpent ? "attempt cap" : "retry window";
+          final StorageRuntimeException spent = new StorageRuntimeException(
+              "pdb: backend '" + config.getBackendId() + "' did not apply the transaction after " + attempt
+                  + " attempts in " + elapsedMs + " ms, the " + boundSpent + " being spent; the last conflict was "
+                  + conflict);
+          // the conflict is suppressed rather than made the cause, because a cause is what every caller strips
+          // this message off with: write(WriteOperation) below unwraps a StorageRuntimeException that carries one
+          // and throws the cause in its place, and EntryContainer.throwAllowedExceptionTypes:1121 rethrows a
+          // StorageRuntimeException unchanged only while getCause() is null, wrapping it a second time otherwise.
+          // Either way the caller would be left holding a bare RollbackException, whose StorageRuntimeException
+          // message is only its class name - which is all ERR_OPEN_ENV_FAIL would then print at startup
+          spent.addSuppressed(conflict);
+          //warned once, at exhaustion only, unlike JDBCStorage which warns on every replay: a conflict is routine
+          //on the ordinary add and modify path of this engine and a line per replay would flood the log. It names
+          //the bound that was spent for the same reason the exception does, and it is the only rendering that can
+          //carry the stack of the conflict: stackTraceToSingleLineString, the form the config change paths report
+          //this exception with, walks the causes and never prints a suppressed exception
+          logger.warn(LocalizableMessage.raw("pdb: giving up on the transaction of backend '%s' after %d attempts"
+              + " in %d ms, the %s being spent: %s", config.getBackendId(), attempt, elapsedMs, boundSpent,
+              stackTraceToSingleLineString(conflict)));
+          throw spent;
+        }
+        if (logger.isTraceEnabled())
+        {
+          logger.trace("pdb: replaying the transaction after %s, attempt %d of %d", conflict, attempt, maxRetries);
+        }
+        try
+        {
+          // retry after random sleep (reduces transactions collision. Drawback: increased latency), growing with
+          // every attempt so that a contention the first delays did not outlast still has a chance to clear
+          Thread.sleep(retryDelayMillis(attempt));
+        }
+        catch (final InterruptedException e)
+        {
+          //sleep cleared the interrupt flag: restore it, and report the conflict being replayed rather than the
+          //interrupt, which would hide from the caller what actually went wrong. Wrapped the way the exhausted
+          //loop above wraps it, and for the same reason: a RollbackException carries no message of its own, so
+          //every caller that wraps one reports nothing but its class name
+          Thread.currentThread().interrupt();
+          final StorageRuntimeException interrupted = new StorageRuntimeException(
+              "pdb: backend '" + config.getBackendId() + "' was interrupted while replaying the transaction after "
+                  + attempt + " attempts; the last conflict was " + conflict);
+          interrupted.addSuppressed(conflict);
+          interrupted.addSuppressed(e);
+          throw interrupted;
         }
       }
     }
@@ -915,6 +1010,10 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   private PDBMonitor monitor;
   private MemoryQuota memQuota;
   private StorageStatus storageStatus = StorageStatus.working();
+  /** Attempt bound of a {@link WriteableStorageImpl#write}, {@link #MAX_RETRIES} outside the tests. */
+  private final int maxRetries;
+  /** Wall-clock bound of a {@link WriteableStorageImpl#write}, {@link #MAX_RETRY_WINDOW_NANOS} outside the tests. */
+  private final long retryWindowNanos;
 
   /**
    * Creates a new persistit storage with the provided configuration.
@@ -928,7 +1027,34 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   // FIXME: should be package private once importer is decoupled.
   public PDBStorage(final PDBBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
+    this(cfg, serverContext, MAX_RETRIES, MAX_RETRY_WINDOW_NANOS);
+  }
+
+  /**
+   * Creates a new persistit storage whose replay bounds are the given ones rather than {@link #MAX_RETRIES} and
+   * {@link #MAX_RETRY_WINDOW_NANOS}.
+   * <p>
+   * Only a test builds one of these, and it does so to stop the two bounds racing each other: with the shipped
+   * values a run of replays spends a random share of the window on backoff alone, so a test of the attempt cap
+   * can be ended by the window on a loaded machine, and a test of the window has to spend seconds of build time
+   * to reach it.
+   *
+   * @param cfg
+   *          The configuration.
+   * @param serverContext
+   *          This server instance context
+   * @param maxRetries
+   *          Number of attempts a write makes before it propagates the conflict to the caller.
+   * @param retryWindowNanos
+   *          Wall-clock budget the replays of a write may spend, in nanoseconds.
+   * @throws ConfigException if memory cannot be reserved
+   */
+  PDBStorage(final PDBBackendCfg cfg, ServerContext serverContext, int maxRetries, long retryWindowNanos)
+      throws ConfigException
+  {
     this.serverContext = serverContext;
+    this.maxRetries = maxRetries;
+    this.retryWindowNanos = retryWindowNanos;
     backendDirectory = getBackendDirectory(cfg);
     config = cfg;
     cfg.addPDBChangeListener(this);
@@ -1095,6 +1221,24 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     return new ImporterImpl();
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * A transaction the engine rolled back is replayed, bounded twice: by {@link #MAX_RETRIES} attempts and by the
+   * {@link #MAX_RETRY_WINDOW_NANOS} wall-clock window, whichever is spent first - except that the window alone
+   * never ends the replays before one has been made. It is bounded because the
+   * configuration change paths of the pluggable backend hold an entry container's exclusive lock across this
+   * method, and every reader of that suffix then waits - untimed and uninterruptibly - until it returns, so a
+   * conflict that never clears would park every worker thread of that suffix rather than fail one operation.
+   * <p>
+   * Once the bound is spent the conflict is reported as a {@link StorageRuntimeException} naming the backend, the
+   * attempts spent, the time they took and which of the two bounds ran out. It carries the conflict as a
+   * suppressed exception rather than as its cause: a cause is unwrapped below and thrown in its place, and
+   * {@code EntryContainer.throwAllowedExceptionTypes} likewise passes a {@link StorageRuntimeException} through
+   * untouched only while it has no cause. Given a cause, both hand the caller a bare RollbackException instead,
+   * and the message of a {@link StorageRuntimeException} wrapping one is just its class name - which is all
+   * {@code ERR_OPEN_ENV_FAIL} would report when this happens as a backend starts.
+   */
   @Override
   public void write(final WriteOperation operation) throws Exception
   {
@@ -1106,6 +1250,14 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     {
       throw unwrap(e);
     }
+  }
+
+  /** Returns the randomized delay before the given attempt is replayed, doubling with each attempt up to a cap. */
+  //package private like the JDBCStorage copy it is taken from, so that a test can pin the growth and the cap
+  static long retryDelayMillis(int attempt)
+  {
+    final double bound = Math.min(MAX_SLEEP_ON_RETRY_MS, BASE_SLEEP_ON_RETRY_MS * (1 << Math.min(attempt - 1, 5)));
+    return (long) (Math.random() * bound);
   }
 
   private Exception unwrap(StorageRuntimeException e) throws Exception
