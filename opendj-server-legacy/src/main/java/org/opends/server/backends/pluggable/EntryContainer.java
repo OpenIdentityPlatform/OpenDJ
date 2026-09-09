@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -201,7 +202,13 @@ public class EntryContainer
       {
         final CryptoSuite cryptoSuite = newCryptoSuite(cfg.isConfidentialityEnabled());
         final AttributeIndex index = newAttributeIndex(cfg, cryptoSuite);
+        // Read outside the write which uses it: listTrees() borrows a connection of its own on JDBC, which a
+        // transaction already holding one of the same pool must not ask for. A tree an attempt of that write
+        // creates is not in it either, which is what a replayed attempt needs: it must drop what was there
+        // before this change, and not what the attempt before it made.
+        final Set<TreeName> storedTrees = storage.listTrees();
         final AtomicBoolean trusted = new AtomicBoolean();
+        final AtomicBoolean discarded = new AtomicBoolean();
         storage.write(new WriteOperation()
         {
           @Override
@@ -211,12 +218,17 @@ public class EntryContainer
             // its configuration. close() removes every registration made for this index, so closing first leaves
             // one listener behind rather than one per attempt; it is a no-op on the first attempt.
             index.close();
-            index.open(txn, true);
+            discarded.set(index.openAsAdded(txn, storedTrees));
             trusted.set(index.isTrusted());
             attrIndexMap.put(cfg.getAttribute(), index);
             attrCryptoMap.put(cfg.getAttribute(), cryptoSuite);
           }
         });
+        if (discarded.get())
+        {
+          // Reported outside the write, since a replayed attempt would otherwise repeat the message.
+          AttributeIndex.reportDiscardedLeftovers(ccr, cfg.getAttribute().getNameOrOID(), getBaseDN());
+        }
         if (!trusted.get())
         {
           // Reported outside the write, since a replayed attempt would otherwise repeat the message.
@@ -302,6 +314,9 @@ public class EntryContainer
       {
         final AtomicReference<VLVIndex> built = new AtomicReference<>();
         final AtomicBoolean trusted = new AtomicBoolean();
+        final AtomicBoolean discarded = new AtomicBoolean();
+        // Read outside the write, for the reason given in the index add listener above.
+        final Set<TreeName> storedTrees = storage.listTrees();
         storage.write(new WriteOperation()
         {
           @Override
@@ -318,11 +333,16 @@ public class EntryContainer
             }
             VLVIndex vlvIndex = new VLVIndex(cfg, state, storage, EntryContainer.this, txn);
             built.set(vlvIndex);
-            vlvIndex.open(txn, true);
+            discarded.set(vlvIndex.openAsAdded(txn, storedTrees));
             trusted.set(vlvIndex.isTrusted());
             vlvIndexMap.put(cfg.getName().toLowerCase(), vlvIndex);
           }
         });
+        if (discarded.get())
+        {
+          // Reported outside the write, since a replayed attempt would otherwise repeat the message.
+          AttributeIndex.reportDiscardedLeftovers(ccr, cfg.getName(), getBaseDN());
+        }
         if (!trusted.get())
         {
           // Reported outside the write, since a replayed attempt would otherwise repeat the message.
