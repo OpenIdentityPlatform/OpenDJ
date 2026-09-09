@@ -22,6 +22,7 @@ import static java.util.concurrent.TimeUnit.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.mockito.Mockito.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
@@ -32,6 +33,8 @@ import static org.testng.Assert.*;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
@@ -44,6 +47,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.server.config.server.ReplicationSynchronizationProviderCfg;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -52,11 +56,14 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.extensions.DummyAlertHandler;
 import org.opends.server.plugins.ShortCircuitPlugin;
+import org.opends.server.plugins.ShortCircuitPlugin.ParkedReplay;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.plugin.MultimasterReplication;
+import org.opends.server.replication.protocol.AckMsg;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.HeartbeatThread;
@@ -157,7 +164,15 @@ public class UpdateOperationTest extends ReplicationTestCase
         + "cn: Replication Server\n"
         + "ds-cfg-replication-port: " + replServerPort + "\n"
         + "ds-cfg-replication-db-directory: UpdateOperationTest\n"
-        + "ds-cfg-replication-server-id: 107\n";
+        + "ds-cfg-replication-server-id: 107\n"
+        /*
+         * Long enough for a delivery which a test stops on its way through the replay:
+         * the acks of an assured update are waited for from the moment it is published,
+         * and the default second is spent long before a test which parks that delivery
+         * has let go of it. Nothing waits it out - no test here leaves an assured update
+         * unacknowledged - so it only bounds a failure.
+         */
+        + "ds-cfg-assured-timeout: 120000ms\n";
 
     // suffix synchronized
     String testName = "updateOperationTest";
@@ -1513,6 +1528,447 @@ public class UpdateOperationTest extends ReplicationTestCase
     {
       broker.stop();
     }
+  }
+
+  /**
+   * Test case for [Issue 909]: a replay thread which is stopped while it holds a change -
+   * the number of replay threads is changed on a live server - must hand that change back
+   * to the replication server instead of leaving it listed as owned by a thread which is
+   * gone.
+   * <p>
+   * The change is parked inside the operation it is replayed by, so the thread is caught
+   * while it still owns it rather than raced for: a change which is released by the
+   * ordinary recovery instead ends the same way - delivered again and applied - so a test
+   * which only watched the end state would pass whether or not the hand-back happened.
+   * <p>
+   * What tells them apart is which thread replays the change next. The thread which held
+   * it is gone, and the change is replayed by one of the threads which replaced it, so
+   * the delivery it is replayed from can only be a new one: an attempt which the same
+   * thread made again would be the retry in place, and a change nobody handed back is
+   * never delivered again at all - it stays listed as owned by a thread which is gone,
+   * with the ServerState of this domain stopped behind it for good.
+   */
+  @Test
+  public void aChangeAStoppedReplayThreadHeldIsGivenBackAndDeliveredAgain() throws Exception
+  {
+    testSetUp("aChangeAStoppedReplayThreadHeldIsGivenBackAndDeliveredAgain");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aChangeAStoppedReplayThreadHeldIsGivenBackAndDeliveredAgain"));
+
+    final int serverId = 14;
+    /*
+     * In the group of the replication server, so that the delete published below is one
+     * this domain has to acknowledge: an assured update from a broker of another group is
+     * acknowledged by the replication server itself, and says nothing about the replay.
+     */
+    ReplicationBroker broker =
+        openAssuredReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    try
+    {
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+
+      Entry tmp = TestCaseUtils.addEntry(
+          "dn: uid=user.909," + baseDN,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "uid: user.909",
+          "cn: Aaccf Amar",
+          "sn: Amar");
+      String uuid = getEntry(tmp.getName(), 1, true).parseAttribute("entryuuid").asString();
+
+      final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+      domain.resetUnreplayedChangeAlertThrottle();
+      final int initialAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE);
+      /*
+       * Only the counters of the replay are read: a session restart takes this domain
+       * through NOT_CONNECTED, which resets every monitoring counter of the replication
+       * service - the updates it received and processed, and the assured acks it sent -
+       * and handing a change back is a session restart.
+       */
+      final long initialApplied = getMonitorAttrValue(baseDN, "replayed-updates-ok");
+      final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+
+      /*
+       * Hold the replayed deletes where they are. The park is taken at the pre-parse
+       * plugin point, which runs inside op.run() and before anything of the backend was
+       * taken: the replay thread stops there while it still owns the change, and the
+       * pre-operation plugins are not invoked for synchronization operations at all.
+       */
+      final CSN csn = gen.newCSN();
+      final ParkedReplay parked = ShortCircuitPlugin.parkReplayedOperations(
+          OperationType.DELETE, "PreParse", op -> csn.equals(OperationContext.getCSN(op)));
+      final AtomicReference<Throwable> reconfigurationFailure = new AtomicReference<>();
+      Thread reconfiguration = null;
+      boolean reconfigurationFinished = true;
+      try
+      {
+        final DeleteMsg delete = new DeleteMsg(tmp.getName(), csn, uuid);
+        /*
+         * Published assured in SAFE_READ mode, so that the delivery which is abandoned
+         * has to say what it did. The ack is the one thing the counters cannot report
+         * afterwards - the session restart the hand-back performs resets every one of
+         * them - so it is read off this broker rather than counted.
+         */
+        delete.setAssured(true);
+        delete.setAssuredMode(AssuredMode.SAFE_READ_MODE);
+        broker.publish(delete);
+
+        // A replay thread now owns the change and is stopped inside its operation.
+        final Thread abandoningThread = parked.awaitParked(60, SECONDS);
+
+        /*
+         * Change the number of replay threads while that thread holds the change. It runs
+         * on a thread of its own because stopping the replay threads joins them: it can
+         * not return before the parked thread is let go, which is exactly the ordering
+         * this test is about.
+         */
+        reconfiguration = startReplayThreadReconfiguration(2, reconfigurationFailure);
+        awaitStoppingTheReplayThreads(reconfiguration, reconfigurationFailure);
+
+        /*
+         * The parked thread has been asked to stop by now, so its attempt comes back on a
+         * storage which did not serve the operation - which is retried in place - and the
+         * attempt which follows is where it finds out that it is going away and gives the
+         * change back instead.
+         */
+        parked.release(ResultCode.UNAVAILABLE.intValue());
+
+        /*
+         * The change was given back, so the replication server owns it again and delivers
+         * it once more. This second park is where the state of the domain is read: the
+         * change is held inside its operation, so nothing can be recording it while the
+         * assertions below run.
+         */
+        final Thread replayingThread =
+            awaitParkedOrReportReconfigurationFailure(parked, reconfigurationFailure);
+        reconfiguration.join(SECONDS.toMillis(60));
+        assertFalse(reconfiguration.isAlive(),
+            "the replay threads were reconfigured, but applyConfigurationChange never returned");
+        if (reconfigurationFailure.get() != null)
+        {
+          throw new AssertionError("the replay threads could not be reconfigured",
+              reconfigurationFailure.get());
+        }
+
+        /*
+         * The change is being replayed by another thread, and the thread which held it is
+         * gone: it gave the change back on its way out rather than take it with it. An
+         * attempt made by the thread which held it would be the retry in place instead,
+         * and a change which was never handed back is not replayed by anyone.
+         */
+        assertFalse(abandoningThread.isAlive(),
+            "the replay thread which held the change must have stopped");
+        Assertions.assertThat(replayingThread)
+            .as("the change must be replayed by a thread which did not hold it")
+            .isNotSameAs(abandoningThread);
+
+        assertFalse(domain.getServerState().cover(csn),
+            "a change a stopped replay thread never applied must not be in the ServerState");
+        assertEquals(getMonitorAttrValue(baseDN, "replayed-updates-failed"), initialFailures,
+            "a change which was handed back must not be counted as one this replica gave up on");
+        assertNotNull(getEntry(tmp.getName(), 1, true),
+            "the entry must not have been deleted by the delivery which was abandoned");
+
+        /*
+         * The delivery which was abandoned said what it did: an assured write which is
+         * waiting on this replica must not be told that the change is in the data here,
+         * because it is a change this replica is still asking for.
+         *
+         * What is read is the ack, not when it was published. The hand-back gives this
+         * domain a new broker and the replication server waits for an ack by CSN rather
+         * than by session, so an ack published after the hand-back reaches it all the
+         * same: the order of the two is not what this asserts.
+         */
+        final AckMsg ack = awaitAck(broker, csn);
+        assertTrue(ack.hasReplayError(),
+            "the ack of the abandoned delivery must report the replay error rather than"
+                + " be the plain ack a master would take for a durable write");
+        assertFalse(ack.hasTimeout(),
+            "the ack must be the one the abandoned delivery published, not the one the"
+                + " replication server makes up when it gives up waiting for it");
+        Assertions.assertThat(ack.getFailedServers())
+            .as("the replica which abandoned the delivery must be the one it names")
+            .containsExactly(domainSid);
+
+        /*
+         * Let the delivery which took over apply the change, and stop parking: an attempt
+         * of that delivery which came back on a lock it could not take would be parked
+         * again otherwise, with nothing left to release it.
+         */
+        parked.deregister();
+
+        assertMonitorAttrValueEventually(baseDN, "replayed-updates-ok", initialApplied + 1,
+            "the change must be applied by the delivery which took over from the abandoned one");
+        /*
+         * A change applied twice goes through the expected count on its way up, so the
+         * value has to be seen to stay put rather than to be reached once - and for
+         * longer than the session restart which would bring that second delivery, or the
+         * assertion stops looking before what it is looking for could arrive.
+         */
+        assertMonitorAttrValueStays(baseDN, "replayed-updates-ok", initialApplied + 1,
+            MONITOR_ATTR_SAMPLES_ACROSS_A_REDELIVERY,
+            "the change must be applied exactly once");
+        assertNull(DirectoryServer.getEntry(tmp.getName()), "the entry must have been deleted");
+
+        /*
+         * Abandoning a change is not giving up on it: the change is applied moments later,
+         * so nothing is counted as failed and the administrator is not told that this
+         * replica diverges.
+         */
+        assertMonitorAttrValueStays(baseDN, "replayed-updates-failed", initialFailures,
+            MONITOR_ATTR_SAMPLES_ACROSS_A_REDELIVERY,
+            "a change which was handed back must not be counted as one this replica gave up on");
+        assertEquals(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE),
+            initialAlerts,
+            "a change which was handed back must not have this replica report a divergence");
+      }
+      finally
+      {
+        /*
+         * Whatever happened above: no replay thread of this server may be left parked,
+         * and the reconfiguration has to be over before the next one is started. The two
+         * would otherwise race for the pool of replay threads, which belongs to the
+         * server rather than to this test, and the one which creates its threads last
+         * drops the ones the other had just started without ever stopping them.
+         */
+        parked.deregister();
+        if (reconfiguration != null)
+        {
+          reconfiguration.join(SECONDS.toMillis(60));
+          reconfigurationFinished = !reconfiguration.isAlive();
+        }
+        if (reconfigurationFinished)
+        {
+          setNumberOfReplayThreads(null);
+        }
+      }
+      /*
+       * Read here rather than asserted while cleaning up, where a failure would replace
+       * the one the test was reporting. join() with a timeout returns the same whether
+       * the thread is over or not, and the pool of replay threads belongs to the server:
+       * a reconfiguration still inside stopReplayThreads() holds the monitor of
+       * MultimasterReplication, which restoring the pool would wait on for as long as an
+       * untimed join() takes, and one caught between stopping and creating orphans the
+       * threads the restore had just started. So the pool is left alone and this says so.
+       */
+      assertTrue(reconfigurationFinished,
+          "the replay thread reconfiguration never finished; the pool was left alone");
+    }
+    finally
+    {
+      broker.stop();
+    }
+  }
+
+  /**
+   * Starts changing the number of replay threads of this server on a thread of its own.
+   * <p>
+   * It cannot run on the thread of the test: stopping the replay threads joins them, so it
+   * does not return while one of them is parked in a change, which is the whole point of
+   * this fixture.
+   *
+   * @param replayThreads how many replay threads the server must run, or {@code null} for
+   *          as many as it computes on its own
+   * @param failure where the reconfiguration reports what it ran into, if anything
+   * @return the thread which is doing the reconfiguration
+   */
+  private static Thread startReplayThreadReconfiguration(
+      final Integer replayThreads, final AtomicReference<Throwable> failure)
+  {
+    final Thread reconfiguration = new Thread(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        try
+        {
+          setNumberOfReplayThreads(replayThreads);
+        }
+        catch (Throwable t)
+        {
+          failure.set(t);
+        }
+      }
+    }, "replay thread reconfiguration");
+    // A reconfiguration which never returns holds the monitor of MultimasterReplication:
+    // let the fork end on it rather than have it kept alive by a thread of this test.
+    reconfiguration.setDaemon(true);
+    reconfiguration.start();
+    return reconfiguration;
+  }
+
+  /**
+   * Reads the acknowledgement of the provided change off the broker it was published on.
+   * <p>
+   * The messages which come first are discarded: this broker is told about everything the
+   * replication server has for it, and the ack of one change is what is being looked for.
+   *
+   * @param broker the broker the change was published on
+   * @param csn the change the ack is expected for
+   * @return the ack of that change
+   * @throws Exception if it never arrived
+   */
+  private static AckMsg awaitAck(final ReplicationBroker broker, final CSN csn) throws Exception
+  {
+    final long deadline = System.nanoTime() + SECONDS.toNanos(60);
+    while (deadline - System.nanoTime() > 0)
+    {
+      final ReplicationMsg msg;
+      try
+      {
+        msg = broker.receive();
+      }
+      catch (SocketTimeoutException e)
+      {
+        // The broker reads under a timeout of its own, which is far shorter than the
+        // budget here: a quiet second is not an answer.
+        continue;
+      }
+      if (msg == null)
+      {
+        // The broker stopped rather than timed out: there is nothing left to read from,
+        // and reading it again would spin a core for the rest of the budget.
+        throw new AssertionError("the session " + csn + " was published on is gone,"
+            + " so the ack of that change can no longer arrive");
+      }
+      if (msg instanceof AckMsg && csn.equals(((AckMsg) msg).getCSN()))
+      {
+        return (AckMsg) msg;
+      }
+    }
+    throw new AssertionError("the delivery of " + csn + " was never acknowledged");
+  }
+
+  /**
+   * Waits for the delivery which took over from the abandoned one to be parked, reporting
+   * what the reconfiguration ran into when that is why nothing was parked.
+   * <p>
+   * A reconfiguration which throws once it has stopped the replay threads leaves this
+   * server with no replay thread at all: nothing can be parked then, and the timeout of
+   * the wait would be reported in place of the failure which brought it about.
+   *
+   * @param parked the park the delivery is expected to be caught in
+   * @param failure where the reconfiguration reports what it ran into, if anything
+   * @return the thread which is replaying the parked operation
+   * @throws Exception if no operation was parked in time
+   */
+  private static Thread awaitParkedOrReportReconfigurationFailure(
+      final ParkedReplay parked, final AtomicReference<Throwable> failure) throws Exception
+  {
+    try
+    {
+      return parked.awaitParked(60, SECONDS);
+    }
+    catch (TimeoutException e)
+    {
+      final Throwable cause = failure.get();
+      if (cause == null)
+      {
+        throw e;
+      }
+      final AssertionError error = new AssertionError(
+          "the replay threads could not be reconfigured, so nothing was left to replay"
+              + " the change which was handed back", cause);
+      error.addSuppressed(e);
+      throw error;
+    }
+  }
+
+  /**
+   * Changes the number of replay threads of this server, the way a change of
+   * {@code num-update-replay-threads} does on a live server.
+   *
+   * @param replayThreads how many replay threads the server must run, or {@code null} for
+   *          as many as it computes on its own
+   */
+  private static void setNumberOfReplayThreads(final Integer replayThreads)
+  {
+    final ReplicationSynchronizationProviderCfg cfg =
+        mock(ReplicationSynchronizationProviderCfg.class);
+    /*
+     * An unstubbed mock hands out 0 replay threads and no connection timeout, and both
+     * would outlive this test: the whole server shares one pool of replay threads. The
+     * number of them is what this test is changing; the connection timeout is read back
+     * from the running server, so that it is restored rather than restated.
+     */
+    when(cfg.getNumUpdateReplayThreads()).thenReturn(replayThreads);
+    when(cfg.getConnectionTimeout())
+        .thenReturn((long) MultimasterReplication.getConnectionTimeoutMS());
+    multimasterReplication().applyConfigurationChange(cfg);
+  }
+
+  /** Returns the replication synchronization provider of the running server. */
+  private static MultimasterReplication multimasterReplication()
+  {
+    // Read as an Object: the provider is declared with the configuration of its own type,
+    // which is not the one the registry lists.
+    for (Object provider : DirectoryServer.getSynchronizationProviders())
+    {
+      if (provider instanceof MultimasterReplication)
+      {
+        return (MultimasterReplication) provider;
+      }
+    }
+    throw new AssertionError("this server runs no replication synchronization provider");
+  }
+
+  /**
+   * Waits for the provided thread to be inside the {@code join()} of the replay threads it
+   * is stopping.
+   * <p>
+   * Waiting for that, rather than for the thread to be started, is what puts the change in
+   * the hands of a thread which has already been asked to stop: every replay thread is
+   * asked to stop before the first of them is joined, so a thread which is joining has
+   * asked the parked one. Where the thread waits is checked as well as that it waits: the
+   * state on its own would be satisfied by any wait at all, including one taken before the
+   * replay threads were asked to stop.
+   *
+   * @param reconfiguration the thread which is changing the number of replay threads
+   * @param failure where that thread reports what it ran into, if anything
+   * @throws Exception if it never reached the join
+   */
+  private static void awaitStoppingTheReplayThreads(
+      final Thread reconfiguration, final AtomicReference<Throwable> failure) throws Exception
+  {
+    final long deadline = System.nanoTime() + SECONDS.toNanos(60);
+    while (deadline - System.nanoTime() > 0)
+    {
+      if (reconfiguration.getState() == Thread.State.WAITING
+          && isJoiningTheReplayThreads(reconfiguration))
+      {
+        return;
+      }
+      if (!reconfiguration.isAlive())
+      {
+        if (failure.get() != null)
+        {
+          throw new AssertionError(
+              "the replay threads could not be reconfigured", failure.get());
+        }
+        fail("the replay threads were stopped without joining the one which holds a change");
+      }
+      // Sampling the stack of a running thread costs a handshake with it, so it is done
+      // often enough to open the gate promptly and not so often as to slow the server
+      // this test is watching: the thread it waits for is not going anywhere.
+      Thread.sleep(10);
+    }
+    fail("the reconfiguration never reached the join() of the replay threads");
+  }
+
+  /** Returns whether the provided thread is waiting on the replay threads it stopped. */
+  private static boolean isJoiningTheReplayThreads(final Thread reconfiguration)
+  {
+    for (final StackTraceElement frame : reconfiguration.getStackTrace())
+    {
+      if ("stopReplayThreads".equals(frame.getMethodName())
+          && MultimasterReplication.class.getName().equals(frame.getClassName()))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
