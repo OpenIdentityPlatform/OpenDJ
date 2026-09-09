@@ -97,12 +97,17 @@ public class DSRSShutdownSync
   }
 
   /**
-   * Message has been sent.
+   * Message is about to be sent.
+   * <p>
+   * The announcement comes before the message is published rather than after: a collocated
+   * replication server can forward the message as soon as it is on the wire, and a forward which
+   * finds nothing announced has nothing to clear. The announcement of a message the broker then
+   * refuses is taken back by {@link #replicaOfflineMsgNotSent(DN, CSN)}.
    *
    * @param baseDN
-   *          the domain for which the message has been sent
+   *          the domain for which the message is being sent
    * @param offlineCSN
-   *          the CSN of the message, which identifies both the replica which announced itself
+   *          the CSN of the message, which identifies both the replica which announces itself
    *          offline and the announcement being waited for
    */
   public void replicaOfflineMsgSent(DN baseDN, CSN offlineCSN)
@@ -110,6 +115,36 @@ public class DSRSShutdownSync
     replicaOfflineMsgs
         .computeIfAbsent(baseDN, dn -> new ConcurrentHashMap<Integer, PendingOfflineMsg>())
         .put(offlineCSN.getServerId(), new PendingOfflineMsg(offlineCSN, System.nanoTime()));
+  }
+
+  /**
+   * The message which was announced was not sent after all: the broker had no session to write
+   * it to, or was stopped before it could.
+   * <p>
+   * The announcement is made before the message is published, since a collocated replication
+   * server can forward it as soon as it is on the wire, so the announcement of a message the
+   * broker then refused has to be taken back: nobody will forward it, and the shutdown would
+   * spend the whole grace period waiting for that forward. Only the announcement carrying that
+   * CSN is withdrawn - a newer one made in the meantime is left alone.
+   *
+   * @param baseDN
+   *          the domain for which the message was announced
+   * @param offlineCSN
+   *          the CSN of the message which was not sent
+   */
+  public void replicaOfflineMsgNotSent(DN baseDN, CSN offlineCSN)
+  {
+    final ConcurrentMap<Integer, PendingOfflineMsg> msgs = replicaOfflineMsgs.get(baseDN);
+    if (msgs != null)
+    {
+      final int serverId = offlineCSN.getServerId();
+      final PendingOfflineMsg pending = msgs.get(serverId);
+      if (pending != null && pending.csn.equals(offlineCSN))
+      {
+        msgs.remove(serverId, pending);
+      }
+    }
+    notifyForwarded();
   }
 
   /**
@@ -391,9 +426,8 @@ public class DSRSShutdownSync
       {
         /*
          * The message never went through the collocated RS - a replica which picked a remote one
-         * announcing itself offline, or an announcement recorded after the message it belongs to
-         * was already relayed. Nobody is known to owe a forward, so keep the behaviour the wait
-         * had before the recipients were tracked: the first forward ends it.
+         * is announcing itself offline. Nobody is known to owe a forward, so keep the behaviour
+         * the wait had before the recipients were tracked: the first forward ends it.
          */
         return true;
       }

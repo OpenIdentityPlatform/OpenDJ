@@ -803,7 +803,21 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * The generator time is adjusted to the time of the last CSN received from
      * remote other servers.
      */
-    pendingChanges = new PendingChanges(getGenerator(), this);
+    pendingChanges = new PendingChanges(getGenerator(), this,
+        new PendingChanges.ReplicaOfflineAnnouncer()
+    {
+      @Override
+      public void announce(CSN offlineCSN)
+      {
+        dsrsShutdownSync.replicaOfflineMsgSent(getBaseDN(), offlineCSN);
+      }
+
+      @Override
+      public void withdraw(CSN offlineCSN)
+      {
+        dsrsShutdownSync.replicaOfflineMsgNotSent(getBaseDN(), offlineCSN);
+      }
+    });
     remotePendingChanges = new RemotePendingChanges(getServerState());
 
     // listen for changes on the configuration
@@ -2209,17 +2223,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public void publishReplicaOfflineMsg()
   {
     final CSN offlineCSN = pendingChanges.putReplicaOfflineMsg();
-    if (offlineCSN != null)
+    if (offlineCSN == null && logger.isTraceEnabled())
     {
       /*
-       * Only a message which really was published is announced: the shutdown of a collocated
-       * replication server waits for it to be forwarded, and would spend the whole grace
-       * period waiting for one which never reached the wire.
+       * The announcement itself is made where the message is published, so nothing has to be
+       * reported here: a message a change in flight held back was never announced, and the
+       * announcement of one the broker refused has been withdrawn.
        */
-      dsrsShutdownSync.replicaOfflineMsgSent(getBaseDN(), offlineCSN);
-    }
-    else if (logger.isTraceEnabled())
-    {
       logger.trace("Replica " + getServerId() + " of domain baseDN=" + getBaseDN()
           + " could not announce itself offline: the message was not published - a change which"
           + " is still in flight holds it back, or the broker had no session to write it to,"

@@ -53,6 +53,9 @@ class PendingChanges
   /** The ReplicationDomain that will be used to send UpdateMsg. */
   private final ReplicationDomain domain;
 
+  /** Told that the replica of this domain announces itself offline, or takes that back. */
+  private final ReplicaOfflineAnnouncer replicaOfflineAnnouncer;
+
   private boolean recoveringOldChanges;
 
   /**
@@ -60,11 +63,16 @@ class PendingChanges
    *
    * @param csnGenerator The CSNGenerator to use to create new unique CSNs.
    * @param domain  The ReplicationDomain that will be used to send UpdateMsg.
+   * @param replicaOfflineAnnouncer Told that the replica of this domain announces itself
+   *                  offline, before the message announcing it is published, and that it takes
+   *                  the announcement back when the broker refused the message.
    */
-  PendingChanges(CSNGenerator csnGenerator, ReplicationDomain domain)
+  PendingChanges(CSNGenerator csnGenerator, ReplicationDomain domain,
+      ReplicaOfflineAnnouncer replicaOfflineAnnouncer)
   {
     this.csnGenerator = csnGenerator;
     this.domain = domain;
+    this.replicaOfflineAnnouncer = replicaOfflineAnnouncer;
   }
 
   /**
@@ -198,9 +206,22 @@ class PendingChanges
       }
       else if (msg instanceof ReplicaOfflineMsg)
       {
+        /*
+         * Announce the replica offline before the message reaches the wire, and not after:
+         * a collocated replication server forwards it as soon as it has it, and a forward
+         * which finds nothing announced leaves the shutdown waiting out the whole grace
+         * period of a message the topology already has.
+         */
+        final CSN offlineCSN = msg.getCSN();
+        replicaOfflineAnnouncer.announce(offlineCSN);
         if (domain.publish(msg))
         {
-          publishedOfflineCSN = msg.getCSN();
+          publishedOfflineCSN = offlineCSN;
+        }
+        else
+        {
+          // The broker wrote it to no session, so nobody will forward what was announced.
+          replicaOfflineAnnouncer.withdraw(offlineCSN);
         }
       }
 
@@ -265,5 +286,35 @@ class PendingChanges
       recoveringOldChanges = false;
     }
     return recoveringOldChanges;
+  }
+
+  /**
+   * Told that the replica of this domain announces itself offline, or takes that back.
+   * <p>
+   * A collocated replication server can forward a {@link ReplicaOfflineMsg} as soon as it is on
+   * the wire, and its shutdown waits for that forward, so the announcement has to be in place
+   * before the message is published: one made afterwards is one the forward found nothing to
+   * clear, and the shutdown spends its whole grace period on a message which has already gone
+   * out. The broker may still refuse the message once it is announced, and then the
+   * announcement is withdrawn: what is announced is what really went out, and nothing else.
+   */
+  interface ReplicaOfflineAnnouncer
+  {
+    /**
+     * Announces that the replica goes offline at the provided CSN.
+     *
+     * @param offlineCSN
+     *          the CSN of the ReplicaOfflineMsg which is about to be published
+     */
+    void announce(CSN offlineCSN);
+
+    /**
+     * Withdraws the announcement of a message the broker refused: it was written to no session,
+     * so nobody will forward it.
+     *
+     * @param offlineCSN
+     *          the CSN of the ReplicaOfflineMsg which was announced and not published
+     */
+    void withdraw(CSN offlineCSN);
   }
 }
