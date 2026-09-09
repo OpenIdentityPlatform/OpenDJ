@@ -117,6 +117,7 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.common.StatusMachineEvent;
+import org.opends.server.replication.plugin.SessionRestartRequests.SessionRestart;
 import org.opends.server.replication.protocol.AddContext;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteContext;
@@ -354,12 +355,23 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   /** Set while a replay thread is restarting the session after a failed replay. */
   private final AtomicBoolean replayFailureRecovery = new AtomicBoolean();
   /**
-   * Set when a change whose replay failed has to be delivered again, and cleared by the
-   * replay thread which restarts the session for it. A change released while the session
-   * was being restarted has to be asked for over yet another session: the delivery this
-   * one makes is turned down as a duplicate while a replay thread still owns it.
+   * The session restart a change whose replay failed is waiting for, asked for by the
+   * thread which released the change and taken by the thread which runs it. A change
+   * released while the session was being restarted has to be asked for over yet another
+   * session: the delivery this one makes is turned down as a duplicate while a replay
+   * thread still owns it.
+   * <p>
+   * The request outlives the thread which made it and the restart which could not run it,
+   * so that no change is left waiting for a delivery nobody asks for: the restart is run
+   * by whichever thread takes the request, and by {@link ServerStateFlush} when no thread
+   * comes back for it.
    */
-  private final AtomicBoolean sessionRestartRequested = new AtomicBoolean();
+  private final SessionRestartRequests sessionRestarts = new SessionRestartRequests();
+  /**
+   * Woken when a session restart which is sitting through its backoff has nothing left to
+   * wait for: the domain it would start a session for is going away or is being disabled.
+   */
+  private final Object sessionRestartBackoff = new Object();
   /**
    * How many times in a row the session was restarted without a change being replayed in
    * between. The backoff is computed from this rather than from the failures of the
@@ -368,6 +380,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * shortest for as long as the outage lasts.
    */
   private final AtomicInteger consecutiveSessionRestarts = new AtomicInteger();
+  /**
+   * How many of the next session restarts must fail rather than start the session again.
+   * <p>
+   * Only there for the tests, which have no other way to fail a restart: see {@link
+   * #failNextSessionRestarts(int)}. It is zero in production, where nothing ever sets it.
+   */
+  private final AtomicInteger sessionRestartFailuresToInject = new AtomicInteger();
   /**
    * Serialises the session of this domain being stopped and started again: the replay
    * thread which restarts it after a failed replay must not race the domain being
@@ -625,7 +644,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
   /**
    * The thread that periodically saves the ServerState of this
-   * LDAPReplicationDomain in the database.
+   * LDAPReplicationDomain in the database, and runs the session restart this domain has
+   * been asked for when the threads which asked for it are gone or could not run it.
    */
   private class ServerStateFlush extends DirectoryThread
   {
@@ -651,6 +671,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
               state.save();
             }
           }
+          /*
+           * Run outside the block above: a session restart holds the backoff a failing
+           * backend is owed, and shutdown() takes this monitor to wake this thread up.
+           */
+          runPendingSessionRestart();
         }
         catch (InterruptedException e)
         {
@@ -2512,6 +2537,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           flushThread.notifyAll();
         }
       }
+      /*
+       * A session restart which is sitting through its backoff has nothing left to wait
+       * for either, and this thread waits for the checkpointer below: a restart left to
+       * wait out a backend which is not what is going away would hold this shutdown for
+       * as long as the backoff it had climbed to.
+       */
+      wakeSessionRestartBackoff();
 
       DirectoryServer.deregisterAlertGenerator(this);
       getServerContext().getBackendConfigManager()
@@ -2659,14 +2691,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * of memory - would leave the change owned by this thread after all. Hand it back
          * bare, without the failure count that road did not reach, and restart the session
          * so that it is delivered again: this is the last resort, the throwable is rethrown
-         * whatever happens here, and the thread this runs on may well be ending on it - so
-         * a request left for the next recovery of this domain to pick up is a request which
-         * may never be run.
+         * whatever happens here, and the thread this runs on may well be ending on it. A
+         * restart which can not run here leaves its request standing, and the state
+         * checkpointer of this domain runs it.
          */
         if (owned != null)
         {
           remotePendingChanges.replayFailed(owned);
-          sessionRestartRequested.set(true);
+          sessionRestarts.request(SessionRestart.NOW);
           /*
            * Reported and restarted under guards of their own, and in that order: the report
            * is the line an operator acts on, and the restart is what has the change
@@ -2684,14 +2716,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           }
           try
           {
-            runRequestedSessionRestarts(false);
+            runRequestedSessionRestarts();
           }
           catch (Throwable restartFailure)
           {
             /*
-             * Nothing is left to try: the change is listed, uncommitted and unowned, so any
-             * later session restart of this domain delivers it again. This goes with the
-             * throwable which is rethrown below rather than being reported on its own.
+             * Nothing is left to try here: the change is listed, uncommitted and unowned,
+             * and the restart which threw has asked for one again, so the session restart
+             * the state checkpointer runs delivers it again. This goes with the throwable
+             * which is rethrown below rather than being reported on its own.
              */
             suppress(recoveryFailure, restartFailure);
           }
@@ -3594,74 +3627,58 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * run it: a restart which is already under way may have started before this change
      * was released, and the delivery it asked for would then have been turned down as a
      * duplicate of a change a replay thread still owned.
+     *
+     * A replay thread which is stopping - the number of them is being changed - asks for
+     * the restart all the same: nothing else would ask for the change it just released,
+     * and the ServerState would stay behind it for good. What it asks for is not owed the
+     * backoff, though: the backend is not what is going away. Neither is what the thread
+     * an OutOfMemoryError is ending asks for, for the same reason. The wait belongs to the
+     * request rather than to the thread which runs it, or a hand-back which is owed none
+     * would spend the wait another request is owed - and the other way around.
      */
-    sessionRestartRequested.set(true);
-    /*
-     * A replay thread which is stopping - the number of them is being changed - restarts
-     * the session all the same: nothing else would ask for the change it just released,
-     * and the ServerState would stay behind it for good. It does not sit through the
-     * backoff on its way out, though: the backend is not what is going away. Neither does
-     * the thread an OutOfMemoryError is ending, for the same reason - and the restart is
-     * run rather than left to be asked for again, because that thread will not be there to
-     * run it, and a change nobody asks for again holds this domain's ServerState back.
-     */
-    runRequestedSessionRestarts(!replayThreadShutdown.get() && !outOfMemory);
+    sessionRestarts.request(replayThreadShutdown.get() || outOfMemory
+        ? SessionRestart.NOW : SessionRestart.AFTER_BACKOFF);
+    runRequestedSessionRestarts();
     return true;
   }
 
   /**
    * Restarts the session as long as changes which could not be replayed are waiting to be
    * delivered again.
-   *
-   * @param wait whether to leave the backend some time to recover between two restarts
    */
-  private void runRequestedSessionRestarts(boolean wait)
+  private void runRequestedSessionRestarts()
   {
     /*
      * The outer loop is what makes a request which was made while this thread was giving
      * up the recovery its own: the thread which made it found the recovery taken and left
      * it to this one.
      */
-    while (sessionRestartRequested.get() && replayFailureRecovery.compareAndSet(false, true))
+    while (sessionRestarts.isPending() && replayFailureRecovery.compareAndSet(false, true))
     {
       try
       {
-        while (sessionRestartRequested.getAndSet(false))
+        for (SessionRestart restart = sessionRestarts.take();
+             restart != SessionRestart.NONE;
+             restart = sessionRestarts.take())
         {
-          boolean restarted = false;
           try
           {
-            restartSession(wait);
-            restarted = true;
+            restartSession(restart == SessionRestart.AFTER_BACKOFF);
           }
-          finally
+          catch (Throwable t)
           {
-            if (!restarted)
-            {
-              /*
-               * The request is put back where it was taken from. The flag is read and
-               * cleared before the restart runs, so a restart which ends abruptly - the
-               * session is stopped first, and starting it again creates a listener thread,
-               * which the operating system can refuse - would otherwise leave this domain
-               * with no session and with nothing left to ask for one.
-               *
-               * What a request left standing buys is bounded, and the bound is worth
-               * stating. Its two readers are the roads out of a failed and of an abandoned
-               * replay of this domain, and with no listener thread nothing is delivered
-               * anymore: the replays left to run are the changes already taken off the
-               * session - the ones waiting in the replay queue, and the ones parked as
-               * dependencies. One of those failing finds the request standing and runs the
-               * restart, which starts from a clean state, since disableService() drops the
-               * listener thread which was never started. Once they are spent, the domain
-               * stays down until it is disabled and enabled back, or the server is
-               * restarted. That is said where it can be heard: a refused thread is an
-               * OutOfMemoryError, and one which leaves recoverFromReplayFailure() or
-               * abandonReplay() ends the replay thread it is met on, so the uncaught
-               * exception handler of DirectoryThread writes the line and raises the alert,
-               * with the start of the listener thread in the trace.
-               */
-              sessionRestartRequested.set(true);
-            }
+            /*
+             * The request is taken before the restart runs, so a restart which could not
+             * run - the session is stopped first, and starting it again creates a listener
+             * thread, which the operating system can refuse - has to ask for one again:
+             * the session has been stopped and was not started back, and nothing else
+             * would ask - no change is delivered over a session which is down, so no
+             * replay fails and no thread comes back here. The request is asked for with
+             * the backoff whatever it was made with, since a session which can not be
+             * started is the very thing that wait is for.
+             */
+            sessionRestarts.giveBack(SessionRestart.AFTER_BACKOFF);
+            throw t;
           }
         }
       }
@@ -3673,12 +3690,47 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   }
 
   /**
+   * Runs the session restart this domain was asked for and which no thread of its own
+   * ran.
+   * <p>
+   * A restart is asked for by the thread which released the change it could not replay,
+   * and that thread usually runs it. It does not always: a replay thread on its way out
+   * hands its change back and leaves, and a restart which threw where it starts the
+   * session again asks for one anew rather than take the request away with it. Nothing
+   * would run what is left standing - a session which is down delivers no change, so no
+   * replay fails and no thread comes back for it - and this domain would sit out of the
+   * topology, with the changes it did not replay owned by the replication server and its
+   * ServerState stopped behind them.
+   */
+  private void runPendingSessionRestart()
+  {
+    if (shutdown.get() || disabled || ieRunning() || !sessionRestarts.isPending())
+    {
+      return;
+    }
+    try
+    {
+      runRequestedSessionRestarts();
+    }
+    catch (Throwable t)
+    {
+      /*
+       * The restart which threw has asked for one again, so this thread runs it again
+       * once the backoff has been waited out. It must not end on it: nothing would save
+       * the ServerState of this domain anymore, and shutdown() waits for this thread.
+       */
+      logger.error(ERR_REPLAY_SESSION_RESTART_FAILED,
+          getBaseDN(), stackTraceToSingleLineString(t));
+    }
+  }
+
+  /**
    * Gives a change back to the replication server when this replay thread stops before it
    * could apply it.
    * <p>
-   * The change is not owned by anyone anymore and it was never applied, so the session is
-   * restarted for it to be delivered again: it is left out of the ServerState, and the
-   * changes which follow it are held back until it is replayed.
+   * The change is not owned by anyone anymore and it was never applied, so a session
+   * restart is asked for to have it delivered again: it is left out of the ServerState,
+   * and the changes which follow it are held back until it is replayed.
    *
    * @param csn the CSN of the change this thread was replaying
    */
@@ -3696,8 +3748,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * is started back - one line per change would say otherwise.
      */
     logger.info(NOTE_REPLAY_ABANDONED_CHANGE, csn, getBaseDN());
-    sessionRestartRequested.set(true);
-    runRequestedSessionRestarts(false);
+    /*
+     * Asked for rather than run here. The threads of the pool are stopped one after the
+     * other and joined, so every one of them which was replaying a change would stop and
+     * start the session on its way out, one restart per change abandoned and none of them
+     * waiting - while the configuration change which is stopping them waits for all of
+     * them. The state checkpointer runs one restart for the lot a moment later, which is
+     * all the replication server needs to send every change which was handed back.
+     */
+    sessionRestarts.request(SessionRestart.NOW);
   }
 
   /**
@@ -3742,6 +3801,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          */
         return;
       }
+      failSessionRestartIfATestAskedFor();
       enableService();
       sessionGeneration++;
     }
@@ -3756,9 +3816,26 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private void waitBeforeSessionRestart(int restarts)
   {
+    final long until = monotonicNowInMs()
+        + Math.min(REPLAY_RETRY_DELAY_IN_MS * restarts, MAX_REPLAY_RETRY_DELAY_IN_MS);
     try
     {
-      Thread.sleep(Math.min(REPLAY_RETRY_DELAY_IN_MS * restarts, MAX_REPLAY_RETRY_DELAY_IN_MS));
+      /*
+       * Waited on a monitor rather than slept through, so that a domain which is going
+       * away or is being disabled is not waited out: the thread which holds this wait is
+       * a replay thread the shutdown of the pool joins, or the state checkpointer the
+       * shutdown of the domain waits for. The session it would start back is one the
+       * domain is stopping anyway.
+       */
+      synchronized (sessionRestartBackoff)
+      {
+        for (long left = until - monotonicNowInMs();
+             left > 0 && !shutdown.get() && !disabled;
+             left = until - monotonicNowInMs())
+        {
+          sessionRestartBackoff.wait(left);
+        }
+      }
     }
     catch (InterruptedException e)
     {
@@ -3769,6 +3846,51 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * asked this thread to stop.
        */
       Thread.currentThread().interrupt();
+    }
+  }
+
+  /**
+   * Has the next session restarts of this domain fail where they would start the session
+   * again.
+   * <p>
+   * Only there for the tests: nothing asks a restart to fail in production, and what this
+   * stands in for - anything thrown out of {@link #enableService()}, which stops at no
+   * failure the callers of {@link ReplicationBroker#start()} report - can not be provoked
+   * from the outside.
+   *
+   * @param failures how many session restarts must fail before one is allowed to run
+   */
+  @VisibleForTesting
+  public void failNextSessionRestarts(int failures)
+  {
+    sessionRestartFailuresToInject.set(failures);
+  }
+
+  /**
+   * Returns how many of the session restart failures {@link #failNextSessionRestarts(int)}
+   * asked for have not been spent yet.
+   * <p>
+   * Only there for the tests, which read it to tell a restart which failed from one which
+   * was never run.
+   *
+   * @return how many session restarts are still to fail
+   */
+  @VisibleForTesting
+  public int getSessionRestartFailuresLeft()
+  {
+    return sessionRestartFailuresToInject.get();
+  }
+
+  /**
+   * Fails this session restart when a test asked for it, and does nothing at all
+   * otherwise.
+   */
+  private void failSessionRestartIfATestAskedFor()
+  {
+    if (sessionRestartFailuresToInject.getAndUpdate(left -> Math.max(left - 1, 0)) > 0)
+    {
+      throw new IllegalStateException("the session of domain " + getBaseDN()
+          + " could not be started again, as a test asked");
     }
   }
 
@@ -4441,8 +4563,20 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        * is gone with the pending changes, so a leftover request would have a replay thread
        * stop and start the session once for a delivery which can not come.
        */
-      sessionRestartRequested.set(false);
+      sessionRestarts.clear();
       consecutiveSessionRestarts.set(0);
+    }
+    // Woken outside the lock it does not hold: a restart which is waiting has nothing
+    // left to wait for, the session it would start being one this domain is not serving.
+    wakeSessionRestartBackoff();
+  }
+
+  /** Has a session restart which is sitting through its backoff stop waiting. */
+  private void wakeSessionRestartBackoff()
+  {
+    synchronized (sessionRestartBackoff)
+    {
+      sessionRestartBackoff.notifyAll();
     }
   }
 
