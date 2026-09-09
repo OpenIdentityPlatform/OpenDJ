@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
@@ -720,6 +721,9 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       replicationServer =
           newReplicationServer(shutdownSync, "shutdownSyncDataServerDb", 8225, replicationPort);
       broker = openReplicationSession(baseDN, REMOTE_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      // the writer this test is about exists only once the handshake of the directory server is
+      // over, and the shutdown below would otherwise be free to abort that handshake instead
+      waitForConnectedDirectoryServer(replicationServer.getReplicationServerDomain(baseDN, true));
 
       final long startTime = System.nanoTime();
       shutdownSync.replicaOfflineMsgSent(baseDN, newOfflineCSN());
@@ -889,6 +893,24 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
         });
   }
 
+  /**
+   * Waits for the peer replication server to be connected <em>and</em> for its handshake to be
+   * over.
+   * <p>
+   * The registration is not the end of the handshake: {@code startFromRemoteRS()} puts the
+   * handler in {@code connectedRSs} before it calls {@code finalizeStart()}, which is what
+   * starts the reader and the writer, and the whole handshake runs in the listen thread of the
+   * replication server. {@link ReplicationServer#shutdown()} interrupts that thread before it
+   * waits for the ReplicaOfflineMsgs, so a shutdown triggered while the handshake is still in
+   * {@code Session.waitForStartup()} aborts it: the session is closed and the handler
+   * unregistered, and the peer is gone before the message could be queued for it, let alone
+   * forwarded. Issue #821 recorded that same window, from the dead handler it used to leave
+   * behind.
+   * <p>
+   * The listen thread serves one handshake at a time, so a peer which is past that window also
+   * puts every connection accepted before it - the collocated directory server of these tests
+   * among them - past it.
+   */
   private void waitForConnectedReplicationServer(
       final ReplicationServerDomain domain, final int serverId) throws Exception
   {
@@ -897,12 +919,21 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       @Override
       public void call() throws Exception
       {
-        assertThat(domain.getConnectedRSs())
-            .as("the peer replication server %s never connected", serverId).containsKey(serverId);
+        final ReplicationServerHandler rsHandler = domain.getConnectedRSs().get(serverId);
+        assertThat(rsHandler)
+            .as("the peer replication server %s never connected", serverId).isNotNull();
+        assertThat(handshakeIsOver(rsHandler))
+            .as("the handshake of the peer replication server %s never finished", serverId)
+            .isTrue();
       }
     });
   }
 
+  /**
+   * Waits for the collocated directory server to be connected and for its handshake to be over -
+   * {@link #waitForConnectedReplicationServer(ReplicationServerDomain, int)} says what the
+   * registration alone leaves open.
+   */
   private DataServerHandler waitForConnectedDirectoryServer(final ReplicationServerDomain domain)
       throws Exception
   {
@@ -913,9 +944,22 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       {
         final DataServerHandler dsHandler = domain.getConnectedDSs().get(REMOTE_DS_ID);
         assertThat(dsHandler).as("the directory server never connected").isNotNull();
+        assertThat(handshakeIsOver(dsHandler))
+            .as("the handshake of the directory server never finished").isTrue();
         return dsHandler;
       }
     });
+  }
+
+  /**
+   * Whether the handshake of the handler is over, so that the interrupt
+   * {@link ReplicationServer#shutdown()} sends to its listen thread can no longer abort it:
+   * {@code ServerHandler.finalizeStart()} registers the handler as a monitor provider by its
+   * last statement, after the reader and the writer have been started.
+   */
+  private static boolean handshakeIsOver(ServerHandler handler)
+  {
+    return DirectoryServer.getMonitorProviders().containsValue(handler);
   }
 
   private static TestTimer newConnectionTimer()
