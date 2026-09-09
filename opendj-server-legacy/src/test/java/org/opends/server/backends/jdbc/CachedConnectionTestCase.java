@@ -1668,6 +1668,28 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertEquals(CachedConnection.attemptSeconds(30, Long.MAX_VALUE), 30);
 	}
 
+	/**
+	 * A deadline so far off that naming it overflows is a wait with no end, and not one already
+	 * behind us: a borrow configured to wait practically forever would otherwise give up on its
+	 * first retryable failure, which is the opposite of what was asked for. The sum is what has to
+	 * be guarded and not only the product - a value under the clamp of the product can still name a
+	 * moment past the end of the epoch.
+	 */
+	@Test
+	public void testADeadlineTooFarOffToNameIsAWaitWithNoEnd() throws Exception {
+		final long startedAt = System.currentTimeMillis();
+		// 0 is the operator asking for no deadline at all
+		assertEquals(CachedConnection.deadlineOf(startedAt, 0), Long.MAX_VALUE);
+		// ... and so is a value whose milliseconds would not fit a long at all
+		assertEquals(CachedConnection.deadlineOf(startedAt, Long.MAX_VALUE / 1000), Long.MAX_VALUE);
+		// the one the product guard lets through, which is the largest value it does: a second under
+		// the clamp, so the milliseconds of it still fit a long - by 1807 of them - while the moment
+		// they name, counted from now, does not. Guarded by the sum alone
+		assertEquals(CachedConnection.deadlineOf(startedAt, Long.MAX_VALUE / 1000 - 1), Long.MAX_VALUE);
+		// and an ordinary value still names the moment it says
+		assertEquals(CachedConnection.deadlineOf(startedAt, 60), startedAt + 60_000);
+	}
+
 	/** The connection string holds the credentials of the backend: a stall report must not carry them. */
 	@Test
 	public void testLoggedConnectionStringCarriesNoCredentials() throws Exception {
@@ -1768,6 +1790,18 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertFalse(stall.contains("S3cret"), stall);
 		assertTrue(stall.contains("jdbc:postgresql://h:5432/db"), stall);
 		assertTrue(stall.contains("4000 ms") && stall.contains("(3 attempts)"), stall);
+
+		// and so is the stall of a connect made outside the pool - the connection the tree catalog of a
+		// backend is written on (#888) - which is under the same rule and describes the same url
+		final String outside = CachedConnection.outsidePoolStallMessage(url, "tree catalog", 3, 4000,
+			new SQLException("FATAL: too many connections for " + url));
+		assertFalse(outside.contains("S3cret"), outside);
+		assertTrue(outside.contains("jdbc:postgresql://h:5432/db"), outside);
+		assertTrue(outside.contains("4000 ms") && outside.contains("(3 attempts)"), outside);
+		assertTrue(outside.contains("tree catalog"), outside);
+		// and says what it is: a borrow of the pool is what this connect is not, and an operator
+		// reading it must not be sent to the pool for a stall the pool has no part in
+		assertFalse(outside.contains("pooled one"), outside);
 	}
 
 	/**
