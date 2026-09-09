@@ -2844,7 +2844,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// the catalog names what this backend owns, and only that: listTrees() also names the
 			// shared compressed schema trees, which another backend of this database may be the only
 			// owner of and which a clear must therefore leave exactly where they lie (#881)
-			final List<String> skippedRows=new ArrayList<>(); // rows the read could not act on: reported below
+			final SkippedRows skippedRows=new SkippedRows(); // rows the read could not act on: reported below
 			final Map<TreeName,String> trees=catalogTables(con, scope, skippedRows);
 			final ClearCounts counts;
 			try {
@@ -2933,9 +2933,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				final String tableName=tree.getValue();
 				final boolean isCatalog=catalogTree.equals(tree.getKey());
 				if (!isExistsTable(con, scope, tableName)) { // a row of the catalog outliving its table
+					// the tree name through forLog() and the table name as it stands: the second was read
+					// back out of the same row but has been through isOwnTableName(), which leaves nothing
+					// but a bare identifier, while a tree name is anything at all with two slashes in it
 					reportClearLine(LocalizableMessage.raw(
 						"jdbc: backend %s names tree %s, whose table %s is not there: nothing to drop for it",
-						config.getBackendId(), tree.getKey(), tableName));
+						config.getBackendId(), forLog(tree.getKey().toString()), tableName));
 					if (!isCatalog) {
 						counts.missingTrees++;
 					}
@@ -3037,7 +3040,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * what it can say. Without the term it says nothing at all, which is the silence of #888.
 	 */
 	void reportClearOutcome(Connection con, TableScope scope, int dropped, int droppedTrees, int missingTrees,
-			List<String> skippedRows) {
+			SkippedRows skippedRows) {
 		final ClearLeftovers leftovers=leftoverTables(con, scope);
 		if (leftovers==null) {
 			// a line of its own and not a clause of the one below: this says nothing about whether
@@ -3077,15 +3080,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		reportSkippedRows(skippedRows); // after the reason above and among the lists, being a list itself
 		if (ours>0) {
 			reportClearLine(LocalizableMessage.raw("jdbc: backend %s: %d table(s) of %s hold trees of this backend that its catalog does not name, and the clear left them where they are: %s. A tree is enrolled as it is opened read-write and by no other means, so such a table is one of a tree of a base DN this backend still serves that was taken out of the configuration while it was disabled - an attribute index, say - or one left by a version keeping no catalog: it is this backend's own and can be removed by hand, and re-adding the tree it belongs to adopts it with the rows it still holds",
-				config.getBackendId(), ours, scope.name(), leftovers.ours));
+				config.getBackendId(), ours, scope.name(), forLog(leftovers.ours)));
 		}
 		if (unattributed>0) {
 			reportClearLine(LocalizableMessage.raw("jdbc: backend %s: %d opendj table(s) of %s are named by no catalog of this backend and carry no tree stamp, so nothing says whose they are: %s. They may hold the trees of a backend sharing this database, which nothing forbids, or be leftovers of a version stamping no table at all - a table is named after the hash of its tree name and can be attributed by no other means. They were left exactly where they are",
-				config.getBackendId(), unattributed, scope.name(), leftovers.unattributed));
+				config.getBackendId(), unattributed, scope.name(), forLog(leftovers.unattributed)));
 		}
 		if (unreadable>0) {
 			reportClearLine(LocalizableMessage.raw("jdbc: backend %s: the stamp of %d opendj table(s) of %s could not be read, so this clear says nothing about whose they are: %s. They were left exactly where they are",
-				config.getBackendId(), unreadable, scope.name(), leftovers.unreadable));
+				config.getBackendId(), unreadable, scope.name(), forLog(leftovers.unreadable)));
 		}
 	}
 
@@ -3109,13 +3112,115 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * table went on its own between the two lookups, it took them with it just the same. That is what
 	 * the line has to say, and why it carries the recorded name rather than sending an operator to a
 	 * table that is no longer there.
+	 * <p>
+	 * Not private: it asks the database nothing and writes to nothing but {@link #reportClearLine}, so
+	 * the bounds of the line it builds are held to by a case that calls it with an accumulator filled by
+	 * hand - {@code ClearReportTestCase} - rather than by a case that has to reach them through a clear.
 	 */
-	private void reportSkippedRows(List<String> skippedRows) {
+	void reportSkippedRows(SkippedRows skippedRows) {
 		if (skippedRows.isEmpty()) {
 			return;
 		}
+		// the count is every row passed over and the listing is the first of them: see SkippedRows for
+		// why the two are not the same number, and forLog() for the state each description reaches here in
 		reportClearLine(LocalizableMessage.raw("jdbc: backend %s: %d row(s) of its catalog named nothing this clear could drop and were passed over: %s. The rows are gone with the catalog table, which a clear drops last; whatever they record was left standing, and no other line of this clear names it: the tables of this backend are named after the hash of a tree name, so what such a row records is outside the names a clear can account for. This line is the only surviving copy of it. A catalog holding such a row was written into by something other than this backend",
-			config.getBackendId(), skippedRows.size(), skippedRows));
+			config.getBackendId(), skippedRows.size(), skippedRows.reported()));
+	}
+
+	/**
+	 * How many values of a list a line of this report carries. The lists it renders are read off the
+	 * database - the rows of a catalog another writer put them in, the tables of a schema - so none of
+	 * them is bounded by anything this backend does, and a catalog holding a million rows it cannot act
+	 * on would otherwise be one log record of a million descriptions. What is left out is counted: the
+	 * count beside every one of these lists is the whole of it, and the listing says how much of itself
+	 * it is not showing.
+	 */
+	static final int MAX_REPORTED_VALUES=20;
+
+	/**
+	 * How much of one such value a line carries. The columns behind them bound almost nothing - the key
+	 * of a catalog row is {@code bytea} on postgresql and {@code varbinary(max)} on sql server, the
+	 * recorded table name a blob on every engine - so a single row is enough for the multi-megabyte
+	 * record the cap above exists to rule out, and the cap above would not catch it.
+	 */
+	static final int MAX_LOGGED_VALUE_LENGTH=200;
+
+	/**
+	 * A value read out of the database as it may be logged: bounded, and with nothing in it that ends a
+	 * log record. Every value these lines carry comes out of a table - the key of a catalog row, the
+	 * table name it records, the comment a table is stamped with - and the whole premise of the lines
+	 * carrying them is a database written into by something other than this backend, so a newline in one
+	 * of them splices arbitrary text into the server log where it reads as further records. That is the
+	 * one thing the escape is for: control characters are rendered rather than passed on, and the two
+	 * unicode separators with them, since a reader that folds those breaks the same way.
+	 * <p>
+	 * A backslash is left as it stands. It cannot end a record, and escaping it would spell every
+	 * ordinary escaped comma of a normalized DN {@code \\,} - which is the wrong trade for a line an
+	 * operator reads: what is being ruled out is a record split in two, not an ambiguous rendering.
+	 * <p>
+	 * {@link CachedConnection#redact} is the nearest thing to this in the package - a value that reaches
+	 * a log going through something first - for a different reason: what that one keeps out of the log
+	 * is this backend's own credentials, what this one keeps out is somebody else's log records.
+	 */
+	static String forLog(String value) {
+		if (value==null) {
+			return null;
+		}
+		final int kept=Math.min(value.length(), MAX_LOGGED_VALUE_LENGTH);
+		final StringBuilder escaped=new StringBuilder(kept+32);
+		for (int i=0;i<kept;i++) {
+			final char c=value.charAt(i);
+			switch (c) {
+			case '\n':
+				escaped.append("\\n");
+				break;
+			case '\r':
+				escaped.append("\\r");
+				break;
+			case '\t':
+				escaped.append("\\t");
+				break;
+			default:
+				// isISOControl covers 0x00-0x1f and 0x7f-0x9f, the second range being where the one-byte
+				// NEL of a legacy encoding lands; the two below are line and paragraph separators no
+				// character class of the jdk calls a control character and some readers break lines on
+				if (Character.isISOControl(c) || c==0x2028 || c==0x2029) {
+					escaped.append(String.format("\\u%04x", (int)c));
+				}else {
+					escaped.append(c);
+				}
+			}
+		}
+		if (value.length()>kept) {
+			escaped.append("...(+").append(value.length()-kept).append(" more characters)");
+		}
+		return escaped.toString();
+	}
+
+	/**
+	 * The same of a list of them: the first {@link #MAX_REPORTED_VALUES}, each through {@link
+	 * #forLog(String)}, and a count of what the line is not naming. The count of the whole list is
+	 * printed beside every one of these listings by the caller, so what is dropped here is dropped from
+	 * the naming alone.
+	 */
+	static String forLog(Collection<String> values) {
+		final StringBuilder rendered=new StringBuilder("[");
+		int named=0;
+		for (final String value : values) {
+			if (named==MAX_REPORTED_VALUES) {
+				break;
+			}
+			if (named>0) {
+				rendered.append(", ");
+			}
+			rendered.append(forLog(value));
+			named++;
+		}
+		rendered.append(']');
+		if (values.size()>named) {
+			rendered.append(" (and ").append(values.size()-named).append(" more, not named here)");
+		}
+		return rendered.toString();
 	}
 
 	/**
@@ -3123,6 +3228,58 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * the silence of #888, and the one thing an operator reading such a line has to be told.
 	 */
 	private static final String CLEAR_DROPPED_NOTHING="A backend upgraded from a version keeping no catalog has to be started once before its first offline \"import-ldif --clearBackend\": nothing enrols a tree before the clear runs, so that first clear finds a catalog that is not there - or, where the tables were restored from a backup taken beside an older one, a catalog that is there and names nothing - and removes no tree either way";
+
+	/**
+	 * The rows of a catalog a read passed over: how many there were, and a description of the first of
+	 * them. Both numbers are the report's - see {@link #reportSkippedRows} - and they are kept apart for
+	 * the reason {@link #MAX_REPORTED_VALUES} exists: a row of this kind is one another writer put in
+	 * the catalog, so nothing bounds how many of them a read meets, and a clear that describes every one
+	 * of them holds the whole catalog in a list until it reports. What an operator needs from the line
+	 * is what such a row looks like and how many there are, and neither of those wants the millionth
+	 * description.
+	 * <p>
+	 * The descriptions arrive escaped and bounded, {@link #forLog(String)} having been applied to every
+	 * value embedded in them where they were built: what is held here is what a log record may carry.
+	 */
+	static final class SkippedRows {
+		private final List<String> descriptions=new ArrayList<>();
+		private int passedOver;
+
+		/**
+		 * Takes one description, and answers whether this row is one of the described - which is also
+		 * whether it is worth a line of its own, the per-row warns of {@link #readCatalogRows} being
+		 * bounded by this same cap and for the same reason.
+		 */
+		boolean add(String description) {
+			passedOver++;
+			if (descriptions.size()<MAX_REPORTED_VALUES) {
+				descriptions.add(description);
+				return true;
+			}
+			return false;
+		}
+
+		boolean isEmpty() {
+			return passedOver==0;
+		}
+
+		/** Every row passed over, described or not: this is the number the report states. */
+		int size() {
+			return passedOver;
+		}
+
+		/** The descriptions kept, for a caller that renders them itself - a case asserting on one. */
+		List<String> descriptions() {
+			return descriptions;
+		}
+
+		/** The descriptions as a line carries them, saying how many rows they are not describing. */
+		String reported() {
+			return passedOver>descriptions.size()
+				? descriptions+" (and "+(passedOver-descriptions.size())+" more, not described here)"
+				: descriptions.toString();
+		}
+	}
 
 	/** What a clear left standing, told apart by the tree stamp of each table; see {@link #reportClearOutcome}. */
 	static final class ClearLeftovers {
@@ -3194,7 +3351,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					// the read that failed is rolled back before the next table is asked about. There is
 					// nothing pending to lose - the clear committed its drops before this ran
 					logger.trace(LocalizableMessage.raw("jdbc: unable to read the stamp of table %s: %s",
-						tableName, stackTraceToSingleLineString(e)));
+						forLog(tableName), stackTraceToSingleLineString(e)));
 					leftovers.unreadable.add(tableName);
 					try {
 						con.rollback();
@@ -5369,7 +5526,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * lookup of their own by it, so they pass what they have instead of every reader asking twice over.
 	 */
 	Map<TreeName,String> catalogTables(Connection con, TableScope scope) throws SQLException {
-		return catalogTables(con, scope, new ArrayList<>()); // nobody to tell: the descriptions go nowhere
+		return catalogTables(con, scope, new SkippedRows()); // nobody to tell: the descriptions go nowhere
 	}
 
 	/**
@@ -5378,7 +5535,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * such a row records is outside the namespace {@link #leftoverTables} scans. See {@link
 	 * #reportClearOutcome}.
 	 */
-	Map<TreeName,String> catalogTables(Connection con, TableScope scope, List<String> skippedRows) throws SQLException {
+	Map<TreeName,String> catalogTables(Connection con, TableScope scope, SkippedRows skippedRows) throws SQLException {
 		final TreeName catalogTree=getCatalogTree();
 		final String catalogTable=getTableName(catalogTree);
 		// narrowed to this database: a catalog of the same name in another database of the server
@@ -5413,14 +5570,20 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * row itself goes with the catalog table it sits in, which the clear names last and drops. That is
 	 * what makes the line the only surviving copy of what such a row said, and why it carries the
 	 * recorded name. A reader with nobody to tell - a read of {@code dbtest}, or the one an enrolment makes
-	 * - hands in a list of its own and lets it go, which is one allocation per read of a whole table
-	 * and no convention to get wrong.
+	 * - hands in an accumulator of its own and lets it go, which is one allocation per read of a whole
+	 * table and no convention to get wrong.
+	 * <p>
+	 * Both the warns and the descriptions are bounded, by the one cap and for the one reason: nothing
+	 * this backend does bounds how many such rows a catalog holds, since a catalog holding any of them
+	 * was written into by something else. Every value either of them embeds goes through {@link
+	 * #forLog(String)} first - the key of the row, the tree name it spells, the table name it records -
+	 * and one line at the end says how many rows were passed over in silence. See {@link SkippedRows}.
 	 */
 	Map<TreeName,String> readCatalogRows(Connection con, String catalogTable) throws SQLException {
-		return readCatalogRows(con, catalogTable, new ArrayList<>());
+		return readCatalogRows(con, catalogTable, new SkippedRows());
 	}
 
-	Map<TreeName,String> readCatalogRows(Connection con, String catalogTable, List<String> skippedRows)
+	Map<TreeName,String> readCatalogRows(Connection con, String catalogTable, SkippedRows skippedRows)
 			throws SQLException {
 		final Map<TreeName,String> trees=new LinkedHashMap<>();
 		// the rows are read inside the bound rather than from a live ResultSet: #882 took the
@@ -5430,9 +5593,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				while (rs.next()) {
 					final byte[] key=rs.getBytes("k");
 					if (key==null) { // no tree is named by a row with no key, and a clear must not fail over one
-						logger.warn(LocalizableMessage.raw("jdbc: table %s holds a row naming no tree at all: skipped",
-							catalogTable));
-						skippedRows.add("a row naming no tree at all");
+						// the description is built first and the warn follows it: what add() answers is
+						// whether this row is one of the described, and a row past the cap is one this read
+						// counts and does not spell out - in the report of a clear or in a line of its own
+						if (skippedRows.add("a row naming no tree at all")) {
+							logger.warn(LocalizableMessage.raw("jdbc: table %s holds a row naming no tree at all: skipped",
+								catalogTable));
+						}
 						continue;
 					}
 					final String name=new String(db2real(key), StandardCharsets.UTF_8);
@@ -5440,9 +5607,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					try {
 						treeName=TreeName.valueOf(name);
 					} catch (RuntimeException e) { // reported rather than passed off as a backend with fewer trees
-						logger.warn(LocalizableMessage.raw("jdbc: table %s holds \"%s\", which is not the name of a tree: skipped",
-							catalogTable, name));
-						skippedRows.add("\""+name+"\", which is not the name of a tree");
+						final String logged=forLog(name); // the whole of the key column, and this is a log record
+						if (skippedRows.add("\""+logged+"\", which is not the name of a tree")) {
+							logger.warn(LocalizableMessage.raw("jdbc: table %s holds \"%s\", which is not the name of a tree: skipped",
+								catalogTable, logged));
+						}
 						continue;
 					}
 					final byte[] table=rs.getBytes("v");
@@ -5456,15 +5625,28 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					// to rule out is anything that is not a bare identifier: this value is read back from a
 					// table and reaches a "drop table" that no driver will take a bind parameter for.
 					if (!isOwnTableName(tableName)) {
-						logger.warn(LocalizableMessage.raw("jdbc: table %s records tree %s at \"%s\", which is no table of this backend: skipped",
-							catalogTable, treeName, tableName));
-						skippedRows.add(treeName+" at \""+tableName+"\", which is no table of this backend");
+						// both values through forLog(): the recorded name is whatever the row holds, this
+						// being the branch that establishes it is none of this backend's names, and a tree
+						// name is anything at all with two slashes in it - TreeName.valueOf() asks no more
+						final String loggedTree=forLog(treeName.toString());
+						final String loggedTable=forLog(tableName);
+						if (skippedRows.add(loggedTree+" at \""+loggedTable+"\", which is no table of this backend")) {
+							logger.warn(LocalizableMessage.raw("jdbc: table %s records tree %s at \"%s\", which is no table of this backend: skipped",
+								catalogTable, loggedTree, loggedTable));
+						}
 						continue;
 					}
 					trees.put(treeName, tableName);
 				}
 				return null;
 			});
+		}
+		// said once, where the cap cut in: a reader with nobody to tell has these warns as its whole
+		// report, and would otherwise be left believing the rows it was shown were all there were. The
+		// clear says it again in a line of its own, addressed to the account it gives of itself
+		if (skippedRows.size()>MAX_REPORTED_VALUES) {
+			logger.warn(LocalizableMessage.raw("jdbc: table %s holds %d row(s) this backend could not act on: the first %d are named above, the rest were passed over without a line of their own",
+				catalogTable, skippedRows.size(), MAX_REPORTED_VALUES));
 		}
 		return trees;
 	}
