@@ -37,10 +37,14 @@ import java.sql.SQLTimeoutException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.mockito.Mockito.any;
@@ -76,6 +80,12 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	/** The DDL itself, as it appears among the session statements issued around it. */
 	private static final String THE_DDL = "the ddl";
 
+	/** The backend the storage of a case is configured as, which is what names its tree catalog. */
+	private static final String BACKEND_ID = "ddlLockBound";
+	/** That catalog's table, which the connection of a case answers as not being there: see engine(). */
+	private static final String NO_CATALOG_TABLE =
+		JDBCStorage.toTableName(new TreeName(JDBCStorage.CATALOG_BASE_DN, BACKEND_ID));
+
 	/** What the connection of a case was asked to run, in the order it was asked to run it. */
 	private final List<String> issued = new ArrayList<>();
 
@@ -83,8 +93,15 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 
 	@BeforeMethod
 	public void createStorage() {
-		storage = new JDBCStorage(mockCfg(JDBCBackendCfg.class), null);
+		storage = new JDBCStorage(backendCfg(), null);
 		issued.clear();
+	}
+
+	/** A configuration naming this backend, which is all any case here reads off one. */
+	private static JDBCBackendCfg backendCfg() {
+		final JDBCBackendCfg cfg = mockCfg(JDBCBackendCfg.class);
+		when(cfg.getBackendId()).thenReturn(BACKEND_ID);
+		return cfg;
 	}
 
 	@AfterMethod
@@ -421,7 +438,11 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 
 		bounded.write(txn -> txn.deleteTree(TREE));
 
-		assertEquals(issued, asList("set local lock_timeout = 5000",
+		// the search path in front of them is the lookup that decides whether there is a table to drop
+		// at all, narrowed to the schemas an unqualified name of this connection resolves in (#888): it
+		// reads a session setting rather than the data, and takes a bound of its own
+		assertEquals(issued, asList("select unnest(current_schemas(true))",
+			"set local lock_timeout = 5000",
 			"drop table " + JDBCStorage.toTableName(TREE)));
 	}
 
@@ -451,11 +472,41 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	 */
 	@Test
 	public void testTheDropLoopOfARemovedBackendIsBoundedOnce() throws Exception {
-		storage.dropTables(engine(postgresConnection.class, "0"), asList(TREE, OTHER_TREE));
+		final Connection con = engine(postgresConnection.class, "0");
+		final JDBCStorage.TableScope scope = JDBCStorage.TableScope.of(storage, con);
+		issued.clear(); // the search path the scope read is no part of what this case is about
+
+		final JDBCStorage.ClearCounts counts = storage.dropCatalogTables(con, scope, catalogOf(TREE, OTHER_TREE));
 
 		assertEquals(issued, asList("set local lock_timeout = 5000",
 			"drop table " + JDBCStorage.toTableName(TREE),
 			"drop table " + JDBCStorage.toTableName(OTHER_TREE)));
+		assertEquals(counts.dropped, 2, "the clear did not account for the tables it dropped under the bound");
+	}
+
+	/**
+	 * And a clear with no row to act on is committed without the bound: putting it on costs a readback
+	 * and a restore of its own, and the first clear of a backend upgraded from a version that kept no
+	 * catalog - the case {@code CLEAR_DROPPED_NOTHING} describes - has no DDL for them to bound.
+	 */
+	@Test
+	public void testAClearWithNoTableToDropIsGivenNoBound() throws Exception {
+		final Connection con = engine(postgresConnection.class, "0");
+		final JDBCStorage.TableScope scope = JDBCStorage.TableScope.of(storage, con);
+		issued.clear();
+
+		storage.dropCatalogTables(con, scope, Collections.<TreeName, String>emptyMap());
+
+		assertEquals(issued, emptyList());
+	}
+
+	/** A catalog naming each of the given trees at the table its name hashes to. */
+	private static Map<TreeName, String> catalogOf(TreeName... trees) {
+		final Map<TreeName, String> catalog = new LinkedHashMap<>();
+		for (final TreeName tree : trees) {
+			catalog.put(tree, JDBCStorage.toTableName(tree));
+		}
+		return catalog;
 	}
 
 	/**
@@ -696,9 +747,15 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 		final DatabaseMetaData metaData = mock(DatabaseMetaData.class);
 		when(metaData.getTables(any(), any(), any(), any())).thenAnswer(invocation -> {
 			final ResultSet tables = mock(ResultSet.class);
-			when(tables.next()).thenReturn(true, false);
+			final String asked = (String) invocation.getArguments()[2];
+			// Every tree of a case is found to exist, and the tree catalog of the backend is found not
+			// to be there: what these cases are about is the statements issued around a DDL, and a
+			// backend upgraded from a version that kept no catalog takes the shortest way to the funnel
+			// carrying them - the catalog would otherwise want a connection of its own, which is not a
+			// connection this mock hands out. CatalogConnectionTestCase covers that one.
+			when(tables.next()).thenReturn(!NO_CATALOG_TABLE.equals(asked), false);
 			// the name the catalog was asked about, so that every tree of a case is found to exist
-			when(tables.getString("TABLE_NAME")).thenReturn((String) invocation.getArguments()[2]);
+			when(tables.getString("TABLE_NAME")).thenReturn(asked);
 			return tables;
 		});
 		when(con.getMetaData()).thenReturn(metaData);
@@ -711,7 +768,7 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	 * around a DDL, not the pool that produced the connection carrying them.
 	 */
 	private JDBCStorage storageHandingOut(final Connection con) {
-		final JDBCStorage handing = new JDBCStorage(mockCfg(JDBCBackendCfg.class), null) {
+		final JDBCStorage handing = new JDBCStorage(backendCfg(), null) {
 			@Override
 			Connection getConnection(boolean trusted) {
 				return new CachedConnection("jdbc:mock", con);

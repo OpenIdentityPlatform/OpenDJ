@@ -104,6 +104,9 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	/** The window as this JVM was started with it, put back after every test that varies it. */
 	private static final long CONFIGURED_ALIVE_BYPASS_NANOS = CachedConnection.aliveBypassNanos;
 
+	/** The standing read bound as this JVM was started with it, put back after every test that varies it. */
+	private static final int CONFIGURED_READ_TIMEOUT_MILLIS = CachedConnection.readTimeoutMillis;
+
 	@BeforeClass
 	public void registerStubDriver() throws Exception {
 		DriverManager.registerDriver(stub);
@@ -131,10 +134,12 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		System.clearProperty(CachedConnection.POOL_MAX_PROPERTY);
 		System.clearProperty(CachedConnection.TTL_PROPERTY);
 		System.clearProperty(CachedConnection.ALIVE_BYPASS_PROPERTY);
+		System.clearProperty(CachedConnection.READ_TIMEOUT_PROPERTY);
 		// what has been reported once is remembered for the life of the jvm: left standing, the key
 		// of one test is what the next one finds when it asserts that it reported something itself
 		CachedConnection.warnedOnce.clear();
 		CachedConnection.aliveBypassNanos = CONFIGURED_ALIVE_BYPASS_NANOS;
+		CachedConnection.readTimeoutMillis = CONFIGURED_READ_TIMEOUT_MILLIS;
 	}
 
 	/**
@@ -1668,6 +1673,28 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertEquals(CachedConnection.attemptSeconds(30, Long.MAX_VALUE), 30);
 	}
 
+	/**
+	 * A deadline so far off that naming it overflows is a wait with no end, and not one already
+	 * behind us: a borrow configured to wait practically forever would otherwise give up on its
+	 * first retryable failure, which is the opposite of what was asked for. The sum is what has to
+	 * be guarded and not only the product - a value under the clamp of the product can still name a
+	 * moment past the end of the epoch.
+	 */
+	@Test
+	public void testADeadlineTooFarOffToNameIsAWaitWithNoEnd() throws Exception {
+		final long startedAt = System.currentTimeMillis();
+		// 0 is the operator asking for no deadline at all
+		assertEquals(CachedConnection.deadlineOf(startedAt, 0), Long.MAX_VALUE);
+		// ... and so is a value whose milliseconds would not fit a long at all
+		assertEquals(CachedConnection.deadlineOf(startedAt, Long.MAX_VALUE / 1000), Long.MAX_VALUE);
+		// the one the product guard lets through, which is the largest value it does: a second under
+		// the clamp, so the milliseconds of it still fit a long - by 1807 of them - while the moment
+		// they name, counted from now, does not. Guarded by the sum alone
+		assertEquals(CachedConnection.deadlineOf(startedAt, Long.MAX_VALUE / 1000 - 1), Long.MAX_VALUE);
+		// and an ordinary value still names the moment it says
+		assertEquals(CachedConnection.deadlineOf(startedAt, 60), startedAt + 60_000);
+	}
+
 	/** The connection string holds the credentials of the backend: a stall report must not carry them. */
 	@Test
 	public void testLoggedConnectionStringCarriesNoCredentials() throws Exception {
@@ -1768,6 +1795,18 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertFalse(stall.contains("S3cret"), stall);
 		assertTrue(stall.contains("jdbc:postgresql://h:5432/db"), stall);
 		assertTrue(stall.contains("4000 ms") && stall.contains("(3 attempts)"), stall);
+
+		// and so is the stall of a connect made outside the pool - the connection the tree catalog of a
+		// backend is written on (#888) - which is under the same rule and describes the same url
+		final String outside = CachedConnection.outsidePoolStallMessage(url, "tree catalog", 3, 4000,
+			new SQLException("FATAL: too many connections for " + url));
+		assertFalse(outside.contains("S3cret"), outside);
+		assertTrue(outside.contains("jdbc:postgresql://h:5432/db"), outside);
+		assertTrue(outside.contains("4000 ms") && outside.contains("(3 attempts)"), outside);
+		assertTrue(outside.contains("tree catalog"), outside);
+		// and says what it is: a borrow of the pool is what this connect is not, and an operator
+		// reading it must not be sent to the pool for a stall the pool has no part in
+		assertFalse(outside.contains("pooled one"), outside);
 	}
 
 	/**
@@ -1962,6 +2001,259 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		verify(parent).close();
 		assertEquals(CachedConnection.poolOf(url).idleCount(), 0,
 			"a connection still carrying the read bound of its login went back into the pool");
+	}
+
+	/**
+	 * What a connection carries once the login is through, where a deployment asked for a read
+	 * bound of its own: that bound rather than the bound of the login, which is a value nothing
+	 * slower than a connect is meant to be measured against. Without one, this is the lift above -
+	 * the behaviour of every connection this backend established before the property existed.
+	 */
+	@Test(timeOut = 120000)
+	public void testAnEstablishedConnectionCarriesTheReadBoundAskedFor() throws Exception {
+		final String url = StubDriver.PREFIX + "standing-read-bound";
+		CachedConnection.readTimeoutMillis = 90000;
+		final Connection parent = mock(Connection.class);
+		stub.answerWith(parent);
+
+		CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 30,
+			CachedConnection.poolOf(url), false);
+
+		verify(parent).setNetworkTimeout(any(Executor.class), eq(90000));
+		verify(parent, never()).setNetworkTimeout(any(Executor.class), eq(0));
+	}
+
+	/**
+	 * And it carries it whether or not the login had a bound of its own to lift. The read bound of
+	 * a login is only ever set where the connect is bounded, so a deployment that runs with
+	 * {@code connect.timeout=0} - the one setting that leaves a connect to the deadline of the
+	 * borrow alone - would otherwise set this property and get nothing for it.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheReadBoundIsSetWhereTheLoginHadNoneToLift() throws Exception {
+		final String url = StubDriver.PREFIX + "read-bound-without-a-login-bound";
+		CachedConnection.readTimeoutMillis = 90000;
+		final Connection parent = mock(Connection.class);
+		stub.answerWith(parent);
+
+		CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 0,
+			CachedConnection.poolOf(url), false);
+
+		verify(parent).setNetworkTimeout(any(Executor.class), eq(90000));
+	}
+
+	/**
+	 * A read bound standing in the connection string is the deployment's own: the connect does not
+	 * replace it with this one, exactly as it does not set the read bound of a login on top of it.
+	 */
+	@Test(timeOut = 120000)
+	public void testAReadBoundOfTheUrlIsNotReplacedByTheConfiguredOne() throws Exception {
+		final String url = StubDriver.PREFIX + "own-read-bound?socketTimeout=1000";
+		CachedConnection.readTimeoutMillis = 90000;
+		final Connection parent = mock(Connection.class);
+		stub.answerWith(parent);
+
+		CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 30,
+			CachedConnection.poolOf(url), false);
+
+		verify(parent, never()).setNetworkTimeout(any(Executor.class), anyInt());
+	}
+
+	/**
+	 * Which connections carry a read bound of this backend's own making, as the backstop of
+	 * {@code JDBCStorage} has to know it: a statement of an unbounded class takes that bound off
+	 * for as long as it runs, and it may only take off what this class put on. A bound of the url
+	 * is the deployment's, and a driver whose property names are not known here was never given
+	 * one - lifting either would leave the connection unbounded for the rest of its life.
+	 */
+	@Test(timeOut = 120000)
+	public void testOnlyTheReadBoundThisClassSetsIsItsOwnToLift() {
+		CachedConnection.readTimeoutMillis = 90000;
+		assertEquals(CachedConnection.standingReadBoundMillis("jdbc:mysql://localhost:3306/db"), 90000,
+			"the bound this class sets on a connection of a dialect it knows");
+		assertEquals(CachedConnection.standingReadBoundMillis("jdbc:mysql://localhost:3306/db?socketTimeout=1000"), 0,
+			"a read bound of the url was reported as this backend's own");
+		assertEquals(CachedConnection.standingReadBoundMillis("jdbc:h2:mem:db"), 0,
+			"a driver this class sets no read bound on was reported as bounded by it");
+
+		CachedConnection.readTimeoutMillis = 0;
+		assertEquals(CachedConnection.standingReadBoundMillis("jdbc:mysql://localhost:3306/db"), 0,
+			"a connection carries no standing bound where none is configured");
+	}
+
+	/**
+	 * The bound is configured in seconds and reaches the driver in milliseconds; 0, a negative
+	 * value and a value that is no number all leave a connection unbounded, which is what this
+	 * backend did before the property existed. A value past the ceiling of a socket read timeout is
+	 * taken down to it rather than left to overflow the {@code int} of setNetworkTimeout, where it
+	 * would arrive as a negative timeout - a value outside the contract, and one a driver is free
+	 * to read as anything at all.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheReadBoundIsConfiguredInSeconds() {
+		assertEquals(CachedConnection.getReadTimeoutMillis(), 0, "a connection is unbounded by default");
+
+		System.setProperty(CachedConnection.READ_TIMEOUT_PROPERTY, "90");
+		assertEquals(CachedConnection.getReadTimeoutMillis(), 90000);
+
+		System.setProperty(CachedConnection.READ_TIMEOUT_PROPERTY, "0");
+		assertEquals(CachedConnection.getReadTimeoutMillis(), 0);
+
+		System.setProperty(CachedConnection.READ_TIMEOUT_PROPERTY, "-1");
+		assertEquals(CachedConnection.getReadTimeoutMillis(), 0, "a negative value was not read as no bound");
+
+		System.setProperty(CachedConnection.READ_TIMEOUT_PROPERTY, "a minute and a half");
+		assertEquals(CachedConnection.getReadTimeoutMillis(), 0,
+			"a value that is no number was not ignored in favour of the default");
+
+		System.setProperty(CachedConnection.READ_TIMEOUT_PROPERTY, Integer.toString(Integer.MAX_VALUE));
+		assertEquals(CachedConnection.getReadTimeoutMillis(), JDBCStorage.MAX_BOUND_SECONDS * 1000,
+			"a value past the ceiling of a socket read timeout was not taken down to it");
+	}
+
+	/**
+	 * A driver that will not take the standing bound leaves a connection with no bound of ours on
+	 * it, which is what every connection of this pool carried before the property existed and no
+	 * reason to keep this one out of the pool. The connection that must not be pooled is the one
+	 * still carrying the read bound of its login: there the call that failed was a call to take
+	 * something off, and the bound left on it fails every statement slower than a connect.
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectionThatWouldNotTakeTheStandingBoundIsStillPooled() throws Exception {
+		final String url = StubDriver.PREFIX + "unsettable-standing-bound";
+		CachedConnection.readTimeoutMillis = 90000;
+		final Connection parent = mock(Connection.class);
+		doThrow(new SQLException("setNetworkTimeout is not supported"))
+			.when(parent).setNetworkTimeout(any(Executor.class), anyInt());
+		stub.answerWith(parent);
+
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+		// Metered, and holding a permit of the pool as a borrow does: an unmetered connection is
+		// closed rather than pooled whatever bound it carries, which would answer this on the
+		// accounting of the pool instead of on the bound the case is about.
+		assertTrue(pool.tryReserve(), "the pool of this url would not reserve a place for the connection");
+		final CachedConnection borrowed = CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 0,
+			pool, true);
+		borrowed.close();
+
+		verify(parent, never()).close();
+		assertEquals(pool.idleCount(), 1,
+			"a connection carrying no bound of ours was kept out of the pool");
+	}
+
+	/**
+	 * A read parameter of the url set to 0 is no bound of the deployment's: 0 is what every one of
+	 * these drivers reads as "wait as long as it takes", which is the default this property exists
+	 * to replace. It tells the two bounds apart, and only on postgresql, where a parameter of the
+	 * url outranks the property this class supplies: the login there is left carrying no bound of
+	 * ours, and rightly so, while the bound of this property is no property of a connect at all - it
+	 * is a setNetworkTimeout of an established connection, which no url outranks. Read as a bound of
+	 * theirs, a "socketTimeout=0" - the default of pgjdbc, written out - would leave a deployment
+	 * that asked for this one with no bound and no report of why.
+	 */
+	@Test(timeOut = 120000)
+	public void testAReadParameterOfTheUrlSetToZeroIsNoBoundOfTheDeployments() {
+		CachedConnection.readTimeoutMillis = 90000;
+		assertEquals(CachedConnection.standingReadBoundMillis("jdbc:postgresql://localhost/db?socketTimeout=0"), 90000,
+			"a postgresql url turning the read bound off was read as a bound of the deployment's own");
+		assertEquals(CachedConnection.standingReadBoundMillis("jdbc:mysql://localhost:3306/db?socketTimeout=0"), 90000,
+			"a mysql url turning the read bound off was read as a bound of the deployment's own");
+		assertEquals(CachedConnection.standingReadBoundMillis("jdbc:postgresql://localhost/db?socketTimeout=30"), 0,
+			"a read bound of a postgresql url is the deployment's own and stands");
+	}
+
+	/**
+	 * The predicate deciding whether a url bounds the read reads the same set of names as the one
+	 * deciding whether it declares it. It used to stop at the first name present even where the
+	 * value there was a zero, so a url naming the bound under both names of the oracle driver - the
+	 * dotted one turned off, the last segment set - was declared() and not bounds(): the login kept
+	 * the administrator's value, because a property of ours is not supplied over a declared one, and
+	 * a bound of ours then went on top of it with setNetworkTimeout. Contrived, but "the bound taken
+	 * off is the bound that was set" holds only while the two look at the same names.
+	 */
+	@Test(timeOut = 120000)
+	public void testAReadBoundUnderEitherNameOfTheUrlIsTheDeploymentsOwn() {
+		CachedConnection.readTimeoutMillis = 90000;
+		assertEquals(CachedConnection.standingReadBoundMillis(
+			"jdbc:oracle:thin:@//localhost:1521/db?oracle.jdbc.ReadTimeout=0&ReadTimeout=600"), 0,
+			"a bound standing under the last segment of the name was read as no bound at all");
+		assertEquals(CachedConnection.standingReadBoundMillis(
+			"jdbc:oracle:thin:@//localhost:1521/db?oracle.jdbc.ReadTimeout=0&ReadTimeout=0"), 90000,
+			"a url turning the read bound off under both of its names is no bound of the deployment's");
+	}
+
+	/**
+	 * With nothing configured this is the lift and nothing else - the read bound of the login comes
+	 * off and no bound of ours goes on top of it, which is what every connection of this pool
+	 * carried before the property existed. The default of this property is what makes the change
+	 * that introduced it no change at all for a deployment that does not ask for one.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheDefaultTakesTheBoundOfTheLoginOffAndPutsNothingOnTopOfIt() throws Exception {
+		final String url = StubDriver.PREFIX + "default-read-bound";
+		CachedConnection.readTimeoutMillis = 0;
+		final Connection parent = mock(Connection.class);
+		stub.answerWith(parent);
+
+		CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 30,
+			CachedConnection.poolOf(url), false);
+
+		verify(parent).setNetworkTimeout(any(Executor.class), eq(0));
+		verify(parent, times(1)).setNetworkTimeout(any(Executor.class), anyInt());
+	}
+
+	/**
+	 * A driver that would take neither the standing bound nor the lift leaves the connection that
+	 * must not be pooled: what it is left carrying is the read bound of a connect, and every borrow
+	 * after this one would meet it - which is the case above, reached by the other of the two paths
+	 * that call for a setNetworkTimeout once the login is through.
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectionThatWouldTakeNeitherTheStandingBoundNorTheLiftIsNotPooled() throws Exception {
+		final String url = StubDriver.PREFIX + "unsettable-over-a-login-bound";
+		CachedConnection.readTimeoutMillis = 90000;
+		final Connection parent = mock(Connection.class);
+		doThrow(new SQLException("setNetworkTimeout is not supported"))
+			.when(parent).setNetworkTimeout(any(Executor.class), anyInt());
+		stub.answerWith(parent);
+
+		final CachedConnection.Pool pool = CachedConnection.poolOf(url);
+		// Metered, and holding a permit of the pool as a borrow does: an unmetered connection is
+		// closed rather than pooled whatever bound it carries, which would answer this on the
+		// accounting of the pool instead of on the bound the case is about.
+		assertTrue(pool.tryReserve(), "the pool of this url would not reserve a place for the connection");
+		final CachedConnection borrowed = CachedConnection.connect(url, CachedConnection.ConnectDialect.MYSQL, 30,
+			pool, true);
+		borrowed.close();
+
+		verify(parent).close();
+		assertEquals(pool.idleCount(), 0,
+			"a connection still carrying the read bound of its login went back into the pool");
+	}
+
+	/**
+	 * The initializer reads this property the way it reads the two windows above - a value that is
+	 * no number, or a negative one, is reported once and ignored in favour of the default - and
+	 * reporting it has to leave the class usable: the set that report is deduplicated through is
+	 * declared above every field whose initializer can reach it (JLS 12.4.2), so a field of this
+	 * one moved above that set would turn a typo in a property into an ExceptionInInitializerError
+	 * that no test of a class already initialized would ever meet.
+	 */
+	@Test(timeOut = 120000, dataProvider = "readBoundsWorthWarningAbout")
+	public void testAReadBoundWorthWarningAboutStillInitializesTheClass(String configured) throws Exception {
+		System.setProperty(CachedConnection.READ_TIMEOUT_PROPERTY, configured);
+
+		final Class<?> reloaded = loadedAfresh(CachedConnection.class);
+
+		assertNotSame(reloaded, CachedConnection.class, "the class under test was not loaded afresh");
+		final Field field = reloaded.getDeclaredField("readTimeoutMillis");
+		field.setAccessible(true);
+		assertEquals(field.getInt(null), 0, "the bound the reloaded class settled on");
+	}
+
+	@DataProvider
+	public Object[][] readBoundsWorthWarningAbout() {
+		return new Object[][]{{"a minute and a half"}, {"-1"}};
 	}
 
 	/**
