@@ -20,8 +20,10 @@ package org.opends.quicksetup.installer;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
+import static org.opends.admin.ads.util.ConnectionUtils.allValuesAsStrings;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Installation.*;
+import static org.opends.server.config.ConfigConstants.ATTR_TASK_LOG_MESSAGES;
 import static org.opends.server.types.ExistingFileBehavior.*;
 import static org.opends.server.types.HostPort.*;
 
@@ -36,6 +38,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -53,6 +56,7 @@ import org.forgerock.opendj.config.ManagedObjectNotFoundException;
 import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.CryptoManagerCfgClient;
 import org.forgerock.opendj.server.config.client.LocalBackendCfgClient;
@@ -70,6 +74,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.BackendMessages;
 import org.opends.messages.CoreMessages;
 import org.opends.messages.ReplicationMessages;
+import org.opends.messages.Severity;
 import org.opends.quicksetup.Application;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.JavaArguments;
@@ -104,6 +109,20 @@ public class InstallerHelper {
 
   private static final int MAX_ID_VALUE = Short.MAX_VALUE;
   private static final long ONE_MEGABYTE = 1024L * 1024;
+
+  /**
+   * The severity field of a message logged by a task with an error severity, as rendered by
+   * {@code org.opends.server.backends.task.Task#addLogMessage}.
+   */
+  private static final String ERROR_SEVERITY_FIELD = "severity=\"" + Severity.ERROR.name() + "\"";
+  /**
+   * The message id field of the peers not found error, as rendered by
+   * {@code org.opends.server.backends.task.Task#addLogMessage}: a message is identified in a task
+   * log by its resource name and its ordinal, not by its ordinal alone.
+   */
+  private static final String PEERS_NOT_FOUND_MSG_ID_FIELD = "msgID="
+      + ReplicationMessages.ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.resourceName() + "-"
+      + ReplicationMessages.ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.ordinal();
 
   /**
    * Invokes the method ConfigureDS.configMain with the provided parameters.
@@ -675,17 +694,86 @@ public class InstallerHelper {
   }
 
   /**
+   * Returns the messages logged by the task described by the provided entry, in the order the
+   * server logged them.
+   *
+   * @param taskEntry
+   *          the entry of the task.
+   * @return the messages logged by the task, an empty list if it logged none.
+   */
+  public static List<String> getTaskLogMessages(Entry taskEntry)
+  {
+    return allValuesAsStrings(taskEntry, ATTR_TASK_LOG_MESSAGES);
+  }
+
+  /**
+   * Returns the message that best describes the outcome of a task among the messages it logged.
+   * <p>
+   * This is the last message logged with the {@link Severity#ERROR} severity when there is one:
+   * a task keeps logging after it failed - the task scheduler itself appends a completion notice
+   * once the task is over - and those trailing messages hide the cause of the failure. It is the
+   * last message logged otherwise.
+   *
+   * @param logMsgs
+   *          the messages logged by the task, as returned by {@link #getTaskLogMessages(Entry)}.
+   * @return the most relevant message, {@code null} if the task logged none.
+   */
+  public static String getRelevantLogMessage(List<String> logMsgs)
+  {
+    String lastErrorMsg = null;
+    for (String logMsg : logMsgs)
+    {
+      if (logMsg.contains(ERROR_SEVERITY_FIELD))
+      {
+        lastErrorMsg = logMsg;
+      }
+    }
+    if (lastErrorMsg != null)
+    {
+      return lastErrorMsg;
+    }
+    return !logMsgs.isEmpty() ? logMsgs.get(logMsgs.size() - 1) : null;
+  }
+
+  /**
    * Tells whether the provided log message corresponds to a peers not found
    * error during the initialization of a replica or not.
+   * <p>
+   * The message is recognized by the id a task logs it with, which is made of the name of the
+   * resource the message belongs to and of its ordinal within that resource.
    *
    * @param logMsg
-   *          the log message.
+   *          the log message, may be {@code null}.
    * @return {@code true} if the log message corresponds to a peers not
    *         found error during initialization, {@code false} otherwise.
    */
   public boolean isPeersNotFoundError(String logMsg)
   {
-    return logMsg.contains("=" + ReplicationMessages.ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.ordinal());
+    return logMsg != null && logMsg.contains(PEERS_NOT_FOUND_MSG_ID_FIELD);
+  }
+
+  /**
+   * Tells whether one of the provided log messages corresponds to a peers not found error during
+   * the initialization of a replica or not.
+   * <p>
+   * All the messages must be tested: the message reporting the failure is neither the first one
+   * logged by the task nor, since the task scheduler appends a completion notice, the last one.
+   *
+   * @param logMsgs
+   *          the log messages of the task, as returned by {@link #getTaskLogMessages(Entry)}.
+   * @return {@code true} if one of the log messages corresponds to a peers not
+   *         found error during initialization, {@code false} otherwise.
+   */
+  public boolean isPeersNotFoundError(Collection<String> logMsgs)
+  {
+    for (String logMsg : logMsgs)
+    {
+      if (isPeersNotFoundError(logMsg))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

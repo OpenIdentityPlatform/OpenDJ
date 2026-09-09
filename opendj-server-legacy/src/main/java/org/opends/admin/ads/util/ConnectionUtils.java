@@ -13,10 +13,16 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.admin.ads.util;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Entry;
 
 /**
@@ -43,5 +49,31 @@ public class ConnectionUtils
   {
     Attribute attr = entry.getAttribute(attrDesc);
     return (attr != null && !attr.isEmpty()) ? attr.firstValueAsString() : null;
+  }
+
+  /**
+   * Returns all the values of this attribute decoded as UTF-8 strings, in the order they were
+   * returned by the server.
+   *
+   * @param entry
+   *          the entry
+   * @param attrDesc
+   *          the attribute description
+   * @return all the values of this attribute decoded as UTF-8 strings, an empty list if the
+   *         attribute is not present.
+   */
+  public static List<String> allValuesAsStrings(Entry entry, String attrDesc)
+  {
+    Attribute attr = entry.getAttribute(attrDesc);
+    if (attr == null || attr.isEmpty())
+    {
+      return Collections.emptyList();
+    }
+    List<String> values = new ArrayList<>(attr.size());
+    for (ByteString value : attr)
+    {
+      values.add(value.toString());
+    }
+    return values;
   }
 }
