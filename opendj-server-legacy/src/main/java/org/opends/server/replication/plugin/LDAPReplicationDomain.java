@@ -2606,20 +2606,25 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * failing and is eventually given up on: handing it back bare would have this domain
        * ask for it, and restart its session for it, for as long as the server is up.
        *
-       * The changes this thread parked as waiting for another change are left alone: they
-       * are handed to whichever thread clears the change they are waiting for, and that
-       * thread takes them over.
+       * The changes this thread parked as waiting for another change are given back too,
+       * and before the road above runs: that road restarts the session, and a change which
+       * is still owned when the replication server sends it again over it is turned down as
+       * a duplicate - the one delivery which could have taken it over (issue #954).
        *
-       * Which change this thread owns is read before anything is done with it, and that
-       * read takes no lock and allocates nothing: everything below is gated on the answer,
-       * so a lookup which threw in its turn - on the road out of a JVM which has just
-       * refused an allocation - would leave the change listed, uncommitted and owned by a
-       * thread which is about to end, which is the state this whole issue is about.
+       * Which change this thread owns is read first of all, and that read takes no lock and
+       * allocates nothing: everything below is gated on the answer, so a lookup which threw
+       * in its turn - on the road out of a JVM which has just refused an allocation - would
+       * leave the change listed, uncommitted and owned by a thread which is about to end,
+       * which is the state this whole issue is about. It is read before the parked changes
+       * are given back rather than after, because that give-back allocates and can throw on
+       * the same road, and the last resort below can only hand back a change it was told
+       * about.
        */
       CSN owned = null;
       try
       {
         owned = remotePendingChanges.getChangeOwnedByCurrentThread();
+        final boolean parkedGivenBack = giveBackParkedChanges();
         if (owned != null)
         {
           if (replayThreadShutdown.get() || shutdown.get() || disabled)
@@ -2649,6 +2654,17 @@ public final class LDAPReplicationDomain extends ReplicationDomain
              */
             recoverFromReplayFailure(owned, replayThreadShutdown, t instanceof OutOfMemoryError);
           }
+        }
+        if (parkedGivenBack && !shutdown.get() && !disabled)
+        {
+          /*
+           * The road the change this thread was replaying took may have run the restart the
+           * give-back asked for - they ask for the same one - and it may have had none to
+           * run: this thread owned no change, or the change it owned was given up on. Run
+           * what is still requested, or a domain which then goes quiet would leave the
+           * changes which were handed back waiting for a delivery nobody asks for.
+           */
+          runRequestedSessionRestarts(!replayThreadShutdown.get());
         }
       }
       catch (Throwable recoveryFailure)
@@ -2682,19 +2698,25 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           {
             suppress(recoveryFailure, reportFailure);
           }
-          try
-          {
-            runRequestedSessionRestarts(false);
-          }
-          catch (Throwable restartFailure)
-          {
-            /*
-             * Nothing is left to try: the change is listed, uncommitted and unowned, so any
-             * later session restart of this domain delivers it again. This goes with the
-             * throwable which is rethrown below rather than being reported on its own.
-             */
-            suppress(recoveryFailure, restartFailure);
-          }
+        }
+        try
+        {
+          /*
+           * Outside the guard above, since the give-back of the changes this thread parked
+           * asks for the same restart and may be what threw: a change which nobody owns
+           * anymore is one only a new delivery brings back, whichever of the two roads
+           * released it (issue #954).
+           */
+          runRequestedSessionRestarts(false);
+        }
+        catch (Throwable restartFailure)
+        {
+          /*
+           * Nothing is left to try: the changes are listed, uncommitted and unowned, so any
+           * later session restart of this domain delivers them again. This goes with the
+           * throwable which is rethrown below rather than being reported on its own.
+           */
+          suppress(recoveryFailure, restartFailure);
         }
         // The error which unwound the replay is the one reported, whatever the give-back
         // ran into on top of it.
@@ -3173,12 +3195,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
              * an OutOfMemoryError of its own, still owns its change: it is given back
              * counted, and the thread ends on this error rather than on the one it stepped
              * over. A replay which committed owns nothing anymore - commit() cleared the
-             * owner, and the index the give-back reads, in the same step - so the give-back
-             * is a no-op, and rightly so: a change which is in the data is not one to ask
-             * for again. What that road steps over is getNextUpdate() below, so the changes
-             * parked behind the committed change wait for the next replay of this domain to
-             * hand them out. That is the trade #923 asks for: a thread which met this error
-             * is not to carry on, not even for them.
+             * owner, and the index the give-back reads, in the same step - so the change it
+             * was replaying is not given back, and rightly so: a change which is in the data
+             * is not one to ask for again. What that road steps over is getNextUpdate()
+             * below, which hands out the changes parked behind the committed change: the
+             * ones this thread parked are given back on the way out of replay() and the
+             * session is restarted for them (issue #954), the ones other threads parked wait
+             * for the next replay of this domain to hand them out. That is the trade #923
+             * asks for: a thread which met this error is not to carry on, not even for them.
              */
             throw e;
           }
@@ -3670,6 +3694,55 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         replayFailureRecovery.set(false);
       }
     }
+  }
+
+  /**
+   * Gives back the changes this replay thread parked as waiting for another change, on the
+   * way out of a replay which was unwound.
+   * <p>
+   * A parked change is handed out again by {@code getNextUpdate()} alone, which every
+   * replay loop of this domain runs once it is done with a change: a parked change is
+   * replayed by whichever thread clears the change it was waiting for. A thread whose
+   * replay was unwound is not on that road anymore - it takes the next delivery off the
+   * replay queue - so a change it parked would be left owned by a thread which is not
+   * coming back to it, while every redelivery of it is refused as a duplicate. On a domain
+   * which then goes quiet that change is where this replica's ServerState, and every change
+   * behind it from every master, stops (issue #954).
+   * <p>
+   * They are handed back without a failure being counted against them: they were never
+   * applied here, so the give-up budget which decides when this replica skips a change it
+   * can not apply is not this delivery's to spend, the way it is not for a change abandoned
+   * by a replay thread which is stopping.
+   * <p>
+   * The delivery which carried one published no ack - the ack of a parked change is
+   * published by the delivery which replays it - so it is counted as processed here, the
+   * way a delivery which is dropped rather than replayed is: that count is of the
+   * deliveries this replica took off the session, and these are over. The window they hold
+   * is not given back either, and does not need to be: the session they came over is about
+   * to be restarted, and a session which starts is given its receive window anew.
+   *
+   * @return whether any change was handed back, so that the caller restarts the session for
+   *         them: a change which nobody owns is one only a new delivery brings back
+   */
+  private boolean giveBackParkedChanges()
+  {
+    final List<CSN> parked = remotePendingChanges.releaseParkedChangesOwnedByCurrentThread();
+    if (parked.isEmpty())
+    {
+      return false;
+    }
+    /*
+     * Asked for before the changes are reported: a throw out of the report - the JVM which
+     * unwound this replay is out of memory - must not lose the restart which is what brings
+     * them back.
+     */
+    sessionRestartRequested.set(true);
+    for (CSN csn : parked)
+    {
+      incProcessedUpdates();
+      logger.info(NOTE_REPLAY_PARKED_CHANGE_GIVEN_BACK, csn, getBaseDN());
+    }
+    return true;
   }
 
   /**
