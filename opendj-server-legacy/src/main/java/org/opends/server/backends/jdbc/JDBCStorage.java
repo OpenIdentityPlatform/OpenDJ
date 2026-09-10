@@ -4688,12 +4688,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			final WriteableTransactionTransactionImpl txw;
 			/**
 			 * When this connection was last written, taken from {@link ImporterImpl#writes}, and
-			 * zero while it has nothing to commit. Written under the monitor of this object, so that
-			 * it says what the connection holds rather than what it held; volatile so that a clear
-			 * can pass over a connection with nothing to commit without taking that monitor, which
-			 * is one the thread writing through it holds for the length of a statement.
+			 * zero while it has nothing to commit. Written and read under the monitor of this
+			 * object, like the statements it counts: read anywhere else it says what the connection
+			 * held rather than what it holds, because it is set once the write it stands for has
+			 * come back - and a write still in flight is exactly the one a commit point must not
+			 * pass over.
 			 */
-			volatile long lastWrite;
+			long lastWrite;
 
 			ImportConnection(Connection con) {
 				this.con=con;
@@ -5081,6 +5082,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * the monitor it cannot: {@code close()} takes that same monitor to commit and to return the
 		 * connection, so either this thread is in front of the commit and part of the import, or it
 		 * is behind the return and refused.
+		 * <p>
+		 * Reasoned rather than pinned by a test: what a test would have to do is park a thread
+		 * between the read of the flag and the monitor, and the monitor is the only boundary there
+		 * is to park at. That a write after {@code close()} is refused at all is asserted, on one
+		 * thread, by {@code ImportConnectionsTestCase}.
 		 */
 		private void checkOpen() {
 			if (closed) {
@@ -5106,6 +5112,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * with the failure the caller actually came for - the commit of {@code close()}, and in its
 		 * {@code Throwable} branch the {@code Error} that branch exists to preserve - dropped on the
 		 * floor, and the connections after this one unreturned (#878).
+		 * <p>
+		 * By the time {@code close()} reaches this, no statement of the import can be in flight on
+		 * the connection anyway: every connection of that list has been through {@code commit()}
+		 * under this same monitor, and a write arriving after {@code close()} raised its flag is
+		 * refused under it by {@code checkOpen()}. So this monitor is not what the guarantee rests
+		 * on today and no test can tell it apart from the commit in front of it - it is here so that
+		 * the guarantee does not depend on that ordering, and it is all there is on the paths that
+		 * reach here with no commit in front of them ({@link #releaseUnwatched(ImportConnection)}).
 		 *
 		 * @return what went wrong on the way back, or null
 		 */
@@ -5173,7 +5187,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * <p>
 		 * A connection with nothing written since its last commit is left alone: the clears of
 		 * {@code beforePhaseOne} pass through here for every tree of a container, and a commit of an
-		 * empty transaction is a round trip to the database for nothing.
+		 * empty transaction is a round trip to the database for nothing. Asked here rather than by
+		 * the caller, and under this monitor: read in front of it, {@code lastWrite} says what the
+		 * connection held rather than what it holds - a write in flight has not counted itself yet.
+		 * <p>
+		 * On both paths that reach this the wait is already paid in front of it: {@code close()}
+		 * reads {@code lastWrite} of every connection of the import under this same monitor before
+		 * it commits any of them, and {@code commitPeersOf()} holds it over this call - so no test
+		 * can tell this monitor from the ones ahead of it, and it is here so that what keeps two
+		 * threads off one connection does not rest on the order another method happens to work in.
 		 */
 		private void commit(ImportConnection connection) throws SQLException {
 			synchronized (connection) {
@@ -5208,15 +5230,27 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * the import with the tree not yet emptied: the destructive half of a clear is the one thing
 		 * that must not be durable while a write it is meant to invalidate is not.
 		 * <p>
+		 * Which peers hold something to commit is decided under the monitor of each of them - by
+		 * {@link #commit(ImportConnection)}, which passes over a connection with nothing written
+		 * since its last commit - rather than by a read of {@code lastWrite} taken in front of that
+		 * monitor. A peer whose first write is still in flight has not set it yet ({@code put()}
+		 * counts a write once the statement has come back), and that is precisely the write a
+		 * cheaper test would pass over: {@code beforePhaseOne} runs on the import threads, one
+		 * container at a time per thread and several containers at once, so the flags of a container
+		 * being written are a peer of the clears of the next. The one connection an import held
+		 * before #891 carried that write into the commit of the clear - it was the same transaction,
+		 * and a clear issued beside it waited for it in the driver - so passing over it here would
+		 * be a commit point the single connection did not have.
+		 * <p>
+		 * What that costs is the wait: a clear now waits for a statement in flight on each peer, as
+		 * every write of an import waited for the one connection it all went through.
+		 * <p>
 		 * One connection is held at a time, so no thread of an import ever holds two of these
 		 * monitors and two threads clearing at once cannot wait for each other.
 		 */
 		private void commitPeersOf(ImportConnection cleared) {
 			for (final ImportConnection peer : connections.values()) {
-				// the volatile read before the monitor: a peer with nothing to commit is most of them
-				// at the start of an import - beforePhaseOne clears every tree of a container - and
-				// the monitor of one is held for the length of the statement running through it
-				if (peer==cleared || peer.lastWrite==0) {
+				if (peer==cleared) {
 					continue;
 				}
 				try {
