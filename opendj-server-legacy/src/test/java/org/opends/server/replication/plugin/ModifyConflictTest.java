@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -69,6 +70,8 @@ import static org.testng.Assert.*;
 public class ModifyConflictTest extends ReplicationTestCase
 {
   private static final String ORGANIZATION = "organization";
+  private static final String OBJECTCLASS = "objectClass";
+  private static final String EXTENSIBLEOBJECT = "extensibleObject";
   private static final String DISPLAYNAME = "displayName";
   private static final String EMPLOYEENUMBER = "employeeNumber";
   private static final String DESCRIPTION = "description";
@@ -1039,6 +1042,76 @@ public class ModifyConflictTest extends ReplicationTestCase
      */
     testModify(entry, hist, 2, false, newModification(DELETE, DISPLAYNAME, "second value"));
     assertEquals(hist.encodeAndPurge(), firstValue);
+  }
+
+  /**
+   * Test that a replayed modification of the objectClass attribute leaves the entry handing out
+   * the object classes it ends up with.
+   * <p>
+   * Solving the conflicts of a delete reads the entry, and it does so before the core applies the
+   * modifications to it. The read must not fix what the entry answers afterwards: the backend
+   * stores the object classes of the entry but indexes it through its objectClass attribute, so
+   * an attribute left behind by the modification silently takes the objectClass index out of step
+   * with the stored entry.
+   */
+  @Test
+  public void replayObjectClassAddAndDelete() throws Exception
+  {
+    Entry entry = initializeEntry();
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
+    List<Modification> mods = newArrayList(
+        newModification(ADD, OBJECTCLASS, EXTENSIBLEOBJECT),
+        newModification(DELETE, OBJECTCLASS, ORGANIZATION));
+
+    // The conflict resolution, which reads the entry to solve the delete.
+    replayModifies(entry, hist, 10, mods);
+    assertThat(mods).hasSize(2);
+
+    // The core, which applies the modifications to the entry.
+    applyModificationsTheWayTheCoreDoes(entry, mods);
+
+    assertThat(entry.getObjectClasses().values()).containsOnly(EXTENSIBLEOBJECT);
+    assertThat(objectClassAttributeOf(entry)).containsOnly(EXTENSIBLEOBJECT);
+  }
+
+  /**
+   * Applies the modifications to the entry the way {@code LocalBackendModifyOperation} does, that
+   * is with {@code addAttribute()} and {@code removeAttribute()} rather than with
+   * {@code Entry.applyModifications()}.
+   */
+  private void applyModificationsTheWayTheCoreDoes(Entry entry, List<Modification> mods)
+  {
+    for (Modification mod : mods)
+    {
+      Attribute attr = mod.getAttribute();
+      switch (mod.getModificationType().asEnum())
+      {
+      case ADD:
+        entry.addAttribute(attr, new LinkedList<ByteString>());
+        break;
+      case DELETE:
+        entry.removeAttribute(attr, new LinkedList<ByteString>());
+        break;
+      default:
+        entry.replaceAttribute(attr);
+        break;
+      }
+    }
+  }
+
+  /** Returns the object classes of the entry as its objectClass attribute reports them. */
+  private List<String> objectClassAttributeOf(Entry entry)
+  {
+    List<String> values = new LinkedList<>();
+    for (Attribute attr : entry.getAllAttributes(getObjectClassAttributeType()))
+    {
+      for (ByteString value : attr)
+      {
+        values.add(value.toString());
+      }
+    }
+    return values;
   }
 
   /**
