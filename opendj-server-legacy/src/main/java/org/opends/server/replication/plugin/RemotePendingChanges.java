@@ -23,6 +23,8 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -72,6 +74,26 @@ final class RemotePendingChanges
    * on currently in progress changes.
    */
   private final ConcurrentSkipListSet<PendingChange> activeAndDependentChanges = new ConcurrentSkipListSet<>();
+
+  /**
+   * The change each replay thread is replaying right now, read by the give-back on the way
+   * out of a replay which was unwound.
+   * <p>
+   * It is an index of what {@link PendingChange#isOwnedBy(Thread)} already says rather than
+   * a second copy of it: it is written in the same locked step wherever a change is taken
+   * over or given back, and every road which acts on what it answers checks the ownership
+   * of the change again. What it buys is the read. That read is made on a road an
+   * {@code OutOfMemoryError} leads to, and looking the change up by walking the pending
+   * changes takes two locks and allocates an iterator - an allocation a JVM which has just
+   * refused one may well refuse again, and the change would then be left listed,
+   * uncommitted and owned by a thread which is not replaying it anymore, which is the wedge
+   * this issue is about (issue #922).
+   * <p>
+   * A thread is entered here when it takes a change over and removed when it gives it back,
+   * applies it, or parks it as waiting for another change - the parked ones are handed to
+   * whichever thread clears what they wait for, so they are not this one's to give back.
+   */
+  private final ConcurrentMap<Thread, CSN> changeBeingReplayed = new ConcurrentHashMap<>();
 
   private final ReentrantReadWriteLock pendingChangesLock = new ReentrantReadWriteLock(true);
   private final ReentrantReadWriteLock.ReadLock pendingChangesReadLock = pendingChangesLock.readLock();
@@ -242,6 +264,7 @@ final class RemotePendingChanges
       }
       curChange.setCommitted(true);
       curChange.setOwner(null);
+      changeBeingReplayed.remove(Thread.currentThread(), csn);
       activeAndDependentChanges.remove(curChange);
 
       final Iterator<PendingChange> it = pendingChanges.values().iterator();
@@ -306,6 +329,7 @@ final class RemotePendingChanges
       if (change != null && !change.isCommitted() && change.isOwnedBy(Thread.currentThread()))
       {
         change.setOwner(null);
+        changeBeingReplayed.remove(Thread.currentThread(), csn);
       }
     }
     finally
@@ -462,6 +486,7 @@ final class RemotePendingChanges
       pendingChanges.clear();
       dependentChanges.clear();
       activeAndDependentChanges.clear();
+      changeBeingReplayed.clear();
       failingChanges = 0;
     }
     finally
@@ -501,6 +526,7 @@ final class RemotePendingChanges
        * behind, and the dependency checks which read this set do not read the owner.
        */
       activeAndDependentChanges.add(change);
+      changeBeingReplayed.put(Thread.currentThread(), change.getCSN());
       change.setOwner(Thread.currentThread());
       return true;
     }
@@ -516,31 +542,25 @@ final class RemotePendingChanges
    * change. The parked ones are left out: they are handed to whichever thread clears the
    * change they are waiting for, and that thread takes them over, so giving one back here
    * would have the same change handed to two threads (issue #922).
+   * <p>
+   * It is a plain read of {@link #changeBeingReplayed}: no lock is taken and nothing is
+   * allocated. This is what the give-back on the way out of an unwound replay asks first,
+   * and it runs on a road an {@code OutOfMemoryError} leads to - a lookup which allocated
+   * could be refused in its turn, and a give-back which does not know which change to give
+   * back leaves it listed, uncommitted and owned by a thread which is not replaying it
+   * anymore, which is the wedge this issue is about.
+   * <p>
+   * An answer which is out of date is safe: every road which acts on it - {@code commit()},
+   * {@link #recordReplayFailure(CSN, long)} and {@link #replayFailed(CSN)} - checks the
+   * ownership of the change again under the write lock, and is a no-op for a change this
+   * thread does not own anymore.
    *
    * @return the CSN of the change this thread is replaying, or {@code null} when it does
    *         not own one anymore - the road its replay took gave it back, or it was applied
    */
   CSN getChangeOwnedByCurrentThread()
   {
-    final Thread current = Thread.currentThread();
-    pendingChangesReadLock.lock();
-    dependentChangesLock.lock();
-    try
-    {
-      for (PendingChange change : pendingChanges.values())
-      {
-        if (change.isOwnedBy(current) && !change.isCommitted() && !dependentChanges.contains(change))
-        {
-          return change.getCSN();
-        }
-      }
-      return null;
-    }
-    finally
-    {
-      dependentChangesLock.unlock();
-      pendingChangesReadLock.unlock();
-    }
+    return changeBeingReplayed.get(Thread.currentThread());
   }
 
   /**
@@ -588,6 +608,13 @@ final class RemotePendingChanges
       if (hasChangeToHandOut())
       {
         final PendingChange firstDependentChange = dependentChanges.first();
+        /*
+         * Entered as the change this thread is replaying before it is taken out of the
+         * ones which are waiting, for the same reason markInProgress() enters it before it
+         * stamps the owner: an allocation which fails here must leave the change where it
+         * was rather than take it out of the hands which would hand it out again.
+         */
+        changeBeingReplayed.put(Thread.currentThread(), firstDependentChange.getCSN());
         dependentChanges.remove(firstDependentChange);
         firstDependentChange.setOwner(Thread.currentThread());
         return firstDependentChange.getLDAPUpdateMsg();
@@ -634,6 +661,15 @@ final class RemotePendingChanges
       {
         dependentChanges.add(dependentChange);
       }
+      /*
+       * Whichever of the two it was, this thread is not replaying that change anymore: a
+       * parked one is handed to the thread which clears what it waits for, and one which is
+       * not listed here anymore is gone with the pending changes of a domain which was
+       * disabled. The owner stays as it is - it is what has getNextUpdate() hand the change
+       * over rather than leave it to nobody - and the give-back on the way out of an
+       * unwound replay leaves it alone (issue #922).
+       */
+      changeBeingReplayed.remove(Thread.currentThread(), dependentChange.getCSN());
     }
     finally
     {

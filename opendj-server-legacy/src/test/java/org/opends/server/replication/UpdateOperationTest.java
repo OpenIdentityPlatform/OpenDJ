@@ -2722,6 +2722,51 @@ public class UpdateOperationTest extends ReplicationTestCase
   }
 
   /**
+   * Test case for [Issue 922] and [Issue 923]: an OutOfMemoryError met where the ack of a
+   * delivery is published ends the replay thread, the way one met by the replay itself does.
+   * <p>
+   * A throw from the ack is caught so that it does not unwind the replay past the give-back
+   * of the change and past the hand-out of the changes which were waiting for it. A JVM
+   * which has run out of memory is the one exception to that: it is not something to carry
+   * on replaying from, so it is left to end this thread - the change is given back on the
+   * way out, and the uncaught exception handler of DirectoryThread writes the line and
+   * raises the alert #923 is about. Caught like every other throw from there, it would have
+   * this thread replay the changes which follow on an exhausted heap, with nothing said
+   * anywhere.
+   */
+  @Test
+  public void aChangeWhoseAckRanOutOfMemoryIsDeliveredAgain() throws Exception
+  {
+    testSetUp("aChangeWhoseAckRanOutOfMemoryIsDeliveredAgain");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aChangeWhoseAckRanOutOfMemoryIsDeliveredAgain"));
+
+    final Set<Long> replayThreadsBefore = replayThreadIds();
+    assertChangeIsDeliveredAgainAfter(ModifyMsgWhoseAckRunsOutOfMemory::new,
+        26, "user.922.10", "the ack of this change runs out of memory");
+    /*
+     * Waited for rather than read the moment the change lands: the change is given back -
+     * and so replayed by another thread - while the thread which met the error is still
+     * unwinding, through the session restart and then through the handler which raises the
+     * alert.
+     */
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(30, SECONDS)
+      .sleepTimes(200, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        assertFalse(replayThreadIds().containsAll(replayThreadsBefore),
+            "an OutOfMemoryError met where the ack is published must end the replay thread"
+                + " which met it");
+      }
+    });
+  }
+
+  /**
    * Test case for [Issue 922] and [Issue 923]: a change whose replay is unwound once the
    * ack of its delivery is out is given back, and the thread which was replaying it stays.
    * <p>
@@ -2783,11 +2828,9 @@ public class UpdateOperationTest extends ReplicationTestCase
     final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
     domain.resetUnreplayedChangeAlertThrottle();
     final int initialAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE);
-    final long giveUpDelay = domain.getReplayGiveUpDelay();
+    setReplayGiveUpDelay(TEST_GIVE_UP_DELAY);
     try
     {
-      domain.setReplayGiveUpDelay(TEST_GIVE_UP_DELAY_IN_MS);
-
       final CSN csn = new CSNGenerator(25, TimeThread.getTime()).newCSN();
       final List<Modification> mods =
           generatemods("description", "the replay of this change is unwound after its ack");
@@ -2822,7 +2865,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     }
     finally
     {
-      domain.setReplayGiveUpDelay(giveUpDelay);
+      resetReplayGiveUpDelay();
     }
   }
 
@@ -3039,11 +3082,9 @@ public class UpdateOperationTest extends ReplicationTestCase
     final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
     domain.resetUnreplayedChangeAlertThrottle();
     final int initialAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE);
-    final long giveUpDelay = domain.getReplayGiveUpDelay();
+    setReplayGiveUpDelay(TEST_GIVE_UP_DELAY);
     try
     {
-      domain.setReplayGiveUpDelay(TEST_GIVE_UP_DELAY_IN_MS);
-
       final CSN csn = new CSNGenerator(22, TimeThread.getTime()).newCSN();
       final List<Modification> mods =
           generatemods("description", "the replay of this change keeps throwing");
@@ -3078,7 +3119,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     }
     finally
     {
-      domain.setReplayGiveUpDelay(giveUpDelay);
+      resetReplayGiveUpDelay();
     }
   }
 
@@ -3312,6 +3353,32 @@ public class UpdateOperationTest extends ReplicationTestCase
     Assertions.assertThat(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE))
         .as("the administrator must be told that this replica now diverges")
         .isGreaterThan(initialAlerts);
+  }
+
+  /**
+   * A ModifyMsg whose ack runs out of memory on the way out of a replay which failed.
+   * <p>
+   * The replay fails first - its operation can not be prepared for the replay, the way
+   * {@code ModifyMsgWhoseOperationRefusesAControl} has it fail - so the change is one this
+   * replica asks for again, and the ack which says so is where the JVM runs out of memory.
+   * That is the one throw from there which is not caught: it ends the replay thread, and
+   * the change is given back on the way out.
+   */
+  private static final class ModifyMsgWhoseAckRunsOutOfMemory
+      extends ModifyMsgWhoseOperationRefusesAControl
+  {
+    private ModifyMsgWhoseAckRunsOutOfMemory(
+        CSN csn, DN dn, List<Modification> mods, String entryUUID)
+    {
+      super(csn, dn, mods, entryUUID);
+    }
+
+    @Override
+    public boolean isAssured()
+    {
+      // Read first thing by processUpdateDone(), which is what publishes the ack.
+      throw new OutOfMemoryError("the ack of this delivery runs out of memory");
+    }
   }
 
   /**

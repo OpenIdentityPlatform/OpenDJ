@@ -653,6 +653,11 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
    * the way out of an unwound replay must leave it alone. Releasing it without taking it out
    * of the changes which are waiting would have the same change handed to two threads
    * (issue #922).
+   * <p>
+   * The deliveries are taken in the order a replay thread takes them: one at a time, off
+   * the queue the pool shares. So the change which is parked here is parked by the thread
+   * which was replaying it, and the change that thread is replaying afterwards is the next
+   * delivery it took - never a second one it holds at the same time.
    */
   @Test
   public void theChangesParkedAsDependenciesAreNotOwnedByTheThreadWhichParkedThem()
@@ -662,10 +667,24 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
     final CSNGenerator generator = new CSNGenerator(SERVER_ID, 0);
     final CSN deleted = generator.newCSN();
     final CSN renamed = generator.newCSN();
+    final CSN taken = generator.newCSN();
 
+    /*
+     * The delete is being replayed by another thread of the pool, which is what a change
+     * waits for: the thread which parks a change is not the one applying the change it
+     * waits for.
+     */
     final DeleteMsg delete = deleteMsg(deleted, "uuid-1");
     assertTrue(pendingChanges.putRemoteUpdate(delete));
-    assertTrue(pendingChanges.markInProgress(delete));
+    runAndJoin(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        assertTrue(pendingChanges.markInProgress(delete),
+            "the delete must be listed as being replayed by the thread which took it");
+      }
+    });
 
     // A rename into the DN that delete is on, parked by this very thread.
     final ModifyDNMsg rename = renameIntoDeletedEntry(renamed);
@@ -674,9 +693,18 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
     assertTrue(pendingChanges.checkDependencies(rename),
         "the rename must wait for the delete of the entry it renames into");
 
-    assertEquals(pendingChanges.getChangeOwnedByCurrentThread(), deleted,
+    assertNull(pendingChanges.getChangeOwnedByCurrentThread(),
+        "a change this thread parked as waiting for another one is not one it gives back:"
+            + " it is handed to whichever thread clears what it waits for");
+
+    // The delivery this thread took once the change it parked was out of its hands.
+    final DeleteMsg next = deleteMsg(taken, "uuid-3");
+    assertTrue(pendingChanges.putRemoteUpdate(next));
+    assertTrue(pendingChanges.markInProgress(next));
+
+    assertEquals(pendingChanges.getChangeOwnedByCurrentThread(), taken,
         "the change this thread is replaying is the one it must give back, not the one it"
-            + " parked as waiting for it");
+            + " parked as waiting for another");
   }
 
   /**

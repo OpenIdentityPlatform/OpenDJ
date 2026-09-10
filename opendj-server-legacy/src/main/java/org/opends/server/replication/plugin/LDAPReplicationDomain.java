@@ -2609,6 +2609,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * The changes this thread parked as waiting for another change are left alone: they
        * are handed to whichever thread clears the change they are waiting for, and that
        * thread takes them over.
+       *
+       * Which change this thread owns is read before anything is done with it, and that
+       * read takes no lock and allocates nothing: everything below is gated on the answer,
+       * so a lookup which threw in its turn - on the road out of a JVM which has just
+       * refused an allocation - would leave the change listed, uncommitted and owned by a
+       * thread which is about to end, which is the state this whole issue is about.
        */
       CSN owned = null;
       try
@@ -2631,10 +2637,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             /*
              * A JVM which has run out of memory is told apart here rather than reported on
              * its own road: the change is given back counted, the way every other unwound
-             * replay gives it back, but nothing is formatted on the way - that asks the JVM
-             * for the memory it has just refused - and the session is restarted without
-             * sitting through the backoff, since the thread which is doing it is on its way
-             * out.
+             * replay gives it back, but the line which says it is being asked for again is
+             * not built - that asks the JVM for the memory it has just refused - and the
+             * session is restarted without sitting through the backoff, since the thread
+             * which is doing it is on its way out.
+             *
+             * A change whose budget is spent is still reported and still raises its alert
+             * on this road: it is the one line which says this replica has diverged, and an
+             * operator who is not told would be left with a replica which is silently
+             * behind. That is the deliberate exception to the rule above.
              */
             recoverFromReplayFailure(owned, replayThreadShutdown, t instanceof OutOfMemoryError);
           }
@@ -3147,6 +3158,23 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           {
             processUpdateDone(msg, replayErrorMsg);
           }
+          catch (OutOfMemoryError e)
+          {
+            /*
+             * The one throw from here which is not caught, on the same terms as the arm
+             * above: a JVM which has run out of memory is not something to carry on
+             * replaying from, the error is left to end this replay thread, and the uncaught
+             * exception handler of DirectoryThread raises the alert #923 is about. Swallowed
+             * here instead, it would have this thread go on to the roads below and to the
+             * next change of the loop on an exhausted heap, with nothing reported anywhere.
+             *
+             * It supersedes what the replay was already unwinding on, when it was unwinding
+             * on anything: both are then the same kind of error, the give-back on the way
+             * out of replay() gives the change back counted either way, and the thread ends
+             * on this one rather than on the one it stepped over.
+             */
+            throw e;
+          }
           catch (Throwable ackFailure)
           {
             /*
@@ -3157,14 +3185,31 @@ public final class LDAPReplicationDomain extends ReplicationDomain
              * waiting for it - leaving them waiting for a thread which is not replaying
              * anything anymore.
              *
-             * What raises it is the session this ack was to be published on being torn
-             * down, and the master which is waiting for the ack waits out its assured
-             * timeout either way. So it is reported and the replay carries on to the road
-             * the change itself decided: applied, failed and asked for again, or given up
-             * on.
+             * The master which is waiting for the ack waits out its assured timeout either
+             * way. So it is reported and the replay carries on to the road the change itself
+             * decided: applied, failed and asked for again, or given up on.
+             *
+             * Every step of processUpdateDone() catches what it can meet - the broker keeps
+             * a failure to publish to itself and retries it - so what reaches here is what
+             * no code of the replication protocol expected: an Error, and the tests drive
+             * it as one.
              */
-            logger.error(ERR_ACK_NOT_PUBLISHED, delivered, getBaseDN(),
-                stackTraceToSingleLineString(ackFailure));
+            try
+            {
+              logger.error(ERR_ACK_NOT_PUBLISHED, delivered, getBaseDN(),
+                  stackTraceToSingleLineString(ackFailure));
+            }
+            catch (Throwable reportFailure)
+            {
+              /*
+               * Guarded like the report of a give-back which failed: this one runs on the
+               * same kind of road - the stack of the throwable is walked to build the line -
+               * and a report which can not be built must not become the throw which unwinds
+               * the replay past the give-back and past getNextUpdate(). There is nothing
+               * left to say it with, so the replay carries on with what the change decided.
+               */
+              suppress(ackFailure, reportFailure);
+            }
           }
         }
       }
@@ -3435,8 +3480,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    *          whether the replay thread was asked to stop
    * @param outOfMemory
    *          whether what unwound the replay was the JVM running out of memory, in which
-   *          case nothing is formatted on the way out and the session is restarted without
-   *          the backoff
+   *          case the line which says the change is being asked for again is not built -
+   *          the report of a change which is given up on is, since it is what says this
+   *          replica has diverged - and the session is restarted without the backoff
    * @return {@code true} when the caller must stop replaying because the session is
    *         being restarted or is going away, {@code false} when it may carry on with
    *         the changes which follow
@@ -3557,7 +3603,29 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       {
         while (sessionRestartRequested.getAndSet(false))
         {
-          restartSession(wait);
+          boolean restarted = false;
+          try
+          {
+            restartSession(wait);
+            restarted = true;
+          }
+          finally
+          {
+            if (!restarted)
+            {
+              /*
+               * The request is put back where it was taken from. The flag is read and
+               * cleared before the restart runs, so a restart which ends abruptly - the
+               * session is stopped first, and starting it again creates a listener thread,
+               * which the operating system can refuse - would otherwise leave this domain
+               * with no session and with nothing left to ask for one. The change which
+               * asked for the restart stays listed, uncommitted and unowned, so the next
+               * failed or abandoned replay of this domain finds the request standing and
+               * runs it.
+               */
+              sessionRestartRequested.set(true);
+            }
+          }
         }
       }
       finally
