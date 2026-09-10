@@ -1081,6 +1081,14 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 			}
 
 			@Override
+			int poolMax() {
+				// stood in for like the borrow above: read for real, this would intern a pool of the
+				// static registry for the url of the mock configuration, and start its sweeper, from
+				// a test that has no pool at all (#891)
+				return 1;
+			}
+
+			@Override
 			public StorageStatus getStorageStatus() {
 				return StorageStatus.working(); // open already, so the importer borrows and no more
 			}
