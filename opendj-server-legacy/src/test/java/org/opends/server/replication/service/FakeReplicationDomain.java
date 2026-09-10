@@ -13,7 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
- * Portions Copyright 2025 3A Systems LLC.
+ * Portions Copyright 2025-2026 3A Systems LLC.
  */
 package org.opends.server.replication.service;
 
@@ -46,6 +46,16 @@ public class FakeReplicationDomain extends ReplicationDomain
   /** A StringBuffer that will be used to build a new String should the import be called. */
   private StringBuffer importString;
   private int exportedEntryCount;
+  /**
+   * What {@code importInProgress()} said while this domain was inside
+   * {@link #importBackend(InputStream)}, and {@code null} when it was never there.
+   */
+  private volatile Boolean importReportedDuringImport;
+  /**
+   * What {@code importInProgress()} said while this domain was inside
+   * {@link #exportBackend(OutputStream)}, and {@code null} when it was never there.
+   */
+  private volatile Boolean importReportedDuringExport;
 
   private FakeReplicationDomain(DN baseDN, int serverID,
       SortedSet<String> replicationServers, int window, long heartbeatInterval,
@@ -104,9 +114,28 @@ public class FakeReplicationDomain extends ReplicationDomain
     return exportedEntryCount;
   }
 
+  /**
+   * Returns what {@code importInProgress()} said while this domain was inside
+   * {@code importBackend()}, or {@code null} when it never was.
+   */
+  Boolean importReportedDuringImport()
+  {
+    return importReportedDuringImport;
+  }
+
+  /**
+   * Returns what {@code importInProgress()} said while this domain was inside
+   * {@code exportBackend()}, or {@code null} when it never was.
+   */
+  Boolean importReportedDuringExport()
+  {
+    return importReportedDuringExport;
+  }
+
   @Override
   protected void exportBackend(OutputStream output) throws DirectoryException
   {
+    importReportedDuringExport = importInProgress();
     try
     {
       output.write(exportString.getBytes());
@@ -122,6 +151,7 @@ public class FakeReplicationDomain extends ReplicationDomain
   @Override
   protected void importBackend(InputStream input) throws DirectoryException
   {
+    importReportedDuringImport = importInProgress();
     byte[] buffer = new byte[1000];
     int ret;
     do

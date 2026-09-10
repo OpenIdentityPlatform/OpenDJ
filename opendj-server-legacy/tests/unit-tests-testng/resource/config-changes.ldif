@@ -331,6 +331,19 @@ ds-cfg-plugin-type: preOperationModifyDN
 ds-cfg-plugin-type: preOperationSearch
 ds-cfg-invoke-for-internal-operations: true
 
+dn: cn=Pause PreParse Plugin,cn=Plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-plugin
+cn: Pause PreParse Plugin
+ds-cfg-java-class: org.opends.server.plugins.PausePreParsePlugin
+ds-cfg-enabled: true
+ds-cfg-plugin-type: preParseAdd
+ds-cfg-plugin-type: preParseDelete
+ds-cfg-plugin-type: preParseModify
+ds-cfg-plugin-type: preParseModifyDN
+ds-cfg-invoke-for-internal-operations: true
+
 dn: cn=Update PreOperation Plugin,cn=Plugins,cn=config
 changetype: add
 objectClass: top

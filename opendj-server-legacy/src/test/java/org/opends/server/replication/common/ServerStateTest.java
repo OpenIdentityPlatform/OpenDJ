@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.common;
 
@@ -138,5 +139,48 @@ public class ServerStateTest extends ReplicationTestCase
     assertEquals(csn1Server1, state.getCSN(1));
     assertTrue(state.removeCSN(csn1Server1));
     assertNull(state.getCSN(1));
+  }
+
+  /**
+   * An update that does not change the state must leave the saved status alone:
+   * the status is only cleared for a change that has actually been applied.
+   */
+  @Test
+  public void updateThatChangesNothingKeepsTheStateSaved() throws Exception
+  {
+    final ServerState state = new ServerState();
+    final CSN csn = new CSN(TimeThread.getTime(), 1, 1);
+    assertTrue(state.update(csn));
+
+    state.setSaved(true);
+    assertFalse(state.update(csn), "the very same CSN is not a meaningful update");
+    assertTrue(state.isSaved(), "a duplicate CSN must not clear the saved status");
+
+    final CSN olderCSN = new CSN(csn.getTime() - 1, csn.getSeqnum(), csn.getServerId());
+    assertFalse(state.update(olderCSN), "an older CSN is not a meaningful update");
+    assertTrue(state.isSaved(), "an older CSN must not clear the saved status");
+
+    assertFalse(state.update((CSN) null));
+    assertTrue(state.isSaved(), "a null CSN must not clear the saved status");
+  }
+
+  /**
+   * Emptying the state is a change like any other: it must not leave the state
+   * looking like what persistent storage holds. Emptying one that is already
+   * empty changes nothing, and must leave the saved status alone.
+   */
+  @Test
+  public void clearMarksTheStateUnsaved() throws Exception
+  {
+    final ServerState state = new ServerState();
+    assertTrue(state.update(new CSN(TimeThread.getTime(), 1, 1)));
+    state.setSaved(true);
+
+    state.clear();
+    assertFalse(state.isSaved(), "clearing the state must not leave it marked as saved");
+
+    state.setSaved(true);
+    state.clear();
+    assertTrue(state.isSaved(), "clearing an already empty state must not clear the saved status");
   }
 }

@@ -56,6 +56,7 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
@@ -857,6 +858,44 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected static ModifyRequest modifyRequest(DN entryDN, ModificationType modType, String attrName, String attrValue)
   {
     return Requests.newModifyRequest(entryDN).addModification(modType, attrName, attrValue);
+  }
+
+  /**
+   * Applies a modification to the configuration entry of a replication domain, the way an
+   * administrator would, and checks that it was applied.
+   * <p>
+   * The domain reads its configuration for every decision it makes, so a property changed
+   * here takes effect on what the domain is doing right now.
+   *
+   * @param domainConfigDN
+   *          the DN of the configuration entry of the domain
+   * @param modType
+   *          the modification to apply, {@link ModificationType#DELETE} with no value
+   *          taking an attribute away so that its property falls back to its default
+   * @param attrName
+   *          the configuration attribute to modify
+   * @param values
+   *          the values to set, none when the attribute is being deleted
+   */
+  protected static void modifyDomainConfig(
+      DN domainConfigDN, ModificationType modType, String attrName, String... values)
+  {
+    final ModifyRequest request = Requests.newModifyRequest(domainConfigDN)
+        .addModification(modType, attrName, (Object[]) values);
+    final ModifyOperation modOp =
+        InternalClientConnection.getRootConnection().processModify(request);
+    if (modType == DELETE && modOp.getResultCode() == NO_SUCH_ATTRIBUTE)
+    {
+      /*
+       * The attribute is already gone, which is what the delete was asking for. Said here
+       * rather than at the call sites because a delete is how a test puts a property back
+       * to its default in a finally: a cleanup which throws would replace the failure it
+       * is cleaning up after, and say nothing about it.
+       */
+      return;
+    }
+    assertEquals(modOp.getResultCode(), SUCCESS,
+        "Cannot " + modType + " " + attrName + " on " + domainConfigDN);
   }
 
   /** Utility method to create, run a task and check its result. */

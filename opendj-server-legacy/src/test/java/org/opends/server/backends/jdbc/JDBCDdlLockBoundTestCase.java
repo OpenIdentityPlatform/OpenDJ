@@ -366,7 +366,8 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 		}catch (SQLException e) {
 			assertTrue(e.getMessage().contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY), e.getMessage());
 			assertEquals(e.getErrorCode(), 1205, "the number a caller classifies this by was dropped");
-			assertTrue(JDBCStorage.isRetryableConflict(e, "com.mysql.cj.jdbc.ConnectionImpl"),
+			assertEquals(JDBCStorage.conflictVerdict(e, "com.mysql.cj.jdbc.ConnectionImpl").conflict,
+				JDBCStorage.Conflict.AFTER_LOCK_WAIT,
 				"a conflict write() replayed before this bound existed is no longer read as one");
 		}
 	}
@@ -386,7 +387,8 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 		}catch (SQLException e) {
 			assertTrue(e.getMessage().contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY), e.getMessage());
 			assertEquals(e.getErrorCode(), 1222, "the number a caller classifies this by was dropped");
-			assertFalse(JDBCStorage.isRetryableConflict(e, "com.microsoft.sqlserver.jdbc.SQLServerConnection"),
+			assertEquals(JDBCStorage.conflictVerdict(e, "com.microsoft.sqlserver.jdbc.SQLServerConnection").conflict,
+				JDBCStorage.Conflict.NONE,
 				"a lock wait of a ddl was made a conflict write() would replay");
 		}
 	}

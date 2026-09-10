@@ -43,8 +43,11 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 
@@ -59,15 +62,25 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	private static final int MAX_RETRIES = 10;
 
 	/**
-	 * Wall-clock budget the replays of a {@link #write} may spend, in nanoseconds. It is checked between attempts,
-	 * so an attempt already running is never interrupted: the loop returns after at most this window plus one
-	 * attempt. It bounds the conflicts that are slow to report, which {@link #MAX_RETRIES} alone does not - MySQL
-	 * reports a lock wait timeout only after innodb_lock_wait_timeout, 50 s by default and not overridden here, so
-	 * ten attempts would park a worker thread for eight minutes where a single one released it after 50 s. The
-	 * deadlocks this retry exists for keep their full attempt budget, since every engine reports one in well under
-	 * a second.
+	 * Wall-clock budget the replays of a {@link #write} may spend, in nanoseconds, measured from the start of the
+	 * first attempt. It is checked between attempts, so an attempt already running is never interrupted, and it
+	 * applies from the first check, with the single exception {@link #grantedPastTheWindow} describes: a conflict
+	 * its engine reports promptly is granted one replay whatever the clock says, because the lock wait that
+	 * precedes such a conflict is charged to the attempt and is unbounded on three of the four engines here, so no
+	 * window survives it. It bounds what {@link #MAX_RETRIES} alone does not - MySQL reports a lock wait timeout
+	 * only after innodb_lock_wait_timeout, 50 s by default and not overridden here, so ten attempts would park a
+	 * worker thread for eight minutes where one releases it after 50 s.
+	 * <p>
+	 * What that costs, stated rather than left to be read off a test row: at the stock innodb_lock_wait_timeout a
+	 * MySQL lock wait timeout is reported at ~50 s, which is past this window on the first check, so such a write
+	 * is never replayed at all - the one conflict class of the set that a MySQL deployment sees most, and the one
+	 * whose replay would most reliably succeed. It is the deliberate half of the trade the other half of which is
+	 * #903: one bounded wait beats two, and a deployment that tunes innodb_lock_wait_timeout below this window
+	 * gets its replays back. The trade only exists because nothing here bounds the attempt: with a session lock
+	 * timeout on the transaction connection (#915) every wait would be shorter than this window, the tuned-down
+	 * case would become the normal one, and this window would govern both classes with no grant needed at all.
 	 */
-	private static final long MAX_RETRY_WINDOW_NANOS = 10L * 1000L * 1000L * 1000L; //10 s
+	private static final long RETRY_WINDOW_NANOS = TimeUnit.SECONDS.toNanos(10);
 
 	/** Upper bound of the random delay before the second attempt, in milliseconds; it doubles with every attempt. */
 	private static final double BASE_SLEEP_ON_RETRY_MS = 50.0;
@@ -76,15 +89,30 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	private static final double MAX_SLEEP_ON_RETRY_MS = 1000.0;
 
 	/**
-	 * Number of links walked when classifying a failure, also a guard against a chain long enough to matter. One
-	 * number for three chains at once - the causes, the next exceptions and the suppressed exceptions are walked
-	 * together and counted together - so it is set well above the depth a wrapped failure of this backend reaches:
-	 * mssql-jdbc chains every error of one message it received through {@code setNextException}, and a budget spent
-	 * on those would never reach the cause the wrapper carries.
+	 * Number of links walked by the questions that are not asked to the end of the chains: a guard against a chain
+	 * long enough to matter, at the cost of what truncation costs each of them. One number for three chains at
+	 * once - the causes, the next exceptions and the suppressed exceptions are walked together and counted
+	 * together - so it is set well above the depth a wrapped failure of this backend reaches: mssql-jdbc chains
+	 * every error of one message it received through {@code setNextException}, and a budget spent on those would
+	 * never reach the cause the wrapper carries.
+	 * <p>
+	 * For the fallbacks of {@link #conflictSummary} truncation leaves a question unanswered and nothing more: the
+	 * line reporting the replay names a less precise link, and no decision moves. For
+	 * {@link #isConnectionFailure} it does weaken the verdict, which is the test {@link #EVERY_LINK} exists to
+	 * apply: a class 08 link past this many links leaves {@code dropped} false in {@link #write}, so
+	 * {@link #distrustPool} is not called and the pool keeps handing out - unvalidated - the connections it had
+	 * established before the same restart or failover. That is what this walk did before #903 and it is left as it
+	 * is here rather than widened along with the two below, since nothing about the grant of #903 depends on it;
+	 * the budget is pinned from both sides by {@code testTheWalkOfAFailureStopsAtItsBudget}, which is where
+	 * widening it would have to start.
 	 */
 	private static final int MAX_CHAIN_LINKS = 64;
 
-	/** The budget of {@link #failureScope}, which walks to the end of the chains: see the comment above it. */
+	/**
+	 * The budget of the two walks whose verdict would weaken rather than go unnoticed under truncation:
+	 * {@link #failureScope} and {@link #conflictVerdict}. See the comments above them; the {@code seen} set of
+	 * the walk terminates it either way.
+	 */
 	private static final int EVERY_LINK = Integer.MAX_VALUE;
 
 	/** SQL Server error number of the transaction picked as the deadlock victim: "Rerun the transaction". */
@@ -92,6 +120,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 	/** Oracle error number of a detected deadlock: ORA-00060, reported with SQLState 61000 rather than class 40. */
 	private static final int ORACLE_DEADLOCK_DETECTED = 60;
+
+	/**
+	 * MySQL error number of a lock wait timeout, ER_LOCK_WAIT_TIMEOUT: the one conflict of the set an engine
+	 * reports late rather than promptly. Connector/J maps it to the same class 40 state as a deadlock, so this
+	 * number is not what matches it - it only tells the two apart, and only under a MySQL driver. That it repeats
+	 * the literal of {@link #MSSQL_DEADLOCK_VICTIM} is the collision {@link #conflictVerdict} keys every vendor
+	 * number by the driver for, and is stated there rather than again here.
+	 */
+	private static final int MYSQL_LOCK_WAIT_TIMEOUT = 1205;
 
 	/**
 	 * Class 40 states that are transaction rollbacks but must not be replayed. 40003 leaves the outcome of the
@@ -565,6 +602,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// below turns on a few milliseconds either side of the bound, and a mock statement cannot be made
 	// to take a real second without the suite taking one too. Monotonic, so that a step of the wall
 	// clock can neither lengthen nor shorten what a statement is measured to have taken.
+	//
+	// The retry window of write() is read off this same clock, once before the first attempt and once
+	// after each: what that window bounds is the whole run of attempts rather than each attempt on its
+	// own, which is a single startedAt outside the loop. #877 and #903 each added a clock of their own
+	// here, for the same reason and with the same body; this is the one they share.
 	long nanoTime() {
 		return System.nanoTime();
 	}
@@ -598,12 +640,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * The socket read timeout of one connection, and the statements running on it. This second
 	 * layer of the bound is a property of the socket rather than of a statement, so it cannot be
 	 * armed and put back per statement wherever a connection carries more than one at a time: an
-	 * {@code ImporterImpl} holds a single connection for the whole of an import and writes to it
-	 * from every phase-one worker and every phase-two task, and there the first statement to finish
-	 * would take the backstop away from every statement still in flight - while a statement whose
-	 * class carries no bound at all would run under whatever value a concurrent one happened to
-	 * arm, dying at it with nothing to say which property cut it, since such a statement never
-	 * reaches {@link #timedOut}.
+	 * {@code ImporterImpl} held a single connection for the whole of an import and wrote to it from
+	 * every phase-one worker and every phase-two task until the trees of an import were given
+	 * connections of their own (#891), and there the first statement to finish would take the
+	 * backstop away from every statement still in flight - while a statement whose class carries no
+	 * bound at all would run under whatever value a concurrent one happened to arm, dying at it
+	 * with nothing to say which property cut it, since such a statement never reaches
+	 * {@link #timedOut}. The arbitration stays now that no path of this class puts two threads on
+	 * one connection: what it holds is a property of the socket, so a connection that carries two
+	 * statements again must not have either of them cut by the bound of the other.
 	 * <p>
 	 * So the value armed is the loosest of the bounds of the statements in flight, and a statement
 	 * with no bound of its own takes it off for as long as it runs: this backstop exists to end a
@@ -947,7 +992,19 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// unregistered pool is drained the moment another backend that did register with it closes,
 	// with this one still borrowing from it (issue #878).
 	Connection getConnection(boolean trusted) throws Exception {
-		return CachedConnection.getConnection(poolKey(), trusted);
+		return getConnection(trusted, 0);
+	}
+
+	/**
+	 * The borrow every path of this class makes, and the seam a test stands in for the pool at.
+	 *
+	 * @param maxWaitSeconds the longest this borrow may wait at the bound of the pool, whatever the
+	 * deployment asked for - 0 to wait as it says. Only the connections an import takes after its
+	 * first pass a number here: they are held until the import ends, so a pool full of them has
+	 * nothing to return to the thread waiting for one (#891).
+	 */
+	Connection getConnection(boolean trusted, long maxWaitSeconds) throws Exception {
+		return CachedConnection.getConnection(poolKey(), trusted, maxWaitSeconds);
 	}
 
 
@@ -1467,14 +1524,26 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// The dialect behind a pooled connection, or null for an engine none of the statements of this
 	// class fit: it is left unstamped and its statistics untouched rather than fed untested SQL.
 	static Dialect dialectOf(Connection con) {
-		final String driverName=driverNameOf(con);
-		if (driverName.contains("postgres")) {
+		return dialectOf(driverNameOf(con));
+	}
+
+	/**
+	 * The engine a driver class name names, or null for one this class does not recognise. Every question this
+	 * class asks about the engine is keyed on this one answer - the column types, the upsert, the paging clause,
+	 * whether a DDL statement commits, and the class of a conflict - so that they cannot disagree about a driver.
+	 * A cascade of its own per question is how a deployment ends up given one engine's SQL and another engine's
+	 * conflict class; what an unrecognised engine gets is a decision per question, taken and stated at each of
+	 * them rather than falling out of the order the {@code contains} calls happen to be written in.
+	 */
+	static Dialect dialectOf(String driverName) {
+		final String name=String.valueOf(driverName);
+		if (name.contains("postgres")) {
 			return Dialect.POSTGRES;
-		}else if (driverName.contains("mysql")) {
+		}else if (name.contains("mysql")) {
 			return Dialect.MYSQL;
-		}else if (driverName.contains("oracle")) {
+		}else if (name.contains("oracle")) {
 			return Dialect.ORACLE;
-		}else if (driverName.contains("microsoft")) {
+		}else if (name.contains("microsoft")) {
 			return Dialect.MICROSOFT;
 		}
 		return null;
@@ -1854,9 +1923,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		private WriteableTransactionTransactionImpl txn;
 
 		// The moment the replay window of the write() this session belongs to runs out, as
-		// System.nanoTime() reads it - null where nothing above this session replays, which is the
-		// importer and nothing else. Boxed rather than given a sentinel: nanoTime() is documented to
-		// return an arbitrary long, so there is no reading of it that could stand for "no window".
+		// JDBCStorage.nanoTime() reads it - null where nothing above this session replays, which is the
+		// importer and nothing else. That clock and not System.nanoTime() directly: the window this is a
+		// reading of was taken from it, and the two are the same clock everywhere except the one place
+		// they would be compared as a mixed pair. Boxed rather than given a sentinel: nanoTime() is
+		// documented to return an arbitrary long, so there is no reading of it that could stand for
+		// "no window".
 		private Long replayWindowEndsAt;
 
 		/**
@@ -1883,7 +1955,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (replayWindowEndsAt==null) {
 				return Long.MAX_VALUE;
 			}
-			final long leftNanos=replayWindowEndsAt-System.nanoTime();
+			final long leftNanos=replayWindowEndsAt-nanoTime();
 			final long now=System.currentTimeMillis();
 			return leftNanos<=0 ? now : now+leftNanos/1_000_000L;
 		}
@@ -3491,10 +3563,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * on the conflict exception of its own engine. The loop is bounded here, unlike PDBStorage: the database may be
 	 * shared with writers outside this server, so a conflict is not guaranteed to clear and failing the operation is
 	 * better than never returning. It is bounded twice - by {@link #MAX_RETRIES} attempts and by the
-	 * {@link #MAX_RETRY_WINDOW_NANOS} wall-clock window - because an attempt is not guaranteed to be short: a
-	 * conflict an engine reports only after its own lock wait timeout would otherwise multiply that wait by the
-	 * attempt count. A conflict that slow consumes the whole window in one attempt and is not replayed, which is
-	 * what master did with it.
+	 * {@link #RETRY_WINDOW_NANOS} wall-clock window - because an attempt is not guaranteed to be short: a conflict
+	 * an engine reports only after its own lock wait timeout would otherwise multiply that wait by the attempt
+	 * count. The window alone is not enough either, in the other direction: it is shorter than the wait that
+	 * precedes a conflict the engine reports promptly, so measured against such a conflict it does not bound that
+	 * wait but only leaves the operation with no replay at all, which is what master did with the deadlock of
+	 * issue #903. One replay is therefore granted to a prompt conflict whatever the clock says; see
+	 * {@link #grantedPastTheWindow}. The window is checked between attempts, so an attempt already running is
+	 * never interrupted: a conflicted operation holds its caller for the window plus one attempt, and a prompt
+	 * conflict for two attempts when that is longer.
 	 * <p>
 	 * Only the operation itself is replayed: a failure of {@link #getConnection()} or of the implicit
 	 * {@link Connection#close()} - which returns the connection to the pool after a rollback - leaves the loop, so
@@ -3505,11 +3582,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * connection handed out unvalidated and found dead costs an attempt rather than the operation, and a write of
 	 * the replication replay - which records a failed operation as applied and advances the server state past it,
 	 * see #889 - never sees it. Only while nothing of the attempt may have been committed yet, though: see
-	 * {@link #replayReason(Throwable, String, boolean, boolean, boolean)}.
+	 * {@link #replayReason(Conflict, Throwable, boolean, boolean, boolean)}.
 	 */
 	@Override
 	public void write(WriteOperation writeOperation) throws Exception {
-		final long giveUpAt=System.nanoTime()+MAX_RETRY_WINDOW_NANOS;
+		final long startedAt=nanoTime();
 		for (int attempt=1;;attempt++) {
 			Exception failure=null;
 			String driver=null;
@@ -3525,8 +3602,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				//the connect of the catalog is made inside this attempt and retries the way a borrow does,
 				//up to the pool timeout - six times this window at the defaults. Left to its own deadline
 				//it would spend a window it does not own and hand the loop a failure it has classified as
-				//replayable with nothing left to replay it in, so it is told where the window ends
-				txn.catalogSession.boundedAlsoBy(giveUpAt);
+				//replayable with nothing left to replay it in, so it is told where the window ends. The
+				//end of the window and not what is left of it: this is called once per attempt, and a
+				//window measured from the attempt that happens to be running would be spent over again by
+				//each of them. The grant of #903 is deliberately not passed on - it buys one more replay
+				//of the operation, not one more connect of the catalog inside it
+				txn.catalogSession.boundedAlsoBy(startedAt+RETRY_WINDOW_NANOS);
 				try {
 					writeOperation.run(txn);
 					committing=true;
@@ -3602,15 +3683,42 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (!dropped && isConnectionFailure(failure)) {
 				distrustPool();
 			}
-			final String reason=replayReason(failure,driver,committing,partlyCommitted,dropped);
-			//System.nanoTime()-giveUpAt is the overflow safe form of the comparison
-			if (reason==null || attempt>=MAX_RETRIES || System.nanoTime()-giveUpAt>=0) {
+			//Two questions, asked apart: what the failure is - which replayReason() answers, and which is the
+			//only place that reads committing, partlyCommitted and dropped - and whether another attempt is
+			//still allowed, which is the attempt count and the window of #903. Neither subsumes the other: a
+			//dropped connection is worth replaying and carries no conflict class, while a conflict past both
+			//bounds is not replayed however plainly it is one
+			//classified once and handed to every question below - the two decisions and the line reporting
+			//them: the walk of the chains is not free, and callers asking it apart could drift into
+			//disagreeing about the same failure. Not asked at all where the answer is discarded: replayReason()
+			//refuses a partly committed attempt its replay before anything about the failure matters, and that
+			//is also the path most likely to carry deeply wrapped chains, since RootContainer.open() commits
+			//DDL and raises the flag for the rest of the write
+			final ConflictVerdict verdict=partlyCommitted ? NOT_CLASSIFIED : conflictVerdict(failure,driver);
+			final String reason=replayReason(verdict.conflict,failure,committing,partlyCommitted,dropped);
+			//nanoTime()-startedAt is the overflow safe form of the elapsed time
+			final long elapsedNanos=nanoTime()-startedAt;
+			if (reason==null || !replayableWithin(attempt, elapsedNanos, verdict.conflict)) {
 				throw failure;
 			}
 			//logged rather than silently absorbed, so that a deployment retrying most of its writes stays observable;
-			//one line per replay, since an add can emit nine of them and a stack trace each time reads as a failure
-			logger.warn(LocalizableMessage.raw("jdbc: replaying the transaction after %s, attempt %d of %d: %s",
-					reason, attempt, MAX_RETRIES, conflictSummary(failure, driver)));
+			//one line per replay, since an add can emit nine of them and a stack trace each time reads as a failure.
+			//Both bounds are named, and the attempt count is the one that rarely fires: a replay usually stops
+			//because the window ran out, and a log naming only MAX_RETRIES leaves an operation that gave up at
+			//attempt 2 of a promised 10 with nothing saying why. Milliseconds rather than seconds, since the
+			//engines report a deadlock in a few of them and whole seconds would read "0" for most of a burst; and
+			//the one line that replays past its own window says so, rather than reading as a bound not honoured -
+			//asked of the predicate the loop just acted on rather than re-derived from the clock, so that the
+			//claim cannot outlive the grant that justifies it
+			if (logger.isWarnEnabled()) {
+				logger.warn(LocalizableMessage.raw(
+						"jdbc: replaying the transaction after %s, attempt %d of %d, %d ms elapsed of the %d ms window%s: %s",
+						reason, attempt, MAX_RETRIES, TimeUnit.NANOSECONDS.toMillis(elapsedNanos),
+						TimeUnit.NANOSECONDS.toMillis(RETRY_WINDOW_NANOS),
+						grantedPastTheWindow(attempt, elapsedNanos, verdict.conflict)
+								? " (the first replay, granted past it)" : "",
+						conflictSummary(verdict, failure)));
+			}
 			if (logger.isTraceEnabled()) {
 				logger.trace("jdbc: the failure being replayed was %s", stackTraceToSingleLineString(failure));
 			}
@@ -3633,9 +3741,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * <p>
 	 * A transaction conflict is replayable whichever phase reported it: the engine rolled the transaction back
 	 * before it answered. It is read from the failure of the operation only, never from the release of the
-	 * connection - see {@link #isRetryableConflict} - since the release runs after the outcome was decided and
-	 * cannot make that claim for it. A connection the database dropped is replayable only while the transaction
-	 * had not been committed yet. A drop reported by {@code commit()} leaves the outcome unknown - the server may
+	 * connection - see {@link #conflictVerdict} - since the release runs after the outcome was decided and cannot
+	 * make that claim for it. A connection the database dropped is replayable only while the transaction had not been
+	 * committed yet. A drop reported by {@code commit()} leaves the outcome unknown - the server may
 	 * have committed and died before the answer reached us - and replaying a write that in fact committed applies
 	 * it twice, which is the very reason 40003 is one of {@link #NON_REPLAYABLE_ROLLBACK_STATES}.
 	 * <p>
@@ -3648,17 +3756,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * second time and fails with ERR_ENTRY_CONTAINER_ALREADY_REGISTERED, which masks the failure that caused the
 	 * replay and leaves the indexes of the previous attempt behind with their configuration listeners.
 	 *
+	 * @param conflict the class {@link #conflictVerdict} read from the failure, asked of it once by the caller
 	 * @param committing whether the failure was reported by {@code commit()}, which leaves the outcome unknown
 	 * @param partlyCommitted whether the attempt committed part of its work before it failed
 	 * @param connectionClosed whether the driver closed the connection under the failure - evidence no SQLState
 	 * carries on mssql-jdbc, which reports a killed session as S0001 and closes the connection behind it
 	 */
-	static String replayReason(Throwable failure, String driver, boolean committing, boolean partlyCommitted,
+	static String replayReason(Conflict conflict, Throwable failure, boolean committing, boolean partlyCommitted,
 			boolean connectionClosed) {
 		if (partlyCommitted) {
 			return null;
 		}
-		if (isRetryableConflict(failure, driver)) {
+		if (conflict!=Conflict.NONE) {
 			return "a conflict";
 		}
 		if (!committing && (connectionClosed || isConnectionFailure(failure))) {
@@ -3731,6 +3840,27 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	/** The walk above, with the number of links it is allowed to look at. */
 	private static SQLException firstLinkMatching(Throwable failure, boolean withTheRelease, int links,
 			Predicate<SQLException> matches) {
+		final SQLException[] found=new SQLException[1];
+		walkLinks(failure, withTheRelease, links, e -> {
+			if (!matches.test(e)) {
+				return false;
+			}
+			found[0]=e;
+			return true;
+		});
+		return found[0];
+	}
+
+	/**
+	 * Hands every {@link SQLException} of the chains of a failure to the given reader, in walk order, until it
+	 * says it has read enough. The single traversal of this class: a reader that can answer from the first link
+	 * it matches stops here, and one that has to see them all - {@link #conflictVerdict}, which keeps the
+	 * strongest class any of them carries - does not, so that neither has a walk of its own to drift from the
+	 * other's. The {@code seen} set terminates the walk whatever budget it is given: a driver that chains an
+	 * exception back to itself is walked once.
+	 */
+	private static void walkLinks(Throwable failure, boolean withTheRelease, int links,
+			Predicate<SQLException> readEnough) {
 		final Deque<Throwable> pending=new ArrayDeque<>();
 		final Set<Throwable> seen=Collections.newSetFromMap(new IdentityHashMap<Throwable,Boolean>());
 		if (failure!=null) {
@@ -3756,11 +3886,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			if (sqlException.getNextException()!=null) {
 				pending.push(sqlException.getNextException());
 			}
-			if (matches.test(sqlException)) {
-				return sqlException;
+			if (readEnough.test(sqlException)) {
+				return;
 			}
 		}
-		return null;
 	}
 
 	/**
@@ -3798,13 +3927,84 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	}
 
 	/**
-	 * Returns whether the given failure carries a transaction conflict that replaying the operation can resolve.
+	 * The class of a failure. Whether it is a conflict at all is what decides that the operation is replayed;
+	 * which of the remaining classes it is decides only whether the first replay is granted unconditionally,
+	 * since the wait an engine spends before reporting a conflict is charged to the attempt that hit it.
+	 * <p>
+	 * Declared in order of how much they restrict the replay, which is the order {@link #conflictVerdict}
+	 * compares them in: the strongest class any link of a failure carries is the class of that failure. Only
+	 * {@link #PROMPT} is granted the replay past the window, so every class this list gains - #915 adds one -
+	 * has to be placed against that grant rather than merely appended.
+	 */
+	enum Conflict {
+		/** Not a conflict: no replay resolves it. */
+		NONE,
+		/** A conflict reported as soon as the engine detects it, however long the attempt waited to reach it. */
+		PROMPT,
+		/**
+		 * A conflict under a driver none of the four engines is recognised in. Whether the engine bounded the
+		 * wait that preceded it is not something this class can tell, and the grant of {@link #PROMPT} rests on
+		 * knowing that it did not, so an unrecognised engine is refused it: see {@link #classOf}.
+		 */
+		UNKNOWN_ENGINE,
+		/** A conflict an engine reports only once a lock wait timeout of its own has elapsed. */
+		AFTER_LOCK_WAIT
+	}
+
+	/**
+	 * The verdict of a failure nothing asked about, handed to the questions {@link #write} asks of a partly
+	 * committed attempt: every one of them is answered by that flag alone, so its chains are never walked. It is
+	 * not a claim that the failure carries no conflict - it may carry one, and is refused a replay either way.
+	 */
+	private static final ConflictVerdict NOT_CLASSIFIED=new ConflictVerdict(Conflict.NONE, null);
+
+	/**
+	 * The class of the conflict a failure carries and the link that class was read from, which are one answer
+	 * rather than two: the line reporting a replay names the link the decision was taken on, and a summary that
+	 * walked the chains again to find it could name a different one - see {@link #conflictSummary}.
+	 */
+	static final class ConflictVerdict {
+		final Conflict conflict;
+		/** Null where the failure carries no conflict at all, which is what {@link Conflict#NONE} says. */
+		final SQLException link;
+
+		ConflictVerdict(Conflict conflict, SQLException link) {
+			this.conflict=conflict;
+			this.link=link;
+		}
+	}
+
+	/**
+	 * Returns the class of the conflict the given failure carries, or {@link Conflict#NONE} if it carries none -
+	 * which is what decides whether replaying the operation can resolve it - together with the link that class was
+	 * read from. One walk of the chains that keeps the strongest class it meets, rather than one walk per class
+	 * asked in the right order: asking per class is what let the two walks of the earlier form be given different
+	 * budgets, and the ordering of an added class is then a rule its author has to find rather than one the enum
+	 * states - see {@link Conflict}.
 	 * <p>
 	 * The conflict is looked up along every chain of the failure, for the reason {@link #isConnectionFailure} walks
 	 * them all: it reaches this class wrapped - a deadlock in {@code put} arrives as
 	 * {@code StorageRuntimeException(SQLException)}, and a caller such as {@code EntryContainer.addEntry} may wrap it
 	 * once more - and a driver reports the error that says what happened as the next exception of a generic one at
-	 * least as often as it reports it as the cause.
+	 * least as often as it reports it as the cause. The suppressed links of the release are left out of it, for the
+	 * reason {@link #replayReason} gives: the release runs after the outcome was decided.
+	 * <p>
+	 * The strongest class in those chains wins rather than the first one found: a wrapper that carries a class
+	 * 40 state of its own but no vendor number would otherwise downgrade the {@link Conflict#AFTER_LOCK_WAIT} of
+	 * the {@link SQLException} it wraps, and hand a wait the engine already bounded a replay it does not need.
+	 * That rule is deliberately not restricted to the wrapper it was introduced for, although the walk reaches
+	 * links that are not ancestors of the operative failure - a deadlock whose chain also carries a lock wait
+	 * timeout is classed by the timeout and loses the grant. The two errors are not equally costly to get wrong:
+	 * granting a replay to a wait the engine had already bounded pays that bound a second time, while refusing
+	 * one to a deadlock costs a replay the window was about to refuse anyway, wherever the bound that sibling
+	 * names is longer than the window. So the class is read the conservative way, and the whole chain of a
+	 * failure is evidence for it.
+	 * <p>
+	 * Every link is looked at, rather than {@link #MAX_CHAIN_LINKS} of them, for the reason {@link #failureScope}
+	 * walks to the end: the verdict weakens under truncation rather than simply going unnoticed. An
+	 * {@link Conflict#AFTER_LOCK_WAIT} link past the budget with a bare class 40 link inside it comes back
+	 * {@link Conflict#PROMPT}, and truncation there does not lose a replay - it grants one, which is the single
+	 * thing this classification exists to refuse. The {@code seen} set terminates the walk regardless.
 	 * <p>
 	 * The standard class 40 states carry the conflict of most engines - 40P01 for PostgreSQL, 40001 for SQL Server
 	 * and for MySQL, whose driver replaces the server side HY000 of a deadlock and of a lock wait timeout with
@@ -3813,28 +4013,135 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * reports a deadlock as ORA-00060 with SQLState 61000, and gives 1205 to a fatal "not a data file" error that
 	 * no replay can resolve, while 1205 is exactly the deadlock victim of SQL Server. The SQL Server number is
 	 * matched beyond its class 40 state because a deployment may add {@code xopenStates=true} to its connection
-	 * URL, which reports the same deadlock as 42000. MySQL needs no number of its own, since its driver has already
-	 * mapped both conditions into class 40; see {@link #NON_REPLAYABLE_ROLLBACK_STATES} for the two class 40 states
-	 * that are excluded from that match.
+	 * URL, which reports the same deadlock as 42000. MySQL needs no number of its own for the match, since its
+	 * driver has already mapped both conditions into class 40 - its number is read by {@link #classOf} alone, and
+	 * only to tell the two apart; see {@link #NON_REPLAYABLE_ROLLBACK_STATES} for the two class 40 states that are
+	 * excluded from that match.
+	 * <p>
+	 * The walk still stops as soon as its answer is final, but the class it stops at is the strongest one this
+	 * engine can report - {@link #ceilingOf} - rather than the strongest one the enum declares. Only MySQL reports
+	 * an {@link Conflict#AFTER_LOCK_WAIT}, so a walk stopping at that constant never stops early on the other
+	 * three engines, nor under a driver none of them is recognised in: it reads every link of every failed write,
+	 * a plain {@code 23000} from adding an entry that is already there included, on the driver whose chains are
+	 * longest. The dialect is resolved once here for the same reason - {@link #classOf} and {@link #isConflict}
+	 * would otherwise read it off the driver name twice for every link walked.
 	 */
-	static boolean isRetryableConflict(Throwable t, String driver) {
-		// without the suppressed exceptions, unlike isConnectionFailure(): a conflict is replayed whichever phase
-		// reported it, on the strength of the engine having rolled the transaction back before it answered - and
-		// the release of the connection runs after the outcome was decided and cannot make that claim. A class 40
-		// raised there would otherwise replay a transaction commit() left in doubt, which is what the committing
-		// guard of replayReason() exists to prevent
-		return firstLinkMatching(t, WITHOUT_THE_RELEASE, e -> isConflict(e, driver))!=null;
+	static ConflictVerdict conflictVerdict(Throwable failure, String driver) {
+		final Dialect dialect=dialectOf(driver);
+		final Conflict ceiling=ceilingOf(dialect);
+		final Conflict[] strongest={Conflict.NONE};
+		final SQLException[] link=new SQLException[1];
+		walkLinks(failure, WITHOUT_THE_RELEASE, EVERY_LINK, e -> {
+			final Conflict conflict=classOf(e, dialect);
+			if (conflict.compareTo(strongest[0])>0) {
+				strongest[0]=conflict;
+				link[0]=e;
+			}
+			return strongest[0]==ceiling;
+		});
+		return new ConflictVerdict(strongest[0], link[0]);
 	}
 
-	private static boolean isConflict(SQLException e, String driver) {
+	/**
+	 * The strongest class a conflict raised under the given engine can carry, which is where
+	 * {@link #conflictVerdict} stops walking: nothing further along the chains can outrank it. It is the maximum
+	 * of what {@link #classOf} returns for that dialect and has to be read together with it - a property of the
+	 * engine rather than the last constant of {@link Conflict}, so that the class #915 adds cannot silently move
+	 * the stop condition, and so that the walk of the three engines reporting no lock wait timeout of their own
+	 * ends on the first conflict it meets rather than at the end of every chain.
+	 */
+	static Conflict ceilingOf(Dialect dialect) {
+		if (dialect==null) {
+			return Conflict.UNKNOWN_ENGINE;
+		}
+		return dialect==Dialect.MYSQL ? Conflict.AFTER_LOCK_WAIT : Conflict.PROMPT;
+	}
+
+	/**
+	 * Returns the class of a single failure. The vendor number only refines a failure {@link #isConflict} has
+	 * already matched and never widens that match, which the engines colliding on 1205 do not allow: the number is
+	 * read here to tell the late conflict of MySQL from the deadlock its driver reports under the same state.
+	 * <p>
+	 * A conflict raised under a driver {@link #dialectOf(String)} did not recognise is
+	 * {@link Conflict#UNKNOWN_ENGINE}: still replayed, since replayability is what the class 40 state says and it
+	 * says it whatever the engine, but not granted the replay past the window. The grant rests on knowing that
+	 * the wait preceding the conflict was not bounded by the engine, and of an unrecognised engine that is not
+	 * known. It is a MySQL-wire-compatible driver - MariaDB Connector/J, an Aurora- or Percona-branded one -
+	 * that makes the difference concrete: it reports a lock wait timeout as 1205 under class 40 exactly as
+	 * Connector/J does, this class would read the number only under a name carrying {@code mysql}, and granting
+	 * a free replay there buys a second full {@code innodb_lock_wait_timeout}. Such a deployment does reach this
+	 * code: a backend created under {@code com.mysql.cj.jdbc} and later opened through one of those drivers
+	 * issues no DDL at all - every {@code create table} and {@code create index} of
+	 * {@code openTree(createOnDemand)} is guarded by a catalog read - and its writes go down the ANSI branch of
+	 * {@code upsert}, which is an {@code update} and an {@code insert}, not a statement a MySQL-wire engine
+	 * refuses. The cost of the class is one replay of the window's own length for an engine whose conflicts are
+	 * in fact prompt, which is the direction worth being wrong in; #915 removes the trade by bounding the
+	 * attempt itself.
+	 */
+	private static Conflict classOf(SQLException e, Dialect dialect) {
+		if (!isConflict(e, dialect)) {
+			return Conflict.NONE;
+		}
+		if (dialect==null) {
+			return Conflict.UNKNOWN_ENGINE;
+		}
+		return dialect==Dialect.MYSQL && e.getErrorCode()==MYSQL_LOCK_WAIT_TIMEOUT
+				? Conflict.AFTER_LOCK_WAIT : Conflict.PROMPT;
+	}
+
+	/**
+	 * Whether another attempt is still allowed: the bounds half of the decision {@link #write} takes after every
+	 * attempt, asked of a failure {@link #replayReason} has already found worth replaying and made here apart
+	 * from the clock so that it can be tested without a database. It is asked of the conflict class rather than
+	 * of the failure because not every replayable failure carries one - a connection the database dropped is
+	 * replayed on the evidence of the drop, and would be refused by a bound that first insisted on a class 40
+	 * state - and because {@code write()} has already read that class off the failure once.
+	 * <p>
+	 * Replays are bounded by {@link #MAX_RETRIES} and by {@link #RETRY_WINDOW_NANOS} against the time elapsed
+	 * since the first attempt began, with the one grant {@link #grantedPastTheWindow} states on top of them.
+	 */
+	static boolean replayableWithin(int attempt, long elapsedNanos, Conflict conflict) {
+		if (attempt>=MAX_RETRIES) {
+			return false;
+		}
+		if (grantedPastTheWindow(attempt, elapsedNanos, conflict)) {
+			return true;
+		}
+		return elapsedNanos<RETRY_WINDOW_NANOS;
+	}
+
+	/**
+	 * Whether this replay is the one {@link #RETRY_WINDOW_NANOS} does not get to deny: the first replay of a
+	 * conflict its engine reports promptly, taken although the window is already spent. The wait an engine spends
+	 * before reporting such a conflict is charged to the attempt that hit it and is unbounded on three of the four
+	 * engines here - SQL Server took some 12 s to pick a victim in CI - so there is no window that some wait does
+	 * not outlast, and measuring one against it only leaves the operation with no replay at all, which is issue
+	 * #903. The grant does not extend to {@link Conflict#AFTER_LOCK_WAIT}, whose wait the engine has already
+	 * bounded for us: replaying that costs the same bounded wait again, which is exactly what the window is here
+	 * to refuse. Nor to {@link Conflict#UNKNOWN_ENGINE}, of which the same cannot be ruled out.
+	 * <p>
+	 * Asked as a question of its own so that the line reporting the replay can name the bound that was actually
+	 * applied instead of inferring it from the clock: {@code elapsed >= window} coincides with this grant only
+	 * for as long as this stays the sole way past the window, and a line that keeps claiming "the first replay"
+	 * after that would be describing a decision nobody took.
+	 * <p>
+	 * {@code attempt==1} is a proxy and not the invariant: the invariant is that no clock can bound a wait
+	 * nothing else bounds, and that holds on every attempt, not only the first. Widening the grant to all of them
+	 * would leave {@link #MAX_RETRIES} as the only real cap, so it is held to one replay until the attempt itself
+	 * carries a lock bound - see #915, which retires this method rather than widening it.
+	 */
+	static boolean grantedPastTheWindow(int attempt, long elapsedNanos, Conflict conflict) {
+		return attempt==1 && conflict==Conflict.PROMPT && elapsedNanos>=RETRY_WINDOW_NANOS;
+	}
+
+	private static boolean isConflict(SQLException e, Dialect dialect) {
 		final String state=String.valueOf(e.getSQLState());
 		if (state.startsWith("40") && !NON_REPLAYABLE_ROLLBACK_STATES.contains(state)) {
 			return true;
 		}
-		final String driverName=String.valueOf(driver);
-		if (driverName.contains("oracle")) {
+		if (dialect==Dialect.ORACLE) {
 			return e.getErrorCode()==ORACLE_DEADLOCK_DETECTED;
-		} else if (driverName.contains("microsoft")) {
+		} else if (dialect==Dialect.MICROSOFT) {
 			return e.getErrorCode()==MSSQL_DEADLOCK_VICTIM;
 		}
 		return false;
@@ -3848,11 +4155,16 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * suppressed into it, and naming the state of the rejected statement instead would describe a replay that did
 	 * not happen. Falls back to the first SQLException of the failure, and to the failure itself where it carries
 	 * none.
+	 * <p>
+	 * Asked of the verdict rather than of the failure and the driver, since {@link #write} - the only caller - has
+	 * had the failure classified already: a form taking those two would walk the chains a second time to reach the
+	 * verdict this one is handed.
 	 */
-	static String conflictSummary(Throwable failure, String driver) {
-		// asked in the order replayReason() asks it, and of the same chains, so that the line names the link the
-		// decision was taken on rather than one that merely resembles it
-		SQLException named=firstLinkMatching(failure, WITHOUT_THE_RELEASE, e -> isConflict(e, driver));
+	static String conflictSummary(ConflictVerdict verdict, Throwable failure) {
+		// the link the class was read from, handed over by the walk that read it rather than looked up again in
+		// the order that walk happens to use: repeated by hand, the two drift, and the line then names a link
+		// that merely resembles the one the decision was taken on
+		SQLException named=verdict.link;
 		if (named==null) {
 			named=firstLinkMatching(failure, WITH_THE_RELEASE, JDBCStorage::saysTheConnectionIsGone);
 		}
@@ -3906,7 +4218,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * Casting the parameter back to char keeps the comparison seekable.
 	 */
 	static String hashParam(Connection con) {
-		return driverNameOf(con).contains("microsoft") ? "cast(? as char(128))" : "?";
+		return dialectOf(con)==Dialect.MICROSOFT ? "cast(? as char(128))" : "?";
 	}
 
 	class ReadableTransactionImpl implements ReadableTransaction {
@@ -4128,19 +4440,20 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		/** Whether this engine commits the transaction before a DDL statement whether asked to or not. */
 		private boolean commitsBeforeDdl() {
-			final String driverName=driverNameOf(con);
-			return driverName.contains("mysql") || driverName.contains("oracle");
+			final Dialect dialect=dialectOf(con);
+			return dialect==Dialect.MYSQL || dialect==Dialect.ORACLE;
 		}
 
 		String getTableDialect() {
-			if (driverNameOf(con).contains("oracle")) {
+			final Dialect dialect=dialectOf(con);
+			if (dialect==Dialect.ORACLE) {
 				return "h char(128),k raw(2000),v blob,primary key(h,k)";
-			}else if (driverNameOf(con).contains("mysql")) {
+			}else if (dialect==Dialect.MYSQL) {
 				return "h char(128),k varbinary(255),v longblob,primary key(h,k)";
-			}else if (driverNameOf(con).contains("microsoft")) {
+			}else if (dialect==Dialect.MICROSOFT) {
 				return "h char(128),k varbinary(max),v image,primary key(h)";
 			}
-			return "h char(128),k bytea,v bytea,primary key(h,k)";
+			return "h char(128),k bytea,v bytea,primary key(h,k)"; // postgres, and an unrecognised engine with it
 		}
 
 		@Override
@@ -4174,9 +4487,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}
 				}
 				// CursorImpl iterates with "where k>? order by k" batches: primary key (h,k) cannot serve them
-				final String driverName=driverNameOf(con);
+				final Dialect dialect=dialectOf(con);
 				final String tableName=getTableName(treeName);
-				if (driverName.contains("postgres")) {
+				if (dialect==Dialect.POSTGRES) {
 					try {
 						// asked although postgresql has "create index if not exists": that statement commits
 						// whether it creates anything or not, and this is the engine of every default
@@ -4188,7 +4501,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}catch (SQLException e) {
 						throw new StorageRuntimeException(e);
 					}
-				}else if (driverName.contains("mysql")) {
+				}else if (dialect==Dialect.MYSQL) {
 					try {
 						if (!isExistsIndex(tableName,"k_"+tableName.substring("opendj_".length()))) { // mysql has no "create index if not exists"
 							commitStatement("create index k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)", true);
@@ -4196,7 +4509,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}catch (SQLException e) {
 						throw new StorageRuntimeException(e);
 					}
-				}else if (driverName.contains("oracle")) {
+				}else if (dialect==Dialect.ORACLE) {
 					try {
 						// oracle has no "create index if not exists"; unquoted identifiers are stored in uppercase
 						if (!isExistsIndex(tableName.toUpperCase(Locale.ROOT),"k_"+tableName.substring("opendj_".length()))) {
@@ -4623,29 +4936,29 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 
 		boolean upsert(TreeName treeName, ByteSequence key, ByteSequence value) throws SQLException {
-			final String driverName=driverNameOf(con);
-			if (driverName.contains("postgres")) { //postgres upsert
+			final Dialect dialect=dialectOf(con);
+			if (dialect==Dialect.POSTGRES) { //postgres upsert
 				try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) values (?,?,?) ON CONFLICT (h, k) DO UPDATE set v=excluded.v")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
 					return (execute(statement, bound) == 1 && statement.getUpdateCount() > 0);
 				}
-			}else if (driverName.contains("mysql")) { //mysql upsert
+			}else if (dialect==Dialect.MYSQL) { //mysql upsert
 				try (final PreparedStatement statement = con.prepareStatement("insert into " + getTableName(treeName) + " (h,k,v) values (?,?,?) as new ON DUPLICATE KEY UPDATE v=new.v")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
 					return (execute(statement, bound) == 1 && statement.getUpdateCount() > 0);
 				}
-			}else if (driverName.contains("oracle")) { //ANSI MERGE without ;
+			}else if (dialect==Dialect.ORACLE) { //ANSI MERGE without ;
 				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " old using (select ? h,? k,? v from dual) new on (old.h=new.h and old.k=new.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v)")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
 					statement.setBytes(3, value.toByteArray());
 					return (execute(statement, bound) == 1 && statement.getUpdateCount() > 0);
 				}
-			}else if (driverName.contains("microsoft")) { //ANSI MERGE with ; WITH (HOLDLOCK) makes the upsert atomic: without it SQL Server MERGE can race two concurrent NOT MATCHED inserts of the same key into a PRIMARY KEY violation. UPDLOCK is required on top of it: with HOLDLOCK alone the search phase takes a shared lock that the WHEN MATCHED update then has to convert to an exclusive one, so two concurrent upserts of the same key deadlock on the conversion; an update lock is taken right away and makes the second transaction wait instead. h is cast back to char so that the join can seek the primary key instead of scanning the whole table under those locks, see hashParam()
+			}else if (dialect==Dialect.MICROSOFT) { //ANSI MERGE with ; WITH (HOLDLOCK) makes the upsert atomic: without it SQL Server MERGE can race two concurrent NOT MATCHED inserts of the same key into a PRIMARY KEY violation. UPDLOCK is required on top of it: with HOLDLOCK alone the search phase takes a shared lock that the WHEN MATCHED update then has to convert to an exclusive one, so two concurrent upserts of the same key deadlock on the conversion; an update lock is taken right away and makes the second transaction wait instead. h is cast back to char so that the join can seek the primary key instead of scanning the whole table under those locks, see hashParam()
 				try (final PreparedStatement statement = con.prepareStatement("merge into " + getTableName(treeName) + " WITH (HOLDLOCK, UPDLOCK) old using (select cast(? as char(128)) h,? k,? v) new on (old.h=new.h and old.k=new.k) WHEN MATCHED THEN UPDATE SET old.v=new.v WHEN NOT MATCHED THEN INSERT (h,k,v) VALUES (new.h,new.k,new.v);")) {
 					statement.setString(1, key2hash.get(ByteBuffer.wrap(key.toByteArray())));
 					statement.setBytes(2, real2db(key.toByteArray()));
@@ -4762,7 +5075,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// of #873 reads the shared tree, and reading a tree must not put it up for removal
 			this.tableName=readTableName(treeName);
 			this.batchBound=batchBound;
-			this.limitClause=((CachedConnection)con).parent.getClass().getName().contains("mysql")
+			this.limitClause=dialectOf(con)==Dialect.MYSQL
 				? " limit ?,?" : " offset ? rows fetch next ? rows only";
 		}
 
@@ -5148,10 +5461,168 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		return true;
 	}
 
+	/**
+	 * How many connections one import may write through; unset for the default of
+	 * {@link #importConnections()}, and 0 or 1 for the single connection an import had before #891 -
+	 * serialized, and the least a database sees of one.
+	 */
+	static final String IMPORT_CONNECTIONS_PROPERTY = "org.openidentityplatform.opendj.jdbc.import.connections";
+
+	/**
+	 * How many connections one import writes through, which is how many of its threads can write
+	 * at the same time.
+	 * <p>
+	 * More than one because {@code Importer} is thread-safe by contract and a
+	 * {@code java.sql.Connection} is not: phase two of {@code OnDiskMergeImporter} runs a thread
+	 * per tree and phase one clears the trees of a container while another thread writes id2entry,
+	 * so a shared connection has two threads issuing statements on it at once. The drivers differ
+	 * in what they make of that - pgjdbc and Connector/J serialize the work of a connection behind
+	 * a lock of their own - but the sql server driver keeps the reconnect listeners of a
+	 * connection in a plain {@code ArrayList} that every {@code prepareStatement()} and every
+	 * statement {@code close()} mutates, and two import threads walked it past the end of its
+	 * array (issue #891).
+	 * <p>
+	 * Bounded because an import holds what it takes for its whole duration, out of a pool that is
+	 * bounded since #878 and shared with every other backend on that database: a default backend
+	 * has trees enough - one per index, three per attribute index - for a connection per tree to
+	 * empty a default pool and leave the LDAP traffic of an online rebuild waiting at its bound.
+	 * <p>
+	 * Half the bound of the pool by default, and no more than half of what the default bound would
+	 * be: a deployment that turned the bound off ({@code pool.max=0}) asked for its operations not
+	 * to queue behind one another, not for an import to open a connection per tree.
+	 * <p>
+	 * A number the operator set is taken as given, up to the bound of the pool: an import-ldif of a
+	 * backend that is offline has no traffic of its own to leave room for, and whoever raises this
+	 * on a server that is answering is making that trade knowingly - the default is where the
+	 * caution belongs.
+	 * <p>
+	 * What this bounds is how many connections one import holds, which is not the same as staying
+	 * inside the bound of the pool: a thread that already holds one connection of a pool is exempt
+	 * from waiting at its bound (see {@code CachedConnection.Pool}), and every thread of an import
+	 * takes a connection per tree it touches - so the borrows after the first go unmetered where the
+	 * pool stands at its bound, and are destroyed rather than pooled when they come back. That
+	 * exemption is what keeps the threads of an import from waiting on each other: they hold their
+	 * connections until the import ends, so a pool full of them has nothing left to return, and a
+	 * bound they had to wait at would be a deadlock rather than a queue.
+	 */
+	int importConnections() {
+		final int poolMax=poolMax();
+		final long byDefault=Math.max(1, Math.min(poolMax, CachedConnection.DEFAULT_POOL_MAX)/2);
+		// read the way every other bound of this backend is: a value that is not a non-negative
+		// number is reported to the operator rather than quietly replaced. The default is handed to
+		// it rather than a zero, so that the number the warning names is the number the import goes
+		// on to use.
+		final long configured=CachedConnection.getNonNegativeProperty(IMPORT_CONNECTIONS_PROPERTY, byDefault, "connections");
+		// clamped to the pool: connections past its bound are not there to be had, so a number above
+		// it buys nothing and costs the borrow deadline of every tree over the bound
+		// (CachedConnection.POOL_TIMEOUT_PROPERTY) before the fallback of connectionOf() takes over
+		return (int) Math.max(1, Math.min(configured, poolMax));
+	}
+
+	/**
+	 * The bound of the pool this storage borrows from. A seam of its own, like
+	 * {@link #getConnection(boolean)}: a test that stands in for the pool must not have this reach
+	 * past it into the static registry, which would intern a pool for its connection string.
+	 */
+	int poolMax() {
+		return CachedConnection.poolOf(poolKey()).max();
+	}
+
 	final class ImporterImpl implements Importer {
-		final Connection con;
-		final ReadableTransactionImpl txr;
-		final WriteableTransactionTransactionImpl txw;
+		/**
+		 * One connection of an import, the two transactions over it and the monitor that keeps one
+		 * thread at a time on it. Every statement of an import is issued under that monitor: what
+		 * the threads of an import must not do is share a connection, and the trees of an import
+		 * outnumber the connections it may take.
+		 */
+		final class ImportConnection {
+			final Connection con;
+			final ReadableTransactionImpl txr;
+			final WriteableTransactionTransactionImpl txw;
+			/**
+			 * When this connection was last written, taken from {@link ImporterImpl#writes}, and
+			 * zero while it has nothing to commit. Written and read under the monitor of this
+			 * object, like the statements it counts: read anywhere else it says what the connection
+			 * held rather than what it holds, because it is set once the write it stands for has
+			 * come back - and a write still in flight is exactly the one a commit point must not
+			 * pass over.
+			 */
+			long lastWrite;
+
+			ImportConnection(Connection con) {
+				this.con=con;
+				this.txr=new ReadableTransactionImpl(con, StatementBound.BULK);
+				this.txw=new WriteableTransactionTransactionImpl(con, StatementBound.BULK);
+				// the mode this import was started with rather than the one the storage carries now:
+				// the transaction reads that mutable field as it is built, and these are built as the
+				// trees of an import are first touched - so a storage reopened read-only under a
+				// running import would have the connections it opened before that keep writing while
+				// every one after it refused, halfway through and with the clears already committed
+				this.txw.isReadOnly=false;
+			}
+
+			/** Called under this monitor by whoever writes through this connection. */
+			void written() {
+				lastWrite=writes.incrementAndGet();
+			}
+		}
+
+		/** The connections this import has taken, by the index the trees are handed out against. */
+		private final ConcurrentMap<Integer,ImportConnection> connections = new ConcurrentHashMap<>();
+		/** The connection index each tree is written through: a tree keeps the one it was first given. */
+		private final ConcurrentMap<TreeName,Integer> connectionOfTree = new ConcurrentHashMap<>();
+		/** Handed out round-robin, so that the first trees of an import get connections of their own. */
+		private final AtomicInteger nextConnection = new AtomicInteger();
+		/** One per index, so that the connection of an index is borrowed once however many trees want it. */
+		private final ConcurrentMap<Integer,Object> borrowing = new ConcurrentHashMap<>();
+		/**
+		 * The indexes no connection could be borrowed for, whose trees write through the first
+		 * connection of this import instead. Remembered rather than asked again per tree: there are
+		 * at most {@link #maxConnections} of them, and a tree that lands on one would otherwise pay
+		 * the borrow deadline of the pool over again for the answer the tree before it already got.
+		 */
+		private final Set<Integer> sharedIndexes = ConcurrentHashMap.newKeySet();
+		/**
+		 * Read once rather than per statement: this is a property of the whole import, and reading
+		 * it per record would be a property lookup per entry of an import-ldif.
+		 */
+		final int maxConnections;
+
+		/**
+		 * The connection the constructor borrows. Also the one a borrow that cannot be made falls
+		 * back to, so it is the one connection of an import that is always there.
+		 */
+		private static final int FIRST_CONNECTION = 0;
+
+		/**
+		 * Set by {@code close()} before it commits, after which this import has no transaction left
+		 * for a write to belong to. Phase two gives its threads five seconds to answer an interrupt
+		 * and closes the importer whether they answered or not
+		 * ({@code OnDiskMergeImporter.invokeParallel}), so a write can arrive with the connections
+		 * of the import already committed and back in the pool.
+		 */
+		private volatile boolean closed;
+
+		/**
+		 * Numbers the writes of this import, so that {@code close()} can commit its connections in
+		 * the order they were last written to.
+		 * <p>
+		 * The connections of an import are transactions of their own, so {@code close()} cannot make
+		 * them durable as one - and the last thing an import writes is the flag that says the rest of
+		 * it is good: {@code afterPhaseTwo} sets the trust flag of every index of a container once
+		 * phase two has written them all, one write per base DN. Committed in that order, those flags
+		 * go last, and an earlier commit that fails takes them down with it: a failed import cannot
+		 * leave an index marked trusted over data that never got there.
+		 * <p>
+		 * That the flags are the last writes is the caller's doing rather than this class's:
+		 * {@code OnDiskMergeImporter} waits for every phase-two task before it runs
+		 * {@code afterPhaseTwo}, and nothing here refuses a write that arrives after the flags while
+		 * the importer is still open. An importer whose writes did not end there would order its
+		 * commits by what its last writes actually were, which is what this counter says and all it
+		 * says.
+		 */
+		private final AtomicLong writes = new AtomicLong();
+
 		// The trees this import wrote: close() refreshes the statistics of these and only these,
 		// so rebuilding a single index does not gather statistics for the whole backend. A full
 		// import legitimately covers every tree - AbstractTwoPhaseImportStrategy.beforePhaseOne
@@ -5205,10 +5676,21 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				if (!accessMode.isWriteable()) {
 					throw new ReadOnlyStorageException();
 				}
+				// Inside the try like the refusal above: the pool this asks about is the one the open
+				// just registered with, so a failure here has the storage this constructor opened to
+				// give back as well.
+				maxConnections=importConnections();
+				// What an import takes out of the pool is worth reading when a borrow of one fails at
+				// the bound: the pool names the property that bounds it, and this names the one that
+				// bounds the demand.
+				logger.debug(LocalizableMessage.raw("jdbc: import writes through up to %d connections (%s)",
+					maxConnections, IMPORT_CONNECTIONS_PROPERTY));
 				borrowed=getValidatedConnection();
-				txr =new ReadableTransactionImpl(borrowed, StatementBound.BULK);
-				txw =new WriteableTransactionTransactionImpl(borrowed, StatementBound.BULK);
-				con = borrowed;
+				// The first connection is taken here rather than on the first tree, as it was before
+				// the connections of an import became several (#891): an import of a database that
+				// takes no connection is refused where it is started, and a storage this constructor
+				// opened is given back by the catch below rather than by a put() far from it.
+				connections.put(FIRST_CONNECTION, new ImportConnection(borrowed));
 				borrowed=null;
 			}catch (Throwable e){
 				// Throwable rather than Exception, the way close() below catches it and for the same
@@ -5245,73 +5727,518 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 
 		/**
-		 * Hands the connection back to the pool and closes the sessions the transaction opened
-		 * beside it - the stamp one and the catalog one (#888), both outside the pool and neither
-		 * outliving the import that opened it - whatever went before. Returns the failure the
-		 * caller is to report: the return rolls back, and the rollback fails on exactly the
-		 * connection whose commit just did, so the commit stays the exception the caller sees and
-		 * this one rides along with it instead of replacing it.
+		 * The connection the given tree is written through, borrowed from the pool the first time
+		 * this import touches the tree.
+		 * <p>
+		 * Bound to the tree rather than to the thread, although it is the threads of an import that
+		 * must not share one: the connections of an import are transactions of their own, so two of
+		 * them writing one row would have the second wait for the first to commit - and an import
+		 * commits at {@code close()}, when every thread of it is long done. That is not a shape to
+		 * leave lying about: {@code setTrust()} writes the state tree of a container from
+		 * {@code beforePhaseOne} on an import thread and again from {@code afterPhaseTwo} on the
+		 * thread that closes the importer, and bound to the thread those two writes would be two
+		 * transactions waiting for each other with nothing left to break the wait - the bulk class
+		 * carries no bound, and the default lock wait is forever on three of the four engines.
+		 * Bound to the tree they are one transaction that waits for nothing, and phase two - which
+		 * runs a thread per tree - still gets the connection per thread this is all about.
 		 */
-		private SQLException releaseConnection(SQLException failure) {
+		ImportConnection connectionOf(TreeName treeName) {
+			// The lookup before the assignment, not for want of a computeIfAbsent: this runs once per
+			// record of an import-ldif, and the mapping function below allocates a capture of this
+			// importer on every call however long the tree has had a connection.
+			final Integer assigned=connectionOfTree.get(treeName);
+			if (assigned!=null) {
+				final ImportConnection open=connections.get(assigned);
+				if (open!=null) {
+					return open;
+				}
+			}
+			checkOpen();
+			// floorMod rather than %: the counter is shared by every thread of the import and an
+			// index of its own is all a tree needs, so it is never reset - and a negative index
+			// would be one no connection is ever opened for
+			final Integer index=connectionOfTree.computeIfAbsent(treeName,
+				tree -> Math.floorMod(nextConnection.getAndIncrement(), maxConnections));
+			final ImportConnection open=connections.get(index);
+			if (open!=null) {
+				return open;
+			}
+			final ImportConnection taken=sharedIndexes.contains(index) ? sharedConnection() : openConnection(index);
+			if (connections.get(index)!=taken) {
+				// this tree was given a connection of another index, the pool having none to spare:
+				// pointed at it, every record of the tree takes the lookup at the top of this method
+				// rather than this path, which allocates a capture of this importer per call
+				connectionOfTree.put(treeName, FIRST_CONNECTION);
+			}
+			return taken;
+		}
+
+		/**
+		 * Takes the connection of an index, or the one this import already has where the pool has
+		 * none left to give.
+		 * <p>
+		 * The borrow is made outside the map rather than in a {@code computeIfAbsent}: it waits for a
+		 * connection to be returned where the pool stands at its bound - up to
+		 * {@code CachedConnection.POOL_TIMEOUT_PROPERTY} - and a wait of that length inside a mapping
+		 * function holds the bin of that key against every other index that hashes to it, which the
+		 * contract of {@code ConcurrentHashMap} says not to do. One borrow per index all the same:
+		 * two threads first touching trees of one index would otherwise each take a connection, and
+		 * the loser's would be a borrow of the pool made and given back for nothing.
+		 * <p>
+		 * A connection that does not end up in the map is given back here rather than left behind:
+		 * only its {@code close()} returns the permit it took, and a pool is never removed from the
+		 * map, so one lost here would be lost for the life of the server (#878).
+		 */
+		private ImportConnection openConnection(Integer index) {
+			synchronized (borrowing.computeIfAbsent(index, i -> new Object())) {
+				final ImportConnection opened=connections.get(index);
+				if (opened!=null) {
+					return opened; // another thread of this import got here first
+				}
+				if (sharedIndexes.contains(index)) {
+					// ... and found the pool with nothing to spare: this thread has the same answer
+					// waiting for it, and would pay the borrow deadline of the pool again to get it
+					return sharedConnection();
+				}
+				return openConnectionOnce(index);
+			}
+		}
+
+		private ImportConnection openConnectionOnce(Integer index) {
+			final Connection borrowed=borrowedOrShared(index);
+			if (borrowed==null) { // shared, see borrowedOrShared()
+				return sharedConnection();
+			}
+			final ImportConnection built;
 			try {
-				con.close();
-			} catch (Throwable e) {
-				// Throwable rather than SQLException: this close() is the return to the pool, whose
-				// rollback a driver is free to fail unchecked. Reported rather than thrown, since a
-				// throw out of here would leave with the failure the caller actually came for - the
-				// commit above, and in the Throwable branch of close() the Error that branch exists
-				// to preserve - dropped on the floor (issue #878).
-				final SQLException reported=e instanceof SQLException ? (SQLException) e
-					: new SQLException("the connection of the import could not be returned to the pool", e);
-				if (failure==null) {
-					failure=reported;
-				}else {
-					failure.addSuppressed(reported);
-				}
-			} finally {
+				// nothing holds the borrow until this returns: new WriteableTransactionTransactionImpl
+				// runs a StampSession in a field initializer, and an Error out of a bulk import - an
+				// OutOfMemoryError is the one to expect - would otherwise leave it out of the pool
+				built=new ImportConnection(borrowed);
+			}catch (Throwable e) {
 				try {
-					txw.stampSession.close();
-				} finally {
-					txw.catalogSession.close();
+					borrowed.close();
+				}catch (Throwable e2) {
+					// suppressed rather than logged, the way the constructor of this importer joins the
+					// same pair: the failure being unwound is the one the caller asked about, and a
+					// return that failed on top of it is worth reading
+					e.addSuppressed(e2);
 				}
+				throw e;
+			}
+			// Entered under the monitor of the map, which close() takes to mark this import closed and
+			// to take its connections away: without it a borrow in flight could be put back after
+			// close() had walked the map, leaving a connection nothing would commit or return - or,
+			// worse, be released twice, the second time onto a connection the pool had already handed
+			// to somebody else.
+			boolean tooLate=false;
+			synchronized (connections) {
+				if (closed) {
+					tooLate=true;
+				}else {
+					connections.put(index, built);
+				}
+			}
+			if (tooLate) {
+				// outside the monitor: a return is a round trip, and close() must not wait behind it
+				releaseUnwatched(built);
+				throw importIsClosed();
+			}
+			return built;
+		}
+
+		/**
+		 * A connection of the pool for the given index, or null for a tree that is to share the
+		 * connection this import already has.
+		 * <p>
+		 * The pool having none left is not a reason to fail an import: what an import must not do is
+		 * put two threads on one connection, and the monitor of an {@link ImportConnection} sees to
+		 * that whether one tree writes through it or five. So a tree that cannot be given a
+		 * connection of its own is given the first one instead - the import runs with less of the
+		 * parallelism it asked for, rather than stopping halfway through with its clears already
+		 * committed. Before #891 an import held one connection for all of its trees and this is what
+		 * that looked like.
+		 * <p>
+		 * Every answer of the pool and of the database is taken this way, not only the one that ran
+		 * out of time. The pool at its bound, and a database that {@code CachedConnection} waited out
+		 * for the whole deadline, are reported as a {@code SQLTimeoutException} - but a limit of the
+		 * database that its dialect table does not recognize is raised at once instead: a mysql
+		 * account with a {@code MAX_USER_CONNECTIONS} of its own answers 1226 on SQLState 42000, and
+		 * a driver of no known dialect has no vendor code read at all (issue #1011). The type is no
+		 * rule either: a failure whose chain names the credentials of the backend is rebuilt as a
+		 * plain {@code SQLException} whatever the driver threw. Sorting them here would be that
+		 * classification written out a second time, with the failure of a multi-hour import as the
+		 * cost of getting it wrong (issue #1013).
+		 * <p>
+		 * Nothing is hidden by taking them all. The credentials, the driver and the database were
+		 * proved by the borrow this importer was built on, so a later one fails for a reason of the
+		 * database or of the network - and where the database really is gone, the connection this
+		 * import falls back to is gone with it and the next statement fails with what actually
+		 * happened, which is a better report than the failure of a borrow.
+		 * <p>
+		 * An interrupt is not one of those answers: it is how phase two stops an import
+		 * ({@code OnDiskMergeImporter.invokeParallel} gives its threads five seconds to answer one),
+		 * and a thread that met it by writing the tree through another connection would be carrying
+		 * on with the work it was told to drop. It goes back on the thread as well - the wait of a
+		 * borrow clears it - since what reads it next is the executor of phase two.
+		 */
+		private Connection borrowedOrShared(Integer index) {
+			try {
+				// bounded, and by the default wait of a borrow however much longer the deployment
+				// made that wait: the connections this one waits for are held by this import until
+				// it ends, so an unbounded wait here is a thread waiting for itself - and a long one
+				// is paid over again for every index the pool has no connection to spare for
+				return getConnection(false, CachedConnection.DEFAULT_POOL_TIMEOUT_SECONDS);
+			}catch (SQLException e) {
+				sharedIndexes.add(index);
+				if (e instanceof SQLTimeoutException) {
+					logger.debug(LocalizableMessage.raw("jdbc: the pool has no connection to spare for a tree of this import,"
+						+ " which writes it through one it already holds: %s", stackTraceToSingleLineString(e)));
+				}else {
+					// louder than the wait above: that one is the deployment's own bound being
+					// reached, while this is a database refusing a connection outright - the import
+					// goes on with less parallelism than it asked for, and an operator reading a
+					// long import has nothing else to tell them why
+					logger.warn(LocalizableMessage.raw("jdbc: no further connection is given to this import, which"
+						+ " writes the tree through one it already holds: %s", stackTraceToSingleLineString(e)));
+				}
+				return null;
+			}catch (InterruptedException e) {
+				// put back where the borrow found it, before the wrapper leaves this class
+				Thread.currentThread().interrupt();
+				throw new StorageRuntimeException(e);
+			}catch (Exception e) {
+				throw e instanceof StorageRuntimeException ? (StorageRuntimeException) e : new StorageRuntimeException(e);
+			}
+		}
+
+		/**
+		 * The connection every tree of this import falls back to, which is the one its constructor
+		 * borrowed - the only connection an import is sure to have.
+		 */
+		private ImportConnection sharedConnection() {
+			final ImportConnection shared=connections.get(FIRST_CONNECTION);
+			if (shared==null) {
+				throw importIsClosed(); // close() took the connections away
+			}
+			return shared;
+		}
+
+		/**
+		 * Refuses what arrives after {@code close()}: there is no transaction of this import left to
+		 * join, and the connection a write would go to is committed and back in the pool, serving
+		 * whoever borrowed it next.
+		 * <p>
+		 * Asked again under the monitor of the connection by everything that issues a statement. The
+		 * flag alone is a moment in time: a thread that read it before {@code close()} raised it, and
+		 * reached the connection after, would write on a connection of another borrower. Read under
+		 * the monitor it cannot: {@code close()} takes that same monitor to commit and to return the
+		 * connection, so either this thread is in front of the commit and part of the import, or it
+		 * is behind the return and refused.
+		 * <p>
+		 * Reasoned rather than pinned by a test: what a test would have to do is park a thread
+		 * between the read of the flag and the monitor, and the monitor is the only boundary there
+		 * is to park at. That a write after {@code close()} is refused at all is asserted, on one
+		 * thread, by {@code ImportConnectionsTestCase}.
+		 */
+		private void checkOpen() {
+			if (closed) {
+				throw importIsClosed();
+			}
+		}
+
+		private StorageRuntimeException importIsClosed() {
+			return new StorageRuntimeException(new IllegalStateException(
+				"this import is closed: its connections are committed and back in the pool"));
+		}
+
+		/**
+		 * Hands one connection back to the pool and closes the sessions its transaction opened
+		 * beside it - the stamp one and the catalog one (#888), both outside the pool and neither
+		 * outliving the import that opened it - under the monitor of the connection: the return
+		 * rolls back and hands the connection to the next borrower, so a statement of a straggling
+		 * import thread must not still be in flight on it - that is the
+		 * two-threads-on-one-connection of #891 with another borrower's operation on the other side
+		 * of it.
+		 * <p>
+		 * The failure of a return is returned rather than thrown: a throw out of here would leave
+		 * with the failure the caller actually came for - the commit of {@code close()}, and in its
+		 * {@code Throwable} branch the {@code Error} that branch exists to preserve - dropped on the
+		 * floor, and the connections after this one unreturned (#878).
+		 * <p>
+		 * By the time {@code close()} reaches this, no statement of the import can be in flight on
+		 * the connection anyway: every connection of that list has been through {@code commit()}
+		 * under this same monitor, and a write arriving after {@code close()} raised its flag is
+		 * refused under it by {@code checkOpen()}. So this monitor is not what the guarantee rests
+		 * on today and no test can tell it apart from the commit in front of it - it is here so that
+		 * the guarantee does not depend on that ordering, and it is all there is on the paths that
+		 * reach here with no commit in front of them ({@link #releaseUnwatched(ImportConnection)}).
+		 *
+		 * @return what went wrong on the way back, or null
+		 */
+		private SQLException release(ImportConnection connection) {
+			synchronized (connection) {
+				try {
+					connection.con.close();
+					return null;
+				} catch (Throwable e) {
+					// Throwable rather than SQLException: this close() is the return to the pool, whose
+					// rollback a driver is free to fail unchecked.
+					return e instanceof SQLException ? (SQLException) e
+						: new SQLException("a connection of the import could not be returned to the pool", e);
+				} finally {
+					// under the monitor with the return itself: each of these sessions holds a connection
+					// of its own in a plain field that its close() reads and nulls without one
+					try {
+						connection.txw.stampSession.close();
+					} finally {
+						connection.txw.catalogSession.close();
+					}
+				}
+			}
+		}
+
+		/**
+		 * The return of a connection no caller is waiting on - the loser of a race to open one, and
+		 * one borrowed into an import that closed underneath it - which has no failure of an
+		 * operation for a failure of the return to ride along with.
+		 */
+		private void releaseUnwatched(ImportConnection connection) {
+			final SQLException failure=release(connection);
+			if (failure!=null) {
+				logger.trace(LocalizableMessage.raw("jdbc: unable to return a connection of the import: %s",
+					stackTraceToSingleLineString(failure)));
+			}
+		}
+
+		/** The return of one connection, joined to the failure the caller is going to report. */
+		private SQLException release(ImportConnection connection, SQLException failure) {
+			final SQLException reported=release(connection);
+			if (reported==null) {
+				return failure;
+			}
+			if (failure==null) {
+				return reported;
+			}
+			failure.addSuppressed(reported);
+			return failure;
+		}
+
+		/**
+		 * Commits one connection of this import under its monitor, which is what keeps the commit
+		 * from being the second statement in flight on it: an import thread that did not answer the
+		 * interrupt of phase two can still be inside a statement while {@code close()} runs
+		 * ({@code OnDiskMergeImporter.invokeParallel} waits five seconds for its threads and closes
+		 * the importer whether they stopped or not), and two threads on one connection is the whole
+		 * of #891.
+		 * <p>
+		 * So a close waits for a statement of a straggler to finish, and a bulk statement carries no
+		 * bound of its own. That wait is not new: pgjdbc and Connector/J serialize the work of a
+		 * connection behind a lock of their own, so a commit issued beside a statement in flight
+		 * already waited there - what is new is that it waits on every dialect, sql server included,
+		 * rather than corrupting the driver's state on the one that does not lock.
+		 * <p>
+		 * A connection with nothing written since its last commit is left alone: the clears of
+		 * {@code beforePhaseOne} pass through here for every tree of a container, and a commit of an
+		 * empty transaction is a round trip to the database for nothing. Asked here rather than by
+		 * the caller, and under this monitor: read in front of it, {@code lastWrite} says what the
+		 * connection held rather than what it holds - a write in flight has not counted itself yet.
+		 * <p>
+		 * On both paths that reach this the wait is already paid in front of it: {@code close()}
+		 * reads {@code lastWrite} of every connection of the import under this same monitor before
+		 * it commits any of them, and {@code commitPeersOf()} holds it over this call - so no test
+		 * can tell this monitor from the ones ahead of it, and it is here so that what keeps two
+		 * threads off one connection does not rest on the order another method happens to work in.
+		 */
+		private void commit(ImportConnection connection) throws SQLException {
+			synchronized (connection) {
+				if (connection.lastWrite==0) {
+					return;
+				}
+				connection.con.commit();
+				connection.lastWrite=0;
+			}
+		}
+
+		/**
+		 * Commits the other connections of this import, which is what the one connection an import
+		 * used to hold did of its own accord: {@code clearTree()} ends in a commit, and that commit
+		 * made durable every write the import had made so far. Split over several connections and
+		 * left to {@code close()}, those writes would stay uncommitted while the tables they are
+		 * about were emptied and committed one after another.
+		 * <p>
+		 * What that is worth depends on the order the caller writes in, and the two strategies of
+		 * {@code OnDiskMergeImporter} differ. A {@code rebuild-index} writes the
+		 * {@code setTrust(false)} of {@code RebuildIndexStrategy.beforePhaseOne} before it empties
+		 * the trees that flag describes, so this makes the flag durable in front of the clear it
+		 * belongs to: a server that stops in between comes back to an index that is empty and says
+		 * so. An {@code import-ldif} takes {@code AbstractTwoPhaseImportStrategy.beforePhaseOne},
+		 * which empties every tree of the container first and writes the flags after - so there this
+		 * bounds how much of an import stays uncommitted (the flags of one container are made
+		 * durable by the clears of the next), rather than closing that window. Not a regression of
+		 * the connections an import now takes: the one connection it held before #891 committed in
+		 * exactly the same places, because the caller writes in exactly the same order.
+		 * <p>
+		 * Run in front of the clear rather than after it, so that a peer whose commit fails leaves
+		 * the import with the tree not yet emptied: the destructive half of a clear is the one thing
+		 * that must not be durable while a write it is meant to invalidate is not.
+		 * <p>
+		 * Which peers hold something to commit is decided under the monitor of each of them - by
+		 * {@link #commit(ImportConnection)}, which passes over a connection with nothing written
+		 * since its last commit - rather than by a read of {@code lastWrite} taken in front of that
+		 * monitor. A peer whose first write is still in flight has not set it yet ({@code put()}
+		 * counts a write once the statement has come back), and that is precisely the write a
+		 * cheaper test would pass over: {@code beforePhaseOne} runs on the import threads, one
+		 * container at a time per thread and several containers at once, so the flags of a container
+		 * being written are a peer of the clears of the next. The one connection an import held
+		 * before #891 carried that write into the commit of the clear - it was the same transaction,
+		 * and a clear issued beside it waited for it in the driver - so passing over it here would
+		 * be a commit point the single connection did not have.
+		 * <p>
+		 * What that costs is the wait: a clear now waits for a statement in flight on each peer, as
+		 * every write of an import waited for the one connection it all went through.
+		 * <p>
+		 * One connection is held at a time, so no thread of an import ever holds two of these
+		 * monitors and two threads clearing at once cannot wait for each other.
+		 */
+		private void commitPeersOf(ImportConnection cleared) {
+			for (final ImportConnection peer : connections.values()) {
+				if (peer==cleared) {
+					continue;
+				}
+				try {
+					synchronized (peer) {
+						// under the monitor, like every other statement of an import: a clear that
+						// arrives once close() has committed and returned this connection would
+						// otherwise commit the transaction of whoever borrowed it next
+						checkOpen();
+						commit(peer);
+					}
+				}catch (SQLException e) {
+					// reported the way the commit of the clear itself is: what these make durable is
+					// the work the clear is the commit point for
+					throw new StorageRuntimeException(e);
+				}
+			}
+		}
+
+		/**
+		 * Commits the given connections in the order they were last written to - see {@link #writes}.
+		 * <p>
+		 * The order is taken from a copy of what each connection carries rather than read as the sort
+		 * goes: a straggling import thread that got in front of {@code close()} can raise the number
+		 * of the connection it holds while this runs, and a sort whose keys move under it is reported
+		 * by {@code TimSort} as a comparator that violates its contract rather than as the race it is.
+		 */
+		private void commitAll(List<ImportConnection> taken) throws SQLException {
+			final Map<ImportConnection,Long> lastWrites=new IdentityHashMap<>();
+			for (final ImportConnection connection : taken) {
+				synchronized (connection) {
+					lastWrites.put(connection, connection.lastWrite);
+				}
+			}
+			final List<ImportConnection> byLastWrite=new ArrayList<>(taken);
+			byLastWrite.sort(Comparator.comparingLong(lastWrites::get));
+			for (final ImportConnection connection : byLastWrite) {
+				commit(connection);
+			}
+		}
+
+		/**
+		 * Hands every connection this import took back to the pool, whatever went before. Returns
+		 * the failure the caller is to report: the return rolls back, and the rollback fails on
+		 * exactly the connection whose commit just did, so the commit stays the exception the caller
+		 * sees and this one rides along with it instead of replacing it.
+		 * <p>
+		 * Every connection is released even when one of them fails on the way: what a connection
+		 * left behind holds is a permit of the pool, and a pool is never removed from the map.
+		 */
+		private SQLException releaseConnections(List<ImportConnection> taken, SQLException failure) {
+			for (final ImportConnection connection : taken) {
+				failure=release(connection, failure);
 			}
 			return failure;
 		}
 
-		// The connection goes back whatever the commit does, and the storage this importer opened
-		// is closed whatever the connection does: an importer is closed on the way out of a failed
-		// import as readily as a finished one - a clearTree() that reaches the bulk bound is one
-		// way there - and a commit that throws on the way would otherwise leave the connection
-		// out of the pool for good, holding the transaction and the locks of that import.
+		// The connections go back whatever the commit does, and the storage this importer opened
+		// is closed whatever they do: an importer is closed on the way out of a failed import as
+		// readily as a finished one - a clearTree() that reaches the bulk bound is one way there -
+		// and a commit that throws on the way would otherwise leave the connections out of the
+		// pool for good, holding the transactions and the locks of that import.
+		//
+		// Every connection is committed, not only the one the constructor borrowed: each is a
+		// transaction of its own, and what one of them holds uncommitted is the work of every tree
+		// it was given (#891).
 		@Override
 		public void close() {
 			try {
+				// Taken out of the map rather than walked in it, under the monitor that guards it:
+				// from here this import has no transaction left for a write to belong to, a borrow
+				// still in flight is refused rather than left behind, and a second close() finds
+				// nothing to commit or return - one that walked the map again would roll back and
+				// re-pool connections the pool had already handed to somebody else.
+				final List<ImportConnection> taken;
+				final ImportConnection describing;
+				synchronized (connections) {
+					closed=true;
+					describing=connections.get(FIRST_CONNECTION);
+					taken=new ArrayList<>(connections.values());
+					connections.clear();
+				}
 				SQLException failure=null;
 				try {
-					con.commit();
-					if (aborted) {
-						logger.debug(LocalizableMessage.raw("jdbc: import aborted: statistics of the trees it wrote are left alone"));
-					}else {
-						updateTableStatistics(con, writtenTrees);
-					}
+					commitAll(taken);
 				} catch (SQLException e) {
 					failure=e;
 				} catch (Throwable t) {
 					// Back to the pool whatever came out of the commit, not only on the SQLException
-					// a driver is supposed to throw: nothing else holds this connection, and only
-					// its close() gives back the permit it took. A pool is never removed from the
-					// map, so a permit lost to an Error out of a bulk import - or to a driver
+					// a driver is supposed to throw: nothing else holds these connections, and only
+					// their close() gives back the permits they took. A pool is never removed from
+					// the map, so a permit lost to an Error out of a bulk import - or to a driver
 					// failing unchecked - is lost for the life of the server, and enough of them
 					// walk the bound down to nothing (issue #878).
-					final SQLException onTheWayOut=releaseConnection(null);
+					final SQLException onTheWayOut=releaseConnections(taken, null);
 					if (onTheWayOut!=null) {
 						t.addSuppressed(onTheWayOut);
 					}
 					throw t;
 				}
-				// Back to the pool even when the commit failed: nothing else holds this connection,
+				// Everything but the connection that describes goes back before the statistics are
+				// gathered: that is one statement per tree the import wrote, a full scan of the table
+				// on oracle and bounded by a property of its own, and the connections of an import are
+				// the pool's to hand to the operations of the server as soon as they are committed.
+				for (final ImportConnection connection : taken) {
+					if (connection!=describing) {
+						failure=release(connection, failure);
+					}
+				}
+				try {
+					if (aborted) {
+						logger.debug(LocalizableMessage.raw("jdbc: import aborted: statistics of the trees it wrote are left alone"));
+					}else if (describing!=null && failure==null) {
+						// On the connection the constructor borrowed, under its monitor like every
+						// other statement of an import: the statements below describe a table to the
+						// optimizer rather than read one, and they run once every connection of this
+						// import is committed - so there is no work of another one left for them to
+						// miss.
+						synchronized (describing) {
+							updateTableStatistics(describing.con, writtenTrees);
+						}
+					}
+				} catch (Throwable t) {
+					if (describing!=null) {
+						final SQLException onTheWayOut=release(describing, null);
+						if (onTheWayOut!=null) {
+							t.addSuppressed(onTheWayOut);
+						}
+					}
+					throw t;
+				}
+				// Back to the pool even when a commit failed: nothing else holds this connection,
 				// so leaving it behind would leak it along with the failure.
-				failure=releaseConnection(failure);
+				if (describing!=null) {
+					failure=release(describing, failure);
+				}
 				if (failure!=null) {
 					throw new StorageRuntimeException(failure);
 				}
@@ -5324,21 +6251,36 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		@Override
 		public void clearTree(TreeName name) {
-			txw.clearTree(name);
+			final ImportConnection connection=connectionOf(name);
+			commitPeersOf(connection); // in front of the clear, see there
+			synchronized (connection) {
+				checkOpen();
+				connection.txw.clearTree(name);
+				connection.lastWrite=0; // the clear ends in a commit of this connection
+			}
 			writtenTrees.add(name);
 		}
 
 		@Override
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
-			txw.put(treeName, key, value);
+			final ImportConnection connection=connectionOf(treeName);
+			synchronized (connection) {
+				checkOpen();
+				connection.txw.put(treeName, key, value);
+				connection.written();
+			}
 			writtenTrees.add(treeName);
 		}
-		
+
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
-			return txr.read(treeName, key);
+			final ImportConnection connection=connectionOf(treeName);
+			synchronized (connection) {
+				checkOpen();
+				return connection.txr.read(treeName, key);
+			}
 		}
-		
+
 		// Bulk like every other statement of an import, by the class of the transaction it comes
 		// from: this walks a whole tree with no client waiting on it - phase one of a rebuild-index
 		// reads every record of id2entry through this cursor (OnDiskMergeImporter.ID2EntrySource) -
@@ -5346,7 +6288,88 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// rather than a step along an index.
 		@Override
 		public SequentialCursor<ByteString, ByteString> openCursor(TreeName treeName) {
-			return txr.openCursor(treeName);
+			final ImportConnection connection=connectionOf(treeName);
+			synchronized (connection) {
+				checkOpen();
+				return new ImportCursor(connection, connection.txr.openCursor(treeName));
+			}
+		}
+
+		/**
+		 * A cursor of an import, every method of which runs under the monitor of the connection it
+		 * walks. An import has more trees than connections, so the tree this cursor walks shares
+		 * its connection with the trees written through it, and a batch of this cursor must not be
+		 * in flight there beside a statement of one of them.
+		 * <p>
+		 * The methods that issue no statement take the monitor as well, rather than being excused
+		 * on the ground that the thread which opened the cursor is the only one to call them:
+		 * nothing here enforces that, and what they read - the batch the last {@code next()} left
+		 * in {@link CursorImpl}, an {@code ArrayDeque} and four plain fields - is written under
+		 * that monitor and carries no memory barrier of its own. An uncontended monitor is what
+		 * that costs.
+		 */
+		private final class ImportCursor implements SequentialCursor<ByteString, ByteString> {
+			private final ImportConnection connection;
+			private final SequentialCursor<ByteString, ByteString> cursor;
+
+			ImportCursor(ImportConnection connection, SequentialCursor<ByteString, ByteString> cursor) {
+				this.connection=connection;
+				this.cursor=cursor;
+			}
+
+			@Override
+			public boolean next() {
+				synchronized (connection) {
+					checkOpen();
+					return cursor.next();
+				}
+			}
+
+			// A cursor of an import is opened on the read transaction of its connection, whose
+			// isReadOnly CursorImpl carries, so this forwards the refusal that transaction answers
+			// with rather than a delete. Nothing is recorded against the connection for that reason:
+			// a mark here would be a write number this cursor never made, and the highest one at
+			// that - it would move its connection to the end of the order close() commits in, which
+			// is where the trust flags of afterPhaseTwo belong. An importer that ever opens a
+			// writeable cursor has to record the write there, next to the delete that made it.
+			@Override
+			public void delete() {
+				synchronized (connection) {
+					checkOpen();
+					cursor.delete();
+				}
+			}
+
+			@Override
+			public boolean isDefined() {
+				synchronized (connection) {
+					return cursor.isDefined();
+				}
+			}
+
+			@Override
+			public ByteString getKey() {
+				synchronized (connection) {
+					return cursor.getKey();
+				}
+			}
+
+			@Override
+			public ByteString getValue() {
+				synchronized (connection) {
+					return cursor.getValue();
+				}
+			}
+
+			// Not refused after close() the way a read or a write of the importer is: this frees what
+			// the last batch left in the cursor and reaches no connection, and the try-with-resources
+			// of a cancelled phase-two task closes its cursor after the importer it walked.
+			@Override
+			public void close() {
+				synchronized (connection) {
+					cursor.close();
+				}
+			}
 		}
 	}
 	
@@ -5354,9 +6377,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	@Override
 	public Importer startImport() throws ConfigException, StorageRuntimeException {
 		// Everything this used to do before building the importer - opening a closed storage, and
-		// borrowing the connection an import keeps for its whole duration - is the importer's own now
-		// (#878). Split between the two, a failure in between had to be given back by whichever of them
-		// had taken what, and the constructor's own throw was covered by neither.
+		// borrowing the first of the connections an import keeps for its whole duration - is the
+		// importer's own now (#878). Split between the two, a failure in between had to be given back
+		// by whichever of them had taken what, and the constructor's own throw was covered by neither.
 		return new ImporterImpl();
 	}
 	

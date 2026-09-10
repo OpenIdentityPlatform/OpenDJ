@@ -105,7 +105,22 @@ public class ServerWriter extends DirectoryThread
            "Connection closure: null update returned by domain.");
           break;
         }
-        if (!isUpdateMsgFiltered(updateMsg))
+        if (isUpdateMsgFiltered(updateMsg))
+        {
+          /*
+           * The message is dropped here and will not be published to this server. When it is the
+           * ReplicaOfflineMsg a shutdown is waiting for - its filter is wider than the one
+           * ReplicationServerDomain.put() applied when it queued the message, so a peer RS can
+           * be given a message this drops - the shutdown must stop waiting for a forward which
+           * will never be reported.
+           */
+          if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
+          {
+            dsrsShutdownSync.replicaOfflineMsgNotForwarded(
+                replicationServerDomain.getBaseDN(), handler.getServerId());
+          }
+        }
+        else
         {
           // Publish the update to the remote server using a protocol version it supports
           session.publish(updateMsg);
@@ -121,7 +136,7 @@ public class ServerWriter extends DirectoryThread
           if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
           {
             dsrsShutdownSync.replicaOfflineMsgForwarded(
-                replicationServerDomain.getBaseDN(), updateMsg.getCSN());
+                replicationServerDomain.getBaseDN(), updateMsg.getCSN(), handler.getServerId());
           }
         }
       }
