@@ -267,6 +267,138 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		}
 	}
 
+	/**
+	 * The DDL of this backend is the part of it that takes locks, and three engines out of four wait
+	 * for one essentially forever: a drop queued behind an unrelated transaction of another session
+	 * used to hang the backend that issued it, with no property to say otherwise (#885). It gives up
+	 * at the bound now, and says which property ended the wait.
+	 * <p>
+	 * Oracle asserts the other half of the same contract: nothing of ours is set there, because its
+	 * own {@code ddl_lock_timeout} gives up at once - so the drop still fails rather than hanging, and
+	 * the failure names the engine's own doing rather than a property of ours that armed nothing.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheDdlGivesUpOnALockAnotherSessionHolds() throws Exception {
+		final TreeName tree = new TreeName("testDdlLockBound", "tree");
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		System.setProperty(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY, "2");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+					txn.put(tree, key(1), value(1));
+				}
+			});
+
+			// a session of its own, holding a lock the drop below conflicts with on every one of these
+			// engines: an uncommitted write takes a lock on the table that a drop cannot share
+			try (final Connection holder = DriverManager.getConnection(getJdbcUrl())) {
+				holder.setAutoCommit(false);
+				try (final PreparedStatement write = holder.prepareStatement(
+						"insert into " + JDBCStorage.toTableName(tree) + " (h,k,v) values (?,?,?)")) {
+					write.setString(1, "a lock this session holds");
+					write.setBytes(2, new byte[]{ 1 });
+					write.setBytes(3, new byte[]{ 1 });
+					write.executeUpdate();
+				}
+				final JDBCStorage.Dialect dialect = dialect();
+
+				final long startedAt = System.nanoTime();
+				Exception failure = null;
+				try {
+					storage.write(new WriteOperation() {
+						@Override
+						public void run(WriteableTransaction txn) throws Exception {
+							txn.deleteTree(tree);
+						}
+					});
+					fail("the drop went through while another session held the table locked");
+				} catch (Exception e) {
+					failure = e;
+				}
+				final String reported = stackTraceToSingleLineString(failure);
+				final long tookSeconds = (System.nanoTime() - startedAt) / 1000000000L;
+				// generous, and still far under what an unbounded wait costs: mysql waits a year for a
+				// metadata lock by default, sql server and postgres wait for one without limit at all
+				assertTrue(tookSeconds < 60, "the drop waited " + tookSeconds + " s for the lock: " + reported);
+				// By the engine's own verdict rather than by the text of the message: without this the case
+				// passes for a drop that failed because the table was not there, because the account lacked
+				// the privilege, or because the statement never reached the engine - none of which is a lock
+				// this drop gave up on. ORA-00054 on oracle, 55P03 / 1205 / 1222 on the other three.
+				assertTrue(JDBCStorage.lockNotAvailable(failure, dialect),
+						"the drop did not fail as this engine says a lock was not available: " + reported);
+				if (dialect == JDBCStorage.Dialect.ORACLE) {
+					assertFalse(reported.contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY),
+							"oracle is left to its own ddl_lock_timeout: " + reported);
+				} else {
+					assertTrue(reported.contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY),
+							"the failure names neither the wait nor the property that ended it: " + reported);
+				}
+				holder.rollback();
+			}
+		} finally {
+			System.clearProperty(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY);
+			try {
+				storage.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.deleteTree(tree);
+					}
+				});
+			} catch (Exception ignored) {
+			} finally {
+				storage.close();
+			}
+		}
+	}
+
+	/**
+	 * The value a pooled connection carried is given back the moment the DDL is through. That
+	 * connection outlives the transaction that borrowed it and {@code CachedConnection.close()} only
+	 * rolls back, so a bound left on it would end every lock wait of whoever borrows it next - on sql
+	 * server row locks included, which {@code isConflict()} classifies as no replayable conflict, so
+	 * {@code write()} would not replay them and a client would see a hard failure.
+	 * <p>
+	 * {@code JDBCDdlLockBoundTestCase} pins the string each engine is handed; only a session of the
+	 * engine itself can say what it does with it. Postgres asserts the other shape of the same
+	 * contract: nothing is put back by hand there, because a {@code set local} belongs to the
+	 * transaction and is gone with the commit that ends the DDL.
+	 */
+	@Test(timeOut = 120000)
+	public void testAConnectionGetsItsLockBoundBackAfterADdl() throws Exception {
+		final JDBCStorage.Dialect dialect = dialect();
+		final JDBCStorage storage = new JDBCStorage(createBackendCfg(), null);
+		System.setProperty(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY, "7");
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			try (final Connection con = CachedConnection.getConnection(getJdbcUrl())) {
+				final String before = sessionLockBound(con);
+				if (before == null) { // oracle: nothing of ours is set there, and v$parameter is out of reach
+					throw new SkipException("no session lock bound to read on " + getJdbcUrl());
+				}
+				final String[] during = new String[1];
+				storage.withDdlLockBound(con, dialect, () -> {
+					during[0] = sessionLockBound(con);
+					return null;
+				});
+				assertNotEquals(during[0], before,
+						"the bound was never on the session the DDL ran on: it carried " + during[0]);
+				if (dialect.boundLivesInTheTransaction()) {
+					assertEquals(sessionLockBound(con), during[0],
+							"a set local was taken off before the commit that is what discards it");
+					con.commit();
+				}
+				assertEquals(sessionLockBound(con), before,
+						"the value the session carried was not given back after the DDL");
+			}
+		} finally {
+			System.clearProperty(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY);
+			storage.close();
+		}
+	}
+
 	private static ByteString key(int i) {
 		return ByteString.valueOfUtf8(String.format("key%02d", i));
 	}
@@ -1056,7 +1188,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	 * engine, or null where reading it needs a privilege the test user does not have: oracle
 	 * keeps ddl_lock_timeout in v$parameter, which an application user cannot select from.
 	 */
-	String sessionLockBound(Connection con) throws Exception {
+	String sessionLockBound(Connection con) throws SQLException {
 		final String url = getJdbcUrl();
 		final String sql;
 		if (url.startsWith("jdbc:postgresql")) {

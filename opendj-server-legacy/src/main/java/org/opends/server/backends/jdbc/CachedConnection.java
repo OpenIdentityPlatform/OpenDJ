@@ -1199,8 +1199,13 @@ public class CachedConnection implements Connection {
      * read bound that could not be lifted serves the borrower waiting for it and is closed
      * afterwards: left in the pool it would fail every statement slower than that bound - an
      * import batch among them - for every borrow the pool hands it to.
+     * <p>
+     * Turned off during a borrow as well as at establish time ({@link #keepOutOfThePool}): a session
+     * setting a borrower could not take off again is the same kind of thing, and the pool cannot
+     * notice one by itself - {@link #isUsable} validates with {@code isValid()}, a liveness check a
+     * connection carrying a stale setting passes.
      */
-    private final boolean poolable;
+    private volatile boolean poolable;
 
     /**
      * When this connection last answered the database, as a {@link System#nanoTime()} reading:
@@ -1242,6 +1247,17 @@ public class CachedConnection implements Connection {
         this.metered = metered;
         this.poolable = poolable;
         this.lastKnownAliveNanos = System.nanoTime();
+    }
+
+    /**
+     * Keeps this connection out of the pool: it serves the borrower holding it and is closed rather
+     * than pooled when that borrow ends. For a borrower that left something of its own on the session
+     * and could not take it off again - {@code JDBCStorage.restoreDdlLockBound()} is the one that
+     * does (#885) - where the blast radius is then this one connection instead of every borrow it
+     * would have served after this one.
+     */
+    void keepOutOfThePool() {
+        poolable = false;
     }
 
     /** Gives back the right to hold this connection, once and only if it was taken. */
