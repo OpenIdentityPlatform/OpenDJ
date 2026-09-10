@@ -1734,8 +1734,17 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		final String url = getJdbcUrl();
 		final String sql;
 		if (url.startsWith("jdbc:postgresql")) {
-			// reltuples stays -1/0 until the first ANALYZE
-			sql = "select reltuples::bigint from pg_class where relname='" + tableName + "'";
+			// The per-column rows of pg_statistic rather than pg_class.reltuples, which is the half of
+			// what ANALYZE writes that cannot pin the refresh: reltuples is overwritten in place
+			// (vac_update_relstats(): "We violate transaction semantics here") and so survives the
+			// rollback of the connection's return, while these rows are ordinary catalog rows and do
+			// not - which is what makes the commit of updateTableStatistics() load-bearing on this
+			// engine (issue #1012). Strictly stronger than reltuples was: the count is 0 both for a
+			// table that was never analyzed and for one whose refresh was rolled back, and the row of
+			// pg_class still carries the query, so a table that is not there is still reported as
+			// "not found" rather than as stale statistics.
+			sql = "select (select count(*) from pg_statistic s where s.starelid=c.oid)"
+				+ " from pg_class c where c.relname='" + tableName + "'";
 		} else if (url.startsWith("jdbc:oracle")) {
 			// num_rows stays null until dbms_stats gathers statistics
 			sql = "select num_rows from user_tables where table_name='" + tableName.toUpperCase() + "'";
