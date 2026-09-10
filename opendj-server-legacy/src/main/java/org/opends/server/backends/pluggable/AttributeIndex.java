@@ -983,25 +983,11 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       if (treesGivenUp)
       {
         // No query may be reading a tree which is being given up and opened again below - the same
-        // exclusive access the removal of an index takes. A change of the entry limit alone leaves
-        // those trees where they are, and needs no exclusive access of its own.
+        // exclusive access the removal of an index takes.
         entryContainer.lock();
-      }
-      try
-      {
-        entryContainer.getRootContainer().getStorage().write(new WriteOperation()
+        try
         {
-          @Override
-          public void run(WriteableTransaction txn) throws Exception
-          {
-            for (final MatchingRuleIndex updatedIndex : updatedIndexes.values())
-            {
-              updateIndex(updatedIndex, newConfiguration, confidentialityChanged, ccr, txn);
-            }
-          }
-        });
-        if (treesGivenUp)
-        {
+          writeUpdatedIndexes(updatedIndexes, newConfiguration, confidentialityChanged, ccr);
           // In a write of its own, since the storage engines delete and create the tree of an index as
           // operations of their own - as removing and adding an index does - rather than as a deletion
           // and a creation one transaction carries together. The write above is the one which untrusts
@@ -1020,23 +1006,23 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
             }
           });
         }
-      }
-      finally
-      {
-        if (treesGivenUp)
+        finally
         {
           entryContainer.unlock();
         }
-      }
 
-      if (treesGivenUp)
-      {
         // Reported outside the write, since a replayed attempt would otherwise repeat the messages.
         for (final MatchingRuleIndex updatedIndex : updatedIndexes.values())
         {
           ccr.setAdminActionRequired(true);
           ccr.addMessage(NOTE_CONFIG_INDEX_CONFIDENTIALITY_REQUIRES_REBUILD.get(updatedIndex.getName()));
         }
+      }
+      else
+      {
+        // A change which leaves those trees where they are - of the entry limit alone - needs no
+        // exclusive access of its own.
+        writeUpdatedIndexes(updatedIndexes, newConfiguration, confidentialityChanged, ccr);
       }
     }
     catch (Exception e)
@@ -1046,6 +1032,27 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     }
 
     return ccr;
+  }
+
+  /**
+   * Applies the new configuration to the indexes which are kept, in a write of its own: their entry
+   * limit, and, when the confidentiality changed, untrusting them and giving up their trees.
+   */
+  private void writeUpdatedIndexes(final Map<String, MatchingRuleIndex> updatedIndexes,
+      final BackendIndexCfg newConfiguration, final boolean confidentialityChanged, final ConfigChangeResult ccr)
+      throws Exception
+  {
+    entryContainer.getRootContainer().getStorage().write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        for (final MatchingRuleIndex updatedIndex : updatedIndexes.values())
+        {
+          updateIndex(updatedIndex, newConfiguration, confidentialityChanged, ccr, txn);
+        }
+      }
+    });
   }
 
   private static void createIndex(WriteableTransaction txn, MatchingRuleIndex index, ConfigChangeResult ccr)
