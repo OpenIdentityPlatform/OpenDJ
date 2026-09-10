@@ -790,6 +790,135 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
   }
 
   /**
+   * Tests that each pass of the listen loop bounds its own failures, both the ones of
+   * {@code accept()} and the ones of the connections it accepts.
+   * <p>
+   * A listen port change runs a second listen thread -- {@code switchListenPort()} starts it
+   * before it stops the one it replaces -- so the two overlap, and a five minute window
+   * opened on the port which was left would suppress the first failure on the port which
+   * replaced it: silence in {@code logs/errors} right after the administrator changed the
+   * port to get out of trouble. What that asks of the code is that neither throttle be a
+   * field of the server, and two passes of {@code runListen()} on one server is that
+   * handover without the timing of it: with either throttle kept in a field, the second
+   * pass reports nothing at all.
+   */
+  @Test
+  public void eachListenPassBoundsItsOwnFailures() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    ReplicationServer replicationServer = null;
+    ServerSocket connectedTo = null;
+    try
+    {
+      final int[] ports = TestCaseUtils.findFreePorts(1);
+      replicationServer = new ReplicationServer(new ReplServerFakeConfiguration(
+          ports[0], "eachListenPassBoundsItsOwnFailuresDb", 0, 2, 0, 0, null));
+      final ReplicationServer listeningServer = replicationServer;
+
+      connectedTo = new ServerSocket(0);
+      final int connectedToPort = connectedTo.getLocalPort();
+      final String acceptFailure = "accept() fails the way it fails without a file descriptor left";
+      // The peers of the two connections, read before they are closed: a closed socket still
+      // names the peer it was connected to, but only the one which was connected.
+      final List<String> peers = new ArrayList<>();
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        for (int pass = 0; pass < 2; pass++)
+        {
+          /*
+           * Connected and then closed: setting the options of the accepted socket fails at
+           * once, where a socket connected to nothing would spend the whole connection
+           * timeout inside the SSL handshake.
+           */
+          final Socket served = new Socket();
+          served.connect(new InetSocketAddress("127.0.0.1", connectedToPort), 10000);
+          peers.add(served.getRemoteSocketAddress().toString());
+          served.close();
+
+          final AtomicInteger accepts = new AtomicInteger();
+          /*
+           * Serves that one connection, fails, and fails again on the socket it closes
+           * under itself: one failure of each kind per pass, and the close is what returns
+           * runListen(). The failure which closes the socket is not the reported one --
+           * handleAcceptFailure() returns on a closed socket, that failure being how a
+           * listen thread is told its port was taken away -- so the pass has to fail once
+           * before it.
+           */
+          final ServerSocket failingSocket = new ServerSocket(0)
+          {
+            @Override
+            public Socket accept() throws IOException
+            {
+              final int attempt = accepts.incrementAndGet();
+              if (attempt == 1)
+              {
+                return served;
+              }
+              if (attempt >= 3)
+              {
+                super.close();
+              }
+              throw new IOException(acceptFailure);
+            }
+          };
+
+          try
+          {
+            listeningServer.runListen(failingSocket);
+          }
+          finally
+          {
+            close(failingSocket);
+          }
+        }
+        return null;
+      });
+
+      assertEquals(peers.size(), 2, "both passes should have served their connection");
+      /*
+       * Counted by the message rather than by the peer: the kernel hands the second
+       * connection the ephemeral port the first one released, so the two passes usually
+       * name the same peer, and one warning naming it twice is what the second pass
+       * reporting its own connection looks like.
+       */
+      assertEquals(countWarningsOf(records, "accepted a connection from "), 2,
+          "each pass should have reported the connection no session could be built on, but the"
+              + " error log holds " + countWarningsOf(records, "accepted a connection from ")
+              + " such warnings: " + records);
+      for (String peer : peers)
+      {
+        assertTrue(countWarningsOf(records, "accepted a connection from " + peer) >= 1,
+            "the report should name the peer of the connection rather than the listen port,"
+                + " but no warning names " + peer + ": " + records);
+      }
+      assertEquals(countWarningsOf(records, acceptFailure), 2,
+          "each pass should have warned about the failure of accept() which ended it, but the"
+              + " error log holds " + countWarningsOf(records, acceptFailure) + " such warnings: "
+              + records);
+    }
+    finally
+    {
+      close(connectedTo);
+      remove(replicationServer);
+    }
+  }
+
+  /** Returns how many of the provided error log records hold the provided text as warnings. */
+  private int countWarningsOf(List<String> records, String contained)
+  {
+    int warnings = 0;
+    for (String record : records)
+    {
+      if (record.contains(contained) && record.contains("severity=WARNING"))
+      {
+        warnings++;
+      }
+    }
+    return warnings;
+  }
+
+  /**
    * Waits for the listen thread of the provided replication server and port to be inside
    * {@code accept()}, or to have left it.
    * <p>

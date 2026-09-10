@@ -137,11 +137,21 @@ public class ReplicationServerHandler extends ServerHandler
   /**
    * Connect the hosting RS to the RS represented by THIS handler
    * on an outgoing connection.
+   * <p>
+   * A handshake which does not complete is aborted rather than thrown out of here, and
+   * two of the three aborts carry no message at all: a peer which stops the handshake
+   * answers with a {@link StopMsg}, which {@code Session.close()} publishes for every
+   * abort of its own, and {@link #abortStart} logs nothing when the reason is null. The
+   * caller is what is left to tell a connection from an attempt which only reached the
+   * replication port of a peer.
+   *
    * @param baseDN The baseDN
    * @param sslEncryption The sslEncryption requested to the remote RS.
+   * @return {@code true} when the handshake completed and this handler is started,
+   *         {@code false} when it was aborted.
    * @throws DirectoryException when an error occurs.
    */
-  public void connect(DN baseDN, boolean sslEncryption)
+  public boolean connect(DN baseDN, boolean sslEncryption)
       throws DirectoryException
   {
     // we are the initiator and decides of the encryption
@@ -180,7 +190,7 @@ public class ReplicationServerHandler extends ServerHandler
               .getClass().getCanonicalName(), "ReplServerStartMsg");
           abortStart(message);
         }
-        return;
+        return false;
       }
 
       processStartFromRemote((ReplServerStartMsg) msg);
@@ -189,7 +199,7 @@ public class ReplicationServerHandler extends ServerHandler
       {
         // Simultaneous cross connect.
         abortStart(null);
-        return;
+        return false;
       }
 
       /*
@@ -230,7 +240,7 @@ public class ReplicationServerHandler extends ServerHandler
         {
           // Simultaneous cross connect.
           abortStart(null);
-          return;
+          return false;
         }
 
         logTopoHandshakeSNDandRCV(outTopoMsg, inTopoMsg);
@@ -252,6 +262,7 @@ public class ReplicationServerHandler extends ServerHandler
           replicationServerDomain.getBaseDN(), session.getReadableRemoteAddress());
 
       super.finalizeStart();
+      return true;
     }
     catch (IOException e)
     {
@@ -260,16 +271,19 @@ public class ReplicationServerHandler extends ServerHandler
           getReplicationServerId(),
           session.getReadableRemoteAddress());
       abortStart(errMessage);
+      return false;
     }
     catch (DirectoryException e)
     {
       logger.traceException(e);
       abortStart(e.getMessageObject());
+      return false;
     }
     catch (Exception e)
     {
       logger.traceException(e);
       abortStart(LocalizableMessage.raw(e.getLocalizedMessage()));
+      return false;
     }
     finally
     {

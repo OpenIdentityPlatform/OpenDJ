@@ -616,8 +616,9 @@ public class ReplicationServer
               // Skip: already connected. The connection may be the one that peer made to
               // this server, which connect() never sees, so this is where a failure
               // reported for a peer which came back on its own is closed: leaving it
-              // recorded would silence the next outage of that peer.
-              reportConnectionRestored(rsAddress, domain.getBaseDN());
+              // recorded would silence the next outage of that peer. A handler registered
+              // with the domain is a handshake which completed, so this reports a session.
+              reportConnectionRestored(rsAddress, domain.getBaseDN(), true);
               continue;
             }
 
@@ -690,9 +691,11 @@ public class ReplicationServer
    *          The address and port for the server
    * @param baseDN
    *          The baseDN of the connection
-   * @return {@code false} if the connection could not be established, {@code true}
-   *         otherwise, which is not the same as being connected: a handshake this server
-   *         aborts also returns here without throwing.
+   * @return {@code true} if the peer is connected to, {@code false} if it could not be
+   *         reached at all or if the handshake offered to it did not complete. The
+   *         caller leaves a peer it gets {@code false} for alone for a few passes, which
+   *         a peer answering with an abort every second is as much in need of as one
+   *         which does not answer.
    */
   boolean connect(HostPort remoteServerAddress, DN baseDN)
   {
@@ -706,6 +709,7 @@ public class ReplicationServer
 
     Socket socket = new Socket();
     Session session = null;
+    final boolean handshakeCompleted;
     try
     {
       socket.setReuseAddress(true);
@@ -730,7 +734,7 @@ public class ReplicationServer
 
       ReplicationServerHandler rsHandler = new ReplicationServerHandler(
           session, config.getQueueSize(), this, config.getWindowSize());
-      rsHandler.connect(baseDN, sslEncryption);
+      handshakeCompleted = rsHandler.connect(baseDN, sslEncryption);
     }
     catch (Exception e)
     {
@@ -748,16 +752,16 @@ public class ReplicationServer
       return false;
     }
     /*
-     * The outage closed here is a failure to connect, and reaching this line is the
-     * connection which closes it. Everything WARN_REPLICATION_SERVER_CONNECT_ERROR is
-     * reported for is above it -- the socket and the session built on it, the handshake
-     * throwing nothing of its own -- so an attempt which gets this far is one whose peer
-     * answered on its replication port. What the handshake did next is a different failure
-     * with messages of its own, abortStart() logging the ones worth logging, and holding
-     * the outage open across it would keep reporting a peer unreachable while it answers.
+     * The outage closed here is a failure to connect, and reaching this line is the peer
+     * answering on its replication port: everything WARN_REPLICATION_SERVER_CONNECT_ERROR
+     * is reported for is above it -- the socket and the session built on it, the handshake
+     * throwing nothing of its own. So the record is cleared whatever the handshake did
+     * next, and what the handshake did next decides which recovery is reported rather than
+     * whether one is.
      *
-     * Every narrower reading holes on a peer whose connection this server does not see under
-     * the address it dialled, and there is one for each of them:
+     * Clearing it on the connection alone is what keeps the peers this server never sees
+     * connected under the address it dialled reportable, and there is one of those for each
+     * narrower reading:
      *
      * the registration with the domain misses a peer which negotiates protocol version 1.
      * ReplicationServerHandler.connect() registers only above V1, the FIXME there being
@@ -774,27 +778,50 @@ public class ReplicationServer
      *
      * A record left uncleared is not a line too few but a peer gone silent: recordFailure()
      * returns false from then on, so the next real outage of it is not reported at all.
-     * reportConnectionRestored() clears the record and reports the recovery together, so an
-     * outage cannot be closed in the record without being closed in the log either.
+     *
+     * What the handshake did next is reported all the same, because it is not the log which
+     * can be left to it: two of the three aborts of ReplicationServerHandler.connect() pass
+     * no message, and abortStart() logs nothing without one. A peer which answers and stops
+     * the handshake -- its own duplicate server id, a cross connect it resolves against this
+     * server, a shutdown under way -- would otherwise leave "connected" as the last thing
+     * said about a domain which has no session for it.
      */
-    reportConnectionRestored(remoteServerAddress, baseDN);
-    return true;
+    reportConnectionRestored(remoteServerAddress, baseDN, handshakeCompleted);
+    return handshakeCompleted;
   }
 
   /**
-   * Reports that this replication server is connected to a peer it had reported it could
-   * not connect to, and does nothing when it had reported nothing about that peer.
+   * Reports that a peer this replication server had reported it could not connect to can be
+   * reached again, and does nothing when it had reported nothing about that peer.
+   * <p>
+   * The record is cleared either way, because it holds an outage of the peer rather than a
+   * session with it: leaving it for a peer which answers would silence the next real outage
+   * of that peer, and a peer which answers and aborts every handshake answers. Which of the
+   * two recoveries is reported is the difference, and it is a difference the operator has to
+   * be able to read: a peer which stops the handshake is one this server can reach and has
+   * no session with, which is not what "connected" says.
    *
    * @param remoteServerAddress
-   *          The address of the peer which is connected.
+   *          The address of the peer which answered.
    * @param baseDN
-   *          The base DN of the domain the connection is for.
+   *          The base DN of the domain the attempt was for.
+   * @param connected
+   *          Whether the handshake completed, so that this server is connected to the peer,
+   *          rather than aborted after it had answered.
    */
-  private void reportConnectionRestored(final HostPort remoteServerAddress, final DN baseDN)
+  private void reportConnectionRestored(final HostPort remoteServerAddress, final DN baseDN,
+      final boolean connected)
   {
     if (connectFailures.recordSuccess(remoteServerAddress, baseDN))
     {
-      logger.info(NOTE_REPLICATION_SERVER_CONNECT_RESTORED, getServerId(), remoteServerAddress, baseDN);
+      if (connected)
+      {
+        logger.info(NOTE_REPLICATION_SERVER_CONNECT_RESTORED, getServerId(), remoteServerAddress, baseDN);
+      }
+      else
+      {
+        logger.warn(WARN_REPLICATION_SERVER_REACHABLE_NO_SESSION, getServerId(), remoteServerAddress, baseDN);
+      }
     }
   }
 

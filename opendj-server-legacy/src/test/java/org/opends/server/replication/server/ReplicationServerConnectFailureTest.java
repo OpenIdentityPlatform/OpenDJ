@@ -24,6 +24,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,12 +33,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.common.DSInfo;
+import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.StopMsg;
+import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.types.HostPort;
 import org.testng.annotations.Test;
 
@@ -51,13 +55,13 @@ import org.testng.annotations.Test;
  * its own passes with either of them deleted, or with any of the conditions an outage used
  * to be closed on put back in front of it.
  * <p>
- * The two tests which drive a peer of their own drive one which registers with no domain,
- * so the already connected branch of {@code runConnect()} can report nothing about it and
- * {@code connect()} is the only place its recovery can come from. Both shapes they drive --
- * a peer which stops the handshake, and a peer which answers under an address it was not
- * dialled on -- reach the end of {@code connect()} on a session which {@code abortStart}
- * closed and on a peer which is registered nowhere, which is what makes them the outages
- * this server has to close without reading either.
+ * The tests which drive a peer of their own drive one the already connected branch of
+ * {@code runConnect()} cannot report anything about, so that {@code connect()} is the only
+ * place a recovery can come from: a peer registered with no domain at all, and one
+ * registered under an address which is not the one it is configured under. Both shapes end
+ * on a session {@code abortStart} closed and on a peer which is connected for no domain,
+ * which is what makes them the outages this server has to close without reading either --
+ * and, being aborts, the recoveries it must not report as connections.
  * <p>
  * Every test configures the peer it drives, and creates the domain it drives it for, before
  * anything is reported. The connect thread runs {@code retainAll} against the configured
@@ -142,23 +146,22 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
   }
 
   /**
-   * Tests that a peer which stops the handshake it is offered still closes the outage
-   * reported for it.
+   * Tests that a peer which stops the handshake it is offered closes the outage reported
+   * for it, and is reported reachable without a session rather than connected.
    * <p>
-   * The outage is a failure to connect, so what closes it is a connection:
+   * The outage is a failure to connect, so what closes it is the peer answering:
    * {@code WARN_REPLICATION_SERVER_CONNECT_ERROR} is reported for the socket and for the
-   * session built on it, the handshake throwing nothing of its own, and a peer which
-   * answers on its replication port is a peer this server can reach whatever the handshake
-   * does next.
+   * session built on it, the handshake throwing nothing of its own. Holding the outage open
+   * across an abort silences the peer this server never sees connected under the address it
+   * dialled -- the multi homed peer of
+   * {@link #aPeerRegisteredUnderAnotherAddressStillClosesItsOutage}, and one protocol
+   * version down a peer which negotiates V1, connected and never registered.
    * <p>
-   * Holding the outage open across an abort silences the peer this server never sees
-   * connected under the address it dialled: one which dials out from another address has
-   * its inbound handler registered under the source address of its own connection, so every
-   * handshake this server offers it afterwards aborts on a duplicate server id and an open
-   * session is never seen at the end of {@code connect()} again. Nothing would clear the
-   * record of such a peer, and its next real outage would not be reported at all. Reading
-   * the registration with the domain instead has the same shape one protocol version down,
-   * a peer which negotiates V1 being connected and never registered.
+   * Reporting it connected instead is the other half of the same line.
+   * {@code Session.close()} publishes a {@code StopMsg} for every abort its own end makes
+   * and {@code abortStart(null)} logs nothing, so a peer which rejects this server -- its
+   * own duplicate server id, a cross connect it resolves against this server, a shutdown
+   * under way -- would have "connected" as the last thing this server ever says about it.
    */
   @Test
   public void aPeerWhichStopsTheHandshakeStillClosesItsOutage() throws Exception
@@ -173,46 +176,203 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
   }
 
   /**
-   * Tests that a peer which answers under an address it was not dialled on still closes the
-   * outage reported for it.
+   * Tests that a peer already registered under an address other than the one it is
+   * configured under still closes the outage reported for it.
    * <p>
    * This is the multi homed peer, and the reason the recovery can be read neither from the
-   * address nor from the registration. {@code ServerHandler.toServerAddressURL()} takes the
-   * host of a handler from {@code session.getRemoteAddress()}, so a peer configured under
-   * one address and dialling out from another is registered under the address it dialled
-   * out from: the already connected branch of {@code runConnect()} compares the configured
-   * address against one which never matches it, and the handshake this server offers that
-   * same peer aborts on a duplicate server id instead of registering anything.
+   * address nor from the session. {@code ServerHandler.toServerAddressURL()} takes the host
+   * of a handler from {@code session.getRemoteAddress()} and its port from the start message
+   * that handler received, so a peer which dials this server from an address it is not
+   * configured under is registered under that other address. Two things follow, and this
+   * test drives both: the already connected branch of {@code runConnect()} compares the
+   * configured address against one which never matches it, so it can close nothing; and the
+   * handshake this server offers that same peer runs into a handler holding its server id
+   * under another address URL, which is {@code ERR_DUPLICATE_REPLICATION_SERVER_ID}, an
+   * abort of this server rather than of the peer, and a session closed at the end of
+   * {@code connect()} for as long as the peer stays where it is.
    * <p>
-   * The peer here answers with a well formed {@code ReplServerStartMsg} naming another
-   * port, which is that mismatch without a second address to bind, and then leaves the
-   * second phase of the handshake unanswered.
+   * Gating the recovery on either leaves the record of such a peer uncleared for good, and
+   * {@code recordFailure()} returns false from then on: the next real outage of it -- the
+   * second one counted below -- is not reported at all.
    */
   @Test
-  public void aPeerWhichAdvertisesAnotherAddressStillClosesItsOutage() throws Exception
+  public void aPeerRegisteredUnderAnotherAddressStillClosesItsOutage() throws Exception
   {
+    TestCaseUtils.startServer();
+
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
-    // Never bound: what the configured address misses is the port the peer names in its
-    // start message, and naming one which is not the port it answered on is enough.
-    final HostPort advertised = HostPort.valueOf("127.0.0.1:" + TestCaseUtils.findFreePorts(1)[0]);
-    aPeerWhichAnswersClosesItsOutage("replicationServerAdvertisedAddressDb",
-        (session, received) -> {
-          // A generation id of -1 leaves the one of the domain alone: a positive one would
-          // be adopted by the handshake, which is a change this test is not about.
-          session.publish(new ReplServerStartMsg(PEER_RS_ID, advertised.toString(), baseDN, 100,
-              new ServerState(), -1, false, (byte) 1, 5000));
-          if (!((ReplServerStartMsg) received).getSSLEncryption())
-          {
-            // Both ends leave the SSL session together, and what the start message this
-            // server sent asked for is what it does itself: reading the next message on the
-            // other stream would be reading a stream nothing is written to.
-            session.stopEncryption();
-          }
-          // The topology message of the second phase, which this peer reads and does not
-          // answer. The handshake ends on the session closed under it, which is the abort a
-          // multi homed peer really ends on.
-          session.receive();
-        });
+    /*
+     * Three ports: the server under test, the address the peer is configured under and
+     * answers on, and the address it registers itself under. The last is never bound --
+     * what a multi homed peer costs is that the two addresses are not compared equal, and
+     * a port nothing listens on is that, without a second address to bind.
+     */
+    final int[] ports = TestCaseUtils.findFreePorts(3);
+    final HostPort peerAddress = HostPort.valueOf("127.0.0.1:" + ports[1]);
+    final HostPort registeredAs = HostPort.valueOf("127.0.0.1:" + ports[2]);
+    final String reachable =
+        WARN_REPLICATION_SERVER_REACHABLE_NO_SESSION.get(RS_ID, peerAddress, baseDN).toString();
+    final String connected =
+        NOTE_REPLICATION_SERVER_CONNECT_RESTORED.get(RS_ID, peerAddress, baseDN).toString();
+
+    final ReplicationServer[] servers = new ReplicationServer[1];
+    // Held rather than returned: the registration lasts as long as the session does, and
+    // whatever the capture below throws, this is what closes it.
+    final Session[] inbound = new Session[1];
+    final ExecutorService peerThread = Executors.newSingleThreadExecutor();
+    try
+    {
+      final ReplSessionSecurity security = getReplSessionSecurity();
+      final List<String> records = errorLogRecordsOf(live -> {
+        servers[0] = new ReplicationServer(new ReplServerFakeConfiguration(
+            ports[0], "replicationServerRegisteredAddressDb", 0, RS_ID, 0, 100,
+            newTreeSet(peerAddress.toString())));
+        final ReplicationServer rs = servers[0];
+        rs.getReplicationServerDomain(baseDN, true);
+        // The pass a record made from this thread has to outlive, as in
+        // aPeerWhichAnswersClosesItsOutage.
+        rs.waitConnections();
+
+        assertThat(rs.connect(peerAddress, baseDN))
+            .as("nothing listens on " + peerAddress).isFalse();
+        waitForErrorLogRecord(live, connectErrorPrefix(peerAddress, baseDN), REPORT_TIMEOUT_MS);
+
+        /*
+         * The peer dials this server and completes the handshake from its own side, which
+         * is what registers it -- under the address its start message names, not the one it
+         * is configured under. Registered before it answers on the configured address, so
+         * that every handshake this server offers it from then on, the ones its connect
+         * thread offers included, runs into that registration: an attempt which got in
+         * before it would abort on the handshake instead, which is the other test.
+         */
+        inbound[0] = registerPeerFrom(security, ports[0], registeredAs, baseDN);
+
+        final AtomicBoolean serving = new AtomicBoolean(true);
+        try (ServerSocket peerSocket = bindPeerPort(ports[1]))
+        {
+          peerSocket.setSoTimeout(SOCKET_TIMEOUT_MS);
+          // The peer answers every handshake with a well formed start message naming the
+          // address it answers on: what aborts the handshake is the handler it already has
+          // with this server, not what it answers here.
+          peerThread.submit(() -> answerEveryHandshake(peerSocket, security, serving,
+              (session, received) -> {
+                session.publish(peerStartMsg(peerAddress, baseDN));
+                stopEncryptionWith(session, received);
+                session.receive();
+              }));
+
+          assertThat(rs.connect(peerAddress, baseDN))
+              .as("the domain holds a handler for this server id under another address URL,"
+                  + " so the handshake aborts on a duplicate server id instead of connecting")
+              .isFalse();
+          waitForErrorLogRecord(live, reachable, REPORT_TIMEOUT_MS);
+        }
+        finally
+        {
+          serving.set(false);
+        }
+
+        // And is gone again, which is a new outage: the previous one was closed.
+        assertThat(rs.connect(peerAddress, baseDN))
+            .as("nothing listens on " + peerAddress).isFalse();
+      });
+
+      assertThat(countRecordsOf(records, reachable))
+          .as("the peer answered on the address it is configured under, which ends the outage"
+              + " reported for it however it is registered with this server")
+          .isEqualTo(1);
+      assertThat(countRecordsOf(records, connected))
+          .as("the handshake aborted on a duplicate server id, so this server has no session"
+              + " with the peer over the address it dialled")
+          .isEqualTo(0);
+      assertThat(countRecordsOf(records, connectErrorPrefix(peerAddress, baseDN)))
+          .as("the outage before the peer answered and the one after it went away again are"
+              + " two outages, and the second is only reported because the first was closed:"
+              + " a record left behind for a peer registered elsewhere silences it for good")
+          .isEqualTo(2);
+    }
+    finally
+    {
+      close(inbound[0]);
+      peerThread.shutdownNow();
+      remove(servers[0]);
+    }
+  }
+
+  /**
+   * Connects to the replication port of the server under test and completes, from the side
+   * of a peer replication server, the handshake which registers that peer with the domain.
+   * <p>
+   * The registration is what this is for, and the handshake has to reach its end to get it:
+   * {@code ReplicationServerHandler.startFromRemoteRS()} registers the handler after the
+   * second phase, so the topology message of that phase has to be sent and read back.
+   *
+   * @param security
+   *          The session security to build the client session with.
+   * @param port
+   *          The replication port of the server under test.
+   * @param registeredAs
+   *          The address this peer names in its start message, and is therefore registered
+   *          under, whatever address it dialled from.
+   * @param baseDN
+   *          The base DN of the domain to register with.
+   * @return The session the registration hangs on, closed by the caller.
+   */
+  private Session registerPeerFrom(ReplSessionSecurity security, int port, HostPort registeredAs, DN baseDN)
+      throws Exception
+  {
+    final Socket socket = new Socket();
+    Session session = null;
+    try
+    {
+      socket.setTcpNoDelay(true);
+      socket.connect(new InetSocketAddress("127.0.0.1", port), SOCKET_TIMEOUT_MS);
+      session = security.createClientSession(socket, SOCKET_TIMEOUT_MS);
+      session.publish(peerStartMsg(registeredAs, baseDN));
+      session.receive();
+      // The initiator of a session decides whether it is encrypted, and the start message
+      // above asked for it not to be: both ends leave the SSL session together, right after
+      // the start messages have been exchanged.
+      session.stopEncryption();
+      // The second phase: the server reads this one before it sends its own, and registers
+      // the handler once it has sent it.
+      session.publish(new TopologyMsg(Collections.<DSInfo> emptyList(), Collections.<RSInfo> emptyList()));
+      session.receive();
+      return session;
+    }
+    catch (Exception e)
+    {
+      close(session);
+      close(socket);
+      throw e;
+    }
+  }
+
+  /**
+   * Returns the start message of a fake peer, naming the provided address.
+   * <p>
+   * A generation id of -1 leaves the one of the domain alone: a positive one would be
+   * adopted by the handshake, which is a change none of these tests is about.
+   */
+  private ReplServerStartMsg peerStartMsg(HostPort address, DN baseDN)
+  {
+    return new ReplServerStartMsg(PEER_RS_ID, address.toString(), baseDN, 100,
+        new ServerState(), -1, false, (byte) 1, 5000);
+  }
+
+  /**
+   * Leaves the SSL session when the sender of the provided start message does.
+   * <p>
+   * Both ends leave it together, and what a start message asks for is what its sender does
+   * itself: reading the next message on the other stream would be reading a stream nothing
+   * is written to.
+   */
+  private void stopEncryptionWith(Session session, ReplicationMsg startMsg) throws Exception
+  {
+    if (!((ReplServerStartMsg) startMsg).getSSLEncryption())
+    {
+      session.stopEncryption();
+    }
   }
 
   /**
@@ -222,11 +382,15 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
    * the first was closed.
    * <p>
    * {@code connect()} is driven from the test thread so that each pass is one the test
-   * names, but the connect thread of the server drives it too, for the same peer. That is
-   * harmless in both directions: while the record is held, every failure it adds is one the
-   * record already holds; while the record is cleared, the peer is answering, so it has
-   * nothing to add. The failure which opens each of the two windows blacklists the peer for
-   * six passes as well, which is longer than the window lasts.
+   * names, but the connect thread of the server drives it too, for the same peer. What
+   * makes the counts exact is not that the other thread is kept out of them: it is that
+   * {@link ReplicationServer.ConnectFailureReporter} is idempotent in both directions, so
+   * while the record is held every failure the connect thread adds is one the record
+   * already holds, and while it is cleared every recovery it reports is one already
+   * reported. The pass waited for below is what the counts do need, so that the
+   * {@code retainAll} at the end of a pass which started without the domain cannot erase
+   * the record they are about. The blacklist {@code runConnect()} keeps is local to it and
+   * written only from its own failures, so the calls made here do not feed it.
    *
    * @param dbName
    *          The changelog directory of the server under test, which is its own.
@@ -240,7 +404,9 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     final int[] ports = TestCaseUtils.findFreePorts(2);
     final HostPort peerAddress = HostPort.valueOf("127.0.0.1:" + ports[1]);
-    final String restored = NOTE_REPLICATION_SERVER_CONNECT_RESTORED.get(RS_ID, peerAddress, baseDN).toString();
+    final String reachable =
+        WARN_REPLICATION_SERVER_REACHABLE_NO_SESSION.get(RS_ID, peerAddress, baseDN).toString();
+    final String connected = NOTE_REPLICATION_SERVER_CONNECT_RESTORED.get(RS_ID, peerAddress, baseDN).toString();
 
     final ReplicationServer[] servers = new ReplicationServer[1];
     final ExecutorService peerThread = Executors.newSingleThreadExecutor();
@@ -265,8 +431,8 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
             .as("nothing listens on " + peerAddress).isFalse();
         waitForErrorLogRecord(live, connectErrorPrefix(peerAddress, baseDN), REPORT_TIMEOUT_MS);
 
-        // The peer answers, and the handshake ends without a connection: connect() returns
-        // without throwing, which is this peer being reachable again.
+        // The peer answers, and the handshake ends without a connection: the outage is over
+        // and there is no session, which are two things rather than one.
         final AtomicBoolean serving = new AtomicBoolean(true);
         try (ServerSocket peerSocket = bindPeerPort(ports[1]))
         {
@@ -275,9 +441,10 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
           // the same peer, and a handshake left unanswered would time out rather than abort.
           peerThread.submit(() -> answerEveryHandshake(peerSocket, security, serving, answer));
           assertThat(rs.connect(peerAddress, baseDN))
-              .as("a handshake which ends without a connection returns from connect() without"
-                  + " throwing").isTrue();
-          waitForErrorLogRecord(live, restored, REPORT_TIMEOUT_MS);
+              .as("a handshake which ends without a connection is not a connection, and a peer"
+                  + " which answers with an abort every second is left alone for a few passes"
+                  + " like one which does not answer at all").isFalse();
+          waitForErrorLogRecord(live, reachable, REPORT_TIMEOUT_MS);
         }
         finally
         {
@@ -289,12 +456,17 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
             .as("nothing listens on " + peerAddress).isFalse();
       });
 
-      assertThat(countRecordsOf(records, restored))
+      assertThat(countRecordsOf(records, reachable))
           .as("a peer which answers on its replication port ends the outage reported for it,"
               + " and this peer registers with no domain: the already connected branch of"
               + " runConnect() can report nothing about it, so connect() is the only place"
               + " this can have come from")
           .isEqualTo(1);
+      assertThat(countRecordsOf(records, connected))
+          .as("this peer has no replication session with this server, and reporting it"
+              + " connected would leave that as the last thing said about a domain which"
+              + " replicates nothing over it")
+          .isEqualTo(0);
       assertThat(countRecordsOf(records, connectErrorPrefix(peerAddress, baseDN)))
           .as("the outage before the peer answered and the one after it went away again are"
               + " two outages, and the second is only reported because the first was closed:"
