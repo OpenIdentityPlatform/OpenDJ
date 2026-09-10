@@ -868,7 +868,13 @@ public class CachedConnection implements Connection {
         MYSQL("jdbc:mysql:", '?',
             new String[]{"connectTimeout"}, 1000, 0,
             new String[]{"socketTimeout"}, 1000, true,
-            new int[]{1040, 1203}, new int[]{1053}),
+            // 1040 is the max_connections of the server, 1203 the max_user_connections an account
+            // inherits from it, and 1226 the limit granted to the account itself - the last of them
+            // in accountLimitCodes, since the same code carries the limits granted per hour.
+            // 1129, a host the server blocked after too many failed connects, is left out of all
+            // three on purpose: the host cache holds that block until an administrator flushes it,
+            // so waiting a borrow's deadline out would only hide the message naming the remedy.
+            new int[]{1040, 1203}, new int[]{1053}, new int[]{1226}),
         /** oracle: both properties take milliseconds; ReadTimeout is a socket read timeout that outlives the login. */
         ORACLE("jdbc:oracle:", '?',
             new String[]{"oracle.net.CONNECT_TIMEOUT"}, 1000, 0,
@@ -884,10 +890,14 @@ public class CachedConnection implements Connection {
             // and the name does not appear in ojdbc8 at all, so a descriptor carrying one would
             // have taken our bound off a connection that never had one of its own.
             new String[]{"oracle.jdbc.ReadTimeout", "oracle.net.READ_TIMEOUT"}, 1000, true,
+            // ORA-00020 is the processes of the instance and ORA-00018 its sessions; ORA-02391 is
+            // the SESSIONS_PER_USER of the account's own profile, the per-account sibling of the
+            // two, and every one of the three is cleared by a session ending - which for this pool
+            // is a connection of its own going back to it.
             // ORA-01033 and ORA-01034: the instance is starting up or not there yet; ORA-01089:
             // it is shutting down. ORA-12514 is left out of these on purpose - a listener that
             // does not know the service is also what a service name of a typo looks like, forever
-            new int[]{20, 12516, 12518, 12519, 12520}, new int[]{1033, 1034, 1089}),
+            new int[]{18, 20, 2391, 12516, 12518, 12519, 12520}, new int[]{1033, 1034, 1089}),
         /**
          * ms sql server: loginTimeout takes seconds, socketTimeout milliseconds; the latter is a
          * socket read timeout that outlives the login. loginTimeout is the one property of the
@@ -918,11 +928,31 @@ public class CachedConnection implements Connection {
         final int[] connectionLimitCodes;
         /** the vendor codes of this dialect for "not accepting connections yet": a database on its way up */
         final int[] notAcceptingYetCodes;
+        /**
+         * The vendor codes for a limit an account is given of its own, which this dialect reports
+         * with the code of limits that no wait can clear. mysql answers 1226 ER_USER_LIMIT_REACHED
+         * both for the MAX_USER_CONNECTIONS of a grant - the connections this account may hold at
+         * once, which a connection of this pool going back clears, exactly as the limit of the
+         * server does - and for the resources it is granted per hour, which the top of the hour
+         * clears and nothing else does. The resource the server names in the message tells the two
+         * apart: it is filled into the text as a literal of its own rather than translated with
+         * the rest of it, which is why it can be read there (#1011).
+         */
+        final int[] accountLimitCodes;
 
         ConnectDialect(String urlPrefix, char parameterSeparator,
                        String[] connectProperties, int connectUnitsPerSecond, long maxConnectSeconds,
                        String[] readProperties, int readUnitsPerSecond, boolean readBoundOutlivesLogin,
                        int[] connectionLimitCodes, int[] notAcceptingYetCodes) {
+            this(urlPrefix, parameterSeparator, connectProperties, connectUnitsPerSecond, maxConnectSeconds,
+                readProperties, readUnitsPerSecond, readBoundOutlivesLogin,
+                connectionLimitCodes, notAcceptingYetCodes, new int[]{});
+        }
+
+        ConnectDialect(String urlPrefix, char parameterSeparator,
+                       String[] connectProperties, int connectUnitsPerSecond, long maxConnectSeconds,
+                       String[] readProperties, int readUnitsPerSecond, boolean readBoundOutlivesLogin,
+                       int[] connectionLimitCodes, int[] notAcceptingYetCodes, int[] accountLimitCodes) {
             this.urlPrefix = urlPrefix;
             this.parameterSeparator = parameterSeparator;
             this.connectProperties = connectProperties;
@@ -933,6 +963,7 @@ public class CachedConnection implements Connection {
             this.readBoundOutlivesLogin = readBoundOutlivesLogin;
             this.connectionLimitCodes = connectionLimitCodes;
             this.notAcceptingYetCodes = notAcceptingYetCodes;
+            this.accountLimitCodes = accountLimitCodes;
         }
 
         /** The dialect of a connection string, or null for a driver whose property names are not known here. */
@@ -1008,9 +1039,30 @@ public class CachedConnection implements Connection {
             }
         }
 
-        /** Whether a vendor code of this dialect is one that waiting for the database can clear. */
-        boolean isWorthRetrying(int errorCode) {
-            return contains(connectionLimitCodes, errorCode) || contains(notAcceptingYetCodes, errorCode);
+        /** Whether a failure of this dialect is one that waiting for the database can clear. */
+        boolean isWorthRetrying(SQLException e) {
+            final int errorCode = e.getErrorCode();
+            if (contains(connectionLimitCodes, errorCode) || contains(notAcceptingYetCodes, errorCode)) {
+                return true;
+            }
+            // asked of the message of this link and not of the failure as a whole: a wrapper is
+            // free to carry the text of something else entirely beside the code of this one
+            return contains(accountLimitCodes, errorCode) && !namesAnHourlyResource(e.getMessage());
+        }
+
+        /**
+         * Whether the message of a failure names a resource an account is granted per hour. Every
+         * one of them ends in _per_hour - max_connections_per_hour is the one a connect meets,
+         * max_queries_per_hour and max_updates_per_hour reach a statement - so the suffix is asked
+         * for rather than the three names: a resource added to that family would otherwise be
+         * waited out an hour long, a borrow at a time, with a worker thread parked in each of them.
+         * A message naming none of them - a proxy that rewrote it, a driver that kept the code and
+         * dropped the text - is taken for the concurrent limit: that is the one an account is given
+         * in practice, the wait it costs is bounded by the deadline of the borrow, and reading it
+         * as permanent fails an operation a connection of ours coming back would have served.
+         */
+        private static boolean namesAnHourlyResource(String message) {
+            return message != null && message.contains("_per_hour");
         }
 
         private static boolean contains(int[] codes, int code) {
@@ -1669,6 +1721,14 @@ public class CachedConnection implements Connection {
      * recovers - the one JDBCStorage.open() has no second attempt of its own for, so a backend
      * that meets it stays locked down until the server is restarted. Both clear themselves in
      * seconds; every other failure is the caller's to see.
+     * <p>
+     * The limit an account is given of its own is the first of those cases and not a refusal: the
+     * connections it caps are the connections of this pool, and one of them is on its way back.
+     * Which is not how a database reports it - mysql answers a grant's MAX_USER_CONNECTIONS in the
+     * syntax error class, oracle a profile's SESSIONS_PER_USER with no connection class at all -
+     * so the vendor code of the dialect is the whole of what tells such a limit from a statement
+     * the database rejected, and a code that also carries a limit granted per hour is asked about
+     * the resource its message names ({@link ConnectDialect#accountLimitCodes}, #1011).
      */
     static boolean isWorthRetrying(SQLException e, ConnectDialect dialect) {
         // a failure of the driver is often wrapped, and a SQLException carries two chains of its
@@ -1682,7 +1742,7 @@ public class CachedConnection implements Connection {
                 final SQLException sql = (SQLException) t;
                 final String sqlState = sql.getSQLState();
                 if (CONNECTION_LIMIT_SQL_STATE.equals(sqlState) || NOT_ACCEPTING_YET_SQL_STATE.equals(sqlState)
-                    || (dialect != null && dialect.isWorthRetrying(sql.getErrorCode()))) {
+                    || (dialect != null && dialect.isWorthRetrying(sql))) {
                     return true;
                 }
                 enqueue(pending, visited, sql.getNextException());

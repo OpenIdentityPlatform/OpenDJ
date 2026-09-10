@@ -1103,6 +1103,92 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertEquals(stub.attempts.get(), 1, "a rejected login must be attempted once");
 	}
 
+	/**
+	 * The limit an account is given of its own is the same failure as the limit of the server, and
+	 * clears the same way: the connections this account may hold at once are held by this pool, and
+	 * one of them is on its way back to it. mysql reports it as 1226 ER_USER_LIMIT_REACHED and in
+	 * the syntax error class - 42000, where a statement the database refused lands - so the vendor
+	 * code is the whole of what tells the two apart (#1011).
+	 */
+	@Test(timeOut = 120000)
+	public void testThePerAccountConnectionLimitOfMysqlIsRetried() {
+		assertTrue(CachedConnection.isWorthRetrying(
+				new SQLException("User 'opendj' has exceeded the 'max_user_connections' resource (current value: 4)",
+					"42000", 1226),
+				CachedConnection.ConnectDialect.of("jdbc:mysql://db.example.com:3306/opendj")),
+			"a per-account connection limit clears when a connection of this pool goes back to it");
+	}
+
+	/**
+	 * The same code carries the limits an account is given per hour, and those are cleared by the
+	 * top of the hour rather than by a connection coming back. Waiting one out would cost every
+	 * borrow the whole deadline of the pool - a worker thread apiece, for as long as the hour lasts
+	 * - and would hide the message naming the resource behind a timeout, so it is reported at once.
+	 * The resource is named by the server as a literal of its own, which is why it can be read out
+	 * of a message whose text is otherwise the server's to translate.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheHourlyLimitOfAMysqlAccountIsNotRetried() {
+		assertFalse(CachedConnection.isWorthRetrying(
+				new SQLException("User 'opendj' has exceeded the 'max_connections_per_hour' resource (current value: 5)",
+					"42000", 1226),
+				CachedConnection.ConnectDialect.of("jdbc:mysql://db.example.com:3306/opendj")),
+			"an hourly limit is not cleared by a connection of this pool coming back");
+	}
+
+	/**
+	 * A 1226 that names no resource - a proxy that rewrote the message, a driver that kept the code
+	 * and not the text - is waited out rather than reported: the concurrent limit is the one an
+	 * account is given in practice, the wait it costs is bounded by the deadline of the borrow, and
+	 * reading it as permanent fails an operation a connection of ours would have served.
+	 */
+	@Test(timeOut = 120000)
+	public void testAMysqlAccountLimitWhoseResourceIsNotNamedIsRetried() {
+		assertTrue(CachedConnection.isWorthRetrying(new SQLException("connection rejected", "42000", 1226),
+				CachedConnection.ConnectDialect.of("jdbc:mysql://db.example.com:3306/opendj")),
+			"a limit whose resource is not named is taken for the concurrent one");
+	}
+
+	/**
+	 * A host the server blocked is no limit that clears itself: the host cache holds the block until
+	 * an administrator flushes it, so waiting the deadline of a borrow out would only hide the one
+	 * message naming the remedy behind a timeout. It belongs with the password that is not accepted.
+	 */
+	@Test(timeOut = 120000)
+	public void testAHostMysqlBlockedIsNotRetried() {
+		assertFalse(CachedConnection.isWorthRetrying(
+				new SQLException("Host 'ldap1.example.com' is blocked because of many connection errors;"
+					+ " unblock with 'mysqladmin flush-hosts'", "HY000", 1129),
+				CachedConnection.ConnectDialect.of("jdbc:mysql://db.example.com:3306/opendj")),
+			"a blocked host is cleared by an administrator, not by waiting");
+	}
+
+	/**
+	 * The sessions an oracle account may hold at once are the SESSIONS_PER_USER of its profile, and
+	 * ORA-02391 is the per-account sibling of the ORA-00020 this table knew already: both are
+	 * cleared by a session ending, which for this pool is a connection of its own going back to it.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheSessionLimitOfAnOracleProfileIsRetried() {
+		// the state as ojdbc reported it against a profile with sessions_per_user 1: 61000, no
+		// connection class of its own either, so the vendor code is again the whole of the verdict
+		assertTrue(CachedConnection.isWorthRetrying(
+				new SQLException("ORA-02391: exceeded simultaneous SESSIONS_PER_USER limit", "61000", 2391),
+				CachedConnection.ConnectDialect.of("jdbc:oracle:thin:@db.example.com:1521/FREEPDB1")),
+			"the session limit of a profile is cleared by a session of this pool ending");
+	}
+
+	/** ORA-00018, the same limit as the instance keeps it: a session of somebody's has to end. */
+	@Test(timeOut = 120000)
+	public void testTheSessionLimitOfAnOracleInstanceIsRetried() {
+		// no state: an instance out of sessions is not something this test could provoke to measure
+		// one from, and the vendor code is what the verdict is made of
+		assertTrue(CachedConnection.isWorthRetrying(
+				new SQLException("ORA-00018: maximum number of sessions exceeded", null, 18),
+				CachedConnection.ConnectDialect.of("jdbc:oracle:thin:@db.example.com:1521/FREEPDB1")),
+			"the session limit of an instance is cleared by a session ending");
+	}
+
 	/** A connection the setup of which failed belongs to nobody: it has to be closed, not leaked. */
 	@Test(timeOut = 120000)
 	public void testConnectionIsClosedWhenItsSetupFails() throws Exception {
