@@ -54,12 +54,14 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.extensions.DummyAlertHandler;
+import org.opends.server.plugins.PausePreParsePlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin.ParkedReplay;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.AckMsg;
@@ -108,6 +110,45 @@ public class UpdateOperationTest extends ReplicationTestCase
 
   /** The configuration attribute which carries the replay give-up budget of a domain. */
   private static final String ATTR_REPLAY_GIVE_UP_DELAY = "ds-cfg-replay-give-up-delay";
+
+  /**
+   * How long a replay parked by {@link PausePreParsePlugin} is held after the domain cut its
+   * session, in the test which checks that a change being applied is recorded in the
+   * ServerState a domain going down saves.
+   * <p>
+   * It has to be long enough for a domain which does not wait for the replay to have saved
+   * its ServerState by the time the change is applied - that is the failure the test
+   * reports - and well under the time a domain which does wait gives the replay, which that
+   * test leaves at its default. Spent inside that wait, so what it costs the test is itself
+   * and nothing more.
+   * <p>
+   * Counted from the moment the session was cut rather than from the wait, because that is
+   * the only moment this test can see: {@code ReplicationBroker.stop()} is the first
+   * statement of {@code disableService()}, and it stops the domain being connected before
+   * the listener thread is asked to stop and joined - a join with no bound on it - and
+   * before the ServerState is saved. So what this delay has to outlast is that whole
+   * remainder of {@code disable()} and not the save alone. The remainder is a millisecond
+   * on an idle machine and hundreds of them on a loaded one, and a delay of the same order
+   * would hand the released replay a race against the save rather than a loss to it: the
+   * change would be recorded whether or not anything waited for it, and the test would stop
+   * saying anything without ever failing.
+   */
+  private static final long SETTLE_BEFORE_RELEASE_IN_MS = 2000;
+
+  /**
+   * How long a domain is told to wait for a replay it can not drain, in the test which
+   * checks that it gives up rather than hold the task which is taking it down. Long enough
+   * to be told apart from not waiting at all, short enough for a test to spend.
+   * <p>
+   * Told apart from the rest of {@code disable()}, to be exact: the test times that call as
+   * a whole rather than the wait inside it, so this budget is what has to dominate cutting
+   * the session, joining the listener thread with no bound on the join, and saving the
+   * ServerState with an internal modify. That remainder is a millisecond on an idle machine
+   * and hundreds of them on a loaded one, and a budget of the same order would have the
+   * assertion satisfied by the remainder alone - the wait taken out of the domain and
+   * nothing reporting it.
+   */
+  private static final long TEST_REPLAY_DRAIN_TIMEOUT_IN_MS = 2000;
 
   /** An entry with a entryUUID. */
   private Entry personWithUUIDEntry;
@@ -2610,6 +2651,338 @@ public class UpdateOperationTest extends ReplicationTestCase
     });
     checkEntryHasAttributeValue(dn, "description", description, 30,
         "the change must be applied by the delivery which took over from the failed one");
+  }
+
+  /**
+   * Test case for [Issue 908]: a domain being disabled - for an LDIF import, a restore, or
+   * a backend being taken offline - must not save its ServerState while a replay thread is
+   * half way through applying one of its changes.
+   * <p>
+   * The change reaches the backend, so a ServerState which excludes it records nowhere
+   * that it was applied: the replication server sends it again when the domain is enabled
+   * back, and a change which is already in the data is replayed a second time - resolved
+   * as a conflict, or left as a conflict entry when the changes around it were resent with
+   * it and their dependency ordering was forgotten along with the pending changes.
+   */
+  @Test
+  public void aChangeBeingAppliedIsRecordedBeforeTheDomainIsDisabled() throws Exception
+  {
+    testSetUp("aChangeBeingAppliedIsRecordedBeforeTheDomainIsDisabled");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aChangeBeingAppliedIsRecordedBeforeTheDomainIsDisabled"));
+
+    final int serverId = 19;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    try
+    {
+      final CSNGenerator gen = new CSNGenerator(serverId, 0);
+
+      final Entry tmp = TestCaseUtils.addEntry(
+          "dn: uid=user.908," + baseDN,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "uid: user.908",
+          "cn: Aaccf Amar",
+          "sn: Amar");
+      final DN dn = tmp.getName();
+      final String uuid = getEntry(dn, 1, true).parseAttribute("entryuuid").asString();
+
+      final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+      final CSN csn = gen.newCSN();
+      boolean disableAttempted = false;
+      try
+      {
+        /*
+         * Park the replay inside op.run(): the pre-parse plugin point is reached once the
+         * replay thread started applying the change and before the change reaches the
+         * backend, which is the window this issue is about. The pre-operation point would
+         * not do - it is not invoked for synchronization operations.
+         */
+        PausePreParsePlugin.pause(OperationType.DELETE, dn);
+        broker.publish(new DeleteMsg(dn, csn, uuid));
+        assertTrue(PausePreParsePlugin.awaitPaused(OperationType.DELETE, 60, SECONDS),
+            "the replay thread never started applying the change");
+        assertTrue(domain.isConnected(),
+            "this test needs a domain which is still up when the change is being applied");
+
+        /*
+         * Let the parked replay finish once the domain is inside the wait for it, so that
+         * the change reaches the backend while the ServerState is about to be saved. The
+         * session is cut after the flag is set and immediately before that wait, and well
+         * before the state is saved, so a domain which is not connected anymore is one which
+         * is about to wait for this very change.
+         *
+         * Released a moment after that rather than on the disconnection itself, and this is
+         * what makes the test decide rather than guess: a domain which does not wait - the
+         * lock taken out of the replay, or the state saved before the wait as it was before
+         * this fix - has saved its ServerState long before the delay is out, so the change
+         * lands after that save and the assertion below reports it. Releasing on the
+         * disconnection instead handed the replay the join of the listener thread as a head
+         * start, which is enough for it to be recorded by a domain which never waited.
+         *
+         * The delay is spent inside the wait, so it costs this test nothing and holds
+         * whatever budget it needs to be well under REPLAY_DRAIN_TIMEOUT_IN_MS.
+         */
+        final Thread releaser =
+            releaseWhenDisconnected(domain, OperationType.DELETE, SETTLE_BEFORE_RELEASE_IN_MS);
+        disableAttempted = true;
+        try
+        {
+          domain.disable();
+        }
+        finally
+        {
+          releaser.join(SECONDS.toMillis(60));
+        }
+
+        /*
+         * The entry is gone, so the change did reach the backend: getEntry() waits for it
+         * and reports it, since a domain which did not wait for the replay lets it finish
+         * a moment later rather than not at all.
+         */
+        getEntry(dn, 30000, false);
+        /*
+         * Read the ServerState which was saved rather than the one in memory: disable()
+         * clears the in-memory one, and the saved one is what the domain reads back when
+         * it is enabled again - and what the replication server resumes this replica from.
+         * Read it before the domain is enabled back, or the change being sent again and
+         * replayed a second time would make the state cover it either way, which is the
+         * very outcome this test is about.
+         */
+        assertTrue(persistedServerState().cover(csn),
+            "a change which reached the backend must be recorded in the saved ServerState");
+      }
+      finally
+      {
+        PausePreParsePlugin.release(OperationType.DELETE);
+        if (disableAttempted)
+        {
+          /*
+           * Only when disable() was reached, and whether or not it got to the end: setting
+           * the flag is its first act, so a disable() which threw half way through still
+           * left a domain which has to be enabled back. Enabling one which was never
+           * disabled is what must not happen - it would reload the ServerState and start a
+           * broker which is already running, behind the back of the tests which follow.
+           */
+          domain.enable();
+        }
+      }
+    }
+    finally
+    {
+      broker.stop();
+    }
+  }
+
+  /**
+   * Test case for [Issue 908]: a domain which can not get the replay of its changes to
+   * finish goes down anyway rather than holding the administrative task which is taking it
+   * down - an import, a restore, a backend being taken offline - for as long as a backend
+   * which stopped answering takes to answer.
+   * <p>
+   * The change may then reach the backend without being recorded in the ServerState, which
+   * is what the warning in the log says: the replication server sends it again once the
+   * domain is enabled back, which this test also checks, since a domain which gave up on
+   * the wait must still end up consistent.
+   */
+  @Test
+  public void theDomainStopsWaitingForAReplayWhichDoesNotFinish() throws Exception
+  {
+    testSetUp("theDomainStopsWaitingForAReplayWhichDoesNotFinish");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : theDomainStopsWaitingForAReplayWhichDoesNotFinish"));
+
+    final int serverId = 20;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    try
+    {
+      final CSNGenerator gen = new CSNGenerator(serverId, 0);
+
+      final Entry tmp = TestCaseUtils.addEntry(
+          "dn: uid=user.908.2," + baseDN,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "uid: user.908.2",
+          "cn: Aaccf Amar",
+          "sn: Amar");
+      final DN dn = tmp.getName();
+      final String uuid = getEntry(dn, 1, true).parseAttribute("entryuuid").asString();
+
+      final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+      final CSN csn = gen.newCSN();
+      final long drainTimeout = domain.getReplayDrainTimeout();
+      boolean disableAttempted = false;
+      try
+      {
+        /*
+         * A replay which does not finish is waited out for as long as an operation can be
+         * waiting for the entry it is on - the best part of twenty seconds: this test can
+         * not, so the domain gives up on the wait after a moment instead. Set inside the
+         * try which puts it back, like the pause below: both are the domain's and the
+         * server's for as long as they are left behind.
+         */
+        domain.setReplayDrainTimeout(TEST_REPLAY_DRAIN_TIMEOUT_IN_MS);
+        PausePreParsePlugin.pause(OperationType.DELETE, dn);
+        broker.publish(new DeleteMsg(dn, csn, uuid));
+        assertTrue(PausePreParsePlugin.awaitPaused(OperationType.DELETE, 60, SECONDS),
+            "the replay thread never started applying the change");
+
+        // The replay is parked and stays parked: the domain has to come down all the same.
+        final long startedAt = System.nanoTime();
+        disableAttempted = true;
+        domain.disable();
+        final long waitedMs = NANOSECONDS.toMillis(System.nanoTime() - startedAt);
+        /*
+         * Only this test releases the pause, and it has not done so yet, so an operation
+         * still parked here is one the domain came down without waiting for - which is what
+         * the give-up is. Read before the finally below releases it.
+         */
+        Assertions.assertThat(PausePreParsePlugin.parkedCount(OperationType.DELETE))
+            .as("the domain must have come down while the replay was still being applied")
+            .isEqualTo(1);
+        /*
+          * Measured against the default this test overrode rather than against a copy of
+          * its value: an override which stopped taking effect would have the domain wait
+          * the whole default out, and that is what this has to catch.
+          */
+        assertTrue(waitedMs < drainTimeout,
+            "the domain waited " + waitedMs + " ms for a replay it can not drain,"
+                + " which is not short of the " + drainTimeout + " ms it waits by default");
+        /*
+         * And the wait was taken rather than skipped: the replay is parked for good, so a
+         * domain which really waits for it spends the whole budget it was given. Without
+         * this the test reports the same thing whether the domain waited for the changes in
+         * flight or never waited for anything - the give-up is only half of what a bounded
+         * wait is.
+         */
+        assertTrue(waitedMs >= TEST_REPLAY_DRAIN_TIMEOUT_IN_MS,
+            "the domain came down in " + waitedMs + " ms, so it did not wait the "
+                + TEST_REPLAY_DRAIN_TIMEOUT_IN_MS + " ms it was given for the replay of a"
+                + " change which was still being applied");
+      }
+      finally
+      {
+        PausePreParsePlugin.release(OperationType.DELETE);
+        domain.setReplayDrainTimeout(drainTimeout);
+        if (disableAttempted)
+        {
+          domain.enable();
+        }
+      }
+
+      /*
+       * The entry goes away: the replay the domain gave up on was released by the finally
+       * above and finished after the ServerState had been saved, which is what the give-up
+       * costs. This says the change is in the data - not that it was delivered again, since
+       * the delete which does it is the first replay rather than the second.
+       */
+      getEntry(dn, 30000, false);
+      /*
+       * The change is in the data and in no ServerState, so the replication server owns it
+       * still and sends it again over the session which the domain being enabled back
+       * brought up. Replaying it a second time is the cost of the wait running out, and
+       * conflict resolution absorbs it - what must not happen is the replica staying behind
+       * for good. The state coming to cover the CSN is what evidences that delivery: the
+       * domain forgot the change with its pending changes, so nothing else records it.
+       */
+      TestTimer timer = new TestTimer.Builder()
+        .maxSleep(60, SECONDS)
+        .sleepTimes(200, MILLISECONDS)
+        .toTimer();
+      timer.repeatUntilSuccess(new CallableVoid()
+      {
+        @Override
+        public void call() throws Exception
+        {
+          assertTrue(domain.getServerState().cover(csn),
+              "the change must be recorded once it has been delivered again");
+        }
+      });
+    }
+    finally
+    {
+      broker.stop();
+    }
+  }
+
+  /**
+   * Starts a thread which releases the operations parked by
+   * {@link PausePreParsePlugin} once the domain has cut its session - which it does on its
+   * way down, immediately before it waits for the replay of the changes in flight - plus a
+   * delay which puts the release inside that wait rather than ahead of it.
+   *
+   * @param domain the domain which is about to be taken down
+   * @param operation the type of operation the pause was registered for
+   * @param settleInMs how long to wait after the session was cut before the parked
+   *                   operations are released, which has to be well under the time the
+   *                   domain waits for them and longer than the rest of {@code disable()} -
+   *                   the session being cut is its first act, so the listener thread being
+   *                   joined and the ServerState being saved are both inside this delay
+   * @return the thread, already started
+   */
+  private Thread releaseWhenDisconnected(
+      final LDAPReplicationDomain domain, final OperationType operation, final long settleInMs)
+  {
+    final Thread releaser = new Thread(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        /*
+         * Bounded, and a daemon: a domain which never goes down - because taking it down
+         * threw - must not leave a thread spinning for the rest of the run. The pause has
+         * a bound of its own, so the parked operation is released either way.
+         */
+        final long deadline = System.nanoTime() + SECONDS.toNanos(60);
+        try
+        {
+          while (domain.isConnected() && System.nanoTime() - deadline < 0)
+          {
+            Thread.sleep(1);
+          }
+          /*
+           * The session is cut, so the domain is on its way to the wait for the replay:
+           * give it that long to get there and, if it is not waiting for anything, to save
+           * the ServerState this change must be in.
+           */
+          Thread.sleep(settleInMs);
+          PausePreParsePlugin.release(operation);
+        }
+        catch (InterruptedException e)
+        {
+          Thread.currentThread().interrupt();
+        }
+      }
+    }, "issue 908 replay releaser");
+    releaser.setDaemon(true);
+    releaser.start();
+    return releaser;
+  }
+
+  /**
+   * Returns the ServerState of the test domain as it is saved in the backend.
+   * <p>
+   * That is the one the domain reads back when it is enabled again, and the one the
+   * replication server resumes this replica from - the in-memory one is cleared by
+   * {@code disable()}.
+   *
+   * @return the ServerState read from the base entry of the domain
+   * @throws Exception if the base entry could not be read
+   */
+  private ServerState persistedServerState() throws Exception
+  {
+    final ServerState persisted = new ServerState();
+    for (String value : getEntry(baseDN, 1, true).parseAttribute("ds-sync-state").asSetOfString())
+    {
+      persisted.update(new CSN(value));
+    }
+    return persisted;
   }
 
   /**
