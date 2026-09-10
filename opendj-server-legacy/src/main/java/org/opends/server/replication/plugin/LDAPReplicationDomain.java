@@ -391,6 +391,17 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   @GuardedBy("serviceStateLock")
   private long sessionGeneration;
   /**
+   * Set by {@link #restartService()} when it left the session of this domain alone, so
+   * that the configuration change which asked for the restart can say so.
+   * <p>
+   * Cleared by that change before it applies anything, and read by it once it is done -
+   * both under {@link #serviceStateLock}, the lock every restart of the session runs
+   * under, so what it reads is what its own steps asked for. A restart which is
+   * suppressed outside a configuration change leaves it set for the next one to clear.
+   */
+  @GuardedBy("serviceStateLock")
+  private boolean sessionRestartSuppressed;
+  /**
    * Held while a replay thread applies a change of this domain, and taken exclusively by
    * this domain on its way down.
    * <p>
@@ -894,6 +905,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       {
         disableService();
         sessionGeneration++;
+      }
+      else if (needReconnection)
+      {
+        onSessionRestartSuppressed();
       }
       // Set new configuration
       int newFractionalMode = newFractionalConfig.fractionalConfigToInt();
@@ -4853,6 +4868,8 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
      */
     synchronized (serviceStateLock)
     {
+      // Whatever a restart was suppressed for before this change is none of its business.
+      sessionRestartSuppressed = false;
       /*
        * Reported rather than thrown, all of it: this listener runs on an entry which is
        * already written, and an exception leaving it would abort the listeners after it
@@ -4885,6 +4902,20 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
         ccr.setResultCode(ResultCode.OTHER);
         ccr.addMessage(configChangeFailed(configuration, e));
       }
+
+      /*
+       * Read here rather than reported by restartService() itself, which has no result to
+       * report through and is called from the external changelog configuration above as
+       * well: what a change needed a session for, and did not get, is one thing to the
+       * administrator whichever step of it asked. Left out of the failure path on purpose
+       * - a change which could not be applied has a reason of its own to carry, and the
+       * session it did not restart is not what the administrator has to act on.
+       */
+      if (sessionRestartSuppressed && ccr.getResultCode() == ResultCode.SUCCESS)
+      {
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(NOTE_REPLICATION_DOMAIN_SESSION_NOT_RESTARTED.get(getBaseDN()));
+      }
     }
 
     return ccr;
@@ -4911,10 +4942,37 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
          * a session, and the listener thread which goes with it, back up on a domain
          * whose ServerState is gone from memory. The session started when the domain is
          * enabled again reads the configuration this restart was asked for.
+         *
+         * Recorded rather than passed over in silence: the configuration a restart was
+         * asked for is stored, and it is the session which is not brought up on it, so a
+         * change which reports plain success would have the administrator believe the
+         * domain is running on it already. A domain disabled for a total update comes up
+         * on it when the total update ends; one which stays disabled - enable() gives up
+         * when the data state it reads cannot be loaded, and nothing calls it again -
+         * never does, and that is what the administrator is told to act on.
          */
+        onSessionRestartSuppressed();
         return;
       }
       super.restartService();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Every restart this domain leaves alone comes through here, whichever step of the
+   * change asked for it: the broker properties which are renegotiated, the assured
+   * configuration the replication server is told about as the session comes up, the
+   * fractional configuration the session filters on, and the attributes the external
+   * changelog publishes.
+   */
+  @Override
+  protected void onSessionRestartSuppressed()
+  {
+    synchronized (serviceStateLock)
+    {
+      sessionRestartSuppressed = true;
     }
   }
 

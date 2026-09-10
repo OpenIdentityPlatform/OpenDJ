@@ -17,6 +17,7 @@ package org.opends.server.replication.plugin;
 
 import static java.util.concurrent.TimeUnit.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
@@ -27,6 +28,7 @@ import java.lang.management.ThreadInfo;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
@@ -225,6 +227,9 @@ public class LDAPReplicationDomainConfigChangeTest extends ReplicationTestCase
           "the assured configuration was dropped although the change reported success");
       assertEquals(domain.getAssuredTimeout(), NEW_ASSURED_TIMEOUT_IN_MS,
           "the assured timeout was dropped although the change reported success");
+      assertTrue(ccr.adminActionRequired(),
+          "the assured configuration is negotiated as a session comes up, and this domain was"
+              + " given no session to negotiate it over");
 
       // Left as a total update leaves it: enabled back, on the configuration it was given.
       domain.enable();
@@ -273,10 +278,49 @@ public class LDAPReplicationDomainConfigChangeTest extends ReplicationTestCase
 
       // Only the timeout changes, which is the one assured property a session does not
       // have to be restarted for.
-      domain.applyConfigurationChange(assuredCfg(baseDN, replServers, NEW_ASSURED_TIMEOUT_IN_MS));
+      final ConfigChangeResult ccr =
+          domain.applyConfigurationChange(assuredCfg(baseDN, replServers, NEW_ASSURED_TIMEOUT_IN_MS));
 
       assertEquals(domain.getAssuredTimeout(), NEW_ASSURED_TIMEOUT_IN_MS,
           "the new assured timeout was dropped although the change reported success");
+      assertFalse(ccr.adminActionRequired(),
+          "a change which is live asked the administrator to act: " + ccr.getMessages());
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+    }
+  }
+
+  @Test
+  public void changeNoSessionCouldBeRestartedForSaysItIsNotLiveYet() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    try
+    {
+      final LDAPReplicationDomain domain =
+          startDomain(new DomainFakeCfg(baseDN, SERVER_ID, unstartedReplicationServer()));
+
+      // Disabled is what an online import leaves the domain: it owns its session, and the
+      // replication servers a domain talks to are negotiated as that session comes up.
+      domain.disable();
+      waitForListenerThread(baseDN, false);
+
+      final ConfigChangeResult ccr = domain.applyConfigurationChange(
+          new DomainFakeCfg(baseDN, SERVER_ID, unstartedReplicationServer()));
+
+      assertEquals(ccr.getResultCode(), ResultCode.SUCCESS, ccr.getMessages().toString());
+      assertTrue(ccr.adminActionRequired(),
+          "the change was reported as fully applied although the session it needs was never"
+              + " restarted for it, and a domain left disabled never restarts one");
+      assertTrue(ccr.getMessages().toString()
+              .contains(NOTE_REPLICATION_DOMAIN_SESSION_NOT_RESTARTED.get(baseDN).toString()),
+          "the administrator was not told which domain is waiting for a session: " + ccr.getMessages());
+      assertFalse(hasListenerThread(baseDN),
+          "the change started a session on a domain which was disabled for a total update");
+
+      // Left as a total update leaves it: enabled back, on the configuration it was given.
+      domain.enable();
     }
     finally
     {
@@ -311,15 +355,29 @@ public class LDAPReplicationDomainConfigChangeTest extends ReplicationTestCase
        */
       final Object serviceStateLock = serviceStateLockOf(domain);
       final boolean blockedOnTheLock;
+      final Set<String> eclIncludesWhileLocked;
       synchronized (serviceStateLock)
       {
         eclChange.start();
         blockedOnTheLock = waitForBlockedOn(eclChange, serviceStateLock);
+        eclIncludesWhileLocked = new TreeSet<>(domain.getEclIncludes());
       }
 
       assertTrue(blockedOnTheLock,
           "the ECL configuration changed the session of the domain without holding serviceStateLock");
+      /*
+       * What the assertion above alone does not tell apart: restartService(), at the end
+       * of changeConfig(), takes this lock as well, so a change which applied the
+       * attributes first and blocked on the lock afterwards would look just the same. The
+       * whole of changeConfig() runs under the lock exactly when the attributes are still
+       * unapplied while this thread holds it.
+       */
+      assertFalse(eclIncludesWhileLocked.contains("cn"),
+          "the ECL attributes were applied outside serviceStateLock, and only the session"
+              + " restart which follows them was taken under it: " + eclIncludesWhileLocked);
       assertTrue(applied.await(30, SECONDS), "the ECL configuration change never completed");
+      assertTrue(domain.getEclIncludes().contains("cn"),
+          "the ECL configuration change was reported as done and applied nothing");
     }
     finally
     {

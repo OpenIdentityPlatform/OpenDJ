@@ -3399,12 +3399,27 @@ public abstract class ReplicationDomain
    * <p>
    * A subclass may leave it alone: a domain which is shutting down, or which was disabled
    * for a total update, owns its session and is not given one back by a configuration
-   * change.
+   * change. One which does reports it through {@link #onSessionRestartSuppressed()}.
    */
   protected void restartService()
   {
     disableService();
     enableService();
+  }
+
+  /**
+   * Called when what a change carries is negotiated as the session comes up, and the
+   * session was not restarted for it.
+   * <p>
+   * The configuration is stored either way, and the session started next reads it - so
+   * this says that the change is not live yet rather than that it was lost. A domain
+   * which restarts its session for every change never reaches this; one which owns its
+   * session while it is shutting down or disabled for a total update overrides it to tell
+   * the administrator what is waiting for that session.
+   */
+  protected void onSessionRestartSuppressed()
+  {
+    // Nothing to report: this domain restarts its session for whatever asks for it.
   }
 
   /**
@@ -3862,10 +3877,15 @@ public abstract class ReplicationDomain
     // Disconnect if required: changing configuration values before
     // disconnection would make assured replication used immediately and
     // disconnection could cause some timeouts error.
-    final boolean needRestart = needReconnection(config) && allowReconnection;
+    final boolean needReconnection = needReconnection(config);
+    final boolean needRestart = needReconnection && allowReconnection;
     if (needRestart)
     {
       disableService();
+    }
+    else if (needReconnection)
+    {
+      onSessionRestartSuppressed();
     }
     /*
      * Stored whether or not the session was restarted for it, as the fractional
