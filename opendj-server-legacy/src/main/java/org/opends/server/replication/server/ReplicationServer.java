@@ -607,11 +607,9 @@ public class ReplicationServer
            * cannot guarantee this since the configuration may not contain this
            * RS.
            */
-          final Set<HostPort> connectedRSAddresses =
-              getConnectedRSAddresses(domain);
           for (HostPort rsAddress : configuredRSAddresses)
           {
-            if (connectedRSAddresses.contains(rsAddress))
+            if (domain.isConnectedToServerAt(rsAddress))
             {
               // Skip: already connected. The connection may be the one that peer made to
               // this server, which connect() never sees, so this is where a failure
@@ -669,16 +667,6 @@ public class ReplicationServer
         }
       }
     }
-  }
-
-  private Set<HostPort> getConnectedRSAddresses(ReplicationServerDomain domain)
-  {
-    Set<HostPort> results = new HashSet<>();
-    for (ReplicationServerHandler rsHandler : domain.getConnectedRSs().values())
-    {
-      results.add(HostPort.valueOf(rsHandler.getServerAddressURL()));
-    }
-    return results;
   }
 
   /**
