@@ -108,17 +108,37 @@ public class UpdateOperationTest extends ReplicationTestCase
    * <p>
    * It has to be long enough for a domain which does not wait for the replay to have saved
    * its ServerState by the time the change is applied - that is the failure the test
-   * reports - and well under the time a domain which does wait gives the replay. Spent
-   * inside that wait, so it costs the test nothing.
+   * reports - and well under the time a domain which does wait gives the replay, which that
+   * test leaves at its default. Spent inside that wait, so what it costs the test is itself
+   * and nothing more.
+   * <p>
+   * Counted from the moment the session was cut rather than from the wait, because that is
+   * the only moment this test can see: {@code ReplicationBroker.stop()} is the first
+   * statement of {@code disableService()}, and it stops the domain being connected before
+   * the listener thread is asked to stop and joined - a join with no bound on it - and
+   * before the ServerState is saved. So what this delay has to outlast is that whole
+   * remainder of {@code disable()} and not the save alone. The remainder is a millisecond
+   * on an idle machine and hundreds of them on a loaded one, and a delay of the same order
+   * would hand the released replay a race against the save rather than a loss to it: the
+   * change would be recorded whether or not anything waited for it, and the test would stop
+   * saying anything without ever failing.
    */
-  private static final long SETTLE_BEFORE_RELEASE_IN_MS = 500;
+  private static final long SETTLE_BEFORE_RELEASE_IN_MS = 2000;
 
   /**
    * How long a domain is told to wait for a replay it can not drain, in the test which
    * checks that it gives up rather than hold the task which is taking it down. Long enough
    * to be told apart from not waiting at all, short enough for a test to spend.
+   * <p>
+   * Told apart from the rest of {@code disable()}, to be exact: the test times that call as
+   * a whole rather than the wait inside it, so this budget is what has to dominate cutting
+   * the session, joining the listener thread with no bound on the join, and saving the
+   * ServerState with an internal modify. That remainder is a millisecond on an idle machine
+   * and hundreds of them on a loaded one, and a budget of the same order would have the
+   * assertion satisfied by the remainder alone - the wait taken out of the domain and
+   * nothing reporting it.
    */
-  private static final long TEST_REPLAY_DRAIN_TIMEOUT_IN_MS = 200;
+  private static final long TEST_REPLAY_DRAIN_TIMEOUT_IN_MS = 2000;
 
   /** An entry with a entryUUID. */
   private Entry personWithUUIDEntry;
@@ -2323,7 +2343,9 @@ public class UpdateOperationTest extends ReplicationTestCase
    * @param operation the type of operation the pause was registered for
    * @param settleInMs how long to wait after the session was cut before the parked
    *                   operations are released, which has to be well under the time the
-   *                   domain waits for them and long enough for a ServerState save
+   *                   domain waits for them and longer than the rest of {@code disable()} -
+   *                   the session being cut is its first act, so the listener thread being
+   *                   joined and the ServerState being saved are both inside this delay
    * @return the thread, already started
    */
   private Thread releaseWhenDisconnected(
