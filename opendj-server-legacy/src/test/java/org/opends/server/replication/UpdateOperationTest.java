@@ -45,7 +45,6 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
-import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.ReplicationSynchronizationProviderCfg;
 import org.opends.server.TestCaseUtils;
@@ -103,8 +102,12 @@ public class UpdateOperationTest extends ReplicationTestCase
    * How long a change is retried in the tests which check that this replica gives up on
    * a change it can never apply: long enough for the change to be delivered again a
    * couple of times, short enough not to make the test wait out a real backend outage.
+   * In the duration syntax of the {@code replay-give-up-delay} property.
    */
-  private static final long TEST_GIVE_UP_DELAY_IN_MS = 2000;
+  private static final String TEST_GIVE_UP_DELAY = "2000ms";
+
+  /** The configuration attribute which carries the replay give-up budget of a domain. */
+  private static final String ATTR_REPLAY_GIVE_UP_DELAY = "ds-cfg-replay-give-up-delay";
 
   /** An entry with a entryUUID. */
   private Entry personWithUUIDEntry;
@@ -1442,14 +1445,13 @@ public class UpdateOperationTest extends ReplicationTestCase
       final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
       domain.resetUnreplayedChangeAlertThrottle();
       final int initialAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE);
-      final long giveUpDelay = domain.getReplayGiveUpDelay();
+      // A backend which is down for maintenance is waited out for minutes: this test can
+      // not, so the change is given up on after a couple of deliveries instead. The short
+      // circuit below is the server's, so it is registered inside the try which takes it
+      // back.
+      setReplayGiveUpDelay(TEST_GIVE_UP_DELAY);
       try
       {
-        // A backend which is down for maintenance is waited out for minutes: this test
-        // can not, so the change is given up on after a couple of deliveries instead.
-        // Set inside the try which puts it back, like the short circuit below: both are
-        // the domain's and the server's for as long as they are left behind.
-        domain.setReplayGiveUpDelay(TEST_GIVE_UP_DELAY_IN_MS);
         /*
          * Fail the replay the way a storage failure does: the backend reports it with the
          * server-error-result-code, 80 by default. The short circuit has to be set at the
@@ -1521,7 +1523,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       finally
       {
         ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
-        domain.setReplayGiveUpDelay(giveUpDelay);
+        resetReplayGiveUpDelay();
       }
     }
     finally
@@ -2016,11 +2018,10 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
       final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
-      final long giveUpDelay = domain.getReplayGiveUpDelay();
+      // Two changes have to be given up on here, so the budget is shortened the same way.
+      setReplayGiveUpDelay(TEST_GIVE_UP_DELAY);
       try
       {
-        // Both are put back by the finally below, so both are set inside the try.
-        domain.setReplayGiveUpDelay(TEST_GIVE_UP_DELAY_IN_MS);
         ShortCircuitPlugin.registerShortCircuit(
             OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
 
@@ -2058,7 +2059,128 @@ public class UpdateOperationTest extends ReplicationTestCase
       finally
       {
         ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
-        domain.setReplayGiveUpDelay(giveUpDelay);
+        resetReplayGiveUpDelay();
+      }
+    }
+    finally
+    {
+      broker.stop();
+    }
+  }
+
+  /**
+   * Test case for [Issue 901]: a replica whose replay give-up budget is unlimited keeps
+   * asking for a change it can not replay instead of ever recording it as replayed, and
+   * the budget is read from the configuration for every decision - so lowering it takes
+   * effect on the change which is failing right now, without this server being restarted.
+   */
+  @Test
+  public void anUnlimitedReplayGiveUpDelayIsNeverSpent() throws Exception
+  {
+    testSetUp("anUnlimitedReplayGiveUpDelayIsNeverSpent");
+    logger.error(LocalizableMessage.raw("Starting replication test : anUnlimitedReplayGiveUpDelayIsNeverSpent"));
+
+    final int serverId = 18;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    try
+    {
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+
+      Entry tmp = TestCaseUtils.addEntry(
+          "dn: uid=user.901," + baseDN,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "uid: user.901",
+          "cn: Aaccf Amar",
+          "sn: Amar");
+      String uuid = getEntry(tmp.getName(), 1, true).parseAttribute("entryuuid").asString();
+
+      final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+      final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+      // An operator who would rather have this domain stop than have it diverge: the
+      // change is retried for as long as it keeps failing.
+      setReplayGiveUpDelay("unlimited");
+      try
+      {
+        ShortCircuitPlugin.registerShortCircuit(
+            OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
+
+        final CSN csn = gen.newCSN();
+        broker.publish(new DeleteMsg(tmp.getName(), csn, uuid));
+
+        /*
+         * One delivery burns IN_PLACE_REPLAY_ATTEMPTS short circuits before it is handed
+         * back and the session is restarted, so twice that many of them is a change which
+         * was delivered, given back and delivered again - the loop this replica is
+         * deliberately left in.
+         */
+        TestTimer timer = new TestTimer.Builder()
+          .maxSleep(60, SECONDS)
+          .sleepTimes(100, MILLISECONDS)
+          .toTimer();
+        timer.repeatUntilSuccess(new CallableVoid()
+        {
+          @Override
+          public void call() throws Exception
+          {
+            assertTrue(ShortCircuitPlugin.getShortCircuitCount(OperationType.DELETE, "PreParse")
+                    > 2 * IN_PLACE_REPLAY_ATTEMPTS,
+                "the change was not asked for again while the budget was unlimited");
+          }
+        });
+        assertFalse(domain.getServerState().cover(csn),
+            "a replica which never gives up must not record a change it did not apply");
+        /*
+         * The monitor attribute is the only signal this domain has left: a budget which
+         * is never spent raises no alert and counts no failed replay, so the change this
+         * replica keeps asking for is visible here and nowhere else. It counts changes
+         * rather than deliveries, so the redeliveries above leave it at one.
+         */
+        assertMonitorAttrValueEventually(baseDN, "changes-with-failed-replay", 1,
+            "the change which keeps failing must be counted, once, as a failing change");
+        /*
+         * The change was delivered at least twice by now, so a counter which was bumped
+         * per delivery rather than per change would already be past the value which is
+         * being watched: what this asserts is carried by the value itself rather than by
+         * how long the window is, which is why the default number of samples is enough
+         * here - a window covering a redelivery would have to outlast a backoff which has
+         * been climbing since the first failure.
+         */
+        assertMonitorAttrValueStays(baseDN, "replayed-updates-failed", initialFailures,
+            "no change may be counted as failed while the budget is unlimited");
+
+        /*
+         * The budget is read for every decision, so the failure which comes next spends
+         * this one: the change this replica was holding on to is given up on without the
+         * server, or the domain, being restarted for the new value to be seen.
+         */
+        setReplayGiveUpDelay("0ms");
+        TestTimer giveUpTimer = new TestTimer.Builder()
+          .maxSleep(120, SECONDS)
+          .sleepTimes(200, MILLISECONDS)
+          .toTimer();
+        giveUpTimer.repeatUntilSuccess(new CallableVoid()
+        {
+          @Override
+          public void call() throws Exception
+          {
+            assertTrue(domain.getServerState().cover(csn),
+                "a budget which was lowered must be spent by the change which is failing");
+          }
+        });
+        assertMonitorAttrValueEventually(baseDN, "replayed-updates-failed", initialFailures + 1,
+            "the change which was given up on must be counted once");
+        assertMonitorAttrValueEventually(baseDN, "changes-with-failed-replay", 0,
+            "a change which was given up on leaves the pending changes and stops being counted");
+        assertNotNull(getEntry(tmp.getName(), 1, true), "the entry must not have been deleted");
+      }
+      finally
+      {
+        ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
+        resetReplayGiveUpDelay();
       }
     }
     finally
@@ -2543,6 +2665,39 @@ public class UpdateOperationTest extends ReplicationTestCase
   }
 
   /**
+   * Sets how long the domain of this test retries the replay of a change before it gives
+   * up on it, the way an administrator would.
+   * <p>
+   * A backend under maintenance is waited out for minutes, which no test can afford: the
+   * budget is spent over a couple of deliveries instead. The domain reads the property for
+   * every decision it makes, so this takes effect on a change which is failing right now,
+   * and none of the values it takes stops or starts the session.
+   * <p>
+   * The domain outlives the test methods, so a test which shortens the budget puts it back
+   * with {@link #resetReplayGiveUpDelay()} in a finally, and calls this one before that
+   * try: the reset then only ever runs on an attribute which is there to be removed.
+   *
+   * @param delay
+   *          the budget in the duration syntax of the property: {@code 2000ms},
+   *          {@code 0ms} to give up as soon as one delivery of the change failed,
+   *          {@code unlimited} never to give up on it
+   */
+  private void setReplayGiveUpDelay(String delay)
+  {
+    modifyDomainConfig(synchroServerEntry.getName(), REPLACE, ATTR_REPLAY_GIVE_UP_DELAY, delay);
+  }
+
+  /**
+   * Puts the configured replay give-up budget of the domain of this test back, that is the
+   * default of the property: the domain outlives the test methods, so a shortened budget
+   * which is left behind is the next test's too.
+   */
+  private void resetReplayGiveUpDelay()
+  {
+    modifyDomainConfig(synchroServerEntry.getName(), DELETE, ATTR_REPLAY_GIVE_UP_DELAY);
+  }
+
+  /**
    * Enable or disable the receive status of a synchronization provider.
    *
    * @param syncConfigDN The DN of the synchronization provider configuration
@@ -2552,10 +2707,7 @@ public class UpdateOperationTest extends ReplicationTestCase
    */
   private static void setReceiveStatus(DN syncConfigDN, boolean enable)
   {
-    String attrValue = enable ? "TRUE" : "FALSE";
-    ModifyRequest request = modifyRequest(syncConfigDN, REPLACE, "ds-cfg-receive-status", attrValue);
-    ModifyOperation modOp = getRootConnection().processModify(request);
-    assertEquals(modOp.getResultCode(), ResultCode.SUCCESS, "Cannot set receive status");
+    modifyDomainConfig(syncConfigDN, REPLACE, "ds-cfg-receive-status", enable ? "TRUE" : "FALSE");
   }
 
   /**

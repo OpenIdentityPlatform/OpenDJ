@@ -211,11 +211,17 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   }
 
   /**
-   * Creates a domain using the passed assured settings.
+   * Creates a domain using the passed assured settings, plus the passed configuration
+   * lines, which are put on the entry the domain is created from.
    * Returns the matching config entry added to the config backend.
+   * <p>
+   * A property the domain must have from the start belongs here rather than in a
+   * configuration change made afterwards: a change stops and starts the session when what
+   * it changes calls for it, and the FakeReplicationServer these domains talk to is not
+   * built to be reconnected to.
    */
   private Entry createAssuredDomain(AssuredMode assuredMode, int safeDataLevel,
-    long assuredTimeout) throws Exception
+    long assuredTimeout, String... extraConfigLdifLines) throws Exception
   {
     String baseDn = null;
     switch (assuredMode)
@@ -242,6 +248,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // heartbeat = 10 min so no need to emulate heartbeat in fake RS: session
       // not closed by client
      "ds-cfg-changetime-heartbeat-interval: 0ms\n";
+    for (String extraLine : extraConfigLdifLines)
+    {
+      prefixLdif += extraLine + "\n";
+    }
 
     String configEntryLdif = null;
     switch (assuredMode)
@@ -1194,7 +1204,18 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         true, testcase);
       replicationServer.start(NO_READ);
 
-      safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0, TIMEOUT);
+      /*
+       * A change which keeps failing is asked for again over a restarted session until
+       * this replica gives up on it. That is right, and it is not what this test is
+       * about: the FakeReplicationServer is not built to be reconnected to, and the
+       * restarts would run on while the assertions and the teardown below take their
+       * course. A give-up delay of zero has the first failed delivery spend the whole
+       * budget, so the change is given up on where it is reported and no session is
+       * restarted: the ack of this delivery is published either way - it is sent before
+       * the give-up is decided - and the domain settles instead of reconnecting.
+       */
+      safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0, TIMEOUT,
+          "ds-cfg-replay-give-up-delay: 0ms");
       waitForConnectionToRs(testcase, replicationServer);
 
       Entry entry = makeEntry(
@@ -1203,9 +1224,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           "objectClass: organizationalUnit");
       String parentUid = getEntryUUID(DN.valueOf(SAFE_READ_DN));
 
-      final LDAPReplicationDomain domain =
-          MultimasterReplication.findDomain(DN.valueOf(SAFE_READ_DN), null);
-      final long giveUpDelay = domain.getReplayGiveUpDelay();
       try
       {
         /*
@@ -1219,17 +1237,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
          */
         ShortCircuitPlugin.registerShortCircuit(
             OperationType.ADD, "PreParse", ResultCode.OTHER.intValue());
-        /*
-         * A change which keeps failing is asked for again over a restarted session until
-         * this replica gives up on it. That is right, and it is not what this test is
-         * about: the FakeReplicationServer is not built to be reconnected to, and the
-         * restarts would run on while the assertions and the teardown below take their
-         * course. A give-up delay of zero has the first failure spend the whole budget, so
-         * the change is given up on where it is reported and no session is restarted: the
-         * ack of this delivery is published either way - it is sent before the give-up is
-         * decided - and the domain settles instead of reconnecting.
-         */
-        domain.setReplayGiveUpDelay(0);
         AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
 
         assertNull(DirectoryServer.getEntry(entry.getName()), "the entry must not have been added");
@@ -1258,7 +1265,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       }
       finally
       {
-        domain.setReplayGiveUpDelay(giveUpDelay);
         ShortCircuitPlugin.deregisterShortCircuit(OperationType.ADD, "PreParse");
       }
     } finally
