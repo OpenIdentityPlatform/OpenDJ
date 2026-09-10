@@ -3629,6 +3629,21 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   // get the current DN of this entry in the database.
   DN currentDN = findEntryDN(entryUUID);
 
+  if (currentDN == null)
+  {
+    /*
+     * The entry targeted by the Modify DN is not in the database anymore.
+     * This is a conflict between a delete and this modify DN.
+     * The entry has been deleted, we can safely assume that the operation is completed.
+     *
+     * This is answered before the new superior is looked up, and before the branch which
+     * marks the entry as conflicting: an entry which is not in the database can not be
+     * marked, and the delete has already settled what this Modify DN was trying to do.
+     */
+    numResolvedNamingConflicts.incrementAndGet();
+    return ConflictResolution.NOTHING_TO_DO;
+  }
+
   // Construct the new DN to use for the entry.
   DN entryDN = op.getEntryDN();
   DN newSuperior;
@@ -3656,17 +3671,6 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   }
 
   DN newDN = newSuperior.child(newRDN);
-
-  if (currentDN == null)
-  {
-    // The entry targeted by the Modify DN is not in the database
-    // anymore.
-    // This is a conflict between a delete and this modify DN.
-    // The entry has been deleted, we can safely assume
-    // that the operation is completed.
-    numResolvedNamingConflicts.incrementAndGet();
-    return ConflictResolution.NOTHING_TO_DO;
-  }
 
   // if the newDN and the current DN match then the operation
   // is a no-op (this was probably a second replay)
