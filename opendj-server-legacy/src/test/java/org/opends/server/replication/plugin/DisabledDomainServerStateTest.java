@@ -64,15 +64,7 @@ public class DisabledDomainServerStateTest extends ReplicationTestCase
     LDAPReplicationDomain domain = null;
     try
     {
-      // No replication server is listening: the domain accepts the changes
-      // anyway, which is all this test needs it to do.
-      final SortedSet<String> replServers = new TreeSet<>();
-      replServers.add("localhost:" + TestCaseUtils.findFreePort());
-      final DomainFakeCfg domainConf = new DomainFakeCfg(baseDN, 1, replServers);
-      domainConf.setHeartbeatInterval(100000);
-      domainConf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
-      domain = MultimasterReplication.createNewDomain(domainConf);
-      domain.start();
+      domain = startDisconnectedDomain(baseDN);
 
       // A change of our own gives the domain a position to lose.
       final ModifyOperation op = getRootConnection().processModify(
@@ -100,6 +92,74 @@ public class DisabledDomainServerStateTest extends ReplicationTestCase
         MultimasterReplication.deleteDomain(baseDN);
       }
     }
+  }
+
+  /**
+   * An online {@code import-ldif} on a replicated backend reaches
+   * {@code disable()} twice, and unlike the interleaving above this is not a
+   * race: it happens every time. The task disables the domain from
+   * {@code notifyImportBeginning} (MultimasterReplication:671), and the backend
+   * it disables next has the domain disabled again through the backend
+   * initialization listener it registers (LDAPReplicationDomain:279-287) -
+   * nothing keeps that second call out, since the flag which would,
+   * {@code ignoreBackendInitializationEvent}, belongs to the total update road.
+   * A restore of a replicated backend takes the same pair.
+   * <p>
+   * The first call saves the position and drops the copy in memory; the second
+   * one must not write that dropped copy over what the first one saved. The road
+   * where it costs the most is the one on which the import then leaves the data
+   * alone - an exclusive lock it could not take, for instance: the domain is
+   * enabled back with no position over data which still holds every change it
+   * had replayed.
+   */
+  @Test
+  public void aDomainDisabledTwiceKeepsItsPersistedState() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    LDAPReplicationDomain domain = null;
+    try
+    {
+      domain = startDisconnectedDomain(baseDN);
+
+      // A change of our own gives the domain a position to lose.
+      final ModifyOperation op = getRootConnection().processModify(
+          modifyRequest(baseDN, REPLACE, "description", "test"));
+      assertEquals(op.getResultCode(), ResultCode.SUCCESS, op.getAdditionalLogItems().toString());
+
+      // The task disabling the domain, which is what saves the position.
+      domain.disable();
+      final List<String> saved = persistedState(baseDN);
+      assertFalse(saved.isEmpty(), "the position was not saved to " + REPLICATION_STATE + " by disable()");
+
+      // The backend the task disables next, disabling the domain a second time.
+      domain.disable();
+
+      assertEquals(persistedState(baseDN), saved,
+          "the second disable() dropped the position saved in " + REPLICATION_STATE);
+    }
+    finally
+    {
+      if (domain != null)
+      {
+        MultimasterReplication.deleteDomain(baseDN);
+      }
+    }
+  }
+
+  /**
+   * Starts a domain of the given base DN with no replication server to connect
+   * to: it accepts the changes anyway, which is all these tests need it to do.
+   */
+  private LDAPReplicationDomain startDisconnectedDomain(DN baseDN) throws Exception
+  {
+    final SortedSet<String> replServers = new TreeSet<>();
+    replServers.add("localhost:" + TestCaseUtils.findFreePort());
+    final DomainFakeCfg domainConf = new DomainFakeCfg(baseDN, 1, replServers);
+    domainConf.setHeartbeatInterval(100000);
+    domainConf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
+    final LDAPReplicationDomain domain = MultimasterReplication.createNewDomain(domainConf);
+    domain.start();
+    return domain;
   }
 
   /** Returns the values {@code ds-sync-state} carries on the base entry. */
