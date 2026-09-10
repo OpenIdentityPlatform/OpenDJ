@@ -18,6 +18,7 @@ package org.opends.server.replication.server;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.CollectionUtils.newArrayList;
 import static org.opends.server.util.CollectionUtils.newTreeSet;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -246,6 +247,13 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
          * before it would abort on the handshake instead, which is the other test.
          */
         inbound[0] = registerPeerFrom(security, ports[0], registeredAs, baseDN);
+        /*
+         * Waited for rather than assumed: the server registers the handler after it has
+         * sent the topology message the handshake above reads, so the registration lands
+         * just behind this thread -- and a handshake which ends any other way registers
+         * nothing at all, which would leave this case asserting the abort of the other one.
+         */
+        waitForRegistrationUnder(rs, baseDN, registeredAs, REPORT_TIMEOUT_MS);
 
         final AtomicBoolean serving = new AtomicBoolean(true);
         try (ServerSocket peerSocket = bindPeerPort(ports[1]))
@@ -334,9 +342,15 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
       // above asked for it not to be: both ends leave the SSL session together, right after
       // the start messages have been exchanged.
       session.stopEncryption();
-      // The second phase: the server reads this one before it sends its own, and registers
-      // the handler once it has sent it.
-      session.publish(new TopologyMsg(Collections.<DSInfo> emptyList(), Collections.<RSInfo> emptyList()));
+      /*
+       * The second phase: the server reads this one before it sends its own, and registers
+       * the handler once it has sent it. The list holds this peer and nothing else --
+       * waitAndProcessTopoFromRemoteRS() reads rsInfos.get(0) above protocol version 4, so
+       * an empty one ends the handshake on an IndexOutOfBoundsException instead, which is
+       * an abort like any other and would leave the peer unregistered.
+       */
+      final RSInfo peerInfo = new RSInfo(PEER_RS_ID, registeredAs.toString(), -1, (byte) 1, 1);
+      session.publish(new TopologyMsg(Collections.<DSInfo> emptyList(), newArrayList(peerInfo)));
       session.receive();
       return session;
     }
@@ -346,6 +360,45 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
       close(socket);
       throw e;
     }
+  }
+
+  /**
+   * Waits for the domain of the provided server to hold a handler for the fake peer under
+   * the provided address URL.
+   * <p>
+   * That handler is what makes the outbound handshake of the case reach
+   * {@code ERR_DUPLICATE_REPLICATION_SERVER_ID}: the server ids match and the address URLs
+   * do not. Without it the handshake ends on the second phase instead, which is an abort as
+   * well and reports the same message -- the case would pass while pinning the wrong path.
+   *
+   * @param rs
+   *          The server under test.
+   * @param baseDN
+   *          The base DN of the domain the peer registered with.
+   * @param registeredAs
+   *          The address URL the peer is expected to be registered under.
+   * @param timeoutMs
+   *          How long to wait for the registration, in milliseconds.
+   */
+  private void waitForRegistrationUnder(ReplicationServer rs, DN baseDN, HostPort registeredAs, long timeoutMs)
+      throws Exception
+  {
+    final long deadline = System.currentTimeMillis() + timeoutMs;
+    ReplicationServerHandler registered;
+    while (true)
+    {
+      registered = rs.getReplicationServerDomain(baseDN).getConnectedRSs().get(PEER_RS_ID);
+      if (registered != null || System.currentTimeMillis() > deadline)
+      {
+        break;
+      }
+      Thread.sleep(50);
+    }
+    assertThat(registered).as("the peer should have registered with the domain").isNotNull();
+    assertThat(registered.getServerAddressURL())
+        .as("the peer should be registered under the address its start message named, which is"
+            + " not the one it is configured under")
+        .isEqualTo(registeredAs.toString());
   }
 
   /**
