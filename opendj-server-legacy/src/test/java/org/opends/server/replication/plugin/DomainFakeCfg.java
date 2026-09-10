@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -249,6 +250,20 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   public AssuredType getAssuredType()
   {
     return assuredType;
+  }
+
+  /**
+   * Returns how long the replay of a change is retried before the domain gives up on it.
+   * <p>
+   * The default the property was given, spelled out here like the other values of this
+   * fake configuration: no test varies the budget on a domain built from one.
+   *
+   * @return the budget in milliseconds
+   */
+  @Override
+  public long getReplayGiveUpDelay()
+  {
+    return 300000;
   }
 
   @Override

@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -57,6 +58,17 @@ public class NamingConflictTest extends ReplicationTestCase
 
   private TestSynchronousReplayQueue queue;
 
+  /**
+   * The result code to put back in {@code ds-cfg-server-error-result-code}, or
+   * {@code null} when this test did not change it.
+   * <p>
+   * The setting is server-wide, so it is put back by {@link #tearDown()} rather than by
+   * the test which changed it: a method the harness kills on its timeout, or interrupts
+   * inside a replay, would otherwise leave every later method of this class replaying
+   * against a result code it never asked for.
+   */
+  private Integer serverErrorResultCodeToRestore;
+
   @BeforeMethod
   public void setUpLocal() throws Exception
   {
@@ -77,7 +89,19 @@ public class NamingConflictTest extends ReplicationTestCase
   @AfterMethod
   public void tearDown() throws Exception
   {
-    MultimasterReplication.deleteDomain(baseDN);
+    try
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+    }
+    finally
+    {
+      if (serverErrorResultCodeToRestore != null)
+      {
+        final int resultCode = serverErrorResultCodeToRestore;
+        serverErrorResultCodeToRestore = null;
+        setServerErrorResultCode(resultCode);
+      }
+    }
   }
 
   /**
@@ -117,6 +141,67 @@ public class NamingConflictTest extends ReplicationTestCase
       throws Exception
   {
     return new ModifyDNMsg(entry.getName(), csn, entryUUID, parentUUID, false, TEST_ROOT_DN_STRING, newRDN);
+  }
+
+  /**
+   * Test case for [Issue 910]: a naming conflict which
+   * {@code solveNamingConflict(ModifyDNOperation)} solves must still be solved while
+   * {@code ds-cfg-server-error-result-code} is set to one of the result codes conflict
+   * resolution owns.
+   * <p>
+   * That setting is a plain integer which is not validated as a result code, so it can be
+   * one of them. Here it is {@code UNWILLING_TO_PERFORM}, which is what a ModifyDN whose
+   * new superior is - on this replica - a subordinate of the entry being moved comes back
+   * with, and only conflict resolution can turn such a change into an operation which
+   * applies: it resolves both DNs again from the entryUUIDs the message carries. Reading
+   * the code as a failure of the server would take the change away from it - the message
+   * would never be rewritten, so no attempt would apply any better than the first - and
+   * the change would be retried in place, delivered again and finally given up on, with
+   * the entry left where it was.
+   * <p>
+   * {@code UpdateOperationTest.changeConflictResolutionCanNotSolveOnTheServerErrorCodeIsRetried}
+   * covers the other half: a change which fails with that same code and which conflict
+   * resolution can not solve is retried as the failure of the server it is.
+   */
+  @Test
+  public void modifyDnConflictIsSolvedWhileTheServerErrorCodeIsOneOfTheConflictCodes() throws Exception
+  {
+    final Entry entry = createAndAddEntry("modDnOnConflictingServerErrorCode");
+    final String entryUUID = getEntryUUID(entry.getName());
+
+    final Entry newParent = TestCaseUtils.addEntry(
+        "dn: ou=newParent," + TEST_ROOT_DN_STRING,
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "ou: newParent");
+    final String newParentUUID = getEntryUUID(newParent.getName());
+
+    // Remembered for tearDown() rather than restored here: the code which is in force,
+    // which is the defined default unless the suite configured another one, and never a
+    // value hardcoded by this test.
+    serverErrorResultCodeToRestore =
+        getServerContext().getCoreConfigManager().getServerErrorResultCode().intValue();
+    setServerErrorResultCode(ResultCode.UNWILLING_TO_PERFORM.intValue());
+
+    /*
+     * The new superior as the master knew it: a DN which, here, is a subordinate of the
+     * entry being moved - as it would be after that parent was renamed on this replica.
+     * The operation reports UNWILLING_TO_PERFORM for as long as the message carries that
+     * DN - ERR_MODDN_NEW_SUPERIOR_IN_SUBTREE, and the memory backend answers the same on
+     * a new superior which is not in it - so the change is applied only if conflict
+     * resolution gets to rewrite the message with the DNs the entryUUIDs resolve to here.
+     */
+    final String staleNewSuperior = "ou=newParent," + entry.getName();
+    final CSN csn = gen.newCSN();
+    replayMsg(new ModifyDNMsg(entry.getName(), csn, entryUUID, newParentUUID, false,
+        staleNewSuperior, entry.getName().rdn().toString()));
+
+    final DN resolvedDN = newParent.getName().child(entry.getName().rdn());
+    assertTrue(entryExists(resolvedDN),
+        "the naming conflict was not solved: no entry at " + resolvedDN);
+    assertFalse(entryExists(entry.getName()), "the entry was not moved by the replayed ModifyDN");
+    assertTrue(domain.getServerState().cover(csn),
+        "a change which was applied must be recorded as replayed");
   }
 
   /**

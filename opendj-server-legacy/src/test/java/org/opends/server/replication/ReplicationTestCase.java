@@ -57,6 +57,7 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.loggers.ErrorLogPublisher;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.TextErrorLogPublisher;
@@ -106,6 +107,16 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   /** Generation id for a fully empty domain. */
   public static final long EMPTY_DN_GENID = GenerationIdChecksum.EMPTY_BACKEND_GENERATION_ID;
+
+  /** The group a replication server and a replication domain are in unless told otherwise. */
+  protected static final int DEFAULT_GROUP_ID = 1;
+
+  /**
+   * The group of a broker which is in none. Assured replication does not cross group ids,
+   * so such a broker is never waited for and never waits: it is all a broker which only
+   * publishes and reads updates needs.
+   */
+  private static final int NO_GROUP_ID = -1;
 
   /** How many times {@link #assertMonitorAttrValueStays} reads a value by default. */
   private static final int MONITOR_ATTR_SAMPLES = 5;
@@ -246,7 +257,42 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       int serverId, int windowSize, int port, int timeout,
       long generationId) throws Exception
   {
-    final DomainFakeCfg config = newFakeCfg(baseDN, serverId, port);
+    return openReplicationSession(
+        newFakeCfg(baseDN, serverId, port), windowSize, timeout, generationId);
+  }
+
+  /**
+   * Open a session to the local ReplicationServer which takes part in assured replication.
+   * <p>
+   * Assured replication does not cross group ids, so a broker whose updates are to be
+   * acknowledged by the replicas of this server has to be in the group of the replication
+   * server: an update published by a broker of another group is acknowledged on the spot,
+   * by the replication server itself, and says nothing about what any replica did with it.
+   * <p>
+   * The group cuts both ways, and this broker does not acknowledge anything: the
+   * replication server expects an ack from every replica of its group whatever that
+   * replica is configured for, so a SAFE_READ update published by anyone else while this
+   * broker is connected waits out the {@code assured-timeout} of the server. Publish the
+   * assured updates from this broker, and open only one of them.
+   *
+   * @param baseDN the suffix the session is opened for
+   * @param serverId the id this broker takes
+   * @param windowSize the window size of the session
+   * @param port the port of the local replication server
+   * @param timeout the read timeout of the session, or 0 for none
+   * @return the connected broker
+   * @throws Exception if the session could not be opened
+   */
+  protected ReplicationBroker openAssuredReplicationSession(final DN baseDN,
+      int serverId, int windowSize, int port, int timeout) throws Exception
+  {
+    return openReplicationSession(newFakeCfg(baseDN, serverId, port, DEFAULT_GROUP_ID),
+        windowSize, timeout, getGenerationId(baseDN));
+  }
+
+  private ReplicationBroker openReplicationSession(final DomainFakeCfg config,
+      int windowSize, int timeout, long generationId) throws Exception
+  {
     config.setWindowSize(windowSize);
 
     final ReplicationBroker broker = new ReplicationBroker(
@@ -258,7 +304,13 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   protected DomainFakeCfg newFakeCfg(final DN baseDN, int serverId, int port)
   {
-    DomainFakeCfg fakeCfg = new DomainFakeCfg(baseDN, serverId, newTreeSet("127.0.0.1:" + port));
+    return newFakeCfg(baseDN, serverId, port, NO_GROUP_ID);
+  }
+
+  protected DomainFakeCfg newFakeCfg(final DN baseDN, int serverId, int port, int groupId)
+  {
+    DomainFakeCfg fakeCfg =
+        new DomainFakeCfg(baseDN, serverId, newTreeSet("127.0.0.1:" + port), groupId);
     fakeCfg.setHeartbeatInterval(100000);
     fakeCfg.setChangetimeHeartbeatInterval(500);
     return fakeCfg;
@@ -494,6 +546,28 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerEntryLdif);
     addConfigEntry(synchroServerEntry, "Unable to add the synchronized server");
+  }
+
+  /**
+   * Sets the result code this server puts on an internal error, the way an administrator
+   * would, and asserts that the change was applied.
+   * <p>
+   * The setting is server-wide, so a test which changes it owns putting it back - after
+   * a failure of its own as well, which is why the caller's tearDown() is the place for
+   * that rather than a finally in the test body: an assertion failure raised while
+   * restoring would otherwise replace the failure the test was reporting.
+   *
+   * @param resultCode the numeric result code
+   * @throws Exception if the modification could not be run at all
+   */
+  protected static void setServerErrorResultCode(int resultCode) throws Exception
+  {
+    assertEquals(TestCaseUtils.applyModifications(true,
+        "dn: cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-server-error-result-code",
+        "ds-cfg-server-error-result-code: " + resultCode), 0,
+        "the server error result code could not be changed");
   }
 
   private void addConfigEntry(Entry configEntry, String errorMessage) throws Exception
@@ -789,6 +863,44 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected static ModifyRequest modifyRequest(DN entryDN, ModificationType modType, String attrName, String attrValue)
   {
     return Requests.newModifyRequest(entryDN).addModification(modType, attrName, attrValue);
+  }
+
+  /**
+   * Applies a modification to the configuration entry of a replication domain, the way an
+   * administrator would, and checks that it was applied.
+   * <p>
+   * The domain reads its configuration for every decision it makes, so a property changed
+   * here takes effect on what the domain is doing right now.
+   *
+   * @param domainConfigDN
+   *          the DN of the configuration entry of the domain
+   * @param modType
+   *          the modification to apply, {@link ModificationType#DELETE} with no value
+   *          taking an attribute away so that its property falls back to its default
+   * @param attrName
+   *          the configuration attribute to modify
+   * @param values
+   *          the values to set, none when the attribute is being deleted
+   */
+  protected static void modifyDomainConfig(
+      DN domainConfigDN, ModificationType modType, String attrName, String... values)
+  {
+    final ModifyRequest request = Requests.newModifyRequest(domainConfigDN)
+        .addModification(modType, attrName, (Object[]) values);
+    final ModifyOperation modOp =
+        InternalClientConnection.getRootConnection().processModify(request);
+    if (modType == DELETE && modOp.getResultCode() == NO_SUCH_ATTRIBUTE)
+    {
+      /*
+       * The attribute is already gone, which is what the delete was asking for. Said here
+       * rather than at the call sites because a delete is how a test puts a property back
+       * to its default in a finally: a cleanup which throws would replace the failure it
+       * is cleaning up after, and say nothing about it.
+       */
+      return;
+    }
+    assertEquals(modOp.getResultCode(), SUCCESS,
+        "Cannot " + modType + " " + attrName + " on " + domainConfigDN);
   }
 
   /** Utility method to create, run a task and check its result. */
