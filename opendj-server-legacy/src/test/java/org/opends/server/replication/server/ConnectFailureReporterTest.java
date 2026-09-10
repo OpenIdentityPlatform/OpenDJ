@@ -78,7 +78,7 @@ public class ConnectFailureReporterTest extends DirectoryServerTestCase
 
     reporter.recordFailure(PEER, DOMAIN);
 
-    assertThat(reporter.recordSuccess(PEER, DOMAIN))
+    assertThat(reporter.recordConnected(PEER, DOMAIN))
         .as("the failure was reported, so the recovery has to be reported as well").isTrue();
   }
 
@@ -87,11 +87,79 @@ public class ConnectFailureReporterTest extends DirectoryServerTestCase
   {
     final ConnectFailureReporter reporter = new ConnectFailureReporter();
 
-    assertThat(reporter.recordSuccess(PEER, DOMAIN))
+    assertThat(reporter.recordConnected(PEER, DOMAIN))
         .as("every connection the topology establishes would otherwise be reported").isFalse();
     reporter.recordFailure(OTHER_PEER, DOMAIN);
-    assertThat(reporter.recordSuccess(PEER, DOMAIN))
+    assertThat(reporter.recordConnected(PEER, DOMAIN))
         .as("the failure of another peer is not this peer's").isFalse();
+  }
+
+  @Test
+  public void aPeerWhichAnswersWithoutASessionAfterAnOutageIsReported() throws Exception
+  {
+    final ConnectFailureReporter reporter = new ConnectFailureReporter();
+
+    reporter.recordFailure(PEER, DOMAIN);
+
+    assertThat(reporter.recordReachableWithoutSession(PEER, DOMAIN))
+        .as("a peer which was reported unreachable and now answers is no longer unreachable,"
+            + " and what it is instead is not what the outage said").isTrue();
+  }
+
+  @Test
+  public void aPeerWhichAnswersWithoutASessionWithoutAnOutageIsNotReported() throws Exception
+  {
+    final ConnectFailureReporter reporter = new ConnectFailureReporter();
+
+    assertThat(reporter.recordReachableWithoutSession(PEER, DOMAIN))
+        .as("nothing was reported about this peer, so there is no outage to close: an abort"
+            + " which reports itself is the handshake's to report").isFalse();
+  }
+
+  @Test
+  public void aPeerWhichKeepsAnsweringWithoutASessionIsReportedOnce() throws Exception
+  {
+    final ConnectFailureReporter reporter = new ConnectFailureReporter();
+
+    reporter.recordFailure(PEER, DOMAIN);
+    reporter.recordReachableWithoutSession(PEER, DOMAIN);
+
+    assertThat(reporter.recordReachableWithoutSession(PEER, DOMAIN))
+        .as("the connect thread retries every few seconds, and a peer which aborts every"
+            + " handshake would otherwise be reported on each of them").isFalse();
+  }
+
+  /**
+   * The recovery which follows an answer without a session is the one a present-or-absent
+   * record cannot report: the answer would have consumed the record, and the handshake which
+   * completes seconds later would find nothing left to close. A peer restarting takes that
+   * path -- its port answers before its domains are up -- and the operator would be left with
+   * a warning saying no change is replicated over a connection which is replicating.
+   */
+  @Test
+  public void aSessionEstablishedAfterAnAnswerWithoutOneIsReported() throws Exception
+  {
+    final ConnectFailureReporter reporter = new ConnectFailureReporter();
+
+    reporter.recordFailure(PEER, DOMAIN);
+    reporter.recordReachableWithoutSession(PEER, DOMAIN);
+
+    assertThat(reporter.recordConnected(PEER, DOMAIN))
+        .as("the last thing reported about this peer said it had no session, so the session"
+            + " it now has has to be reported").isTrue();
+  }
+
+  @Test
+  public void aPeerWhichGoesDownAfterAnsweringWithoutASessionIsReportedAgain() throws Exception
+  {
+    final ConnectFailureReporter reporter = new ConnectFailureReporter();
+
+    reporter.recordFailure(PEER, DOMAIN);
+    reporter.recordReachableWithoutSession(PEER, DOMAIN);
+
+    assertThat(reporter.recordFailure(PEER, DOMAIN))
+        .as("a peer which answered and now does not is unreachable again, which is not what"
+            + " the answer without a session reported").isTrue();
   }
 
   @Test
@@ -133,7 +201,7 @@ public class ConnectFailureReporterTest extends DirectoryServerTestCase
     final ConnectFailureReporter reporter = new ConnectFailureReporter();
 
     reporter.recordFailure(PEER, DOMAIN);
-    reporter.recordSuccess(PEER, DOMAIN);
+    reporter.recordConnected(PEER, DOMAIN);
 
     assertThat(reporter.recordFailure(PEER, DOMAIN))
         .as("a peer which goes down again is a new failure, not the one already reported").isTrue();

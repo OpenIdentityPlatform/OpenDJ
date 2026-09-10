@@ -755,11 +755,11 @@ public class ReplicationServer
      * The outage closed here is a failure to connect, and reaching this line is the peer
      * answering on its replication port: everything WARN_REPLICATION_SERVER_CONNECT_ERROR
      * is reported for is above it -- the socket and the session built on it, the handshake
-     * throwing nothing of its own. So the record is cleared whatever the handshake did
-     * next, and what the handshake did next decides which recovery is reported rather than
+     * throwing nothing of its own. So the outage is closed whatever the handshake did next,
+     * and what the handshake did next decides which recovery is reported rather than
      * whether one is.
      *
-     * Clearing it on the connection alone is what keeps the peers this server never sees
+     * Closing it on the connection alone is what keeps the peers this server never sees
      * connected under the address it dialled reportable, and there is one of those for each
      * narrower reading:
      *
@@ -776,15 +776,19 @@ public class ReplicationServer
      * server id: abortStart() closes the session, and an open session is never seen here
      * again.
      *
-     * A record left uncleared is not a line too few but a peer gone silent: recordFailure()
+     * An outage left open is not a line too few but a peer gone silent: recordFailure()
      * returns false from then on, so the next real outage of it is not reported at all.
      *
      * What the handshake did next is reported all the same, because it is not the log which
-     * can be left to it: two of the three aborts of ReplicationServerHandler.connect() pass
-     * no message, and abortStart() logs nothing without one. A peer which answers and stops
-     * the handshake -- its own duplicate server id, a cross connect it resolves against this
-     * server, a shutdown under way -- would otherwise leave "connected" as the last thing
-     * said about a domain which has no session for it.
+     * can be left to it. ReplicationServerHandler.connect() aborts at seven places, and the
+     * three which pass no message log nothing at all, abortStart() logging nothing without
+     * one: a StopMsg read where the peer's ReplServerStartMsg was due, a cross connect this
+     * server resolves against a peer it is already connected to, and a phase two the peer
+     * leaves unanswered. Those would otherwise leave "connected" as the last thing said
+     * about a domain which has no session for it. The remaining four are this server
+     * rejecting the peer, and abortStart() logs their reason here, next to what this
+     * reports, which is why the message reported for an answer without a session does not
+     * send the operator to the log of the peer for a reason which may be in this one.
      */
     reportConnectionRestored(remoteServerAddress, baseDN, handshakeCompleted);
     return handshakeCompleted;
@@ -792,14 +796,18 @@ public class ReplicationServer
 
   /**
    * Reports that a peer this replication server had reported it could not connect to can be
-   * reached again, and does nothing when it had reported nothing about that peer.
+   * reached again, and does nothing when what is now true of that peer is what was last
+   * reported about it.
    * <p>
-   * The record is cleared either way, because it holds an outage of the peer rather than a
-   * session with it: leaving it for a peer which answers would silence the next real outage
-   * of that peer, and a peer which answers and aborts every handshake answers. Which of the
-   * two recoveries is reported is the difference, and it is a difference the operator has to
-   * be able to read: a peer which stops the handshake is one this server can reach and has
-   * no session with, which is not what "connected" says.
+   * A peer which answers is no longer the peer the outage was reported for, whether the
+   * handshake completed or not: leaving the outage recorded for one which answers and aborts
+   * every handshake would silence its next real outage. But the two are not the same
+   * recovery, and the difference is one the operator has to be able to read -- a peer which
+   * stops the handshake is one this server can reach and has no session with, which is not
+   * what "connected" says -- so each moves the peer to a state of its own rather than
+   * clearing what is known about it. That is what leaves the session established after an
+   * abort still reportable: it is a recovery from the answer without a session, which the
+   * clearing form had already consumed.
    *
    * @param remoteServerAddress
    *          The address of the peer which answered.
@@ -812,16 +820,16 @@ public class ReplicationServer
   private void reportConnectionRestored(final HostPort remoteServerAddress, final DN baseDN,
       final boolean connected)
   {
-    if (connectFailures.recordSuccess(remoteServerAddress, baseDN))
+    if (connected)
     {
-      if (connected)
+      if (connectFailures.recordConnected(remoteServerAddress, baseDN))
       {
         logger.info(NOTE_REPLICATION_SERVER_CONNECT_RESTORED, getServerId(), remoteServerAddress, baseDN);
       }
-      else
-      {
-        logger.warn(WARN_REPLICATION_SERVER_REACHABLE_NO_SESSION, getServerId(), remoteServerAddress, baseDN);
-      }
+    }
+    else if (connectFailures.recordReachableWithoutSession(remoteServerAddress, baseDN))
+    {
+      logger.warn(WARN_REPLICATION_SERVER_REACHABLE_NO_SESSION, getServerId(), remoteServerAddress, baseDN);
     }
   }
 
@@ -833,15 +841,36 @@ public class ReplicationServer
    * The connect thread retries a failed peer every few seconds, for as long as it is down,
    * and a peer being down is a normal state: one stopped for maintenance would otherwise
    * fill the error log for the duration. The failure is reported when it starts and, through
-   * {@link #recordSuccess}, when it ends, so that neither end of it has to be inferred from
-   * a silence.
+   * {@link #recordConnected} and {@link #recordReachableWithoutSession}, when it ends, so
+   * that neither end of it has to be inferred from a silence.
+   * <p>
+   * What is held per peer and domain is the last state which was <em>reported</em>, not
+   * whether an outage is open. A record which is merely present or absent cannot carry the
+   * middle state -- a peer which answers on its replication port and stops the handshake --
+   * because reporting it would consume the record, and the session which is established
+   * seconds later would then find nothing left to close and go unreported. A peer restarting
+   * takes exactly that path: its port answers before its domains are up.
    * <p>
    * Package private for testing.
    */
   static final class ConnectFailureReporter
   {
+    /** What the last message about a peer and a domain said about them. */
+    private enum Reported
+    {
+      /** The peer could not be reached at all: {@code WARN_REPLICATION_SERVER_CONNECT_ERROR}. */
+      DOWN,
+      /**
+       * The peer answered and the handshake did not complete:
+       * {@code WARN_REPLICATION_SERVER_REACHABLE_NO_SESSION}.
+       */
+      REACHABLE_NO_SESSION;
+    }
+
     /**
-     * The domains, by peer, whose failure was reported and whose recovery was not.
+     * What was last reported about each domain of each peer, holding no entry for the peers
+     * and domains nothing was reported about, which a connection to them is therefore not to
+     * be reported for.
      * <p>
      * Keyed by {@link HostPort} rather than by its string form, which is the raw host
      * while equality is on the normalized one: two spellings of the same peer would
@@ -857,7 +886,8 @@ public class ReplicationServer
      * The connect thread is the only one which connects to peers, but a configuration
      * change replaces it, so this is a map two threads may hand over.
      */
-    private final ConcurrentMap<HostPort, Set<DN>> reported = new ConcurrentHashMap<>();
+    private final ConcurrentMap<HostPort, ConcurrentMap<DN, Reported>> reported =
+        new ConcurrentHashMap<>();
 
     /**
      * Records a failure to connect to the provided peer for the provided domain.
@@ -871,24 +901,48 @@ public class ReplicationServer
      */
     boolean recordFailure(final HostPort peer, final DN baseDN)
     {
-      return reported.computeIfAbsent(peer, unused -> ConcurrentHashMap.newKeySet()).add(baseDN);
+      return Reported.DOWN != domainsOf(peer).put(baseDN, Reported.DOWN);
     }
 
     /**
-     * Records a connection established to the provided peer for the provided domain.
+     * Records that the provided peer answered on its replication port for the provided
+     * domain and that the handshake did not complete, so that this server has no session
+     * with it.
+     * <p>
+     * Reported only where an outage was: an abort which carries a reason logs that reason on
+     * this server, and one which does not is the peer's to log. What this closes is the
+     * message which said the peer could not be reached, which is no longer what is wrong
+     * with it.
+     *
+     * @param peer
+     *          The address of the replication server which answered.
+     * @param baseDN
+     *          The base DN of the domain the attempt was for.
+     * @return {@code true} if this is to be reported, {@code false} if nothing was reported
+     *         about that peer or if it was already reported as answering without a session.
+     */
+    boolean recordReachableWithoutSession(final HostPort peer, final DN baseDN)
+    {
+      final ConcurrentMap<DN, Reported> domains = reported.get(peer);
+      return domains != null
+          && Reported.DOWN == domains.replace(baseDN, Reported.REACHABLE_NO_SESSION);
+    }
+
+    /**
+     * Records a session established with the provided peer for the provided domain.
      *
      * @param peer
      *          The address of the replication server which was connected to.
      * @param baseDN
      *          The base DN of the domain the connection is for.
-     * @return {@code true} if this connection ends a failure which was reported and is
+     * @return {@code true} if this session ends something which was reported and is
      *         therefore to be reported as well, {@code false} if nothing was reported about
      *         that peer.
      */
-    boolean recordSuccess(final HostPort peer, final DN baseDN)
+    boolean recordConnected(final HostPort peer, final DN baseDN)
     {
-      final Set<DN> domains = reported.get(peer);
-      return domains != null && domains.remove(baseDN);
+      final ConcurrentMap<DN, Reported> domains = reported.get(peer);
+      return domains != null && domains.remove(baseDN) != null;
     }
 
     /**
@@ -903,10 +957,15 @@ public class ReplicationServer
     void retainAll(final Set<HostPort> peers, final Set<DN> baseDNs)
     {
       reported.keySet().retainAll(peers);
-      for (Set<DN> domains : reported.values())
+      for (ConcurrentMap<DN, Reported> domains : reported.values())
       {
-        domains.retainAll(baseDNs);
+        domains.keySet().retainAll(baseDNs);
       }
+    }
+
+    private ConcurrentMap<DN, Reported> domainsOf(final HostPort peer)
+    {
+      return reported.computeIfAbsent(peer, unused -> new ConcurrentHashMap<>());
     }
   }
 
