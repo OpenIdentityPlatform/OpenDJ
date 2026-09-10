@@ -21,6 +21,7 @@ import org.opends.server.backends.jdbc.JDBCStorage.Dialect;
 import org.opends.server.backends.jdbc.JDBCStorage.StatementBound;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Importer;
+import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.testng.annotations.AfterMethod;
@@ -500,6 +501,59 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 		storage.dropCatalogTables(con, scope, Collections.<TreeName, String>emptyMap());
 
 		assertEquals(issued, emptyList());
+	}
+
+	/**
+	 * The lookup deciding each drop of that loop runs under the same bound as the drop it decides, and
+	 * it answers with a {@link StorageRuntimeException} rather than with the failure the engine gave
+	 * it. A lock this bound ended must be named there too: an operator meeting a bare 55P03 out of a
+	 * clear is the unexplained state this bound exists to stop shipping, and the drop one line away
+	 * would have named the property for the very same wait.
+	 */
+	@Test
+	public void testALockTheLookupOfAClearGaveUpOnNamesTheProperty() throws Exception {
+		final Connection con = engine(postgresConnection.class, "0");
+		final JDBCStorage.TableScope scope = JDBCStorage.TableScope.of(storage, con);
+		final SQLException lockNotAvailable = new SQLException("canceling statement due to lock timeout", "55P03");
+		givingUpOnTheLookup(con, lockNotAvailable);
+
+		try {
+			storage.dropCatalogTables(con, scope, catalogOf(TREE));
+			fail("the clear went through although its lookup gave up on a lock");
+		} catch (StorageRuntimeException e) {
+			assertTrue(e.getCause() instanceof SQLTimeoutException,
+				"the lookup's failure was left as the engine reported it: " + e.getCause());
+			assertTrue(e.getCause().getMessage().contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY),
+				e.getCause().getMessage());
+			assertSame(e.getCause().getCause(), lockNotAvailable, "the failure of the engine was not chained");
+		}
+	}
+
+	/**
+	 * And a failure of that same lookup which was no lock wait is given back exactly as it arrived: the
+	 * rename says one thing about one wait, and a table that is not there or a connection that went
+	 * must not come out of a clear wearing the name of a property that had nothing to do with it.
+	 */
+	@Test
+	public void testAFailureOfTheLookupThatWasNoLockWaitIsLeftExactlyAsItIs() throws Exception {
+		final Connection con = engine(postgresConnection.class, "0");
+		final JDBCStorage.TableScope scope = JDBCStorage.TableScope.of(storage, con);
+		final SQLException noSuchTable = new SQLException("relation does not exist", "42P01");
+		givingUpOnTheLookup(con, noSuchTable);
+
+		try {
+			storage.dropCatalogTables(con, scope, catalogOf(TREE));
+			fail("the clear went through although its lookup failed");
+		} catch (StorageRuntimeException e) {
+			assertSame(e.getCause(), noSuchTable, "a failure that was no lock wait was renamed");
+		}
+	}
+
+	/** A connection whose table lookup answers with the given failure, as the drop loop asks it. */
+	private void givingUpOnTheLookup(final Connection con, final SQLException failure) throws SQLException {
+		final DatabaseMetaData metaData = mock(DatabaseMetaData.class);
+		when(metaData.getTables(any(), any(), any(), any())).thenThrow(failure);
+		when(con.getMetaData()).thenReturn(metaData);
 	}
 
 	/** A catalog naming each of the given trees at the table its name hashes to. */

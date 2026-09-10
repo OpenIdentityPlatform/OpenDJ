@@ -2189,6 +2189,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			return action.run();
 		}catch (SQLException e) {
 			throw gaveUpOnTheLock(e, dialect, seconds, startedAt);
+		}catch (RuntimeException e) {
+			// Not every statement running under this bound answers with the SQLException it was given:
+			// the lookup deciding each drop of a clear wraps whatever it sees in a
+			// StorageRuntimeException (isExistsTable), and it runs inside the same bound as the drop it
+			// decides. Without this, a lock this bound ended reaches an operator as the bare vendor error
+			// one line away from the drop that would have named the property.
+			throw gaveUpOnTheLock(e, dialect, seconds, startedAt);
 		}finally {
 			if (restore!=null) {
 				restoreDdlLockBound(con, dialect, bound, restore);
@@ -2403,6 +2410,28 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			+elapsedMillis+" ms, at the "+seconds+"s of "+DDL_LOCK_TIMEOUT_PROPERTY+": raise that property, or set"
 			+ " it to 0 to wait for the lock as this backend did before it was bounded", e.getSQLState(),
 			e.getErrorCode(), e);
+	}
+
+	/**
+	 * The same rename where the failure arrives unchecked, which is how a statement of the action that
+	 * is not the DDL itself answers: {@link #isExistsTable}, asked once per row by the drop loop of a
+	 * clear, gives back a {@link StorageRuntimeException} holding what the engine said. The chain is
+	 * read for the engine's own way of saying the lock was not available, and that link is put through
+	 * the rename above - so the same wait is named the same way whichever statement of the action was
+	 * the one waiting.
+	 * <p>
+	 * A failure the rename does not apply to is given back exactly as it arrived, keeping its class and
+	 * its stack. One it does apply to is wrapped again, in the class every unchecked failure of this
+	 * storage carries and the class {@link #removeStorageFiles()} reads to decide what it rethrows.
+	 */
+	RuntimeException gaveUpOnTheLock(RuntimeException e, Dialect dialect, int seconds, long startedAt) {
+		final SQLException link=firstLinkMatching(e, WITHOUT_THE_RELEASE, EVERY_LINK,
+			failure -> isLockTimeout(failure, dialect));
+		if (link==null) {
+			return e;
+		}
+		final SQLException renamed=gaveUpOnTheLock(link, dialect, seconds, startedAt);
+		return (renamed==link) ? e : new StorageRuntimeException(renamed);
 	}
 
 	/**
@@ -2860,13 +2889,6 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		}
 	}
 
-	/**
-	 * Drops one table of a clear. It is a method of its own so that the order {@link
-	 * #removeStorageFiles()} drops in can be watched from a test: what names the trees has to outlive
-	 * them, and that guarantee is the loop's - it holds because the loop walks the catalog's map in
-	 * the order that map was built in, and a test asserting on the map instead would go on passing
-	 * over a loop that had stopped doing so.
-	 */
 	/** What the drop loop of a clear did, which {@link #reportClearOutcome} accounts for. */
 	static final class ClearCounts {
 		/** Tables dropped, the catalog of the backend among them. */
@@ -2930,6 +2952,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		});
 	}
 
+	/**
+	 * Drops one table of a clear. It is a method of its own so that the order {@link
+	 * #dropCatalogTables} drops in can be watched from a test: what names the trees has to outlive
+	 * them, and that guarantee is the loop's - it holds because the loop walks the catalog's map in
+	 * the order that map was built in, and a test asserting on the map instead would go on passing
+	 * over a loop that had stopped doing so.
+	 */
 	void dropTable(Connection con, String tableName) throws SQLException {
 		try (final PreparedStatement statement = con.prepareStatement("drop table " + tableName)) {
 			// bulk, as #882 made every drop of this backend: nobody waits on a clear, and what it takes
