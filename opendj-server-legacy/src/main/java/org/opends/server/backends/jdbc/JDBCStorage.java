@@ -4722,7 +4722,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		/** One per index, so that the connection of an index is borrowed once however many trees want it. */
 		private final ConcurrentMap<Integer,Object> borrowing = new ConcurrentHashMap<>();
 		/**
-		 * The indexes the pool had no connection to spare for, whose trees write through the first
+		 * The indexes no connection could be borrowed for, whose trees write through the first
 		 * connection of this import instead. Remembered rather than asked again per tree: there are
 		 * at most {@link #maxConnections} of them, and a tree that lands on one would otherwise pay
 		 * the borrow deadline of the pool over again for the answer the tree before it already got.
@@ -5005,13 +5005,28 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * committed. Before #891 an import held one connection for all of its trees and this is what
 		 * that looked like.
 		 * <p>
-		 * A borrow that ran out of time is answered this way whichever end ran out: the pool at its
-		 * bound, and a database that would take no further connection for the moment - its own
-		 * {@code max_connections}, or one on its way up - are both a connection this import cannot
-		 * have now and has no reason to fail over, holding working connections as it does. Anything
-		 * else - a database that is down, a password that is not accepted, a driver that is not
-		 * there - is the failure of the import it belongs to: sharing a connection would only
-		 * postpone it to the next statement.
+		 * Every answer of the pool and of the database is taken this way, not only the one that ran
+		 * out of time. The pool at its bound, and a database that {@code CachedConnection} waited out
+		 * for the whole deadline, are reported as a {@code SQLTimeoutException} - but a limit of the
+		 * database that its dialect table does not recognize is raised at once instead: a mysql
+		 * account with a {@code MAX_USER_CONNECTIONS} of its own answers 1226 on SQLState 42000, and
+		 * a driver of no known dialect has no vendor code read at all (issue #1011). The type is no
+		 * rule either: a failure whose chain names the credentials of the backend is rebuilt as a
+		 * plain {@code SQLException} whatever the driver threw. Sorting them here would be that
+		 * classification written out a second time, with the failure of a multi-hour import as the
+		 * cost of getting it wrong (issue #1013).
+		 * <p>
+		 * Nothing is hidden by taking them all. The credentials, the driver and the database were
+		 * proved by the borrow this importer was built on, so a later one fails for a reason of the
+		 * database or of the network - and where the database really is gone, the connection this
+		 * import falls back to is gone with it and the next statement fails with what actually
+		 * happened, which is a better report than the failure of a borrow.
+		 * <p>
+		 * An interrupt is not one of those answers: it is how phase two stops an import
+		 * ({@code OnDiskMergeImporter.invokeParallel} gives its threads five seconds to answer one),
+		 * and a thread that met it by writing the tree through another connection would be carrying
+		 * on with the work it was told to drop. It goes back on the thread as well - the wait of a
+		 * borrow clears it - since what reads it next is the executor of phase two.
 		 */
 		private Connection borrowedOrShared(Integer index) {
 			try {
@@ -5020,11 +5035,24 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				// it ends, so an unbounded wait here is a thread waiting for itself - and a long one
 				// is paid over again for every index the pool has no connection to spare for
 				return getConnection(false, CachedConnection.DEFAULT_POOL_TIMEOUT_SECONDS);
-			}catch (SQLTimeoutException e) {
-				logger.debug(LocalizableMessage.raw("jdbc: the pool has no connection to spare for a tree of this import,"
-					+ " which writes it through one it already holds: %s", stackTraceToSingleLineString(e)));
+			}catch (SQLException e) {
 				sharedIndexes.add(index);
+				if (e instanceof SQLTimeoutException) {
+					logger.debug(LocalizableMessage.raw("jdbc: the pool has no connection to spare for a tree of this import,"
+						+ " which writes it through one it already holds: %s", stackTraceToSingleLineString(e)));
+				}else {
+					// louder than the wait above: that one is the deployment's own bound being
+					// reached, while this is a database refusing a connection outright - the import
+					// goes on with less parallelism than it asked for, and an operator reading a
+					// long import has nothing else to tell them why
+					logger.warn(LocalizableMessage.raw("jdbc: no further connection is given to this import, which"
+						+ " writes the tree through one it already holds: %s", stackTraceToSingleLineString(e)));
+				}
 				return null;
+			}catch (InterruptedException e) {
+				// put back where the borrow found it, before the wrapper leaves this class
+				Thread.currentThread().interrupt();
+				throw new StorageRuntimeException(e);
 			}catch (Exception e) {
 				throw e instanceof StorageRuntimeException ? (StorageRuntimeException) e : new StorageRuntimeException(e);
 			}

@@ -51,8 +51,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
@@ -66,6 +68,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 /**
@@ -112,6 +115,12 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 	private static final TreeName STATE = new TreeName("dc=example,dc=com", "state");
 
 	private final StubDriver stub = new StubDriver();
+	/**
+	 * What the driver of this test answers a connect with, or null for a connection of its own.
+	 * A failure per connect rather than one instance thrown over and over: a caller is free to
+	 * give what it caught a cause and a suppressed exception of its own.
+	 */
+	private final AtomicReference<Supplier<SQLException>> refusal = new AtomicReference<>();
 
 	/** The connections an import issued a statement on, in no particular order. */
 	private final Set<Connection> used =
@@ -193,6 +202,7 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 			threads.shutdownNow();
 			threads = null;
 		}
+		refusal.set(null);
 		rendezvous = null;
 		startingLine = null;
 		insideAStatement = null;
@@ -640,6 +650,96 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 		assertEquals(CachedConnection.poolOf(url).meteredCount(), 0, "a connection of the import was lost");
 	}
 
+	/**
+	 * A tree the database refuses a connection for is written through one the import already holds,
+	 * the way a tree the pool has nothing to spare for is (#1013).
+	 * <p>
+	 * The two ends of a borrow that can run out are not reported alike: the bound of the pool is
+	 * answered with a {@code SQLTimeoutException}, while a database at a limit of its own is
+	 * answered with whatever its driver says - and a code {@code CachedConnection.isWorthRetrying}
+	 * does not recognize is raised at once rather than waited out. A mysql account with a
+	 * {@code MAX_USER_CONNECTIONS} of its own answers 1226 on SQLState 42000, which is such a code
+	 * (#1011). An import that failed on it would stop halfway through, with the clears of
+	 * {@code beforePhaseOne} already committed, while every connection it holds still works.
+	 */
+	@Test(timeOut = 120000)
+	public void testATreeSharesAConnectionWhenTheDatabaseRefusesOne() throws Exception {
+		System.setProperty(JDBCStorage.IMPORT_CONNECTIONS_PROPERTY, "2");
+		final String url = StubDriver.PREFIX + "importer-refused";
+		final JDBCStorage storage = importingStorage(url);
+		final Importer importer = storage.startImport();
+		try {
+			// the first tree takes the connection the constructor borrowed, so that the second is one
+			// the import has to go to the database for
+			importer.put(ID2ENTRY, ByteString.valueOfUtf8("k"), ByteString.valueOfUtf8("v"));
+			// armed only now: what this is about is the borrows an import makes as it goes, not the
+			// one it is started with - an import of a database that takes no connection at all is
+			// refused where it is started
+			refuseFurtherConnects("User 'opendj' has exceeded the 'max_user_connections' resource"
+				+ " (current value: 1)", "42000", 1226);
+			// on a thread of its own, the way every thread of phase two starts: one that already
+			// holds a connection of the pool takes another path through the borrow
+			putOnAThreadOfItsOwn(importer, DN2ID);
+
+			assertEquals(used.size(), 1, "the tree the database refused a connection for did not share one");
+		} finally {
+			closeWithoutHanging(importer);
+			storage.close();
+		}
+		assertEquals(CachedConnection.poolOf(url).meteredCount(), 0, "a refused borrow kept a permit of the pool");
+	}
+
+	/**
+	 * ... and an import whose borrow is interrupted fails instead, keeping the interrupt.
+	 * <p>
+	 * The connection this import cannot have is the loss of a parallelism it asked for, and that is
+	 * what sharing is the answer to. An interrupt is not that: phase two interrupts the threads of
+	 * an import to stop it ({@code OnDiskMergeImporter.invokeParallel} gives them five seconds to
+	 * answer), and a thread that answered by writing the tree through another connection would be
+	 * carrying on with the work it was told to drop. The interrupt goes back on the thread as well:
+	 * a borrow that throws {@code InterruptedException} has cleared it, and what reads it next is
+	 * the executor of phase two.
+	 */
+	@Test(timeOut = 120000)
+	public void testAnInterruptedBorrowFailsTheImportRatherThanSharingAConnection() throws Exception {
+		System.setProperty(JDBCStorage.IMPORT_CONNECTIONS_PROPERTY, "2");
+		final String url = StubDriver.PREFIX + "importer-interrupted";
+		final JDBCStorage storage = importingStorage(url);
+		final Importer importer = storage.startImport();
+		try {
+			importer.put(ID2ENTRY, ByteString.valueOfUtf8("k"), ByteString.valueOfUtf8("v"));
+
+			final AtomicReference<Throwable> failure = new AtomicReference<>();
+			final AtomicBoolean interruptKept = new AtomicBoolean();
+			final Thread writer = daemon(() -> {
+				// set before the write rather than raced with it: the pool waits for an idle
+				// connection interruptibly, so a thread that carries an interrupt into the borrow
+				// gets the same InterruptedException as one interrupted while parked there
+				Thread.currentThread().interrupt();
+				try {
+					importer.put(DN2ID, ByteString.valueOfUtf8("k"), ByteString.valueOfUtf8("v"));
+				} catch (Throwable t) {
+					failure.set(t);
+				} finally {
+					interruptKept.set(Thread.currentThread().isInterrupted());
+				}
+			}, "import-interrupted");
+			writer.start();
+			writer.join(TimeUnit.SECONDS.toMillis(RENDEZVOUS_SECONDS));
+			assertFalse(writer.isAlive(), "the interrupted write did not finish");
+
+			final Throwable reported = failure.get();
+			assertTrue(reported instanceof StorageRuntimeException,
+				"an interrupted borrow was not reported as a failure of the import: " + reported);
+			assertTrue(reported.getCause() instanceof InterruptedException,
+				"an interrupted borrow was reported as something else: " + reported.getCause());
+			assertTrue(interruptKept.get(), "the borrow swallowed the interrupt of an import thread");
+		} finally {
+			closeWithoutHanging(importer);
+			storage.close();
+		}
+	}
+
 	/** A storage open for writing over the driver of this test, which is what an import needs. */
 	private JDBCStorage importingStorage(String url) throws Exception {
 		// mockCfg rather than a bare mock: it answers every getter with the value declared in
@@ -654,6 +754,14 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 		// statement was issued on is recorded, and the open issues none
 		forgetTheConnections();
 		return storage;
+	}
+
+	/**
+	 * Makes the driver of this test answer every further connect with a failure of the given shape,
+	 * the way a database at a limit of its own does.
+	 */
+	private void refuseFurtherConnects(final String message, final String sqlState, final int vendorCode) {
+		refusal.set(() -> new SQLException(message, sqlState, vendorCode));
 	}
 
 	private Future<?> put(final Importer importer, final TreeName treeName) {
@@ -899,7 +1007,14 @@ public class ImportConnectionsTestCase extends DirectoryServerTestCase {
 
 		@Override
 		public Connection connect(String url, Properties info) throws SQLException {
-			return acceptsURL(url) ? newConnection() : null;
+			if (!acceptsURL(url)) {
+				return null;
+			}
+			final Supplier<SQLException> refused = refusal.get();
+			if (refused != null) {
+				throw refused.get();
+			}
+			return newConnection();
 		}
 
 		@Override
