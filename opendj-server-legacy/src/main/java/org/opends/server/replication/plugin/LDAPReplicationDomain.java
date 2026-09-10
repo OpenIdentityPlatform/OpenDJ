@@ -5060,7 +5060,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     attributes.add("remote-pending-changes-size", remotePendingChanges.getQueueSize());
     attributes.add("dependent-changes-size", remotePendingChanges.getDependentChangesSize());
     attributes.add("changes-in-progress-size", remotePendingChanges.changesInProgressSize());
-    attributes.add("failing-changes", remotePendingChanges.getFailingChangesSize());
+    attributes.add("changes-with-failed-replay", remotePendingChanges.getFailingChangesSize());
   }
 
   /**

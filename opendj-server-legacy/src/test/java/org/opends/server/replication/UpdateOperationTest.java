@@ -1678,6 +1678,14 @@ public class UpdateOperationTest extends ReplicationTestCase
         assertFalse(domain.getServerState().cover(csn),
             "a replica which never gives up must not record a change it did not apply");
         /*
+         * The monitor attribute is the only signal this domain has left: a budget which
+         * is never spent raises no alert and counts no failed replay, so the change this
+         * replica keeps asking for is visible here and nowhere else. It counts changes
+         * rather than deliveries, so the redeliveries above leave it at one.
+         */
+        assertMonitorAttrValueEventually(baseDN, "changes-with-failed-replay", 1,
+            "the change which keeps failing must be counted, once, as a failing change");
+        /*
          * The change was delivered at least twice by now, so a counter which was bumped
          * per delivery rather than per change would already be past the value which is
          * being watched: what this asserts is carried by the value itself rather than by
@@ -1709,6 +1717,8 @@ public class UpdateOperationTest extends ReplicationTestCase
         });
         assertMonitorAttrValueEventually(baseDN, "replayed-updates-failed", initialFailures + 1,
             "the change which was given up on must be counted once");
+        assertMonitorAttrValueEventually(baseDN, "changes-with-failed-replay", 0,
+            "a change which was given up on leaves the pending changes and stops being counted");
         assertNotNull(getEntry(tmp.getName(), 1, true), "the entry must not have been deleted");
       }
       finally

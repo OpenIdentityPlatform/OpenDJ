@@ -583,8 +583,8 @@
       healthy ones too. A value of 0 has this server give up on a change as soon as one
       delivery of it failed, the attempts made in place within that delivery still being
       taken. The budget is measured from the first failure of the change rather than from
-      the moment it was set, so lowering it gives up straight away on a change which has
-      been failing for longer than the new value.
+      the moment it was set, so lowering it gives up on the next failed delivery of a
+      change which has been failing for longer than the new value.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>

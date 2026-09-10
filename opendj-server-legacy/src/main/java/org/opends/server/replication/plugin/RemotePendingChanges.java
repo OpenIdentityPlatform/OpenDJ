@@ -401,7 +401,7 @@ final class RemotePendingChanges
    * never counts a failed change either, and the changes it keeps asking for are only
    * visible here.
    *
-   * @return the number of listed changes whose replay is failing right now
+   * @return the number of listed changes with a failed replay recorded against them
    */
   public int getFailingChangesSize()
   {
