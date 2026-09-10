@@ -65,6 +65,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,6 +111,10 @@ import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPReader;
 import com.forgerock.opendj.ldap.tools.LDAPModify;
+import org.forgerock.util.Utils;
+import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.ReplicationServerDomain;
+import org.opends.server.replication.server.ServerHandler;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -1772,6 +1777,76 @@ public final class TestCaseUtils {
 				e.printStackTrace();
 			}
 		}   
+    }
+  }
+
+  /**
+   * Append the state of every replication server running in this VM to the specified buffer.
+   * <p>
+   * A test which fails waiting for a change that never arrived cannot be diagnosed from the logs
+   * alone: they say what the replica applied, not what the replication server held for it. The
+   * state of the domain says whether the change reached the changelog at all, and the state of
+   * each handler says whether it was handed to that consumer - the two together tell a change
+   * which was never published apart from one which was published and never sent, and those have
+   * their fix in opposite places (issue #963).
+   * <p>
+   * Called on the failure path only, and every value it reads is held in memory by the local
+   * replication server, so it neither waits on a peer nor touches the changelog files. The
+   * registry is empty for the tests which run no replication server, and those append nothing.
+   */
+  public static void appendReplicationServersState(StringBuilder out)
+  {
+    try
+    {
+      for (final ReplicationServer replicationServer : ReplicationServer.getAllInstances())
+      {
+        final Iterator<ReplicationServerDomain> domains = replicationServer.getDomainIterator();
+        while (domains.hasNext())
+        {
+          appendDomainState(out, replicationServer, domains.next());
+        }
+      }
+    }
+    catch (Throwable t)
+    {
+      /*
+       * Reported rather than thrown: a diagnostic which fails must leave the failure it was
+       * called to describe as it found it, and the report of the state is worth having even
+       * when one server of the topology could not be read.
+       */
+      out.append(EOL).append("Could not read the state of the replication servers: ")
+          .append(stackTraceToSingleLineString(t)).append(EOL);
+    }
+  }
+
+  private static void appendDomainState(StringBuilder out, ReplicationServer replicationServer,
+      ReplicationServerDomain domain)
+  {
+    out.append(EOL).append("Replication server RS(").append(replicationServer.getServerId())
+        .append(") state for domain \"").append(domain.getBaseDN()).append("\":").append(EOL);
+    out.append("  changelog: ").append(domain.getLatestServerState()).append(EOL);
+    for (final ServerHandler handler : domain.getConnectedDSs().values())
+    {
+      appendHandlerState(out, "DS", handler);
+    }
+    for (final ServerHandler handler : domain.getConnectedRSs().values())
+    {
+      appendHandlerState(out, "RS", handler);
+    }
+  }
+
+  private static void appendHandlerState(StringBuilder out, String kind, ServerHandler handler)
+  {
+    out.append("  ").append(kind).append('(').append(handler.getServerId()).append("): state ")
+        .append(handler.getServerState()).append(EOL);
+    /*
+     * One attribute per line: the monitor of a handler carries some thirty of them, and the
+     * single line they make of themselves is where the one which matters goes unread.
+     */
+    for (final Attribute attribute : handler.getMonitorData())
+    {
+      out.append("    ").append(attribute.getAttributeDescription()).append(": ")
+          .append(Utils.joinAsString(" ", attribute)).append(EOL);
     }
   }
 
