@@ -68,6 +68,7 @@ import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
+import org.opends.server.types.Attribute;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.DirectoryException;
@@ -104,6 +105,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
 
   private Map<String, IndexType[]> backendIndexes = new HashMap<>();
   {
+    backendIndexes.put("objectClass", new IndexType[] { IndexType.EQUALITY });
     backendIndexes.put("entryUUID", new IndexType[] { IndexType.EQUALITY });
     backendIndexes.put("cn", new IndexType[] { IndexType.SUBSTRING });
     backendIndexes.put("sn", new IndexType[] { IndexType.PRESENCE, IndexType.EQUALITY, IndexType.SUBSTRING });
@@ -749,6 +751,74 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
         newEntry.getName().parent(), SearchScope.WHOLE_SUBTREE, "(&(sn=Smith)(jpegphoto=foo))", returnedEntries));
     assertThat(returnedEntries).hasSize(1);
     assertThat((Object) returnedEntries.get(0).getName()).isEqualTo(newEntry.getName());
+  }
+
+  /**
+   * A modification of the object classes of an entry must reach the objectClass index even when
+   * the objectClass attribute of the modified entry has already been read - which the conflict
+   * resolution of a replayed modification does with every delete of an object class value, before
+   * the core applies the modifications to the entry.
+   */
+  @Test
+  public void testModifyObjectClassOfAnAlreadyReadEntry() throws Exception
+  {
+    final AttributeType objectClassType = CoreSchema.getObjectClassAttributeType();
+    final Entry oldEntry = TestCaseUtils.makeEntry(
+        "dn: uid=user.13,ou=People," + testBaseDN,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "givenName: Abbey",
+        "sn: Abbie",
+        "cn: Abbey Abbie",
+        "uid: user.13");
+    backend.addEntry(oldEntry, mock(AddOperation.class));
+    try
+    {
+      final Entry newEntry = oldEntry.duplicate(false);
+      // The read of the entry done by the conflict resolution of a replayed modification.
+      newEntry.hasValue(AttributeDescription.create(objectClassType), ByteString.valueOfUtf8("person"));
+
+      final Attribute addedClass = create(objectClassType, "extensibleObject");
+      final Attribute deletedClass = create(objectClassType, "organizationalPerson");
+      // The core applies the modifications with addAttribute() and removeAttribute().
+      newEntry.addAttribute(addedClass, new LinkedList<ByteString>());
+      newEntry.removeAttribute(deletedClass, new LinkedList<ByteString>());
+
+      ModifyOperation modifyOp = mock(ModifyOperation.class);
+      when(modifyOp.getModifications()).thenReturn(
+          Arrays.asList(new Modification(ADD, addedClass), new Modification(DELETE, deletedClass)));
+      backend.replaceEntry(oldEntry, newEntry, modifyOp);
+
+      // The added object class must be searchable through the index,
+      final List<Entry> returnedEntries = new ArrayList<>();
+      backend.search(createSearchOperation(
+          testBaseDN, SearchScope.WHOLE_SUBTREE, "(objectClass=extensibleObject)", returnedEntries));
+      assertThat(returnedEntries).hasSize(1);
+      assertThat((Object) returnedEntries.get(0).getName()).isEqualTo(newEntry.getName());
+
+      // and the deleted one must be gone from it.
+      assertThat(verifyObjectClassIndex()).isEqualTo(0);
+    }
+    finally
+    {
+      backend.deleteEntry(oldEntry.getName(), mock(DeleteOperation.class));
+    }
+  }
+
+  /** Returns the number of both the missing and the stale records of the objectClass index. */
+  private long verifyObjectClassIndex() throws Exception
+  {
+    VerifyConfig completeness = new VerifyConfig();
+    completeness.setBaseDN(testBaseDN);
+    completeness.addCompleteIndex("objectClass");
+
+    VerifyConfig cleanliness = new VerifyConfig();
+    cleanliness.setBaseDN(testBaseDN);
+    cleanliness.addCleanIndex("objectClass");
+
+    return backend.verifyBackend(completeness) + backend.verifyBackend(cleanliness);
   }
 
   private SearchOperation createSearchOperation(DN baseDN, SearchScope scope, String searchFilter,
