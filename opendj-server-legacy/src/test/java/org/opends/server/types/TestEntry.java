@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.types;
 
@@ -26,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -106,6 +108,53 @@ public final class TestEntry extends TypesTestCase {
     // This test suite depends on having the schema available, so we'll start
     // the server.
     TestCaseUtils.startServer();
+  }
+
+  /** Returns an entry to delete object class values from. */
+  private Entry newTestUserEntry() throws Exception
+  {
+    return TestCaseUtils.makeEntry(
+        "dn: cn=Test User,ou=People,dc=example,dc=com",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "cn: Test User",
+        "sn: User");
+  }
+
+  /**
+   * A delete of several object class values must remove every one of them, the way a delete of
+   * several values of any other attribute does.
+   */
+  @Test
+  public void testRemoveSeveralObjectClassValues() throws Exception
+  {
+    Entry e = newTestUserEntry();
+
+    List<ByteString> missingValues = new LinkedList<>();
+    assertTrue(e.removeAttribute(
+        Attributes.create("objectClass", "organizationalPerson", "inetOrgPerson"), missingValues));
+
+    assertThat(missingValues).isEmpty();
+    assertThat(e.getObjectClasses().values()).containsOnly("top", "person");
+  }
+
+  /**
+   * A delete of an object class value which the entry does not have must be reported as a missing
+   * value, whatever the other values of the same modification are.
+   */
+  @Test
+  public void testRemoveObjectClassValuesOneOfWhichIsMissing() throws Exception
+  {
+    Entry e = newTestUserEntry();
+
+    List<ByteString> missingValues = new LinkedList<>();
+    assertFalse(e.removeAttribute(
+        Attributes.create("objectClass", "inetOrgPerson", "domain"), missingValues));
+
+    assertThat(missingValues).containsOnly(ByteString.valueOfUtf8("domain"));
+    assertThat(e.getObjectClasses().values()).containsOnly("top", "person", "organizationalPerson");
   }
 
   /**
