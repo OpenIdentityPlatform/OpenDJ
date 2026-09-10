@@ -20,6 +20,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 import java.util.Collection;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -51,8 +53,12 @@ public class DSRSShutdownSync
   private final long gracePeriod;
 
   /**
-   * The ReplicaOfflineMsg which has not been forwarded yet, per domain and per
+   * The ReplicaOfflineMsg which is still owed a forward, per domain and per
    * replica of that domain.
+   * <p>
+   * An entry lives until every replication server the message was queued for
+   * has forwarded it, so it legitimately holds a message some of them have
+   * already sent: what is pending is the forward, not the message.
    * <p>
    * It is kept per domain because a domain sends this message whenever its
    * replication service is disabled - an online import, a restore, a
@@ -63,6 +69,10 @@ public class DSRSShutdownSync
    * It is kept per replica because the collocated RS relays the message of
    * every replica connected to it, and the forward of another replica's
    * message says nothing about this one.
+   * <p>
+   * Each entry knows the replication servers its message was queued for, because each of them is
+   * served by its own writer: the forward of one of them says nothing about the others, whose
+   * queue the shutdown is about to clear.
    */
   private final ConcurrentMap<DN, ConcurrentMap<Integer, PendingOfflineMsg>> replicaOfflineMsgs =
       new ConcurrentHashMap<>();
@@ -103,14 +113,54 @@ public class DSRSShutdownSync
   }
 
   /**
-   * Message has been forwarded.
+   * Message has been queued for the replication servers which must forward it.
+   * <p>
+   * This must be called before the message is queued for any of them: a replication server can
+   * forward it as soon as it is in its queue, and a forward which finds no recipient recorded
+   * ends the wait at once.
+   *
+   * @param baseDN
+   *          the domain for which the message has been sent
+   * @param offlineCSN
+   *          the CSN of the message which is being queued
+   * @param replicationServerIds
+   *          the server ids of the replication servers the message is being queued for
+   */
+  public void replicaOfflineMsgDispatched(
+      DN baseDN, CSN offlineCSN, Collection<Integer> replicationServerIds)
+  {
+    final ConcurrentMap<Integer, PendingOfflineMsg> msgs = replicaOfflineMsgs.get(baseDN);
+    if (msgs == null)
+    {
+      return;
+    }
+    final int serverId = offlineCSN.getServerId();
+    final PendingOfflineMsg pending = msgs.get(serverId);
+    /*
+     * The message being queued may be an older announcement of the same replica - one which was
+     * queued behind a backlog since an earlier import. The replication servers it goes to say
+     * nothing about the announcement the shutdown is waiting for.
+     */
+    if (pending != null && pending.csn.equals(offlineCSN)
+        && pending.awaitForwardsFrom(replicationServerIds))
+    {
+      // queued for nobody: there is nothing to wait for
+      msgs.remove(serverId, pending);
+      notifyForwarded();
+    }
+  }
+
+  /**
+   * Message has been forwarded to one of the replication servers it was queued for.
    *
    * @param baseDN
    *          the domain for which the message has been sent
    * @param forwardedCSN
    *          the CSN of the forwarded message
+   * @param replicationServerId
+   *          the server id of the replication server the message has been forwarded to
    */
-  public void replicaOfflineMsgForwarded(DN baseDN, CSN forwardedCSN)
+  public void replicaOfflineMsgForwarded(DN baseDN, CSN forwardedCSN, int replicationServerId)
   {
     final ConcurrentMap<Integer, PendingOfflineMsg> msgs = replicaOfflineMsgs.get(baseDN);
     if (msgs != null)
@@ -124,11 +174,47 @@ public class DSRSShutdownSync
        * Such a forward says nothing about the announcement the shutdown is waiting for, and must
        * not consume its grace period.
        */
-      if (pending != null && pending.csn.isOlderThanOrEqualTo(forwardedCSN))
+      if (pending != null && pending.csn.isOlderThanOrEqualTo(forwardedCSN)
+          && pending.forwardedBy(replicationServerId))
       {
         msgs.remove(serverId, pending);
       }
     }
+    notifyForwarded();
+  }
+
+  /**
+   * A replication server the message may have been queued for will not forward it: it is gone,
+   * or the message was dropped on its way out.
+   * <p>
+   * Whatever it was given can no longer reach it, so the shutdown must not spend the rest of its
+   * grace period waiting for it.
+   *
+   * @param baseDN
+   *          the domain the replication server is connected to
+   * @param replicationServerId
+   *          the server id of the replication server which will not forward the message
+   */
+  public void replicaOfflineMsgNotForwarded(DN baseDN, int replicationServerId)
+  {
+    final ConcurrentMap<Integer, PendingOfflineMsg> msgs = replicaOfflineMsgs.get(baseDN);
+    if (msgs != null)
+    {
+      for (Entry<Integer, PendingOfflineMsg> entry : msgs.entrySet())
+      {
+        final PendingOfflineMsg pending = entry.getValue();
+        if (pending.giveUpOn(replicationServerId))
+        {
+          msgs.remove(entry.getKey(), pending);
+        }
+      }
+    }
+    notifyForwarded();
+  }
+
+  /** Wakes up the shutdown, which re-reads what is left to wait for. */
+  private void notifyForwarded()
+  {
     synchronized (forwardedMonitor)
     {
       forwardedMonitor.notifyAll();
@@ -137,7 +223,8 @@ public class DSRSShutdownSync
 
   /**
    * Whether the shutdown of a domain can proceed, i.e. its ReplicaOfflineMsg
-   * has been forwarded or its grace period has expired.
+   * has been forwarded by every replication server it was queued for, or its
+   * grace period has expired.
    * <p>
    * The shutdown itself blocks on {@link #awaitReplicaOfflineMsgsForwarded(Collection, long)}
    * rather than polling this; it is the same state, observable without waiting for it.
@@ -269,6 +356,11 @@ public class DSRSShutdownSync
     private final CSN csn;
     /** When the message was announced, on the {@link System#nanoTime()} clock. */
     private final long sentTime;
+    /**
+     * The replication servers the message was queued for and which have not forwarded it yet,
+     * null as long as it has not been queued for anybody.
+     */
+    private volatile Set<Integer> awaitedForwarders;
 
     private PendingOfflineMsg(CSN csn, long sentTime)
     {
@@ -276,10 +368,56 @@ public class DSRSShutdownSync
       this.sentTime = sentTime;
     }
 
+    /**
+     * Records the replication servers the message is being queued for, and returns whether there
+     * is none of them, i.e. nothing left to wait for.
+     */
+    private boolean awaitForwardsFrom(Collection<Integer> replicationServerIds)
+    {
+      final Set<Integer> awaited = ConcurrentHashMap.newKeySet();
+      awaited.addAll(replicationServerIds);
+      awaitedForwarders = awaited;
+      return awaited.isEmpty();
+    }
+
+    /**
+     * Records the forward of one replication server, and returns whether nothing is left to wait
+     * for.
+     */
+    private boolean forwardedBy(int replicationServerId)
+    {
+      final Set<Integer> awaited = awaitedForwarders;
+      if (awaited == null)
+      {
+        /*
+         * The message never went through the collocated RS - a replica which picked a remote one
+         * announcing itself offline, or an announcement recorded after the message it belongs to
+         * was already relayed. Nobody is known to owe a forward, so keep the behaviour the wait
+         * had before the recipients were tracked: the first forward ends it.
+         */
+        return true;
+      }
+      awaited.remove(replicationServerId);
+      return awaited.isEmpty();
+    }
+
+    /**
+     * Gives up on the forward of one replication server, and returns whether nothing is left to
+     * wait for. Unlike a forward, this releases nothing while no recipient is known: a peer going
+     * away says nothing about a message it was never given.
+     */
+    private boolean giveUpOn(int replicationServerId)
+    {
+      final Set<Integer> awaited = awaitedForwarders;
+      return awaited != null && awaited.remove(replicationServerId) && awaited.isEmpty();
+    }
+
     @Override
     public String toString()
     {
-      return "PendingOfflineMsg(" + csn + ")";
+      final Set<Integer> awaited = awaitedForwarders;
+      return "PendingOfflineMsg(" + csn
+          + (awaited != null ? ", awaiting the forward of " + awaited : "") + ")";
     }
   }
 }

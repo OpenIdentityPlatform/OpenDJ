@@ -18,6 +18,7 @@ package org.opends.server.replication.service;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.ldap.DN;
@@ -41,6 +42,9 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
   private static final long FORWARD_DELAY = 200;
   private static final int SERVER_ID = 1;
   private static final int OTHER_SERVER_ID = 2;
+  /** A peer replication server the collocated one relays the message to. */
+  private static final int RS_ID = 11;
+  private static final int OTHER_RS_ID = 12;
 
   private static DN baseDN1;
   private static DN baseDN2;
@@ -77,7 +81,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     final CSN offlineCSN = newCSN(SERVER_ID);
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, RS_ID);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
   }
@@ -106,7 +110,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     // an import disables then re-enables the replication service
     final CSN sentByTheImport = newCSN(SERVER_ID, 1);
     shutdownSync.replicaOfflineMsgSent(baseDN1, sentByTheImport);
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheImport);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheImport, RS_ID);
     Thread.sleep(GRACE_PERIOD + 50);
 
     // the shutdown of the process, much later
@@ -129,11 +133,11 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, queuedByAnEarlierImport);
     shutdownSync.replicaOfflineMsgSent(baseDN1, sentByTheShutdown);
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, queuedByAnEarlierImport);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, queuedByAnEarlierImport, RS_ID);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
 
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, RS_ID);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
   }
@@ -161,7 +165,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, newCSN(SERVER_ID));
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, newCSN(OTHER_SERVER_ID));
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, newCSN(OTHER_SERVER_ID), RS_ID);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
   }
@@ -175,7 +179,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, ofOneReplica);
     shutdownSync.replicaOfflineMsgSent(baseDN1, newCSN(OTHER_SERVER_ID));
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofOneReplica);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofOneReplica, RS_ID);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
   }
@@ -189,8 +193,8 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, ofOneReplica);
     shutdownSync.replicaOfflineMsgSent(baseDN1, ofTheOtherReplica);
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofOneReplica);
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofTheOtherReplica);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofOneReplica, RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofTheOtherReplica, RS_ID);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
   }
@@ -247,6 +251,206 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
         .isLessThan(2 * GRACE_PERIOD);
   }
 
+  /**
+   * The collocated replication server queues the message for every peer it relays to, and each
+   * of them is served by its own writer: the forward of one peer says nothing about the others,
+   * whose queue the shutdown is about to clear.
+   */
+  @Test
+  public void theForwardOfOnePeerDoesNotEndTheWaitOfTheOthers() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN offlineCSN = newCSN(SERVER_ID);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
+    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(RS_ID, OTHER_RS_ID));
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, RS_ID);
+
+    assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
+  }
+
+  @Test
+  public void canShutdownOnceEveryPeerTheMessageWasQueuedForForwardedIt() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN offlineCSN = newCSN(SERVER_ID);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
+    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(RS_ID, OTHER_RS_ID));
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, OTHER_RS_ID);
+
+    assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
+  }
+
+  /**
+   * With no peer to relay the message to - none connected, or none sharing the generation id of
+   * the domain - there is nothing to wait for.
+   */
+  @Test
+  public void canShutdownWhenTheMessageWasQueuedForNoPeer() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN offlineCSN = newCSN(SERVER_ID);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
+    shutdownSync.replicaOfflineMsgDispatched(
+        baseDN1, offlineCSN, Collections.<Integer> emptyList());
+
+    assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
+  }
+
+  /**
+   * A peer which is no longer connected cannot forward anything, so the shutdown must not spend
+   * the rest of its window waiting for it.
+   */
+  @Test
+  public void aPeerWhichStoppedIsNoLongerWaitedFor() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN offlineCSN = newCSN(SERVER_ID);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
+    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(RS_ID, OTHER_RS_ID));
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, RS_ID);
+    shutdownSync.replicaOfflineMsgNotForwarded(baseDN1, OTHER_RS_ID);
+
+    assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
+  }
+
+  /** The peers which are still connected keep their part of the grace period. */
+  @Test
+  public void aPeerWhichStoppedDoesNotEndTheWaitOfTheOthers() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN offlineCSN = newCSN(SERVER_ID);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
+    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(RS_ID, OTHER_RS_ID));
+    shutdownSync.replicaOfflineMsgNotForwarded(baseDN1, OTHER_RS_ID);
+
+    assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
+  }
+
+  /**
+   * A peer which connected after the message was queued was never given it, so what it forwards
+   * is a message of its own catch-up and says nothing about the peers which still owe theirs.
+   */
+  @Test
+  public void theForwardOfAPeerTheMessageWasNotQueuedForDoesNotEndTheWait() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN offlineCSN = newCSN(SERVER_ID);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
+    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(RS_ID));
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, OTHER_RS_ID);
+
+    assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
+  }
+
+  /**
+   * The peers are recorded by the collocated replication server when it queues the message for
+   * them, which the message of a replica connected to a remote replication server never reaches.
+   * With no peer recorded the wait keeps the behaviour it had before they were tracked: the
+   * first forward ends it.
+   */
+  @Test
+  public void theFirstForwardEndsTheWaitWhenNoPeerWasRecorded() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN offlineCSN = newCSN(SERVER_ID);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, RS_ID);
+
+    assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
+  }
+
+  /**
+   * A peer going away says nothing about a message it was never given, which is the opposite of
+   * what a forward says: with no peer recorded the first forward ends the wait, and a give-up
+   * must leave it running. Otherwise any peer disconnecting would release a message the
+   * collocated replication server has not queued for anybody yet - the very bug the recipients
+   * were introduced to close, in a new shape.
+   */
+  @Test
+  public void aPeerStoppingBeforeTheMessageIsQueuedDoesNotEndTheWait() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, newCSN(SERVER_ID));
+    shutdownSync.replicaOfflineMsgNotForwarded(baseDN1, RS_ID);
+
+    assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
+  }
+
+  /**
+   * A replica announces itself offline on every disableService(), so the peers recorded for an
+   * earlier announcement say nothing about the one the shutdown is waiting for.
+   */
+  @Test
+  public void thePeersOfAnEarlierAnnouncementAreNotTakenForThoseOfThisOne() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN queuedByAnEarlierImport = newCSN(SERVER_ID, 1);
+    final CSN sentByTheShutdown = newCSN(SERVER_ID, 2);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, sentByTheShutdown);
+    shutdownSync.replicaOfflineMsgDispatched(
+        baseDN1, queuedByAnEarlierImport, asList(RS_ID, OTHER_RS_ID));
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, RS_ID);
+
+    assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
+  }
+
+  /**
+   * The peer which goes away must wake the shutdown up, and not leave it waiting for a forward
+   * nobody can report any more.
+   */
+  @Test
+  public void theWaitEndsWhenTheLastPeerExpectedToForwardStops() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN offlineCSN = newCSN(SERVER_ID);
+    shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
+    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(RS_ID));
+    final Thread peerStopper = newPeerStopperThread(shutdownSync, RS_ID);
+
+    final long startTime = System.nanoTime();
+    peerStopper.start();
+    shutdownSync.awaitReplicaOfflineMsgsForwarded(
+        asList(baseDN1), shutdownSync.newShutdownDeadline());
+    final long elapsed = millisSince(startTime);
+    peerStopper.join();
+
+    assertThat(elapsed).isGreaterThanOrEqualTo(FORWARD_DELAY);
+    assertThat(elapsed)
+        .as("the peer going away did not wake the wait up")
+        .isLessThan(LONG_GRACE_PERIOD);
+  }
+
+  /** Stops the peer the message was queued for, as a disconnection during the wait does. */
+  private Thread newPeerStopperThread(final DSRSShutdownSync shutdownSync, final int peerId)
+  {
+    return new Thread(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        try
+        {
+          Thread.sleep(FORWARD_DELAY);
+          shutdownSync.replicaOfflineMsgNotForwarded(baseDN1, peerId);
+        }
+        catch (InterruptedException e)
+        {
+          Thread.currentThread().interrupt();
+        }
+      }
+    });
+  }
+
   /** Forwards the message of the first domain, then, as long again later, of the second one. */
   private Thread newForwarderThread(final DSRSShutdownSync shutdownSync,
       final CSN ofTheFirstDomain, final CSN ofTheSecondDomain)
@@ -259,9 +463,9 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
         try
         {
           Thread.sleep(FORWARD_DELAY);
-          shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofTheFirstDomain);
+          shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofTheFirstDomain, RS_ID);
           Thread.sleep(FORWARD_DELAY);
-          shutdownSync.replicaOfflineMsgForwarded(baseDN2, ofTheSecondDomain);
+          shutdownSync.replicaOfflineMsgForwarded(baseDN2, ofTheSecondDomain, RS_ID);
         }
         catch (InterruptedException e)
         {
