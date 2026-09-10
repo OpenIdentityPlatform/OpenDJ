@@ -298,6 +298,18 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
               + " two outages, and the second is only reported because the first was closed:"
               + " a record left behind for a peer registered elsewhere silences it for good")
           .isEqualTo(2);
+      /*
+       * What makes this the multi homing case rather than the one next door: the three
+       * counts above are those of a peer which stops the handshake as well, message 314
+       * being reported for every abort. Only the registration under another address URL
+       * reaches the duplicate server id, and only this server logs it -- the second phase
+       * the other case ends on aborts with no message at all.
+       */
+      assertThat(countRecordsOf(records, ERR_DUPLICATE_REPLICATION_SERVER_ID.get(
+              servers[0].getMonitorInstanceName(), registeredAs, peerAddress, PEER_RS_ID).toString()))
+          .as("the outbound handshake should have aborted on the duplicate server id of the"
+              + " handler registered under another address, not on an unanswered phase two")
+          .isEqualTo(1);
     }
     finally
     {

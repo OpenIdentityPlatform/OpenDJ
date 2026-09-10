@@ -827,23 +827,24 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
         for (int pass = 0; pass < 2; pass++)
         {
           /*
-           * Connected and then closed: setting the options of the accepted socket fails at
-           * once, where a socket connected to nothing would spend the whole connection
-           * timeout inside the SSL handshake.
+           * Two connections per pass, not one: the first is reported and the second is the
+           * one the throttle of the pass has to suppress. With a single connection a
+           * throttle built for each failure rather than held for the pass reports the same
+           * one warning, the first failure of a fresh throttle being a warning either way,
+           * so the call site would be pinned by nothing.
            */
-          final Socket served = new Socket();
-          served.connect(new InetSocketAddress("127.0.0.1", connectedToPort), 10000);
-          peers.add(served.getRemoteSocketAddress().toString());
-          served.close();
+          final Socket reported = servedConnectionTo(connectedToPort);
+          peers.add(reported.getRemoteSocketAddress().toString());
+          final Socket suppressed = servedConnectionTo(connectedToPort);
 
           final AtomicInteger accepts = new AtomicInteger();
           /*
-           * Serves that one connection, fails, and fails again on the socket it closes
-           * under itself: one failure of each kind per pass, and the close is what returns
-           * runListen(). The failure which closes the socket is not the reported one --
-           * handleAcceptFailure() returns on a closed socket, that failure being how a
-           * listen thread is told its port was taken away -- so the pass has to fail once
-           * before it.
+           * Serves those two connections, fails, and fails again on the socket it closes
+           * under itself: two failures of one kind and one of the other per pass, and the
+           * close is what returns runListen(). The failure which closes the socket is not
+           * the reported one -- handleAcceptFailure() returns on a closed socket, that
+           * failure being how a listen thread is told its port was taken away -- so the
+           * pass has to fail once before it.
            */
           final ServerSocket failingSocket = new ServerSocket(0)
           {
@@ -853,9 +854,13 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
               final int attempt = accepts.incrementAndGet();
               if (attempt == 1)
               {
-                return served;
+                return reported;
               }
-              if (attempt >= 3)
+              if (attempt == 2)
+              {
+                return suppressed;
+              }
+              if (attempt >= 4)
               {
                 super.close();
               }
@@ -892,6 +897,10 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
             "the report should name the peer of the connection rather than the listen port,"
                 + " but no warning names " + peer + ": " + records);
       }
+      assertEquals(countRecordsOf(records, "accepted a connection from "), 4,
+          "each pass should have recorded both of its connections, the one it warned about and"
+              + " the one its throttle suppressed, but the error log holds "
+              + countRecordsOf(records, "accepted a connection from ") + " such records: " + records);
       assertEquals(countWarningsOf(records, acceptFailure), 2,
           "each pass should have warned about the failure of accept() which ended it, but the"
               + " error log holds " + countWarningsOf(records, acceptFailure) + " such warnings: "
@@ -902,6 +911,20 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       close(connectedTo);
       remove(replicationServer);
     }
+  }
+
+  /**
+   * Returns a socket connected to the provided port and closed, which is a connection no
+   * replication session can be started on: setting the options of a closed socket fails at
+   * once, where a socket connected to nothing would spend the whole connection timeout
+   * inside the SSL handshake.
+   */
+  private Socket servedConnectionTo(int port) throws IOException
+  {
+    final Socket socket = new Socket();
+    socket.connect(new InetSocketAddress("127.0.0.1", port), 10000);
+    socket.close();
+    return socket;
   }
 
   /** Returns how many of the provided error log records hold the provided text as warnings. */
