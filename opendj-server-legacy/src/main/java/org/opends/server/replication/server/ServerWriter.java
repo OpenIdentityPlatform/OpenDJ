@@ -172,6 +172,23 @@ public class ServerWriter extends DirectoryThread
 
   private boolean isUpdateMsgFiltered(UpdateMsg updateMsg)
   {
+    if (!updateMsg.isEncodableFor(handler.getProtocolVersion()))
+    {
+      /*
+       * Session.publish() drops what it cannot encode for its peer and returns as if it had sent
+       * it, so this must be caught here: the drop would otherwise be reported as the forward of
+       * a ReplicaOfflineMsg, which the shutdown takes for this peer having been told - and, for
+       * a message no recipient was recorded for, as the end of its wait for the peers which can
+       * still be told - see OPENDJ-1453 and issue #1014. Dropping it here reports what happened
+       * instead. There is nothing to send to this one: the message is not part of the protocol
+       * version it negotiated, and no version of it will ever reach it.
+       */
+      logger.warn(WARN_IGNORING_UPDATE_UNSUPPORTED_BY_PEER,
+          handler.getReplicationServerId(), updateMsg.getCSN(), handler.getBaseDN(),
+          handler.getServerId(), session.getReadableRemoteAddress(),
+          handler.getProtocolVersion());
+      return true;
+    }
     if (handler.isDataServer())
     {
       /**
