@@ -103,6 +103,44 @@ public class PersistentServerStateTest extends ReplicationTestCase
   }
 
   /**
+   * Dropping the in-memory copy of the state does not ask for the emptied state
+   * to be written: the backend keeps the CSNs it holds until something loads
+   * them back or writes newer ones.
+   */
+  @Test(dataProvider = "suffix")
+  public void clearInMemoryLeavesTheBackendStateAlone(String dn) throws Exception
+  {
+    DN baseDn = DN.valueOf(dn);
+    ServerState origState = new ServerState();
+    PersistentServerState state = new PersistentServerState(baseDn, 1, origState);
+    CSNGenerator gen1 = new CSNGenerator(1, origState);
+    CSNGenerator gen2 = new CSNGenerator(2, origState);
+
+    CSN csn1 = gen1.newCSN();
+    CSN csn2 = gen2.newCSN();
+
+    state.update(csn1);
+    state.update(csn2);
+    state.save();
+
+    // What a domain being disabled does: the copy in memory goes, the backend
+    // is left holding the position.
+    state.clearInMemory();
+
+    // The next checkpoint, or the last one the flush thread runs on its way
+    // out, must not write the emptied state over it.
+    state.save();
+
+    PersistentServerState stateSaved =
+        new PersistentServerState(baseDn, 1, new ServerState());
+
+    assertEquals(stateSaved.getMaxCSN(1), csn1,
+        "csn1 was dropped from persistent storage by clearInMemory() for " + dn);
+    assertEquals(stateSaved.getMaxCSN(2), csn2,
+        "csn2 was dropped from persistent storage by clearInMemory() for " + dn);
+  }
+
+  /**
    * An update landing while the state is being written cannot be part of that
    * write, so it must leave the state unsaved and be written by the next save.
    * Marking the state as saved on behalf of a write that does not carry the
