@@ -2379,6 +2379,27 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
+   * Whether any connected peer replication server can be forwarded a
+   * {@link ReplicaOfflineMsg}: the message has no encoding below replication protocol version 8,
+   * so a peer which negotiated an older one is nobody to wait for - the writer serving it drops
+   * the message instead of publishing it.
+   *
+   * @return {@code true} if at least one connected replication server can receive a
+   *         {@link ReplicaOfflineMsg}, {@code false} otherwise
+   */
+  public boolean hasPeerWhichCanReceiveReplicaOfflineMsgs()
+  {
+    for (ReplicationServerHandler rsHandler : connectedRSs.values())
+    {
+      if (ReplicaOfflineMsg.isSupportedBy(rsHandler.getProtocolVersion()))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Get the map of connected RSs.
    * @return The map of connected RSs
    */
