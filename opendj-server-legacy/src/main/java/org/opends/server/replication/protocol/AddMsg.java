@@ -13,12 +13,14 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.DataFormatException;
@@ -335,28 +337,27 @@ public class AddMsg extends LDAPUpdateMsg
   /**
    * Add the specified attribute/attribute value in the entry contained
    * in this AddMsg.
+   * <p>
+   * A failure to encode the attribute is reported rather than swallowed: the caller adds
+   * the attribute because the entry must carry it - addConflict() adds the
+   * ds-sync-conflict marker which says why an entry was renamed - and an entry stored
+   * without it is a conflict the repair tool has nothing to find it by. The attributes
+   * this message already carries are left as they were, so a message which could not take
+   * the new attribute still encodes the entry it did before.
    *
    * @param name  The name of the attribute to add.
    * @param value The value of the attribute to add.
-   * @throws DecodeException When this Msg is not valid.
+   * @throws IOException When the attribute could not be encoded.
    */
-  public void addAttribute(String name, String value) throws DecodeException
+  public void addAttribute(String name, String value) throws IOException
   {
     ByteStringBuilder byteBuilder = new ByteStringBuilder();
     byteBuilder.appendBytes(encodedAttributes);
 
     ASN1Writer writer = ASN1.getWriter(byteBuilder);
+    new LDAPAttribute(name, value).write(writer);
 
-    try
-    {
-      new LDAPAttribute(name, value).write(writer);
-
-      encodedAttributes = byteBuilder.toByteArray();
-    }
-    catch(Exception e)
-    {
-      // DO SOMETHING
-    }
+    encodedAttributes = byteBuilder.toByteArray();
   }
 
   /**
