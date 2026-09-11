@@ -2221,8 +2221,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     else if (logger.isTraceEnabled())
     {
       logger.trace("Replica " + getServerId() + " of domain baseDN=" + getBaseDN()
-          + " could not announce itself offline: a change which is still in flight holds"
-          + " the message back, and " + pendingChanges.size() + " change(s) are pending");
+          + " could not announce itself offline: the message was not published - a change which"
+          + " is still in flight holds it back, or the broker had no session to write it to,"
+          + " and " + pendingChanges.size() + " change(s) are pending");
     }
   }
 

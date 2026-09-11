@@ -3696,15 +3696,25 @@ public abstract class ReplicationDomain
    * {@link #processUpdate(UpdateMsg)} message.
    *
    * @param msg The UpdateMsg that should be published.
+   * @return {@code true} if the message was written to the session of the
+   *         Replication Service, {@code false} if the broker could not write
+   *         it: it has no usable session, the changes which come before this
+   *         one still have to be republished, or it was stopped in between.
    */
-  public void publish(UpdateMsg msg)
+  public boolean publish(UpdateMsg msg)
   {
-    broker.publish(msg);
+    final boolean published = broker.publish(msg, true);
+    /*
+     * The domain state is updated whether or not the message was written: it says which changes
+     * this replica has done, and it is by finding it ahead of the state its replication server
+     * reports that the next session knows which changes to republish.
+     */
     if (msg.contributesToDomainState())
     {
       state.update(msg.getCSN());
     }
     numSentUpdates.incrementAndGet();
+    return published;
   }
 
   /**
