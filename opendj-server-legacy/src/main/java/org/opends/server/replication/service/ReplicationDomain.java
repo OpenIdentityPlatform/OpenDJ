@@ -3393,10 +3393,33 @@ public abstract class ReplicationDomain
     }
   }
 
-  private void restartService()
+  /**
+   * Stops the session of this domain and starts it again, so that it comes up on the
+   * configuration which has just changed.
+   * <p>
+   * A subclass may leave it alone: a domain which is shutting down, or which was disabled
+   * for a total update, owns its session and is not given one back by a configuration
+   * change. One which does reports it through {@link #onSessionRestartSuppressed()}.
+   */
+  protected void restartService()
   {
     disableService();
     enableService();
+  }
+
+  /**
+   * Called when what a change carries is negotiated as the session comes up, and the
+   * session was not restarted for it.
+   * <p>
+   * The configuration is stored either way, and the session started next reads it - so
+   * this says that the change is not live yet rather than that it was lost. A domain
+   * which restarts its session for every change never reaches this; one which owns its
+   * session while it is shutting down or disabled for a total update overrides it to tell
+   * the administrator what is waiting for that session.
+   */
+  protected void onSessionRestartSuppressed()
+  {
+    // Nothing to report: this domain restarts its session for whatever asks for it.
   }
 
   /**
@@ -3837,9 +3860,11 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * Gets and stores the assured replication configuration parameters. Returns a
-   * boolean indicating if the passed configuration has changed compared to
-   * previous values and the changes require a reconnection.
+   * Gets and stores the assured replication configuration parameters.
+   * <p>
+   * The configuration is stored whether or not the session has to be restarted for it:
+   * the assured timeout is read off it as the acknowledgements are waited for, and needs
+   * no reconnection at all.
    *
    * @param config
    *          The configuration object
@@ -3852,12 +3877,28 @@ public abstract class ReplicationDomain
     // Disconnect if required: changing configuration values before
     // disconnection would make assured replication used immediately and
     // disconnection could cause some timeouts error.
-    if (needReconnection(config) && allowReconnection)
+    final boolean needReconnection = needReconnection(config);
+    final boolean needRestart = needReconnection && allowReconnection;
+    if (needRestart)
     {
       disableService();
-
-      assuredConfig = config;
-
+    }
+    else if (needReconnection)
+    {
+      onSessionRestartSuppressed();
+    }
+    /*
+     * Stored whether or not the session was restarted for it, as the fractional
+     * configuration is: the assured timeout is the one property a session does not have to
+     * be restarted for, so a change carrying it alone - reported as applied and then
+     * dropped, before - is applied here. A caller which does not allow the reconnection
+     * has no session running assured replication either: the domain is being built, is
+     * shutting down, or is disabled for the length of a total update, and the session its
+     * enable() starts reads what is stored here.
+     */
+    assuredConfig = config;
+    if (needRestart)
+    {
       enableService();
     }
   }

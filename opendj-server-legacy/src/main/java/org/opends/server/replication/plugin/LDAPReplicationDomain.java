@@ -391,6 +391,17 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   @GuardedBy("serviceStateLock")
   private long sessionGeneration;
   /**
+   * Set by {@link #restartService()} when it left the session of this domain alone, so
+   * that the configuration change which asked for the restart can say so.
+   * <p>
+   * Cleared by that change before it applies anything, and read by it once it is done -
+   * both under {@link #serviceStateLock}, the lock every restart of the session runs
+   * under, so what it reads is what its own steps asked for. A restart which is
+   * suppressed outside a configuration change leaves it set for the next one to clear.
+   */
+  @GuardedBy("serviceStateLock")
+  private boolean sessionRestartSuppressed;
+  /**
    * Held while a replay thread applies a change of this domain, and taken exclusively by
    * this domain on its way down.
    * <p>
@@ -501,7 +512,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * too early.
    */
   private final RemotePendingChanges remotePendingChanges;
-  private boolean solveConflictFlag = true;
+  /** Published by a configuration change, read by the replay threads without the lock. */
+  private volatile boolean solveConflictFlag = true;
 
   private final InternalClientConnection conn = getRootConnection();
   private final AtomicBoolean shutdown = new AtomicBoolean();
@@ -513,7 +525,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private final SortedMap<CSN, FakeOperation> replayOperations = new TreeMap<>();
 
-  private ExternalChangelogDomain eclDomain;
+  /** Published by a configuration change, read by the changelog threads without a lock. */
+  private volatile ExternalChangelogDomain eclDomain;
 
   /** A boolean indicating if the thread used to save the persistentServerState is terminated. */
   private volatile boolean done = true;
@@ -744,14 +757,20 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // Get fractional configuration
     fractionalConfig = new FractionalConfig(getBaseDN());
     readFractionalConfig(configuration, false);
-    storeECLConfiguration(configuration);
-    solveConflictFlag = isSolveConflict(configuration);
 
+    // Checked before the ECL configuration, which reads the backend to create its default
+    // entry: a domain on a backend of its own reports that rather than what it made of it.
     LocalBackend<?> backend = getBackend();
     if (backend == null)
     {
       throw new ConfigException(ERR_SEARCHING_DOMAIN_BACKEND.get(getBaseDN()));
     }
+
+    // The ECL domain is created here rather than handed a change it could refuse, so its
+    // result can only be a success.
+    createECLConfigurationEntryIfMissing(configuration);
+    applyECLConfiguration(requireECLConfiguration(configuration));
+    solveConflictFlag = isSolveConflict(configuration);
 
     try
     {
@@ -886,6 +905,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       {
         disableService();
         sessionGeneration++;
+      }
+      else if (needReconnection)
+      {
+        onSessionRestartSuppressed();
       }
       // Set new configuration
       int newFractionalMode = newFractionalConfig.fractionalConfigToInt();
@@ -4813,7 +4836,34 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   public ConfigChangeResult applyConfigurationChange(
          ReplicationDomainCfg configuration)
   {
-    this.config = configuration;
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    /*
+     * The step which can fail comes first, so that none of the domain configuration is
+     * published before it succeeded. It is not free of writes of its own: a domain
+     * without an external changelog configuration is given the default entry here, and
+     * that entry stays written whether or not the rest of this succeeds. Refusing a
+     * change before anything at all is written is what isConfigurationChangeAcceptable()
+     * is for, and it is where a change carrying an unreadable configuration is refused
+     * for good - the modified entry is written to the server configuration between that
+     * method and this one, and it is not rolled back when this one reports an error. What
+     * this reads is read again under the lock, so that a change of that entry which lands
+     * in between is applied rather than reverted by this snapshot of it.
+     */
+    try
+    {
+      createECLConfigurationEntryIfMissing(configuration);
+      // Read once here so that a configuration which cannot be read fails before any of
+      // this change is published, and once more under the lock so that what is applied is
+      // not an outdated snapshot of it.
+      requireECLConfiguration(configuration);
+    }
+    catch (Exception e)
+    {
+      ccr.setResultCode(ResultCode.OTHER);
+      ccr.addMessage(configChangeFailed(configuration, e));
+      return ccr;
+    }
+
     /*
      * Each of these stops and starts the session when what it changes calls for it, and
      * the configuration they change is read as the session comes up: hold the lock the
@@ -4822,25 +4872,149 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
      */
     synchronized (serviceStateLock)
     {
-      changeConfig(configuration);
+      // Whatever a restart was suppressed for before this change is none of its business.
+      sessionRestartSuppressed = false;
+      /*
+       * Reported rather than thrown, all of it: this listener runs on an entry which is
+       * already written, and an exception leaving it would abort the listeners after it
+       * as well. What is applied when one of these fails stays applied - which is what
+       * the framework says of a listener of an entry written before it runs.
+       */
+      try
+      {
+        this.config = configuration;
+        changeConfig(configuration);
 
-      // Read assured + fractional configuration and each time reconnect if needed
-      readAssuredConfig(configuration, true);
-      readFractionalConfig(configuration, true);
+        // Read assured + fractional configuration and each time reconnect if needed. A
+        // domain which owns its session gets none of those reconnections.
+        final boolean allowReconnection = !ownsItsSession();
+        readAssuredConfig(configuration, allowReconnection);
+        readFractionalConfig(configuration, allowReconnection);
+        solveConflictFlag = isSolveConflict(configuration);
+
+        /*
+         * Applied last, and still under the lock: this one restarts the session as well
+         * when the attributes published to the external changelog changed, and the
+         * session it starts replays on everything set above. It is read again here, so
+         * that a change of that entry which landed in between is applied rather than
+         * reverted by an older snapshot of it.
+         */
+        ccr.aggregate(applyECLConfiguration(requireECLConfiguration(configuration)));
+      }
+      catch (Exception e)
+      {
+        ccr.setResultCode(ResultCode.OTHER);
+        ccr.addMessage(configChangeFailed(configuration, e));
+      }
+
+      /*
+       * Read here rather than reported by restartService() itself, which has no result to
+       * report through and is called from the external changelog configuration above as
+       * well: what a change needed a session for, and did not get, is one thing to the
+       * administrator whichever step of it asked. Left out of the failure path on purpose
+       * - a change which could not be applied has a reason of its own to carry, and the
+       * session it did not restart is not what the administrator has to act on.
+       */
+      if (sessionRestartSuppressed && ccr.getResultCode() == ResultCode.SUCCESS)
+      {
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(NOTE_REPLICATION_DOMAIN_SESSION_NOT_RESTARTED.get(getBaseDN()));
+      }
     }
 
-    solveConflictFlag = isSolveConflict(configuration);
-
-    final ConfigChangeResult ccr = new ConfigChangeResult();
-    try
-    {
-      storeECLConfiguration(configuration);
-    }
-    catch(Exception e)
-    {
-      ccr.setResultCode(ResultCode.OTHER);
-    }
     return ccr;
+  }
+
+  /**
+   * Whether this domain, rather than a configuration change, decides when its session
+   * runs: it is shutting down, or it is disabled for the length of a total update.
+   */
+  private boolean ownsItsSession()
+  {
+    return shutdown.get() || disabled;
+  }
+
+  @Override
+  protected void restartService()
+  {
+    synchronized (serviceStateLock)
+    {
+      if (ownsItsSession())
+      {
+        /*
+         * The domain is going away or is being imported into: a restart here would bring
+         * a session, and the listener thread which goes with it, back up on a domain
+         * whose ServerState is gone from memory. The session started when the domain is
+         * enabled again reads the configuration this restart was asked for.
+         *
+         * Recorded rather than passed over in silence: the configuration a restart was
+         * asked for is stored, and it is the session which is not brought up on it, so a
+         * change which reports plain success would have the administrator believe the
+         * domain is running on it already. A domain disabled for a total update comes up
+         * on it when the total update ends; one which stays disabled - enable() gives up
+         * when the data state it reads cannot be loaded, and nothing calls it again -
+         * never does, and that is what the administrator is told to act on.
+         */
+        onSessionRestartSuppressed();
+        return;
+      }
+      super.restartService();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Every restart this domain leaves alone comes through here, whichever step of the
+   * change asked for it: the broker properties which are renegotiated, the assured
+   * configuration the replication server is told about as the session comes up, the
+   * fractional configuration the session filters on, and the attributes the external
+   * changelog publishes.
+   */
+  @Override
+  protected void onSessionRestartSuppressed()
+  {
+    synchronized (serviceStateLock)
+    {
+      sessionRestartSuppressed = true;
+    }
+  }
+
+  /**
+   * What the administrator is told a configuration change failed with.
+   * <p>
+   * The reason a {@link ConfigException} carries is passed on as it is: it names the step
+   * which raised it, the external changelog configuration this listener reads included.
+   * Anything else comes out of applying the domain configuration - the broker, the
+   * assured and the fractional configuration - and is reported as such rather than as a
+   * failure of the external changelog, which most of what this listener does has nothing
+   * to do with.
+   */
+  private LocalizableMessage configChangeFailed(ReplicationDomainCfg domCfg, Exception e)
+  {
+    if (e instanceof ConfigException)
+    {
+      return ((ConfigException) e).getMessageObject();
+    }
+    return ERR_REPLICATION_DOMAIN_CONFIG_CHANGE_FAILED.get(
+        domCfg.getBaseDN(), stackTraceToSingleLineString(e));
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Taken under {@link #serviceStateLock} like every other configuration change: this one
+   * comes from the external changelog domain - from the entry of its own, or from
+   * {@link #applyECLConfiguration} - and it restarts the session as well.
+   */
+  @Override
+  public void changeConfig(Set<String> includeAttributes,
+      Set<String> includeAttributesForDeletes)
+  {
+    synchronized (serviceStateLock)
+    {
+      super.changeConfig(includeAttributes, includeAttributesForDeletes);
+    }
   }
 
   @Override
@@ -4852,6 +5026,28 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     {
       unacceptableReasons.add(
           NOTE_ERR_CANNOT_CHANGE_CONFIG_DURING_TOTAL_UPDATE.get());
+      return false;
+    }
+
+    /*
+     * Check the external changelog configuration can be read. This is the one thing
+     * applying the change can fail on, and this is where refusing it means something: the
+     * modified entry is written to the server configuration between this method and
+     * applyConfigurationChange(), and it is not rolled back when the latter reports an
+     * error. Refused here, the entry is never written at all.
+     * <p>
+     * A domain whose external changelog configuration cannot be read therefore refuses
+     * every change of its own entry until that configuration is repaired. What repairs
+     * it is a change of the "cn=external changelog" entry, or its removal, neither of
+     * which comes through here.
+     */
+    try
+    {
+      readECLConfiguration(configuration);
+    }
+    catch (ConfigException e)
+    {
+      unacceptableReasons.add(e.getMessageObject());
       return false;
     }
 
@@ -4906,7 +5102,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   {
     try
     {
-      DN eclConfigEntryDN = DN.valueOf("cn=external changeLog," + config.dn());
+      DN eclConfigEntryDN = eclConfigurationEntryDN(config);
       if (getServerContext().getConfigurationHandler().hasEntry(eclConfigEntryDN))
       {
         getServerContext().getConfigurationHandler().deleteEntry(eclConfigEntryDN);
@@ -4920,63 +5116,160 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   }
 
   /**
-   * Store the provided ECL configuration for the domain.
+   * Reads the ECL configuration of the domain, changing nothing.
+   * <p>
+   * This is what {@link #isConfigurationChangeAcceptable} checks, so it leaves the server
+   * configuration as it found it - the entry the domain is missing is created by
+   * {@link #createECLConfigurationEntryIfMissing} once the change is accepted. It is read
+   * off the provided configuration rather than off {@link #config}, which the caller of
+   * the latter has not published yet.
+   *
+   * @param  domCfg       The provided configuration.
+   * @return The ECL configuration, or {@code null} when the domain has none yet.
+   * @throws ConfigException When it exists but could not be read.
+   */
+  private ExternalChangelogDomainCfg readECLConfiguration(ReplicationDomainCfg domCfg)
+      throws ConfigException
+  {
+    try
+    {
+      return domCfg.getExternalChangelogDomain();
+    }
+    catch (Exception e)
+    {
+      if (!Boolean.TRUE.equals(hasECLConfigurationEntry(domCfg)))
+      {
+        /*
+         * There is none to read - a default one is created when the change is applied -
+         * or whether there is one could not be told, and a domain is not held back from
+         * every change of its own by a failure which never reached its entry.
+         */
+        return null;
+      }
+      throw new ConfigException(NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
+          "Replication Domain on " + domCfg.getBaseDN(), stackTraceToSingleLineString(e)), e);
+    }
+  }
+
+  /** Reads the ECL configuration which must be there, as the caller has just created it. */
+  private ExternalChangelogDomainCfg requireECLConfiguration(ReplicationDomainCfg domCfg)
+      throws ConfigException
+  {
+    final ExternalChangelogDomainCfg eclDomCfg = readECLConfiguration(domCfg);
+    if (eclDomCfg == null)
+    {
+      throw new ConfigException(NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
+          "Replication Domain on " + domCfg.getBaseDN(),
+          "its external changelog configuration is gone"));
+    }
+    return eclDomCfg;
+  }
+
+  private static DN eclConfigurationEntryDN(ReplicationDomainCfg domCfg)
+  {
+    return DN.valueOf("cn=external changelog," + domCfg.dn());
+  }
+
+  /** Whether the ECL configuration entry is there, or {@code null} when it cannot be told. */
+  private Boolean hasECLConfigurationEntry(ReplicationDomainCfg domCfg)
+  {
+    try
+    {
+      final ConfigurationHandler configHandler = getServerContext().getConfigurationHandler();
+      // There may not be any config entry related to this domain in some unit test cases
+      return configHandler.hasEntry(domCfg.dn())
+          && configHandler.hasEntry(eclConfigurationEntryDN(domCfg));
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+      return null;
+    }
+  }
+
+  /**
+   * Creates the entry the ECL configuration of the domain is stored in, with its default
+   * values, when the server configuration does not carry one yet.
+   *
    * @param  domCfg       The provided configuration.
    * @throws ConfigException When an error occurred.
    */
-  private void storeECLConfiguration(ReplicationDomainCfg domCfg)
+  private void createECLConfigurationEntryIfMissing(ReplicationDomainCfg domCfg)
       throws ConfigException
   {
-    ExternalChangelogDomainCfg eclDomCfg = null;
+    if (readECLConfiguration(domCfg) != null)
+    {
+      return;
+    }
     // create the ecl config if it does not exist
-    // There may not be any config entry related to this domain in some
-    // unit test cases
     try
     {
-      DN configDn = config.dn();
+      DN configDn = domCfg.dn();
       ConfigurationHandler configHandler = getServerContext().getConfigurationHandler();
-      if (configHandler.hasEntry(config.dn()))
+      // domain with no config entry only when running unit tests
+      if (configHandler.hasEntry(configDn))
       {
-        try
-        { eclDomCfg = domCfg.getExternalChangelogDomain();
-        } catch(Exception e) { /* do nothing */ }
-        // domain with no config entry only when running unit tests
-        if (eclDomCfg == null)
+        if (!configHandler.hasEntry(eclConfigurationEntryDN(domCfg)))
         {
-          // no ECL config provided hence create a default one
-          // create the default one
-          DN eclConfigEntryDN = DN.valueOf("cn=external changelog," + configDn);
-          if (!configHandler.hasEntry(eclConfigEntryDN))
+          if (getBackend() == null)
           {
-            // no entry exist yet for the ECL config for this domain
-            // create it
-            String ldif = makeLdif(
-                "dn: cn=external changelog," + configDn,
-                "objectClass: top",
-                "objectClass: ds-cfg-external-changelog-domain",
-                "cn: external changelog",
-                "ds-cfg-enabled: " + !getBackend().isPrivateBackend());
-            LDIFImportConfig ldifImportConfig = new LDIFImportConfig(
-                new StringReader(ldif));
-            // No need to validate schema in replication
-            ldifImportConfig.setValidateSchema(false);
-            LDIFReader reader = new LDIFReader(ldifImportConfig);
+            // Read to tell a private backend from a public one just below.
+            throw new ConfigException(ERR_SEARCHING_DOMAIN_BACKEND.get(domCfg.getBaseDN()));
+          }
+          // no entry exist yet for the ECL config for this domain
+          // create it
+          String ldif = makeLdif(
+              "dn: cn=external changelog," + configDn,
+              "objectClass: top",
+              "objectClass: ds-cfg-external-changelog-domain",
+              "cn: external changelog",
+              "ds-cfg-enabled: " + !getBackend().isPrivateBackend());
+          LDIFImportConfig ldifImportConfig = new LDIFImportConfig(
+              new StringReader(ldif));
+          // No need to validate schema in replication
+          ldifImportConfig.setValidateSchema(false);
+          try (LDIFReader reader = new LDIFReader(ldifImportConfig))
+          {
             Entry eclEntry = reader.readEntry();
             configHandler.addEntry(Converters.from(eclEntry));
-            ldifImportConfig.close();
           }
         }
       }
-      eclDomCfg = domCfg.getExternalChangelogDomain();
+    }
+    catch (ConfigException e)
+    {
+      throw e;
+    }
+    catch (Exception e)
+    {
+      throw new ConfigException(NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
+          "Replication Domain on " + domCfg.getBaseDN(), stackTraceToSingleLineString(e)), e);
+    }
+  }
+
+  /**
+   * Applies the provided ECL configuration to this domain.
+   * <p>
+   * This restarts the session when the attributes published to the external changelog
+   * changed, so the configuration it is applied along must be in place already.
+   *
+   * @param eclDomCfg The ECL configuration read by {@link #requireECLConfiguration}.
+   * @return What the ECL domain made of the change: it reports a change it cannot apply
+   *         rather than throwing it.
+   * @throws ConfigException When applying it failed, the session it restarts included.
+   */
+  private ConfigChangeResult applyECLConfiguration(ExternalChangelogDomainCfg eclDomCfg)
+      throws ConfigException
+  {
+    try
+    {
       if (eclDomain != null)
       {
-        eclDomain.applyConfigurationChange(eclDomCfg);
+        return eclDomain.applyConfigurationChange(eclDomCfg);
       }
-      else
-      {
-        // Create the ECL domain object
-        eclDomain = new ExternalChangelogDomain(this, eclDomCfg);
-      }
+      // Create the ECL domain object
+      eclDomain = new ExternalChangelogDomain(this, eclDomCfg);
+      return new ConfigChangeResult();
     }
     catch (Exception e)
     {
