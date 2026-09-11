@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tasks;
 
@@ -262,25 +263,32 @@ public class RestoreTask extends Task
     // and to take appropriate actions.
     DirectoryServer.notifyRestoreBeginning(backend, restoreConfig);
 
-    // Disable the backend.
-    if ( !verifyOnly)
-    {
-      try
-      {
-        TaskUtils.disableBackend(backendID);
-      } catch (DirectoryException e)
-      {
-        logger.traceException(e);
-
-        logger.error(e.getMessageObject());
-        return TaskState.STOPPED_BY_ERROR;
-      }
-    }
-
-    // From here we must make sure to re-enable the backend before returning.
+    /*
+     * From here the listeners must be told that the restore is over whichever way this
+     * method returns: a listener which took something offline when it began - a
+     * replication domain disables itself - gets no other chance to put it back.
+     */
+    boolean backendDisabled = false;
     boolean errorsEncountered = false;
     try
     {
+      // Disable the backend. From here the finally below re-enables it before returning.
+      if ( !verifyOnly)
+      {
+        try
+        {
+          TaskUtils.disableBackend(backendID);
+          backendDisabled = true;
+        } catch (DirectoryException e)
+        {
+          logger.traceException(e);
+
+          logger.error(e.getMessageObject());
+          errorsEncountered = true;
+          return TaskState.STOPPED_BY_ERROR;
+        }
+      }
+
       // Acquire an exclusive lock for the backend.
       if (verifyOnly || lockBackend(backend))
       {
@@ -294,13 +302,11 @@ public class RestoreTask extends Task
           }
           catch (DirectoryException de)
           {
-            DirectoryServer.notifyRestoreEnded(backend, restoreConfig, false);
             logger.error(ERR_RESTOREDB_ERROR_DURING_BACKUP, backupID, backupDir.getPath(), de.getMessageObject());
             errorsEncountered = true;
           }
           catch (Exception e)
           {
-            DirectoryServer.notifyRestoreEnded(backend, restoreConfig, false);
             logger.error(ERR_RESTOREDB_ERROR_DURING_BACKUP, backupID, backupDir.getPath(), getExceptionMessage(e));
             errorsEncountered = true;
           }
@@ -317,8 +323,8 @@ public class RestoreTask extends Task
     }
     finally
     {
-      // Enable the backend.
-      if (! verifyOnly)
+      // Enable the backend, if it was this task which disabled it.
+      if (backendDisabled)
       {
         try
         {
@@ -335,7 +341,8 @@ public class RestoreTask extends Task
           errorsEncountered = true;
         }
       }
-      DirectoryServer.notifyRestoreEnded(backend, restoreConfig, true);
+      // Notified once, after the backend is back, so that a listener can read it again.
+      DirectoryServer.notifyRestoreEnded(backend, restoreConfig, !errorsEncountered);
     }
 
     if (errorsEncountered)

@@ -22,9 +22,11 @@ import java.util.UUID;
 
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.TestTaskListener;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
@@ -381,6 +383,83 @@ public class TestImportAndExport extends TasksTestCase
       }
     }
  }
+
+  /**
+   * An import which cannot disable its backend must still tell the import task listeners
+   * that the import is over: a listener which took something offline when the import began
+   * - a replication domain disables itself - has no other chance to put it back.
+   */
+  @Test
+  public void testImportEndsWhenTheBackendCannotBeDisabled() throws Exception
+  {
+    /*
+     * A backend registered at runtime has no entry in cn=config, and disabling a backend
+     * is a modification of that entry, so TaskUtils.disableBackend() cannot do it.
+     */
+    final String backendID = "importTaskUnconfiguredBackend";
+    TestCaseUtils.initializeMemoryBackend(backendID, "dc=unconfigured,dc=com", true);
+    try
+    {
+      int importBeginCount = TestTaskListener.importBeginCount.get();
+      int importEndCount   = TestTaskListener.importEndCount.get();
+
+      Entry taskEntry = TestCaseUtils.makeEntry(
+          "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+          "objectclass: top",
+          "objectclass: ds-task",
+          "objectclass: ds-task-import",
+          "ds-task-class-name: org.opends.server.tasks.ImportTask",
+          "ds-task-import-backend-id: " + backendID,
+          "ds-task-import-ldif-file: " + ldifFile.getPath());
+
+      testTask(taskEntry, TaskState.STOPPED_BY_ERROR, 60);
+
+      assertEquals(TestTaskListener.importBeginCount.get(), importBeginCount + 1);
+      assertEquals(TestTaskListener.importEndCount.get(), importEndCount + 1);
+    }
+    finally
+    {
+      removeMemoryBackend(backendID);
+    }
+  }
+
+  /**
+   * A failed import must notify the listeners exactly once, as its beginning was notified
+   * once: a replication domain enabled a second time reloads and rewinds its replication
+   * state for nothing.
+   */
+  @Test
+  public void testFailedImportEndsOnlyOnce() throws Exception
+  {
+    int importBeginCount = TestTaskListener.importBeginCount.get();
+    int importEndCount   = TestTaskListener.importEndCount.get();
+
+    // A directory can be read, so the task accepts it, but it cannot be read as LDIF.
+    Entry taskEntry = TestCaseUtils.makeEntry(
+        "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+        "objectclass: top",
+        "objectclass: ds-task",
+        "objectclass: ds-task-import",
+        "ds-task-class-name: org.opends.server.tasks.ImportTask",
+        "ds-task-import-backend-id: userRoot",
+        "ds-task-import-ldif-file: " + ldifFile.getParent());
+
+    testTask(taskEntry, TaskState.STOPPED_BY_ERROR, 60);
+
+    assertEquals(TestTaskListener.importBeginCount.get(), importBeginCount + 1);
+    assertEquals(TestTaskListener.importEndCount.get(), importEndCount + 1);
+  }
+
+  private void removeMemoryBackend(String backendID) throws Exception
+  {
+    BackendConfigManager backendConfigManager = TestCaseUtils.getServerContext().getBackendConfigManager();
+    LocalBackend<?> backend = backendConfigManager.getLocalBackendById(backendID);
+    if (backend != null)
+    {
+      backend.finalizeBackend();
+      backendConfigManager.deregisterLocalBackend(backend);
+    }
+  }
 
   /**
    * Add a task definition and check that it completes with the expected state.
