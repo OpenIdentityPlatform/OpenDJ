@@ -206,4 +206,29 @@ public class ConnectFailureReporterTest extends DirectoryServerTestCase
     assertThat(reporter.recordFailure(PEER, DOMAIN))
         .as("a peer which goes down again is a new failure, not the one already reported").isTrue();
   }
+
+  /**
+   * A session is established for one domain at a time, and what a connection ends is the
+   * outage of the domain it was made for. Forgetting the peer instead leaves the domains
+   * which are still down looking like domains nothing was reported about: each of them is
+   * reported down a second time on the next pass of the connect thread, and reported
+   * recovered on the pass after that, for as long as they stay down.
+   */
+  @Test
+  public void aConnectionForOneDomainLeavesTheOtherDomainsOfThePeerRecorded() throws Exception
+  {
+    final ConnectFailureReporter reporter = new ConnectFailureReporter();
+
+    reporter.recordFailure(PEER, DOMAIN);
+    reporter.recordFailure(PEER, OTHER_DOMAIN);
+
+    reporter.recordConnected(PEER, DOMAIN);
+
+    assertThat(reporter.recordFailure(PEER, OTHER_DOMAIN))
+        .as("the other domain of that peer is still down, and its failure is the one already"
+            + " reported rather than a new one").isFalse();
+    assertThat(reporter.recordConnected(PEER, OTHER_DOMAIN))
+        .as("the outage reported for the other domain is still open, so the connection which"
+            + " ends it is still to be reported").isTrue();
+  }
 }

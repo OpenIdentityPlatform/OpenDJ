@@ -785,10 +785,21 @@ public class ReplicationServer
      * one: a StopMsg read where the peer's ReplServerStartMsg was due, a cross connect this
      * server resolves against a peer it is already connected to, and a phase two the peer
      * leaves unanswered. Those would otherwise leave "connected" as the last thing said
-     * about a domain which has no session for it. The remaining four are this server
-     * rejecting the peer, and abortStart() logs their reason here, next to what this
-     * reports, which is why the message reported for an answer without a session does not
-     * send the operator to the log of the peer for a reason which may be in this one.
+     * about a domain which has no session for it. The remaining four have their reason
+     * logged here by abortStart(), and they are not all of one kind: this server rejecting
+     * the peer, the peer going away while the handshake ran, and whatever else fails on
+     * this side of it. So the message reported for an answer without a session tells the
+     * two apart by where a reason was logged rather than by naming a side: the operator is
+     * sent to the log of the peer only where nothing was logged here, and that is also the
+     * abort the peer may have logged nothing about either -- it resolves a cross connect
+     * with the same silent abortStart(null), one line up in startFromRemoteRS().
+     *
+     * The cross connect this server resolves is the one abort of the three where a session
+     * for the domain does exist: it is the connection the peer made, which the already
+     * connected branch of runConnect() reports on its next pass. Reaching this line with
+     * one open needs that registration to land between the snapshot that branch reads and
+     * the dial below it, so what it costs is one warning, and the pass after it says what
+     * is true.
      */
     reportConnectionRestored(remoteServerAddress, baseDN, handshakeCompleted);
     return handshakeCompleted;

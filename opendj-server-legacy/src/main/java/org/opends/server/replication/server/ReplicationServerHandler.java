@@ -139,7 +139,7 @@ public class ReplicationServerHandler extends ServerHandler
    * on an outgoing connection.
    * <p>
    * A handshake which does not complete is aborted rather than thrown out of here, and
-   * two of the three aborts carry no message at all: a peer which stops the handshake
+   * three of its seven aborts carry no message at all: a peer which stops the handshake
    * answers with a {@link StopMsg}, which {@code Session.close()} publishes for every
    * abort of its own, and {@link #abortStart} logs nothing when the reason is null. The
    * caller is what is left to tell a connection from an attempt which only reached the
