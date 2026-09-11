@@ -647,13 +647,15 @@ public class ShortCircuitPlugin
     if (resultCode != null)
     {
       final int reached = shortCircuitCounts.computeIfAbsent(key, k -> new AtomicInteger()).incrementAndGet();
+      final int letThroughFirst = shortCircuitSkips.getOrDefault(key, 0);
       final Integer maxTimes = shortCircuitLimits.get(key);
-      if (maxTimes == null || reached <= maxTimes)
+      if (reached > letThroughFirst && (maxTimes == null || reached <= letThroughFirst + maxTimes))
       {
         return resultCode;
       }
-      // The short circuit was applied as many times as it was asked for: from now on the
-      // operations are let through, which is how a transient failure is simulated.
+      // The operations before the short circuit are let through, and so are the ones after
+      // it was applied as many times as it was asked for: this is how a transient failure
+      // which starts, or ends, part way through a sequence of operations is simulated.
     }
 
     /*
@@ -740,6 +742,9 @@ public class ShortCircuitPlugin
   /** How many times a registered short circuit must be applied, when it is limited. */
   private static final Map<String, Integer> shortCircuitLimits = new ConcurrentHashMap<>();
 
+  /** How many operations a registered short circuit lets through before it applies. */
+  private static final Map<String, Integer> shortCircuitSkips = new ConcurrentHashMap<>();
+
   /**
    * Returns how many times the short circuit registered for the given operation type and
    * plugin point was reached. A short circuit registered for a limited number of times is
@@ -765,10 +770,12 @@ public class ShortCircuitPlugin
   public static void registerShortCircuit(OperationType operation, String section, int resultCode)
   {
     final String key = keyFor(operation, section);
-    // This registration applies to every operation, and it counts from zero: a limit or
-    // a count left behind by a previous registration is not part of it.
+    // This registration applies to every operation, and it counts from zero: a limit, a
+    // number of operations let through or a count left behind by a previous registration
+    // is not part of it.
     shortCircuitCounts.remove(key);
     shortCircuitLimits.remove(key);
+    shortCircuitSkips.remove(key);
     shortCircuits.put(key, resultCode);
   }
 
@@ -783,8 +790,29 @@ public class ShortCircuitPlugin
    */
   public static void registerShortCircuit(OperationType operation, String section, int resultCode, int maxTimes)
   {
+    registerShortCircuit(operation, section, resultCode, 0, maxTimes);
+  }
+
+  /**
+   * Register a short circuit which lets the given number of operations through before it
+   * applies, then applies to the given number of operations, the ones which follow being
+   * let through again: this is how a transient failure which starts part way through a
+   * sequence of operations is simulated - the second search of an attempt failing while
+   * the first one ran, say.
+   *
+   * @param operation The type of operation the short circuit applies to.
+   * @param section The plugin point the short circuit applies to.
+   * @param resultCode The result code to be returned for the short circuit.
+   * @param letThroughFirst How many operations must be let through before the short
+   *                        circuit applies.
+   * @param maxTimes How many operations must be short circuited after them.
+   */
+  public static void registerShortCircuit(OperationType operation, String section, int resultCode,
+      int letThroughFirst, int maxTimes)
+  {
     final String key = keyFor(operation, section);
     shortCircuitCounts.remove(key);
+    shortCircuitSkips.put(key, letThroughFirst);
     shortCircuitLimits.put(key, maxTimes);
     shortCircuits.put(key, resultCode);
   }
@@ -799,6 +827,7 @@ public class ShortCircuitPlugin
     final String key = keyFor(operation, section);
     shortCircuits.remove(key);
     shortCircuitLimits.remove(key);
+    shortCircuitSkips.remove(key);
     // The count belongs to the registration which is being removed: a test which counts
     // the operations it short circuits must not inherit the count of the previous one.
     shortCircuitCounts.remove(key);
