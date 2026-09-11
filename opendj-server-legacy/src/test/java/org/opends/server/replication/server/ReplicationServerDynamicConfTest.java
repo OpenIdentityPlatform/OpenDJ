@@ -22,6 +22,7 @@ import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -34,6 +35,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -519,6 +522,423 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
     {
       remove(replicationServer);
     }
+  }
+
+  /**
+   * Tests that the listen thread reports a failure of {@code accept()} and waits before
+   * accepting again when it keeps failing on a socket which stays open, instead of
+   * spinning on the failure in silence.
+   * <p>
+   * A process which ran out of file descriptors fails every {@code accept()} without ever
+   * closing the listen socket, so the loop comes straight back to it. The wait is what
+   * bounds that spin, and nothing but the time the loop takes tells a thread which waits
+   * from one which does not.
+   */
+  @Test
+  public void listenThreadReportsAcceptFailuresAndWaitsBeforeAcceptingAgain() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    ReplicationServer replicationServer = null;
+    try
+    {
+      final int[] ports = TestCaseUtils.findFreePorts(1);
+      replicationServer = new ReplicationServer(new ReplServerFakeConfiguration(
+          ports[0], "listenThreadWaitsBeforeAcceptingAgainDb", 0, 1, 0, 0, null));
+      final ReplicationServer listeningServer = replicationServer;
+
+      // Four, so that two waits in a row are measured: a backoff timed from the previous
+      // failure rather than from the previous wait grants one, and the failure which
+      // follows it then looks isolated -- half of a continuous run goes unwaited, and only
+      // a second interval in a row tells that apart.
+      final int failures = 4;
+      final String acceptFailure = "accept() fails the way it fails without a file descriptor left";
+      final AtomicInteger accepts = new AtomicInteger();
+      // When each accept() was entered: the wait is between two of them, and measuring
+      // the whole loop instead would put the cost of everything else in the same budget.
+      final long[] acceptNanos = new long[failures];
+      /*
+       * A socket which fails every accept() and closes itself once it has failed enough
+       * of them: the listen loop ends on a closed socket, which is what returns
+       * runListen(). It closes itself for real rather than overriding isClosed(), which
+       * ServerSocket.close() consults before closing anything up to Java 17: the port and
+       * its file descriptor would be held for the rest of the test JVM.
+       */
+      final ServerSocket failingSocket = new ServerSocket(0)
+      {
+        @Override
+        public Socket accept() throws IOException
+        {
+          final int attempt = accepts.incrementAndGet();
+          acceptNanos[attempt - 1] = System.nanoTime();
+          if (attempt >= failures)
+          {
+            super.close();
+          }
+          throw new IOException(acceptFailure);
+        }
+      };
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        try
+        {
+          listeningServer.runListen(failingSocket);
+        }
+        finally
+        {
+          close(failingSocket);
+        }
+        return null;
+      });
+
+      assertTrue(failingSocket.isClosed(), "the socket the listen loop ended on should be closed");
+      assertEquals(accepts.get(), failures, "the listen loop should have ended on the closed socket");
+      /*
+       * Of the four failures, the second and the third are waited on: the first of a row
+       * is not, so that an isolated failure costs the connections behind it nothing, and
+       * the fourth closes the socket, which ends the loop before it would wait.
+       *
+       * Compared in nanoseconds: converting to milliseconds first floors the measurement,
+       * so a wait of exactly the backoff would read as one millisecond short of it.
+       */
+      final long backoffNanos = TimeUnit.MILLISECONDS.toNanos(ReplicationServer.ACCEPT_FAILURE_BACKOFF_MS);
+      for (int attempt = 2; attempt <= 3; attempt++)
+      {
+        final long waitedNanos = acceptNanos[attempt] - acceptNanos[attempt - 1];
+        assertTrue(waitedNanos >= backoffNanos,
+            "the listen thread should have waited " + ReplicationServer.ACCEPT_FAILURE_BACKOFF_MS
+                + " ms after failure " + attempt + " of a row before accepting again, but only "
+                + TimeUnit.NANOSECONDS.toMicros(waitedNanos)
+                + " microseconds passed before attempt " + (attempt + 1));
+      }
+      // And the first failure of the row is not waited on. Bounded by the backoff itself,
+      // which is what waiting on it would cost: what separates the first two attempts is
+      // one log record and the turn of the loop, three orders of magnitude below it.
+      final long firstIntervalNanos = acceptNanos[1] - acceptNanos[0];
+      assertTrue(firstIntervalNanos < backoffNanos,
+          "the listen thread should not have waited after the first failure, so that an isolated"
+              + " one costs the connections behind it nothing, but "
+              + TimeUnit.NANOSECONDS.toMicros(firstIntervalNanos)
+              + " microseconds passed between the first attempt and the second");
+
+      int warnings = 0;
+      int suppressed = 0;
+      for (String record : records)
+      {
+        if (record.contains(acceptFailure))
+        {
+          // A suppressed failure is still recorded, with the information severity, which
+          // the replication log publishes and the error log does not. This capture
+          // publishes every severity, so it holds both.
+          if (record.contains("severity=WARNING"))
+          {
+            warnings++;
+            // The warning stands for the failures suppressed since the previous one, and
+            // this is the first, so it stands for itself alone. Read out of the message
+            // to pin which of its two numbers is the count and which is the interval.
+            assertTrue(record.contains("every 5 minutes") && record.contains("(0 since the previous warning)"),
+                "the warning should report the interval it is bounded by and the 0 failures it"
+                    + " stands for, but it reads: " + record);
+          }
+          else
+          {
+            // Each suppressed record counts itself in what the next warning will stand
+            // for, so they are numbered in the order they were written.
+            suppressed++;
+            assertTrue(record.contains("every 5 minutes")
+                && record.contains("(" + suppressed + " since the previous warning)"),
+                "suppressed record " + suppressed + " should report the interval it is bounded by"
+                    + " and the " + suppressed + " failures counted so far, but it reads: " + record);
+          }
+        }
+      }
+      // The first failure is warned about, the second and the third are suppressed by the
+      // throttle, and the fourth, on the closed socket, is how the loop is told to end.
+      assertEquals(warnings, 1, "the listen thread should have warned about the first failure only,"
+          + " but the error log holds " + warnings + " warnings about it: " + records);
+      assertEquals(suppressed, 2, "the failures which follow should have been suppressed and kept,"
+          + " but the error log holds " + suppressed + " suppressed records about them: " + records);
+    }
+    finally
+    {
+      remove(replicationServer);
+    }
+  }
+
+  /**
+   * Tests that a failure of {@code accept()} which follows a connection is not waited on,
+   * and that a connection which cannot be turned into a session is reported.
+   * <p>
+   * The wait bounds a listen loop which is spinning on a failure in silence. A loop which
+   * accepted a connection in between is doing work instead, and charging it a wait per
+   * failure would make a stream of connections aborted between the handshake and
+   * {@code accept()} -- a health check, a port scan -- pace the whole listen port. What
+   * that gives up is the failure which alternates with a connection, under a process which
+   * frees a file descriptor now and then: the accept it lets through resets the clock, and
+   * the failure behind it is timed as isolated. Both halves are this line, so both are
+   * pinned here rather than left to the comment above it.
+   * <p>
+   * The connection served is one no session can be built on, which is the other half of
+   * what the listen loop reports: the accepted socket is closed, so setting its options
+   * fails at once where a socket connected to nothing would spend the whole connection
+   * timeout inside the SSL handshake. It was connected before it was closed, so it still
+   * names the peer the report is about, which is what the report is read for here.
+   */
+  @Test
+  public void listenThreadDoesNotWaitAfterAFailureWhichFollowedAConnection() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    ReplicationServer replicationServer = null;
+    ServerSocket connectedTo = null;
+    try
+    {
+      final int[] ports = TestCaseUtils.findFreePorts(1);
+      replicationServer = new ReplicationServer(new ReplServerFakeConfiguration(
+          ports[0], "listenThreadResetsBackoffOnAConnectionDb", 0, 2, 0, 0, null));
+      final ReplicationServer listeningServer = replicationServer;
+
+      connectedTo = new ServerSocket(0);
+      final Socket served = new Socket();
+      served.connect(new InetSocketAddress("127.0.0.1", connectedTo.getLocalPort()), 10000);
+      final String servedAddress = served.getRemoteSocketAddress().toString();
+      served.close();
+
+      final int attempts = 4;
+      final String acceptFailure = "accept() fails the way it fails without a file descriptor left";
+      final AtomicInteger accepts = new AtomicInteger();
+      // When each accept() was entered: what is measured is between two of them.
+      final long[] acceptNanos = new long[attempts];
+      /*
+       * Fails, serves one connection, fails again, and closes itself on the fourth attempt:
+       * the listen loop ends on a closed socket, which is what returns runListen(). It
+       * closes itself for real rather than overriding isClosed(), which
+       * ServerSocket.close() consults before closing anything up to Java 17: the port and
+       * its file descriptor would be held for the rest of the test JVM.
+       */
+      final ServerSocket failingSocket = new ServerSocket(0)
+      {
+        @Override
+        public Socket accept() throws IOException
+        {
+          final int attempt = accepts.incrementAndGet();
+          acceptNanos[attempt - 1] = System.nanoTime();
+          if (attempt == 2)
+          {
+            return served;
+          }
+          if (attempt >= attempts)
+          {
+            super.close();
+          }
+          throw new IOException(acceptFailure);
+        }
+      };
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        try
+        {
+          listeningServer.runListen(failingSocket);
+        }
+        finally
+        {
+          close(failingSocket);
+        }
+        return null;
+      });
+
+      assertTrue(failingSocket.isClosed(), "the socket the listen loop ended on should be closed");
+      assertEquals(accepts.get(), attempts, "the listen loop should have ended on the closed socket");
+      /*
+       * The third attempt fails right after the second served a connection, so the fourth
+       * follows it without a wait. Without the reset the third failure would be timed from
+       * the first, which is a few microseconds behind it, and read as repeating it.
+       *
+       * Compared in nanoseconds: converting to milliseconds first floors the measurement,
+       * so a wait of exactly the backoff would read as one millisecond short of it.
+       */
+      final long backoffNanos = TimeUnit.MILLISECONDS.toNanos(ReplicationServer.ACCEPT_FAILURE_BACKOFF_MS);
+      final long afterConnectionNanos = acceptNanos[3] - acceptNanos[2];
+      assertTrue(afterConnectionNanos < backoffNanos,
+          "the listen thread should not have waited after a failure which followed a connection,"
+              + " but " + TimeUnit.NANOSECONDS.toMicros(afterConnectionNanos)
+              + " microseconds passed between the third attempt and the fourth");
+
+      int sessionSetupWarnings = 0;
+      for (String record : records)
+      {
+        if (record.contains("accepted a connection from " + servedAddress)
+            && record.contains("severity=WARNING"))
+        {
+          sessionSetupWarnings++;
+          // Read out of the message to pin which of its two numbers is the count and which
+          // is the interval, and that the address is the peer rather than the listen port.
+          assertTrue(record.contains("every 5 minutes") && record.contains("(0 since the previous warning)"),
+              "the warning should report the interval it is bounded by and the 0 failures it"
+                  + " stands for, but it reads: " + record);
+        }
+      }
+      assertEquals(sessionSetupWarnings, 1, "the connection no session could be built on should"
+          + " have been reported once, but the error log holds " + sessionSetupWarnings
+          + " warnings about it: " + records);
+    }
+    finally
+    {
+      close(connectedTo);
+      remove(replicationServer);
+    }
+  }
+
+  /**
+   * Tests that each pass of the listen loop bounds its own failures, both the ones of
+   * {@code accept()} and the ones of the connections it accepts.
+   * <p>
+   * A listen port change runs a second listen thread -- {@code switchListenPort()} starts it
+   * before it stops the one it replaces -- so the two overlap, and a five minute window
+   * opened on the port which was left would suppress the first failure on the port which
+   * replaced it: silence in {@code logs/errors} right after the administrator changed the
+   * port to get out of trouble. What that asks of the code is that neither throttle be a
+   * field of the server, and two passes of {@code runListen()} on one server is that
+   * handover without the timing of it: with either throttle kept in a field, the second
+   * pass reports nothing at all.
+   */
+  @Test
+  public void eachListenPassBoundsItsOwnFailures() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    ReplicationServer replicationServer = null;
+    ServerSocket connectedTo = null;
+    try
+    {
+      final int[] ports = TestCaseUtils.findFreePorts(1);
+      replicationServer = new ReplicationServer(new ReplServerFakeConfiguration(
+          ports[0], "eachListenPassBoundsItsOwnFailuresDb", 0, 2, 0, 0, null));
+      final ReplicationServer listeningServer = replicationServer;
+
+      connectedTo = new ServerSocket(0);
+      final int connectedToPort = connectedTo.getLocalPort();
+      final String acceptFailure = "accept() fails the way it fails without a file descriptor left";
+      // The peers of the two connections, read before they are closed: a closed socket still
+      // names the peer it was connected to, but only the one which was connected.
+      final List<String> peers = new ArrayList<>();
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        for (int pass = 0; pass < 2; pass++)
+        {
+          /*
+           * Two connections per pass, not one: the first is reported and the second is the
+           * one the throttle of the pass has to suppress. With a single connection a
+           * throttle built for each failure rather than held for the pass reports the same
+           * one warning, the first failure of a fresh throttle being a warning either way,
+           * so the call site would be pinned by nothing.
+           */
+          final Socket reported = servedConnectionTo(connectedToPort);
+          peers.add(reported.getRemoteSocketAddress().toString());
+          final Socket suppressed = servedConnectionTo(connectedToPort);
+
+          final AtomicInteger accepts = new AtomicInteger();
+          /*
+           * Serves those two connections, fails, and fails again on the socket it closes
+           * under itself: two failures of one kind and one of the other per pass, and the
+           * close is what returns runListen(). The failure which closes the socket is not
+           * the reported one -- handleAcceptFailure() returns on a closed socket, that
+           * failure being how a listen thread is told its port was taken away -- so the
+           * pass has to fail once before it.
+           */
+          final ServerSocket failingSocket = new ServerSocket(0)
+          {
+            @Override
+            public Socket accept() throws IOException
+            {
+              final int attempt = accepts.incrementAndGet();
+              if (attempt == 1)
+              {
+                return reported;
+              }
+              if (attempt == 2)
+              {
+                return suppressed;
+              }
+              if (attempt >= 4)
+              {
+                super.close();
+              }
+              throw new IOException(acceptFailure);
+            }
+          };
+
+          try
+          {
+            listeningServer.runListen(failingSocket);
+          }
+          finally
+          {
+            close(failingSocket);
+          }
+        }
+        return null;
+      });
+
+      assertEquals(peers.size(), 2, "both passes should have served their connection");
+      /*
+       * Counted by the message rather than by the peer: the kernel hands the second
+       * connection the ephemeral port the first one released, so the two passes usually
+       * name the same peer, and one warning naming it twice is what the second pass
+       * reporting its own connection looks like.
+       */
+      assertEquals(countWarningsOf(records, "accepted a connection from "), 2,
+          "each pass should have reported the connection no session could be built on, but the"
+              + " error log holds " + countWarningsOf(records, "accepted a connection from ")
+              + " such warnings: " + records);
+      for (String peer : peers)
+      {
+        assertTrue(countWarningsOf(records, "accepted a connection from " + peer) >= 1,
+            "the report should name the peer of the connection rather than the listen port,"
+                + " but no warning names " + peer + ": " + records);
+      }
+      assertEquals(countRecordsOf(records, "accepted a connection from "), 4,
+          "each pass should have recorded both of its connections, the one it warned about and"
+              + " the one its throttle suppressed, but the error log holds "
+              + countRecordsOf(records, "accepted a connection from ") + " such records: " + records);
+      assertEquals(countWarningsOf(records, acceptFailure), 2,
+          "each pass should have warned about the failure of accept() which ended it, but the"
+              + " error log holds " + countWarningsOf(records, acceptFailure) + " such warnings: "
+              + records);
+    }
+    finally
+    {
+      close(connectedTo);
+      remove(replicationServer);
+    }
+  }
+
+  /**
+   * Returns a socket connected to the provided port and closed, which is a connection no
+   * replication session can be started on: setting the options of a closed socket fails at
+   * once, where a socket connected to nothing would spend the whole connection timeout
+   * inside the SSL handshake.
+   */
+  private Socket servedConnectionTo(int port) throws IOException
+  {
+    final Socket socket = new Socket();
+    socket.connect(new InetSocketAddress("127.0.0.1", port), 10000);
+    socket.close();
+    return socket;
+  }
+
+  /** Returns how many of the provided error log records hold the provided text as warnings. */
+  private int countWarningsOf(List<String> records, String contained)
+  {
+    int warnings = 0;
+    for (String record : records)
+    {
+      if (record.contains(contained) && record.contains("severity=WARNING"))
+      {
+        warnings++;
+      }
+    }
+    return warnings;
   }
 
   /**

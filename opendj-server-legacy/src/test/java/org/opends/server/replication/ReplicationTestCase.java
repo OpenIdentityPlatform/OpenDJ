@@ -32,6 +32,7 @@ import static org.testng.Assert.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -57,6 +58,10 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.loggers.ErrorLogPublisher;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
@@ -937,6 +942,227 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected static ReplSessionSecurity getReplSessionSecurity() throws ConfigException
   {
     return new ReplSessionSecurity(null, null, null, true);
+  }
+
+  /**
+   * Runs the provided action and returns the records the error log received while it ran.
+   * <p>
+   * A publisher of its own is registered for the duration rather than reading the one the
+   * test harness installs, whose contents span the whole test JVM.
+   * <p>
+   * It publishes every severity, so that a record a throttle kept out of the warnings is
+   * captured too. That is server wide while the action runs, so the records of other
+   * threads are captured as well and a caller has to pick out its own.
+   *
+   * @param action
+   *          The action to run.
+   * @return The error log records written while the action ran, in order.
+   * @throws Exception
+   *           Whatever the action throws.
+   */
+  protected static List<String> errorLogRecordsOf(final Callable<Void> action) throws Exception
+  {
+    return errorLogRecordsOf(unused -> action.call());
+  }
+
+  /**
+   * Runs the provided action, which reads the error log records as they are written, and
+   * returns the records the error log received while it ran.
+   * <p>
+   * The list handed to the action is the live one, so an action can wait for a server
+   * thread to log something instead of waiting for a duration. It is synchronized, and
+   * iterating it is not: a reader has to copy it, or hold its monitor.
+   *
+   * @param action
+   *          The action to run, taking the records written so far.
+   * @return The error log records written while the action ran, in order.
+   * @throws Exception
+   *           Whatever the action throws.
+   */
+  // The publisher is built raw and handed to a parameterized addLogPublisher: the
+  // conversion is unchecked, and it is the one the test harness makes as well.
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  protected static List<String> errorLogRecordsOf(ErrorLogAction action) throws Exception
+  {
+    final List<String> records = Collections.synchronizedList(new ArrayList<String>());
+    final ErrorLogPublisher capture =
+        TextErrorLogPublisher.getToolStartupTextErrorPublisher(new TextWriter()
+        {
+          @Override
+          public void writeRecord(String record)
+          {
+            records.add(record);
+          }
+
+          @Override
+          public void flush()
+          {
+            // Nothing is buffered.
+          }
+
+          @Override
+          public void shutdown()
+          {
+            // Nothing is buffered.
+          }
+
+          @Override
+          public long getBytesWritten()
+          {
+            return 0;
+          }
+        });
+    ErrorLogger.getInstance().addLogPublisher(capture);
+    try
+    {
+      action.run(records);
+    }
+    finally
+    {
+      ErrorLogger.getInstance().removeLogPublisher(capture);
+    }
+    // Copied under the monitor: the publishers are iterated from a snapshot, so a thread
+    // which is already inside it can still write a record after this one was removed, and
+    // the caller must not have to synchronize to read what it got.
+    return copyOf(records);
+  }
+
+  /**
+   * Returns the one record of the provided error log which reports the provided message.
+   * <p>
+   * A record holds the severity it was published with next to the message, so this is how
+   * a test reads the severity of a message it expects, rather than only its text.
+   *
+   * @param records
+   *          The error log records to look in, as {@link #errorLogRecordsOf} returned them.
+   * @param message
+   *          The message the record is expected to report.
+   * @return The record reporting the provided message.
+   */
+  protected static String recordOf(List<String> records, LocalizableMessage message)
+  {
+    String found = null;
+    for (String record : records)
+    {
+      if (record.contains(message.toString()))
+      {
+        assertNull(found, "\"" + message + "\" should have been logged once, but the error log"
+            + " holds it more than once: " + records);
+        found = record;
+      }
+    }
+    assertNotNull(found, "\"" + message + "\" should have been logged, but the error log holds: " + records);
+    return found;
+  }
+
+  /**
+   * Returns how many records of the provided error log hold the provided text.
+   *
+   * @param records
+   *          The error log records to count in.
+   * @param contained
+   *          The text the counted records hold.
+   * @return The number of records holding the provided text.
+   */
+  protected static int countRecordsOf(List<String> records, String contained)
+  {
+    int count = 0;
+    synchronized (records)
+    {
+      for (String record : records)
+      {
+        if (record.contains(contained))
+        {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Waits for a record holding the provided text to be written to the provided error log.
+   * <p>
+   * For what a server thread logs on its own schedule: the connect thread of a replication
+   * server retries a peer every second, so what it reports is waited for rather than
+   * expected to be there already.
+   * <p>
+   * Only the records which arrived since the previous poll are read: the capture publishes
+   * every severity, which is every {@code logger.debug} of every thread of the server for
+   * as long as it is installed, so rereading the whole list on each poll would cost the
+   * square of what a slow wait captures.
+   *
+   * @param records
+   *          The live error log records, as {@link ErrorLogAction} received them.
+   * @param contained
+   *          The text the awaited record holds.
+   * @param timeoutMs
+   *          How long to wait for it, in milliseconds.
+   * @throws InterruptedException
+   *           If the wait is interrupted.
+   */
+  protected static void waitForErrorLogRecord(List<String> records, String contained, long timeoutMs)
+      throws InterruptedException
+  {
+    final long deadline = System.currentTimeMillis() + timeoutMs;
+    int read = 0;
+    while (true)
+    {
+      synchronized (records)
+      {
+        final int written = records.size();
+        while (read < written)
+        {
+          if (records.get(read++).contains(contained))
+          {
+            return;
+          }
+        }
+      }
+      // Tested after the records are read and not after the sleep, so that what arrives
+      // during the last sleep of the wait is still read: it arrived inside the timeout.
+      if (System.currentTimeMillis() >= deadline)
+      {
+        break;
+      }
+      Thread.sleep(100);
+    }
+    fail("\"" + contained + "\" should have been logged within " + timeoutMs
+        + " ms, but the error log received " + read + " records, the last of them: "
+        + lastRecordsOf(records));
+  }
+
+  /** Copies the live error log records, which are synchronized but not safe to iterate. */
+  private static List<String> copyOf(List<String> records)
+  {
+    synchronized (records)
+    {
+      return new ArrayList<>(records);
+    }
+  }
+
+  /**
+   * The tail of the live error log records, for a failure message: the capture holds every
+   * severity, so the whole list is not something a report can carry.
+   */
+  private static List<String> lastRecordsOf(List<String> records)
+  {
+    final List<String> all = copyOf(records);
+    return all.subList(Math.max(0, all.size() - 20), all.size());
+  }
+
+  /** An action which reads the error log records as they are written. */
+  protected interface ErrorLogAction
+  {
+    /**
+     * Runs the action.
+     *
+     * @param records
+     *          The live error log records written since the action started.
+     * @throws Exception
+     *           Whatever the action throws.
+     */
+    void run(List<String> records) throws Exception;
   }
 
   protected void executeTask(Entry taskEntry, long maxWaitTimeInMillis) throws Exception

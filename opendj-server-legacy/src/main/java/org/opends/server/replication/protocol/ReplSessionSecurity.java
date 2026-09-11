@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
@@ -35,6 +34,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.CryptoManager;
+import org.opends.server.util.FailureLogThrottle;
 
 /**
  * This class represents the security configuration for replication protocol
@@ -55,7 +55,8 @@ public final class ReplSessionSecurity
    * Minimum interval, in minutes, between two warnings about a failed SSL handshake
    * on the replication port. Every connection which is not a replication peer fails
    * the handshake, network probes included, so only the first failure of an interval
-   * is logged as a warning and the following ones are logged at debug level.
+   * is logged as a warning and the following ones are recorded with the information
+   * severity, which the replication log publishes and the error log does not.
    */
   private static final long HANDSHAKE_FAILURE_WARN_INTERVAL_MINUTES = 5;
 
@@ -63,16 +64,9 @@ public final class ReplSessionSecurity
   static final long HANDSHAKE_FAILURE_WARN_INTERVAL_NANOS =
       TimeUnit.MINUTES.toNanos(HANDSHAKE_FAILURE_WARN_INTERVAL_MINUTES);
 
-  /**
-   * Value of {@link System#nanoTime()} at which the last handshake failure was
-   * logged as a warning. It starts one interval in the past so that the first
-   * failure is warned about.
-   */
-  private final AtomicLong lastHandshakeFailureWarnNanos =
-      new AtomicLong(System.nanoTime() - HANDSHAKE_FAILURE_WARN_INTERVAL_NANOS);
-
-  /** Number of handshake failures logged at debug level since the last warning. */
-  private final AtomicLong suppressedHandshakeFailures = new AtomicLong();
+  /** Bounds how often a failed handshake is warned about. */
+  private final FailureLogThrottle handshakeFailures =
+      new FailureLogThrottle(HANDSHAKE_FAILURE_WARN_INTERVAL_MINUTES, TimeUnit.MINUTES);
 
   /**
    * Whether replication sessions use SSL encryption.
@@ -300,8 +294,9 @@ public final class ReplSessionSecurity
   /**
    * Logs a failed SSL handshake on the replication port, as a warning for the
    * first failure of each {@link #HANDSHAKE_FAILURE_WARN_INTERVAL_MINUTES}
-   * interval and at debug level for the following ones. The warning reports how
-   * many failures were logged at debug level before it, so that a single line
+   * interval and with the information severity for the following ones, which the
+   * replication log publishes and the error log does not. The warning reports how
+   * many failures were recorded that way before it, so that a single line
    * cannot be mistaken for a single failed connection. That count looks backwards
    * only: the failures which follow the last warning of a burst are counted but
    * never reported, as nothing flushes the count when the failures stop.
@@ -330,28 +325,22 @@ public final class ReplSessionSecurity
 
   /**
    * Records a handshake failure which happened at the provided time and tells how it
-   * must be logged, together with the number of failures logged at debug level since
-   * the previous warning.
+   * must be logged, together with the number of failures suppressed since the previous
+   * warning.
    * <p>
    * Package private for testing.
    *
    * @param nowNanos
    *          The value of {@link System#nanoTime()} at which the handshake failed.
    * @return A number greater than or equal to zero if this failure is to be logged as a
-   *         warning, which is then the number of failures logged at debug level since
-   *         the previous warning, or {@code -count - 1} if this failure is itself to be
-   *         logged at debug level, where {@code count} is the number of failures logged
-   *         at debug level since the previous warning, this one included.
+   *         warning, which is then the number of failures suppressed since the previous
+   *         warning, or {@code -count - 1} if this failure is itself to be suppressed,
+   *         where {@code count} is the number of failures suppressed since the previous
+   *         warning, this one included.
    */
   long recordHandshakeFailure(final long nowNanos)
   {
-    final long lastWarn = lastHandshakeFailureWarnNanos.get();
-    if (nowNanos - lastWarn >= HANDSHAKE_FAILURE_WARN_INTERVAL_NANOS
-        && lastHandshakeFailureWarnNanos.compareAndSet(lastWarn, nowNanos))
-    {
-      return suppressedHandshakeFailures.getAndSet(0);
-    }
-    return -suppressedHandshakeFailures.incrementAndGet() - 1;
+    return handshakeFailures.record(nowNanos);
   }
 
   /**
