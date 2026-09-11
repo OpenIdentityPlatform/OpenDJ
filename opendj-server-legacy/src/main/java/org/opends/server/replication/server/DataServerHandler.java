@@ -285,8 +285,9 @@ public class DataServerHandler extends ServerHandler
   /**
    * {@inheritDoc}
    * <p>
-   * A directory server with a bad generation id, or one being initialized, is refused the updates
-   * of the domain - see {@code ReplicationServerDomain.isUpdateMsgFiltered()}.
+   * A directory server is handed every update the domain receives, from whichever server, unless
+   * it has a bad generation id or is being initialized - see
+   * {@code ReplicationServerDomain.isUpdateMsgFiltered()}.
    */
   @Override
   boolean isFedByTheDomain()

@@ -81,10 +81,12 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   /** Specifies whether the consumer is following the producer (is not late). */
   private boolean following;
   /**
-   * Whether the previous check of {@link #stopFollowingWhenChangesAreMissing()} found the domain
-   * ahead of this handler while its queue was empty. Guarded by {@link #msgQueue}.
+   * The state of the domain at the previous wait of {@link #getNextMessage()} on an empty queue,
+   * or {@code null} when the queue was not empty then. A change it holds has had a whole wait to
+   * reach the queue, see {@link #stopFollowingWhenChangesAreMissing()}. Guarded by
+   * {@link #msgQueue}.
    */
-  private boolean changesLookedMissing;
+  private ServerState domainStateAtPreviousWait;
   /**
    * The state of the domain the changelog was last read again for by
    * {@link #stopFollowingWhenChangesAreMissing()}, or {@code null} when it never was. Guarded by
@@ -446,10 +448,16 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    * sent and the consumer would be considered up to date forever - see issue #963. Going back to
    * the catch-up path reads the changelog again and delivers it.
    * <p>
-   * The domain is seen ahead for as long as one wait before this concludes anything: the state of
-   * the domain is advanced by {@code ReplicationServerDomain.publishUpdateMsg()} slightly before
-   * {@code addUpdate()} queues the change, and a check landing in between would otherwise report
-   * a change which is on its way.
+   * A change is missing when the domain held it at the previous wait and it is still neither in
+   * the queue nor in the state of this handler. The state of the domain is advanced by
+   * {@code ReplicationServerDomain.publishUpdateMsg()} slightly before {@code addUpdate()} queues
+   * the change, so what the domain received since the previous wait may simply be on its way;
+   * comparing with the state of the domain as it was one wait ago leaves such a change alone even
+   * when the domain has been ahead of this handler for longer, because of a gap the changelog was
+   * already read for.
+   * <p>
+   * The changelog is read again once per advance of the state of the domain: a gap the re-read
+   * does not close is reported once, and read for again when the domain receives something new.
    * <p>
    * Must be called while holding the {@link #msgQueue} monitor.
    */
@@ -457,29 +465,22 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   {
     if (!msgQueue.isEmpty() || !following || !isFedByTheDomain())
     {
-      changesLookedMissing = false;
+      domainStateAtPreviousWait = null;
       return;
     }
+    final ServerState missingSince = domainStateAtPreviousWait;
     final ServerState domainState = replicationServerDomain.getLatestServerState();
-    if (ServerState.diffChanges(domainState, serverState) <= 0)
+    domainStateAtPreviousWait = domainState;
+    if (missingSince == null || serverState.cover(missingSince))
     {
-      changesLookedMissing = false;
       return;
     }
-    if (!changesLookedMissing)
-    {
-      // wait for the next check to tell a missing change from one which is being queued
-      changesLookedMissing = true;
-      return;
-    }
-    if (lastMissingChangesDomainState != null
-        && ServerState.diffChanges(domainState, lastMissingChangesDomainState) <= 0)
+    if (lastMissingChangesDomainState != null && lastMissingChangesDomainState.cover(missingSince))
     {
       // the changelog has already been read again for these changes and gave nothing: reading it
       // once more would give nothing either until the domain receives something new
       return;
     }
-    changesLookedMissing = false;
     lastMissingChangesDomainState = domainState;
     following = false;
     logger.warn(WARN_CHANGELOG_READ_AGAIN_FOR_MISSING_CHANGES, replicationServer.getServerId(),
@@ -487,18 +488,23 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Whether the domain hands the updates it receives to this handler.
+   * Whether the domain hands every update it receives to this handler.
    * <p>
-   * The state of a handler the domain filters out is legitimately behind the state of the domain,
-   * and the changelog must not be read on its behalf: every change read would be dropped by the
-   * writer while the state of the handler moved past it.
+   * Only for such a handler does the state of the domain being ahead of its own mean that a
+   * change was missed, see {@link #stopFollowingWhenChangesAreMissing()}. The state of any other
+   * handler is legitimately behind the state of the domain, and the changelog must not be read on
+   * its behalf: a peer replication server is handed only the changes of the directory servers
+   * connected to this one, so what a third replication server relayed never reaches its queue
+   * nor its state, and reading the changelog again would send it what it already holds; a
+   * directory server the domain filters out would have the writer drop every change read while
+   * its state moved past it.
    *
-   * @return {@code true} when {@code ReplicationServerDomain.put()} queues its updates for this
-   *         handler
+   * @return {@code true} when {@code ReplicationServerDomain.put()} queues every update it
+   *         receives for this handler
    */
   boolean isFedByTheDomain()
   {
-    return true;
+    return false;
   }
 
   /**

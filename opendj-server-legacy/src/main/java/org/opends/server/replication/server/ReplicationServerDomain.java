@@ -853,7 +853,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return this.generationId > 0 && this.generationId == generationId;
   }
 
-  boolean isDifferentGenerationId(long generationId)
+  private boolean isDifferentGenerationId(long generationId)
   {
     return this.generationId > 0 && this.generationId != generationId;
   }
