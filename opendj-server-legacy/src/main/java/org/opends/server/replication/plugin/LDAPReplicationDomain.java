@@ -3168,10 +3168,17 @@ public final class LDAPReplicationDomain extends ReplicationDomain
              * here instead, it would have this thread go on to the roads below and to the
              * next change of the loop on an exhausted heap, with nothing reported anywhere.
              *
-             * It supersedes what the replay was already unwinding on, when it was unwinding
-             * on anything: both are then the same kind of error, the give-back on the way
-             * out of replay() gives the change back counted either way, and the thread ends
-             * on this one rather than on the one it stepped over.
+             * What the give-back on the way out of replay() then finds depends on the road
+             * the replay took to get here. A replay which failed, or which was unwinding on
+             * an OutOfMemoryError of its own, still owns its change: it is given back
+             * counted, and the thread ends on this error rather than on the one it stepped
+             * over. A replay which committed owns nothing anymore - commit() cleared the
+             * owner, and the index the give-back reads, in the same step - so the give-back
+             * is a no-op, and rightly so: a change which is in the data is not one to ask
+             * for again. What that road steps over is getNextUpdate() below, so the changes
+             * parked behind the committed change wait for the next replay of this domain to
+             * hand them out. That is the trade #923 asks for: a thread which met this error
+             * is not to carry on, not even for them.
              */
             throw e;
           }
@@ -3185,9 +3192,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
              * waiting for it - leaving them waiting for a thread which is not replaying
              * anything anymore.
              *
-             * The master which is waiting for the ack waits out its assured timeout either
-             * way. So it is reported and the replay carries on to the road the change itself
-             * decided: applied, failed and asked for again, or given up on.
+             * A master which is waiting for the ack waits out its assured timeout either
+             * way - and there is one only for an assured write in safe-read mode, which is
+             * the one delivery a replica acknowledges. processUpdateDone() runs for every
+             * delivery all the same: it accounts for the delivery in the receive window and
+             * in the processed-updates counter, and a throw from there is a throw from this
+             * bookkeeping, with no ack owed to anybody. Either way it is reported and the
+             * replay carries on to the road the change itself decided: applied, failed and
+             * asked for again, or given up on.
              *
              * Every step of processUpdateDone() catches what it can meet - the broker keeps
              * a failure to publish to itself and retries it - so what reaches here is what
@@ -3205,10 +3217,23 @@ public final class LDAPReplicationDomain extends ReplicationDomain
                * Guarded like the report of a give-back which failed: this one runs on the
                * same kind of road - the stack of the throwable is walked to build the line -
                * and a report which can not be built must not become the throw which unwinds
-               * the replay past the give-back and past getNextUpdate(). There is nothing
-               * left to say it with, so the replay carries on with what the change decided.
+               * the replay past the give-back and past getNextUpdate().
+               *
+               * The line is tried once more with the name of the error alone, which walks no
+               * stack. Nothing rethrows what was caught here, so an error recorded as
+               * suppressed on it would be recorded nowhere, and this is the road on which an
+               * operator has the least to go on. A second refusal leaves nothing to say it
+               * with, and the replay carries on with what the change decided.
                */
-              suppress(ackFailure, reportFailure);
+              try
+              {
+                logger.error(ERR_ACK_NOT_PUBLISHED, delivered, getBaseDN(),
+                    ackFailure.getClass().getName());
+              }
+              catch (Throwable secondReportFailure)
+              {
+                // Nothing is left to say it with.
+              }
             }
           }
         }
@@ -3618,10 +3643,22 @@ public final class LDAPReplicationDomain extends ReplicationDomain
                * cleared before the restart runs, so a restart which ends abruptly - the
                * session is stopped first, and starting it again creates a listener thread,
                * which the operating system can refuse - would otherwise leave this domain
-               * with no session and with nothing left to ask for one. The change which
-               * asked for the restart stays listed, uncommitted and unowned, so the next
-               * failed or abandoned replay of this domain finds the request standing and
-               * runs it.
+               * with no session and with nothing left to ask for one.
+               *
+               * What a request left standing buys is bounded, and the bound is worth
+               * stating. Its two readers are the roads out of a failed and of an abandoned
+               * replay of this domain, and with no listener thread nothing is delivered
+               * anymore: the replays left to run are the changes already taken off the
+               * session - the ones waiting in the replay queue, and the ones parked as
+               * dependencies. One of those failing finds the request standing and runs the
+               * restart, which starts from a clean state, since disableService() drops the
+               * listener thread which was never started. Once they are spent, the domain
+               * stays down until it is disabled and enabled back, or the server is
+               * restarted. That is said where it can be heard: a refused thread is an
+               * OutOfMemoryError, and one which leaves recoverFromReplayFailure() or
+               * abandonReplay() ends the replay thread it is met on, so the uncaught
+               * exception handler of DirectoryThread writes the line and raises the alert,
+               * with the start of the listener thread in the trace.
                */
               sessionRestartRequested.set(true);
             }

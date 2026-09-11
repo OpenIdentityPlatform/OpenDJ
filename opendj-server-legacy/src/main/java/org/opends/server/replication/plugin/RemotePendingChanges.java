@@ -92,6 +92,12 @@ final class RemotePendingChanges
    * A thread is entered here when it takes a change over and removed when it gives it back,
    * applies it, or parks it as waiting for another change - the parked ones are handed to
    * whichever thread clears what they wait for, so they are not this one's to give back.
+   * <p>
+   * The entry of a thread is written by that thread and by nobody else, and that - not the
+   * lock - is what keeps the writes apart: the park in {@link #addDependency(PendingChange)}
+   * clears it under the read lock, where every other writer holds the write lock, and it
+   * races nothing for it. {@link #clear()} is the one writer of every entry, and it holds
+   * both locks.
    */
   private final ConcurrentMap<Thread, CSN> changeBeingReplayed = new ConcurrentHashMap<>();
 

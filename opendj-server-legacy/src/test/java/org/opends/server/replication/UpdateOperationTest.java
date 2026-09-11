@@ -2671,6 +2671,7 @@ public class UpdateOperationTest extends ReplicationTestCase
      * would freeze it here as the behaviour which is wanted.
      */
     final Set<Long> replayThreadsBefore = replayThreadIds();
+    final int initialUncaughtAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_UNCAUGHT_EXCEPTION);
     assertChangeIsDeliveredAgainAfter(
         (csn, dn, mods, entryUUID) -> new ModifyMsgWhoseReplayThrows(csn, dn, mods, entryUUID,
             () -> new OutOfMemoryError("the JVM is out of memory")),
@@ -2679,7 +2680,9 @@ public class UpdateOperationTest extends ReplicationTestCase
      * The change is given back, and so replayed by another thread, while the thread which
      * met the error is still unwinding - through the session restart, and then through the
      * uncaught exception handler which raises the alert - so its end is waited for rather
-     * than read off the pool the moment the change lands.
+     * than read off the pool the moment the change lands. The alert is raised by that
+     * handler once run() has returned, so it lands after the thread is gone, and it is
+     * waited for in the same breath.
      */
     TestTimer timer = new TestTimer.Builder()
       .maxSleep(30, SECONDS)
@@ -2692,8 +2695,28 @@ public class UpdateOperationTest extends ReplicationTestCase
       {
         assertFalse(replayThreadIds().containsAll(replayThreadsBefore),
             "an OutOfMemoryError must end the replay thread which met it");
+        assertUncaughtExceptionAlertRaisedSince(initialUncaughtAlerts,
+            "the replay thread an OutOfMemoryError ended must have raised the alert #923 asks"
+                + " for on its way out");
       }
     });
+  }
+
+  /**
+   * Asserts that a {@code DirectoryThread} has ended on an uncaught throwable since the
+   * provided count of those alerts was read: the uncaught exception handler of its thread
+   * group is what raises it, and it is the one line a replay thread which an
+   * OutOfMemoryError ended leaves behind (issue #923).
+   * <p>
+   * At least one rather than exactly one: the alert is raised for every thread of the
+   * server which ends that way, and a thread of some other component ending during the
+   * test must not turn this into a failure of the wrong test.
+   */
+  private static void assertUncaughtExceptionAlertRaisedSince(int initialAlerts, String message)
+  {
+    Assertions.assertThat(DummyAlertHandler.getAlertCount(ALERT_TYPE_UNCAUGHT_EXCEPTION))
+        .as(message)
+        .isGreaterThanOrEqualTo(initialAlerts + 1);
   }
 
   /**
@@ -2742,13 +2765,15 @@ public class UpdateOperationTest extends ReplicationTestCase
         "Starting replication test : aChangeWhoseAckRanOutOfMemoryIsDeliveredAgain"));
 
     final Set<Long> replayThreadsBefore = replayThreadIds();
+    final int initialUncaughtAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_UNCAUGHT_EXCEPTION);
     assertChangeIsDeliveredAgainAfter(ModifyMsgWhoseAckRunsOutOfMemory::new,
         26, "user.922.10", "the ack of this change runs out of memory");
     /*
      * Waited for rather than read the moment the change lands: the change is given back -
      * and so replayed by another thread - while the thread which met the error is still
      * unwinding, through the session restart and then through the handler which raises the
-     * alert.
+     * alert. The alert is what the rethrow is for, and the handler raises it once run() has
+     * returned, so it lands after the thread is gone and is waited for in the same breath.
      */
     TestTimer timer = new TestTimer.Builder()
       .maxSleep(30, SECONDS)
@@ -2762,6 +2787,9 @@ public class UpdateOperationTest extends ReplicationTestCase
         assertFalse(replayThreadIds().containsAll(replayThreadsBefore),
             "an OutOfMemoryError met where the ack is published must end the replay thread"
                 + " which met it");
+        assertUncaughtExceptionAlertRaisedSince(initialUncaughtAlerts,
+            "the replay thread an OutOfMemoryError met where the ack is published ended must"
+                + " have raised the alert #923 asks for on its way out");
       }
     });
   }
@@ -2951,6 +2979,148 @@ public class UpdateOperationTest extends ReplicationTestCase
     }
     finally
     {
+      parked.deregister();
+    }
+  }
+
+  /**
+   * Test case for [Issue 922]: a change handed out as a dependency is given back when the
+   * replay it was handed to is unwound.
+   * <p>
+   * A change which was parked behind another one is handed out by {@code getNextUpdate()}
+   * to the thread which cleared what it was waiting for, and that thread owns it from then
+   * on. The give-back on the way out of an unwound replay asks which change this thread
+   * owns, so the hand-out has to be recorded where that question is answered, not only on
+   * the change: left out, the change would stay owned by a thread which is not replaying
+   * it anymore, and every later delivery of it would be refused as a duplicate - the wedge
+   * of this issue, on the dependency road.
+   * <p>
+   * The parent is held at the pre-parse plugin point while the child is delivered, so the
+   * child is parked behind a change in flight, and the thread which is thrown out of the
+   * child is read at the same plugin point: it must be the one which committed the parent,
+   * which is what says the child was handed out rather than taken off the queue. The child
+   * is thrown out of once, inside the replay, and then unwound past its ack, on the road
+   * every catch of the replay has already run on.
+   */
+  @Test
+  public void aChangeHandedOutAsADependencyIsGivenBackWhenItsReplayIsUnwound() throws Exception
+  {
+    testSetUp("aChangeHandedOutAsADependencyIsGivenBackWhenItsReplayIsUnwound");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aChangeHandedOutAsADependencyIsGivenBackWhenItsReplayIsUnwound"));
+
+    final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+    final CSNGenerator gen = new CSNGenerator(29, TimeThread.getTime());
+    final String parentUUID = "29292929-2929-2929-2929-292929292929";
+    final String childUUID = "30303030-3030-3030-3030-303030303030";
+    final Entry parent = TestCaseUtils.makeEntry(
+        "dn: ou=handed-out.922," + baseDN,
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "ou: handed-out.922",
+        "entryUUID: " + parentUUID);
+    final Entry child = TestCaseUtils.makeEntry(
+        "dn: uid=user.922.11,ou=handed-out.922," + baseDN,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: user.922.11",
+        "cn: Aaccf Amar",
+        "sn: Amar",
+        "entryUUID: " + childUUID);
+
+    final CSN parentCsn = gen.newCSN();
+    final CSN childCsn = gen.newCSN();
+    final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+    final ParkedReplay parked = ShortCircuitPlugin.parkReplayedOperations(
+        OperationType.ADD, "PreParse", op -> parentCsn.equals(OperationContext.getCSN(op)));
+    /*
+     * The thread which reaches the plugin point with the child is the one replaying it, and
+     * it is read there rather than parked: a park would hold the child where the throw is
+     * made, and it is the throw which is wanted.
+     */
+    final AtomicReference<Thread> replayingChild = new AtomicReference<>();
+    final ThrownFromReplay thrown = ShortCircuitPlugin.throwFromReplayedOperations(
+        OperationType.ADD, "PreParse",
+        op ->
+        {
+          if (!childCsn.equals(OperationContext.getCSN(op)))
+          {
+            return false;
+          }
+          replayingChild.set(Thread.currentThread());
+          return true;
+        },
+        () -> new LinkageError("the replay of the change which was handed out meets an Error"),
+        1);
+    try
+    {
+      domain.processUpdate(new AddMsg(parentCsn, parent.getName(), parentUUID, baseUUID,
+          parent.getObjectClassAttribute(), parent.getAllAttributes(), null));
+      final Thread replayingParent = parked.awaitParked(60, SECONDS);
+
+      domain.processUpdate(new AddMsgWhoseReplayIsUnwoundAfterItsAck(childCsn, child.getName(),
+          childUUID, parentUUID, child.getObjectClassAttribute(), child.getAllAttributes()));
+
+      // The parent is applied, and the child is the change its thread hands itself next.
+      parked.release();
+
+      TestTimer timer = new TestTimer.Builder()
+        .maxSleep(60, SECONDS)
+        .sleepTimes(200, MILLISECONDS)
+        .toTimer();
+      timer.repeatUntilSuccess(new CallableVoid()
+      {
+        @Override
+        public void call() throws Exception
+        {
+          assertEquals(thrown.thrownCount(), 1,
+              "the change which was handed out must have been thrown out of");
+        }
+      });
+      Assertions.assertThat(replayingChild.get())
+          .as("the change which was parked must be replayed by the thread which cleared what"
+              + " it was waiting for: that is the hand-out this test is about")
+          .isSameAs(replayingParent);
+
+      /*
+       * The child was thrown out of and its replay was then unwound, so it is not in the
+       * data and must not be in the ServerState - and it must not be given up on either: it
+       * is asked for again. The delivery which asks for it is made here, the way
+       * assertChangeIsDeliveredAgainAfter() makes it: nothing sends the change again, since
+       * it never travelled a session, and a delivery is dropped rather than queued while the
+       * session is being restarted. A delivery of a change a thread still owns is refused as
+       * the duplicate it is, which is where a change left owned by a thread which is not
+       * replaying it never comes back.
+       */
+      assertFalse(domain.getServerState().cover(childCsn),
+          "a change whose replay was unwound must be asked for again, not recorded as replayed");
+      timer.repeatUntilSuccess(new CallableVoid()
+      {
+        @Override
+        public void call() throws Exception
+        {
+          if (!domain.getServerState().cover(childCsn))
+          {
+            domain.processUpdate(new AddMsg(childCsn, child.getName(), childUUID, parentUUID,
+                child.getObjectClassAttribute(), child.getAllAttributes(), null));
+          }
+          assertTrue(domain.getServerState().cover(childCsn),
+              "the change must be recorded as replayed once it has been delivered again");
+        }
+      });
+      assertNotNull(getEntry(child.getName(), 30000, true),
+          "the change which was handed out must be applied by the delivery which took over"
+              + " from the one which was unwound");
+      assertEquals(getMonitorAttrValue(baseDN, "replayed-updates-failed"), initialFailures,
+          "a change which was delivered again must not be counted as one this replica gave up on");
+      assertTrue(replayingParent.isAlive(),
+          "an Error which unwinds a replay must not end the thread which met it (issue #923)");
+    }
+    finally
+    {
+      thrown.deregister();
       parked.deregister();
     }
   }
@@ -3401,6 +3571,47 @@ public class UpdateOperationTest extends ReplicationTestCase
     {
       // Read first thing by processUpdateDone(), which is what publishes the ack.
       throw new LinkageError("the ack of this delivery can not be published");
+    }
+  }
+
+  /**
+   * An AddMsg whose replay is unwound once the ack of its delivery is out, the way
+   * {@link ModifyMsgWhoseReplayIsUnwoundAfterItsAck} is.
+   * <p>
+   * What has its replay fail is not the message but the test which delivers it, through a
+   * throw at the pre-parse plugin point: an add which is parked behind its parent has to be
+   * one whose operation builds and runs, or it would be given up on where no operation could
+   * be built from it. The throw is caught inside the replay, so it is what the replay runs
+   * once the ack is out - the give-back of the failed change - which reads the CSN off this
+   * message and is unwound by it.
+   */
+  private static final class AddMsgWhoseReplayIsUnwoundAfterItsAck extends AddMsg
+  {
+    private volatile boolean ackPublished;
+
+    private AddMsgWhoseReplayIsUnwoundAfterItsAck(CSN csn, DN dn, String entryUUID,
+        String parentEntryUUID, Attribute objectClasses, Iterable<Attribute> userAttributes)
+    {
+      super(csn, dn, entryUUID, parentEntryUUID, objectClasses, userAttributes, null);
+    }
+
+    @Override
+    public boolean isAssured()
+    {
+      // Read first thing by processUpdateDone(), and by nothing on the way in: a message
+      // handed to the domain rather than published is not one this server acknowledges.
+      ackPublished = true;
+      return super.isAssured();
+    }
+
+    @Override
+    public CSN getCSN()
+    {
+      if (ackPublished)
+      {
+        throw new LinkageError("the replay of this change is unwound once its ack is out");
+      }
+      return super.getCSN();
     }
   }
 

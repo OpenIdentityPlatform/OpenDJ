@@ -510,11 +510,21 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
     assertFalse(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")),
         "a change another thread is replaying must not be taken over");
     assertEquals(pendingChanges.getQueueSize(), 1);
+    assertEquals(pendingChanges.getChangeOwnedByCurrentThread(), csn,
+        "a release which was ignored must leave the change with the thread which owns it");
 
     // The thread which owns the change is still the one which decides its fate.
     pendingChanges.replayFailed(csn);
     assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")),
         "the change its owner gave back must be taken over by the next delivery");
+    /*
+     * The give-back on the way out of an unwound replay reads this: a thread which gave a
+     * change back and is then unwound - the session restart it runs next can throw - must
+     * find nothing to give back, or it would count a second failure against a change it
+     * does not own anymore.
+     */
+    assertNull(pendingChanges.getChangeOwnedByCurrentThread(),
+        "a change which was given back is not one this thread gives back again");
   }
 
   /**
@@ -524,6 +534,12 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
    * then on: the failure of the replay it is about to be given is reported by that
    * thread, and a give-back which comes from a thread the change was never handed to is
    * ignored (issue #922).
+   * <p>
+   * The hand-out is what the give-back on the way out of an unwound replay must read as
+   * well as the owner: a change handed out by {@code getNextUpdate()} whose replay is then
+   * unwound would otherwise be left owned by a thread which is not replaying it anymore,
+   * with every later delivery of it refused as a duplicate - the wedge of that issue, on
+   * the dependency road.
    */
   @Test
   public void aChangeTakenAsADependencyIsOwnedByTheThreadWhichTakesIt() throws Exception
@@ -555,8 +571,13 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
       public void run()
       {
         taken.set(pendingChanges.getNextUpdate());
+        assertEquals(pendingChanges.getChangeOwnedByCurrentThread(), renamed,
+            "the change handed out by getNextUpdate() must be the one the thread it was"
+                + " handed to gives back on the way out of an unwound replay");
         // ... and the replay it was taken for failed.
         pendingChanges.replayFailed(renamed);
+        assertNull(pendingChanges.getChangeOwnedByCurrentThread(),
+            "a change which was given back is not one this thread gives back again");
       }
     });
 
