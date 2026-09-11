@@ -2662,7 +2662,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
                 if (op instanceof ModifyOperation)
                 {
                   ModifyOperation modifyOperation = (ModifyOperation) op;
-                  if (modifyOperation.getEntryDN().equals(SET_PERMISSIVE_MODIFY_FOR_DN))
+                  /*
+                   * The DN this looks for is compared with what the operation reports rather
+                   * than the other way round: getEntryDN() returns null - and reports
+                   * INVALID_DN_SYNTAX - for an operation whose raw DN does not parse, and the
+                   * replay must report that once and step over the change rather than throw
+                   * before the CSN of the operation has been read, which would keep the change
+                   * out of the ServerState and have it asked for again for the whole give-up
+                   * window (issue #928).
+                   */
+                  if (SET_PERMISSIVE_MODIFY_FOR_DN.equals(modifyOperation.getEntryDN()))
                   {
                     op.addRequestControl(new LDAPControl(OID_PERMISSIVE_MODIFY_CONTROL));
                   }

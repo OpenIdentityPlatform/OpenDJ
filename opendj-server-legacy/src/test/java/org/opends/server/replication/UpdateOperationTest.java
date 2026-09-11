@@ -32,6 +32,7 @@ import static org.testng.Assert.*;
 
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -78,6 +79,7 @@ import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
+import org.opends.server.types.Control;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
@@ -2569,11 +2571,11 @@ public class UpdateOperationTest extends ReplicationTestCase
    * its CSN: a message no operation could be built from will not build one on the next
    * delivery either, so it is given up on where it is reported, while an operation which
    * was built may well have reached the backend - so its change is kept out of the
-   * ServerState and asked for again, wherever in the replay the failure happened. The
-   * entry DN of a ModifyMsg which does not parse is that case: it leaves
-   * {@code getEntryDN()} null and the replay throws before the CSN of the operation is
-   * read, so a give-up keyed off that CSN would record a change which never reached the
-   * backend as replayed, which is this issue by another route.
+   * ServerState and asked for again, wherever in the replay the failure happened. An
+   * operation which can not be given the ManageDsaIT control the replay adds to every one
+   * of them is that case: it throws before the CSN of the operation is read, so a give-up
+   * keyed off that CSN would record a change which never reached the backend as replayed,
+   * which is this issue by another route.
    */
   @Test
   public void aChangeWhoseOperationWasBuiltIsNotGivenUpOnWhereItFailed() throws Exception
@@ -2604,7 +2606,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     final String description = "the replay must fail once the operation is built";
     final List<Modification> mods = generatemods("description", description);
 
-    domain.processUpdate(new ModifyMsgWithAnUnparseableOperationDN(csn, dn, mods, uuid));
+    domain.processUpdate(new ModifyMsgWhoseOperationRefusesAControl(csn, dn, mods, uuid));
 
     /*
      * Long enough to outlast the session restart the failure asks for: a change which is
@@ -2651,6 +2653,75 @@ public class UpdateOperationTest extends ReplicationTestCase
     });
     checkEntryHasAttributeValue(dn, "description", description, 30,
         "the change must be applied by the delivery which took over from the failed one");
+  }
+
+  /**
+   * Test case for [Issue 928]: a modify whose entry DN does not parse is reported once
+   * and stepped over rather than thrown on.
+   * <p>
+   * {@code ModifyOperationBasis.getEntryDN()} reports INVALID_DN_SYNTAX and returns null
+   * when the raw DN of the operation does not parse, and the permissive-modify check the
+   * replay makes before running the operation reads it. Comparing the DN this check looks
+   * for with what that returns, rather than the other way round, is what keeps this from
+   * being a NullPointerException thrown before the operation ran: the operation runs,
+   * reports the syntax of its DN, and the change is stepped over like any other change
+   * this replica can not apply. Thrown on instead, the change is kept out of the
+   * ServerState and asked for again for the whole give-up window, with a stack trace per
+   * delivery, where the syntax of its DN is a verdict on every delivery of it.
+   */
+  @Test
+  public void aModifyWhoseEntryDNDoesNotParseIsReportedRatherThanThrownOn() throws Exception
+  {
+    testSetUp("aModifyWhoseEntryDNDoesNotParseIsReportedRatherThanThrownOn");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aModifyWhoseEntryDNDoesNotParseIsReportedRatherThanThrownOn"));
+
+    Entry tmp = TestCaseUtils.addEntry(
+        "dn: uid=user.928.1," + baseDN,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: user.928.1",
+        "cn: Aaccf Amar",
+        "sn: Amar");
+    final DN dn = tmp.getName();
+    final String uuid = getEntry(dn, 1, true).parseAttribute("entryuuid").asString();
+
+    final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+    final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+    domain.resetUnreplayedChangeAlertThrottle();
+    final int initialAlerts = DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE);
+
+    final CSNGenerator gen = new CSNGenerator(19, TimeThread.getTime());
+    final CSN csn = gen.newCSN();
+    final List<Modification> mods =
+        generatemods("description", "the entry DN of this change does not parse");
+
+    domain.processUpdate(new ModifyMsgWithAnUnparseableOperationDN(csn, dn, mods, uuid));
+
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(60, SECONDS)
+      .sleepTimes(200, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        assertTrue(domain.getServerState().cover(csn),
+            "a change whose entry DN does not parse must be stepped over,"
+                + " not thrown on and asked for again");
+      }
+    });
+    assertMonitorAttrValueEventually(baseDN, "replayed-updates-failed", initialFailures + 1,
+        "a change this replica can not apply must be counted as failed");
+    assertMonitorAttrValueStays(baseDN, "replayed-updates-failed", initialFailures + 1,
+        MONITOR_ATTR_SAMPLES_ACROSS_A_REDELIVERY,
+        "a change which was stepped over must be counted once rather than delivered again");
+    Assertions.assertThat(DummyAlertHandler.getAlertCount(ALERT_TYPE_REPLICATION_UNREPLAYED_CHANGE))
+        .as("the administrator must be told that this replica now diverges")
+        .isGreaterThan(initialAlerts);
   }
 
   /**
@@ -2986,15 +3057,43 @@ public class UpdateOperationTest extends ReplicationTestCase
   }
 
   /**
-   * A ModifyMsg whose operation can not tell which change it carries.
+   * A ModifyMsg whose operation can not be prepared for its replay.
    * <p>
    * The operation is built - so the replay is past the point where a message is given up
-   * on - and its entry DN does not parse, which is what has
-   * {@code ModifyOperationBasis.getEntryDN()} return null and the replay throw before
+   * on - and the list of request controls it carries can not be added to, so the
+   * ManageDsaIT control the replay puts on every operation throws before
    * {@code OperationContext.getCSN(op)} is reached. Such a message can not travel the
-   * protocol: the DN of a ModifyMsg is decoded on the way in and the operation is built
-   * from its {@code toString()}, so this one is handed to the domain rather than
-   * published.
+   * protocol: {@code ModifyMsg.createOperation()} builds an operation whose controls can
+   * be added to, so this one is handed to the domain rather than published.
+   */
+  private static final class ModifyMsgWhoseOperationRefusesAControl extends ModifyMsg
+  {
+    private ModifyMsgWhoseOperationRefusesAControl(
+        CSN csn, DN dn, List<Modification> mods, String entryUUID)
+    {
+      super(csn, dn, mods, entryUUID);
+    }
+
+    @Override
+    public ModifyOperation createOperation(InternalClientConnection connection, DN newDN)
+    {
+      final ModifyOperation op = new ModifyOperationBasis(connection, nextOperationID(),
+          nextMessageID(), Collections.<Control>emptyList(),
+          ByteString.valueOfUtf8(getDN().toString()), new ArrayList<RawModification>());
+      op.setAttachment(OperationContext.SYNCHROCONTEXT,
+          new ModifyContext(getCSN(), getEntryUUID()));
+      return op;
+    }
+  }
+
+  /**
+   * A ModifyMsg whose operation carries an entry DN which does not parse.
+   * <p>
+   * {@code ModifyOperationBasis.getEntryDN()} reports INVALID_DN_SYNTAX and returns null
+   * for such an operation, which is what the permissive-modify check of the replay reads.
+   * Such a message can not travel the protocol: the DN of a ModifyMsg is parsed on the
+   * way in and the operation is built from its {@code toString()}, so this one is handed
+   * to the domain rather than published.
    */
   private static final class ModifyMsgWithAnUnparseableOperationDN extends ModifyMsg
   {
