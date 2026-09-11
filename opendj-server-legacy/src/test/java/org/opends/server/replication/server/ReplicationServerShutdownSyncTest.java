@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.TreeSet;
@@ -45,6 +46,7 @@ import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.DeleteMsg;
+import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicaOfflineMsg;
@@ -56,6 +58,7 @@ import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TestTimer;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -225,6 +228,98 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     finally
     {
       joinQuietly(publisher);
+      closeQuietly(peer);
+      stop(broker);
+      removeQuietly(replicationServer);
+    }
+  }
+
+  @DataProvider
+  public Object[][] peerProtocolVersions()
+  {
+    return new Object[][] {
+      { ProtocolVersion.getCurrentVersion(), true },
+      { ProtocolVersion.REPLICATION_PROTOCOL_V7, false },
+    };
+  }
+
+  /**
+   * A peer replication server which negotiated a protocol version older than the one which
+   * introduced the ReplicaOfflineMsg cannot be told that a replica went offline: the message has
+   * no encoding for such a peer and {@link Session#publish(ReplicationMsg)} drops what it cannot
+   * encode. Nothing can be done about the peer itself - the announcement is not part of the
+   * protocol it speaks - but the writer must not report that drop as a forward, or the shutdown
+   * stops waiting for the peers which do need the message.
+   * <p>
+   * The change published after the announcement is the synchronization point: the writer of a
+   * peer takes from one queue in order, so a peer which has received that change has already
+   * dealt with the announcement which precedes it - forwarded it, or dropped it and told the
+   * shutdown to stop waiting for this peer.
+   */
+  @Test(dataProvider = "peerProtocolVersions")
+  public void onlyAPeerWhichCanDecodeTheMessageIsToldTheReplicaWentOffline(
+      short peerVersion, boolean expectedToBeTold) throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final RecordingShutdownSync shutdownSync = new RecordingShutdownSync();
+    ReplicationServer replicationServer = null;
+    ReplicationBroker broker = null;
+    FakePeerReplicationServer peer = null;
+    try
+    {
+      final int replicationPort = TestCaseUtils.findFreePort();
+      replicationServer = newReplicationServer(shutdownSync,
+          "shutdownSyncPeerVersion" + peerVersion + "Db", 8240 + peerVersion, replicationPort);
+      broker = openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      peer = new FakePeerReplicationServer(
+          replicationPort, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID, PEER_WINDOW, peerVersion);
+
+      final ReplicationServerDomain domain =
+          replicationServer.getReplicationServerDomain(baseDN, true);
+      waitForConnectedReplicationServer(domain, REMOTE_RS_ID);
+      final Future<List<ReplicationMsg>> received = peer.receiveUntil(DeleteMsg.class);
+
+      final CSNGenerator csns = new CSNGenerator(LOCAL_DS_ID, 0);
+      final CSN offlineCSN = csns.newCSN();
+      shutdownSync.replicaOfflineMsgSent(baseDN, offlineCSN);
+      broker.publish(new ReplicaOfflineMsg(offlineCSN));
+      broker.publish(new DeleteMsg(DN.valueOf("uid=marker," + TEST_ROOT_DN_STRING),
+          csns.newCSN(), "22222222-2222-2222-2222-222222222222"));
+
+      final List<ReplicationMsg> msgs = received.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      assertThat(lastOf(msgs))
+          .as("the peer never received the change published after the announcement, its read "
+              + "ended with: %s", peer.failure())
+          .isInstanceOf(DeleteMsg.class);
+      assertThat(containsReplicaOfflineMsg(msgs, offlineCSN))
+          .as("the peer speaking protocol version %s was %stold that the replica went offline",
+              peerVersion, expectedToBeTold ? "not " : "")
+          .isEqualTo(expectedToBeTold);
+      assertThat(shutdownSync.dispatchedTo())
+          .as("the message was never queued for the peer, so its writer had nothing to report")
+          .containsExactly(REMOTE_RS_ID);
+      if (expectedToBeTold)
+      {
+        assertThat(shutdownSync.forwardedBy())
+            .as("the writer of the peer speaking protocol version %s never reported the forward "
+                + "of a message which did reach it", peerVersion)
+            .containsExactly(REMOTE_RS_ID);
+      }
+      else
+      {
+        assertThat(shutdownSync.forwardedBy())
+            .as("the writer of the peer speaking protocol version %s reported a forward of a "
+                + "message which never reached it", peerVersion)
+            .isEmpty();
+        assertThat(shutdownSync.gaveUpOn())
+            .as("the writer of the peer speaking protocol version %s dropped the message without "
+                + "telling the shutdown to stop waiting for the peer it was queued for",
+                peerVersion)
+            .containsExactly(REMOTE_RS_ID);
+      }
+    }
+    finally
+    {
       closeQuietly(peer);
       stop(broker);
       removeQuietly(replicationServer);
@@ -704,6 +799,45 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
   }
 
   /**
+   * A peer replication server which cannot decode the ReplicaOfflineMsg is nobody to forward it
+   * to either: the message has no encoding for the protocol version that peer negotiated, so no
+   * writer can ever report a forward for it and waiting would only delay the shutdown by the
+   * whole grace period.
+   */
+  @Test
+  public void shutdownIsNotDelayedWhenNoConnectedPeerCanDecodeTheMessage() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync();
+    ReplicationServer replicationServer = null;
+    try (ServerSocket listen = TestCaseUtils.bindFreePort())
+    {
+      listen.setSoTimeout(SOCKET_TIMEOUT_MS);
+      replicationServer = newReplicationServer(shutdownSync, "shutdownSyncOldPeerDb", 8234);
+      final Session[] sessionPair = connectSessionPair(listen, getReplSessionSecurity());
+      try (Session remoteEnd = sessionPair[0];
+          Session session = sessionPair[1])
+      {
+        session.setProtocolVersion(ProtocolVersion.REPLICATION_PROTOCOL_V7);
+        registerConnectedReplicationServer(replicationServer, baseDN, session);
+
+        final long startTime = System.nanoTime();
+        shutdownSync.replicaOfflineMsgSent(baseDN, newOfflineCSN());
+        replicationServer.shutdown();
+        final long elapsed = elapsedMillis(startTime);
+
+        assertThat(elapsed)
+            .as("the shutdown waited for a peer which cannot decode the message")
+            .isLessThan(DSRSShutdownSync.REPLICA_OFFLINE_GRACE_PERIOD);
+      }
+    }
+    finally
+    {
+      removeQuietly(replicationServer);
+    }
+  }
+
+  /**
    * The writer serving a directory server must not hold back the shutdown either: it used to
    * loop on the pending message until the grace period expired, although its handler had already
    * been shut down - which deactivates its consumer and leaves the loop nothing to take.
@@ -1051,6 +1185,25 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
   }
 
+  /** The last message a peer read, null if it read none at all. */
+  private static ReplicationMsg lastOf(List<ReplicationMsg> msgs)
+  {
+    return msgs.isEmpty() ? null : msgs.get(msgs.size() - 1);
+  }
+
+  private static boolean containsReplicaOfflineMsg(List<ReplicationMsg> msgs, CSN offlineCSN)
+  {
+    for (ReplicationMsg msg : msgs)
+    {
+      if (msg instanceof ReplicaOfflineMsg
+          && offlineCSN.equals(((ReplicaOfflineMsg) msg).getCSN()))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /** The CSN of a message the collocated replica announces, as PendingChanges generates it. */
   private static CSN newOfflineCSN()
   {
@@ -1294,6 +1447,18 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     FakePeerReplicationServer(int replicationPort, int serverId, DN baseDN, long generationId,
         int windowSize) throws Exception
     {
+      this(replicationPort, serverId, baseDN, generationId, windowSize,
+          ProtocolVersion.getCurrentVersion());
+    }
+
+    /**
+     * @param protocolVersion
+     *          the replication protocol version this peer announces in its start message, so
+     *          that a peer which predates a message type can be reproduced
+     */
+    FakePeerReplicationServer(int replicationPort, int serverId, DN baseDN, long generationId,
+        int windowSize, short protocolVersion) throws Exception
+    {
       final Socket socket = new Socket();
       Session newSession = null;
       boolean handshaken = false;
@@ -1302,6 +1467,8 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
         socket.setTcpNoDelay(true);
         socket.connect(new InetSocketAddress("127.0.0.1", replicationPort), SOCKET_TIMEOUT_MS);
         newSession = getReplSessionSecurity().createClientSession(socket, SOCKET_TIMEOUT_MS);
+        // the version this peer speaks: the replication server negotiates the oldest of the two
+        newSession.setProtocolVersion(protocolVersion);
 
         final String serverURL = "127.0.0.1:" + socket.getLocalPort();
         final byte groupId = (byte) 1;
@@ -1335,6 +1502,39 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
         }
       }
       session = newSession;
+    }
+
+    /**
+     * Returns every message this peer receives up to and including the first one of the provided
+     * type, or whatever it managed to read if its session ends before that one arrives.
+     */
+    Future<List<ReplicationMsg>> receiveUntil(final Class<? extends ReplicationMsg> markerType)
+    {
+      return reader.submit(new Callable<List<ReplicationMsg>>()
+      {
+        @Override
+        public List<ReplicationMsg> call()
+        {
+          final List<ReplicationMsg> received = new ArrayList<>();
+          try
+          {
+            while (true)
+            {
+              final ReplicationMsg msg = session.receive();
+              received.add(msg);
+              if (markerType.isInstance(msg))
+              {
+                return received;
+              }
+            }
+          }
+          catch (Exception e)
+          {
+            failed(e);
+            return received;
+          }
+        }
+      });
     }
 
     /**

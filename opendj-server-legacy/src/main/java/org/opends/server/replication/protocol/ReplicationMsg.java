@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -107,6 +108,25 @@ public abstract class ReplicationMsg
    *          in that protocol version.
    */
   public abstract byte[] getBytes(short protocolVersion);
+
+  /**
+   * Whether this message has an encoding for a peer which negotiated the
+   * provided replication protocol version.
+   * <p>
+   * A message which has none is dropped by {@link Session#publish(ReplicationMsg)}
+   * - its {@link #getBytes(short)} returns <code>null</code> - with nothing on
+   * the wire and nothing in the log, so a caller which goes on to report what
+   * the peer was told must ask this before it publishes.
+   *
+   * @param protocolVersion
+   *          The protocol version negotiated with the peer.
+   * @return <code>true</code> if this message can be encoded for that version,
+   *         <code>false</code> if it has no encoding for it at all.
+   */
+  public boolean isEncodableFor(short protocolVersion)
+  {
+    return true;
+  }
 
   /**
    * Generates a ReplicationMsg from its encoded form. This un-serialization is

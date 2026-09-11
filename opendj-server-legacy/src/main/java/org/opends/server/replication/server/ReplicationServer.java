@@ -1705,21 +1705,25 @@ public class ReplicationServer
    * to. With no such server connected there is nobody to forward the message to, and waiting
    * would only delay the shutdown by the whole grace period.
    * <p>
+   * A peer which negotiated a protocol version the message has no encoding for is no such
+   * server either: nothing is ever sent to it and no writer will ever report a forward for it.
+   * <p>
    * The recipients DSRSShutdownSync records when the message is queued are the sharper source of
    * truth and cover the domains this test lets through - a peer which connected after the
-   * message was queued owes nothing, and is not waited for. What this test still covers is the
-   * announcement which was never queued here at all, and for which no recipient can therefore be
-   * recorded: the message of a replica which picked a remote replication server, or the
-   * announcement of issue #918 recorded after its message was relayed. Those wait out the whole
-   * grace period on the first forward, and on a server with no peer connected nothing would ever
-   * report one.
+   * message was queued owes nothing, and is not waited for, and the writer of a peer which
+   * cannot decode the message strikes it off when it drops it. What this test still covers is
+   * the announcement which was never queued here at all, and for which no recipient can
+   * therefore be recorded: the message of a replica which picked a remote replication server, or
+   * the announcement of issue #918 recorded after its message was relayed. Those wait out the
+   * whole grace period on the first forward, and on a server whose only peers cannot decode the
+   * message - or with no peer connected at all - nothing would ever report one.
    */
   private void awaitReplicaOfflineMsgsForwarded()
   {
     final List<DN> domainsToWaitFor = new ArrayList<>();
     for (ReplicationServerDomain domain : getReplicationServerDomains())
     {
-      if (!domain.getConnectedRSs().isEmpty())
+      if (domain.hasPeerWhichCanReceiveReplicaOfflineMsgs())
       {
         domainsToWaitFor.add(domain.getBaseDN());
       }

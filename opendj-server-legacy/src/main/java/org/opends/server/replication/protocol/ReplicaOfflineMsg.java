@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -81,7 +82,7 @@ public class ReplicaOfflineMsg extends UpdateMsg
   @Override
   public byte[] getBytes(short protocolVersion)
   {
-    if (protocolVersion < ProtocolVersion.REPLICATION_PROTOCOL_V8)
+    if (!isSupportedBy(protocolVersion))
     {
       return null;
     }
@@ -90,6 +91,33 @@ public class ReplicaOfflineMsg extends UpdateMsg
     builder.appendShort(protocolVersion);
     builder.appendCSN(csn);
     return builder.toByteArray();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean isEncodableFor(short protocolVersion)
+  {
+    return isSupportedBy(protocolVersion);
+  }
+
+  /**
+   * Whether a peer which negotiated the provided replication protocol version
+   * can be sent this message at all.
+   * <p>
+   * The message was introduced by
+   * {@link ProtocolVersion#REPLICATION_PROTOCOL_V8} and has no encoding below
+   * it: an older peer is not told that the replica went offline, and cannot be.
+   * This answers for the message type, for a caller which has no instance at
+   * hand - see {@link #isEncodableFor(short)} for the one which has.
+   *
+   * @param protocolVersion
+   *          The protocol version negotiated with the peer.
+   * @return <code>true</code> if that version carries this message,
+   *         <code>false</code> otherwise.
+   */
+  public static boolean isSupportedBy(short protocolVersion)
+  {
+    return protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V8;
   }
 
   /** {@inheritDoc} */
