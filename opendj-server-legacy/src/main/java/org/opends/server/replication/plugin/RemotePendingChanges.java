@@ -393,6 +393,30 @@ final class RemotePendingChanges
   }
 
   /**
+   * Returns how many of the listed changes have a failed replay recorded against them.
+   * <p>
+   * A change is counted from its first failed replay until it leaves this map, whether it
+   * leaves it applied or given up on. It is what tells that the replay of this domain is
+   * stuck: a domain whose {@code replay-give-up-delay} is unlimited never gives up, so it
+   * never counts a failed change either, and the changes it keeps asking for are only
+   * visible here.
+   *
+   * @return the number of listed changes with a failed replay recorded against them
+   */
+  public int getFailingChangesSize()
+  {
+    pendingChangesReadLock.lock();
+    try
+    {
+      return failingChanges;
+    }
+    finally
+    {
+      pendingChangesReadLock.unlock();
+    }
+  }
+
+  /**
    * Forgets every change listed here, without updating the ServerState.
    * <p>
    * Called when the domain is disabled: its ServerState is saved and cleared from

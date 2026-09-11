@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.types;
 
@@ -256,8 +257,19 @@ public final class LockManager
     }
   }
 
-  private static final long DEFAULT_LOCK_TIMEOUT = 9;
-  private static final TimeUnit DEFAULT_LOCK_TIMEOUT_UNITS = TimeUnit.SECONDS;
+  /**
+   * How long a lock manager created with the default configuration - which is the one the
+   * server runs with - waits for each of the locks an operation needs before it gives up
+   * on the entry. An operation is made to wait for it more than once: the subtree lock and
+   * the entry lock are taken one after the other, each with this timeout of its own.
+   *
+   * @see #DEFAULT_LOCK_TIMEOUT_UNITS
+   */
+  public static final long DEFAULT_LOCK_TIMEOUT = 9;
+  /**
+   * The unit of {@link #DEFAULT_LOCK_TIMEOUT}.
+   */
+  public static final TimeUnit DEFAULT_LOCK_TIMEOUT_UNITS = TimeUnit.SECONDS;
   private static final int MINIMUM_NUMBER_OF_BUCKETS = 64;
   private static final int THREAD_LOCAL_CACHE_SIZE = 8;
 

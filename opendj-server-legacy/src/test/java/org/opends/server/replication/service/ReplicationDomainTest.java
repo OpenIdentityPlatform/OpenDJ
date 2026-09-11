@@ -782,13 +782,24 @@ public class ReplicationDomainTest extends ReplicationTestCase
     }
   }
 
-  private void assertExportSucessful(ReplicationDomain domain1,
-      ReplicationDomain domain2, String exportedData, StringBuffer importedData)
+  private void assertExportSucessful(FakeReplicationDomain domain1,
+      FakeReplicationDomain domain2, String exportedData, StringBuffer importedData)
   {
     assertEquals(getLeftEntryCount(domain2), 0, "Wrong LeftEntryCount for export");
     assertEquals(getLeftEntryCount(domain1), 0, "Wrong LeftEntryCount for import");
     assertEquals(importedData.length(), exportedData.length());
     assertEquals(importedData.toString(), exportedData);
+    /*
+     * The direction of the total update, as each side reported it while it was in it.
+     * ieRunning() cannot tell the two apart, and something which is guarding the data of a
+     * replica has to: the exporter keeps its data and its ServerState - and keeps replaying
+     * into them - while the importer is having both replaced.
+     */
+    assertEquals(domain2.importReportedDuringImport(), Boolean.TRUE,
+        "the replica whose data is being replaced must report a total update into itself");
+    assertEquals(domain1.importReportedDuringExport(), Boolean.FALSE,
+        "the replica which is exporting must not report a total update into itself:"
+            + " its data and its ServerState are left alone");
   }
 
   private long getLeftEntryCount(ReplicationDomain domain)

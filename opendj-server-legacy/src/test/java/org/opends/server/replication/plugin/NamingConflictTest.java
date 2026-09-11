@@ -237,6 +237,46 @@ public class NamingConflictTest extends ReplicationTestCase
   }
 
   /**
+   * Test case for [Issue 955]: a ModifyDN whose entry and whose new superior are both
+   * gone from this replica is a conflict between a delete and this ModifyDN, and it is
+   * solved as such rather than left to be delivered again until this replica gives up on
+   * it.
+   * <p>
+   * Neither entryUUID the message carries resolves to a DN here, so conflict resolution
+   * has no new superior to move the entry under - and no entry to move either. The entry
+   * having been deleted settles what the ModifyDN was trying to do, which is what makes
+   * the change resolved: an entry which is not in the database can not be marked as
+   * conflicting, and marking it is what used to be attempted first, on the DN of an entry
+   * which is not there.
+   */
+  @Test
+  public void modifyDnOnAnEntryAndANewSuperiorWhichAreBothGone() throws Exception
+  {
+    final Entry entry = createAndAddEntry("modDnOnEntryAndNewSuperiorBothGone");
+    final String entryUUID = getEntryUUID(entry.getName());
+
+    final Entry newSuperior = TestCaseUtils.addEntry(
+        "dn: ou=newSuperiorBothGone," + TEST_ROOT_DN_STRING,
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "ou: newSuperiorBothGone");
+    final String newSuperiorUUID = getEntryUUID(newSuperior.getName());
+
+    // Both entries are deleted on this replica while the ModifyDN is on its way.
+    TestCaseUtils.deleteEntry(newSuperior.getName());
+    TestCaseUtils.deleteEntry(entry.getName());
+
+    final CSN csn = gen.newCSN();
+    replayMsg(new ModifyDNMsg(entry.getName(), csn, entryUUID, newSuperiorUUID, false,
+        newSuperior.getName().toString(), entry.getName().rdn().toString()));
+
+    assertFalse(entryExists(entry.getName()),
+        "the deleted entry was brought back by the replayed ModifyDN");
+    assertTrue(domain.getServerState().cover(csn),
+        "a ModifyDN which the delete of its entry has settled must be recorded as replayed");
+  }
+
+  /**
    * Test that when a previous conflict is resolved because
    * a delete operation has removed one of the conflicting entries
    * the other conflicting entry is correctly renamed to its original name.

@@ -946,9 +946,12 @@ jobs:
   # so both jobs would have failed a perfectly healthy build.
   wait-msi-artifact:
     runs-on: 'ubuntu-latest'
-    # Well past any queue seen so far, and only reached if the Windows leg neither publishes
-    # nor finishes; the usual exits are the artifact appearing or the leg failing.
-    timeout-minutes: 130
+    # The queue is not this run's to bound: it is a property of the account's runner
+    # capacity, which GitHub shares across every OS, and the leg has been seen sitting in it
+    # for three hours. So the wall clock here is only the six-hour ceiling GitHub puts on a
+    # job, less a margin; what gets a budget is the leg's own runtime, which is the part a
+    # change under test can actually break.
+    timeout-minutes: 350
     permissions:
       contents: read
       # Listing the run's artifacts and jobs, which the wait below polls.
@@ -959,24 +962,48 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          deadline=$(( $(date +%s) + 120 * 60 ))
+          # Four times the longest the leg has taken to publish, and counted only from the
+          # moment it has a runner. The budget this replaces ran from t=0 and so was spent on
+          # the queue instead: in run 34318105667 the leg waited 178 minutes for a Windows
+          # runner and published 14 minutes later, an hour after a 120-minute budget had
+          # failed a build that was entirely healthy.
+          budget=$(( 60 * 60 ))
+          deadline=''
           while true; do
-            if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" \
-                 --jq '.artifacts[].name' | grep -qx 'windows-latest-11'; then
+            # A transient API error is a reason to poll again, not to read "not published
+            # yet" out of a listing that never arrived: the leg may already have published,
+            # and the completion check below would then call a healthy build one that
+            # finished without publishing.
+            if ! artifacts=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" \
+                 --jq '.artifacts[].name'); then
+              sleep 30
+              continue
+            fi
+            if grep -qx 'windows-latest-11' <<<"$artifacts"; then
               echo 'windows-latest-11 is available'
               exit 0
             fi
-            # Stop waiting the moment the leg that would publish it has finished without
-            # doing so, instead of sitting out the deadline.
-            # || true: a transient API error is a reason to poll again, not to fail the run.
-            conclusion=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs?per_page=100" \
-              --jq '.jobs[] | select(.name | startswith("build-maven (windows-latest, 11)")) | .conclusion' || true)
-            if [ -n "$conclusion" ] && [ "$conclusion" != "null" ]; then
-              echo "the Windows build leg finished as '$conclusion' without publishing windows-latest-11" >&2
-              exit 1
+            if ! leg=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs?per_page=100" \
+                 --jq '.jobs[] | select(.name | startswith("build-maven (windows-latest, 11)")) | "\(.status) \(.conclusion)"'); then
+              sleep 30
+              continue
             fi
-            if [ "$(date +%s)" -ge "$deadline" ]; then
-              echo 'windows-latest-11 was not published within 120 minutes' >&2
+            case "$leg" in
+              # Stop waiting the moment the leg that would publish it has finished without
+              # doing so, instead of sitting out the deadline.
+              completed*)
+                echo "the Windows build leg finished as '${leg#* }' without publishing windows-latest-11" >&2
+                exit 1
+                ;;
+              # It has a runner, so from here on the wait is on the build rather than on the
+              # queue. A queued leg is listed too, and with a started_at holding the time it
+              # was queued - which is why this reads the status and not that.
+              in_progress*)
+                [ -n "$deadline" ] || deadline=$(( $(date +%s) + budget ))
+                ;;
+            esac
+            if [ -n "$deadline" ] && [ "$(date +%s)" -ge "$deadline" ]; then
+              echo 'the Windows build leg has been running for 60 minutes without publishing windows-latest-11' >&2
               exit 1
             fi
             sleep 30

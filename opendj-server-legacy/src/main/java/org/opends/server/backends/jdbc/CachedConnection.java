@@ -37,6 +37,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -110,6 +111,98 @@ public class CachedConnection implements Connection {
      */
     static final String POOL_TIMEOUT_PROPERTY = "org.openidentityplatform.opendj.jdbc.pool.timeout";
     static final long DEFAULT_POOL_TIMEOUT_SECONDS = 60;
+
+    /**
+     * The socket read timeout a connection of this pool carries for the whole of its life, in
+     * seconds; 0 for none, which is what every connection of this backend carried before this
+     * property existed, and the default.
+     * <p>
+     * It bounds what neither of the two bounds before it reaches. The bound of
+     * {@value #CONNECT_TIMEOUT_PROPERTY} covers the connect and the login and is taken off as soon
+     * as the login is through, and the socket read timeout {@code JDBCStorage} arms behind a
+     * cancelled statement is armed for the length of that statement alone - so a commit, a
+     * rollback, a lookup of the catalog and the rows a cursor drains are all read from a socket
+     * with no deadline of any kind, and an operation that meets a database which stopped answering
+     * after the login stays parked.
+     * <p>
+     * The default is a consequence rather than caution: a bound standing on the connection has to
+     * exceed the longest silence the database may legitimately produce, and the class the longest
+     * statements belong to ({@code JDBCStorage.StatementBound.BULK}) ships unbounded for reasons of
+     * its own. There is no value here that does not contradict it - so the deployment that knows how
+     * long its database may go without answering is the one that sets this, and the statements of
+     * that class run with it taken off for as long as they do.
+     * <p>
+     * That silence is what this is sized against, rather than the longest statement, because the
+     * lift covers statements alone: the commit at the end of an import is a call of its own with no
+     * statement in flight behind it - {@code ImporterImpl.close()} commits a whole import in one -
+     * and so are the rollback of every borrow and the reads of the catalog. Every one of them runs
+     * under this bound whatever the class of the statements before it. It has to exceed the bound of
+     * an ordinary statement as well ({@code JDBCStorage.StatementBound.OPERATION}, two minutes by
+     * default): under it, such a statement dies on the socket at this value instead of being
+     * cancelled at its own, which costs the connection the driver then closes and reports neither
+     * property. A backend opening with the two set that way says so once.
+     * <p>
+     * A read bound standing in the connection string is the deployment's own and is left alone by
+     * every part of this: it is not replaced here, and it is not the one taken off there. A value of
+     * 0 there is no bound of theirs, though - it is the default of the driver, written out - and
+     * this one goes on top of it.
+     */
+    static final String READ_TIMEOUT_PROPERTY = "org.openidentityplatform.opendj.jdbc.read.timeout";
+    static final int DEFAULT_READ_TIMEOUT_SECONDS = 0;
+
+    // Read once, at class initialization, for the reason aliveBypassNanos is: it is read on every
+    // connect and on every statement that has to take it off again, and neither is the place to
+    // parse a system property. Not final so that a test can vary it without a class loader of its
+    // own, and volatile because a non-final static is written neither atomically nor visibly to the
+    // threads reading it (JLS 17.7).
+    static volatile int readTimeoutMillis = getReadTimeoutMillis();
+
+    /**
+     * The bound of {@value #READ_TIMEOUT_PROPERTY} in milliseconds, which is the unit
+     * {@code setNetworkTimeout} takes. A value that is not a number, and a negative one, are
+     * reported once and ignored in favour of the default - a deployment that asked for a bound and
+     * misspelled it gets none, and that is the one thing this property exists to keep from
+     * happening quietly. A value past {@link JDBCStorage#MAX_BOUND_SECONDS} is taken down to it: the
+     * ceiling there is what a socket read timeout can hold at all, and a value beyond it would reach
+     * the driver as a negative timeout - outside the contract of the call, and a value a driver is
+     * free to read as anything.
+     */
+    static int getReadTimeoutMillis() {
+        // Clamped against the ceiling rather than through JDBCStorage.clampSeconds(): that ceiling is
+        // a compile-time constant and reaches this class inlined, while the call would be a
+        // package-private call into another class - and this runs in the initializer of this one,
+        // which is loaded by whatever loader defines it. Across two loaders that is an
+        // IllegalAccessError rather than a call, and it would leave the class uninitializable.
+        final long seconds = Math.min(JDBCStorage.MAX_BOUND_SECONDS,
+            getNonNegativeProperty(READ_TIMEOUT_PROPERTY, DEFAULT_READ_TIMEOUT_SECONDS, "s"));
+        return (int) (seconds * 1000);
+    }
+
+    /**
+     * The read bound this class put on a connection of this url, in milliseconds, or 0 for a
+     * connection carrying none of ours. What {@code JDBCStorage} has to know before it takes that
+     * bound off for a statement of a class that carries no bound of its own: a read timeout
+     * standing in the connection string is the deployment's own, and a driver whose property names
+     * are not known here was never given one - taking either off would leave the connection
+     * unbounded for the rest of its life in the pool, which is a bound taken away from a deployment
+     * that asked for one.
+     * <p>
+     * The dialect is read off the connection string here, the way {@link #getConnection} reads the
+     * one it hands {@link #connect}: the two have to answer the same, or the bound taken off would
+     * not be the bound that was set.
+     */
+    static int standingReadBoundMillis(String connectionString) {
+        return connectionString == null ? 0
+            : standingReadBoundMillis(connectionString, ConnectDialect.of(connectionString));
+    }
+
+    private static int standingReadBoundMillis(String connectionString, ConnectDialect dialect) {
+        final int millis = readTimeoutMillis;
+        if (millis <= 0 || dialect == null || dialect.bounds(connectionString, dialect.readProperties)) {
+            return 0;
+        }
+        return millis;
+    }
 
     /** Bound of the validation of a pooled connection: isValid(0) means "no timeout" in the JDBC contract. */
     static final int VALIDATION_TIMEOUT_SECONDS = 5;
@@ -233,6 +326,66 @@ public class CachedConnection implements Connection {
 
     /** Where the sweep closes what it reaped, so that a close which does not return keeps it: see {@link Pool#sweep}. */
     private static volatile Executor closer = DIRECT_EXECUTOR;
+
+    /**
+     * Returns the bound of one attempt to establish a connection, as configured by the {@value
+     * #CONNECT_TIMEOUT_PROPERTY} system property; 0 for the operator asking for no bound of its own.
+     * A value beyond what a millisecond bound can carry is taken down to it: three of the four
+     * dialects state their properties in milliseconds, and a value that saturates the conversion
+     * bounds nothing.
+     * <p>
+     * Read here rather than at each connect so that every connection this backend establishes is
+     * bounded by the same configured value - the borrows of this pool and the connection {@code
+     * JDBCStorage} opens outside it for the tree catalog of a backend (#888) alike. A connect
+     * bounded tighter than the login of the deployment takes is a backend that stops opening, and
+     * one place to read the property is what keeps the two from drifting apart.
+     */
+    static long getConnectTimeoutSeconds() {
+        return Math.min(getNonNegativeProperty(CONNECT_TIMEOUT_PROPERTY, DEFAULT_CONNECT_TIMEOUT_SECONDS, "s"),
+            Integer.MAX_VALUE / 1000);
+    }
+
+    /**
+     * Returns the deadline of a whole borrow, as configured by the {@value #POOL_TIMEOUT_PROPERTY}
+     * system property; 0 for the operator asking for no deadline at all.
+     * <p>
+     * Read here for the reason the bound of a connect is: it is what a database taking no
+     * connection for the moment is waited out for, and the connection {@code JDBCStorage} opens
+     * outside this pool for the tree catalog of a backend (#888) waits it out for exactly as long -
+     * one property, one meaning, whichever of the two is asking.
+     */
+    static long getPoolTimeoutSeconds() {
+        return getNonNegativeProperty(POOL_TIMEOUT_PROPERTY, DEFAULT_POOL_TIMEOUT_SECONDS, "s");
+    }
+
+    /**
+     * Whether a wait of this many seconds is one with no bound at all.
+     * <p>
+     * Two spellings of it, and one predicate for both so that they cannot drift: zero, which is how
+     * {@value #POOL_TIMEOUT_PROPERTY} says "wait for as long as it takes", and a number so large
+     * that the milliseconds it stands for do not fit in a {@code long} - a deadline computed from
+     * one of those overflows into the past, which is the opposite of what it asked for.
+     */
+    static boolean isUnboundedWait(long seconds) {
+        return seconds == 0 || seconds >= Long.MAX_VALUE / 1000;
+    }
+
+    /**
+     * The moment a borrow of this length gives up, or {@link Long#MAX_VALUE} where it gives up
+     * never - the two readings {@link #isUnboundedWait} names.
+     * <p>
+     * The sum is guarded and not only the product: a value that predicate lets through but large enough
+     * that the moment it names is past the end of the epoch would wrap to a deadline already behind
+     * us, and a borrow configured to wait practically forever would give up on its first retryable
+     * failure - the opposite of what was asked for.
+     */
+    static long deadlineOf(long startedAt, long poolTimeoutSeconds) {
+        if (isUnboundedWait(poolTimeoutSeconds)) {
+            return Long.MAX_VALUE;
+        }
+        final long deadline = startedAt + poolTimeoutSeconds * 1000;
+        return deadline < startedAt ? Long.MAX_VALUE : deadline;
+    }
 
     /**
      * Returns the time after which an idle pooled connection is closed, as configured by the
@@ -381,8 +534,10 @@ public class CachedConnection implements Connection {
      * <p>
      * A lower bound than that is what is reported, not every way past it: the replay threads of
      * replication default to the same count again and borrow on top of the workers, and an import or
-     * a rebuild borrows besides. So this names one difference the operator can act on rather than
-     * standing for the whole demand on the pool.
+     * a rebuild borrows besides - one connection per tree it writes at a time, up to the bound of
+     * {@code JDBCStorage.IMPORT_CONNECTIONS_PROPERTY}, and it holds them for its whole duration
+     * (#891). So this names one difference the operator can act on rather than standing for the
+     * whole demand on the pool.
      * <p>
      * Nothing fails for the difference alone: the surplus waits for a connection to be returned,
      * which is what the bound is there for. But every one of those waits is paid on an operation,
@@ -399,7 +554,10 @@ public class CachedConnection implements Connection {
         if (borrowers <= pool.max()) {
             return;
         }
-        final long poolTimeoutSeconds = getNonNegativeProperty(POOL_TIMEOUT_PROPERTY, DEFAULT_POOL_TIMEOUT_SECONDS, "s");
+        // through the helper the borrows and the catalog connect both read it by: the same property
+        // has to mean the same thing wherever it is asked, and a clamp that helper grows the day the
+        // deadline needs one - getConnectTimeoutSeconds() already has one - must not be missed here
+        final long poolTimeoutSeconds = getPoolTimeoutSeconds();
         final String wait = poolTimeoutSeconds == 0
             ? "waits for one to be returned for as long as that takes"
             : "waits up to " + poolTimeoutSeconds + "s for one to be returned and fails if none is";
@@ -665,8 +823,15 @@ public class CachedConnection implements Connection {
      * Returns the value of a numeric system property, ignoring a value that is not a non-negative
      * number in favor of the default. The unit is the one the property is read in, so that the
      * value the message names is not mistaken for another.
+     * <p>
+     * Package private rather than private so that the bound on the connections of an import
+     * ({@code JDBCStorage.IMPORT_CONNECTIONS_PROPERTY}) can be read through it too, the way the
+     * bounds of the pool are: an operator who mistypes one of those is told rather than left with a
+     * default. Not every number this backend takes from a property comes through here - the
+     * statistics timeout and the fetch sizes of {@code JDBCStorage} are read with
+     * {@code Integer.getInteger}, which replaces a value it cannot parse in silence.
      */
-    private static long getNonNegativeProperty(String name, long defaultValue, String unit) {
+    static long getNonNegativeProperty(String name, long defaultValue, String unit) {
         final String value = System.getProperty(name);
         if (value != null) {
             try {
@@ -878,6 +1043,46 @@ public class CachedConnection implements Connection {
             return false;
         }
 
+        /**
+         * Whether one of these is bounded by the connection string, or by a system property this
+         * driver reads, as the bound of an established connection has to ask it. Told apart from
+         * {@link #declared} by what a 0 means: there the question is whether a property of ours is
+         * to be supplied to the connect at all, and on postgresql a parameter of the url outranks
+         * that property whatever it says - while a bound put on an established connection with
+         * setNetworkTimeout is outranked by nothing, so a "socketTimeout=0" is no bound of the
+         * deployment's to stay out of the way of. It is the default of the driver, written out, and
+         * reading it as theirs would leave a deployment that asked for a standing bound with none.
+         * <p>
+         * The names are recognized in the url the way {@link #declared} recognizes them, and out of
+         * the system properties from the same list - see the comment on that method.
+         */
+        private boolean bounds(String connectionString, String... properties) {
+            for (final String property : properties) {
+                if (boundInUrl(connectionString, property) || setAsSystemProperty(property)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Whether the connection string bounds this property, under its own name or the last segment
+         * of it. The two names are asked independently, the way {@link #declaredInUrl} asks them:
+         * stopping at the first name present, even where its value is a zero, let a
+         * "...?oracle.jdbc.ReadTimeout=0&ReadTimeout=600" answer with the zero of the name that comes
+         * first and hide the bound standing behind it. Such a url is declared() and would then not
+         * be bounds(): the login keeps the administrator's 600 s and one of ours goes on top of it
+         * with setNetworkTimeout. The two predicates have to look at the same set of names for "the
+         * bound taken off is the bound that was set" to hold.
+         */
+        private boolean boundInUrl(String connectionString, String property) {
+            if (isBound(parameterValue(connectionString, property))) {
+                return true;
+            }
+            final int dot = property.lastIndexOf('.');
+            return dot >= 0 && isBound(parameterValue(connectionString, property.substring(dot + 1)));
+        }
+
         // Whether the administrator bounded one of these properties themselves. The dialects
         // separate their parameters differently - "?a=1&b=2" (postgresql, mysql), ";a=1;b=2" (sql
         // server), "(A=1)" inside the descriptor of an oracle tns url, where the property also goes
@@ -994,8 +1199,13 @@ public class CachedConnection implements Connection {
      * read bound that could not be lifted serves the borrower waiting for it and is closed
      * afterwards: left in the pool it would fail every statement slower than that bound - an
      * import batch among them - for every borrow the pool hands it to.
+     * <p>
+     * Turned off during a borrow as well as at establish time ({@link #keepOutOfThePool}): a session
+     * setting a borrower could not take off again is the same kind of thing, and the pool cannot
+     * notice one by itself - {@link #isUsable} validates with {@code isValid()}, a liveness check a
+     * connection carrying a stale setting passes.
      */
-    private final boolean poolable;
+    private volatile boolean poolable;
 
     /**
      * When this connection last answered the database, as a {@link System#nanoTime()} reading:
@@ -1039,6 +1249,17 @@ public class CachedConnection implements Connection {
         this.lastKnownAliveNanos = System.nanoTime();
     }
 
+    /**
+     * Keeps this connection out of the pool: it serves the borrower holding it and is closed rather
+     * than pooled when that borrow ends. For a borrower that left something of its own on the session
+     * and could not take it off again - {@code JDBCStorage.restoreDdlLockBound()} is the one that
+     * does (#885) - where the blast radius is then this one connection instead of every borrow it
+     * would have served after this one.
+     */
+    void keepOutOfThePool() {
+        poolable = false;
+    }
+
     /** Gives back the right to hold this connection, once and only if it was taken. */
     void releasePermit() {
         if (metered && permitReleased.compareAndSet(false, true)) {
@@ -1076,17 +1297,48 @@ public class CachedConnection implements Connection {
      * them is one borrow of a cold path, where the round trip the window saves is worth nothing.
      */
     static Connection getConnection(String connectionString, boolean trusted) throws Exception {
+        return getConnection(connectionString, trusted, 0);
+    }
+
+    /**
+     * The wait a borrow that carries a bound of its own actually gets: the shorter of what the
+     * deployment asked for and what the caller can afford, and the caller's where the deployment
+     * asked for no bound at all.
+     *
+     * @param maxWaitSeconds 0 for a caller that has no bound of its own, which takes the wait of
+     * the deployment whatever it is
+     */
+    static long boundedWait(long poolTimeoutSeconds, long maxWaitSeconds) {
+        if (isUnboundedWait(maxWaitSeconds)) {
+            return poolTimeoutSeconds;
+        }
+        return isUnboundedWait(poolTimeoutSeconds)
+            ? maxWaitSeconds : Math.min(poolTimeoutSeconds, maxWaitSeconds);
+    }
+
+    /**
+     * Borrows a connection, waiting at the bound of the pool no longer than the given number of
+     * seconds however long {@value #POOL_TIMEOUT_PROPERTY} says to wait.
+     *
+     * @param maxWaitSeconds the longest this borrow may wait at the bound of the pool, or 0 to wait
+     * as the property says. For a caller whose own connections are what the pool is full of - an
+     * import holds one per tree it writes until it ends (#891) - a wait with no bound is a deadlock
+     * rather than a queue: nothing is going to return the connection it is waiting for but itself.
+     * A caller that names one has somewhere to go when it runs out, so the wait of the deployment
+     * is capped rather than merely replaced where it is unbounded: an import that has to ask the
+     * pool once per tree would otherwise pay a long {@value #POOL_TIMEOUT_PROPERTY} over again for
+     * every tree the pool has nothing to spare for.
+     */
+    static Connection getConnection(String connectionString, boolean trusted, long maxWaitSeconds)
+            throws Exception {
         final Pool pool = poolOf(connectionString);
         final ConnectDialect dialect = ConnectDialect.of(connectionString);
         reportUnknownDialect(connectionString, dialect);
-        final long connectTimeoutSeconds = Math.min(
-            getNonNegativeProperty(CONNECT_TIMEOUT_PROPERTY, DEFAULT_CONNECT_TIMEOUT_SECONDS, "s"),
-            Integer.MAX_VALUE / 1000);
-        final long poolTimeoutSeconds = getNonNegativeProperty(POOL_TIMEOUT_PROPERTY, DEFAULT_POOL_TIMEOUT_SECONDS, "s");
+        final long connectTimeoutSeconds = getConnectTimeoutSeconds();
+        final long poolTimeoutSeconds = boundedWait(getPoolTimeoutSeconds(), maxWaitSeconds);
         final long ttlMillis = getCacheTtlMillis();
         final long startedAt = System.currentTimeMillis();
-        final long deadline = (poolTimeoutSeconds == 0 || poolTimeoutSeconds >= Long.MAX_VALUE / 1000)
-            ? Long.MAX_VALUE : startedAt + poolTimeoutSeconds * 1000;
+        final long deadline = deadlineOf(startedAt, poolTimeoutSeconds);
         // A thread already holding a connection is not made to wait for one: the two are held at
         // the same time, so waiting for the first to come back would wait for itself.
         final boolean reentrant = pool.heldByCurrentThread();
@@ -1188,6 +1440,13 @@ public class CachedConnection implements Connection {
      * are the ones of a driver, so a driver outside the four leaves every attempt unbounded - and
      * the deadline of the borrow cannot reach into a connect that is already under way, since the
      * driver is the only thing holding the socket.
+     * <p>
+     * The connect is not the whole of it. {@value #READ_TIMEOUT_PROPERTY} is not put on the
+     * connections of such a pool either: {@link #standingReadBoundMillis(String)} answers 0 for a
+     * dialect this class does not know, so a read timeout the url may already carry under a name of
+     * its own is left alone rather than covered by one of ours. That silence is what this says out
+     * loud, since the strict parsing of that property exists precisely so that a deployment which
+     * asked for a bound is never quietly left with none.
      */
     private static void reportUnknownDialect(String connectionString, ConnectDialect dialect) {
         if (dialect != null) {
@@ -1197,11 +1456,19 @@ public class CachedConnection implements Connection {
         for (final ConnectDialect candidate : ConnectDialect.values()) {
             known.append(known.length() > 0 ? ", " : "").append(candidate.urlPrefix);
         }
+        // Only where one was asked for: a deployment running on the default of that property asked
+        // for no standing bound anywhere, and has nothing to act on here.
+        final String standingBound = readTimeoutMillis > 0
+            ? ", and the " + READ_TIMEOUT_PROPERTY + " asked for is not put on the connections of this pool"
+                + " either - a read of one whose database stops answering after the login waits with no deadline"
+                + " able to reach it. Such a url may bound the read under a name this backend does not know, which"
+                + " is why none is set on top of it: bound it in the url instead"
+            : "";
         warnOnce(safeUrl(connectionString) + "|unknown-dialect",
             "%s names a driver whose timeout properties are not known to this backend (%s are): a connect to a"
                 + " database that accepts it and does not answer is left without a bound, and the %s property"
-                + " cannot end it",
-            safeUrl(connectionString), known, POOL_TIMEOUT_PROPERTY);
+                + " cannot end it%s",
+            safeUrl(connectionString), known, POOL_TIMEOUT_PROPERTY, standingBound);
     }
 
     /**
@@ -1392,12 +1659,10 @@ public class CachedConnection implements Connection {
             // still under the read bound: both of these are round trips of their own
             conNew.setAutoCommit(false);
             conNew.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
-            if (readBoundSet) {
-                // a driver that will not take the bound back has warned about it already: the
-                // connection serves the borrower that is waiting for it and is closed rather than
-                // pooled, so the bound of the login does not outlive it in the pool
-                poolable = relaxReadBound(conNew, connectTimeoutSeconds);
-            }
+            // whatever the driver will not take here it has warned about already: a connection left
+            // carrying the read bound of its login serves the borrower that is waiting for it and is
+            // closed rather than pooled, so that bound does not outlive it in the pool
+            poolable = applyStandingReadBound(conNew, connectionString, dialect, connectTimeoutSeconds, readBoundSet);
         } catch (SQLException | RuntimeException e) { // nothing holds this connection yet: it would leak
             closeQuietly(conNew);
             throw e;
@@ -1407,19 +1672,41 @@ public class CachedConnection implements Connection {
         return established;
     }
 
-    // The second bound of the login is a socket read timeout on mysql, oracle and sql server, in
-    // force for the whole life of the connection: left in place it would break every statement
-    // slower than it - an import batch, the statistics of a freshly loaded table - so it is lifted
-    // as soon as the login is through, restoring the behaviour of a connection this class
-    // established before. A read bound the connection string sets itself is never touched here:
-    // it is not set at all, so nothing of the administrator's is lifted along with it. Returns
-    // whether the bound is gone - a connection still carrying it must not be pooled.
-    // Named by the bound the login was given rather than by the property it came from: with
-    // CONNECT_TIMEOUT_PROPERTY at 0 the attempt takes its bound from what is left of the deadline
-    // of the borrow, so naming that property would point at the one setting that is not in force.
-    private static boolean relaxReadBound(Connection con, long boundSeconds) {
-        return setNetworkTimeout(con, 0, "statements taking longer than the " + boundSeconds
-            + "s the login of this connection was bounded by fail on it, and it is closed rather than pooled");
+    /**
+     * Gives an established connection the read bound it carries from here on, which is the same
+     * call that takes the read bound of its login off.
+     * <p>
+     * The second is not optional. On mysql, oracle and sql server the second bound of the login is
+     * a socket read timeout in force for the whole life of the connection, and left in place it
+     * breaks every statement slower than a connect - an import batch, the statistics of a freshly
+     * loaded table. What replaces it is {@value #READ_TIMEOUT_PROPERTY}, or the 0 this class has
+     * always put here where a deployment asks for nothing.
+     * <p>
+     * A read bound the connection string sets itself is neither replaced nor lifted: it was not set
+     * by us at the login either, so nothing of the administrator's is touched here.
+     * <p>
+     * Called whether or not the login had a bound to lift, since the standing bound is not the
+     * login's: with {@value #CONNECT_TIMEOUT_PROPERTY} at 0 the login is bounded by what is left of
+     * the deadline of the borrow instead, and a deployment running that way would otherwise set the
+     * property here and get nothing for it.
+     * <p>
+     * Returns whether the connection may be pooled. A connection still carrying the bound of its
+     * login must not be: it would fail the statements of every borrower after this one. A
+     * connection that merely never took the standing bound may be - that is the connection this
+     * pool handed out before the property existed.
+     */
+    private static boolean applyStandingReadBound(Connection con, String connectionString, ConnectDialect dialect,
+                                                  long loginBoundSeconds, boolean readBoundSet) {
+        final int millis = standingReadBoundMillis(connectionString, dialect);
+        if (millis == 0 && !readBoundSet) {
+            return true; // nothing of ours on this connection: nothing to set here, and nothing to lift
+        }
+        final String consequence = readBoundSet
+            ? "statements taking longer than the " + loginBoundSeconds
+                + "s the login of this connection was bounded by fail on it, and it is closed rather than pooled"
+            : "this connection carries no read bound of its own, so a read of it the database stops answering waits"
+                + " with no deadline able to reach it";
+        return setNetworkTimeout(con, millis, consequence) || !readBoundSet;
     }
 
     /**
@@ -1493,16 +1780,71 @@ public class CachedConnection implements Connection {
     // is indistinguishable from a hang. Throttled, since every operation of the backend borrows
     // through here and would otherwise log a copy of its own.
     private static void warnStall(String connectionString, int attempts, long startedAt, SQLException cause) {
+        warnStall(connectionString, "", startedAt,
+            waitedMs -> stallMessage(connectionString, attempts, waitedMs, cause));
+    }
+
+    /**
+     * The same for a connect this class makes for somebody outside the pool - the connection the
+     * tree catalog of a backend is written on (#888) - which waits for no pooled connection and
+     * must not be described as one.
+     * <p>
+     * Throttled apart from the borrows of the same url as well as worded apart from them: the two
+     * stall on the same database for the same reason, so a borrow that warned a moment ago would
+     * otherwise silence the connect that is about to fail - the one of the two an operator has no
+     * other line about.
+     */
+    static void warnStallOutsidePool(String connectionString, String what, int attempts, long startedAt,
+            SQLException cause) {
+        warnStall(connectionString, "|" + what, startedAt,
+            waitedMs -> outsidePoolStallMessage(connectionString, what, attempts, waitedMs, cause));
+    }
+
+    private static void warnStall(String connectionString, String throttleKeySuffix, long startedAt,
+            LongFunction<String> message) {
         final long now = System.currentTimeMillis();
+        if (stallWarningDue(connectionString, throttleKeySuffix, startedAt, now)) {
+            logger.warn(LocalizableMessage.raw("%s", message.apply(now - startedAt)));
+        }
+    }
+
+    /**
+     * Whether a stall of this wait is to be reported now: a wait shorter than
+     * {@link #STALL_WARNING_AFTER_MS} is no stall yet, and one already reported for this url within
+     * {@link #STALL_WARNING_INTERVAL_MS} is not reported again - every worker thread of a server
+     * meets a database taking no connection at the same moment, and one line an interval is what
+     * an operator can read.
+     * <p>
+     * Built apart from the logging of it for the reason {@link #stallMessage} is: what it has to
+     * keep is a rule a test can hold it to, and the shipped path reaches the throttle only where a
+     * connect really has stalled for a second. The suffix is what keeps the two waits apart - a
+     * borrow of the pool and the connect the tree catalog of a backend is made on (#888) stall on
+     * the same database for the same reason, and a borrow that reported a moment ago must not
+     * silence the connect that is about to fail, which has no other line about it at all.
+     * <p>
+     * Filing the moment is part of deciding it, so that two threads asking at once report once.
+     */
+    static boolean stallWarningDue(String connectionString, String throttleKeySuffix, long startedAt, long now) {
         if (now - startedAt < STALL_WARNING_AFTER_MS) {
-            return;
+            return false;
         }
         final AtomicLong lastOfThisUrl =
-            lastStallWarning.computeIfAbsent(safeUrl(connectionString), url -> new AtomicLong());
+            lastStallWarning.computeIfAbsent(safeUrl(connectionString) + throttleKeySuffix, url -> new AtomicLong());
         final long last = lastOfThisUrl.get();
-        if (now - last >= STALL_WARNING_INTERVAL_MS && lastOfThisUrl.compareAndSet(last, now)) {
-            logger.warn(LocalizableMessage.raw("%s", stallMessage(connectionString, attempts, now - startedAt, cause)));
-        }
+        return now - last >= STALL_WARNING_INTERVAL_MS && lastOfThisUrl.compareAndSet(last, now);
+    }
+
+    /**
+     * The stall of a connect made outside the pool, as it reaches the log. Built apart from the
+     * logging of it for the reason {@link #stallMessage} is: the rule it has to keep - neither the
+     * connection string nor the message of the driver reaches a log as it stands - is a rule a test
+     * can hold it to.
+     */
+    static String outsidePoolStallMessage(String connectionString, String what, int attempts, long waitedMs,
+            SQLException cause) {
+        return String.format("%s takes no further connection: the %s connection of this backend is opened outside the"
+            + " pool and has been retrying for %d ms (%d attempts), last error: %s", safeUrl(connectionString), what,
+            waitedMs, attempts, redact(cause.getMessage(), connectionString));
     }
 
     /**
