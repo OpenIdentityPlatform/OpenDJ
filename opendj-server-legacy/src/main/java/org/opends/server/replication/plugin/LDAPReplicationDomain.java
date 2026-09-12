@@ -369,46 +369,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private final AtomicInteger consecutiveSessionRestarts = new AtomicInteger();
   /**
-   * Serialises the session of this domain being stopped and started again: the replay
-   * thread which restarts it after a failed replay must not race the domain being
-   * disabled for an import or a restore, or it would bring a broker and a listener
-   * thread back up on a domain which is supposed to be down.
-   * <p>
-   * Holding it costs something, and knowingly: {@code enableService()} connects to the
-   * replication servers under this lock, so a shutdown, an import or a configuration
-   * change which arrives while a replay thread is bringing the session back waits for
-   * that connect - up to the configured connection timeout when the replication servers
-   * are unreachable, which is the same outage that failed the replay. Every one of those
-   * stops the session as its first act, so what they wait for is a session which is about
-   * to be stopped again. The wait between the stop and the start is deliberately left
-   * outside the lock, so the waiting is bounded by a connect rather than by the backoff.
-   * <p>
-   * It comes after the configuration backend's update lock and never before it: a write to
-   * the domain configuration entry holds that lock while it calls
-   * {@link #applyConfigurationChange(ReplicationDomainCfg)}, which takes this one. So
-   * nothing may write a configuration entry while holding this lock - that is why neither
-   * the state {@link #disable()} saves nor the generationId {@link #enable()} stores falls
-   * back to the domain configuration entry when the base entry of the suffix is missing.
-   */
-  private final Object serviceStateLock = new Object();
-  /**
-   * Bumped every time the session of this domain is stopped or started under
-   * {@link #serviceStateLock}. A replay thread which stopped the session only starts it
-   * back if this still is the session it stopped: a configuration change, or the end of
-   * an import, may have started another one while it was waiting for the backend to
-   * recover.
-   * <p>
-   * It does not count the sessions {@code changeConfig()} and {@code readAssuredConfig()}
-   * stop and start, which they do without knowing about it: they run under the lock, so a
-   * replay thread never observes one of theirs, but a session it stopped may well have
-   * been replaced by one of theirs while it was waiting. That is why the guard in
-   * {@link #restartSession(boolean)} reads {@code isListenerShuttingDown()} as well - a
-   * session started outside this counter leaves it untouched, and only the listener says
-   * that one is running.
-   */
-  @GuardedBy("serviceStateLock")
-  private long sessionGeneration;
-  /**
    * Set by {@link #restartService()} when it left the session of this domain alone, so
    * that the configuration change which asked for the restart can say so.
    * <p>
@@ -907,22 +867,21 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       return;
     }
 
-    // Disable service if configuration changed
-    final boolean needRestart = needReconnection && allowReconnection;
     /*
      * The session is stopped, the configuration it depends on is changed and the session
      * is started again under the lock which the replay thread restarting the session after
      * a failed replay holds too: a session brought up in the middle of this would be
      * reading a fractional configuration which is half way through being changed. The
-     * pair has to be atomic, which the lock inside disableService()/enableService() does
-     * not make it.
+     * stop, the change and the start have to be atomic together, which taking the lock
+     * inside each of disableService()/enableService() does not make them.
      */
     synchronized (serviceStateLock)
     {
+      // Disable service if configuration changed
+      final boolean needRestart = needReconnection && allowReconnection;
       if (needRestart)
       {
         disableService();
-        sessionGeneration++;
       }
       else if (needReconnection)
       {
@@ -954,7 +913,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       if (needRestart)
       {
         enableService();
-        sessionGeneration++;
       }
     }
   }
@@ -2525,7 +2483,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       synchronized (serviceStateLock)
       {
         disableService();
-        sessionGeneration++;
       }
     }
 
@@ -3709,13 +3666,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     final long stoppedSession;
     synchronized (serviceStateLock)
     {
-      if (shutdown.get() || disabled)
+      if (ownsItsSession())
       {
         // The domain is going away or is being imported into: it owns its session.
         return;
       }
       disableService();
-      stoppedSession = ++sessionGeneration;
+      stoppedSession = getSessionGeneration();
     }
     if (wait)
     {
@@ -3729,21 +3686,18 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
     synchronized (serviceStateLock)
     {
-      if (shutdown.get() || disabled
-          || sessionGeneration != stoppedSession || !isListenerShuttingDown())
+      if (ownsItsSession() || getSessionGeneration() != stoppedSession)
       {
         /*
          * The domain went away while this thread was waiting, or the session was stopped
          * and started again by something else - a configuration change, the end of an
          * import - in the meantime: the session this thread stopped is gone, so it has
-         * nothing left to start. The generation says a session was started under this
-         * lock; the listener says one is running, which is what a restart made outside it
-         * leaves behind.
+         * nothing left to start. Every stop and every start of a session is counted, so
+         * the generation alone tells one session from another.
          */
         return;
       }
       enableService();
-      sessionGeneration++;
     }
   }
 
@@ -4423,7 +4377,6 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        */
       disabled = true;
       disableService(); // This will cut the session and wake up the listener
-      sessionGeneration++;
       awaitReplayDrained();
       state.save();
       state.clearInMemory();
@@ -4591,7 +4544,6 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       try
       {
         enableService();
-        sessionGeneration++;
         started = true;
       }
       finally
