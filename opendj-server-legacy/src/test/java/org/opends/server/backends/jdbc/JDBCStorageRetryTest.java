@@ -591,16 +591,48 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   }
 
   /**
-   * The walk of a failure looks at a bounded number of links: mssql-jdbc chains every error of one message it
-   * received through {@code setNextException}, and a budget spent on those would never reach the cause a wrapper
-   * carries. Pinned from both sides - a drop on the last link of the budget is found and one link further is not
-   * - since a number nothing pins drifts unnoticed in either direction.
+   * The walk of a failure reads every link of it where a decision reads the verdict, however long the chains
+   * are - mssql-jdbc chains every error of one message it received through {@code setNextException}. A budget
+   * does not leave the question unanswered here: it answers it with the {@code false} of a failure that says
+   * nothing about the connection, so the pool is never told of the drop and the attempt is failed to its caller
+   * instead of being replayed (issue #961). What terminates the walk is its {@code seen} set, which the cyclic
+   * chains of the providers above pin.
    */
   @Test
-  public void testTheWalkOfAFailureStopsAtItsBudget()
+  public void testTheWalkOfAFailureReachesADropPastAnyBudget()
   {
-    assertTrue(JDBCStorage.isConnectionFailure(chainEndingInADrop(64)), "a drop on the last link of the budget");
-    assertFalse(JDBCStorage.isConnectionFailure(chainEndingInADrop(65)), "a drop past the budget was walked to");
+    assertTrue(JDBCStorage.isConnectionFailure(chainEndingIn(65, "08006")), "a drop one link past the budget");
+    assertTrue(JDBCStorage.isConnectionFailure(chainEndingIn(200, "08006")), "a drop far past the budget");
+    assertEquals(replayReason(chainEndingIn(200, "08006"), MSSQL, false, false, false),
+        "a connection the database dropped", "an attempt worth replaying was failed to its caller");
+  }
+
+  /**
+   * The line reporting a replay names the link the replay was decided on however deep it sits: a lookup that
+   * stopped where the verdict does not would name the statement at the head of the chain instead, and describe
+   * a replay that did not happen.
+   */
+  @Test
+  public void testTheSummaryNamesADecidingLinkPastAnyBudget()
+  {
+    final String drop = conflictSummary(chainEndingIn(200, "08006"), MSSQL);
+    assertTrue(drop.contains("08006"), drop);
+    final String conflict = conflictSummary(chainEndingIn(200, "40001"), MSSQL);
+    assertTrue(conflict.contains("40001"), conflict);
+  }
+
+  /**
+   * What the budget is left for: the fallback of the summary that names a link no decision reads, where
+   * truncation costs the precision of one line of the log. Pinned from both sides - the last link of the budget
+   * is named and one link further is not - since a number nothing pins drifts unnoticed in either direction.
+   */
+  @Test
+  public void testTheFallbackOfTheSummaryStopsAtItsBudget()
+  {
+    assertTrue(conflictSummary(wrappedTimes(63, sql(2627, "23000")), POSTGRES).contains("23000"),
+        "the statement on the last link of the budget was not named");
+    assertFalse(conflictSummary(wrappedTimes(64, sql(2627, "23000")), POSTGRES).contains("23000"),
+        "a link past the budget was walked to");
   }
 
   /**
@@ -953,6 +985,53 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       storage.getConnection().close(); // the borrow that follows it validates instead of trusting
 
       verify(pooled).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
+    }
+    finally
+    {
+      CachedConnection.aliveBypassNanos = window;
+    }
+  }
+
+  /**
+   * A drop the failure reports past any budget reaches the pool and the replay both: the write is replayed on a
+   * connection of its own, and the connections the pool established before the same drop are validated on their
+   * next borrow instead of being trusted for the rest of the alive window (issue #961). The driver has not closed
+   * the connection here - it is the chains of the failure, and only they, that say the database dropped it.
+   */
+  @Test
+  public void testADropDeepInTheChainReachesThePoolAndTheReplay() throws Exception
+  {
+    final long window = CachedConnection.aliveBypassNanos;
+    CachedConnection.aliveBypassNanos = TimeUnit.HOURS.toNanos(1);
+    try
+    {
+      final Connection pooled = mock(Connection.class);
+      when(pooled.isValid(anyInt())).thenReturn(true);
+      final Connection borrowed = mock(Connection.class);
+      when(borrowed.isValid(anyInt())).thenReturn(true);
+
+      final JDBCStorage storage = storageOver(pooled, borrowed);
+      // both are proven alive and back in the pool; the one released last is the one the write borrows
+      final Connection first = storage.getConnection();
+      final Connection second = storage.getConnection();
+      first.close();
+      second.close();
+      verify(borrowed, never()).isValid(anyInt()); // both are inside the window: nothing has validated
+
+      final AtomicInteger attempts = new AtomicInteger();
+      storage.write(txn -> {
+        if (attempts.incrementAndGet() == 1)
+        {
+          // the chain mssql-jdbc reports a message of many errors in, with the one that says the session is
+          // gone at the end of it - past the budget the walk used to stop at
+          throw new StorageRuntimeException(chainEndingIn(200, "08006"));
+        }
+      });
+
+      assertEquals(attempts.get(), 2, "a write the database dropped the connection under was not replayed");
+      // the borrow of the replay validated rather than trusting the last answer of a connection established
+      // before the drop: the pool was told
+      verify(borrowed, atLeastOnce()).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
     }
     finally
     {
@@ -1449,16 +1528,27 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
     return first;
   }
 
-  /** A chain of the given number of next exceptions whose last link is a connection that broke. */
-  private static SQLException chainEndingInADrop(int links)
+  /** A chain of the given number of next exceptions whose last link carries the given SQLState. */
+  private static SQLException chainEndingIn(int links, String lastState)
   {
     final SQLException head = sql(2627, "23000");
     SQLException tail = head;
     for (int link = 2; link <= links; link++)
     {
-      tail = chained(tail, sql(0, link == links ? "08006" : "23000")).getNextException();
+      tail = chained(tail, sql(0, link == links ? lastState : "23000")).getNextException();
     }
     return head;
+  }
+
+  /** The given failure behind the given number of wrappers, the way a caller of this backend wraps one. */
+  private static Throwable wrappedTimes(int wrappers, Throwable failure)
+  {
+    Throwable wrapped = failure;
+    for (int wrapper = 0; wrapper < wrappers; wrapper++)
+    {
+      wrapped = new IllegalStateException("wrapped", wrapped);
+    }
+    return wrapped;
   }
 
   /** The second failure suppressed into the first, the way a failing close() joins the failure of an operation. */
