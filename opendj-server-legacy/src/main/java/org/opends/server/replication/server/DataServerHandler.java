@@ -282,6 +282,20 @@ public class DataServerHandler extends ServerHandler
     return status;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * A directory server is handed every update the domain receives, from whichever server, unless
+   * it has a bad generation id or is being initialized - see
+   * {@code ReplicationServerDomain.isUpdateMsgFiltered()}.
+   */
+  @Override
+  boolean isFedByTheDomain()
+  {
+    final ServerStatus dsStatus = getStatus();
+    return dsStatus != BAD_GEN_ID_STATUS && dsStatus != FULL_UPDATE_STATUS;
+  }
+
   @Override
   public boolean isDataServer()
   {
