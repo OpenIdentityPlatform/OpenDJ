@@ -1891,7 +1891,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * this operation has already been replayed in the past.
        */
       String uuid = ctx.getEntryUUID();
-      if (findEntryDN(uuid) != null)
+      final DN replayedEntryDN;
+      try
+      {
+        replayedEntryDN = findEntryDN(uuid);
+      }
+      catch (SearchFailedException e)
+      {
+        return searchDidNotRun(ctx.getCSN(), e);
+      }
+      if (replayedEntryDN != null)
       {
         return new SynchronizationProviderResult.StopProcessing(
             ResultCode.NO_OPERATION, null);
@@ -1908,7 +1917,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       {
         // There is a potential of perfs improvement here
         // if we could avoid the following parent entry retrieval
-        DN parentDnFromCtx = findEntryDN(ctx.getParentEntryUUID());
+        final DN parentDnFromCtx;
+        try
+        {
+          parentDnFromCtx = findEntryDN(ctx.getParentEntryUUID());
+        }
+        catch (SearchFailedException e)
+        {
+          return searchDidNotRun(ctx.getCSN(), e);
+        }
         if (parentDnFromCtx == null)
         {
           // The parent does not exist with the specified unique id
@@ -1933,6 +1950,28 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       }
     }
     return new SynchronizationProviderResult.ContinueProcessing();
+  }
+
+  /**
+   * Turns down an operation being replayed whose conflict resolution could not read the
+   * data, so that the change is attempted again rather than applied on what a search
+   * which did not run seemed to say.
+   * <p>
+   * The operation is reported as unavailable, which is what it is, and the search which
+   * did not run is its error message: the change is retried in place, and left out of
+   * the ServerState and asked for again if this server keeps failing to serve the
+   * searches this phase reads the data with (issue #956). Nothing is logged here: this
+   * hook runs on every attempt in place, and the error is reported once, with the
+   * attempt which ended them, where a storage which failed to serve the operation is.
+   *
+   * @param csn the CSN of the change being replayed
+   * @param e the search which did not run
+   * @return the result which stops the operation
+   */
+  private SynchronizationProviderResult searchDidNotRun(CSN csn, SearchFailedException e)
+  {
+    return new SynchronizationProviderResult.StopProcessing(
+        ResultCode.UNAVAILABLE, e.report(csn, getBaseDN()));
   }
 
   /**
@@ -2773,6 +2812,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         dependency = remotePendingChanges.checkDependencies(op, msg);
         boolean replayDone = false;
         boolean firstAttempt = true;
+        /*
+         * The search conflict resolution could not run on the last attempt, when it ended
+         * on one: the result code of the operation says nothing of it - it is the conflict
+         * the operation failed on - so the failure of the server below the loop is told
+         * here, and reported there once the attempts are spent.
+         */
+        SearchFailedException searchFailedResolvingConflict = null;
         int retryCount = IN_PLACE_REPLAY_ATTEMPTS;
         while (!dependency && !replayDone && retryCount-- > 0)
         {
@@ -2888,34 +2934,52 @@ public final class LDAPReplicationDomain extends ReplicationDomain
                   else
                   {
                     ConflictResolution resolution = ConflictResolution.NOTHING_TO_DO;
-                    if (op instanceof ModifyOperation)
+                    try
                     {
-                      ModifyOperation castOp = (ModifyOperation) op;
-                      dependency = remotePendingChanges.checkDependencies(castOp);
-                      ModifyMsg modifyMsg = (ModifyMsg) msg;
-                      resolution = dependency ? resolution : solveNamingConflict(castOp, modifyMsg);
+                      if (op instanceof ModifyOperation)
+                      {
+                        ModifyOperation castOp = (ModifyOperation) op;
+                        dependency = remotePendingChanges.checkDependencies(castOp);
+                        ModifyMsg modifyMsg = (ModifyMsg) msg;
+                        resolution = dependency ? resolution : solveNamingConflict(castOp, modifyMsg);
+                      }
+                      else if (op instanceof DeleteOperation)
+                      {
+                        DeleteOperation castOp = (DeleteOperation) op;
+                        dependency = remotePendingChanges.checkDependencies(castOp);
+                        resolution = dependency ? resolution : solveNamingConflict(castOp, msg);
+                      }
+                      else if (op instanceof AddOperation)
+                      {
+                        AddOperation castOp = (AddOperation) op;
+                        AddMsg addMsg = (AddMsg) msg;
+                        dependency = remotePendingChanges.checkDependencies(castOp);
+                        resolution = dependency ? resolution : solveNamingConflict(castOp, addMsg);
+                      }
+                      else if (op instanceof ModifyDNOperation)
+                      {
+                        ModifyDNOperation castOp = (ModifyDNOperation) op;
+                        ModifyDNMsg modifyDNMsg = (ModifyDNMsg) msg;
+                        dependency = remotePendingChanges.checkDependencies(modifyDNMsg);
+                        resolution = dependency ? resolution : solveNamingConflict(castOp, modifyDNMsg);
+                      }
+                      // else: unknown type of operation ?! there is nothing to replay
                     }
-                    else if (op instanceof DeleteOperation)
+                    catch (SearchFailedException e)
                     {
-                      DeleteOperation castOp = (DeleteOperation) op;
-                      dependency = remotePendingChanges.checkDependencies(castOp);
-                      resolution = dependency ? resolution : solveNamingConflict(castOp, msg);
+                      /*
+                       * Conflict resolution reads the data with a search of the entryUUID, and
+                       * that search did not run: nothing was decided here, and whether the entry
+                       * is still in the data is not known. Report the failure of the server it
+                       * is rather than let a caller read "no entry" out of a search which never
+                       * answered. It is logged once the attempts in place are spent rather than
+                       * on every one of them, as a storage which failed to serve the operation
+                       * is: a backend which is down for a while fails every attempt of every
+                       * change delivered meanwhile.
+                       */
+                      searchFailedResolvingConflict = e;
+                      resolution = ConflictResolution.SEARCH_FAILED;
                     }
-                    else if (op instanceof AddOperation)
-                    {
-                      AddOperation castOp = (AddOperation) op;
-                      AddMsg addMsg = (AddMsg) msg;
-                      dependency = remotePendingChanges.checkDependencies(castOp);
-                      resolution = dependency ? resolution : solveNamingConflict(castOp, addMsg);
-                    }
-                    else if (op instanceof ModifyDNOperation)
-                    {
-                      ModifyDNOperation castOp = (ModifyDNOperation) op;
-                      ModifyDNMsg modifyDNMsg = (ModifyDNMsg) msg;
-                      dependency = remotePendingChanges.checkDependencies(modifyDNMsg);
-                      resolution = dependency ? resolution : solveNamingConflict(castOp, modifyDNMsg);
-                    }
-                    // else: unknown type of operation ?! there is nothing to replay
 
                     if (!dependency)
                     {
@@ -2927,6 +2991,19 @@ public final class LDAPReplicationDomain extends ReplicationDomain
                         // however we still need to push this change to the serverState
                         replayDone = true;
                         recordChangeResolved(csn);
+                        break;
+
+                      case SEARCH_FAILED:
+                        /*
+                         * Conflict resolution could not read the data, so the change is not in
+                         * it and nothing was concluded about the entry it targets. Give it the
+                         * in-place attempts a storage which failed gets - a storage busy for a
+                         * moment must not cost a session restart - and leave it out of the
+                         * ServerState once they are spent, which the failure of the server
+                         * below the loop reports and acts on. A change which is not in the data
+                         * must not advance the ServerState (issue #889).
+                         */
+                        Thread.sleep(50);
                         break;
 
                       case FAILED:
@@ -2967,6 +3044,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
                          * reflecting the new state of the UpdateMsg after conflict resolution
                          * modified it, and dependencies might have been replayed by now.
                          */
+                        searchFailedResolvingConflict = null;
                         break;
                       }
                     }
@@ -3023,20 +3101,31 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * is the storage failing to serve the operation. The result of that attempt is
            * what decides, so that this branch reports the failure it is acting on: an
            * attempt which ended on something conflict resolution kept rewriting is the
-           * loop below, however the attempts before it ended.
+           * loop below, however the attempts before it ended. So is an attempt whose
+           * conflict resolution could not read the data, which the attempt itself says
+           * rather than its result code: that one is the conflict the operation failed
+           * on, not the search which did not run (issue #956).
            */
           if (isServerFailure(lastResult, serverErrorResultCode)
               || ResultCode.BUSY.equals(lastResult)
-              || serverErrorResultCode.equals(lastResult))
+              || serverErrorResultCode.equals(lastResult)
+              || searchFailedResolvingConflict != null)
           {
             /*
              * The server kept failing to apply the change, so the change is not in the data.
              * Leave it out of the ServerState, otherwise the replication server would never
              * send it again and this replica would silently diverge while reporting itself
              * up to date.
+             *
+             * The error reported is the operation's, unless the attempt ended on a search
+             * conflict resolution could not run: the operation then only says which conflict
+             * it failed on, and the search is what failed.
              */
+            final Object error = searchFailedResolvingConflict != null
+                ? searchFailedResolvingConflict.report(csn, getBaseDN())
+                : op.getErrorMessage();
             final LocalizableMessage message = ERR_ERROR_REPLAYING_OPERATION.get(
-                op, csn, lastResult, op.getErrorMessage());
+                op, csn, lastResult, error);
             logger.error(message);
             replayErrorMsg = message.toString();
             replayFailed = true;
@@ -3828,24 +3917,79 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * @param uuid the Entry Unique ID.
    * @return The current DN of the entry or null if there is no entry with
    *         the specified UUID.
+   * @throws SearchFailedException if the search did not run, so that whether there is
+   *         such an entry is not known
    */
-  private DN findEntryDN(String uuid)
+  private DN findEntryDN(String uuid) throws SearchFailedException
   {
+    if (uuid == null)
+    {
+      // A change which carries no entryUUID names no entry.
+      return null;
+    }
+    /*
+     * The entryUUID comes off the wire and nothing validates it as one, so it is looked up
+     * as the value it is rather than read as part of a filter string: a value which
+     * carried a wildcard would be read as a substring filter, and one which did not parse
+     * - a dangling escape - would be a search which never runs, for as long as the change
+     * is asked for.
+     */
+    final SearchFilter filter = SearchFilter.createEqualityFilter(
+        getServerContext().getSchema().getAttributeType(ENTRYUUID_ATTRIBUTE_NAME),
+        ByteString.valueOfUtf8(uuid));
+    final InternalSearchOperation search =
+        conn.processSearch(newSearchRequest(getBaseDN(), SearchScope.WHOLE_SUBTREE, filter));
+    if (search.getResultCode() != ResultCode.SUCCESS)
+    {
+      if (search.getResultCode() == ResultCode.NO_SUCH_OBJECT && baseEntryIsAbsentFromALiveBackend())
+      {
+        /*
+         * The backend serves the base DN and has no base entry yet: the search ran, and
+         * nothing is below a base entry which is not there. This is the empty replica
+         * about to receive it.
+         */
+        return null;
+      }
+      /*
+       * The search did not run - the backend is offline or being rebuilt, or the storage
+       * failed to serve it - so it read nothing of the data: an entry it did not report
+       * is not an entry which is not there.
+       */
+      throw new SearchFailedException(uuid, search.getResultCode().getName() + " " + search.getErrorMessage());
+    }
+    final SearchResultEntry resultEntry = getFirstResult(search);
+    return resultEntry != null ? resultEntry.getName() : null;
+  }
+
+  /**
+   * Returns whether the backend which serves the base DN of this domain is there and
+   * holds no base entry, which is the state of an empty replica.
+   * <p>
+   * A search under the base DN of such a backend answers NO_SUCH_OBJECT, which is the
+   * answer of a backend which is offline or being rebuilt as well - and no backend
+   * answers SUCCESS with no entry for a base which is not there. The backend itself
+   * tells the two apart: the search ran over a backend which is there and empty, and it
+   * did not run over one which is gone or fails to answer.
+   *
+   * @return {@code true} if the backend is there and holds no base entry
+   */
+  private boolean baseEntryIsAbsentFromALiveBackend()
+  {
+    final LocalBackend<?> backend = getBackend();
+    if (backend == null)
+    {
+      // Nothing serves the base DN: the backend is offline or being rebuilt.
+      return false;
+    }
     try
     {
-      final SearchRequest request = newSearchRequest(getBaseDN(), SearchScope.WHOLE_SUBTREE, "entryuuid=" + uuid);
-      InternalSearchOperation search = conn.processSearch(request);
-      final SearchResultEntry resultEntry = getFirstResult(search);
-      if (resultEntry != null)
-      {
-        return resultEntry.getName();
-      }
+      return !backend.entryExists(getBaseDN());
     }
     catch (DirectoryException e)
     {
-      // never happens because the filter is always valid.
+      // The storage did not answer this any more than it answered the search.
+      return false;
     }
-    return null;
   }
 
   /** Outcome of the conflict resolution attempted after a replayed operation failed. */
@@ -3855,8 +3999,49 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     REPLAY_AGAIN,
     /** The change is already reflected in the data: there is nothing left to replay. */
     NOTHING_TO_DO,
+    /**
+     * The search conflict resolution reads the data with did not run: nothing was
+     * decided, and the operation has to be attempted again.
+     */
+    SEARCH_FAILED,
     /** The operation failed for a reason which is not a naming conflict. */
     FAILED
+  }
+
+  /**
+   * Reports a search conflict resolution reads the data with and which did not run: it
+   * read nothing, so its result is no evidence about the data.
+   * <p>
+   * A search which failed and a search which found nothing look the same to a caller
+   * which only reads the entries it returned, and every caller here reads "no entry" as
+   * "the entry has been deleted": that answers {@link ConflictResolution#NOTHING_TO_DO},
+   * which records a change that was never applied as replayed, and the replication server
+   * never sends a change again which this replica reports itself past (issue #956).
+   */
+  private static final class SearchFailedException extends Exception
+  {
+    private static final long serialVersionUID = 1L;
+
+    /** The entryUUID the search which did not run was looking for. */
+    private final String entryUUID;
+
+    private SearchFailedException(String entryUUID, String cause)
+    {
+      super(cause);
+      this.entryUUID = entryUUID;
+    }
+
+    /**
+     * Describes the search which did not run for the change it was made for.
+     *
+     * @param csn the CSN of the change being replayed
+     * @param baseDN the base DN of the domain the change belongs to
+     * @return the error to report the change with
+     */
+    private LocalizableMessage report(CSN csn, DN baseDN)
+    {
+      return ERR_REPLAY_ENTRYUUID_SEARCH_FAILED.get(csn, baseDN, entryUUID, getMessage());
+    }
   }
 
   /**
@@ -3865,8 +4050,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * @param op The operation that triggered the conflict detection.
    * @param msg The operation that triggered the conflict detection.
    * @return the outcome of the conflict resolution
+   * @throws SearchFailedException if the data could not be read
    */
   private ConflictResolution solveNamingConflict(ModifyOperation op, ModifyMsg msg)
+      throws SearchFailedException
   {
     ResultCode result = op.getResultCode();
     ModifyContext ctx = (ModifyContext) op.getAttachment(SYNCHROCONTEXT);
@@ -3951,8 +4138,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   * @param op The operation that triggered the conflict detection.
   * @param msg The operation that triggered the conflict detection.
   * @return the outcome of the conflict resolution
+  * @throws SearchFailedException if the data could not be read
   */
  private ConflictResolution solveNamingConflict(DeleteOperation op, LDAPUpdateMsg msg)
+     throws SearchFailedException
  {
    ResultCode result = op.getResultCode();
    DeleteContext ctx = (DeleteContext) op.getAttachment(SYNCHROCONTEXT);
