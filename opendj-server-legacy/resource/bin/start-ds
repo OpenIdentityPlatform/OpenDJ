@@ -14,7 +14,7 @@
 #
 # Copyright 2006-2009 Sun Microsystems, Inc.
 # Portions Copyright 2011-2014 ForgeRock AS.
-# Portions Copyright 2025 3A Systems LLC.
+# Portions Copyright 2025-2026 3A Systems LLC.
 
 
 # Capture the current working directory so that we can change to it later.
@@ -73,10 +73,14 @@ PID_FILE=${INSTANCE_ROOT}/logs/server.pid
 LOG_FILE=${INSTANCE_ROOT}/logs/server.out
 STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
 
-# Cleanup the tmp directory
+# Remove the native libraries the BC FIPS loader extracts into the tmp directory
+# on every start, so that they do not pile up. Nothing else in there is ours to
+# remove: the tmp directory is java.io.tmpdir for every tool, and a tool may
+# still be running - setup starts the server through this script and keeps its
+# own log open (issue #1030).
 OPENDJ_TMP_DIR="${INSTANCE_ROOT}/tmp"
 if [ -d "${OPENDJ_TMP_DIR}" ]; then
-   rm -rf ${OPENDJ_TMP_DIR}/*
+   rm -rf "${OPENDJ_TMP_DIR}"/bc-fips-jni_*
 fi
 
 # See if the provided set of arguments were sufficient for us to be able to
