@@ -246,6 +246,25 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
+   * The state of the domain at the previous wait of {@link #getNextMessage()} on an empty queue,
+   * or {@code null} when the queue was not empty then - see {@link #domainStateAtPreviousWait}.
+   * <p>
+   * Package private for testing: a test which holds a change on its way to the queue hands it
+   * over once a wait has seen the domain hold it, so that
+   * {@link #stopFollowingWhenChangesAreMissing()} has run with the change on its way - by
+   * construction rather than by wall clock.
+   *
+   * @return the state of the domain at the previous wait on an empty queue, or {@code null}
+   */
+  ServerState getDomainStateAtPreviousWait()
+  {
+    synchronized (msgQueue)
+    {
+      return domainStateAtPreviousWait;
+    }
+  }
+
+  /**
    * Indicates whether the last update message returned by
    * {@code getNextMessage()} was re-read from the changelog DB (catch-up
    * path) rather than taken from the in-memory queue.

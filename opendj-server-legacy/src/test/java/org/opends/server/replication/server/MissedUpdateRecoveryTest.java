@@ -34,6 +34,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -53,7 +54,9 @@ import org.testng.annotations.Test;
  * The handler notices it is behind on the ticks of its 500 ms wait on an empty queue, and only
  * concludes anything about a change it has seen the domain hold over a whole tick: the state of
  * the domain is advanced slightly before the change is queued, and a change seen on one tick only
- * may simply be on its way. The watch windows below are sized in ticks accordingly.
+ * may simply be on its way. The watch windows below are sized in ticks accordingly, and a test
+ * which holds a change on its way hands it to the queue once a tick has seen it in the changelog:
+ * the check has then run with the change on its way, by construction rather than by wall clock.
  */
 @SuppressWarnings("javadoc")
 public class MissedUpdateRecoveryTest extends ReplicationTestCase
@@ -81,12 +84,6 @@ public class MissedUpdateRecoveryTest extends ReplicationTestCase
   private static final long DELIVERY_TIMEOUT_MS = 10000;
   /** How long a handler which must not read the changelog again is watched for: five ticks. */
   private static final long NO_DELIVERY_WATCH_MS = 2500;
-  /**
-   * How long a change stays in the changelog before it is queued when this test hands it to the
-   * queue itself, the way {@code put()} does. Less than a tick: at most one tick can see the
-   * domain ahead of the handler in between.
-   */
-  private static final long ON_ITS_WAY_MS = 400;
   /** How many changes are handed to the queue late by the tests which do so. */
   private static final int CHANGES_ON_THEIR_WAY = 5;
 
@@ -516,15 +513,19 @@ public class MissedUpdateRecoveryTest extends ReplicationTestCase
   }
 
   /**
-   * Writes a change into the changelog and hands it to the queue of the handler less than a tick
-   * later: the change is on its way for that long, which is what a check landing in between sees.
+   * Writes a change into the changelog and hands it to the queue of the handler once a tick has
+   * seen the domain hold it: the change is on its way for exactly one check, and that check
+   * compared it with a state of the domain seen at a tick before it was published - the previous
+   * tick is waited for first, since a delivery from the queue leaves the handler with no state to
+   * compare with until it has waited on an empty queue again.
    */
   private void publishThenQueueLate(
       ReplicationServer replicationServer, MessageHandler handler, DN baseDN, CSN csn) throws Exception
   {
     final UpdateMsg msg = newDeleteMsg(baseDN, "cn=late", csn);
+    waitForATickOnAnEmptyQueue(handler);
     publishToChangelogOnly(replicationServer, baseDN, msg);
-    Thread.sleep(ON_ITS_WAY_MS);
+    waitForATickWhichSaw(handler, csn);
     handler.add(msg);
   }
 
@@ -616,6 +617,37 @@ public class MissedUpdateRecoveryTest extends ReplicationTestCase
       public Void call() throws Exception
       {
         assertThat(handler.isFollowing()).as("the handler never went back to its queue").isTrue();
+        return null;
+      }
+    });
+  }
+
+  /** Waits for a tick of the handler on an empty queue: the next check has a state to compare with. */
+  private void waitForATickOnAnEmptyQueue(final MessageHandler handler) throws Exception
+  {
+    timer().repeatUntilSuccess(new Callable<Void>()
+    {
+      @Override
+      public Void call() throws Exception
+      {
+        assertThat(handler.getDomainStateAtPreviousWait())
+            .as("the handler never waited on an empty queue").isNotNull();
+        return null;
+      }
+    });
+  }
+
+  /** Waits for a tick of the handler which saw the domain hold the given change. */
+  private void waitForATickWhichSaw(final MessageHandler handler, final CSN csn) throws Exception
+  {
+    timer().repeatUntilSuccess(new Callable<Void>()
+    {
+      @Override
+      public Void call() throws Exception
+      {
+        final ServerState seen = handler.getDomainStateAtPreviousWait();
+        assertThat(seen != null && seen.cover(csn))
+            .as("no wait of the handler saw the domain hold " + csn).isTrue();
         return null;
       }
     });
