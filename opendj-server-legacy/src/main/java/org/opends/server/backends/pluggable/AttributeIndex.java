@@ -14,6 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2014 Manuel Gaupp
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -42,6 +43,7 @@ import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
@@ -445,6 +447,74 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       index.open(txn, createOnDemand);
     }
     config.addChangeListener(this);
+  }
+
+  /**
+   * Opens this index as one the configuration is adding, dropping first whatever an index of the
+   * same name left behind.
+   * <p>
+   * The name of an index tree is a pure function of the base DN, the attribute and the index id, and
+   * {@link #open} creates a tree only where there is none, so an index added for an attribute
+   * another index served reopens exactly the trees that one left behind - with their content and
+   * with the TRUSTED flag their {@code state} records carry. Neither is this index's: what those
+   * trees hold is what the backend was told before the configuration stopped naming them, every
+   * entry written in between is missing from it, and TRUSTED has searches answer out of it all the
+   * same. A rebuild regenerates all of it and nothing else is lost with it, so it is dropped here
+   * rather than adopted, which leaves this index where any other index added to a backend holding
+   * entries starts: empty, untrusted and asking to be rebuilt (#990).
+   *
+   * @param txn a non null transaction
+   * @param storedTrees the trees the storage holds, read before this transaction was opened
+   * @return true if anything left behind was dropped
+   * @throws StorageRuntimeException if an error occurs while opening the index
+   */
+  boolean openAsAdded(WriteableTransaction txn, Set<TreeName> storedTrees) throws StorageRuntimeException
+  {
+    boolean dropped = false;
+    for (Index index : indexIdToIndexes.values())
+    {
+      dropped |= dropLeftoversOf(txn, index, storedTrees);
+    }
+    open(txn, true);
+    return dropped;
+  }
+
+  /**
+   * Drops the tree an index about to be opened would adopt, and the {@code state} record which goes
+   * with it.
+   * <p>
+   * The record can outlive the tree on its own: on JDBC a tree is dropped by DDL which commits of
+   * its own accord while the record is deleted by the transaction, so a rollback in between leaves
+   * the record over a tree which is gone, and the index opened next is created empty and read back
+   * as trusted. It is therefore taken out whether a tree was found for it or not.
+   * <p>
+   * No search can be reading what is dropped here, so this does not take the exclusive lock
+   * {@link #deleteIndex} takes: an index which is only being added is in no map a search reaches,
+   * and the trees it would have adopted are named by nothing until it opens them.
+   *
+   * @return true if a tree or a record was dropped
+   */
+  private boolean dropLeftoversOf(WriteableTransaction txn, Index index, Set<TreeName> storedTrees)
+  {
+    if (storedTrees.contains(index.getName()))
+    {
+      // Deletes the state record along with the tree.
+      entryContainer.deleteTree(txn, index);
+      return true;
+    }
+    return state.deleteRecord(txn, index.getName());
+  }
+
+  /**
+   * Tells the operator that trees left behind were discarded rather than adopted, and puts it in the
+   * error log as well: the session which submitted the change ends, and what a backend was left
+   * holding has to be findable afterwards.
+   */
+  static void reportDiscardedLeftovers(ConfigChangeResult ccr, Object indexName, DN baseDN)
+  {
+    final LocalizableMessage message = WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.get(indexName, baseDN);
+    ccr.addMessage(message);
+    logger.warn(message);
   }
 
   @Override
@@ -924,6 +994,12 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       // indexIdToIndexes
       newIndexIdToIndexes.putAll(updatedIndexes);
 
+      // Read outside the write which uses it: listTrees() borrows a connection of its own on JDBC,
+      // which a transaction already holding one of the same pool must not ask for. A tree an
+      // attempt of that write creates is not in it either, which is what a replayed attempt needs:
+      // it must drop what was there before this change, and not what the attempt before it made.
+      final Set<TreeName> storedTrees = entryContainer.getRootContainer().getStorage().listTrees();
+
       // Open added indexes *before* adding them to indexIdToIndexes
       entryContainer.getRootContainer().getStorage().write(new WriteOperation()
       {
@@ -932,7 +1008,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
         {
           for (MatchingRuleIndex addedIndex : addedIndexes.values())
           {
-            createIndex(txn, addedIndex, ccr);
+            createIndex(txn, addedIndex, ccr, storedTrees);
           }
         }
       });
@@ -983,8 +1059,13 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     return ccr;
   }
 
-  private static void createIndex(WriteableTransaction txn, MatchingRuleIndex index, ConfigChangeResult ccr)
+  private void createIndex(WriteableTransaction txn, MatchingRuleIndex index, ConfigChangeResult ccr,
+      Set<TreeName> storedTrees)
   {
+    if (dropLeftoversOf(txn, index, storedTrees))
+    {
+      reportDiscardedLeftovers(ccr, index.getName(), entryContainer.getBaseDN());
+    }
     index.open(txn, true);
     if (!index.isTrusted())
     {

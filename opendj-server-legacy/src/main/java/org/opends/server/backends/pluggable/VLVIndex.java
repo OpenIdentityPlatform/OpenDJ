@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -170,6 +171,44 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
        */
       setTrusted(txn, true);
     }
+  }
+
+  /**
+   * Opens this VLV index as one the configuration is adding, dropping first whatever a VLV index of
+   * the same name left behind: its tree, the counter which goes with it and the {@code state} record
+   * which carries their TRUSTED flag.
+   * <p>
+   * What they hold is what the backend was told before the configuration stopped naming them, and no
+   * entry written in between is in it; a rebuild regenerates all of it. See
+   * {@link AttributeIndex#openAsAdded} for why it is dropped rather than adopted (#990).
+   *
+   * @param txn a non null transaction
+   * @param storedTrees the trees the storage holds, read before this transaction was opened
+   * @return true if anything left behind was dropped
+   * @throws StorageRuntimeException if an error occurs while opening the index
+   */
+  boolean openAsAdded(WriteableTransaction txn, Set<TreeName> storedTrees) throws StorageRuntimeException
+  {
+    boolean dropped = false;
+    // Each of the two is asked for on its own: deleting a tree which is not there fails on PersistIt,
+    // and a change which stopped halfway can have left one of them without the other.
+    if (storedTrees.contains(counter.getName()))
+    {
+      counter.delete(txn);
+      dropped = true;
+    }
+    if (storedTrees.contains(getName()))
+    {
+      txn.deleteTree(getName());
+      dropped = true;
+    }
+    // The record can outlive the trees: see AttributeIndex.dropLeftoversOf.
+    dropped |= state.deleteRecord(txn, getName());
+    // The flag was read out of that record when this instance was built, and belongs to the index
+    // whose trees have just gone. afterOpen() upgrades it again if there is nothing to index.
+    trusted = false;
+    open(txn, true);
+    return dropped;
   }
 
   @Override
