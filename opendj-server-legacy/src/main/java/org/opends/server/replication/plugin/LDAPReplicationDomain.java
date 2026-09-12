@@ -339,6 +339,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private static final long UNREPLAYED_CHANGE_ALERT_INTERVAL_IN_MS = 60000;
   /**
+   * How long the warning telling that a change is being asked for again is not logged
+   * again, for the reason the alert above is not sent again and for one more: a change
+   * which keeps failing is asked for again every {@link #MAX_REPLAY_RETRY_DELAY_IN_MS}
+   * at the slowest, for as long as its give-up budget lasts - and how long that is has
+   * been the administrator's to set since issue #901.
+   */
+  private static final long REPLAY_RETRY_WARNING_INTERVAL_IN_MS = 60000;
+  /**
    * What the ack of a delivery whose replay ran out of memory says did not apply the
    * change.
    * <p>
@@ -489,14 +497,24 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private volatile long replayDrainTimeoutInMs = REPLAY_DRAIN_TIMEOUT_IN_MS;
   /**
-   * Stands for "the alert about a change this replica gave up on was never sent". The
-   * time it is compared with only moves forward from an origin which is arbitrary, so
-   * zero is not far enough in the past to say it.
+   * Stands for "a replay failure was never reported yet", whether by the alert about a
+   * change this replica gave up on or by the warning about a change it asks for again.
+   * The time it is compared with only moves forward from an origin which is arbitrary,
+   * so zero is not far enough in the past to say it.
    */
-  private static final long UNREPLAYED_CHANGE_ALERT_NEVER_SENT = Long.MIN_VALUE / 2;
+  private static final long REPLAY_FAILURE_NEVER_REPORTED = Long.MIN_VALUE / 2;
   /** When the alert about a change this replica gave up on was last sent. */
   private final AtomicLong lastUnreplayedChangeAlertTime =
-      new AtomicLong(UNREPLAYED_CHANGE_ALERT_NEVER_SENT);
+      new AtomicLong(REPLAY_FAILURE_NEVER_REPORTED);
+  /** When the warning about a change this replica asks for again was last logged. */
+  private final AtomicLong lastReplayRetryWarningTime =
+      new AtomicLong(REPLAY_FAILURE_NEVER_REPORTED);
+  /**
+   * How many failed deliveries were not warned about since the last warning was logged.
+   * They are counted rather than dropped: the line which is logged next says how many
+   * deliveries it stands for.
+   */
+  private final AtomicInteger foldedReplayRetryWarnings = new AtomicInteger();
   /**
    * The result codes conflict resolution knows how to solve. The result code the server
    * puts on an internal error is configurable and is not validated as a result code, so
@@ -2269,7 +2287,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           logger.error(ERR_OPERATION_NOT_FOUND_IN_PENDING, op, curCSN);
           return;
         }
-        resetSessionRestartBackoff();
+        resetReplayFailureTracking();
       }
       else
       {
@@ -3387,12 +3405,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private void recordChangeResolved(CSN csn)
   {
     updateError(csn);
-    resetSessionRestartBackoff();
+    resetReplayFailureTracking();
   }
 
   /**
    * Has the change which fails next start the backoff between the session restarts over,
-   * if this replica is not failing any change anymore.
+   * and the warning about it count the deliveries it stands for from zero, if this
+   * replica is not failing any change anymore.
    * <p>
    * A change made it and nothing is failing anymore, so the backend is serving again and
    * the session is not being restarted in a row. While something is still failing, a
@@ -3400,12 +3419,19 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * applied here fails alone, among changes which replay perfectly well, and letting
    * those reset the wait would have this domain tear its session down every second for as
    * long as that one change takes to be given up on.
+   * <p>
+   * The deliveries which were folded into no warning go with the backoff rather than into
+   * the next warning: a line logged when this domain fails again - a day later, over
+   * another change - would have them read as deliveries of that failure. How long the
+   * warning is not logged again is deliberately left alone, so that a backend which fails
+   * and recovers in turn is not one warning per failure again.
    */
-  private void resetSessionRestartBackoff()
+  private void resetReplayFailureTracking()
   {
     if (!remotePendingChanges.hasFailingChanges())
     {
       consecutiveSessionRestarts.set(0);
+      foldedReplayRetryWarnings.set(0);
     }
   }
 
@@ -3468,7 +3494,62 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   @VisibleForTesting
   public void resetUnreplayedChangeAlertThrottle()
   {
-    lastUnreplayedChangeAlertTime.set(UNREPLAYED_CHANGE_ALERT_NEVER_SENT);
+    lastUnreplayedChangeAlertTime.set(REPLAY_FAILURE_NEVER_REPORTED);
+  }
+
+  /**
+   * Warns that this replica could not replay a change and is asking for it again.
+   * <p>
+   * The warning is not logged again for {@link #REPLAY_RETRY_WARNING_INTERVAL_IN_MS},
+   * for the reason the alert above is not sent again and for one more: a change which
+   * keeps failing is delivered again every {@link #MAX_REPLAY_RETRY_DELAY_IN_MS} at the
+   * slowest, so one line per delivery is the same warning every ten seconds, for as long
+   * as the give-up budget of the change lasts - a budget the administrator sets, and
+   * which can be unlimited (issue #942).
+   * <p>
+   * The deliveries which are not warned about are counted rather than dropped, so the
+   * line which is logged says how many of them it stands for, and they are traced for
+   * whoever turns the replication debug logging on.
+   *
+   * @param csn the CSN of the change which could not be replayed
+   * @param failure how long, and over how many deliveries, its replay has been failing
+   */
+  private void logReplayRetryWarning(CSN csn, RemotePendingChanges.ReplayFailure failure)
+  {
+    final long now = monotonicNowInMs();
+    final long lastLogged = lastReplayRetryWarningTime.get();
+    if (now - lastLogged >= REPLAY_RETRY_WARNING_INTERVAL_IN_MS
+        && lastReplayRetryWarningTime.compareAndSet(lastLogged, now))
+    {
+      logger.warn(WARN_REPLAY_RETRYING_CHANGE, csn, getBaseDN(), failure.getAttempts(),
+          failure.getFailingForMs(), foldedReplayRetryWarnings.getAndSet(0));
+    }
+    else
+    {
+      /*
+       * A failure which loses the race against the thread which is logging right now is
+       * counted for the next line rather than for the one being written: what the count
+       * says is how many deliveries went unlogged, and carrying one of them over to the
+       * next interval says nothing else.
+       */
+      foldedReplayRetryWarnings.incrementAndGet();
+      logger.trace("Could not replay change %s in domain %s: delivery %d, failing for %d ms",
+          csn, getBaseDN(), failure.getAttempts(), failure.getFailingForMs());
+    }
+  }
+
+  /**
+   * Lets the next change whose replay fails be warned about straight away.
+   * <p>
+   * Only there for the tests which check the warning: they must not be at the mercy of
+   * the warning another test logged less than
+   * {@link #REPLAY_RETRY_WARNING_INTERVAL_IN_MS} ago.
+   */
+  @VisibleForTesting
+  public void resetReplayRetryWarningThrottle()
+  {
+    lastReplayRetryWarningTime.set(REPLAY_FAILURE_NEVER_REPORTED);
+    foldedReplayRetryWarnings.set(0);
   }
 
   /**
@@ -3584,9 +3665,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * Not on the road out of a JVM which has run out of memory: building this line asks
        * it for the memory it has just refused, and the ack of the delivery already says
        * that the change was not applied. The constant that ack carries exists for the same
-       * reason.
+       * reason. The throttle is left alone as well - the trace line a folded delivery is
+       * written to asks for that memory too, and this delivery is not one which goes
+       * unlogged: the error ends the replay thread, and the uncaught exception handler of
+       * DirectoryThread writes the line and raises the alert for it.
        */
-      logger.warn(WARN_REPLAY_RETRYING_CHANGE, csn, getBaseDN(), failure.getAttempts());
+      logReplayRetryWarning(csn, failure);
     }
     /*
      * This change is not owned by anyone anymore, so the session has to be restarted for

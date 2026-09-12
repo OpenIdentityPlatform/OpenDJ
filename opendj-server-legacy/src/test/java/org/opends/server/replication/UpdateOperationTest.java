@@ -23,6 +23,7 @@ import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.mockito.Mockito.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
@@ -34,6 +35,7 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
@@ -3613,6 +3615,161 @@ public class UpdateOperationTest extends ReplicationTestCase
       }
       return super.getCSN();
     }
+  }
+
+  /**
+   * Test case for [Issue 942]: a change whose replay keeps failing is warned about once
+   * per interval rather than once per delivery.
+   * <p>
+   * The session is left down for ten seconds at the longest between two deliveries, so a
+   * warning per delivery is the same line every ten seconds for as long as the change is
+   * retried - and how long that is has been the administrator's to set since #901.
+   */
+  @Test
+  public void aChangeWhichKeepsFailingIsWarnedAboutOncePerInterval() throws Exception
+  {
+    testSetUp("aChangeWhichKeepsFailingIsWarnedAboutOncePerInterval");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aChangeWhichKeepsFailingIsWarnedAboutOncePerInterval"));
+
+    final int serverId = 19;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    try
+    {
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+
+      Entry tmp = TestCaseUtils.addEntry(
+          "dn: uid=user.942," + baseDN,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "uid: user.942",
+          "cn: Aaccf Amar",
+          "sn: Amar");
+      String uuid = getEntry(tmp.getName(), 1, true).parseAttribute("entryuuid").asString();
+
+      final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+      /*
+       * The throttle is the domain's and the domain outlives the test methods: a change
+       * another test was retrying less than an interval ago would have the first warning
+       * of this one folded into its own.
+       */
+      domain.resetReplayRetryWarningThrottle();
+      final CSN csn = gen.newCSN();
+      try
+      {
+        ShortCircuitPlugin.registerShortCircuit(
+            OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
+        broker.publish(new DeleteMsg(tmp.getName(), csn, uuid));
+
+        /*
+         * A delivery burns IN_PLACE_REPLAY_ATTEMPTS short circuits before the session is
+         * restarted and the change is asked for again, so three times that many of them
+         * are three deliveries which failed - and three warnings, before this one was
+         * throttled. The give-up budget is minutes and the interval is a minute, so the
+         * change is still being retried by then and the deliveries all fall into one
+         * interval.
+         */
+        TestTimer timer = new TestTimer.Builder()
+          .maxSleep(60, SECONDS)
+          .sleepTimes(100, MILLISECONDS)
+          .toTimer();
+        timer.repeatUntilSuccess(new CallableVoid()
+        {
+          @Override
+          public void call() throws Exception
+          {
+            assertTrue(ShortCircuitPlugin.getShortCircuitCount(OperationType.DELETE, "PreParse")
+                    > 3 * IN_PLACE_REPLAY_ATTEMPTS,
+                "the change was not delivered again after its replay failed");
+          }
+        });
+        assertEquals(replayRetryWarnings(csn).size(), 1,
+            "a change which keeps failing must be warned about once per interval, not once per delivery");
+
+        /*
+         * Once the interval has passed the change is warned about again: a domain which
+         * never gives up - the budget can be unlimited - must not go silent over a change
+         * it is still asking for, and the line which comes says how many deliveries went
+         * unlogged in the meantime.
+         */
+        TestTimer intervalTimer = new TestTimer.Builder()
+          .maxSleep(120, SECONDS)
+          .sleepTimes(500, MILLISECONDS)
+          .toTimer();
+        intervalTimer.repeatUntilSuccess(new CallableVoid()
+        {
+          @Override
+          public void call() throws Exception
+          {
+            assertEquals(replayRetryWarnings(csn).size(), 2,
+                "a change which is still failing an interval later must be warned about again");
+          }
+        });
+        Assertions.assertThat(replayRetryWarnings(csn).get(1))
+            .as("the warning must say how many failed deliveries it stands for")
+            .containsPattern("[1-9]\\d* further deliveries failed");
+      }
+      finally
+      {
+        ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
+      }
+
+      /*
+       * The backend serves again, so the delivery which comes next replays the change: a
+       * change left failing here would be the next test's, holding its ServerState back
+       * and its session restart backoff up.
+       */
+      TestTimer replayTimer = new TestTimer.Builder()
+        .maxSleep(60, SECONDS)
+        .sleepTimes(200, MILLISECONDS)
+        .toTimer();
+      replayTimer.repeatUntilSuccess(new CallableVoid()
+      {
+        @Override
+        public void call() throws Exception
+        {
+          assertTrue(domain.getServerState().cover(csn),
+              "the change must be replayed once the backend serves again");
+        }
+      });
+    }
+    finally
+    {
+      broker.stop();
+    }
+  }
+
+  /**
+   * Returns the warnings this replica logged about the provided change being asked for
+   * again, oldest first.
+   * <p>
+   * The error log of the test server is written to a writer which keeps every record, so
+   * the warnings about one change are the records which carry the ordinal of the message
+   * and the CSN of the change.
+   * <p>
+   * The test server registers two error log publishers over that one writer, so it keeps
+   * every record twice: what is returned here is the records which differ. Two warnings
+   * about the same change never read the same - the delivery they report, how long the
+   * change has been failing and how many deliveries were folded into them all move on.
+   *
+   * @param csn the CSN of the change whose replay keeps failing
+   * @return the warnings which name it, in the order they were logged
+   */
+  private static List<String> replayRetryWarnings(CSN csn)
+  {
+    final String messageId = "msgID=" + WARN_REPLAY_RETRYING_CHANGE.ordinal();
+    final Set<String> warnings = new LinkedHashSet<>();
+    for (String record : TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+    {
+      if (record.contains(messageId) && record.contains(csn.toString()))
+      {
+        warnings.add(record);
+      }
+    }
+    return new ArrayList<>(warnings);
   }
 
   /**
