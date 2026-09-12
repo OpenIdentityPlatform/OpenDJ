@@ -4540,8 +4540,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					}
 				}else if (dialect==Dialect.ORACLE) {
 					try {
-						// oracle has no "create index if not exists"; unquoted identifiers are stored in uppercase
-						if (!isExistsIndex(tableName.toUpperCase(Locale.ROOT),"k_"+tableName.substring("opendj_".length()))) {
+						// oracle has no "create index if not exists"; the lookup spells the table the way this
+						// database stores it - unquoted identifiers go in folded there - and is told so by the
+						// driver rather than by this branch
+						if (!isExistsIndex(tableName,"k_"+tableName.substring("opendj_".length()))) {
 							commitStatement("create index k_"+tableName.substring("opendj_".length())+" on "+tableName+" (k)", true);
 						}
 					}catch (SQLException e) {
@@ -4886,8 +4888,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// class: it asks a data dictionary rather than the data, so a wait here is the metadata lock
 			// of another session - and it is narrowed to the scope every table lookup here is narrowed to
 			return bounded(con, StatementBound.OPERATION, () -> {
+				final DatabaseMetaData metaData=con.getMetaData();
+				// the table named the way this database stores it, asked of the driver rather than folded
+				// per engine: getIndexInfo() takes a name and matches it against the stored form, and an
+				// unquoted identifier is stored folded. isExistsTable() asks storedIdentifier() the same
+				// question, and an engine wired in later inherits the answer here instead of the upper case
+				// the oracle branch of the caller used to carry for itself (#902)
 				// approximate=true: with false the oracle driver runs ANALYZE on every call
-				try (final ResultSet rs = con.getMetaData().getIndexInfo(scope.catalog, null, tableName, false, true)) {
+				try (final ResultSet rs = metaData.getIndexInfo(scope.catalog, null,
+						storedIdentifier(metaData, tableName), false, true)) {
 					while (rs.next()) {
 						if (indexName.equalsIgnoreCase(rs.getString("INDEX_NAME")) && scope.covers(rs)) {
 							return true;
