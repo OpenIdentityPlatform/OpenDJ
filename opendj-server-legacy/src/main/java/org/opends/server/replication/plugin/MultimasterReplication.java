@@ -23,6 +23,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -774,6 +775,22 @@ public class MultimasterReplication
     connectionTimeoutMS = (int) Math.min(configuration.getConnectionTimeout(),
         Integer.MAX_VALUE);
 
+    /*
+     * The threads which were stopped gave back the changes they had parked as waiting for
+     * another change on their way out, and nothing asks for a change which nobody owns: the
+     * session of every domain which is waiting for one is restarted here, or a domain which
+     * then goes quiet would stop at that change (issue #986).
+     *
+     * Last, so that the sessions which are started run on the configuration this change
+     * carries, and once the new pool is up, so that a change which is delivered again has a
+     * replay thread to be given to. Outside the two methods above as well, which hold the
+     * monitor of this class while the threads they stop are giving those changes back.
+     */
+    for (LDAPReplicationDomain domain : domains.values())
+    {
+      domain.restartSessionForChangesGivenBackByStoppedThreads();
+    }
+
     return new ConfigChangeResult();
   }
 
@@ -794,6 +811,24 @@ public class MultimasterReplication
     {
       state.notifyAll();
     }
+  }
+
+  /**
+   * Returns the replication domains this server runs.
+   * <p>
+   * The replay threads are shared by every domain of this server, so a thread which is
+   * stopping is given the domains rather than the one it was last replaying for: it may
+   * have parked a change as waiting for another one in any of them (issue #986).
+   * <p>
+   * Not synchronized, and it must not become so: it is called by a replay thread on its way
+   * out, while {@link #stopReplayThreads()} holds the monitor of this class and waits for
+   * that thread to end.
+   *
+   * @return the replication domains of this server
+   */
+  static Collection<LDAPReplicationDomain> getDomains()
+  {
+    return domains.values();
   }
 
   /**
