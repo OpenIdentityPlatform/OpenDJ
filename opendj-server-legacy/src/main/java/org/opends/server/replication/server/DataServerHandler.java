@@ -49,6 +49,7 @@ import org.opends.server.replication.protocol.StartMsg;
 import org.opends.server.replication.protocol.StartSessionMsg;
 import org.opends.server.replication.protocol.StopMsg;
 import org.opends.server.replication.protocol.TopologyMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.DirectoryException;
 
 /**
@@ -286,6 +287,25 @@ public class DataServerHandler extends ServerHandler
   public boolean isDataServer()
   {
     return true;
+  }
+
+  /**
+   * A directory server is sent only the updates which contribute to the domain state: those are
+   * the ones it replays, and the only ones it gives credit for on the send window of the session
+   * - see the listener of ReplicationDomain, which calls processUpdateDone() for nothing else.
+   * ServerHandler.take() takes a permit of that window for every message it hands to the writer,
+   * so any other message sent to a directory server would cost the session a permit for good.
+   * <p>
+   * Today that is the ReplicaOfflineMsg, which is exchanged between replication servers only.
+   * ReplicationServerDomain.put() never queues one for a directory server, but the catch-up path
+   * reads the changelog, where the cursor of a replica which went offline synthesizes one from
+   * its offline CSN, and since the state of this handler never moves past that CSN every
+   * catch-up round would read the same message again, one permit each (issue #1029).
+   */
+  @Override
+  boolean updateServerState(UpdateMsg msg)
+  {
+    return msg.contributesToDomainState() && super.updateServerState(msg);
   }
 
   /**
