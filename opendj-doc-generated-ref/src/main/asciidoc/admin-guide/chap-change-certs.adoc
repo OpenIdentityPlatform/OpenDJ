@@ -541,6 +541,8 @@ $ dsconfig \
  --set ssl-cert-nickname:repl-cert \
  --no-prompt
 ----
++
+The property is declared as requiring a server restart, which `dsconfig list-properties` shows, and the server writes the change to `logs/errors` saying that the new value is stored but not in force. That warning also names a nickname the `ads-truststore` does not hold, so a mistyped alias is caught while the server is still presenting the certificate it started with.
 
 .. Restart the server for the change to take effect.
 +

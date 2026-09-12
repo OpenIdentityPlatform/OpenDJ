@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.crypto.CryptoManagerImpl.CERT_NICKNAME_CHECK_INTERVAL_NANOS;
@@ -34,22 +35,28 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Proxy;
 import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import javax.crypto.Mac;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
+import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
 import org.forgerock.util.Options;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.BlindTrustManager;
@@ -129,6 +136,81 @@ public class CryptoManagerTestCase extends CryptoTestCase {
         .as("a whole interval later it is looked up again").isTrue();
     assertThat(cm.isCertNicknameCheckDue(checked, start + CERT_NICKNAME_CHECK_INTERVAL_NANOS + 1))
         .as("and the next interval starts from that look up").isFalse();
+  }
+
+  /**
+   The crypto manager reads its SSL properties when it is created and replication keeps
+   what it read, so a change to ssl-cert-nickname is accepted into the configuration
+   without being in force. The change listener says so rather than staying silent.
+   */
+  @Test
+  public void testSslCertNicknameChangeReportsThatARestartIsRequired() throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+
+    final ConfigChangeResult ccr = cm.applyConfigurationChange(withSslCertNicknames(cfg, "no-such-nickname"));
+
+    assertThat(ccr.getResultCode()).as("the change is accepted").isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).as("but it is not in force").isTrue();
+    assertThat(ccr.getMessages()).as("and the configuration change is not applied silently").isNotEmpty();
+  }
+
+  /**
+   The report is about what changed: a change to another property of the crypto manager,
+   or a re-read of the configuration as it stands, asks for no restart.
+   */
+  @Test
+  public void testUnchangedSslPropertiesRequireNoRestart() throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+
+    final ConfigChangeResult ccr = cm.applyConfigurationChange(cfg);
+
+    assertThat(ccr.adminActionRequired()).isFalse();
+    assertThat(ccr.getMessages()).isEmpty();
+  }
+
+  /**
+   A nickname which the trust store does not hold presents no certificate to the
+   replication peers, and until the server is restarted the mistake shows up nowhere. The
+   nicknames are looked up when the change is made, and only the missing one is reported.
+   */
+  @Test
+  public void testSslCertNicknameChangeReportsTheNicknamesTheTrustStoreDoesNotHold() throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final TrustStoreBackend trustStore = (TrustStoreBackend) getServerContext()
+        .getBackendConfigManager().getLocalBackendById(ID_ADS_TRUST_STORE_BACKEND);
+
+    final ConfigChangeResult ccr =
+        cm.applyConfigurationChange(withSslCertNicknames(cfg, ADS_CERTIFICATE_ALIAS, "no-such-nickname"));
+
+    assertThat(ccr.getMessages())
+        .as("the nickname which is not in the trust store is named")
+        .contains(WARN_CRYPTOMGR_SSL_CERT_NICKNAME_NOT_IN_TRUST_STORE.get(
+            "no-such-nickname", trustStore.getTrustStoreFile()))
+        .as("while the one it holds is not")
+        .doesNotContain(WARN_CRYPTOMGR_SSL_CERT_NICKNAME_NOT_IN_TRUST_STORE.get(
+            ADS_CERTIFICATE_ALIAS, trustStore.getTrustStoreFile()));
+  }
+
+  /**
+   Returns the crypto manager configuration as it stands, with the ssl-cert-nickname
+   property answering the provided nicknames, so that a change to that property is applied
+   without the configuration of the running server being modified.
+   */
+  private static CryptoManagerCfg withSslCertNicknames(final CryptoManagerCfg cfg, final String... nicknames)
+  {
+    final SortedSet<String> newNicknames = new TreeSet<>(Arrays.asList(nicknames));
+    return (CryptoManagerCfg) Proxy.newProxyInstance(
+        CryptoManagerCfg.class.getClassLoader(),
+        new Class<?>[] { CryptoManagerCfg.class },
+        (proxy, method, args) -> "getSSLCertNickname".equals(method.getName())
+            ? newNicknames
+            : method.invoke(cfg, args));
   }
 
   @Test

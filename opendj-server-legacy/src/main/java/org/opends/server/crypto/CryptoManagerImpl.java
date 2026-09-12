@@ -39,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.UUID;
@@ -67,6 +68,7 @@ import javax.net.ssl.TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
@@ -81,6 +83,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.server.config.meta.CryptoManagerCfgDefn;
 import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
 import org.forgerock.util.Reject;
 import org.opends.admin.ads.ADSContext;
@@ -293,7 +296,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
     if (! isConfigurationChangeAcceptable(config, why)) {
       throw new InitializationException(why.get(0));
     }
-    applyConfigurationChange(config);
+    applyCryptoConfiguration(config);
 
     // Secure replication related...
     sslCertNicknames = config.getSSLCertNickname();
@@ -430,13 +433,103 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
   @Override
   public ConfigChangeResult applyConfigurationChange(CryptoManagerCfg cfg)
   {
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    applyCryptoConfiguration(cfg);
+    reportSslPropertiesWhichNeedARestart(cfg, ccr);
+    return ccr;
+  }
+
+  /**
+   * Applies the cryptographic properties, the ones this crypto manager re-reads whenever
+   * they change. The SSL properties are not among them: they are read once, in the
+   * constructor, which is why this method is called from there rather than
+   * {@link #applyConfigurationChange(CryptoManagerCfg)}.
+   *
+   * @param cfg
+   *          The configuration to apply.
+   */
+  private void applyCryptoConfiguration(CryptoManagerCfg cfg)
+  {
     preferredDigestAlgorithm = cfg.getDigestAlgorithm();
     preferredMACAlgorithm = cfg.getMacAlgorithm();
     preferredMACAlgorithmKeyLengthBits = cfg.getMacKeyLength();
     preferredCipherTransformation = cfg.getCipherTransformation();
     preferredCipherTransformationKeyLengthBits = cfg.getCipherKeyLength();
     preferredKeyWrappingTransformation = cfg.getKeyWrappingTransformation();
-    return new ConfigChangeResult();
+  }
+
+  /**
+   * Reports every SSL property whose new value the running server does not use, so that a
+   * change which is accepted into the configuration without being in force says so instead
+   * of passing for an applied one. The properties are declared as requiring a server
+   * restart, and this is what the administrator is told at the moment of the change.
+   *
+   * @param cfg
+   *          The configuration which has just been stored.
+   * @param ccr
+   *          The result to report the required administrative action in.
+   */
+  private void reportSslPropertiesWhichNeedARestart(CryptoManagerCfg cfg, ConfigChangeResult ccr)
+  {
+    final CryptoManagerCfgDefn defn = CryptoManagerCfgDefn.getInstance();
+    final SortedSet<String> newCertNicknames = cfg.getSSLCertNickname();
+    if (reportPropertyWhichNeedsARestart(defn.getSSLCertNicknamePropertyDefinition(),
+        sslCertNicknames, newCertNicknames, ccr))
+    {
+      reportCertNicknamesTheTrustStoreDoesNotHold(newCertNicknames, ccr);
+    }
+    reportPropertyWhichNeedsARestart(defn.getSSLProtocolPropertyDefinition(),
+        sslProtocols, cfg.getSSLProtocol(), ccr);
+    reportPropertyWhichNeedsARestart(defn.getSSLCipherSuitePropertyDefinition(),
+        sslCipherSuites, cfg.getSSLCipherSuite(), ccr);
+    reportPropertyWhichNeedsARestart(defn.getSSLEncryptionPropertyDefinition(),
+        sslEncryption, cfg.isSSLEncryption(), ccr);
+  }
+
+  private boolean reportPropertyWhichNeedsARestart(
+      PropertyDefinition<?> property, Object inForce, Object configured, ConfigChangeResult ccr)
+  {
+    if (Objects.equals(inForce, configured))
+    {
+      return false;
+    }
+    ccr.setAdminActionRequired(true);
+    ccr.addMessage(WARN_CRYPTOMGR_SSL_PROPERTY_REQUIRES_RESTART.get(property.getName()));
+    return true;
+  }
+
+  /**
+   * Reports each newly configured certificate nickname which the trust store does not hold.
+   * The same nicknames are looked up again whenever an SSL context is built, but only once
+   * the server has been restarted with them: reporting them here names a nickname which
+   * would present no certificate while the administrator is still making the change.
+   *
+   * @param certNicknames
+   *          The certificate nicknames which have just been configured.
+   * @param ccr
+   *          The result to report the missing nicknames in.
+   */
+  private void reportCertNicknamesTheTrustStoreDoesNotHold(SortedSet<String> certNicknames, ConfigChangeResult ccr)
+  {
+    try
+    {
+      final TrustStoreBackend trustStoreBackend = getTrustStoreBackend();
+      for (String nickname : certNicknames)
+      {
+        if (!trustStoreBackend.containsKeyWithAlias(nickname))
+        {
+          ccr.addMessage(WARN_CRYPTOMGR_SSL_CERT_NICKNAME_NOT_IN_TRUST_STORE.get(
+              nickname, trustStoreBackend.getTrustStoreFile()));
+        }
+      }
+    }
+    catch (ConfigException | DirectoryException e)
+    {
+      // A trust store which cannot be read now costs the administrator this report and
+      // nothing else: the change is stored either way, and a nickname it does not hold is
+      // reported again, as an error, when the SSL context is built after the restart.
+      logger.traceException(e);
+    }
   }
 
 
