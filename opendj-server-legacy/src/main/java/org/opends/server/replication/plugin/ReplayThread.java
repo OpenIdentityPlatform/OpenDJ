@@ -116,13 +116,33 @@ public class ReplayThread extends DirectoryThread
           domain.replay(updateMsg, shutdown);
         }
       }
-      catch (Exception e)
+      catch (OutOfMemoryError e)
+      {
+        /*
+         * The JVM is out of memory, which is not something to carry on replaying from: this
+         * thread does not stay for the changes which follow. Nothing is reported here - the
+         * uncaught exception handler of DirectoryThread is what says this thread is gone,
+         * with an alert - and the change it was replaying has been given back, counted and
+         * asked for again by the domain on its way out (issue #922).
+         *
+         * The other errors of the JVM are caught below: a StackOverflowError is gone once
+         * the stack has unwound, and a thread which ends here is one nothing replaces.
+         */
+        throw e;
+      }
+      catch (Throwable t)
       {
         /*
          * catch all exceptions happening so that the thread never dies even
          * in case of problems.
+         *
+         * An Error is not an Exception, so one raised here used to unwind run() and end
+         * this thread. Nothing creates a replay thread to replace it - the pool is created
+         * when the first domain of this server is - so the shared replay queue would have
+         * one consumer fewer for every domain, for as long as the server is up, until it
+         * has none left and replication stops (issue #923).
          */
-        logger.error(ERR_EXCEPTION_REPLAYING_REPLICATION_MESSAGE, stackTraceToSingleLineString(e));
+        logger.error(ERR_EXCEPTION_REPLAYING_REPLICATION_MESSAGE, stackTraceToSingleLineString(t));
       }
     }
     if (logger.isTraceEnabled())
