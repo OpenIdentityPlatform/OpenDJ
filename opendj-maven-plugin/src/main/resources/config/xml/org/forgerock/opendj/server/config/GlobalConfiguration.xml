@@ -14,6 +14,7 @@
 
   Copyright 2007-2010 Sun Microsystems, Inc.
   Portions Copyright 2011-2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <adm:managed-object name="global" plural-name="globals"
   package="org.forgerock.opendj.server.config"
@@ -172,6 +173,13 @@
     <adm:synopsis>
       Specifies the numeric value of the result code when request
       processing fails due to an internal server error.
+      The value must be a result code which reports a failure. The five codes
+      which report a success - 0 (success), 5 (compare false), 6 (compare true),
+      14 (SASL bind in progress) and 16654 (no operation) - are refused: the
+      server would then report a request it could not process with a code that
+      says it succeeded, and a replication domain reading that code records a
+      change it never applied as replayed. A code the server does not know
+      reports a failure and is accepted.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>

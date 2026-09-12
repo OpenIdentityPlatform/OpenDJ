@@ -149,15 +149,15 @@ public class NamingConflictTest extends ReplicationTestCase
    * {@code ds-cfg-server-error-result-code} is set to one of the result codes conflict
    * resolution owns.
    * <p>
-   * That setting is a plain integer which is not validated as a result code, so it can be
-   * one of them. Here it is {@code UNWILLING_TO_PERFORM}, which is what a ModifyDN whose
-   * new superior is - on this replica - a subordinate of the entry being moved comes back
-   * with, and only conflict resolution can turn such a change into an operation which
-   * applies: it resolves both DNs again from the entryUUIDs the message carries. Reading
-   * the code as a failure of the server would take the change away from it - the message
-   * would never be rewritten, so no attempt would apply any better than the first - and
-   * the change would be retried in place, delivered again and finally given up on, with
-   * the entry left where it was.
+   * That setting only has to report a failure, which every code conflict resolution owns
+   * does, so it can be one of them. Here it is {@code UNWILLING_TO_PERFORM}, which is what
+   * a ModifyDN whose new superior is - on this replica - a subordinate of the entry being
+   * moved comes back with, and only conflict resolution can turn such a change into an
+   * operation which applies: it resolves both DNs again from the entryUUIDs the message
+   * carries. Reading the code as a failure of the server would take the change away from
+   * it - the message would never be rewritten, so no attempt would apply any better than
+   * the first - and the change would be retried in place, delivered again and finally
+   * given up on, with the entry left where it was.
    * <p>
    * {@code UpdateOperationTest.changeConflictResolutionCanNotSolveOnTheServerErrorCodeIsRetried}
    * covers the other half: a change which fails with that same code and which conflict
@@ -202,6 +202,38 @@ public class NamingConflictTest extends ReplicationTestCase
     assertFalse(entryExists(entry.getName()), "the entry was not moved by the replayed ModifyDN");
     assertTrue(domain.getServerState().cover(csn),
         "a change which was applied must be recorded as replayed");
+  }
+
+  /**
+   * Test case for [Issue 953]: a change conflict resolution finds already applied is
+   * recorded as replayed.
+   * <p>
+   * The replay used to read that from the result code conflict resolution reports -
+   * {@code NO_OPERATION} - which is a code {@code ds-cfg-server-error-result-code} could
+   * name as well, so that every change an internal error kept out of the backend was read
+   * as one which was already in it and recorded in the ServerState. The configuration
+   * refuses a code which does not report a failure now, and the replay reads what
+   * conflict resolution decided rather than the code which carries it. This pins the
+   * other half: a change which really is already applied still ends up in the ServerState,
+   * or the replication server would keep sending it for good.
+   */
+  @Test
+  public void changeAlreadyAppliedIsRecordedAsReplayed() throws Exception
+  {
+    final Entry entry = createAndAddEntry("changeAlreadyApplied");
+    final String parentUUID = getEntryUUID(baseDN);
+    final String entryUUID = getEntryUUID(entry.getName());
+
+    /*
+     * An add of an entry whose entryUUID is already in the data: conflict resolution
+     * answers that this change has already been replayed, before the operation reaches
+     * the backend and comes back with ENTRY_ALREADY_EXISTS.
+     */
+    final CSN csn = gen.newCSN();
+    replayMsg(addMsg(entry, csn, parentUUID, entryUUID));
+
+    assertTrue(domain.getServerState().cover(csn),
+        "a change which is already in the data was not recorded as replayed");
   }
 
   /**
