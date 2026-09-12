@@ -467,15 +467,8 @@ public class EntryContainer
     this.dn2uri = new DN2URI(getIndexName(REFERRAL_TREE_NAME), this);
     this.state = new State(getIndexName(STATE_TREE_NAME));
 
-    config.addPluggableChangeListener(this);
-
     attributeIndexCfgManager = new AttributeIndexCfgManager();
-    config.addBackendIndexAddListener(attributeIndexCfgManager);
-    config.addBackendIndexDeleteListener(attributeIndexCfgManager);
-
     vlvIndexCfgManager = new VLVIndexCfgManager();
-    config.addBackendVLVIndexAddListener(vlvIndexCfgManager);
-    config.addBackendVLVIndexDeleteListener(vlvIndexCfgManager);
   }
 
   private CryptoSuite newCryptoSuite(boolean confidentiality)
@@ -533,13 +526,16 @@ public class EntryContainer
 
         CryptoSuite cryptoSuite = newCryptoSuite(indexCfg.isConfidentialityEnabled());
         final AttributeIndex index = newAttributeIndex(indexCfg, cryptoSuite);
+        // Held before it is opened, because open() is what registers it as a listener of its own
+        // configuration and close() is what takes that off again: an index which fails while
+        // opening is one this container must still be able to close.
+        attrIndexMap.put(indexCfg.getAttribute(), index);
+        attrCryptoMap.put(indexCfg.getAttribute(), cryptoSuite);
         index.open(txn, shouldCreate);
         if(!index.isTrusted() && isNotEmpty)
         {
           logger.info(NOTE_INDEX_ADD_REQUIRES_REBUILD, index.getName());
         }
-        attrIndexMap.put(indexCfg.getAttribute(), index);
-        attrCryptoMap.put(indexCfg.getAttribute(), cryptoSuite);
       }
 
       for (String idx : config.listBackendVLVIndexes())
@@ -547,20 +543,37 @@ public class EntryContainer
         BackendVLVIndexCfg vlvIndexCfg = config.getBackendVLVIndex(idx);
 
         VLVIndex vlvIndex = new VLVIndex(vlvIndexCfg, state, storage, this, txn);
+        // Held before it is opened, for the reason given above, and here the window is wider still:
+        // a VLV index registers itself as a listener of its configuration from its constructor.
+        vlvIndexMap.put(vlvIndexCfg.getName().toLowerCase(), vlvIndex);
         vlvIndex.open(txn, shouldCreate);
         if(!vlvIndex.isTrusted() && isNotEmpty)
         {
           logger.info(NOTE_INDEX_ADD_REQUIRES_REBUILD, vlvIndex.getName());
         }
-
-        vlvIndexMap.put(vlvIndexCfg.getName().toLowerCase(), vlvIndex);
       }
+
+      // Registered once everything they answer for is open, and never from the constructor: an
+      // entry container which fails to open is registered nowhere - RootContainer.openEntryContainer
+      // and BackendImpl.changeBaseDNTrees both let the failure through before anything holds it -
+      // so nothing would ever call the close() which takes these off again, and they would go on
+      // answering configuration changes for a backend which is not running. Nothing can reach this
+      // container in between either: open() is called before it is registered anywhere.
+      config.addPluggableChangeListener(this);
+      config.addBackendIndexAddListener(attributeIndexCfgManager);
+      config.addBackendIndexDeleteListener(attributeIndexCfgManager);
+      config.addBackendVLVIndexAddListener(vlvIndexCfgManager);
+      config.addBackendVLVIndexDeleteListener(vlvIndexCfgManager);
     }
-    catch (StorageRuntimeException de)
+    catch (Exception e)
     {
-      logger.traceException(de);
+      // Every failure, not the storage ones alone: open() is declared to throw ConfigException and
+      // does - an index type the attribute has no matching rule for, an index protecting both its
+      // keys and its values, a VLV filter or sort order which does not parse - and the indexes
+      // opened before it registered listeners of their own, which only close() takes back.
+      logger.traceException(e);
       close();
-      throw de;
+      throw e;
     }
   }
 
