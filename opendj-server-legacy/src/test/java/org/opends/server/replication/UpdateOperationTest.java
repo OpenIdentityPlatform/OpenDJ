@@ -2355,6 +2355,80 @@ public class UpdateOperationTest extends ReplicationTestCase
   }
 
   /**
+   * Test case for [Issue 925]: a session restart which could not run is run again, so
+   * that the change it was asked for is delivered again rather than left waiting for a
+   * delivery which can not come.
+   * <p>
+   * The request is taken by the thread which runs the restart before the restart runs -
+   * a change released while a restart is under way is not one that restart asks for - so
+   * a restart which throws where it starts the session again used to take the request
+   * away with it. Nothing asked for it a second time: the session had been stopped and
+   * was not started back, and the domain stayed out of the topology, with the change
+   * still owned by the replication server and the ServerState of this replica stopped
+   * behind it, until the server was restarted.
+   */
+  @Test
+  public void aSessionRestartWhichCouldNotRunIsRunAgain() throws Exception
+  {
+    testSetUp("aSessionRestartWhichCouldNotRunIsRunAgain");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aSessionRestartWhichCouldNotRunIsRunAgain"));
+
+    final int serverId = 24;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    try
+    {
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+
+      Entry tmp = TestCaseUtils.addEntry(
+          "dn: uid=user.925," + baseDN,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "uid: user.925",
+          "cn: Aaccf Amar",
+          "sn: Amar");
+      String uuid = getEntry(tmp.getName(), 1, true).parseAttribute("entryuuid").asString();
+
+      final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+      final long initialReplayed = getMonitorAttrValue(baseDN, "replayed-updates-ok");
+      try
+      {
+        /*
+         * The backend is unavailable for longer than the replay is retried in place, so
+         * the change is only applied if the session is restarted and the replication
+         * server delivers it again - and the first restart the domain runs for it fails
+         * the way a broken enableService() does, leaving the session stopped.
+         */
+        ShortCircuitPlugin.registerShortCircuit(OperationType.DELETE, "PreParse",
+            ResultCode.UNAVAILABLE.intValue(), IN_PLACE_REPLAY_ATTEMPTS + 2);
+        domain.failNextSessionRestarts(1);
+
+        final CSN csn = gen.newCSN();
+        broker.publish(new DeleteMsg(tmp.getName(), csn, uuid));
+
+        assertNull(getEntry(tmp.getName(), 60000, false),
+            "the change was not delivered again after the session restart which failed");
+        assertEquals(domain.getSessionRestartFailuresLeft(), 0,
+            "the restart which was asked to fail never ran, so this test proves nothing");
+        assertMonitorAttrValueEventually(baseDN, "replayed-updates-ok", initialReplayed + 1,
+            "the change must be recorded as replayed");
+      }
+      finally
+      {
+        domain.failNextSessionRestarts(0);
+        ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
+      }
+    }
+    finally
+    {
+      broker.stop();
+    }
+  }
+
+  /**
    * Test case for [Issue 889]: the result code the server puts on an internal error is
    * configurable and is not validated as a result code, so it can be set to one conflict
    * resolution knows how to solve. Such a change is left to conflict resolution, and when
