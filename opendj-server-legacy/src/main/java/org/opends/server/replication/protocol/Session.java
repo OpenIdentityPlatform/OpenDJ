@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -36,6 +37,7 @@ import java.util.zip.DataFormatException;
 
 import javax.net.ssl.SSLSocket;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.types.HostPort;
@@ -47,6 +49,17 @@ import org.opends.server.util.StaticUtils;
 public final class Session extends DirectoryThread implements Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /**
+   * How long a close spends sending what the publisher thread left queued in {@code sendQueue},
+   * in milliseconds.
+   * <p>
+   * The same 5 s as {@code DSRSShutdownSync.REPLICA_OFFLINE_GRACE_PERIOD}, which is how long a
+   * shutdown is already willing to wait for one of these messages - the announcement that a
+   * replica went offline - to be forwarded. A close has no reason to wait longer for it than the
+   * shutdown which is waiting on the close.
+   */
+  private static final long DRAIN_BUDGET_MS = 5000;
 
   private final Socket plainSocket;
   private final SSLSocket secureSocket;
@@ -140,6 +153,10 @@ public final class Session extends DirectoryThread implements Closeable
   /**
    * This method is called when the session with the remote must be closed.
    * This object won't be used anymore after this method is called.
+   * <p>
+   * A message which was published on this session but which its publisher thread had not sent yet
+   * is sent here rather than dropped, within the budget of {@link #DRAIN_BUDGET_MS}. See {@link
+   * #sendWhatThePublisherLeftQueued()}.
    */
   @Override
   public void close()
@@ -186,6 +203,22 @@ public final class Session extends DirectoryThread implements Closeable
       }
     }
 
+    /*
+     * The publisher thread has stopped, so this thread is the only one left writing this socket -
+     * which is what lets the StopMsg below be published on it - and what that thread had not sent
+     * is still in the queue. Send it, rather than let the close drop it: nothing publishes these
+     * again, and the StopMsg which follows leaves the peer reading an orderly close with no sign
+     * that anything was missing.
+     *
+     * Skipped on a session which already failed, for the reason the StopMsg is: writing more to it
+     * cannot work. That is also the path where close() runs on the publisher thread itself
+     * (run() calls it when a send threw), where the queue is unsendable by construction.
+     */
+    if (localSessionError == null)
+    {
+      sendWhatThePublisherLeftQueued();
+    }
+
     // V4 protocol introduces a StopMsg to properly end communications.
     if (localSessionError == null
         && protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
@@ -204,6 +237,62 @@ public final class Session extends DirectoryThread implements Closeable
   }
 
 
+
+  /**
+   * Sends the buffers the publisher thread had not sent when it stopped, so that a close of the
+   * session does not drop them.
+   * <p>
+   * Called from {@link #close()} once the publisher has been joined, so the socket is this
+   * thread's alone. A queued message is already encoded for this peer's protocol version -
+   * {@link #publish(ReplicationMsg)} did that before queueing it - so there is nothing to decide
+   * here beyond how long to keep trying.
+   * <p>
+   * The budget is what bounds a close of a session whose peer has stopped reading: without one,
+   * a stalled consumer would hold the thread which is shutting the server down for as long as it
+   * stays stalled. A peer which is reading pays none of it, and a peer which is gone pays none
+   * either - the write fails at once. It is checked between messages, so a single write which
+   * blocks past the budget still runs to completion: bounding that needs a non-blocking socket,
+   * which this session is not. What is given up on is reported rather than dropped in silence,
+   * that being the part of this which cost the most to diagnose.
+   */
+  private void sendWhatThePublisherLeftQueued()
+  {
+    if (sendQueue.isEmpty())
+    {
+      return;
+    }
+
+    final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(DRAIN_BUDGET_MS);
+    byte[] buffer;
+    while ((buffer = sendQueue.poll()) != null)
+    {
+      if (System.nanoTime() - deadline >= 0)
+      {
+        reportQueueNotSent(sendQueue.size() + 1, "the peer did not read them within "
+            + DRAIN_BUDGET_MS + " ms");
+        return;
+      }
+      try
+      {
+        send(buffer);
+      }
+      catch (final IOException e)
+      {
+        // send() has recorded the error; the rest of the queue cannot go out either.
+        reportQueueNotSent(sendQueue.size() + 1, stackTraceToSingleLineString(e));
+        return;
+      }
+    }
+  }
+
+  /** Says which messages a close could not hand to the peer, and why. */
+  private void reportQueueNotSent(final int count, final String reason)
+  {
+    logger.warn(LocalizableMessage.raw(
+        "The replication session %s was closed with %d message(s) which had been published on it "
+        + "but not yet sent, and the peer was not told about them: %s",
+        getName(), count, reason));
+  }
 
   /**
    * This methods allows to determine if the session close was initiated
