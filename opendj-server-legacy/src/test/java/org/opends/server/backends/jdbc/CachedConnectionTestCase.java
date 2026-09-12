@@ -2121,6 +2121,29 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * The wait between two attempts of a connect: a millisecond, doubling to the ceiling and staying
+	 * there, so that a database refusing connections for a moment is asked again at once and one
+	 * refusing them for a minute is asked once a second rather than in a spin. Pinned here because
+	 * both loops that retry a connect of this backend wait on this schedule - the borrow of this
+	 * class and the catalog connect of {@code JDBCStorage.newCatalogConnection} - and a change to it
+	 * is a change to the pair (#929).
+	 */
+	@Test(timeOut = 120000)
+	public void testTheBackoffOfARetriedConnectDoublesToItsCeiling() {
+		assertEquals(CachedConnection.nextBackoffMs(0), 1, "the first wait of a retry is not a millisecond");
+		long backoffMs = 0;
+		for (int attempt = 0; attempt < 20; attempt++) {
+			final long previous = backoffMs;
+			backoffMs = CachedConnection.nextBackoffMs(backoffMs);
+			assertTrue(backoffMs > previous || backoffMs == CachedConnection.MAX_BACKOFF_MS,
+				"the wait neither grew nor stood at its ceiling: " + previous + " -> " + backoffMs);
+			assertTrue(backoffMs <= CachedConnection.MAX_BACKOFF_MS,
+				"the wait of a retry grew past the ceiling of the schedule: " + backoffMs);
+		}
+		assertEquals(backoffMs, CachedConnection.MAX_BACKOFF_MS, "the wait never reached its ceiling");
+	}
+
+	/**
 	 * The bound is configured in seconds and reaches the driver in milliseconds; 0, a negative
 	 * value and a value that is no number all leave a connection unbounded, which is what this
 	 * backend did before the property existed. A value past the ceiling of a socket read timeout is
