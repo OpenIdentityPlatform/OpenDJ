@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup;
 
@@ -21,6 +22,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.server.util.DynamicConstants.*;
 
+import java.io.File;
 import java.io.PrintStream;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -52,11 +54,26 @@ public abstract class Launcher {
    *          temporary log file path where messages will be logged
    */
   public Launcher(final String[] args, final String tempLogFilePrefix) {
+    this(args, tempLogFilePrefix, null);
+  }
+
+  /**
+   * Creates a Launcher whose temporary log file lives in the given directory.
+   *
+   * @param args
+   *          String[] of argument passes from the command line
+   * @param tempLogFilePrefix
+   *          temporary log file path where messages will be logged
+   * @param tempLogFileDirectory
+   *          the directory to create the temporary log file in, or {@code null} for the OS
+   *          temporary directory
+   */
+  public Launcher(final String[] args, final String tempLogFilePrefix, final File tempLogFileDirectory) {
     if (args == null) {
       throw new IllegalArgumentException("args cannot be null");
     }
     this.args = args;
-    this.tempLogFile = TempLogFile.newTempLogFile(tempLogFilePrefix);
+    this.tempLogFile = TempLogFile.newTempLogFile(tempLogFilePrefix, tempLogFileDirectory);
   }
 
   /**

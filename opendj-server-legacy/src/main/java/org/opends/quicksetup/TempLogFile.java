@@ -20,6 +20,7 @@ package org.opends.quicksetup;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Date;
 import java.text.DateFormat;
@@ -51,6 +52,39 @@ public class TempLogFile
    */
   public static TempLogFile newTempLogFile(final String prefix)
   {
+    return newTempLogFile(prefix, null);
+  }
+
+  /**
+   * Creates a new temporary log file in the given directory.
+   * <p>
+   * The directory is created if it does not exist yet. When it is {@code null} or cannot be
+   * used, the log file goes to the OS temporary directory instead, as with
+   * {@link #newTempLogFile(String)}. The name of the file follows the pattern
+   * prefix-[RANDOM_NUMBER_STRING].log either way.
+   *
+   * @param prefix
+   *          log file prefix to which log messages will be written.
+   * @param directory
+   *          the directory to create the log file in, or {@code null} for the OS temporary
+   *          directory.
+   * @return a new temporary log file.
+   */
+  public static TempLogFile newTempLogFile(final String prefix, final File directory)
+  {
+    if (directory != null)
+    {
+      try
+      {
+        Files.createDirectories(directory.toPath());
+        return new TempLogFile(Files.createTempFile(directory.toPath(), prefix, ".log").toFile());
+      }
+      catch (final IOException e)
+      {
+        localizedLogger.warn(LocalizableMessage.raw("Unable to create temp log file in " + directory
+            + " because: " + e.getMessage() + ", falling back to the temporary directory"), e);
+      }
+    }
     try
     {
       return new TempLogFile(Files.createTempFile(prefix, ".log").toFile());
@@ -119,6 +153,36 @@ public class TempLogFile
   public boolean isEnabled()
   {
     return logFile != null;
+  }
+
+  /**
+   * Return {@code true} if the temp log file is still on disk and can be read.
+   * <p>
+   * Unlike {@link #isEnabled()} this is about the file, not the logger: something else may have
+   * removed the file while the logger still writes to it (see issue #1030), and then there is
+   * nothing to hand over to whoever needs the log.
+   *
+   * @return {@code true} if the temp log file is there and readable.
+   */
+  public boolean isReadable()
+  {
+    return logFile != null && Files.isReadable(logFile.toPath()) && Files.isRegularFile(logFile.toPath());
+  }
+
+  /**
+   * Reads the whole temp log file.
+   *
+   * @return the contents of the temp log file, decoded as UTF-8.
+   * @throws IOException
+   *           if the file cannot be read, for instance because it is no longer there.
+   */
+  public String readContents() throws IOException
+  {
+    if (logFile == null)
+    {
+      throw new IOException("No temp log file");
+    }
+    return new String(Files.readAllBytes(logFile.toPath()), StandardCharsets.UTF_8);
   }
 
   /**

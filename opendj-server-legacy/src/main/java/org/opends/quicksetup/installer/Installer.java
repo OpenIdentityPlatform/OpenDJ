@@ -42,9 +42,6 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -619,21 +616,31 @@ public class Installer extends GuiApplication
 
   private void notifyListenersOfExistingLogFile()
   {
-    if (tempLogFile.isEnabled())
+    if (!tempLogFile.isEnabled())
     {
-      final String tempLogFilePath = tempLogFile.getPath();
-      notifyListeners(getFormattedProgress(INFO_GENERAL_PROVIDE_LOG_IN_ERROR.get(tempLogFilePath)));
-    //write log
-      try {
-    	notifyListeners(getLineBreak());
-		notifyListeners(LocalizableMessage.valueOf(new String(Files.readAllBytes(Paths.get(tempLogFilePath)),"UTF-8")));
-      } catch (UnsupportedEncodingException e) {
-		e.printStackTrace();
-      } catch (IOException e) {
-		e.printStackTrace();
-      }
-      notifyListeners(getLineBreak());
+      return;
     }
+    final String tempLogFilePath = tempLogFile.getPath();
+    if (!tempLogFile.isReadable())
+    {
+      // Something removed the log while it was being written (issue #1030): say so
+      // rather than ask for a file that is not there.
+      notifyListeners(getFormattedWarning(INFO_GENERAL_LOG_IN_ERROR_MISSING.get(tempLogFilePath)));
+      notifyListeners(getLineBreak());
+      return;
+    }
+    notifyListeners(getFormattedProgress(INFO_GENERAL_PROVIDE_LOG_IN_ERROR.get(tempLogFilePath)));
+    notifyListeners(getLineBreak());
+    // Write the log out as well, so that a report has it even when the file is not attached.
+    try
+    {
+      notifyListeners(LocalizableMessage.raw(tempLogFile.readContents()));
+    }
+    catch (final IOException e)
+    {
+      notifyListeners(getFormattedWarning(INFO_GENERAL_LOG_IN_ERROR_UNREADABLE.get(tempLogFilePath, e)));
+    }
+    notifyListeners(getLineBreak());
   }
 
   /** Creates a default instance. */
