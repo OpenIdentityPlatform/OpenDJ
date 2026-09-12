@@ -21,6 +21,8 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +57,14 @@ public class ReplicationServerHandler extends ServerHandler
   /** Properties filled only if remote server is a RS. */
   private String serverAddressURL;
   /**
+   * The addresses the remote replication server is known by, resolved once, when its start
+   * message names it: the connect thread compares them on every one of its passes, and
+   * {@link HostPort} logs a name it cannot resolve each time it is built from one -- which
+   * the fall back of {@code ReplicationServer.setServerURL()} to the host name of the
+   * machine makes an ordinary thing for a peer to name.
+   */
+  private List<HostPort> addresses = Collections.emptyList();
+  /**
    * This collection will contain as many elements as there are
    * LDAP servers connected to the remote replication server.
    */
@@ -78,7 +88,7 @@ public class ReplicationServerHandler extends ServerHandler
       generationId = inReplServerStartMsg.getGenerationId();
       serverId = inReplServerStartMsg.getServerId();
       serverURL = inReplServerStartMsg.getServerURL();
-      serverAddressURL = toServerAddressURL(serverURL);
+      setServerAddresses(serverURL);
       setBaseDNAndDomain(inReplServerStartMsg.getBaseDN(), false);
       setInitialServerState(inReplServerStartMsg.getServerState());
       setSendWindowSize(inReplServerStartMsg.getWindowSize());
@@ -97,11 +107,20 @@ public class ReplicationServerHandler extends ServerHandler
     return inReplServerStartMsg.getSSLEncryption();
   }
 
-  private String toServerAddressURL(String serverURL)
+  /**
+   * Takes the addresses the remote replication server is known by from the URL its start
+   * message named: that URL, which is the address it is configured under, and the address
+   * of the connection this session is held on, which is the interface that connection
+   * happened to use rather than an identity.
+   */
+  private void setServerAddresses(String serverURL)
   {
-    final int port = HostPort.valueOf(serverURL).getPort();
+    final HostPort namedAddress = HostPort.valueOf(serverURL);
     // Ensure correct formatting of IPv6 addresses by using a HostPort instance.
-    return new HostPort(session.getRemoteAddress().getHost(), port).toString();
+    final HostPort connectedAddress =
+        new HostPort(session.getRemoteAddress().getHost(), namedAddress.getPort());
+    serverAddressURL = connectedAddress.toString();
+    addresses = Arrays.asList(namedAddress, connectedAddress);
   }
 
   /**
@@ -713,6 +732,60 @@ public class ReplicationServerHandler extends ServerHandler
   public String getServerAddressURL()
   {
     return serverAddressURL;
+  }
+
+  /**
+   * Returns whether the remote replication server of this handler is the one the provided
+   * handler holds a session with.
+   * <p>
+   * Either of the two addresses a remote server is known by identifies it, and the one
+   * which does depends on where its connection came from: a server reachable at more than
+   * one address -- a multi homed host, or a NAT where the address a peer connects
+   * <i>from</i> is not the address it is configured <i>as</i> -- is registered under the
+   * address of whichever interface the session used, so two sessions with one such server
+   * carry two different addresses. What both of them do carry is the address that server
+   * names in its start messages, which is the address it is configured under.
+   *
+   * @param other
+   *          the handler to compare the remote server of this one with
+   * @return {@code true} if both handlers hold a session with the same replication server
+   */
+  boolean isSameServerAs(ReplicationServerHandler other)
+  {
+    for (HostPort address : other.addresses)
+    {
+      if (isServerAt(address))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns whether the remote replication server of this handler is the one configured at
+   * the provided address.
+   * <p>
+   * Both addresses it is known by are compared, because either of them may be the
+   * configured one: the address the remote server names is the address it is configured
+   * under in its own configuration, which is the one the rest of the topology configures it
+   * at as well, while the address its session came from is the only one known of a server
+   * which names an address this configuration does not use.
+   *
+   * @param address
+   *          a configured address of a replication server
+   * @return {@code true} if the remote server of this handler answers to that address
+   */
+  boolean isServerAt(HostPort address)
+  {
+    for (HostPort known : addresses)
+    {
+      if (address.isEquivalentTo(known))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
