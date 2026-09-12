@@ -4639,8 +4639,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * <p>
 		 * Serialized on the storage, so that two transactions opening trees at the same time cannot both
 		 * find the table absent and both go on to create it. It serializes this storage and nothing
-		 * else, which is why the create tolerates a table that turned up while it was being made: an
-		 * offline tool beside a running server is a pair no lock of one process can order. The stamp -
+		 * else, which is why the create tolerates a table that turned up while it was being made - an
+		 * offline tool beside a running server is a pair no lock of one process can order - and why what
+		 * it tolerated is then read like any other catalog that was already there. The stamp -
 		 * the one thing under it that is nobody's dependency - is issued outside it.
 		 * <p>
 		 * Two things are kept out of the lock because they are the slow ones. The flag is read before
@@ -4675,11 +4676,20 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				if (!lostTheRace) {
 					if (isExistsTable(catalog)) {
 						readEnrolledTrees(catalog);
-					} else {
-						createCatalogTable(catalog);
-						// nothing to read from a table that has just been created, and nothing this open
-						// enrols may be skipped as already recorded
+					} else if (!createCatalogTable(catalog)) {
+						// the table was there after all: another session created it while this one was
+						// creating it, and a table this session did not create is a catalog with rows in it
+						// like any other - the branch above is what those rows are for. The flag below is
+						// raised over what this storage knows the catalog records, and raised over none of
+						// it, every tree of this open is enrolled again against a catalog already naming
+						// them: one upsert and one commit each, and the same for every later write of this
+						// open that names a tree (#933). It reads on the session the failed create reset,
+						// which is a connection rolled back or, where even that failed, one given up for
+						// the read to establish again: either is a session a select may be asked of
+						readEnrolledTrees(catalog);
 					}
+					// and where the create really did create it, there is nothing to read: a table just
+					// made holds no row, and nothing this open enrols may be skipped as already recorded
 					catalogTableOpened=true;
 				}
 			}
@@ -4756,8 +4766,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * An account that may write its rows but not create a table is a configuration this can meet,
 		 * so the failure says which table it was and why the backend wanted it, rather than reaching
 		 * the operator as a bare SQL error inside ERR_OPEN_ENV_FAIL.
+		 *
+		 * @return whether this session created the table. {@code false} says another session created it
+		 *         while this one was creating it, which is a table full of rows this storage has not
+		 *         read: what {@link #openCatalog} does with that answer is read them (#933).
 		 */
-		void createCatalogTable(TreeName catalog) {
+		boolean createCatalogTable(TreeName catalog) {
 			final String tableName=getTableName(catalog);
 			try {
 				final Connection catalogCon=catalogSession.connection();
@@ -4767,6 +4781,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 					execute(statement, StatementBound.BULK);
 				}
 				catalogCon.commit();
+				return true;
 			} catch (SQLException | RuntimeException e) {
 				// the unchecked one as well, for the reason enrolInCatalog() takes it: what the statement
 				// left behind has to be rolled back whatever class the failure arrived in, this connection
@@ -4790,7 +4805,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				if (alreadyThere) {
 					logger.debug(LocalizableMessage.raw("jdbc: table %s was created by another session while this one was creating it: %s",
 						tableName, stackTraceToSingleLineString(e)));
-					return;
+					return false; // read by the caller, the rows being another session's and not this one's
 				}
 				throw new StorageRuntimeException("jdbc: backend "+config.getBackendId()+" could not create table "
 					+tableName+", which holds the catalog naming the trees it owns: a read-write open of a JDBC"

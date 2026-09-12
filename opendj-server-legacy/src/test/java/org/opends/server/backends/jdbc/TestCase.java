@@ -2182,6 +2182,74 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	}
 
 	/**
+	 * A catalog table another session created while this one was creating it has to be read like any
+	 * other catalog that is already there. The create tolerates that race - an offline tool beside a
+	 * running server is a pair no lock of one process can order - and what it must not do is leave the
+	 * storage believing that table records nothing (#933): a storage believing that writes the row of
+	 * every tree it opens again, one upsert and one commit each, for the whole of that open.
+	 * <p>
+	 * The tree the case asks for afterwards is one the adopting write never opened, which is what
+	 * tells the two apart: a storage that read the table knows the catalog names it already, while one
+	 * that only wrote its way through the trees of that write knows those and nothing else.
+	 * <p>
+	 * What says which of the two it is, is the connection. The catalog of a transaction is opened at
+	 * the first row that transaction has to write - see {@link JDBCStorage.CatalogSession} - so a
+	 * write whose trees the catalog already names opens none at all, and one that has to record them
+	 * again opens one to write the rows that are already there.
+	 */
+	@Test
+	public void testAnOpenThatAdoptsTheCatalogTableOfAnotherSessionEnrolsNothingAgain() throws Exception {
+		final TreeName opened = new TreeName("testAdoptedCatalog", "opened");
+		final TreeName recorded = new TreeName("testAdoptedCatalog", "recorded");
+		final JDBCStorage owner = new JDBCStorage(createBackendCfg(getBackendId() + "_adopted"), null);
+		// the two are one backend, so the clear below drops what either of them left behind, and it is
+		// constructed here so that a failure of the half that fills the catalog reaches that clear too:
+		// nothing but @BeforeClass ever drops the tables a case leaves standing
+		final AdoptingStorage racing = new AdoptingStorage(createBackendCfg(getBackendId() + "_adopted"));
+		try {
+			try {
+				owner.open(AccessMode.READ_WRITE);
+				owner.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.openTree(opened, true); // the catalog table, and a row naming each of these trees
+						txn.openTree(recorded, true);
+					}
+				});
+			} finally {
+				owner.close();
+			}
+
+			racing.open(AccessMode.READ_WRITE);
+			// armed after the open and not before it: what this models is the lookup openCatalog() makes,
+			// and anything asking about the same table earlier would spend the one answer it has
+			racing.hideOnce(racing.getTableName(racing.getCatalogTree()));
+			racing.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(opened, true);
+				}
+			});
+			assertTrue(racing.hidTheCatalogTable(), "the case never reached the create this is about");
+			final int connectsOfTheAdoptingWrite = racing.catalogConnects();
+
+			racing.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(recorded, true); // named by the catalog already, so there is no row to write
+				}
+			});
+			assertEquals(racing.catalogConnects(), connectsOfTheAdoptingWrite,
+				"a transaction whose tree the catalog already names opened a connection to write that row"
+					+ " again: the open which adopted the table another session created read nothing of what"
+					+ " that table records");
+			assertTrue(racing.listTrees().contains(recorded), "the catalog stopped naming the tree it records");
+		} finally {
+			clearQuietly(racing);
+		}
+	}
+
+	/**
 	 * A row of the catalog whose table is not there any more must not fail the clear, and must not
 	 * stop it dropping the rest. Nothing of the backend leaves such a row behind - deleteTree() takes
 	 * it out in the commit that drops the table - but a table dropped by hand, or a catalog restored
@@ -2992,6 +3060,61 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				}
 			}
 			fail(whatWentUnsaid + "; the clear reported: " + reported());
+		}
+	}
+
+	/**
+	 * A storage which answers once that its catalog table is not there while it is, and counts the
+	 * connections its catalog is read and written on.
+	 * <p>
+	 * That answer models the one state no case can reach from outside: a session whose lookup ran a
+	 * moment before another session's "create table" committed, which goes on to create a table that
+	 * is already there and has to make what it finds usable all the same (#933). Every lookup after
+	 * it is the database's own answer, the way {@link ReportingStorage} lets its own go.
+	 * <p>
+	 * The count is what says whether the storage remembered what that table records: the catalog of a
+	 * transaction is opened at the first row the transaction has to write, so a write whose trees the
+	 * catalog already names opens no connection at all - see {@link JDBCStorage.CatalogSession}.
+	 */
+	protected static final class AdoptingStorage extends JDBCStorage {
+		private volatile String tableToHide;
+		private volatile boolean hidden;
+		private final AtomicInteger catalogConnects = new AtomicInteger();
+
+		AdoptingStorage(JDBCBackendCfg cfg) {
+			super(cfg, null);
+		}
+
+		/** Answers the next lookup of this table with "not there", whatever the database holds. */
+		void hideOnce(String tableName) {
+			tableToHide = tableName;
+		}
+
+		/** Whether that answer was given, so that a case cannot pass without having reached the race. */
+		boolean hidTheCatalogTable() {
+			return hidden;
+		}
+
+		/** How many connections this storage has opened its catalog on since it was constructed. */
+		int catalogConnects() {
+			return catalogConnects.get();
+		}
+
+		@Override
+		boolean isExistsTable(Connection con, JDBCStorage.TableScope scope, String tableName) {
+			final String hiding = tableToHide;
+			if (hiding != null && hiding.equalsIgnoreCase(tableName)) {
+				tableToHide = null; // once: the create it sends is answered by the table the database holds
+				hidden = true;
+				return false;
+			}
+			return super.isExistsTable(con, scope, tableName);
+		}
+
+		@Override
+		Connection newCatalogConnection(long budgetDeadline) throws SQLException {
+			catalogConnects.incrementAndGet();
+			return super.newCatalogConnection(budgetDeadline);
 		}
 	}
 }
