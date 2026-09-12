@@ -126,12 +126,12 @@ public class ServerWriter extends DirectoryThread
           session.publish(updateMsg);
           /*
            * Only the forward to a peer RS ends the wait of the shutdown: what the grace period
-           * buys is the rest of the topology learning that the replica went offline.
-           * ReplicationServerDomain.put() never queues this message for a directory server - its
-           * isUpdateMsgFiltered() drops it there - but a directory server which is catching up
-           * reads its updates from the changelog, where ReplicaCursor synthesizes a
-           * ReplicaOfflineMsg from the offline CSN of the replica. Publishing that one says
-           * nothing about the peer RSs the shutdown is waiting for.
+           * buys is the rest of the topology learning that the replica went offline. A directory
+           * server is never handed this message - ReplicationServerDomain.put() does not queue
+           * it for one, and DataServerHandler.updateServerState() drops the one the changelog
+           * cursor of a directory server which is catching up synthesizes from the offline CSN
+           * of the replica (issue #1029) - so the guard says whose forward counts rather than
+           * telling two deliveries apart.
            */
           if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
           {

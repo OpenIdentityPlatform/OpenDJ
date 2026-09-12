@@ -652,6 +652,10 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
 
   /**
    * Update the serverState with the last message sent.
+   * <p>
+   * What this returns decides whether {@code getNextMessage()} hands the message to the writer
+   * at all: a message the state of the consumer already covers is not sent to it. A handler can
+   * narrow that further for its kind of consumer - {@link DataServerHandler} does.
    *
    * @param msg the last update sent.
    * @return boolean indicating if the update was meaningful.

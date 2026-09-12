@@ -232,14 +232,16 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
   }
 
   /**
-   * Only a peer replication server learning about the offline replica ends the wait.
-   * ReplicationServerDomain.put() never queues a ReplicaOfflineMsg for a directory server, but
-   * the changelog cursor of a directory server which is catching up synthesizes one from the
-   * offline CSN of the replica, so the writer serving a directory server can publish it - and
-   * the peer replication servers would still know nothing.
+   * Only a peer replication server learning about the offline replica ends the wait, and a
+   * directory server is never told. ReplicationServerDomain.put() never queues a
+   * ReplicaOfflineMsg for a directory server, and one which reaches the queue of its handler
+   * all the same - the changelog cursor of a directory server which is catching up synthesizes
+   * one from the offline CSN of the replica - is dropped by the handler before its writer is
+   * given it (issue #1029): the directory server is not sent it, nothing reports a forward for
+   * it, and the peer replication servers still know nothing.
    */
   @Test
-  public void theForwardToADirectoryServerDoesNotEndTheWait() throws Exception
+  public void theDirectoryServerIsNeitherSentTheMessageNorEndsTheWait() throws Exception
   {
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     final DSRSShutdownSync shutdownSync = new DSRSShutdownSync();
@@ -263,17 +265,24 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
             replicationServer.getReplicationServerDomain(baseDN, true);
         final DataServerHandler dsHandler = waitForConnectedDirectoryServer(domain);
 
-        final CSN offlineCSN = newOfflineCSN();
+        final CSNGenerator csns = new CSNGenerator(LOCAL_DS_ID, 0);
+        final CSN offlineCSN = csns.newCSN();
         final long startTime = System.nanoTime();
         shutdownSync.replicaOfflineMsgSent(baseDN, offlineCSN);
-        // the very message the shutdown waits for, so only the guard of the writer can save it
+        // the very message the shutdown waits for, queued the only way it can reach a directory
+        // server: put() never does this
         dsHandler.add(new ReplicaOfflineMsg(offlineCSN));
+        // a change queued behind it: once the directory server holds this one, its handler is
+        // past the message
+        final DeleteMsg change = new DeleteMsg(DN.valueOf("uid=offline," + TEST_ROOT_DN_STRING),
+            csns.newCSN(), "offline-entry-uuid");
+        dsHandler.add(change);
 
-        // the directory server did receive it, so its writer went through the forwarding code
-        assertThat(waitForSpecificMsg(broker, ReplicaOfflineMsg.class).getCSN().getServerId())
-            .isEqualTo(LOCAL_DS_ID);
+        assertThat(receiveUntil(broker, change.getCSN()))
+            .as("the directory server was sent the ReplicaOfflineMsg queued for it")
+            .noneMatch(ReplicaOfflineMsg.class::isInstance);
         assertThat(elapsedMillis(startTime))
-            .as("the fixture must deliver the message well inside the grace period, otherwise "
+            .as("the fixture must deliver the change well inside the grace period, otherwise "
                 + "the wait asserted below cannot be told apart from a slow delivery")
             .isLessThan(DSRSShutdownSync.REPLICA_OFFLINE_GRACE_PERIOD / 2);
 
@@ -281,7 +290,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
         final long elapsed = elapsedMillis(startTime);
 
         assertThat(elapsed)
-            .as("the message published to a directory server ended the wait of the shutdown")
+            .as("the handler of a directory server ended the wait of the shutdown")
             .isGreaterThanOrEqualTo(DSRSShutdownSync.REPLICA_OFFLINE_GRACE_PERIOD);
       }
     }
