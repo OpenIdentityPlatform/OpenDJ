@@ -187,6 +187,36 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
         sender.waitForStartup();
 
         /*
+         * A reader on the *sending* end, which is what the server keeps running across a close:
+         * ServerHandler.shutdown() closes the session (ServerHandler.java:946) and only joins its
+         * ServerReader afterwards (:966). It is not decoration here.
+         *
+         * Without it this end reaches close() with inbound bytes nobody ever read, and a close in
+         * that state ends the connection with a reset instead of a FIN - which discards what the
+         * peer has not read yet, the whole of what the drain just wrote included. Measured with a
+         * bare socket pair, 8 MiB written to a peer reading behind the writer, the only difference
+         * between the runs being whether the closing side drained its own inbound:
+         *
+         *   linux 6.12 / jdk 11    no reader -> 53.4% arrived, "Connection reset"
+         *                          reader    -> 100%   arrived, end of stream
+         *   macos 15.7 / jdk 26    no reader -> 98.3% arrived, "Connection reset"
+         *                          reader    -> 100%   arrived, end of stream
+         *
+         * Which is why a case without it measures the teardown rather than the drain, and measures
+         * it differently per platform: three ubuntu legs of CI lost between 866 and 1694 of these
+         * messages while every macos and windows leg passed. This case says so itself - with the
+         * start() below commented out and the class run on linux/jdk11, it fails with "the peer
+         * received 2873 of the 3000 messages published; the read ended by java.net.SocketException:
+         * Connection reset", and passes with it in.
+         *
+         * Its soTimeout has to go, too: receive() hands a read timeout to setSessionError(), and a
+         * session carrying an error skips the drain exactly as it skips the StopMsg.
+         */
+        sender.setSoTimeout(0);
+        final Thread senderReader = newInboundReader(sender);
+        senderReader.start();
+
+        /*
          * Nothing reads the peer end while these are published, so the socket buffers fill and
          * the publisher thread is left inside its write with the rest of them still queued.
          */
@@ -206,13 +236,12 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
           }
         });
 
-        final List<CSN> received = drain(receiver);
+        final Drained drained = drain(receiver);
         closed.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
 
-        assertThat(received)
-            .as("the close dropped %d of the %d messages published: the publisher thread stopped "
-                + "with them still queued and nothing sent them",
-                MESSAGES_PUBLISHED - received.size(), MESSAGES_PUBLISHED)
+        assertThat(drained.received)
+            .as("the peer received %d of the %d messages published; the read ended by %s",
+                drained.received.size(), MESSAGES_PUBLISHED, drained.endedBy)
             .hasSize(MESSAGES_PUBLISHED);
       }
       finally
@@ -226,10 +255,62 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
     }
   }
 
-  /** Reads until the session gives nothing back, and answers the CSNs of the changes it read. */
-  private List<CSN> drain(final Session session)
+  /**
+   * Consumes whatever arrives on a session until it is closed, as {@code ServerReader} does for a
+   * server handler.
+   * <p>
+   * It is what it reads at the socket rather than what it returns that matters: the peer of these
+   * cases publishes nothing, so this returns no message at all, while the read it sits in is what
+   * keeps the receive queue of this end empty - which is the condition a close needs to end the
+   * connection in an orderly way.
+   */
+  private Thread newInboundReader(final Session session)
   {
-    final List<CSN> received = new CopyOnWriteArrayList<>();
+    final Thread reader = new Thread(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        try
+        {
+          while (true)
+          {
+            session.receive();
+          }
+        }
+        catch (final Exception ignored)
+        {
+          // The close of the session ends the read, which is the end of this thread.
+        }
+      }
+    }, "inbound reader of " + session.getName());
+    reader.setDaemon(true);
+    return reader;
+  }
+
+  /**
+   * Reads until the session gives nothing back, and answers the CSNs of the changes it read
+   * together with what ended the read.
+   * <p>
+   * Why the reason is carried rather than swallowed: a short read is exactly the failure this
+   * suite is about, and "the peer received fewer than were sent" does not say whether the stream
+   * ended orderly at a {@code StopMsg} or was cut off - which are different defects.
+   */
+  private static final class Drained
+  {
+    private final List<CSN> received = new CopyOnWriteArrayList<>();
+    private String endedBy;
+
+    @Override
+    public String toString()
+    {
+      return received.size() + " change(s), ended by " + endedBy;
+    }
+  }
+
+  private Drained drain(final Session session)
+  {
+    final Drained drained = new Drained();
     try
     {
       while (true)
@@ -237,18 +318,24 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
         final ReplicationMsg msg = session.receive();
         if (msg instanceof DeleteMsg)
         {
-          received.add(((DeleteMsg) msg).getCSN());
+          drained.received.add(((DeleteMsg) msg).getCSN());
         }
         else if (msg instanceof StopMsg)
         {
-          return received;
+          drained.endedBy = "a StopMsg";
+          return drained;
+        }
+        else
+        {
+          drained.endedBy = "an unexpected " + msg.getClass().getSimpleName();
+          return drained;
         }
       }
     }
-    catch (final Exception ignored)
+    catch (final Exception e)
     {
-      // The close of the far end ends the read, which is the end of the drain.
-      return received;
+      drained.endedBy = e.getClass().getName() + ": " + e.getMessage();
+      return drained;
     }
   }
 
