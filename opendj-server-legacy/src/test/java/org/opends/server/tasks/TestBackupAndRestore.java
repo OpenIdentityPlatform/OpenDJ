@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tasks;
 
@@ -20,10 +21,16 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.backends.task.TaskState;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.LockFileManager;
 import org.opends.server.types.Entry;
+import org.opends.server.types.RestoreConfig;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -210,4 +217,76 @@ public class TestBackupAndRestore extends TasksTestCase
     }
   }
 
+  /**
+   * A restore which cannot lock its backend has restored nothing and must say so: the task
+   * ends in error and the restore task listeners are told the restore failed, exactly as
+   * when the restore itself fails.
+   */
+  @Test
+  public void testRestoreEndsInErrorWhenTheBackendCannotBeLocked() throws Exception
+  {
+    File backupDirectory = TestCaseUtils.createTemporaryDirectory("restore-lock");
+    try
+    {
+      testTask(TestCaseUtils.makeEntry(
+          "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+          "objectclass: top",
+          "objectclass: ds-task",
+          "objectclass: ds-task-backup",
+          "ds-task-class-name: org.opends.server.tasks.BackupTask",
+          "ds-task-backup-backend-id: userRoot",
+          "ds-backup-directory-path: " + backupDirectory.getPath()),
+          TaskState.COMPLETED_SUCCESSFULLY, 30);
+
+      final AtomicReference<Boolean> restoreSuccessful = new AtomicReference<>();
+      RestoreTaskListener outcome = new RestoreTaskListener()
+      {
+        @Override
+        public void processRestoreBegin(LocalBackend<?> backend, RestoreConfig config)
+        {
+        }
+
+        @Override
+        public void processRestoreEnd(LocalBackend<?> backend, RestoreConfig config, boolean successful)
+        {
+          restoreSuccessful.set(successful);
+        }
+      };
+
+      final int restoreBeginCountStart = restoreBeginCount.get();
+      final int restoreEndCountStart = restoreEndCount.get();
+
+      /*
+       * Hold the backend lock as another shared holder would: the task takes the backend
+       * offline, which releases the backend's own reference but not this one, so the
+       * exclusive lock it needs to restore is refused.
+       */
+      LocalBackend<?> userRoot = TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackendById("userRoot");
+      String lockFile = LockFileManager.getBackendLockFileName(userRoot);
+      StringBuilder failureReason = new StringBuilder();
+      assertTrue(LockFileManager.acquireSharedLock(lockFile, failureReason), failureReason.toString());
+      DirectoryServer.registerRestoreTaskListener(outcome);
+      try
+      {
+        testTask(TestCaseUtils.makeEntry(restoreTask(
+            "ds-backup-directory-path: " + backupDirectory.getPath())),
+            TaskState.STOPPED_BY_ERROR, 30);
+      }
+      finally
+      {
+        DirectoryServer.deregisterRestoreTaskListener(outcome);
+        LockFileManager.releaseLock(lockFile, new StringBuilder());
+      }
+
+      assertEquals(restoreBeginCount.get(), restoreBeginCountStart + 1);
+      assertEquals(restoreEndCount.get(), restoreEndCountStart + 1);
+      assertEquals(restoreSuccessful.get(), Boolean.FALSE);
+      // The backend the task took offline is back.
+      assertNotNull(TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackendById("userRoot"));
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(backupDirectory);
+    }
+  }
 }

@@ -289,35 +289,39 @@ public class RestoreTask extends Task
         }
       }
 
-      // Acquire an exclusive lock for the backend.
-      if (verifyOnly || lockBackend(backend))
+      // Acquire an exclusive lock for the backend. Without it nothing is restored, and the
+      // task must say so rather than complete as if it had.
+      if (!verifyOnly && !lockBackend(backend))
       {
-        // From here we must make sure to release the backend exclusive lock.
+        errorsEncountered = true;
+        return TaskState.STOPPED_BY_ERROR;
+      }
+
+      // From here we must make sure to release the backend exclusive lock.
+      try
+      {
+        // Perform the restore.
         try
         {
-          // Perform the restore.
-          try
-          {
-            backend.restoreBackup(restoreConfig);
-          }
-          catch (DirectoryException de)
-          {
-            logger.error(ERR_RESTOREDB_ERROR_DURING_BACKUP, backupID, backupDir.getPath(), de.getMessageObject());
-            errorsEncountered = true;
-          }
-          catch (Exception e)
-          {
-            logger.error(ERR_RESTOREDB_ERROR_DURING_BACKUP, backupID, backupDir.getPath(), getExceptionMessage(e));
-            errorsEncountered = true;
-          }
+          backend.restoreBackup(restoreConfig);
         }
-        finally
+        catch (DirectoryException de)
         {
-          // Release the exclusive lock on the backend.
-          if (!verifyOnly && !unlockBackend(backend))
-          {
-            errorsEncountered = true;
-          }
+          logger.error(ERR_RESTOREDB_ERROR_DURING_BACKUP, backupID, backupDir.getPath(), de.getMessageObject());
+          errorsEncountered = true;
+        }
+        catch (Exception e)
+        {
+          logger.error(ERR_RESTOREDB_ERROR_DURING_BACKUP, backupID, backupDir.getPath(), getExceptionMessage(e));
+          errorsEncountered = true;
+        }
+      }
+      finally
+      {
+        // Release the exclusive lock on the backend.
+        if (!verifyOnly && !unlockBackend(backend))
+        {
+          errorsEncountered = true;
         }
       }
     }
