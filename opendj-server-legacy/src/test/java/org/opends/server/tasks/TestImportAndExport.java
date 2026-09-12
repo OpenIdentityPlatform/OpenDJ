@@ -18,6 +18,8 @@
 package org.opends.server.tasks;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.UUID;
 
 import org.forgerock.opendj.ldap.ResultCode;
@@ -29,6 +31,7 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFImportConfig;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -448,6 +451,59 @@ public class TestImportAndExport extends TasksTestCase
 
     assertEquals(TestTaskListener.importBeginCount.get(), importBeginCount + 1);
     assertEquals(TestTaskListener.importEndCount.get(), importEndCount + 1);
+  }
+
+  /**
+   * A failed import must close the reject and skip files it opened. A backend closes the
+   * import config together with its LDIF reader, so an import which fails before that reader
+   * exists leaves the closing to the task, whose error returns must not skip it.
+   */
+  @Test
+  public void testFailedImportClosesItsRejectAndSkipFiles() throws Exception
+  {
+    File skipFile = File.createTempFile("import-test-skipped", ".ldif");
+    try
+    {
+      // A directory can be read, so the task accepts it, but it cannot be opened as LDIF:
+      // the import fails before the backend creates the reader which would close the config.
+      Entry taskEntry = TestCaseUtils.makeEntry(
+          "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+          "objectclass: top",
+          "objectclass: ds-task",
+          "objectclass: ds-task-import",
+          "ds-task-class-name: org.opends.server.tasks.ImportTask",
+          "ds-task-import-backend-id: userRoot",
+          "ds-task-import-ldif-file: " + ldifFile.getParent(),
+          "ds-task-import-reject-file: " + rejectFile.getPath(),
+          "ds-task-import-skip-file: " + skipFile.getPath(),
+          "ds-task-import-overwrite-rejects: TRUE");
+
+      TestTaskListener.lastImportEndConfig.set(null);
+      testTask(taskEntry, TaskState.STOPPED_BY_ERROR, 60);
+
+      LDIFImportConfig importConfig = TestTaskListener.lastImportEndConfig.get();
+      assertNotNull(importConfig, "The import end was not notified");
+      assertClosed(importConfig.getRejectWriter(), "reject");
+      assertClosed(importConfig.getSkipWriter(), "skip");
+    }
+    finally
+    {
+      skipFile.delete();
+    }
+  }
+
+  private static void assertClosed(Writer writer, String name)
+  {
+    assertNotNull(writer, "The " + name + " writer was never opened");
+    try
+    {
+      writer.write("still open");
+      fail("The " + name + " writer is still open after the import ended");
+    }
+    catch (IOException expected)
+    {
+      // A closed BufferedWriter refuses the write: that is the closed state being checked.
+    }
   }
 
   private void removeMemoryBackend(String backendID) throws Exception
