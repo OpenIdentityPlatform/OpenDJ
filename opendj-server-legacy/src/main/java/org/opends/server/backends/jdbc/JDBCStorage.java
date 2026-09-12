@@ -2775,6 +2775,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 						}
 						return null;
 					});
+					// Committed here, per tree, rather than left to the caller: the connection of an import
+					// goes back to the pool as soon as this refresh is over, and CachedConnection.close()
+					// rolls back before the pool hands it on - so a refresh left inside the transaction of
+					// the borrow would be discarded by its own return, on the one engine where the database
+					// does not commit it for us. On postgres the rows ANALYZE writes to pg_statistic are
+					// ordinary catalog rows, and a rollback takes with them the histogram the "where k>?
+					// order by k" batches of #859 need, leaving only the pg_class.reltuples it writes in
+					// place; mysql (implicit commit), oracle (dbms_stats commits) and sql server commit the
+					// statement themselves, which is why no container suite pins this (issue #1012).
 					con.commit();
 				}
 			}catch (Exception e) {
