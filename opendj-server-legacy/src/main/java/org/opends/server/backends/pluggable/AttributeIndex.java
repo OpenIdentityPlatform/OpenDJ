@@ -14,6 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2014 Manuel Gaupp
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -908,6 +909,8 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     final IndexingOptions newIndexingOptions = new IndexingOptionsImpl(newConfiguration.getSubstringLength());
     try
     {
+      final boolean confidentialityChanged =
+          config.isConfidentialityEnabled() != newConfiguration.isConfidentialityEnabled();
       final Map<String, MatchingRuleIndex> newIndexIdToIndexes = buildIndexes(entryContainer, state, newConfiguration,
           cryptoSuite);
 
@@ -920,9 +923,24 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       final Map<String, MatchingRuleIndex> updatedIndexes = new HashMap<>(indexIdToIndexes);
       updatedIndexes.keySet().retainAll(newIndexIdToIndexes.keySet());
 
+      // A change of the confidentiality gives up the trees of the indexes which are kept - see
+      // updateIndex(). An index whose every tree is replaced, as enabling the confidentiality of an
+      // equality index does, has none of those, and so has nothing to give up or to open again.
+      final boolean treesGivenUp = confidentialityChanged && !updatedIndexes.isEmpty();
+
       // Replace instances of Index created by buildIndexes() with the one already opened and present in the actual
       // indexIdToIndexes
       newIndexIdToIndexes.putAll(updatedIndexes);
+
+      // The confidentiality of an index is carried by the CryptoSuite the indexes of its attribute
+      // share, and read from that suite by every index which opens a tree, so the new setting has to
+      // be in force before the indexes added below bind their codecs to it. Applied outside the
+      // writes, which the storage may replay: it changes a live object rather than the storage, and
+      // is idempotent.
+      if (confidentialityChanged)
+      {
+        entryContainer.setIndexConfidentiality(cryptoSuite, newConfiguration.isConfidentialityEnabled());
+      }
 
       // Open added indexes *before* adding them to indexIdToIndexes
       entryContainer.getRootContainer().getStorage().write(new WriteOperation()
@@ -962,17 +980,50 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
         entryContainer.unlock();
       }
 
-      entryContainer.getRootContainer().getStorage().write(new WriteOperation()
+      if (treesGivenUp)
       {
-        @Override
-        public void run(WriteableTransaction txn) throws Exception
+        // No query may be reading a tree which is being given up and opened again below - the same
+        // exclusive access the removal of an index takes.
+        entryContainer.lock();
+        try
         {
-          for (final Index updatedIndex : updatedIndexes.values())
+          writeUpdatedIndexes(updatedIndexes, newConfiguration, confidentialityChanged, ccr);
+          // In a write of its own, since the storage engines delete and create the tree of an index as
+          // operations of their own - as removing and adding an index does - rather than as a deletion
+          // and a creation one transaction carries together. The write above is the one which untrusts
+          // and deletes, so a change interrupted in between leaves an index the next open of this
+          // container creates empty and keeps degraded, rather than a trusted one holding nothing.
+          entryContainer.getRootContainer().getStorage().write(new WriteOperation()
           {
-            updateIndex(updatedIndex, newConfiguration, ccr, txn);
-          }
+            @Override
+            public void run(WriteableTransaction txn) throws Exception
+            {
+              for (final MatchingRuleIndex updatedIndex : updatedIndexes.values())
+              {
+                // Which is what binds the codec of the index to the confidentiality now in force.
+                updatedIndex.open(txn, true);
+              }
+            }
+          });
         }
-      });
+        finally
+        {
+          entryContainer.unlock();
+        }
+
+        // Reported outside the write, since a replayed attempt would otherwise repeat the messages.
+        for (final MatchingRuleIndex updatedIndex : updatedIndexes.values())
+        {
+          ccr.setAdminActionRequired(true);
+          ccr.addMessage(NOTE_CONFIG_INDEX_CONFIDENTIALITY_REQUIRES_REBUILD.get(updatedIndex.getName()));
+        }
+      }
+      else
+      {
+        // A change which leaves those trees where they are - of the entry limit alone - needs no
+        // exclusive access of its own.
+        writeUpdatedIndexes(updatedIndexes, newConfiguration, confidentialityChanged, ccr);
+      }
     }
     catch (Exception e)
     {
@@ -981,6 +1032,27 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     }
 
     return ccr;
+  }
+
+  /**
+   * Applies the new configuration to the indexes which are kept, in a write of its own: their entry
+   * limit, and, when the confidentiality changed, untrusting them and giving up their trees.
+   */
+  private void writeUpdatedIndexes(final Map<String, MatchingRuleIndex> updatedIndexes,
+      final BackendIndexCfg newConfiguration, final boolean confidentialityChanged, final ConfigChangeResult ccr)
+      throws Exception
+  {
+    entryContainer.getRootContainer().getStorage().write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        for (final MatchingRuleIndex updatedIndex : updatedIndexes.values())
+        {
+          updateIndex(updatedIndex, newConfiguration, confidentialityChanged, ccr, txn);
+        }
+      }
+    });
   }
 
   private static void createIndex(WriteableTransaction txn, MatchingRuleIndex index, ConfigChangeResult ccr)
@@ -993,8 +1065,8 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     }
   }
 
-  private static void updateIndex(Index updatedIndex, BackendIndexCfg newConfig, ConfigChangeResult ccr,
-      WriteableTransaction txn)
+  private static void updateIndex(MatchingRuleIndex updatedIndex, BackendIndexCfg newConfig,
+      boolean confidentialityChanged, ConfigChangeResult ccr, WriteableTransaction txn)
   {
     // This index could still be used since a new smaller index size limit doesn't impact validity of the results.
     boolean newLimitRequiresRebuild = updatedIndex.setIndexEntryLimit(newConfig.getIndexEntryLimit());
@@ -1003,16 +1075,25 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       ccr.setAdminActionRequired(true);
       ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(updatedIndex.getName()));
     }
-    // This index could still be used when disabling confidentiality.
-    boolean newConfidentialityRequiresRebuild = updatedIndex.setConfidential(newConfig.isConfidentialityEnabled());
-    if (newConfidentialityRequiresRebuild)
-    {
-      ccr.setAdminActionRequired(true);
-      ccr.addMessage(NOTE_CONFIG_INDEX_CONFIDENTIALITY_REQUIRES_REBUILD.get(updatedIndex.getName()));
-    }
-    if (newLimitRequiresRebuild || newConfidentialityRequiresRebuild)
+    if (newLimitRequiresRebuild || confidentialityChanged)
     {
       updatedIndex.setTrusted(txn, false);
+    }
+    if (confidentialityChanged)
+    {
+      /*
+       * What this tree holds was written in the encoding of the setting which has just been given up,
+       * and the codec of the new one does not read it back as what it is: an encrypted record read as
+       * clear text decodes to an empty set of entry IDs rather than failing, which is a search
+       * answered with no entries at all. So the tree is given up here rather than left to the rebuild
+       * this change asks for, leaving an index which answers "undefined" - and is therefore not used -
+       * until that rebuild has run.
+       *
+       * Deleted rather than emptied record by record, which for an index of any size would be a
+       * transaction of its own making. The state record of the index is kept, so the tree the caller
+       * opens again is written back in the serialization this one was created with.
+       */
+      updatedIndex.delete(txn);
     }
   }
 

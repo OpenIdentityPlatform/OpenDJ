@@ -484,6 +484,20 @@ public class EntryContainer
         config.getCipherKeyLength(), confidentiality);
   }
 
+  /**
+   * Puts the confidentiality the configuration of a backend index asks for in force on the
+   * {@link CryptoSuite} the indexes of that attribute share, keeping the cipher of this backend.
+   *
+   * @param indexCrypto
+   *          the crypto suite the indexes of one attribute were opened with
+   * @param confidentiality
+   *          whether what those indexes store has to be encrypted from now on
+   */
+  void setIndexConfidentiality(CryptoSuite indexCrypto, boolean confidentiality)
+  {
+    indexCrypto.newParameters(config.getCipherTransformation(), config.getCipherKeyLength(), confidentiality);
+  }
+
   private AttributeIndex newAttributeIndex(BackendIndexCfg cfg, CryptoSuite cryptoSuite) throws ConfigException
   {
     return new AttributeIndex(cfg, state, this, cryptoSuite);
