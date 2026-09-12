@@ -1420,7 +1420,7 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         SearchResultEntry sr = getLastSearchResult(conn, taskDN, "ds-task-log-message", "ds-task-state");
-        String logMsg = firstValueAsString(sr, "ds-task-log-message");
+        String logMsg = InstallerHelper.getRelevantLogMessage(InstallerHelper.getTaskLogMessages(sr));
         if (logMsg != null && !logMsg.equals(lastLogMsg))
         {
           logger.info(LocalizableMessage.raw(logMsg));
@@ -1574,7 +1574,7 @@ public class ReplicationCliMain extends ConsoleApplication
             "ds-task-purge-conflicts-historical-purge-completed-in-time",
             "ds-task-purge-conflicts-historical-purge-completed-in-time",
             "ds-task-purge-conflicts-historical-last-purged-changenumber");
-        String logMsg = firstValueAsString(sr, "ds-task-log-message");
+        String logMsg = InstallerHelper.getRelevantLogMessage(InstallerHelper.getTaskLogMessages(sr));
         if (logMsg != null && !logMsg.equals(lastLogMsg))
         {
           logger.info(LocalizableMessage.raw(logMsg));
@@ -6734,7 +6734,7 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         SearchResultEntry sr = getLastSearchResult(conn, dn, "ds-task-log-message", "ds-task-state");
-        String logMsg = firstValueAsString(sr, "ds-task-log-message");
+        String logMsg = InstallerHelper.getRelevantLogMessage(InstallerHelper.getTaskLogMessages(sr));
         if (logMsg != null && !logMsg.equals(lastLogMsg))
         {
           logger.info(LocalizableMessage.raw(logMsg));
@@ -6870,7 +6870,8 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
 
-        String logMsg = firstValueAsString(sr, "ds-task-log-message");
+        List<String> logMsgs = InstallerHelper.getTaskLogMessages(sr);
+        String logMsg = InstallerHelper.getRelevantLogMessage(logMsgs);
         if (logMsg != null && !logMsg.equals(lastLogMsg))
         {
           logger.info(LocalizableMessage.raw(logMsg));
@@ -6906,8 +6907,7 @@ public class ReplicationCliMain extends ConsoleApplication
             ClientException ce = new ClientException(
                 ReturnCode.APPLICATION_ERROR, errorMsg,
                 null);
-            if (lastLogMsg == null
-                || helper.isPeersNotFoundError(lastLogMsg))
+            if (helper.isPeersNotFoundError(logMsgs))
             {
               logger.warn(LocalizableMessage.raw("Throwing peer not found error.  "+
                   "Last Log Msg: "+lastLogMsg));
