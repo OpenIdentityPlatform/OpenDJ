@@ -712,8 +712,8 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         if (capSpent || (attempt > 1 && now - giveUpAt >= 0))
         {
           final long elapsedMs = TimeUnit.NANOSECONDS.toMillis(now - startedAt);
-          //which of the two bounds was spent, so that the config change paths - which report this as a bare stack
-          //trace with no message id - say whether raising the attempts or the window is what would have helped
+          //which of the two bounds was spent, so that the config change paths - which report this as the trailing
+          //cause of a message of their own - say whether raising the attempts or the window is what would have helped
           final String boundSpent = capSpent ? "attempt cap" : "retry window";
           final StorageRuntimeException spent = new StorageRuntimeException(
               "pdb: backend '" + config.getBackendId() + "' did not apply the transaction after " + attempt

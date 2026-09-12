@@ -268,8 +268,16 @@ public class EntryContainer
       }
       catch (Exception de)
       {
+        // The configuration entry naming those trees is gone and the storage still holds them, so
+        // this outlives the session which asked for the deletion: logged as well as reported. The
+        // framework logs the result too (ConfigurationHandler.handleConfigChangeResult), but as an
+        // argument of a message of its own, so only this call puts this message id in the error log.
+        final LocalizableMessage message = ERR_CONFIG_INDEX_DELETE_FAILED.get(
+            cfg.getAttribute().getNameOrOID(), getBaseDN(), StaticUtils.stackTraceToSingleLineString(de));
+        logger.error(message);
         ccr.setResultCode(getCoreConfigManager().getServerErrorResultCode());
-        ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(message);
       }
       finally
       {
@@ -369,8 +377,13 @@ public class EntryContainer
       }
       catch (Exception e)
       {
+        // Reported and logged for the reason given in the index delete listener above.
+        final LocalizableMessage message = ERR_CONFIG_VLV_INDEX_DELETE_FAILED.get(
+            cfg.getName(), getBaseDN(), StaticUtils.stackTraceToSingleLineString(e));
+        logger.error(message);
         ccr.setResultCode(getCoreConfigManager().getServerErrorResultCode());
-        ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(message);
       }
       finally
       {
@@ -2544,24 +2557,31 @@ public class EntryContainer
     EntryContainer.this.lock();
     try
     {
-      storage.write(new WriteOperation()
-      {
-        @Override
-        public void run(WriteableTransaction txn) throws Exception
-        {
-          id2entry.setDataConfig(newDataConfig(cfg));
-          EntryContainer.this.config = cfg;
-        }
-      });
+      // None of this is transactional: the entries and the indexes are handed the parameters to
+      // encode with from now on, and neither of those is a record in a tree. The storage.write which
+      // used to wrap it had a transactional body, removed long before the wrapper was; left behind,
+      // it was a transaction a bounded storage could give up on, and giving up between the entries
+      // and the indexes leaves the two encoded under settings which no longer agree. What can fail
+      // is done first, before anything has been changed; publishing to the other threads is what the
+      // entry container lock is held for here, and never was the transaction's doing.
+      final String cipherTransformation = cfg.getCipherTransformation();
+      final int cipherKeyLength = cfg.getCipherKeyLength();
+      final DataConfig dataConfig = newDataConfig(cfg);
+      id2entry.setDataConfig(dataConfig);
       for (CryptoSuite indexCrypto : attrCryptoMap.values())
       {
-        indexCrypto.newParameters(cfg.getCipherTransformation(), cfg.getCipherKeyLength(), indexCrypto.isEncrypted());
+        indexCrypto.newParameters(cipherTransformation, cipherKeyLength, indexCrypto.isEncrypted());
       }
+      EntryContainer.this.config = cfg;
     }
     catch (Exception e)
     {
+      final LocalizableMessage message =
+          ERR_CONFIG_BACKEND_DATA_CHANGE_FAILED.get(getBaseDN(), stackTraceToSingleLineString(e));
+      logger.error(message);
       ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
-      ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
+      ccr.setAdminActionRequired(true);
+      ccr.addMessage(message);
     }
     finally
     {
