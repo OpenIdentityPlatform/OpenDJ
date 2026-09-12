@@ -409,6 +409,19 @@ jobs:
         if ($LASTEXITCODE -ne 0) { throw "net stop 'OpenDJ Server' failed with exit code $LASTEXITCODE" }
         opendj-server-legacy\target\package\opendj\bat\windows-service.bat --disableService
 
+    # A test step that fails leaves its instances behind. The server-side story of a
+    # failed start lives in logs/server.out and logs/errors, and nothing else prints it
+    # (setup only has the client-side view, see issue #1030).
+    - name: Dump the server logs of a failed test
+      if: failure()
+      shell: bash
+      run: |
+        for f in opendj-server-legacy/target/package/opendj*/logs/server.out opendj-server-legacy/target/package/opendj*/logs/errors; do
+          [ -f "$f" ] || continue
+          echo "===== $f"
+          cat "$f"
+        done
+
     - name: Upload artifacts OpenDJ Server
       uses: actions/upload-artifact@v7
       with:

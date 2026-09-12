@@ -58,16 +58,13 @@ echo %SCRIPT%: CLASSPATH=%CLASSPATH% >> %LOG%
 
 echo %SCRIPT%: PATH=%PATH% >> %LOG%
 
-rem cleanup the tmp directory
-set CUR_DIR=%CD%
+rem Remove the native libraries the BC FIPS loader extracts into the tmp
+rem directory on every start, so that they do not pile up. Nothing else in
+rem there is ours to remove: the tmp directory is java.io.tmpdir for every
+rem tool, and a tool may still be running - setup starts the server through
+rem this script and keeps its own log open (issue #1030).
 set OPENDJ_TMP_DIR=%INSTANCE_ROOT%\tmp
-rem The paths must be quoted: an unquoted parenthesis (e.g. from
-rem "C:\Program Files (x86)") terminates the ( ) block at parse time.
-dir /b /s /a "%OPENDJ_TMP_DIR%" | findstr .>nul && (
-    cd /d "%OPENDJ_TMP_DIR%"
-    for /F "delims=" %%i in ('dir /b') do (rmdir "%%i" /s/q>NUL 2>&1 || del "%%i" /s/q>NUL 2>&1)
-    cd /d "%CUR_DIR%"
-)
+for /D %%i in ("%OPENDJ_TMP_DIR%\bc-fips-jni_*") do rmdir "%%i" /s/q>NUL 2>&1
 
 "%OPENDJ_JAVA_BIN%" -client %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configFile "%INSTANCE_ROOT%\config\config.ldif" --checkStartability %*
 
