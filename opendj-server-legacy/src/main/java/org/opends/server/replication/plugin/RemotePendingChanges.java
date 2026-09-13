@@ -669,9 +669,11 @@ final class RemotePendingChanges
    * Get the first update in the list that have some dependencies cleared.
    * <p>
    * The change is handed to the calling thread, which owns it from then on: it is
-   * replayed by whichever replay thread cleared the change it was waiting for rather than
-   * by the one which parked it, and a change is given back by the thread which owns it
-   * and by nobody else (issue #922).
+   * replayed by whichever replay thread calls this first once the changes before it have
+   * left - as a rule the one which cleared the change it was waiting for, though the one
+   * which parked it comes through here on its own way out and takes it back itself when
+   * the clearing happened in between - and a change is given back by the thread which
+   * owns it and by nobody else (issue #922).
    *
    * @return The LDAPUpdateMsg to be handled.
    */

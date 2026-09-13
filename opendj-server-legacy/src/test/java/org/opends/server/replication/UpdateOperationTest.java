@@ -3199,10 +3199,15 @@ public class UpdateOperationTest extends ReplicationTestCase
    * handed out: the changes parked behind it stayed parked, and the ServerState of this
    * domain stayed behind them until some other change was replayed here.
    * <p>
-   * What tells the two apart is which thread replays the parked change. It is handed to
-   * whichever thread cleared the change it was waiting for, so it is replayed by the very
-   * thread which has just committed the change whose ack threw - a change nobody handed out
-   * is replayed by no one at all, and the wait below is what says so.
+   * What tells the two apart is that the parked change is replayed at all. The child is
+   * seen parked before the parent is let go, so the replay queue is not where it can come
+   * from anymore: only {@code getNextUpdate()} hands it out, and with the parent held until
+   * then, the thread which committed the parent is the one left to call it - a change
+   * nobody handed out is replayed by no one at all, and the wait below is what says so.
+   * Which thread replays it is deliberately not asserted: {@code getNextUpdate()} hands a
+   * parked change to whichever thread calls it first once the changes before it are gone,
+   * and the thread which parked it calls it on its own way out, so a parker which is slow
+   * to get there takes the child back itself when the parent commits in between.
    */
   @Test
   public void theChangesParkedBehindAChangeWhoseAckFailedAreReplayed() throws Exception
@@ -3244,25 +3249,30 @@ public class UpdateOperationTest extends ReplicationTestCase
         OperationType.ADD, "PreParse",
         op -> parentCsn.equals(OperationContext.getCSN(op))
             || childCsn.equals(OperationContext.getCSN(op)));
+    final long initialDependent = getMonitorAttrValue(baseDN, "dependent-changes-size");
     try
     {
       domain.processUpdate(new AddMsgWhoseAckThrows(parentCsn, parent.getName(), parentUUID,
           baseUUID, parent.getObjectClassAttribute(), parent.getAllAttributes()));
-      final Thread replayingParent = parked.awaitParked(60, SECONDS);
+      parked.awaitParked(60, SECONDS);
 
       domain.processUpdate(new AddMsg(childCsn, child.getName(), childUUID, parentUUID,
           child.getObjectClassAttribute(), child.getAllAttributes(), null));
+      /*
+       * Seen parked before the parent is let go. Released on the spot, the parent could be
+       * applied and committed before a replay thread has taken the child off the queue at
+       * all, and the child would then be replayed from the queue with nothing to wait for -
+       * a pass which says nothing about the hand-out this test is about.
+       */
+      assertMonitorAttrValueEventually(baseDN, "dependent-changes-size", initialDependent + 1,
+          "the child must be parked behind the parent while the parent is held");
 
       /*
        * The parent is applied and its ack throws where it is published. The replay carries
-       * on all the same, and the child is the change it hands itself next.
+       * on all the same, and the child is the change it hands out next.
        */
       parked.release();
-      final Thread replayingChild = parked.awaitParked(60, SECONDS);
-      Assertions.assertThat(replayingChild)
-          .as("the change which was parked must be replayed by the thread which cleared what"
-              + " it was waiting for, rather than be left waiting")
-          .isSameAs(replayingParent);
+      parked.awaitParked(60, SECONDS);
       parked.release();
 
       assertNotNull(getEntry(child.getName(), 30000, true),
@@ -3286,12 +3296,16 @@ public class UpdateOperationTest extends ReplicationTestCase
    * it anymore, and every later delivery of it would be refused as a duplicate - the wedge
    * of this issue, on the dependency road.
    * <p>
-   * The parent is held at the pre-parse plugin point while the child is delivered, so the
-   * child is parked behind a change in flight, and the thread which is thrown out of the
-   * child is read at the same plugin point: it must be the one which committed the parent,
-   * which is what says the child was handed out rather than taken off the queue. The child
-   * is thrown out of once, inside the replay, and then unwound past its ack, on the road
-   * every catch of the replay has already run on.
+   * The parent is held at the pre-parse plugin point while the child is delivered, and it
+   * is let go only once the child is seen parked behind it: that is what says the child was
+   * handed out rather than taken off the queue, since a parked change leaves by
+   * {@code getNextUpdate()} and by no other road. The thread which is thrown out of the
+   * child is read at the same plugin point, for the assertion that the Error did not end
+   * it; which thread it is says nothing about the hand-out and is not asserted - the parker
+   * calls {@code getNextUpdate()} on its own way out, so it takes the child back itself
+   * when the parent commits before it gets there. The child is thrown out of once, inside
+   * the replay, and then unwound past its ack, on the road every catch of the replay has
+   * already run on.
    */
   @Test
   public void aChangeHandedOutAsADependencyIsGivenBackWhenItsReplayIsUnwound() throws Exception
@@ -3324,6 +3338,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     final CSN parentCsn = gen.newCSN();
     final CSN childCsn = gen.newCSN();
     final long initialFailures = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+    final long initialDependent = getMonitorAttrValue(baseDN, "dependent-changes-size");
     final ParkedReplay parked = ShortCircuitPlugin.parkReplayedOperations(
         OperationType.ADD, "PreParse", op -> parentCsn.equals(OperationContext.getCSN(op)));
     /*
@@ -3349,12 +3364,19 @@ public class UpdateOperationTest extends ReplicationTestCase
     {
       domain.processUpdate(new AddMsg(parentCsn, parent.getName(), parentUUID, baseUUID,
           parent.getObjectClassAttribute(), parent.getAllAttributes(), null));
-      final Thread replayingParent = parked.awaitParked(60, SECONDS);
+      parked.awaitParked(60, SECONDS);
 
       domain.processUpdate(new AddMsgWhoseReplayIsUnwoundAfterItsAck(childCsn, child.getName(),
           childUUID, parentUUID, child.getObjectClassAttribute(), child.getAllAttributes()));
+      /*
+       * Seen parked before the parent is let go: a child taken off the queue once the
+       * parent has committed is replayed with nothing to wait for, and the give-back it
+       * would then exercise is the one of the ordinary road rather than of the hand-out.
+       */
+      assertMonitorAttrValueEventually(baseDN, "dependent-changes-size", initialDependent + 1,
+          "the child must be parked behind the parent while the parent is held");
 
-      // The parent is applied, and the child is the change its thread hands itself next.
+      // The parent is applied, and the child is the change handed out next.
       parked.release();
 
       TestTimer timer = new TestTimer.Builder()
@@ -3370,10 +3392,6 @@ public class UpdateOperationTest extends ReplicationTestCase
               "the change which was handed out must have been thrown out of");
         }
       });
-      Assertions.assertThat(replayingChild.get())
-          .as("the change which was parked must be replayed by the thread which cleared what"
-              + " it was waiting for: that is the hand-out this test is about")
-          .isSameAs(replayingParent);
 
       /*
        * The child was thrown out of and its replay was then unwound, so it is not in the
@@ -3406,7 +3424,7 @@ public class UpdateOperationTest extends ReplicationTestCase
               + " from the one which was unwound");
       assertEquals(getMonitorAttrValue(baseDN, "replayed-updates-failed"), initialFailures,
           "a change which was delivered again must not be counted as one this replica gave up on");
-      assertTrue(replayingParent.isAlive(),
+      assertTrue(replayingChild.get().isAlive(),
           "an Error which unwinds a replay must not end the thread which met it (issue #923)");
     }
     finally
