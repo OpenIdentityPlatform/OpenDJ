@@ -3382,8 +3382,10 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * Returns the generation of the session of this domain, which changes every time the
-   * session is stopped or started.
+   * Returns the generation of the session of this domain: bumped by
+   * {@link #disableService()} and {@link #enableService()} under
+   * {@link #serviceStateLock}, not by the starts at domain startup (see
+   * {@code sessionGeneration}).
    * <p>
    * It only says anything while {@link #serviceStateLock} is held, and is meant to be
    * read under the lock which stopped a session and read again under the lock which
@@ -3429,21 +3431,34 @@ public abstract class ReplicationDomain
 
   /**
    * Change some ReplicationDomain parameters.
+   * <p>
+   * The change and the restart it may call for are taken together under
+   * {@link #serviceStateLock}, as {@link #readAssuredConfig(ReplicationDomainCfg, boolean)}
+   * takes its own: a session brought up between the two would negotiate the broker
+   * properties which are half way through being changed.
    *
    * @param config
    *          The new configuration that this domain should now use.
    */
   protected void changeConfig(ReplicationDomainCfg config)
   {
-    if (broker != null && broker.changeConfig(config))
+    synchronized (serviceStateLock)
     {
-      restartService();
+      if (broker != null && broker.changeConfig(config))
+      {
+        restartService();
+      }
     }
   }
 
   /**
    * Applies a configuration change to the attributes which should be included
    * in the ECL.
+   * <p>
+   * Taken under {@link #serviceStateLock} like every other configuration change: this one
+   * comes from the external changelog domain - from the entry of its own, or from the
+   * domain configuration change which reads that entry - and it restarts the session as
+   * well, so the attributes and the restart go together.
    *
    * @param includeAttributes
    *          attributes to be included with all change records.
@@ -3453,11 +3468,14 @@ public abstract class ReplicationDomain
   public void changeConfig(Set<String> includeAttributes,
       Set<String> includeAttributesForDeletes)
   {
-    final boolean attrsModified = setEclIncludes(
-        getServerId(), includeAttributes, includeAttributesForDeletes);
-    if (attrsModified && broker != null)
+    synchronized (serviceStateLock)
     {
-      restartService();
+      final boolean attrsModified = setEclIncludes(
+          getServerId(), includeAttributes, includeAttributesForDeletes);
+      if (attrsModified && broker != null)
+      {
+        restartService();
+      }
     }
   }
 

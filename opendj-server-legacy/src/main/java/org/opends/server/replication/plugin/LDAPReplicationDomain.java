@@ -4971,23 +4971,6 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
         domCfg.getBaseDN(), stackTraceToSingleLineString(e));
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * Taken under {@link #serviceStateLock} like every other configuration change: this one
-   * comes from the external changelog domain - from the entry of its own, or from
-   * {@link #applyECLConfiguration} - and it restarts the session as well.
-   */
-  @Override
-  public void changeConfig(Set<String> includeAttributes,
-      Set<String> includeAttributesForDeletes)
-  {
-    synchronized (serviceStateLock)
-    {
-      super.changeConfig(includeAttributes, includeAttributesForDeletes);
-    }
-  }
-
   @Override
   public boolean isConfigurationChangeAcceptable(
          ReplicationDomainCfg configuration, List<LocalizableMessage> unacceptableReasons)

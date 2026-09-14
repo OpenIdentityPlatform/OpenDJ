@@ -22,6 +22,7 @@ import static org.testng.Assert.*;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
@@ -124,7 +125,10 @@ public class SessionRestartTest extends ReplicationTestCase
     domainCfg.setExternalChangelogDomain(
         new ExternalChangelogDomainFakeCfg(true, eclIncludes, new TreeSet<String>()));
 
-    assertEquals(domain.applyConfigurationChange(domainCfg).getResultCode(), ResultCode.SUCCESS);
+    final ConfigChangeResult ccr = domain.applyConfigurationChange(domainCfg);
+    assertEquals(ccr.getResultCode(), ResultCode.SUCCESS, ccr.getMessages().toString());
+    // the restart the change asked for was refused, and said so rather than reported as applied
+    assertTrue(ccr.adminActionRequired(), "the refused restart was reported as fully applied");
     // the change did reach the external changelog configuration of the domain
     assertThat(domain.getEclIncludes()).contains("cn");
   }
