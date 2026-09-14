@@ -463,6 +463,11 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
    * change which is accepted into the configuration without being in force says so instead
    * of passing for an applied one. The properties are declared as requiring a server
    * restart, and this is what the administrator is told at the moment of the change.
+   * <p>
+   * The values compared against are the ones the server started with, so a value which
+   * differs is reported on the change which made it differ and again on every later change
+   * to the crypto manager until the server is restarted: a reminder that the value stored
+   * is not the one in force, rather than a report of the one change which stored it.
    *
    * @param cfg
    *          The configuration which has just been stored.
@@ -527,8 +532,10 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
     {
       // A trust store which cannot be read now costs the administrator this report and
       // nothing else: the change is stored either way, and a nickname it does not hold is
-      // reported again, as an error, when the SSL context is built after the restart.
+      // reported again, as an error, when the SSL context is built after the restart. The
+      // cost is named next to the restart the change asks for, rather than paid silently.
       logger.traceException(e);
+      ccr.addMessage(WARN_CRYPTOMGR_SSL_CERT_NICKNAME_LOOKUP_FAILED.get(e.getMessageObject()));
     }
   }
 
