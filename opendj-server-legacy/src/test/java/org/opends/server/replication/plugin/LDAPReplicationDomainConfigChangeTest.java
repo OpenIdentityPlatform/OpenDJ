@@ -45,6 +45,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.AssuredMode;
+import org.opends.server.replication.service.ReplicationDomain;
 import org.testng.annotations.Test;
 
 /**
@@ -541,7 +542,8 @@ public class LDAPReplicationDomainConfigChangeTest extends ReplicationTestCase
 
   private static Object serviceStateLockOf(LDAPReplicationDomain domain) throws Exception
   {
-    final Field serviceStateLock = LDAPReplicationDomain.class.getDeclaredField("serviceStateLock");
+    // Declared where the session lives, next to disableService()/enableService()
+    final Field serviceStateLock = ReplicationDomain.class.getDeclaredField("serviceStateLock");
     serviceStateLock.setAccessible(true);
     return serviceStateLock.get(domain);
   }
