@@ -238,6 +238,85 @@ public class ReplicationDomainTest extends ReplicationTestCase
   }
 
   /**
+   * The session generation is the identity of a session: a replay thread which stopped the
+   * session and let the lock go compares the generation it read then with the one it reads
+   * when it comes back, and starts the session only if the two are the same. Both halves
+   * of a restart have to move it, or a session stopped or started by something else in the
+   * meantime would look like the one that thread stopped.
+   */
+  @Test
+  public void everyStopAndEveryStartOfTheSessionIsCounted() throws Exception
+  {
+    final DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer = null;
+    FakeReplicationDomain domain = null;
+    try
+    {
+      final int replServerPort = TestCaseUtils.findFreePort();
+      replServer = createReplicationServer(1, replServerPort, "ReplicationDomainTestDbGeneration", 100);
+      domain = new FakeReplicationDomain(testService, 2, newTreeSet("localhost:" + replServerPort), 1000, 1);
+
+      final long live = sessionGenerationOf(domain);
+      domain.disableService();
+      final long stopped = sessionGenerationOf(domain);
+      assertNotEquals(stopped, live, "stopping the session left its generation where it was");
+
+      domain.enableService();
+      final long started = sessionGenerationOf(domain);
+      assertNotEquals(started, stopped, "starting the session left its generation where it was");
+    }
+    finally
+    {
+      disable(domain);
+      remove(replServer);
+    }
+  }
+
+  /**
+   * What {@code restartSession()} of the LDAP domain does, minus the wait: the session is
+   * stopped, the generation is read as the claim on it, and the lock is let go. A
+   * {@link ReplicationDomain#restartService()} run by something else in the meantime - a
+   * configuration change - has to leave that claim stale, or the thread which comes back
+   * from its wait could not tell the session it stopped from the one which replaced it.
+   */
+  @Test
+  public void aClaimOnAStoppedSessionIsStaleOnceSomethingElseRestartedIt() throws Exception
+  {
+    final DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer = null;
+    FakeReplicationDomain domain = null;
+    try
+    {
+      final int replServerPort = TestCaseUtils.findFreePort();
+      replServer = createReplicationServer(1, replServerPort, "ReplicationDomainTestDbStaleClaim", 100);
+      domain = new FakeReplicationDomain(testService, 2, newTreeSet("localhost:" + replServerPort), 1000, 1);
+
+      domain.disableService();
+      final long claim = sessionGenerationOf(domain);
+
+      domain.restartService();
+
+      assertNotEquals(sessionGenerationOf(domain), claim,
+          "a restart of the session by something else left the generation where it was,"
+              + " so the claim of the thread which stopped it still looks current");
+    }
+    finally
+    {
+      disable(domain);
+      remove(replServer);
+    }
+  }
+
+  /** Read under the lock, as {@link ReplicationDomain#getSessionGeneration()} asks. */
+  private static long sessionGenerationOf(ReplicationDomain domain)
+  {
+    synchronized (domain.serviceStateLock)
+    {
+      return domain.getSessionGeneration();
+    }
+  }
+
+  /**
    * Publish performance test.
    * The test loops calling the publish methods of the ReplicationDomain.
    * It should not be enabled by default as it will use a lot of time.
