@@ -24,6 +24,7 @@ import static org.testng.Assert.*;
 import java.util.SortedSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.TestCaseUtils;
@@ -83,6 +84,11 @@ public class ServerStateFlushTest extends ReplicationTestCase
     private final DN stateEntryDN;
     private volatile StateWrite stateWrite = StateWrite.SUCCEEDS;
     private final AtomicInteger failedStateWrites = new AtomicInteger();
+    /**
+     * Those of {@link #failedStateWrites} the checkpointer made once it was asked to stop:
+     * the write its wake-up triggers, and the last one it runs on its way out.
+     */
+    private final AtomicInteger failedStateWritesAfterShutdown = new AtomicInteger();
     private final CountDownLatch blockedWriteStarted = new CountDownLatch(1);
     private final CountDownLatch blockedWriteReleased = new CountDownLatch(1);
 
@@ -104,10 +110,10 @@ public class ServerStateFlushTest extends ReplicationTestCase
         switch (stateWrite)
         {
         case THROWS_RUNTIME_EXCEPTION:
-          failedStateWrites.incrementAndGet();
+          recordFailedStateWrite();
           throw new IllegalStateException("injected failure of a replication state write");
         case THROWS_ERROR:
-          failedStateWrites.incrementAndGet();
+          recordFailedStateWrite();
           throw new OutOfMemoryError("injected failure of a replication state write");
         case BLOCKS:
           blockedWriteStarted.countDown();
@@ -126,6 +132,16 @@ public class ServerStateFlushTest extends ReplicationTestCase
         }
       }
       super.replaceEntry(oldEntry, newEntry, modifyOperation);
+    }
+
+    private void recordFailedStateWrite()
+    {
+      failedStateWrites.incrementAndGet();
+      final Thread writer = Thread.currentThread();
+      if (writer instanceof DirectoryThread && ((DirectoryThread) writer).isShutdownInitiated())
+      {
+        failedStateWritesAfterShutdown.incrementAndGet();
+      }
     }
   }
 
@@ -159,8 +175,13 @@ public class ServerStateFlushTest extends ReplicationTestCase
    * Takes back what {@link #setUpDomain()} put in place, one resource at a time: a setup
    * which failed halfway through must not leave a backend or a domain behind for the next
    * test of the class to trip over.
+   * <p>
+   * Bounded on its own: the {@code timeOut} of a test covers the test alone, and for a test
+   * which leaves the domain to this method, the shutdown under test runs here - a shutdown
+   * which hangs must fail the test rather than hold the whole run. The bound has room for
+   * the budget the shutdown gives the checkpointer and for the wait for the thread below.
    */
-  @AfterMethod
+  @AfterMethod(timeOut = 90000)
   public void tearDownDomain() throws Exception
   {
     if (backend != null)
@@ -170,16 +191,18 @@ public class ServerStateFlushTest extends ReplicationTestCase
       backend.stateWrite = StateWrite.SUCCEEDS;
       backend.blockedWriteReleased.countDown();
     }
+    if (domain != null && !domainDeleted)
+    {
+      // Stops the checkpointer within a tick: waiting for it before this would spend the
+      // whole wait on a thread which is running by design.
+      deleteDomain();
+    }
+    domain = null;
     if (checkpointer != null)
     {
       checkpointer.join(SECONDS.toMillis(CHECKPOINT_TIMEOUT_IN_SECS));
       checkpointer = null;
     }
-    if (domain != null && !domainDeleted)
-    {
-      deleteDomain();
-    }
-    domain = null;
     if (replicationServer != null)
     {
       remove(replicationServer);
@@ -211,7 +234,12 @@ public class ServerStateFlushTest extends ReplicationTestCase
         "the checkpointer did not write the state after a write which threw");
   }
 
-  /** Shutting the domain down must not wait forever for a checkpointer whose writes all throw. */
+  /**
+   * Shutting the domain down must not wait forever for a checkpointer whose writes all
+   * throw, and the checkpointer must hold the exception of the last write it runs on its
+   * way out as it does the others: that write used to end the thread before it reported
+   * that it was done.
+   */
   @Test(timeOut = 120000)
   public void shutdownCompletesWhenEveryStateWriteThrows() throws Exception
   {
@@ -220,9 +248,18 @@ public class ServerStateFlushTest extends ReplicationTestCase
 
     waitForFailedStateWrites(1);
 
+    // A thread which lets an exception out is dead too, so isAlive() alone can not tell the
+    // last write being held from the thread dying of it. The handler of the thread outranks
+    // the one of its group, which would log the exception and raise an alert instead.
+    final AtomicReference<Throwable> uncaught = new AtomicReference<>();
+    checkpointer.setUncaughtExceptionHandler((t, e) -> uncaught.set(e));
+
     deleteDomain();
 
     assertFalse(checkpointer.isAlive(), "the state checkpointer is still running after the shutdown");
+    assertNull(uncaught.get(), "the last state write let an exception out of the checkpointer");
+    assertTrue(backend.failedStateWritesAfterShutdown.get() > 0,
+        "the checkpointer did not write the state on its way out");
   }
 
   /**

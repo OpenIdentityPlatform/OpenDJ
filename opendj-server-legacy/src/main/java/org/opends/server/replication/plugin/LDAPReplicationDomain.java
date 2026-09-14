@@ -531,7 +531,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * normally stops within a modify: a checkpointer which is still writing after this went to
    * a backend which is not answering, and waiting for it any longer would hang the shutdown
    * of the whole server. This is the budget {@code ServerShutdownMonitor} gives a thread
-   * before it starts interrupting them.
+   * before it starts interrupting them. It is spent once per domain, and it bounds the
+   * shutdown of this domain, not of the server: a write which ignores the interrupt still
+   * holds its backend's quiescence, so the server shutdown waits for it again when it
+   * closes that backend.
    */
   private static final long FLUSH_THREAD_SHUTDOWN_TIMEOUT_IN_MS = 30000;
 
@@ -2574,6 +2577,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * - is never going to report that it is done, and a shutdown which waits for it forever
      * takes the shutdown of the server down with it. join() covers both, and a thread which
      * was never started as well.
+     *
+     * Every caller waits, the one which lost the race above included, so that none of them
+     * returns while the checkpointer is still writing: a second shutdown() of a domain whose
+     * checkpointer is stuck pays the budget again rather than leave before the first one.
      */
     try
     {
