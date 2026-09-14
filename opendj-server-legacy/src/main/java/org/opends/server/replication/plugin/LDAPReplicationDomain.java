@@ -3325,8 +3325,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        */
       if (replayFailed && recoverFromReplayFailure(msg.getCSN(), replayThreadShutdown))
       {
-        // The ack has been published and the change, still owned by the replication
-        // server, is being delivered again: there is nothing left to replay here.
+        // The ack has been published and the change is given back: the replication server
+        // delivers it again, now or - while a total update owns the session - after the
+        // import restarts it. There is nothing left to replay here.
         return;
       }
 
@@ -5544,6 +5545,9 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * is not asked for again by anyone until then; if no import follows - the request was
    * refused, or gave up waiting - it stays listed until the next failed replay restarts
    * the session, which has the replication server send it again with everything after it.
+   * Listed, it holds the ServerState back as well: a commit moves the state no further than
+   * the oldest uncommitted change, so the state in memory, and the one persisted from it,
+   * stop at the change until that restart.
    */
   private boolean sessionHasAnOwner()
   {

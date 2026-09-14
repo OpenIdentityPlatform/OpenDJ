@@ -29,14 +29,17 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.EntryMsg;
+import org.opends.server.replication.protocol.InitializeRequestMsg;
 import org.opends.server.replication.protocol.InitializeTargetMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
@@ -45,6 +48,7 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Entry;
+import org.opends.server.types.OperationType;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -56,10 +60,13 @@ import org.testng.annotations.Test;
  * thread, and the backend it replaces is deregistered for the length of it. A change which
  * was queued for replay before the {@code InitializeTargetMsg} arrived is replayed into no
  * backend: whatever such a replay decides is about to be overwritten by the import, and the
- * one thing it must not do is stop the session the import is reading (issue #956).
+ * one thing it must not do is stop the session the import is reading (issue #956). The same
+ * holds from the moment the total update is asked for: the answer to the request arrives
+ * over that session, so a replay which fails while it is on its way must not restart it.
  * <p>
  * The exporter is a broker of this test, so that the test says when the entries arrive: the
- * change is replayed while the import is waiting for them.
+ * change is replayed while the import is waiting for them - or, for the request, while the
+ * exporter is holding the answer.
  */
 @SuppressWarnings("javadoc")
 public class ReplayDuringImportTest extends ReplicationTestCase
@@ -126,12 +133,15 @@ public class ReplayDuringImportTest extends ReplicationTestCase
   /**
    * A change replayed while the import streams must leave the session to the import.
    * <p>
-   * The operation is refused with NO_SUCH_OBJECT - nothing serves the base DN - and the
-   * entryUUID search conflict resolution reads the data with can not run either. A failure
-   * of the server is what that is, and once the attempts in place are spent the change is
-   * given back and the session restarted for it to be delivered again: that restart stops
-   * the broker the import is reading, the import ends on the entries which had arrived, and
-   * nothing reports it - the stream ends the way a finished one does.
+   * The change is given back at the top of its first attempt: the data it would be applied
+   * to is being replaced, so nothing is attempted into the backend the import took away,
+   * nothing is reported, and the session is left to the import - which streams every entry
+   * to its end. Without the hold-off the operation is refused with NO_SUCH_OBJECT - nothing
+   * serves the base DN - and the entryUUID search conflict resolution reads the data with
+   * can not run either: the attempts in place are spent into no backend and the exit
+   * reports the change; without the owner the total update is, the session is then
+   * restarted for the change to be delivered again, which stops the broker the import is
+   * reading, and the import ends on the entries which had arrived with nothing to say it.
    */
   @Test(timeOut = 120_000)
   public void aReplayDuringTheImportLeavesTheSessionToTheImport() throws Exception
@@ -159,6 +169,15 @@ public class ReplayDuringImportTest extends ReplicationTestCase
       assertTrue(entryExists(dn), "the import ended before " + dn
           + " arrived: the session it streams over was stopped from under it");
     }
+    /*
+     * The two roads which leave the session to the import are told apart here: the
+     * hold-off gives the change back before an attempt is made, the guard on the restart
+     * after the attempts are spent. The exhaustion exit is the one thing the first road
+     * leaves no record of.
+     */
+    assertThat(errorLogRecordsOf(ERR_ERROR_REPLAYING_OPERATION.ordinal(), csn))
+        .as("the change was attempted into no backend instead of being given back at once")
+        .isEmpty();
     assertThat(errorLogRecordsOf(WARN_REPLAY_RETRYING_CHANGE.ordinal(), csn))
         .as("the change was asked for again, which restarts the session the import streams over")
         .isEmpty();
@@ -204,6 +223,68 @@ public class ReplayDuringImportTest extends ReplicationTestCase
   }
 
   /**
+   * A total update this replica asked for owns the session from the request, not from the
+   * first entry: the {@code InitializeTargetMsg} which answers the request arrives over
+   * that session, and a restart made while the answer is on its way loses it.
+   * <p>
+   * The backend is live for the length of the request - nothing has been taken away yet -
+   * so the change is attempted, every attempt ends on an entryUUID search which does not
+   * run, and the exhaustion exit reports it: what is refused is the restart which would
+   * have followed, and the retry warning which goes with it. The exporter then answers the
+   * request, and its entries stream to their end over the session which was left alone.
+   */
+  @Test(timeOut = 120_000)
+  public void aRequestOnItsWayOwnsTheSessionTheAnswerArrivesOver() throws Exception
+  {
+    final Entry entry = TestCaseUtils.addEntry(
+        "dn: cn=renamedSince," + EXAMPLE_DN,
+        "objectClass: top",
+        "objectClass: person",
+        "cn: renamedSince",
+        "sn: renamedSince");
+    final String entryUUID = getEntryUUID(entry.getName());
+    final String[] exported = exportedEntries();
+
+    // The request is out, and the exporter holds it until the change below has been replayed.
+    domain.initializeFromRemote(EXPORTER_ID, null);
+    assertNotNull(waitForSpecificMsg(exporter, InitializeRequestMsg.class));
+
+    final CSN csn = gen.newCSN();
+    ShortCircuitPlugin.registerShortCircuit(
+        OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue());
+    try
+    {
+      replayMsg(new ModifyMsg(csn, DN.valueOf("cn=movedAway," + EXAMPLE_DN),
+          generatemods("description", "replayed while the request was on its way"), entryUUID));
+      assertTrue(ShortCircuitPlugin.getShortCircuitCount(OperationType.SEARCH, "PreParse")
+              >= LDAPReplicationDomain.IN_PLACE_REPLAY_ATTEMPTS,
+          "every attempt in place must have made its search: the backend is live while the"
+              + " request is on its way, so nothing holds the replay off");
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+    }
+
+    assertThat(errorLogRecordsOf(ERR_ERROR_REPLAYING_OPERATION.ordinal(), csn))
+        .as("the attempts in place were spent, which the exhaustion exit reports").isNotEmpty();
+    assertThat(errorLogRecordsOf(WARN_REPLAY_RETRYING_CHANGE.ordinal(), csn))
+        .as("the change was asked for again, which restarts the session the answer to the"
+            + " request arrives over")
+        .isEmpty();
+    assertTrue(domain.isConnected(), "the session the request was made over was stopped");
+
+    answerImportRequest(exported.length);
+    finishImport(exported);
+    for (String ldif : exported)
+    {
+      final DN dn = dnOf(ldif);
+      assertTrue(entryExists(dn), "the import ended before " + dn
+          + " arrived: the answer to the request was lost with the session it was made over");
+    }
+  }
+
+  /**
    * Has the exporter start a total update into this replica, and returns once the backend
    * of the domain is deregistered for it: from then on the import is reading the session,
    * and a change replayed here is replayed into no backend.
@@ -219,6 +300,17 @@ public class ReplayDuringImportTest extends ReplicationTestCase
           "the import did not deregister the backend of the domain");
       Thread.sleep(20);
     }
+  }
+
+  /**
+   * Has the exporter answer the total update this replica asked for: the requestor of the
+   * {@code InitializeTargetMsg} is this replica, so the import runs in the context the
+   * request acquired.
+   */
+  private void answerImportRequest(int entryCount) throws Exception
+  {
+    exporter.publish(new InitializeTargetMsg(
+        baseDN, EXPORTER_ID, DS_ID, DS_ID, entryCount, INIT_WINDOW));
   }
 
   /** Has the exporter send the entries of the total update, and waits for the import to end. */
