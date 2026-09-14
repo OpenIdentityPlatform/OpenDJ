@@ -85,11 +85,38 @@ public class ServerErrorResultCodeTestCase extends CoreTestCase
       throws Exception
   {
     final ResultCode inForce = getServerErrorResultCode();
+    // Remembered although the change is expected to be refused: the day it is not, the
+    // failure must show here and not as a success code left in force for every test class
+    // which runs after this one.
+    resultCodeToRestore = inForce.intValue();
 
     assertNotEquals(setServerErrorResultCode(resultCode.intValue()), 0,
         "the server accepted " + resultCode + " as the code it puts on an internal error");
     assertEquals(getServerErrorResultCode(), inForce,
         "a refused change to the server error result code was applied all the same");
+  }
+
+  /**
+   * The start-up path does not go through the acceptability check, so a configuration
+   * written before the check existed - or edited outside the server - can still hold a
+   * code which does not report a failure: the server starts on the default of the setting
+   * rather than on that code, and rather than not at all. A code which reports a failure,
+   * registered or not, is taken as it is.
+   */
+  @Test(dataProvider = "resultCodesWhichAreNotAFailure")
+  public void aCodeWhichIsNotAFailureFallsBackOnTheDefaultAtStartUp(ResultCode resultCode)
+  {
+    assertEquals(CoreConfigManager.serverErrorResultCode(resultCode.intValue()), ResultCode.OTHER,
+        "the server started on " + resultCode + " as the code it puts on an internal error");
+  }
+
+  @Test
+  public void aCodeWhichIsAFailureIsTakenAsItIsAtStartUp()
+  {
+    assertEquals(CoreConfigManager.serverErrorResultCode(ResultCode.UNWILLING_TO_PERFORM.intValue()),
+        ResultCode.UNWILLING_TO_PERFORM);
+    assertEquals(CoreConfigManager.serverErrorResultCode(9999), ResultCode.valueOf(9999),
+        "the server did not start on a result code it does not know");
   }
 
   @Test

@@ -30,6 +30,7 @@ import org.forgerock.opendj.server.config.meta.GlobalCfgDefn.DisabledPrivilege;
 import org.forgerock.opendj.server.config.meta.GlobalCfgDefn.InvalidAttributeSyntaxBehavior;
 import org.forgerock.opendj.server.config.meta.GlobalCfgDefn.SingleStructuralObjectclassBehavior;
 import org.forgerock.opendj.server.config.server.GlobalCfg;
+import org.forgerock.util.annotations.VisibleForTesting;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.loggers.CommonAudit;
@@ -445,12 +446,20 @@ public class CoreConfigManager implements ConfigurationChangeListener<GlobalCfg>
    * {@link #isConfigurationChangeAcceptable} refuses such a value, so the fallback is
    * what a configuration written before that - or edited outside the server - runs into:
    * the server starts on the code its own default names rather than refusing to start,
-   * and says in the error log which value it ignored.
+   * and says which value it ignored. The core configuration is applied before the error
+   * loggers are configured, so at start-up the warning goes where every start-up message
+   * goes - the standard output of the server, {@code logs/server.out} when it was started
+   * by {@code start-ds} - rather than into {@code logs/errors}.
+   * <p>
+   * Package private for the tests: a value the fallback is for never gets past
+   * {@link #isConfigurationChangeAcceptable}, so no change to a running server can reach
+   * it, and the tests pin it directly rather than through a start-up.
    *
    * @param configured the configured numeric result code
    * @return the result code to put on an internal error
    */
-  private static ResultCode serverErrorResultCode(int configured)
+  @VisibleForTesting
+  static ResultCode serverErrorResultCode(int configured)
   {
     final ResultCode resultCode = ResultCode.valueOf(configured);
     if (resultCode.isExceptional())
