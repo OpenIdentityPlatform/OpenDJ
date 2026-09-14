@@ -644,7 +644,7 @@ public class ShortCircuitPlugin
     // Check for registered short circuits.
     final String key = keyFor(operation.getOperationType(), section);
     Integer resultCode = shortCircuits.get(key);
-    if (resultCode != null)
+    if (resultCode != null && appliesTo(key, operation))
     {
       final int reached = shortCircuitCounts.computeIfAbsent(key, k -> new AtomicInteger()).incrementAndGet();
       final int letThroughFirst = shortCircuitSkips.getOrDefault(key, 0);
@@ -746,6 +746,20 @@ public class ShortCircuitPlugin
   private static final Map<String, Integer> shortCircuitSkips = new ConcurrentHashMap<>();
 
   /**
+   * Which operations a registered short circuit is for, when it is not for every operation
+   * of its type: the ones it is not for are neither short circuited nor counted.
+   */
+  private static final Map<String, Predicate<PluginOperation>> shortCircuitFilters =
+      new ConcurrentHashMap<>();
+
+  /** Returns whether the short circuit registered under the given key is for the given operation. */
+  private static boolean appliesTo(String key, PluginOperation operation)
+  {
+    final Predicate<PluginOperation> filter = shortCircuitFilters.get(key);
+    return filter == null || filter.test(operation);
+  }
+
+  /**
    * Returns how many times the short circuit registered for the given operation type and
    * plugin point was reached. A short circuit registered for a limited number of times is
    * counted as reached by the operations it let through once that number was used up.
@@ -776,6 +790,7 @@ public class ShortCircuitPlugin
     shortCircuitCounts.remove(key);
     shortCircuitLimits.remove(key);
     shortCircuitSkips.remove(key);
+    shortCircuitFilters.remove(key);
     shortCircuits.put(key, resultCode);
   }
 
@@ -812,9 +827,37 @@ public class ShortCircuitPlugin
   {
     final String key = keyFor(operation, section);
     shortCircuitCounts.remove(key);
+    shortCircuitFilters.remove(key);
     shortCircuitSkips.put(key, letThroughFirst);
     shortCircuitLimits.put(key, maxTimes);
     shortCircuits.put(key, resultCode);
+  }
+
+  /**
+   * Register a short circuit like
+   * {@link #registerShortCircuit(OperationType, String, int, int, int)}, for some of the
+   * operations of the given type only: the ones the predicate does not accept are let
+   * through without being counted, as if the short circuit were not there.
+   * <p>
+   * The operations of one type which reach a plugin point are not all the test's: the
+   * server makes internal operations of its own on its own schedule - the ServerState flush
+   * thread of a replication domain writes the base entry with a Modify on its tick, say -
+   * and a short circuit which counts them takes a let-through, or a refusal, meant for the
+   * operation the test is driving. A test which counts its operations one by one names them.
+   *
+   * @param operation The type of operation the short circuit applies to.
+   * @param section The plugin point the short circuit applies to.
+   * @param resultCode The result code to be returned for the short circuit.
+   * @param letThroughFirst How many of the operations the predicate accepts must be let
+   *                        through before the short circuit applies.
+   * @param maxTimes How many of them must be short circuited after those.
+   * @param appliesTo Which operations of that type the short circuit is for.
+   */
+  public static void registerShortCircuit(OperationType operation, String section, int resultCode,
+      int letThroughFirst, int maxTimes, Predicate<PluginOperation> appliesTo)
+  {
+    registerShortCircuit(operation, section, resultCode, letThroughFirst, maxTimes);
+    shortCircuitFilters.put(keyFor(operation, section), appliesTo);
   }
 
   /**
@@ -828,6 +871,7 @@ public class ShortCircuitPlugin
     shortCircuits.remove(key);
     shortCircuitLimits.remove(key);
     shortCircuitSkips.remove(key);
+    shortCircuitFilters.remove(key);
     // The count belongs to the registration which is being removed: a test which counts
     // the operations it short circuits must not inherit the count of the previous one.
     shortCircuitCounts.remove(key);

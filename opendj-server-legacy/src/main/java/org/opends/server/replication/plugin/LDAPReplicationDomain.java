@@ -496,6 +496,23 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private final InternalClientConnection conn = getRootConnection();
   private final AtomicBoolean shutdown = new AtomicBoolean();
   private volatile boolean disabled;
+  /**
+   * Whether the data of this domain is being replaced by a total update into this replica:
+   * the import streams over the session of this domain, on its listener thread, and the
+   * backend the replay would apply a change to is deregistered for the length of it.
+   * <p>
+   * It is what {@link #disabled} is for an import or a restore run on this server, on the
+   * one road which does not set that flag: {@link #preBackendImport(LocalBackend)} takes
+   * the backend away without disabling the domain, because the domain can not stop the
+   * session it is importing over. The replay threads read it where they read
+   * {@link #disabled}: an attempt made meanwhile is made into no backend, and whatever it
+   * decided is overwritten by the import, so the change is given back instead - without a
+   * session restart, which {@link #sessionHasAnOwner()} refuses for the whole of the total
+   * update. It is set for the length of {@link #importBackend(InputStream)}, so it covers
+   * the reload of the ServerState and the reset of the pending changes which follow the
+   * import.
+   */
+  private volatile boolean importingData;
 
   /**
    * This list is used to temporary store operations that needs to be replayed
@@ -2786,11 +2803,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            */
           searchFailedResolvingConflict = null;
           /*
-           * The flag which says this domain is going down is read before the lock as well
-           * as under it. The replay threads are a pool shared by every domain of this
-           * server, so a thread which took a change of a domain which is going down should
-           * not queue behind the wait for that domain: the changes of every other domain
-           * are behind it in the same pool.
+           * The flags which say this domain is going down, or that its data is being
+           * replaced, are read before the lock as well as under it. The replay threads are
+           * a pool shared by every domain of this server, so a thread which took a change
+           * of a domain which is going down should not queue behind the wait for that
+           * domain: the changes of every other domain are behind it in the same pool.
            *
            * The read under the lock is the one which decides; the one above it is a
            * scheduling optimisation for the common case and nothing more. It cannot keep
@@ -2798,7 +2815,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * between the two reads, and a reader which arrives behind a queued writer blocks
            * even on a lock which is not the fair kind.
            */
-          boolean goingDown = replayThreadShutdown.get() || shutdown.get() || disabled;
+          boolean goingDown = replayThreadShutdown.get() || shutdown.get() || disabled || importingData;
           if (!goingDown)
           {
             /*
@@ -2811,7 +2828,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             replayReadLock.lock();
             try
             {
-              goingDown = replayThreadShutdown.get() || shutdown.get() || disabled;
+              goingDown = replayThreadShutdown.get() || shutdown.get() || disabled || importingData;
               if (!goingDown)
               {
                 if (!firstAttempt)
@@ -3618,13 +3635,19 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      */
     remotePendingChanges.replayFailed(csn);
 
-    if (shutdown.get() || disabled)
+    if (sessionHasAnOwner())
     {
       /*
        * This whole domain is going away or is being imported into: there is no session of
        * this thread's to restart. Restarting the one which is being stopped would leave a
        * broker and a listener thread behind on a domain whose alert generator, flush
-       * thread and RSUpdater are already gone.
+       * thread and RSUpdater are already gone; restarting the one an import streams over
+       * would end the import on the entries which had arrived. The change given back here
+       * is forgotten with the rest of the pending changes when the ServerState is loaded
+       * again, from the backend or from the imported data, and the session started then
+       * asks for everything that state does not cover - or, when the total update it was
+       * given back for never begins, it is asked for by the next restart
+       * (see sessionHasAnOwner()).
        */
       return true;
     }
@@ -3736,9 +3759,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private void abandonReplay(CSN csn)
   {
     remotePendingChanges.replayFailed(csn);
-    if (shutdown.get() || disabled)
+    if (sessionHasAnOwner())
     {
-      // The domain owns its session, and it forgets its pending changes on its way down.
+      // The domain, or the import into it, owns its session, and the pending changes are
+      // forgotten with the ServerState on its way down or at the end of the import.
       return;
     }
     /*
@@ -3760,9 +3784,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     final long stoppedSession;
     synchronized (serviceStateLock)
     {
-      if (ownsItsSession())
+      if (sessionHasAnOwner())
       {
-        // The domain is going away or is being imported into: it owns its session.
+        // The domain is going away or is being imported into: the session is not this
+        // thread's to stop.
         return;
       }
       disableService();
@@ -3788,6 +3813,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * import - in the meantime: the session this thread stopped is gone, so it has
          * nothing left to start. Every stop and every start of a session is counted, so
          * the generation alone tells one session from another.
+         *
+         * An import is not asked about here: the session it would stream over is the one
+         * this thread stopped, so none is streaming, and a total update which was asked
+         * for meanwhile needs the session started back to be answered at all - its
+         * request is what fails, and loudly, when no answer comes.
          */
         return;
       }
@@ -4597,11 +4627,12 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * Waits for the replay threads which are applying a change of this domain to be done
    * with it.
    * <p>
-   * Called once {@link #disabled} or {@link #shutdown} has been set, which is what bounds
-   * the wait: a replay thread reads those under {@link #replayReadLock}, the lock this
-   * takes exclusively, so no attempt starts once this returns and what it waits for is the
-   * attempts which were running already. The lock is released before returning for the
-   * same reason - what keeps the replay out is the flag, not the lock.
+   * Called once {@link #disabled}, {@link #shutdown} or {@link #importingData} has been
+   * set, which is what bounds the wait: a replay thread reads those under
+   * {@link #replayReadLock}, the lock this takes exclusively, so no attempt starts once
+   * this returns and what it waits for is the attempts which were running already. The
+   * lock is released before returning for the same reason - what keeps the replay out is
+   * the flag, not the lock.
    */
   private void awaitReplayDrained()
   {
@@ -5130,6 +5161,16 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     ImportExportContext ieCtx = getImportExportContext();
     try
     {
+      /*
+       * The replay of this domain is held off before the backend is taken away, the way
+       * disable() holds it off before the backend is taken away for an import run on this
+       * server: the flag keeps the attempts which have not started from starting, and the
+       * wait is for the ones which had. What this road can not do is stop the session -
+       * it is the session the entries are about to stream over, on this very thread.
+       */
+      importingData = true;
+      awaitReplayDrained();
+
       if (!backend.supports(BackendOperation.LDIF_IMPORT))
       {
         ieCtx.setExceptionIfNoneSet(new DirectoryException(OTHER,
@@ -5194,6 +5235,25 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
         ieCtx.setExceptionIfNoneSet(new DirectoryException(
             ResultCode.OTHER,
             ERR_INIT_IMPORT_FAILURE.get(stackTraceToSingleLineString(fe))));
+      }
+      finally
+      {
+        /*
+         * The ServerState in memory is the one read from the data now, and the changes
+         * listed as pending must not outlive the one they went with, as they do not when
+         * the domain is disabled: a change given back while the import ran would stay
+         * listed, uncommitted and owned by nobody, and a commit stops at the first
+         * uncommitted change - the state would never move past it, and the replication
+         * server does not send a change again which the state it is given covers. Nothing
+         * listed a change meanwhile: the listener thread is the one running this import,
+         * and the replay threads gave up every attempt while the flag was set. The restart
+         * a replay thread may have asked for before the total update owned the session
+         * goes with them: the caller starts the session again from the reloaded state.
+         */
+        remotePendingChanges.clear();
+        sessionRestartRequested.set(false);
+        consecutiveSessionRestarts.set(0);
+        importingData = false;
       }
     }
 
@@ -5468,6 +5528,26 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   private boolean ownsItsSession()
   {
     return shutdown.get() || disabled;
+  }
+
+  /**
+   * Whether the session of this domain has an owner other than the replay thread which
+   * would restart it after a failed replay: the domain itself, when it is shutting down or
+   * disabled ({@link #ownsItsSession()}), or a total update into this replica.
+   * <p>
+   * The total update owns the session from the moment it is asked for, not from the
+   * moment its entries stream: the {@code InitializeTargetMsg} which answers the request
+   * arrives over that session, so a restart made while it is on its way loses it, and the
+   * import which follows reads its entries over the same session - stopping it ends the
+   * import on the entries which had arrived. The import starts the next session itself,
+   * from the state it loaded. A change given back while the total update owned the session
+   * is not asked for again by anyone until then; if no import follows - the request was
+   * refused, or gave up waiting - it stays listed until the next failed replay restarts
+   * the session, which has the replication server send it again with everything after it.
+   */
+  private boolean sessionHasAnOwner()
+  {
+    return ownsItsSession() || importInProgress();
   }
 
   @Override

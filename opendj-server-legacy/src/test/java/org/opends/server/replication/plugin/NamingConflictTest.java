@@ -36,6 +36,7 @@ import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.Isolatio
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
@@ -45,6 +46,7 @@ import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
+import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.Entry;
 import org.opends.server.types.OperationType;
@@ -576,6 +578,17 @@ public class NamingConflictTest extends ReplicationTestCase
         "a change whose search never ran is not in the data and must not advance the ServerState");
     assertThat(DirectoryServer.getEntry(entry.getName()).getAllAttributes("telephonenumber"))
         .as("the change was applied to the entry the searches never found").isEmpty();
+    /*
+     * The result code of the last attempt is the conflict the operation failed on, which
+     * says nothing of the search: the line which reports the change must carry the search
+     * which did not run, which is the one thing that names the entryUUID it was made for.
+     */
+    final List<String> reports = exhaustionExitRecordsOf(csn);
+    assertThat(reports).as("the change was not reported once the attempts in place were spent")
+        .isNotEmpty();
+    assertThat(reports)
+        .as("the exhaustion exit reports the error of the operation, not the search which did not run")
+        .allMatch(record -> record.contains(entryUUID));
   }
 
   /**
@@ -598,8 +611,6 @@ public class NamingConflictTest extends ReplicationTestCase
     final String entryUUID = getEntryUUID(entry.getName());
     final DN staleDN = DN.valueOf("cn=movedAway," + TEST_ROOT_DN_STRING);
     final CSN csn = gen.newCSN();
-    // The record the error logger writes carries the id of the message rather than its text.
-    final String exhaustionExit = "msgID=" + ERR_ERROR_REPLAYING_OPERATION.ordinal();
 
     /*
      * The first attempt is let through to the data and fails on the conflict of the
@@ -609,10 +620,25 @@ public class NamingConflictTest extends ReplicationTestCase
      */
     ShortCircuitPlugin.registerShortCircuit(
         OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue(), 1);
+    // The replayed operation only, named by its CSN: see the flush below.
     ShortCircuitPlugin.registerShortCircuit(OperationType.MODIFY, "PreParse",
-        ResultCode.UNAVAILABLE.intValue(), 1, LDAPReplicationDomain.IN_PLACE_REPLAY_ATTEMPTS - 1);
+        ResultCode.UNAVAILABLE.intValue(), 1, LDAPReplicationDomain.IN_PLACE_REPLAY_ATTEMPTS - 1,
+        op -> csn.equals(OperationContext.getCSN(op)));
     try
     {
+      /*
+       * The ServerState flush thread saves the state with a Modify of the base entry on
+       * its tick, which the add above made dirty: a tick which lands among the attempts in
+       * place is a Modify the short circuit meets like any other. Made here rather than
+       * left to the tick, so that the case says what it does about it every time instead
+       * of once in a while: that Modify is not the replayed operation, and the short
+       * circuit must neither let it through in place of the first attempt nor refuse it
+       * in place of a later one.
+       */
+      flushLikeTheStateFlushThread();
+      assertEquals(ShortCircuitPlugin.getShortCircuitCount(OperationType.MODIFY, "PreParse"), 0,
+          "the Modify of the state flush thread was counted against the short circuit");
+
       replayMsg(new ModifyMsg(csn, staleDN, generatemods("telephonenumber", "01 02 45"), entryUUID));
       assertTrue(ShortCircuitPlugin.getShortCircuitCount(OperationType.SEARCH, "PreParse") >= 1,
           "the first attempt must have made its search");
@@ -628,14 +654,7 @@ public class NamingConflictTest extends ReplicationTestCase
 
     assertFalse(domain.getServerState().cover(csn),
         "a change the server kept refusing is not in the data and must not advance the ServerState");
-    final List<String> reports = new ArrayList<>();
-    for (String record : TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
-    {
-      if (record.contains(exhaustionExit) && record.contains(csn.toString()))
-      {
-        reports.add(record);
-      }
-    }
+    final List<String> reports = exhaustionExitRecordsOf(csn);
     assertThat(reports).as("the change was not reported once the attempts in place were spent")
         .isNotEmpty();
     // The last attempt was refused before it reached the data and made no search: a line
@@ -702,6 +721,25 @@ public class NamingConflictTest extends ReplicationTestCase
         "a change on an entry which is not in the data is a conflict which is resolved, and recorded");
     assertThat(DirectoryServer.getEntry(entry.getName()).getAllAttributes("telephonenumber"))
         .as("a change on an entryUUID which is not one was applied to an entry").isEmpty();
+  }
+
+  /**
+   * The records of the error log which report the provided change once its attempts in
+   * place were spent. The record the error logger writes carries the id of the message
+   * rather than its text.
+   */
+  private static List<String> exhaustionExitRecordsOf(CSN csn)
+  {
+    final String exhaustionExit = "msgID=" + ERR_ERROR_REPLAYING_OPERATION.ordinal();
+    final List<String> reports = new ArrayList<>();
+    for (String record : TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+    {
+      if (record.contains(exhaustionExit) && record.contains(csn.toString()))
+      {
+        reports.add(record);
+      }
+    }
+    return reports;
   }
 
   /**
@@ -814,6 +852,24 @@ public class NamingConflictTest extends ReplicationTestCase
         "c9cb8c3c-615a-4122-865d-50323aaaed48",
         "The wrong entry has been renamed");
     assertThat(resultEntry.getAllAttributes(LDAPReplicationDomain.DS_SYNC_CONFLICT)).isEmpty();
+  }
+
+  /**
+   * Makes the Modify the ServerState flush thread makes on its tick: an internal
+   * synchronization Modify of the base entry, which is not synchronized itself. The
+   * attribute is a harmless one rather than ds-sync-state, which is the flush thread's to
+   * write.
+   */
+  private void flushLikeTheStateFlushThread()
+  {
+    final ModifyOperationBasis op = new ModifyOperationBasis(getRootConnection(),
+        nextOperationID(), nextMessageID(), null,
+        baseDN, generatemods("description", "written on the tick of the flush thread"));
+    op.setInternalOperation(true);
+    op.setSynchronizationOperation(true);
+    op.setDontSynchronize(true);
+    op.run();
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS, op.getErrorMessage().toString());
   }
 
   private Entry createAndAddEntry(String commonName) throws Exception
