@@ -2780,6 +2780,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         while (!dependency && !replayDone && retryCount-- > 0)
         {
           /*
+           * What this attempt ends on, not what an earlier one did: an attempt the server
+           * refuses before it reaches the data makes no search, and the verdict below the
+           * loop reads the attempt which spent the last of them.
+           */
+          searchFailedResolvingConflict = null;
+          /*
            * The flag which says this domain is going down is read before the lock as well
            * as under it. The replay threads are a pool shared by every domain of this
            * server, so a thread which took a change of a domain which is going down should
@@ -3001,7 +3007,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
                          * reflecting the new state of the UpdateMsg after conflict resolution
                          * modified it, and dependencies might have been replayed by now.
                          */
-                        searchFailedResolvingConflict = null;
                         break;
                       }
                     }

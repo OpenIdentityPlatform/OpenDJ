@@ -18,11 +18,14 @@
 package org.opends.server.replication.plugin;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -417,6 +420,7 @@ public class NamingConflictTest extends ReplicationTestCase
     final Entry parent = addParentEntry("addWhoseConflictSearchCanNotRun");
     final String parentUUID = getEntryUUID(parent.getName());
     final Entry child = makeChildEntry("addedWhileTheConflictSearchFailed", parent.getName());
+    final String entryUUID = "2d4d3d5e-3c6f-4ca0-9b8d-4e6f7a8b9cad";
     final CSN csn = gen.newCSN();
 
     final RDN renamedParentRDN = RDN.valueOf("ou=renamedBeforeTheAdd");
@@ -437,7 +441,7 @@ public class NamingConflictTest extends ReplicationTestCase
         OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue(), 2, 1);
     try
     {
-      replayMsg(addMsg(child, csn, parentUUID, "2d4d3d5e-3c6f-4ca0-9b8d-4e6f7a8b9cad"));
+      replayMsg(addMsg(child, csn, parentUUID, entryUUID));
       assertShortCircuitSpentBy(3);
     }
     finally
@@ -448,7 +452,10 @@ public class NamingConflictTest extends ReplicationTestCase
     assertTrue(entryExists(expectedDN),
         "the entry was not added under the current DN of its parent: a search which could "
             + "not run was read as a parent which is gone");
-    assertFalse(entryExists(DN.valueOf(child.getName().rdn() + "," + TEST_ROOT_DN_STRING)),
+    // A parent read as gone puts the entry under the base DN as a conflicting entry, with
+    // its entryUUID added to its RDN.
+    assertFalse(entryExists(DN.valueOf(
+            "entryuuid=" + entryUUID + "+" + child.getName().rdn() + "," + TEST_ROOT_DN_STRING)),
         "the entry was renamed under the base DN as a conflicting entry");
     assertTrue(domain.getServerState().cover(csn),
         "a change which was applied must be recorded as replayed");
@@ -569,6 +576,72 @@ public class NamingConflictTest extends ReplicationTestCase
         "a change whose search never ran is not in the data and must not advance the ServerState");
     assertThat(DirectoryServer.getEntry(entry.getName()).getAllAttributes("telephonenumber"))
         .as("the change was applied to the entry the searches never found").isEmpty();
+  }
+
+  /**
+   * Test case for [Issue 956]: the exhaustion exit reports the attempt which spent the
+   * last of the attempts in place, not an earlier one which ended on a search conflict
+   * resolution could not run.
+   * <p>
+   * The first attempt reaches the data, fails on the conflict, and its search does not
+   * run; the server then refuses every attempt after it before the data is reached. Each
+   * of these is a failure of the server, and the change is left out of the ServerState
+   * either way - what the line which reports it carries is the question. Its result
+   * code is the last attempt's, and so must be the error next to it: a line which reads
+   * the server refusing the operation next to a search which did not run names two
+   * causes, and the operator chases the wrong one.
+   */
+  @Test
+  public void theExhaustionExitReportsTheAttemptWhichSpentTheLastOfThem() throws Exception
+  {
+    final Entry entry = createAndAddEntry("modifyWhoseLastAttemptIsRefused");
+    final String entryUUID = getEntryUUID(entry.getName());
+    final DN staleDN = DN.valueOf("cn=movedAway," + TEST_ROOT_DN_STRING);
+    final CSN csn = gen.newCSN();
+    // The record the error logger writes carries the id of the message rather than its text.
+    final String exhaustionExit = "msgID=" + ERR_ERROR_REPLAYING_OPERATION.ordinal();
+
+    /*
+     * The first attempt is let through to the data and fails on the conflict of the
+     * stale DN; its search is the one the short circuit stops. The attempts after it are
+     * refused before they reach the data, the way a backend which went offline after the
+     * first attempt refuses them: no search is made on any of them.
+     */
+    ShortCircuitPlugin.registerShortCircuit(
+        OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue(), 1);
+    ShortCircuitPlugin.registerShortCircuit(OperationType.MODIFY, "PreParse",
+        ResultCode.UNAVAILABLE.intValue(), 1, LDAPReplicationDomain.IN_PLACE_REPLAY_ATTEMPTS - 1);
+    try
+    {
+      replayMsg(new ModifyMsg(csn, staleDN, generatemods("telephonenumber", "01 02 45"), entryUUID));
+      assertTrue(ShortCircuitPlugin.getShortCircuitCount(OperationType.SEARCH, "PreParse") >= 1,
+          "the first attempt must have made its search");
+      assertTrue(ShortCircuitPlugin.getShortCircuitCount(OperationType.MODIFY, "PreParse")
+              >= LDAPReplicationDomain.IN_PLACE_REPLAY_ATTEMPTS,
+          "every attempt in place must have been made");
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.MODIFY, "PreParse");
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+    }
+
+    assertFalse(domain.getServerState().cover(csn),
+        "a change the server kept refusing is not in the data and must not advance the ServerState");
+    final List<String> reports = new ArrayList<>();
+    for (String record : TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+    {
+      if (record.contains(exhaustionExit) && record.contains(csn.toString()))
+      {
+        reports.add(record);
+      }
+    }
+    assertThat(reports).as("the change was not reported once the attempts in place were spent")
+        .isNotEmpty();
+    // The last attempt was refused before it reached the data and made no search: a line
+    // which names the entryUUID reports the search of an earlier attempt next to its result.
+    assertThat(reports).as("the exhaustion exit reports an attempt other than the last one")
+        .allMatch(record -> !record.contains(entryUUID));
   }
 
   /**
