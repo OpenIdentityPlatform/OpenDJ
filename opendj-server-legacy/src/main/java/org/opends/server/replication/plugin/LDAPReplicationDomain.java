@@ -531,10 +531,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * normally stops within a modify: a checkpointer which is still writing after this went to
    * a backend which is not answering, and waiting for it any longer would hang the shutdown
    * of the whole server. This is the budget {@code ServerShutdownMonitor} gives a thread
-   * before it starts interrupting them. It is spent once per domain, and it bounds the
-   * shutdown of this domain, not of the server: a write which ignores the interrupt still
-   * holds its backend's quiescence, so the server shutdown waits for it again when it
-   * closes that backend.
+   * before it starts interrupting them. It is spent by every call of {@link #shutdown()}:
+   * once per domain when the server goes down, which shuts the domains down one after
+   * another, and again by a second caller of a domain whose checkpointer is stuck. It bounds
+   * the shutdown of this domain, not of the server: a write which ignores the interrupt
+   * still holds the quiescence of a pluggable backend, so the server shutdown waits for it
+   * again when it closes that backend; {@code SchemaBackend} has no such wait.
    */
   private static final long FLUSH_THREAD_SHUTDOWN_TIMEOUT_IN_MS = 30000;
 
@@ -670,10 +672,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * Writes the state of the domain to the backend, keeping a failure to itself.
      * <p>
      * A checkpoint which throws is not a reason to stop checkpointing: the state is still
-     * marked as unsaved, so the next checkpoint writes it again. Letting the exception out
-     * would end this thread - and with it the checkpointing of this domain for the rest of
-     * the life of the server, and the {@link LDAPReplicationDomain#shutdown()} which waits
-     * for the thread to stop.
+     * marked as unsaved, so the next checkpoint writes it again. The exit save has no next
+     * checkpoint: a domain whose last write failed comes back with the last state it did
+     * write - its own CSNs repaired from ds-sync-hist by checkAndUpdateServerState(), those
+     * of the other replicas as they were - and replays the changes since. Letting the
+     * exception out would end this thread - and with it the checkpointing of this domain for
+     * the rest of the life of the server, and the {@link LDAPReplicationDomain#shutdown()}
+     * which waits for the thread to stop.
      * <p>
      * The write is run outside the monitor of this thread, which
      * {@link LDAPReplicationDomain#shutdown()} takes to wake it up: holding the monitor
@@ -2578,9 +2583,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * takes the shutdown of the server down with it. join() covers both, and a thread which
      * was never started as well.
      *
-     * Every caller waits, the one which lost the race above included, so that none of them
-     * returns while the checkpointer is still writing: a second shutdown() of a domain whose
-     * checkpointer is stuck pays the budget again rather than leave before the first one.
+     * Every caller waits, the one which lost the race above included: returning at once would
+     * let it go on while the checkpointer is still writing. What the loser gets is the budget
+     * from its own arrival, which starts before the winner has asked the checkpointer to stop
+     * - the winner may still be in awaitReplayDrained() - so its wait may end, and log the
+     * whole budget as spent, while the winner is still waiting: a second shutdown() of a
+     * domain whose checkpointer is stuck can return before the first one.
      */
     try
     {
