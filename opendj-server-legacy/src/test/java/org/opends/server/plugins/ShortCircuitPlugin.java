@@ -644,16 +644,18 @@ public class ShortCircuitPlugin
     // Check for registered short circuits.
     final String key = keyFor(operation.getOperationType(), section);
     Integer resultCode = shortCircuits.get(key);
-    if (resultCode != null)
+    if (resultCode != null && appliesTo(key, operation))
     {
       final int reached = shortCircuitCounts.computeIfAbsent(key, k -> new AtomicInteger()).incrementAndGet();
+      final int letThroughFirst = shortCircuitSkips.getOrDefault(key, 0);
       final Integer maxTimes = shortCircuitLimits.get(key);
-      if (maxTimes == null || reached <= maxTimes)
+      if (reached > letThroughFirst && (maxTimes == null || reached <= letThroughFirst + maxTimes))
       {
         return resultCode;
       }
-      // The short circuit was applied as many times as it was asked for: from now on the
-      // operations are let through, which is how a transient failure is simulated.
+      // The operations before the short circuit are let through, and so are the ones after
+      // it was applied as many times as it was asked for: this is how a transient failure
+      // which starts, or ends, part way through a sequence of operations is simulated.
     }
 
     /*
@@ -740,6 +742,23 @@ public class ShortCircuitPlugin
   /** How many times a registered short circuit must be applied, when it is limited. */
   private static final Map<String, Integer> shortCircuitLimits = new ConcurrentHashMap<>();
 
+  /** How many operations a registered short circuit lets through before it applies. */
+  private static final Map<String, Integer> shortCircuitSkips = new ConcurrentHashMap<>();
+
+  /**
+   * Which operations a registered short circuit is for, when it is not for every operation
+   * of its type: the ones it is not for are neither short circuited nor counted.
+   */
+  private static final Map<String, Predicate<PluginOperation>> shortCircuitFilters =
+      new ConcurrentHashMap<>();
+
+  /** Returns whether the short circuit registered under the given key is for the given operation. */
+  private static boolean appliesTo(String key, PluginOperation operation)
+  {
+    final Predicate<PluginOperation> filter = shortCircuitFilters.get(key);
+    return filter == null || filter.test(operation);
+  }
+
   /**
    * Returns how many times the short circuit registered for the given operation type and
    * plugin point was reached. A short circuit registered for a limited number of times is
@@ -765,10 +784,13 @@ public class ShortCircuitPlugin
   public static void registerShortCircuit(OperationType operation, String section, int resultCode)
   {
     final String key = keyFor(operation, section);
-    // This registration applies to every operation, and it counts from zero: a limit or
-    // a count left behind by a previous registration is not part of it.
+    // This registration applies to every operation, and it counts from zero: a limit, a
+    // number of operations let through or a count left behind by a previous registration
+    // is not part of it.
     shortCircuitCounts.remove(key);
     shortCircuitLimits.remove(key);
+    shortCircuitSkips.remove(key);
+    shortCircuitFilters.remove(key);
     shortCircuits.put(key, resultCode);
   }
 
@@ -783,10 +805,59 @@ public class ShortCircuitPlugin
    */
   public static void registerShortCircuit(OperationType operation, String section, int resultCode, int maxTimes)
   {
+    registerShortCircuit(operation, section, resultCode, 0, maxTimes);
+  }
+
+  /**
+   * Register a short circuit which lets the given number of operations through before it
+   * applies, then applies to the given number of operations, the ones which follow being
+   * let through again: this is how a transient failure which starts part way through a
+   * sequence of operations is simulated - the second search of an attempt failing while
+   * the first one ran, say.
+   *
+   * @param operation The type of operation the short circuit applies to.
+   * @param section The plugin point the short circuit applies to.
+   * @param resultCode The result code to be returned for the short circuit.
+   * @param letThroughFirst How many operations must be let through before the short
+   *                        circuit applies.
+   * @param maxTimes How many operations must be short circuited after them.
+   */
+  public static void registerShortCircuit(OperationType operation, String section, int resultCode,
+      int letThroughFirst, int maxTimes)
+  {
     final String key = keyFor(operation, section);
     shortCircuitCounts.remove(key);
+    shortCircuitFilters.remove(key);
+    shortCircuitSkips.put(key, letThroughFirst);
     shortCircuitLimits.put(key, maxTimes);
     shortCircuits.put(key, resultCode);
+  }
+
+  /**
+   * Register a short circuit like
+   * {@link #registerShortCircuit(OperationType, String, int, int, int)}, for some of the
+   * operations of the given type only: the ones the predicate does not accept are let
+   * through without being counted, as if the short circuit were not there.
+   * <p>
+   * The operations of one type which reach a plugin point are not all the test's: the
+   * server makes internal operations of its own on its own schedule - the ServerState flush
+   * thread of a replication domain writes the base entry with a Modify on its tick, say -
+   * and a short circuit which counts them takes a let-through, or a refusal, meant for the
+   * operation the test is driving. A test which counts its operations one by one names them.
+   *
+   * @param operation The type of operation the short circuit applies to.
+   * @param section The plugin point the short circuit applies to.
+   * @param resultCode The result code to be returned for the short circuit.
+   * @param letThroughFirst How many of the operations the predicate accepts must be let
+   *                        through before the short circuit applies.
+   * @param maxTimes How many of them must be short circuited after those.
+   * @param appliesTo Which operations of that type the short circuit is for.
+   */
+  public static void registerShortCircuit(OperationType operation, String section, int resultCode,
+      int letThroughFirst, int maxTimes, Predicate<PluginOperation> appliesTo)
+  {
+    registerShortCircuit(operation, section, resultCode, letThroughFirst, maxTimes);
+    shortCircuitFilters.put(keyFor(operation, section), appliesTo);
   }
 
   /**
@@ -799,6 +870,8 @@ public class ShortCircuitPlugin
     final String key = keyFor(operation, section);
     shortCircuits.remove(key);
     shortCircuitLimits.remove(key);
+    shortCircuitSkips.remove(key);
+    shortCircuitFilters.remove(key);
     // The count belongs to the registration which is being removed: a test which counts
     // the operations it short circuits must not inherit the count of the previous one.
     shortCircuitCounts.remove(key);
