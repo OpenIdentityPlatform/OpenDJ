@@ -86,6 +86,150 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
   }
 
+  /**
+   * The announcement is made before the message is published, so the broker may still refuse
+   * it - no usable session, or stopped in between. What was announced and never written must
+   * not hold the shutdown back: nobody will forward it.
+   */
+  @Test
+  public void canShutdownOnceTheReplicaOfflineMsgIsWithdrawn() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN offlineCSN = newCSN(SERVER_ID);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
+    shutdownSync.replicaOfflineMsgNotSent(baseDN1, offlineCSN);
+
+    assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
+  }
+
+  /**
+   * A withdrawal takes back the very announcement it names, and not whatever the replica
+   * announced last: a stale one, of a message the replica has since announced again, is ignored,
+   * and the newer announcement is still owed its forward. Ignored, and not taken for the
+   * withdrawal of the newer one: that would put the stale announcement back in front, where the
+   * forward of its message - which says nothing about the newer one - would end the wait.
+   */
+  @Test
+  public void theWithdrawalOfAnEarlierMessageLeavesANewerOneAlone() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN refusedByTheBroker = newCSN(SERVER_ID, 1);
+    final CSN sentByTheShutdown = newCSN(SERVER_ID, 2);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, refusedByTheBroker);
+    shutdownSync.replicaOfflineMsgSent(baseDN1, sentByTheShutdown);
+    shutdownSync.replicaOfflineMsgNotSent(baseDN1, refusedByTheBroker);
+
+    assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
+
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, refusedByTheBroker, RS_ID);
+    assertThat(shutdownSync.canShutdown(baseDN1))
+        .as("the stale withdrawal was ignored, not turned into a restore")
+        .isFalse();
+  }
+
+  /**
+   * A replica announces itself offline on every disableService(), and a later announcement
+   * takes the place of the earlier one. When the broker then refuses the later message, the
+   * earlier one - which did go out, and which a peer still has to forward - must get its wait
+   * back: withdrawing the later announcement must not take the earlier one with it.
+   */
+  @Test
+  public void theWithdrawalOfALaterMessageGivesTheEarlierOneItsWaitBack() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN sentByTheShutdown = newCSN(SERVER_ID, 1);
+    final CSN refusedByTheBroker = newCSN(SERVER_ID, 2);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, sentByTheShutdown);
+    shutdownSync.replicaOfflineMsgSent(baseDN1, refusedByTheBroker);
+    shutdownSync.replicaOfflineMsgNotSent(baseDN1, refusedByTheBroker);
+
+    assertThat(shutdownSync.canShutdown(baseDN1))
+        .as("the earlier message went out and nobody has forwarded it yet")
+        .isFalse();
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, RS_ID);
+    assertThat(shutdownSync.canShutdown(baseDN1))
+        .as("the forward of the earlier message ends the wait")
+        .isTrue();
+  }
+
+  /**
+   * What the withdrawal gives back is the very announcement which was displaced, with the peers
+   * its message was queued for: the forward of one of them does not end a wait which is for
+   * several, as it would for a message which was announced again from scratch.
+   */
+  @Test
+  public void theRestoredAnnouncementIsStillOwedTheForwardsItWasQueuedFor() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN sentByTheShutdown = newCSN(SERVER_ID, 1);
+    final CSN refusedByTheBroker = newCSN(SERVER_ID, 2);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, sentByTheShutdown);
+    shutdownSync.replicaOfflineMsgDispatched(
+        baseDN1, sentByTheShutdown, asList(RS_ID, OTHER_RS_ID));
+    shutdownSync.replicaOfflineMsgSent(baseDN1, refusedByTheBroker);
+    shutdownSync.replicaOfflineMsgNotSent(baseDN1, refusedByTheBroker);
+
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, RS_ID);
+    assertThat(shutdownSync.canShutdown(baseDN1))
+        .as("the restored message is still owed the other peer's forward")
+        .isFalse();
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, OTHER_RS_ID);
+    assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
+  }
+
+  /**
+   * The restored announcement keeps its own clock: the shutdown waits out what is left of the
+   * earlier message's grace period, not a new one counted from the withdrawal.
+   */
+  @Test
+  public void theRestoredAnnouncementKeepsWhatIsLeftOfItsOwnGracePeriod() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(GRACE_PERIOD);
+    final CSN sentByTheShutdown = newCSN(SERVER_ID, 1);
+    final CSN refusedByTheBroker = newCSN(SERVER_ID, 2);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, sentByTheShutdown);
+    Thread.sleep(GRACE_PERIOD - 200);
+    shutdownSync.replicaOfflineMsgSent(baseDN1, refusedByTheBroker);
+    shutdownSync.replicaOfflineMsgNotSent(baseDN1, refusedByTheBroker);
+    // past the end of the earlier message's grace period, well short of a whole new one
+    Thread.sleep(250);
+
+    assertThat(shutdownSync.canShutdown(baseDN1))
+        .as("the wait started over at the withdrawal")
+        .isTrue();
+  }
+
+  /**
+   * While the announcement of a refused message stands in the place of the earlier one, what is
+   * reported about the earlier message is not seen by it: a forward reported in that window is
+   * lost, and the restored announcement waits out what is left of its own grace period. The
+   * window is the one refused publish; this pins the trade-off, so that a change to it is made
+   * knowingly.
+   */
+  @Test
+  public void aForwardReportedWhileARefusedAnnouncementStoodIsNotSeen() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN sentByTheShutdown = newCSN(SERVER_ID, 1);
+    final CSN refusedByTheBroker = newCSN(SERVER_ID, 2);
+
+    shutdownSync.replicaOfflineMsgSent(baseDN1, sentByTheShutdown);
+    shutdownSync.replicaOfflineMsgDispatched(baseDN1, sentByTheShutdown, asList(RS_ID));
+    shutdownSync.replicaOfflineMsgSent(baseDN1, refusedByTheBroker);
+    // not seen: the announcement of the refused message stands in front
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, RS_ID);
+    shutdownSync.replicaOfflineMsgNotSent(baseDN1, refusedByTheBroker);
+
+    assertThat(shutdownSync.canShutdown(baseDN1))
+        .as("a forward reported while the refused announcement stood is not seen")
+        .isFalse();
+  }
+
   @Test
   public void canShutdownOnceTheGracePeriodExpired() throws Exception
   {
@@ -428,6 +572,55 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     assertThat(elapsed)
         .as("the peer going away did not wake the wait up")
         .isLessThan(LONG_GRACE_PERIOD);
+  }
+
+  /**
+   * A withdrawal must wake the shutdown up as a forward does, and not leave it waiting for the
+   * forward of a message which never left.
+   */
+  @Test
+  public void theWaitEndsWhenTheMessageIsWithdrawn() throws Exception
+  {
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN offlineCSN = newCSN(SERVER_ID);
+    shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
+    final Thread withdrawer = newWithdrawerThread(shutdownSync, offlineCSN);
+
+    final long startTime = System.nanoTime();
+    withdrawer.start();
+    shutdownSync.awaitReplicaOfflineMsgsForwarded(
+        asList(baseDN1), shutdownSync.newShutdownDeadline());
+    final long elapsed = millisSince(startTime);
+    withdrawer.join();
+
+    assertThat(elapsed).isGreaterThanOrEqualTo(FORWARD_DELAY);
+    assertThat(elapsed)
+        .as("the withdrawal did not wake the wait up")
+        .isLessThan(LONG_GRACE_PERIOD);
+    assertThat(shutdownSync.canShutdown(baseDN1))
+        .as("the withdrawn message holds nothing back")
+        .isTrue();
+  }
+
+  /** Withdraws the announcement, as the broker refusing the message during the wait does. */
+  private Thread newWithdrawerThread(final DSRSShutdownSync shutdownSync, final CSN offlineCSN)
+  {
+    return new Thread(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        try
+        {
+          Thread.sleep(FORWARD_DELAY);
+          shutdownSync.replicaOfflineMsgNotSent(baseDN1, offlineCSN);
+        }
+        catch (InterruptedException e)
+        {
+          Thread.currentThread().interrupt();
+        }
+      }
+    });
   }
 
   /** Stops the peer the message was queued for, as a disconnection during the wait does. */
