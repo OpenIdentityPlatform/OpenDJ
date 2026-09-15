@@ -21,7 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011 ForgeRock AS
-  !      Portions copyright 2024 3A Systems,LLC.
+  !      Portions copyright 2024-2026 3A Systems,LLC.
   !    
 -->
 <appendix xml:id='appendix-controls'
@@ -340,6 +340,22 @@
     <para>Object Identifier: 1.3.6.1.4.1.26027.1.5.4</para>
     <para>OpenDJ specific, for using the bookmark cookie when reading
     the external change log.</para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="replication-repair-request-control">
+   <term>Replication Repair request control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Replication repair</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.26027.1.5.2</para>
+    <para>OpenDJ specific, for writing the attributes replication owns,
+    such as <literal>entryUUID</literal> and <literal>ds-sync-hist</literal>,
+    on the replica the request is sent to, and on that replica only: the
+    change is neither published to the replication servers nor recorded in
+    the history of the entry. Send it as not critical.</para>
    </listitem>
   </varlistentry>
 
