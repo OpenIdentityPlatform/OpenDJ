@@ -627,21 +627,29 @@ public class ImportTask extends Task
     // and to take appropriate actions.
     DirectoryServer.notifyImportBeginning(backend, importConfig);
 
-    // Disable the backend.
+    /*
+     * From here the listeners must be told that the import is over whichever way this
+     * method returns: a listener which took something offline when it began - a
+     * replication domain disables itself - gets no other chance to put it back.
+     */
+    boolean backendDisabled = false;
+    boolean successful = false;
     try
     {
-      TaskUtils.disableBackend(backend.getBackendID());
-    }
-    catch (DirectoryException e)
-    {
-      logger.traceException(e);
+      // Disable the backend.
+      try
+      {
+        TaskUtils.disableBackend(backend.getBackendID());
+        backendDisabled = true;
+      }
+      catch (DirectoryException e)
+      {
+        logger.traceException(e);
 
-      logger.error(e.getMessageObject());
-      return TaskState.STOPPED_BY_ERROR;
-    }
+        logger.error(e.getMessageObject());
+        return TaskState.STOPPED_BY_ERROR;
+      }
 
-    try
-    {
       // Acquire an exclusive lock for the backend.
       try
       {
@@ -665,12 +673,12 @@ public class ImportTask extends Task
       try
       {
         backend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
+        successful = true;
       }
       catch (DirectoryException de)
       {
         logger.traceException(de);
 
-        DirectoryServer.notifyImportEnded(backend, importConfig, false);
         if (de.getResultCode().equals(DirectoryServer.getCoreConfigManager().getServerErrorResultCode()))
         {
           logger.error(ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(de.getMessageObject()));
@@ -685,7 +693,6 @@ public class ImportTask extends Task
       {
         logger.traceException(e);
 
-        DirectoryServer.notifyImportEnded(backend, importConfig, false);
         logger.error(ERR_LDIFIMPORT_ERROR_DURING_IMPORT, getExceptionMessage(e));
         return TaskState.STOPPED_BY_ERROR;
       }
@@ -713,23 +720,32 @@ public class ImportTask extends Task
     }
     finally
     {
-      // Enable the backend.
-      try
+      // Enable the backend, if it was this task which disabled it.
+      boolean backendLeftDisabled = false;
+      if (backendDisabled)
       {
-        TaskUtils.enableBackend(backend.getBackendID());
-        // It is necessary to retrieve the backend structure again
-        // because disabling and enabling it again may have resulted
-        // in a new backend being registered to the server.
-        backend = getServerContext().getBackendConfigManager().getLocalBackendById(backend.getBackendID());
-      }
-      catch (DirectoryException e)
-      {
-        logger.traceException(e);
+        try
+        {
+          TaskUtils.enableBackend(backend.getBackendID());
+          // It is necessary to retrieve the backend structure again
+          // because disabling and enabling it again may have resulted
+          // in a new backend being registered to the server.
+          backend = getServerContext().getBackendConfigManager().getLocalBackendById(backend.getBackendID());
+        }
+        catch (DirectoryException e)
+        {
+          logger.traceException(e);
 
-        logger.error(e.getMessageObject());
+          logger.error(e.getMessageObject());
+          backendLeftDisabled = true;
+        }
+      }
+      // Notified once, after the backend is back, so that a listener can read it again.
+      DirectoryServer.notifyImportEnded(backend, importConfig, successful);
+      if (backendLeftDisabled)
+      {
         return TaskState.STOPPED_BY_ERROR;
       }
-      DirectoryServer.notifyImportEnded(backend, importConfig, true);
     }
 
     // Clean up after the import by closing the import config.

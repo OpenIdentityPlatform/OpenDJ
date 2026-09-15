@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -246,6 +247,9 @@ public class ShortCircuitPlugin
       park.deregister();
     }
     parks.clear();
+    // Same shape: a throw which outlives the test which asked for it unwinds the replays of
+    // every test which follows, for as long as this plugin is loaded.
+    replayThrows.clear();
   }
 
 
@@ -640,16 +644,18 @@ public class ShortCircuitPlugin
     // Check for registered short circuits.
     final String key = keyFor(operation.getOperationType(), section);
     Integer resultCode = shortCircuits.get(key);
-    if (resultCode != null)
+    if (resultCode != null && appliesTo(key, operation))
     {
       final int reached = shortCircuitCounts.computeIfAbsent(key, k -> new AtomicInteger()).incrementAndGet();
+      final int letThroughFirst = shortCircuitSkips.getOrDefault(key, 0);
       final Integer maxTimes = shortCircuitLimits.get(key);
-      if (maxTimes == null || reached <= maxTimes)
+      if (reached > letThroughFirst && (maxTimes == null || reached <= letThroughFirst + maxTimes))
       {
         return resultCode;
       }
-      // The short circuit was applied as many times as it was asked for: from now on the
-      // operations are let through, which is how a transient failure is simulated.
+      // The operations before the short circuit are let through, and so are the ones after
+      // it was applied as many times as it was asked for: this is how a transient failure
+      // which starts, or ends, part way through a sequence of operations is simulated.
     }
 
     /*
@@ -661,6 +667,23 @@ public class ShortCircuitPlugin
      */
     if (operation.isSynchronizationOperation())
     {
+      /*
+       * An error thrown here is thrown from inside the run() of the operation, which is
+       * where a plugin or a backend class which can not be loaded raises one: it unwinds
+       * the replay the way a real one does, rather than being reported as a result code the
+       * replay decides on. It comes before the park because it is the whole point of the
+       * delivery which asked for it, and no test asks for both on one operation.
+       */
+      final ThrownFromReplay thrower = replayThrows.get(key);
+      if (thrower != null)
+      {
+        final Error error = thrower.errorFor(operation);
+        if (error != null)
+        {
+          throw error;
+        }
+      }
+
       final ParkedReplay park = parks.get(key);
       if (park != null && park.parks(operation))
       {
@@ -719,6 +742,23 @@ public class ShortCircuitPlugin
   /** How many times a registered short circuit must be applied, when it is limited. */
   private static final Map<String, Integer> shortCircuitLimits = new ConcurrentHashMap<>();
 
+  /** How many operations a registered short circuit lets through before it applies. */
+  private static final Map<String, Integer> shortCircuitSkips = new ConcurrentHashMap<>();
+
+  /**
+   * Which operations a registered short circuit is for, when it is not for every operation
+   * of its type: the ones it is not for are neither short circuited nor counted.
+   */
+  private static final Map<String, Predicate<PluginOperation>> shortCircuitFilters =
+      new ConcurrentHashMap<>();
+
+  /** Returns whether the short circuit registered under the given key is for the given operation. */
+  private static boolean appliesTo(String key, PluginOperation operation)
+  {
+    final Predicate<PluginOperation> filter = shortCircuitFilters.get(key);
+    return filter == null || filter.test(operation);
+  }
+
   /**
    * Returns how many times the short circuit registered for the given operation type and
    * plugin point was reached. A short circuit registered for a limited number of times is
@@ -744,10 +784,13 @@ public class ShortCircuitPlugin
   public static void registerShortCircuit(OperationType operation, String section, int resultCode)
   {
     final String key = keyFor(operation, section);
-    // This registration applies to every operation, and it counts from zero: a limit or
-    // a count left behind by a previous registration is not part of it.
+    // This registration applies to every operation, and it counts from zero: a limit, a
+    // number of operations let through or a count left behind by a previous registration
+    // is not part of it.
     shortCircuitCounts.remove(key);
     shortCircuitLimits.remove(key);
+    shortCircuitSkips.remove(key);
+    shortCircuitFilters.remove(key);
     shortCircuits.put(key, resultCode);
   }
 
@@ -762,10 +805,59 @@ public class ShortCircuitPlugin
    */
   public static void registerShortCircuit(OperationType operation, String section, int resultCode, int maxTimes)
   {
+    registerShortCircuit(operation, section, resultCode, 0, maxTimes);
+  }
+
+  /**
+   * Register a short circuit which lets the given number of operations through before it
+   * applies, then applies to the given number of operations, the ones which follow being
+   * let through again: this is how a transient failure which starts part way through a
+   * sequence of operations is simulated - the second search of an attempt failing while
+   * the first one ran, say.
+   *
+   * @param operation The type of operation the short circuit applies to.
+   * @param section The plugin point the short circuit applies to.
+   * @param resultCode The result code to be returned for the short circuit.
+   * @param letThroughFirst How many operations must be let through before the short
+   *                        circuit applies.
+   * @param maxTimes How many operations must be short circuited after them.
+   */
+  public static void registerShortCircuit(OperationType operation, String section, int resultCode,
+      int letThroughFirst, int maxTimes)
+  {
     final String key = keyFor(operation, section);
     shortCircuitCounts.remove(key);
+    shortCircuitFilters.remove(key);
+    shortCircuitSkips.put(key, letThroughFirst);
     shortCircuitLimits.put(key, maxTimes);
     shortCircuits.put(key, resultCode);
+  }
+
+  /**
+   * Register a short circuit like
+   * {@link #registerShortCircuit(OperationType, String, int, int, int)}, for some of the
+   * operations of the given type only: the ones the predicate does not accept are let
+   * through without being counted, as if the short circuit were not there.
+   * <p>
+   * The operations of one type which reach a plugin point are not all the test's: the
+   * server makes internal operations of its own on its own schedule - the ServerState flush
+   * thread of a replication domain writes the base entry with a Modify on its tick, say -
+   * and a short circuit which counts them takes a let-through, or a refusal, meant for the
+   * operation the test is driving. A test which counts its operations one by one names them.
+   *
+   * @param operation The type of operation the short circuit applies to.
+   * @param section The plugin point the short circuit applies to.
+   * @param resultCode The result code to be returned for the short circuit.
+   * @param letThroughFirst How many of the operations the predicate accepts must be let
+   *                        through before the short circuit applies.
+   * @param maxTimes How many of them must be short circuited after those.
+   * @param appliesTo Which operations of that type the short circuit is for.
+   */
+  public static void registerShortCircuit(OperationType operation, String section, int resultCode,
+      int letThroughFirst, int maxTimes, Predicate<PluginOperation> appliesTo)
+  {
+    registerShortCircuit(operation, section, resultCode, letThroughFirst, maxTimes);
+    shortCircuitFilters.put(keyFor(operation, section), appliesTo);
   }
 
   /**
@@ -778,6 +870,8 @@ public class ShortCircuitPlugin
     final String key = keyFor(operation, section);
     shortCircuits.remove(key);
     shortCircuitLimits.remove(key);
+    shortCircuitSkips.remove(key);
+    shortCircuitFilters.remove(key);
     // The count belongs to the registration which is being removed: a test which counts
     // the operations it short circuits must not inherit the count of the previous one.
     shortCircuitCounts.remove(key);
@@ -785,6 +879,82 @@ public class ShortCircuitPlugin
 
   /** Registered parks for the replayed operations, keyed like the short circuits. */
   private static final Map<String, ParkedReplay> parks = new ConcurrentHashMap<>();
+
+  /** The errors the replayed operations of one type throw, by operation type and section. */
+  private static final Map<String, ThrownFromReplay> replayThrows = new ConcurrentHashMap<>();
+
+  /**
+   * Throws an error out of the replay of the operations of one type, as many times as the
+   * test asked for.
+   * <p>
+   * The throw is made at a plugin point which runs inside {@code op.run()}, so it unwinds
+   * the replay from where a plugin or a backend class which can not be loaded raises one -
+   * past the point where the change was marked as being replayed by the thread which took
+   * it. That is what tells it apart from a delivery which reports a result code: a result
+   * code is a verdict the replay decided on, an error is the replay not running at all.
+   * <p>
+   * It is bounded rather than standing: the delivery which takes over from the one which
+   * was unwound has to be able to apply the change, or the test would watch this replica
+   * give up on a change it was never going to replay.
+   */
+  public static final class ThrownFromReplay
+  {
+    private final String key;
+    /** Which of the replayed operations of that type this throws out of. */
+    private final Predicate<PluginOperation> matches;
+    /** Built where it is thrown, so that it carries the stack of the replay it unwound. */
+    private final Supplier<? extends Error> error;
+    private final int maxTimes;
+    private final AtomicInteger thrown = new AtomicInteger();
+
+    private ThrownFromReplay(String key, Predicate<PluginOperation> matches,
+        Supplier<? extends Error> error, int maxTimes)
+    {
+      this.key = key;
+      this.matches = matches;
+      this.error = error;
+      this.maxTimes = maxTimes;
+    }
+
+    /**
+     * Returns the error to throw out of the provided operation, or {@code null} when this
+     * is not one of the operations it is for, or when it has been thrown as many times as
+     * the test asked for.
+     */
+    private Error errorFor(PluginOperation operation)
+    {
+      if (!matches.test(operation))
+      {
+        return null;
+      }
+      // Claimed before it is built, so that two replays of one change - the retry in place
+      // makes them - never take the same one twice.
+      if (thrown.incrementAndGet() > maxTimes)
+      {
+        return null;
+      }
+      return error.get();
+    }
+
+    /**
+     * Returns how many replays this threw out of.
+     *
+     * @return the number of replays which were unwound by this
+     */
+    public int thrownCount()
+    {
+      return Math.min(thrown.get(), maxTimes);
+    }
+
+    /**
+     * Stops throwing out of the replayed operations. A test must call this however it ends,
+     * or it leaves the deliveries of the tests which follow being unwound.
+     */
+    public void deregister()
+    {
+      replayThrows.remove(key, this);
+    }
+  }
 
   /**
    * Holds the replayed operations of one type where they are, one at a time, until the
@@ -1074,6 +1244,40 @@ public class ShortCircuitPlugin
       previous.deregister();
     }
     return park;
+  }
+
+  /**
+   * Throws the provided error out of the replay of the operations of the given type, at the
+   * given plugin point, as many times as asked for and no more.
+   *
+   * @param operation the type of operation to throw out of
+   * @param section the plugin point to throw at, which can only be {@code PreParse}
+   * @param matches which of them to throw out of - the change a test acts on rather than
+   *          whatever of that type reaches this point first
+   * @param error builds the error where it is thrown, so that it carries the stack trace of
+   *          the replay it unwound
+   * @param maxTimes how many replays to unwind, after which the operations are let through:
+   *          the delivery which takes over from the one which was unwound is what applies
+   *          the change
+   * @return the throw, which the test must {@link ThrownFromReplay#deregister()} when it is
+   *         done with it
+   * @throws IllegalArgumentException if asked for any plugin point but {@code PreParse}
+   */
+  public static ThrownFromReplay throwFromReplayedOperations(OperationType operation,
+      String section, Predicate<PluginOperation> matches, Supplier<? extends Error> error,
+      int maxTimes)
+  {
+    if (!"PreParse".equalsIgnoreCase(section))
+    {
+      // The pre-operation plugins are not invoked for synchronization operations at all, so
+      // a throw asked for anywhere else is one no replay would ever meet.
+      throw new IllegalArgumentException("replayed operations can only be thrown out of at"
+          + " PreParse, which is the only plugin point they reach, not at " + section);
+    }
+    final String key = keyFor(operation, section);
+    final ThrownFromReplay thrower = new ThrownFromReplay(key, matches, error, maxTimes);
+    replayThrows.put(key, thrower);
+    return thrower;
   }
 
   /** Returns the key a short circuit or a park of the given operations is kept under. */

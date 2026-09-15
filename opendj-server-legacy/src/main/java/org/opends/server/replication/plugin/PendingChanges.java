@@ -132,8 +132,8 @@ class PendingChanges
    * Such a message is given up on rather than left queued, so that it is neither reported as
    * sent nor published later on the session which follows.
    *
-   * @return the CSN of the message which was published, or {@code null} if it could not be
-   *         published
+   * @return the CSN of the message which was published, or {@code null} if it could not be:
+   *         a change which is still in flight holds it back, or the broker refused it
    */
   public synchronized CSN putReplicaOfflineMsg()
   {
@@ -143,23 +143,36 @@ class PendingChanges
     pendingChange.setCommitted(true);
 
     pendingChanges.put(offlineCSN, pendingChange);
-    pushCommittedChanges();
-    // pushCommittedChanges() removes whatever it published, so the message is still listed
-    // here if and only if a change before it held it back.
-    final boolean heldBack = pendingChanges.remove(offlineCSN) != null;
-    return heldBack ? null : offlineCSN;
+    /*
+     * The message is the last change of the queue, so a push which did not reach it, or which
+     * the broker refused, reports another CSN or none.
+     */
+    final boolean published = offlineCSN.equals(pushCommittedChanges());
+    // pushCommittedChanges() removes whatever it reached, so the message is still listed here
+    // if and only if a change before it held it back - it is dropped rather than left queued.
+    pendingChanges.remove(offlineCSN);
+    return published ? offlineCSN : null;
   }
 
   /**
    * Push all committed local changes to the replicationServer service.
+   *
+   * @return the CSN of the last {@link ReplicaOfflineMsg} the replication service accepted, or
+   *         {@code null} if none was pushed or the broker refused it. The announcement that a
+   *         replica goes offline is the one message whose delivery the caller must know about:
+   *         it is stored nowhere, so nothing publishes it again, while a change the broker
+   *         refuses is republished from the historical information of its entry on the next
+   *         session.
    */
-  synchronized void pushCommittedChanges()
+  synchronized CSN pushCommittedChanges()
   {
+    CSN publishedOfflineCSN = null;
+
     // peek the oldest change
     Entry<CSN, PendingChange> firstEntry = pendingChanges.firstEntry();
     if (firstEntry == null)
     {
-      return;
+      return null;
     }
 
     PendingChange firstChange = firstEntry.getValue();
@@ -185,7 +198,10 @@ class PendingChanges
       }
       else if (msg instanceof ReplicaOfflineMsg)
       {
-        domain.publish(msg);
+        if (domain.publish(msg))
+        {
+          publishedOfflineCSN = msg.getCSN();
+        }
       }
 
       // false warning: firstEntry will not be null if firstChange is not null
@@ -195,6 +211,7 @@ class PendingChanges
       firstEntry = pendingChanges.firstEntry();
       firstChange = firstEntry != null ? firstEntry.getValue() : null;
     }
+    return publishedOfflineCSN;
   }
 
   /**

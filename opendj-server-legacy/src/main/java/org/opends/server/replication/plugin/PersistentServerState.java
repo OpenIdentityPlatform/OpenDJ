@@ -303,24 +303,26 @@ class PersistentServerState
   /**
    * Save the current values of this PersistentState object
    * in the appropriate entry of the database.
+   * <p>
+   * A base entry which is not in the backend - a suffix waiting to be initialized by an
+   * import - leaves this state unwritten until the entry appears. The state used to be
+   * written to the domain configuration entry instead, and must not be again: that write
+   * goes through the configuration backend, which holds its update lock while it calls
+   * every change listener of the entry back, and the domain is one of them -
+   * {@code LDAPReplicationDomain.applyConfigurationChange()} takes the very lock
+   * {@code disable()} holds while it calls this, so the two orders deadlock.
+   * <p>
+   * Nothing is lost by not writing it. A suffix whose base entry is missing holds no entry
+   * at all, so no change of this replica is in this state, and a change from another one
+   * can not be replayed into it either. The value a former version left on the
+   * configuration entry is still read back by {@link #loadState()}.
    *
    * @return a boolean indicating if the method was successful.
    */
   private boolean updateStateEntry()
   {
     // Generate a modify operation on the Server State baseDN Entry.
-    ResultCode result = runUpdateStateEntry(baseDN);
-    if (result == ResultCode.NO_SUCH_OBJECT)
-    {
-      // The base entry does not exist yet in the database or has been deleted,
-      // save the state to the config entry instead.
-      SearchResultEntry configEntry = searchConfigEntry();
-      if (configEntry != null)
-      {
-        result = runUpdateStateEntry(configEntry.getName());
-      }
-    }
-    return result == ResultCode.SUCCESS;
+    return runUpdateStateEntry(baseDN) == ResultCode.SUCCESS;
   }
 
   /**
@@ -370,16 +372,20 @@ class PersistentServerState
   }
 
   /**
-   * Empty the ServerState in memory.
+   * Drop the in-memory copy of the ServerState, leaving persistent storage
+   * holding whatever it holds.
    * <p>
-   * The emptied state is marked as not saved, so the next save writes the empty
-   * state out - which is what {@link #clear()} is after. A caller that only
-   * means to drop the in-memory copy, and expects the backend to keep what it
-   * holds, has to keep saves away until it has loaded the state back.
+   * The emptied state is marked as saved, because nothing about it is waiting
+   * to be written: the callers - a domain being disabled, and a domain about to
+   * load its state back - drop the copy in memory without meaning the base
+   * entry to lose its position. Marking it as not saved would have the next
+   * checkpoint, or the last save the state checkpointer runs on its way out,
+   * replace the CSNs on the base entry with nothing.
    */
   public void clearInMemory()
   {
     state.clear();
+    state.setSaved(true);
   }
 
   /**
@@ -388,6 +394,9 @@ class PersistentServerState
   void clear()
   {
     clearInMemory();
+    // Emptying persistent storage too is the point of this method, so the
+    // emptied state does have to be written out.
+    state.setSaved(false);
     save();
   }
 

@@ -17,6 +17,8 @@
  */
 package org.opends.server.replication.plugin;
 
+import net.jcip.annotations.GuardedBy;
+
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -36,11 +38,18 @@ class PendingChange implements Comparable<PendingChange>
    */
   private volatile UpdateMsg msg;
   /**
-   * Whether a replay thread owns this change: it is being replayed, or it waits for the
+   * The replay thread which owns this change: it is being replayed, or it waits for the
    * change it depends on. A remote change which no thread owns is one whose replay
    * failed and which the replication server is expected to deliver again.
+   * <p>
+   * The owner is kept rather than the bare fact that there is one, so that a change is
+   * given back by the thread it was handed to and by nobody else: a release which arrives
+   * from a thread which does not own the change anymore - it reports a failure on a change
+   * which has been taken over since - would hand a change which is being replayed right
+   * now to a second thread (issue #922).
    */
-  private boolean owned;
+  @GuardedBy("RemotePendingChanges.pendingChangesLock")
+  private Thread owner;
   /**
    * How many times in a row the replay of this change failed, and when the first of
    * those failures happened - on a clock which only moves forward.
@@ -138,18 +147,30 @@ class PendingChange implements Comparable<PendingChange>
    */
   public boolean isOwned()
   {
-    return owned;
+    return owner != null;
   }
 
   /**
-   * Sets whether a replay thread owns this change.
+   * Returns whether the provided thread owns this change.
    *
-   * @param owned {@code true} when a replay thread takes the change over, {@code false}
-   *              when its replay failed and the change must be delivered again
+   * @param thread the thread which claims the change
+   * @return {@code true} if that thread is the one this change was handed to
    */
-  public void setOwned(boolean owned)
+  public boolean isOwnedBy(Thread thread)
   {
-    this.owned = owned;
+    // A change nobody owns is not owned by a caller which has no thread to name either.
+    return thread != null && owner == thread;
+  }
+
+  /**
+   * Sets the replay thread which owns this change.
+   *
+   * @param owner the thread which takes the change over, or {@code null} when it is given
+   *              back - its replay failed, or it has been applied
+   */
+  public void setOwner(Thread owner)
+  {
+    this.owner = owner;
   }
 
   /**

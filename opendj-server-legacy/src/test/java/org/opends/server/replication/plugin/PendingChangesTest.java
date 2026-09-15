@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
 /**
  * Tests the bookkeeping a replica does on its own changes: they are published in the order of
  * their CSNs, and the announcement that the replica goes offline is only reported as sent when
- * it really was.
+ * it really was published.
  * <p>
  * These tests need no server: the changes are built by a CSNGenerator, which reads the time
  * service, and the time service is up as soon as its class is loaded.
@@ -48,9 +48,9 @@ public class PendingChangesTest extends DirectoryServerTestCase
   private static final int SERVER_ID = 42;
 
   @Test
-  public void replicaOfflineMsgIsSentWhenNoChangeIsPending() throws Exception
+  public void replicaOfflineMsgTheBrokerPublishedIsReportedAsSent() throws Exception
   {
-    final ReplicationDomain domain = mock(ReplicationDomain.class);
+    final ReplicationDomain domain = domainWhichPublishes(true);
     final PendingChanges pendingChanges = newPendingChanges(domain);
 
     final CSN offlineCSN = pendingChanges.putReplicaOfflineMsg();
@@ -62,15 +62,31 @@ public class PendingChangesTest extends DirectoryServerTestCase
   }
 
   /**
+   * The broker writes nothing when it has no usable session, when the changes which come before
+   * this one still have to be republished by the recovery, or when it is stopped in between - and
+   * what was not written must not be reported as sent: the shutdown of a collocated replication
+   * server waits out the whole grace period of a message it was told about and which never
+   * reached the wire.
+   */
+  @Test
+  public void replicaOfflineMsgTheBrokerRefusedIsNotReportedAsSent() throws Exception
+  {
+    final ReplicationDomain domain = domainWhichPublishes(false);
+    final PendingChanges pendingChanges = newPendingChanges(domain);
+
+    assertNull(pendingChanges.putReplicaOfflineMsg(), "the broker refused the message");
+
+    assertTrue(onlyMsgPublishedBy(domain) instanceof ReplicaOfflineMsg, "it was attempted");
+  }
+
+  /**
    * The message carries the newest CSN of the replica, so a change which is still in flight
-   * holds it back - and what was never published must not be reported as sent: the shutdown of
-   * a collocated replication server waits out the whole grace period of a message it was told
-   * about and which never reaches the wire.
+   * holds it back, and the broker is never even asked to publish it.
    */
   @Test
   public void replicaOfflineMsgQueuedBehindAnUncommittedChangeIsNotReportedAsSent() throws Exception
   {
-    final ReplicationDomain domain = mock(ReplicationDomain.class);
+    final ReplicationDomain domain = domainWhichPublishes(true);
     final PendingChanges pendingChanges = newPendingChanges(domain);
     pendingChanges.putLocalOperation(newLocalOperation());
 
@@ -88,7 +104,7 @@ public class PendingChangesTest extends DirectoryServerTestCase
   @Test
   public void replicaOfflineMsgWhichCouldNotBeSentIsNotPublishedLater() throws Exception
   {
-    final ReplicationDomain domain = mock(ReplicationDomain.class);
+    final ReplicationDomain domain = domainWhichPublishes(true);
     final PendingChanges pendingChanges = newPendingChanges(domain);
     final CSN changeCSN = pendingChanges.putLocalOperation(newLocalOperation());
     assertNull(pendingChanges.putReplicaOfflineMsg(), "nothing was published");
@@ -100,9 +116,38 @@ public class PendingChangesTest extends DirectoryServerTestCase
     assertTrue(published instanceof LDAPUpdateMsg, "published " + published);
   }
 
+  /**
+   * A change the broker refused leaves the pending changes all the same: the replica has done
+   * it, its ServerState says so, and it is by finding that state ahead of the one its
+   * replication server reports that the next session republishes the change from the historical
+   * information of its entry. Only the offline announcement, which is stored nowhere, needs the
+   * answer of the broker.
+   */
+  @Test
+  public void changeTheBrokerRefusedStillLeavesThePendingChanges() throws Exception
+  {
+    final ReplicationDomain domain = domainWhichPublishes(false);
+    final PendingChanges pendingChanges = newPendingChanges(domain);
+    final CSN changeCSN = pendingChanges.putLocalOperation(newLocalOperation());
+    assertEquals(pendingChanges.size(), 1);
+
+    pendingChanges.commitAndPushCommittedChanges(changeCSN, mock(LDAPUpdateMsg.class));
+
+    assertTrue(onlyMsgPublishedBy(domain) instanceof LDAPUpdateMsg, "the change was published");
+    assertEquals(pendingChanges.size(), 0, "and is not queued for a second attempt");
+  }
+
   private PendingChanges newPendingChanges(ReplicationDomain domain)
   {
     return new PendingChanges(new CSNGenerator(SERVER_ID, 0), domain);
+  }
+
+  /** A domain whose broker accepts, or refuses, whatever it is given to publish. */
+  private ReplicationDomain domainWhichPublishes(boolean accepted)
+  {
+    final ReplicationDomain domain = mock(ReplicationDomain.class);
+    when(domain.publish(any(UpdateMsg.class))).thenReturn(accepted);
+    return domain;
   }
 
   /** A local operation, i.e. one this replica must publish to the other replicas. */

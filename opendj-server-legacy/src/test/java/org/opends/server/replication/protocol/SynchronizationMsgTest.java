@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -22,6 +23,7 @@ import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.replication.common.AssuredMode.*;
+import static org.opends.server.replication.plugin.LDAPReplicationDomain.DS_SYNC_CONFLICT;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -528,6 +530,54 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // Create an update message from this op
     AddMsg updateMsg = (AddMsg) LDAPUpdateMsg.generateMsg(localAddOp);
     assertEquals(msg.getCSN(), updateMsg.getCSN());
+  }
+
+  /**
+   * The conflict marker reaches the entry: addAttribute() appends it to the attributes the
+   * message already carries rather than replacing them.
+   */
+  @Test
+  public void addMsgAddAttributeAppendsToTheAttributesAlreadyEncoded() throws Exception
+  {
+    final String conflictingDN = "o=test";
+    final AddMsg msg = newAddMsg();
+    final List<Attribute> attributesBefore = msg.getAttributes();
+
+    msg.addAttribute(DS_SYNC_CONFLICT, conflictingDN);
+
+    Assertions.assertThat(msg.getAttributes())
+        .containsAll(attributesBefore)
+        .contains(Attributes.create(DS_SYNC_CONFLICT, conflictingDN));
+  }
+
+  /**
+   * A value addAttribute() can not encode is reported rather than dropped: its one caller,
+   * LDAPReplicationDomain.addConflict(), would otherwise let the entry be added under its
+   * conflict RDN without the ds-sync-conflict marker which says why, leaving the repair
+   * tool nothing to find it by and nothing in the logs to say so (issue #927).
+   */
+  @Test
+  public void addMsgAddAttributeReportsAValueItCanNotEncode() throws Exception
+  {
+    final AddMsg msg = newAddMsg();
+    final List<Attribute> attributesBefore = msg.getAttributes();
+
+    Assertions.assertThatThrownBy(() -> msg.addAttribute(DS_SYNC_CONFLICT, null))
+        .isInstanceOf(NullPointerException.class);
+
+    // The message is the one it was: a failure leaves no half encoded attribute behind.
+    Assertions.assertThat(msg.getAttributes()).isEqualTo(attributesBefore);
+  }
+
+  private AddMsg newAddMsg() throws Exception
+  {
+    final Attribute objectClass = Attributes.create(getObjectClassAttributeType(), "organization");
+    final List<Attribute> userAttributes = newArrayList(Attributes.create("o", "com"));
+    final List<Attribute> operationalAttributes =
+        newArrayList(Attributes.create("creatorsname", "dc=creator"));
+
+    return new AddMsg(new CSN(TimeThread.getTime(), 123, 45), DN.valueOf("o=test"),
+        "thisIsaUniqueID", "parentUniqueId", objectClass, userAttributes, operationalAttributes);
   }
 
   private Map<AttributeType, List<Attribute>> addAttribute(Attribute attr, List<Attribute> userAttributes)

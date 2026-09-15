@@ -18,11 +18,14 @@
 package org.opends.server.replication.plugin;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -34,6 +37,8 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.MonitorData;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperationBasis;
+import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
@@ -42,9 +47,11 @@ import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
+import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
+import org.opends.server.types.OperationType;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -54,6 +61,10 @@ import org.testng.annotations.Test;
 public class NamingConflictTest extends ReplicationTestCase
 {
   private static final AtomicBoolean SHUTDOWN = new AtomicBoolean(false);
+
+  /** The monitor attributes which count the naming conflicts a domain solved, and did not. */
+  private static final String RESOLVED_NAMING_CONFLICTS = "resolved-naming-conflicts";
+  private static final String UNRESOLVED_NAMING_CONFLICTS = "unresolved-naming-conflicts";
 
   private DN baseDN;
   private LDAPReplicationDomain domain;
@@ -392,6 +403,531 @@ public class NamingConflictTest extends ReplicationTestCase
   }
 
   /**
+   * Test case for [Issue 956]: conflict resolution reads the data with a search of the
+   * entryUUID, and a search which did not run is no evidence about the data - the entry
+   * it did not report is not an entry which was deleted.
+   * <p>
+   * The change replayed here was made on the master under a DN this replica does not
+   * have: the entry lives under another one, the way it does after a rename which was
+   * replayed first, and only the entryUUID search finds it. So the change is applied
+   * only if that search is given another chance once the storage serves it again.
+   * Reading its failure as "the entry has been deleted" answers NOTHING_TO_DO, which
+   * records the change as replayed and loses it for good - the replication server never
+   * sends a change this replica reports itself past.
+   */
+  @Test
+  public void modifyIsRetriedWhileTheEntryUUIDSearchCanNotRun() throws Exception
+  {
+    final Entry entry = createAndAddEntry("modifyWhoseSearchCanNotRun");
+    final String entryUUID = getEntryUUID(entry.getName());
+    final String phoneNumber = "01 02 45";
+
+    // The DN the change carries is the one the entry had on the master. Here the entry
+    // is the one which was just added, which only the entryUUID search finds.
+    final DN staleDN = DN.valueOf("cn=movedAway," + TEST_ROOT_DN_STRING);
+    final CSN csn = gen.newCSN();
+
+    /*
+     * The storage does not serve the search for the first attempts and serves it after
+     * them: a failure which lasts less than the attempts made in place, the way a
+     * backend which is being rebuilt or a connection which was lost does. The short
+     * circuit is put in force right before the replay and dropped right after it - it
+     * applies to every search of this server while it is registered, and the replay
+     * here runs on this thread.
+     */
+    ShortCircuitPlugin.registerShortCircuit(
+        OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue(), 2);
+    try
+    {
+      replayMsg(new ModifyMsg(csn, staleDN, generatemods("telephonenumber", phoneNumber), entryUUID));
+      assertShortCircuitSpentBy(2);
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+    }
+
+    final Entry replayedEntry = DirectoryServer.getEntry(entry.getName());
+    assertEquals(replayedEntry.parseAttribute("telephonenumber").asString(), phoneNumber,
+        "the change was not applied: a search which could not run was read as a deleted entry");
+    assertTrue(domain.getServerState().cover(csn),
+        "a change which was applied must be recorded as replayed");
+  }
+
+  /**
+   * Test case for [Issue 956]: the entryUUID searches which check a replayed Add for a
+   * conflict read the data the same way, and a search which did not run is no evidence
+   * about it either. The first of them checks whether the Add was replayed here already.
+   * <p>
+   * The Add is delivered a second time - the replication server sends again what a
+   * replica does not report itself past - and the entry was renamed here since it was
+   * added: only the entryUUID search finds it. An entry that search did not report is
+   * not an entry which is not there: reading it that way adds the entry a second time,
+   * under its former DN, and the data holds one entryUUID twice.
+   */
+  @Test
+  public void addIsNotReplayedTwiceWhileTheEntryUUIDSearchCanNotRun() throws Exception
+  {
+    final Entry entry = createAndAddEntry("addWhoseSearchCanNotRun");
+    final String entryUUID = getEntryUUID(entry.getName());
+    final RDN renamedRDN = RDN.valueOf("cn=renamedAfterTheAdd");
+    final ModifyDNOperation rename =
+        getRootConnection().processModifyDN(entry.getName(), renamedRDN, true);
+    assertEquals(rename.getResultCode(), ResultCode.SUCCESS);
+    final CSN csn = gen.newCSN();
+
+    // The first attempt fails its first search; the second attempt has it served.
+    ShortCircuitPlugin.registerShortCircuit(
+        OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue(), 1);
+    try
+    {
+      replayMsg(addMsg(entry, csn, getEntryUUID(baseDN), entryUUID));
+      assertShortCircuitSpentBy(1);
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+    }
+
+    assertFalse(entryExists(entry.getName()),
+        "the entry was added a second time: a search which could not run was read as an "
+            + "Add which was not replayed here yet");
+    assertTrue(entryExists(baseDN.child(renamedRDN)), "the renamed entry is gone");
+    assertTrue(domain.getServerState().cover(csn),
+        "a change which is in the data must be recorded as replayed");
+  }
+
+  /**
+   * Test case for [Issue 956]: the search which checks that the parent of a replayed
+   * Add is still the one the change was made under fails, and the one before it - the
+   * check that the Add was not replayed here already - ran.
+   * <p>
+   * A parent that search did not report is not a parent which was deleted: the Add is
+   * attempted again once the storage serves the search, and no naming conflict is
+   * counted for a search which read nothing. Reading it as a parent which is gone hands
+   * the Add to conflict resolution as the naming conflict it is not - and renames the
+   * entry under the base DN as a conflicting entry, a divergence which is left for an
+   * administrator to repair by hand, when the search conflict resolution makes fails as
+   * well.
+   */
+  @Test
+  public void addIsRetriedWhileTheParentEntryUUIDSearchCanNotRun() throws Exception
+  {
+    final Entry parent = addParentEntry("addWhoseParentSearchCanNotRun");
+    final String parentUUID = getEntryUUID(parent.getName());
+    final Entry child = makeChildEntry("addedWhileTheParentSearchFailed", parent.getName());
+    final CSN csn = gen.newCSN();
+    final long resolvedConflicts = getMonitorAttrValue(baseDN, RESOLVED_NAMING_CONFLICTS);
+    final long unresolvedConflicts = getMonitorAttrValue(baseDN, UNRESOLVED_NAMING_CONFLICTS);
+
+    /*
+     * The first search of the first attempt - the check for an Add replayed already - is
+     * let through, the parent check right after it fails, and every search after that
+     * one is served. A parent search read as a parent which is gone hands the Add to
+     * conflict resolution, whose own search finds the parent where it was and rewrites
+     * the message to the DN the Add already carries: the entry lands where it should
+     * either way, and what tells the two apart is the naming conflict counted for a
+     * search which read nothing.
+     */
+    ShortCircuitPlugin.registerShortCircuit(
+        OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue(), 1, 1);
+    try
+    {
+      replayMsg(addMsg(child, csn, parentUUID, "1c3c2c4d-2b5e-4b9f-8a7c-3d5e6f7a8b9c"));
+      assertShortCircuitSpentBy(2);
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+    }
+
+    assertTrue(entryExists(child.getName()),
+        "the entry was not added under its parent: a parent search which could not run "
+            + "was read as a parent which is gone");
+    assertTrue(domain.getServerState().cover(csn),
+        "a change which was applied must be recorded as replayed");
+    assertEquals(getMonitorAttrValue(baseDN, RESOLVED_NAMING_CONFLICTS), resolvedConflicts,
+        "a search which did not run is not a naming conflict which was resolved");
+    assertEquals(getMonitorAttrValue(baseDN, UNRESOLVED_NAMING_CONFLICTS), unresolvedConflicts,
+        "a search which did not run is not a naming conflict which could not be resolved");
+  }
+
+  /**
+   * Test case for [Issue 956]: the search conflict resolution reads the data with once a
+   * replayed Add failed on a genuine conflict fails, and the checks before the Add ran.
+   * <p>
+   * The parent of the entry was renamed here, so the Add carries a DN which is not
+   * where the parent is anymore: a conflict which is solved by adding the entry under
+   * the parent's current DN, once the search which finds that DN runs. A search which
+   * did not run is not a parent which is gone, and the conflict is counted once, when
+   * it is solved - not for the search which read nothing.
+   */
+  @Test
+  public void addIsRetriedWhileTheConflictResolutionSearchCanNotRun() throws Exception
+  {
+    final Entry parent = addParentEntry("addWhoseConflictSearchCanNotRun");
+    final String parentUUID = getEntryUUID(parent.getName());
+    final Entry child = makeChildEntry("addedWhileTheConflictSearchFailed", parent.getName());
+    final String entryUUID = "2d4d3d5e-3c6f-4ca0-9b8d-4e6f7a8b9cad";
+    final CSN csn = gen.newCSN();
+
+    final RDN renamedParentRDN = RDN.valueOf("ou=renamedBeforeTheAdd");
+    final ModifyDNOperation renameParent =
+        getRootConnection().processModifyDN(parent.getName(), renamedParentRDN, true);
+    assertEquals(renameParent.getResultCode(), ResultCode.SUCCESS);
+    final DN expectedDN = baseDN.child(renamedParentRDN).child(child.getName().rdn());
+    final long resolvedConflicts = getMonitorAttrValue(baseDN, RESOLVED_NAMING_CONFLICTS);
+    final long unresolvedConflicts = getMonitorAttrValue(baseDN, UNRESOLVED_NAMING_CONFLICTS);
+
+    /*
+     * The two searches which check the Add before it runs are let through - they find
+     * the parent under its new DN, which is what fails the Add on a conflict - and the
+     * search conflict resolution then reads the data with is the one which fails. The
+     * next attempt has every search served.
+     */
+    ShortCircuitPlugin.registerShortCircuit(
+        OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue(), 2, 1);
+    try
+    {
+      replayMsg(addMsg(child, csn, parentUUID, entryUUID));
+      assertShortCircuitSpentBy(3);
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+    }
+
+    assertTrue(entryExists(expectedDN),
+        "the entry was not added under the current DN of its parent: a search which could "
+            + "not run was read as a parent which is gone");
+    // A parent read as gone puts the entry under the base DN as a conflicting entry, with
+    // its entryUUID added to its RDN.
+    assertFalse(entryExists(DN.valueOf(
+            "entryuuid=" + entryUUID + "+" + child.getName().rdn() + "," + TEST_ROOT_DN_STRING)),
+        "the entry was renamed under the base DN as a conflicting entry");
+    assertTrue(domain.getServerState().cover(csn),
+        "a change which was applied must be recorded as replayed");
+    assertEquals(getMonitorAttrValue(baseDN, RESOLVED_NAMING_CONFLICTS), resolvedConflicts + 1,
+        "the renamed parent is one naming conflict, solved once the search ran");
+    assertEquals(getMonitorAttrValue(baseDN, UNRESOLVED_NAMING_CONFLICTS), unresolvedConflicts,
+        "a search which did not run is not a naming conflict which could not be resolved");
+  }
+
+  /**
+   * Test case for [Issue 956]: a replayed Delete reads the data with the same search
+   * once it failed on a conflict, and rides on the same retry.
+   * <p>
+   * The entry was renamed here, so the Delete carries a DN which is not the entry's
+   * anymore, and only the entryUUID search finds it. Reading the search's failure as an
+   * entry which was deleted already answers NOTHING_TO_DO: the entry stays, and the
+   * change is recorded as replayed.
+   */
+  @Test
+  public void deleteIsRetriedWhileTheEntryUUIDSearchCanNotRun() throws Exception
+  {
+    final Entry entry = createAndAddEntry("deleteWhoseSearchCanNotRun");
+    final String entryUUID = getEntryUUID(entry.getName());
+    final DN staleDN = DN.valueOf("cn=movedAway," + TEST_ROOT_DN_STRING);
+    final CSN csn = gen.newCSN();
+
+    ShortCircuitPlugin.registerShortCircuit(
+        OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue(), 2);
+    try
+    {
+      replayMsg(new DeleteMsg(staleDN, csn, entryUUID));
+      assertShortCircuitSpentBy(2);
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+    }
+
+    assertFalse(entryExists(entry.getName()),
+        "the entry was not deleted: a search which could not run was read as an entry "
+            + "which was deleted already");
+    assertTrue(domain.getServerState().cover(csn),
+        "a change which was applied must be recorded as replayed");
+  }
+
+  /**
+   * Test case for [Issue 956]: a replayed Modify DN reads the data with the same search
+   * once it failed on a conflict, and rides on the same retry.
+   * <p>
+   * {@code solveNamingConflict(ModifyDNOperation)} declares {@code throws Exception}
+   * rather than the search failure alone, so this is the one path where the failure
+   * reaches the replay loop through a declaration which does not name it.
+   */
+  @Test
+  public void modifyDnIsRetriedWhileTheEntryUUIDSearchCanNotRun() throws Exception
+  {
+    final Entry entry = createAndAddEntry("modifyDnWhoseSearchCanNotRun");
+    final String entryUUID = getEntryUUID(entry.getName());
+    final DN staleDN = DN.valueOf("cn=movedAway," + TEST_ROOT_DN_STRING);
+    final RDN newRDN = RDN.valueOf("cn=renamedWhileTheSearchFailed");
+    final CSN csn = gen.newCSN();
+
+    ShortCircuitPlugin.registerShortCircuit(
+        OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue(), 2);
+    try
+    {
+      replayMsg(new ModifyDNMsg(staleDN, csn, entryUUID, null, false, null, newRDN.toString()));
+      assertShortCircuitSpentBy(2);
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+    }
+
+    assertTrue(entryExists(baseDN.child(newRDN)),
+        "the entry was not renamed: a search which could not run was read as an entry "
+            + "which is not in the data anymore");
+    assertFalse(entryExists(entry.getName()), "the entry kept its former DN");
+    assertTrue(domain.getServerState().cover(csn),
+        "a change which was applied must be recorded as replayed");
+  }
+
+  /**
+   * Test case for [Issue 956], the half which closes [Issue 889] for this path: a
+   * change whose entryUUID search never runs is left out of the ServerState once the
+   * attempts in place are spent, so that the replication server sends it again.
+   * <p>
+   * The result code of every attempt is the conflict the operation failed on, which the
+   * exhaustion exit does not read as a failure of the server: without the attempt itself
+   * telling that its search did not run, the exit reads the attempts as conflict
+   * resolution rewriting an operation which keeps failing, and skips the change - the
+   * CSN is committed, and a change which is not in the data is never asked for again.
+   */
+  @Test
+  public void modifyIsLeftOutOfTheServerStateWhenTheEntryUUIDSearchNeverRuns() throws Exception
+  {
+    final Entry entry = createAndAddEntry("modifyWhoseSearchNeverRuns");
+    final String entryUUID = getEntryUUID(entry.getName());
+    final DN staleDN = DN.valueOf("cn=movedAway," + TEST_ROOT_DN_STRING);
+    final CSN csn = gen.newCSN();
+
+    // No number of times: every attempt in place fails its search.
+    ShortCircuitPlugin.registerShortCircuit(
+        OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue());
+    try
+    {
+      replayMsg(new ModifyMsg(csn, staleDN, generatemods("telephonenumber", "01 02 45"), entryUUID));
+      assertTrue(ShortCircuitPlugin.getShortCircuitCount(OperationType.SEARCH, "PreParse")
+              >= LDAPReplicationDomain.IN_PLACE_REPLAY_ATTEMPTS,
+          "every attempt in place must have made its search");
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+    }
+
+    assertFalse(domain.getServerState().cover(csn),
+        "a change whose search never ran is not in the data and must not advance the ServerState");
+    assertThat(DirectoryServer.getEntry(entry.getName()).getAllAttributes("telephonenumber"))
+        .as("the change was applied to the entry the searches never found").isEmpty();
+    /*
+     * The result code of the last attempt is the conflict the operation failed on, which
+     * says nothing of the search: the line which reports the change must carry the search
+     * which did not run, which is the one thing that names the entryUUID it was made for.
+     */
+    final List<String> reports = exhaustionExitRecordsOf(csn);
+    assertThat(reports).as("the change was not reported once the attempts in place were spent")
+        .isNotEmpty();
+    assertThat(reports)
+        .as("the exhaustion exit reports the error of the operation, not the search which did not run")
+        .allMatch(record -> record.contains(entryUUID));
+  }
+
+  /**
+   * Test case for [Issue 956]: the exhaustion exit reports the attempt which spent the
+   * last of the attempts in place, not an earlier one which ended on a search conflict
+   * resolution could not run.
+   * <p>
+   * The first attempt reaches the data, fails on the conflict, and its search does not
+   * run; the server then refuses every attempt after it before the data is reached. Each
+   * of these is a failure of the server, and the change is left out of the ServerState
+   * either way - what the line which reports it carries is the question. Its result
+   * code is the last attempt's, and so must be the error next to it: a line which reads
+   * the server refusing the operation next to a search which did not run names two
+   * causes, and the operator chases the wrong one.
+   */
+  @Test
+  public void theExhaustionExitReportsTheAttemptWhichSpentTheLastOfThem() throws Exception
+  {
+    final Entry entry = createAndAddEntry("modifyWhoseLastAttemptIsRefused");
+    final String entryUUID = getEntryUUID(entry.getName());
+    final DN staleDN = DN.valueOf("cn=movedAway," + TEST_ROOT_DN_STRING);
+    final CSN csn = gen.newCSN();
+
+    /*
+     * The first attempt is let through to the data and fails on the conflict of the
+     * stale DN; its search is the one the short circuit stops. The attempts after it are
+     * refused before they reach the data, the way a backend which went offline after the
+     * first attempt refuses them: no search is made on any of them.
+     */
+    ShortCircuitPlugin.registerShortCircuit(
+        OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue(), 1);
+    // The replayed operation only, named by its CSN: see the flush below.
+    ShortCircuitPlugin.registerShortCircuit(OperationType.MODIFY, "PreParse",
+        ResultCode.UNAVAILABLE.intValue(), 1, LDAPReplicationDomain.IN_PLACE_REPLAY_ATTEMPTS - 1,
+        op -> csn.equals(OperationContext.getCSN(op)));
+    try
+    {
+      /*
+       * The ServerState flush thread saves the state with a Modify of the base entry on
+       * its tick, which the add above made dirty: a tick which lands among the attempts in
+       * place is a Modify the short circuit meets like any other. Made here rather than
+       * left to the tick, so that the case says what it does about it every time instead
+       * of once in a while: that Modify is not the replayed operation, and the short
+       * circuit must neither let it through in place of the first attempt nor refuse it
+       * in place of a later one.
+       */
+      flushLikeTheStateFlushThread();
+      assertEquals(ShortCircuitPlugin.getShortCircuitCount(OperationType.MODIFY, "PreParse"), 0,
+          "the Modify of the state flush thread was counted against the short circuit");
+
+      replayMsg(new ModifyMsg(csn, staleDN, generatemods("telephonenumber", "01 02 45"), entryUUID));
+      assertTrue(ShortCircuitPlugin.getShortCircuitCount(OperationType.SEARCH, "PreParse") >= 1,
+          "the first attempt must have made its search");
+      assertTrue(ShortCircuitPlugin.getShortCircuitCount(OperationType.MODIFY, "PreParse")
+              >= LDAPReplicationDomain.IN_PLACE_REPLAY_ATTEMPTS,
+          "every attempt in place must have been made");
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.MODIFY, "PreParse");
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+    }
+
+    assertFalse(domain.getServerState().cover(csn),
+        "a change the server kept refusing is not in the data and must not advance the ServerState");
+    final List<String> reports = exhaustionExitRecordsOf(csn);
+    assertThat(reports).as("the change was not reported once the attempts in place were spent")
+        .isNotEmpty();
+    // The last attempt was refused before it reached the data and made no search: a line
+    // which names the entryUUID reports the search of an earlier attempt next to its result.
+    assertThat(reports).as("the exhaustion exit reports an attempt other than the last one")
+        .allMatch(record -> !record.contains(entryUUID));
+  }
+
+  /**
+   * Test case for [Issue 956]: the base entry of the domain replayed into a replica
+   * which has none.
+   * <p>
+   * Two empty replicas share the generation ID of an empty backend, so no initialization
+   * is needed and the first change replayed is the base entry itself. The searches which
+   * check that Add for a conflict run under the base DN, which the backend serves and
+   * has no entry for: they answer NO_SUCH_OBJECT, which is the answer of a backend which
+   * is offline as well. Here the search ran and nothing is below a base entry which is
+   * not there, so the Add must go through rather than be retried until the give-up
+   * budget skips it as a change this replica can not apply.
+   */
+  @Test
+  public void baseEntryIsAddedToAnEmptyReplica() throws Exception
+  {
+    // The backend, without its base entry.
+    TestCaseUtils.initializeTestBackend(false);
+    final Entry base = TestCaseUtils.makeEntry(
+        "dn: " + TEST_ROOT_DN_STRING,
+        "objectClass: top",
+        "objectClass: organization",
+        "o: test");
+    final CSN csn = gen.newCSN();
+
+    replayMsg(addMsg(base, csn, null, "7c1a0d2e-4b6f-4c8a-9e1d-3f5b7a9c1e2d"));
+
+    assertTrue(entryExists(base.getName()),
+        "the base entry of an empty replica must land: its searches found nothing, they did not fail");
+    assertTrue(domain.getServerState().cover(csn),
+        "a change which was applied must be recorded as replayed");
+  }
+
+  /**
+   * Test case for [Issue 956]: the entryUUID a change carries is looked up as a value,
+   * not read as a filter.
+   * <p>
+   * The entryUUID comes off the wire and nothing validates it as one. Built into a
+   * filter string, a value which does not parse as a filter is a search which never
+   * runs - a permanent condition retried as a transient one, for as long as the change
+   * is asked for, until the give-up budget skips it and raises an alert. Looked up as a
+   * value, such an entryUUID names no entry, which is what a search which ran and found
+   * nothing says: the change is resolved as one on an entry which is not in the data.
+   */
+  @Test
+  public void anEntryUUIDWhichIsNotOneNamesNoEntry() throws Exception
+  {
+    final Entry entry = createAndAddEntry("modifyWhoseEntryUUIDIsNotOne");
+    // A value no filter string parses: the backslash escapes nothing.
+    final String entryUUID = getEntryUUID(entry.getName()) + "\\";
+    final DN staleDN = DN.valueOf("cn=movedAway," + TEST_ROOT_DN_STRING);
+    final CSN csn = gen.newCSN();
+
+    replayMsg(new ModifyMsg(csn, staleDN, generatemods("telephonenumber", "01 02 45"), entryUUID));
+
+    assertTrue(domain.getServerState().cover(csn),
+        "a change on an entry which is not in the data is a conflict which is resolved, and recorded");
+    assertThat(DirectoryServer.getEntry(entry.getName()).getAllAttributes("telephonenumber"))
+        .as("a change on an entryUUID which is not one was applied to an entry").isEmpty();
+  }
+
+  /**
+   * The records of the error log which report the provided change once its attempts in
+   * place were spent. The record the error logger writes carries the id of the message
+   * rather than its text.
+   */
+  private static List<String> exhaustionExitRecordsOf(CSN csn)
+  {
+    final String exhaustionExit = "msgID=" + ERR_ERROR_REPLAYING_OPERATION.ordinal();
+    final List<String> reports = new ArrayList<>();
+    for (String record : TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+    {
+      if (record.contains(exhaustionExit) && record.contains(csn.toString()))
+      {
+        reports.add(record);
+      }
+    }
+    return reports;
+  }
+
+  /**
+   * Asserts that the searches a short circuit was registered over were made - the ones
+   * let through before it and the ones it applied to - and that the search after them
+   * was made as well.
+   * <p>
+   * The count includes the searches let through once the short circuit was spent, so a
+   * count past what it was registered over says that the budget was used and that the
+   * search after it ran. Read before the short circuit is deregistered, which drops the
+   * count with it.
+   *
+   * @param searchesRegisteredOver the searches let through before the short circuit plus
+   *                               the ones it applied to
+   */
+  private void assertShortCircuitSpentBy(int searchesRegisteredOver)
+  {
+    assertTrue(
+        ShortCircuitPlugin.getShortCircuitCount(OperationType.SEARCH, "PreParse") > searchesRegisteredOver,
+        "the short circuit must have been spent by the attempts in place");
+  }
+
+  private Entry addParentEntry(String ou) throws Exception
+  {
+    return TestCaseUtils.addEntry(
+        "dn: ou=" + ou + "," + TEST_ROOT_DN_STRING,
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "ou: " + ou);
+  }
+
+  private Entry makeChildEntry(String cn, DN parentDN) throws Exception
+  {
+    return TestCaseUtils.makeEntry(
+        "dn: cn=" + cn + "," + parentDN,
+        "objectClass: top",
+        "objectClass: person",
+        "cn: " + cn,
+        "sn: Amar");
+  }
+
+  /**
    * Test that when a previous conflict is resolved because
    * a delete operation has removed one of the conflicting entries
    * the other conflicting entry is correctly renamed to its original name.
@@ -462,6 +998,24 @@ public class NamingConflictTest extends ReplicationTestCase
         "c9cb8c3c-615a-4122-865d-50323aaaed48",
         "The wrong entry has been renamed");
     assertThat(resultEntry.getAllAttributes(LDAPReplicationDomain.DS_SYNC_CONFLICT)).isEmpty();
+  }
+
+  /**
+   * Makes the Modify the ServerState flush thread makes on its tick: an internal
+   * synchronization Modify of the base entry, which is not synchronized itself. The
+   * attribute is a harmless one rather than ds-sync-state, which is the flush thread's to
+   * write.
+   */
+  private void flushLikeTheStateFlushThread()
+  {
+    final ModifyOperationBasis op = new ModifyOperationBasis(getRootConnection(),
+        nextOperationID(), nextMessageID(), null,
+        baseDN, generatemods("description", "written on the tick of the flush thread"));
+    op.setInternalOperation(true);
+    op.setSynchronizationOperation(true);
+    op.setDontSynchronize(true);
+    op.run();
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS, op.getErrorMessage().toString());
   }
 
   private Entry createAndAddEntry(String commonName) throws Exception
