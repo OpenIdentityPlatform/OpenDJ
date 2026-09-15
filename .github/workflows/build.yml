@@ -446,8 +446,14 @@ jobs:
           name: ubuntu-latest-11
       - name: Get latest release version
         shell: bash
+        env:
+          # An anonymous call shares the 60-an-hour budget of the runner's address with every
+          # other job there; once it is spent the API answers with no release, the version comes
+          # out empty and buildx refuses the untagged push (run 34854564649).
+          GH_TOKEN: ${{ github.token }}
         run:   |
-          export git_version_last="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)" ; echo "last release: $git_version_last"
+          export git_version_last="$(curl -i -o - --silent -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)" ; echo "last release: $git_version_last"
+          [ -n "$git_version_last" ] || { echo "::error::The latest release of OpenIdentityPlatform/OpenDJ could not be read, so there is no version to tag the image with"; exit 1; }
           echo "release_version=$git_version_last" >> $GITHUB_ENV
           echo "image_repository=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
       - name: Docker meta
@@ -591,8 +597,14 @@ jobs:
           name: ubuntu-latest-11
       - name: Get latest release version
         shell: bash
+        env:
+          # An anonymous call shares the 60-an-hour budget of the runner's address with every
+          # other job there; once it is spent the API answers with no release, the version comes
+          # out empty and buildx refuses the untagged push (run 34854564649).
+          GH_TOKEN: ${{ github.token }}
         run:   |
-          export git_version_last="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)" ; echo "last release: $git_version_last"
+          export git_version_last="$(curl -i -o - --silent -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)" ; echo "last release: $git_version_last"
+          [ -n "$git_version_last" ] || { echo "::error::The latest release of OpenIdentityPlatform/OpenDJ could not be read, so there is no version to tag the image with"; exit 1; }
           echo "release_version=$git_version_last" >> $GITHUB_ENV
           echo "image_repository=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
       - name: Docker meta 
