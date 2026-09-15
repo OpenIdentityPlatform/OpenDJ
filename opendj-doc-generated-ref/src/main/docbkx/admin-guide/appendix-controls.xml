@@ -21,7 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011 ForgeRock AS
-  !      Portions copyright 2024 3A Systems,LLC.
+  !      Portions copyright 2024-2026 3A Systems,LLC.
   !    
 -->
 <appendix xml:id='appendix-controls'
@@ -457,7 +457,12 @@
     <para>Object Identifier: 1.3.6.1.4.1.4203.666.5.12</para>
     <para>Internet-Draft: <link
             xlink:href='https://tools.ietf.org/html/draft-zeilenga-ldap-relax-03'
-    >ddraft-zeilenga-ldap-relax-03 - The LDAP Relax Rules Control</link></para>
+    >draft-zeilenga-ldap-relax-03 - The LDAP Relax Rules Control</link></para>
+    <para>Lets a client with the <literal>bypass-acl</literal> privilege add
+    or modify attributes marked <literal>NO-USER-MODIFICATION</literal> or
+    <literal>OBSOLETE</literal>, and skips the schema check of the resulting
+    entry. The change is an ordinary one otherwise: it is logged, and it is
+    replicated like any other.</para>
    </listitem>
   </varlistentry>
  </variablelist>

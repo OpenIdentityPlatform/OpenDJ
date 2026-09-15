@@ -27,6 +27,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.controls.RelaxRulesControl;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.controls.LDAPPostReadRequestControl;
@@ -217,6 +218,30 @@ public class LocalBackendWorkflowElement
   static boolean isProxyAuthzControl(String oid)
   {
     return OID_PROXIED_AUTH_V1.equals(oid) || OID_PROXIED_AUTH_V2.equals(oid);
+  }
+
+  /**
+   * Indicates whether the provided operation carries the Relax Rules request control.
+   * <p>
+   * The control relaxes the constraints of the schema on the request - the attributes marked
+   * NO-USER-MODIFICATION or OBSOLETE, and the schema check of the resulting entry - for a
+   * client which has the {@code bypass-acl} privilege. It does not make the change a
+   * synchronization one: the change is logged, run through the plugins and replicated as any
+   * other.
+   *
+   * @param operation The operation to look at.
+   * @return {@code true} if the request carries the Relax Rules control.
+   */
+  public static boolean isRelaxRulesRequested(Operation operation)
+  {
+    for (Control c : operation.getRequestControls())
+    {
+      if (RelaxRulesControl.OID.equals(c.getOID()))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

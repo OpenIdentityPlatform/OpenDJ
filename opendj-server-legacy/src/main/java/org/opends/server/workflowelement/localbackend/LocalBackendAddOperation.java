@@ -110,8 +110,14 @@ public class LocalBackendAddOperation
   private Map<AttributeType, List<Attribute>> operationalAttributes;
   /** The set of user attributes for the entry to add. */
   private Map<AttributeType, List<Attribute>> userAttributes;
-  /** Indicates whether the request included the RelaxRules request control. */
-  private boolean RelaxRulesControlRequested=false;
+  /**
+   * Indicates whether the request included the Relax Rules request control, which relaxes the
+   * constraints of the schema on this change and nothing else.
+   *
+   * @see LocalBackendWorkflowElement#isRelaxRulesRequested(org.opends.server.types.Operation)
+   */
+  private final boolean relaxRules;
+
   /**
    * Creates a new operation that may be used to add a new entry in a
    * local backend of the Directory Server.
@@ -123,11 +129,7 @@ public class LocalBackendAddOperation
     super(add);
 
     LocalBackendWorkflowElement.attachLocalOperation (add, this);
-  }
-
-  @Override
-  public boolean isSynchronizationOperation() {
-    return super.isSynchronizationOperation()||RelaxRulesControlRequested;
+    relaxRules = LocalBackendWorkflowElement.isRelaxRulesRequested(add);
   }
 
 
@@ -382,10 +384,11 @@ public class LocalBackendAddOperation
       }
 
       // If the server is configured to check schema and the
-      // operation is not a synchronization operation,
-      // check to see if the entry is valid according to the server schema,
-      // and also whether its attributes are valid according to their syntax.
-      if (DirectoryServer.getCoreConfigManager().isCheckSchema() && !isSynchronizationOperation())
+      // operation is not a synchronization operation nor one whose rules the
+      // client asked to relax, check to see if the entry is valid according to
+      // the server schema, and also whether its attributes are valid according
+      // to their syntax.
+      if (DirectoryServer.getCoreConfigManager().isCheckSchema() && !isSynchronizationOperation() && !relaxRules)
       {
         checkSchema(parentEntry);
       }
@@ -413,7 +416,7 @@ public class LocalBackendAddOperation
       // sensitive information to the client.
       try
       {
-        if (!getAccessControlHandler().isAllowed(this) || (RelaxRulesControlRequested && !clientConnection.hasPrivilege(Privilege.BYPASS_ACL, this)))
+        if (!getAccessControlHandler().isAllowed(this) || (relaxRules && !clientConnection.hasPrivilege(Privilege.BYPASS_ACL, this)))
         {
           setResultCodeAndMessageNoInfoDisclosure(entryDN,
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -530,7 +533,8 @@ public class LocalBackendAddOperation
     {
       if (at.isNoUserModification()
           && !isInternalOperation()
-          && !isSynchronizationOperation())
+          && !isSynchronizationOperation()
+          && !relaxRules)
       {
         setResultCodeAndMessageNoInfoDisclosure(entryDN,
             ResultCode.CONSTRAINT_VIOLATION,
@@ -976,7 +980,7 @@ public class LocalBackendAddOperation
       }
       else if (RelaxRulesControl.OID.equals(oid))
       {
-        RelaxRulesControlRequested = true;
+        // Already taken into account: see relaxRules.
       }
       else if (TransactionSpecificationRequestControl.OID.equals(oid))
       {
