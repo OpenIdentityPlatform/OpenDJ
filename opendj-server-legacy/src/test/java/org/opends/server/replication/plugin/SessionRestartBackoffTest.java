@@ -48,6 +48,8 @@ import org.testng.annotations.Test;
  * backoff of the session restart its state checkpointer is sitting through: the session
  * that restart would start back is one the domain is stopping anyway, so the wait is on a
  * monitor which {@code shutdown()} and {@code disable()} wake, rather than slept through.
+ * And that a request which stood while the domain was disabled is not run once it is
+ * enabled back: the change it was made for is gone with the pending changes.
  * <p>
  * The checkpointer is the thread put through the wait here because it is the one whose
  * wait can be seen from a test: {@code shutdown()} waits for it, and it is what saves the
@@ -76,12 +78,13 @@ public class SessionRestartBackoffTest extends ReplicationTestCase
   private static final long INTO_THE_BACKOFF_IN_MS = 1200;
 
   /**
-   * How long {@code shutdown()} may take when the backoff is woken: it drains a replay
-   * which is not running, stops a session which is already stopped, and waits for the
-   * checkpointer to save the ServerState once more. A checkpointer which sleeps the
-   * backoff through holds it for the seconds the backoff has left instead.
+   * How long {@code shutdown()} or {@code disable()} may take when the backoff is woken:
+   * either drains a replay which is not running, stops a session which is already stopped,
+   * and saves the ServerState - {@code shutdown()} by waiting for the checkpointer to do it
+   * once more. A checkpointer which sleeps the backoff through while it holds the monitor
+   * the wake is given on holds either of them for the seconds the backoff has left instead.
    */
-  private static final long SHUTDOWN_BOUND_IN_MS = 1500;
+  private static final long WAKE_BOUND_IN_MS = 1500;
 
   /**
    * How long the checkpointer may take to save a change made once the domain is enabled
@@ -89,6 +92,12 @@ public class SessionRestartBackoffTest extends ReplicationTestCase
    * in the backoff {@code disable()} cut saves nothing until the backoff is out.
    */
   private static final long CHECKPOINT_BOUND_IN_MS = 2500;
+
+  /**
+   * How long a request left standing is given to be run by the checkpointer: two of its
+   * ticks, where one which is standing when the domain is enabled back is run on the first.
+   */
+  private static final long LEFTOVER_REQUEST_BOUND_IN_MS = 2000;
 
   @Test
   public void aDomainWhichIsShutDownDoesNotWaitOutTheBackoffOfItsSessionRestart()
@@ -103,6 +112,7 @@ public class SessionRestartBackoffTest extends ReplicationTestCase
       final int rsPort = TestCaseUtils.findFreePort();
       replicationServer = createReplicationServer(rsPort, "sessionRestartBackoffTestShutdownDb");
       domain = startDomain(baseDN, rsPort);
+      assertTrue(domain.isConnected(), "the domain did not connect to its replication server");
       broker = openReplicationSession(baseDN, BROKER_ID, 100, rsPort, 1000);
 
       leaveTheCheckpointerInTheBackoff(domain, broker, "user.925.shutdown");
@@ -111,18 +121,13 @@ public class SessionRestartBackoffTest extends ReplicationTestCase
       domain.shutdown();
       final long tookMs = NANOSECONDS.toMillis(System.nanoTime() - started);
 
-      assertTrue(tookMs < SHUTDOWN_BOUND_IN_MS, "shutdown() waited " + tookMs
+      assertTrue(tookMs < WAKE_BOUND_IN_MS, "shutdown() waited " + tookMs
           + " ms: it sat out the backoff of the session restart the state checkpointer"
           + " was waiting through, for a session the domain was stopping anyway");
     }
     finally
     {
-      release(domain, broker);
-      if (domain != null)
-      {
-        MultimasterReplication.deleteDomain(baseDN);
-      }
-      remove(replicationServer);
+      release(domain, broker, replicationServer);
     }
   }
 
@@ -139,12 +144,24 @@ public class SessionRestartBackoffTest extends ReplicationTestCase
       final int rsPort = TestCaseUtils.findFreePort();
       replicationServer = createReplicationServer(rsPort, "sessionRestartBackoffTestDisableDb");
       domain = startDomain(baseDN, rsPort);
+      assertTrue(domain.isConnected(), "the domain did not connect to its replication server");
       broker = openReplicationSession(baseDN, BROKER_ID, 100, rsPort, 1000);
 
       final DN entryDN = leaveTheCheckpointerInTheBackoff(domain, broker, "user.925.disable");
 
-      // The data of this domain is about to be replaced, then has been.
+      /*
+       * The data of this domain is about to be replaced, then has been. disable() is timed
+       * as shutdown() is: its wake takes the monitor the checkpointer waits on, so a
+       * checkpointer which sleeps the backoff through while holding that monitor holds
+       * disable() for the rest of it - and everything below would then start late enough
+       * for the save to land inside its bound all the same.
+       */
+      final long started = System.nanoTime();
       domain.disable();
+      final long tookMs = NANOSECONDS.toMillis(System.nanoTime() - started);
+      assertTrue(tookMs < WAKE_BOUND_IN_MS, "disable() waited " + tookMs
+          + " ms: it sat out the backoff of the session restart the state checkpointer"
+          + " was waiting through, for a session disable() was cutting anyway");
       domain.enable();
       assertTrue(domain.isConnected(), "the domain did not come back up once enabled");
 
@@ -179,12 +196,51 @@ public class SessionRestartBackoffTest extends ReplicationTestCase
     }
     finally
     {
-      release(domain, broker);
-      if (domain != null)
-      {
-        MultimasterReplication.deleteDomain(baseDN);
-      }
-      remove(replicationServer);
+      release(domain, broker, replicationServer);
+    }
+  }
+
+  /**
+   * A request which stood while the domain was disabled was made for a change which is
+   * gone with the pending changes, and the session {@code enable()} starts asks for
+   * everything the ServerState it loads does not cover: run, the request would stop and
+   * start that session once for a delivery which can not come. The request is made here by
+   * hand, in the place of one made between a replay thread's read of the flag and the
+   * clear {@code disable()} does after it.
+   * <p>
+   * The restart is the checkpointer's to run, within its first tick after the domain is
+   * enabled back, so the pin is that the failure it would meet is never spent: a restart
+   * which ran would have spent it, and would have left the session it stopped down.
+   */
+  @Test
+  public void aRequestWhichStoodWhileTheDomainWasDisabledIsNotRunOnceItIsEnabledBack()
+      throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer replicationServer = null;
+    LDAPReplicationDomain domain = null;
+    try
+    {
+      final int rsPort = TestCaseUtils.findFreePort();
+      replicationServer = createReplicationServer(rsPort, "sessionRestartBackoffTestEnableDb");
+      domain = startDomain(baseDN, rsPort);
+      assertTrue(domain.isConnected(), "the domain did not connect to its replication server");
+
+      domain.disable();
+      domain.requestSessionRestart();
+      domain.failNextSessionRestarts(1);
+      domain.enable();
+      assertTrue(domain.isConnected(), "the domain did not come back up once enabled");
+
+      Thread.sleep(LEFTOVER_REQUEST_BOUND_IN_MS);
+      assertEquals(domain.getSessionRestartFailuresLeft(), 1, "the request which stood while"
+          + " the domain was disabled was run against the session enable() started");
+      assertTrue(domain.isConnected(),
+          "the session enable() started was stopped for a request made before it");
+    }
+    finally
+    {
+      release(domain, null, replicationServer);
     }
   }
 
@@ -241,17 +297,40 @@ public class SessionRestartBackoffTest extends ReplicationTestCase
     return entry.getName();
   }
 
-  /** Lets go of what {@link #leaveTheCheckpointerInTheBackoff} set up. */
-  private void release(LDAPReplicationDomain domain, ReplicationBroker broker)
+  /**
+   * Lets go of what {@link #leaveTheCheckpointerInTheBackoff} set up, and of the domain and
+   * the replication server of the case - each step whatever the one before it threw, or a
+   * case which failed on its way up would leave its domain registered for the next one to
+   * replace silently.
+   */
+  private void release(LDAPReplicationDomain domain, ReplicationBroker broker,
+      ReplicationServer replicationServer) throws Exception
   {
-    ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
-    if (domain != null)
+    try
     {
-      domain.failNextSessionRestarts(0);
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
+      if (domain != null)
+      {
+        domain.failNextSessionRestarts(0);
+      }
+      if (broker != null)
+      {
+        broker.stop();
+      }
     }
-    if (broker != null)
+    finally
     {
-      broker.stop();
+      try
+      {
+        if (domain != null)
+        {
+          MultimasterReplication.deleteDomain(domain.getBaseDN());
+        }
+      }
+      finally
+      {
+        remove(replicationServer);
+      }
     }
   }
 
@@ -265,6 +344,11 @@ public class SessionRestartBackoffTest extends ReplicationTestCase
     return persisted;
   }
 
+  /**
+   * Creates and starts a domain on the provided base DN, and asserts nothing about it: the
+   * caller holds the domain before it looks at it, so that a case which fails there still
+   * has it to delete.
+   */
   private LDAPReplicationDomain startDomain(DN baseDN, int rsPort) throws Exception
   {
     final SortedSet<String> replServers = new TreeSet<>();
@@ -273,7 +357,6 @@ public class SessionRestartBackoffTest extends ReplicationTestCase
     domainCfg.setHeartbeatInterval(100000);
     final LDAPReplicationDomain domain = MultimasterReplication.createNewDomain(domainCfg);
     domain.start();
-    assertTrue(domain.isConnected(), "the domain did not connect to its replication server");
     return domain;
   }
 

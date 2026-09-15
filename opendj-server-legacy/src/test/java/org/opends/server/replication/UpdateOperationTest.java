@@ -156,6 +156,20 @@ public class UpdateOperationTest extends ReplicationTestCase
    */
   private static final long TEST_REPLAY_DRAIN_TIMEOUT_IN_MS = 2000;
 
+  /**
+   * How long after a session restart threw on the state checkpointer the test which reads
+   * the level the request was given back with looks at the session.
+   * <p>
+   * The checkpointer takes the request back on its next tick, a second later, and holds
+   * the backoff it was given back with - a second, the first time - before it starts the
+   * session: two seconds after the throw, then. A request given back without the backoff
+   * has the session up a second after the throw instead. Halfway between the two, so that
+   * either outcome has half a second to be told apart in. A machine slow enough to push the
+   * tick past this delay has the test look before the session could be back under either
+   * level, which proves less and reports nothing false.
+   */
+  private static final long INTO_THE_BACKOFF_IN_MS = 1500;
+
   /** An entry with a entryUUID. */
   private Entry personWithUUIDEntry;
   private Entry personWithSecondUniqueID;
@@ -2429,12 +2443,16 @@ public class UpdateOperationTest extends ReplicationTestCase
          * as an exception replaying a message; only the checkpointer says this, once per
          * restart which threw on it, and one did. The replay thread's request is its own to
          * run unless the checkpointer's tick lands in the instants between the request
-         * being made and being taken, which is what a count of two here would say.
+         * being made and being taken: the checkpointer then spends both failures and says
+         * this twice, which is the same report on a rarer road rather than a double one. A
+         * count of none has no road - the replay thread's own failure is never reported as
+         * this - so the count still says that the checkpointer reports what threw on it.
          */
-        assertEquals(countRecordsOf(records,
-            "Could not restart the replication session of domain \"" + baseDN + "\""), 1,
-            "the state checkpointer reports the restart which threw on it, once, and runs"
-                + " it again: " + records);
+        final int reported = countRecordsOf(records,
+            "Could not restart the replication session of domain \"" + baseDN + "\"");
+        assertTrue(reported == 1 || reported == 2, "the state checkpointer reports the"
+            + " restart which threw on it once, or twice when its tick took the replay"
+            + " thread's request as well, and runs it again: " + reported + " in " + records);
         assertMonitorAttrValueEventually(baseDN, "replayed-updates-ok", initialReplayed + 1,
             "the change must be recorded as replayed");
       }
@@ -2443,6 +2461,136 @@ public class UpdateOperationTest extends ReplicationTestCase
         domain.failNextSessionRestarts(0);
         ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
       }
+    }
+    finally
+    {
+      broker.stop();
+    }
+  }
+
+  /**
+   * Test case for [Issue 925]: a session restart which was asked for without the backoff
+   * and could not run is asked for again with it. A replay thread on its way out - the
+   * number of them is being changed - hands its change back and asks for the restart
+   * without the wait, since the backend is not what is going away; the state checkpointer
+   * runs what it asked for. A session which can not be started is what the wait exists
+   * for, though, and a request given back as it was made would have the checkpointer stop
+   * and fail to start the session once a second, for as long as the failure lasts.
+   * <p>
+   * The restart which fails is the checkpointer's, so the two levels are told apart by
+   * when the session is back: on the checkpointer's next tick, a second after the throw,
+   * when the request was given back as it was made, and one backoff later when it was
+   * given back with the wait it is owed. Halfway between the two the session is still down
+   * under the second and up under the first.
+   */
+  @Test
+  public void aRestartAskedForWithoutTheBackoffIsGivenBackWithIt() throws Exception
+  {
+    testSetUp("aRestartAskedForWithoutTheBackoffIsGivenBackWithIt");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aRestartAskedForWithoutTheBackoffIsGivenBackWithIt"));
+
+    final int serverId = 25;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    try
+    {
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+
+      Entry tmp = TestCaseUtils.addEntry(
+          "dn: uid=user.925.backoff," + baseDN,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "uid: user.925.backoff",
+          "cn: Aaccf Amar",
+          "sn: Amar");
+      String uuid = getEntry(tmp.getName(), 1, true).parseAttribute("entryuuid").asString();
+
+      final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+
+      /*
+       * The replayed delete is held where it is, so that the replay thread is stopped
+       * while it owns the change: see aChangeAStoppedReplayThreadHeldIsGivenBackAndDeliveredAgain
+       * for the fixture.
+       */
+      final CSN csn = gen.newCSN();
+      final ParkedReplay parked = ShortCircuitPlugin.parkReplayedOperations(
+          OperationType.DELETE, "PreParse", op -> csn.equals(OperationContext.getCSN(op)));
+      final AtomicReference<Throwable> reconfigurationFailure = new AtomicReference<>();
+      Thread reconfiguration = null;
+      boolean reconfigurationFinished = true;
+      try
+      {
+        broker.publish(new DeleteMsg(tmp.getName(), csn, uuid));
+        parked.awaitParked(60, SECONDS);
+
+        reconfiguration = startReplayThreadReconfiguration(2, reconfigurationFailure);
+        awaitStoppingTheReplayThreads(reconfiguration, reconfigurationFailure);
+
+        /*
+         * The thread which holds the change has been asked to stop: let go of it, and it
+         * hands the change back and asks for the restart on its way out. The restart is
+         * the checkpointer's to run, and it fails where it would start the session again.
+         */
+        domain.failNextSessionRestarts(1);
+        parked.release(ResultCode.UNAVAILABLE.intValue());
+
+        final long deadline = System.nanoTime() + SECONDS.toNanos(30);
+        while (domain.getSessionRestartFailuresLeft() > 0)
+        {
+          assertTrue(System.nanoTime() < deadline,
+              "the session restart which was asked to fail did not run within 30 s");
+          Thread.sleep(50);
+        }
+        Thread.sleep(INTO_THE_BACKOFF_IN_MS);
+        assertFalse(domain.isConnected(), "the session was started back within "
+            + INTO_THE_BACKOFF_IN_MS + " ms of the restart which threw: the request a"
+            + " replay thread on its way out made without the backoff was given back"
+            + " without it, and the checkpointer ran it again on its next tick rather"
+            + " than one backoff later");
+
+        /*
+         * Stop parking before the session is back: the delivery it brings is the change
+         * being delivered again, and it is to be applied. The replication server owns the
+         * change the thread handed back, so the session started once the backoff is out
+         * is what has it delivered.
+         */
+        parked.deregister();
+        reconfiguration.join(SECONDS.toMillis(60));
+        assertFalse(reconfiguration.isAlive(),
+            "the replay threads were reconfigured, but applyConfigurationChange never returned");
+        if (reconfigurationFailure.get() != null)
+        {
+          throw new AssertionError("the replay threads could not be reconfigured",
+              reconfigurationFailure.get());
+        }
+        assertNull(getEntry(tmp.getName(), 60000, false),
+            "the change was not delivered again once the backoff was out");
+      }
+      finally
+      {
+        /*
+         * Whatever happened above: no failure may be left to inject, no replay thread of
+         * this server may be left parked, and the reconfiguration has to be over before
+         * the pool is restored - see aChangeAStoppedReplayThreadHeldIsGivenBackAndDeliveredAgain
+         * for why the pool is otherwise left alone.
+         */
+        domain.failNextSessionRestarts(0);
+        parked.deregister();
+        if (reconfiguration != null)
+        {
+          reconfiguration.join(SECONDS.toMillis(60));
+          reconfigurationFinished = !reconfiguration.isAlive();
+        }
+        if (reconfigurationFinished)
+        {
+          setNumberOfReplayThreads(null);
+        }
+      }
+      assertTrue(reconfigurationFinished,
+          "the replay thread reconfiguration never finished; the pool was left alone");
     }
     finally
     {

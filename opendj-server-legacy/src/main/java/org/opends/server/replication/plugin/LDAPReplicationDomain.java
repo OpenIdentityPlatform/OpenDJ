@@ -373,6 +373,19 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private final Object sessionRestartBackoff = new Object();
   /**
+   * How many times {@link #sessionRestartBackoff} has been woken, so that a wake is never
+   * missed.
+   * <p>
+   * The wake is given after the flag it stands for is set, and the wait checks the flag
+   * again once woken - but {@code disabled} does not stay set: an {@link #enable()} which
+   * runs between the wake and that check puts it back, and the wait would go on for the
+   * rest of the backoff, with the session {@code enable()} started left to be found gone
+   * at its end. The count only grows, so a restart which took it where it stopped the
+   * session sees every wake given since, whether it was waiting yet or not.
+   */
+  @GuardedBy("sessionRestartBackoff")
+  private long sessionRestartBackoffWakes;
+  /**
    * How many times in a row the session was restarted without a change being replayed in
    * between. The backoff is computed from this rather than from the failures of the
    * change which happens to open the recovery: an outage fails every change in flight,
@@ -2745,8 +2758,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
              * its own road: the change is given back counted, the way every other unwound
              * replay gives it back, but the line which says it is being asked for again is
              * not built - that asks the JVM for the memory it has just refused - and the
-             * session is restarted without sitting through the backoff, since the thread
-             * which is doing it is on its way out.
+             * restart is asked for without the backoff, since the thread which runs it is
+             * on its way out. That holds for the restart as first run: one which throws is
+             * given back with the backoff, as any restart which could not run is, and the
+             * last resort below runs what is standing - the given-back request, merged with
+             * its own - on this same thread, backoff and all. Only a restart which throws
+             * there as well is left to the state checkpointer.
              *
              * A change whose budget is spent is still reported and still raises its alert
              * on this road: it is the one line which says this replica has diverged, and an
@@ -3960,6 +3977,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private void restartSession(boolean wait)
   {
     final long stoppedSession;
+    final long wakes;
     synchronized (serviceStateLock)
     {
       if (sessionHasAnOwner())
@@ -3970,6 +3988,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       }
       disableService();
       stoppedSession = getSessionGeneration();
+      wakes = sessionRestartBackoffWakes();
     }
     if (wait)
     {
@@ -3979,7 +3998,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * is not held under the lock, or a domain being disabled for an import would wait
        * it out.
        */
-      waitBeforeSessionRestart(consecutiveSessionRestarts.incrementAndGet());
+      waitBeforeSessionRestart(consecutiveSessionRestarts.incrementAndGet(), wakes);
     }
     synchronized (serviceStateLock)
     {
@@ -4010,8 +4029,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * fast as the replication server can send them.
    *
    * @param restarts how many times in a row the session was restarted already
+   * @param wakes how many times the backoff had been woken when the session was stopped,
+   *          so that a wake given since ends the wait whether it found the wait under way
+   *          or not
    */
-  private void waitBeforeSessionRestart(int restarts)
+  private void waitBeforeSessionRestart(int restarts, long wakes)
   {
     final long until = monotonicNowInMs()
         + Math.min(REPLAY_RETRY_DELAY_IN_MS * restarts, MAX_REPLAY_RETRY_DELAY_IN_MS);
@@ -4023,11 +4045,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * a replay thread the shutdown of the pool joins, or the state checkpointer the
        * shutdown of the domain waits for. The session it would start back is one the
        * domain is stopping anyway.
+       *
+       * The wake is counted rather than only checked for by its flag: a domain which was
+       * disabled and enabled back has its flag cleared again, and a wait which read the
+       * flag only would go on for a session the restart has nothing left to start.
        */
       synchronized (sessionRestartBackoff)
       {
         for (long left = until - monotonicNowInMs();
-             left > 0 && !shutdown.get() && !disabled;
+             left > 0 && !shutdown.get() && !disabled && wakes == sessionRestartBackoffWakes;
              left = until - monotonicNowInMs())
         {
           sessionRestartBackoff.wait(left);
@@ -4076,6 +4102,22 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public int getSessionRestartFailuresLeft()
   {
     return sessionRestartFailuresToInject.get();
+  }
+
+  /**
+   * Asks for a session restart the way a replay thread on its way out does, without
+   * running it.
+   * <p>
+   * Only there for the tests, which have no other way to leave a request standing at a
+   * time of their choosing: the one a replay thread makes is made and run in one go, and
+   * the requests which stand across a span nothing runs them in - the domain disabled, or
+   * being imported into - are made in a window between a thread's read of the flag and the
+   * flag being set, which no test can hit on purpose.
+   */
+  @VisibleForTesting
+  public void requestSessionRestart()
+  {
+    sessionRestarts.request(SessionRestart.NOW);
   }
 
   /**
@@ -4867,12 +4909,32 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     wakeSessionRestartBackoff();
   }
 
-  /** Has a session restart which is sitting through its backoff stop waiting. */
+  /**
+   * Has a session restart which is sitting through its backoff stop waiting, and one which
+   * is about to sit through it not wait at all: the wake is counted (see
+   * {@link #sessionRestartBackoffWakes}).
+   */
   private void wakeSessionRestartBackoff()
   {
     synchronized (sessionRestartBackoff)
     {
+      sessionRestartBackoffWakes++;
       sessionRestartBackoff.notifyAll();
+    }
+  }
+
+  /**
+   * Returns how many times the backoff has been woken so far, for a session restart to
+   * take under the lock it stops the session under: the wake of a {@link #disable()} which
+   * has yet to take that lock is then one the restart sees, whether it is waiting by then
+   * or not, and one which took it already has left the restart nothing to stop. The wake
+   * of {@link #shutdown()} needs no counting - the flag it stands for never comes back.
+   */
+  private long sessionRestartBackoffWakes()
+  {
+    synchronized (sessionRestartBackoff)
+    {
+      return sessionRestartBackoffWakes;
     }
   }
 
