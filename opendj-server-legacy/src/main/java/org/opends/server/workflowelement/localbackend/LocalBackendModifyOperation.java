@@ -126,8 +126,13 @@ public class LocalBackendModifyOperation
   private boolean permissiveModify;
   /** Indicates whether the request included the password policy request control. */
   private boolean pwPolicyControlRequested;
-  /** Indicates whether the request included the RelaxRules request control. */
-  private boolean RelaxRulesControlRequested=false;
+  /**
+   * Indicates whether the request included the Relax Rules request control, which relaxes the
+   * constraints of the schema on this change and nothing else.
+   *
+   * @see LocalBackendWorkflowElement#isRelaxRulesRequested(org.opends.server.types.Operation)
+   */
+  private final boolean relaxRules;
   /** The post-read request control, if present. */
   private LDAPPostReadRequestControl postReadRequest;
   /** The pre-read request control, if present. */
@@ -166,11 +171,7 @@ public class LocalBackendModifyOperation
   {
     super(modify);
     LocalBackendWorkflowElement.attachLocalOperation (modify, this);
-  }
-
-  @Override
-  public boolean isSynchronizationOperation() {
-    return super.isSynchronizationOperation()||RelaxRulesControlRequested;
+    relaxRules = LocalBackendWorkflowElement.isRelaxRulesRequested(modify);
   }
 
   /**
@@ -540,7 +541,7 @@ public class LocalBackendModifyOperation
   {
     try
     {
-      if (!getAccessControlHandler().isAllowed(this) || (RelaxRulesControlRequested && !clientConnection.hasPrivilege(Privilege.BYPASS_ACL, this)))
+      if (!getAccessControlHandler().isAllowed(this) || (relaxRules && !clientConnection.hasPrivilege(Privilege.BYPASS_ACL, this)))
       {
         setResultCodeAndMessageNoInfoDisclosure(modifiedEntry,
             ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -699,7 +700,7 @@ public class LocalBackendModifyOperation
       }
       else if (RelaxRulesControl.OID.equals(oid))
       {
-        RelaxRulesControlRequested = true;
+        // Already taken into account: see relaxRules.
       }
       else if (TransactionSpecificationRequestControl.OID.equals(oid))
       {
@@ -724,9 +725,10 @@ public class LocalBackendModifyOperation
 
 
       // If the attribute type is marked "NO-USER-MODIFICATION" then fail unless
-      // this is an internal operation or is related to synchronization in some way.
-      final boolean isInternalOrSynchro = isInternalOrSynchro(m);
-      if (t.isNoUserModification() && !isInternalOrSynchro)
+      // this is an internal operation, is related to synchronization in some way,
+      // or the client asked for the rules to be relaxed.
+      final boolean constraintsRelaxed = isInternalOrSynchro(m) || relaxRules;
+      if (t.isNoUserModification() && !constraintsRelaxed)
       {
         throw newDirectoryException(currentEntry,
             ResultCode.CONSTRAINT_VIOLATION,
@@ -734,12 +736,12 @@ public class LocalBackendModifyOperation
       }
 
       // If the attribute type is marked "OBSOLETE" and the modification is
-      // setting new values, then fail unless this is an internal operation or
-      // is related to synchronization in some way.
+      // setting new values, then fail unless this is an internal operation,
+      // is related to synchronization in some way, or the rules are relaxed.
       if (t.isObsolete()
           && !a.isEmpty()
           && m.getModificationType() != ModificationType.DELETE
-          && !isInternalOrSynchro)
+          && !constraintsRelaxed)
       {
         throw newDirectoryException(currentEntry,
             ResultCode.CONSTRAINT_VIOLATION,
@@ -1201,7 +1203,7 @@ public class LocalBackendModifyOperation
 
   private boolean mustCheckSchema()
   {
-    return !isSynchronizationOperation() && DirectoryServer.getCoreConfigManager().isCheckSchema();
+    return !isSynchronizationOperation() && !relaxRules && DirectoryServer.getCoreConfigManager().isCheckSchema();
   }
 
   /**
