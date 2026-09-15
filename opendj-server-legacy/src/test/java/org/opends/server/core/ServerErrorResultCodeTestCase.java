@@ -15,10 +15,18 @@
  */
 package org.opends.server.core;
 
-import static org.opends.server.TestCaseUtils.applyModifications;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.forgerock.opendj.ldap.ModificationType.REPLACE;
+import static org.forgerock.opendj.ldap.requests.Requests.newModifyRequest;
+import static org.opends.messages.ConfigMessages.ERR_CONFIG_CORE_SERVER_ERROR_RESULT_CODE_NOT_A_FAILURE;
+import static org.opends.messages.ConfigMessages.WARN_CONFIG_CORE_SERVER_ERROR_RESULT_CODE_NOT_A_FAILURE;
+import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotEquals;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.testng.annotations.AfterMethod;
@@ -52,13 +60,13 @@ public class ServerErrorResultCodeTestCase extends CoreTestCase
   }
 
   @AfterMethod
-  public void tearDown() throws Exception
+  public void tearDown()
   {
     if (resultCodeToRestore != null)
     {
       final int resultCode = resultCodeToRestore;
       resultCodeToRestore = null;
-      assertEquals(setServerErrorResultCode(resultCode), 0,
+      assertEquals(setServerErrorResultCode(resultCode).getResultCode(), ResultCode.SUCCESS,
           "the server error result code could not be put back");
     }
   }
@@ -82,7 +90,6 @@ public class ServerErrorResultCodeTestCase extends CoreTestCase
 
   @Test(dataProvider = "resultCodesWhichAreNotAFailure")
   public void serverErrorResultCodeCanNotBeSetToACodeWhichIsNotAFailure(ResultCode resultCode)
-      throws Exception
   {
     final ResultCode inForce = getServerErrorResultCode();
     // Remembered although the change is expected to be refused: the day it is not, the
@@ -90,8 +97,13 @@ public class ServerErrorResultCodeTestCase extends CoreTestCase
     // which runs after this one.
     resultCodeToRestore = inForce.intValue();
 
-    assertNotEquals(setServerErrorResultCode(resultCode.intValue()), 0,
+    final ModifyOperation refusal = setServerErrorResultCode(resultCode.intValue());
+    assertEquals(refusal.getResultCode(), ResultCode.UNWILLING_TO_PERFORM,
         "the server accepted " + resultCode + " as the code it puts on an internal error");
+    assertThat(refusal.getErrorMessage().toString())
+        .as("the refusal does not name the attribute and the code it turned down")
+        .contains(ERR_CONFIG_CORE_SERVER_ERROR_RESULT_CODE_NOT_A_FAILURE.get(resultCode.intValue(), resultCode)
+            .toString());
     assertEquals(getServerErrorResultCode(), inForce,
         "a refused change to the server error result code was applied all the same");
   }
@@ -108,6 +120,10 @@ public class ServerErrorResultCodeTestCase extends CoreTestCase
   {
     assertEquals(CoreConfigManager.serverErrorResultCode(resultCode.intValue()), ResultCode.OTHER,
         "the server started on " + resultCode + " as the code it puts on an internal error");
+    assertThat(errorLogRecords(
+        WARN_CONFIG_CORE_SERVER_ERROR_RESULT_CODE_NOT_A_FAILURE.get(resultCode.intValue(), ResultCode.OTHER)))
+        .as("the server did not say which value it ignored")
+        .isNotEmpty();
   }
 
   @Test
@@ -117,15 +133,18 @@ public class ServerErrorResultCodeTestCase extends CoreTestCase
         ResultCode.UNWILLING_TO_PERFORM);
     assertEquals(CoreConfigManager.serverErrorResultCode(9999), ResultCode.valueOf(9999),
         "the server did not start on a result code it does not know");
+    assertThat(errorLogRecords(WARN_CONFIG_CORE_SERVER_ERROR_RESULT_CODE_NOT_A_FAILURE.get(9999, ResultCode.OTHER)))
+        .as("the server warned about a code it took as it is")
+        .isEmpty();
   }
 
   @Test
-  public void serverErrorResultCodeCanBeSetToAnErrorCode() throws Exception
+  public void serverErrorResultCodeCanBeSetToAnErrorCode()
   {
     resultCodeToRestore = getServerErrorResultCode().intValue();
 
-    assertEquals(setServerErrorResultCode(ResultCode.UNWILLING_TO_PERFORM.intValue()), 0,
-        "the server refused an error result code");
+    assertEquals(setServerErrorResultCode(ResultCode.UNWILLING_TO_PERFORM.intValue()).getResultCode(),
+        ResultCode.SUCCESS, "the server refused an error result code");
     assertEquals(getServerErrorResultCode(), ResultCode.UNWILLING_TO_PERFORM);
   }
 
@@ -135,11 +154,11 @@ public class ServerErrorResultCodeTestCase extends CoreTestCase
    * an internal error.
    */
   @Test
-  public void serverErrorResultCodeCanBeSetToACodeWhichIsNotRegistered() throws Exception
+  public void serverErrorResultCodeCanBeSetToACodeWhichIsNotRegistered()
   {
     resultCodeToRestore = getServerErrorResultCode().intValue();
 
-    assertEquals(setServerErrorResultCode(9999), 0,
+    assertEquals(setServerErrorResultCode(9999).getResultCode(), ResultCode.SUCCESS,
         "the server refused a result code it does not know");
     assertEquals(getServerErrorResultCode().intValue(), 9999);
   }
@@ -149,12 +168,33 @@ public class ServerErrorResultCodeTestCase extends CoreTestCase
     return DirectoryServer.getCoreConfigManager().getServerErrorResultCode();
   }
 
-  private static int setServerErrorResultCode(int resultCode) throws Exception
+  /**
+   * Changes the code through an internal operation rather than through {@code ldapmodify},
+   * so that a refusal can be read in full: the result code and the reason the server gives
+   * for it, not only an exit code which is not zero.
+   */
+  private static ModifyOperation setServerErrorResultCode(int resultCode)
   {
-    return applyModifications(true,
-        "dn: cn=config",
-        "changetype: modify",
-        "replace: ds-cfg-server-error-result-code",
-        "ds-cfg-server-error-result-code: " + resultCode);
+    return getRootConnection().processModify(newModifyRequest("cn=config")
+        .addModification(REPLACE, "ds-cfg-server-error-result-code", String.valueOf(resultCode)));
+  }
+
+  /**
+   * Returns the records of the error log which carry the given message, by its ID and its
+   * text. The test writer is fed by both start-up publishers, so a message it holds is there
+   * more than once: what matters is whether it is there at all.
+   */
+  private static List<String> errorLogRecords(LocalizableMessage message)
+  {
+    final String record = "msgID=" + message.ordinal() + " msg=" + message;
+    final List<String> records = new ArrayList<>();
+    for (String logged : TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+    {
+      if (logged.contains(record))
+      {
+        records.add(logged);
+      }
+    }
+    return records;
   }
 }

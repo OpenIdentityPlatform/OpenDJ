@@ -481,9 +481,13 @@ public class CoreConfigManager implements ConfigurationChangeListener<GlobalCfg>
    * reads {@code NO_OPERATION} as "conflict resolution found the change already applied"
    * and records a change which never reached the backend as replayed (issue #953), and
    * {@code SUCCESS} has {@code LDAPReplicationDomain.synchronize()} both record it and
-   * publish the operation which failed to every other server of the topology. Neither
-   * reader can tell the two meanings apart once they are the same integer, which is why
-   * the value is refused here rather than worked around at each of them.
+   * publish the operation which failed to every other server of the topology. The
+   * configuration itself is a third reader: {@link #applyConfigurationChange} puts this
+   * code on a change to {@code cn=config} which failed to apply and keeps the new core
+   * attributes only when the result is {@code SUCCESS}, so a code of 0 reported that failure
+   * as a success and applied the change all the same. No reader can tell the two meanings
+   * apart once they are the same integer, which is why the value is refused here rather
+   * than worked around at each of them.
    * <p>
    * A code {@code ResultCode} does not know reports a failure - {@code valueOf()} answers
    * an unknown code which does - so an administrator keeps the freedom to put a private
