@@ -14,6 +14,7 @@
 
   Copyright 2007-2008 Sun Microsystems, Inc.
   Portions Copyright 2011 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <adm:managed-object name="crypto-manager" plural-name="crypto-managers"
   package="org.forgerock.opendj.server.config"
@@ -213,13 +214,7 @@
       use in SSL or TLS communication.
     </adm:synopsis>
     <adm:requires-admin-action>
-      <adm:none>
-        <adm:synopsis>
-          Changes to this property take effect immediately but 
-          only impact new SSL/TLS-based sessions created after the
-          change.
-        </adm:synopsis>
-      </adm:none>
+      <adm:server-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:alias>
@@ -244,13 +239,7 @@
       for use in SSL or TLS communication.
     </adm:synopsis>
     <adm:requires-admin-action>
-      <adm:none>
-        <adm:synopsis>
-          Changes to this property take effect immediately but 
-          only impact new SSL/TLS-based sessions created after the
-          change.
-        </adm:synopsis>
-      </adm:none>
+      <adm:server-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:alias>
@@ -275,13 +264,7 @@
       communication between two <adm:product-name /> server components.
     </adm:synopsis>
     <adm:requires-admin-action>
-      <adm:none>
-        <adm:synopsis>
-          Changes to this property take effect immediately but 
-          only impact new SSL/TLS-based sessions created after the
-          change.
-        </adm:synopsis>
-      </adm:none>
+      <adm:server-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -297,5 +280,14 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property-reference name="ssl-cert-nickname" />
+  <adm:property-reference name="ssl-cert-nickname">
+    <!--
+      The component restart declared by the common property definition does not apply
+      here: the crypto manager has no enabled property, so it cannot be disabled and
+      re-enabled, and it reads this property once, when it is created.
+    -->
+    <adm:requires-admin-action>
+      <adm:server-restart />
+    </adm:requires-admin-action>
+  </adm:property-reference>
 </adm:managed-object>
