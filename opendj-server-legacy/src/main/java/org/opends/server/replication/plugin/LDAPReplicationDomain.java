@@ -3868,6 +3868,19 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * replay fails and no thread comes back for it - and this domain would sit out of the
    * topology, with the changes it did not replay owned by the replication server and its
    * ServerState stopped behind them.
+   * <p>
+   * Not run while a total update is being processed, in either direction: a restart stops
+   * the session the total update runs over. An import into this replica reads its entries
+   * from that session and would end on the ones which had arrived - and {@code disabled}
+   * does not say an import is running, since {@code preBackendImport()} keeps the backend
+   * events this domain is the cause of from disabling it. An export from this replica
+   * publishes its entries over it, and {@code exportLDIFEntry()} gives the export up as
+   * {@code ERR_INIT_RS_DISCONNECTION_DURING_EXPORT} once the broker has been stopped
+   * under it, which leaves the replica it was initializing to be initialized again. This
+   * thread is the one which can afford to wait: the request stays standing, and it comes
+   * back here once a second, so the restart is run as soon as the total update is over.
+   * The change the restart was asked for waits for as long as the total update takes, and
+   * the ServerState with it; the replay of this domain keeps running in the meantime.
    */
   private void runPendingSessionRestart()
   {
@@ -3885,9 +3898,22 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * The restart which threw has asked for one again, so this thread runs it again
        * once the backoff has been waited out. It must not end on it: nothing would save
        * the ServerState of this domain anymore, and shutdown() waits for this thread.
+       *
+       * The report is guarded on its own, the way the report of a give-back which failed
+       * is: building the line walks the stack of the throwable, and on the road out of a
+       * JVM which has just refused an allocation that is a throw of its own, which would
+       * end this thread all the same. The restart is asked for again already, and the next
+       * run of it reports again if it fails again.
        */
-      logger.error(ERR_REPLAY_SESSION_RESTART_FAILED,
-          getBaseDN(), stackTraceToSingleLineString(t));
+      try
+      {
+        logger.error(ERR_REPLAY_SESSION_RESTART_FAILED,
+            getBaseDN(), stackTraceToSingleLineString(t));
+      }
+      catch (Throwable reportFailure)
+      {
+        // Nothing is left to say it with, and the report must not end this thread.
+      }
     }
   }
 
@@ -4965,6 +4991,16 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   {
     synchronized (serviceStateLock)
     {
+      /*
+       * Cleared here as well as by disable(): a request made in the window between a
+       * replay thread's read of the flag and disable()'s own clear - abandonReplay() reads
+       * it, then logs, then asks - survives the whole of the disabled span, and the state
+       * checkpointer would restart the session started below within the second for a
+       * change which is gone with the pending changes. Every request standing here is that
+       * one: the domain has been disabled since anything could ask, and the session started
+       * below asks for everything the ServerState loaded below does not cover.
+       */
+      sessionRestarts.clear();
       try
       {
         loadDataState();

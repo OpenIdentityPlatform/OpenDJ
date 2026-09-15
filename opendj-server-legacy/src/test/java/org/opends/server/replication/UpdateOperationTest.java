@@ -2366,6 +2366,13 @@ public class UpdateOperationTest extends ReplicationTestCase
    * was not started back, and the domain stayed out of the topology, with the change
    * still owned by the replication server and the ServerState of this replica stopped
    * behind it, until the server was restarted.
+   * <p>
+   * Two restarts fail rather than one, so that both threads which run one meet a failure:
+   * the first is spent by the replay thread which released the change, and the request it
+   * gives back is run by the state checkpointer, whose restart is the second to fail. The
+   * checkpointer reports that one and runs the request again a moment later - which is
+   * what delivers the change - so a checkpointer which ended on the failure instead would
+   * leave the change where the replay thread left it.
    */
   @Test
   public void aSessionRestartWhichCouldNotRunIsRunAgain() throws Exception
@@ -2399,20 +2406,35 @@ public class UpdateOperationTest extends ReplicationTestCase
         /*
          * The backend is unavailable for longer than the replay is retried in place, so
          * the change is only applied if the session is restarted and the replication
-         * server delivers it again - and the first restart the domain runs for it fails
-         * the way a broken enableService() does, leaving the session stopped.
+         * server delivers it again - and the first two restarts the domain runs for it
+         * fail the way a broken enableService() does, leaving the session stopped: the one
+         * the replay thread runs, and the one the state checkpointer runs for it.
          */
         ShortCircuitPlugin.registerShortCircuit(OperationType.DELETE, "PreParse",
             ResultCode.UNAVAILABLE.intValue(), IN_PLACE_REPLAY_ATTEMPTS + 2);
-        domain.failNextSessionRestarts(1);
+        domain.failNextSessionRestarts(2);
 
         final CSN csn = gen.newCSN();
-        broker.publish(new DeleteMsg(tmp.getName(), csn, uuid));
+        final List<String> records = errorLogRecordsOf(() -> {
+          broker.publish(new DeleteMsg(tmp.getName(), csn, uuid));
 
-        assertNull(getEntry(tmp.getName(), 60000, false),
-            "the change was not delivered again after the session restart which failed");
+          assertNull(getEntry(tmp.getName(), 60000, false),
+              "the change was not delivered again after the session restarts which failed");
+          return null;
+        });
         assertEquals(domain.getSessionRestartFailuresLeft(), 0,
-            "the restart which was asked to fail never ran, so this test proves nothing");
+            "the restarts which were asked to fail never ran, so this test proves nothing");
+        /*
+         * The failure the replay thread meets is reported by the replay thread's own catch,
+         * as an exception replaying a message; only the checkpointer says this, once per
+         * restart which threw on it, and one did. The replay thread's request is its own to
+         * run unless the checkpointer's tick lands in the instants between the request
+         * being made and being taken, which is what a count of two here would say.
+         */
+        assertEquals(countRecordsOf(records,
+            "Could not restart the replication session of domain \"" + baseDN + "\""), 1,
+            "the state checkpointer reports the restart which threw on it, once, and runs"
+                + " it again: " + records);
         assertMonitorAttrValueEventually(baseDN, "replayed-updates-ok", initialReplayed + 1,
             "the change must be recorded as replayed");
       }

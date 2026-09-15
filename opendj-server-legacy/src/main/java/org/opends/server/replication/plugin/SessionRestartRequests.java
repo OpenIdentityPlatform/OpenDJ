@@ -28,9 +28,11 @@ import java.util.concurrent.atomic.AtomicReference;
  * again holds the ServerState of this domain back for as long as the server is up.
  * <p>
  * The wait a failing backend is owed belongs to the request rather than to the thread
- * which runs it: a thread which is not owed one - a replay thread on its way out, where
- * the backend is not what is going away - must not spend the wait another thread's
- * request was made with.
+ * which runs it. A replay which failed asks for the restart with the wait, and a replay
+ * thread on its way out asks for it without - the backend is not what is going away - and
+ * either thread can end up running what the other asked for: the one which is owed no
+ * wait must not spend the wait the other's request was made with, and the one which is
+ * owed the wait must not have its request run without it, whichever of the two runs it.
  */
 class SessionRestartRequests
 {
@@ -84,12 +86,18 @@ class SessionRestartRequests
 
   /**
    * Asks again for a restart which was taken and could not be run.
+   * <p>
+   * What is asked for again is not what {@link #take()} returned: the caller asks for the
+   * restart with the backoff whether or not the request it took was made with one, since
+   * a session which could not be started is the very thing that wait is for. A request
+   * made while the restart was running is not undone by it - the two are merged, and the
+   * one which asks for more wins.
    *
-   * @param taken what {@link #take()} returned to the caller which could not run it
+   * @param restart what the caller which could not run the restart asks for again
    */
-  void giveBack(SessionRestart taken)
+  void giveBack(SessionRestart restart)
   {
-    merge(taken);
+    merge(restart);
   }
 
   /** Forgets what this domain was asked for, its pending changes being gone with it. */

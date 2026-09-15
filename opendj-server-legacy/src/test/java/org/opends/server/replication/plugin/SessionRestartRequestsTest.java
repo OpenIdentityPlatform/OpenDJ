@@ -83,6 +83,20 @@ public class SessionRestartRequestsTest extends DirectoryServerTestCase
   }
 
   @Test
+  public void aRestartGivenBackAfterItThrewIsOwedTheBackoff()
+  {
+    final SessionRestartRequests requests = new SessionRestartRequests();
+    requests.request(NOW);
+    assertEquals(requests.take(), NOW);
+
+    // What the domain gives back after a restart threw: the backoff, whatever was taken.
+    requests.giveBack(AFTER_BACKOFF);
+
+    assertEquals(requests.take(), AFTER_BACKOFF,
+        "a session which could not be started is what the wait exists for");
+  }
+
+  @Test
   public void aRestartGivenBackDoesNotUndoTheOneAskedForMeanwhile()
   {
     final SessionRestartRequests requests = new SessionRestartRequests();
