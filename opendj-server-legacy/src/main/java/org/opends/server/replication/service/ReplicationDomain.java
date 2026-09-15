@@ -3521,8 +3521,12 @@ public abstract class ReplicationDomain
    * {@code SESSION_BEING_STOPPED}, held for the length of the stop and released once the
    * listener thread is gone - it is the one thread which claims a total update this replica
    * did not ask for, and {@link #disableService()} waits for it. An export in the context is
-   * not an owner: the session is stopped from under it and the exporter reports the cut, as
-   * it does for every other stop. A total update which lands between the end of that export
+   * not an owner here: the session is stopped from under it and the exporter reports the
+   * cut, as it does for every other stop. The session restart a replay asks for does not
+   * get this far while a total update runs - {@code runRequestedSessionRestarts()} leaves
+   * the request standing until it is over (issue #1048) - so an export reaches this arm only
+   * when it begins between that read and the claim below. A total update which lands
+   * between the end of that export
    * and the stop is refused by the listener when it reads the broker as stopping after its
    * claim; a stop which lands after that read still has the import run over a session which
    * is going down, and end as a failed import over the suffix it has replaced (issue

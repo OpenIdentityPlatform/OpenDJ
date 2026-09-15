@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.IsolationPolicy;
@@ -38,6 +39,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -90,6 +92,12 @@ public class ParkedChangeGiveBackTest extends ReplicationTestCase
   private LDAPReplicationDomain domain;
   private TestSynchronousReplayQueue queue;
   private CSNGenerator gen;
+  /**
+   * The budget the replay of a change is retried for, read by the domain at every decision:
+   * the default until a case lowers it, so that a case can give up on one change while the
+   * barrier it set up before stays asked for.
+   */
+  private final AtomicLong replayGiveUpDelayInMs = new AtomicLong();
 
   @BeforeMethod
   public void setUpLocal() throws Exception
@@ -103,7 +111,16 @@ public class ParkedChangeGiveBackTest extends ReplicationTestCase
 
     final SortedSet<String> replServers = new TreeSet<>();
     replServers.add("localhost:" + rsPort);
-    final DomainFakeCfg conf = new DomainFakeCfg(baseDN, DS_ID, replServers);
+    final DomainFakeCfg conf = new DomainFakeCfg(baseDN, DS_ID, replServers)
+    {
+      @Override
+      public long getReplayGiveUpDelay()
+      {
+        return replayGiveUpDelayInMs.get();
+      }
+    };
+    // What the fake configuration spells out as the default of the property.
+    replayGiveUpDelayInMs.set(new DomainFakeCfg(baseDN, DS_ID, replServers).getReplayGiveUpDelay());
     conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
     queue = new TestSynchronousReplayQueue();
     domain = MultimasterReplication.createNewDomain(conf, queue);
@@ -133,11 +150,15 @@ public class ParkedChangeGiveBackTest extends ReplicationTestCase
    * brings the session back before the replay returns. The restart it asked for is run at
    * once: the one run again after the failure is the one which waits its backoff out, and
    * that is the one move of the count of the restarts in a row.
+   * <p>
+   * The restart ran, so nothing of it is reported as held: no total update is being processed
+   * over the session here, and the line which says a restart waits for one belongs to the
+   * domain which is exporting or importing (issue #1048).
    */
   @Test(timeOut = 120_000)
   public void theThreadWhichGaveBackAParkedChangeRunsTheRestartItAskedFor() throws Exception
   {
-    parkAChangeBehindABarrier(addEntry("waitedOn"));
+    final CSN parked = parkAChangeBehindABarrier(addEntry("waitedOn"));
     final Entry other = addEntry("other");
     final int restartsBefore = domain.getConsecutiveSessionRestarts();
     domain.failNextSessionRestarts(1);
@@ -157,6 +178,11 @@ public class ParkedChangeGiveBackTest extends ReplicationTestCase
     assertEquals(domain.getConsecutiveSessionRestarts(), restartsBefore + 1,
         "the restart the give-back asked for must be run at once, without the backoff: the one"
             + " run again after the failure is the one which waits it out");
+    assertThat(errorLogRecordsOf(
+        NOTE_REPLAY_SESSION_RESTART_HELD_BY_TOTAL_UPDATE.ordinal(), parked))
+        .as("the restart the parked change was given back with was reported as held: no total"
+            + " update is being processed over the session, and it ran")
+        .isEmpty();
   }
 
   /**
@@ -231,6 +257,60 @@ public class ParkedChangeGiveBackTest extends ReplicationTestCase
         "the change parked by the thread which is stopping must be given back");
   }
 
+  /**
+   * A change which the road of a failed replay has already taken is not reported as one whose
+   * give-back failed when what follows that road throws: the last resort of {@code replay()}
+   * speaks for a give-back which did not run, and this one ran.
+   * <p>
+   * The change fails and the ack of its delivery runs out of memory, so the replay is unwound
+   * with the change still owned by this thread. Its give-up budget is spent at once, so the
+   * road it takes gives it up and runs no restart; the restart the parked change was given
+   * back with is run after it, by the same thread, and is asked to fail - the throw out of
+   * what follows that road.
+   */
+  @Test(timeOut = 120_000)
+  public void aThrowAfterTheChangeWasTakenCareOfIsNotReportedAsAFailedGiveBack()
+      throws Exception
+  {
+    parkAChangeBehindABarrier(addEntry("waitedOn"));
+    final Entry other = addEntry("other");
+    final CSN givenUpOn = gen.newCSN();
+    replayGiveUpDelayInMs.set(0);
+    domain.failNextSessionRestarts(1);
+
+    OutOfMemoryError unwinding = null;
+    try
+    {
+      replayMsg(new ModifyMsgWhoseAckRunsOutOfMemory(givenUpOn, other.getName(),
+          generatemods("description", "the replay of this change fails and its ack runs out"
+              + " of memory"), getEntryUUID(other.getName())), RUNNING);
+    }
+    catch (OutOfMemoryError e)
+    {
+      // The error is the fixture's own, and this is the thread it would have ended.
+      unwinding = e;
+    }
+    assertNotNull(unwinding, "the replay was not unwound: the ack of the delivery must run out"
+        + " of memory");
+
+    assertThat(errorLogRecordsOf(ERR_REPLAY_SKIPPING_CHANGE.ordinal(), givenUpOn))
+        .as("the change was not given up on: its budget was spent, so the road it took must"
+            + " have skipped it rather than run a restart for it")
+        .isNotEmpty();
+    assertEquals(getMonitorAttrValue(baseDN, "dependent-changes-size"), 0,
+        "the change parked by the replay which was unwound must be given back");
+    assertThat(injectedRestartFailuresAmong(unwinding.getSuppressed()))
+        .as("the restart the parked change was given back with must have been run after the"
+            + " road of the failed change, and have met the failure it was asked to meet")
+        .hasSize(1);
+    assertThat(errorLogRecordsOf(ERR_REPLAY_GIVE_BACK_FAILED.ordinal(), givenUpOn))
+        .as("the change was reported as released without its failure being counted: it was"
+            + " counted and given up on, and the throw came after that")
+        .isEmpty();
+    awaitConnected(RESTART_BOUND_IN_MS, "the restart run again after the one which failed did"
+        + " not bring the session back");
+  }
+
   private void awaitConnected(long boundInMs, String message) throws Exception
   {
     final long deadline = System.currentTimeMillis() + boundInMs;
@@ -256,9 +336,12 @@ public class ParkedChangeGiveBackTest extends ReplicationTestCase
    * operation is built and then refused, so it is asked for again rather than stepped over -
    * and then a change on the same entry, which is parked as waiting for it and owned by this
    * thread from then on. The restart the failed change asks for is run on this thread as
-   * well, so the session is back once this returns.
+   * well, so the session is back once this returns - and nothing of it is reported as held,
+   * which is the negative arm of that line (issue #1048).
+   *
+   * @return the CSN of the change which is left parked
    */
-  private void parkAChangeBehindABarrier(Entry entry) throws Exception
+  private CSN parkAChangeBehindABarrier(Entry entry) throws Exception
   {
     final String entryUUID = getEntryUUID(entry.getName());
     final CSN failing = gen.newCSN();
@@ -268,12 +351,19 @@ public class ParkedChangeGiveBackTest extends ReplicationTestCase
         "the change whose replay fails must stay listed as one which is not in the data");
     awaitConnected(RESTART_BOUND_IN_MS,
         "the session was not brought back for the change whose replay failed");
+    assertThat(errorLogRecordsOf(
+        NOTE_REPLAY_SESSION_RESTART_HELD_BY_TOTAL_UPDATE.ordinal(), failing))
+        .as("the restart the change whose replay failed was asked for again with was reported"
+            + " as held: no total update is being processed over the session, and it ran")
+        .isEmpty();
 
-    replayMsg(new ModifyMsg(gen.newCSN(), entry.getName(),
+    final CSN parked = gen.newCSN();
+    replayMsg(new ModifyMsg(parked, entry.getName(),
         generatemods("description", "the change which was parked as a dependency"), entryUUID),
         RUNNING);
     assertEquals(getMonitorAttrValue(baseDN, "dependent-changes-size"), 1,
         "a change which waits for one that is not in the data must be parked");
+    return parked;
   }
 
   /** When the thread a replay runs on is stopped, if it is. */
@@ -369,5 +459,27 @@ public class ParkedChangeGiveBackTest extends ReplicationTestCase
     final LDAPUpdateMsg ldapUpdate = queue.take().getUpdateMessage();
     domain.markInProgress(ldapUpdate);
     domain.replay(ldapUpdate, stopping);
+  }
+
+  /**
+   * A ModifyMsg whose replay fails and whose ack runs out of memory: the ack is published once
+   * the failure is decided and before the change is given back, so the replay is unwound with
+   * the change still owned by the thread which was replaying it.
+   */
+  private static final class ModifyMsgWhoseAckRunsOutOfMemory
+      extends ModifyMsgWhoseOperationRefusesAControl
+  {
+    private ModifyMsgWhoseAckRunsOutOfMemory(
+        CSN csn, DN dn, List<Modification> mods, String entryUUID)
+    {
+      super(csn, dn, mods, entryUUID);
+    }
+
+    @Override
+    public boolean isAssured()
+    {
+      // Read first thing by processUpdateDone(), which is what publishes the ack.
+      throw new OutOfMemoryError("the ack of this delivery runs out of memory");
+    }
   }
 }
