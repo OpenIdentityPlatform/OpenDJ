@@ -2856,7 +2856,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * whatever happens here, and the thread this runs on may well be ending on it. A
          * restart which can not run here leaves its request standing, and the state
          * checkpointer of this domain runs it: one which threw asks for itself again on
-         * its way out, and one a domain whose session has an owner would refuse is not
+         * its way out, one a total update is being processed over the session is not run
+         * while it lasts, and one a domain whose session has an owner would refuse is not
          * run at all rather than spent on the refusal.
          *
          * The restart is asked for once the change is released and not before, the way
@@ -4031,7 +4032,19 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      */
     sessionRestarts.request(replayThreadShutdown.get() || outOfMemory
         ? SessionRestart.NOW : SessionRestart.AFTER_BACKOFF);
-    runRequestedSessionRestarts();
+    if (!runRequestedSessionRestarts() && !outOfMemory)
+    {
+      /*
+       * The line above said the session is being restarted for the change, and it is not
+       * yet: a total update is being processed over that session - an export from this
+       * replica, since a total update into it owns the session and is refused above - and
+       * the restart waits for it, for as long as the export takes. Said on its own, so that
+       * a change which is not delivered again for minutes is not a change nobody asked for;
+       * not on the road out of a JVM which has run out of memory, for the reason the line
+       * above is not built there.
+       */
+      logger.info(NOTE_REPLAY_SESSION_RESTART_HELD_BY_TOTAL_UPDATE, csn, getBaseDN());
+    }
     return true;
   }
 
@@ -4056,10 +4069,37 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
   /**
    * Restarts the session as long as changes which could not be replayed are waiting to be
-   * delivered again.
+   * delivered again - unless a total update is being processed, in which case the requests
+   * are left standing for the state checkpointer to run once it is over.
+   * <p>
+   * A restart stops the session the total update runs over, in either direction. An import
+   * into this replica reads its entries from that session and would end on the ones which
+   * had arrived - and {@code disabled} does not say an import is running, since
+   * {@code preBackendImport()} keeps the backend events this domain is the cause of from
+   * disabling it. An export from this replica publishes its entries over it, and
+   * {@code exportLDIFEntry()} gives the export up as
+   * {@code ERR_INIT_RS_DISCONNECTION_DURING_EXPORT} once the broker has been stopped under
+   * it, which leaves the replica it was initializing to be initialized again: minutes on a
+   * large backend, spent for a change which would have waited. So the change waits: the
+   * request stays standing, the state checkpointer comes for it once a second and runs it
+   * as soon as the total update is over ({@link #runPendingSessionRestart()}), and the
+   * replication server delivers the change again then. The ServerState waits with it, and
+   * the replay of this domain keeps running in the meantime.
+   * <p>
+   * A total update which begins between this read and the stop of the session is not seen
+   * here, and is cut by it: the read and the claim of the import/export context share no
+   * lock, which is issue #1041 on the import side - a few statements wide, where the whole
+   * of the total update was.
+   *
+   * @return {@code false} when a total update is being processed and the requests were left
+   *         standing for the state checkpointer, {@code true} otherwise
    */
-  private void runRequestedSessionRestarts()
+  private boolean runRequestedSessionRestarts()
   {
+    if (ieRunning())
+    {
+      return false;
+    }
     /*
      * The outer loop is what makes a request which was made while this thread was giving
      * up the recovery its own: the thread which made it found the recovery taken and left
@@ -4099,6 +4139,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         replayFailureRecovery.set(false);
       }
     }
+    return true;
   }
 
   /**
@@ -4114,22 +4155,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * topology, with the changes it did not replay owned by the replication server and its
    * ServerState stopped behind them.
    * <p>
-   * Not run while a total update is being processed, in either direction: a restart stops
-   * the session the total update runs over. An import into this replica reads its entries
-   * from that session and would end on the ones which had arrived - and {@code disabled}
-   * does not say an import is running, since {@code preBackendImport()} keeps the backend
-   * events this domain is the cause of from disabling it. An export from this replica
-   * publishes its entries over it, and {@code exportLDIFEntry()} gives the export up as
-   * {@code ERR_INIT_RS_DISCONNECTION_DURING_EXPORT} once the broker has been stopped
-   * under it, which leaves the replica it was initializing to be initialized again. This
-   * thread is the one which can afford to wait: the request stays standing, and it comes
-   * back here once a second, so the restart is run as soon as the total update is over.
-   * The change the restart was asked for waits for as long as the total update takes, and
-   * the ServerState with it; the replay of this domain keeps running in the meantime.
+   * While a total update is being processed, in either direction, the restart is not run -
+   * no restart asked for by a released change is, see {@link #runRequestedSessionRestarts()}
+   * - and this thread is the one which can afford to wait for it: the request stays
+   * standing, and it comes back here once a second, so the restart is run as soon as the
+   * total update is over.
    */
   private void runPendingSessionRestart()
   {
-    if (shutdown.get() || disabled || ieRunning() || !sessionRestarts.isPending())
+    if (shutdown.get() || disabled || !sessionRestarts.isPending())
     {
       return;
     }
