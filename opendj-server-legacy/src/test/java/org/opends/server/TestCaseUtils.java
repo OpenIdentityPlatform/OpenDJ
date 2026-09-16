@@ -57,6 +57,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.file.Paths;
+import java.security.Provider;
+import java.security.Security;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,6 +69,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -313,6 +316,64 @@ public final class TestCaseUtils {
       serverAdminPort = getFreePort(PROPERTY_ADMIN_PORT, ports[1]);
       serverJmxPort = ports[2];
       serverLdapsPort = ports[3];
+    }
+  }
+
+  /**
+   * Runs {@code action} while no installed JCE provider offers the given service, the way a
+   * FIPS-restricted JVM lacks it, and puts the withdrawn providers back where they were
+   * afterwards. The {@code standIns} are installed ahead of the remaining providers for the
+   * duration, for whatever the action still needs that only the withdrawn providers offered.
+   *
+   * @param type
+   *          The JCE service type, e.g. {@code SecureRandom}.
+   * @param algorithm
+   *          The algorithm to withdraw, e.g. {@code SHA1PRNG}.
+   * @param action
+   *          What to run without the service.
+   * @param standIns
+   *          Providers to install first while the service is withdrawn.
+   * @throws Exception
+   *           If the action fails, or if the service could not be withdrawn.
+   */
+  public static void withoutJceService(final String type, final String algorithm,
+      final Callable<Void> action, final Provider... standIns) throws Exception
+  {
+    final String service = type + "." + algorithm;
+    final List<Provider> installed = Arrays.asList(Security.getProviders());
+    final Provider[] offering = Security.getProviders(service);
+    assertNotNull(offering, "no installed provider offers " + service + ": nothing to withdraw");
+    for (Provider provider : offering)
+    {
+      Security.removeProvider(provider.getName());
+    }
+    final List<Provider> addedStandIns = new ArrayList<>();
+    for (int i = 0; i < standIns.length; i++)
+    {
+      if (Security.insertProviderAt(standIns[i], i + 1) != -1)
+      {
+        addedStandIns.add(standIns[i]);
+      }
+    }
+    try
+    {
+      assertNull(Security.getProviders(service), service + " is still offered: the fixture does not withdraw it");
+      action.call();
+    }
+    finally
+    {
+      for (Provider standIn : addedStandIns)
+      {
+        Security.removeProvider(standIn.getName());
+      }
+      // Ascending original positions, so that the list comes back in its original order.
+      for (Provider provider : installed)
+      {
+        if (Arrays.asList(offering).contains(provider))
+        {
+          Security.insertProviderAt(provider, installed.indexOf(provider) + 1);
+        }
+      }
     }
   }
 

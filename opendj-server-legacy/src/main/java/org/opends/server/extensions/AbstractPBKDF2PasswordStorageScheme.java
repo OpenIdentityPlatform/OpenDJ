@@ -82,7 +82,8 @@ abstract class AbstractPBKDF2PasswordStorageScheme
         }
         catch (NoSuchAlgorithmException e)
         {
-            throw new InitializationException(null);
+            throw new InitializationException(
+                ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(getMessageDigestAlgorithm(), e), e);
         }
 
         this.config = configuration;

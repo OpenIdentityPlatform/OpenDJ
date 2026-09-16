@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -152,11 +153,6 @@ public class ExtensionsConstants
    */
   public static final String MESSAGE_DIGEST_ALGORITHM_PBKDF2_HMAC_SHA512 =
           "PBKDF2WithHmacSHA512";
-
-  /**
-   * The name of the pseudo-random number generator using SHA-1.
-   */
-  public static final String SECURE_PRNG_SHA1 = "SHA1PRNG";
 
 
 
