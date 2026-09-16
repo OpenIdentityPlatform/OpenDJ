@@ -39,7 +39,9 @@ import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.UUID;
 
@@ -295,6 +297,28 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     assertThat(ccr.getMessages().get(1).toString())
         .as("with the trust store which could not be read")
         .contains(trustStore.getTrustStoreFile());
+  }
+
+  /**
+   A key wrapping transformation this Java runtime cannot provide is refused, at start (where
+   the refusal is what keeps the server from starting) as on a change, and the refusal has to
+   name the property to set, not only the cipher which failed: on a FIPS-restricted runtime
+   without RSA-OAEP that is all the administrator has to go on.
+   */
+  @Test
+  public void testUnsupportedKeyWrappingTransformationIsRefusedNamingTheProperty() throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final String unsupported = "RSA/ECB/NoSuchPadding";
+    final List<LocalizableMessage> why = new ArrayList<>();
+
+    final boolean acceptable =
+        cm.isConfigurationChangeAcceptable(withProperty(cfg, "getKeyWrappingTransformation", unsupported), why);
+
+    assertThat(acceptable).isFalse();
+    assertThat(why).hasSize(1);
+    assertThat(why.get(0).toString()).contains(unsupported).contains("key-wrapping-transformation");
   }
 
   /**
