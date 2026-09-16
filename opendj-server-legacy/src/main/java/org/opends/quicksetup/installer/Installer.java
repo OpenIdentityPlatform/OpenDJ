@@ -4446,7 +4446,8 @@ public class Installer extends GuiApplication
           }
         }
 
-        String logMsg = firstValueAsString(sr, "ds-task-log-message");
+        List<String> logMsgs = InstallerHelper.getTaskLogMessages(sr);
+        String logMsg = InstallerHelper.getRelevantLogMessage(logMsgs);
         if (logMsg != null && !logMsg.equals(lastLogMsg))
         {
           logger.info(LocalizableMessage.raw(logMsg));
@@ -4489,7 +4490,7 @@ public class Installer extends GuiApplication
           else if (!TaskState.isSuccessful(taskState) || taskState == STOPPED_BY_ERROR)
           {
             ApplicationException ae = new ApplicationException(ReturnCode.APPLICATION_ERROR, errorMsg, null);
-            if (lastLogMsg == null || helper.isPeersNotFoundError(lastLogMsg))
+            if (helper.isPeersNotFoundError(logMsgs))
             {
               logger.warn(LocalizableMessage.raw("Throwing peer not found error.  " + "Last Log Msg: " + lastLogMsg));
               // Assume that this is a peer not found error.
@@ -4645,7 +4646,7 @@ public class Installer extends GuiApplication
             newSearchRequest(dn, BASE_OBJECT, "(objectclass=*)", "ds-task-log-message", "ds-task-state");
         SearchResultEntry sr = conn.getConnection().searchSingleEntry(searchRequest);
 
-        String logMsg = firstValueAsString(sr, "ds-task-log-message");
+        String logMsg = InstallerHelper.getRelevantLogMessage(InstallerHelper.getTaskLogMessages(sr));
         if (logMsg != null && !logMsg.equals(lastLogMsg))
         {
           logger.info(LocalizableMessage.raw(logMsg));
