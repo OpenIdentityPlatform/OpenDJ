@@ -85,6 +85,23 @@ public class InstallerHelperTest extends DirectoryServerTestCase
     assertThat(new InstallerHelper().isPeersNotFoundError(otherError)).isFalse();
   }
 
+  /**
+   * The ordinal is unique within a message file only: message 47 of another file is not this error.
+   * Nor is a message of the same file whose ordinal merely starts with the same digits.
+   */
+  @Test
+  public void aMessageOfAnotherResourceOrWithALongerOrdinalIsNotRecognized()
+  {
+    final String waitingOnStartTime =
+        "[09/Sep/2026:12:08:48 +0000] severity=\"INFORMATION\" msgCount=1 msgID=org.opends.messages.task-47"
+        + " message=\"Waiting on start time\"";
+    final String longerOrdinal =
+        "[09/Sep/2026:12:08:48 +0000] severity=\"ERROR\" msgCount=1 msgID=org.opends.messages.replication-470"
+        + " message=\"Domain dc=example,dc=com: the server with serverId=12345 is unreachable\"";
+    assertThat(new InstallerHelper().isPeersNotFoundError(waitingOnStartTime)).isFalse();
+    assertThat(new InstallerHelper().isPeersNotFoundError(longerOrdinal)).isFalse();
+  }
+
   @Test
   public void aNoticeIsNotAPeersNotFoundError()
   {
@@ -115,6 +132,21 @@ public class InstallerHelperTest extends DirectoryServerTestCase
     assertThat(InstallerHelper.getRelevantLogMessage(
         Arrays.asList(TASK_STARTED, PEERS_NOT_FOUND, IMPORT_NOT_SUPPORTED, TASK_FINISHED)))
         .isEqualTo(IMPORT_NOT_SUPPORTED);
+  }
+
+  /**
+   * The severity of a message is a field of its own, not a word of its text: a notice whose text
+   * names the state of a failed task is not the error.
+   */
+  @Test
+  public void aNoticeMentioningAnErrorIsNotTheError()
+  {
+    final String notice =
+        "[09/Sep/2026:12:08:48 +0000] severity=\"NOTICE\" msgCount=3 msgID=org.opends.messages.backend-414"
+        + " message=\"Initialize From Replica task quicksetup-initialize3 finished execution in the state"
+        + " STOPPED_BY_ERROR\"";
+    assertThat(InstallerHelper.getRelevantLogMessage(Arrays.asList(TASK_STARTED, PEERS_NOT_FOUND, notice)))
+        .isEqualTo(PEERS_NOT_FOUND);
   }
 
   @Test

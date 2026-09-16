@@ -112,17 +112,20 @@ public class InstallerHelper {
 
   /**
    * The severity field of a message logged by a task with an error severity, as rendered by
-   * {@code org.opends.server.backends.task.Task#addLogMessage}.
+   * {@code org.opends.server.backends.task.Task#addLogMessage}: it follows the timestamp and
+   * precedes the message count, so it cannot be mistaken for the text of the message.
    */
-  private static final String ERROR_SEVERITY_FIELD = "severity=\"" + Severity.ERROR.name() + "\"";
+  private static final String ERROR_SEVERITY_FIELD =
+      "] severity=\"" + Severity.ERROR.name() + "\" msgCount=";
   /**
    * The message id field of the peers not found error, as rendered by
    * {@code org.opends.server.backends.task.Task#addLogMessage}: a message is identified in a task
-   * log by its resource name and its ordinal, not by its ordinal alone.
+   * log by its resource name and its ordinal, not by its ordinal alone, and the field ends where
+   * the message text starts, so the ordinal is matched whole.
    */
   private static final String PEERS_NOT_FOUND_MSG_ID_FIELD = "msgID="
       + ReplicationMessages.ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.resourceName() + "-"
-      + ReplicationMessages.ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.ordinal();
+      + ReplicationMessages.ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.ordinal() + " message=\"";
 
   /**
    * Invokes the method ConfigureDS.configMain with the provided parameters.
