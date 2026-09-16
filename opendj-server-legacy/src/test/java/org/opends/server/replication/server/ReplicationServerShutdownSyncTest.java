@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -50,6 +51,7 @@ import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.Session;
+import org.opends.server.replication.protocol.StopMsg;
 import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.WindowMsg;
 import org.opends.server.replication.service.DSRSShutdownSync;
@@ -69,7 +71,9 @@ import org.testng.annotations.Test;
  * long. {@link #thePeerReceivesTheReplicaOfflineMsgBeforeTheShutdownReturns()},
  * {@link #thePeerWhoseHandshakeIsInFlightIsStillToldTheReplicaWentOffline()} and
  * {@link #theShutdownWaitsForEveryPeerToBeToldTheReplicaWentOffline()} pin the outcome those
- * waits exist for, on peers connected through the real handshake.
+ * waits exist for, on peers connected through the real handshake, and
+ * {@link #thePeerWhoseHandshakeCompletesAfterTheShutdownIsStoppedNotServed()} pins what the
+ * shutdown still does to a handshake which outlasts the wait.
  */
 @SuppressWarnings("javadoc")
 public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
@@ -278,14 +282,26 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
 
       /*
        * The second peer stops between the two phases of its handshake, which leaves the listen
-       * thread blocked in the receive of the TopologyMsg it owes - the state the shutdown used to
-       * tear down. A message nobody can forward holds the shutdown in its wait meanwhile, so what
-       * the connected peer does with the message published below cannot end the wait before this
-       * one has been served.
+       * thread blocked in the receive of the TopologyMsg it owes, the peer not yet registered on
+       * the domain - the state in which the shutdown used to send the interrupt which, once the
+       * handshake got to the startup of its session, tore the peer down. A message nobody can
+       * forward holds the shutdown in its wait meanwhile, so what the connected peer does with
+       * the message published below cannot end the wait before this one has been served.
+       * <p>
+       * Two clocks run from here, both far longer than what follows costs on the loopback: the
+       * grace period of that announcement, which is all that holds the wait, and the connection
+       * timeout of the replication server, which bounds its receive of the TopologyMsg. The
+       * handshake, the registration and the forward must land inside the first, else the domains
+       * are stopped and the peer reports the very message of the regression - hence the
+       * assertion on the elapsed time below; the TopologyMsg must arrive inside the second, else
+       * the replication server gives the peer up itself and completeHandshake() fails on its
+       * own account.
        */
       handshakingPeer = FakePeerReplicationServer.handshaking(
           replicationPort, HANDSHAKING_RS_ID, baseDN, EMPTY_DN_GENID);
-      shutdownSync.replicaOfflineMsgSent(baseDN, newOfflineCSN(UNREACHABLE_DS_ID));
+      final CSN unreachableCSN = newOfflineCSN(UNREACHABLE_DS_ID);
+      final long startTime = System.nanoTime();
+      shutdownSync.replicaOfflineMsgSent(baseDN, unreachableCSN);
 
       shutdown = newShutdownThread(replicationServer);
       shutdown.start();
@@ -301,11 +317,23 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       broker.publish(new ReplicaOfflineMsg(offlineCSN));
 
       final ReplicaOfflineMsg forwarded = received.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      final long elapsed = elapsedMillis(startTime);
       assertThat(forwarded)
           .as("the peer which was handshaking when the shutdown started was never told that the "
               + "replica went offline, its read ended with: %s", handshakingPeer.failure())
           .isNotNull();
       assertThat(forwarded.getCSN().getServerId()).isEqualTo(LOCAL_DS_ID);
+      assertThat(elapsed)
+          .as("the handshake and the forward must land inside the grace period which holds the "
+              + "wait, or the pass says nothing about the order of the shutdown")
+          .isLessThan(DSRSShutdownSync.REPLICA_OFFLINE_GRACE_PERIOD);
+
+      /*
+       * The announcement has done its job. An entry which was never queued for anybody is
+       * released by the first forward reported for it, so end the wait now rather than sit out
+       * the rest of its grace period in the join below.
+       */
+      shutdownSync.replicaOfflineMsgForwarded(baseDN, unreachableCSN, HANDSHAKING_RS_ID);
     }
     finally
     {
@@ -313,6 +341,77 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       closeQuietly(handshakingPeer);
       closeQuietly(connectedPeer);
       stop(broker);
+      removeQuietly(replicationServer);
+    }
+  }
+
+  /**
+   * The other half of the order of the shutdown: the interrupt still precedes the shutdown of
+   * the domains, so a handshake which completes only once the shutdown is over is stopped rather
+   * than served. Without the interrupt such a peer registers after the domains were stopped and
+   * nothing ever stops it: its session, reader, writer and heartbeat are started, and its writer
+   * parks forever on a cursor over the changelog the shutdown has closed - five threads and a
+   * peer heartbeating a replication server which no longer exists, on a server which was merely
+   * removed from the configuration.
+   */
+  @Test
+  public void thePeerWhoseHandshakeCompletesAfterTheShutdownIsStoppedNotServed() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer replicationServer = null;
+    FakePeerReplicationServer handshakingPeer = null;
+    try
+    {
+      final int replicationPort = TestCaseUtils.findFreePort();
+      replicationServer = newReplicationServer(
+          new DSRSShutdownSync(), "shutdownSyncLateHandshakeDb", 8235, replicationPort);
+      final ReplicationServerDomain domain =
+          replicationServer.getReplicationServerDomain(baseDN, true);
+      handshakingPeer = FakePeerReplicationServer.handshaking(
+          replicationPort, HANDSHAKING_RS_ID, baseDN, EMPTY_DN_GENID);
+
+      /*
+       * Nothing is pending, so the wait returns at once and the interrupt lands on the handshake
+       * in flight - on a receive it does not break, where the flag survives until the startup of
+       * the session. The handshake is completed once the shutdown has returned, inside the
+       * connection timeout which bounds that receive: past it the replication server gives the
+       * peer up on its own, without a StopMsg, and completeHandshake() fails on a closed session
+       * rather than letting the case pass for the wrong reason.
+       */
+      replicationServer.shutdown();
+
+      handshakingPeer.completeHandshake();
+      final Future<StopMsg> stopped = handshakingPeer.receive(StopMsg.class);
+      StopMsg stopMsg = null;
+      try
+      {
+        stopMsg = stopped.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      }
+      catch (TimeoutException e)
+      {
+        // A served peer keeps receiving heartbeats: its read neither ends nor yields a StopMsg.
+      }
+      assertThat(stopMsg)
+          .as("the peer whose handshake completed after the shutdown was served instead of "
+              + "stopped: no StopMsg within %s ms, its read ended with: %s",
+              SOCKET_TIMEOUT_MS, handshakingPeer.failure())
+          .isNotNull();
+
+      // abortStart() sends the StopMsg when it closes the session, and unregisters the peer after
+      newConnectionTimer().repeatUntilSuccess(new TestTimer.CallableVoid()
+      {
+        @Override
+        public void call() throws Exception
+        {
+          assertThat(domain.getConnectedRSs())
+              .as("the peer whose handshake was aborted by the shutdown stayed registered")
+              .doesNotContainKey(HANDSHAKING_RS_ID);
+        }
+      });
+    }
+    finally
+    {
+      closeQuietly(handshakingPeer);
       removeQuietly(replicationServer);
     }
   }
@@ -993,9 +1092,10 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
    * {@code Session.waitForStartup()} by then is aborted: the session is closed and the handler
    * unregistered, and the peer is gone before the message could be queued for it, let alone
    * forwarded. Issue #821 recorded that same window, from the dead handler it used to leave
-   * behind, and
-   * {@link #thePeerWhoseHandshakeIsInFlightIsStillToldTheReplicaWentOffline()} pins the part of
-   * it the wait now covers.
+   * behind; {@link #thePeerWhoseHandshakeIsInFlightIsStillToldTheReplicaWentOffline()} pins the
+   * part of it the wait now covers, and
+   * {@link #thePeerWhoseHandshakeCompletesAfterTheShutdownIsStoppedNotServed()} the part the
+   * shutdown still aborts.
    * <p>
    * The listen thread serves one handshake at a time, so a peer which is past that window also
    * puts every connection accepted before it - the collocated directory server of these tests
@@ -1377,13 +1477,15 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
   }
 
   /**
-   * A peer replication server which connects to the replication server under test and completes
-   * the handshake, so that the handler it leaves behind on the domain has a real writer and can
-   * actually forward what the domain pushes to it.
+   * A peer replication server which connects to the replication server under test.
+   * {@link #connected(int, int, DN, long)} completes the handshake, so that the handler it leaves
+   * behind on the domain has a real writer and can actually forward what the domain pushes to
+   * it.
    * <p>
-   * {@link #handshaking(int, int, DN, long)} stops between the two phases of the handshake, which
-   * leaves the listen thread of the replication server blocked in the receive of the TopologyMsg
-   * this peer owes it. That pause is bounded by the socket timeout of the handshake, so
+   * {@link #handshaking(int, int, DN, long)} stops between the two phases of the handshake
+   * instead, which leaves the listen thread of the replication server blocked in the receive of
+   * the TopologyMsg this peer owes it, before the handshake has registered the peer on the
+   * domain. That pause is bounded by the socket timeout of the handshake, so
    * {@link #completeHandshake()} must follow shortly: a peer which stays silent for longer is
    * given up on by the replication server itself.
    */
