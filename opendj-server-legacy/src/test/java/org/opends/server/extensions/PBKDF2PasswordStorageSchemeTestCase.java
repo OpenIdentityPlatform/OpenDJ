@@ -12,13 +12,19 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
 import org.forgerock.opendj.server.config.meta.PBKDF2PasswordStorageSchemeCfgDefn;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.withoutJceService;
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the PBKDF2 password storage scheme.
@@ -69,5 +75,29 @@ public class PBKDF2PasswordStorageSchemeTestCase
   protected String encodeOffline(final byte[] plaintextBytes) throws DirectoryException
   {
     return PBKDF2PasswordStorageScheme.encodeOffline(plaintextBytes);
+  }
+
+  /**
+   * When the derivation is unavailable, the failure has to name the algorithm: a message-less
+   * InitializationException leaves the administrator with a server which does not start and
+   * no word on why.
+   */
+  @Test
+  public void testInitializationFailureNamesTheMissingAlgorithm() throws Exception
+  {
+    withoutJceService("SecretKeyFactory", "PBKDF2WithHmacSHA1", () ->
+    {
+      try
+      {
+        getScheme();
+        fail("initialization succeeded without PBKDF2WithHmacSHA1");
+      }
+      catch (InitializationException e)
+      {
+        assertNotNull(e.getMessageObject(), "the failure carries no message");
+        assertTrue(e.getMessage().contains("PBKDF2WithHmacSHA1"), e.getMessage());
+      }
+      return null;
+    });
   }
 }
