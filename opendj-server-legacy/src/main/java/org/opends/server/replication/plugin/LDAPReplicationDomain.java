@@ -394,11 +394,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   @GuardedBy("sessionRestartBackoff")
   private long sessionRestartBackoffWakes;
   /**
-   * How many times in a row the session was restarted without a change being replayed in
-   * between. The backoff is computed from this rather than from the failures of the
-   * change which happens to open the recovery: an outage fails every change in flight,
-   * and the ones which are sent for the first time would otherwise keep the wait at its
-   * shortest for as long as the outage lasts.
+   * How many times in a row the session was restarted since this replica last replayed a
+   * change while nothing was failing, or was last disabled or imported into. A replay of
+   * another change while one still fails does not reset it, and neither does giving up on
+   * the last one failing: see {@link #resetReplayFailureTracking()} and
+   * {@link #skipUnreplayableChange(CSN, LocalizableMessage)}. The backoff is computed from
+   * this rather than from the failures of the change which happens to open the recovery:
+   * an outage fails every change in flight, and the ones which are sent for the first time
+   * would otherwise keep the wait at its shortest for as long as the outage lasts.
    */
   private final AtomicInteger consecutiveSessionRestarts = new AtomicInteger();
   /**
@@ -514,9 +517,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * - see {@link #resetReplayFailureTracking()} and
    * {@link #skipUnreplayableChange(CSN, LocalizableMessage)}, only the first of which
    * forgets the session restart backoff with it - and with the pending changes when this
-   * domain is disabled or imported into. A delivery which fails while the domain is
-   * shutting down, disabled or imported into is not counted: it is not warned about
-   * either, see {@link #sessionHasAnOwner()}.
+   * domain is disabled or imported into, and once more when it is enabled back, for the
+   * delivery whose failure was being recorded while the domain went down: it is folded
+   * after {@link #disable()} forgot the count, see {@link #enable()}. A delivery which
+   * fails while the domain is shutting down, disabled or imported into is not counted: it
+   * is not warned about either, see {@link #sessionHasAnOwner()}.
    */
   private final AtomicInteger foldedReplayRetryWarnings = new AtomicInteger();
   /**
@@ -4257,8 +4262,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   }
 
   /**
-   * Returns how many times in a row the session was restarted without a change being
-   * replayed in between: the count the backoff of the next restart is computed from.
+   * Returns how many times in a row the session was restarted while this replica kept
+   * failing - see {@link #consecutiveSessionRestarts} for what does and does not reset it:
+   * the count the backoff of the next restart is computed from.
    * <p>
    * Only there for the tests, which read it to see a restart reach its backoff rather than
    * wait a delay out and hope it began: the count is bumped on the way into the wait, so
@@ -5055,7 +5061,9 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        * is gone with the pending changes, so a leftover request would have a replay thread
        * stop and start the session once for a delivery which can not come. The deliveries
        * folded into no warning go with it, or the first warning over the data loaded back
-       * would read as counting the deliveries of a change which is not listed anymore.
+       * would read as counting the deliveries of a change which is not listed anymore. A
+       * delivery whose failure is being recorded right now is folded after this, and is
+       * forgotten by enable() instead.
        */
       sessionRestarts.clear();
       consecutiveSessionRestarts.set(0);
@@ -5224,8 +5232,20 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        * change which is gone with the pending changes. Every request standing here is that
        * one: the domain has been disabled since anything could ask, and the session started
        * below asks for everything the ServerState loaded below does not cover.
+       *
+       * The deliveries folded into no warning are forgotten here for the same window: a
+       * thread which is recording a failed replay reads the flag, then folds the delivery
+       * - recoverFromReplayFailure() logs before it asks - then asks, and runs what it
+       * asked for itself, which restartSession() turns down on a domain which owns its
+       * session. So on that road it is the fold rather than the request which outlives
+       * disable()'s clear, and the first warning over the data loaded back would count a
+       * delivery of a change which went with the pending changes. What reads the count is
+       * a warning, and none is logged between disable() and here short of that thread's
+       * own, so a test tells this zeroing and disable()'s apart by nothing: they stand or
+       * fall together.
        */
       sessionRestarts.clear();
+      foldedReplayRetryWarnings.set(0);
       try
       {
         loadDataState();
