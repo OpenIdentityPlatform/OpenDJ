@@ -450,8 +450,8 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
   }
 
   /**
-   * Opens this index as one the configuration is adding, dropping first whatever an index of the
-   * same name left behind.
+   * Drops whatever an index of the same name left behind for the trees this index, which the
+   * configuration is adding, is about to open.
    * <p>
    * The name of an index tree is a pure function of the base DN, the attribute and the index id, and
    * {@link #open} creates a tree only where there is none, so an index added for an attribute
@@ -462,20 +462,28 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
    * same. A rebuild regenerates all of it and nothing else is lost with it, so it is dropped here
    * rather than adopted, which leaves this index where any other index added to a backend holding
    * entries starts: empty, untrusted and asking to be rebuilt (#990).
+   * <p>
+   * Only the trees of the index ids this configuration declares are looked at. A tree of an id it
+   * does not name is opened by nothing and answers nothing, and the first configuration which
+   * declares that id again drops it the same way.
+   * <p>
+   * This must run in a write of its own, committed before the write which opens the index. On JE
+   * deleting a tree write-locks the record of its name until the transaction commits, while opening
+   * a tree - which {@code JEStorage} does under a transaction of its own - asks for a read lock on
+   * that record and waits for it without limit: no cycle, so the deadlock detector is silent, and
+   * the configuration change never returns.
    *
    * @param txn a non null transaction
-   * @param storedTrees the trees the storage holds, read before this transaction was opened
-   * @return true if anything left behind was dropped
-   * @throws StorageRuntimeException if an error occurs while opening the index
+   * @return true if a tree was dropped; a record deleted on its own discards nothing
+   * @throws StorageRuntimeException if an error occurs in the storage
    */
-  boolean openAsAdded(WriteableTransaction txn, Set<TreeName> storedTrees) throws StorageRuntimeException
+  boolean dropLeftovers(WriteableTransaction txn) throws StorageRuntimeException
   {
     boolean dropped = false;
     for (Index index : indexIdToIndexes.values())
     {
-      dropped |= dropLeftoversOf(txn, index, storedTrees);
+      dropped |= dropLeftoversOf(txn, index);
     }
-    open(txn, true);
     return dropped;
   }
 
@@ -486,23 +494,34 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
    * The record can outlive the tree on its own: on JDBC a tree is dropped by DDL which commits of
    * its own accord while the record is deleted by the transaction, so a rollback in between leaves
    * the record over a tree which is gone, and the index opened next is created empty and read back
-   * as trusted. It is therefore taken out whether a tree was found for it or not.
+   * as trusted. It is therefore taken out whether a tree was found for it or not - but a record
+   * deleted on its own is not reported as discarded content, since none was.
+   * <p>
+   * The tree is asked for through the transaction rather than through a list of the trees read
+   * beforehand: on JDBC that list borrows a connection of its own, which a transaction already
+   * holding one of the same pool must not ask for, while {@code treeExists} asks the transaction's
+   * own; on Cassandra the list is not implemented and answers nothing, while {@code treeExists}
+   * finds the partition; and a replayed attempt then sees what is there when it runs, not what was
+   * there before the first attempt.
    * <p>
    * No search can be reading what is dropped here, so this does not take the exclusive lock
    * {@link #deleteIndex} takes: an index which is only being added is in no map a search reaches,
-   * and the trees it would have adopted are named by nothing until it opens them.
+   * and the trees it would have adopted are named by nothing until it opens them. The add listener
+   * refuses an index for an attribute type which is already indexed, so that no live index is
+   * reached through another of the attribute's names or its OID.
    *
-   * @return true if a tree or a record was dropped
+   * @return true if a tree was dropped
    */
-  private boolean dropLeftoversOf(WriteableTransaction txn, Index index, Set<TreeName> storedTrees)
+  private boolean dropLeftoversOf(WriteableTransaction txn, Index index)
   {
-    if (storedTrees.contains(index.getName()))
+    if (txn.treeExists(index.getName()))
     {
       // Deletes the state record along with the tree.
       entryContainer.deleteTree(txn, index);
       return true;
     }
-    return state.deleteRecord(txn, index.getName());
+    state.deleteRecord(txn, index.getName());
+    return false;
   }
 
   /**
@@ -530,6 +549,15 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
   AttributeType getAttributeType()
   {
     return config.getAttribute();
+  }
+
+  /**
+   * Get the configuration of this attribute index.
+   * @return The configuration this attribute index is currently applying.
+   */
+  BackendIndexCfg getConfiguration()
+  {
+    return config;
   }
 
   public CryptoSuite getCryptoSuite()
@@ -1014,11 +1042,29 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
         ccr.addMessage(rebuildMessage);
       }
 
-      // Read outside the write which uses it: listTrees() borrows a connection of its own on JDBC,
-      // which a transaction already holding one of the same pool must not ask for. A tree an
-      // attempt of that write creates is not in it either, which is what a replayed attempt needs:
-      // it must drop what was there before this change, and not what the attempt before it made.
-      final Set<TreeName> storedTrees = entryContainer.getRootContainer().getStorage().listTrees();
+      // Drop what an earlier index left behind for the added ids, in a write of its own: the drop and the open
+      // must not share a transaction, see dropLeftovers(). Both writes may be replayed by the storage, so what
+      // they found is reported once they are done, and by the attempt which went through.
+      final List<MatchingRuleIndex> discarded = new ArrayList<>();
+      entryContainer.getRootContainer().getStorage().write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          discarded.clear();
+          for (MatchingRuleIndex addedIndex : addedIndexes.values())
+          {
+            if (dropLeftoversOf(txn, addedIndex))
+            {
+              discarded.add(addedIndex);
+            }
+          }
+        }
+      });
+      for (MatchingRuleIndex index : discarded)
+      {
+        reportDiscardedLeftovers(ccr, index.getName(), entryContainer.getBaseDN());
+      }
 
       // Open added indexes *before* adding them to indexIdToIndexes
       final List<TreeName> addedIndexesToRebuild = new ArrayList<>();
@@ -1032,7 +1078,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
           addedIndexesToRebuild.clear();
           for (MatchingRuleIndex addedIndex : addedIndexes.values())
           {
-            if (createIndex(txn, addedIndex, ccr, storedTrees))
+            if (createIndex(txn, addedIndex))
             {
               addedIndexesToRebuild.add(addedIndex.getName());
             }
@@ -1128,13 +1174,8 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
    * Answered to the caller rather than reported from here: this runs inside a {@link WriteOperation}
    * the storage may replay, and the report belongs to the attempt which commits.
    */
-  private boolean createIndex(WriteableTransaction txn, MatchingRuleIndex index, ConfigChangeResult ccr,
-      Set<TreeName> storedTrees)
+  private static boolean createIndex(WriteableTransaction txn, MatchingRuleIndex index)
   {
-    if (dropLeftoversOf(txn, index, storedTrees))
-    {
-      reportDiscardedLeftovers(ccr, index.getName(), entryContainer.getBaseDN());
-    }
     index.open(txn, true);
     return !index.isTrusted();
   }

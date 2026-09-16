@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -182,6 +181,12 @@ public class EntryContainer
     @Override
     public boolean isConfigurationAddAcceptable(final BackendIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
     {
+      final LocalizableMessage alreadyIndexed = alreadyIndexedBy(cfg);
+      if (alreadyIndexed != null)
+      {
+        unacceptableReasons.add(alreadyIndexed);
+        return false;
+      }
       try
       {
         newAttributeIndex(cfg, null);
@@ -194,21 +199,54 @@ public class EntryContainer
       }
     }
 
+    /**
+     * Why an index for the attribute of this configuration must not be added, or null if it may be.
+     * <p>
+     * The map is keyed by the attribute type, which every one of the attribute's names and its OID resolve to,
+     * while the configuration entry is named by whichever of them was typed. An index declared under another of
+     * them - commonName or 2.5.4.3 for cn - names the very trees the live index serves, and the add would drop
+     * them as left behind by an index which is gone.
+     */
+    private LocalizableMessage alreadyIndexedBy(final BackendIndexCfg cfg)
+    {
+      final AttributeIndex existing = attrIndexMap.get(cfg.getAttribute());
+      if (existing == null)
+      {
+        return null;
+      }
+      return ERR_CONFIG_INDEX_ATTRIBUTE_ALREADY_INDEXED.get(cfg.getAttribute().getNameOrOID(), getBaseDN(),
+          existing.getConfiguration().dn());
+    }
+
     @Override
     public ConfigChangeResult applyConfigurationAdd(final BackendIndexCfg cfg)
     {
       final ConfigChangeResult ccr = new ConfigChangeResult();
+      // Refused by isConfigurationAddAcceptable() before the configuration is written; asked again here since what
+      // follows drops the trees of the index it would have found.
+      final LocalizableMessage alreadyIndexed = alreadyIndexedBy(cfg);
+      if (alreadyIndexed != null)
+      {
+        ccr.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+        ccr.addMessage(alreadyIndexed);
+        return ccr;
+      }
       try
       {
         final CryptoSuite cryptoSuite = newCryptoSuite(cfg.isConfidentialityEnabled());
         final AttributeIndex index = newAttributeIndex(cfg, cryptoSuite);
-        // Read outside the write which uses it: listTrees() borrows a connection of its own on JDBC, which a
-        // transaction already holding one of the same pool must not ask for. A tree an attempt of that write
-        // creates is not in it either, which is what a replayed attempt needs: it must drop what was there
-        // before this change, and not what the attempt before it made.
-        final Set<TreeName> storedTrees = storage.listTrees();
-        final AtomicBoolean trusted = new AtomicBoolean();
+        // Dropped in a write of its own, committed before the write which opens the index: the two must not
+        // share a transaction, see AttributeIndex.dropLeftovers().
         final AtomicBoolean discarded = new AtomicBoolean();
+        storage.write(new WriteOperation()
+        {
+          @Override
+          public void run(WriteableTransaction txn) throws Exception
+          {
+            discarded.set(index.dropLeftovers(txn));
+          }
+        });
+        final AtomicBoolean trusted = new AtomicBoolean();
         storage.write(new WriteOperation()
         {
           @Override
@@ -218,7 +256,7 @@ public class EntryContainer
             // its configuration. close() removes every registration made for this index, so closing first leaves
             // one listener behind rather than one per attempt; it is a no-op on the first attempt.
             index.close();
-            discarded.set(index.openAsAdded(txn, storedTrees));
+            index.open(txn, true);
             trusted.set(index.isTrusted());
             attrIndexMap.put(cfg.getAttribute(), index);
             attrCryptoMap.put(cfg.getAttribute(), cryptoSuite);
@@ -320,11 +358,19 @@ public class EntryContainer
       final ConfigChangeResult ccr = new ConfigChangeResult();
       try
       {
+        // Dropped in a write of its own, committed before the write which builds and opens the index, for the
+        // reason given in the index add listener above.
+        final AtomicBoolean discarded = new AtomicBoolean();
+        storage.write(new WriteOperation()
+        {
+          @Override
+          public void run(WriteableTransaction txn) throws Exception
+          {
+            discarded.set(VLVIndex.dropLeftovers(txn, EntryContainer.this, state, cfg.getName()));
+          }
+        });
         final AtomicReference<VLVIndex> built = new AtomicReference<>();
         final AtomicBoolean trusted = new AtomicBoolean();
-        final AtomicBoolean discarded = new AtomicBoolean();
-        // Read outside the write, for the reason given in the index add listener above.
-        final Set<TreeName> storedTrees = storage.listTrees();
         storage.write(new WriteOperation()
         {
           @Override
@@ -341,7 +387,7 @@ public class EntryContainer
             }
             VLVIndex vlvIndex = new VLVIndex(cfg, state, storage, EntryContainer.this, txn);
             built.set(vlvIndex);
-            discarded.set(vlvIndex.openAsAdded(txn, storedTrees));
+            vlvIndex.open(txn, true);
             trusted.set(vlvIndex.isTrusted());
             vlvIndexMap.put(cfg.getName().toLowerCase(), vlvIndex);
           }
