@@ -925,6 +925,26 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       // indexIdToIndexes
       newIndexIdToIndexes.putAll(updatedIndexes);
 
+      // What the new configuration asks of the indexes which stay is decided here, before any of
+      // the three writes below, and reported here as well. Decided before the write which applies
+      // it: neither the entry limit an index holds nor its in-memory trusted flag is rolled back
+      // with the transaction, while the removal of the persisted TRUSTED flag is, so an attempt
+      // which rolls back would leave the raised limit in place, and a replay of it would compare
+      // that limit against itself, find nothing to rebuild, and commit an index whose entry limit
+      // was raised and which the storage still records as trusted. Reported before the writes
+      // rather than once they have committed, because the instruction holds whichever way they go:
+      // the configuration entry already holds the raised limit when this listener runs, and the
+      // next open of the index applies it to a tree whose keys were given up under the lower one.
+      // Only the limit itself waits for the write which untrusts the index to commit.
+      final List<Index> indexesToUntrust = new ArrayList<>();
+      final List<LocalizableMessage> rebuildMessages = new ArrayList<>();
+      planIndexUpdates(updatedIndexes.values(), newConfiguration, indexesToUntrust, rebuildMessages);
+      for (LocalizableMessage rebuildMessage : rebuildMessages)
+      {
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(rebuildMessage);
+      }
+
       // Open added indexes *before* adding them to indexIdToIndexes
       final List<TreeName> addedIndexesToRebuild = new ArrayList<>();
       entryContainer.getRootContainer().getStorage().write(new WriteOperation()
@@ -978,35 +998,27 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
         entryContainer.unlock();
       }
 
-      // Decided before the write which applies it, and applied and reported after it has
-      // committed. Neither the entry limit an index holds nor its in-memory trusted flag is rolled
-      // back with the transaction, while the removal of the persisted TRUSTED flag is: an attempt
-      // which rolls back leaves the raised limit in place, so a replay of it would compare that
-      // limit against itself, find nothing to rebuild, and commit an index whose entry limit was
-      // raised and which the storage still records as trusted.
-      final List<Index> indexesToUntrust = new ArrayList<>();
-      final List<LocalizableMessage> rebuildMessages = new ArrayList<>();
-      planIndexUpdates(updatedIndexes.values(), newConfiguration, indexesToUntrust, rebuildMessages);
-
-      entryContainer.getRootContainer().getStorage().write(new WriteOperation()
+      // The only part of what the indexes which stay are asked for that is written down. A change
+      // which untrusts none of them - a lowered limit - opens no transaction, rather than one a
+      // bounded storage could give up on with nothing to give up; VLVIndex guards its write the
+      // same way.
+      if (!indexesToUntrust.isEmpty())
       {
-        @Override
-        public void run(WriteableTransaction txn) throws Exception
+        entryContainer.getRootContainer().getStorage().write(new WriteOperation()
         {
-          for (final Index updatedIndex : indexesToUntrust)
+          @Override
+          public void run(WriteableTransaction txn) throws Exception
           {
-            updatedIndex.setTrusted(txn, false);
+            for (final Index updatedIndex : indexesToUntrust)
+            {
+              updatedIndex.setTrusted(txn, false);
+            }
           }
-        }
-      });
+        });
+      }
       for (final Index updatedIndex : updatedIndexes.values())
       {
         updatedIndex.setIndexEntryLimit(newConfiguration.getIndexEntryLimit());
-      }
-      for (LocalizableMessage rebuildMessage : rebuildMessages)
-      {
-        ccr.setAdminActionRequired(true);
-        ccr.addMessage(rebuildMessage);
       }
     }
     catch (Exception e)

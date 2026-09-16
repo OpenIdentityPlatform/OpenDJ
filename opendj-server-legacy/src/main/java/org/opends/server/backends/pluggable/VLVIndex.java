@@ -270,12 +270,23 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     final boolean requiresRebuild = ccr.adminActionRequired();
     if (requiresRebuild)
     {
+      // Reported outside the write rather than from within it, since a message an attempt which
+      // rolls back added to the result stays there and the operator would be told once per
+      // attempt; and before the write rather than once it has committed, because the instruction
+      // holds whichever way the write goes: the configuration entry already holds the new
+      // definition when this listener runs, and the next open of this vlvIndex applies it to a
+      // tree built for the definition it no longer has.
+      ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(getName()));
+
       // The only part of this change which is written down. A change asking for nothing this
       // vlvIndex has to be rebuilt for opens no transaction, rather than one a bounded storage
-      // could give up on with nothing to give up. A failure to remove the flag is raised rather
-      // than reported: caught inside the operation, as it used to be, it is a conflict swallowed
-      // where the storage was waiting to be told to replay, and the attempt commits having done
-      // nothing. Reported the way every other storage failure of this method already is.
+      // could give up on with nothing to give up. A conflict raised by the flag removal is left to
+      // the storage, whose retry loop replays the operation: caught inside the operation, as it
+      // used to be, it was swallowed where the storage was waiting to be told to replay, and the
+      // attempt committed having done nothing. What the storage gives up on is reported the way
+      // AttributeIndex reports it, with the result built so far - the rebuild asked for above
+      // holds on that road too - rather than thrown past ConfigurationHandler, which catches
+      // nothing a listener throws and would discard that result whole.
       try
       {
         storage.write(new WriteOperation()
@@ -289,7 +300,9 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
       }
       catch (final Exception e)
       {
-        throw new StorageRuntimeException(e);
+        ccr.setResultCode(getCoreConfigManager().getServerErrorResultCode());
+        ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
+        return ccr;
       }
     }
 
@@ -308,12 +321,6 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     if (sortOrderChanged)
     {
       this.sortKeys = newSortKeys;
-    }
-    if (requiresRebuild)
-    {
-      // Reported here rather than from within the write, since a message an attempt which rolls
-      // back added to the result stays there, and the operator would be told once per attempt.
-      ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(getName()));
     }
     this.config = cfg;
     return ccr;

@@ -624,11 +624,13 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       final MatchingRuleIndex cnIndex = index.getNameToIndexes().values().iterator().next();
       assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).contains(TRUSTED);
 
-      // The third write is the one which applies the entry limit: the first two open the indexes
-      // the change adds and delete the ones it removes, and it neither adds nor removes any.
+      // The third write is the one which removes the flag: the first two open the indexes the
+      // change adds and delete the ones it removes, and it neither adds nor removes any.
+      final int writesBefore = backend.storage.writes();
       backend.storage.conflictAtCommitOnWrite(3, 1);
       final ConfigChangeResult ccr = index.applyConfigurationChange(indexCfg(newTreeSet(IndexType.EQUALITY), 8000));
 
+      assertThat(backend.storage.writes()).as("the armed write was the last of three").isEqualTo(writesBefore + 3);
       assertThat(backend.storage.attempts()).isEqualTo(2);
       assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
       assertThat(ccr.adminActionRequired()).isTrue();
@@ -676,11 +678,154 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
           .as("the flag the attempt which committed had to remove").doesNotContain(TRUSTED);
 
       // The definition the change applied is the one this vlvIndex holds from now on, so asking for
-      // it a second time asks for nothing.
+      // it a second time asks for nothing, and opens no transaction to commit nothing.
+      final int writesBefore = backend.storage.writes();
       final ConfigChangeResult again = vlvIndex.applyConfigurationChange(vlvIndexCfg("+sn"));
       assertThat(again.getResultCode()).isEqualTo(ResultCode.SUCCESS);
       assertThat(again.adminActionRequired()).as("a change which changes nothing").isFalse();
       assertThat(again.getMessages()).isEmpty();
+      assertThat(backend.storage.writes()).as("a change which changes nothing opens no transaction")
+          .isEqualTo(writesBefore);
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * A conflict the flag removal itself raises is reported to the operation by the transaction, as
+   * a {@link StorageRuntimeException} wrapping it, and belongs to the storage's retry loop. Caught
+   * inside the operation and turned into a message, it was a conflict swallowed where the storage
+   * was waiting to be told to replay: the attempt committed having removed nothing, and the change
+   * reported a failure against a vlvIndex the storage still recorded as trusted.
+   */
+  @Test
+  public void aConflictRaisedByTheRemovalOfTheVlvIndexFlagIsReplayed() throws Exception
+  {
+    final ReplayingBackend backend = openBackendWithVlvIndex();
+    try
+    {
+      final RootContainer rootContainer = backend.getRootContainer();
+      final EntryContainer ec = rootContainer.getEntryContainer(KEPT);
+      final VLVIndex vlvIndex = ec.getVLVIndex(VLV_INDEX_NAME);
+      assertThat(persistedFlags(rootContainer, ec, vlvIndex.getName())).contains(TRUSTED);
+
+      backend.storage.conflictAsTheTransactionReportsIt(1);
+      final ConfigChangeResult ccr = vlvIndex.applyConfigurationChange(vlvIndexCfg("+sn"));
+
+      assertThat(backend.storage.attempts()).as("replayed by the storage, not answered from inside").isEqualTo(2);
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.adminActionRequired()).isTrue();
+      assertThat(ccr.getMessages()).as("the rebuild the new sort order needs, asked for once").hasSize(1);
+      assertThat(ordinalsOf(ccr)).containsOnly(NOTE_INDEX_ADD_REQUIRES_REBUILD.ordinal());
+      assertThat(vlvIndex.isTrusted()).isFalse();
+      assertThat(persistedFlags(rootContainer, ec, vlvIndex.getName()))
+          .as("the flag the replayed attempt removed").doesNotContain(TRUSTED);
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * A raised entry limit has to be rebuilt for whether or not the write which untrusts the index is
+   * applied: the configuration entry holds the raised limit before the listener runs, and the next
+   * open of the index applies it to a tree whose keys were given up under the lower one. So the
+   * instruction is given before that write, and a write the storage gives up on - the last attempt
+   * of its retry loop, or a failure it does not replay at all - leaves it in the result, next to
+   * the failure, rather than dropping it together with the limit it could not apply.
+   */
+  @Test
+  public void aRaisedEntryLimitIsReportedWhenTheWriteWhichUntrustsTheIndexGivesUp() throws Exception
+  {
+    final ReplayingBackend backend = openBackend(newTreeSet(KEPT));
+    try
+    {
+      final RootContainer rootContainer = backend.getRootContainer();
+      final EntryContainer ec = rootContainer.getEntryContainer(KEPT);
+      final AttributeIndex index = ec.getAttributeIndex(cnType);
+      final MatchingRuleIndex cnIndex = index.getNameToIndexes().values().iterator().next();
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).contains(TRUSTED);
+
+      backend.storage.failWithoutReplayOnWrite(3);
+      final ConfigChangeResult ccr = index.applyConfigurationChange(indexCfg(newTreeSet(IndexType.EQUALITY), 8000));
+
+      assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.adminActionRequired()).as("the rebuild the raised limit needs, on the road which failed").isTrue();
+      assertThat(ordinalsOf(ccr)).contains(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.ordinal());
+      assertThat(cnIndex.getIndexEntryLimit()).as("the limit the failed write did not apply").isEqualTo(4000);
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName()))
+          .as("what the restart will read").contains(TRUSTED);
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * A lowered entry limit leaves every key the index holds valid, so it asks for no rebuild, and it
+   * untrusts nothing, so it opens no transaction: nothing for a bounded storage to give up on.
+   */
+  @Test
+  public void aLoweredEntryLimitNeedsNoRebuildAndOpensNoTransaction() throws Exception
+  {
+    final ReplayingBackend backend = openBackend(newTreeSet(KEPT));
+    try
+    {
+      final AttributeIndex index = backend.getRootContainer().getEntryContainer(KEPT).getAttributeIndex(cnType);
+      final MatchingRuleIndex cnIndex = index.getNameToIndexes().values().iterator().next();
+
+      final int writesBefore = backend.storage.writes();
+      final ConfigChangeResult ccr = index.applyConfigurationChange(indexCfg(newTreeSet(IndexType.EQUALITY), 2000));
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.adminActionRequired()).as("a lowered limit needs no rebuild").isFalse();
+      assertThat(ccr.getMessages()).isEmpty();
+      assertThat(cnIndex.isTrusted()).isTrue();
+      assertThat(cnIndex.getIndexEntryLimit()).as("the limit the change applied").isEqualTo(2000);
+      assertThat(backend.storage.writes()).as("the two writes which add and remove indexes, and no third")
+          .isEqualTo(writesBefore + 2);
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * The same road for a vlvIndex: the write which untrusts it is the only one the change makes, and
+   * a failure of it is reported with the rebuild the change asked for, rather than thrown out of
+   * the listener with that result discarded.
+   */
+  @Test
+  public void aChangedSortOrderIsReportedWhenTheWriteWhichUntrustsTheVlvIndexGivesUp() throws Exception
+  {
+    final ReplayingBackend backend = openBackendWithVlvIndex();
+    try
+    {
+      final RootContainer rootContainer = backend.getRootContainer();
+      final EntryContainer ec = rootContainer.getEntryContainer(KEPT);
+      final VLVIndex vlvIndex = ec.getVLVIndex(VLV_INDEX_NAME);
+      assertThat(persistedFlags(rootContainer, ec, vlvIndex.getName())).contains(TRUSTED);
+
+      backend.storage.failWithoutReplay();
+      final ConfigChangeResult ccr = vlvIndex.applyConfigurationChange(vlvIndexCfg("+sn"));
+
+      assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.adminActionRequired())
+          .as("the rebuild the new sort order needs, on the road which failed").isTrue();
+      assertThat(ordinalsOf(ccr)).contains(NOTE_INDEX_ADD_REQUIRES_REBUILD.ordinal());
+      assertThat(persistedFlags(rootContainer, ec, vlvIndex.getName()))
+          .as("what the restart will read").contains(TRUSTED);
+
+      // The definition the failed change did not publish is still a change when asked for again.
+      final ConfigChangeResult again = vlvIndex.applyConfigurationChange(vlvIndexCfg("+sn"));
+      assertThat(again.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(again.adminActionRequired()).as("the definition the failed write did not publish").isTrue();
+      assertThat(persistedFlags(rootContainer, ec, vlvIndex.getName())).doesNotContain(TRUSTED);
     }
     finally
     {
@@ -882,6 +1027,13 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
     {
       /** As soon as the operation first touches the transaction, before it has changed anything. */
       FIRST_STORAGE_ACCESS,
+      /**
+       * As soon as the operation first touches the transaction, in the form the transaction of
+       * {@code PDBStorage} reports a conflict: a {@link StorageRuntimeException} wrapping the
+       * {@link RollbackException}. What an operation catching the former from inside sees, where
+       * {@link #FIRST_STORAGE_ACCESS} raises the bare conflict such a catch never meets.
+       */
+      FIRST_STORAGE_ACCESS_AS_THE_TRANSACTION_REPORTS_IT,
       /** Once the operation has run to completion, as a conflict reported by {@code commit()}. */
       COMMIT,
       /** Once the operation has run to completion, as a failure which is not replayed at all. */
@@ -912,6 +1064,16 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       arm(ConflictPoint.FIRST_STORAGE_ACCESS, conflicts);
     }
 
+    /**
+     * Conflicts at the first storage access of the operation, in the form the transaction itself
+     * reports one: what the operation sees where it asks the transaction for something, rather than
+     * what the retry loop sees once the operation has let it through.
+     */
+    void conflictAsTheTransactionReportsIt(int conflicts)
+    {
+      arm(ConflictPoint.FIRST_STORAGE_ACCESS_AS_THE_TRANSACTION_REPORTS_IT, conflicts);
+    }
+
     void conflictAtCommit(int conflicts)
     {
       arm(ConflictPoint.COMMIT, conflicts);
@@ -930,6 +1092,16 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
     void failWithoutReplay()
     {
       arm(ConflictPoint.NO_REPLAY, 1);
+    }
+
+    /**
+     * Fails without a replay on the {@code nth} write asked for from now on, the next one being
+     * the first: what the last attempt of a retry loop which gave up leaves the caller holding.
+     */
+    void failWithoutReplayOnWrite(int nth)
+    {
+      arm(ConflictPoint.NO_REPLAY, 1);
+      armedWrite = writes + nth;
     }
 
     void failAfterCommit()
@@ -999,7 +1171,12 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
           }
           if (armed == ConflictPoint.FIRST_STORAGE_ACCESS)
           {
-            writeOperation.run(new ConflictingTransaction());
+            writeOperation.run(new ConflictingTransaction(false));
+            return;
+          }
+          if (armed == ConflictPoint.FIRST_STORAGE_ACCESS_AS_THE_TRANSACTION_REPORTS_IT)
+          {
+            writeOperation.run(new ConflictingTransaction(true));
             return;
           }
           writeOperation.run(txn);
@@ -1092,9 +1269,21 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
   /** A transaction which conflicts as soon as it is used, without ever reaching the storage. */
   private static final class ConflictingTransaction implements WriteableTransaction
   {
-    private static RollbackException conflict()
+    /**
+     * Whether the conflict is raised as {@code PDBStorage}'s transaction raises it - wrapped in a
+     * {@link StorageRuntimeException}, which that storage's retry loop unwraps - or bare.
+     */
+    private final boolean asTheTransactionReportsIt;
+
+    ConflictingTransaction(boolean asTheTransactionReportsIt)
     {
-      return new RollbackException();
+      this.asTheTransactionReportsIt = asTheTransactionReportsIt;
+    }
+
+    private RuntimeException conflict()
+    {
+      final RollbackException conflict = new RollbackException();
+      return asTheTransactionReportsIt ? new StorageRuntimeException(conflict) : conflict;
     }
 
     @Override
