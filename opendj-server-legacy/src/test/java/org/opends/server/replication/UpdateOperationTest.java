@@ -4120,7 +4120,12 @@ public class UpdateOperationTest extends ReplicationTestCase
         letTheChangeBeCovered(domain, later, failed);
         throw failed;
       }
-      // Replayed now that the backend serves again, or given up on: either way it is covered.
+      /*
+       * Replayed now that the backend serves again, or given up on: either way it is
+       * covered. The budget is still the short one here, and nothing spends it: a change is
+       * only given up on over a delivery which failed, and none fails once the short circuit
+       * is gone.
+       */
       letTheChangeBeCovered(domain, later);
     }
     finally
@@ -4244,13 +4249,21 @@ public class UpdateOperationTest extends ReplicationTestCase
         broker.publish(new DeleteMsg(tmp.getName(), csn, getEntryUUID(tmp.getName())));
         /*
          * Three deliveries which fail: the first is warned about, the second and the third
-         * are folded, and a delivery is folded before the session is restarted for the next
-         * one. Two folded at the least, so that a count which was kept is told apart from
-         * the one delivery which may be folded between the other change being replayed and
-         * the throttle being put back.
+         * are folded. Two folded at the least, so that a count which was kept is told apart
+         * from the one delivery which may be folded between the other change being replayed
+         * and the throttle being put back.
+         *
+         * Waited for by the first attempt of the fourth delivery rather than by the last
+         * attempt of the third: a delivery is folded once its attempts in place are spent,
+         * after the last of them tripped the short circuit, and the fourth delivery only
+         * comes over the session restart the third asks for once it has been folded. A
+         * count read on that last attempt would credit a fold which is not there yet, and
+         * the throttle put back below before it lands would have the third delivery warned
+         * about rather than folded - with the one fold there was.
          */
-        waitForDeliveries(3);
-        final int foldedBeforeTheReplay = deliveriesSoFar() - 1;
+        waitForDeliveryAttempts(3 * IN_PLACE_REPLAY_ATTEMPTS + 1);
+        // Deliveries 2 and 3: delivery 1 was warned about.
+        final int foldedBeforeTheReplay = 2;
 
         /*
          * Another entry is added while the delete keeps failing. An add does not depend on
@@ -4271,6 +4284,14 @@ public class UpdateOperationTest extends ReplicationTestCase
         broker.publish(addMsg(gen, other, otherUUID, baseUUID));
         assertNotNull(getEntry(other.getName(), 10000, true),
             "the change of another entry must be replayed while the delete keeps failing");
+        /*
+         * The backoff of the session restarts is kept under the same guard as the count:
+         * three deliveries failed, so three restarts ran in a row - the fourth delivery came
+         * over the third - and the replay of the add forgot none of them.
+         */
+        Assertions.assertThat(domain.getConsecutiveSessionRestarts())
+            .as("a replay of another change must not forget the backoff of the one still failing")
+            .isGreaterThanOrEqualTo(3);
 
         /*
          * The throttle is put back, so that the next delivery of the delete is warned about
@@ -4329,9 +4350,9 @@ public class UpdateOperationTest extends ReplicationTestCase
       try
       {
         broker.publish(new DeleteMsg(tmp.getName(), csn, getEntryUUID(tmp.getName())));
-        // Three deliveries which fail, two of them folded, as in the case above.
-        waitForDeliveries(3);
-        final int foldedBeforeTheGiveUp = deliveriesSoFar() - 1;
+        // Three deliveries which fail, two of them folded, waited for as in the case above.
+        waitForDeliveryAttempts(3 * IN_PLACE_REPLAY_ATTEMPTS + 1);
+        final int foldedBeforeTheGiveUp = 2;
 
         /*
          * A change of another entry which no operation can be built from is given up on at
@@ -4432,6 +4453,40 @@ public class UpdateOperationTest extends ReplicationTestCase
         assertTrue(deliveriesSoFar() >= deliveries,
             "the change was not delivered again after its replay failed: " + deliveriesSoFar()
                 + " deliveries where " + deliveries + " were expected");
+      }
+    });
+  }
+
+  /**
+   * Waits until the delete which can not be replayed has been attempted the provided number
+   * of times, over however many deliveries.
+   * <p>
+   * The first attempt of a delivery is one more than the attempts of the deliveries before
+   * it, and it is what tells that the delivery before it has been warned about or folded:
+   * a delivery is folded once its attempts in place are spent, after the last of them
+   * tripped the short circuit, and the next delivery only comes over the session restart
+   * asked for once it has been. {@link #waitForDeliveries(int)} returns on that last
+   * attempt, before the fold.
+   *
+   * @param attempts how many attempts to wait for
+   * @throws Exception if the attempts do not come
+   */
+  private static void waitForDeliveryAttempts(final int attempts) throws Exception
+  {
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(60, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        final int attemptsSoFar =
+            ShortCircuitPlugin.getShortCircuitCount(OperationType.DELETE, "PreParse");
+        assertTrue(attemptsSoFar >= attempts,
+            "the change was not attempted again after its replay failed: " + attemptsSoFar
+                + " attempts where " + attempts + " were expected");
       }
     });
   }
