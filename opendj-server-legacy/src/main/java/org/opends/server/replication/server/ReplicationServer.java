@@ -1660,12 +1660,9 @@ public class ReplicationServer
       connectThread.interrupt();
     }
 
-    // shutdown the listener thread
+    // Stop accepting connections. Closing the socket is what ends the accept() of the listen
+    // thread, and the loop of that thread already stops on its closed socket.
     close(listenSocket);
-    if (listenThread != null)
-    {
-      listenThread.interrupt();
-    }
 
     /*
      * Let the ReplicaOfflineMsgs a collocated DS sent be forwarded while every handler is still
@@ -1679,6 +1676,25 @@ public class ReplicationServer
      * until the sessions are closed.
      */
     awaitReplicaOfflineMsgsForwarded();
+
+    /*
+     * Only now interrupt the listen thread: the handshake of an incoming connection runs in it,
+     * and an interrupt sent before the wait tears down a peer replication server whose handshake
+     * is in flight - one of the very servers the message has to be forwarded to. Whether that
+     * peer is already registered in the domain and waiting on the startup of its session, or
+     * still owes its TopologyMsg - a receive no interrupt breaks, so the flag survives until the
+     * handshake has registered it and reaches the startup of its session - the abort unregisters
+     * it, and it is never told that the replica went offline.
+     * <p>
+     * The interrupt still precedes the shutdown of the domains, so a handshake which has not
+     * finished by then is still aborted before its reader and its writer are started. Without it
+     * such a handshake would register its peer after the domains were stopped and serve it: a
+     * writer parked on a cursor over the closed changelog, a heartbeat to a server which is gone.
+     */
+    if (listenThread != null)
+    {
+      listenThread.interrupt();
+    }
 
     for (ReplicationServerDomain domain : getReplicationServerDomains())
     {
