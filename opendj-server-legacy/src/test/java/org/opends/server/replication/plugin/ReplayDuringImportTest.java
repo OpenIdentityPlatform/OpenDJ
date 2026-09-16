@@ -63,6 +63,9 @@ import org.testng.annotations.Test;
  * one thing it must not do is stop the session the import is reading (issue #956). The same
  * holds from the moment the total update is asked for: the answer to the request arrives
  * over that session, so a replay which fails while it is on its way must not restart it.
+ * A restart asked for before the total update took the session, and left standing for the
+ * length of it, is not run once it is over either: the change it was asked for is gone with
+ * the ServerState the import replaced.
  * <p>
  * The exporter is a broker of this test, so that the test says when the entries arrive: the
  * change is replayed while the import is waiting for them - or, for the request, while the
@@ -281,6 +284,44 @@ public class ReplayDuringImportTest extends ReplicationTestCase
       final DN dn = dnOf(ldif);
       assertTrue(entryExists(dn), "the import ended before " + dn
           + " arrived: the answer to the request was lost with the session it was made over");
+    }
+  }
+
+  /**
+   * A session restart which stood while the import ran was asked for by a replay thread
+   * for a change given back before the total update owned the session, and that change is
+   * forgotten with the pending changes when the imported data replaces the ServerState:
+   * the session started back at the end of the import asks for everything the imported
+   * state does not cover. Run, the request would stop that session once for a delivery
+   * which can not come. The request is made here by hand, in the place of one made
+   * between a replay thread's read of the owner and the import claiming the session.
+   * <p>
+   * The restart is the state checkpointer's to run, within its first tick after the total
+   * update has released the session, so the pin is that the failure it would meet is never
+   * spent: a restart which ran would have spent it, and would have left the session it
+   * stopped down.
+   */
+  @Test(timeOut = 120_000)
+  public void aRequestWhichStoodWhileTheImportRanIsNotRunOnceItIsOver() throws Exception
+  {
+    final String[] exported = exportedEntries();
+    startImportInto(exported.length);
+    domain.requestSessionRestart();
+    domain.failNextSessionRestarts(1);
+    try
+    {
+      finishImport(exported);
+
+      // Two ticks of the checkpointer: a request standing when the import ends is run on the first.
+      Thread.sleep(2000);
+      assertEquals(domain.getSessionRestartFailuresLeft(), 1, "the request which stood while"
+          + " the import ran was run against the session started back at its end");
+      assertTrue(domain.isConnected(), "the session started back at the end of the import"
+          + " was stopped for a request made before it");
+    }
+    finally
+    {
+      domain.failNextSessionRestarts(0);
     }
   }
 
