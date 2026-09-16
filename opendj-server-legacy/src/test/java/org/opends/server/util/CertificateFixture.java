@@ -20,7 +20,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
@@ -29,6 +32,7 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Date;
 
 import org.bouncycastle.asn1.x500.X500Name;
@@ -101,6 +105,31 @@ public final class CertificateFixture
   }
 
   /**
+   * Writes certificates to the provided file, PEM encoded one after the other, as a CA
+   * publishes the chain of its authorities in one {@code ca-chain.crt} file.
+   *
+   * @param file
+   *          The file to write the certificates to.
+   * @param certificates
+   *          The certificates to write, in order.
+   * @throws Exception
+   *           If the file cannot be written.
+   */
+  public static void writeCertificates(File file, Certificate... certificates) throws Exception
+  {
+    final Base64.Encoder encoder = Base64.getMimeEncoder(64, new byte[] { '\n' });
+    try (final Writer out = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.US_ASCII))
+    {
+      for (Certificate certificate : certificates)
+      {
+        out.write("-----BEGIN CERTIFICATE-----\n");
+        out.write(encoder.encodeToString(certificate.getEncoded()));
+        out.write("\n-----END CERTIFICATE-----\n");
+      }
+    }
+  }
+
+  /**
    * Adds one key pair signed by this authority to a key store, creating the key store if
    * it does not exist yet.
    *
@@ -125,6 +154,35 @@ public final class CertificateFixture
   public void addKeyEntry(File file, String storeType, String password, String alias, String subject,
       boolean withChain) throws Exception
   {
+    addKeyEntry(file, storeType, password, password, alias, subject, withChain);
+  }
+
+  /**
+   * Adds one key pair signed by this authority to a key store, with a private key
+   * protected by a password of its own: what {@code keytool -genkeypair -keypass} leaves,
+   * and what the key managers of the server cannot unlock.
+   *
+   * @param file
+   *          The key store file to create or extend.
+   * @param storeType
+   *          The key store type, for instance {@code "PKCS12"} or {@code "JKS"}.
+   * @param storePassword
+   *          The password protecting the store.
+   * @param keyPassword
+   *          The password protecting the private key.
+   * @param alias
+   *          The alias to store the key pair under.
+   * @param subject
+   *          The subject DN of the issued certificate.
+   * @param withChain
+   *          {@code true} to store the CA certificate along with the issued certificate,
+   *          {@code false} to store the issued certificate on its own.
+   * @throws Exception
+   *           If the key store cannot be written.
+   */
+  public void addKeyEntry(File file, String storeType, String storePassword, String keyPassword, String alias,
+      String subject, boolean withChain) throws Exception
+  {
     final KeyPair keyPair = newKeyPair();
     final X509Certificate certificate = sign(subject, keyPair.getPublic(), caSubject, caKeyPair, false);
     final Certificate[] chain = withChain
@@ -136,17 +194,17 @@ public final class CertificateFixture
     {
       try (final InputStream in = new FileInputStream(file))
       {
-        keyStore.load(in, password.toCharArray());
+        keyStore.load(in, storePassword.toCharArray());
       }
     }
     else
     {
-      keyStore.load(null, password.toCharArray());
+      keyStore.load(null, storePassword.toCharArray());
     }
-    keyStore.setKeyEntry(alias, keyPair.getPrivate(), password.toCharArray(), chain);
+    keyStore.setKeyEntry(alias, keyPair.getPrivate(), keyPassword.toCharArray(), chain);
     try (final OutputStream out = new FileOutputStream(file))
     {
-      keyStore.store(out, password.toCharArray());
+      keyStore.store(out, storePassword.toCharArray());
     }
   }
 

@@ -487,7 +487,6 @@ public class Installer extends GuiApplication
   private void cleanupSSLIfNeeded(final Installation installation, final FileManager fm)
   {
     final SecurityOptions sec = getUserData().getSecurityOptions();
-    final File configDir = installation.getConfigurationDirectory();
     if (sec.getEnableSSL() || sec.getEnableStartTLS())
     {
       if (SecurityOptions.CertificateType.SELF_SIGNED_CERTIFICATE.equals(sec.getCertificateType()))
@@ -510,15 +509,10 @@ public class Installer extends GuiApplication
         }
       }
 
+      final File configDir = installation.getConfigurationDirectory();
       removeFileIfExists(fm, configDir, "keystore");
       removeFileIfExists(fm, configDir, "keystore.pin");
       removeFileIfExists(fm, configDir, "truststore");
-    }
-
-    if (sec.getReplicationUsesKeyStore())
-    {
-      removeFileIfExists(fm, configDir, "ads-truststore");
-      removeFileIfExists(fm, configDir, "ads-truststore.pin");
     }
   }
 
@@ -1220,19 +1214,27 @@ public class Installer extends GuiApplication
    */
   private void configureServer() throws ApplicationException
   {
-    notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CONFIGURING.get()));
     copyTemplateInstance();
     writeOpenDSJavaHome();
     writeHostName();
     checkAbort();
 
+    final SecurityOptions sec = getUserData().getSecurityOptions();
+    if (sec.getReplicationUsesKeyStore())
+    {
+      // Before the configuration and the certificates are written: the provisioning
+      // refuses key stores and certificate files it cannot use, and a refusal then
+      // leaves the configuration as the template had it.
+      provisionAdsTrustStore(sec);
+    }
+
+    notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CONFIGURING.get()));
     List<String> argList = CollectionUtils.newArrayList(
         "-c", getConfigurationFile(),
         "-h", getUserData().getHostName(),
         "-p", String.valueOf(getUserData().getServerPort()),
         "--adminConnectorPort", String.valueOf(getUserData().getAdminConnectorPort()));
 
-    final SecurityOptions sec = getUserData().getSecurityOptions();
     // TODO: even if the user does not configure SSL maybe we should choose
     // a secure port that is not being used and that we can actually use.
     if (sec.getEnableSSL())
@@ -1346,10 +1348,6 @@ public class Installer extends GuiApplication
     notifyListeners(getFormattedDoneWithLineBreak());
     checkAbort();
     configureCertificate(sec);
-    if (sec.getReplicationUsesKeyStore())
-    {
-      provisionAdsTrustStore(sec);
-    }
   }
 
   /**

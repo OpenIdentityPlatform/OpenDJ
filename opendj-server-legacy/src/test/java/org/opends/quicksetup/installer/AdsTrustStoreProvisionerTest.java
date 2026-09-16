@@ -38,6 +38,7 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.util.CertificateFixture;
 import org.opends.server.util.CertificateManager;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -193,7 +194,7 @@ public class AdsTrustStoreProvisionerTest extends DirectoryServerTestCase
   }
 
   /**
-   * Two key pairs issued by the same authority, as the RSA and EC pairs of one server
+   * Two key pairs issued by the same authority, as the key pairs of one server usually
    * are, trust that authority once rather than under one alias each.
    *
    * @throws Exception
@@ -208,16 +209,16 @@ public class AdsTrustStoreProvisionerTest extends DirectoryServerTestCase
       final CertificateFixture ca = new CertificateFixture("CN=Example CA,O=Example");
       final File source = new File(tmpDir, "server.p12");
       ca.addKeyEntry(source, "PKCS12", SOURCE_PASSWORD, "server-cert", "CN=host.example.com", true);
-      ca.addKeyEntry(source, "PKCS12", SOURCE_PASSWORD, "server-cert-ec", "CN=host.example.com", true);
+      ca.addKeyEntry(source, "PKCS12", SOURCE_PASSWORD, "server-cert-2", "CN=host.example.com", true);
 
       final File trustStore = new File(tmpDir, "ads-truststore");
       final File pinFile = new File(tmpDir, "ads-truststore.pin");
       newProvisioner(trustStore, pinFile).provision(
-          sourceManager(source), Arrays.asList("server-cert", "server-cert-ec"), Collections.<File> emptyList());
+          sourceManager(source), Arrays.asList("server-cert", "server-cert-2"), Collections.<File> emptyList());
 
       final KeyStore keyStore = loadTrustStore(trustStore, pinFile);
       assertTrue(keyStore.isKeyEntry("server-cert"));
-      assertTrue(keyStore.isKeyEntry("server-cert-ec"));
+      assertTrue(keyStore.isKeyEntry("server-cert-2"));
       assertTrue(keyStore.isCertificateEntry("ads-ca-1"));
       assertFalse(keyStore.containsAlias("ads-ca-2"));
     }
@@ -225,6 +226,263 @@ public class AdsTrustStoreProvisionerTest extends DirectoryServerTestCase
     {
       TestCaseUtils.deleteDirectory(tmpDir);
     }
+  }
+
+  /**
+   * A file holding a chain of authorities, as a CA publishes it, is trusted whole: a
+   * server signed by another authority of the chain would otherwise fail the handshake
+   * while the installation reported nothing.
+   *
+   * @throws Exception
+   *           If a problem occurs.
+   */
+  @Test
+  public void testProvisionTrustsEveryCertificateOfAFile() throws Exception
+  {
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("provisionCaChainFile");
+    try
+    {
+      final CertificateFixture ca = new CertificateFixture("CN=Example CA,O=Example");
+      final CertificateFixture otherCa = new CertificateFixture("CN=Other CA,O=Example");
+      final File source = new File(tmpDir, "server.p12");
+      ca.addKeyEntry(source, "PKCS12", SOURCE_PASSWORD, "server-cert", "CN=host.example.com", false);
+      final File caChainFile = new File(tmpDir, "ca-chain.crt");
+      CertificateFixture.writeCertificates(caChainFile, ca.getCaCertificate(), otherCa.getCaCertificate());
+
+      final File trustStore = new File(tmpDir, "ads-truststore");
+      final File pinFile = new File(tmpDir, "ads-truststore.pin");
+      newProvisioner(trustStore, pinFile).provision(
+          sourceManager(source), Collections.singletonList("server-cert"), Collections.singletonList(caChainFile));
+
+      final KeyStore keyStore = loadTrustStore(trustStore, pinFile);
+      assertEquals(keyStore.getCertificateAlias(ca.getCaCertificate()), "ads-ca-1");
+      assertEquals(keyStore.getCertificateAlias(otherCa.getCaCertificate()), "ads-ca-2",
+          "the second certificate of the file is not trusted");
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+  /**
+   * A certificate named in a file which the chain of the key pair holds as well, or
+   * which two files hold, is trusted once: two aliases for one certificate would be two
+   * entries to explain in the trust store, for nothing.
+   *
+   * @throws Exception
+   *           If a problem occurs.
+   */
+  @Test
+  public void testProvisionTrustsACertificateNamedTwiceOnce() throws Exception
+  {
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("provisionCaTwice");
+    try
+    {
+      final CertificateFixture ca = new CertificateFixture("CN=Example CA,O=Example");
+      final File source = new File(tmpDir, "server.p12");
+      ca.addKeyEntry(source, "PKCS12", SOURCE_PASSWORD, "server-cert", "CN=host.example.com", true);
+      final File caFile = new File(tmpDir, "ca.crt");
+      ca.writeCaCertificate(caFile);
+      final File caFileAgain = new File(tmpDir, "ca-again.crt");
+      ca.writeCaCertificate(caFileAgain);
+
+      final File trustStore = new File(tmpDir, "ads-truststore");
+      final File pinFile = new File(tmpDir, "ads-truststore.pin");
+      newProvisioner(trustStore, pinFile).provision(
+          sourceManager(source), Collections.singletonList("server-cert"), Arrays.asList(caFile, caFileAgain));
+
+      final KeyStore keyStore = loadTrustStore(trustStore, pinFile);
+      assertEquals(keyStore.getCertificateAlias(ca.getCaCertificate()), "ads-ca-1");
+      assertFalse(keyStore.containsAlias("ads-ca-2"), "the same certificate is trusted under a second alias");
+      assertEquals(keyStore.size(), 2);
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+  /**
+   * A certificate file which holds no certificate is refused before anything is written:
+   * either it is not a certificate at all, or it is empty, which the certificate factory
+   * reads as no certificate rather than as an error.
+   *
+   * @param content
+   *          What the file holds.
+   * @throws Exception
+   *           If a problem occurs.
+   */
+  @Test(dataProvider = "filesHoldingNoCertificate")
+  public void testProvisionWritesNothingWhenACaFileHoldsNoCertificate(String content) throws Exception
+  {
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("provisionCaFileInvalid");
+    try
+    {
+      final CertificateFixture ca = new CertificateFixture("CN=Example CA,O=Example");
+      final File source = new File(tmpDir, "server.p12");
+      ca.addKeyEntry(source, "PKCS12", SOURCE_PASSWORD, "server-cert", "CN=host.example.com", true);
+      final File notACertificate = new File(tmpDir, "ca.pem");
+      Files.write(notACertificate.toPath(), content.getBytes(StandardCharsets.UTF_8));
+
+      final File trustStore = new File(tmpDir, "ads-truststore");
+      final File pinFile = new File(tmpDir, "ads-truststore.pin");
+      try
+      {
+        newProvisioner(trustStore, pinFile).provision(
+            sourceManager(source), Collections.singletonList("server-cert"), Collections.singletonList(notACertificate));
+        fail("Expected the provisioning to refuse a file which holds no certificate");
+      }
+      catch (ApplicationException expected)
+      {
+        assertTrue(expected.getMessageObject().toString().contains(notACertificate.getName()),
+            expected.getMessageObject().toString());
+      }
+      assertFalse(trustStore.exists());
+      assertFalse(pinFile.exists());
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+  @DataProvider
+  public Object[][] filesHoldingNoCertificate()
+  {
+    return new Object[][] { { "" }, { "not a certificate" } };
+  }
+
+  /**
+   * A failure once the trust store is being written, here a second key pair whose private
+   * key has a password of its own, removes the partial trust store: a store which holds
+   * the first key pair only would let the server start and present it, and the failure
+   * would only show when the second nickname is looked up.
+   *
+   * @throws Exception
+   *           If a problem occurs.
+   */
+  @Test
+  public void testProvisionRemovesThePartialTrustStoreWhenAKeyCannotBeRead() throws Exception
+  {
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("provisionPartial");
+    try
+    {
+      final CertificateFixture ca = new CertificateFixture("CN=Example CA,O=Example");
+      final File source = new File(tmpDir, "server.jks");
+      ca.addKeyEntry(source, "JKS", SOURCE_PASSWORD, "server-cert", "CN=host.example.com", true);
+      ca.addKeyEntry(source, "JKS", SOURCE_PASSWORD, "keyPassword", "server-cert-2", "CN=host.example.com", true);
+
+      final File trustStore = new File(tmpDir, "ads-truststore");
+      final File pinFile = new File(tmpDir, "ads-truststore.pin");
+      try
+      {
+        newProvisioner(trustStore, pinFile).provision(
+            new CertificateManager(source.getAbsolutePath(), CertificateManager.KEY_STORE_TYPE_JKS, SOURCE_PASSWORD),
+            Arrays.asList("server-cert", "server-cert-2"), Collections.<File> emptyList());
+        fail("Expected the provisioning to fail on a key it cannot read");
+      }
+      catch (ApplicationException expected)
+      {
+        assertTrue(expected.getMessageObject().toString().contains("server-cert-2"),
+            expected.getMessageObject().toString());
+      }
+      assertFalse(trustStore.exists(), "the partial trust store was left behind");
+      assertFalse(pinFile.exists());
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+  /**
+   * A trust store which is already there is left as it is: only what this run writes is
+   * removed on failure, so a store this run did not create is neither overwritten nor
+   * deleted.
+   *
+   * @throws Exception
+   *           If a problem occurs.
+   */
+  @Test
+  public void testProvisionLeavesAnExistingTrustStoreAlone() throws Exception
+  {
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("provisionExisting");
+    try
+    {
+      final CertificateFixture ca = new CertificateFixture("CN=Example CA,O=Example");
+      final File source = new File(tmpDir, "server.p12");
+      ca.addKeyEntry(source, "PKCS12", SOURCE_PASSWORD, "server-cert", "CN=host.example.com", true);
+      final File trustStore = new File(tmpDir, "ads-truststore");
+      final byte[] existing = "an existing trust store".getBytes(StandardCharsets.UTF_8);
+      Files.write(trustStore.toPath(), existing);
+
+      final File pinFile = new File(tmpDir, "ads-truststore.pin");
+      try
+      {
+        newProvisioner(trustStore, pinFile).provision(
+            sourceManager(source), Collections.singletonList("server-cert"), Collections.<File> emptyList());
+        fail("Expected the provisioning to refuse to run over an existing trust store");
+      }
+      catch (ApplicationException expected)
+      {
+        assertTrue(expected.getMessageObject().toString().contains(trustStore.getAbsolutePath()),
+            expected.getMessageObject().toString());
+      }
+      assertEquals(Files.readAllBytes(trustStore.toPath()), existing, "the existing trust store was touched");
+      assertFalse(pinFile.exists());
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+  /**
+   * The aliases the trust store keeps for itself are refused: a key pair imported as
+   * {@code ads-certificate} would be taken for the instance key the server generates,
+   * and one imported as {@code ads-ca-1} would collide with the first trusted certificate.
+   *
+   * @param alias
+   *          The reserved alias, in whatever case.
+   * @throws Exception
+   *           If a problem occurs.
+   */
+  @Test(dataProvider = "reservedAliases")
+  public void testProvisionRefusesAReservedAlias(String alias) throws Exception
+  {
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("provisionReservedAlias");
+    try
+    {
+      final CertificateFixture ca = new CertificateFixture("CN=Example CA,O=Example");
+      final File source = new File(tmpDir, "server.p12");
+      ca.addKeyEntry(source, "PKCS12", SOURCE_PASSWORD, alias, "CN=host.example.com", true);
+
+      final File trustStore = new File(tmpDir, "ads-truststore");
+      final File pinFile = new File(tmpDir, "ads-truststore.pin");
+      try
+      {
+        newProvisioner(trustStore, pinFile).provision(
+            sourceManager(source), Collections.singletonList(alias), Collections.<File> emptyList());
+        fail("Expected the provisioning to refuse the reserved alias " + alias);
+      }
+      catch (ApplicationException expected)
+      {
+        assertTrue(expected.getMessageObject().toString().contains(alias), expected.getMessageObject().toString());
+      }
+      assertFalse(trustStore.exists());
+      assertFalse(pinFile.exists());
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+  @DataProvider
+  public Object[][] reservedAliases()
+  {
+    return new Object[][] { { "ads-certificate" }, { "ADS-Certificate" }, { "ads-ca-1" }, { "ADS-CA-7" } };
   }
 
   /**

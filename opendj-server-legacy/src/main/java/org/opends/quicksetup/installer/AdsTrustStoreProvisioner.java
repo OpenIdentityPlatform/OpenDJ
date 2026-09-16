@@ -17,12 +17,18 @@ package org.opends.quicksetup.installer;
 
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.util.Utils.createProtectedFile;
+import static org.opends.server.config.ConfigConstants.ADS_CERTIFICATE_ALIAS;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ReturnCode;
@@ -79,32 +85,68 @@ final class AdsTrustStoreProvisioner
   /**
    * Creates the trust store, holding the provided key pairs and the certificates to trust
    * on the replication port, and writes its PIN file.
+   * <p>
+   * Everything is read and checked before anything is written: a refusal leaves no file
+   * behind, and a failure while writing removes the partial trust store.
    *
    * @param source
    *          The key store holding the key pairs to import.
    * @param aliases
-   *          The aliases of the key pairs to import, which become the certificate
-   *          nicknames the crypto manager presents.
+   *          The aliases of the key pairs to import, as the key store spells them, which
+   *          become the certificate nicknames the crypto manager presents.
    * @param caCertificateFiles
    *          The files holding certificates to trust, on top of the issuers found in the
-   *          certificate chains of the imported key pairs. May be empty.
+   *          certificate chains of the imported key pairs. Every certificate of a file is
+   *          trusted. May be empty.
    * @throws ApplicationException
-   *           If the key pairs cannot be read, if the trust store would end up trusting
-   *           no certificate at all, or if the trust store cannot be written.
+   *           If the key pairs cannot be read, if an alias is one the trust store reserves,
+   *           if the trust store would end up trusting no certificate at all, if it
+   *           already exists, or if it cannot be written.
    */
   void provision(CertificateManager source, Collection<String> aliases, Collection<File> caCertificateFiles)
       throws ApplicationException
   {
+    final List<Certificate> trusted;
     try
     {
-      final List<Certificate> issuers = issuersOf(source, aliases);
-      if (issuers.isEmpty() && caCertificateFiles.isEmpty())
+      checkReservedAliases(aliases);
+      trusted = issuersOf(source, aliases);
+      for (File caCertificateFile : caCertificateFiles)
       {
-        throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR,
-            ERR_INSTALL_ADS_TRUSTSTORE_NO_TRUST_ANCHOR.get(
-                source.getKeyStorePath(), joinAliases(aliases)), null);
+        for (Certificate certificate : certificatesOf(caCertificateFile))
+        {
+          if (!trusted.contains(certificate))
+          {
+            trusted.add(certificate);
+          }
+        }
       }
+    }
+    catch (ApplicationException e)
+    {
+      throw e;
+    }
+    catch (Exception e)
+    {
+      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR,
+          ERR_INSTALL_ADS_TRUSTSTORE.get(trustStorePath, String.valueOf(e)), e);
+    }
+    if (trusted.isEmpty())
+    {
+      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR,
+          ERR_INSTALL_ADS_TRUSTSTORE_NO_TRUST_ANCHOR.get(
+              source.getKeyStorePath(), joinAliases(aliases)), null);
+    }
+    if (new File(trustStorePath).exists())
+    {
+      // Only what this run writes is removed on failure, so a store which is already
+      // there is left alone rather than overwritten or deleted.
+      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR,
+          ERR_INSTALL_ADS_TRUSTSTORE_EXISTS.get(trustStorePath), null);
+    }
 
+    try
+    {
       // The trust store is a JKS whatever the type of the key store the key pairs come
       // from: ds-cfg-trust-store-type of the ads-truststore backend says JKS.
       final String pin = new String(SetupUtils.createSelfSignedCertificatePwd());
@@ -115,26 +157,35 @@ final class AdsTrustStoreProvisioner
         trustStore.importKeyEntry(alias, source, alias);
       }
       int trustedCertificates = 0;
-      for (Certificate issuer : issuers)
+      for (Certificate certificate : trusted)
       {
-        trustStore.addTrustedCertificate(CA_ALIAS_PREFIX + ++trustedCertificates, issuer);
-      }
-      for (File caCertificateFile : caCertificateFiles)
-      {
-        trustStore.addCertificate(CA_ALIAS_PREFIX + ++trustedCertificates, caCertificateFile);
+        trustStore.addTrustedCertificate(CA_ALIAS_PREFIX + ++trustedCertificates, certificate);
       }
       createProtectedFile(pinFilePath, pin);
-    }
-    catch (ApplicationException e)
-    {
-      deletePartialTrustStore();
-      throw e;
     }
     catch (Throwable t)
     {
       deletePartialTrustStore();
       throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR,
           ERR_INSTALL_ADS_TRUSTSTORE.get(trustStorePath, String.valueOf(t)), t);
+    }
+  }
+
+  /**
+   * Refuses the aliases the trust store keeps for itself: {@code ads-certificate} is the
+   * instance key the server generates on its first start, which it would skip if the alias
+   * were taken, and {@code ads-ca-N} are the certificates trusted here.
+   */
+  private void checkReservedAliases(Collection<String> aliases) throws ApplicationException
+  {
+    for (String alias : aliases)
+    {
+      if (alias.equalsIgnoreCase(ADS_CERTIFICATE_ALIAS)
+          || alias.toLowerCase(Locale.ENGLISH).startsWith(CA_ALIAS_PREFIX))
+      {
+        throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR,
+            ERR_INSTALL_ADS_TRUSTSTORE_RESERVED_ALIAS.get(alias, ADS_CERTIFICATE_ALIAS, CA_ALIAS_PREFIX), null);
+      }
     }
   }
 
@@ -163,6 +214,31 @@ final class AdsTrustStoreProvisioner
       }
     }
     return issuers;
+  }
+
+  /**
+   * Returns every certificate held in the provided file, which may be a single DER or PEM
+   * certificate, a PEM bundle or a PKCS#7 chain: a file which holds a chain of authorities
+   * is trusted whole, rather than up to its first certificate only.
+   */
+  private Collection<? extends Certificate> certificatesOf(File caCertificateFile) throws Exception
+  {
+    final Collection<? extends Certificate> certificates;
+    try (InputStream in = new FileInputStream(caCertificateFile))
+    {
+      certificates = CertificateFactory.getInstance("X.509").generateCertificates(in);
+    }
+    catch (CertificateException e)
+    {
+      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR,
+          ERR_INSTALL_ADS_TRUSTSTORE_CA_CERT_FILE_UNREADABLE.get(caCertificateFile.getPath(), e.getMessage()), e);
+    }
+    if (certificates.isEmpty())
+    {
+      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR,
+          ERR_INSTALL_ADS_TRUSTSTORE_CA_CERT_FILE_EMPTY.get(caCertificateFile.getPath()), null);
+    }
+    return certificates;
   }
 
   private void deletePartialTrustStore()

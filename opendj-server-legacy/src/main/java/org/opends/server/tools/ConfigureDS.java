@@ -1195,7 +1195,7 @@ public class ConfigureDS
     }
     catch (final Exception e)
     {
-      throw new ConfigureDSException(e, ERR_CONFIGDS_CANNOT_UPDATE_CERT_NICKNAME.get(e));
+      throw new ConfigureDSException(e, ERR_CONFIGDS_CANNOT_UPDATE_CRYPTO_MANAGER_CERT_NICKNAME.get(e));
     }
   }
 

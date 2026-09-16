@@ -202,6 +202,12 @@ public final class Platform
           ks = KeyStore.getInstance(ksType);
           ks.load(null, pwd);
         }
+        else if (ks.containsAlias(alias))
+        {
+          // setKeyEntry would silently replace whatever the alias holds.
+          LocalizableMessage msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
+          throw new KeyStoreException(msg.toString());
+        }
         // The key is re-encrypted with the password of this key store: the key managers of
         // the server are initialised with the store password only, so a key which kept the
         // password of the key store it comes from could not be read back.
@@ -225,6 +231,11 @@ public final class Platform
         {
           ks = KeyStore.getInstance(ksType);
           ks.load(null, pwd);
+        }
+        else if (ks.containsAlias(alias))
+        {
+          LocalizableMessage msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
+          throw new KeyStoreException(msg.toString());
         }
         ks.setCertificateEntry(alias, certificate);
         try (FileOutputStream fileOutStream = new FileOutputStream(ksPath)) {
@@ -399,7 +410,8 @@ public final class Platform
    * @param chain
    *          The certificate chain of the private key, the certificate it belongs to first.
    * @throws KeyStoreException
-   *           If an error occurred adding the key entry to the keystore.
+   *           If the alias is already in use, or an error occurred adding the key entry to
+   *           the keystore.
    */
   public static void importKeyEntry(KeyStore ks, String ksType, String ksPath, String alias, char[] pwd,
                                     Key privateKey, Certificate[] chain) throws KeyStoreException
@@ -426,7 +438,8 @@ public final class Platform
    * @param certificate
    *          The certificate to trust.
    * @throws KeyStoreException
-   *           If an error occurred adding the certificate to the keystore.
+   *           If the alias is already in use, or an error occurred adding the certificate
+   *           to the keystore.
    */
   public static void addTrustedCertificate(KeyStore ks, String ksType, String ksPath, String alias, char[] pwd,
                                            Certificate certificate) throws KeyStoreException

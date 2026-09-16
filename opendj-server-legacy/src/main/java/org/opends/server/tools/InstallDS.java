@@ -1947,11 +1947,16 @@ public class InstallDS extends ConsoleApplication
           }
           for (String certNickname : certNicknames)
           {
-            // Check if the certificate alias is in the list.
+            // Check if the certificate alias is in the list.  JKS, JCEKS and PKCS#12 key
+            // stores fold aliases to lower case, a BCFKS key store looks them up exactly:
+            // a nickname which differs in case from the alias would pass here and fail
+            // once the certificate is read from the key store.
             boolean found = false;
             for (int i = 0; i < aliases.length && !found; i++)
             {
-              found = aliases[i].equalsIgnoreCase(certNickname);
+              found = type == SecurityOptions.CertificateType.BCFKS
+                  ? aliases[i].equals(certNickname)
+                  : aliases[i].equalsIgnoreCase(certNickname);
             }
             if (!found)
             {

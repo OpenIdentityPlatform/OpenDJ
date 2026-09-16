@@ -23,6 +23,7 @@ import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -327,8 +328,10 @@ public final class CertificateManager {
    *                        {@code null} or empty.
    *
    * @throws  KeyStoreException  If the source key store holds no key entry under the
-   *                             provided alias, or a problem occurs while interacting
-   *                             with either key store.
+   *                             provided alias, if its private key is protected by a
+   *                             password other than the one of the source key store, if
+   *                             the alias is already in use in this key store, or a
+   *                             problem occurs while interacting with either key store.
    */
   public void importKeyEntry(String alias, CertificateManager sourceManager, String sourceAlias)
   throws KeyStoreException {
@@ -343,6 +346,12 @@ public final class CertificateManager {
     final Key privateKey;
     try {
       privateKey = sourceManager.getKeyStore().getKey(sourceAlias, sourceManager.password);
+    } catch (UnrecoverableKeyException e) {
+      // The key is protected by a password of its own.  The key managers of the server
+      // unlock private keys with the store password only, so this is the same limitation
+      // the key store already has for LDAPS: say so rather than "Cannot recover key".
+      throw new KeyStoreException(
+          ERR_CERTMGR_KEY_PASSWORD_DIFFERS.get(sourceAlias, sourceManager.keyStorePath).toString(), e);
     } catch (GeneralSecurityException e) {
       throw new KeyStoreException(
           ERR_CERTMGR_IMPORT_KEY_ENTRY.get(sourceAlias, e.getMessage()).toString(), e);
@@ -367,7 +376,8 @@ public final class CertificateManager {
    *                      {@code null} or empty.
    * @param  certificate  The certificate to trust.  It must not be {@code null}.
    *
-   * @throws  KeyStoreException  If a problem occurs while interacting with the key store.
+   * @throws  KeyStoreException  If the alias is already in use, or a problem occurs while
+   *                             interacting with the key store.
    */
   public void addTrustedCertificate(String alias, Certificate certificate)
   throws KeyStoreException {

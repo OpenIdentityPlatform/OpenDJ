@@ -22,6 +22,7 @@ import java.io.File;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.cli.ArgumentException;
@@ -71,28 +72,38 @@ public class InstallDSArgumentParserTestCase extends DirectoryServerTestCase
   }
 
   /**
-   * A key store the installer can read the key pair from is accepted.
+   * A key store the installer can read the key pair from is accepted, whichever of the
+   * four key store arguments names it.
    *
+   * @param keyStoreArgument
+   *          The argument naming the key store.
    * @throws Exception
    *           If a problem occurs.
    */
-  @Test
-  public void testUseKeyStoreForReplicationAcceptsAKeyStore() throws Exception
+  @Test(dataProvider = "keyStoreArguments")
+  public void testUseKeyStoreForReplicationAcceptsAKeyStore(String keyStoreArgument) throws Exception
   {
     final File tmpDir = TestCaseUtils.createTemporaryDirectory("useKeyStoreForReplication");
     try
     {
-      final File keyStore = new File(tmpDir, "server.p12");
+      final File keyStore = new File(tmpDir, "server.keystore");
       assertTrue(keyStore.createNewFile());
       assertReportsUseKeyStoreForReplication(false,
           "--cli", "-n", "-w", "password", "-b", "dc=example,dc=com",
-          "--usePkcs12keyStore", keyStore.getAbsolutePath(), "--keyStorePassword", "password",
+          keyStoreArgument, keyStore.getAbsolutePath(), "--keyStorePassword", "password",
           "--enableStartTLS", "--useKeyStoreForReplication");
     }
     finally
     {
       TestCaseUtils.deleteDirectory(tmpDir);
     }
+  }
+
+  @DataProvider
+  public Object[][] keyStoreArguments()
+  {
+    return new Object[][] {
+      { "--useJavaKeystore" }, { "--useJCEKS" }, { "--usePkcs12keyStore" }, { "--useBcfksKeystore" } };
   }
 
   /**
