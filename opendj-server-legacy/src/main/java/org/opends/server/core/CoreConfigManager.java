@@ -30,6 +30,7 @@ import org.forgerock.opendj.server.config.meta.GlobalCfgDefn.DisabledPrivilege;
 import org.forgerock.opendj.server.config.meta.GlobalCfgDefn.InvalidAttributeSyntaxBehavior;
 import org.forgerock.opendj.server.config.meta.GlobalCfgDefn.SingleStructuralObjectclassBehavior;
 import org.forgerock.opendj.server.config.server.GlobalCfg;
+import org.forgerock.util.annotations.VisibleForTesting;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.loggers.CommonAudit;
@@ -196,7 +197,7 @@ public class CoreConfigManager implements ConfigurationChangeListener<GlobalCfg>
     core.addMissingRDNAttributes = globalConfig.isAddMissingRDNAttributes();
     core.allowAttributeNameExceptions = globalConfig.isAllowAttributeNameExceptions();
     core.syntaxEnforcementPolicy = convert(globalConfig.getInvalidAttributeSyntaxBehavior());
-    core.serverErrorResultCode = ResultCode.valueOf(globalConfig.getServerErrorResultCode());
+    core.serverErrorResultCode = serverErrorResultCode(globalConfig.getServerErrorResultCode());
     core.singleStructuralClassPolicy = convert(globalConfig.getSingleStructuralObjectclassBehavior());
 
     core.notifyAbandonedOperations = globalConfig.isNotifyAbandonedOperations();
@@ -423,12 +424,91 @@ public class CoreConfigManager implements ConfigurationChangeListener<GlobalCfg>
       configAcceptable = false;
     }
 
+    if (!isServerErrorResultCodeAcceptable(configuration, unacceptableReasons))
+    {
+      configAcceptable = false;
+    }
+
     if (!isSubordinateDNsAcceptable(configuration, unacceptableReasons))
     {
       configAcceptable = false;
     }
 
     return configAcceptable;
+  }
+
+  /**
+   * Returns the result code to put on an operation an internal error prevented this
+   * server from processing, reading the configured value and falling back on
+   * {@link ResultCode#OTHER} - the default of the setting - when it does not report a
+   * failure.
+   * <p>
+   * {@link #isConfigurationChangeAcceptable} refuses such a value, so the fallback is
+   * what a configuration written before that - or edited outside the server - runs into:
+   * the server starts on the code its own default names rather than refusing to start,
+   * and says which value it ignored. The core configuration is applied before the error
+   * loggers are configured, so at start-up the warning goes where every start-up message
+   * goes - the standard output of the server, {@code logs/server.out} when it was started
+   * by {@code start-ds} - rather than into {@code logs/errors}.
+   * <p>
+   * Package private for the tests: a value the fallback is for never gets past
+   * {@link #isConfigurationChangeAcceptable}, so no change to a running server can reach
+   * it, and the tests pin it directly rather than through a start-up.
+   *
+   * @param configured the configured numeric result code
+   * @return the result code to put on an internal error
+   */
+  @VisibleForTesting
+  static ResultCode serverErrorResultCode(int configured)
+  {
+    final ResultCode resultCode = ResultCode.valueOf(configured);
+    if (resultCode.isExceptional())
+    {
+      return resultCode;
+    }
+    logger.warn(WARN_CONFIG_CORE_SERVER_ERROR_RESULT_CODE_NOT_A_FAILURE, configured, ResultCode.OTHER);
+    return ResultCode.OTHER;
+  }
+
+  /**
+   * Returns whether the configured result code reports a failure, which the code this
+   * server puts on an internal error has to.
+   * <p>
+   * The setting is a plain integer and used to accept any of them, including the five
+   * codes {@code ResultCode} registers as reporting a success. Each of those means
+   * something of its own to whoever reads a result code, and the reader then acts on that
+   * meaning while the operation it came from failed: the replay of a replication domain
+   * reads {@code NO_OPERATION} as "conflict resolution found the change already applied"
+   * and records a change which never reached the backend as replayed (issue #953), and
+   * {@code SUCCESS} has {@code LDAPReplicationDomain.synchronize()} both record it and
+   * publish the operation which failed to every other server of the topology. The
+   * configuration itself is a third reader: {@link #applyConfigurationChange} puts this
+   * code on a change to {@code cn=config} which failed to apply and keeps the new core
+   * attributes only when the result is {@code SUCCESS}, so a code of 0 reported that failure
+   * as a success and applied the change all the same. No reader can tell the two meanings
+   * apart once they are the same integer, which is why the value is refused here rather
+   * than worked around at each of them.
+   * <p>
+   * A code {@code ResultCode} does not know reports a failure - {@code valueOf()} answers
+   * an unknown code which does - so an administrator keeps the freedom to put a private
+   * code on an internal error.
+   *
+   * @param configuration the configuration to check
+   * @param unacceptableReasons where the reason is reported when the value is refused
+   * @return whether the configured result code is acceptable
+   */
+  private static boolean isServerErrorResultCodeAcceptable(
+      GlobalCfg configuration, List<LocalizableMessage> unacceptableReasons)
+  {
+    final int configured = configuration.getServerErrorResultCode();
+    final ResultCode resultCode = ResultCode.valueOf(configured);
+    if (resultCode.isExceptional())
+    {
+      return true;
+    }
+    unacceptableReasons.add(
+        ERR_CONFIG_CORE_SERVER_ERROR_RESULT_CODE_NOT_A_FAILURE.get(configured, resultCode));
+    return false;
   }
 
   private boolean isSubordinateDNsAcceptable(GlobalCfg configuration, List<LocalizableMessage> unacceptableReasons)

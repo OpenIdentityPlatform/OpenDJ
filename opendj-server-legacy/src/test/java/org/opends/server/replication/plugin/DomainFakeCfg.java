@@ -18,6 +18,7 @@
 package org.opends.server.replication.plugin;
 
 import java.net.InetAddress;
+import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -226,6 +227,17 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   public void setIsolationPolicy(IsolationPolicy policy)
   {
     this.policy = policy;
+  }
+
+  /**
+   * Excludes attributes from replication, as {@code ds-cfg-fractional-exclude} does.
+   *
+   * @param values the values of the setting, each of the form {@code class:attr1,attr2}
+   *               or {@code *:attr1,attr2}
+   */
+  public void addFractionalExclude(String... values)
+  {
+    Collections.addAll(fractionalExcludes, values);
   }
 
   @Override

@@ -34,6 +34,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.MonitorData;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperationBasis;
@@ -48,6 +49,7 @@ import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.types.OperationType;
 import org.testng.annotations.AfterMethod;
@@ -89,13 +91,22 @@ public class NamingConflictTest extends ReplicationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     queue = new TestSynchronousReplayQueue();
-
-    final DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
-    conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
-    domain = MultimasterReplication.createNewDomain(conf, queue);
-    domain.start();
+    startDomain(newDomainConfig());
 
     gen = new CSNGenerator(201, 0);
+  }
+
+  private DomainFakeCfg newDomainConfig()
+  {
+    final DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
+    conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
+    return conf;
+  }
+
+  private void startDomain(DomainFakeCfg conf) throws Exception
+  {
+    domain = MultimasterReplication.createNewDomain(conf, queue);
+    domain.start();
   }
 
   @AfterMethod
@@ -161,15 +172,15 @@ public class NamingConflictTest extends ReplicationTestCase
    * {@code ds-cfg-server-error-result-code} is set to one of the result codes conflict
    * resolution owns.
    * <p>
-   * That setting is a plain integer which is not validated as a result code, so it can be
-   * one of them. Here it is {@code UNWILLING_TO_PERFORM}, which is what a ModifyDN whose
-   * new superior is - on this replica - a subordinate of the entry being moved comes back
-   * with, and only conflict resolution can turn such a change into an operation which
-   * applies: it resolves both DNs again from the entryUUIDs the message carries. Reading
-   * the code as a failure of the server would take the change away from it - the message
-   * would never be rewritten, so no attempt would apply any better than the first - and
-   * the change would be retried in place, delivered again and finally given up on, with
-   * the entry left where it was.
+   * That setting only has to report a failure, which every code conflict resolution owns
+   * does, so it can be one of them. Here it is {@code UNWILLING_TO_PERFORM}, which is what
+   * a ModifyDN whose new superior is - on this replica - a subordinate of the entry being
+   * moved comes back with, and only conflict resolution can turn such a change into an
+   * operation which applies: it resolves both DNs again from the entryUUIDs the message
+   * carries. Reading the code as a failure of the server would take the change away from
+   * it - the message would never be rewritten, so no attempt would apply any better than
+   * the first - and the change would be retried in place, delivered again and finally
+   * given up on, with the entry left where it was.
    * <p>
    * {@code UpdateOperationTest.changeConflictResolutionCanNotSolveOnTheServerErrorCodeIsRetried}
    * covers the other half: a change which fails with that same code and which conflict
@@ -214,6 +225,141 @@ public class NamingConflictTest extends ReplicationTestCase
     assertFalse(entryExists(entry.getName()), "the entry was not moved by the replayed ModifyDN");
     assertTrue(domain.getServerState().cover(csn),
         "a change which was applied must be recorded as replayed");
+  }
+
+  /**
+   * Test case for [Issue 953]: a change conflict resolution finds already applied is
+   * recorded as replayed.
+   * <p>
+   * The replay used to read that from the result code conflict resolution reports -
+   * {@code NO_OPERATION} - which is a code {@code ds-cfg-server-error-result-code} could
+   * name as well, so that every change an internal error kept out of the backend was read
+   * as one which was already in it and recorded in the ServerState. The configuration
+   * refuses a code which does not report a failure now, and the replay reads what
+   * conflict resolution decided rather than the code which carries it. This pins the
+   * other half: a change which really is already applied still ends up in the ServerState,
+   * or the replication server would keep sending it for good.
+   * <p>
+   * Recording the CSN alone would not pin it: a change the replay gives up on is recorded
+   * as replayed too, so that the changes which follow it get through, and that is the road
+   * an answer conflict resolution did not mark takes - {@code NO_OPERATION} is not a code
+   * {@code solveNamingConflict()} can do anything with. What tells the two roads apart is
+   * the count of the changes given up on, which a change which was already applied must
+   * not add to. One case per answer conflict resolution marks: this one for an add,
+   * {@link #modifyDnOlderThanARenameIsRecordedAsReplayed} for a ModifyDN and
+   * {@link #modifyOfExcludedAttributesOnlyIsRecordedAsReplayed} for a modify.
+   */
+  @Test
+  public void changeAlreadyAppliedIsRecordedAsReplayed() throws Exception
+  {
+    final Entry entry = createAndAddEntry("changeAlreadyApplied");
+    final String parentUUID = getEntryUUID(baseDN);
+    final String entryUUID = getEntryUUID(entry.getName());
+    final int givenUpBefore = failedReplayedUpdates();
+
+    /*
+     * An add of an entry whose entryUUID is already in the data: conflict resolution
+     * answers that this change has already been replayed, before the operation reaches
+     * the backend and comes back with ENTRY_ALREADY_EXISTS.
+     */
+    final CSN csn = gen.newCSN();
+    replayMsg(addMsg(entry, csn, parentUUID, entryUUID));
+
+    assertRecordedAsReplayedAndNotGivenUpOn(csn, givenUpBefore,
+        "a change which is already in the data");
+  }
+
+  /**
+   * Test case for [Issue 953], the ModifyDN half of
+   * {@link #changeAlreadyAppliedIsRecordedAsReplayed}: a ModifyDN older than a rename the
+   * entry has already been through is a change conflict resolution finds nothing left to
+   * do for, and it is recorded as replayed rather than given up on.
+   * <p>
+   * The entry is found again from its entryUUID under the name the newer rename gave it,
+   * and it is the historical information of the entry - renamed after the CSN of this
+   * change - which has conflict resolution cancel the operation.
+   */
+  @Test
+  public void modifyDnOlderThanARenameIsRecordedAsReplayed() throws Exception
+  {
+    final Entry entry = createAndAddEntry("modDnOlderThanRename");
+    final String parentUUID = getEntryUUID(baseDN);
+    final String entryUUID = getEntryUUID(entry.getName());
+    final int givenUpBefore = failedReplayedUpdates();
+
+    // Two consecutive CSNs, replayed in the reverse order.
+    final CSN older = gen.newCSN();
+    final CSN newer = gen.newCSN();
+    replayMsg(modDnMsg(entry, entryUUID, parentUUID, newer, "cn=renamedAfter"));
+    replayMsg(modDnMsg(entry, entryUUID, parentUUID, older, "cn=renamedBefore"));
+
+    assertTrue(entryExists(DN.valueOf("cn=renamedAfter," + TEST_ROOT_DN_STRING)),
+        "the older ModifyDN was applied over the newer one");
+    assertRecordedAsReplayedAndNotGivenUpOn(older, givenUpBefore,
+        "a ModifyDN older than a rename the entry has been through");
+  }
+
+  /**
+   * Test case for [Issue 953], the modify half of
+   * {@link #changeAlreadyAppliedIsRecordedAsReplayed}: on a fractional replica, a modify
+   * of attributes the replica does not replicate is a change conflict resolution finds
+   * nothing left to do for once it has filtered every modification out, and it is recorded
+   * as replayed rather than given up on.
+   */
+  @Test
+  public void modifyOfExcludedAttributesOnlyIsRecordedAsReplayed() throws Exception
+  {
+    // The domain of this class replicates everything: replace it with one which does not
+    // replicate the description of any entry.
+    MultimasterReplication.deleteDomain(baseDN);
+    final DomainFakeCfg conf = newDomainConfig();
+    conf.addFractionalExclude("*:description");
+    startDomain(conf);
+
+    final Entry entry = TestCaseUtils.addEntry(
+        "dn: cn=modOfExcludedAttributes," + TEST_ROOT_DN_STRING,
+        "objectClass: top",
+        "objectClass: person",
+        "cn: modOfExcludedAttributes",
+        "sn: Excluded");
+    final String entryUUID = getEntryUUID(entry.getName());
+    final int givenUpBefore = failedReplayedUpdates();
+
+    final CSN csn = gen.newCSN();
+    replayMsg(new ModifyMsg(csn, entry.getName(),
+        generatemods("description", "not replicated here"), entryUUID));
+
+    assertFalse(DirectoryServer.getEntry(entry.getName()).hasAttribute(
+        getServerContext().getSchema().getAttributeType("description")),
+        "an attribute this replica does not replicate was written by the replayed modify");
+    assertRecordedAsReplayedAndNotGivenUpOn(csn, givenUpBefore,
+        "a modify of attributes this replica does not replicate");
+  }
+
+  private void assertRecordedAsReplayedAndNotGivenUpOn(CSN csn, int givenUpBefore, String change)
+  {
+    assertTrue(domain.getServerState().cover(csn), change + " was not recorded as replayed");
+    assertEquals(failedReplayedUpdates(), givenUpBefore,
+        change + " was counted as one the replay could not apply");
+  }
+
+  /**
+   * Returns how many changes this domain has given up on, read off the monitoring it
+   * publishes: the domain of this class has no replication server, so its monitor entry is
+   * not looked up.
+   */
+  private int failedReplayedUpdates()
+  {
+    final MonitorData monitor = new MonitorData();
+    domain.addAdditionalMonitoring(monitor);
+    for (Attribute attribute : monitor)
+    {
+      if ("replayed-updates-failed".equals(attribute.getAttributeDescription().getNameOrOID()))
+      {
+        return Integer.parseInt(attribute.iterator().next().toString());
+      }
+    }
+    throw new AssertionError("replayed-updates-failed is not in the monitoring of the domain");
   }
 
   /**
