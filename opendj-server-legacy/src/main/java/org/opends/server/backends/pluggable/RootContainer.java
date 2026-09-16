@@ -179,10 +179,12 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    * The failure being given up after is the one worth reporting, so nothing here is allowed to
    * replace it.
    *
-   * @param storageOpened whether this call is the one which opened the storage. A read only root
-   *          container is opened over the very storage instance the backend holds - see
-   *          {@code BackendImpl.getReadOnlyRootContainer} - and closing one it did not open would
-   *          take the volume from under the root container which does hold it.
+   * @param storageOpened whether the storage opened, which is false on one road only: its
+   *          {@code open()} threw. A storage whose open failed is not one this container can
+   *          close - what that open took before it failed is the storage's own to give back, as
+   *          {@code PDBStorage.open} and {@code JDBCStorage.open} do - and there is no other: every
+   *          root container is opened over a storage no root container holds, since
+   *          {@code BackendImpl} opens one, read only or not, only while it has none.
    */
   private void giveUpAfterFailedOpen(boolean storageOpened)
   {
@@ -287,8 +289,11 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     for (DN baseDN : baseDNs)
     {
       EntryContainer ec = openEntryContainer(baseDN, txn, accessMode);
-      EntryID id = ec.getHighestEntryID(txn);
+      // Registered before anything else here can throw: a container which opened has registered
+      // every listener it ever will, and only what this map holds is given back when the open of
+      // the root container fails.
       registerEntryContainer(baseDN, ec);
+      EntryID id = ec.getHighestEntryID(txn);
       if (highestID == null || id.compareTo(highestID) > 0)
       {
         highestID = id;

@@ -1104,8 +1104,12 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   {
     if (db != null)
     {
-      DirectoryServer.deregisterMonitorProvider(monitor);
-      monitor = null;
+      // Not yet registered when a failed open got no further than the database itself.
+      if (monitor != null)
+      {
+        DirectoryServer.deregisterMonitorProvider(monitor);
+        monitor = null;
+      }
       try
       {
         db.close();
@@ -1126,6 +1130,10 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       {
         memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
       }
+      // Released once: what an open takes, the next open takes again, and a close which follows
+      // a close - BackendImpl.importLDIF closes the storage of its root container however the
+      // import ended, on top of the close the import itself made - releases nothing more.
+      memQuota = null;
     }
     config.removePDBChangeListener(this);
     if (diskMonitor != null)
@@ -1148,7 +1156,52 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       // Do not open volume on disk
       return;
     }
-    open0(buildConfiguration(accessMode));
+    rejectIfOpen();
+    openOrGiveBack(buildConfiguration(accessMode));
+  }
+
+  /**
+   * Refuses to open a database which is open, before anything is taken for the attempt: the
+   * refusal guards against a programming error, and what this storage holds is left as it is.
+   */
+  private void rejectIfOpen()
+  {
+    if (db != null)
+    {
+      throw new IllegalStateException(
+          "Database is already open, either the backend is enabled or an import is currently running.");
+    }
+  }
+
+  /**
+   * Opens the database, or gives back what the attempt took before it failed. Nothing else will: a
+   * root container does not close a storage whose {@code open()} threw, and a backend whose open
+   * failed is thrown away with the storage still registered as a listener of its configuration and
+   * the cache size it reserved still drawn from the memory quota - once per attempt to enable it.
+   */
+  private void openOrGiveBack(final Configuration dbCfg) throws ConfigException
+  {
+    boolean opened = false;
+    try
+    {
+      open0(dbCfg);
+      opened = true;
+    }
+    finally
+    {
+      if (!opened)
+      {
+        try
+        {
+          close();
+        }
+        catch (RuntimeException e)
+        {
+          // The failure being given up after is the one worth reporting, and this must not replace it.
+          logger.traceException(e);
+        }
+      }
+    }
   }
 
   private boolean isBackendIncomplete(AccessMode accessMode)
@@ -1174,11 +1227,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     setupStorageFiles(backendDirectory, config.getDBDirectoryPermissions(), config.dn());
     try
     {
-      if (db != null)
-      {
-        throw new IllegalStateException(
-            "Database is already open, either the backend is enabled or an import is currently running.");
-      }
       db = new Persistit(dbCfg);
 
       final long bufferCount = getBufferPoolCfg(dbCfg).computeBufferCount(db.getAvailableHeap());
@@ -1217,7 +1265,8 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   @Override
   public Importer startImport() throws ConfigException, StorageRuntimeException
   {
-    open0(buildImportConfiguration());
+    rejectIfOpen();
+    openOrGiveBack(buildImportConfiguration());
     return new ImporterImpl();
   }
 
