@@ -112,7 +112,20 @@ public final class Session extends DirectoryThread implements Closeable
    */
   private BufferedOutputStream output;
 
-  private final LinkedBlockingQueue<byte[]> sendQueue = new LinkedBlockingQueue<>(4000);
+  /** A message queued for the thread of this session, and what to run once it is written. */
+  private static final class Outgoing
+  {
+    private final byte[] buffer;
+    private final Runnable whenWritten;
+
+    private Outgoing(byte[] buffer, Runnable whenWritten)
+    {
+      this.buffer = buffer;
+      this.whenWritten = whenWritten;
+    }
+  }
+
+  private final LinkedBlockingQueue<Outgoing> sendQueue = new LinkedBlockingQueue<>(4000);
   private AtomicBoolean isRunning = new AtomicBoolean(false);
   private final CountDownLatch latch = new CountDownLatch(1);
 
@@ -166,8 +179,10 @@ public final class Session extends DirectoryThread implements Closeable
    * This object won't be used anymore after this method is called.
    * <p>
    * A message which was published on this session but which its publisher thread had not sent yet
-   * is sent here rather than dropped, within the budget of {@link #DRAIN_BUDGET_MS}. See {@link
-   * #sendWhatThePublisherLeftQueued()}.
+   * is sent here rather than dropped, within the budget of {@link #DRAIN_BUDGET_MS}, and its
+   * callback runs here once it is written. See {@link #sendWhatThePublisherLeftQueued()}. What the
+   * close gives up on is not written, and the callbacks of those messages never run - see
+   * {@link #publish(ReplicationMsg, Runnable)}.
    */
   @Override
   public void close()
@@ -341,8 +356,8 @@ public final class Session extends DirectoryThread implements Closeable
   private void sendWhatThePublisherLeftQueued()
   {
     final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(DRAIN_BUDGET_MS);
-    byte[] buffer;
-    while ((buffer = sendQueue.poll()) != null)
+    Outgoing outgoing;
+    while ((outgoing = sendQueue.poll()) != null)
     {
       if (System.nanoTime() - deadline >= 0)
       {
@@ -352,7 +367,7 @@ public final class Session extends DirectoryThread implements Closeable
       }
       try
       {
-        send(buffer);
+        send(outgoing.buffer);
       }
       catch (final IOException e)
       {
@@ -367,6 +382,7 @@ public final class Session extends DirectoryThread implements Closeable
             "the write failed with " + e.getClass().getName() + ": " + e.getMessage());
         return;
       }
+      written(outgoing.whenWritten);
     }
   }
 
@@ -496,26 +512,52 @@ public final class Session extends DirectoryThread implements Closeable
    */
   public void publish(final ReplicationMsg msg) throws IOException
   {
+    publish(msg, null);
+  }
+
+  /**
+   * Sends a replication message to the remote peer, and runs the provided callback once the
+   * message has been written to the socket.
+   * <p>
+   * While the thread of this session runs, a message published is queued for it and written
+   * later, so the return of this method says only that the message is queued. The callback is
+   * the only word that the message has left this server: it runs once, on the thread which wrote
+   * the message, after the write returned - the thread of the session, or the one closing it for
+   * a message the close sends out of the queue - and never for a message which was not written,
+   * which is what becomes of a message the write of which fails, and of what a close gives up on
+   * (see {@link #close()}). It must be short and must not block: the session writes nothing else
+   * until it returns.
+   *
+   * @param msg
+   *          The message to be sent.
+   * @param whenWritten
+   *          What to run once the message has been written, or null.
+   * @return whether the message was written or queued to be written; false when it was neither,
+   *         because it has no encoding for the protocol version of the peer or because the
+   *         session is being closed - the callback then never runs. A message queued after a
+   *         close drained the queue is taken back, and counts as neither.
+   * @throws IOException
+   *           If an IO error occurred.
+   */
+  public boolean publish(final ReplicationMsg msg, final Runnable whenWritten) throws IOException
+  {
     final byte[] buffer = msg.getBytes(protocolVersion);
     if (buffer == null)
     {
       // skip anything that cannot be encoded for this peer.
-      return;
+      return false;
     }
     if (isRunning.get())
     {
+      final Outgoing outgoing = new Outgoing(buffer, whenWritten);
       while (!closeInitiated)
       {
         try
         {
           // Avoid blocking forever so that we can check for session closure.
-          if (sendQueue.offer(buffer, 100, TimeUnit.MILLISECONDS))
+          if (sendQueue.offer(outgoing, 100, TimeUnit.MILLISECONDS))
           {
-            if (!isRunning.get())
-            {
-              takeBackWhatWasQueuedTooLate(buffer);
-            }
-            return;
+            return isRunning.get() || !takeBackWhatWasQueuedTooLate(outgoing);
           }
         }
         catch (final InterruptedException e)
@@ -524,10 +566,27 @@ public final class Session extends DirectoryThread implements Closeable
           throw new IOException(e.getMessage());
         }
       }
+      return false;
     }
-    else
+    send(buffer);
+    written(whenWritten);
+    return true;
+  }
+
+  /** Runs what was to run once a message is written; a callback which fails takes nothing down. */
+  private void written(final Runnable whenWritten)
+  {
+    if (whenWritten != null)
     {
-      send(buffer);
+      try
+      {
+        whenWritten.run();
+      }
+      catch (final RuntimeException e)
+      {
+        logger.error(LocalizableMessage.raw("The callback of a message written to %s failed: %s",
+            readableRemoteAddress, stackTraceToSingleLineString(e)));
+      }
     }
   }
 
@@ -542,16 +601,21 @@ public final class Session extends DirectoryThread implements Closeable
    * what nothing sends. A buffer queued before the session came off the queueing branch is left
    * to the drain - it cannot have seen the flag cleared - and a buffer the drain or the close
    * already took is not found here, so nothing is reported twice.
+   *
+   * @return whether the message was taken back - it is then never written, and its callback never
+   *         runs
    */
-  private void takeBackWhatWasQueuedTooLate(final byte[] buffer)
+  private boolean takeBackWhatWasQueuedTooLate(final Outgoing outgoing)
   {
     publishLock.lock();
     try
     {
-      if (sendQueue.remove(buffer))
+      if (sendQueue.remove(outgoing))
       {
         reportQueueNotSent(1, "it was queued after the publisher of the session had stopped");
+        return true;
       }
+      return false;
     }
     finally
     {
@@ -769,10 +833,10 @@ public final class Session extends DirectoryThread implements Closeable
     boolean needClosing = false;
     while (!closeInitiated)
     {
-      byte[] buffer;
+      Outgoing outgoing;
       try
       {
-        buffer = sendQueue.take();
+        outgoing = sendQueue.take();
       }
       catch (InterruptedException ie)
       {
@@ -780,14 +844,16 @@ public final class Session extends DirectoryThread implements Closeable
       }
       try
       {
-        send(buffer);
+        send(outgoing.buffer);
       }
       catch (IOException e)
       {
         setSessionError(e);
         publisherFailedWrites.incrementAndGet();
         needClosing = true;
+        continue;
       }
+      written(outgoing.whenWritten);
     }
     /*
      * A close clears the flag itself, under publishLock, once it has joined this thread - see
