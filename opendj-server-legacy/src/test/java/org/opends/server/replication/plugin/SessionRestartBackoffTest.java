@@ -65,17 +65,18 @@ public class SessionRestartBackoffTest extends ReplicationTestCase
   private static final int GROUP_ID = 1;
 
   /**
-   * How long after the second restart has failed this test acts on the domain.
+   * How many session restarts in a row the checkpointer is left at the backoff of.
    * <p>
-   * The checkpointer reports that failure and goes back to its wait of one second, takes
-   * the request back once that second is out, and then holds the backoff of a third
-   * restart in a row: three seconds. Acting a fifth of a second into those three lands
-   * well inside them, and a wait which is not woken has most of them left to hold whoever
-   * is waiting for the checkpointer. A machine slow enough to push the checkpointer's tick
-   * past this delay has this test act before the backoff begins, which a wait that is
-   * slept through survives - the test then proves less, but reports nothing false.
+   * The first two fail, and the third is the one this test acts on: it is owed a backoff
+   * of three seconds, which a wait that is not woken holds whoever is waiting for the
+   * checkpointer through most of. The test waits to see the restart reach that backoff
+   * rather than act a delay after the second failure and hope the backoff has begun by
+   * then: the checkpointer takes the request back on its next tick, up to a second after
+   * it reported that failure, and a tick pushed past a fixed delay would have the test act
+   * on a request which stands unwaited - which a wait that is slept through survives, so
+   * the run would prove nothing about the wake.
    */
-  private static final long INTO_THE_BACKOFF_IN_MS = 1200;
+  private static final int RESTARTS_IN_A_ROW = 3;
 
   /**
    * How long {@code shutdown()} or {@code disable()} may take when the backoff is woken:
@@ -255,7 +256,7 @@ public class SessionRestartBackoffTest extends ReplicationTestCase
    * it is the checkpointer whichever thread the second failure fell to, since the replay
    * thread leaves on the failure it meets and no delivery brings one back over a session
    * which is down. That third restart is owed the backoff of three restarts in a row, and
-   * this returns once the checkpointer is inside it.
+   * this returns once the checkpointer has reached it, with the whole of it still to wait.
    *
    * @return the DN of the entry the change which is waiting to be delivered again deletes
    */
@@ -291,7 +292,17 @@ public class SessionRestartBackoffTest extends ReplicationTestCase
           "the two session restarts which were asked to fail did not both run within 30 s");
       Thread.sleep(50);
     }
-    Thread.sleep(INTO_THE_BACKOFF_IN_MS);
+    /*
+     * The third restart bumps the count on its way into the wait, so the checkpointer is
+     * at the backoff, or a few instructions short of it, once the count says three - and a
+     * wake given in those instructions is counted, so it ends the wait all the same.
+     */
+    while (domain.getConsecutiveSessionRestarts() < RESTARTS_IN_A_ROW)
+    {
+      assertTrue(System.nanoTime() < deadline, "the session restart of " + RESTARTS_IN_A_ROW
+          + " in a row did not reach its backoff within 30 s");
+      Thread.sleep(50);
+    }
     assertFalse(domain.isConnected(),
         "the session was started back before this test could act on the domain");
     return entry.getName();

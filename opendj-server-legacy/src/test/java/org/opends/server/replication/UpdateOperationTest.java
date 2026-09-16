@@ -2482,6 +2482,13 @@ public class UpdateOperationTest extends ReplicationTestCase
    * when the request was given back as it was made, and one backoff later when it was
    * given back with the wait it is owed. Halfway between the two the session is still down
    * under the second and up under the first.
+   * <p>
+   * That the restart which fails is the checkpointer's is read off the error log rather
+   * than assumed: only the checkpointer reports a restart which threw on it as
+   * {@code ERR_REPLAY_SESSION_RESTART_FAILED}, so one such report says the thread on its
+   * way out asked for the restart rather than ran it, on every run and not by the clock -
+   * a thread which ran it itself would spend the failure at once, and the checkpointer's
+   * own restart would then be one which runs.
    */
   @Test
   public void aRestartAskedForWithoutTheBackoffIsGivenBackWithIt() throws Exception
@@ -2535,21 +2542,37 @@ public class UpdateOperationTest extends ReplicationTestCase
          * the checkpointer's to run, and it fails where it would start the session again.
          */
         domain.failNextSessionRestarts(1);
-        parked.release(ResultCode.UNAVAILABLE.intValue());
+        final List<String> records = errorLogRecordsOf(() -> {
+          parked.release(ResultCode.UNAVAILABLE.intValue());
 
-        final long deadline = System.nanoTime() + SECONDS.toNanos(30);
-        while (domain.getSessionRestartFailuresLeft() > 0)
-        {
-          assertTrue(System.nanoTime() < deadline,
-              "the session restart which was asked to fail did not run within 30 s");
-          Thread.sleep(50);
-        }
-        Thread.sleep(INTO_THE_BACKOFF_IN_MS);
-        assertFalse(domain.isConnected(), "the session was started back within "
-            + INTO_THE_BACKOFF_IN_MS + " ms of the restart which threw: the request a"
-            + " replay thread on its way out made without the backoff was given back"
-            + " without it, and the checkpointer ran it again on its next tick rather"
-            + " than one backoff later");
+          final long deadline = System.nanoTime() + SECONDS.toNanos(30);
+          while (domain.getSessionRestartFailuresLeft() > 0)
+          {
+            assertTrue(System.nanoTime() < deadline,
+                "the session restart which was asked to fail did not run within 30 s");
+            Thread.sleep(50);
+          }
+          Thread.sleep(INTO_THE_BACKOFF_IN_MS);
+          assertFalse(domain.isConnected(), "the session was started back within "
+              + INTO_THE_BACKOFF_IN_MS + " ms of the restart which threw: the request a"
+              + " replay thread on its way out made without the backoff was given back"
+              + " without it, and the checkpointer ran it again on its next tick rather"
+              + " than one backoff later");
+          return null;
+        });
+        /*
+         * Which thread ran the restart is read off the error log rather than off the clock:
+         * only the state checkpointer reports a restart which threw on it as this, where a
+         * replay thread reports the failure it meets as an exception replaying a message.
+         * One report says the checkpointer ran the restart the thread asked for; none would
+         * say the thread ran it itself on its way out, as it did before, and a second has no
+         * road - one failure was left to spend.
+         */
+        final int reported = countRecordsOf(records,
+            "Could not restart the replication session of domain \"" + baseDN + "\"");
+        assertEquals(reported, 1, "the restart a replay thread on its way out asked for was"
+            + " run by that thread rather than left to the state checkpointer: " + reported
+            + " in " + records);
 
         /*
          * Stop parking before the session is back: the delivery it brings is the change

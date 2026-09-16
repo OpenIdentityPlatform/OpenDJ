@@ -4121,6 +4121,24 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   }
 
   /**
+   * Returns how many times in a row the session was restarted without a change being
+   * replayed in between: the count the backoff of the next restart is computed from.
+   * <p>
+   * Only there for the tests, which read it to see a restart reach its backoff rather than
+   * wait a delay out and hope it began: the count is bumped on the way into the wait, so
+   * the restart of {@code n} restarts in a row is at its backoff, or a few instructions
+   * short of it, once this returns {@code n} - and a wake given in those instructions is
+   * counted, so the wait sees it all the same.
+   *
+   * @return how many session restarts in a row the domain has run
+   */
+  @VisibleForTesting
+  public int getConsecutiveSessionRestarts()
+  {
+    return consecutiveSessionRestarts.get();
+  }
+
+  /**
    * Fails this session restart when a test asked for it, and does nothing at all
    * otherwise.
    */
@@ -4927,8 +4945,14 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * Returns how many times the backoff has been woken so far, for a session restart to
    * take under the lock it stops the session under: the wake of a {@link #disable()} which
    * has yet to take that lock is then one the restart sees, whether it is waiting by then
-   * or not, and one which took it already has left the restart nothing to stop. The wake
-   * of {@link #shutdown()} needs no counting - the flag it stands for never comes back.
+   * or not, and one which took it already has left the restart nothing to stop - unless an
+   * {@link #enable()} took it since as well. The restart then stops the session
+   * {@code enable()} started and sits the whole backoff for it, as it is owed: its request
+   * was taken before either clear could reach it, and the wake it would have ended on is
+   * spent. It costs one restart of a session which delivers the change anyway, in a window
+   * between the take and the block a {@code disable()} and an {@code enable()} would both
+   * have to fit in. The wake of {@link #shutdown()} needs no counting - the flag it stands
+   * for never comes back.
    */
   private long sessionRestartBackoffWakes()
   {
