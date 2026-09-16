@@ -855,7 +855,18 @@ public class InstallDS extends ConsoleApplication
 
     final SecurityOptions securityOptions = SecurityOptions.createOptionsForCertificatType(
         certType, pathToCertificat, pwd, enableSSL, enableStartTLS, sslPort, certNicknames);
+    securityOptions.setReplicationUsesKeyStore(argParser.useKeyStoreForReplicationArg.isPresent());
+    securityOptions.setReplicationCaCertFiles(getReplicationCaCertFiles());
     uData.setSecurityOptions(securityOptions);
+  }
+
+  private List<File> getReplicationCaCertFiles() {
+    final List<File> caCertFiles = new ArrayList<>();
+    for (String path : argParser.replicationCaCertFileArg.getValues())
+    {
+      caCertFiles.add(new File(path));
+    }
+    return caCertFiles;
   }
 
   private List<String> getCertNickNames() {
@@ -1747,6 +1758,8 @@ public class InstallDS extends ConsoleApplication
         throw new IllegalStateException("Unexpected cert type: "+ certType);
       }
     }
+    securityOptions.setReplicationUsesKeyStore(argParser.useKeyStoreForReplicationArg.isPresent());
+    securityOptions.setReplicationCaCertFiles(getReplicationCaCertFiles());
     return securityOptions;
   }
 
@@ -1934,11 +1947,16 @@ public class InstallDS extends ConsoleApplication
           }
           for (String certNickname : certNicknames)
           {
-            // Check if the certificate alias is in the list.
+            // Check if the certificate alias is in the list.  JKS, JCEKS and PKCS#12 key
+            // stores fold aliases to lower case, a BCFKS key store looks them up exactly:
+            // a nickname which differs in case from the alias would pass here and fail
+            // once the certificate is read from the key store.
             boolean found = false;
             for (int i = 0; i < aliases.length && !found; i++)
             {
-              found = aliases[i].equalsIgnoreCase(certNickname);
+              found = type == SecurityOptions.CertificateType.BCFKS
+                  ? aliases[i].equals(certNickname)
+                  : aliases[i].equalsIgnoreCase(certNickname);
             }
             if (!found)
             {

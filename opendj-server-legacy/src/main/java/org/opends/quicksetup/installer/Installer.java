@@ -1214,19 +1214,27 @@ public class Installer extends GuiApplication
    */
   private void configureServer() throws ApplicationException
   {
-    notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CONFIGURING.get()));
     copyTemplateInstance();
     writeOpenDSJavaHome();
     writeHostName();
     checkAbort();
 
+    final SecurityOptions sec = getUserData().getSecurityOptions();
+    if (sec.getReplicationUsesKeyStore())
+    {
+      // Before the configuration and the certificates are written: the provisioning
+      // refuses key stores and certificate files it cannot use, and a refusal then
+      // leaves the configuration as the template had it.
+      provisionAdsTrustStore(sec);
+    }
+
+    notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CONFIGURING.get()));
     List<String> argList = CollectionUtils.newArrayList(
         "-c", getConfigurationFile(),
         "-h", getUserData().getHostName(),
         "-p", String.valueOf(getUserData().getServerPort()),
         "--adminConnectorPort", String.valueOf(getUserData().getAdminConnectorPort()));
 
-    final SecurityOptions sec = getUserData().getSecurityOptions();
     // TODO: even if the user does not configure SSL maybe we should choose
     // a secure port that is not being used and that we can actually use.
     if (sec.getEnableSSL())
@@ -1241,6 +1249,7 @@ public class Installer extends GuiApplication
     }
 
     addCertificateArguments(sec, argList);
+    addAdsCertificateArguments(sec, argList);
     // For the moment do not enable JMX
     if (getUserData().getServerJMXPort() > 0)
     {
@@ -1339,6 +1348,47 @@ public class Installer extends GuiApplication
     notifyListeners(getFormattedDoneWithLineBreak());
     checkAbort();
     configureCertificate(sec);
+  }
+
+  /**
+   * Provisions the trust store used for server to server communication from the key store
+   * the server certificate comes from.  Replication reads both the key pair it presents on
+   * its port and the certificates it trusts there from that trust store, and from nowhere
+   * else, so the key pair has to be copied into it while the server is stopped: the
+   * nickname to present is read once, when the crypto manager is created at startup.
+   *
+   * @param sec
+   *          the security options holding the key store to provision the trust store from.
+   * @throws ApplicationException
+   *           if the trust store cannot be provisioned.
+   */
+  private void provisionAdsTrustStore(SecurityOptions sec) throws ApplicationException
+  {
+    notifyListeners(getFormattedWithPoints(INFO_PROGRESS_UPDATING_ADS_TRUSTSTORE.get()));
+    final CertificateManager keyStore = new CertificateManager(
+        sec.getKeystorePath(), keyStoreTypeOf(sec), sec.getKeystorePassword());
+    new AdsTrustStoreProvisioner(getAdsTrustStorePath(), getAdsTrustStorePinPath())
+        .provision(keyStore, sec.getAliasesToUse(), sec.getReplicationCaCertFiles());
+    notifyListeners(getFormattedDoneWithLineBreak());
+  }
+
+  /** Returns the key store type of the provided security options, as CertificateManager names it. */
+  private static String keyStoreTypeOf(SecurityOptions sec)
+  {
+    switch (sec.getCertificateType())
+    {
+    case JKS:
+      return CertificateManager.KEY_STORE_TYPE_JKS;
+    case JCEKS:
+      return CertificateManager.KEY_STORE_TYPE_JCEKS;
+    case PKCS12:
+      return CertificateManager.KEY_STORE_TYPE_PKCS12;
+    case BCFKS:
+      return CertificateManager.KEY_STORE_TYPE_BCFKS;
+    default:
+      throw new IllegalStateException(
+          "No key store to read a key pair from: " + sec.getCertificateType());
+    }
   }
 
   private void configureCertificate(SecurityOptions sec) throws ApplicationException
@@ -1542,6 +1592,24 @@ public class Installer extends GuiApplication
       break;
     default:
       throw new IllegalStateException("Unknown certificate type: " + sec.getCertificateType());
+    }
+  }
+
+  /**
+   * Adds the certificate nicknames the crypto manager is to present on the replication
+   * port.  The property is read once, when the crypto manager is created, so it is written
+   * to the configuration before the server is started for the first time rather than set
+   * with dsconfig afterwards.
+   */
+  private static void addAdsCertificateArguments(SecurityOptions sec, List<String> argList)
+  {
+    if (sec.getReplicationUsesKeyStore())
+    {
+      for (String alias : sec.getAliasesToUse())
+      {
+        argList.add("--adsCertNickName");
+        argList.add(alias);
+      }
     }
   }
 
@@ -4120,6 +4188,28 @@ public class Installer extends GuiApplication
   private String getKeystorePinPath()
   {
     return getPath2("keystore.pin");
+  }
+
+  /**
+   * Returns the path of the trust store used for server to server communication, the one
+   * the replication port reads its key pair and its trusted certificates from.
+   *
+   * @return the path of the ads-truststore.
+   */
+  private String getAdsTrustStorePath()
+  {
+    return getPath2("ads-truststore");
+  }
+
+  /**
+   * Returns the path of the file holding the PIN of the trust store used for server to
+   * server communication.
+   *
+   * @return the path of the ads-truststore PIN file.
+   */
+  private String getAdsTrustStorePinPath()
+  {
+    return getPath2("ads-truststore.pin");
   }
 
   private String getPath2(String relativePath)

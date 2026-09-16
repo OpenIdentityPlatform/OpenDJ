@@ -20,7 +20,9 @@ package org.opends.server.util;
 
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.util.Arrays;
@@ -1147,6 +1149,268 @@ public class CertificateManagerTestCase
 
     exportFile.delete();
     path.delete();
+  }
+
+
+
+  /**
+   * Tests that {@code importKeyEntry} copies the whole certificate chain of the source
+   * key entry and re-encrypts the private key with the password of the destination key
+   * store: the key managers of the server are initialised with the store password only,
+   * so a key which kept the password of the source key store could not be read back.
+   *
+   * @throws  Exception  If a problem occurs.
+   */
+  @Test
+  public void testImportKeyEntryCopiesChainAndReEncryptsKey()
+         throws Exception
+  {
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("importKeyEntry");
+    try
+    {
+      final CertificateFixture ca = new CertificateFixture("CN=Example CA,O=Example");
+      final File source = new File(tmpDir, "server.p12");
+      ca.addKeyEntry(source, "PKCS12", "sourcePassword", "server-cert", "CN=host.example.com", true);
+
+      final File destination = new File(tmpDir, "ads-truststore");
+      final CertificateManager destinationManager =
+           new CertificateManager(destination.getAbsolutePath(), "JKS", "destinationPassword");
+      destinationManager.importKeyEntry("server-cert",
+           new CertificateManager(source.getAbsolutePath(), "PKCS12", "sourcePassword"), "server-cert");
+
+      final KeyStore keyStore = KeyStore.getInstance("JKS");
+      try (final FileInputStream in = new FileInputStream(destination))
+      {
+        keyStore.load(in, "destinationPassword".toCharArray());
+      }
+      assertTrue(keyStore.isKeyEntry("server-cert"));
+      assertNotNull(keyStore.getKey("server-cert", "destinationPassword".toCharArray()));
+      assertEquals(keyStore.getCertificateChain("server-cert").length, 2);
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+
+
+  /**
+   * Tests that {@code importKeyEntry} reports an alias which the source key store does
+   * not hold, rather than silently importing nothing.
+   *
+   * @throws  Exception  If a problem occurs.
+   */
+  @Test
+  public void testImportKeyEntryNonexistentSourceAlias()
+         throws Exception
+  {
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("importKeyEntryMissing");
+    try
+    {
+      final CertificateFixture ca = new CertificateFixture("CN=Example CA,O=Example");
+      final File source = new File(tmpDir, "server.p12");
+      ca.addKeyEntry(source, "PKCS12", "sourcePassword", "server-cert", "CN=host.example.com", true);
+
+      final CertificateManager destinationManager = new CertificateManager(
+           new File(tmpDir, "ads-truststore").getAbsolutePath(), "JKS", "destinationPassword");
+      try
+      {
+        destinationManager.importKeyEntry("nonexistent",
+             new CertificateManager(source.getAbsolutePath(), "PKCS12", "sourcePassword"), "nonexistent");
+        fail("Expected a key store exception due to a nonexistent source alias");
+      } catch (KeyStoreException kse) {}
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+
+
+  /**
+   * Tests that {@code getCertificateChain} returns the issuers of a key entry, which is
+   * where the certificates to trust are taken from when a key pair is provisioned.
+   *
+   * @throws  Exception  If a problem occurs.
+   */
+  @Test
+  public void testGetCertificateChainReturnsIssuers()
+         throws Exception
+  {
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("getCertificateChain");
+    try
+    {
+      final CertificateFixture ca = new CertificateFixture("CN=Example CA,O=Example");
+      final File source = new File(tmpDir, "server.p12");
+      ca.addKeyEntry(source, "PKCS12", "sourcePassword", "server-cert", "CN=host.example.com", true);
+
+      final CertificateManager sourceManager =
+           new CertificateManager(source.getAbsolutePath(), "PKCS12", "sourcePassword");
+      final Certificate[] chain = sourceManager.getCertificateChain("server-cert");
+      assertEquals(chain.length, 2);
+      assertEquals(chain[1], ca.getCaCertificate());
+      assertNull(sourceManager.getCertificateChain("nonexistent"));
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+
+
+  /**
+   * Tests that {@code addTrustedCertificate} stores a certificate held in memory as a
+   * trusted certificate entry: only such an entry is a trust anchor, the certificate
+   * chain of a key entry is not.
+   *
+   * @throws  Exception  If a problem occurs.
+   */
+  @Test
+  public void testAddTrustedCertificateStoresTrustAnchor()
+         throws Exception
+  {
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("addTrustedCertificate");
+    try
+    {
+      final CertificateFixture ca = new CertificateFixture("CN=Example CA,O=Example");
+      final File destination = new File(tmpDir, "ads-truststore");
+
+      final CertificateManager destinationManager =
+           new CertificateManager(destination.getAbsolutePath(), "JKS", "destinationPassword");
+      destinationManager.addTrustedCertificate("ads-ca-1", ca.getCaCertificate());
+
+      final KeyStore keyStore = KeyStore.getInstance("JKS");
+      try (final FileInputStream in = new FileInputStream(destination))
+      {
+        keyStore.load(in, "destinationPassword".toCharArray());
+      }
+      assertTrue(keyStore.isCertificateEntry("ads-ca-1"));
+      assertEquals(keyStore.getCertificate("ads-ca-1"), ca.getCaCertificate());
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+
+
+  /**
+   * Tests that {@code importKeyEntry} names the cause when the private key is protected
+   * by a password of its own: the key managers of the server unlock keys with the store
+   * password only, and "Cannot recover key" says neither that nor what to do about it.
+   *
+   * @throws  Exception  If a problem occurs.
+   */
+  @Test
+  public void testImportKeyEntryReportsAKeyPasswordWhichDiffers()
+         throws Exception
+  {
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("importKeyEntryKeyPassword");
+    try
+    {
+      final CertificateFixture ca = new CertificateFixture("CN=Example CA,O=Example");
+      final File source = new File(tmpDir, "server.jks");
+      ca.addKeyEntry(source, "JKS", "sourcePassword", "keyPassword", "server-cert", "CN=host.example.com", true);
+
+      final File destination = new File(tmpDir, "ads-truststore");
+      final CertificateManager destinationManager =
+           new CertificateManager(destination.getAbsolutePath(), "JKS", "destinationPassword");
+      try
+      {
+        destinationManager.importKeyEntry("server-cert",
+             new CertificateManager(source.getAbsolutePath(), "JKS", "sourcePassword"), "server-cert");
+        fail("Expected a key store exception due to a key password which differs from the store password");
+      }
+      catch (KeyStoreException kse)
+      {
+        assertTrue(kse.getMessage().contains("server-cert"), kse.getMessage());
+        assertTrue(kse.getMessage().contains(source.getAbsolutePath()), kse.getMessage());
+        assertTrue(kse.getMessage().contains("password"), kse.getMessage());
+        assertFalse(kse.getMessage().contains("Cannot recover key"), kse.getMessage());
+      }
+      assertFalse(destination.exists(), "a destination key store was written for a key which could not be read");
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+
+
+  /**
+   * Tests that neither {@code importKeyEntry} nor {@code addTrustedCertificate} replaces
+   * an entry which is already there, as {@code generateSelfSignedCertificate} and
+   * {@code addCertificate} do not: the key store methods they wrap overwrite silently.
+   *
+   * @throws  Exception  If a problem occurs.
+   */
+  @Test
+  public void testImportKeyEntryAndAddTrustedCertificateRefuseAnAliasInUse()
+         throws Exception
+  {
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("aliasInUse");
+    try
+    {
+      final CertificateFixture ca = new CertificateFixture("CN=Example CA,O=Example");
+      final File source = new File(tmpDir, "server.p12");
+      ca.addKeyEntry(source, "PKCS12", "sourcePassword", "server-cert", "CN=host.example.com", true);
+      ca.addKeyEntry(source, "PKCS12", "sourcePassword", "other-cert", "CN=other.example.com", true);
+      final CertificateManager sourceManager =
+           new CertificateManager(source.getAbsolutePath(), "PKCS12", "sourcePassword");
+
+      final File destination = new File(tmpDir, "ads-truststore");
+      final CertificateManager destinationManager =
+           new CertificateManager(destination.getAbsolutePath(), "JKS", "destinationPassword");
+      destinationManager.importKeyEntry("server-cert", sourceManager, "server-cert");
+      destinationManager.addTrustedCertificate("ads-ca-1", ca.getCaCertificate());
+
+      try
+      {
+        destinationManager.importKeyEntry("server-cert", sourceManager, "other-cert");
+        fail("Expected a key store exception due to a key entry alias already in use");
+      }
+      catch (KeyStoreException kse)
+      {
+        assertTrue(kse.getMessage().contains("server-cert"), kse.getMessage());
+      }
+      try
+      {
+        destinationManager.addTrustedCertificate("ads-ca-1", sourceManager.getCertificate("other-cert"));
+        fail("Expected a key store exception due to a trusted certificate alias already in use");
+      }
+      catch (KeyStoreException kse)
+      {
+        assertTrue(kse.getMessage().contains("ads-ca-1"), kse.getMessage());
+      }
+      try
+      {
+        destinationManager.importKeyEntry("ads-ca-1", sourceManager, "other-cert");
+        fail("Expected a key store exception due to an alias held by a trusted certificate");
+      }
+      catch (KeyStoreException kse)
+      {
+        assertTrue(kse.getMessage().contains("ads-ca-1"), kse.getMessage());
+      }
+
+      final KeyStore keyStore = KeyStore.getInstance("JKS");
+      try (final FileInputStream in = new FileInputStream(destination))
+      {
+        keyStore.load(in, "destinationPassword".toCharArray());
+      }
+      assertEquals(keyStore.getCertificate("server-cert"), sourceManager.getCertificate("server-cert"),
+           "the key entry was replaced");
+      assertEquals(keyStore.getCertificate("ads-ca-1"), ca.getCaCertificate(), "the trusted certificate was replaced");
+      assertEquals(keyStore.size(), 2);
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
   }
 
 

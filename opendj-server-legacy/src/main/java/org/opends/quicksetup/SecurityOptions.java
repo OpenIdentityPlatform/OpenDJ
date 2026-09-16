@@ -17,8 +17,11 @@
  */
 package org.opends.quicksetup;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -58,6 +61,8 @@ public class SecurityOptions
   private String keyStorePath;
   private String keyStorePassword;
   private final Set<String> aliasesToUse = new TreeSet<>();
+  private boolean replicationUsesKeyStore;
+  private final List<File> replicationCaCertFiles = new ArrayList<>();
 
   private SecurityOptions()
   {
@@ -435,6 +440,47 @@ public class SecurityOptions
   {
     this.aliasesToUse.clear();
     this.aliasesToUse.addAll(aliasesToUse);
+  }
+
+  /**
+   * Tells whether the key pairs of this key store are to secure replication as well.
+   * Replication reads the key pair it presents, and the certificates it trusts, from the
+   * trust store used for server to server communication and from nowhere else, so the key
+   * pairs have to be copied there.
+   * @return {@code true} if replication is to present the key pairs of this key store.
+   */
+  public boolean getReplicationUsesKeyStore()
+  {
+    return replicationUsesKeyStore;
+  }
+
+  /**
+   * Sets whether the key pairs of this key store are to secure replication as well.
+   * @param replicationUsesKeyStore whether replication is to present these key pairs.
+   */
+  public void setReplicationUsesKeyStore(boolean replicationUsesKeyStore)
+  {
+    this.replicationUsesKeyStore = replicationUsesKeyStore;
+  }
+
+  /**
+   * Returns the files holding certificates to trust on the replication port, on top of
+   * the issuers found in the certificate chains of the key pairs to use.
+   * @return the files holding certificates to trust, empty if there is none.
+   */
+  public List<File> getReplicationCaCertFiles()
+  {
+    return replicationCaCertFiles;
+  }
+
+  /**
+   * Sets the files holding certificates to trust on the replication port.
+   * @param replicationCaCertFiles the files holding certificates to trust.
+   */
+  public void setReplicationCaCertFiles(Collection<File> replicationCaCertFiles)
+  {
+    this.replicationCaCertFiles.clear();
+    this.replicationCaCertFiles.addAll(replicationCaCertFiles);
   }
 
 }
