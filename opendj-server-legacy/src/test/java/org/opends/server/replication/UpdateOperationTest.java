@@ -3930,9 +3930,9 @@ public class UpdateOperationTest extends ReplicationTestCase
         openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
     final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
     final long interval = shortenReplayRetryWarningInterval(domain);
-    setReplayGiveUpDelay("unlimited");
     try
     {
+      setReplayGiveUpDelay("unlimited");
       CSNGenerator gen = new CSNGenerator(serverId, 0);
       Entry tmp = addUserEntry("user.942.retried");
       final CSN csn = gen.newCSN();
@@ -3973,17 +3973,19 @@ public class UpdateOperationTest extends ReplicationTestCase
             .as("the third warning must only stand for the deliveries since the second one")
             .isLessThan(deliveriesSoFar() - deliveriesAtSecondWarning);
       }
-      finally
+      catch (Throwable failed)
       {
-        ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
-        waitUntilCovered(domain, csn);
+        letTheChangeBeCovered(domain, csn, failed);
+        throw failed;
       }
+      letTheChangeBeCovered(domain, csn);
     }
     finally
     {
-      resetReplayGiveUpDelay();
+      // What can not throw first: a cleanup which throws skips the ones after it.
       domain.setReplayRetryWarningInterval(interval);
       broker.stop();
+      resetReplayGiveUpDelay();
     }
   }
 
@@ -4021,12 +4023,13 @@ public class UpdateOperationTest extends ReplicationTestCase
         broker.publish(new DeleteMsg(first.getName(), csn, getEntryUUID(first.getName())));
         waitForDeliveries(2);
       }
-      finally
+      catch (Throwable failed)
       {
-        // The backend serves again: the delivery which comes next replays the change.
-        ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
-        waitUntilCovered(domain, csn);
+        letTheChangeBeCovered(domain, csn, failed);
+        throw failed;
       }
+      // The backend serves again: the delivery which comes next replays the change.
+      letTheChangeBeCovered(domain, csn);
 
       /*
        * Another change fails, and the interval is not waited out: only the timestamp of the
@@ -4044,11 +4047,12 @@ public class UpdateOperationTest extends ReplicationTestCase
             .as("the warning over a new failure must not count the deliveries of the one before")
             .isEqualTo(0);
       }
-      finally
+      catch (Throwable failed)
       {
-        ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
-        waitUntilCovered(domain, later);
+        letTheChangeBeCovered(domain, later, failed);
+        throw failed;
       }
+      letTheChangeBeCovered(domain, later);
     }
     finally
     {
@@ -4077,9 +4081,9 @@ public class UpdateOperationTest extends ReplicationTestCase
         openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
     final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
     final long interval = shortenReplayRetryWarningInterval(domain);
-    setReplayGiveUpDelay(TEST_GIVE_UP_DELAY_OVER_FOLDED_DELIVERIES);
     try
     {
+      setReplayGiveUpDelay(TEST_GIVE_UP_DELAY_OVER_FOLDED_DELIVERIES);
       CSNGenerator gen = new CSNGenerator(serverId, 0);
       Entry tmp = addUserEntry("user.942.given.up");
       final CSN csn = gen.newCSN();
@@ -4111,18 +4115,20 @@ public class UpdateOperationTest extends ReplicationTestCase
             .as("the warning after a change was given up on must not count its deliveries")
             .isEqualTo(0);
       }
-      finally
+      catch (Throwable failed)
       {
-        ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
-        resetReplayGiveUpDelay();
-        // Replayed now that the backend serves again, or given up on: either way it is covered.
-        waitUntilCovered(domain, later);
+        letTheChangeBeCovered(domain, later, failed);
+        throw failed;
       }
+      // Replayed now that the backend serves again, or given up on: either way it is covered.
+      letTheChangeBeCovered(domain, later);
     }
     finally
     {
+      // What can not throw first: a cleanup which throws skips the ones after it.
       domain.setReplayRetryWarningInterval(interval);
       broker.stop();
+      resetReplayGiveUpDelay();
     }
   }
 
@@ -4182,15 +4188,177 @@ public class UpdateOperationTest extends ReplicationTestCase
             .as("the first warning after the domain was disabled must not count the deliveries before")
             .isEqualTo(0);
       }
-      finally
+      catch (Throwable failed)
       {
-        ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
-        waitUntilCovered(domain, csn);
+        letTheChangeBeCovered(domain, csn, failed);
+        throw failed;
       }
+      letTheChangeBeCovered(domain, csn);
     }
     finally
     {
       domain.setReplayRetryWarningInterval(interval);
+      broker.stop();
+    }
+  }
+
+  /**
+   * Test case for [Issue 942]: a change replayed while another one keeps failing does not
+   * forget the deliveries folded into no warning.
+   * <p>
+   * This is what the issue looks like live: one entry which can not be applied here, among
+   * changes which replay perfectly well. Each of those is a change replayed, and the count
+   * is forgotten when a change is replayed - only when nothing is failing anymore, though.
+   * The deliveries folded so far are deliveries of the outage the next warning is about, and
+   * a warning which said {@code 0 further} over them would be a wrong number which looks
+   * right.
+   */
+  @Test
+  public void aReplayOfAnotherChangeDoesNotForgetTheDeliveriesOfTheOneStillFailing()
+      throws Exception
+  {
+    testSetUp("aReplayOfAnotherChangeDoesNotForgetTheDeliveriesOfTheOneStillFailing");
+    logger.error(LocalizableMessage.raw("Starting replication test : "
+        + "aReplayOfAnotherChangeDoesNotForgetTheDeliveriesOfTheOneStillFailing"));
+
+    final int serverId = 19;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+    /*
+     * The interval is left as the server has it, a minute, and only the throttle is put back:
+     * the second warning must be the one let through below, once the other change has been
+     * replayed, so that its count says what the domain kept over that replay. A warning the
+     * interval let through meanwhile would take the count with it.
+     */
+    domain.resetReplayRetryWarningThrottle();
+    try
+    {
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+      Entry tmp = addUserEntry("user.942.failing.alone");
+      final CSN csn = gen.newCSN();
+      ShortCircuitPlugin.registerShortCircuit(
+          OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
+      try
+      {
+        broker.publish(new DeleteMsg(tmp.getName(), csn, getEntryUUID(tmp.getName())));
+        /*
+         * Three deliveries which fail: the first is warned about, the second and the third
+         * are folded, and a delivery is folded before the session is restarted for the next
+         * one. Two folded at the least, so that a count which was kept is told apart from
+         * the one delivery which may be folded between the other change being replayed and
+         * the throttle being put back.
+         */
+        waitForDeliveries(3);
+        final int foldedBeforeTheReplay = deliveriesSoFar() - 1;
+
+        /*
+         * Another entry is added while the delete keeps failing. An add does not depend on
+         * the delete of another entry, so it is replayed - a change made while the delete
+         * is still listed as failing.
+         */
+        final String otherUUID = "94200000-0000-0000-0000-000000000001";
+        final Entry other = TestCaseUtils.makeEntry(
+            "dn: uid=user.942.replayed.meanwhile," + baseDN,
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalPerson",
+            "objectClass: inetOrgPerson",
+            "uid: user.942.replayed.meanwhile",
+            "cn: Aaccf Amar",
+            "sn: Amar",
+            "entryUUID: " + otherUUID);
+        broker.publish(addMsg(gen, other, otherUUID, baseUUID));
+        assertNotNull(getEntry(other.getName(), 10000, true),
+            "the change of another entry must be replayed while the delete keeps failing");
+
+        /*
+         * The throttle is put back, so that the next delivery of the delete is warned about
+         * with the count the domain kept - or forgot - over the replay.
+         */
+        domain.resetReplayRetryWarningThrottle();
+        waitForReplayRetryWarnings(csn, 2);
+        Assertions.assertThat(foldedDeliveriesSaidBy(replayRetryWarnings(csn).get(1)))
+            .as("a replay of another change must not forget the deliveries of the one still failing")
+            .isGreaterThanOrEqualTo(foldedBeforeTheReplay);
+      }
+      catch (Throwable failed)
+      {
+        letTheChangeBeCovered(domain, csn, failed);
+        throw failed;
+      }
+      letTheChangeBeCovered(domain, csn);
+    }
+    finally
+    {
+      broker.stop();
+    }
+  }
+
+  /**
+   * Test case for [Issue 942]: giving up on a change while another one keeps failing does
+   * not forget the deliveries folded into no warning either.
+   * <p>
+   * The road a change is given up on when its budget is spent is the road a change no
+   * operation can be built from takes at its first delivery, and that one needs no budget
+   * to be waited out: a message whose modifications can not be decoded is given up on while
+   * the delete which keeps failing is still listed as failing.
+   */
+  @Test
+  public void givingUpOnAnotherChangeDoesNotForgetTheDeliveriesOfTheOneStillFailing()
+      throws Exception
+  {
+    testSetUp("givingUpOnAnotherChangeDoesNotForgetTheDeliveriesOfTheOneStillFailing");
+    logger.error(LocalizableMessage.raw("Starting replication test : "
+        + "givingUpOnAnotherChangeDoesNotForgetTheDeliveriesOfTheOneStillFailing"));
+
+    final int serverId = 19;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+    // The interval is left as the server has it, for the reason the case above gives.
+    domain.resetReplayRetryWarningThrottle();
+    try
+    {
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+      Entry tmp = addUserEntry("user.942.failing.alone.too");
+      Entry other = addUserEntry("user.942.given.up.meanwhile");
+      final CSN csn = gen.newCSN();
+      ShortCircuitPlugin.registerShortCircuit(
+          OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
+      try
+      {
+        broker.publish(new DeleteMsg(tmp.getName(), csn, getEntryUUID(tmp.getName())));
+        // Three deliveries which fail, two of them folded, as in the case above.
+        waitForDeliveries(3);
+        final int foldedBeforeTheGiveUp = deliveriesSoFar() - 1;
+
+        /*
+         * A change of another entry which no operation can be built from is given up on at
+         * its first delivery, while the delete is still listed as failing. The count of the
+         * changes this replica gave up on says when it has been.
+         */
+        final long givenUpBefore = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+        broker.publish(
+            undecodableModifyMsg(gen.newCSN(), other.getName(), getEntryUUID(other.getName())));
+        assertMonitorAttrValueEventually(baseDN, "replayed-updates-failed", givenUpBefore + 1,
+            "the change which can not be decoded must be given up on while the delete keeps failing");
+
+        domain.resetReplayRetryWarningThrottle();
+        waitForReplayRetryWarnings(csn, 2);
+        Assertions.assertThat(foldedDeliveriesSaidBy(replayRetryWarnings(csn).get(1)))
+            .as("giving up on another change must not forget the deliveries of the one still failing")
+            .isGreaterThanOrEqualTo(foldedBeforeTheGiveUp);
+      }
+      catch (Throwable failed)
+      {
+        letTheChangeBeCovered(domain, csn, failed);
+        throw failed;
+      }
+      letTheChangeBeCovered(domain, csn);
+    }
+    finally
+    {
       broker.stop();
     }
   }
@@ -4295,13 +4463,51 @@ public class UpdateOperationTest extends ReplicationTestCase
   }
 
   /**
+   * Takes the short circuit back and waits until the change it was failing is covered by
+   * the ServerState - replayed now that the backend serves again, or given up on - so that
+   * a case does not leave its change to the next one: a change left failing here would be
+   * the next test's, holding its ServerState back, its session restart backoff up and the
+   * warnings of that test folded into its own.
+   * <p>
+   * Called at the end of a case, and from its catch with the failure when it has one,
+   * rather than from a finally: a wait which expired in a finally would replace the
+   * assertion it was cleaning up after.
+   *
+   * @param domain the domain of the test
+   * @param csn the CSN of the change
+   * @throws Exception if the change is not covered
+   */
+  private static void letTheChangeBeCovered(final LDAPReplicationDomain domain, final CSN csn)
+      throws Exception
+  {
+    ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
+    waitUntilCovered(domain, csn);
+  }
+
+  /**
+   * {@link #letTheChangeBeCovered(LDAPReplicationDomain, CSN)} for a case which failed: the
+   * failure is what is thrown, and what went wrong here is added to it.
+   *
+   * @param domain the domain of the test
+   * @param csn the CSN of the change
+   * @param failed the failure of the case
+   */
+  private static void letTheChangeBeCovered(
+      final LDAPReplicationDomain domain, final CSN csn, final Throwable failed)
+  {
+    try
+    {
+      letTheChangeBeCovered(domain, csn);
+    }
+    catch (Throwable late)
+    {
+      failed.addSuppressed(late);
+    }
+  }
+
+  /**
    * Waits until the ServerState of the domain covers the provided change: it was replayed
    * once the backend served again, or given up on.
-   * <p>
-   * Called from the finally which takes the short circuit back, so that a case which fails
-   * does not leave its change to the next one: a change left failing here would be the next
-   * test's, holding its ServerState back, its session restart backoff up and the warnings
-   * of that test folded into its own.
    *
    * @param domain the domain of the test
    * @param csn the CSN of the change
@@ -4851,7 +5057,8 @@ public class UpdateOperationTest extends ReplicationTestCase
    * <p>
    * The domain outlives the test methods, so a test which shortens the budget puts it back
    * with {@link #resetReplayGiveUpDelay()} in a finally, and calls this one before that
-   * try: the reset then only ever runs on an attribute which is there to be removed.
+   * try or first inside it - the reset then runs on an attribute which is there to be
+   * removed, or finds it gone already, which it takes for the default it was asking for.
    *
    * @param delay
    *          the budget in the duration syntax of the property: {@code 2000ms},

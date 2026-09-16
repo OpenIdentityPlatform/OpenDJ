@@ -71,6 +71,10 @@ import org.testng.annotations.Test;
  * The exporter is a broker of this test, so that the test says when the entries arrive: the
  * change is replayed while the import is waiting for them - or, for the request, while the
  * exporter is holding the answer.
+ * <p>
+ * The {@code timeOut} each case declares is what it is expected to take at the most; it is
+ * not what bounds it. {@code TestListener} sets the timeout of every test method from the
+ * {@code org.opends.test.timeout} property, ten minutes under Maven and none outside it.
  */
 @SuppressWarnings("javadoc")
 public class ReplayDuringImportTest extends ReplicationTestCase

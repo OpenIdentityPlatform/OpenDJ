@@ -508,13 +508,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private final AtomicLong lastReplayRetryWarningTime =
       new AtomicLong(REPLAY_FAILURE_NEVER_REPORTED);
   /**
-   * How many failed deliveries were not warned about since the last warning was logged,
-   * or since this replica last stopped failing. They are counted rather than dropped: the
-   * line which is logged next says how many deliveries it stands for. They are forgotten
-   * along with the session restart backoff - when a change is replayed or given up on and
-   * nothing is failing anymore, see {@link #resetReplayFailureTracking()} and
-   * {@link #skipUnreplayableChange(CSN, LocalizableMessage)} - and along with the pending
-   * changes, when this domain is disabled or imported into.
+   * How many failed deliveries were folded into no warning since the last one was logged,
+   * or since this replica last stopped failing: the next warning says how many it stands
+   * for. Forgotten when a change is replayed or given up on and nothing is failing anymore
+   * - see {@link #resetReplayFailureTracking()} and
+   * {@link #skipUnreplayableChange(CSN, LocalizableMessage)}, only the first of which
+   * forgets the session restart backoff with it - and with the pending changes when this
+   * domain is disabled or imported into. A delivery which fails while the domain is
+   * shutting down, disabled or imported into is not counted: it is not warned about
+   * either, see {@link #sessionHasAnOwner()}.
    */
   private final AtomicInteger foldedReplayRetryWarnings = new AtomicInteger();
   /**
@@ -3667,12 +3669,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * change of an outage as fast as the replication server can send them, which is what
    * {@link #consecutiveSessionRestarts} is there to prevent.
    * <p>
-   * The deliveries folded into no warning are not: the line which says the change is being
-   * skipped reports every delivery it had, so nothing is lost by forgetting them, and a
-   * warning logged over the next failure - a day later, on the default budget - would
-   * otherwise read as counting them. They are forgotten when this was the last change
-   * failing, as they are when a change is replayed: while another change is still failing,
-   * they are deliveries of the outage the next warning is about.
+   * The deliveries folded into no warning are not: a warning logged over the next failure
+   * - a day later, on the default budget - would otherwise read as counting them. What is
+   * forgotten is a count, of deliveries which each had their trace line: the line which
+   * says the change is being skipped reports every delivery of this change when its
+   * budget was spent, and nothing reports the folded deliveries of the changes which were
+   * replayed meanwhile. They are forgotten when this was the last change failing, as they
+   * are when a change is replayed: while another change is still failing, they are
+   * deliveries of the outage the next warning is about.
    *
    * @param csn the CSN of the change which could not be replayed
    * @param cause the message describing why it could not be replayed
@@ -3739,9 +3743,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * as the give-up budget of the change lasts - a budget the administrator sets, and
    * which can be unlimited (issue #942).
    * <p>
-   * The deliveries which are not warned about are counted rather than dropped, so the
-   * line which is logged says how many of them it stands for, and they are traced for
-   * whoever turns the replication debug logging on.
+   * The deliveries which are not warned about are counted, so that the line which is
+   * logged next says how many of them it stands for, and they are traced for whoever
+   * turns the replication debug logging on.
    *
    * @param csn the CSN of the change which could not be replayed
    * @param failure how long, and over how many deliveries, its replay has been failing
