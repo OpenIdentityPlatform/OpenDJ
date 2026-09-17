@@ -37,6 +37,7 @@ import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
+import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.EntryMsg;
 import org.opends.server.replication.protocol.InitializeRequestMsg;
@@ -70,6 +71,10 @@ import org.testng.annotations.Test;
  * The exporter is a broker of this test, so that the test says when the entries arrive: the
  * change is replayed while the import is waiting for them - or, for the request, while the
  * exporter is holding the answer.
+ * <p>
+ * The {@code timeOut} each case declares is what it is expected to take at the most; it is
+ * not what bounds it. {@code TestListener} sets the timeout of every test method from the
+ * {@code org.opends.test.timeout} property, ten minutes under Maven and none outside it.
  */
 @SuppressWarnings("javadoc")
 public class ReplayDuringImportTest extends ReplicationTestCase
@@ -322,6 +327,72 @@ public class ReplayDuringImportTest extends ReplicationTestCase
     finally
     {
       domain.failNextSessionRestarts(0);
+    }
+  }
+
+  /**
+   * A total update forgets the deliveries which were folded into no warning, along with
+   * the changes they were deliveries of (issue #942).
+   * <p>
+   * The changes listed as pending do not outlive the ServerState the import replaces, and
+   * the recovery from a failed replay goes with them - the session restart backoff, and the
+   * count the next warning about a change being asked for again says it stands for. The
+   * first warning over the imported data must not count the deliveries of a change which
+   * is not listed anymore.
+   * <p>
+   * Nothing sends a change of this test again - the exporter never had it - so the count
+   * is fed by two changes failing within one interval rather than by one change delivered
+   * twice: the first is warned about, the second is folded into no warning. The changes
+   * are deletes: a short circuit on the modifies would be tripped by the ServerState being
+   * saved to the base entry and by the import disabling the backend it replaces.
+   */
+  @Test(timeOut = 120_000)
+  public void aWarningAfterTheImportDoesNotCountTheDeliveriesBefore() throws Exception
+  {
+    final Entry warnedAbout = TestCaseUtils.addEntry(
+        "dn: cn=warnedAbout," + EXAMPLE_DN,
+        "objectClass: top",
+        "objectClass: person",
+        "cn: warnedAbout",
+        "sn: warnedAbout");
+    final Entry folded = TestCaseUtils.addEntry(
+        "dn: cn=folded," + EXAMPLE_DN,
+        "objectClass: top",
+        "objectClass: person",
+        "cn: folded",
+        "sn: folded");
+    final String warnedAboutUUID = getEntryUUID(warnedAbout.getName());
+    final String foldedUUID = getEntryUUID(folded.getName());
+    final String[] exported = exportedEntries();
+
+    ShortCircuitPlugin.registerShortCircuit(
+        OperationType.DELETE, "PreParse", ResultCode.UNAVAILABLE.intValue());
+    try
+    {
+      replayMsg(new DeleteMsg(warnedAbout.getName(), gen.newCSN(), warnedAboutUUID));
+      replayMsg(new DeleteMsg(folded.getName(), gen.newCSN(), foldedUUID));
+
+      startImportInto(exported.length);
+      finishImport(exported);
+
+      /*
+       * Only the timestamp of the throttle is put back, so that the failure over the
+       * imported data is warned about straight away: the count is the domain's to keep or
+       * to forget.
+       */
+      domain.resetReplayRetryWarningThrottle();
+      final CSN csn = gen.newCSN();
+      replayMsg(new DeleteMsg(DN.valueOf(IMPORTED_ENTRY_DN), csn, IMPORTED_ENTRY_UUID));
+      final List<String> warnings = errorLogRecordsOf(WARN_REPLAY_RETRYING_CHANGE.ordinal(), csn);
+      assertThat(warnings).as("the change which fails over the imported data must be warned about")
+          .isNotEmpty();
+      assertThat(warnings.get(0))
+          .as("the first warning after the import must not count the deliveries before it")
+          .contains(" 0 further deliveries");
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
     }
   }
 

@@ -23,6 +23,7 @@ import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.mockito.Mockito.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
@@ -34,11 +35,15 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
@@ -113,6 +118,24 @@ public class UpdateOperationTest extends ReplicationTestCase
    * In the duration syntax of the {@code replay-give-up-delay} property.
    */
   private static final String TEST_GIVE_UP_DELAY = "2000ms";
+
+  /**
+   * How long a change is retried in the test which checks the warning logged after this
+   * replica gave up on a change: long enough for a delivery to be folded into no warning
+   * before the budget is spent, with a session restart slower than usual allowed for -
+   * {@link #TEST_GIVE_UP_DELAY} is spent on the second delivery once the restart takes a
+   * second. In the duration syntax of the property.
+   */
+  private static final String TEST_GIVE_UP_DELAY_OVER_FOLDED_DELIVERIES = "4000ms";
+
+  /**
+   * How long the warning about a change being asked for again is not logged again, in the
+   * tests which check that warning. The session is left down for a second, then two, then
+   * three between the deliveries of a change which keeps failing: long enough for the
+   * first few of them to fall into one interval, short enough not to make a test wait out
+   * the minute of the server.
+   */
+  private static final long TEST_REPLAY_RETRY_WARNING_INTERVAL_IN_MS = 10000;
 
   /** The configuration attribute which carries the replay give-up budget of a domain. */
   private static final String ATTR_REPLAY_GIVE_UP_DELAY = "ds-cfg-replay-give-up-delay";
@@ -3883,6 +3906,744 @@ public class UpdateOperationTest extends ReplicationTestCase
   }
 
   /**
+   * Test case for [Issue 942]: a change whose replay keeps failing is warned about once
+   * per interval rather than once per delivery.
+   * <p>
+   * The session is left down for ten seconds at the longest between two deliveries, so a
+   * warning per delivery is the same line every ten seconds for as long as the change is
+   * retried - and how long that is has been the administrator's to set since #901. The
+   * budget is unlimited here: this is the domain which must not go silent over a change it
+   * keeps asking for.
+   * <p>
+   * Each warning says how many deliveries were folded into it, and only those: the third
+   * warning stands for the deliveries since the second one, not for those since the first.
+   */
+  @Test
+  public void aChangeWhichKeepsFailingIsWarnedAboutOncePerInterval() throws Exception
+  {
+    testSetUp("aChangeWhichKeepsFailingIsWarnedAboutOncePerInterval");
+    logger.error(LocalizableMessage.raw(
+        "Starting replication test : aChangeWhichKeepsFailingIsWarnedAboutOncePerInterval"));
+
+    final int serverId = 19;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+    final long interval = shortenReplayRetryWarningInterval(domain);
+    try
+    {
+      setReplayGiveUpDelay("unlimited");
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+      Entry tmp = addUserEntry("user.942.retried");
+      final CSN csn = gen.newCSN();
+      ShortCircuitPlugin.registerShortCircuit(
+          OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
+      try
+      {
+        broker.publish(new DeleteMsg(tmp.getName(), csn, getEntryUUID(tmp.getName())));
+
+        /*
+         * The session is left down for a second, then two, between the deliveries, so the
+         * first three of them fall into one interval: one warning, where there were three
+         * before this one was throttled.
+         */
+        waitForDeliveries(3);
+        assertEquals(replayRetryWarnings(csn).size(), 1,
+            "a change which keeps failing must be warned about once per interval, not once per delivery");
+
+        /*
+         * Once the interval has passed the change is warned about again, and the line
+         * which comes says how many deliveries were folded into no warning meanwhile.
+         */
+        waitForReplayRetryWarnings(csn, 2);
+        Assertions.assertThat(foldedDeliveriesSaidBy(replayRetryWarnings(csn).get(1)))
+            .as("the warning must say how many failed deliveries it stands for")
+            .isGreaterThanOrEqualTo(1);
+        final int deliveriesAtSecondWarning = deliveriesSoFar();
+
+        /*
+         * The deliveries the second warning stands for are not the third one's as well: a
+         * count which was read rather than taken when the line was written would have every
+         * warning of an outage count every delivery since its first one. The deliveries
+         * since the second warning are the one which logged the third and those folded
+         * into it, so the count is below that number.
+         */
+        waitForReplayRetryWarnings(csn, 3);
+        Assertions.assertThat(foldedDeliveriesSaidBy(replayRetryWarnings(csn).get(2)))
+            .as("the third warning must only stand for the deliveries since the second one")
+            .isLessThan(deliveriesSoFar() - deliveriesAtSecondWarning);
+      }
+      catch (Throwable failed)
+      {
+        letTheChangeBeCovered(domain, csn, failed);
+        throw failed;
+      }
+      letTheChangeBeCovered(domain, csn);
+    }
+    finally
+    {
+      // What can not throw first: a cleanup which throws skips the ones after it.
+      domain.setReplayRetryWarningInterval(interval);
+      broker.stop();
+      resetReplayGiveUpDelay();
+    }
+  }
+
+  /**
+   * Test case for [Issue 942]: the deliveries folded into no warning are forgotten when
+   * this replica stops failing, rather than carried over to the next failure.
+   * <p>
+   * The count is what the next warning says it stands for. A warning logged over another
+   * change, once the backend has served again for a while, must not read as counting the
+   * deliveries of the failure before it.
+   */
+  @Test
+  public void aWarningOverANewFailureDoesNotCountTheDeliveriesOfTheOneBefore() throws Exception
+  {
+    testSetUp("aWarningOverANewFailureDoesNotCountTheDeliveriesOfTheOneBefore");
+    logger.error(LocalizableMessage.raw("Starting replication test : "
+        + "aWarningOverANewFailureDoesNotCountTheDeliveriesOfTheOneBefore"));
+
+    final int serverId = 19;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+    final long interval = shortenReplayRetryWarningInterval(domain);
+    try
+    {
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+      Entry first = addUserEntry("user.942.recovered");
+      Entry second = addUserEntry("user.942.failing.next");
+      final CSN csn = gen.newCSN();
+      ShortCircuitPlugin.registerShortCircuit(
+          OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
+      try
+      {
+        // Two deliveries which fail: the first is warned about, the second is folded.
+        broker.publish(new DeleteMsg(first.getName(), csn, getEntryUUID(first.getName())));
+        waitForDeliveries(2);
+      }
+      catch (Throwable failed)
+      {
+        letTheChangeBeCovered(domain, csn, failed);
+        throw failed;
+      }
+      // The backend serves again: the delivery which comes next replays the change.
+      letTheChangeBeCovered(domain, csn);
+
+      /*
+       * Another change fails, and the interval is not waited out: only the timestamp of the
+       * throttle is put back, the count is the domain's to keep or to forget.
+       */
+      domain.resetReplayRetryWarningThrottle();
+      final CSN later = gen.newCSN();
+      ShortCircuitPlugin.registerShortCircuit(
+          OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
+      try
+      {
+        broker.publish(new DeleteMsg(second.getName(), later, getEntryUUID(second.getName())));
+        waitForReplayRetryWarnings(later, 1);
+        Assertions.assertThat(foldedDeliveriesSaidBy(replayRetryWarnings(later).get(0)))
+            .as("the warning over a new failure must not count the deliveries of the one before")
+            .isEqualTo(0);
+      }
+      catch (Throwable failed)
+      {
+        letTheChangeBeCovered(domain, later, failed);
+        throw failed;
+      }
+      letTheChangeBeCovered(domain, later);
+    }
+    finally
+    {
+      domain.setReplayRetryWarningInterval(interval);
+      broker.stop();
+    }
+  }
+
+  /**
+   * Test case for [Issue 942]: giving up on the change which was the last one failing
+   * forgets the deliveries folded into no warning as well.
+   * <p>
+   * The line which says the change is being skipped reports every delivery it had, so
+   * nothing is lost, and the next failure - a day later, on the default budget - must not
+   * be warned about as if the deliveries of the change given up on were its own.
+   */
+  @Test
+  public void aWarningAfterAChangeWasGivenUpOnDoesNotCountItsDeliveries() throws Exception
+  {
+    testSetUp("aWarningAfterAChangeWasGivenUpOnDoesNotCountItsDeliveries");
+    logger.error(LocalizableMessage.raw("Starting replication test : "
+        + "aWarningAfterAChangeWasGivenUpOnDoesNotCountItsDeliveries"));
+
+    final int serverId = 19;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+    final long interval = shortenReplayRetryWarningInterval(domain);
+    try
+    {
+      setReplayGiveUpDelay(TEST_GIVE_UP_DELAY_OVER_FOLDED_DELIVERIES);
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+      Entry tmp = addUserEntry("user.942.given.up");
+      final CSN csn = gen.newCSN();
+      final CSN later = gen.newCSN();
+      ShortCircuitPlugin.registerShortCircuit(
+          OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
+      try
+      {
+        broker.publish(new DeleteMsg(tmp.getName(), csn, getEntryUUID(tmp.getName())));
+        /*
+         * The change is given up on once its budget is spent, which the ServerState
+         * covering a change which was never applied says. The budget outlasts the first
+         * deliveries, so at least one of them was folded into no warning by then: the
+         * delivery which spends the budget is neither warned about nor folded.
+         */
+        waitUntilCovered(domain, csn);
+        Assertions.assertThat(deliveriesSoFar())
+            .as("the budget must have outlasted a delivery which was folded into no warning")
+            .isGreaterThanOrEqualTo(3);
+
+        /*
+         * Another change fails, and the interval is not waited out: only the timestamp of
+         * the throttle is put back, the count is the domain's to keep or to forget.
+         */
+        domain.resetReplayRetryWarningThrottle();
+        broker.publish(new DeleteMsg(tmp.getName(), later, getEntryUUID(tmp.getName())));
+        waitForReplayRetryWarnings(later, 1);
+        Assertions.assertThat(foldedDeliveriesSaidBy(replayRetryWarnings(later).get(0)))
+            .as("the warning after a change was given up on must not count its deliveries")
+            .isEqualTo(0);
+      }
+      catch (Throwable failed)
+      {
+        letTheChangeBeCovered(domain, later, failed);
+        throw failed;
+      }
+      /*
+       * Replayed now that the backend serves again, or given up on: either way it is
+       * covered. The budget is still the short one here, and nothing spends it: a change is
+       * only given up on over a delivery which failed, and none fails once the short circuit
+       * is gone.
+       */
+      letTheChangeBeCovered(domain, later);
+    }
+    finally
+    {
+      // What can not throw first: a cleanup which throws skips the ones after it.
+      domain.setReplayRetryWarningInterval(interval);
+      broker.stop();
+      resetReplayGiveUpDelay();
+    }
+  }
+
+  /**
+   * Test case for [Issue 942]: disabling the domain - for an LDIF import, a restore, or a
+   * backend being taken offline - forgets the deliveries folded into no warning, along
+   * with the changes they were deliveries of.
+   * <p>
+   * The changes listed as pending do not outlive the ServerState the domain saves on its
+   * way down, and the recovery from a failed replay goes with them: the first warning
+   * over the data loaded back must not count the deliveries of a change which is not
+   * listed anymore.
+   */
+  @Test
+  public void aWarningAfterTheDomainWasDisabledDoesNotCountTheDeliveriesBefore() throws Exception
+  {
+    testSetUp("aWarningAfterTheDomainWasDisabledDoesNotCountTheDeliveriesBefore");
+    logger.error(LocalizableMessage.raw("Starting replication test : "
+        + "aWarningAfterTheDomainWasDisabledDoesNotCountTheDeliveriesBefore"));
+
+    final int serverId = 19;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+    final long interval = shortenReplayRetryWarningInterval(domain);
+    try
+    {
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+      Entry tmp = addUserEntry("user.942.disabled");
+      final CSN csn = gen.newCSN();
+      ShortCircuitPlugin.registerShortCircuit(
+          OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
+      try
+      {
+        broker.publish(new DeleteMsg(tmp.getName(), csn, getEntryUUID(tmp.getName())));
+        /*
+         * Three deliveries which fail: the first is warned about, the second is folded
+         * for sure by the time the third is delivered - a delivery is folded once its
+         * attempts are over, and the next one only comes over the session restarted
+         * after that.
+         */
+        waitForDeliveries(3);
+
+        /*
+         * The domain goes down and comes back, the way an import or a restore has it: the
+         * change is not listed anymore, and the replication server sends it again over the
+         * new session, from the ServerState which was saved without it. The throttle is put
+         * back while the domain is down, when nothing fails, so that the first failure over
+         * the data loaded back is warned about straight away - with the count the domain
+         * kept or forgot.
+         */
+        domain.disable();
+        domain.resetReplayRetryWarningThrottle();
+        domain.enable();
+        waitForReplayRetryWarnings(csn, 2);
+        Assertions.assertThat(foldedDeliveriesSaidBy(replayRetryWarnings(csn).get(1)))
+            .as("the first warning after the domain was disabled must not count the deliveries before")
+            .isEqualTo(0);
+      }
+      catch (Throwable failed)
+      {
+        letTheChangeBeCovered(domain, csn, failed);
+        throw failed;
+      }
+      letTheChangeBeCovered(domain, csn);
+    }
+    finally
+    {
+      domain.setReplayRetryWarningInterval(interval);
+      broker.stop();
+    }
+  }
+
+  /**
+   * Test case for [Issue 942]: a change replayed while another one keeps failing does not
+   * forget the deliveries folded into no warning.
+   * <p>
+   * This is what the issue looks like live: one entry which can not be applied here, among
+   * changes which replay perfectly well. Each of those is a change replayed, and the count
+   * is forgotten when a change is replayed - only when nothing is failing anymore, though.
+   * The deliveries folded so far are deliveries of the outage the next warning is about, and
+   * a warning which said {@code 0 further} over them would be a wrong number which looks
+   * right.
+   */
+  @Test
+  public void aReplayOfAnotherChangeDoesNotForgetTheDeliveriesOfTheOneStillFailing()
+      throws Exception
+  {
+    testSetUp("aReplayOfAnotherChangeDoesNotForgetTheDeliveriesOfTheOneStillFailing");
+    logger.error(LocalizableMessage.raw("Starting replication test : "
+        + "aReplayOfAnotherChangeDoesNotForgetTheDeliveriesOfTheOneStillFailing"));
+
+    final int serverId = 19;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+    /*
+     * The interval is left as the server has it, a minute, and only the throttle is put back:
+     * the second warning must be the one let through below, once the other change has been
+     * replayed, so that its count says what the domain kept over that replay. A warning the
+     * interval let through meanwhile would take the count with it.
+     */
+    domain.resetReplayRetryWarningThrottle();
+    try
+    {
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+      Entry tmp = addUserEntry("user.942.failing.alone");
+      final CSN csn = gen.newCSN();
+      ShortCircuitPlugin.registerShortCircuit(
+          OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
+      try
+      {
+        broker.publish(new DeleteMsg(tmp.getName(), csn, getEntryUUID(tmp.getName())));
+        /*
+         * Three deliveries which fail: the first is warned about, the second and the third
+         * are folded. Two folded at the least, so that a count which was kept is told apart
+         * from the one delivery which may be folded between the other change being replayed
+         * and the throttle being put back.
+         *
+         * Waited for by the first attempt of the fourth delivery rather than by the last
+         * attempt of the third: a delivery is folded once its attempts in place are spent,
+         * after the last of them tripped the short circuit, and the fourth delivery only
+         * comes over the session restart the third asks for once it has been folded. A
+         * count read on that last attempt would credit a fold which is not there yet, and
+         * the throttle put back below before it lands would have the third delivery warned
+         * about rather than folded - with the one fold there was.
+         */
+        waitForDeliveryAttempts(3 * IN_PLACE_REPLAY_ATTEMPTS + 1);
+        // Deliveries 2 and 3: delivery 1 was warned about.
+        final int foldedBeforeTheReplay = 2;
+
+        /*
+         * Another entry is added while the delete keeps failing. An add does not depend on
+         * the delete of another entry, so it is replayed - a change made while the delete
+         * is still listed as failing.
+         */
+        final String otherUUID = "94200000-0000-0000-0000-000000000001";
+        final Entry other = TestCaseUtils.makeEntry(
+            "dn: uid=user.942.replayed.meanwhile," + baseDN,
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalPerson",
+            "objectClass: inetOrgPerson",
+            "uid: user.942.replayed.meanwhile",
+            "cn: Aaccf Amar",
+            "sn: Amar",
+            "entryUUID: " + otherUUID);
+        broker.publish(addMsg(gen, other, otherUUID, baseUUID));
+        assertNotNull(getEntry(other.getName(), 10000, true),
+            "the change of another entry must be replayed while the delete keeps failing");
+        /*
+         * The backoff of the session restarts is kept under the same guard as the count:
+         * three deliveries failed, so three restarts ran in a row - the fourth delivery came
+         * over the third - and the replay of the add forgot none of them.
+         */
+        Assertions.assertThat(domain.getConsecutiveSessionRestarts())
+            .as("a replay of another change must not forget the backoff of the one still failing")
+            .isGreaterThanOrEqualTo(3);
+
+        /*
+         * The throttle is put back, so that the next delivery of the delete is warned about
+         * with the count the domain kept - or forgot - over the replay.
+         */
+        domain.resetReplayRetryWarningThrottle();
+        waitForReplayRetryWarnings(csn, 2);
+        Assertions.assertThat(foldedDeliveriesSaidBy(replayRetryWarnings(csn).get(1)))
+            .as("a replay of another change must not forget the deliveries of the one still failing")
+            .isGreaterThanOrEqualTo(foldedBeforeTheReplay);
+      }
+      catch (Throwable failed)
+      {
+        letTheChangeBeCovered(domain, csn, failed);
+        throw failed;
+      }
+      letTheChangeBeCovered(domain, csn);
+    }
+    finally
+    {
+      broker.stop();
+    }
+  }
+
+  /**
+   * Test case for [Issue 942]: giving up on a change while another one keeps failing does
+   * not forget the deliveries folded into no warning either.
+   * <p>
+   * The road a change is given up on when its budget is spent is the road a change no
+   * operation can be built from takes at its first delivery, and that one needs no budget
+   * to be waited out: a message whose modifications can not be decoded is given up on while
+   * the delete which keeps failing is still listed as failing.
+   */
+  @Test
+  public void givingUpOnAnotherChangeDoesNotForgetTheDeliveriesOfTheOneStillFailing()
+      throws Exception
+  {
+    testSetUp("givingUpOnAnotherChangeDoesNotForgetTheDeliveriesOfTheOneStillFailing");
+    logger.error(LocalizableMessage.raw("Starting replication test : "
+        + "givingUpOnAnotherChangeDoesNotForgetTheDeliveriesOfTheOneStillFailing"));
+
+    final int serverId = 19;
+    ReplicationBroker broker =
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
+    final LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+    // The interval is left as the server has it, for the reason the case above gives.
+    domain.resetReplayRetryWarningThrottle();
+    try
+    {
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
+      Entry tmp = addUserEntry("user.942.failing.alone.too");
+      Entry other = addUserEntry("user.942.given.up.meanwhile");
+      final CSN csn = gen.newCSN();
+      ShortCircuitPlugin.registerShortCircuit(
+          OperationType.DELETE, "PreParse", ResultCode.OTHER.intValue());
+      try
+      {
+        broker.publish(new DeleteMsg(tmp.getName(), csn, getEntryUUID(tmp.getName())));
+        // Three deliveries which fail, two of them folded, waited for as in the case above.
+        waitForDeliveryAttempts(3 * IN_PLACE_REPLAY_ATTEMPTS + 1);
+        final int foldedBeforeTheGiveUp = 2;
+
+        /*
+         * A change of another entry which no operation can be built from is given up on at
+         * its first delivery, while the delete is still listed as failing. The count of the
+         * changes this replica gave up on says when it has been.
+         */
+        final long givenUpBefore = getMonitorAttrValue(baseDN, "replayed-updates-failed");
+        broker.publish(
+            undecodableModifyMsg(gen.newCSN(), other.getName(), getEntryUUID(other.getName())));
+        assertMonitorAttrValueEventually(baseDN, "replayed-updates-failed", givenUpBefore + 1,
+            "the change which can not be decoded must be given up on while the delete keeps failing");
+
+        domain.resetReplayRetryWarningThrottle();
+        waitForReplayRetryWarnings(csn, 2);
+        Assertions.assertThat(foldedDeliveriesSaidBy(replayRetryWarnings(csn).get(1)))
+            .as("giving up on another change must not forget the deliveries of the one still failing")
+            .isGreaterThanOrEqualTo(foldedBeforeTheGiveUp);
+      }
+      catch (Throwable failed)
+      {
+        letTheChangeBeCovered(domain, csn, failed);
+        throw failed;
+      }
+      letTheChangeBeCovered(domain, csn);
+    }
+    finally
+    {
+      broker.stop();
+    }
+  }
+
+  /**
+   * Shortens how long the domain does not warn again about a change it asks for again, and
+   * returns the interval to put back in a finally: the domain outlives the test methods,
+   * and none of them can afford the minute of the server.
+   * <p>
+   * The throttle is the domain's too: a change another test was retrying less than an
+   * interval ago would have the first warning of this one folded into its own, so it is put
+   * back as well.
+   *
+   * @param domain the domain of the test
+   * @return the interval the domain had, in milliseconds
+   */
+  private static long shortenReplayRetryWarningInterval(LDAPReplicationDomain domain)
+  {
+    final long interval = domain.getReplayRetryWarningInterval();
+    domain.setReplayRetryWarningInterval(TEST_REPLAY_RETRY_WARNING_INTERVAL_IN_MS);
+    domain.resetReplayRetryWarningThrottle();
+    return interval;
+  }
+
+  /** Adds an entry with the provided uid below the base DN, the entry the change fails on. */
+  private Entry addUserEntry(String uid) throws Exception
+  {
+    return TestCaseUtils.addEntry(
+        "dn: uid=" + uid + "," + baseDN,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: " + uid,
+        "cn: Aaccf Amar",
+        "sn: Amar");
+  }
+
+  /**
+   * Returns how many deliveries of the delete which can not be replayed have failed since
+   * the short circuit was registered: a delivery is attempted
+   * {@link LDAPReplicationDomain#IN_PLACE_REPLAY_ATTEMPTS} times in place before the change
+   * is asked for again, and each attempt trips the short circuit once.
+   *
+   * @return the number of deliveries whose attempts in place are all spent
+   */
+  private static int deliveriesSoFar()
+  {
+    return ShortCircuitPlugin.getShortCircuitCount(OperationType.DELETE, "PreParse")
+        / IN_PLACE_REPLAY_ATTEMPTS;
+  }
+
+  /**
+   * Waits until the delete which can not be replayed has been delivered, and failed, the
+   * provided number of times.
+   *
+   * @param deliveries how many deliveries to wait for
+   * @throws Exception if the deliveries do not come
+   */
+  private static void waitForDeliveries(final int deliveries) throws Exception
+  {
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(60, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        assertTrue(deliveriesSoFar() >= deliveries,
+            "the change was not delivered again after its replay failed: " + deliveriesSoFar()
+                + " deliveries where " + deliveries + " were expected");
+      }
+    });
+  }
+
+  /**
+   * Waits until the delete which can not be replayed has been attempted the provided number
+   * of times, over however many deliveries.
+   * <p>
+   * The first attempt of a delivery is one more than the attempts of the deliveries before
+   * it, and it is what tells that the delivery before it has been warned about or folded:
+   * a delivery is folded once its attempts in place are spent, after the last of them
+   * tripped the short circuit, and the next delivery only comes over the session restart
+   * asked for once it has been. {@link #waitForDeliveries(int)} returns on that last
+   * attempt, before the fold.
+   *
+   * @param attempts how many attempts to wait for
+   * @throws Exception if the attempts do not come
+   */
+  private static void waitForDeliveryAttempts(final int attempts) throws Exception
+  {
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(60, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        final int attemptsSoFar =
+            ShortCircuitPlugin.getShortCircuitCount(OperationType.DELETE, "PreParse");
+        assertTrue(attemptsSoFar >= attempts,
+            "the change was not attempted again after its replay failed: " + attemptsSoFar
+                + " attempts where " + attempts + " were expected");
+      }
+    });
+  }
+
+  /**
+   * Waits until this replica has warned the provided number of times that the provided
+   * change is being asked for again.
+   *
+   * @param csn the CSN of the change whose replay keeps failing
+   * @param warnings how many warnings to wait for
+   * @throws Exception if the warnings do not come
+   */
+  private static void waitForReplayRetryWarnings(final CSN csn, final int warnings)
+      throws Exception
+  {
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(60, SECONDS)
+      .sleepTimes(200, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        assertEquals(replayRetryWarnings(csn).size(), warnings,
+            "a change which keeps failing was not warned about " + warnings + " times");
+      }
+    });
+  }
+
+  /**
+   * Takes the short circuit back and waits until the change it was failing is covered by
+   * the ServerState - replayed now that the backend serves again, or given up on - so that
+   * a case does not leave its change to the next one: a change left failing here would be
+   * the next test's, holding its ServerState back, its session restart backoff up and the
+   * warnings of that test folded into its own.
+   * <p>
+   * Called at the end of a case, and from its catch with the failure when it has one,
+   * rather than from a finally: a wait which expired in a finally would replace the
+   * assertion it was cleaning up after.
+   *
+   * @param domain the domain of the test
+   * @param csn the CSN of the change
+   * @throws Exception if the change is not covered
+   */
+  private static void letTheChangeBeCovered(final LDAPReplicationDomain domain, final CSN csn)
+      throws Exception
+  {
+    ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
+    waitUntilCovered(domain, csn);
+  }
+
+  /**
+   * {@link #letTheChangeBeCovered(LDAPReplicationDomain, CSN)} for a case which failed: the
+   * failure is what is thrown, and what went wrong here is added to it.
+   *
+   * @param domain the domain of the test
+   * @param csn the CSN of the change
+   * @param failed the failure of the case
+   */
+  private static void letTheChangeBeCovered(
+      final LDAPReplicationDomain domain, final CSN csn, final Throwable failed)
+  {
+    try
+    {
+      letTheChangeBeCovered(domain, csn);
+    }
+    catch (Throwable late)
+    {
+      failed.addSuppressed(late);
+    }
+  }
+
+  /**
+   * Waits until the ServerState of the domain covers the provided change: it was replayed
+   * once the backend served again, or given up on.
+   *
+   * @param domain the domain of the test
+   * @param csn the CSN of the change
+   * @throws Exception if the change is not covered
+   */
+  private static void waitUntilCovered(final LDAPReplicationDomain domain, final CSN csn)
+      throws Exception
+  {
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(60, SECONDS)
+      .sleepTimes(200, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        assertTrue(domain.getServerState().cover(csn),
+            "the change must be replayed once the backend serves again, or given up on");
+      }
+    });
+  }
+
+  /**
+   * Returns how many deliveries the provided warning says were folded into no warning of
+   * their own.
+   *
+   * @param warning a warning about a change being asked for again
+   * @return the count the warning carries
+   */
+  private static int foldedDeliveriesSaidBy(String warning)
+  {
+    final Matcher count = Pattern.compile("(\\d+) further deliveries").matcher(warning);
+    assertTrue(count.find(),
+        "the warning does not say how many deliveries it stands for: " + warning);
+    return Integer.parseInt(count.group(1));
+  }
+
+  /**
+   * Returns the warnings this replica logged about the provided change being asked for
+   * again, oldest first.
+   * <p>
+   * The error log of the test server is written to a writer which keeps every record, so
+   * the warnings about one change are the records which carry the ordinal of the message
+   * and the CSN of the change.
+   * <p>
+   * The test server registers two error log publishers over that one writer, so it keeps
+   * every record twice, each copy timestamped by its publisher: a warning is two records
+   * which read the same once the timestamp is left out - the two publishers read the clock
+   * one after the other, and a second which turns over between the two reads would have
+   * one warning counted as two by the records as they are. So what is returned here is the
+   * messages which differ, each as many times as half its records: two warnings which read
+   * the same are two warnings, which happens when the domain was disabled in between and
+   * asks for the change again as one it does not remember.
+   *
+   * @param csn the CSN of the change whose replay keeps failing
+   * @return the warnings which name it, in the order they were first logged
+   */
+  private static List<String> replayRetryWarnings(CSN csn)
+  {
+    final String messageId = "msgID=" + WARN_REPLAY_RETRYING_CHANGE.ordinal();
+    final Map<String, Integer> records = new LinkedHashMap<>();
+    for (String record : TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+    {
+      if (record.contains(messageId) && record.contains(csn.toString()))
+      {
+        records.merge(record.substring(record.indexOf(" msg=")), 1, Integer::sum);
+      }
+    }
+    final List<String> warnings = new ArrayList<>();
+    for (Map.Entry<String, Integer> message : records.entrySet())
+    {
+      for (int i = 0; i < (message.getValue() + 1) / 2; i++)
+      {
+        warnings.add(message.getKey());
+      }
+    }
+    return warnings;
+  }
+
+  /**
    * Test case for [Issue 908]: a domain being disabled - for an LDIF import, a restore, or
    * a backend being taken offline - must not save its ServerState while a replay thread is
    * half way through applying one of its changes.
@@ -4351,7 +5112,8 @@ public class UpdateOperationTest extends ReplicationTestCase
    * <p>
    * The domain outlives the test methods, so a test which shortens the budget puts it back
    * with {@link #resetReplayGiveUpDelay()} in a finally, and calls this one before that
-   * try: the reset then only ever runs on an attribute which is there to be removed.
+   * try or first inside it - the reset then runs on an attribute which is there to be
+   * removed, or finds it gone already, which it takes for the default it was asking for.
    *
    * @param delay
    *          the budget in the duration syntax of the property: {@code 2000ms},
