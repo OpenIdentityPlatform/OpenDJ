@@ -46,6 +46,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SortKey;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn.Scope;
@@ -69,6 +70,7 @@ import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
@@ -574,6 +576,12 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
     return ordinals;
   }
 
+  /** The result code a configuration listener answers a failure it caught with. */
+  private static ResultCode serverErrorResultCode()
+  {
+    return DirectoryServer.getCoreConfigManager().getServerErrorResultCode();
+  }
+
   /**
    * An index a change adds is opened untrusted while the backend holds entries, and the operator is
    * told to rebuild it. That message belongs to the attempt which commits: added to the result from
@@ -676,6 +684,8 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       assertThat(vlvIndex.isTrusted()).isFalse();
       assertThat(persistedFlags(rootContainer, ec, vlvIndex.getName()))
           .as("the flag the attempt which committed had to remove").doesNotContain(TRUSTED);
+      assertThat(vlvIndex.getSortKeys()).as("the definition the committed write published")
+          .containsExactly(new SortKey("sn", false));
 
       // The definition the change applied is the one this vlvIndex holds from now on, so asking for
       // it a second time asks for nothing, and opens no transaction to commit nothing.
@@ -752,10 +762,63 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       backend.storage.failWithoutReplayOnWrite(3);
       final ConfigChangeResult ccr = index.applyConfigurationChange(indexCfg(newTreeSet(IndexType.EQUALITY), 8000));
 
-      assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.getResultCode()).isEqualTo(serverErrorResultCode());
       assertThat(ccr.adminActionRequired()).as("the rebuild the raised limit needs, on the road which failed").isTrue();
       assertThat(ordinalsOf(ccr)).contains(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.ordinal());
+      assertThat(ccr.getMessages().toString()).as("the failure, next to the rebuild")
+          .contains(UnreplayableFailure.class.getSimpleName());
       assertThat(cnIndex.getIndexEntryLimit()).as("the limit the failed write did not apply").isEqualTo(4000);
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName()))
+          .as("what the restart will read").contains(TRUSTED);
+
+      // The limit the failed write did not apply is still a change when asked for again: the
+      // configuration this attribute index holds was replaced before the write which gave up, and
+      // what the new one asks of the index is asked of the index, not of that configuration.
+      final ConfigChangeResult again = index.applyConfigurationChange(indexCfg(newTreeSet(IndexType.EQUALITY), 8000));
+      assertThat(again.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(again.adminActionRequired()).as("the limit the failed write did not apply is still a change").isTrue();
+      assertThat(ordinalsOf(again)).containsOnly(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.ordinal());
+      assertThat(cnIndex.getIndexEntryLimit()).as("the limit the change applied").isEqualTo(8000);
+      assertThat(cnIndex.isTrusted()).isFalse();
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).doesNotContain(TRUSTED);
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * The same instruction survives a give-up on the first of the three writes, the one which opens
+   * the indexes the change adds - opened here with none to add: it is asked for before any of the
+   * writes, not only before the one which untrusts the index, since the configuration entry holds
+   * the raised limit whichever of them fails.
+   */
+  @Test
+  public void aRaisedEntryLimitIsReportedWhenTheWriteWhichAddsIndexesGivesUp() throws Exception
+  {
+    final ReplayingBackend backend = openBackend(newTreeSet(KEPT));
+    try
+    {
+      final RootContainer rootContainer = backend.getRootContainer();
+      final EntryContainer ec = rootContainer.getEntryContainer(KEPT);
+      final AttributeIndex index = ec.getAttributeIndex(cnType);
+      final MatchingRuleIndex cnIndex = index.getNameToIndexes().values().iterator().next();
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).contains(TRUSTED);
+
+      final int writesBefore = backend.storage.writes();
+      backend.storage.failWithoutReplayOnWrite(1);
+      final ConfigChangeResult ccr = index.applyConfigurationChange(indexCfg(newTreeSet(IndexType.EQUALITY), 8000));
+
+      assertThat(backend.storage.writes()).as("the armed write was the first of three, and the last one made")
+          .isEqualTo(writesBefore + 1);
+      assertThat(ccr.getResultCode()).isEqualTo(serverErrorResultCode());
+      assertThat(ccr.adminActionRequired()).as("the rebuild the raised limit needs, asked for before the first write")
+          .isTrue();
+      assertThat(ordinalsOf(ccr)).contains(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.ordinal());
+      assertThat(ccr.getMessages().toString()).as("the failure, next to the rebuild")
+          .contains(UnreplayableFailure.class.getSimpleName());
+      assertThat(cnIndex.getIndexEntryLimit()).as("the limit the failed change did not apply").isEqualTo(4000);
       assertThat(persistedFlags(rootContainer, ec, cnIndex.getName()))
           .as("what the restart will read").contains(TRUSTED);
     }
@@ -814,18 +877,24 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       backend.storage.failWithoutReplay();
       final ConfigChangeResult ccr = vlvIndex.applyConfigurationChange(vlvIndexCfg("+sn"));
 
-      assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.getResultCode()).isEqualTo(serverErrorResultCode());
       assertThat(ccr.adminActionRequired())
           .as("the rebuild the new sort order needs, on the road which failed").isTrue();
       assertThat(ordinalsOf(ccr)).contains(NOTE_INDEX_ADD_REQUIRES_REBUILD.ordinal());
+      assertThat(ccr.getMessages().toString()).as("the failure, next to the rebuild")
+          .contains(UnreplayableFailure.class.getSimpleName());
       assertThat(persistedFlags(rootContainer, ec, vlvIndex.getName()))
           .as("what the restart will read").contains(TRUSTED);
+      assertThat(vlvIndex.getSortKeys()).as("the definition the failed write did not publish")
+          .containsExactly(new SortKey("cn", false));
 
       // The definition the failed change did not publish is still a change when asked for again.
       final ConfigChangeResult again = vlvIndex.applyConfigurationChange(vlvIndexCfg("+sn"));
       assertThat(again.getResultCode()).isEqualTo(ResultCode.SUCCESS);
       assertThat(again.adminActionRequired()).as("the definition the failed write did not publish").isTrue();
       assertThat(persistedFlags(rootContainer, ec, vlvIndex.getName())).doesNotContain(TRUSTED);
+      assertThat(vlvIndex.getSortKeys()).as("the definition the write which committed published")
+          .containsExactly(new SortKey("sn", false));
     }
     finally
     {

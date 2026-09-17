@@ -384,6 +384,12 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     return trusted;
   }
 
+  /** The sort keys this vlvIndex encodes its keys with: the definition the last committed change published. */
+  List<SortKey> getSortKeys()
+  {
+    return sortKeys;
+  }
+
   synchronized void setTrusted(final WriteableTransaction txn, final boolean trusted) throws StorageRuntimeException
   {
     this.trusted = trusted;
