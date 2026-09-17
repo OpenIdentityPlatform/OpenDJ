@@ -1022,6 +1022,8 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     final List<MatchingRuleIndex> discarded = new ArrayList<>();
     try
     {
+      final boolean confidentialityChanged =
+          config.isConfidentialityEnabled() != newConfiguration.isConfidentialityEnabled();
       final Map<String, MatchingRuleIndex> newIndexIdToIndexes = buildIndexes(entryContainer, state, newConfiguration,
           cryptoSuite);
 
@@ -1034,12 +1036,17 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       final Map<String, MatchingRuleIndex> updatedIndexes = new HashMap<>(indexIdToIndexes);
       updatedIndexes.keySet().retainAll(newIndexIdToIndexes.keySet());
 
+      // A change of the confidentiality gives up the trees of the indexes which are kept - see
+      // planIndexUpdates(). An index whose every tree is replaced, as enabling the confidentiality of
+      // an equality index does, has none of those, and so has nothing to give up or to open again.
+      final boolean treesGivenUp = confidentialityChanged && !updatedIndexes.isEmpty();
+
       // Replace instances of Index created by buildIndexes() with the one already opened and present in the actual
       // indexIdToIndexes
       newIndexIdToIndexes.putAll(updatedIndexes);
 
       // What the new configuration asks of the indexes which stay is decided here, before any of
-      // the three writes below, and reported here as well. Decided before the write which applies
+      // the writes below, and reported here as well. Decided before the write which applies
       // it: neither the entry limit an index holds nor its in-memory trusted flag is rolled back
       // with the transaction, while the removal of the persisted TRUSTED flag is, so an attempt
       // which rolls back would leave the raised limit in place, and a replay of it would compare
@@ -1051,7 +1058,8 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       // Only the limit itself waits for the write which untrusts the index to commit.
       final List<Index> indexesToUntrust = new ArrayList<>();
       final List<LocalizableMessage> rebuildMessages = new ArrayList<>();
-      planIndexUpdates(updatedIndexes.values(), newConfiguration, indexesToUntrust, rebuildMessages);
+      planIndexUpdates(updatedIndexes.values(), newConfiguration, confidentialityChanged, indexesToUntrust,
+          rebuildMessages);
       for (LocalizableMessage rebuildMessage : rebuildMessages)
       {
         ccr.setAdminActionRequired(true);
@@ -1077,6 +1085,16 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
             }
           }
         });
+      }
+
+      // The confidentiality of an index is carried by the CryptoSuite the indexes of its attribute
+      // share, and read from that suite by every index which opens a tree, so the new setting has to
+      // be in force before the indexes added below bind their codecs to it. Applied outside the
+      // writes, which the storage may replay: it changes a live object rather than the storage, and
+      // is idempotent.
+      if (confidentialityChanged)
+      {
+        entryContainer.setIndexConfidentiality(cryptoSuite, newConfiguration.isConfidentialityEnabled());
       }
 
       // Open added indexes *before* adding them to indexIdToIndexes
@@ -1139,23 +1157,45 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
         entryContainer.unlock();
       }
 
-      // The only part of what the indexes which stay are asked for that is written down. A change
-      // which untrusts none of them - a lowered limit - opens no transaction, rather than one a
-      // bounded storage could give up on with nothing to give up; VLVIndex guards its write the
-      // same way.
-      if (!indexesToUntrust.isEmpty())
+      if (treesGivenUp)
       {
-        entryContainer.getRootContainer().getStorage().write(new WriteOperation()
+        // No query may be reading a tree which is being given up and opened again below - the same
+        // exclusive access the removal of an index takes.
+        entryContainer.lock();
+        try
         {
-          @Override
-          public void run(WriteableTransaction txn) throws Exception
+          writeUntrust(indexesToUntrust, true);
+          // In a write of its own, since the storage engines delete and create the tree of an index as
+          // operations of their own - as removing and adding an index does - rather than as a deletion
+          // and a creation one transaction carries together. The write above is the one which untrusts
+          // and deletes, so a change interrupted in between leaves an index the next open of this
+          // container creates empty and keeps degraded, rather than a trusted one holding nothing.
+          entryContainer.getRootContainer().getStorage().write(new WriteOperation()
           {
-            for (final Index updatedIndex : indexesToUntrust)
+            @Override
+            public void run(WriteableTransaction txn) throws Exception
             {
-              updatedIndex.setTrusted(txn, false);
+              for (final MatchingRuleIndex updatedIndex : updatedIndexes.values())
+              {
+                // Which is what binds the codec of the index to the confidentiality now in force.
+                updatedIndex.open(txn, true);
+              }
             }
-          }
-        });
+          });
+        }
+        finally
+        {
+          entryContainer.unlock();
+        }
+      }
+      else if (!indexesToUntrust.isEmpty())
+      {
+        // The only part of what the indexes which stay are asked for that is written down. A change
+        // which untrusts none of them - a lowered limit - opens no transaction, rather than one a
+        // bounded storage could give up on with nothing to give up; VLVIndex guards its write the
+        // same way. A change of the entry limit alone leaves the trees where they are, and needs no
+        // exclusive access of its own.
+        writeUntrust(indexesToUntrust, false);
       }
       for (final Index updatedIndex : updatedIndexes.values())
       {
@@ -1190,6 +1230,41 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
   }
 
   /**
+   * Untrusts the indexes which are kept and may no longer be trusted, in a write of its own, and,
+   * when the confidentiality changed, gives up their trees in that same write.
+   */
+  private void writeUntrust(final List<Index> indexesToUntrust, final boolean treesGivenUp) throws Exception
+  {
+    entryContainer.getRootContainer().getStorage().write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        for (final Index updatedIndex : indexesToUntrust)
+        {
+          updatedIndex.setTrusted(txn, false);
+          if (treesGivenUp)
+          {
+            /*
+             * What this tree holds was written in the encoding of the setting which has just been given
+             * up, and the codec of the new one does not read it back as what it is: an encrypted record
+             * read as clear text decodes to an empty set of entry IDs rather than failing, which is a
+             * search answered with no entries at all. So the tree is given up here rather than left to
+             * the rebuild this change asks for, leaving an index which answers "undefined" - and is
+             * therefore not used - until that rebuild has run.
+             *
+             * Deleted rather than emptied record by record, which for an index of any size would be a
+             * transaction of its own making. The state record of the index is kept, so the tree the
+             * caller opens again is written back in the serialization this one was created with.
+             */
+            updatedIndex.delete(txn);
+          }
+        }
+      }
+    });
+  }
+
+  /**
    * Opens an index this change adds, and answers whether it has to be rebuilt before it is used.
    * Answered to the caller rather than reported from here: this runs inside a {@link WriteOperation}
    * the storage may replay, and the report belongs to the attempt which commits.
@@ -1207,7 +1282,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
    * the same answer on every attempt.
    */
   private static void planIndexUpdates(Collection<MatchingRuleIndex> updatedIndexes, BackendIndexCfg newConfig,
-      List<Index> indexesToUntrust, List<LocalizableMessage> rebuildMessages)
+      boolean confidentialityChanged, List<Index> indexesToUntrust, List<LocalizableMessage> rebuildMessages)
   {
     for (Index updatedIndex : updatedIndexes)
     {
@@ -1217,14 +1292,12 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       {
         rebuildMessages.add(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(updatedIndex.getName()));
       }
-      // This index could still be used when disabling confidentiality. Asked rather than told: for an
-      // index this only compares the configuration with the parameters its crypto suite holds.
-      boolean newConfidentialityRequiresRebuild = updatedIndex.setConfidential(newConfig.isConfidentialityEnabled());
-      if (newConfidentialityRequiresRebuild)
+      // A change of the confidentiality gives up the tree of this index, whichever way it goes.
+      if (confidentialityChanged)
       {
         rebuildMessages.add(NOTE_CONFIG_INDEX_CONFIDENTIALITY_REQUIRES_REBUILD.get(updatedIndex.getName()));
       }
-      if (newLimitRequiresRebuild || newConfidentialityRequiresRebuild)
+      if (newLimitRequiresRebuild || confidentialityChanged)
       {
         indexesToUntrust.add(updatedIndex);
       }
