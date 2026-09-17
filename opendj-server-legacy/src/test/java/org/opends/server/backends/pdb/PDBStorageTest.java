@@ -22,6 +22,7 @@ import static org.forgerock.opendj.config.ConfigurationMock.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
 
+import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.opendj.config.server.ConfigException;
@@ -37,6 +38,7 @@ import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.MemoryQuota;
 import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
@@ -501,6 +503,43 @@ public class PDBStorageTest extends DirectoryServerTestCase
     assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
     // Still open: a read reaches the database.
     assertThat(read("missing")).isNull();
+  }
+
+  /**
+   * An open which fails once the database is open gives the database back with the rest: the
+   * volume, or no later open of the backend can take it, and the monitor the open registered. The
+   * disk monitor is the one thing past the database open that a test can refuse.
+   */
+  @Test
+  public void aStorageWhoseOpenFailedAfterItsDatabaseOpenedGivesTheDatabaseBack() throws Exception
+  {
+    // The volume of setUp() is given up first: held, it fails the open before the database is built.
+    closeAndRemove(storage);
+    final DiskSpaceMonitor refusing = mock(DiskSpaceMonitor.class);
+    doThrow(new IllegalStateException("the directory cannot be monitored"))
+        .when(refusing).registerMonitoredDirectory(anyString(), any(File.class), anyLong(), anyLong(), any());
+    when(serverContext.getDiskSpaceMonitor()).thenReturn(refusing);
+    final PDBBackendCfg cfg = createBackendCfg();
+    final PDBStorage second = new PDBStorage(cfg, serverContext);
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    final long availableBefore = quota.getAvailableMemory();
+    try
+    {
+      second.open(AccessMode.READ_WRITE);
+      fail("the storage was expected not to open when its directory cannot be monitored");
+    }
+    catch (IllegalStateException expected)
+    {
+      // What the failure past the database open does.
+    }
+
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
+    verify(cfg).removePDBChangeListener(second);
+    assertThat(DirectoryServer.getMonitorProviders()).doesNotContainKey("pdbstoragetest pdb database");
+    // The volume was given back: a storage over the same directory opens.
+    when(serverContext.getDiskSpaceMonitor()).thenReturn(mock(DiskSpaceMonitor.class));
+    storage = new PDBStorage(createBackendCfg(), serverContext);
+    storage.open(AccessMode.READ_WRITE);
   }
 
   private void createTree() throws Exception

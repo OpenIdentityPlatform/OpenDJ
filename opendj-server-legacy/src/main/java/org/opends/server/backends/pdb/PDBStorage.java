@@ -1102,24 +1102,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   @Override
   public void close()
   {
-    if (db != null)
-    {
-      // Not yet registered when a failed open got no further than the database itself.
-      if (monitor != null)
-      {
-        DirectoryServer.deregisterMonitorProvider(monitor);
-        monitor = null;
-      }
-      try
-      {
-        db.close();
-        db = null;
-      }
-      catch (final PersistitException e)
-      {
-        throw new IllegalStateException(e);
-      }
-    }
+    // Given back ahead of the database, so that a database whose close fails keeps nothing else.
     if (memQuota != null)
     {
       if (config.getDBCacheSize() > 0)
@@ -1139,6 +1122,24 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     if (diskMonitor != null)
     {
       diskMonitor.deregisterMonitoredDirectory(getDirectory(), this);
+    }
+    if (db != null)
+    {
+      // Not yet registered when a failed open got no further than the database itself.
+      if (monitor != null)
+      {
+        DirectoryServer.deregisterMonitorProvider(monitor);
+        monitor = null;
+      }
+      try
+      {
+        db.close();
+        db = null;
+      }
+      catch (final PersistitException e)
+      {
+        throw new IllegalStateException(e);
+      }
     }
   }
 

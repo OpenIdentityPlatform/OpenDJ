@@ -182,7 +182,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    * @param storageOpened whether the storage opened, which is false on one road only: its
    *          {@code open()} threw. A storage whose open failed is not one this container can
    *          close - what that open took before it failed is the storage's own to give back, as
-   *          {@code PDBStorage.open} and {@code JDBCStorage.open} do - and there is no other: every
+   *          {@code PDBStorage}, {@code JEStorage} and {@code JDBCStorage} do - and there is no other: every
    *          root container is opened over a storage no root container holds, since
    *          {@code BackendImpl} opens one, read only or not, only while it has none.
    */
