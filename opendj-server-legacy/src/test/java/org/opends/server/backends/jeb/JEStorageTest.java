@@ -23,18 +23,25 @@ import static org.forgerock.opendj.ldap.ByteString.valueOfUtf8;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.opends.messages.BackendMessages.NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART;
 import static org.opends.server.util.CollectionUtils.newTreeSet;
+import static org.opends.server.util.StaticUtils.MB;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.server.JEBackendCfg;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
@@ -89,6 +96,8 @@ public class JEStorageTest extends DirectoryServerTestCase
   private static final String LOCK_TIMEOUT_LONGER_THAN_SHORT_WINDOW = "300 ms";
   /** How long a test waits for a thread it started, in seconds; well past any bound the tests configure. */
   private static final long WAIT_SECONDS = 60;
+  /** A cache size the quota of the test JVM grants several times over, in bytes. */
+  private static final long SMALL_CACHE = 64L * MB;
 
   private final TreeName treeName = new TreeName("dc=test", "test");
   private ServerContext serverContext;
@@ -243,6 +252,129 @@ public class JEStorageTest extends DirectoryServerTestCase
     assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
     // Still open: a read reaches the environment.
     assertThat(read("missing")).isNull();
+  }
+
+  /**
+   * A cache size changed while the storage is open is given back as it was taken: the close
+   * releases what the open reserved, not what the configuration says by then. Read from the
+   * configuration at both ends, a change in between drifts the quota by the difference for the
+   * life of the JVM - the open which follows reserves the new size and pays nothing back.
+   */
+  @Test
+  public void aCacheGrownWhileOpenIsGivenBackAsItWasTaken() throws Exception
+  {
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    closeAndRemove(storage);
+    final long availableBefore = quota.getAvailableMemory();
+    storage = new JEStorage(createBackendCfg(SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore - SMALL_CACHE);
+
+    storage.applyConfigurationChange(createBackendCfg(2 * SMALL_CACHE));
+    storage.close();
+
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
+  }
+
+  /** The shrink is the same drift the other way: the difference stays reserved by nobody. */
+  @Test
+  public void aCacheShrunkWhileOpenIsGivenBackAsItWasTaken() throws Exception
+  {
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    closeAndRemove(storage);
+    final long availableBefore = quota.getAvailableMemory();
+    storage = new JEStorage(createBackendCfg(2 * SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+
+    storage.applyConfigurationChange(createBackendCfg(SMALL_CACHE));
+    storage.close();
+
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
+  }
+
+  /**
+   * The cache is sized when the environment opens and this storage never resizes it, so a change
+   * of the cache size is applied by the next open of the backend - and the operator is told so,
+   * rather than that the change applied.
+   */
+  @Test
+  public void aCacheSizeChangedWhileOpenAsksForARestart() throws Exception
+  {
+    closeAndRemove(storage);
+    storage = new JEStorage(createBackendCfg(SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(createBackendCfg(2 * SMALL_CACHE));
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isTrue();
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.ordinal());
+    assertThat(ccr.getMessages().get(0).toString()).isEqualTo(
+        NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.get(BACKEND_ID, SMALL_CACHE, 2 * SMALL_CACHE).toString());
+  }
+
+  /** A change which leaves the cache size alone asks for nothing, as before. */
+  @Test
+  public void aChangeWhichLeavesTheCacheSizeAloneAsksForNothing() throws Exception
+  {
+    closeAndRemove(storage);
+    storage = new JEStorage(createBackendCfg(SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    final JEBackendCfg unchangedCache = createBackendCfg(SMALL_CACHE);
+    when(unchangedCache.isDBTxnNoSync()).thenReturn(true);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(unchangedCache);
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isFalse();
+    assertThat(ccr.getMessages()).isEmpty();
+  }
+
+  /**
+   * A change of the cache size is admitted against what the storage holds of the quota, which is
+   * what the next open has to add to. Once a change has been admitted but not applied, the
+   * configuration says the new size while the reservation is still the old one, and a check
+   * against the configuration would admit a second change the server has no memory for.
+   */
+  @Test
+  public void aCacheSizeChangeIsAdmittedAgainstWhatTheStorageHolds() throws Exception
+  {
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    closeAndRemove(storage);
+    storage = new JEStorage(createBackendCfg(SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    storage.applyConfigurationChange(createBackendCfg(2 * SMALL_CACHE));
+    // Room for two caches and a bit: the difference to the configured size, not to the reserved one.
+    assertThat(quota.acquireMemory(quota.getAvailableMemory() - 2 * SMALL_CACHE - MB)).isTrue();
+
+    final List<LocalizableMessage> reasons = new ArrayList<>();
+    assertThat(storage.isConfigurationChangeAcceptable(createBackendCfg(4 * SMALL_CACHE), reasons))
+        .as("four caches, with one reserved and two and a bit free").isFalse();
+    assertThat(storage.isConfigurationChangeAcceptable(createBackendCfg(3 * SMALL_CACHE), reasons))
+        .as("three caches, with one reserved and two and a bit free").isTrue();
+  }
+
+  /**
+   * A reservation the quota refused is not given back on close. The open goes ahead without it -
+   * the quota is a budget, not a lock - but a close which released what was never taken would
+   * hand the quota memory the server does not have.
+   */
+  @Test
+  public void aReservationTheQuotaRefusedIsNotGivenBackOnClose() throws Exception
+  {
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    closeAndRemove(storage);
+    // Half a cache left in the quota: the reservation of a whole one is refused.
+    assertThat(quota.acquireMemory(quota.getAvailableMemory() - SMALL_CACHE / 2)).isTrue();
+    final long availableBefore = quota.getAvailableMemory();
+    storage = new JEStorage(createBackendCfg(SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
+
+    storage.close();
+
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
   }
 
   /** A storage whose directory is a regular file, which no open of it can use. */
@@ -757,12 +889,18 @@ public class JEStorageTest extends DirectoryServerTestCase
 
   private static JEBackendCfg createBackendCfg()
   {
+    return createBackendCfg(0L);
+  }
+
+  /** A configuration whose cache is the given size in bytes, or a fifth of the quota when it is zero. */
+  private static JEBackendCfg createBackendCfg(long cacheSize)
+  {
     final JEBackendCfg backendCfg = mockCfg(JEBackendCfg.class);
     when(backendCfg.dn()).thenReturn(DN.valueOf("ds-cfg-backend-id=" + BACKEND_ID + ",cn=Backends,cn=config"));
     when(backendCfg.getBackendId()).thenReturn(BACKEND_ID);
     when(backendCfg.getDBDirectory()).thenReturn(BACKEND_ID);
     when(backendCfg.getDBDirectoryPermissions()).thenReturn("755");
-    when(backendCfg.getDBCacheSize()).thenReturn(0L);
+    when(backendCfg.getDBCacheSize()).thenReturn(cacheSize);
     when(backendCfg.getDBCachePercent()).thenReturn(20);
     when(backendCfg.getDBNumCleanerThreads()).thenReturn(2);
     when(backendCfg.getDBNumLockTables()).thenReturn(63);
