@@ -1100,6 +1100,15 @@ public class BackendStat
     }
   }
 
+  /**
+   * Whether a key holding this many entries has come near the entry limit of its index. An
+   * index-entry-limit of 0 is no limit at all, and no key is near it.
+   */
+  static boolean nearLimit(long size, long entryLimit)
+  {
+    return entryLimit > 0 && size >= entryLimit * 0.8;
+  }
+
   private void appendIndexStats(final TableBuilder builder, EntryContainer ec, final Index index,
       final Map<Index, StringBuilder> undefinedKeys)
   {
@@ -1136,7 +1145,7 @@ public class BackendStat
 
               if (entryIDSet.isDefined())
               {
-                if (entryIDSet.size() >= entryLimit * 0.8)
+                if (nearLimit(entryIDSet.size(), entryLimit))
                 {
                   if (entryIDSet.size() >= entryLimit * 0.95)
                   {
