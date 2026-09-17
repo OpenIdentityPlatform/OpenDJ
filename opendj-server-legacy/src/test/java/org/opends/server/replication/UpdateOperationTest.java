@@ -3289,12 +3289,12 @@ public class UpdateOperationTest extends ReplicationTestCase
    * replay it was handed to is unwound.
    * <p>
    * A change which was parked behind another one is handed out by {@code getNextUpdate()}
-   * to the thread which cleared what it was waiting for, and that thread owns it from then
-   * on. The give-back on the way out of an unwound replay asks which change this thread
-   * owns, so the hand-out has to be recorded where that question is answered, not only on
-   * the change: left out, the change would stay owned by a thread which is not replaying
-   * it anymore, and every later delivery of it would be refused as a duplicate - the wedge
-   * of this issue, on the dependency road.
+   * to whichever thread calls it first once the changes before it are gone, and that
+   * thread owns it from then on. The give-back on the way out of an unwound replay asks
+   * which change this thread owns, so the hand-out has to be recorded where that question
+   * is answered, not only on the change: left out, the change would stay owned by a thread
+   * which is not replaying it anymore, and every later delivery of it would be refused as
+   * a duplicate - the wedge of this issue, on the dependency road.
    * <p>
    * The parent is held at the pre-parse plugin point while the child is delivered, and it
    * is let go only once the child is seen parked behind it: that is what says the child was
@@ -3355,7 +3355,13 @@ public class UpdateOperationTest extends ReplicationTestCase
           {
             return false;
           }
-          replayingChild.set(Thread.currentThread());
+          /*
+           * The first replay of the child is the one which meets the Error, and it is the
+           * one kept: this is evaluated ahead of the budget of the throw, so it runs on the
+           * by-hand redelivery below too, which must not overwrite the thread the
+           * assertion of issue #923 is about.
+           */
+          replayingChild.compareAndSet(null, Thread.currentThread());
           return true;
         },
         () -> new LinkageError("the replay of the change which was handed out meets an Error"),
@@ -3609,7 +3615,8 @@ public class UpdateOperationTest extends ReplicationTestCase
    * A change which waits for another one is parked and stays owned by the replay thread
    * which parked it, while that thread goes on to the changes which follow: it is handed
    * out again by {@code getNextUpdate()}, which every replay loop of this domain runs once
-   * it is done, so it is replayed by whichever thread clears the change it was waiting for.
+   * it is done, so it is replayed by whichever thread calls it first once the change it was
+   * waiting for is gone - the thread which cleared it, as a rule.
    * A replay which is unwound leaves the thread which parked it without that road - it
    * takes the next delivery off the shared queue instead, and never comes back to the
    * change it parked - and every redelivery of a change a replay thread owns is refused as
@@ -3745,8 +3752,8 @@ public class UpdateOperationTest extends ReplicationTestCase
                   + " it restarts the session for the changes it gave back");
 
           /*
-           * The barrier is lifted, which lets the ServerState past it and hands the parked
-           * change to the thread which cleared it.
+           * The barrier is lifted, which lets the ServerState past it and has the parked
+           * change handed out.
            */
           giveUpOn(domain, failing, waitedOn, failingMods, waitedOnUUID);
           checkEntryHasAttributeValue(waitedOn, "description", parkedDescription, 30,

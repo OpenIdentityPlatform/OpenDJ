@@ -94,8 +94,9 @@ final class RemotePendingChanges
    * this issue is about (issue #922).
    * <p>
    * A thread is entered here when it takes a change over and removed when it gives it back,
-   * applies it, or parks it as waiting for another change - a parked change is not the one
-   * this thread is replaying, and giving it back is
+   * applies it, or parks it as waiting for another change - a parked one is handed out by
+   * {@link #getNextUpdate()} to whichever thread calls it first once the changes before it
+   * are gone, which enters it here again, and giving it back is
    * {@link #releaseParkedChangesOwnedByCurrentThread()}, which reads the changes which are
    * waiting rather than this index (issue #954).
    * <p>
@@ -551,10 +552,11 @@ final class RemotePendingChanges
    * Returns the CSN of the change the calling thread is replaying, when it still owns one.
    * <p>
    * A thread owns the change it is replaying and the ones it parked as waiting for another
-   * change. The parked ones are left out: they are not the change this thread is replaying,
-   * and giving one back is more than dropping its owner - it has to be unparked in the same
-   * step, or it would be handed out by two roads at once, which is what
-   * {@link #releaseParkedChangesOwnedByCurrentThread()} does (issues #922 and #954).
+   * change. The parked ones are left out: they are handed out by {@link #getNextUpdate()}
+   * to whichever thread calls it first once the changes before them are gone, and that
+   * thread takes them over, so giving one back is more than dropping its owner - it has to
+   * be unparked in the same step, or it would be handed out by two roads at once, which is
+   * what {@link #releaseParkedChangesOwnedByCurrentThread()} does (issues #922 and #954).
    * <p>
    * It is a plain read of {@link #changeBeingReplayed}: no lock is taken and nothing is
    * allocated. This is what the give-back on the way out of an unwound replay asks first,
@@ -767,11 +769,13 @@ final class RemotePendingChanges
       }
       /*
        * Whichever of the two it was, this thread is not replaying that change anymore: a
-       * parked one is handed to the thread which clears what it waits for, and one which is
-       * not listed here anymore is gone with the pending changes of a domain which was
-       * disabled. The owner stays as it is - it is what has getNextUpdate() hand the change
-       * over rather than leave it to nobody - and the give-back of the change a replay was
-       * unwound on leaves it alone (issue #922). What hands a parked change back is
+       * parked one is handed to whichever thread calls getNextUpdate() first once the
+       * changes before it are gone - the clearing thread as a rule, this one when the
+       * clearing lands before it gets there - and one which is not listed here anymore is
+       * gone with the pending changes of a domain which was disabled. The owner stays as it
+       * is - it is what has getNextUpdate() hand the change over rather than leave it to
+       * nobody - and the give-back of the change a replay was unwound on leaves it alone
+       * (issue #922). What hands a parked change back is
        * releaseParkedChangesOwnedByCurrentThread(), which unparks it in the same step so
        * that the two roads can not hand it out at once (issue #954).
        */

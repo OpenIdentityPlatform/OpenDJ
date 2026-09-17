@@ -529,12 +529,13 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
   }
 
   /**
-   * A change which was parked because it depends on another one is handed to whichever
-   * replay thread clears the change it was waiting for, rather than replayed by the
-   * thread which parked it. The thread it is handed to is the one which owns it from
-   * then on: the failure of the replay it is about to be given is reported by that
-   * thread, and a give-back which comes from a thread the change was never handed to is
-   * ignored (issue #922).
+   * A change which was parked because it depends on another one is handed out by
+   * {@code getNextUpdate()} to whichever replay thread calls it first once the change it
+   * was waiting for is gone, rather than replayed by the thread which parked it as a
+   * matter of course. The thread it is handed to is the one which owns it from then on:
+   * the failure of the replay it is about to be given is reported by that thread, and a
+   * give-back which comes from a thread the change was never handed to is ignored (issue
+   * #922).
    * <p>
    * The hand-out is what the give-back on the way out of an unwound replay must read as
    * well as the owner: a change handed out by {@code getNextUpdate()} whose replay is then
@@ -562,7 +563,8 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
     assertTrue(pendingChanges.checkDependencies(rename),
         "the rename must wait for the delete of the entry it renames into");
 
-    // The delete has been replayed, so the rename is handed to the thread which replayed it.
+    // The delete has been replayed, so the rename is handed out to whichever thread calls
+    // getNextUpdate() next - here, one which replayed nothing.
     pendingChanges.commit(deleted);
 
     final AtomicReference<LDAPUpdateMsg> taken = new AtomicReference<>();
@@ -671,12 +673,13 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
 
   /**
    * The change a thread parked as waiting for another one is not the change it is
-   * replaying: it is handed to whichever thread clears what it waits for, so the give-back
-   * of the change a replay was unwound on must leave it alone. Releasing it without taking
-   * it out of the changes which are waiting would have the same change handed to two
-   * threads (issue #922) - which is why the parked ones are given back on a road of their
-   * own, {@link RemotePendingChanges#releaseParkedChangesOwnedByCurrentThread()}, where
-   * both happen in one step (issue #954).
+   * replaying: it is handed out by {@code getNextUpdate()} to whichever thread calls it
+   * first once what it waits for is gone, so a give-back on the way out of an unwound
+   * replay must leave it alone. Releasing it without taking it out of the changes which
+   * are waiting would have the same change handed to two threads (issue #922) - which is
+   * why the parked ones are given back on a road of their own,
+   * {@link RemotePendingChanges#releaseParkedChangesOwnedByCurrentThread()}, where both
+   * happen in one step (issue #954).
    * <p>
    * The deliveries are taken in the order a replay thread takes them: one at a time, off
    * the queue the pool shares. So the change which is parked here is parked by the thread
@@ -719,7 +722,7 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
 
     assertNull(pendingChanges.getChangeOwnedByCurrentThread(),
         "a change this thread parked as waiting for another one is not one it gives back:"
-            + " it is handed to whichever thread clears what it waits for");
+            + " it is handed out by getNextUpdate() once what it waits for is gone");
 
     // The delivery this thread took once the change it parked was out of its hands.
     final DeleteMsg next = deleteMsg(taken, "uuid-3");
@@ -797,7 +800,7 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
     pendingChanges.commit(deleted);
 
     assertSame(pendingChanges.getNextUpdate(), rename,
-        "the change which was waiting must be handed to the thread which cleared it");
+        "the change which was waiting must be handed out once what it waited for is gone");
     assertNull(pendingChanges.getNextUpdate(),
         "a change which has been handed out must not be handed out again");
   }
@@ -807,13 +810,13 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
    * when the replay which parked it is unwound.
    * <p>
    * A parked change stays owned by the thread which parked it, and is handed out again by
-   * {@link RemotePendingChanges#getNextUpdate()} to whichever thread clears the change it
-   * waits for. A replay which is unwound - a JVM out of memory, a throw from what the replay
-   * runs once the ack of its delivery is out - leaves that thread without a road back to the
-   * change: it takes the next delivery off the queue instead. Nothing else asks for the
-   * change either, since every redelivery of a change a replay thread owns is refused as a
-   * duplicate, so this domain's ServerState would stay behind it until some other change is
-   * replayed on this domain.
+   * {@link RemotePendingChanges#getNextUpdate()} to whichever thread calls it first once the
+   * change it waits for is gone. A replay which is unwound - a JVM out of memory, a throw
+   * from what the replay runs once the ack of its delivery is out - leaves that thread
+   * without a road back to the change: it takes the next delivery off the queue instead.
+   * Nothing else asks for the change either, since every redelivery of a change a replay
+   * thread owns is refused as a duplicate, so this domain's ServerState would stay behind it
+   * until some other change is replayed on this domain.
    */
   @Test
   public void aChangeParkedByAReplayWhichIsUnwoundIsGivenBack() throws Exception
@@ -936,7 +939,7 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
     assertFalse(pendingChanges.putRemoteUpdate(renameIntoDeletedEntry(renamed)),
         "a change a replay thread owns must not be taken over (OPENDJ-1115)");
 
-    // It is still handed to whichever thread clears the change it was waiting for.
+    // It is still handed out once the change it was waiting for is gone.
     pendingChanges.commit(deleted);
     assertSame(pendingChanges.getNextUpdate(), rename);
   }

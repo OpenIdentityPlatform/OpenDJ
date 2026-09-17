@@ -2897,8 +2897,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * listed, uncommitted and unowned, so the request is what brings them back, and
            * this thread is the one there to run it (issue #954). A give-back which threw
            * before it released anything left the parked changes as they were, owned by this
-           * thread and handed out by getNextUpdate() to whichever thread clears what they
-           * wait for: nothing here can do better for those.
+           * thread and handed out by getNextUpdate() to whichever thread calls it first once
+           * what they wait for is gone: nothing here can do better for those.
            *
            * Not run on a domain whose session has an owner, the way no road of a failed
            * replay runs it there: the restart is refused where it runs and the request
@@ -4168,7 +4168,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * <p>
    * A parked change is handed out again by {@code getNextUpdate()} alone, which every
    * replay loop of this domain runs once it is done with a change: a parked change is
-   * replayed by whichever thread clears the change it was waiting for. A thread whose
+   * replayed by whichever thread calls it first once the change it was waiting for is
+   * gone - the thread which cleared it, as a rule. A thread whose
    * replay was unwound is not on that road anymore - it takes the next delivery off the
    * replay queue - so a change it parked would be left owned by a thread which is not
    * coming back to it, while every redelivery of it is refused as a duplicate. On a domain
