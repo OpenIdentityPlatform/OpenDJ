@@ -59,6 +59,12 @@ class DefaultIndex extends AbstractTree implements Index
    * other threads are holding this instance.
    */
   private volatile EntryIDSetCodec codec;
+  /**
+   * Whether that codec encrypts: the confidentiality this index was opened under. Held here rather
+   * than read from the suite, since the suite carries the setting now in force for the attribute,
+   * which this index writes under only once its tree has been given up and opened again.
+   */
+  private volatile boolean encrypted;
   private CryptoSuite cryptoSuite;
 
   /**
@@ -103,7 +109,8 @@ class DefaultIndex extends AbstractTree implements Index
   {
     final EnumSet<IndexFlag> flags = state.getIndexFlags(txn, getName());
     codec = flags.contains(COMPACTED) ? CODEC_V2 : CODEC_V1;
-    if (cryptoSuite.isEncrypted())
+    encrypted = cryptoSuite.isEncrypted();
+    if (encrypted)
     {
       codec = new EntryIDSet.EntryIDSetCodecV3(codec, cryptoSuite);
     }
@@ -337,8 +344,9 @@ class DefaultIndex extends AbstractTree implements Index
     return trusted;
   }
 
+  /** Whether this index encrypts what it writes: the confidentiality its tree was opened under. */
   final boolean isEncrypted()
   {
-    return cryptoSuite.isEncrypted();
+    return encrypted;
   }
 }

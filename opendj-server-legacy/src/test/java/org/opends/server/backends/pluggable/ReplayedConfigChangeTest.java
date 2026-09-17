@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.opends.messages.BackendMessages.ERR_BACKEND_BASEDN_NO_LONGER_HELD;
 import static org.opends.messages.BackendMessages.ERR_BACKEND_CANNOT_LIST_TREES_AFTER_BASEDN_CHANGE;
 import static org.opends.messages.BackendMessages.ERR_BACKEND_CANNOT_REGISTER_BASEDN;
+import static org.opends.messages.BackendMessages.NOTE_CONFIG_INDEX_CONFIDENTIALITY_REQUIRES_REBUILD;
 import static org.opends.messages.BackendMessages.NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
 import static org.opends.messages.BackendMessages.NOTE_INDEX_ADD_REQUIRES_REBUILD;
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
@@ -860,6 +861,112 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
   }
 
   /**
+   * A change of the confidentiality gives up the tree of an index it keeps and opens it again under
+   * the new setting, in a write which untrusts and deletes and a write which opens. Whether an index
+   * needs that is asked of the index - what its tree was opened under - so that an attempt the
+   * storage replays reaches the same answer, and the instruction is given before any write, since
+   * the configuration entry holds the new setting whichever way the writes go.
+   */
+  @Test
+  public void aConfidentialityChangeUntrustsTheIndexWhenTheTransactionIsReplayed() throws Exception
+  {
+    final ReplayingBackend backend = openBackendWithPresenceIndex();
+    try
+    {
+      final RootContainer rootContainer = backend.getRootContainer();
+      final EntryContainer ec = rootContainer.getEntryContainer(KEPT);
+      final AttributeIndex index = ec.getAttributeIndex(cnType);
+      final MatchingRuleIndex cnIndex = index.getNameToIndexes().values().iterator().next();
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).contains(TRUSTED);
+      // Held so that the index opened again below stays untrusted: an index of an empty backend is
+      // trusted when it is opened, whatever its tree holds.
+      addBaseEntry(backend, KEPT, "b907a");
+      assertThat(cnIndex.isEncrypted()).isFalse();
+
+      // The third write is the one which untrusts the index and gives up its tree; the fourth opens
+      // it again, which is what binds its codec to the setting now in force.
+      final int writesBefore = backend.storage.writes();
+      backend.storage.conflictAtCommitOnWrite(3, 1);
+      final ConfigChangeResult ccr = index.applyConfigurationChange(confidentialPresenceIndexCfg());
+
+      assertThat(backend.storage.writes()).as("the armed write was the third of four").isEqualTo(writesBefore + 4);
+      assertThat(backend.storage.attempts()).isEqualTo(2);
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.adminActionRequired()).isTrue();
+      assertThat(ccr.getMessages()).as("the rebuild the new setting needs, asked for once").hasSize(1);
+      assertThat(ordinalsOf(ccr)).containsOnly(NOTE_CONFIG_INDEX_CONFIDENTIALITY_REQUIRES_REBUILD.ordinal());
+      assertThat(cnIndex.isTrusted()).isFalse();
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName()))
+          .as("the flag the attempt which committed had to remove").doesNotContain(TRUSTED);
+      assertThat(cnIndex.isEncrypted()).as("the setting the tree was opened again under").isTrue();
+
+      // The setting the change applied is the one the index writes under from now on, so asking for
+      // it a second time asks for nothing of the index, and untrusts nothing.
+      final int writesAfter = backend.storage.writes();
+      final ConfigChangeResult again = index.applyConfigurationChange(confidentialPresenceIndexCfg());
+      assertThat(again.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(again.adminActionRequired()).as("a change which changes nothing").isFalse();
+      assertThat(again.getMessages()).isEmpty();
+      assertThat(backend.storage.writes()).as("the two writes which add and remove indexes, and no third")
+          .isEqualTo(writesAfter + 2);
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * The same instruction survives a give-up on the write which untrusts the index and gives up its
+   * tree, and the change is still a change when asked for again: the configuration this attribute
+   * index holds was replaced before that write, and already reads as applied, while the index still
+   * writes under the setting it was opened under - which is what it is asked.
+   */
+  @Test
+  public void aConfidentialityChangeIsReportedWhenTheWriteWhichGivesUpTheTreeGivesUp() throws Exception
+  {
+    final ReplayingBackend backend = openBackendWithPresenceIndex();
+    try
+    {
+      final RootContainer rootContainer = backend.getRootContainer();
+      final EntryContainer ec = rootContainer.getEntryContainer(KEPT);
+      final AttributeIndex index = ec.getAttributeIndex(cnType);
+      final MatchingRuleIndex cnIndex = index.getNameToIndexes().values().iterator().next();
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).contains(TRUSTED);
+      // Held so that the index opened again below stays untrusted: an index of an empty backend is
+      // trusted when it is opened, whatever its tree holds.
+      addBaseEntry(backend, KEPT, "b907a");
+
+      final int writesBefore = backend.storage.writes();
+      backend.storage.failWithoutReplayOnWrite(3);
+      final ConfigChangeResult ccr = index.applyConfigurationChange(confidentialPresenceIndexCfg());
+
+      assertThat(backend.storage.writes()).as("the armed write was the third, and the last one made")
+          .isEqualTo(writesBefore + 3);
+      assertThat(ccr.getResultCode()).isEqualTo(serverErrorResultCode());
+      assertThat(ccr.adminActionRequired()).as("the rebuild the new setting needs, on the road which failed").isTrue();
+      assertThat(ordinalsOf(ccr)).contains(NOTE_CONFIG_INDEX_CONFIDENTIALITY_REQUIRES_REBUILD.ordinal());
+      assertThat(ccr.getMessages().toString()).as("the failure, next to the rebuild")
+          .contains(UnreplayableFailure.class.getSimpleName());
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName()))
+          .as("what the restart will read").contains(TRUSTED);
+
+      final ConfigChangeResult again = index.applyConfigurationChange(confidentialPresenceIndexCfg());
+      assertThat(again.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(again.adminActionRequired())
+          .as("the setting the failed write did not apply is still a change").isTrue();
+      assertThat(ordinalsOf(again)).containsOnly(NOTE_CONFIG_INDEX_CONFIDENTIALITY_REQUIRES_REBUILD.ordinal());
+      assertThat(cnIndex.isTrusted()).isFalse();
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).doesNotContain(TRUSTED);
+      assertThat(cnIndex.isEncrypted()).as("the setting the tree was opened again under").isTrue();
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
    * The same road for a vlvIndex: the write which untrusts it is the only one the change makes, and
    * a failure of it is reported with the rebuild the change asked for, rather than thrown out of
    * the listener with that result discarded. The change touches all four published fields at once,
@@ -933,14 +1040,30 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
   /** The vlvIndex is opened only where a test is about one, since every base DN gets a copy of it. */
   private ReplayingBackend openBackendWithVlvIndex() throws Exception
   {
-    return openBackend(newTreeSet(KEPT), true);
+    return openBackend(newTreeSet(KEPT), true, newTreeSet(IndexType.EQUALITY));
+  }
+
+  /**
+   * A cn index of the presence type, whose tree a change of the confidentiality keeps: the equality
+   * type is replaced by a key hashed twin when it is made confidential, and so is added and removed
+   * rather than kept.
+   */
+  private ReplayingBackend openBackendWithPresenceIndex() throws Exception
+  {
+    return openBackend(newTreeSet(KEPT), false, newTreeSet(IndexType.PRESENCE));
   }
 
   private ReplayingBackend openBackend(SortedSet<DN> baseDNs, boolean withVlvIndex) throws Exception
   {
+    return openBackend(baseDNs, withVlvIndex, newTreeSet(IndexType.EQUALITY));
+  }
+
+  private ReplayingBackend openBackend(SortedSet<DN> baseDNs, boolean withVlvIndex, SortedSet<IndexType> cnIndexTypes)
+      throws Exception
+  {
     final ReplayingBackend backend = new ReplayingBackend();
     backend.setBackendID(BACKEND_ID);
-    backend.configuredWith = backendCfg(baseDNs, withVlvIndex);
+    backend.configuredWith = backendCfg(baseDNs, withVlvIndex, cnIndexTypes);
     backend.configureBackend(backend.configuredWith, serverContext);
     // Start from a pristine on-disk state so that a previous run cannot mask the defect.
     backend.storage.removeStorageFiles();
@@ -985,6 +1108,12 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
 
   private PDBBackendCfg backendCfg(SortedSet<DN> baseDNs, boolean withVlvIndex) throws ConfigException
   {
+    return backendCfg(baseDNs, withVlvIndex, newTreeSet(IndexType.EQUALITY));
+  }
+
+  private PDBBackendCfg backendCfg(SortedSet<DN> baseDNs, boolean withVlvIndex, SortedSet<IndexType> cnIndexTypes)
+      throws ConfigException
+  {
     final PDBBackendCfg cfg = mockCfg(PDBBackendCfg.class);
     when(cfg.dn()).thenReturn(DN.valueOf("ds-cfg-backend-id=" + BACKEND_ID + ",cn=Backends,cn=config"));
     when(cfg.getBackendId()).thenReturn(BACKEND_ID);
@@ -994,9 +1123,14 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
     when(cfg.getDBCachePercent()).thenReturn(20);
     when(cfg.getBaseDN()).thenReturn(baseDNs);
     when(cfg.listBackendIndexes()).thenReturn(new String[] { "cn" });
+    // An index can only be confidential in a backend which is, and the cipher of the backend is what
+    // the crypto suite of an index takes its parameters from.
+    when(cfg.isConfidentialityEnabled()).thenReturn(true);
+    when(cfg.getCipherTransformation()).thenReturn("AES/CBC/PKCS5Padding");
+    when(cfg.getCipherKeyLength()).thenReturn(128);
     // Built before it is handed over: stubbing a mock from inside a when() of another mock leaves
     // that when() unfinished, and Mockito fails the next test to touch either of them.
-    final BackendIndexCfg cnIndexCfg = indexCfg(newTreeSet(IndexType.EQUALITY), 4000);
+    final BackendIndexCfg cnIndexCfg = indexCfg(cnIndexTypes, 4000);
     when(cfg.getBackendIndex("cn")).thenReturn(cnIndexCfg);
     if (withVlvIndex)
     {
@@ -1013,11 +1147,23 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
 
   private BackendIndexCfg indexCfg(SortedSet<IndexType> indexTypes, int indexEntryLimit)
   {
+    return indexCfg(indexTypes, indexEntryLimit, false);
+  }
+
+  /** The configuration which makes the presence index of {@link #openBackendWithPresenceIndex()} confidential. */
+  private BackendIndexCfg confidentialPresenceIndexCfg()
+  {
+    return indexCfg(newTreeSet(IndexType.PRESENCE), 4000, true);
+  }
+
+  private BackendIndexCfg indexCfg(SortedSet<IndexType> indexTypes, int indexEntryLimit, boolean confidentiality)
+  {
     final BackendIndexCfg cfg = mock(BackendIndexCfg.class);
     when(cfg.getIndexType()).thenReturn(indexTypes);
     when(cfg.getAttribute()).thenReturn(cnType);
     when(cfg.getIndexEntryLimit()).thenReturn(indexEntryLimit);
     when(cfg.getSubstringLength()).thenReturn(6);
+    when(cfg.isConfidentialityEnabled()).thenReturn(confidentiality);
     return cfg;
   }
 
