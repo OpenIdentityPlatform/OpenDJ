@@ -91,6 +91,7 @@ import com.sleepycat.je.DatabaseNotFoundException;
 import com.sleepycat.je.Durability;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.LockConflictException;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
 import com.sleepycat.je.TransactionConfig;
@@ -682,6 +683,37 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
 
   private static final int IMPORT_DB_CACHE_SIZE = 32 * MB;
 
+  /**
+   * Number of attempts a {@link #write} makes before it propagates the conflict to the caller.
+   * <p>
+   * It is a budget of attempts and not of time, so it is only ever reached by the conflicts that report quickly.
+   * With the shipped configuration every conflict does: {@code je.lock.timeout} is 0, so a writer waiting for a
+   * lock never times out, and the only conflict JE raises is the deadlock, which it detects as soon as the wait
+   * would close a cycle. An operator who sets a lock timeout through {@code ds-cfg-je-property} turns a wait that
+   * long into a conflict as well, and a conflict slower to report than {@link #MAX_RETRY_WINDOW_NANOS} spends the
+   * whole window inside its first attempt, is granted the single replay that window's exemption guarantees, and
+   * gives up on the window after two attempts rather than after this many.
+   */
+  static final int MAX_RETRIES = 10;
+
+  /**
+   * Wall-clock budget the replays of a {@link #write} may spend, in nanoseconds. It is checked between attempts,
+   * so an attempt already running is never interrupted, and never before one replay has been made: the loop
+   * returns after at most this window plus two attempts. It bounds the conflicts that are slow to report, which
+   * {@link #MAX_RETRIES} alone does not - an operation whose own work takes seconds would otherwise multiply that
+   * wait by the attempt count.
+   */
+  static final long MAX_RETRY_WINDOW_NANOS = 10L * 1000L * 1000L * 1000L; //10 s
+
+  /**
+   * Upper bound of the random delay before the second attempt, in milliseconds; it doubles with every attempt.
+   * The ladder is {@code PDBStorage}'s, kept so that the two engines back off alike.
+   */
+  private static final double BASE_SLEEP_ON_RETRY_MS = 50.0;
+
+  /** Upper bound the doubled delay is capped at, in milliseconds. */
+  private static final double MAX_SLEEP_ON_RETRY_MS = 1000.0;
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Use read committed isolation instead of the default which is repeatable read. */
@@ -700,6 +732,10 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   private DiskSpaceMonitor diskMonitor;
   private StorageStatus storageStatus = StorageStatus.working();
   private final ConcurrentMap<TreeName, Database> trees = new ConcurrentHashMap<>();
+  /** Attempt bound of a {@link #write}, {@link #MAX_RETRIES} outside the tests. */
+  private final int maxRetries;
+  /** Wall-clock bound of a {@link #write}, {@link #MAX_RETRY_WINDOW_NANOS} outside the tests. */
+  private final long retryWindowNanos;
 
   /**
    * Creates a new JE storage with the provided configuration.
@@ -713,7 +749,35 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
    */
   JEStorage(final JEBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
+    this(cfg, serverContext, MAX_RETRIES, MAX_RETRY_WINDOW_NANOS);
+  }
+
+  /**
+   * Creates a new JE storage whose replay bounds are the given ones rather than {@link #MAX_RETRIES} and
+   * {@link #MAX_RETRY_WINDOW_NANOS}.
+   * <p>
+   * Only a test builds one of these, and it does so to stop the two bounds racing each other: with the shipped
+   * values a run of replays spends a random share of the window on backoff alone, so a test of the attempt cap
+   * can be ended by the window on a loaded machine, and a test of the window has to spend seconds of build time
+   * to reach it.
+   *
+   * @param cfg
+   *          The configuration.
+   * @param serverContext
+   *          This server instance context
+   * @param maxRetries
+   *          Number of attempts a write makes before it propagates the conflict to the caller.
+   * @param retryWindowNanos
+   *          Wall-clock budget the replays of a write may spend, in nanoseconds.
+   * @throws ConfigException
+   *           if memory cannot be reserved
+   */
+  JEStorage(final JEBackendCfg cfg, ServerContext serverContext, int maxRetries, long retryWindowNanos)
+      throws ConfigException
+  {
     this.serverContext = serverContext;
+    this.maxRetries = maxRetries;
+    this.retryWindowNanos = retryWindowNanos;
     backendDirectory = getBackendDirectory(cfg);
     config = cfg;
     cfg.addJEChangeListener(this);
@@ -963,27 +1027,143 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     return treeName.toString();
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * A transaction JE ends with a {@link LockConflictException} is replayed, bounded twice: by {@link #MAX_RETRIES}
+   * attempts and by the {@link #MAX_RETRY_WINDOW_NANOS} wall-clock window, whichever is spent first - except that
+   * the window alone never ends the replays before one has been made. It is bounded for the reason
+   * {@code PDBStorage} bounds its loop: the configuration change paths of the pluggable backend hold an entry
+   * container's exclusive lock across this method, and every reader of that suffix then waits - untimed and
+   * uninterruptibly - until it returns, so a conflict that never clears would park every worker thread of that
+   * suffix rather than fail one operation.
+   * <p>
+   * JE raises the conflict from inside the operation - a record read or write, never the commit, which takes no
+   * lock - and the transaction wraps it in a {@link StorageRuntimeException}, which is unwrapped below before it is
+   * matched. The operation may catch it there; the transaction is then abort-only and {@code commit()} raises the
+   * conflict again, bare, so an attempt which swallowed its conflict commits nothing and is replayed all the same.
+   * With the shipped configuration the only conflict is the deadlock: {@code je.lock.timeout} is 0, so a writer
+   * waits for a lock rather than times out, and JE ends one transaction of a cycle - chosen at random - as soon as
+   * a wait would close it. A lock timeout set through {@code ds-cfg-je-property} makes a wait that long a conflict
+   * as well.
+   * <p>
+   * The replay backs off first, though JE would make it wait for the locks it lost anyway: JE locks a record by
+   * the LSN of its current version, and the abort of the victim, which hands the waiting survivor the lock it
+   * asked for, undoes the version that lock belongs to - the survivor then has to lock the version the undo put
+   * back, and a replay which comes back at once wins that race, holds the record when the survivor asks again,
+   * and the same deadlock forms with the roles drawn afresh. JE's own retry example sleeps before retrying for
+   * this reason; without the sleep the deadlock of two writers was seen to form three times in a row.
+   * <p>
+   * An interrupt reaches the loop only in that sleep, and the loop does not restore the flag the sleep cleared:
+   * JE invalidates the whole environment when a thread carrying the interrupt flag touches it - the transaction
+   * registry's latch is acquired interruptibly - and the caller's own failure road makes such a call
+   * ({@code EntryContainer.writeTrustState}). The interrupt is reported instead, with the conflict being replayed,
+   * as the suppressed exceptions of the {@link StorageRuntimeException} thrown.
+   * <p>
+   * Once the bound is spent the conflict is reported as a {@link StorageRuntimeException} naming the backend, the
+   * attempts spent, the time they took and which of the two bounds ran out. It carries the conflict as a
+   * suppressed exception rather than as its cause: a cause is unwrapped below and thrown in its place, and
+   * {@code EntryContainer.throwAllowedExceptionTypes} likewise passes a {@link StorageRuntimeException} through
+   * untouched only while it has no cause. Given a cause, both hand the caller the bare conflict instead, whose
+   * message is JE's account of its lock table - all an LDAP client used to be told after the single attempt.
+   */
   @Override
   public void write(final WriteOperation operation) throws Exception
   {
-    final Transaction txn = beginTransaction();
-    try
+    final long startedAt = System.nanoTime();
+    final long giveUpAt = startedAt + retryWindowNanos;
+    for (int attempt = 1;; attempt++)
     {
-      operation.run(newWriteableTransaction(txn));
-      commit(txn);
-    }
-    catch (final StorageRuntimeException e)
-    {
-      if (e.getCause() != null)
+      final LockConflictException conflict;
+      final Transaction txn = beginTransaction();
+      try
       {
-        throw (Exception) e.getCause();
+        try
+        {
+          operation.run(newWriteableTransaction(txn));
+          commit(txn);
+          return;
+        }
+        catch (final StorageRuntimeException e)
+        {
+          throw unwrap(e);
+        }
       }
-      throw e;
+      catch (final LockConflictException e)
+      {
+        conflict = e;
+      }
+      finally
+      {
+        abort(txn);
+      }
+      // System.nanoTime() - giveUpAt is the overflow safe form of the comparison, and attempt > 1 keeps the window
+      // from ending the loop before a single replay: a lock timeout set by the operator can outlast the window on
+      // its own, and it is the attempt after that one which is likeliest to succeed, the transaction that blocked
+      // it having just finished. One clock sample for both, so that the elapsed time reported is the one the give
+      // up was decided on
+      final long now = System.nanoTime();
+      final boolean capSpent = attempt >= maxRetries;
+      if (capSpent || (attempt > 1 && now - giveUpAt >= 0))
+      {
+        final long elapsedMs = TimeUnit.NANOSECONDS.toMillis(now - startedAt);
+        // which of the two bounds was spent, so that the config change paths - which report this as a bare stack
+        // trace with no message id - say whether raising the attempts or the window is what would have helped
+        final String boundSpent = capSpent ? "attempt cap" : "retry window";
+        final StorageRuntimeException spent = new StorageRuntimeException(
+            "je: backend '" + config.getBackendId() + "' did not apply the transaction after " + attempt
+                + " attempts in " + elapsedMs + " ms, the " + boundSpent + " being spent; the last conflict was "
+                + conflict);
+        spent.addSuppressed(conflict);
+        // warned once, at exhaustion only: a conflict is answered by a replay, and the trace below is what says
+        // so. stackTraceToSingleLineString, the form the config change paths report this exception with, walks
+        // the causes and never prints a suppressed exception, so this line is the only rendering that carries the
+        // stack of the conflict
+        logger.warn(LocalizableMessage.raw("je: giving up on the transaction of backend '%s' after %d attempts"
+            + " in %d ms, the %s being spent: %s", config.getBackendId(), attempt, elapsedMs, boundSpent,
+            stackTraceToSingleLineString(conflict)));
+        throw spent;
+      }
+      if (logger.isTraceEnabled())
+      {
+        logger.trace("je: replaying the transaction after %s, attempt %d of %d", conflict, attempt, maxRetries);
+      }
+      try
+      {
+        // slept for after the finally has ended the rolled back transaction, so that nothing of it is held
+        // through the delay; random and growing with every attempt, so that two writers replaying the same
+        // deadlock do not come back in step
+        Thread.sleep(retryDelayMillis(attempt));
+      }
+      catch (final InterruptedException e)
+      {
+        // the flag stays cleared - see above - and the conflict being replayed is reported next to the interrupt,
+        // wrapped the way the exhausted loop wraps it and for the same reason: every caller strips a cause off
+        final StorageRuntimeException interrupted = new StorageRuntimeException(
+            "je: backend '" + config.getBackendId() + "' was interrupted while replaying the transaction after "
+                + attempt + " attempts; the last conflict was " + conflict);
+        interrupted.addSuppressed(conflict);
+        interrupted.addSuppressed(e);
+        throw interrupted;
+      }
     }
-    finally
+  }
+
+  /** Returns the randomized delay before the given attempt is replayed, doubling with each attempt up to a cap. */
+  // package private like the PDBStorage copy it is taken from, so that a test can pin the growth and the cap
+  static long retryDelayMillis(int attempt)
+  {
+    final double bound = Math.min(MAX_SLEEP_ON_RETRY_MS, BASE_SLEEP_ON_RETRY_MS * (1 << Math.min(attempt - 1, 5)));
+    return (long) (Math.random() * bound);
+  }
+
+  private static Exception unwrap(final StorageRuntimeException e) throws Exception
+  {
+    if (e.getCause() != null)
     {
-      abort(txn);
+      throw (Exception) e.getCause();
     }
+    throw e;
   }
 
   private Transaction beginTransaction()
