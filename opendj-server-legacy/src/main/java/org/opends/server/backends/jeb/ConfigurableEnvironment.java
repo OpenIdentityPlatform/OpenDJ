@@ -378,7 +378,25 @@ class ConfigurableEnvironment
   static EnvironmentConfig parseConfigEntry(JEBackendCfg cfg) throws ConfigException
   {
     validateDbCacheSize(cfg.getDBCacheSize());
+    final EnvironmentConfig envConfig = toEnvironmentConfig(cfg);
+    // The JE loggers are shared by every environment of the JVM: their level is set by the open, not
+    // built into the configuration of one environment.
+    Logger.getLogger("com.sleepycat.je").setLevel(parseLoggingLevel(cfg.getDBLoggingLevel(), cfg.dn()));
+    return envConfig;
+  }
 
+  /**
+   * Build the environment configuration the given configuration describes, and nothing else: no
+   * check of the cache size against the memory quota, no level set on the JE loggers. What a
+   * configuration change is checked as, applied to a running environment and held against, is
+   * built here.
+   *
+   * @param cfg The configuration to be parsed.
+   * @return An environment config instance corresponding to the configuration.
+   * @throws ConfigException If there is an error in the provided configuration.
+   */
+  static EnvironmentConfig toEnvironmentConfig(JEBackendCfg cfg) throws ConfigException
+  {
     EnvironmentConfig envConfig = defaultConfig();
     setDurability(envConfig, cfg.isDBTxnNoSync(), cfg.isDBTxnWriteNoSync());
     setJEProperties(cfg, envConfig, cfg.dn().rdn().getFirstAVA().getAttributeValue());
@@ -387,6 +405,19 @@ class ConfigurableEnvironment
     // See if there are any native JE properties specified in the config
     // and if so try to parse, evaluate and set them.
     return setJEProperties(envConfig, cfg.getJEProperty(), attrMap);
+  }
+
+  /**
+   * Get the name a JE property is configured under: the property of the backend configuration
+   * which is mapped to it, or the JE property's own name when it is set through je-property alone.
+   *
+   * @param jeProperty The JE property name.
+   * @return The name the operator changes it by.
+   */
+  static String configuredNameOf(String jeProperty)
+  {
+    final String attrName = attrMap.get(jeProperty);
+    return attrName != null ? attrName.substring(ConfigConstants.NAME_PREFIX_CFG.length()) : jeProperty;
   }
 
   private static void validateDbCacheSize(long dbCacheSize) throws ConfigException
@@ -430,6 +461,12 @@ class ConfigurableEnvironment
     {
       envConfig.setDurability(Durability.COMMIT_WRITE_NO_SYNC);
     }
+    else
+    {
+      // What JE falls back on when a configuration sets none - but set, so that a change back from
+      // either flag replaces the durability the environment runs with rather than leaving it be.
+      envConfig.setDurability(Durability.COMMIT_SYNC);
+    }
   }
 
   private static void setJEProperties(BackendCfg cfg, EnvironmentConfig envConfig, ByteString backendId)
@@ -447,18 +484,22 @@ class ConfigurableEnvironment
   private static void setDBLoggingLevel(EnvironmentConfig envConfig, String loggingLevel, DN dn,
       boolean loggingFileHandlerOn) throws ConfigException
   {
-    Logger parent = Logger.getLogger("com.sleepycat.je");
+    // Refused as a whole here; the level itself is set on the JE loggers by the open.
+    parseLoggingLevel(loggingLevel, dn);
+    final Level level = loggingFileHandlerOn ? Level.ALL : Level.OFF;
+    envConfig.setConfigParam(FILE_LOGGING_LEVEL, level.getName());
+  }
+
+  private static Level parseLoggingLevel(String loggingLevel, DN dn) throws ConfigException
+  {
     try
     {
-      parent.setLevel(Level.parse(loggingLevel));
+      return Level.parse(loggingLevel);
     }
     catch (Exception e)
     {
       throw new ConfigException(ERR_JEB_INVALID_LOGGING_LEVEL.get(loggingLevel, dn));
     }
-
-    final Level level = loggingFileHandlerOn ? Level.ALL : Level.OFF;
-    envConfig.setConfigParam(FILE_LOGGING_LEVEL, level.getName());
   }
 
   /**

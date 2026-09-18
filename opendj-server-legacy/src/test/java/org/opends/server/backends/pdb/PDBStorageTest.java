@@ -24,6 +24,7 @@ import static org.forgerock.opendj.ldap.ByteString.*;
 import static org.opends.messages.BackendMessages.*;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -54,6 +55,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.persistit.Exchange;
+import com.persistit.Persistit;
 import com.persistit.exception.RollbackException;
 
 public class PDBStorageTest extends DirectoryServerTestCase
@@ -864,6 +866,56 @@ public class PDBStorageTest extends DirectoryServerTestCase
   protected PDBBackendCfg createBackendCfg()
   {
     return createBackendCfg(0L);
+  }
+
+  /**
+   * The checkpoint interval is set on the PersistIt configuration when the database opens, and
+   * PersistIt takes no configuration once one is set: a change of it asks for a restart, naming
+   * the interval the database runs with and the one now configured, and the database keeps the
+   * former. The property's definition says so as well now, which reaches the reference
+   * documentation; the change result reaches the error log of the server which took the change.
+   */
+  @Test
+  public void aCheckpointIntervalChangedWhileOpenAsksForARestart() throws Exception
+  {
+    final long intervalAtOpen = createBackendCfg().getDBCheckpointerWakeupInterval();
+    assertThat(checkpointIntervalOf(storage)).isEqualTo(intervalAtOpen);
+    final PDBBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBCheckpointerWakeupInterval()).thenReturn(4 * intervalAtOpen);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isTrue();
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).toString()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART
+        .get("db-checkpointer-wakeup-interval", "PDBStorageTest", intervalAtOpen, 4 * intervalAtOpen)
+        .toString());
+    assertThat(checkpointIntervalOf(storage)).isEqualTo(intervalAtOpen);
+  }
+
+  /** A storage which is closed has no database to hold a change against: the next open takes it. */
+  @Test
+  public void aCheckpointIntervalChangedWhileClosedAsksForNothing() throws Exception
+  {
+    storage.close();
+    final long intervalAtOpen = createBackendCfg().getDBCheckpointerWakeupInterval();
+    final PDBBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBCheckpointerWakeupInterval()).thenReturn(4 * intervalAtOpen);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isFalse();
+    assertThat(ccr.getMessages()).isEmpty();
+  }
+
+  /** The checkpoint interval of the database the given storage runs, in seconds. */
+  private static long checkpointIntervalOf(PDBStorage storage) throws Exception
+  {
+    final Field db = PDBStorage.class.getDeclaredField("db");
+    db.setAccessible(true);
+    return ((Persistit) db.get(storage)).getConfiguration().getCheckpointInterval();
   }
 
   /** A configuration whose cache is the given size in bytes, or a fifth of the quota when it is zero. */
