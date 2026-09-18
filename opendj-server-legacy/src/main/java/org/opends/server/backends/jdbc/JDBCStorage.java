@@ -4767,7 +4767,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 						// them: one upsert and one commit each, and the same for every later write of this
 						// open that names a tree (#933). It reads on the session the failed create reset,
 						// which is a connection rolled back or, where even that failed, one given up for
-						// the read to establish again: either is a session a select may be asked of
+						// the read to establish again: either is a session a select may be asked of. That
+						// re-establish is the one connect of this class made under the lock: it needs a
+						// create cut by a dead catalog connection, a table another session made meanwhile,
+						// and a database refusing logins, and it is bounded by the deadline of a borrow
+						// like the connect made outside it
 						readEnrolledTrees(catalog);
 					}
 					// and where the create really did create it, there is nothing to read: a table just
