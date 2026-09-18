@@ -349,4 +349,22 @@ class DefaultIndex extends AbstractTree implements Index
   {
     return encrypted;
   }
+
+  /** The codec this index currently reads and writes under. */
+  final EntryIDSetCodec codec()
+  {
+    return codec;
+  }
+
+  /**
+   * Puts this index back to the confidentiality and codec it answered before its tree was given up
+   * and opened again, for a reopen whose commit the storage gave up: what {@link #afterOpen} binds
+   * is memory, and outlives a write the storage rolled back, so a change asked for again would
+   * otherwise find this index already agreeing with the setting that write never durably reached.
+   */
+  final void revertFailedReopen(boolean encrypted, EntryIDSetCodec codec)
+  {
+    this.encrypted = encrypted;
+    this.codec = codec;
+  }
 }

@@ -1021,23 +1021,44 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
         try
         {
           writeUntrust(indexesToUntrust, treesToGiveUp);
-          // In a write of its own, since the storage engines delete and create the tree of an index as
-          // operations of their own - as removing and adding an index does - rather than as a deletion
-          // and a creation one transaction carries together. The write above is the one which untrusts
-          // and deletes, so a change interrupted in between leaves an index the next open of this
-          // container creates empty and keeps degraded, rather than a trusted one holding nothing.
-          entryContainer.getRootContainer().getStorage().write(new WriteOperation()
+          // Held so that a give-up of the reopen below can be put back to what it answered before:
+          // what afterOpen binds is memory, and outlives a write the storage rolled back, while the
+          // tree it opened is not - so a re-apply which trusted that binding would agree with the
+          // new setting and never open the tree the write above just deleted.
+          final List<IndexBinding> bindings = new ArrayList<>(treesToGiveUp.size());
+          for (final MatchingRuleIndex givenUp : treesToGiveUp)
           {
-            @Override
-            public void run(WriteableTransaction txn) throws Exception
+            bindings.add(new IndexBinding(givenUp));
+          }
+          try
+          {
+            // In a write of its own, since the storage engines delete and create the tree of an index
+            // as operations of their own - as removing and adding an index does - rather than as a
+            // deletion and a creation one transaction carries together. The write above is the one
+            // which untrusts and deletes, so a change interrupted in between leaves an index the next
+            // open of this container creates empty and keeps degraded, rather than a trusted one
+            // holding nothing.
+            entryContainer.getRootContainer().getStorage().write(new WriteOperation()
             {
-              for (final MatchingRuleIndex givenUp : treesToGiveUp)
+              @Override
+              public void run(WriteableTransaction txn) throws Exception
               {
-                // Which is what binds the codec of the index to the confidentiality now in force.
-                givenUp.open(txn, true);
+                for (final MatchingRuleIndex givenUp : treesToGiveUp)
+                {
+                  // Which is what binds the codec of the index to the confidentiality now in force.
+                  givenUp.open(txn, true);
+                }
               }
+            });
+          }
+          catch (Exception e)
+          {
+            for (IndexBinding binding : bindings)
+            {
+              binding.revert();
             }
-          });
+            throw e;
+          }
         }
         finally
         {
@@ -1096,11 +1117,43 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
            * Deleted rather than emptied record by record, which for an index of any size would be a
            * transaction of its own making. The state record of the index is kept, so the tree the
            * caller opens again is written back in the serialization this one was created with.
+           *
+           * Guarded by whether the tree is still there: a change asked for again after a give-up of
+           * the write which reopens it finds this index still to give up, since the setting it was
+           * opened under was put back, but the write which deleted it already committed the first
+           * time - deleting an already given-up tree a second time is what the storage answers this
+           * with otherwise.
            */
-          givenUp.delete(txn);
+          if (txn.treeExists(givenUp.getName()))
+          {
+            givenUp.delete(txn);
+          }
         }
       }
     });
+  }
+
+  /**
+   * What an index answered before its tree was given up, kept so it can be put back if the reopen
+   * which follows gives its commit up.
+   */
+  private static final class IndexBinding
+  {
+    private final MatchingRuleIndex index;
+    private final boolean encrypted;
+    private final EntryIDSetCodec codec;
+
+    IndexBinding(MatchingRuleIndex index)
+    {
+      this.index = index;
+      this.encrypted = index.isEncrypted();
+      this.codec = index.codec();
+    }
+
+    void revert()
+    {
+      index.revertFailedReopen(encrypted, codec);
+    }
   }
 
   /**
