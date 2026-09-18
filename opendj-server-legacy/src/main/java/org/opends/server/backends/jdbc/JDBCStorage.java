@@ -639,6 +639,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	// for is left unbounded deliberately, and says so once - see reportTheEngineIsNotKnown(). Not
 	// private, so that a case can read what a storage has already said without reading a log.
 	final AtomicBoolean ddlLockBoundEngineUnknownWarned = new AtomicBoolean();
+	// What was actually said, set beside the flag above and read the same way: the flag alone tells a
+	// case that something was logged, not what it named.
+	volatile String ddlLockBoundEngineUnknownSaid;
 
 	/**
 	 * The socket read timeout of one connection, and the statements running on it. This second
@@ -2377,14 +2380,23 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * <p>
 	 * The driver is named rather than the url, since the driver is what this reads and what a
 	 * deployment would change - and a url carries the password of the account this backend works as.
+	 * <p>
+	 * The create table this report is issued beside ({@code createCatalogTable()}, and the one
+	 * {@code openTree()} issues for a tree of its own) is not itself a wait such an engine leaves
+	 * unbounded: {@code getTableDialect()} answers an unrecognised engine with postgres' column
+	 * types, which a mysql-family server rejects as a syntax error before it ever queues for a lock.
+	 * What this warns of - the wait an operator would otherwise meet with no word on why - is the
+	 * create index of an open whose table is already there, and the drop table of a clear.
 	 */
 	private void reportTheEngineIsNotKnown(Connection con) {
 		if (ddlLockBoundEngineUnknownWarned.compareAndSet(false, true)) {
-			logger.warn(LocalizableMessage.raw("jdbc: the wait of a DDL for a lock is left unbounded on this"
+			final String said=String.format("jdbc: the wait of a DDL for a lock is left unbounded on this"
 				+ " database: %s is not a driver this backend knows a lock setting of an engine for, so %s"
-				+ " bounds nothing here and a DDL - the create table and create index of an open, the drop"
-				+ " table of a clear - waits for a lock another session holds for as long as this engine"
-				+ " lets it", driverNameOf(con), DDL_LOCK_TIMEOUT_PROPERTY));
+				+ " bounds nothing here and a DDL - the create index of an open whose table is already there,"
+				+ " the drop table of a clear - waits for a lock another session holds for as long as this"
+				+ " engine lets it", driverNameOf(con), DDL_LOCK_TIMEOUT_PROPERTY);
+			ddlLockBoundEngineUnknownSaid=said; // read back by a case the way it reads the flag beside it
+			logger.warn(LocalizableMessage.raw(said));
 		}
 	}
 
@@ -4814,7 +4826,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * It waits for its lock under {@link JDBCStorage#DDL_LOCK_TIMEOUT_PROPERTY} like every other DDL
 		 * of this backend, and a lock it gives up on names that property: this statement is issued on the
 		 * catalog's own connection rather than through {@code commitStatement()}, which is the funnel
-		 * that bounds the rest, so the bound is put on here.
+		 * that bounds the rest, so the bound is put on here. The catch below tells the two failures
+		 * apart, since a lock given up on is not a privilege the account is missing: {@code gaveUpOnTheLock()}
+		 * has already renamed it to a {@link SQLTimeoutException}, and the wrapper here says so rather
+		 * than say what a missing privilege would.
 		 */
 		void createCatalogTable(TreeName catalog) {
 			final String tableName=getTableName(catalog);
@@ -4860,9 +4875,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 						tableName, stackTraceToSingleLineString(e)));
 					return;
 				}
+				final String why=(e instanceof SQLTimeoutException)
+					? "the create waited for a lock another session holds and gave up: "+e.getMessage()
+					: "a read-write open of a JDBC backend needs the privilege to create it, and a clear of"
+						+" one names nothing without it";
 				throw new StorageRuntimeException("jdbc: backend "+config.getBackendId()+" could not create table "
-					+tableName+", which holds the catalog naming the trees it owns: a read-write open of a JDBC"
-					+" backend needs the privilege to create it, and a clear of one names nothing without it", e);
+					+tableName+", which holds the catalog naming the trees it owns: "+why, e);
 			}
 		}
 

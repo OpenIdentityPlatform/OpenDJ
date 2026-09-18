@@ -212,10 +212,17 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	 */
 	@Test
 	public void testAnEngineThisBackendDoesNotKnowIsReported() throws Exception {
-		storage.withDdlLockBound(recording(mock(Connection.class), "0"), null, theDdl());
+		final Connection con = recording(mock(Connection.class), "0");
+
+		storage.withDdlLockBound(con, null, theDdl());
 
 		assertTrue(storage.ddlLockBoundEngineUnknownWarned.get(),
 			"a driver this backend knows no lock bound for left the wait of every DDL unbounded and unsaid");
+		final String said = storage.ddlLockBoundEngineUnknownSaid;
+		assertTrue(said != null && said.contains(JDBCStorage.driverNameOf(con)),
+			"the driver left unbounded was not named: " + said);
+		assertTrue(said != null && said.contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY),
+			"the property that would have bounded it was not named: " + said);
 	}
 
 	/** A deployment that turned the bound off asked for none anywhere, and has nothing to act on. */
@@ -642,9 +649,35 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * A catalog connection whose bound could not be taken off again is not closed by that catch: the
+	 * catch of {@code restoreDdlLockBound()} does {@code keepOutOfThePool()} for a {@link
+	 * CachedConnection} only, and the catalog's own is never one - {@code enrolInCatalog()} still has
+	 * a row to write on it after {@code openTree()} returns. It is {@code write()}'s own {@code
+	 * finally} that closes it, once every tree of the attempt has been enrolled.
+	 */
+	@Test
+	public void testACatalogConnectionWhoseBoundCouldNotBeTakenOffStaysTheWritesConnection() throws Exception {
+		final Connection catalogCon = refusingToGiveTheValueBack(
+			engine(mysqlConnection.class, "31536000", catalogIssued), "31536000", catalogIssued);
+		final JDBCStorage bounded = storageHandingOut(engine(mysqlConnection.class, "31536000"), catalogCon);
+
+		bounded.write(txn -> {
+			txn.openTree(TREE, true);
+			verify(catalogCon, never()).close();
+		});
+
+		verify(catalogCon).close();
+	}
+
+	/**
 	 * A lock that create gave up on names the property that ended the wait, all the way out to the
 	 * operator: the failure is wrapped as the backend not being able to create the table which holds
 	 * its catalog, and a bare 55P03 inside that says nothing about which wait ended or what to raise.
+	 * <p>
+	 * Pinned on the wrapper thrown by {@code createCatalogTable()} itself, not merely on some link of
+	 * its cause chain: a wait renamed by {@code gaveUpOnTheLock()} names the property on its own, so a
+	 * wrapper that dropped the distinction and always blamed a missing privilege would still leave
+	 * that name reachable through the cause - which is the gap this asserts on the outer message too.
 	 */
 	@Test
 	public void testALockTheCreateOfTheCatalogTableGaveUpOnNamesTheProperty() throws Exception {
@@ -655,26 +688,22 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 		try {
 			bounded.write(txn -> txn.openTree(TREE, true));
 			fail("a create of the catalog table that gave up on a lock has to reach the caller");
-		}catch (Exception expected) {
-			assertTrue(namesTheProperty(expected),
-				"the lock this bound ended reached the operator unnamed: " + expected);
+		}catch (StorageRuntimeException expected) {
+			assertTrue(expected.getMessage().contains(CATALOG_TABLE), expected.getMessage());
+			assertFalse(expected.getMessage().contains("privilege"),
+				"a lock gave up on was blamed on a missing privilege: " + expected.getMessage());
+			assertTrue(expected.getCause() instanceof SQLTimeoutException,
+				"the lock was left as the engine reported it rather than as this bound renamed it: "
+					+ expected.getCause());
+			assertTrue(expected.getCause().getMessage().contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY),
+				expected.getCause().getMessage());
+			assertEquals(((SQLException) expected.getCause().getCause()).getSQLState(), "55P03");
 		}
 	}
 
 	/** The statements of the catalog's connection a case reads, without running off its end. */
 	private List<String> firstOfTheCatalog(int statements) {
 		return catalogIssued.subList(0, Math.min(statements, catalogIssued.size()));
-	}
-
-	/** Whether the failure, or any link of its chain, names the property that ended the wait. */
-	private static boolean namesTheProperty(Throwable failure) {
-		for (Throwable link = failure; link != null; link = link.getCause()) {
-			if (link.getMessage() != null
-					&& link.getMessage().contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/** A connection whose create table is the statement the engine refuses, with the given failure. */
@@ -910,10 +939,16 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 
 	/** And one that takes the bound and will not take back the value that bound displaced. */
 	private Connection refusingToGiveTheValueBack(final Connection con, final String carries) throws SQLException {
-		final Statement statement = recording(con, carries).createStatement();
+		return refusingToGiveTheValueBack(con, carries, issued);
+	}
+
+	/** The same, recording into the list the statements of this connection belong in. */
+	private Connection refusingToGiveTheValueBack(final Connection con, final String carries, final List<String> into)
+			throws SQLException {
+		final Statement statement = recording(con, carries, into).createStatement();
 		final AtomicBoolean bound = new AtomicBoolean();
 		doAnswer(invocation -> {
-			issued.add((String) invocation.getArguments()[0]);
+			into.add((String) invocation.getArguments()[0]);
 			if (!bound.compareAndSet(false, true)) {
 				throw new SQLException("the connection went before the value could be given back", "08006");
 			}
