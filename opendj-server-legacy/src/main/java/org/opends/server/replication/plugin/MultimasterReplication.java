@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -793,6 +794,77 @@ public class MultimasterReplication
     synchronized (state)
     {
       state.notifyAll();
+    }
+  }
+
+  /**
+   * Runs an action on every replication domain of this server, each of them getting its
+   * turn whatever one of them threw.
+   * <p>
+   * The replay threads are shared by every domain of this server, so what concerns the
+   * pool is done over the domains rather than over the one a replay was last for: a thread
+   * which is stopping gives back what it parked in any of them (issue #986). A throw at one
+   * domain must not leave the ones after it as they were - with changes owned by a thread
+   * which does not exist anymore - so the first failure is thrown once the loop is over,
+   * the others suppressed under it where it records suppression: the error a JVM out of
+   * memory prepared beforehand does not - it was made without its constructor, so it keeps
+   * no list to record them in - and the JVM hands that one out as often as it is asked for
+   * one, so two domains can throw the same instance, and a throwable can not suppress
+   * itself. Recording a failure under the first allocates the list it goes in, so on the
+   * road this loop is for it can be refused in its turn: a failure which can not be
+   * recorded is dropped, and the domains after it still get their turn.
+   * <p>
+   * The iterator over the domains is the one allocation made before the first of them gets
+   * its turn: refused, on the way out of a thread an OutOfMemoryError is ending, it leaves
+   * every domain as it was, and it has no cheaper form. The action itself is not one: a
+   * caller on that road passes an instance it holds rather than one it makes there.
+   * <p>
+   * Not synchronized, and it must not become so: it is called by a replay thread on its way
+   * out, while {@link #stopReplayThreads()} holds the monitor of this class and waits for
+   * that thread to end.
+   *
+   * @param action what is done on each domain; it declares no checked exception, so what
+   *          it throws is an Error or a RuntimeException, and that is what is thrown here
+   */
+  static void forEachDomain(Consumer<LDAPReplicationDomain> action)
+  {
+    Throwable failure = null;
+    for (LDAPReplicationDomain domain : domains.values())
+    {
+      try
+      {
+        action.accept(domain);
+      }
+      catch (Throwable domainFailure)
+      {
+        if (failure == null)
+        {
+          failure = domainFailure;
+        }
+        else if (failure != domainFailure)
+        {
+          try
+          {
+            failure.addSuppressed(domainFailure);
+          }
+          catch (OutOfMemoryError recordRefused)
+          {
+            /*
+             * The list the record goes in could not be allocated: the failure is dropped
+             * rather than allowed to end the loop, since the first one is what is reported
+             * and the domains after this one are still to be visited.
+             */
+          }
+        }
+      }
+    }
+    if (failure instanceof Error)
+    {
+      throw (Error) failure;
+    }
+    if (failure instanceof RuntimeException)
+    {
+      throw (RuntimeException) failure;
     }
   }
 
