@@ -223,12 +223,21 @@ public class PgSqlTestCase extends TestCase {
             try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
                 working = con.getSchema();
             }
-            assertNotEquals(working, OFF_THE_PATH,
-                "the connections of this suite work in the very schema the neighbour of this case is in");
 
             try (final Connection con = DriverManager.getConnection(getJdbcUrl());
                  final Statement st = con.createStatement()) {
                 st.execute("create schema if not exists " + OFF_THE_PATH);
+                // the fixture is the whole of the case: the guards read the whole search_path
+                // (schemaPathOf(), current_schemas(true)) rather than current_schema() alone, so a
+                // neighbour anywhere on it - not only in the schema the connection happens to work in -
+                // would be legitimately found and nothing created, which is not the collision this case
+                // is about
+                try (final ResultSet rs = st.executeQuery("select unnest(current_schemas(true))")) {
+                    while (rs.next()) {
+                        assertNotEquals(rs.getString(1), OFF_THE_PATH,
+                            "the neighbour of this case is on the search_path of the connections of this suite");
+                    }
+                }
                 // the neighbouring directory: the same table and the same index, in a schema this storage
                 // reaches through no unqualified name of its own. Spelled out rather than opened by a
                 // storage, so that the fixture is the collision and nothing else
@@ -255,8 +264,8 @@ public class PgSqlTestCase extends TestCase {
                 "the open took the table of a schema it does not reach unqualified for its own and created none");
             assertTrue(isExistsIndexInSchema(working, indexName),
                 "the open took the index of a schema it does not reach unqualified for its own: the cursor batches of this tree are full scans behind it");
-            assertEquals(rowCountInSchema(OFF_THE_PATH, tableName), 0,
-                "the write of this backend landed in the table of the neighbouring schema");
+            assertEquals(rowCountInSchema(working, tableName), 1,
+                "the write of this backend landed in a table other than the one the open made");
         } finally {
             clearQuietly(storage);
             try (final Connection con = DriverManager.getConnection(getJdbcUrl());
