@@ -223,6 +223,10 @@ public abstract class IndexConfidentialityChangeTestCase<C extends PluggableBack
           .isEqualTo(ENCRYPTED_RECORD_TAG);
 
       attributeIndex.applyConfigurationChange(indexCfg(false, ENTRY_LIMIT));
+      // The tree given up carries the record written under the setting just given up, which the
+      // codec of the new one does not read back as what it is - so it is given up here regardless of
+      // which way the setting goes, not only where enabling replaces it with a key hashed twin.
+      assertThat(recordCount(backend, presenceIndex(attributeIndex))).as("the encrypted tree, given up").isEqualTo(0);
       trust(backend, attributeIndex);
       addEntry(backend, "user.1");
 

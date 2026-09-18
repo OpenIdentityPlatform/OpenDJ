@@ -970,6 +970,60 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
   }
 
   /**
+   * A give-up of the write which opens the tree again - the fourth, once the third has committed -
+   * must not leave the index believing it already writes under the new setting: what
+   * {@link DefaultIndex#afterOpen} binds is memory, and outlives a write the storage rolled back. A
+   * re-apply which agreed with that binding would answer SUCCESS with no instruction, and the tree
+   * the third write deleted would never be reopened.
+   */
+  @Test
+  public void aConfidentialityChangeIsReportedWhenTheWriteWhichReopensTheTreeGivesUp() throws Exception
+  {
+    final ReplayingBackend backend = openBackendWithPresenceIndex();
+    try
+    {
+      final RootContainer rootContainer = backend.getRootContainer();
+      final EntryContainer ec = rootContainer.getEntryContainer(KEPT);
+      final AttributeIndex index = ec.getAttributeIndex(cnType);
+      final MatchingRuleIndex cnIndex = index.getNameToIndexes().values().iterator().next();
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).contains(TRUSTED);
+      // Held so that the index opened again below stays untrusted: an index of an empty backend is
+      // trusted when it is opened, whatever its tree holds.
+      addBaseEntry(backend, KEPT, "b907a");
+      assertThat(cnIndex.isEncrypted()).isFalse();
+
+      final int writesBefore = backend.storage.writes();
+      backend.storage.failWithoutReplayOnWrite(4);
+      final ConfigChangeResult ccr = index.applyConfigurationChange(confidentialPresenceIndexCfg());
+
+      assertThat(backend.storage.writes()).as("the third write committed, the fourth was armed and given up")
+          .isEqualTo(writesBefore + 4);
+      assertThat(ccr.getResultCode()).isEqualTo(serverErrorResultCode());
+      assertThat(ccr.getMessages().toString()).as("the failure, next to the rebuild")
+          .contains(UnreplayableFailure.class.getSimpleName());
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName()))
+          .as("the write which untrusts and deletes committed before the reopen was armed").doesNotContain(TRUSTED);
+      assertThat(cnIndex.isEncrypted())
+          .as("the reopen's commit gave up: the setting the tree is still to be opened under").isFalse();
+
+      // The re-apply must still find this index to give up and open again, not one which already
+      // agrees with the setting the failed reopen never durably reached.
+      final ConfigChangeResult again = index.applyConfigurationChange(confidentialPresenceIndexCfg());
+      assertThat(again.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(again.adminActionRequired())
+          .as("the setting the failed reopen did not apply is still a change").isTrue();
+      assertThat(ordinalsOf(again)).containsOnly(NOTE_CONFIG_INDEX_CONFIDENTIALITY_REQUIRES_REBUILD.ordinal());
+      assertThat(cnIndex.isTrusted()).isFalse();
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).doesNotContain(TRUSTED);
+      assertThat(cnIndex.isEncrypted()).as("the setting the tree was opened again under").isTrue();
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
    * The same road for a vlvIndex: the write which untrusts it is the only one the change makes, and
    * a failure of it is reported with the rebuild the change asked for, rather than thrown out of
    * the listener with that result discarded. The change touches all four published fields at once,
