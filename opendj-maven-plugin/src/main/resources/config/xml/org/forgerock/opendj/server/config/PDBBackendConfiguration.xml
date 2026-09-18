@@ -254,6 +254,9 @@
         disk, but also potentially causes recovery from an abrupt termination
         (crash) to take more time.
     </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>15s</adm:value>

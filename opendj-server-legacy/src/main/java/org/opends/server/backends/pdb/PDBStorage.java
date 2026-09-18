@@ -51,6 +51,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.server.config.meta.PDBBackendCfgDefn;
 import org.forgerock.opendj.server.config.server.PDBBackendCfg;
 import org.forgerock.util.Reject;
 import org.opends.server.api.Backupable;
@@ -1655,6 +1656,15 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         ccr.setAdminActionRequired(true);
         ccr.addMessage(
             NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.get(cfg.getBackendId(), configuredCacheSize, newCacheSize));
+      }
+      if (db != null && cfg.getDBCheckpointerWakeupInterval() != db.getConfiguration().getCheckpointInterval())
+      {
+        // The checkpoint interval is set on the PersistIt configuration when the database opens, and
+        // PersistIt takes no configuration once one is set: the next open of the backend applies it.
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART.get(
+            PDBBackendCfgDefn.getInstance().getDBCheckpointerWakeupIntervalPropertyDefinition().getName(),
+            cfg.getBackendId(), db.getConfiguration().getCheckpointInterval(), cfg.getDBCheckpointerWakeupInterval()));
       }
       registerMonitoredDirectory(cfg);
       config = cfg;

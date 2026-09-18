@@ -726,6 +726,15 @@
       all the property parameters is available in the example.properties
       file of Berkeley DB Java Edition distribution.
     </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          A change of a property which Berkeley DB Java Edition does not
+          accept while the environment runs takes effect when the backend
+          is restarted, and the change result says so.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:undefined />
     </adm:default-behavior>
