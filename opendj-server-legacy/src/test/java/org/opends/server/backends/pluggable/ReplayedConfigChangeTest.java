@@ -46,6 +46,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.SortKey;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
@@ -861,7 +862,8 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
   /**
    * The same road for a vlvIndex: the write which untrusts it is the only one the change makes, and
    * a failure of it is reported with the rebuild the change asked for, rather than thrown out of
-   * the listener with that result discarded.
+   * the listener with that result discarded. The change touches all four published fields at once,
+   * so none of them can be hoisted above the write and still leave this case green.
    */
   @Test
   public void aChangedSortOrderIsReportedWhenTheWriteWhichUntrustsTheVlvIndexGivesUp() throws Exception
@@ -874,8 +876,11 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       final VLVIndex vlvIndex = ec.getVLVIndex(VLV_INDEX_NAME);
       assertThat(persistedFlags(rootContainer, ec, vlvIndex.getName())).contains(TRUSTED);
 
+      // A base DN of the vlvIndex's own change, unrelated to REMOVED's meaning elsewhere in this suite.
+      final DN newBaseDN = DN.valueOf("dc=b907e,dc=com");
+      final BackendVLVIndexCfg changedCfg = vlvIndexCfg("+sn", newBaseDN, Scope.SINGLE_LEVEL, "(sn=*)");
       backend.storage.failWithoutReplay();
-      final ConfigChangeResult ccr = vlvIndex.applyConfigurationChange(vlvIndexCfg("+sn"));
+      final ConfigChangeResult ccr = vlvIndex.applyConfigurationChange(changedCfg);
 
       assertThat(ccr.getResultCode()).isEqualTo(serverErrorResultCode());
       assertThat(ccr.adminActionRequired())
@@ -885,14 +890,24 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
           .contains(UnreplayableFailure.class.getSimpleName());
       assertThat(persistedFlags(rootContainer, ec, vlvIndex.getName()))
           .as("what the restart will read").contains(TRUSTED);
+      assertThat((Object) vlvIndex.getBaseDN()).as("the base DN the failed write did not publish").isEqualTo(KEPT);
+      assertThat(vlvIndex.getScope()).as("the scope the failed write did not publish")
+          .isEqualTo(SearchScope.WHOLE_SUBTREE);
+      assertThat(vlvIndex.getFilter().toString()).as("the filter the failed write did not publish")
+          .isEqualTo("(objectClass=*)");
       assertThat(vlvIndex.getSortKeys()).as("the definition the failed write did not publish")
           .containsExactly(new SortKey("cn", false));
 
       // The definition the failed change did not publish is still a change when asked for again.
-      final ConfigChangeResult again = vlvIndex.applyConfigurationChange(vlvIndexCfg("+sn"));
+      final ConfigChangeResult again = vlvIndex.applyConfigurationChange(changedCfg);
       assertThat(again.getResultCode()).isEqualTo(ResultCode.SUCCESS);
       assertThat(again.adminActionRequired()).as("the definition the failed write did not publish").isTrue();
       assertThat(persistedFlags(rootContainer, ec, vlvIndex.getName())).doesNotContain(TRUSTED);
+      assertThat((Object) vlvIndex.getBaseDN()).as("the base DN the write which committed published").isEqualTo(newBaseDN);
+      assertThat(vlvIndex.getScope()).as("the scope the write which committed published")
+          .isEqualTo(SearchScope.SINGLE_LEVEL);
+      assertThat(vlvIndex.getFilter().toString()).as("the filter the write which committed published")
+          .isEqualTo("(sn=*)");
       assertThat(vlvIndex.getSortKeys()).as("the definition the write which committed published")
           .containsExactly(new SortKey("sn", false));
     }
@@ -1008,11 +1023,17 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
 
   private BackendVLVIndexCfg vlvIndexCfg(String sortOrder)
   {
+    return vlvIndexCfg(sortOrder, KEPT, Scope.WHOLE_SUBTREE, "(objectClass=*)");
+  }
+
+  /** Varies the three fields a plain {@link #vlvIndexCfg(String)} change leaves alone, next to the sort order. */
+  private BackendVLVIndexCfg vlvIndexCfg(String sortOrder, DN baseDN, Scope scope, String filter)
+  {
     final BackendVLVIndexCfg cfg = mock(BackendVLVIndexCfg.class);
     when(cfg.getName()).thenReturn(VLV_INDEX_NAME);
-    when(cfg.getBaseDN()).thenReturn(KEPT);
-    when(cfg.getScope()).thenReturn(Scope.WHOLE_SUBTREE);
-    when(cfg.getFilter()).thenReturn("(objectClass=*)");
+    when(cfg.getBaseDN()).thenReturn(baseDN);
+    when(cfg.getScope()).thenReturn(scope);
+    when(cfg.getFilter()).thenReturn(filter);
     when(cfg.getSortOrder()).thenReturn(sortOrder);
     return cfg;
   }

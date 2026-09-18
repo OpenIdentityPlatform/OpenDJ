@@ -390,6 +390,24 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     return sortKeys;
   }
 
+  /** The base DN this vlvIndex searches under: the definition the last committed change published. */
+  DN getBaseDN()
+  {
+    return baseDN;
+  }
+
+  /** The scope this vlvIndex searches with: the definition the last committed change published. */
+  SearchScope getScope()
+  {
+    return scope;
+  }
+
+  /** The filter this vlvIndex searches with: the definition the last committed change published. */
+  SearchFilter getFilter()
+  {
+    return filter;
+  }
+
   synchronized void setTrusted(final WriteableTransaction txn, final boolean trusted) throws StorageRuntimeException
   {
     this.trusted = trusted;
