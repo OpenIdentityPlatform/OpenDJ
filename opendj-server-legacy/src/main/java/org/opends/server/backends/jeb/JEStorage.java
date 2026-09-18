@@ -791,45 +791,49 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
       trees.clear();
     }
 
-    // Given back ahead of the environment, so that an environment whose close fails keeps nothing else.
-    if (memQuota != null)
+    try
     {
-      if (config.getDBCacheSize() > 0)
+      if (env != null)
       {
-        memQuota.releaseMemory(config.getDBCacheSize());
-      }
-      else
-      {
-        memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
-      }
-      // Released once: what an open takes, the next open takes again, and a close which follows
-      // a close - BackendImpl.importLDIF closes the storage of its root container however the
-      // import ended, on top of the close the import itself made - releases nothing more.
-      memQuota = null;
-    }
-    config.removeJEChangeListener(this);
-    envConfig = null;
-    if (diskMonitor != null)
-    {
-      diskMonitor.deregisterMonitoredDirectory(getDirectory(), this);
-    }
-
-    if (env != null)
-    {
-      // Not yet registered when a failed open got no further than the environment itself.
-      if (monitor != null)
-      {
-        DirectoryServer.deregisterMonitorProvider(monitor);
-        monitor = null;
-      }
-      try
-      {
+        // Not yet registered when a failed open got no further than the environment itself.
+        if (monitor != null)
+        {
+          DirectoryServer.deregisterMonitorProvider(monitor);
+          monitor = null;
+        }
         env.close();
         env = null;
       }
-      catch (DatabaseException e)
+    }
+    catch (DatabaseException e)
+    {
+      throw new IllegalStateException(e);
+    }
+    finally
+    {
+      // Given back after the environment, and whether or not its close threw: reporting the
+      // memory free before the environment has actually freed it would let a racing enable of
+      // another backend be admitted while this one's cache is still resident.
+      if (memQuota != null)
       {
-        throw new IllegalStateException(e);
+        if (config.getDBCacheSize() > 0)
+        {
+          memQuota.releaseMemory(config.getDBCacheSize());
+        }
+        else
+        {
+          memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
+        }
+        // Released once: what an open takes, the next open takes again, and a close which follows
+        // a close - BackendImpl.importLDIF closes the storage of its root container however the
+        // import ended, on top of the close the import itself made - releases nothing more.
+        memQuota = null;
+      }
+      config.removeJEChangeListener(this);
+      envConfig = null;
+      if (diskMonitor != null)
+      {
+        diskMonitor.deregisterMonitoredDirectory(getDirectory(), this);
       }
     }
   }

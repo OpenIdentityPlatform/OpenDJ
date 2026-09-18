@@ -1102,43 +1102,48 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   @Override
   public void close()
   {
-    // Given back ahead of the database, so that a database whose close fails keeps nothing else.
-    if (memQuota != null)
+    try
     {
-      if (config.getDBCacheSize() > 0)
+      if (db != null)
       {
-        memQuota.releaseMemory(config.getDBCacheSize());
-      }
-      else
-      {
-        memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
-      }
-      // Released once: what an open takes, the next open takes again, and a close which follows
-      // a close - BackendImpl.importLDIF closes the storage of its root container however the
-      // import ended, on top of the close the import itself made - releases nothing more.
-      memQuota = null;
-    }
-    config.removePDBChangeListener(this);
-    if (diskMonitor != null)
-    {
-      diskMonitor.deregisterMonitoredDirectory(getDirectory(), this);
-    }
-    if (db != null)
-    {
-      // Not yet registered when a failed open got no further than the database itself.
-      if (monitor != null)
-      {
-        DirectoryServer.deregisterMonitorProvider(monitor);
-        monitor = null;
-      }
-      try
-      {
+        // Not yet registered when a failed open got no further than the database itself.
+        if (monitor != null)
+        {
+          DirectoryServer.deregisterMonitorProvider(monitor);
+          monitor = null;
+        }
         db.close();
         db = null;
       }
-      catch (final PersistitException e)
+    }
+    catch (final PersistitException e)
+    {
+      throw new IllegalStateException(e);
+    }
+    finally
+    {
+      // Given back after the database, and whether or not its close threw: reporting the memory
+      // free before the database has actually freed it would let a racing enable of another
+      // backend be admitted while this one's cache is still resident.
+      if (memQuota != null)
       {
-        throw new IllegalStateException(e);
+        if (config.getDBCacheSize() > 0)
+        {
+          memQuota.releaseMemory(config.getDBCacheSize());
+        }
+        else
+        {
+          memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
+        }
+        // Released once: what an open takes, the next open takes again, and a close which follows
+        // a close - BackendImpl.importLDIF closes the storage of its root container however the
+        // import ended, on top of the close the import itself made - releases nothing more.
+        memQuota = null;
+      }
+      config.removePDBChangeListener(this);
+      if (diskMonitor != null)
+      {
+        diskMonitor.deregisterMonitoredDirectory(getDirectory(), this);
       }
     }
   }
