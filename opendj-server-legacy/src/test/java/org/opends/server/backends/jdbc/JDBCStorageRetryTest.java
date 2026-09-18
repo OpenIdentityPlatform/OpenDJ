@@ -1031,7 +1031,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       assertEquals(attempts.get(), 2, "a write the database dropped the connection under was not replayed");
       // the borrow of the replay validated rather than trusting the last answer of a connection established
       // before the drop: the pool was told
-      verify(borrowed, atLeastOnce()).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
+      verify(borrowed, times(1)).isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS);
     }
     finally
     {
