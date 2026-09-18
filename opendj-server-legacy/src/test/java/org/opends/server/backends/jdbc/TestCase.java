@@ -2111,9 +2111,32 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				"a transaction whose tree the catalog already names opened a connection to write that row"
 					+ " again: the open which adopted the table another session created read nothing of what"
 					+ " that table records");
-			assertTrue(racing.listTrees().contains(recorded), "the catalog stopped naming the tree it records");
+			assertTrue(racing.listTrees().contains(recorded), "the read of the adopted rows rewrote or removed them");
 		} finally {
 			clearQuietly(racing);
+		}
+	}
+
+	/**
+	 * The road above pins the "adopted" answer of {@code createCatalogTable()}; this one pins the
+	 * "created" answer against the same mistake: an open that made the table itself has nothing of
+	 * its own to read back, the table it just made holding no row, and reading it anyway would be
+	 * one select and one commit spent on an empty catalog for every such open.
+	 */
+	@Test
+	public void testAnOpenThatCreatesTheCatalogTableReadsNothing() throws Exception {
+		final AdoptingStorage fresh = new AdoptingStorage(createBackendCfg(getBackendId() + "_created"));
+		try {
+			fresh.open(AccessMode.READ_WRITE);
+			fresh.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(new TreeName("testCreatedCatalog", "opened"), true);
+				}
+			});
+			assertEquals(fresh.catalogReads(), 0, "the open that created the catalog table read it back");
+		} finally {
+			clearQuietly(fresh);
 		}
 	}
 
@@ -2948,6 +2971,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		private volatile String tableToHide;
 		private volatile boolean hidden;
 		private final AtomicInteger catalogConnects = new AtomicInteger();
+		private final AtomicInteger catalogReads = new AtomicInteger();
 
 		AdoptingStorage(JDBCBackendCfg cfg) {
 			super(cfg, null);
@@ -2968,6 +2992,11 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			return catalogConnects.get();
 		}
 
+		/** How many times this storage has read the catalog into its memo since it was constructed. */
+		int catalogReads() {
+			return catalogReads.get();
+		}
+
 		@Override
 		boolean isExistsTable(Connection con, JDBCStorage.TableScope scope, String tableName) {
 			final String hiding = tableToHide;
@@ -2983,6 +3012,15 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		Connection newCatalogConnection(long budgetDeadline) throws SQLException {
 			catalogConnects.incrementAndGet();
 			return super.newCatalogConnection(budgetDeadline);
+		}
+
+		// the only caller of the two-argument overload is readEnrolledTrees(): catalogTables() (a
+		// clear, or listTrees()) takes the three-argument one, so this counts a read of the memo and
+		// nothing a clear does
+		@Override
+		Map<TreeName,String> readCatalogRows(Connection con, String catalogTable) throws SQLException {
+			catalogReads.incrementAndGet();
+			return super.readCatalogRows(con, catalogTable);
 		}
 	}
 }
