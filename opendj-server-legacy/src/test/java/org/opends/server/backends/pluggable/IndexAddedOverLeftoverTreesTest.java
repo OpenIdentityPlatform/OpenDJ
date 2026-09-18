@@ -17,6 +17,9 @@ package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,10 +52,12 @@ import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn.Scope;
 import org.forgerock.opendj.server.config.server.BackendIndexCfg;
 import org.forgerock.opendj.server.config.server.BackendVLVIndexCfg;
+import org.forgerock.opendj.server.config.server.ErrorLogPublisherCfg;
 import org.forgerock.opendj.server.config.server.JEBackendCfg;
 import org.forgerock.opendj.server.config.server.PDBBackendCfg;
 import org.forgerock.opendj.server.config.server.PluggableBackendCfg;
 import org.mockito.ArgumentCaptor;
+import org.opends.messages.Severity;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.jeb.JEStorage;
@@ -65,6 +70,8 @@ import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.ServerContext;
+import org.opends.server.loggers.ErrorLogPublisher;
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.Entry;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -198,6 +205,7 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
   public void anIndexAddedOverTheTreesLeftBehindIsNotTrusted(StorageKind kind) throws Exception
   {
     final LeftoverBackend backend = leaveTreesBehind(kind);
+    final ErrorLogPublisher<ErrorLogPublisherCfg> errorLog = registerErrorLogCapture();
     try
     {
       final EntryContainer ec = backend.getRootContainer().getEntryContainer(BASE_DN);
@@ -212,9 +220,13 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
       assertThat(ccr.adminActionRequired()).isTrue();
       assertThat(ordinalsOf(ccr.getMessages())).contains(NOTE_INDEX_ADD_REQUIRES_REBUILD.ordinal(),
           WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
+      assertThat(warningOrdinalsLoggedTo(errorLog))
+          .as("the discard reported in the error log, not only in the change result")
+          .contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
     }
     finally
     {
+      ErrorLogger.getInstance().removeLogPublisher(errorLog);
       backend.finalizeBackend();
     }
   }
@@ -307,6 +319,43 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
   }
 
   /**
+   * {@code dropLeftovers} folds each id's result with {@code dropped |= ...} rather than the last one
+   * assigned; the two only disagree when the ids themselves do, which every other case avoids by giving
+   * all of them a leftover or none. Deleting one of the two trees {@code leaveTreesBehind} left - the
+   * cn index has EQUALITY and SUBSTRING - ahead of the add leaves the other one real, so the fold and
+   * the assignment can differ on whether the change discarded anything.
+   */
+  @Test(dataProvider = "storages", timeOut = HANG_TIMEOUT_MS)
+  public void anIndexAddedOverOnlyOneOfTwoLeftoverTreesIsReportedDiscarded(StorageKind kind) throws Exception
+  {
+    final LeftoverBackend backend = leaveTreesBehind(kind);
+    try
+    {
+      final Storage storage = backend.getRootContainer().getStorage();
+      final TreeName oneOfTwo = backend.leftoverIndexTrees.iterator().next();
+      storage.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          txn.deleteTree(oneOfTwo);
+        }
+      });
+
+      final ConfigChangeResult ccr = indexAddListener(backend).applyConfigurationAdd(backend.cnIndexCfg);
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ordinalsOf(ccr.getMessages()))
+          .as("the other of the two ids still had a real tree to discard")
+          .contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
    * A VLV index adopts what it left behind in the same way, in its tree and in its counter. Both are
    * dropped, and so is the {@code state} record the next open of the backend would read the flag
    * out of.
@@ -315,6 +364,7 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
   public void aVlvIndexAddedOverTheTreesLeftBehindIsNotTrusted(StorageKind kind) throws Exception
   {
     final LeftoverBackend backend = leaveTreesBehind(kind);
+    final ErrorLogPublisher<ErrorLogPublisherCfg> errorLog = registerErrorLogCapture();
     try
     {
       final EntryContainer ec = backend.getRootContainer().getEntryContainer(BASE_DN);
@@ -334,12 +384,61 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
       assertThat(ccr.adminActionRequired()).isTrue();
       assertThat(ordinalsOf(ccr.getMessages())).contains(NOTE_INDEX_ADD_REQUIRES_REBUILD.ordinal(),
           WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
+      assertThat(warningOrdinalsLoggedTo(errorLog))
+          .as("the discard reported in the error log, not only in the change result")
+          .contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
       assertThat(holdsAnything(storage, backend.leftoverVlvTree))
           .as("the VLV tree left behind still holds its content").isFalse();
       assertThat(holdsAnything(storage, backend.leftoverVlvCounterTree))
           .as("the VLV counter left behind still holds its count").isFalse();
       assertThat(persistedFlags(backend, backend.leftoverVlvTree))
           .as("the TRUSTED record outlived the add").doesNotContain(TRUSTED);
+    }
+    finally
+    {
+      ErrorLogger.getInstance().removeLogPublisher(errorLog);
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * The state record can outlive the VLV tree and its counter the same way it outlives an
+   * attribute index's tree
+   * ({@link #anIndexAddedOverAStateRecordWhoseTreesAreGoneIsNotTrusted(StorageKind)}): deleting
+   * them by hand exercises the two {@code treeExists} guards in
+   * {@code VLVIndex.dropLeftovers} on their false arm, which the fixture of the case above never
+   * reaches. On JE, {@code deleteTree} of a tree which is not there is silent, so a guard removed
+   * or inverted would say content was discarded where none was.
+   */
+  @Test(dataProvider = "storages", timeOut = HANG_TIMEOUT_MS)
+  public void aVlvIndexAddedOverAStateRecordWhoseTreesAreGoneIsNotTrusted(StorageKind kind) throws Exception
+  {
+    final LeftoverBackend backend = leaveTreesBehind(kind);
+    try
+    {
+      final EntryContainer ec = backend.getRootContainer().getEntryContainer(BASE_DN);
+      final Storage storage = backend.getRootContainer().getStorage();
+      storage.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          txn.deleteTree(backend.leftoverVlvTree);
+          txn.deleteTree(backend.leftoverVlvCounterTree);
+        }
+      });
+      assertThat(persistedFlags(backend, backend.leftoverVlvTree))
+          .as("the state record left over the VLV tree which is gone").contains(TRUSTED);
+
+      final ConfigChangeResult ccr = vlvIndexAddListener(backend).applyConfigurationAdd(backend.vlvIndexCfg);
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ec.getVLVIndex(VLV_INDEX_NAME).isTrusted())
+          .as("an empty VLV index trusted over a state record which outlived its trees").isFalse();
+      assertThat(ccr.adminActionRequired()).isTrue();
+      assertThat(ordinalsOf(ccr.getMessages())).contains(NOTE_INDEX_ADD_REQUIRES_REBUILD.ordinal());
+      assertThat(ordinalsOf(ccr.getMessages())).as("content reported as discarded where no tree was")
+          .doesNotContain(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
     }
     finally
     {
@@ -482,7 +581,14 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
       when(declaredAgain.dn()).thenReturn(typedAs);
       final ConfigurationAddListener<BackendIndexCfg> listener = indexAddListener(backend);
 
+      // An index for an attribute which is not indexed yet is still accepted - pins the refusing arm above
+      // against a mutant which refuses every add.
+      final BackendIndexCfg fresh = indexCfg(newTreeSet(IndexType.EQUALITY));
+      when(fresh.getAttribute()).thenReturn(serverContext.getSchema().getAttributeType("sn"));
       final List<LocalizableMessage> reasons = new ArrayList<>();
+      assertThat(listener.isConfigurationAddAcceptable(fresh, reasons)).isTrue();
+      assertThat(reasons).isEmpty();
+
       assertThat(listener.isConfigurationAddAcceptable(declaredAgain, reasons)).isFalse();
       assertThat(ordinalsOf(reasons)).contains(ERR_CONFIG_INDEX_ATTRIBUTE_ALREADY_INDEXED.ordinal());
 
@@ -584,10 +690,17 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
     });
   }
 
-  /** Whether the index answers the key with an entry ID set, as a search reading it would get one. */
+  /**
+   * Whether the index answers the key with a non-empty entry ID set, as a search reading it would get one.
+   * {@code DefaultIndex.get} answers {@code newDefinedSet()} for a missing key while the index is trusted, so
+   * {@code isDefined()} alone would pin the trusted flag rather than the content a leftover tree still holds.
+   */
   private static boolean answers(Storage storage, MatchingRuleIndex index, ByteString key) throws Exception
   {
-    return storage.read(txn -> index.get(txn, key).isDefined());
+    return storage.read(txn -> {
+      final EntryIDSet ids = index.get(txn, key);
+      return ids.isDefined() && ids.size() > 0;
+    });
   }
 
   /** Reads back the flags an index tree carries, as they are stored. */
@@ -607,6 +720,29 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
       ordinals.add(message.ordinal());
     }
     return ordinals;
+  }
+
+  /**
+   * Registers a mock {@code ErrorLogPublisher}, enabled for every category and severity, so that
+   * {@link #warningOrdinalsLoggedTo} can read back what {@code AttributeIndex.reportDiscardedLeftovers}
+   * put in the error log - the half of it the change result alone does not exercise. The caller removes
+   * it once done, from a {@code finally}: it would otherwise go on capturing messages other tests log.
+   */
+  @SuppressWarnings("unchecked")
+  private static ErrorLogPublisher<ErrorLogPublisherCfg> registerErrorLogCapture()
+  {
+    final ErrorLogPublisher<ErrorLogPublisherCfg> errorLog = mock(ErrorLogPublisher.class);
+    when(errorLog.isEnabledFor(any(), any())).thenReturn(true);
+    ErrorLogger.getInstance().addLogPublisher(errorLog);
+    return errorLog;
+  }
+
+  /** The ordinals of the messages logged at {@link Severity#WARNING} through the given capture. */
+  private static Set<Integer> warningOrdinalsLoggedTo(ErrorLogPublisher<ErrorLogPublisherCfg> errorLog)
+  {
+    final ArgumentCaptor<LocalizableMessage> logged = ArgumentCaptor.forClass(LocalizableMessage.class);
+    verify(errorLog, atLeastOnce()).log(any(), eq(Severity.WARNING), logged.capture(), any());
+    return ordinalsOf(logged.getAllValues());
   }
 
   private static Set<TreeName> treesOf(AttributeIndex index)

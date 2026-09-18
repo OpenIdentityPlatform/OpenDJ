@@ -1004,6 +1004,11 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
     final IndexingOptions newIndexingOptions = new IndexingOptionsImpl(newConfiguration.getSubstringLength());
+    // Drop what an earlier index left behind for the added ids, in a write of its own: the drop and the open
+    // must not share a transaction, see dropLeftovers(). discarded is filled by that committed write, so
+    // reporting it from the finally below repeats nothing on a replayed attempt, and is not skipped when the
+    // write which opens the added indexes - or a later write in this change - throws after it.
+    final List<MatchingRuleIndex> discarded = new ArrayList<>();
     try
     {
       final Map<String, MatchingRuleIndex> newIndexIdToIndexes = buildIndexes(entryContainer, state, newConfiguration,
@@ -1042,10 +1047,6 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
         ccr.addMessage(rebuildMessage);
       }
 
-      // Drop what an earlier index left behind for the added ids, in a write of its own: the drop and the open
-      // must not share a transaction, see dropLeftovers(). Both writes may be replayed by the storage, so what
-      // they found is reported once they are done, and by the attempt which went through.
-      final List<MatchingRuleIndex> discarded = new ArrayList<>();
       entryContainer.getRootContainer().getStorage().write(new WriteOperation()
       {
         @Override
@@ -1061,10 +1062,6 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
           }
         }
       });
-      for (MatchingRuleIndex index : discarded)
-      {
-        reportDiscardedLeftovers(ccr, index.getName(), entryContainer.getBaseDN());
-      }
 
       // Open added indexes *before* adding them to indexIdToIndexes
       final List<TreeName> addedIndexesToRebuild = new ArrayList<>();
@@ -1164,6 +1161,13 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.setAdminActionRequired(true);
       ccr.addMessage(message);
+    }
+    finally
+    {
+      for (MatchingRuleIndex index : discarded)
+      {
+        reportDiscardedLeftovers(ccr, index.getName(), entryContainer.getBaseDN());
+      }
     }
 
     return ccr;

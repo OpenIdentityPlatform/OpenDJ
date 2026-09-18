@@ -231,13 +231,15 @@ public class EntryContainer
         ccr.addMessage(alreadyIndexed);
         return ccr;
       }
+      // Dropped in a write of its own, committed before the write which opens the index: the two must not
+      // share a transaction, see AttributeIndex.dropLeftovers(). discarded is filled by that committed write, so
+      // reporting it from a finally below repeats nothing on a replayed attempt, and is not skipped when the
+      // write which opens the index throws after it.
+      final AtomicBoolean discarded = new AtomicBoolean();
       try
       {
         final CryptoSuite cryptoSuite = newCryptoSuite(cfg.isConfidentialityEnabled());
         final AttributeIndex index = newAttributeIndex(cfg, cryptoSuite);
-        // Dropped in a write of its own, committed before the write which opens the index: the two must not
-        // share a transaction, see AttributeIndex.dropLeftovers().
-        final AtomicBoolean discarded = new AtomicBoolean();
         storage.write(new WriteOperation()
         {
           @Override
@@ -262,11 +264,6 @@ public class EntryContainer
             attrCryptoMap.put(cfg.getAttribute(), cryptoSuite);
           }
         });
-        if (discarded.get())
-        {
-          // Reported outside the write, since a replayed attempt would otherwise repeat the message.
-          AttributeIndex.reportDiscardedLeftovers(ccr, cfg.getAttribute().getNameOrOID(), getBaseDN());
-        }
         if (!trusted.get())
         {
           // Reported outside the write, since a replayed attempt would otherwise repeat the message.
@@ -278,6 +275,13 @@ public class EntryContainer
       {
         ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(LocalizableMessage.raw(e.getLocalizedMessage()));
+      }
+      finally
+      {
+        if (discarded.get())
+        {
+          AttributeIndex.reportDiscardedLeftovers(ccr, cfg.getAttribute().getNameOrOID(), getBaseDN());
+        }
       }
       return ccr;
     }
@@ -356,11 +360,13 @@ public class EntryContainer
     public ConfigChangeResult applyConfigurationAdd(final BackendVLVIndexCfg cfg)
     {
       final ConfigChangeResult ccr = new ConfigChangeResult();
+      // Dropped in a write of its own, committed before the write which builds and opens the index, for the
+      // reason given in the index add listener above. discarded is filled by that committed write, so reporting
+      // it from a finally below repeats nothing on a replayed attempt, and is not skipped when the write which
+      // builds and opens the index throws after it.
+      final AtomicBoolean discarded = new AtomicBoolean();
       try
       {
-        // Dropped in a write of its own, committed before the write which builds and opens the index, for the
-        // reason given in the index add listener above.
-        final AtomicBoolean discarded = new AtomicBoolean();
         storage.write(new WriteOperation()
         {
           @Override
@@ -392,11 +398,6 @@ public class EntryContainer
             vlvIndexMap.put(cfg.getName().toLowerCase(), vlvIndex);
           }
         });
-        if (discarded.get())
-        {
-          // Reported outside the write, since a replayed attempt would otherwise repeat the message.
-          AttributeIndex.reportDiscardedLeftovers(ccr, cfg.getName(), getBaseDN());
-        }
         if (!trusted.get())
         {
           // Reported outside the write, since a replayed attempt would otherwise repeat the message.
@@ -408,6 +409,13 @@ public class EntryContainer
       {
         ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
+      }
+      finally
+      {
+        if (discarded.get())
+        {
+          AttributeIndex.reportDiscardedLeftovers(ccr, cfg.getName(), getBaseDN());
+        }
       }
       return ccr;
     }
