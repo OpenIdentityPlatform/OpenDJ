@@ -52,17 +52,17 @@ jobs:
       run:   |
         sudo apt-get update
         sudo apt-get install -y rpm
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       with:
         fetch-depth: 0
         submodules: recursive
     - name: Java ${{ matrix.Java }} (${{ matrix.os }})
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
       with:
         java-version: ${{ matrix.java }}
         distribution: 'zulu'
     - name: Cache Maven packages
-      uses: actions/cache@v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
       with:
          path: ~/.m2/repository
          key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
@@ -91,7 +91,7 @@ jobs:
     # so a byte-for-byte gate would fire without a source change.
     - name: Upload Windows exe artifacts
       if: runner.os == 'Windows'
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: windows-exe-${{ matrix.java }}
         retention-days: 5
@@ -413,7 +413,7 @@ jobs:
         opendj-server-legacy\target\package\opendj\bat\windows-service.bat --disableService
 
     - name: Upload artifacts OpenDJ Server
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: ${{ matrix.os }}-${{ matrix.java }}
         retention-days: 5
@@ -440,11 +440,11 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           sparse-checkout: .github/benchmark
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ubuntu-latest-11
       - name: Get latest release version
@@ -528,7 +528,7 @@ jobs:
           scanners: vuln
           cache: false
       - name: Upload Trivy report to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
         # upload even if a preceding step failed, but not without a report to upload
         if: ${{ always() && hashFiles('trivy-results.sarif') != '' }}
         with:
@@ -536,7 +536,7 @@ jobs:
           # distinct from the docker-scan.yml categories, which track the published images
           category: trivy-build-default
       - name: Cache JMeter
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: ~/jmeter
           key: jmeter-5.6.3
@@ -548,7 +548,7 @@ jobs:
             "PDB" localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
       - name: Upload benchmark artifacts (PDB vs JE)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: benchmark-pdb-vs-je
           path: |
@@ -567,7 +567,7 @@ jobs:
             "Release" openidentityplatform/opendj:latest
       - name: Upload benchmark artifacts
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: benchmark-build-vs-release
           path: |
@@ -591,11 +591,11 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           sparse-checkout: .github/benchmark
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ubuntu-latest-11
       - name: Get latest release version
@@ -680,7 +680,7 @@ jobs:
           scanners: vuln
           cache: false
       - name: Upload Trivy report to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
         # upload even if a preceding step failed, but not without a report to upload
         if: ${{ always() && hashFiles('trivy-results.sarif') != '' }}
         with:
@@ -688,7 +688,7 @@ jobs:
           # distinct from the docker-scan.yml categories, which track the published images
           category: trivy-build-alpine
       - name: Cache JMeter
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: ~/jmeter
           key: jmeter-5.6.3
@@ -700,7 +700,7 @@ jobs:
             "Release-alpine" openidentityplatform/opendj:alpine
       - name: Upload benchmark artifacts
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: benchmark-build-vs-release-alpine
           path: |
@@ -716,9 +716,9 @@ jobs:
     needs: build-maven
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ubuntu-latest-11
       - name: Clean-room install + SysV start/stop (debian:12 container)
@@ -798,9 +798,9 @@ jobs:
     needs: build-maven
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ubuntu-latest-11
       - name: Install and start/stop in Rocky Linux 9
@@ -849,9 +849,9 @@ jobs:
     needs: build-maven
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ubuntu-latest-11
       - name: Download released 5.1.2 deb
@@ -899,9 +899,9 @@ jobs:
     needs: build-maven
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ubuntu-latest-11
       - name: Download released 5.1.2 rpm
@@ -1033,17 +1033,17 @@ jobs:
       # Only for .github/scripts/wait-server-stopped.ps1 and the MSI authoring the guard
       # step below reads, and it has to come first: checkout cleans the workspace the
       # artifact is unpacked into. Sparse because those two are the entire reason for it.
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           sparse-checkout: |
             .github/scripts
             opendj-packages/opendj-msi/opendj-msi-standard/resources/msi
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: windows-latest-11
       - name: Set up Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           java-version: '25'
           distribution: 'zulu'
@@ -1227,11 +1227,11 @@ jobs:
       contents: read
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: windows-latest-11
       - name: Set up Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           java-version: '25'
           distribution: 'zulu'

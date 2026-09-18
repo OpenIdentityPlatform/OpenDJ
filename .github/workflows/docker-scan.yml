@@ -37,7 +37,7 @@ jobs:
       matrix:
         tag: [ 'latest', 'alpine' ]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Scan openidentityplatform/opendj:${{ matrix.tag }} (Trivy)
         # unlike the build.yml gate, unfixed CVEs are reported too: surfacing them in
         # already-released images is the point of this workflow
@@ -51,7 +51,7 @@ jobs:
           scanners: vuln
           cache: false
       - name: Upload report to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
         # upload even if a preceding step failed, but not without a report to upload
         if: ${{ always() && hashFiles(format('trivy-{0}.sarif', matrix.tag)) != '' }}
         with:
