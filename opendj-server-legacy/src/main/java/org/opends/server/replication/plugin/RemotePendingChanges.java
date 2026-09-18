@@ -584,11 +584,12 @@ final class RemotePendingChanges
    * <p>
    * A parked change stays owned by the thread which parked it while that thread goes on
    * to the changes which follow: {@link #getNextUpdate()} is what hands it out again, to
-   * whichever replay thread clears the change it was waiting for, and that thread takes it
-   * over. A replay which is unwound leaves the thread which parked it without that road -
-   * it takes the next delivery off the replay queue instead - so the change would be left
-   * owned by a thread which is never coming back to it, and every redelivery of a change a
-   * replay thread owns is refused as a duplicate (issue #954).
+   * whichever thread calls it first once the change it was waiting for is gone - the
+   * thread which cleared it, as a rule - and that thread takes it over. A replay which is
+   * unwound leaves the thread which parked it without that road - it takes the next
+   * delivery off the replay queue instead - so the change would be left owned by a thread
+   * which is never coming back to it, and every redelivery of a change a replay thread
+   * owns is refused as a duplicate (issue #954).
    * <p>
    * Unparking a change and giving it back is one step, under both locks, so that only one
    * road can hand it out: a change which was released while it is still listed as waiting
@@ -609,8 +610,9 @@ final class RemotePendingChanges
    *
    * @return the CSNs of the changes it gave back, oldest first; empty when this thread owns
    *         no parked change - the changes a thread parked stay its own, whichever replay
-   *         parked them, until {@link #getNextUpdate()} hands them to the thread which
-   *         cleared what they wait for or they are given back here
+   *         parked them, until {@link #getNextUpdate()} hands them to whichever thread
+   *         calls it first once what they wait for is gone - the thread which cleared it,
+   *         as a rule - or they are given back here
    */
   List<CSN> releaseParkedChangesOwnedByCurrentThread()
   {

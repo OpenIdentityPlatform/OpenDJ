@@ -3202,12 +3202,19 @@ public class UpdateOperationTest extends ReplicationTestCase
    * What tells the two apart is that the parked change is replayed at all. The child is
    * seen parked before the parent is let go, so the replay queue is not where it can come
    * from anymore: only {@code getNextUpdate()} hands it out, and with the parent held until
-   * then, the thread which committed the parent is the one left to call it - a change
-   * nobody handed out is replayed by no one at all, and the wait below is what says so.
+   * then, the thread which committed the parent is, as a rule, the one left to call it - a
+   * change nobody handed out is replayed by no one at all, and the wait below is what says so.
    * Which thread replays it is deliberately not asserted: {@code getNextUpdate()} hands a
    * parked change to whichever thread calls it first once the changes before it are gone,
    * and the thread which parked it calls it on its own way out, so a parker which is slow
    * to get there takes the child back itself when the parent commits in between.
+   * <p>
+   * The pin this gives issue #922 holds on that first arm alone: nothing here orders the
+   * parker's own {@code getNextUpdate()} call against the parent being let go, and a parker
+   * delayed past the parent's release, commit and ack takes the child back on its own way
+   * out instead - measured with a mutant, 500 ms after {@code checkDependencies()} parks the
+   * child. A revert of the fix this test is for goes uncaught on that arm: the wait above
+   * sees the child parked either way, and only the parent's road runs the code #922 is about.
    */
   @Test
   public void theChangesParkedBehindAChangeWhoseAckFailedAreReplayed() throws Exception
@@ -3839,13 +3846,14 @@ public class UpdateOperationTest extends ReplicationTestCase
    * <p>
    * A parked change stays owned by the replay thread which parked it while that thread
    * goes back to the pool and takes the changes which follow: {@code getNextUpdate()} is
-   * what hands it out again, to whichever replay thread clears the change it was waiting
-   * for. Changing the number of replay threads stops the whole pool and creates another
-   * one, so a thread which parked a change and went back to the queue is joined while it
-   * is idle, and it would end still recorded as the owner of that change - a thread which
-   * does not exist anymore, while every redelivery of a change a replay thread owns is
-   * refused as a duplicate. On a domain which then goes quiet that change is where this
-   * replica's ServerState, and every change behind it from every master, stops.
+   * what hands it out again, to whichever thread calls it first once the change it was
+   * waiting for is gone - the thread which cleared it, as a rule. Changing the number of
+   * replay threads stops the whole pool and creates another one, so a thread which parked
+   * a change and went back to the queue is joined while it is idle, and it would end still
+   * recorded as the owner of that change - a thread which does not exist anymore, while
+   * every redelivery of a change a replay thread owns is refused as a duplicate. On a
+   * domain which then goes quiet that change is where this replica's ServerState, and
+   * every change behind it from every master, stops.
    */
   @Test
   public void aChangeParkedByAThreadThePoolStoppedIsDeliveredAgain() throws Exception
