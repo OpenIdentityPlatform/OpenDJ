@@ -17,9 +17,11 @@
  */
 package org.opends.server.replication.server;
 
+import java.io.IOException;
 import java.net.SocketException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.api.DirectoryThread;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.ServerStatus;
@@ -120,24 +122,14 @@ public class ServerWriter extends DirectoryThread
                 replicationServerDomain.getBaseDN(), handler.getServerId());
           }
         }
+        else if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
+        {
+          forwardReplicaOfflineMsg((ReplicaOfflineMsg) updateMsg);
+        }
         else
         {
           // Publish the update to the remote server using a protocol version it supports
           session.publish(updateMsg);
-          /*
-           * Only the forward to a peer RS ends the wait of the shutdown: what the grace period
-           * buys is the rest of the topology learning that the replica went offline.
-           * ReplicationServerDomain.put() never queues this message for a directory server - its
-           * isUpdateMsgFiltered() drops it there - but a directory server which is catching up
-           * reads its updates from the changelog, where ReplicaCursor synthesizes a
-           * ReplicaOfflineMsg from the offline CSN of the replica. Publishing that one says
-           * nothing about the peer RSs the shutdown is waiting for.
-           */
-          if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
-          {
-            dsrsShutdownSync.replicaOfflineMsgForwarded(
-                replicationServerDomain.getBaseDN(), updateMsg.getCSN(), handler.getServerId());
-          }
         }
       }
     }
@@ -167,6 +159,37 @@ public class ServerWriter extends DirectoryThread
       {
         logger.trace(getName() + " stopped " + errMessage);
       }
+    }
+  }
+
+  /**
+   * Publishes a ReplicaOfflineMsg to the peer replication server, and reports the forward to the
+   * shutdown which may be waiting for it.
+   * <p>
+   * Only the forward to a peer RS ends the wait of the shutdown: what the grace period buys is
+   * the rest of the topology learning that the replica went offline.
+   * ReplicationServerDomain.put() never queues this message for a directory server - its
+   * isUpdateMsgFiltered() drops it there - but a directory server which is catching up reads its
+   * updates from the changelog, where ReplicaCursor synthesizes a ReplicaOfflineMsg from the
+   * offline CSN of the replica. Publishing that one says nothing about the peer RSs the shutdown
+   * is waiting for, so it goes the way of every other update.
+   * <p>
+   * The forward is reported once the message has been written to the peer, not once it is queued
+   * for the thread of the session: the shutdown closes the session as soon as its wait ends, and
+   * Session.close() drops whatever is still queued, so a message reported forwarded while it
+   * was queued behind one the peer had not read yet would never reach the peer. A message the
+   * session refuses - one the protocol version of the peer cannot carry, or one published while
+   * the session is being closed - will never be written, and the shutdown must not wait for it.
+   */
+  private void forwardReplicaOfflineMsg(final ReplicaOfflineMsg msg) throws IOException
+  {
+    final DN baseDN = replicationServerDomain.getBaseDN();
+    final int serverId = handler.getServerId();
+    final boolean accepted = session.publish(msg,
+        () -> dsrsShutdownSync.replicaOfflineMsgForwarded(baseDN, msg.getCSN(), serverId));
+    if (!accepted)
+    {
+      dsrsShutdownSync.replicaOfflineMsgNotForwarded(baseDN, serverId);
     }
   }
 

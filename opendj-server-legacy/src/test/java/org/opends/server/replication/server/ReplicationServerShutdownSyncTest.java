@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.TreeSet;
@@ -38,6 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
@@ -46,6 +49,8 @@ import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.DeleteMsg;
+import org.opends.server.replication.protocol.ModifyMsg;
+import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicaOfflineMsg;
@@ -56,6 +61,8 @@ import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.WindowMsg;
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.replication.service.ReplicationBroker;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Modification;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TestTimer;
 import org.testng.annotations.Test;
@@ -96,8 +103,38 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
    * published one, so the shutdown spends its whole grace period waiting for it.
    */
   private static final int UNREACHABLE_DS_ID = 98;
+  /** The peer replication server whose session thread is busy writing an earlier change. */
+  private static final int BUSY_RS_ID = 99;
+  /** The peer replication server whose protocol version predates the ReplicaOfflineMsg. */
+  private static final int LEGACY_RS_ID = 100;
   /** Send window a peer advertises when nothing has to hold its writer back. */
   private static final int PEER_WINDOW = 100;
+  /**
+   * Socket buffers of the connection to the peer which does not read: small enough that
+   * {@link #SOCKET_FILLING_CHANGE_SIZE} bytes cannot be written through them, so that the session
+   * thread writing that change is held inside the write until the peer reads. Set on both ends,
+   * since the buffers the kernel picks on its own grow well beyond it on a loopback link.
+   */
+  private static final int SMALL_SOCKET_BUFFER_SIZE = 8 * 1024;
+  /**
+   * Larger by far than what the socket buffers hold: a kernel which does not honour the size
+   * asked for on the receiving side - macOS keeps a few hundred kilobytes there - must still
+   * be unable to take the whole change.
+   */
+  private static final int SOCKET_FILLING_CHANGE_SIZE = 4 * 1024 * 1024;
+  /**
+   * What the peer which does not read must have been sent, and not read, for the session thread
+   * serving it to be inside a write: well below its receive buffer, since the kernel advertises
+   * less than the whole of it, and well above any of the small messages a replication server
+   * sends a peer on its own.
+   */
+  private static final int SOCKET_BUFFER_FILL_MARK = SMALL_SOCKET_BUFFER_SIZE / 4;
+  /**
+   * Time a shutdown released by the ReplicaOfflineMsg being queued, rather than written, is given
+   * to close the session of the peer. A shutdown which waits for the write cannot close the
+   * session before the peer reads, so it spends this time and no more.
+   */
+  private static final long EARLY_CLOSE_TIMEOUT_MS = 1000;
   /**
    * Send window of the peer which is held back: one change fills it, and the message which
    * follows stays with its writer until the peer gives it credit again.
@@ -417,6 +454,97 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
   }
 
   /**
+   * The forward the shutdown waits for must mean that the message has been written to the peer,
+   * not that it has been queued for the thread of its session: Session.close() interrupts and
+   * joins that thread without draining its queue, so a message still queued when the shutdown
+   * closes the session is lost, and the peer receives the StopMsg alone. The session thread is
+   * busy with an earlier message when the ReplicaOfflineMsg is queued behind it whenever the peer
+   * reads slower than the replication server writes. Here the peer does not read at all, and the
+   * socket buffers on both sides of its connection are far smaller than the change which fills
+   * them, so the session thread is held inside the write of that change until the test lets the
+   * peer read.
+   */
+  @Test
+  public void thePeerStillReadingAnEarlierChangeIsToldTheReplicaWentOfflineBeforeItIsStopped()
+      throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final RecordingShutdownSync shutdownSync = new RecordingShutdownSync();
+    final ExecutorService executor = Executors.newFixedThreadPool(2);
+    ReplicationServer replicationServer = null;
+    ReplicationBroker broker = null;
+    FakePeerReplicationServer peer = null;
+    Future<Long> shutdown = null;
+    try (ServerSocket listen = TestCaseUtils.bindFreePort())
+    {
+      listen.setSoTimeout(SOCKET_TIMEOUT_MS);
+      final int replicationPort = TestCaseUtils.findFreePort();
+      replicationServer =
+          newReplicationServer(shutdownSync, "shutdownSyncBusySessionDb", 8235, replicationPort);
+      broker =
+          openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+
+      final ConnectedSessions connection =
+          connectSessionPair(listen, getReplSessionSecurity(), SMALL_SOCKET_BUFFER_SIZE);
+      final Future<ReplicationServerHandler> served =
+          serveAsTheListenThreadWould(replicationServer, connection.localEnd, executor);
+      peer = FakePeerReplicationServer.connected(connection.remoteEnd, connection.remoteSocket,
+          BUSY_RS_ID, baseDN, EMPTY_DN_GENID, PEER_WINDOW);
+      served.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      final ReplicationServerDomain domain =
+          replicationServer.getReplicationServerDomain(baseDN, true);
+      waitForConnectedReplicationServer(domain, BUSY_RS_ID);
+
+      /*
+       * One generator for the change and the announcement: a CSN which does not follow the one
+       * of the change would be dropped by the handler of the peer as already seen.
+       */
+      final CSNGenerator csns = new CSNGenerator(LOCAL_DS_ID, 0);
+      broker.publish(newChangeLargerThanTheSocketBuffers(csns.newCSN()));
+      peer.awaitReceiveBufferFilled();
+
+      final CSN offlineCSN = csns.newCSN();
+      shutdownSync.replicaOfflineMsgSent(baseDN, offlineCSN);
+      broker.publish(new ReplicaOfflineMsg(offlineCSN));
+      shutdownSync.awaitDispatch();
+
+      shutdown = executor.submit(newShutdown(replicationServer));
+      awaitCloseInitiated(connection.localEnd, EARLY_CLOSE_TIMEOUT_MS);
+      final List<Integer> forwardedBeforeThePeerRead = new ArrayList<>(shutdownSync.forwardedBy());
+
+      final Future<ReplicaOfflineMsg> received = peer.receive(ReplicaOfflineMsg.class);
+      final ReplicaOfflineMsg forwarded = received.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      final long elapsed = shutdown.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+
+      assertThat(forwarded)
+          .as("the peer was never told that the replica went offline: its session was closed "
+              + "with the message still queued behind the change it was reading, and its read "
+              + "ended with: %s (forward reported by %s, the shutdown took %d ms)",
+              peer.failure(), shutdownSync.forwardedBy(), elapsed)
+          .isNotNull();
+      assertThat(forwardedBeforeThePeerRead)
+          .as("the writer reported the message forwarded while it was still queued behind a "
+              + "change the peer had not read")
+          .doesNotContain(BUSY_RS_ID);
+      assertThat(shutdownSync.forwardedBy())
+          .as("the message was written to the peer and nothing reported the forward")
+          .contains(BUSY_RS_ID);
+      assertThat(elapsed)
+          .as("the shutdown waited out the grace period after the message had been written")
+          .isLessThan(DSRSShutdownSync.REPLICA_OFFLINE_GRACE_PERIOD);
+    }
+    finally
+    {
+      // Closing the peer releases a session thread held inside a write, and the shutdown with it.
+      closeQuietly(peer);
+      awaitQuietly(shutdown);
+      stop(broker);
+      removeQuietly(replicationServer);
+      executor.shutdownNow();
+    }
+  }
+
+  /**
    * Only a peer replication server learning about the offline replica ends the wait.
    * ReplicationServerDomain.put() never queues a ReplicaOfflineMsg for a directory server, but
    * the changelog cursor of a directory server which is catching up synthesizes one from the
@@ -642,6 +770,64 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
 
       assertThat(elapsed)
           .as("the shutdown kept waiting for a forward its own writer had already dropped")
+          .isLessThan(DSRSShutdownSync.REPLICA_OFFLINE_GRACE_PERIOD);
+    }
+    finally
+    {
+      closeQuietly(peer);
+      stop(broker);
+      removeQuietly(replicationServer);
+    }
+  }
+
+  /**
+   * A peer whose protocol version has no encoding for the ReplicaOfflineMsg cannot be told that
+   * the replica went offline - it predates the message, and has nothing to do with it - and
+   * nothing will ever report a forward to it: the session refuses the message, and the writer
+   * must strike the peer off rather than let the shutdown wait out the grace period for it.
+   */
+  @Test
+  public void theShutdownStopsWaitingForAPeerWhoseProtocolCannotCarryTheMessage() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final RecordingShutdownSync shutdownSync = new RecordingShutdownSync();
+    ReplicationServer replicationServer = null;
+    ReplicationBroker broker = null;
+    FakePeerReplicationServer peer = null;
+    try
+    {
+      final int replicationPort = TestCaseUtils.findFreePort();
+      replicationServer = newReplicationServer(
+          shutdownSync, "shutdownSyncLegacyProtocolDb", 8236, replicationPort);
+      broker =
+          openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      peer = FakePeerReplicationServer.connected(replicationPort, LEGACY_RS_ID, baseDN, EMPTY_DN_GENID,
+          PEER_WINDOW, ProtocolVersion.REPLICATION_PROTOCOL_V7);
+
+      final ReplicationServerDomain domain =
+          replicationServer.getReplicationServerDomain(baseDN, true);
+      waitForConnectedReplicationServer(domain, LEGACY_RS_ID);
+
+      final CSN offlineCSN = newOfflineCSN();
+      shutdownSync.replicaOfflineMsgSent(baseDN, offlineCSN);
+      broker.publish(new ReplicaOfflineMsg(offlineCSN));
+      shutdownSync.awaitDispatch();
+      awaitGiveUpOn(shutdownSync, LEGACY_RS_ID,
+          "the writer let the shutdown wait for a peer whose protocol cannot carry the message");
+
+      final long startTime = System.nanoTime();
+      replicationServer.shutdown();
+      final long elapsed = elapsedMillis(startTime);
+
+      assertThat(shutdownSync.dispatchedTo())
+          .as("the message was not queued for the peer, so this test never reproduced the "
+              + "refusal it is about")
+          .contains(LEGACY_RS_ID);
+      assertThat(shutdownSync.forwardedBy())
+          .as("a message the peer cannot decode was reported forwarded to it")
+          .doesNotContain(LEGACY_RS_ID);
+      assertThat(elapsed)
+          .as("the shutdown waited for a forward to a peer whose protocol cannot carry the message")
           .isLessThan(DSRSShutdownSync.REPLICA_OFFLINE_GRACE_PERIOD);
     }
     finally
@@ -1265,6 +1451,73 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     return new CSNGenerator(serverId, 0).newCSN();
   }
 
+  /**
+   * A change of the collocated replica larger than the socket buffers of the connection to the
+   * peer which does not read, so that the session thread writing it to that peer is held inside
+   * the write.
+   */
+  private static ModifyMsg newChangeLargerThanTheSocketBuffers(CSN csn)
+  {
+    final char[] value = new char[SOCKET_FILLING_CHANGE_SIZE];
+    Arrays.fill(value, 'x');
+    final List<Modification> mods = newArrayList(
+        new Modification(ModificationType.REPLACE, Attributes.create("description", new String(value))));
+    return new ModifyMsg(csn, DN.valueOf("uid=busy," + TEST_ROOT_DN_STRING), mods, "busy-entry-uuid");
+  }
+
+  /** The shutdown of the replication server, reporting how long it took. */
+  private static Callable<Long> newShutdown(final ReplicationServer replicationServer)
+  {
+    return new Callable<Long>()
+    {
+      @Override
+      public Long call()
+      {
+        final long startTime = System.nanoTime();
+        replicationServer.shutdown();
+        return elapsedMillis(startTime);
+      }
+    };
+  }
+
+  /**
+   * Serves a connection to the replication server as its listen thread does - see
+   * ReplicationServer.runListen() - over a session the test established itself, so that the
+   * sockets underneath are its own to configure: the start message of the peer is read, and the
+   * handler is created and started from it. The start blocks until the handshake is over, so it
+   * runs on a thread of its own, as it does on the listen thread.
+   */
+  private static Future<ReplicationServerHandler> serveAsTheListenThreadWould(
+      final ReplicationServer replicationServer, final Session session, ExecutorService executor)
+  {
+    return executor.submit(new Callable<ReplicationServerHandler>()
+    {
+      @Override
+      public ReplicationServerHandler call() throws Exception
+      {
+        final ReplServerStartMsg startMsg = (ReplServerStartMsg) session.receive();
+        final ReplicationServerHandler rsHandler =
+            new ReplicationServerHandler(session, 100, replicationServer, 100);
+        rsHandler.startFromRemoteRS(startMsg);
+        return rsHandler;
+      }
+    });
+  }
+
+  /**
+   * Waits for the close of the session to have been initiated, and gives up quietly once the
+   * timeout is over: the caller says what a close within the timeout, or none, means.
+   */
+  private static void awaitCloseInitiated(Session session, long timeoutMillis)
+      throws InterruptedException
+  {
+    final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
+    while (!session.closeInitiated() && System.nanoTime() < deadline)
+    {
+      Thread.sleep(10);
+    }
+  }
+
   private static boolean sleepQuietly(long millis)
   {
     try
@@ -1314,6 +1567,24 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     }
   }
 
+  private static void awaitQuietly(Future<?> future)
+  {
+    if (future != null)
+    {
+      try
+      {
+        future.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      }
+      catch (InterruptedException e)
+      {
+        Thread.currentThread().interrupt();
+      }
+      catch (Exception ignored)
+      {
+      }
+    }
+  }
+
   /**
    * Establishes a connected session pair over the given listen socket, as a remote server
    * connecting to the RS would. The TLS negotiation performed by the session factories needs both
@@ -1325,8 +1596,20 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
   private Session[] connectSessionPair(ServerSocket listenSocket, final ReplSessionSecurity security)
       throws Exception
   {
-    final Socket clientSocket = new Socket("127.0.0.1", listenSocket.getLocalPort());
-    clientSocket.setTcpNoDelay(true);
+    final ConnectedSessions connection = connectSessionPair(listenSocket, security, 0);
+    return new Session[] { connection.remoteEnd, connection.localEnd };
+  }
+
+  /**
+   * Establishes a connected session pair over the given listen socket, with the send buffer of
+   * the local end and the receive buffer of the remote end bounded by the given size: a message
+   * larger than both then holds the thread writing it until the remote end reads. A size of 0
+   * leaves the buffers to the kernel.
+   */
+  private ConnectedSessions connectSessionPair(ServerSocket listenSocket,
+      final ReplSessionSecurity security, int socketBufferSize) throws Exception
+  {
+    final Socket clientSocket = new Socket();
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     Future<Session> clientEnd = null;
     Socket serverSocket = null;
@@ -1334,6 +1617,14 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     boolean connected = false;
     try
     {
+      if (socketBufferSize > 0)
+      {
+        // Before the connection is made: the window the local end is told is sized from it.
+        clientSocket.setReceiveBufferSize(socketBufferSize);
+      }
+      clientSocket.setTcpNoDelay(true);
+      clientSocket.connect(
+          new InetSocketAddress("127.0.0.1", listenSocket.getLocalPort()), SOCKET_TIMEOUT_MS);
       clientEnd = executor.submit(new Callable<Session>()
       {
         @Override
@@ -1344,14 +1635,18 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       });
 
       serverSocket = listenSocket.accept();
+      if (socketBufferSize > 0)
+      {
+        serverSocket.setSendBufferSize(socketBufferSize);
+      }
       serverSocket.setTcpNoDelay(true);
       serverEnd = security.createServerSession(serverSocket, SOCKET_TIMEOUT_MS);
       assertThat(serverEnd).as("could not create a session for the handler under test").isNotNull();
 
-      final Session[] sessionPair =
-          new Session[] { clientEnd.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS), serverEnd };
+      final ConnectedSessions connection = new ConnectedSessions(
+          clientEnd.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS), clientSocket, serverEnd);
       connected = true;
-      return sessionPair;
+      return connection;
     }
     finally
     {
@@ -1362,6 +1657,21 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
         closeServerEndQuietly(serverEnd, serverSocket);
       }
       executor.shutdown();
+    }
+  }
+
+  /** The two ends of a connection to the replication server, and the socket of the remote one. */
+  private static final class ConnectedSessions
+  {
+    private final Session remoteEnd;
+    private final Socket remoteSocket;
+    private final Session localEnd;
+
+    private ConnectedSessions(Session remoteEnd, Socket remoteSocket, Session localEnd)
+    {
+      this.remoteEnd = remoteEnd;
+      this.remoteSocket = remoteSocket;
+      this.localEnd = localEnd;
     }
   }
 
@@ -1497,6 +1807,9 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     private final long generationId;
     private final String serverURL;
     private final Session session;
+    /** The socket under the session: what it has received and not read is what the replication
+     * server has written to this peer. */
+    private final Socket socket;
     private final ExecutorService reader = Executors.newSingleThreadExecutor();
     /**
      * What ended the exchange with the replication server, so that a message which never arrived
@@ -1517,8 +1830,40 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     static FakePeerReplicationServer connected(int replicationPort, int serverId, DN baseDN,
         long generationId, int windowSize) throws Exception
     {
-      final FakePeerReplicationServer peer = new FakePeerReplicationServer(
-          replicationPort, serverId, baseDN, generationId, windowSize);
+      return connected(replicationPort, serverId, baseDN, generationId, windowSize,
+          ProtocolVersion.getCurrentVersion());
+    }
+
+    /** A connected peer speaking the given version of the replication protocol. */
+    static FakePeerReplicationServer connected(int replicationPort, int serverId, DN baseDN,
+        long generationId, int windowSize, short protocolVersion) throws Exception
+    {
+      return completed(new FakePeerReplicationServer(
+          replicationPort, serverId, baseDN, generationId, windowSize, protocolVersion));
+    }
+
+    /**
+     * A connected peer over a session the test established itself - one whose sockets it
+     * configured - which the replication server serves as its listen thread would.
+     */
+    static FakePeerReplicationServer connected(Session newSession, Socket newSocket, int serverId,
+        DN baseDN, long generationId, int windowSize) throws Exception
+    {
+      return completed(new FakePeerReplicationServer(newSession, newSocket, serverId, baseDN,
+          generationId, windowSize, ProtocolVersion.getCurrentVersion()));
+    }
+
+    /** A peer whose handshake stops after its first phase, before it sends its TopologyMsg. */
+    static FakePeerReplicationServer handshaking(
+        int replicationPort, int serverId, DN baseDN, long generationId) throws Exception
+    {
+      return new FakePeerReplicationServer(replicationPort, serverId, baseDN, generationId,
+          PEER_WINDOW, ProtocolVersion.getCurrentVersion());
+    }
+
+    private static FakePeerReplicationServer completed(FakePeerReplicationServer peer)
+        throws Exception
+    {
       boolean handshaken = false;
       try
       {
@@ -1536,58 +1881,115 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       return peer;
     }
 
-    /** A peer whose handshake stops after its first phase, before it sends its TopologyMsg. */
-    static FakePeerReplicationServer handshaking(
-        int replicationPort, int serverId, DN baseDN, long generationId) throws Exception
-    {
-      return new FakePeerReplicationServer(
-          replicationPort, serverId, baseDN, generationId, PEER_WINDOW);
-    }
-
     private FakePeerReplicationServer(int replicationPort, int serverId, DN baseDN,
-        long generationId, int windowSize) throws Exception
+        long generationId, int windowSize, short protocolVersion) throws Exception
     {
       this.serverId = serverId;
       this.generationId = generationId;
-      final Socket socket = new Socket();
+      final Socket newSocket = new Socket();
       Session newSession = null;
       String newServerURL = null;
       boolean started = false;
       try
       {
-        socket.setTcpNoDelay(true);
-        socket.connect(new InetSocketAddress("127.0.0.1", replicationPort), SOCKET_TIMEOUT_MS);
-        newSession = getReplSessionSecurity().createClientSession(socket, SOCKET_TIMEOUT_MS);
-
-        newServerURL = "127.0.0.1:" + socket.getLocalPort();
-        newSession.publish(new ReplServerStartMsg(serverId, newServerURL, baseDN, windowSize,
-            new ServerState(), generationId, false, GROUP_ID, 5000));
-        final ReplServerStartMsg inStartMsg =
-            waitForSpecificMsg(newSession, ReplServerStartMsg.class);
-        if (!inStartMsg.getSSLEncryption())
-        {
-          newSession.stopEncryption();
-        }
+        newSocket.setTcpNoDelay(true);
+        newSocket.connect(new InetSocketAddress("127.0.0.1", replicationPort), SOCKET_TIMEOUT_MS);
+        newSession = getReplSessionSecurity().createClientSession(newSocket, SOCKET_TIMEOUT_MS);
+        newServerURL = start(newSession, newSocket, serverId, baseDN, generationId, windowSize,
+            protocolVersion);
         started = true;
       }
       finally
       {
         if (!started)
         {
-          // The caller has no handle on this peer yet, so nothing else would close it.
-          reader.shutdownNow();
-          if (newSession != null)
-          {
-            newSession.close();
-          }
-          else
-          {
-            StaticUtils.close(socket);
-          }
+          abandon(newSession, newSocket);
         }
       }
       serverURL = newServerURL;
       session = newSession;
+      socket = newSocket;
+    }
+
+    private FakePeerReplicationServer(Session newSession, Socket newSocket, int serverId,
+        DN baseDN, long generationId, int windowSize, short protocolVersion) throws Exception
+    {
+      this.serverId = serverId;
+      this.generationId = generationId;
+      String newServerURL = null;
+      boolean started = false;
+      try
+      {
+        newServerURL = start(newSession, newSocket, serverId, baseDN, generationId, windowSize,
+            protocolVersion);
+        started = true;
+      }
+      finally
+      {
+        if (!started)
+        {
+          abandon(newSession, newSocket);
+        }
+      }
+      serverURL = newServerURL;
+      session = newSession;
+      socket = newSocket;
+    }
+
+    /**
+     * Runs the first phase of the handshake, the exchange of the start messages, and returns the
+     * URL this peer announced itself under.
+     */
+    private static String start(Session newSession, Socket newSocket, int serverId, DN baseDN,
+        long generationId, int windowSize, short protocolVersion) throws Exception
+    {
+      // The replication server speaks the older of the two versions from the start message on.
+      newSession.setProtocolVersion(protocolVersion);
+      final String newServerURL = "127.0.0.1:" + newSocket.getLocalPort();
+      newSession.publish(new ReplServerStartMsg(serverId, newServerURL, baseDN, windowSize,
+          new ServerState(), generationId, false, GROUP_ID, 5000));
+      final ReplServerStartMsg inStartMsg =
+          waitForSpecificMsg(newSession, ReplServerStartMsg.class);
+      if (!inStartMsg.getSSLEncryption())
+      {
+        newSession.stopEncryption();
+      }
+      return newServerURL;
+    }
+
+    /** The caller has no handle on this peer yet, so nothing else would close it. */
+    private void abandon(Session newSession, Socket newSocket)
+    {
+      reader.shutdownNow();
+      if (newSession != null)
+      {
+        newSession.close();
+      }
+      else
+      {
+        StaticUtils.close(newSocket);
+      }
+    }
+
+    /**
+     * Waits for the replication server to have filled the receive buffer of this peer, which
+     * reads nothing meanwhile, up to {@link #SOCKET_BUFFER_FILL_MARK}: the session thread
+     * serving this peer is then inside the write of a message larger than the buffers on both
+     * sides of the connection, and stays there until this peer reads.
+     */
+    void awaitReceiveBufferFilled() throws Exception
+    {
+      newConnectionTimer().repeatUntilSuccess(new Callable<Void>()
+      {
+        @Override
+        public Void call() throws Exception
+        {
+          assertThat(socket.getInputStream().available())
+              .as("the replication server never filled the receive buffer of the peer")
+              .isGreaterThanOrEqualTo(SOCKET_BUFFER_FILL_MARK);
+          return null;
+        }
+      });
     }
 
     /**

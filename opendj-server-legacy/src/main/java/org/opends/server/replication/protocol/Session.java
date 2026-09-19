@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -36,6 +37,7 @@ import java.util.zip.DataFormatException;
 
 import javax.net.ssl.SSLSocket;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.types.HostPort;
@@ -96,7 +98,20 @@ public final class Session extends DirectoryThread implements Closeable
    */
   private BufferedOutputStream output;
 
-  private final LinkedBlockingQueue<byte[]> sendQueue = new LinkedBlockingQueue<>(4000);
+  /** A message queued for the thread of this session, and what to run once it is written. */
+  private static final class Outgoing
+  {
+    private final byte[] buffer;
+    private final Runnable whenWritten;
+
+    private Outgoing(byte[] buffer, Runnable whenWritten)
+    {
+      this.buffer = buffer;
+      this.whenWritten = whenWritten;
+    }
+  }
+
+  private final LinkedBlockingQueue<Outgoing> sendQueue = new LinkedBlockingQueue<>(4000);
   private AtomicBoolean isRunning = new AtomicBoolean(false);
   private final CountDownLatch latch = new CountDownLatch(1);
 
@@ -140,6 +155,10 @@ public final class Session extends DirectoryThread implements Closeable
   /**
    * This method is called when the session with the remote must be closed.
    * This object won't be used anymore after this method is called.
+   * <p>
+   * The thread of this session is stopped where it is: whatever is still queued for it is not
+   * written, and the callbacks of those messages never run - see
+   * {@link #publish(ReplicationMsg, Runnable)}.
    */
   @Override
   public void close()
@@ -307,22 +326,50 @@ public final class Session extends DirectoryThread implements Closeable
    */
   public void publish(final ReplicationMsg msg) throws IOException
   {
+    publish(msg, null);
+  }
+
+  /**
+   * Sends a replication message to the remote peer, and runs the provided callback once the
+   * message has been written to the socket.
+   * <p>
+   * While the thread of this session runs, a message published is queued for it and written
+   * later, so the return of this method says only that the message is queued. The callback is
+   * the only word that the message has left this server: it runs once, on the thread which wrote
+   * the message, after the write returned - and never for a message which was not written, which
+   * is what becomes of a message the write of which fails, and of everything still queued when
+   * the session is closed. It must be short and must not block: the session writes nothing else
+   * until it returns.
+   *
+   * @param msg
+   *          The message to be sent.
+   * @param whenWritten
+   *          What to run once the message has been written, or null.
+   * @return whether the message was written or queued to be written; false when it was neither,
+   *         because it has no encoding for the protocol version of the peer or because the
+   *         session is being closed - the callback then never runs.
+   * @throws IOException
+   *           If an IO error occurred.
+   */
+  public boolean publish(final ReplicationMsg msg, final Runnable whenWritten) throws IOException
+  {
     final byte[] buffer = msg.getBytes(protocolVersion);
     if (buffer == null)
     {
       // skip anything that cannot be encoded for this peer.
-      return;
+      return false;
     }
     if (isRunning.get())
     {
+      final Outgoing outgoing = new Outgoing(buffer, whenWritten);
       while (!closeInitiated)
       {
         try
         {
           // Avoid blocking forever so that we can check for session closure.
-          if (sendQueue.offer(buffer, 100, TimeUnit.MILLISECONDS))
+          if (sendQueue.offer(outgoing, 100, TimeUnit.MILLISECONDS))
           {
-            return;
+            return true;
           }
         }
         catch (final InterruptedException e)
@@ -331,10 +378,27 @@ public final class Session extends DirectoryThread implements Closeable
           throw new IOException(e.getMessage());
         }
       }
+      return false;
     }
-    else
+    send(buffer);
+    written(whenWritten);
+    return true;
+  }
+
+  /** Runs what was to run once a message is written; a callback which fails takes nothing down. */
+  private void written(final Runnable whenWritten)
+  {
+    if (whenWritten != null)
     {
-      send(buffer);
+      try
+      {
+        whenWritten.run();
+      }
+      catch (final RuntimeException e)
+      {
+        logger.error(LocalizableMessage.raw("The callback of a message written to %s failed: %s",
+            readableRemoteAddress, stackTraceToSingleLineString(e)));
+      }
     }
   }
 
@@ -535,10 +599,10 @@ public final class Session extends DirectoryThread implements Closeable
     boolean needClosing = false;
     while (!closeInitiated)
     {
-      byte[] buffer;
+      Outgoing outgoing;
       try
       {
-        buffer = sendQueue.take();
+        outgoing = sendQueue.take();
       }
       catch (InterruptedException ie)
       {
@@ -546,13 +610,15 @@ public final class Session extends DirectoryThread implements Closeable
       }
       try
       {
-        send(buffer);
+        send(outgoing.buffer);
       }
       catch (IOException e)
       {
         setSessionError(e);
         needClosing = true;
+        continue;
       }
+      written(outgoing.whenWritten);
     }
     isRunning.set(false);
     if (needClosing)
