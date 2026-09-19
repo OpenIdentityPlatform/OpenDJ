@@ -22,6 +22,7 @@ import static org.forgerock.opendj.config.ConfigurationMock.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
 
+import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.opendj.config.server.ConfigException;
@@ -32,10 +33,12 @@ import org.forgerock.opendj.server.config.server.PDBBackendCfg;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
+import org.opends.server.backends.pluggable.spi.StorageInUseException;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.MemoryQuota;
 import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
@@ -420,6 +423,123 @@ public class PDBStorageTest extends DirectoryServerTestCase
       grown = Math.max(grown, PDBStorage.retryDelayMillis(PDBStorage.MAX_RETRIES));
     }
     assertThat(grown).as("the last attempts still sleep within the first attempt's bound").isGreaterThan(500);
+  }
+
+  /**
+   * An open which fails gives back what it took before it failed: the memory it reserved for the
+   * cache, and the listener the constructor registered on the backend configuration. Nothing else
+   * will - a root container does not close a storage which did not open - and a backend whose
+   * volume another storage holds is enabled again and again, each attempt draining one cache size.
+   */
+  @Test
+  public void aStorageWhoseOpenFailedGivesBackWhatItTook() throws Exception
+  {
+    final PDBBackendCfg cfg = createBackendCfg();
+    // Over the volume the storage of setUp() holds: what a second attempt to enable the backend meets.
+    final PDBStorage second = new PDBStorage(cfg, serverContext);
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    final long availableBefore = quota.getAvailableMemory();
+    try
+    {
+      second.open(AccessMode.READ_WRITE);
+      fail("the storage was expected not to open over a volume another storage holds");
+    }
+    catch (StorageInUseException expected)
+    {
+      // What the lock on the volume file does.
+    }
+
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
+    verify(cfg).removePDBChangeListener(second);
+  }
+
+  /**
+   * A storage whose open failed has given everything back already, so closing it afterwards takes
+   * nothing more - {@code BackendImpl.importLDIF} closes the storage of its root container however
+   * the import ended - and does not fail on what the open never got to.
+   */
+  @Test
+  public void closingAStorageWhoseOpenFailedTakesNothingMore() throws Exception
+  {
+    final PDBStorage second = new PDBStorage(createBackendCfg(), serverContext);
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    final long availableBefore = quota.getAvailableMemory();
+    try
+    {
+      second.open(AccessMode.READ_WRITE);
+      fail("the storage was expected not to open over a volume another storage holds");
+    }
+    catch (StorageInUseException expected)
+    {
+      // What the lock on the volume file does.
+    }
+
+    second.close();
+
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
+  }
+
+  /**
+   * A storage which is open refuses to open again before it takes anything, and what it holds is
+   * left as it is: the refusal is a guard against a programming error, not a failed open with
+   * something to give back.
+   */
+  @Test
+  public void openingAnOpenStorageIsRefusedAndTakesNothing() throws Exception
+  {
+    createTree();
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    final long availableBefore = quota.getAvailableMemory();
+    try
+    {
+      storage.open(AccessMode.READ_WRITE);
+      fail("a storage which is open was expected to refuse to open again");
+    }
+    catch (IllegalStateException expected)
+    {
+      // The guard against a double open.
+    }
+
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
+    // Still open: a read reaches the database.
+    assertThat(read("missing")).isNull();
+  }
+
+  /**
+   * An open which fails once the database is open gives the database back with the rest: the
+   * volume, or no later open of the backend can take it, and the monitor the open registered. The
+   * disk monitor is the one thing past the database open that a test can refuse.
+   */
+  @Test
+  public void aStorageWhoseOpenFailedAfterItsDatabaseOpenedGivesTheDatabaseBack() throws Exception
+  {
+    // The volume of setUp() is given up first: held, it fails the open before the database is built.
+    closeAndRemove(storage);
+    final DiskSpaceMonitor refusing = mock(DiskSpaceMonitor.class);
+    doThrow(new IllegalStateException("the directory cannot be monitored"))
+        .when(refusing).registerMonitoredDirectory(anyString(), any(File.class), anyLong(), anyLong(), any());
+    when(serverContext.getDiskSpaceMonitor()).thenReturn(refusing);
+    final PDBBackendCfg cfg = createBackendCfg();
+    final PDBStorage second = new PDBStorage(cfg, serverContext);
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    final long availableBefore = quota.getAvailableMemory();
+    try
+    {
+      second.open(AccessMode.READ_WRITE);
+      fail("the storage was expected not to open when its directory cannot be monitored");
+    }
+    catch (IllegalStateException expected)
+    {
+      // What the failure past the database open does.
+    }
+
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
+    verify(cfg).removePDBChangeListener(second);
+    assertThat(DirectoryServer.getMonitorProviders()).doesNotContainKey("pdbstoragetest pdb database");
+    // The volume was given back: a storage over the same directory opens.
+    when(serverContext.getDiskSpaceMonitor()).thenReturn(mock(DiskSpaceMonitor.class));
+    storage = new PDBStorage(createBackendCfg(), serverContext);
+    storage.open(AccessMode.READ_WRITE);
   }
 
   private void createTree() throws Exception

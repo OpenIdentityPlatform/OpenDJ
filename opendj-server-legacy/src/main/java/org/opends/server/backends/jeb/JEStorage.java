@@ -791,37 +791,50 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
       trees.clear();
     }
 
-    if (env != null)
+    try
     {
-      DirectoryServer.deregisterMonitorProvider(monitor);
-      monitor = null;
-      try
+      if (env != null)
       {
+        // Not yet registered when a failed open got no further than the environment itself.
+        if (monitor != null)
+        {
+          DirectoryServer.deregisterMonitorProvider(monitor);
+          monitor = null;
+        }
         env.close();
         env = null;
       }
-      catch (DatabaseException e)
-      {
-        throw new IllegalStateException(e);
-      }
     }
-
-    if (memQuota != null)
+    catch (DatabaseException e)
     {
-      if (config.getDBCacheSize() > 0)
-      {
-        memQuota.releaseMemory(config.getDBCacheSize());
-      }
-      else
-      {
-        memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
-      }
+      throw new IllegalStateException(e);
     }
-    config.removeJEChangeListener(this);
-    envConfig = null;
-    if (diskMonitor != null)
+    finally
     {
-      diskMonitor.deregisterMonitoredDirectory(getDirectory(), this);
+      // Given back after the environment, and whether or not its close threw: reporting the
+      // memory free before the environment has actually freed it would let a racing enable of
+      // another backend be admitted while this one's cache is still resident.
+      if (memQuota != null)
+      {
+        if (config.getDBCacheSize() > 0)
+        {
+          memQuota.releaseMemory(config.getDBCacheSize());
+        }
+        else
+        {
+          memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
+        }
+        // Released once: what an open takes, the next open takes again, and a close which follows
+        // a close - BackendImpl.importLDIF closes the storage of its root container however the
+        // import ended, on top of the close the import itself made - releases nothing more.
+        memQuota = null;
+      }
+      config.removeJEChangeListener(this);
+      envConfig = null;
+      if (diskMonitor != null)
+      {
+        diskMonitor.deregisterMonitoredDirectory(getDirectory(), this);
+      }
     }
   }
 
@@ -836,8 +849,53 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
       // Do not open files on disk
       return;
     }
+    rejectIfOpen();
     buildConfiguration(accessMode, false);
-    open0();
+    openOrGiveBack();
+  }
+
+  /**
+   * Refuses to open an environment which is open, before anything is taken for the attempt: the
+   * refusal guards against a programming error, and what this storage holds is left as it is.
+   */
+  private void rejectIfOpen()
+  {
+    if (env != null)
+    {
+      throw new IllegalStateException(
+          "Database is already open, either the backend is enabled or an import is currently running.");
+    }
+  }
+
+  /**
+   * Opens the environment, or gives back what the attempt took before it failed. Nothing else will:
+   * a root container does not close a storage whose {@code open()} threw, and a backend whose open
+   * failed is thrown away with the storage still registered as a listener of its configuration and
+   * the cache size it reserved still drawn from the memory quota - once per attempt to enable it.
+   */
+  private void openOrGiveBack() throws ConfigException
+  {
+    boolean opened = false;
+    try
+    {
+      open0();
+      opened = true;
+    }
+    finally
+    {
+      if (!opened)
+      {
+        try
+        {
+          close();
+        }
+        catch (RuntimeException e)
+        {
+          // The failure being given up after is the one worth reporting, and this must not replace it.
+          logger.traceException(e);
+        }
+      }
+    }
   }
 
   private boolean isBackendIncomplete(AccessMode accessMode)
@@ -863,11 +921,6 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     setupStorageFiles(backendDirectory, config.getDBDirectoryPermissions(), config.dn());
     try
     {
-      if (env != null)
-      {
-        throw new IllegalStateException(
-            "Database is already open, either the backend is enabled or an import is currently running.");
-      }
       env = new Environment(backendDirectory, envConfig);
       monitor = new JEMonitor(config.getBackendId() + " JE Database", env);
       DirectoryServer.registerMonitorProvider(monitor);
@@ -899,8 +952,9 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   @Override
   public Importer startImport() throws ConfigException, StorageRuntimeException
   {
+    rejectIfOpen();
     buildConfiguration(AccessMode.READ_WRITE, true);
-    open0();
+    openOrGiveBack();
     return new ImporterImpl();
   }
 
