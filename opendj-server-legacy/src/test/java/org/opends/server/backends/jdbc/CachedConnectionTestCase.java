@@ -1122,6 +1122,34 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * ... and however far down the chain the driver put it. The walk that decides ends where the
+	 * chain ends, not at a count of links: mssql-jdbc chains every error of one message through
+	 * setNextException, and a walk that stopped at 32 of them answered "the caller's to see" for
+	 * the link it never reached - the connect reported as permanent on a database that would have
+	 * taken it a moment later, and a backend that stays locked down for it (issue #1076).
+	 */
+	@Test(timeOut = 120000)
+	public void testARetryableLinkPastTheOldBudgetOfTheWalkIsLookedAt() throws Exception {
+		final String url = StubDriver.PREFIX + "deep-chain";
+		// 32 links that say nothing of the moment in front of the one that says the database is at its limit
+		SQLException chain = tooManyConnections();
+		for (int link = 32; link > 0; link--) {
+			final SQLException inFront = new SQLException("error " + link + " of the same message", "08006", link);
+			inFront.setNextException(chain);
+			chain = inFront;
+		}
+		stub.failWith(chain, 1);
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "30");
+
+		try {
+			assertNotNull(CachedConnection.getConnection(url));
+		} catch (SQLException reported) {
+			fail("a database at its limit 33 links down the failure must be waited out, not reported: " + reported, reported);
+		}
+		assertEquals(stub.attempts.get(), 2, "the link past the 32nd must be looked at");
+	}
+
+	/**
 	 * The rest of the insufficient_resources class is not worth waiting out: a server out of disk
 	 * is not made whole by a connection of ours coming back to the pool.
 	 */
