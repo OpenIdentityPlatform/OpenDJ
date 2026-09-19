@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -71,6 +72,7 @@ import org.opends.server.backends.pluggable.OnDiskMergeImporter.Chunk;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.Collector;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.DnValidationCursorDecorator;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.EntryIDSetsCollector;
+import org.opends.server.backends.pluggable.OnDiskMergeImporter.EntryIDsCollector;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChunk;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChunk.CollectorCursor;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChunk.CompositeCursor;
@@ -468,6 +470,116 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
         new CollectorCursor<>(source, new EntryIDSetsCollector(new DummyIndex(10)));
 
     assertThat(toPairs(result)).containsExactlyElementsOf(toPairs(expected));
+  }
+
+  /**
+   * An index-entry-limit of 0 is no limit at all ("For no limit, use 0 for the value"): the phase-two
+   * collector gives no key up under it, however many chunks hold the key. A key which a chunk had
+   * already given up stays undefined - nothing can put its entries back (#1059).
+   */
+  @Test
+  public void testEntryIDSetCollectorGivesNoKeyUpUnderNoLimit()
+  {
+    final MeteredCursor<String, ByteString> source = cursorOf(
+        Pair.of("key1", EntryIDSet.CODEC_V2.encode(newDefinedSet(2))),
+        Pair.of("key1", EntryIDSet.CODEC_V2.encode(newDefinedSet(1))),
+
+        Pair.of("key2", EntryIDSet.CODEC_V2.encode(newDefinedSet(1))),
+
+        Pair.of("key3", EntryIDSet.CODEC_V2.encode(newDefinedSet(1))),
+        Pair.of("key3", EntryIDSet.CODEC_V2.encode(newDefinedSet(2))),
+        Pair.of("key3", EntryIDSet.CODEC_V2.encode(newDefinedSet(3))),
+        Pair.of("key3", EntryIDSet.CODEC_V2.encode(newDefinedSet(4))),
+        Pair.of("key3", EntryIDSet.CODEC_V2.encode(newDefinedSet(5))),
+        Pair.of("key3", EntryIDSet.CODEC_V2.encode(newDefinedSet(6))),
+        Pair.of("key3", EntryIDSet.CODEC_V2.encode(newDefinedSet(7))),
+        Pair.of("key3", EntryIDSet.CODEC_V2.encode(newDefinedSet(8))),
+        Pair.of("key3", EntryIDSet.CODEC_V2.encode(newDefinedSet(9))),
+        Pair.of("key3", EntryIDSet.CODEC_V2.encode(newDefinedSet(10))),
+
+        Pair.of("key4", EntryIDSet.CODEC_V2.encode(newDefinedSet(10))),
+        Pair.of("key4", EntryIDSet.CODEC_V2.encode(newUndefinedSet())));
+
+    final SequentialCursor<String, ByteString> expected = cursorOf(
+        Pair.of("key1", EntryIDSet.CODEC_V2.encode(newDefinedSet(1, 2))),
+        Pair.of("key2", EntryIDSet.CODEC_V2.encode(newDefinedSet(1))),
+        Pair.of("key3", EntryIDSet.CODEC_V2.encode(newDefinedSet(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))),
+        Pair.of("key4", EntryIDSet.CODEC_V2.encode(newUndefinedSet())));
+
+    final SequentialCursor<String, ByteString> result =
+        new CollectorCursor<>(source, new EntryIDSetsCollector(new DummyIndex(0)));
+
+    assertThat(toPairs(result)).containsExactlyElementsOf(toPairs(expected));
+  }
+
+  /** The phase-one collector gives a key up once it holds as many entry IDs as the limit allows. */
+  @Test
+  public void testEntryIDsCollector()
+  {
+    final MeteredCursor<String, ByteString> source = cursorOf(
+        Pair.of("key1", entryID(2)),
+        Pair.of("key1", entryID(1)),
+
+        Pair.of("key2", entryID(1)),
+
+        Pair.of("key3", entryID(1)),
+        Pair.of("key3", entryID(2)),
+        Pair.of("key3", entryID(3)),
+        Pair.of("key3", entryID(4)),
+        Pair.of("key3", entryID(5)),
+        Pair.of("key3", entryID(6)),
+        Pair.of("key3", entryID(7)),
+        Pair.of("key3", entryID(8)),
+        Pair.of("key3", entryID(9)),
+        Pair.of("key3", entryID(10)));
+
+    final SequentialCursor<String, ByteString> expected = cursorOf(
+        Pair.of("key1", EntryIDSet.CODEC_V2.encode(newDefinedSet(1, 2))),
+        Pair.of("key2", EntryIDSet.CODEC_V2.encode(newDefinedSet(1))),
+        Pair.of("key3", EntryIDSet.CODEC_V2.encode(newUndefinedSet())));
+
+    final SequentialCursor<String, ByteString> result =
+        new CollectorCursor<>(source, new EntryIDsCollector(new DummyIndex(10)));
+
+    assertThat(toPairs(result)).containsExactlyElementsOf(toPairs(expected));
+  }
+
+  /** Under an index-entry-limit of 0 the phase-one collector gives no key up either (#1059). */
+  @Test
+  public void testEntryIDsCollectorGivesNoKeyUpUnderNoLimit()
+  {
+    final MeteredCursor<String, ByteString> source = cursorOf(
+        Pair.of("key1", entryID(2)),
+        Pair.of("key1", entryID(1)),
+
+        Pair.of("key2", entryID(1)),
+
+        Pair.of("key3", entryID(1)),
+        Pair.of("key3", entryID(2)),
+        Pair.of("key3", entryID(3)),
+        Pair.of("key3", entryID(4)),
+        Pair.of("key3", entryID(5)),
+        Pair.of("key3", entryID(6)),
+        Pair.of("key3", entryID(7)),
+        Pair.of("key3", entryID(8)),
+        Pair.of("key3", entryID(9)),
+        Pair.of("key3", entryID(10)));
+
+    final SequentialCursor<String, ByteString> expected = cursorOf(
+        Pair.of("key1", EntryIDSet.CODEC_V2.encode(newDefinedSet(1, 2))),
+        Pair.of("key2", EntryIDSet.CODEC_V2.encode(newDefinedSet(1))),
+        Pair.of("key3", EntryIDSet.CODEC_V2.encode(newDefinedSet(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))));
+
+    final SequentialCursor<String, ByteString> result =
+        new CollectorCursor<>(source, new EntryIDsCollector(new DummyIndex(0)));
+
+    assertThat(toPairs(result)).containsExactlyElementsOf(toPairs(expected));
+  }
+
+  /** An entry ID the way phase one buffers it: the bare ID, not an {@link EntryIDSet}. */
+  private static ByteString entryID(long id)
+  {
+    return new EntryID(id).toByteString();
   }
 
   @Test

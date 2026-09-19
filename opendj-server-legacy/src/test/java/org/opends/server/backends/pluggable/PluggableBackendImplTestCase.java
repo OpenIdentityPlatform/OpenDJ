@@ -93,6 +93,7 @@ import org.testng.annotations.Test;
 public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg> extends DirectoryServerTestCase
 {
   private BackendImpl<C> backend;
+  private C backendCfg;
   private List<Entry> topEntries;
   private List<Entry> entries;
   private List<Entry> workEntries;
@@ -142,7 +143,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
 
     testBaseDN = DN.valueOf("dc=test,dc=com");
 
-    C backendCfg = createBackendCfg();
+    backendCfg = createBackendCfg();
     when(backendCfg.dn()).thenReturn(testBaseDN);
     when(backendCfg.getBaseDN()).thenReturn(newTreeSet(testBaseDN));
     when(backendCfg.listBackendIndexes()).thenReturn(backendIndexes.keySet().toArray(new String[0]));
@@ -1157,6 +1158,123 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       config.addCleanIndex(indexName);
     }
     assertThat(backend.verifyBackend(config)).isEqualTo(0);
+  }
+
+  /**
+   * An index-entry-limit of 0 is no limit at all ("For no limit, use 0 for the value"), and the live
+   * index honours it. The importer compared it as the smallest limit there is and wrote every key of
+   * an import undefined: the index was then trusted, and every search through it unindexed (#1059).
+   */
+  @Test
+  public void testImportUnderNoIndexEntryLimitKeepsEveryKey() throws Exception
+  {
+    final BackendIndexCfg snIndexCfg = backendCfg.getBackendIndex("sn");
+    when(snIndexCfg.getIndexEntryLimit()).thenReturn(0);
+    try
+    {
+      final byte[] ldif = exportLDIF();
+      backend.finalizeBackend();
+      importLDIF(ldif);
+      backend.openBackend();
+
+      final Map<String, Boolean> keys = indexKeys("sn");
+      assertThat(keys).as("the keys the sn indexes hold").isNotEmpty();
+      assertThat(keys).as("a key the import gave up under no limit").doesNotContainValue(false);
+    }
+    finally
+    {
+      when(snIndexCfg.getIndexEntryLimit()).thenReturn(4000);
+      reopenBackend();
+    }
+  }
+
+  /** A rebuild writes its keys the way an import does: under no limit it gives none of them up either. */
+  @Test
+  public void testRebuildUnderNoIndexEntryLimitKeepsEveryKey() throws Exception
+  {
+    final BackendIndexCfg snIndexCfg = backendCfg.getBackendIndex("sn");
+    when(snIndexCfg.getIndexEntryLimit()).thenReturn(0);
+    try
+    {
+      final RebuildConfig rebuildConfig = new RebuildConfig();
+      rebuildConfig.setBaseDN(testBaseDN);
+      rebuildConfig.addRebuildIndex("sn");
+      backend.closeBackend();
+      backend.rebuildBackend(rebuildConfig, TestCaseUtils.getServerContext());
+      backend.openBackend();
+
+      final Map<String, Boolean> keys = indexKeys("sn");
+      assertThat(keys).as("the keys the sn indexes hold").isNotEmpty();
+      assertThat(keys).as("a key the rebuild gave up under no limit").doesNotContainValue(false);
+    }
+    finally
+    {
+      when(snIndexCfg.getIndexEntryLimit()).thenReturn(4000);
+      reopenBackend();
+    }
+  }
+
+  private byte[] exportLDIF() throws Exception
+  {
+    final ByteArrayOutputStream ldif = new ByteArrayOutputStream();
+    try (LDIFExportConfig exportConfig = new LDIFExportConfig(ldif))
+    {
+      exportConfig.setIncludeOperationalAttributes(true);
+      backend.exportLDIF(exportConfig);
+    }
+    return ldif.toByteArray();
+  }
+
+  /** Imports the LDIF into the cleared backend, which the caller has finalized and opens again afterwards. */
+  private void importLDIF(byte[] ldif) throws Exception
+  {
+    final ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
+    try (LDIFImportConfig importConfig = new LDIFImportConfig(new ByteArrayInputStream(ldif)))
+    {
+      importConfig.setClearBackend(true);
+      importConfig.writeRejectedEntries(rejectedEntries);
+      importConfig.setIncludeBranches(Collections.singleton(testBaseDN));
+      importConfig.setThreadCount(0);
+      backend.importLDIF(importConfig, TestCaseUtils.getServerContext());
+    }
+    assertEquals(rejectedEntries.size(), 0, "No entries should be rejected. Content was:\n" + rejectedEntries);
+  }
+
+  /** Every key of every index of the attribute, and whether the index still holds its entries. */
+  private Map<String, Boolean> indexKeys(String attributeName) throws Exception
+  {
+    final AttributeType attributeType = TestCaseUtils.getServerContext().getSchema().getAttributeType(attributeName);
+    final EntryContainer entryContainer = backend.getRootContainer().getEntryContainer(testBaseDN);
+    final AttributeIndex attributeIndex = entryContainer.getAttributeIndex(attributeType);
+    return backend.getRootContainer().getStorage().read(new ReadOperation<Map<String, Boolean>>()
+    {
+      @Override
+      public Map<String, Boolean> run(ReadableTransaction txn) throws Exception
+      {
+        final Map<String, Boolean> keys = new TreeMap<>();
+        for (AttributeIndex.MatchingRuleIndex index : attributeIndex.getNameToIndexes().values())
+        {
+          try (Cursor<ByteString, EntryIDSet> cursor = index.openCursor(txn))
+          {
+            while (cursor.next())
+            {
+              keys.put(index.getName() + " " + cursor.getKey().toHexString(), cursor.getValue().isDefined());
+            }
+          }
+        }
+        return keys;
+      }
+    });
+  }
+
+  /** Opens the backend afresh, so that its indexes hold the configuration the other tests expect. */
+  private void reopenBackend() throws Exception
+  {
+    if (backend.getRootContainer() != null)
+    {
+      backend.finalizeBackend();
+    }
+    backend.openBackend();
   }
 
   @Test
