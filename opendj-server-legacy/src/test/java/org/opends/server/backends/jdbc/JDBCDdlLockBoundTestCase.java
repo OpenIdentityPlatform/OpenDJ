@@ -225,6 +225,22 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 			"the property that would have bounded it was not named: " + said);
 	}
 
+	/**
+	 * Once per storage, not once per DDL: the line is there to be found in a log, and a copy of it
+	 * beside every create index and every drop table would bury what it says.
+	 */
+	@Test
+	public void testAnEngineThisBackendDoesNotKnowIsReportedOnce() throws Exception {
+		final Connection con = recording(mock(Connection.class), "0");
+		storage.withDdlLockBound(con, null, theDdl());
+		assertTrue(storage.ddlLockBoundEngineUnknownWarned.get(), "the first DDL on the engine said nothing");
+
+		storage.ddlLockBoundEngineUnknownSaid = null;
+		storage.withDdlLockBound(con, null, theDdl());
+
+		assertNull(storage.ddlLockBoundEngineUnknownSaid, "an engine this backend does not know was reported twice");
+	}
+
 	/** A deployment that turned the bound off asked for none anywhere, and has nothing to act on. */
 	@Test
 	public void testAWaitNobodyAskedToBoundIsNotReportedAsAnUnknownEngine() throws Exception {
@@ -678,6 +694,8 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	 * its cause chain: a wait renamed by {@code gaveUpOnTheLock()} names the property on its own, so a
 	 * wrapper that dropped the distinction and always blamed a missing privilege would still leave
 	 * that name reachable through the cause - which is the gap this asserts on the outer message too.
+	 * The outer message is the one line {@code ERR_OPEN_ENV_FAIL} carries to the operator, so the
+	 * property has to be on it and not only one link down.
 	 */
 	@Test
 	public void testALockTheCreateOfTheCatalogTableGaveUpOnNamesTheProperty() throws Exception {
@@ -692,12 +710,94 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 			assertTrue(expected.getMessage().contains(CATALOG_TABLE), expected.getMessage());
 			assertFalse(expected.getMessage().contains("privilege"),
 				"a lock gave up on was blamed on a missing privilege: " + expected.getMessage());
+			assertTrue(expected.getMessage().contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY),
+				"the line the operator reads does not name the property that ended the wait: " + expected.getMessage());
 			assertTrue(expected.getCause() instanceof SQLTimeoutException,
 				"the lock was left as the engine reported it rather than as this bound renamed it: "
 					+ expected.getCause());
 			assertTrue(expected.getCause().getMessage().contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY),
 				expected.getCause().getMessage());
 			assertEquals(((SQLException) expected.getCause().getCause()).getSQLState(), "55P03");
+		}
+	}
+
+	/**
+	 * A lock the engine's own setting gave up on is a lock all the same, and is named as one: with the
+	 * property at 0 nothing is put on the session and the create runs bare, so a 55P03 out of a
+	 * {@code lock_timeout} the DBA set - or a 1205 out of a {@code lock_wait_timeout} already tighter
+	 * than ours, or ORA-00054 on the engine left alone - reaches the catch without the rename
+	 * {@code gaveUpOnTheLock()} gives a wait this backend's own bound ended. The catch reads the failure
+	 * the way {@code lockNotAvailable()} does, on every road, rather than by the class the rename
+	 * leaves behind on one of them: a lock another session holds is not a privilege the account lacks,
+	 * whichever bound ended the wait for it.
+	 */
+	@Test
+	public void testALockTheCreateOfTheCatalogTableMetUnderNoBoundOfOursIsStillNamedAsOne() throws Exception {
+		System.setProperty(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY, "0");
+		final SQLException lockNotAvailable = new SQLException("canceling statement due to lock timeout", "55P03");
+		final JDBCStorage unbounded = storageHandingOut(engine(postgresConnection.class, "0"),
+			failingTheCreate(engine(postgresConnection.class, "0", catalogIssued), lockNotAvailable));
+
+		try {
+			unbounded.write(txn -> txn.openTree(TREE, true));
+			fail("a create of the catalog table that gave up on a lock has to reach the caller");
+		}catch (StorageRuntimeException expected) {
+			assertTrue(expected.getMessage().contains("waited for a lock another session holds"),
+				"a lock the engine gave up on was not named as one: " + expected.getMessage());
+			assertFalse(expected.getMessage().contains("privilege"),
+				"a lock the engine gave up on was blamed on a missing privilege: " + expected.getMessage());
+			assertSame(expected.getCause(), lockNotAvailable,
+				"a wait no bound of ours ended was renamed as if one had: " + expected.getCause());
+		}
+	}
+
+	/**
+	 * And a create the bound of its own class cut short - {@code bulk.timeout}, where a deployment
+	 * gave it a value - is neither: {@code timedOut()} has already named that property, and the
+	 * wrapper carries its line rather than blame a lock the statement may not have been queued for,
+	 * or a privilege the account has.
+	 */
+	@Test
+	public void testACreateOfTheCatalogTableItsOwnBoundCancelledIsBlamedOnNeitherALockNorAPrivilege() throws Exception {
+		final SQLException cancelled = new SQLTimeoutException("jdbc: the statement took 100200 ms, reaching the"
+			+ " 100s of " + StatementBound.BULK.property, "57014", 0);
+		final JDBCStorage bounded = storageHandingOut(engine(postgresConnection.class, "0"),
+			failingTheCreate(engine(postgresConnection.class, "0", catalogIssued), cancelled));
+
+		try {
+			bounded.write(txn -> txn.openTree(TREE, true));
+			fail("a create of the catalog table its own bound cancelled has to reach the caller");
+		}catch (StorageRuntimeException expected) {
+			assertTrue(expected.getMessage().contains(StatementBound.BULK.property),
+				"the bound that cut the create short is not on the line the operator reads: " + expected.getMessage());
+			assertFalse(expected.getMessage().contains("waited for a lock another session holds"),
+				"a statement its own bound cancelled was reported as a lock wait: " + expected.getMessage());
+			assertFalse(expected.getMessage().contains("privilege"),
+				"a statement its own bound cancelled was blamed on a missing privilege: " + expected.getMessage());
+			assertSame(expected.getCause(), cancelled);
+		}
+	}
+
+	/**
+	 * What is left is the privilege the account is missing, which is what the line said before the
+	 * catch told the failures apart - kept for the failure it fits, and only for that one.
+	 */
+	@Test
+	public void testAPrivilegeTheCreateOfTheCatalogTableLacksIsNamedAsOne() throws Exception {
+		final SQLException denied = new SQLException("permission denied for schema public", "42501");
+		final JDBCStorage bounded = storageHandingOut(engine(postgresConnection.class, "0"),
+			failingTheCreate(engine(postgresConnection.class, "0", catalogIssued), denied));
+
+		try {
+			bounded.write(txn -> txn.openTree(TREE, true));
+			fail("a create of the catalog table the account may not issue has to reach the caller");
+		}catch (StorageRuntimeException expected) {
+			assertTrue(expected.getMessage().contains(CATALOG_TABLE), expected.getMessage());
+			assertTrue(expected.getMessage().contains("privilege"),
+				"a privilege the account lacks was named as something else: " + expected.getMessage());
+			assertFalse(expected.getMessage().contains("waited for a lock another session holds"),
+				"a privilege the account lacks was reported as a lock wait: " + expected.getMessage());
+			assertSame(expected.getCause(), denied, "a failure that was no lock wait was renamed");
 		}
 	}
 

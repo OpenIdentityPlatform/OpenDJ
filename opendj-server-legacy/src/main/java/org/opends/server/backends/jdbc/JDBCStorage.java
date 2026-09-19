@@ -2406,8 +2406,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * the failure that brought it there (JLS 14.20.2) - the very one saying what went wrong.
 	 * <p>
 	 * A connection this failed on is handed on to nobody. A pooled one is closed rather than given
-	 * back, and the catalog's own - the one connection reaching this that was never in the pool - is
-	 * closed with the write that opened it. Leaving it to the next borrow to
+	 * back, and the catalog's own - the one connection reaching this that was never in the pool -
+	 * carries the setting for the rest of the write that opened it, the enrolment of the tree among
+	 * that, and is closed with that write. Leaving it to the next borrow to
 	 * notice does not work: that validation is {@code con.isValid()}, a liveness check which a
 	 * connection whose reset failed for a transient reason passes while still carrying our bound, and
 	 * on sql server it would then cut every lock wait of that borrower at it - row locks included,
@@ -2437,8 +2438,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				logger.warn(LocalizableMessage.raw("jdbc: the lock bound of a DDL could not be taken off a connection"
 					+ " of this %s database, which may have been left carrying \"%s\" instead of the value it had:"
 					+ " that connection is not handed on - a pooled one is closed rather than given back, and the"
-					+ " catalog's own is closed with the write that opened it - so nothing after this gives up on a"
-					+ " lock at a bound of %s it never asked for (%s)", dialect, bound, DDL_LOCK_TIMEOUT_PROPERTY,
+					+ " catalog's own carries it for the rest of the write that opened it and is closed with that"
+					+ " write - so no later write gives up on a lock at a bound of %s it never asked for (%s)",
+					dialect, bound, DDL_LOCK_TIMEOUT_PROPERTY,
 					stackTraceToSingleLineString(e)));
 			}
 		}
@@ -4826,22 +4828,31 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * It waits for its lock under {@link JDBCStorage#DDL_LOCK_TIMEOUT_PROPERTY} like every other DDL
 		 * of this backend, and a lock it gives up on names that property: this statement is issued on the
 		 * catalog's own connection rather than through {@code commitStatement()}, which is the funnel
-		 * that bounds the rest, so the bound is put on here. The catch below tells the two failures
-		 * apart, since a lock given up on is not a privilege the account is missing: {@code gaveUpOnTheLock()}
-		 * has already renamed it to a {@link SQLTimeoutException}, and the wrapper here says so rather
-		 * than say what a missing privilege would.
+		 * that bounds the rest, so the bound is put on here. The catch below tells a lock from the
+		 * privilege line, and reads the failure the way {@link JDBCStorage#lockNotAvailable} does rather
+		 * than by the class {@code gaveUpOnTheLock()} renames to: that rename reaches only a wait this
+		 * backend's own bound ended, and a lock is a lock on every road the create runs bare on as well -
+		 * the property at 0, a session already giving up sooner than ours, oracle left to its
+		 * {@code ddl_lock_timeout}, a wait that ran past the slack - where it arrives as the engine's own
+		 * 55P03 / 1205 / ORA-00054 / 1222. A create the bound of its own class cut short
+		 * ({@code bulk.timeout}, which {@code timedOut()} has already named) is neither, and carries that
+		 * line. What is left is the privilege the account is missing. An engine this backend does not
+		 * know has no number a lock could be told by ({@code isLockTimeout()} answers false on a null
+		 * dialect), and gets the privilege line there as it did.
 		 */
 		void createCatalogTable(TreeName catalog) {
 			final String tableName=getTableName(catalog);
+			Dialect dialect=null; // read inside the try, and asked again by the catch, which tells a lock by the engine's own number
 			try {
 				final Connection catalogCon=catalogSession.connection();
+				dialect=dialectOf(catalogCon);
 				// Under the same bound as every other DDL of this backend, although this one reaches no
 				// commitStatement(): it is a create table of an open like the ones openTree() issues, and
 				// it queues for the same kind of lock - another process creating this very table inside a
 				// transaction it has not committed is a wait three engines out of four never end. The
 				// commit is inside the bound because on postgres it is that commit which ends the
 				// transaction a "set local" belongs to.
-				withDdlLockBound(catalogCon, dialectOf(catalogCon), () -> {
+				withDdlLockBound(catalogCon, dialect, () -> {
 					try (final PreparedStatement statement=catalogCon.prepareStatement("create table "+tableName+" ("+getTableDialect()+")")) {
 						// bulk like every other create table of this backend (#882): it is DDL nobody waits on,
 						// and the class of a client operation is not what a statement of this kind can be given
@@ -4875,10 +4886,19 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 						tableName, stackTraceToSingleLineString(e)));
 					return;
 				}
-				final String why=(e instanceof SQLTimeoutException)
+				// A lock another session holds is not a privilege the account lacks, whichever bound ended
+				// the wait for it: asked of the engine's own number on every road, since gaveUpOnTheLock()
+				// renames only a wait this backend's own bound ended, and the create runs bare wherever
+				// withDdlLockBound() puts no bound on. Asked without the release, as lockNotAvailable()
+				// always is: the lookup above has just been suppressed into this failure, and what it met
+				// on its way says nothing about what the create did. A create the bound of its own class
+				// cut short is neither, and timedOut() has already named that property on it.
+				final String why=lockNotAvailable(e, dialect)
 					? "the create waited for a lock another session holds and gave up: "+e.getMessage()
-					: "a read-write open of a JDBC backend needs the privilege to create it, and a clear of"
-						+" one names nothing without it";
+					: (e instanceof SQLTimeoutException)
+						? "the create was ended by the bound of its own class: "+e.getMessage()
+						: "a read-write open of a JDBC backend needs the privilege to create it, and a clear of"
+							+" one names nothing without it";
 				throw new StorageRuntimeException("jdbc: backend "+config.getBackendId()+" could not create table "
 					+tableName+", which holds the catalog naming the trees it owns: "+why, e);
 			}
