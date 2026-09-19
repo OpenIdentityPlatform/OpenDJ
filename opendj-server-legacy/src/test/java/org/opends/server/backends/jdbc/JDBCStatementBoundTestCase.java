@@ -46,6 +46,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.mockito.Mockito.any;
@@ -1224,6 +1225,43 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * Every statistics statement is committed where it runs, one commit per tree. The connection of
+	 * an import goes back to the pool as soon as the refresh is over and
+	 * {@code CachedConnection.close()} rolls back before the pool hands it on, so a refresh left
+	 * inside the transaction of the borrow would be discarded by its own return - on the one engine
+	 * where the database does not commit it for us. On postgres the per-column rows ANALYZE writes to
+	 * {@code pg_statistic} are ordinary catalog rows and go with a rollback, taking the histogram the
+	 * {@code where k>? order by k} batches of #859 need and leaving only the {@code pg_class.reltuples}
+	 * that is written in place; mysql commits {@code ANALYZE TABLE} implicitly, {@code dbms_stats}
+	 * commits of its own, and sql server does not roll its statistics update back either - which is
+	 * why no container suite pins this, and why it is pinned here (issue #1012).
+	 */
+	@Test
+	public void testEveryStatisticsStatementIsCommittedWhereItRuns() throws Exception {
+		final PreparedStatement statement = mock(PreparedStatement.class);
+		// postgres rather than the oracle stand-in above: it is the engine whose statement this commit
+		// is the only thing making durable
+		final Connection con = mock(postgresConnection.class); // the dialect is read off the connection
+		when(con.getNetworkTimeout()).thenReturn(0);
+		when(con.prepareStatement(anyString())).thenReturn(statement);
+
+		assertTrue(storage.updateTableStatistics(con, asList(
+			new TreeName("dc=example,dc=com", "id2entry"), new TreeName("dc=example,dc=com", "dn2id"))));
+
+		// Behind each statement and not once at the end of the loop: a single commit there would leave
+		// every tree but the last of a rebuild-index import inside the transaction of the borrow.
+		final InOrder perTree = inOrder(con, statement);
+		perTree.verify(statement).execute();
+		perTree.verify(con).commit();
+		perTree.verify(statement).execute();
+		perTree.verify(con).commit();
+		verify(con, times(2)).commit();
+		// the rollback of this loop belongs to its failure path: a refresh that went through must not
+		// end by throwing away what it just committed
+		verify(con, never()).rollback();
+	}
+
+	/**
 	 * A connection whose driver refuses the call mid-flight is given back what it carried before.
 	 * The entry holding that value is dropped as soon as the last statement on the connection is
 	 * through, so a backstop left armed goes back to the pool as the connection's own read timeout
@@ -1441,4 +1479,7 @@ public class JDBCStatementBoundTestCase extends DirectoryServerTestCase {
 	// this interface is an oracle connection as far as the storage is concerned - which is the
 	// whole reason for the lower case name here.
 	private interface oracleConnection extends Connection {}
+
+	/** The same trick for the engine whose statistics statement a rollback really would discard. */
+	private interface postgresConnection extends Connection {}
 }
