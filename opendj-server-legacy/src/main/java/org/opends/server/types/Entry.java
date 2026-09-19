@@ -1330,17 +1330,22 @@ public class Entry
     {
       String ocName = toLowerName(rule, v);
 
+      boolean matchFound = false;
       for (ObjectClass oc : objectClasses.keySet())
       {
         if (oc.hasNameOrOID(ocName))
         {
           objectClasses.remove(oc);
-          return true;
+          matchFound = true;
+          break;
         }
       }
 
-      allSuccessful = false;
-      missingValues.add(v);
+      if (!matchFound)
+      {
+        allSuccessful = false;
+        missingValues.add(v);
+      }
     }
 
     return allSuccessful;
