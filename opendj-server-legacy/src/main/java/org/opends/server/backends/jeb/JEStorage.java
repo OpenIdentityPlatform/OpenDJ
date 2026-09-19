@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -94,6 +95,8 @@ import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
 import com.sleepycat.je.TransactionConfig;
+import com.sleepycat.je.config.ConfigParam;
+import com.sleepycat.je.config.EnvironmentParams;
 
 /** Berkeley DB Java Edition (JE for short) database implementation of the {@link Storage} engine. */
 public final class JEStorage implements Storage, Backupable, ConfigurationChangeListener<JEBackendCfg>,
@@ -696,6 +699,15 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   private Environment env;
   private EnvironmentConfig envConfig;
   private MemoryQuota memQuota;
+  /**
+   * The cache size of the configuration this storage opened with, in bytes - what the memory quota
+   * was asked for - and of it, what the quota granted, which is what {@link #close()} gives back.
+   * Both are zero while the storage is closed. Neither is read from {@link #config} again: a
+   * configuration change replaces that while the environment and the reservation stay as the open
+   * made them, so a release computed from it would give back a size that was never taken.
+   */
+  private long configuredCacheSize;
+  private long reservedCacheSize;
   private JEMonitor monitor;
   private DiskSpaceMonitor diskMonitor;
   private StorageStatus storageStatus = StorageStatus.working();
@@ -762,14 +774,10 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
 
     diskMonitor = serverContext.getDiskSpaceMonitor();
     memQuota = serverContext.getMemoryQuota();
-    if (config.getDBCacheSize() > 0)
-    {
-      memQuota.acquireMemory(config.getDBCacheSize());
-    }
-    else
-    {
-      memQuota.acquireMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
-    }
+    configuredCacheSize = computeSize(config);
+    // A reservation the quota refuses - its budget spent by the other backends, which an open at
+    // startup is not checked against - is nothing to give back: the open goes ahead without it.
+    reservedCacheSize = memQuota.acquireMemory(configuredCacheSize) ? configuredCacheSize : 0;
   }
 
   private DatabaseConfig dbConfig()
@@ -816,14 +824,11 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
       // another backend be admitted while this one's cache is still resident.
       if (memQuota != null)
       {
-        if (config.getDBCacheSize() > 0)
-        {
-          memQuota.releaseMemory(config.getDBCacheSize());
-        }
-        else
-        {
-          memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
-        }
+        // What the open reserved, not what the configuration says by now: a cache size changed
+        // while the storage was open is applied by the next open, which reserves it then.
+        memQuota.releaseMemory(reservedCacheSize);
+        reservedCacheSize = 0;
+        configuredCacheSize = 0;
         // Released once: what an open takes, the next open takes again, and a close which follows
         // a close - BackendImpl.importLDIF closes the storage of its root container however the
         // import ended, on top of the close the import itself made - releases nothing more.
@@ -1276,15 +1281,20 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   public boolean isConfigurationChangeAcceptable(JEBackendCfg newCfg,
       List<LocalizableMessage> unacceptableReasons)
   {
-    long newSize = computeSize(newCfg);
-    long oldSize = computeSize(config);
-    return (newSize <= oldSize || memQuota.isMemoryAvailable(newSize - oldSize))
-        && checkConfigurationDirectories(newCfg, unacceptableReasons);
+    // Against what this storage holds of the quota, which is what the next open has to add to - not
+    // against config, which a change admitted but not yet applied has already moved to the new size.
+    final long newSize = computeSize(newCfg);
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    return (newSize <= reservedCacheSize || quota.isMemoryAvailable(newSize - reservedCacheSize))
+        && checkConfigurationDirectories(newCfg, unacceptableReasons)
+        && checkEnvironmentConfiguration(newCfg, unacceptableReasons);
   }
 
   private long computeSize(JEBackendCfg cfg)
   {
-    return cfg.getDBCacheSize() > 0 ? cfg.getDBCacheSize() : memQuota.memPercentToBytes(cfg.getDBCachePercent());
+    return cfg.getDBCacheSize() > 0
+        ? cfg.getDBCacheSize()
+        : serverContext.getMemoryQuota().memPercentToBytes(cfg.getDBCachePercent());
   }
 
   /**
@@ -1313,7 +1323,28 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         return false;
       }
     }
-    return checkConfigurationDirectories(cfg, unacceptableReasons);
+    return checkConfigurationDirectories(cfg, unacceptableReasons)
+        && checkEnvironmentConfiguration(cfg, unacceptableReasons);
+  }
+
+  /**
+   * Whether an environment can be configured from the given configuration. A durability which
+   * sets both flags, or a native property JE does not know, is refused here, before the change
+   * is written - rather than by the next open of the backend, which is where a configuration
+   * nothing checked used to fail.
+   */
+  private static boolean checkEnvironmentConfiguration(JEBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
+  {
+    try
+    {
+      ConfigurableEnvironment.toEnvironmentConfig(cfg);
+      return true;
+    }
+    catch (ConfigException e)
+    {
+      unacceptableReasons.add(e.getMessageObject());
+      return false;
+    }
   }
 
   private static boolean checkConfigurationDirectories(JEBackendCfg cfg,
@@ -1369,6 +1400,22 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
           return ccr;
         }
       }
+      final long newCacheSize = computeSize(cfg);
+      if (env != null && newCacheSize != configuredCacheSize)
+      {
+        // The cache is sized when the environment opens and this storage never resizes it: the next
+        // open of the backend builds it to the new size and reserves that, and until then the
+        // reservation stays with the cache it was made for.
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(
+            NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.get(cfg.getBackendId(), configuredCacheSize, newCacheSize));
+      }
+      // An import runs the environment on a configuration of its own, which goes with it: the backend
+      // opens again on the configuration as changed once the import is over.
+      if (env != null && envConfig.getTransactional())
+      {
+        applyToEnvironment(cfg, ccr);
+      }
       registerMonitoredDirectory(cfg);
       config = cfg;
     }
@@ -1377,6 +1424,44 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
       addErrorMessage(ccr, LocalizableMessage.raw(stackTraceToSingleLineString(e)));
     }
     return ccr;
+  }
+
+  /**
+   * Applies to the running environment what JE takes while it runs, and asks for a restart for what
+   * it takes at the open alone. The environment is configured when it opens, from the configuration
+   * as it is then: a change of a property JE accepts as mutable is handed to the environment here,
+   * and a change of one it does not is reported - the change result reaches the error log, where a
+   * change reported as applied while the environment ran on unchanged until its next open did not.
+   * <p>
+   * The cache is the one mutable setting left where the open put it: it is sized with the memory
+   * reserved for it, and a change of its size asks for a restart above, at which the next open
+   * reserves the new size.
+   */
+  private void applyToEnvironment(JEBackendCfg cfg, ConfigChangeResult ccr) throws ConfigException
+  {
+    final EnvironmentConfig next = ConfigurableEnvironment.toEnvironmentConfig(cfg);
+    final EnvironmentConfig running = env.getConfig();
+    for (ConfigParam param : new TreeMap<>(EnvironmentParams.SUPPORTED_PARAMS).values())
+    {
+      // Replication parameters are not set through an environment configuration; a multi-value
+      // parameter is not read as one value. Neither is set by this storage.
+      if (param.isMutable() || param.isForReplication() || param.isMultiValueParam())
+      {
+        continue;
+      }
+      final String runningValue = running.getConfigParam(param.getName());
+      final String nextValue = next.getConfigParam(param.getName());
+      if (!Objects.equals(runningValue, nextValue))
+      {
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART.get(
+            ConfigurableEnvironment.configuredNameOf(param.getName()), cfg.getBackendId(), runningValue, nextValue));
+      }
+    }
+    next.setConfigParam(MAX_MEMORY, running.getConfigParam(MAX_MEMORY));
+    next.setConfigParam(MAX_MEMORY_PERCENT, running.getConfigParam(MAX_MEMORY_PERCENT));
+    // What JE takes while it runs, of the properties the configuration sets; the rest it ignores.
+    env.setMutableConfig(next);
   }
 
   private void registerMonitoredDirectory(JEBackendCfg cfg)

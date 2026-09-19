@@ -21,12 +21,19 @@ import static org.mockito.Mockito.*;
 import static org.forgerock.opendj.config.ConfigurationMock.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
+import static org.opends.messages.BackendMessages.*;
 
 import java.io.File;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.server.config.server.PDBBackendCfg;
@@ -48,6 +55,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.persistit.Exchange;
+import com.persistit.Persistit;
 import com.persistit.exception.RollbackException;
 
 public class PDBStorageTest extends DirectoryServerTestCase
@@ -62,6 +70,9 @@ public class PDBStorageTest extends DirectoryServerTestCase
   private final TreeName treeName = new TreeName("dc=test", "test");
   private ServerContext serverContext;
   private PDBStorage storage;
+
+  /** A cache size the quota of the test JVM grants several times over, in bytes. */
+  private static final long SMALL_CACHE = 64L * MB;
 
   @BeforeClass
   public static void startServer() throws Exception
@@ -542,6 +553,129 @@ public class PDBStorageTest extends DirectoryServerTestCase
     storage.open(AccessMode.READ_WRITE);
   }
 
+  /**
+   * A cache size changed while the storage is open is given back as it was taken: the close
+   * releases what the open reserved, not what the configuration says by then. Read from the
+   * configuration at both ends, a change in between drifts the quota by the difference for the
+   * life of the JVM - the open which follows reserves the new size and pays nothing back.
+   */
+  @Test
+  public void aCacheGrownWhileOpenIsGivenBackAsItWasTaken() throws Exception
+  {
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    closeAndRemove(storage);
+    final long availableBefore = quota.getAvailableMemory();
+    storage = new PDBStorage(createBackendCfg(SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore - SMALL_CACHE);
+
+    storage.applyConfigurationChange(createBackendCfg(2 * SMALL_CACHE));
+    storage.close();
+
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
+  }
+
+  /** The shrink is the same drift the other way: the difference stays reserved by nobody. */
+  @Test
+  public void aCacheShrunkWhileOpenIsGivenBackAsItWasTaken() throws Exception
+  {
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    closeAndRemove(storage);
+    final long availableBefore = quota.getAvailableMemory();
+    storage = new PDBStorage(createBackendCfg(2 * SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+
+    storage.applyConfigurationChange(createBackendCfg(SMALL_CACHE));
+    storage.close();
+
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
+  }
+
+  /**
+   * The buffer pool is sized when the database opens and PersistIt has no way to resize it, so a
+   * change of the cache size is applied by the next open of the backend - and the operator is told
+   * so, rather than that the change applied.
+   */
+  @Test
+  public void aCacheSizeChangedWhileOpenAsksForARestart() throws Exception
+  {
+    closeAndRemove(storage);
+    storage = new PDBStorage(createBackendCfg(SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(createBackendCfg(2 * SMALL_CACHE));
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isTrue();
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.ordinal());
+    assertThat(ccr.getMessages().get(0).toString()).isEqualTo(
+        NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.get("PDBStorageTest", SMALL_CACHE, 2 * SMALL_CACHE).toString());
+  }
+
+  /** A change which leaves the cache size alone asks for nothing, as before. */
+  @Test
+  public void aChangeWhichLeavesTheCacheSizeAloneAsksForNothing() throws Exception
+  {
+    closeAndRemove(storage);
+    storage = new PDBStorage(createBackendCfg(SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    final PDBBackendCfg unchangedCache = createBackendCfg(SMALL_CACHE);
+    when(unchangedCache.isDBTxnNoSync()).thenReturn(true);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(unchangedCache);
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isFalse();
+    assertThat(ccr.getMessages()).isEmpty();
+  }
+
+  /**
+   * A change of the cache size is admitted against what the storage holds of the quota, which is
+   * what the next open has to add to. Once a change has been admitted but not applied, the
+   * configuration says the new size while the reservation is still the old one, and a check
+   * against the configuration would admit a second change the server has no memory for.
+   */
+  @Test
+  public void aCacheSizeChangeIsAdmittedAgainstWhatTheStorageHolds() throws Exception
+  {
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    closeAndRemove(storage);
+    storage = new PDBStorage(createBackendCfg(SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    storage.applyConfigurationChange(createBackendCfg(2 * SMALL_CACHE));
+    // Room for two caches and a bit: the difference to the configured size, not to the reserved one.
+    assertThat(quota.acquireMemory(quota.getAvailableMemory() - 2 * SMALL_CACHE - MB)).isTrue();
+
+    final List<LocalizableMessage> reasons = new ArrayList<>();
+    assertThat(storage.isConfigurationChangeAcceptable(createBackendCfg(4 * SMALL_CACHE), reasons))
+        .as("four caches, with one reserved and two and a bit free").isFalse();
+    assertThat(storage.isConfigurationChangeAcceptable(createBackendCfg(3 * SMALL_CACHE), reasons))
+        .as("three caches, with one reserved and two and a bit free").isTrue();
+  }
+
+  /**
+   * A reservation the quota refused is not given back on close. The open goes ahead without it -
+   * the quota is a budget, not a lock - but a close which released what was never taken would
+   * hand the quota memory the server does not have.
+   */
+  @Test
+  public void aReservationTheQuotaRefusedIsNotGivenBackOnClose() throws Exception
+  {
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    closeAndRemove(storage);
+    // Half a cache left in the quota: the reservation of a whole one is refused.
+    assertThat(quota.acquireMemory(quota.getAvailableMemory() - SMALL_CACHE / 2)).isTrue();
+    final long availableBefore = quota.getAvailableMemory();
+    storage = new PDBStorage(createBackendCfg(SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
+
+    storage.close();
+
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
+  }
+
   private void createTree() throws Exception
   {
     storage.write(new WriteOperation()
@@ -568,11 +702,67 @@ public class PDBStorageTest extends DirectoryServerTestCase
 
   protected PDBBackendCfg createBackendCfg()
   {
+    return createBackendCfg(0L);
+  }
+
+  /**
+   * The checkpoint interval is set on the PersistIt configuration when the database opens, and
+   * PersistIt takes no configuration once one is set: a change of it asks for a restart, naming
+   * the interval the database runs with and the one now configured, and the database keeps the
+   * former. The property's definition says so as well now, which reaches the reference
+   * documentation; the change result reaches the error log of the server which took the change.
+   */
+  @Test
+  public void aCheckpointIntervalChangedWhileOpenAsksForARestart() throws Exception
+  {
+    final long intervalAtOpen = createBackendCfg().getDBCheckpointerWakeupInterval();
+    assertThat(checkpointIntervalOf(storage)).isEqualTo(intervalAtOpen);
+    final PDBBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBCheckpointerWakeupInterval()).thenReturn(4 * intervalAtOpen);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isTrue();
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).toString()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART
+        .get("db-checkpointer-wakeup-interval", "PDBStorageTest", intervalAtOpen, 4 * intervalAtOpen)
+        .toString());
+    assertThat(checkpointIntervalOf(storage)).isEqualTo(intervalAtOpen);
+  }
+
+  /** A storage which is closed has no database to hold a change against: the next open takes it. */
+  @Test
+  public void aCheckpointIntervalChangedWhileClosedAsksForNothing() throws Exception
+  {
+    storage.close();
+    final long intervalAtOpen = createBackendCfg().getDBCheckpointerWakeupInterval();
+    final PDBBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBCheckpointerWakeupInterval()).thenReturn(4 * intervalAtOpen);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isFalse();
+    assertThat(ccr.getMessages()).isEmpty();
+  }
+
+  /** The checkpoint interval of the database the given storage runs, in seconds. */
+  private static long checkpointIntervalOf(PDBStorage storage) throws Exception
+  {
+    final Field db = PDBStorage.class.getDeclaredField("db");
+    db.setAccessible(true);
+    return ((Persistit) db.get(storage)).getConfiguration().getCheckpointInterval();
+  }
+
+  /** A configuration whose cache is the given size in bytes, or a fifth of the quota when it is zero. */
+  private static PDBBackendCfg createBackendCfg(long cacheSize)
+  {
     PDBBackendCfg backendCfg = mockCfg(PDBBackendCfg.class);
     when(backendCfg.getBackendId()).thenReturn("PDBStorageTest");
     when(backendCfg.getDBDirectory()).thenReturn("PDBStorageTest");
     when(backendCfg.getDBDirectoryPermissions()).thenReturn("755");
-    when(backendCfg.getDBCacheSize()).thenReturn(0L);
+    when(backendCfg.getDBCacheSize()).thenReturn(cacheSize);
     when(backendCfg.getDBCachePercent()).thenReturn(20);
     return backendCfg;
   }

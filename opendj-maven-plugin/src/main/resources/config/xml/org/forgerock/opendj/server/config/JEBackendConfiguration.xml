@@ -14,6 +14,7 @@
 
   Copyright 2007-2010 Sun Microsystems, Inc.
   Portions Copyright 2010-2015 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <adm:managed-object name="je-backend" plural-name="je-backends"
   package="org.forgerock.opendj.server.config"
@@ -148,6 +149,9 @@
       "0 MB". Otherwise, the value of that property is used instead
       to control the cache size configuration.
     </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>50</adm:value>
@@ -172,6 +176,9 @@
       db-cache-percent property should be used instead to specify the
       cache size.
     </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>0 MB</adm:value>
@@ -719,6 +726,15 @@
       all the property parameters is available in the example.properties
       file of Berkeley DB Java Edition distribution.
     </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          A change of a property which Berkeley DB Java Edition does not
+          accept while the environment runs takes effect when the backend
+          is restarted, and the change result says so.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:undefined />
     </adm:default-behavior>

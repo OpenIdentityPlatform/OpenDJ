@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2014-2015 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <adm:managed-object name="pdb-backend" plural-name="pdb-backends"
   package="org.forgerock.opendj.server.config"
@@ -122,6 +123,9 @@
       "0 MB". Otherwise, the value of that property is used instead
       to control the cache size configuration.
     </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>50</adm:value>
@@ -146,6 +150,9 @@
       db-cache-percent property should be used instead to specify the
       cache size.
     </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>0 MB</adm:value>
@@ -247,6 +254,9 @@
         disk, but also potentially causes recovery from an abrupt termination
         (crash) to take more time.
     </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>15s</adm:value>
