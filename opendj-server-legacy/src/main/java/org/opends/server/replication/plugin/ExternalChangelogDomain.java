@@ -153,12 +153,26 @@ public class ExternalChangelogDomain
   {
     return true;
   }
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Refused while a total update runs, as a change of the domain entry is: the attributes
+   * this entry carries are published as the session of the domain comes up, so applying
+   * them restarts that session, and an import into this replica reads its entries over
+   * it. Through the server configuration such a restart would wait for the listener
+   * thread the import runs on, which waits in turn for the lock of the configuration the
+   * change holds, to enable the backend back once the stream it was reading ends.
+   */
   @Override
   public boolean isConfigurationChangeAcceptable(
       ExternalChangelogDomainCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
   {
+    if (domain.ieRunning())
+    {
+      unacceptableReasons.add(NOTE_ERR_CANNOT_CHANGE_CONFIG_DURING_TOTAL_UPDATE.get());
+      return false;
+    }
     return true;
   }
 

@@ -6157,8 +6157,9 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
         changeConfig(configuration);
 
         // Read assured + fractional configuration and each time reconnect if needed. A
-        // domain which owns its session gets none of those reconnections.
-        final boolean allowReconnection = !ownsItsSession();
+        // session which has an owner - the domain itself, or a total update into this
+        // replica - gets none of those reconnections.
+        final boolean allowReconnection = !sessionHasAnOwner();
         readAssuredConfig(configuration, allowReconnection);
         readFractionalConfig(configuration, allowReconnection);
         solveConflictFlag = isSolveConflict(configuration);
@@ -6206,9 +6207,10 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   }
 
   /**
-   * Whether the session of this domain has an owner other than the replay thread which
-   * would restart it after a failed replay: the domain itself, when it is shutting down or
-   * disabled ({@link #ownsItsSession()}), or a total update into this replica.
+   * Whether the session of this domain has an owner other than the thread which would
+   * restart it - a replay thread after a failed replay, or a configuration change for what
+   * it carries: the domain itself, when it is shutting down or disabled
+   * ({@link #ownsItsSession()}), or a total update into this replica.
    * <p>
    * The total update owns the session from the moment it is asked for, not from the
    * moment its entries stream: the {@code InitializeTargetMsg} which answers the request
@@ -6222,6 +6224,15 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * Listed, it holds the ServerState back as well: a commit moves the state no further than
    * the oldest uncommitted change, so the state in memory, and the one persisted from it,
    * stop at the change until that restart.
+   * <p>
+   * A configuration change is refused while a total update runs - by the listener of the
+   * domain entry and by the one of its external changelog entry - so what reaches the
+   * domain all the same is a change accepted before the total update was asked for. The
+   * restart it asks for is refused on this predicate too, and the session the import
+   * starts when it ends reads the configuration stored meanwhile. Made through the server
+   * configuration, that restart would not end: it waits for the listener thread, which is
+   * the import, and the import waits for the lock of the configuration the change holds,
+   * to enable the backend back once the stream it was reading ends.
    */
   private boolean sessionHasAnOwner()
   {
@@ -6233,21 +6244,30 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   {
     synchronized (serviceStateLock)
     {
-      if (ownsItsSession())
+      if (sessionHasAnOwner())
       {
         /*
-         * The domain is going away or is being imported into: a restart here would bring
-         * a session, and the listener thread which goes with it, back up on a domain
-         * whose ServerState is gone from memory. The session started when the domain is
-         * enabled again reads the configuration this restart was asked for.
+         * The domain is going away or is disabled: a restart here would bring a session,
+         * and the listener thread which goes with it, back up on a domain whose
+         * ServerState is gone from memory. The session started when the domain is enabled
+         * again reads the configuration this restart was asked for.
+         *
+         * Or a total update into this replica is reading the session: the import streams
+         * over it, on the listener thread a restart would stop and wait for. Stopped, the
+         * broker ends the stream on the entries which had arrived; waited for, the listener
+         * thread ends the import and enables the backend back through the server
+         * configuration - whose lock a change made through it holds while it waits. The
+         * import starts the next session itself when it ends, from the state it loaded,
+         * and that session reads the configuration this restart was asked for.
          *
          * Recorded rather than passed over in silence: the configuration a restart was
          * asked for is stored, and it is the session which is not brought up on it, so a
          * change which reports plain success would have the administrator believe the
          * domain is running on it already. A domain disabled for a total update comes up
-         * on it when the total update ends; one which stays disabled - enable() gives up
-         * when the data state it reads cannot be loaded, and nothing calls it again -
-         * never does, and that is what the administrator is told to act on.
+         * on it when the total update ends, and so does one being imported into; one which
+         * stays disabled - enable() gives up when the data state it reads cannot be
+         * loaded, and nothing calls it again - never does, and that is what the
+         * administrator is told to act on.
          */
         onSessionRestartSuppressed();
         return;
@@ -6298,7 +6318,13 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   public boolean isConfigurationChangeAcceptable(
          ReplicationDomainCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
-    // Check that a import/export is not in progress
+    /*
+     * Check that a import/export is not in progress. The listener of the external
+     * changelog entry of this domain refuses its change for the same reason: what either
+     * change restarts the session for, an import into this replica is reading over that
+     * session. One which starts between this check and the change being applied meets
+     * the restart guard instead (see sessionHasAnOwner()).
+     */
     if (ieRunning())
     {
       unacceptableReasons.add(

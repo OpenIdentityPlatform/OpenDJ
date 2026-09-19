@@ -3487,8 +3487,9 @@ public abstract class ReplicationDomain
    * back between the stop and the start, and both halves are counted by the session
    * generation. A subclass may leave it alone: a domain which is shutting
    * down, or which was disabled for a total update, owns its session and is not given one
-   * back by a configuration change. One which does reports it through
-   * {@link #onSessionRestartSuppressed()}.
+   * back by a configuration change, and a total update into this replica reads its
+   * entries over the session and starts the next one itself. One which does reports it
+   * through {@link #onSessionRestartSuppressed()}.
    */
   protected void restartService()
   {
@@ -3505,9 +3506,10 @@ public abstract class ReplicationDomain
    * <p>
    * The configuration is stored either way, and the session started next reads it - so
    * this says that the change is not live yet rather than that it was lost. A domain
-   * which restarts its session for every change never reaches this; one which owns its
-   * session while it is shutting down or disabled for a total update overrides it to tell
-   * the administrator what is waiting for that session.
+   * which restarts its session for every change never reaches this; one whose session has
+   * an owner - itself while it is shutting down or disabled for a total update, or a total
+   * update into this replica reading it - overrides it to tell the administrator what is
+   * waiting for that session.
    */
   protected void onSessionRestartSuppressed()
   {
@@ -4002,9 +4004,10 @@ public abstract class ReplicationDomain
        * configuration is: the assured timeout is the one property a session does not have
        * to be restarted for, so a change carrying it alone - reported as applied and then
        * dropped, before - is applied here. A caller which does not allow the reconnection
-       * has no session running assured replication either: the domain is being built, is
-       * shutting down, or is disabled for the length of a total update, and the session
-       * its enable() starts reads what is stored here.
+       * has no session to negotiate it over: the domain is being built, is shutting down,
+       * or is disabled for the length of a total update - or a total update into this
+       * replica is reading the session, which it must not stop - and the session started
+       * next, by enable() or by the import when it ends, reads what is stored here.
        */
       assuredConfig = config;
       if (needRestart)
