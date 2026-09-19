@@ -720,6 +720,11 @@ public class ImportTask extends Task
     }
     finally
     {
+      // Close the LDIF reader and the reject and skip files whichever way the import ended.
+      // The backend closes them with its reader, but an import which fails before that reader
+      // exists - or before the import is even launched - leaves them to this task.
+      importConfig.close();
+
       // Enable the backend, if it was this task which disabled it.
       boolean backendLeftDisabled = false;
       if (backendDisabled)
@@ -748,8 +753,6 @@ public class ImportTask extends Task
       }
     }
 
-    // Clean up after the import by closing the import config.
-    importConfig.close();
     return getFinalTaskState();
   }
 
