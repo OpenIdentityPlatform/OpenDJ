@@ -973,10 +973,6 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
         ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(addedIndex));
       }
 
-      config = newConfiguration;
-      indexingOptions = newIndexingOptions;
-      indexIdToIndexes = Collections.unmodifiableMap(newIndexIdToIndexes);
-
       // We get exclusive lock to ensure that no query is actually using the indexes that will be deleted.
       entryContainer.lock();
       try
@@ -992,6 +988,17 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
             }
           }
         });
+        // Published once the deletion has committed, not before it: a write the storage gives up on
+        // leaves the trees of the removed indexes behind, and a map which no longer names them is a
+        // map through which nothing maintains them and nothing deletes them. The lock has drained
+        // every operation which enters through shared access, so the window in which the map names
+        // trees the write has just deleted lies inside it and no search sees it; published after the
+        // write rather than from within it, so that an operation the storage replays publishes once,
+        // from the attempt which committed. The added indexes are named only at the end of that
+        // window rather than before the deletion, which costs nothing: the write above has just
+        // asked for them to be rebuilt, so nothing may read them until it has been.
+        indexingOptions = newIndexingOptions;
+        indexIdToIndexes = Collections.unmodifiableMap(newIndexIdToIndexes);
       }
       finally
       {
@@ -1020,11 +1027,22 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       {
         updatedIndex.setIndexEntryLimit(newConfiguration.getIndexEntryLimit());
       }
+      // Published last: the entry limit this configuration declares reaches the indexes which stay
+      // only once the write which untrusts them has committed, so a configuration published before
+      // that would declare a limit those indexes do not hold yet.
+      config = newConfiguration;
     }
     catch (Exception e)
     {
+      // Logged as well as reported, for the reason given in the index delete listener of
+      // EntryContainer: what this index holds and what its configuration declares may no longer
+      // agree long after the session which asked for the change has ended.
+      final LocalizableMessage message = ERR_CONFIG_INDEX_CHANGE_FAILED.get(getAttributeType().getNameOrOID(),
+          entryContainer.getBaseDN(), StaticUtils.stackTraceToSingleLineString(e));
+      logger.error(message);
       ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
-      ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
+      ccr.setAdminActionRequired(true);
+      ccr.addMessage(message);
     }
 
     return ccr;
