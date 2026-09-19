@@ -1201,9 +1201,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * forbids (#873) - never name each other's trees. The id goes in escaped, for the reason {@link
 	 * #escapedBackendId} states: a name that does not survive being read back is a table of this
 	 * backend that its own clear cannot recognize.
+	 * <p>
+	 * Built once and remembered; see {@link OwnNames}.
 	 */
 	TreeName getCatalogTree() {
-		return new TreeName(CATALOG_BASE_DN, escapedBackendId());
+		return ownNames().catalogTree;
 	}
 
 	/**
@@ -3184,6 +3186,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				leftovers.unreadable.addAll(standing);
 				return leftovers;
 			}
+			// normalized once for the whole scan and not per table: see isOwnTree()
+			final Set<String> ownBaseDNs=ownBaseDNs();
 			for (final String tableName : standing) {
 				final TreeName stamp;
 				try {
@@ -3203,7 +3207,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				}
 				if (stamp==null) {
 					leftovers.unattributed.add(tableName);
-				} else if (isOwnTree(stamp)) {
+				} else if (isOwnTree(stamp, ownBaseDNs)) {
 					leftovers.ours.add(tableName+" ("+stamp+")");
 				}
 			}
@@ -3244,9 +3248,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * here for the reason {@link #SHARED_COMPRESSED_SCHEMA_TREES} is: the prefix is built by a private
 	 * method of {@code PersistentCompressedSchema}, escapes and all. A table stamped with one of these
 	 * carries this backend's id in plain text, so a clear that finds one standing can say whose it is.
+	 * <p>
+	 * Built once and remembered; see {@link OwnNames}.
 	 */
 	private String ownCompressedSchemaBaseDN() {
-		return SHARED_COMPRESSED_SCHEMA_BASE_DN+"_"+escapedBackendId();
+		return ownNames().compressedSchemaBaseDN;
 	}
 
 	/**
@@ -3258,9 +3264,65 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * PersistentCompressedSchema} spells its own prefix with, percent first so that the escape of the
 	 * slash cannot be produced twice, and it leaves an id of the ordinary shape exactly as it is -
 	 * which is what keeps the table names of an installation unchanged.
+	 * <p>
+	 * Escaped once and remembered; see {@link OwnNames}.
 	 */
 	private String escapedBackendId() {
-		return config.getBackendId().replace("%", "%25").replace("/", "%2F");
+		return ownNames().escapedBackendId;
+	}
+
+	/**
+	 * The names this backend gives the trees that are its own rather than a base DN's: the escaped
+	 * id of {@link #escapedBackendId}, the catalog tree of {@link #getCatalogTree} and the base DN of
+	 * {@link #ownCompressedSchemaBaseDN}. Held in one object so that the three can never come from
+	 * two different ids.
+	 * <p>
+	 * Read from the configuration once rather than per call, for the reason {@link
+	 * #poolConnectionString} is read once: {@code applyConfigurationChange()} replaces {@code config}
+	 * whole, while the tables of this storage - the catalog table among them - stand under the id
+	 * they were created with, and a name read again from a configuration that has moved would leave
+	 * this storage naming a catalog nothing has ever written and its own tables attributed to
+	 * nobody. The configuration framework holds backend-id read-only - "The backend ID may not be
+	 * altered after the backend is created in the server" - so no change made through it renames a
+	 * live backend, which is what makes reading the id once correct in the first place.
+	 * <p>
+	 * That it also takes the escape and the allocation off every enrolment, off every clear and off
+	 * every table of a clear's leftover scan (#930) is the smaller half of it: every one of those
+	 * call sites is already paying a round trip to the database.
+	 */
+	private static final class OwnNames {
+		final String escapedBackendId;
+		final TreeName catalogTree;
+		final String compressedSchemaBaseDN;
+
+		OwnNames(String backendId) {
+			escapedBackendId=backendId.replace("%", "%25").replace("/", "%2F");
+			catalogTree=new TreeName(CATALOG_BASE_DN, escapedBackendId);
+			compressedSchemaBaseDN=SHARED_COMPRESSED_SCHEMA_BASE_DN+"_"+escapedBackendId;
+		}
+	}
+
+	private volatile OwnNames ownNames;
+
+	/**
+	 * The names above, built at the first call that needs one, and not in the constructor: a storage
+	 * is constructed by callers that go on to name no tree of it at all - the bounds of a statement
+	 * are asked of one whose configuration carries no backend id whatsoever in the tests of {@code
+	 * JDBCStatementBoundTestCase} - and a construction reading the id would fail there, where today
+	 * nothing reads it.
+	 * <p>
+	 * Two callers arriving at once may each build one, and the names of both are the same names.
+	 * Every field of {@link OwnNames} is final, so a caller reading the reference reads the names
+	 * whole and not half-built.
+	 */
+	private OwnNames ownNames() {
+		final OwnNames built=ownNames;
+		if (built!=null) {
+			return built;
+		}
+		final OwnNames names=new OwnNames(config.getBackendId());
+		ownNames=names;
+		return names;
 	}
 
 	/**
@@ -3271,23 +3333,33 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * backend id (#873) and so belongs to this backend as plainly as any tree of a base DN it serves -
 	 * where the legacy pair, named from a literal, belongs to no backend in particular and is reported
 	 * by nobody.
+	 * <p>
+	 * The base DNs are handed in rather than read here: they are the same for every table of one
+	 * scan, and normalizing a DN builds its string from every RDN of it ({@code
+	 * DN.toNormalizedUrlSafeString} memoizes nothing), which is a cost the caller pays once instead
+	 * of once per table.
 	 */
-	private boolean isOwnTree(TreeName treeName) {
-		if (getCatalogTree().equals(treeName) || ownCompressedSchemaBaseDN().equals(treeName.getBaseDN())) {
-			return true;
-		}
+	private boolean isOwnTree(TreeName treeName, Set<String> ownBaseDNs) {
+		return getCatalogTree().equals(treeName)
+			|| ownCompressedSchemaBaseDN().equals(treeName.getBaseDN())
+			|| ownBaseDNs.contains(treeName.getBaseDN());
+	}
+
+	/**
+	 * The base DNs this backend serves, in the form the trees of an entry container are named after:
+	 * every one of them is named from the normalized base DN, which is what {@code EntryContainer}
+	 * builds its tree names from.
+	 */
+	private Set<String> ownBaseDNs() {
 		final SortedSet<DN> baseDNs=config.getBaseDN();
 		if (baseDNs==null) {
-			return false;
+			return Collections.emptySet();
 		}
+		final Set<String> normalized=new HashSet<>();
 		for (final DN baseDN : baseDNs) {
-			// every tree of an entry container is named after the normalized form of its base DN,
-			// which is what EntryContainer builds its tree names from
-			if (treeName.getBaseDN().equals(baseDN.toNormalizedUrlSafeString())) {
-				return true;
-			}
+			normalized.add(baseDN.toNormalizedUrlSafeString());
 		}
-		return false;
+		return normalized;
 	}
 
 	/**
