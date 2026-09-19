@@ -587,6 +587,92 @@ public class InitOnLineTest extends ReplicationTestCase
   }
 
   /**
+   * A total update into this replica whose session stops before the DoneMsg arrives is a
+   * failed import, and the generationId of the exporter does not stay over the part of its
+   * data which arrived (issue #1039). Every road which stops the session - the restart a
+   * failed replay or a configuration change asks for, the shutdown of the server - goes
+   * through disableService(), and the import read the stopped broker as the end of the
+   * stream: it kept the entries which had arrived, loaded the exporter's generationId from
+   * the base entry among them, and completed its task as a success.
+   */
+  @Test(enabled=true)
+  public void initializeImportSessionStoppedBeforeDone() throws Exception
+  {
+    String testCase = "initializeImportSessionStoppedBeforeDone";
+    log("Starting " + testCase);
+    try
+    {
+      replServer1 = createReplicationServer(replServer1ID, testCase);
+      connectServer1ToReplServer(replServer1ID);
+      server2 = openReplicationSession(baseDN,
+          server2ID, 100, getReplServerPort(replServer1ID), 10000);
+
+      // In S1 launch the total update, and S2 receives the request
+      addTask(taskInitFromS2, ResultCode.SUCCESS, null);
+      ReplicationMsg msg = server2.receive();
+      Assertions.assertThat(msg).isInstanceOf(InitializeRequestMsg.class);
+
+      // S2 announces every entry and sends two of them: the base entry, carrying the
+      // generationId of S2 the way the base entry of a real export does, and one more.
+      // The DoneMsg never comes.
+      final long exporterGenerationId = 7777777L;
+      final String baseEntry = updatedEntries[0].substring(0, updatedEntries[0].length() - 1)
+          + "ds-sync-generation-id: " + exporterGenerationId + "\n\n";
+      server2.publish(new InitializeTargetMsg(baseDN, server2ID, server1ID, server1ID,
+          updatedEntries.length, initWindow));
+      server2.publish(new EntryMsg(server2ID, server1ID, baseEntry.getBytes(), 1));
+      server2.publish(new EntryMsg(server2ID, server1ID, updatedEntries[1].getBytes(), 2));
+
+      // The import has read both and is waiting for the next one
+      waitTaskLeft(taskInitFromS2, updatedEntries.length - 2);
+
+      // The session stops under the import, the way every road to a stopped session does
+      replDomain.disableService();
+
+      waitTaskCompleted(taskInitFromS2, STOPPED_BY_ERROR, updatedEntries.length - 2, 2);
+      // ...for the reason it failed, not for the lost connection every other early end reports
+      final String reason =
+          ERR_INIT_SESSION_STOPPED_DURING_IMPORT.get(baseDN, server1ID, server2ID).toString();
+      Assertions.assertThat(getEntry(taskInitFromS2.getName(), 1000, true)
+              .parseAttribute(ATTR_TASK_LOG_MESSAGES).asSetOfString())
+          .as("the task does not report the stopped session as the reason its import failed")
+          .anyMatch(record -> record.contains(reason));
+      assertNotEquals(replDomain.getGenerationID(), exporterGenerationId,
+          "the generationId of the exporter stayed over the part of its data which arrived");
+      Entry base = getEntry(baseDN, 1000, true);
+      assertNotEquals(base.parseAttribute("ds-sync-generation-id").asString(),
+          String.valueOf(exporterGenerationId),
+          "the generationId of the exporter stayed stored on the base entry of a cut import");
+
+      log("Successfully ending " + testCase);
+    }
+    finally
+    {
+      afterTest(testCase);
+    }
+  }
+
+  /** Waits until the task reports the given number of entries still to be imported. */
+  private void waitTaskLeft(Entry taskEntry, long expectedLeft) throws Exception
+  {
+    final long deadline = System.currentTimeMillis() + 20000;
+    String left;
+    do
+    {
+      final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT);
+      Entry resultEntry = connection.processSearch(request).getSearchEntries().getFirst();
+      left = resultEntry.parseAttribute(ATTR_TASK_INITIALIZE_LEFT).asString();
+      if (String.valueOf(expectedLeft).equals(left))
+      {
+        return;
+      }
+      Thread.sleep(100);
+    }
+    while (System.currentTimeMillis() < deadline);
+    fail("the import did not reach " + expectedLeft + " entries left within 20s, last read " + left);
+  }
+
+  /**
    * Tests the export side of the Initialize task
    * Test steps :
    * - add entries in S1, make S2 publish InitRequest
