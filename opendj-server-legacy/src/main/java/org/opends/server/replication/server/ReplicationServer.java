@@ -607,11 +607,9 @@ public class ReplicationServer
            * cannot guarantee this since the configuration may not contain this
            * RS.
            */
-          final Set<HostPort> connectedRSAddresses =
-              getConnectedRSAddresses(domain);
           for (HostPort rsAddress : configuredRSAddresses)
           {
-            if (connectedRSAddresses.contains(rsAddress))
+            if (domain.isConnectedToServerAt(rsAddress))
             {
               // Skip: already connected. The connection may be the one that peer made to
               // this server, which connect() never sees, so this is where a failure
@@ -669,16 +667,6 @@ public class ReplicationServer
         }
       }
     }
-  }
-
-  private Set<HostPort> getConnectedRSAddresses(ReplicationServerDomain domain)
-  {
-    Set<HostPort> results = new HashSet<>();
-    for (ReplicationServerHandler rsHandler : domain.getConnectedRSs().values())
-    {
-      results.add(HostPort.valueOf(rsHandler.getServerAddressURL()));
-    }
-    return results;
   }
 
   /**
@@ -767,13 +755,15 @@ public class ReplicationServer
      * ReplicationServerHandler.connect() registers only above V1, the FIXME there being
      * older than this, so such a peer is connected and never registered.
      *
-     * the address, and the session left open with it, miss a peer which dials out from an
-     * address other than the one it is configured under -- multi homing, NAT. Its inbound
-     * handler is registered under the source address of its own connection,
-     * ServerHandler.toServerAddressURL() reading the host from the session, so the already
-     * connected branch of runConnect() compares the configured address against one it never
-     * matches, and the handshake this server offers that same peer aborts on a duplicate
-     * server id: abortStart() closes the session, and an open session is never seen here
+     * the address, and the session left open with it, miss a peer which names an address
+     * this configuration does not use -- the host name of its machine, which setServerURL()
+     * falls back to when none of the addresses it is configured with is local to it -- and
+     * dials out from another one this configuration does not use either: multi homing,
+     * NAT. Its inbound handler is known by the address it named and by the source address
+     * of its own connection, and the already connected branch of runConnect() finds the
+     * configured address under neither, so this server offers that same peer a handshake
+     * which either end resolves as a cross connect, on the address both handlers of the
+     * peer name: abortStart() closes the session, and an open session is never seen here
      * again.
      *
      * An outage left open is not a line too few but a peer gone silent: recordFailure()
@@ -795,11 +785,15 @@ public class ReplicationServer
      * with the same silent abortStart(null), one line up in startFromRemoteRS().
      *
      * The cross connect this server resolves is the one abort of the three where a session
-     * for the domain does exist: it is the connection the peer made, which the already
-     * connected branch of runConnect() reports on its next pass. Reaching this line with
-     * one open needs that registration to land between the snapshot that branch reads and
-     * the dial below it, so what it costs is one warning, and the pass after it says what
-     * is true.
+     * for the domain does exist: it is the connection the peer made. For a peer which names
+     * an address this configuration uses, that is the session the already connected branch
+     * of runConnect() reports on its next pass; reaching this line with it open needs the
+     * registration to land between the check that branch makes and the dial below it, so
+     * what it costs is one warning, and the pass after it says what is true. For the peer
+     * of the second reading above no pass matches it, so what was last said of it stays
+     * said -- nothing where no outage was reported, the warning where one was -- and the
+     * blacklist runConnect() keeps for an answer without a session is what bounds the
+     * dialling behind it.
      */
     reportConnectionRestored(remoteServerAddress, baseDN, handshakeCompleted);
     return handshakeCompleted;
