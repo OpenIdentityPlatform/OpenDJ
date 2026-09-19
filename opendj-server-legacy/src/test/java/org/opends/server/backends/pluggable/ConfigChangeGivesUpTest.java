@@ -24,6 +24,8 @@ import static org.opends.messages.BackendMessages.ERR_CONFIG_BACKEND_DATA_CHANGE
 import static org.opends.messages.BackendMessages.ERR_CONFIG_INDEX_CHANGE_FAILED;
 import static org.opends.messages.BackendMessages.ERR_CONFIG_INDEX_DELETE_FAILED;
 import static org.opends.messages.BackendMessages.ERR_CONFIG_VLV_INDEX_DELETE_FAILED;
+import static org.opends.messages.BackendMessages.NOTE_INDEX_ADD_REQUIRES_REBUILD;
+import static org.opends.messages.BackendMessages.WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES;
 import static org.opends.server.util.CollectionUtils.newTreeSet;
 
 import java.util.HashSet;
@@ -174,10 +176,10 @@ public class ConfigChangeGivesUpTest extends DirectoryServerTestCase
   }
 
   /**
-   * An index change is applied by three writes, and the second one deletes the trees of the
-   * indexes the new configuration no longer asks for. When it gives up, those trees are still
-   * there, so the index has to go on naming them: an index taken out of the map while its trees
-   * survive is an index nothing maintains and nothing deletes.
+   * An index change which adds no index type is applied by three writes, and the second one
+   * deletes the trees of the indexes the new configuration no longer asks for. When it gives up,
+   * those trees are still there, so the index has to go on naming them: an index taken out of the
+   * map while its trees survive is an index nothing maintains and nothing deletes.
    */
   @Test
   public void anIndexChangeWhichGivesUpDeletingGoesOnNamingWhatItCouldNotDelete() throws Exception
@@ -210,7 +212,7 @@ public class ConfigChangeGivesUpTest extends DirectoryServerTestCase
   }
 
   /**
-   * The third write is what untrusts the indexes which stay when the new configuration raises
+   * The last write is what untrusts the indexes which stay when the new configuration raises
    * their entry limit, and the limit itself is applied to them only once it has committed. When it
    * gives up, the configuration must not be published either, or the index claims settings which
    * were never applied to it. What it declares is read here through the index types it names, the
@@ -227,9 +229,10 @@ public class ConfigChangeGivesUpTest extends DirectoryServerTestCase
       final Set<String> indexIdsBefore = new HashSet<>(index.getNameToIndexes().keySet());
 
       // A presence index is added and the entry limit of the ones which stay is raised, so that
-      // all three writes have work to do and the third is the one which gives up: a lowered limit
-      // untrusts nothing and opens no third write.
-      backend.storage.giveUpOnWrite(3);
+      // all four writes have work to do and the fourth is the one which gives up: an added index
+      // type is what opens the write which drops its leftovers first (#990), and a lowered limit
+      // untrusts nothing and opens no last write.
+      backend.storage.giveUpOnWrite(4);
       final ConfigChangeResult ccr = index.applyConfigurationChange(
           indexCfg(newTreeSet(IndexType.EQUALITY, IndexType.SUBSTRING, IndexType.PRESENCE), 5000));
 
@@ -400,14 +403,16 @@ public class ConfigChangeGivesUpTest extends DirectoryServerTestCase
 
   /**
    * Pins what {@code ERR_CONFIG_INDEX_DELETE_FAILED} tells the operator: an index created again for
-   * the same attribute adopts the trees a failed deletion left behind, and is trusted over their
-   * stale content without a word about rebuilding it. This is not the behaviour being asked for
-   * here - it is the behaviour that message describes (#990). When it is fixed, this test fails and
-   * the message has to be rewritten, rather than quietly becoming untrue. Its VLV counterpart
-   * says the same of {@code VLVIndex.afterOpen}, which nothing here holds.
+   * the same attribute while the backend is open discards the trees a failed deletion left behind
+   * rather than adopting them, starts empty and untrusted, and asks to be rebuilt - the way any
+   * index added to a backend holding entries does - and says that content was discarded to get
+   * there (#990). Before that fix the index adopted those trees and was trusted over their stale
+   * content without a word about rebuilding it, which is what the message used to describe. The
+   * adoption the message still describes, of an index created while the backend is disabled, runs
+   * through {@code EntryContainer.open}, which nothing here holds.
    */
   @Test
-  public void anIndexCreatedAgainAdoptsTheTreesAFailedDeletionLeftBehind() throws Exception
+  public void anIndexCreatedAgainDiscardsTheTreesAFailedDeletionLeftBehind() throws Exception
   {
     final GivingUpBackend backend = openBackend();
     try
@@ -426,11 +431,14 @@ public class ConfigChangeGivesUpTest extends DirectoryServerTestCase
 
       assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
       assertThat(treesOf(ec.getAttributeIndex(cnType)))
-          .as("the trees the index created again holds").isEqualTo(indexTrees);
+          .as("the trees the index created again names, under the names the deletion could not remove")
+          .isEqualTo(indexTrees);
       assertThat(ec.getAttributeIndex(cnType).isTrusted())
-          .as("an index trusted over the content of the trees it adopted").isTrue();
-      assertThat(ccr.getMessages())
-          .as("nothing tells the operator this index has to be rebuilt").isEmpty();
+          .as("an index trusted over the content of trees it did not fill").isFalse();
+      assertThat(ccr.adminActionRequired()).isTrue();
+      assertThat(ordinalsOf(ccr))
+          .as("the rebuild this index asks for, and the content discarded to get there")
+          .contains(NOTE_INDEX_ADD_REQUIRES_REBUILD.ordinal(), WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
     }
     finally
     {
