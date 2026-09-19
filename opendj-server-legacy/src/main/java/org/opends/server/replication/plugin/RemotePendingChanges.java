@@ -94,8 +94,9 @@ final class RemotePendingChanges
    * this issue is about (issue #922).
    * <p>
    * A thread is entered here when it takes a change over and removed when it gives it back,
-   * applies it, or parks it as waiting for another change - a parked change is not the one
-   * this thread is replaying, and giving it back is
+   * applies it, or parks it as waiting for another change - a parked one is handed out by
+   * {@link #getNextUpdate()} to whichever thread calls it first once the changes before it
+   * are gone, which enters it here again, and giving it back is
    * {@link #releaseParkedChangesOwnedByCurrentThread()}, which reads the changes which are
    * waiting rather than this index (issue #954).
    * <p>
@@ -551,10 +552,11 @@ final class RemotePendingChanges
    * Returns the CSN of the change the calling thread is replaying, when it still owns one.
    * <p>
    * A thread owns the change it is replaying and the ones it parked as waiting for another
-   * change. The parked ones are left out: they are not the change this thread is replaying,
-   * and giving one back is more than dropping its owner - it has to be unparked in the same
-   * step, or it would be handed out by two roads at once, which is what
-   * {@link #releaseParkedChangesOwnedByCurrentThread()} does (issues #922 and #954).
+   * change. The parked ones are left out: they are handed out by {@link #getNextUpdate()}
+   * to whichever thread calls it first once the changes before them are gone, and that
+   * thread takes them over, so giving one back is more than dropping its owner - it has to
+   * be unparked in the same step, or it would be handed out by two roads at once, which is
+   * what {@link #releaseParkedChangesOwnedByCurrentThread()} does (issues #922 and #954).
    * <p>
    * It is a plain read of {@link #changeBeingReplayed}: no lock is taken and nothing is
    * allocated. This is what the give-back on the way out of an unwound replay asks first,
@@ -582,11 +584,12 @@ final class RemotePendingChanges
    * <p>
    * A parked change stays owned by the thread which parked it while that thread goes on
    * to the changes which follow: {@link #getNextUpdate()} is what hands it out again, to
-   * whichever replay thread clears the change it was waiting for, and that thread takes it
-   * over. A replay which is unwound leaves the thread which parked it without that road -
-   * it takes the next delivery off the replay queue instead - so the change would be left
-   * owned by a thread which is never coming back to it, and every redelivery of a change a
-   * replay thread owns is refused as a duplicate (issue #954).
+   * whichever thread calls it first once the change it was waiting for is gone - the
+   * thread which cleared it, as a rule - and that thread takes it over. A replay which is
+   * unwound leaves the thread which parked it without that road - it takes the next
+   * delivery off the replay queue instead - so the change would be left owned by a thread
+   * which is never coming back to it, and every redelivery of a change a replay thread
+   * owns is refused as a duplicate (issue #954).
    * <p>
    * Unparking a change and giving it back is one step, under both locks, so that only one
    * road can hand it out: a change which was released while it is still listed as waiting
@@ -607,8 +610,9 @@ final class RemotePendingChanges
    *
    * @return the CSNs of the changes it gave back, oldest first; empty when this thread owns
    *         no parked change - the changes a thread parked stay its own, whichever replay
-   *         parked them, until {@link #getNextUpdate()} hands them to the thread which
-   *         cleared what they wait for or they are given back here
+   *         parked them, until {@link #getNextUpdate()} hands them to whichever thread
+   *         calls it first once what they wait for is gone - the thread which cleared it,
+   *         as a rule - or they are given back here
    */
   List<CSN> releaseParkedChangesOwnedByCurrentThread()
   {
@@ -669,9 +673,11 @@ final class RemotePendingChanges
    * Get the first update in the list that have some dependencies cleared.
    * <p>
    * The change is handed to the calling thread, which owns it from then on: it is
-   * replayed by whichever replay thread cleared the change it was waiting for rather than
-   * by the one which parked it, and a change is given back by the thread which owns it
-   * and by nobody else (issue #922).
+   * replayed by whichever replay thread calls this first once the changes before it have
+   * left - as a rule the one which cleared the change it was waiting for, though the one
+   * which parked it comes through here on its own way out and takes it back itself when
+   * the clearing happened in between - and a change is given back by the thread which
+   * owns it and by nobody else (issue #922).
    *
    * @return The LDAPUpdateMsg to be handled.
    */
@@ -765,11 +771,13 @@ final class RemotePendingChanges
       }
       /*
        * Whichever of the two it was, this thread is not replaying that change anymore: a
-       * parked one is handed to the thread which clears what it waits for, and one which is
-       * not listed here anymore is gone with the pending changes of a domain which was
-       * disabled. The owner stays as it is - it is what has getNextUpdate() hand the change
-       * over rather than leave it to nobody - and the give-back of the change a replay was
-       * unwound on leaves it alone (issue #922). What hands a parked change back is
+       * parked one is handed to whichever thread calls getNextUpdate() first once the
+       * changes before it are gone - the clearing thread as a rule, this one when the
+       * clearing lands before it gets there - and one which is not listed here anymore is
+       * gone with the pending changes of a domain which was disabled. The owner stays as it
+       * is - it is what has getNextUpdate() hand the change over rather than leave it to
+       * nobody - and the give-back of the change a replay was unwound on leaves it alone
+       * (issue #922). What hands a parked change back is
        * releaseParkedChangesOwnedByCurrentThread(), which unparks it in the same step so
        * that the two roads can not hand it out at once (issue #954).
        */

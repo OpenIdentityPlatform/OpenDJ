@@ -96,8 +96,9 @@ public class ReplayThread extends DirectoryThread
       /*
        * The changes this thread parked as waiting for another change are handed out again
        * by getNextUpdate() alone, which every replay loop of a domain runs once it is done
-       * with a change: a parked change is replayed by whichever thread clears the change it
-       * was waiting for. A thread which is stopping is not on that road anymore, so what it
+       * with a change: a parked change is replayed by whichever thread calls it first once
+       * the change it was waiting for is gone - the thread which cleared it, as a rule. A
+       * thread which is stopping is not on that road anymore, so what it
        * parked would be left owned by a thread which does not exist, while every redelivery
        * of a change a replay thread owns is refused as a duplicate: on a domain which then
        * goes quiet that change is where the ServerState of this replica, and every change
