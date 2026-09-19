@@ -357,14 +357,18 @@ class DefaultIndex extends AbstractTree implements Index
   }
 
   /**
-   * Puts this index back to the confidentiality and codec it answered before its tree was given up
-   * and opened again, for a reopen whose commit the storage gave up: what {@link #afterOpen} binds
-   * is memory, and outlives a write the storage rolled back, so a change asked for again would
-   * otherwise find this index already agreeing with the setting that write never durably reached.
+   * Puts this index back to the confidentiality, codec and trust it answered before its tree was
+   * given up and opened again, for a reopen whose commit the storage gave up: what
+   * {@link #afterOpen} binds is memory, and outlives a write the storage rolled back, so a change
+   * asked for again would otherwise find this index already agreeing with the setting that write
+   * never durably reached. The trust is bound the same way - an index opened over an empty entry
+   * container is trusted on the spot - and, left behind, is what an operation which then fails
+   * writes down for every index in its buffer, for a tree the give-up took with it.
    */
-  final void revertFailedReopen(boolean encrypted, EntryIDSetCodec codec)
+  final void revertFailedReopen(boolean encrypted, EntryIDSetCodec codec, boolean trusted)
   {
     this.encrypted = encrypted;
     this.codec = codec;
+    this.trusted = trusted;
   }
 }
