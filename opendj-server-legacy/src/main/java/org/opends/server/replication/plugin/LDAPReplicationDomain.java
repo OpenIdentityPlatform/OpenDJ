@@ -4286,13 +4286,17 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     final long wakes;
     synchronized (serviceStateLock)
     {
-      if (sessionHasAnOwner())
+      /*
+       * The domain is going away or is being imported into: the session is not this
+       * thread's to stop. The total update is claimed against rather than read (issue
+       * #1041): the listener thread claims one this replica did not ask for under no lock,
+       * and a read here a few statements before that claim would stop the session the
+       * import is about to read.
+       */
+      if (ownsItsSession() || !disableServiceUnlessImportInProgress())
       {
-        // The domain is going away or is being imported into: the session is not this
-        // thread's to stop.
         return;
       }
-      disableService();
       stoppedSession = getSessionGeneration();
       wakes = sessionRestartBackoffWakes();
     }
@@ -6209,6 +6213,11 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * Whether the session of this domain has an owner other than the replay thread which
    * would restart it after a failed replay: the domain itself, when it is shutting down or
    * disabled ({@link #ownsItsSession()}), or a total update into this replica.
+   * <p>
+   * What this reads, {@link #restartSession(boolean)} claims: a total update the listener
+   * thread is about to claim is not visible to a read, and the restart must not stop the
+   * session such a total update reads (issue #1041). This is the early exit of the roads
+   * which lead to that restart, and the answer for the ones which never restart anything.
    * <p>
    * The total update owns the session from the moment it is asked for, not from the
    * moment its entries stream: the {@code InitializeTargetMsg} which answers the request

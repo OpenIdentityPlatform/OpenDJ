@@ -56,6 +56,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
+import org.forgerock.util.annotations.VisibleForTesting;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.MonitorData;
 import org.opends.server.backends.task.Task;
@@ -262,6 +263,36 @@ public abstract class ReplicationDomain
    * Null when none is being processed.
    */
   private final AtomicReference<ImportExportContext> importExportContext = new AtomicReference<>();
+  /**
+   * Holds {@link #importExportContext} for the length of a session stop which a total update
+   * into this replica must not be claimed across (issue #1041).
+   * <p>
+   * A restart of the session reads whether such a total update owns it before it stops
+   * anything, and the listener thread claims the context for the {@code InitializeTargetMsg}
+   * it took off the session - and the two share no lock: {@link #disableService()} waits for
+   * the listener thread under {@link #serviceStateLock}, so the listener can not take that
+   * lock before its claim. A restart which read no owner a few statements before the claim
+   * landed stopped the broker the import was about to read, and the import ended on nothing
+   * with no exception recorded. The two contend on the one reference instead: the restart
+   * claims it with this context, the claim of the listener fails against it, and exactly one
+   * of them wins - the total update is either the owner the restart reads, or refused.
+   * <p>
+   * It is neither an import nor an export: {@link #ieRunning()}, {@link #importInProgress()}
+   * and {@link #getImportExportContext()} do not report it.
+   */
+  private static final ImportExportContext SESSION_BEING_STOPPED = new ImportExportContext(false);
+  /**
+   * Run by the listener thread between the {@code InitializeTargetMsg} it took off the
+   * session and its claim of the import context. Only there for the tests, which hold the
+   * listener thread there: nothing else runs in that gap.
+   */
+  private volatile Runnable importClaimHook;
+  /**
+   * Run by {@link #disableService()} under its locks, before the broker is stopped. Only
+   * there for the tests, which hold a stop of the service there: what the claim of a session
+   * stop is for is the total update which lands between the decision to stop and the stop.
+   */
+  private volatile Runnable serviceStopHook;
 
   /**
    * The Thread waiting for incoming update messages for this domain and pushing
@@ -838,7 +869,7 @@ public abstract class ReplicationDomain
         else if (msg instanceof ErrorMsg)
         {
           ErrorMsg errorMsg = (ErrorMsg)msg;
-          ImportExportContext ieCtx = importExportContext.get();
+          ImportExportContext ieCtx = getImportExportContext();
           if (ieCtx != null)
           {
             /*
@@ -900,7 +931,7 @@ public abstract class ReplicationDomain
         }
         else if (msg instanceof InitializeRcvAckMsg)
         {
-          ImportExportContext ieCtx = importExportContext.get();
+          ImportExportContext ieCtx = getImportExportContext();
           if (ieCtx != null)
           {
             InitializeRcvAckMsg ackMsg = (InitializeRcvAckMsg) msg;
@@ -1660,7 +1691,7 @@ public abstract class ReplicationDomain
       // Release the context whatever the outcome, otherwise ieRunning() would
       // remain true forever (resolves the historical "FIXME should not this
       // be in a finally?").
-      releaseIEContext();
+      releaseIEContext(ieCtx);
     }
   }
 
@@ -2036,16 +2067,26 @@ public abstract class ReplicationDomain
     final ImportExportContext ieCtx = new ImportExportContext(importInProgress);
     if (!importExportContext.compareAndSet(null, ieCtx))
     {
-      // Rejects 2 simultaneous exports
-      LocalizableMessage message = ERR_SIMULTANEOUS_IMPORT_EXPORT_REJECTED.get();
+      // Rejects 2 simultaneous exports, and a total update claimed while the session is
+      // being stopped (see SESSION_BEING_STOPPED)
+      final LocalizableMessage message = importExportContext.get() == SESSION_BEING_STOPPED
+          ? ERR_INIT_REJECTED_SESSION_STOPPING.get(getBaseDN())
+          : ERR_SIMULTANEOUS_IMPORT_EXPORT_REJECTED.get();
       throw new DirectoryException(ResultCode.OTHER, message);
     }
     return ieCtx;
   }
 
-  private void releaseIEContext()
+  /**
+   * Releases the provided import/export context, and only that one: a road which failed to
+   * acquire a context of its own must not release the one it failed against - the import or
+   * export which owns it, or the claim of a session stop ({@code SESSION_BEING_STOPPED}).
+   *
+   * @param ieCtx the context to release
+   */
+  private void releaseIEContext(ImportExportContext ieCtx)
   {
-    importExportContext.set(null);
+    importExportContext.compareAndSet(ieCtx, null);
   }
 
   /**
@@ -2059,7 +2100,7 @@ public abstract class ReplicationDomain
    */
   private void completeInitializeTask(ImportExportContext ieCtx)
   {
-    releaseIEContext();
+    releaseIEContext(ieCtx);
     if (ieCtx.initializeTask instanceof InitializeTask)
     {
       // Update the task that initiated the import
@@ -2108,7 +2149,7 @@ public abstract class ReplicationDomain
     ReplicationMsg msg;
     while (true)
     {
-      ImportExportContext ieCtx = importExportContext.get();
+      ImportExportContext ieCtx = getImportExportContext();
       try
       {
         // In the context of the total update, we don't want any automatic
@@ -2279,7 +2320,7 @@ public abstract class ReplicationDomain
     }
 
     // build the message
-    ImportExportContext ieCtx = importExportContext.get();
+    ImportExportContext ieCtx = getImportExportContext();
     EntryMsg entryMessage = new EntryMsg(
         getServerId(), ieCtx.getExportTarget(), lDIFEntry, pos, length,
         ++ieCtx.msgCnt);
@@ -2423,6 +2464,7 @@ public abstract class ReplicationDomain
     not processed any topology message in between the failure and the
     new attempt.
     */
+    ImportExportContext ieCtx = null;
     try
     {
       /*
@@ -2432,7 +2474,7 @@ public abstract class ReplicationDomain
       update the task.
       */
 
-      final ImportExportContext ieCtx = acquireIEContext(true);
+      ieCtx = acquireIEContext(true);
       ieCtx.initializeTask = initTask;
       ieCtx.attemptCnt = 0;
       ieCtx.initReqMsgSent = new InitializeRequestMsg(
@@ -2472,7 +2514,10 @@ public abstract class ReplicationDomain
     {
       // No need to call here updateTaskCompletionState - will be done
       // by the caller
-      releaseIEContext();
+      if (ieCtx != null)
+      {
+        releaseIEContext(ieCtx);
+      }
       throw new DirectoryException(ResultCode.OTHER, errMsg);
     }
   }
@@ -2492,7 +2537,7 @@ public abstract class ReplicationDomain
    */
   public boolean abortStalledInitializeFromRemote(long stalledTimeoutMs)
   {
-    final ImportExportContext ieCtx = importExportContext.get();
+    final ImportExportContext ieCtx = getImportExportContext();
     if (ieCtx == null || !ieCtx.importInProgress() || ieCtx.initReqMsgSent == null
         || !ieCtx.abandonIfStalled(stalledTimeoutMs))
     {
@@ -2506,6 +2551,23 @@ public abstract class ReplicationDomain
             getBaseDN(), ieCtx.initReqMsgSent.getDestination())));
     completeInitializeTask(ieCtx);
     return true;
+  }
+
+  /**
+   * Refuses a total update another server started into this replica: the exporter is told
+   * so that it does not stream to a replica which will discard the entries, and this server
+   * records why the total update it was the target of did not run - the exporter's task
+   * reports the failure, and an administrator reading this server's log has to find it here.
+   *
+   * @param requesterServerId the server which asked for the total update
+   * @param reason why it is refused
+   */
+  private void rejectInitializeTarget(int requesterServerId, LocalizableMessage reason)
+  {
+    logger.error(reason);
+    // Silently not sent over a session which is already stopped: the replication server
+    // then tells the exporter that this replica is not there to stream to.
+    broker.publish(new ErrorMsg(requesterServerId, reason));
   }
 
   /**
@@ -2532,7 +2594,7 @@ public abstract class ReplicationDomain
     final ImportExportContext ieCtx;
     if (initTargetMsgReceived.getInitiatorID() == getServerId())
     {
-      ieCtx = importExportContext.get();
+      ieCtx = getImportExportContext();
       if (ieCtx == null || !ieCtx.markInitStartReceived())
       {
         /*
@@ -2556,17 +2618,35 @@ public abstract class ReplicationDomain
       The initTargetMsgReceived is for an import initiated by the remote
       server. Test and set if no import already in progress
       */
+      final Runnable hook = importClaimHook;
+      if (hook != null)
+      {
+        hook.run();
+      }
       try
       {
         ieCtx = acquireIEContext(true);
       }
       catch (DirectoryException e)
       {
-        // A concurrent import/export owns the context: reject this
-        // initialization without touching that operation's context, and let
-        // the exporter know so that it does not export to a replica that
-        // will discard the entries
-        broker.publish(new ErrorMsg(requesterServerId, e.getMessageObject()));
+        // A concurrent import/export owns the context, or the session is being stopped:
+        // reject this initialization without touching that operation's context, and let
+        // the exporter know so that it does not export to a replica that will discard the
+        // entries
+        rejectInitializeTarget(requesterServerId, e.getMessageObject());
+        return;
+      }
+      if (broker.shuttingDown())
+      {
+        /*
+         * The claim won against no restart, and the session is being stopped all the same:
+         * the domain is going down or being disabled, or a restart found an export in the
+         * context and stopped the session it streams over. The import would read that broker
+         * as the end of its stream, and what runs before it publishes over the session: it
+         * is refused here, before the backend is taken away.
+         */
+        releaseIEContext(ieCtx);
+        rejectInitializeTarget(requesterServerId, ERR_INIT_REJECTED_SESSION_STOPPING.get(getBaseDN()));
         return;
       }
     }
@@ -2771,7 +2851,36 @@ public abstract class ReplicationDomain
    */
   public boolean ieRunning()
   {
-    return importExportContext.get() != null;
+    return getImportExportContext() != null;
+  }
+
+  /**
+   * Sets what the listener thread runs between the {@code InitializeTargetMsg} it took off
+   * the session and its claim of the import context.
+   * <p>
+   * Only there for the tests which drive something else through that gap: it is a few
+   * statements wide, and nothing else can hold the listener thread there.
+   *
+   * @param hook what to run there, or {@code null} to run nothing
+   */
+  @VisibleForTesting
+  public void setImportClaimHook(Runnable hook)
+  {
+    importClaimHook = hook;
+  }
+
+  /**
+   * Sets what {@link #disableService()} runs, under its locks, before it stops the broker.
+   * <p>
+   * Only there for the tests which drive something else through that gap: a total update
+   * which is claimed after the decision to stop the service and before the stop.
+   *
+   * @param hook what to run there, or {@code null} to run nothing
+   */
+  @VisibleForTesting
+  public void setServiceStopHook(Runnable hook)
+  {
+    serviceStopHook = hook;
   }
 
   /**
@@ -2788,7 +2897,7 @@ public abstract class ReplicationDomain
    */
   protected boolean importInProgress()
   {
-    final ImportExportContext ieCtx = importExportContext.get();
+    final ImportExportContext ieCtx = getImportExportContext();
     return ieCtx != null && ieCtx.importInProgress();
   }
 
@@ -3341,6 +3450,11 @@ public abstract class ReplicationDomain
     {
       synchronized (sessionLock)
       {
+        final Runnable hook = serviceStopHook;
+        if (hook != null)
+        {
+          hook.run();
+        }
         /*
          * Stop the broker first in order to prevent the listener from reconnecting - see OPENDJ-457.
          */
@@ -3365,6 +3479,54 @@ public abstract class ReplicationDomain
         }
       }
       sessionGeneration++;
+    }
+  }
+
+  /**
+   * Stops the Replication Service the way {@link #disableService()} does, unless a total
+   * update into this replica owns the session.
+   * <p>
+   * Whether one does is claimed rather than read (issue #1041): the listener thread claims
+   * the import context for an {@code InitializeTargetMsg} under no lock, so a read of it
+   * under {@link #serviceStateLock} orders nothing. The claim is
+   * {@code SESSION_BEING_STOPPED}, held for the length of the stop and released once the
+   * listener thread is gone - it is the one thread which claims a total update this replica
+   * did not ask for, and {@link #disableService()} waits for it. An export in the context is
+   * not an owner: the session is stopped from under it and the exporter reports the cut, as
+   * it does for every other stop, and the total update which lands between the end of that
+   * export and the stop is refused by the listener on the broker it finds stopping.
+   *
+   * @return {@code true} when the service was stopped, {@code false} when a total update
+   *         into this replica owns the session and it was left alone
+   */
+  protected final boolean disableServiceUnlessImportInProgress()
+  {
+    synchronized (serviceStateLock)
+    {
+      while (!importExportContext.compareAndSet(null, SESSION_BEING_STOPPED))
+      {
+        final ImportExportContext owner = importExportContext.get();
+        if (owner == null)
+        {
+          // Released between the two reads: claim again.
+          continue;
+        }
+        if (owner.importInProgress())
+        {
+          return false;
+        }
+        disableService();
+        return true;
+      }
+      try
+      {
+        disableService();
+      }
+      finally
+      {
+        importExportContext.compareAndSet(SESSION_BEING_STOPPED, null);
+      }
+      return true;
     }
   }
 
@@ -3859,7 +4021,8 @@ public abstract class ReplicationDomain
    */
   protected ImportExportContext getImportExportContext()
   {
-    return importExportContext.get();
+    final ImportExportContext ieCtx = importExportContext.get();
+    return ieCtx != SESSION_BEING_STOPPED ? ieCtx : null;
   }
 
   /**
