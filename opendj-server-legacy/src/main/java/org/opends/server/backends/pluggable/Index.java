@@ -57,8 +57,6 @@ interface Index extends Tree
 
   boolean setIndexEntryLimit(int indexEntryLimit);
 
-  boolean setConfidential(boolean indexConfidential);
-
   void setTrusted(WriteableTransaction txn, boolean trusted);
 
   void update(WriteableTransaction txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs);
