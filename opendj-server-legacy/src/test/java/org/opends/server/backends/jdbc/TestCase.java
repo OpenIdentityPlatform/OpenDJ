@@ -2597,12 +2597,13 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			recordAnotherTable(catalogTable, "a_table_of_something_else");
 
 			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
-				final List<String> skipped = new ArrayList<>();
+				final JDBCStorage.SkippedRows skipped = new JDBCStorage.SkippedRows();
 				assertFalse(storage.readCatalogRows(con, catalogTable, skipped).containsKey(tree),
 					"a row recording a name no table of this backend goes by was read as a tree to drop");
-				assertEquals(skipped.size(), 1, "the row the read passed over was not described to its caller: " + skipped);
-				assertTrue(skipped.get(0).contains("a_table_of_something_else"),
-					"what the row records is named by nothing the clear could report: " + skipped);
+				assertEquals(skipped.size(), 1,
+					"the row the read passed over was not described to its caller: " + skipped.descriptions());
+				assertTrue(skipped.descriptions().get(0).contains("a_table_of_something_else"),
+					"what the row records is named by nothing the clear could report: " + skipped.descriptions());
 			}
 
 			// the clear still drops what it can: the catalog itself, which it names last
@@ -2616,6 +2617,48 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			// so both of its call sites could be deleted and every assertion above would still hold
 			storage.assertReported("the row the clear could not act on was reported by no line of it",
 				"a_table_of_something_else", "passed over");
+		} finally {
+			clearQuietly(storage);
+			// left standing on purpose above, so this case removes it rather than the next one meeting it
+			dropTableIfExists(tableName);
+		}
+	}
+
+	/**
+	 * The line above carries what the row recorded, and what the row recorded is a value somebody else
+	 * wrote into this database - the premise of the line being a catalog written into by something
+	 * other than this backend. A newline in it would splice the rest of the value into the server log
+	 * as further records; #931. The clear runs against a database rather than the escape being asserted
+	 * on its own, which is what pins the value going through it on the way to the line: the unit of it
+	 * is {@code ClearReportTestCase}.
+	 */
+	@Test
+	public void testAClearDoesNotLetACatalogRowEndTheLineReportingIt() throws Exception {
+		final TreeName tree = new TreeName("testCatalogSplicedRow", "tree");
+		final ReportingStorage storage = new ReportingStorage(createBackendCfg(getBackendId() + "_splicedRow"));
+		final String tableName = storage.getTableName(tree);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			final String catalogTable = storage.getTableName(storage.getCatalogTree());
+			recordAnotherTable(catalogTable, "a_table\nSEVERE: a record of somebody else's");
+
+			// the clear drops what it can - its own catalog - and reports the row it passed over
+			storage.removeStorageFiles();
+
+			storage.assertReported("the row the clear could not act on was reported by no line of it",
+				"a_table\\nSEVERE: a record of somebody else's", "passed over");
+			for (final String line : storage.reported()) {
+				assertFalse(line.indexOf('\n') >= 0,
+					"a value read out of the catalog ended the line carrying it: " + line);
+				assertFalse(line.indexOf('\r') >= 0,
+					"a value read out of the catalog ended the line carrying it: " + line);
+			}
 		} finally {
 			clearQuietly(storage);
 			// left standing on purpose above, so this case removes it rather than the next one meeting it
