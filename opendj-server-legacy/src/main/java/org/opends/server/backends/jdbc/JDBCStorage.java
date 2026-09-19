@@ -1664,8 +1664,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * thread that is waiting. It is the pool's retry that is wanted here and not its queue, which is
 	 * why the loop below is its own rather than a borrow of {@link CachedConnection#getConnection}.
 	 * What one attempt is, is the login and the set-up behind it, exactly as an attempt of a borrow is
-	 * ({@code CachedConnection.connect}): a session the server takes and then kills off answers the
-	 * first statement of the set-up rather than the login, and it is the same refusal either way.
+	 * - the same code, {@link CachedConnection#establish} (#929): a session the server takes and then
+	 * kills off answers the first statement of the set-up rather than the login, and it is the same
+	 * refusal either way.
 	 * <p>
 	 * That is also what this wait is weaker than a borrow at, and it is worth writing down rather than
 	 * leaving to be discovered: a borrow can be answered by a peer handing a connection back, while
@@ -1771,7 +1772,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 						deadline==budgetDeadline, now-startedAt, attempts, e);
 				}
 				CachedConnection.warnStallOutsidePool(connectionString, "tree catalog", attempts, startedAt, e);
-				backoffMs=Math.min(backoffMs==0 ? 1 : backoffMs*2, CachedConnection.MAX_BACKOFF_MS);
+				// the schedule of the pool, from the one place that holds it (#929). The wait is slept
+				// out rather than handed to the deque of the pool, which is the difference this loop
+				// exists for: nothing here can be answered by a peer returning a connection, so there
+				// is no queue to wait on - see the head of this method
+				backoffMs=CachedConnection.nextBackoffMs(backoffMs);
 				try {
 					Thread.sleep(Math.min(backoffMs, remaining));
 				}catch (InterruptedException interrupted) {
@@ -1846,51 +1851,29 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * decided on is the chain of the original, and the redaction is the caller's - a redacted copy is
 	 * rebuilt link by link, so redacting an attempt that is about to be retried would pay for a
 	 * failure nobody ever sees.
+	 * <p>
+	 * The login, the transaction it is set up for and the read bound it carries afterwards are the
+	 * pool's own, from the one place that holds them ({@link CachedConnection#establish}, #929):
+	 * written out here as well they drifted inside a single round, the standing read bound of #885
+	 * reaching the pooled half alone and leaving this connection with nothing bounding the reads
+	 * between its statements - its {@code commit()}, the {@code rollback()} of a session given up and
+	 * the {@code close()} of one that lost the race to another thread.
+	 * <p>
+	 * What is this connection's own is what becomes of it where the read bound of the login will not
+	 * come off. A driver that refuses to take it back leaves it in force for the life of the
+	 * connection, and that bound is the one this attempt was given - near the end of the deadline of
+	 * the retry, a second. The connection is kept all the same, where the pool closes such a
+	 * connection rather than pooling it: this backend has one catalog connection and no borrower
+	 * behind it to hand another to, and failing here instead would stop the backend opening on a
+	 * driver whose setNetworkTimeout is not implemented at all, where the pooled connection beside it
+	 * works. There is no state to fail with that {@code write()} does not read as a connection the
+	 * database dropped, either. So it is reported and the connection is used, at the bound in force.
 	 */
 	private Connection connectCatalog(String connectionString, CachedConnection.ConnectDialect dialect,
 			long timeoutSeconds) throws SQLException {
-		// A driver is free to write into the map it is handed, so every attempt gets one of its own.
-		final Properties properties=new Properties();
-		final boolean readBoundSet=dialect!=null && timeoutSeconds>0
-			&& dialect.bound(connectionString, properties, timeoutSeconds);
-		final Connection con=DriverManager.getConnection(connectionString, properties);
-		try {
-			con.setAutoCommit(false);
-			con.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-		}catch (SQLException | RuntimeException e) { // nothing else holds this connection yet: it would leak
-			closeQuietly(con, e);
-			throw e;
-		}
-		if (readBoundSet) {
-			try {
-				// only where this code set one: a read bound of the connection string is the
-				// administrator's and is not lifted along with it, exactly as the pool leaves it
-				con.setNetworkTimeout(Runnable::run, 0);
-			}catch (SQLException | RuntimeException e) {
-				// A driver that will not take the bound back leaves it in force for the life of the
-				// connection, and that bound is the one this attempt was given - near the end of the
-				// deadline of the retry, a second. The connection is kept all the same, which is the
-				// pool's own answer to this failure: it stops pooling such a connection and still hands
-				// it to the borrower that is waiting. Failing here instead would stop the backend opening
-				// on a driver whose setNetworkTimeout is not implemented at all, where the pooled
-				// connection beside it works - and there is no state to fail with that write() does not
-				// read as a connection the database dropped. So it is reported, at the bound in force.
-				logger.warn(LocalizableMessage.raw("jdbc: the catalog connection of backend %s keeps the %ds read bound its login was given, so a statement of the catalog slower than that fails on it: %s",
-					config.getBackendId(), timeoutSeconds, stackTraceToSingleLineString(e)));
-			}
-		}
-		return con;
-	}
-
-	/** Closes a connection nothing holds yet, reporting the failure of the close on the one being unwound. */
-	private static void closeQuietly(Connection con, Throwable unwinding) {
-		try {
-			con.close();
-		}catch (SQLException | RuntimeException e) {
-			// the unchecked one as well: this runs from the catch of a failure it must not replace
-			// (JLS 14.20.2), which is the rule every close of this class keeps
-			unwinding.addSuppressed(e);
-		}
+		return CachedConnection.establish(connectionString, dialect, timeoutSeconds,
+			"the catalog connection of backend "+config.getBackendId(),
+			"it is kept as it is: this backend has one catalog connection and no second to fall back to").con;
 	}
 
 	/**

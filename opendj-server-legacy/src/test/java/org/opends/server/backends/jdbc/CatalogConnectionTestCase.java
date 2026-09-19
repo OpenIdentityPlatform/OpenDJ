@@ -71,6 +71,9 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 
 	private ProbeDriver probeDriver;
 
+	/** The standing read bound as this JVM was started with it, put back before every case. */
+	private static final int CONFIGURED_READ_TIMEOUT_MILLIS = CachedConnection.readTimeoutMillis;
+
 	@BeforeClass
 	public void registerProbeDriver() throws SQLException {
 		probeDriver = new ProbeDriver();
@@ -98,6 +101,9 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 		probeDriver.attempts.set(0);
 		probeDriver.refusalDelayMs = 0;
 		probeDriver.interruptOnAttempt = false;
+		// the same for the bound the connect reads off the class: a case that varies it and fails
+		// before its finally would otherwise hand its value to whatever runs after it
+		CachedConnection.readTimeoutMillis = CONFIGURED_READ_TIMEOUT_MILLIS;
 	}
 
 	private static JDBCStorage storageFor(String url) {
@@ -486,6 +492,86 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 			assertNotNull(con, "a connection whose read bound would not come off was not handed back");
 			verify(con).setAutoCommit(false);
 			verify(con, never()).close();
+		} finally {
+			restore(previous);
+			restorePool(previousPool);
+		}
+	}
+
+	/**
+	 * The catalog connection carries the read bound a deployment asked for
+	 * ({@link CachedConnection#READ_TIMEOUT_PROPERTY}), exactly as a connection of the pool does.
+	 * <p>
+	 * Its statements are bounded by the class of the work they belong to, and nothing else on it is:
+	 * the {@code commit()} that writes a catalog row, the {@code rollback()} of a session given up
+	 * and the {@code close()} of one that lost the race have no bound of their own, so against a
+	 * database which stops answering after the login they wait for as long as the socket does. That
+	 * is the gap #885 closed for every connection of the pool - this one was written beside them,
+	 * one round before the property existed, and was left with the lift alone.
+	 */
+	@Test
+	public void testTheCatalogConnectionCarriesTheReadBoundAskedFor() throws Exception {
+		final String previous = System.getProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY);
+		final String previousPool = System.getProperty(CachedConnection.POOL_TIMEOUT_PROPERTY);
+		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, "30");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "0");
+		CachedConnection.readTimeoutMillis = 90000;
+		try {
+			final Connection con = storageFor(ProbeDriver.URL).newCatalogConnection(NO_REPLAY_WINDOW);
+			con.close();
+			verify(con).setNetworkTimeout(any(), eq(90000));
+			// and the bound of the login is gone with it: the value that replaces it is the whole of
+			// what this connection carries, not a lift followed by a second call putting one back
+			verify(con, never()).setNetworkTimeout(any(), eq(0));
+		} finally {
+			restore(previous);
+			restorePool(previousPool);
+		}
+	}
+
+	/**
+	 * And it carries it whether or not the login had a bound of its own to lift: the read bound of a
+	 * login is only ever set where the connect is bounded, so a deployment running with
+	 * {@code connect.timeout=0} - the setting that leaves a connect to the deadline of the retry
+	 * alone - would otherwise set this property and get nothing for it on this connection.
+	 */
+	@Test
+	public void testTheCatalogConnectionCarriesTheReadBoundWhereItsLoginHadNoneToLift() throws Exception {
+		final String previous = System.getProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY);
+		final String previousPool = System.getProperty(CachedConnection.POOL_TIMEOUT_PROPERTY);
+		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, "0");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "0");
+		CachedConnection.readTimeoutMillis = 90000;
+		try {
+			final Connection con = storageFor(ProbeDriver.URL).newCatalogConnection(NO_REPLAY_WINDOW);
+			con.close();
+			verify(con).setNetworkTimeout(any(), eq(90000));
+		} finally {
+			restore(previous);
+			restorePool(previousPool);
+		}
+	}
+
+	/**
+	 * A read bound standing in the connection string is the deployment's own: it is not replaced by
+	 * the configured one here, exactly as it is not on a connection of the pool, and exactly as the
+	 * read bound of a login is not set on top of it. A guard rather than a regression test - the
+	 * bound is asked of {@link CachedConnection#standingReadBoundMillis}, which answers 0 for such a
+	 * url - and it is here because a bound put on from the value of the property alone would pass
+	 * every other case of this class.
+	 */
+	@Test
+	public void testAReadBoundOfTheUrlIsNotReplacedOnTheCatalogConnection() throws Exception {
+		final String previous = System.getProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY);
+		final String previousPool = System.getProperty(CachedConnection.POOL_TIMEOUT_PROPERTY);
+		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, "30");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "0");
+		CachedConnection.readTimeoutMillis = 90000;
+		try {
+			final Connection con = storageFor(ProbeDriver.URL + "?socketTimeout=30")
+				.newCatalogConnection(NO_REPLAY_WINDOW);
+			con.close();
+			verify(con, never()).setNetworkTimeout(any(), anyInt());
 		} finally {
 			restore(previous);
 			restorePool(previousPool);
