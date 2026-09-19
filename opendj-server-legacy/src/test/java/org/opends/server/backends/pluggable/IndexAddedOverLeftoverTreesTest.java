@@ -672,6 +672,82 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
   }
 
   /**
+   * The VLV road keeps its report when the drop write fails at its commit, on the terms the case
+   * above gives: the tree and its counter are back, and so is the TRUSTED record.
+   */
+  @Test(dataProvider = "storages", timeOut = HANG_TIMEOUT_MS)
+  public void aVlvDiscardIsStillReportedWhenTheDropWriteFailsAtItsCommit(StorageKind kind) throws Exception
+  {
+    final LeftoverBackend backend = leaveTreesBehind(kind);
+    try
+    {
+      final Storage storage = backend.getRootContainer().getStorage();
+      final int writesBefore = backend.storage.writes();
+      backend.storage.failWriteAfterItRan(1);
+
+      final ConfigChangeResult ccr = vlvIndexAddListener(backend).applyConfigurationAdd(backend.vlvIndexCfg);
+
+      assertThat(backend.storage.writes()).as("the failed write was the first, and the last one made")
+          .isEqualTo(writesBefore + 1);
+      assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+      assertThat(ordinalsOf(ccr.getMessages())).as("the report of a drop the engine rolled back")
+          .contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
+      assertThat(holdsAnything(storage, backend.leftoverVlvTree)).as("the VLV tree rolled back with the write")
+          .isTrue();
+      assertThat(holdsAnything(storage, backend.leftoverVlvCounterTree))
+          .as("the VLV counter rolled back with the write").isTrue();
+      assertThat(persistedFlags(backend, backend.leftoverVlvTree)).as("the record of the VLV tree").contains(TRUSTED);
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * And so does {@code AttributeIndex.applyConfigurationChange}: the tree of the index type
+   * declared again is back with its TRUSTED record, the change has not been applied, and the
+   * report stands.
+   */
+  @Test(dataProvider = "storages", timeOut = HANG_TIMEOUT_MS)
+  public void anIndexTypeDiscardIsStillReportedWhenTheDropWriteFailsAtItsCommit(StorageKind kind) throws Exception
+  {
+    final LeftoverBackend backend = leaveTreesBehind(kind, indexCfg(newTreeSet(IndexType.EQUALITY)));
+    try
+    {
+      final EntryContainer ec = backend.getRootContainer().getEntryContainer(BASE_DN);
+      final Storage storage = backend.getRootContainer().getStorage();
+      final AttributeIndex index = ec.getAttributeIndex(cnType);
+      final Map<TreeName, ByteString> keysHeld = keysHeldBy(storage, backend.leftoverIndexTrees);
+      final MatchingRuleIndex equality = index.getNameToIndexes().values().iterator().next();
+      final Set<TreeName> substringTrees = new HashSet<>(backend.leftoverIndexTrees);
+      substringTrees.remove(equality.getName());
+      assertThat(substringTrees).hasSize(1);
+      final TreeName substringTree = substringTrees.iterator().next();
+      final int writesBefore = backend.storage.writes();
+      backend.storage.failWriteAfterItRan(1);
+
+      final ConfigChangeResult ccr =
+          index.applyConfigurationChange(indexCfg(newTreeSet(IndexType.EQUALITY, IndexType.SUBSTRING)));
+
+      assertThat(backend.storage.writes()).as("the failed write was the first, and the last one made")
+          .isEqualTo(writesBefore + 1);
+      assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+      assertThat(ordinalsOf(ccr.getMessages())).as("the report of a drop the engine rolled back")
+          .contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
+      assertThat(holdsAnything(storage, substringTree)).as("the substring tree rolled back with the write").isTrue();
+      assertThat(persistedFlags(backend, substringTree)).as("the record of the substring tree").contains(TRUSTED);
+      assertThat(index.isIndexed(IndexType.SUBSTRING)).as("an index type the failed change declared").isFalse();
+      assertThat(answers(storage, equality, keysHeld.get(equality.getName())))
+          .as("the live equality tree went with the leftover").isTrue();
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
    * An index added to a backend which holds no entry has nothing to index and nothing to adopt, so
    * it stays trusted and asks for nothing. Pins the upgrade {@code DefaultIndex.afterOpen} makes.
    */
