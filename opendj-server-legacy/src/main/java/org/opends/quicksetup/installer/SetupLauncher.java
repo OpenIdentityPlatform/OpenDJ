@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.installer;
 
@@ -21,6 +22,8 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import static com.forgerock.opendj.util.StaticUtils.registerBcProvider;
+
+import java.io.File;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.CliApplication;
@@ -65,12 +68,33 @@ public class SetupLauncher extends Launcher {
    * @param args the arguments passed by the command lines.
    */
   public SetupLauncher(String[] args) {
-    super(args, LOG_FILE_PREFIX);
+    super(args, LOG_FILE_PREFIX, instanceLogsDirectory());
     if (System.getProperty(PROPERTY_SCRIPT_NAME) == null)
     {
       System.setProperty(PROPERTY_SCRIPT_NAME, Installation.getSetupFileName());
     }
     initializeParser();
+  }
+
+  /**
+   * The {@code logs/} directory of the instance being set up, where the setup log is kept.
+   * <p>
+   * The launcher scripts point {@code java.io.tmpdir} at {@code <instance>/tmp}, the scratch
+   * space of every tool, which {@code start-ds} - run by setup itself to start the server -
+   * used to sweep clean (issue #1030). The log of a failed setup belongs next to the server's
+   * own logs instead, where {@code server.out} tells the other half of the story.
+   *
+   * @return the logs directory of the instance, or {@code null} when the launcher is not
+   *         running from an installation and the OS temporary directory has to do.
+   */
+  private static File instanceLogsDirectory()
+  {
+    final String installPath = Utils.getInstallPathFromClasspath();
+    if (installPath == null)
+    {
+      return null;
+    }
+    return new File(Utils.getInstancePathFromInstallPath(installPath), Installation.LOGS_PATH_RELATIVE);
   }
 
   /** Initialize the contents of the argument parser. */
