@@ -1297,24 +1297,27 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
 
   /**
    * What an index answered before its tree was given up, kept so it can be put back if the reopen
-   * which follows gives its commit up.
+   * which follows gives its commit up. Taken after the write which untrusts, so the trust it holds
+   * is the one that write committed.
    */
   private static final class IndexBinding
   {
     private final MatchingRuleIndex index;
     private final boolean encrypted;
     private final EntryIDSetCodec codec;
+    private final boolean trusted;
 
     IndexBinding(MatchingRuleIndex index)
     {
       this.index = index;
       this.encrypted = index.isEncrypted();
       this.codec = index.codec();
+      this.trusted = index.isTrusted();
     }
 
     void revert()
     {
-      index.revertFailedReopen(encrypted, codec);
+      index.revertFailedReopen(encrypted, codec, trusted);
     }
   }
 

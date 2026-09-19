@@ -16,6 +16,7 @@
 package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.opends.messages.BackendMessages.ERR_BACKEND_BASEDN_NO_LONGER_HELD;
 import static org.opends.messages.BackendMessages.ERR_BACKEND_CANNOT_LIST_TREES_AFTER_BASEDN_CHANGE;
 import static org.opends.messages.BackendMessages.ERR_BACKEND_CANNOT_REGISTER_BASEDN;
@@ -59,6 +60,7 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.pdb.PDBStorage;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
+import org.opends.server.backends.pluggable.EntryIDSet.EntryIDSetCodec;
 import org.opends.server.backends.pluggable.State.IndexFlag;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -991,6 +993,7 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       // trusted when it is opened, whatever its tree holds.
       addBaseEntry(backend, KEPT, "b907a");
       assertThat(cnIndex.isEncrypted()).isFalse();
+      final EntryIDSetCodec codecBefore = cnIndex.codec();
 
       final int writesBefore = backend.storage.writes();
       backend.storage.failWithoutReplayOnWrite(4);
@@ -1005,6 +1008,9 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
           .as("the write which untrusts and deletes committed before the reopen was armed").doesNotContain(TRUSTED);
       assertThat(cnIndex.isEncrypted())
           .as("the reopen's commit gave up: the setting the tree is still to be opened under").isFalse();
+      // Nothing decodes through the codec between here and the reopen asked for again, which binds
+      // it afresh: pinned on the invariant DefaultIndex states rather than on a road which turns red.
+      assertThat(cnIndex.codec()).as("the codec the given-up reopen bound is put back").isSameAs(codecBefore);
 
       // The re-apply must still find this index to give up and open again, not one which already
       // agrees with the setting the failed reopen never durably reached.
@@ -1016,6 +1022,61 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       assertThat(cnIndex.isTrusted()).isFalse();
       assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).doesNotContain(TRUSTED);
       assertThat(cnIndex.isEncrypted()).as("the setting the tree was opened again under").isTrue();
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * The same give-up over an empty backend, where the reopen trusts the index it opens: that trust
+   * is bound in memory before the write commits, as the codec is, and must be put back with it. Left
+   * behind, it is what a failed operation writes down for each index in its buffer - for a tree the
+   * give-up took with it - while the index skips the entries added meanwhile, which a search after
+   * a restart then never finds.
+   */
+  @Test
+  public void aGivenUpReopenOverAnEmptyBackendDoesNotLeaveTheIndexTrusted() throws Exception
+  {
+    final ReplayingBackend backend = openBackendWithPresenceIndex();
+    try
+    {
+      final RootContainer rootContainer = backend.getRootContainer();
+      final EntryContainer ec = rootContainer.getEntryContainer(KEPT);
+      final AttributeIndex index = ec.getAttributeIndex(cnType);
+      final MatchingRuleIndex cnIndex = index.getNameToIndexes().values().iterator().next();
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).contains(TRUSTED);
+      assertThat(cnIndex.isTrusted()).isTrue();
+
+      backend.storage.failWithoutReplayOnWrite(4);
+      final ConfigChangeResult ccr = index.applyConfigurationChange(confidentialPresenceIndexCfg());
+
+      assertThat(ccr.getResultCode()).isEqualTo(serverErrorResultCode());
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).doesNotContain(TRUSTED);
+      assertThat(cnIndex.isTrusted())
+          .as("the reopen which trusted the index over an empty backend gave up").isFalse();
+
+      // The road that memory takes to disk: an operation which fails writes down what each index in
+      // its buffer answers, so that one it found corrupt stays untrusted. An add the container
+      // refuses - no parent - has the cn index in its buffer all the same.
+      assertThatThrownBy(() -> backend.addEntry(
+          TestCaseUtils.makeEntry("dn: cn=user.1," + KEPT, "objectClass: top", "objectClass: person",
+              "cn: user.1", "sn: user.1"),
+          mock(AddOperation.class)))
+          .isInstanceOf(DirectoryException.class)
+          .hasFieldOrPropertyWithValue("resultCode", ResultCode.NO_SUCH_OBJECT);
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName()))
+          .as("what the failed add wrote down is what the index answers, not what the give-up bound")
+          .doesNotContain(TRUSTED);
+
+      // Over a backend still empty, the reopen asked for again trusts the index it opens, and commits.
+      final ConfigChangeResult again = index.applyConfigurationChange(confidentialPresenceIndexCfg());
+      assertThat(again.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ordinalsOf(again)).containsOnly(NOTE_CONFIG_INDEX_CONFIDENTIALITY_REQUIRES_REBUILD.ordinal());
+      assertThat(cnIndex.isEncrypted()).isTrue();
+      assertThat(cnIndex.isTrusted()).as("opened again over an empty backend").isTrue();
+      assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).contains(TRUSTED);
     }
     finally
     {
