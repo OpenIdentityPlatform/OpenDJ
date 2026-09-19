@@ -13,13 +13,15 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
 import java.util.Collection;
+import java.util.Deque;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,7 +32,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class TestSynchronousReplayQueue implements BlockingQueue<UpdateToReplay>
 {
-  private LinkedList<UpdateToReplay> list = new LinkedList<>();
+  /**
+   * Written by the listener thread of the domain - a change the replication server delivers
+   * is offered here - and read by the thread of the test, which replays it: the two share no
+   * lock, so the deque has to be safe for that hand-off. {@code take()} is still synchronous -
+   * it throws when nothing was offered - which is what makes the queue a test one.
+   */
+  private final Deque<UpdateToReplay> list = new ConcurrentLinkedDeque<>();
 
   @Override
   public boolean add(UpdateToReplay e)
