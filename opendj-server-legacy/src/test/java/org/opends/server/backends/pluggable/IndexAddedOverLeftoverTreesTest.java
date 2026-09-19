@@ -63,8 +63,12 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.jeb.JEStorage;
 import org.opends.server.backends.pdb.PDBStorage;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
+import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
+import org.opends.server.backends.pluggable.spi.Importer;
+import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.Storage;
+import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
@@ -72,7 +76,11 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.loggers.ErrorLogPublisher;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.RestoreConfig;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -220,6 +228,8 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
       assertThat(ccr.adminActionRequired()).isTrue();
       assertThat(ordinalsOf(ccr.getMessages())).contains(NOTE_INDEX_ADD_REQUIRES_REBUILD.ordinal(),
           WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
+      assertThat(renderedOf(ccr.getMessages())).as("the index and the base DN the report names")
+          .contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.get("cn", BASE_DN).toString());
       assertThat(warningOrdinalsLoggedTo(errorLog))
           .as("the discard reported in the error log, not only in the change result")
           .contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
@@ -384,6 +394,8 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
       assertThat(ccr.adminActionRequired()).isTrue();
       assertThat(ordinalsOf(ccr.getMessages())).contains(NOTE_INDEX_ADD_REQUIRES_REBUILD.ordinal(),
           WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
+      assertThat(renderedOf(ccr.getMessages())).as("the index and the base DN the report names")
+          .contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.get(VLV_INDEX_NAME, BASE_DN).toString());
       assertThat(warningOrdinalsLoggedTo(errorLog))
           .as("the discard reported in the error log, not only in the change result")
           .contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
@@ -485,11 +497,173 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
       added.keySet().removeAll(servedBefore.keySet());
       assertThat(added).hasSize(1);
       final MatchingRuleIndex substring = added.values().iterator().next();
+      // Named by its tree on this road, where the add listener names the index by its attribute.
+      assertThat(renderedOf(ccr.getMessages())).as("the tree and the base DN the report names")
+          .contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.get(substring.getName(), BASE_DN).toString());
       assertThat(keysHeld).as("the substring tree left behind held a key").containsKey(substring.getName());
       assertThat(answers(storage, substring, keysHeld.get(substring.getName())))
           .as("a substring key answered out of the tree left behind").isFalse();
       assertThat(answers(storage, equality, equalityKey))
           .as("the live equality tree went with the leftover").isTrue();
+    }
+    finally
+    {
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * What the drop write found is reported from a {@code finally}, so a throw from the write which
+   * opens the index - after the drop has committed and the content is gone for good - does not
+   * swallow it: the change fails, and the change result and the error log still say what was
+   * discarded. Neither storage engine can be made to throw on its own, so the failure is injected
+   * through {@link RefusingStorage}: the drop write goes through, the open write is refused before
+   * it runs.
+   */
+  @Test(dataProvider = "storages", timeOut = HANG_TIMEOUT_MS)
+  public void aDiscardIsStillReportedWhenTheWriteWhichOpensTheIndexFails(StorageKind kind) throws Exception
+  {
+    final LeftoverBackend backend = leaveTreesBehind(kind);
+    final ErrorLogPublisher<ErrorLogPublisherCfg> errorLog = registerErrorLogCapture();
+    try
+    {
+      final Storage storage = backend.getRootContainer().getStorage();
+      final int writesBefore = backend.storage.writes();
+      backend.storage.refuseWrite(2);
+
+      final ConfigChangeResult ccr = indexAddListener(backend).applyConfigurationAdd(backend.cnIndexCfg);
+
+      assertThat(backend.storage.writes()).as("the refused write was the second, and the last one made")
+          .isEqualTo(writesBefore + 2);
+      assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+      assertThat(ordinalsOf(ccr.getMessages())).as("the discard the failed change swallowed")
+          .contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
+      assertThat(warningOrdinalsLoggedTo(errorLog)).contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
+      for (final TreeName leftover : backend.leftoverIndexTrees)
+      {
+        assertThat(storage.<Boolean> read(txn -> txn.treeExists(leftover)))
+            .as("the tree the report says was discarded: " + leftover).isFalse();
+      }
+    }
+    finally
+    {
+      ErrorLogger.getInstance().removeLogPublisher(errorLog);
+      backend.finalizeBackend();
+    }
+  }
+
+  /** The VLV road reports from a {@code finally} the same way. */
+  @Test(dataProvider = "storages", timeOut = HANG_TIMEOUT_MS)
+  public void aVlvDiscardIsStillReportedWhenTheWriteWhichBuildsTheIndexFails(StorageKind kind) throws Exception
+  {
+    final LeftoverBackend backend = leaveTreesBehind(kind);
+    final ErrorLogPublisher<ErrorLogPublisherCfg> errorLog = registerErrorLogCapture();
+    try
+    {
+      final Storage storage = backend.getRootContainer().getStorage();
+      final int writesBefore = backend.storage.writes();
+      backend.storage.refuseWrite(2);
+
+      final ConfigChangeResult ccr = vlvIndexAddListener(backend).applyConfigurationAdd(backend.vlvIndexCfg);
+
+      assertThat(backend.storage.writes()).as("the refused write was the second, and the last one made")
+          .isEqualTo(writesBefore + 2);
+      assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+      assertThat(ordinalsOf(ccr.getMessages())).as("the discard the failed change swallowed")
+          .contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
+      assertThat(warningOrdinalsLoggedTo(errorLog)).contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
+      assertThat(storage.<Boolean> read(txn -> txn.treeExists(backend.leftoverVlvTree)))
+          .as("the VLV tree the report says was discarded").isFalse();
+      assertThat(storage.<Boolean> read(txn -> txn.treeExists(backend.leftoverVlvCounterTree)))
+          .as("the VLV counter the report says was discarded").isFalse();
+    }
+    finally
+    {
+      ErrorLogger.getInstance().removeLogPublisher(errorLog);
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * And so does {@code AttributeIndex.applyConfigurationChange}, whose drop write is the first of
+   * the writes a change which adds an index type makes, and whose open write is the second.
+   */
+  @Test(dataProvider = "storages", timeOut = HANG_TIMEOUT_MS)
+  public void anIndexTypeDiscardIsStillReportedWhenTheWriteWhichOpensItFails(StorageKind kind) throws Exception
+  {
+    final LeftoverBackend backend = leaveTreesBehind(kind, indexCfg(newTreeSet(IndexType.EQUALITY)));
+    final ErrorLogPublisher<ErrorLogPublisherCfg> errorLog = registerErrorLogCapture();
+    try
+    {
+      final EntryContainer ec = backend.getRootContainer().getEntryContainer(BASE_DN);
+      final Storage storage = backend.getRootContainer().getStorage();
+      final AttributeIndex index = ec.getAttributeIndex(cnType);
+      final Map<TreeName, ByteString> keysHeld = keysHeldBy(storage, backend.leftoverIndexTrees);
+      final MatchingRuleIndex equality = index.getNameToIndexes().values().iterator().next();
+      final Set<TreeName> substringTrees = new HashSet<>(backend.leftoverIndexTrees);
+      substringTrees.remove(equality.getName());
+      assertThat(substringTrees).hasSize(1);
+      final int writesBefore = backend.storage.writes();
+      backend.storage.refuseWrite(2);
+
+      final ConfigChangeResult ccr =
+          index.applyConfigurationChange(indexCfg(newTreeSet(IndexType.EQUALITY, IndexType.SUBSTRING)));
+
+      assertThat(backend.storage.writes()).as("the refused write was the second, and the last one made")
+          .isEqualTo(writesBefore + 2);
+      assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+      assertThat(ordinalsOf(ccr.getMessages())).as("the discard the failed change swallowed")
+          .contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
+      assertThat(warningOrdinalsLoggedTo(errorLog)).contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
+      final TreeName substringTree = substringTrees.iterator().next();
+      assertThat(storage.<Boolean> read(txn -> txn.treeExists(substringTree)))
+          .as("the tree the report says was discarded").isFalse();
+      assertThat(index.isIndexed(IndexType.SUBSTRING)).as("an index type the failed change declared").isFalse();
+      assertThat(answers(storage, equality, keysHeld.get(equality.getName())))
+          .as("the live equality tree went with the leftover").isTrue();
+    }
+    finally
+    {
+      ErrorLogger.getInstance().removeLogPublisher(errorLog);
+      backend.finalizeBackend();
+    }
+  }
+
+  /**
+   * The drop write can fail at its own commit, once it has run and answered - a disk which is full
+   * when the engine writes its log. JE and PDB roll the drop back with it: the trees are still
+   * there, and so is the TRUSTED record the next open of the backend reads. The report stands all
+   * the same, and says more than happened. It is kept that way on purpose: the configuration entry
+   * is already written when the listener runs, so what comes next is not another add but that
+   * open, which adopts the trees - and the rebuild the report asks for is what puts it right. On
+   * JDBC the same failure comes after a DROP which committed on its own, and the report is the only
+   * trace of it; a report made to wait for the commit would be silent there, in the one case the
+   * drop exists for. Pinned so that moving it behind the commit is red here rather than silent
+   * there.
+   */
+  @Test(dataProvider = "storages", timeOut = HANG_TIMEOUT_MS)
+  public void aDiscardIsStillReportedWhenTheDropWriteFailsAtItsCommit(StorageKind kind) throws Exception
+  {
+    final LeftoverBackend backend = leaveTreesBehind(kind);
+    try
+    {
+      final Storage storage = backend.getRootContainer().getStorage();
+      final int writesBefore = backend.storage.writes();
+      backend.storage.failWriteAfterItRan(1);
+
+      final ConfigChangeResult ccr = indexAddListener(backend).applyConfigurationAdd(backend.cnIndexCfg);
+
+      assertThat(backend.storage.writes()).as("the failed write was the first, and the last one made")
+          .isEqualTo(writesBefore + 1);
+      assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+      assertThat(ordinalsOf(ccr.getMessages())).as("the report of a drop the engine rolled back")
+          .contains(WARN_INDEX_ADD_DISCARDED_LEFTOVER_TREES.ordinal());
+      for (final TreeName leftover : backend.leftoverIndexTrees)
+      {
+        assertThat(holdsAnything(storage, leftover)).as("the drop of " + leftover + " rolled back with the write")
+            .isTrue();
+        assertThat(persistedFlags(backend, leftover)).as("the record of " + leftover).contains(TRUSTED);
+      }
     }
     finally
     {
@@ -711,6 +885,17 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
     return backend.getRootContainer().getStorage().read(txn -> state.getIndexFlags(txn, index));
   }
 
+  /** The messages a change carries, as the operator reads them: identity and arguments both. */
+  private static List<String> renderedOf(Collection<LocalizableMessage> messages)
+  {
+    final List<String> rendered = new ArrayList<>();
+    for (final LocalizableMessage message : messages)
+    {
+      rendered.add(message.toString());
+    }
+    return rendered;
+  }
+
   /** The messages a change carries, by identity rather than by their formatted text. */
   private static Set<Integer> ordinalsOf(Collection<LocalizableMessage> messages)
   {
@@ -871,7 +1056,7 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
   private static final class LeftoverBackend extends BackendImpl<PluggableBackendCfg>
   {
     private final StorageKind kind;
-    private Storage storage;
+    private RefusingStorage storage;
     /** The configuration the entry container registers its listeners with. */
     private PluggableBackendCfg configuredWith;
     private BackendIndexCfg cnIndexCfg;
@@ -889,8 +1074,152 @@ public class IndexAddedOverLeftoverTreesTest extends DirectoryServerTestCase
     @Override
     protected Storage configureStorage(PluggableBackendCfg cfg, ServerContext serverContext) throws ConfigException
     {
-      storage = kind.newStorage(cfg, serverContext);
+      storage = new RefusingStorage(kind.newStorage(cfg, serverContext));
       return storage;
+    }
+  }
+
+  /** A failure no storage engine replays, unlike a conflict. */
+  private static final class RefusedWrite extends Exception
+  {
+    private static final long serialVersionUID = 1L;
+
+    RefusedWrite()
+    {
+      super("write refused by the test");
+    }
+  }
+
+  /**
+   * Delegates to the storage of the engine, and refuses the one write a case arms: neither engine
+   * can be made to fail a write on its own, and both are final. The refusal comes at one of two
+   * points - before the operation runs, which is what a write the engine cannot begin looks like
+   * to the caller, or once the operation has run and before it is committed, which is what a
+   * failure at commit looks like: the engine rolls the operation back, and whatever the operation
+   * noted on the way stands. Unarmed, it is the engine's storage.
+   */
+  private static final class RefusingStorage implements Storage
+  {
+    private final Storage delegate;
+    /** Which write, counted over the life of this storage, is armed; zero for none. */
+    private int armedWrite;
+    private boolean afterItRan;
+    private int writes;
+
+    RefusingStorage(Storage delegate)
+    {
+      this.delegate = delegate;
+    }
+
+    /** Refuses the {@code nth} write asked for from now on, the next one being the first, before it runs. */
+    void refuseWrite(int nth)
+    {
+      armedWrite = writes + nth;
+      afterItRan = false;
+    }
+
+    /** Fails the {@code nth} write asked for from now on once its operation has run, before it is committed. */
+    void failWriteAfterItRan(int nth)
+    {
+      armedWrite = writes + nth;
+      afterItRan = true;
+    }
+
+    /** How many write operations this storage was asked for, refused or not. */
+    int writes()
+    {
+      return writes;
+    }
+
+    @Override
+    public void write(final WriteOperation operation) throws Exception
+    {
+      writes++;
+      if (writes != armedWrite)
+      {
+        delegate.write(operation);
+        return;
+      }
+      armedWrite = 0;
+      if (!afterItRan)
+      {
+        throw new RefusedWrite();
+      }
+      delegate.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          operation.run(txn);
+          throw new RefusedWrite();
+        }
+      });
+    }
+
+    @Override
+    public Importer startImport() throws ConfigException
+    {
+      return delegate.startImport();
+    }
+
+    @Override
+    public void open(AccessMode accessMode) throws Exception
+    {
+      delegate.open(accessMode);
+    }
+
+    @Override
+    public <T> T read(ReadOperation<T> readOperation) throws Exception
+    {
+      return delegate.read(readOperation);
+    }
+
+    @Override
+    public void removeStorageFiles()
+    {
+      delegate.removeStorageFiles();
+    }
+
+    @Override
+    public StorageStatus getStorageStatus()
+    {
+      return delegate.getStorageStatus();
+    }
+
+    @Override
+    public boolean supportsBackupAndRestore()
+    {
+      return delegate.supportsBackupAndRestore();
+    }
+
+    @Override
+    public void createBackup(BackupConfig backupConfig) throws DirectoryException
+    {
+      delegate.createBackup(backupConfig);
+    }
+
+    @Override
+    public void removeBackup(BackupDirectory backupDirectory, String backupID) throws DirectoryException
+    {
+      delegate.removeBackup(backupDirectory, backupID);
+    }
+
+    @Override
+    public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
+    {
+      delegate.restoreBackup(restoreConfig);
+    }
+
+    @Override
+    public Set<TreeName> listTrees()
+    {
+      return delegate.listTrees();
+    }
+
+    @Override
+    public void close()
+    {
+      delegate.close();
     }
   }
 }

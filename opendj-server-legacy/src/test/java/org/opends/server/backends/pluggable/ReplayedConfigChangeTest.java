@@ -634,14 +634,14 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       final MatchingRuleIndex cnIndex = index.getNameToIndexes().values().iterator().next();
       assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).contains(TRUSTED);
 
-      // The fourth write is the one which removes the flag: the first three drop what an earlier
-      // index left behind for the indexes the change adds, open them, and delete the ones it
-      // removes, and it neither adds nor removes any.
+      // The third write is the one which removes the flag: the first two open the indexes the
+      // change adds and delete the ones it removes, and it neither adds nor removes any - so the
+      // write which drops what an earlier index left behind for the added ones is not made.
       final int writesBefore = backend.storage.writes();
-      backend.storage.conflictAtCommitOnWrite(4, 1);
+      backend.storage.conflictAtCommitOnWrite(3, 1);
       final ConfigChangeResult ccr = index.applyConfigurationChange(indexCfg(newTreeSet(IndexType.EQUALITY), 8000));
 
-      assertThat(backend.storage.writes()).as("the armed write was the last of four").isEqualTo(writesBefore + 4);
+      assertThat(backend.storage.writes()).as("the armed write was the last of three").isEqualTo(writesBefore + 3);
       assertThat(backend.storage.attempts()).isEqualTo(2);
       assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
       assertThat(ccr.adminActionRequired()).isTrue();
@@ -792,7 +792,7 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
   }
 
   /**
-   * The same instruction survives a give-up on the second of the four writes, the one which opens
+   * The same instruction survives a give-up on the first of the three writes, the one which opens
    * the indexes the change adds - opened here with none to add: it is asked for before any of the
    * writes, not only before the one which untrusts the index, since the configuration entry holds
    * the raised limit whichever of them fails.
@@ -810,11 +810,11 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).contains(TRUSTED);
 
       final int writesBefore = backend.storage.writes();
-      backend.storage.failWithoutReplayOnWrite(2);
+      backend.storage.failWithoutReplayOnWrite(1);
       final ConfigChangeResult ccr = index.applyConfigurationChange(indexCfg(newTreeSet(IndexType.EQUALITY), 8000));
 
-      assertThat(backend.storage.writes()).as("the armed write was the second of four, and the last one made")
-          .isEqualTo(writesBefore + 2);
+      assertThat(backend.storage.writes()).as("the armed write was the first of three, and the last one made")
+          .isEqualTo(writesBefore + 1);
       assertThat(ccr.getResultCode()).isEqualTo(serverErrorResultCode());
       assertThat(ccr.adminActionRequired()).as("the rebuild the raised limit needs, asked for before the first write")
           .isTrue();
@@ -852,9 +852,8 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       assertThat(ccr.getMessages()).isEmpty();
       assertThat(cnIndex.isTrusted()).isTrue();
       assertThat(cnIndex.getIndexEntryLimit()).as("the limit the change applied").isEqualTo(2000);
-      assertThat(backend.storage.writes())
-          .as("the three writes which drop leftovers, add and remove indexes, and no fourth")
-          .isEqualTo(writesBefore + 3);
+      assertThat(backend.storage.writes()).as("the two writes which add and remove indexes, and no third")
+          .isEqualTo(writesBefore + 2);
     }
     finally
     {

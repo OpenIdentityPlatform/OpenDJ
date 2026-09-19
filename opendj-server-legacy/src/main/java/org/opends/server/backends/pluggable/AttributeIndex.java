@@ -472,6 +472,16 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
    * a tree - which {@code JEStorage} does under a transaction of its own - asks for a read lock on
    * that record and waits for it without limit: no cycle, so the deadlock detector is silent, and
    * the configuration change never returns.
+   * <p>
+   * What this answers, the caller reports once every write of its change is over, whichever way
+   * they went - and when the write this ran in fails at its commit as well, although on JE and PDB
+   * that failure rolls the drop back. The report then overstates what happened: the trees are still
+   * there, the configuration entry is already written ({@code ConfigurationHandler} writes it before
+   * it notifies any listener), and the next open of the backend adopts them with their TRUSTED
+   * flag; the rebuild the report asks for is what puts that right. On JDBC the DROP has committed on
+   * its own before that commit failed, the record is back over a table which is gone, and the report
+   * is the only trace of it. Reported from a flag copied once the write has returned instead, the
+   * JE and PDB reports would be exact and the JDBC one silent, in the one case this method is for.
    *
    * @param txn a non null transaction
    * @return true if a tree was dropped; a record deleted on its own discards nothing
@@ -1005,9 +1015,10 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     final ConfigChangeResult ccr = new ConfigChangeResult();
     final IndexingOptions newIndexingOptions = new IndexingOptionsImpl(newConfiguration.getSubstringLength());
     // Drop what an earlier index left behind for the added ids, in a write of its own: the drop and the open
-    // must not share a transaction, see dropLeftovers(). discarded is filled by that committed write, so
-    // reporting it from the finally below repeats nothing on a replayed attempt, and is not skipped when the
-    // write which opens the added indexes - or a later write in this change - throws after it.
+    // must not share a transaction, see dropLeftovers(). discarded is filled by that write and reported from
+    // the finally below: every attempt fills it afresh, so a replayed attempt repeats nothing, and the report
+    // is not skipped when the write which opens the added indexes - or a later write of this change - throws
+    // after it, nor when the drop write fails at its own commit, for the reason dropLeftovers() gives.
     final List<MatchingRuleIndex> discarded = new ArrayList<>();
     try
     {
@@ -1047,21 +1058,26 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
         ccr.addMessage(rebuildMessage);
       }
 
-      entryContainer.getRootContainer().getStorage().write(new WriteOperation()
+      // A change which adds no index has nothing to drop, and opens no transaction for it - as the
+      // write which untrusts an index below opens none when there is nothing to untrust.
+      if (!addedIndexes.isEmpty())
       {
-        @Override
-        public void run(WriteableTransaction txn) throws Exception
+        entryContainer.getRootContainer().getStorage().write(new WriteOperation()
         {
-          discarded.clear();
-          for (MatchingRuleIndex addedIndex : addedIndexes.values())
+          @Override
+          public void run(WriteableTransaction txn) throws Exception
           {
-            if (dropLeftoversOf(txn, addedIndex))
+            discarded.clear();
+            for (MatchingRuleIndex addedIndex : addedIndexes.values())
             {
-              discarded.add(addedIndex);
+              if (dropLeftoversOf(txn, addedIndex))
+              {
+                discarded.add(addedIndex);
+              }
             }
           }
-        }
-      });
+        });
+      }
 
       // Open added indexes *before* adding them to indexIdToIndexes
       final List<TreeName> addedIndexesToRebuild = new ArrayList<>();

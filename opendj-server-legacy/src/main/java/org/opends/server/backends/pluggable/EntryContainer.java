@@ -232,9 +232,10 @@ public class EntryContainer
         return ccr;
       }
       // Dropped in a write of its own, committed before the write which opens the index: the two must not
-      // share a transaction, see AttributeIndex.dropLeftovers(). discarded is filled by that committed write, so
-      // reporting it from a finally below repeats nothing on a replayed attempt, and is not skipped when the
-      // write which opens the index throws after it.
+      // share a transaction, see AttributeIndex.dropLeftovers(). discarded is filled by that write and reported
+      // from a finally below: every attempt fills it afresh, so a replayed attempt repeats nothing, and the
+      // report is not skipped when the write which opens the index throws after it, nor when the drop write
+      // fails at its own commit - for the reason AttributeIndex.dropLeftovers() gives.
       final AtomicBoolean discarded = new AtomicBoolean();
       try
       {
@@ -361,9 +362,9 @@ public class EntryContainer
     {
       final ConfigChangeResult ccr = new ConfigChangeResult();
       // Dropped in a write of its own, committed before the write which builds and opens the index, for the
-      // reason given in the index add listener above. discarded is filled by that committed write, so reporting
-      // it from a finally below repeats nothing on a replayed attempt, and is not skipped when the write which
-      // builds and opens the index throws after it.
+      // reason given in the index add listener above. discarded is filled by that write and reported from a
+      // finally below, on the terms given there: not repeated by a replayed attempt, not skipped when the write
+      // which builds and opens the index throws after it, nor when the drop write fails at its own commit.
       final AtomicBoolean discarded = new AtomicBoolean();
       try
       {
