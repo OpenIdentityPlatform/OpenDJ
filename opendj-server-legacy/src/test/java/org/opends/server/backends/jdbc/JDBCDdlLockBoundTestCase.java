@@ -441,10 +441,13 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 
 		bounded.write(txn -> txn.deleteTree(TREE));
 
-		// the search path in front of them is the lookup that decides whether there is a table to drop
-		// at all, narrowed to the schemas an unqualified name of this connection resolves in (#888): it
-		// reads a session setting rather than the data, and takes a bound of its own
-		assertEquals(issued, asList("select unnest(current_schemas(true))",
+		// the first setting is the row lock bound of the write this drop runs inside (#915), armed once
+		// per attempt and discarded with the transaction; the search path after it is the lookup that
+		// decides whether there is a table to drop at all, narrowed to the schemas an unqualified name of
+		// this connection resolves in (#888): it reads a session setting rather than the data, and takes a
+		// bound of its own. The DDL bound is the third, and is the one this case is about
+		assertEquals(issued, asList("set local lock_timeout = 3000",
+			"select unnest(current_schemas(true))",
 			"set local lock_timeout = 5000",
 			"drop table " + JDBCStorage.toTableName(TREE)));
 	}

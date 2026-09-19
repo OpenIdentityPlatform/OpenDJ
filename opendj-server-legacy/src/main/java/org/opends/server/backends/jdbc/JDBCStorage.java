@@ -63,24 +63,29 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 	/**
 	 * Wall-clock budget the replays of a {@link #write} may spend, in nanoseconds, measured from the start of the
-	 * first attempt. It is checked between attempts, so an attempt already running is never interrupted, and it
-	 * applies from the first check, with the single exception {@link #grantedPastTheWindow} describes: a conflict
-	 * its engine reports promptly is granted one replay whatever the clock says, because the lock wait that
-	 * precedes such a conflict is charged to the attempt and is unbounded on three of the four engines here, so no
-	 * window survives it. It bounds what {@link #MAX_RETRIES} alone does not - MySQL reports a lock wait timeout
-	 * only after innodb_lock_wait_timeout, 50 s by default and not overridden here, so ten attempts would park a
-	 * worker thread for eight minutes where one releases it after 50 s.
+	 * first attempt. It is checked between attempts, so an attempt already running is never interrupted: the loop
+	 * returns after at most this window plus one attempt. It bounds the conflicts that are slow to report, which
+	 * {@link #MAX_RETRIES} alone does not - MySQL reports a lock wait timeout only after innodb_lock_wait_timeout,
+	 * 50 s by default, so ten attempts would park a worker thread for eight minutes where a single one released it
+	 * after 50 s.
 	 * <p>
-	 * What that costs, stated rather than left to be read off a test row: at the stock innodb_lock_wait_timeout a
-	 * MySQL lock wait timeout is reported at ~50 s, which is past this window on the first check, so such a write
-	 * is never replayed at all - the one conflict class of the set that a MySQL deployment sees most, and the one
-	 * whose replay would most reliably succeed. It is the deliberate half of the trade the other half of which is
-	 * #903: one bounded wait beats two, and a deployment that tunes innodb_lock_wait_timeout below this window
-	 * gets its replays back. The trade only exists because nothing here bounds the attempt: with a session lock
-	 * timeout on the transaction connection (#915) every wait would be shorter than this window, the tuned-down
-	 * case would become the normal one, and this window would govern both classes with no grant needed at all.
+	 * A window is only a bound on the replays while an attempt is shorter than it, and what makes an attempt long
+	 * is the lock wait ahead of the conflict, charged to the attempt that hit it. That wait is bounded inside the
+	 * attempt by {@link #ROW_LOCK_TIMEOUT_PROPERTY} - including the innodb_lock_wait_timeout above, which is taken
+	 * down to it for the length of the write - so a conflicted write is replayed within this window rather than
+	 * spending the whole of it on one attempt and being refused a replay it could have made (#903, #915). The
+	 * replays a write gets are therefore this window divided by that bound: three at both defaults.
+	 * <p>
+	 * Two cases still spend it in one attempt, and they are the two nothing bounds: an oracle session waiting in a
+	 * row-lock enqueue, which has no setting to bound it, and a deployment that sets that property to 0. There the
+	 * loop behaves as it did before #915 - the window applies from the first check, with the single exception
+	 * {@link #grantedPastTheWindow} describes: a conflict its engine reports promptly is granted one replay
+	 * whatever the clock says, since no window survives a wait nothing bounds, and measuring one against it would
+	 * only leave the operation with no replay at all (#903).
 	 */
-	private static final long RETRY_WINDOW_NANOS = TimeUnit.SECONDS.toNanos(10);
+	// package-private so that the suite can assert the one invariant tying it to ROW_LOCK_TIMEOUT_PROPERTY:
+	// a bound at or past this window leaves the replays exactly where #903 found them
+	static final long RETRY_WINDOW_NANOS = TimeUnit.SECONDS.toNanos(10);
 
 	/** Upper bound of the random delay before the second attempt, in milliseconds; it doubles with every attempt. */
 	private static final double BASE_SLEEP_ON_RETRY_MS = 50.0;
@@ -625,16 +630,36 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	private final AtomicBoolean backstopFailedWarned = new AtomicBoolean();
 	private final AtomicBoolean queryTimeoutWarned = new AtomicBoolean();
 	private final AtomicBoolean standingReadBoundWarned = new AtomicBoolean();
-	// The same, for the two ways the lock bound of a DDL degrades: a session that would not take the
-	// setting - or would not say what it carried before it - and one it could not be taken off again.
-	// The second one is a moment rather than a latch, the way CachedConnection throttles the read bound
-	// it could not lift: whatever makes a restore fail - a transaction the server has doomed,
-	// middleware that rejects a SET - recurs on every DDL, and each occurrence now costs the pool the
-	// connection it happened on, so said once for the life of the storage an operator could not tell
-	// one stranded bound from a pool full of them.
-	private final AtomicBoolean ddlLockBoundNotSetWarned = new AtomicBoolean();
-	private final AtomicLong ddlLockBoundLeftBehindWarned = new AtomicLong();
-	private static final long DDL_LOCK_BOUND_WARNING_INTERVAL_MS = 10000;
+	// The same, for the two ways a lock bound of this backend degrades: a session that would not take
+	// the setting - or would not say what it carried before it - and one it could not be taken off
+	// again. The second one is a moment rather than a latch, the way CachedConnection throttles the
+	// read bound it could not lift: whatever makes a restore fail - a transaction the server has
+	// doomed, middleware that rejects a SET - recurs on every statement it is put around, and each
+	// occurrence now costs the pool the connection it happened on, so said once for the life of the
+	// storage an operator could not tell one stranded bound from a pool full of them.
+	// Per LockBound rather than per storage: the two bounds are set by different code on different
+	// paths, and a DDL of the open that could not take its bound says nothing about the writes that
+	// follow it - reported through one latch, the first open would silence every write of that
+	// backend.
+	private final EnumMap<LockBound,AtomicBoolean> lockBoundNotSetWarned = latchPerBound();
+	private final EnumMap<LockBound,AtomicLong> lockBoundLeftBehindWarned = momentPerBound();
+	private static final long LOCK_BOUND_WARNING_INTERVAL_MS = 10000;
+
+	private static EnumMap<LockBound,AtomicBoolean> latchPerBound() {
+		final EnumMap<LockBound,AtomicBoolean> latches=new EnumMap<>(LockBound.class);
+		for (final LockBound bound : LockBound.values()) {
+			latches.put(bound, new AtomicBoolean());
+		}
+		return latches;
+	}
+
+	private static EnumMap<LockBound,AtomicLong> momentPerBound() {
+		final EnumMap<LockBound,AtomicLong> moments=new EnumMap<>(LockBound.class);
+		for (final LockBound bound : LockBound.values()) {
+			moments.put(bound, new AtomicLong());
+		}
+		return moments;
+	}
 
 	/**
 	 * The socket read timeout of one connection, and the statements running on it. This second
@@ -1312,7 +1337,139 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 	/** That bound in seconds, as configured, read by the reader every bound of this backend shares. */
 	static int ddlLockBoundSeconds() {
-		return boundSeconds(DDL_LOCK_TIMEOUT_PROPERTY, COMMENT_LOCK_TIMEOUT_SECONDS);
+		return LockBound.DDL.seconds();
+	}
+
+	/**
+	 * The bound on the wait of a transaction of {@link #write} for a row lock another session holds, in
+	 * seconds. A value of {@code 0}, or a negative one, leaves that wait to the engine, which is what
+	 * this backend did before this bound existed (#915).
+	 * <p>
+	 * The replay of {@link #write} is bounded by a wall clock ({@link #RETRY_WINDOW_NANOS}), and a
+	 * clock cannot bound a wait that nothing else bounds: the lock wait ahead of a conflict is charged
+	 * to the attempt that hit it, so an attempt alone outlasting the window left the operation with no
+	 * replay at all, however transient its conflict (#903). Three engines out of four wait for a row
+	 * lock with no bound of their own ({@code LOCK_TIMEOUT} is -1 on sql server, {@code lock_timeout} is
+	 * 0 on postgres, and oracle's enqueue is unlimited), and the fourth bounds it at 50 s - five times
+	 * the window, which is the same thing as far as the window is concerned. Bounded here, an attempt
+	 * ends inside the window and the window governs the replay again, as it was designed to.
+	 * <p>
+	 * The default is deliberately a small fraction of that window: an attempt that ends at this bound
+	 * spends this much of it, so the replays a conflicted write gets are {@code RETRY_WINDOW_NANOS}
+	 * divided by this value. At the shipped 3 s a write that keeps meeting a lock gets three attempts
+	 * inside the window; raised past the window it would leave exactly one, which is the shape #903
+	 * describes.
+	 * <p>
+	 * What it changes for a deployment is that a write blocked behind a long writer of another session
+	 * now fails once the window is spent, where it used to wait as long as it took and then succeed.
+	 * That is the trade this bound is: an operation held for the length of somebody else's transaction
+	 * cannot be told from one that is never coming back, and the caller of a write is an LDAP client
+	 * with a timeout of its own. A deployment that would rather wait sets this to 0 and keeps the old
+	 * behaviour: the wait is the engine's, and a conflict behind it gets the one replay past the window
+	 * that {@link #grantedPastTheWindow} grants a wait nothing bounds (#904), and no more.
+	 * <p>
+	 * Oracle is not one of the engines this is put on: it has no session-level bound for the enqueue a
+	 * row lock waits in under plain DML - {@code ddl_lock_timeout} is the DDL lock and
+	 * {@code distributed_lock_timeout} the distributed transaction, neither of which is this wait, and
+	 * {@code select ... for update wait} is not a statement this backend issues. An attempt there stays
+	 * bounded only by {@link StatementBound#OPERATION}, whose cancel a session blocked in that enqueue
+	 * does not act on - see {@link #bounded(PreparedStatement, StatementBound, Execution)} - so on oracle
+	 * what answers #903 is not this property but the grant of #904, whatever this property says.
+	 * <p>
+	 * What it costs is the round trips around each write transaction - two on mysql and sql server (the
+	 * setting and the value given back; the readback is the third and is paid once per borrow, not once
+	 * per write), one on postgres (a {@code set local}, plus the savepoint in front of it), none on
+	 * oracle. Unlike the DDL bound this is the hot path, which is what the readback is cached for.
+	 */
+	static final String ROW_LOCK_TIMEOUT_PROPERTY="org.openidentityplatform.opendj.jdbc.row.lock.timeout";
+
+	/**
+	 * The default of {@link #ROW_LOCK_TIMEOUT_PROPERTY}: a third of {@link #RETRY_WINDOW_NANOS}, so
+	 * that a conflicted write is replayed rather than spending its whole window on one attempt.
+	 */
+	static final int ROW_LOCK_TIMEOUT_SECONDS=3;
+
+	/** That bound in seconds, as configured. */
+	static int rowLockBoundSeconds() {
+		return LockBound.ROW.seconds();
+	}
+
+	/**
+	 * A wait this backend bounds with a session setting, and the property that configures it. Two of
+	 * them: the lock a DDL of {@code openTree()} queues for, and the row lock a transaction of
+	 * {@link #write} queues for. One mechanism sets both ({@link #armLockBound}), and what differs
+	 * between them - which statement each engine takes, what it is called in a message, and where the
+	 * value comes from - is answered here rather than at the call sites.
+	 * <p>
+	 * The statements are asked of the {@link Dialect}, per constant, so that an engine added later
+	 * cannot compile without saying what it sets for both.
+	 */
+	enum LockBound {
+		/** The metadata, schema or DDL lock a {@code create table}, {@code create index} or {@code drop} waits for. */
+		DDL(DDL_LOCK_TIMEOUT_PROPERTY, COMMENT_LOCK_TIMEOUT_SECONDS, "a DDL") {
+			@Override
+			String boundSql(Dialect dialect, int seconds, Long previous) {
+				return dialect.ddlLockBoundSql(seconds, previous);
+			}
+
+			@Override
+			String query(Dialect dialect) {
+				return dialect.ddlLockBoundQuery();
+			}
+
+			@Override
+			String restoreSql(Dialect dialect, long previous) {
+				return dialect.ddlLockRestoreSql(previous);
+			}
+		},
+		/** The row lock a statement of a write transaction waits for. */
+		ROW(ROW_LOCK_TIMEOUT_PROPERTY, ROW_LOCK_TIMEOUT_SECONDS, "a write transaction") {
+			@Override
+			String boundSql(Dialect dialect, int seconds, Long previous) {
+				return dialect.rowLockBoundSql(seconds, previous);
+			}
+
+			@Override
+			String query(Dialect dialect) {
+				return dialect.rowLockBoundQuery();
+			}
+
+			@Override
+			String restoreSql(Dialect dialect, long previous) {
+				return dialect.rowLockRestoreSql(previous);
+			}
+		};
+
+		final String property;
+		final int defaultSeconds;
+		/** What the message reporting this bound calls the thing that was waiting. */
+		final String waiter;
+
+		LockBound(String property, int defaultSeconds, String waiter) {
+			this.property=property;
+			this.defaultSeconds=defaultSeconds;
+			this.waiter=waiter;
+		}
+
+		/** This bound in seconds, as configured, read by the reader every bound of this backend shares. */
+		int seconds() {
+			return boundSeconds(property, defaultSeconds);
+		}
+
+		/**
+		 * The setting bounding this wait on this engine, or null where there is none to put on: an engine
+		 * left to a bound of its own, and a session that already gives up sooner than this one would.
+		 *
+		 * @param previous what the session carries now, as {@link #query(Dialect)} read it, in the unit
+		 *                 that query answers in - or null where nothing was read back
+		 */
+		abstract String boundSql(Dialect dialect, int seconds, Long previous);
+
+		/** What the session carries now, or null where this bound undoes itself. */
+		abstract String query(Dialect dialect);
+
+		/** The setting giving the session back what {@link #query(Dialect)} read off it. */
+		abstract String restoreSql(Dialect dialect, long previous);
 	}
 
 	// The comment statement runs on a connection of its own (newStampConnection() below), and a
@@ -1379,6 +1536,28 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				return null;
 			}
 
+			// the same setting and the same set local, at this bound's own value: lock_timeout bounds the
+			// wait for any lock of the transaction, the row locks of an upsert included, and the commit or
+			// the rollback ending that transaction is what takes it off again. A write() attempt is exactly
+			// such a transaction, so this engine pays no readback and leaves nothing on a pooled connection.
+			// What ends it early is a DDL of the same attempt, which commits (commitStatement): the rest of
+			// that write runs unbounded. It is also an attempt that has committed part of its work, so it is
+			// out of the replay whatever it waits for, which is why the bound is not armed again behind it.
+			@Override
+			String rowLockBoundSql(int seconds, Long previous) {
+				return "set local lock_timeout = "+seconds*1000L;
+			}
+
+			@Override
+			String rowLockBoundQuery() {
+				return null; // set local: the transaction of the attempt discards it
+			}
+
+			@Override
+			String rowLockRestoreSql(long previous) {
+				return null;
+			}
+
 			@Override
 			boolean boundLivesInTheTransaction() {
 				return true;
@@ -1407,6 +1586,28 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			String ddlLockRestoreSql(long previous) {
 				return "set session lock_wait_timeout="+previous;
 			}
+
+			// innodb_lock_wait_timeout, in seconds, and never the lock_wait_timeout above it: the first is
+			// the row lock a write waits for, the second the metadata lock a DDL waits for, and they are
+			// two settings with two defaults. This is the one engine of the four bounding this wait by
+			// itself - at 50 s, five times the replay window, so a conflict reported at it arrives with the
+			// window already spent and is never replayed. A session giving up sooner keeps what it has: the
+			// variable has no encoding for "wait forever" to be mistaken for a tight value, its range
+			// starting at 1.
+			@Override
+			String rowLockBoundSql(int seconds, Long previous) {
+				return (previous!=null && previous<=seconds) ? null : "set session innodb_lock_wait_timeout="+seconds;
+			}
+
+			@Override
+			String rowLockBoundQuery() {
+				return "select @@session.innodb_lock_wait_timeout";
+			}
+
+			@Override
+			String rowLockRestoreSql(long previous) {
+				return "set session innodb_lock_wait_timeout="+previous;
+			}
 		},
 		/** oracle: ddl_lock_timeout takes seconds and defaults to 0 (give up at once), but it can be raised globally; the connect and read bounds take milliseconds. */
 		ORACLE("alter session set ddl_lock_timeout="+COMMENT_LOCK_TIMEOUT_SECONDS,
@@ -1427,6 +1628,29 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 			@Override
 			String ddlLockRestoreSql(long previous) {
+				return null;
+			}
+
+			// There is no session setting bounding the enqueue a row lock waits in under plain DML here:
+			// ddl_lock_timeout is the DDL lock above, distributed_lock_timeout is the distributed
+			// transaction, and the wait can only be named on the statement itself - "select ... for update
+			// wait n", which is not a statement this backend issues. So an attempt of write() on this engine
+			// is bounded by StatementBound.OPERATION alone, and a session blocked in that enqueue does not
+			// act on the cancel behind it: what ends such a wait is the socket read timeout, which takes the
+			// connection with it. Nothing of ours is set here rather than something that would not bound the
+			// wait, so a lock timeout of this engine is nothing this backend claims to have bounded.
+			@Override
+			String rowLockBoundSql(int seconds, Long previous) {
+				return null;
+			}
+
+			@Override
+			String rowLockBoundQuery() {
+				return null; // nothing of ours is set on it
+			}
+
+			@Override
+			String rowLockRestoreSql(long previous) {
 				return null;
 			}
 		},
@@ -1450,6 +1674,28 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 			@Override
 			String ddlLockRestoreSql(long previous) {
+				return "set lock_timeout "+previous;
+			}
+
+			// the same session setting as the DDL bound above - this engine has one LOCK_TIMEOUT for every
+			// lock wait of a session - at this bound's own value, and put back the moment the transaction is
+			// through for the very reason that it is one setting: a value left behind cuts the lock waits of
+			// whoever borrows the connection next, and a read borrowing it has no replay to absorb the
+			// error 1222 it would then see. -1 is "wait forever" rather than a bound tighter than ours and
+			// is replaced; 0 - "do not wait at all" - is tighter, and a session carrying it is left alone.
+			@Override
+			String rowLockBoundSql(int seconds, Long previous) {
+				final long millis=seconds*1000L;
+				return (previous!=null && previous>=0 && previous<=millis) ? null : "set lock_timeout "+millis;
+			}
+
+			@Override
+			String rowLockBoundQuery() {
+				return "select @@lock_timeout";
+			}
+
+			@Override
+			String rowLockRestoreSql(long previous) {
 				return "set lock_timeout "+previous;
 			}
 		};
@@ -1504,6 +1750,29 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 		/** The setting that gives the session back the value {@link #ddlLockBoundQuery()} read off it. */
 		abstract String ddlLockRestoreSql(long previous);
+
+		/**
+		 * The session setting bounding the wait of a write transaction for a row lock another session
+		 * holds, or null where there is none to put on: an engine with no such setting - oracle - and a
+		 * session that already gives up sooner than this one would.
+		 * <p>
+		 * A different setting from {@link #ddlLockBoundSql} on the two engines that have two of them, and
+		 * literally the same one on the two that have one: what tells the two bounds apart is the wait
+		 * each is put around, not the statement each issues.
+		 *
+		 * @param previous what the session carries now, as {@link #rowLockBoundQuery()} read it, in the
+		 *                 unit that query answers in - or null where nothing was read back
+		 */
+		abstract String rowLockBoundSql(int seconds, Long previous);
+
+		/**
+		 * What the session carries now, asked before the bound above displaces it - or null where that
+		 * bound undoes itself with the transaction it belongs to.
+		 */
+		abstract String rowLockBoundQuery();
+
+		/** The setting that gives the session back the value {@link #rowLockBoundQuery()} read off it. */
+		abstract String rowLockRestoreSql(long previous);
 
 		/**
 		 * Whether the bound belongs to the transaction running the DDL rather than to the session. Such a
@@ -2120,106 +2389,215 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 
 	/**
 	 * Runs a DDL of this backend under {@link #DDL_LOCK_TIMEOUT_PROPERTY}, and gives the session back
-	 * whatever it carried before.
+	 * whatever it carried before. What is put on the session, and what that costs where it cannot be,
+	 * is {@link #armLockBound}: this is the one statement version of it, where {@link #write} arms the
+	 * same mechanism around a whole transaction.
 	 * <p>
-	 * The dialect is passed in rather than read off the connection here, the way
-	 * {@code commentTable()} takes it: the callers know it, and taking it as a parameter is what makes
-	 * this reachable from a test with no database behind it.
-	 * <p>
-	 * Nothing of ours is set where it could not be taken off again, and a failure of the readback is
-	 * never the failure of the DDL: this runs on a pooled connection, so a setting left behind reaches
-	 * every statement of whoever borrows it next - on sql server that is every lock wait of theirs,
-	 * row locks included, and {@link #isConflict} classifies error 1222 as no replayable conflict. A
-	 * session this backend could not take its bound off again is kept out of the pool for that reason
-	 * ({@link CachedConnection#keepOutOfThePool}), since the validation of the next borrow is
-	 * {@code isValid()} - a liveness check a connection carrying a stale setting passes.
-	 * <p>
-	 * The DDL runs whatever any of that did, and it runs under the same rewrite either way: a setting
-	 * can reach the server and fail only as the statement carrying it is closed, which no driver tells
-	 * apart from a setting that never arrived, and reporting a DDL that then really did give up at this
-	 * bound as the bare 55P03 it arrives as is the gap this exists to close.
+	 * The DDL runs whatever the arming did, and where a setting of ours was issued it runs under a
+	 * rewrite either way: a setting can reach the server and fail only as the statement carrying it is
+	 * closed, which no driver tells apart from a setting that never arrived, and reporting a DDL that
+	 * then really did give up at this bound as the bare 55P03 it arrives as is the gap that rewrite
+	 * exists to close.
 	 */
 	<T> T withDdlLockBound(Connection con, Dialect dialect, Execution<T> action) throws SQLException {
-		final int seconds=ddlLockBoundSeconds();
-		// Asked first with nothing displaced yet, which is what tells an engine this bound is never put
-		// on - oracle, and one none of these settings fit - from an engine it is put on. What the session
-		// actually carries is read below, and can take the bound off again all by itself.
-		if (dialect==null || seconds<=0 || dialect.ddlLockBoundSql(seconds, null)==null) {
-			return action.run();
-		}
-		final String query=dialect.ddlLockBoundQuery();
-		final Long previous=(query==null) ? null : sessionValue(con, dialect, query);
-		if (query!=null && previous==null) { // read it back first: see above
-			return action.run();
-		}
-		// Asked again with it: a session already giving up sooner than this bound is left exactly as it
-		// is, rather than loosened to ours for the length of the DDL. That is the argument leaving oracle
-		// alone, applied where the displaced value is in hand and costs nothing to respect.
-		final String bound=dialect.ddlLockBoundSql(seconds, previous);
-		if (bound==null) {
-			return action.run();
-		}
-		if (dialect.boundLivesInTheTransaction() && !inATransactionBlock(con, dialect, bound)) {
-			return action.run();
-		}
-		final String restore=(previous==null) ? null : dialect.ddlLockRestoreSql(previous);
-		// A statement that fails inside a postgres transaction aborts it, and everything after it - the
-		// DDL included - then fails with 25P02 rather than running "unbounded, as before": a backend that
-		// opened before this bound existed would stop opening because of the bound meant to protect it.
-		// The rollback below goes back to here, which also undoes a set local that did reach the server,
-		// so the DDL really does run as unbounded as the warning says it does.
-		final Savepoint beforeTheBound=savepointBeforeTheBound(con, dialect, bound);
-		try {
-			boundedSessionCall(con, () -> {
-				executeSessionStatement(con, bound);
-				return null;
-			});
-		}catch (SQLException | RuntimeException e) {
-			// The bound is an improvement on a wait, and never a reason to fail a DDL that would have gone
-			// through: a backend that opened before this bound existed has to open still. Whatever the
-			// setting displaced is given back by the finally below, whether it went on or not - giving back
-			// a value the session may never have left costs a round trip and changes nothing.
-			reportTheWaitIsLeftUnbounded(dialect, bound, e);
-			rollbackTheBound(con, dialect, beforeTheBound);
-		}
-		// From here rather than from the top of this method: what the statements above spent is not time
-		// the DDL waited for its lock, and it is the wait that this bound either ended or did not.
-		final long startedAt=nanoTime();
+		final ArmedLockBound armed=armLockBound(con, dialect, LockBound.DDL);
 		try {
 			return action.run();
 		}catch (SQLException e) {
-			throw gaveUpOnTheLock(e, dialect, seconds, startedAt);
+			// only where a setting of ours was issued: a wait this backend put no bound on was ended by
+			// something else, and naming this property for it sends an operator to a value that changes
+			// nothing - the session that already gave up sooner, and the engine that has no such setting
+			throw armed.bound==null ? e : gaveUpOnTheLock(e, dialect, armed.seconds, armed.startedAt);
 		}catch (RuntimeException e) {
 			// Not every statement running under this bound answers with the SQLException it was given:
 			// the lookup deciding each drop of a clear wraps whatever it sees in a
 			// StorageRuntimeException (isExistsTable), and it runs inside the same bound as the drop it
 			// decides. Without this, a lock this bound ended reaches an operator as the bare vendor error
 			// one line away from the drop that would have named the property.
-			throw gaveUpOnTheLock(e, dialect, seconds, startedAt);
+			throw armed.bound==null ? e : gaveUpOnTheLock(e, dialect, armed.seconds, armed.startedAt);
 		}finally {
-			if (restore!=null) {
-				restoreDdlLockBound(con, dialect, bound, restore);
-			}
+			releaseLockBound(con, dialect, armed);
 		}
+	}
+
+	/**
+	 * A lock bound of this backend as it stands on one session: what was put on it, what gives it back,
+	 * and whether the wait it was put around is bounded at all. Produced by {@link #armLockBound} and
+	 * handed to {@link #releaseLockBound}, which is what lets {@link #write} arm one around a whole
+	 * transaction where {@link #withDdlLockBound} wraps a single statement.
+	 */
+	static final class ArmedLockBound {
+		final LockBound kind;
+		/** The configured value this was armed at, in seconds - 0 where nothing of ours was put on. */
+		final int seconds;
+		/** The setting issued, or null where none was: an engine or a session that needed none. */
+		final String bound;
+		/** What gives the session its value back, or null where the bound takes itself off. */
+		final String restore;
+		/**
+		 * Whether the wait this was armed around is bounded at no more than {@link LockBound#seconds()}
+		 * - by the setting above, or by a session value that was already tighter and was left alone.
+		 * False wherever this backend could not put a bound on and does not know of one: an engine with
+		 * no such setting, the property turned off, a readback that failed, and a setting the session
+		 * refused. It is what {@link #replayReason} reads: a wait nothing bounds must not be replayed on
+		 * a clock, which is the whole of #903.
+		 */
+		final boolean bounded;
+		/**
+		 * When the wait itself began, as {@link #nanoTime} reads it: after the round trips of the arming,
+		 * which are not time anything waited for a lock. Zero where {@link #bound} is null, since nothing
+		 * is ever measured against a setting that was not put on.
+		 */
+		final long startedAt;
+
+		private ArmedLockBound(LockBound kind, int seconds, String bound, String restore, boolean bounded,
+				long startedAt) {
+			this.kind=kind;
+			this.seconds=seconds;
+			this.bound=bound;
+			this.restore=restore;
+			this.bounded=bounded;
+			this.startedAt=startedAt;
+		}
+
+		/** Nothing was put on and nothing is known to bound this wait: it runs as it did before #885. */
+		static ArmedLockBound none(LockBound kind) {
+			return new ArmedLockBound(kind, 0, null, null, false, 0);
+		}
+
+		/**
+		 * The session already gives up sooner than this bound would, so it keeps what it has. Nothing is
+		 * set and nothing has to be put back - and the wait is bounded, which is the whole point of
+		 * leaving that value alone.
+		 */
+		static ArmedLockBound alreadyTighter(LockBound kind, int seconds) {
+			return new ArmedLockBound(kind, seconds, null, null, true, 0);
+		}
+	}
+
+	/**
+	 * Puts a lock bound of this backend on a session, and never fails the work it was put around.
+	 * <p>
+	 * The dialect is passed in rather than read off the connection here, the way {@code commentTable()}
+	 * takes it: the callers know it, and taking it as a parameter is what makes this reachable from a
+	 * test with no database behind it.
+	 * <p>
+	 * Nothing of ours is set where it could not be taken off again, and a failure of the readback is
+	 * never the failure of the work: this runs on a pooled connection, so a setting left behind reaches
+	 * every statement of whoever borrows it next - on sql server that is every lock wait of theirs, and
+	 * a read has no replay to absorb the error 1222 it would then see. A session this backend could not
+	 * take its bound off again is kept out of the pool for that reason
+	 * ({@link CachedConnection#keepOutOfThePool}), since the validation of the next borrow is
+	 * {@code isValid()} - a liveness check a connection carrying a stale setting passes.
+	 */
+	ArmedLockBound armLockBound(Connection con, Dialect dialect, LockBound kind) {
+		final int seconds=kind.seconds();
+		// Asked first with nothing displaced yet, which is what tells an engine this bound is never put
+		// on - oracle, and one none of these settings fit - from an engine it is put on. What the session
+		// actually carries is read below, and can take the bound off again all by itself.
+		if (dialect==null || seconds<=0 || kind.boundSql(dialect, seconds, null)==null) {
+			return ArmedLockBound.none(kind);
+		}
+		final String query=kind.query(dialect);
+		final Long previous=(query==null) ? null : displacedValue(con, dialect, kind, query);
+		if (query!=null && previous==null) { // read it back first: see above
+			return ArmedLockBound.none(kind);
+		}
+		// Asked again with it: a session already giving up sooner than this bound is left exactly as it
+		// is, rather than loosened to ours for the length of the work. That is the argument leaving oracle
+		// alone, applied where the displaced value is in hand and costs nothing to respect.
+		final String bound=kind.boundSql(dialect, seconds, previous);
+		if (bound==null) {
+			return ArmedLockBound.alreadyTighter(kind, seconds);
+		}
+		if (dialect.boundLivesInTheTransaction() && !inATransactionBlock(con, dialect, kind, bound)) {
+			return ArmedLockBound.none(kind);
+		}
+		final String restore=(previous==null) ? null : kind.restoreSql(dialect, previous);
+		// A statement that fails inside a postgres transaction aborts it, and everything after it - the
+		// work this bound was put around included - then fails with 25P02 rather than running "unbounded,
+		// as before": a backend that opened before this bound existed would stop opening because of the
+		// bound meant to protect it. The rollback below goes back to here, which also undoes a set local
+		// that did reach the server, so the work really does run as unbounded as the warning says it does.
+		final Savepoint beforeTheBound=savepointBeforeTheBound(con, dialect, kind, bound);
+		try {
+			boundedSessionCall(con, () -> {
+				executeSessionStatement(con, bound);
+				return null;
+			});
+		}catch (SQLException | RuntimeException e) {
+			// The bound is an improvement on a wait, and never a reason to fail work that would have gone
+			// through: a backend that opened before this bound existed has to open still, and a write that
+			// used to wait for its row lock has to be able to wait for it. Whatever the setting displaced is
+			// given back by the release, whether it went on or not - giving back a value the session may
+			// never have left costs a round trip and changes nothing.
+			reportTheWaitIsLeftUnbounded(dialect, kind, bound, e);
+			rollbackTheBound(con, dialect, beforeTheBound);
+			// The setting is still named as issued, so that the release puts the value back and a failure
+			// that did give up at this bound is still renamed - a setting can reach the server and fail only
+			// as the statement carrying it is closed, and no driver tells that apart from one that never
+			// arrived. What is not claimed is that the wait is bounded: a replay decided on that claim would
+			// be a replay of a wait nothing ends.
+			return new ArmedLockBound(kind, seconds, bound, restore, false, nanoTime());
+		}
+		// From here rather than from the top of this method: what the round trips above spent is not time
+		// anything waited for a lock, and it is that wait this bound either ends or does not.
+		return new ArmedLockBound(kind, seconds, bound, restore, true, nanoTime());
+	}
+
+	/** Gives the session back what an armed bound displaced, where it displaced anything. */
+	void releaseLockBound(Connection con, Dialect dialect, ArmedLockBound armed) {
+		if (armed.restore!=null) {
+			restoreLockBound(con, dialect, armed);
+		}
+	}
+
+	/**
+	 * What the session carries before a bound of ours displaces it, read once per pooled connection for
+	 * the bound that is on the hot path.
+	 * <p>
+	 * The readback is a round trip, and the row lock bound takes one around every write of the server
+	 * where the DDL bound takes one around an open. It can be remembered because only this backend
+	 * writes that setting on a connection of this pool: every write puts the value back before the
+	 * connection is released, and a connection whose restore failed is kept out of the pool rather than
+	 * handed on - so a remembered value cannot outlive the session that answered it. The bound of a DDL
+	 * is read every time all the same: it runs inside a write which may be carrying the row bound of
+	 * this backend on the very same setting (sql server has one {@code LOCK_TIMEOUT} for both), and what
+	 * it has to put back is that value rather than the one the connection was borrowed with.
+	 */
+	private Long displacedValue(Connection con, Dialect dialect, LockBound kind, String query) {
+		if (kind!=LockBound.ROW || !(con instanceof CachedConnection)) {
+			return sessionValue(con, dialect, kind, query);
+		}
+		final CachedConnection pooled=(CachedConnection) con;
+		final Long remembered=pooled.rowLockBoundDisplaces();
+		if (remembered!=null) {
+			return remembered;
+		}
+		final Long read=sessionValue(con, dialect, kind, query);
+		if (read!=null) {
+			pooled.rowLockBoundDisplaces(read);
+		}
+		return read;
 	}
 
 	/**
 	 * Whether a setting that lives in the transaction would take effect on this connection at all.
 	 * Outside a transaction block postgres answers {@code SET LOCAL} with a warning and does nothing
-	 * with it - the driver raises nothing, so the DDL would run with no bound and the log would read
+	 * with it - the driver raises nothing, so the work would run with no bound and the log would read
 	 * exactly like a bounded one. What makes the block is the {@code setAutoCommit(false)} a pooled
 	 * connection is established with and never re-asserts on borrow, so it is asked rather than
 	 * assumed; the call is answered out of the driver's own state, not by a round trip.
 	 */
-	private boolean inATransactionBlock(Connection con, Dialect dialect, String bound) {
+	private boolean inATransactionBlock(Connection con, Dialect dialect, LockBound kind, String bound) {
 		try {
 			if (!con.getAutoCommit()) {
 				return true;
 			}
-			reportTheWaitIsLeftUnbounded(dialect, bound, new SQLException("the connection is in auto-commit,"
+			reportTheWaitIsLeftUnbounded(dialect, kind, bound, new SQLException("the connection is in auto-commit,"
 				+ " where this setting belongs to no transaction and the server answers it with a warning"));
 		}catch (SQLException | RuntimeException e) {
-			reportTheWaitIsLeftUnbounded(dialect, bound, e);
+			reportTheWaitIsLeftUnbounded(dialect, kind, bound, e);
 		}
 		return false;
 	}
@@ -2230,14 +2608,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * give a savepoint. Nothing of the bound has been set when this is asked, so a failure here only
 	 * leaves the setting below without this net - which is where it was before the net existed.
 	 */
-	private Savepoint savepointBeforeTheBound(Connection con, Dialect dialect, String bound) {
+	private Savepoint savepointBeforeTheBound(Connection con, Dialect dialect, LockBound kind, String bound) {
 		if (!dialect.boundLivesInTheTransaction()) {
 			return null;
 		}
 		try {
 			return boundedSessionCall(con, con::setSavepoint);
 		}catch (SQLException | RuntimeException e) {
-			reportTheWaitIsLeftUnbounded(dialect, bound, e);
+			reportTheWaitIsLeftUnbounded(dialect, kind, bound, e);
 			return null;
 		}
 	}
@@ -2295,11 +2673,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	/**
 	 * What a session setting of this engine carries right now, or null where it could not be read as a
 	 * number: a server whose session does not have the variable, or one answering with something no
-	 * {@code SET} of it would take back. The DDL then runs as unbounded as it was before this bound
-	 * existed, which is why this is reported rather than thrown - and reported once, since every DDL
-	 * of that backend would say the same thing.
+	 * {@code SET} of it would take back. The work this bound was to be put around then runs as unbounded
+	 * as it ran before the bound existed, which is why this is reported rather than thrown - and reported
+	 * once per bound, since every DDL, or every write, of that backend would say the same thing.
 	 */
-	private Long sessionValue(Connection con, Dialect dialect, String query) {
+	private Long sessionValue(Connection con, Dialect dialect, LockBound kind, String query) {
 		if (logger.isTraceEnabled()) {
 			logger.trace(LocalizableMessage.raw("jdbc: %s",query));
 		}
@@ -2313,42 +2691,45 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				}
 			});
 		}catch (SQLException | RuntimeException e) { // a value that is not a number arrives unchecked
-			reportTheWaitIsLeftUnbounded(dialect, query, e);
+			reportTheWaitIsLeftUnbounded(dialect, kind, query, e);
 			return null;
 		}
 	}
 
 	/**
-	 * Said once per storage, whichever round trip of the bound around a DDL the connection would not
-	 * take: every DDL of that backend would say the same thing, and a backend opening its trees issues
-	 * about 25 of them. The DDL itself is unaffected - it waits as it did before this bound existed.
+	 * Said once per storage and per bound, whichever round trip of the arming the connection would not
+	 * take: every DDL of that backend would say the same thing - a backend opening its trees issues about
+	 * 25 of them - and so would every write. The work itself is unaffected: it waits as it did before this
+	 * bound existed.
 	 * <p>
 	 * "May bound nothing" rather than "bounds nothing": a setting that reached the server and failed
-	 * only as the statement carrying it was closed leaves the DDL bounded after all, and no driver says
+	 * only as the statement carrying it was closed leaves the wait bounded after all, and no driver says
 	 * which of the two happened. Where the bound lives in the transaction the rollback that follows
-	 * this settles it - there the DDL really does run unbounded.
+	 * this settles it - there the work really does run unbounded.
 	 */
-	private void reportTheWaitIsLeftUnbounded(Dialect dialect, String sql, Exception e) {
-		if (ddlLockBoundNotSetWarned.compareAndSet(false, true)) {
-			logger.warn(LocalizableMessage.raw("jdbc: the wait of a DDL for its lock is not bounded as this backend"
+	private void reportTheWaitIsLeftUnbounded(Dialect dialect, LockBound kind, String sql, Exception e) {
+		if (lockBoundNotSetWarned.get(kind).compareAndSet(false, true)) {
+			logger.warn(LocalizableMessage.raw("jdbc: the wait of %s for its lock is not bounded as this backend"
 				+ " means to bound it on this %s database: \"%s\" did not go through, so %s may bound nothing here"
-				+ " and a DDL can wait for a lock another session holds for as long as this engine lets it (%s)",
-				dialect, sql, DDL_LOCK_TIMEOUT_PROPERTY, stackTraceToSingleLineString(e)));
+				+ " and %s can wait for a lock another session holds for as long as this engine lets it (%s)",
+				kind.waiter, dialect, sql, kind.property, kind.waiter, stackTraceToSingleLineString(e)));
 		}
 	}
 
 	/**
-	 * Gives the session back the value it carried. Best effort, and never the outcome of the DDL: this
-	 * runs from a {@code finally} while the caller may be being unwound, where a throw would replace
-	 * the failure that brought it there (JLS 14.20.2) - the very one saying what went wrong.
+	 * Gives the session back the value it carried. Best effort, and never the outcome of the work this
+	 * bound was put around: this runs from a {@code finally} while the caller may be being unwound,
+	 * where a throw would replace the failure that brought it there (JLS 14.20.2) - the very one saying
+	 * what went wrong.
 	 * <p>
 	 * A connection this failed on does not go back into the pool. Leaving it to the next borrow to
 	 * notice does not work: that validation is {@code con.isValid()}, a liveness check which a
 	 * connection whose reset failed for a transient reason passes while still carrying our bound, and
-	 * on sql server it would then cut every lock wait of that borrower at it - row locks included,
-	 * which {@link #isConflict} classifies as no replayable conflict, so {@code write()} does not
-	 * replay them and a client sees a hard failure. That is the hazard this bound is scoped to a DDL to
-	 * avoid, arriving through the back door. Kept out of the pool, its blast radius is this one
+	 * on sql server it would then cut every lock wait of that borrower at it - row locks included. A
+	 * write of that borrower would replay them ({@link #replayReason} reads the bound this attempt was
+	 * armed with, not the one left on the session), but a read replays nothing at all, so a client of
+	 * one sees a hard failure. That is the hazard each of these bounds is scoped to its own piece of
+	 * work to avoid, arriving through the back door. Kept out of the pool, its blast radius is this one
 	 * connection instead of the rest of its life.
 	 * <p>
 	 * The value is named as the statement that set it rather than read back off the property at log
@@ -2356,24 +2737,25 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * put on it - which is not the configured figure either, where the session's own value was the
 	 * tighter one.
 	 */
-	private void restoreDdlLockBound(Connection con, Dialect dialect, String bound, String restore) {
+	private void restoreLockBound(Connection con, Dialect dialect, ArmedLockBound armed) {
 		try {
 			boundedSessionCall(con, () -> {
-				executeSessionStatement(con, restore);
+				executeSessionStatement(con, armed.restore);
 				return null;
 			});
 		}catch (SQLException | RuntimeException e) {
 			if (con instanceof CachedConnection) {
 				((CachedConnection) con).keepOutOfThePool();
 			}
+			final AtomicLong warnedAt=lockBoundLeftBehindWarned.get(armed.kind);
 			final long now=System.currentTimeMillis();
-			final long last=ddlLockBoundLeftBehindWarned.get();
-			if (now-last >= DDL_LOCK_BOUND_WARNING_INTERVAL_MS && ddlLockBoundLeftBehindWarned.compareAndSet(last, now)) {
-				logger.warn(LocalizableMessage.raw("jdbc: the lock bound of a DDL could not be taken off a connection"
+			final long last=warnedAt.get();
+			if (now-last >= LOCK_BOUND_WARNING_INTERVAL_MS && warnedAt.compareAndSet(last, now)) {
+				logger.warn(LocalizableMessage.raw("jdbc: the lock bound of %s could not be taken off a connection"
 					+ " of this %s database, which may have been left carrying \"%s\" instead of the value it had:"
 					+ " that connection is closed rather than pooled, so no borrow after this one gives up on a lock"
-					+ " at a bound of %s it never asked for (%s)", dialect, bound, DDL_LOCK_TIMEOUT_PROPERTY,
-					stackTraceToSingleLineString(e)));
+					+ " at a bound of %s it never asked for (%s)", armed.kind.waiter, dialect, armed.bound,
+					armed.kind.property, stackTraceToSingleLineString(e)));
 			}
 		}
 	}
@@ -3594,13 +3976,18 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * better than never returning. It is bounded twice - by {@link #MAX_RETRIES} attempts and by the
 	 * {@link #RETRY_WINDOW_NANOS} wall-clock window - because an attempt is not guaranteed to be short: a conflict
 	 * an engine reports only after its own lock wait timeout would otherwise multiply that wait by the attempt
-	 * count. The window alone is not enough either, in the other direction: it is shorter than the wait that
-	 * precedes a conflict the engine reports promptly, so measured against such a conflict it does not bound that
-	 * wait but only leaves the operation with no replay at all, which is what master did with the deadlock of
-	 * issue #903. One replay is therefore granted to a prompt conflict whatever the clock says; see
-	 * {@link #grantedPastTheWindow}. The window is checked between attempts, so an attempt already running is
-	 * never interrupted: a conflicted operation holds its caller for the window plus one attempt, and a prompt
-	 * conflict for two attempts when that is longer.
+	 * count. The window is checked between attempts, so an attempt already running is never interrupted: a
+	 * conflicted operation holds its caller for the window plus one attempt.
+	 * <p>
+	 * What makes those two bounds enough is that the attempt itself is bounded: the transaction runs under
+	 * {@link #ROW_LOCK_TIMEOUT_PROPERTY}, armed on the session here and taken off again before the connection is
+	 * released, so the wait ahead of a conflict ends inside the window rather than outlasting it (#915). Where
+	 * nothing bounds the attempt - oracle, which has no such setting, and a deployment that turns the property off
+	 * - the window is shorter than the wait that precedes a conflict the engine reports promptly, so measured
+	 * against such a conflict it does not bound that wait but only leaves the operation with no replay at all,
+	 * which is what master did with the deadlock of issue #903. One replay is therefore granted to a prompt
+	 * conflict whatever the clock says; see {@link #grantedPastTheWindow}. Such a conflict holds its caller for
+	 * two attempts when that is longer than the window plus one.
 	 * <p>
 	 * Only the operation itself is replayed: a failure of {@link #getConnection()} or of the implicit
 	 * {@link Connection#close()} - which returns the connection to the pool after a rollback - leaves the loop, so
@@ -3611,7 +3998,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * connection handed out unvalidated and found dead costs an attempt rather than the operation, and a write of
 	 * the replication replay - which records a failed operation as applied and advances the server state past it,
 	 * see #889 - never sees it. Only while nothing of the attempt may have been committed yet, though: see
-	 * {@link #replayReason(Conflict, Throwable, boolean, boolean, boolean)}.
+	 * {@link #replayReason}.
 	 */
 	@Override
 	public void write(WriteOperation writeOperation) throws Exception {
@@ -3619,6 +4006,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		for (int attempt=1;;attempt++) {
 			Exception failure=null;
 			String driver=null;
+			Dialect dialect=null;
+			//what bounds the wait of this attempt for a row lock, and whether anything does: the window
+			//below is a clock, and a clock cannot bound a wait nothing else bounds (#903, #915)
+			ArmedLockBound rowLock=ArmedLockBound.none(LockBound.ROW);
 			boolean committing=false;
 			boolean dropped=false;
 			boolean partlyCommitted=false;
@@ -3627,6 +4018,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			final Connection con=getConnection();
 			try (con) {
 				driver=driverNameOf(con);
+				dialect=dialectOf(con);
 				final WriteableTransactionTransactionImpl txn=new WriteableTransactionTransactionImpl(con);
 				//the connect of the catalog is made inside this attempt and retries the way a borrow does,
 				//up to the pool timeout - six times this window at the defaults. Left to its own deadline
@@ -3637,6 +4029,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				//each of them. The grant of #903 is deliberately not passed on - it buys one more replay
 				//of the operation, not one more connect of the catalog inside it
 				txn.catalogSession.boundedAlsoBy(startedAt+RETRY_WINDOW_NANOS);
+				//armed against the try that takes it off again, and against nothing else: the release below
+				//runs from that finally, before this connection goes back to the pool, and a bound left on a
+				//pooled session would cut the lock waits of whoever borrows it next - a read among them, which
+				//has no replay to absorb the failure that is. It arms nothing where it cannot (armLockBound),
+				//so the operation runs whatever the session made of it
+				rowLock=armLockBound(con, dialect, LockBound.ROW);
 				try {
 					writeOperation.run(txn);
 					committing=true;
@@ -3689,6 +4087,13 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 									stackTraceToSingleLineString(e)));
 						}
 					}
+					//after the rollback above rather than beside it: on the two engines whose bound is a session
+					//setting a rollback leaves that setting exactly where it was, so this is what takes it off -
+					//and it runs while this attempt still holds the connection, before the release hands it on.
+					//It reports what it cannot do and throws nothing, the way every other statement of this
+					//finally does: a value that could not be given back costs the pool this connection, not the
+					//write its failure
+					releaseLockBound(con, dialect, rowLock);
 				}
 			} catch (Exception e) {
 				//anything the operation did not throw comes from around it - the name of the driver, the
@@ -3724,7 +4129,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			//is also the path most likely to carry deeply wrapped chains, since RootContainer.open() commits
 			//DDL and raises the flag for the rest of the write
 			final ConflictVerdict verdict=partlyCommitted ? NOT_CLASSIFIED : conflictVerdict(failure,driver);
-			final String reason=replayReason(verdict.conflict,failure,committing,partlyCommitted,dropped);
+			final String reason=replayReason(verdict.conflict,failure,committing,partlyCommitted,dropped,dialect,rowLock);
 			//nanoTime()-startedAt is the overflow safe form of the elapsed time
 			final long elapsedNanos=nanoTime()-startedAt;
 			if (reason==null || !replayableWithin(attempt, elapsedNanos, verdict.conflict)) {
@@ -3785,19 +4190,50 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * second time and fails with ERR_ENTRY_CONTAINER_ALREADY_REGISTERED, which masks the failure that caused the
 	 * replay and leaves the indexes of the previous attempt behind with their configuration listeners.
 	 *
+	 * A wait for a row lock that this backend bounded is replayable as well, and only where this backend bounded
+	 * it. The engine ends such a wait with a failure of its own - 55P03 on postgres, error 1222 on sql server,
+	 * both of which {@link #isConflict} matches as no conflict, and the class 40 of a mysql lock wait timeout,
+	 * which it already does - and it ends it having rolled nothing back, unlike a deadlock: the transaction is
+	 * still open and the blocker is still holding the lock. What makes it replayable all the same is the
+	 * rollback {@link #write} issues before it asks, and what makes it worth replaying is that the wait it took
+	 * fits inside the replay window rather than outlasting it, which is what {@link ArmedLockBound#bounded}
+	 * says. Where nothing bounded that wait - {@link #ROW_LOCK_TIMEOUT_PROPERTY} at 0, oracle, a session that
+	 * would not take the setting - the failure is left exactly as unreplayable as it was before #915: a bound
+	 * an operator set for themselves is not a licence for this loop to take that wait again, and a wait nothing
+	 * bounds is the one thing the window cannot govern. It is deliberately no class of {@link Conflict}: the
+	 * verdict of such a failure stays {@link Conflict#NONE}, so it is replayed on the window alone and never
+	 * granted past it by {@link #grantedPastTheWindow} - a grant that exists for the waits nothing bounds,
+	 * which this one is not.
+	 * <p>
+	 * The wait a DDL of the same attempt took for its own lock reaches this branch the same way, an engine having
+	 * one way of saying a lock was not available: a {@code create index} that gave up at
+	 * {@link #DDL_LOCK_TIMEOUT_PROPERTY} is replayed rather than failing at once, on the terms of every other
+	 * replay here. Both properties default well under the window, so an attempt of the defaults spends a fraction
+	 * of it either way; a deployment that raises one of them past the window buys the trailing attempt this loop
+	 * has always allowed - what it cannot buy is an attempt nothing ends at all.
+	 *
 	 * @param conflict the class {@link #conflictVerdict} read from the failure, asked of it once by the caller
 	 * @param committing whether the failure was reported by {@code commit()}, which leaves the outcome unknown
 	 * @param partlyCommitted whether the attempt committed part of its work before it failed
 	 * @param connectionClosed whether the driver closed the connection under the failure - evidence no SQLState
 	 * carries on mssql-jdbc, which reports a killed session as S0001 and closes the connection behind it
+	 * @param dialect the engine, which is what names its own way of saying a lock was not available
+	 * @param rowLock the row lock bound this attempt ran under, as {@link #armLockBound} left it
 	 */
 	static String replayReason(Conflict conflict, Throwable failure, boolean committing, boolean partlyCommitted,
-			boolean connectionClosed) {
+			boolean connectionClosed, Dialect dialect, ArmedLockBound rowLock) {
 		if (partlyCommitted) {
 			return null;
 		}
 		if (conflict!=Conflict.NONE) {
 			return "a conflict";
+		}
+		// after the conflict above, which is the class a mysql lock wait timeout arrives in: both are
+		// replayed, and the reason a line names should be the strongest thing that can be said of the
+		// failure. Not while committing, for the reason a drop is not replayed there: the outcome of a
+		// commit that did not answer is unknown, and this loop must not apply a write twice
+		if (rowLock.bounded && !committing && lockNotAvailable(failure, dialect)) {
+			return "a wait for a row lock this backend bounded";
 		}
 		if (!committing && (connectionClosed || isConnectionFailure(failure))) {
 			return "a connection the database dropped";
@@ -3962,8 +4398,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * <p>
 	 * Declared in order of how much they restrict the replay, which is the order {@link #conflictVerdict}
 	 * compares them in: the strongest class any link of a failure carries is the class of that failure. Only
-	 * {@link #PROMPT} is granted the replay past the window, so every class this list gains - #915 adds one -
-	 * has to be placed against that grant rather than merely appended.
+	 * {@link #PROMPT} is granted the replay past the window, so every class this list gains has to be placed
+	 * against that grant rather than merely appended. The wait for a row lock that #915 bounds is deliberately
+	 * not one of them: its failure is no conflict at all - see {@link #replayReason}, which replays it on the
+	 * strength of the bound - and a class here would put it in reach of a grant meant for the waits nothing
+	 * bounds.
 	 */
 	enum Conflict {
 		/** Not a conflict: no replay resolves it. */
@@ -4075,7 +4514,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * The strongest class a conflict raised under the given engine can carry, which is where
 	 * {@link #conflictVerdict} stops walking: nothing further along the chains can outrank it. It is the maximum
 	 * of what {@link #classOf} returns for that dialect and has to be read together with it - a property of the
-	 * engine rather than the last constant of {@link Conflict}, so that the class #915 adds cannot silently move
+	 * engine rather than the last constant of {@link Conflict}, so that a class added later cannot silently move
 	 * the stop condition, and so that the walk of the three engines reporting no lock wait timeout of their own
 	 * ends on the first conflict it meets rather than at the end of every chain.
 	 */
@@ -4104,8 +4543,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * {@code openTree(createOnDemand)} is guarded by a catalog read - and its writes go down the ANSI branch of
 	 * {@code upsert}, which is an {@code update} and an {@code insert}, not a statement a MySQL-wire engine
 	 * refuses. The cost of the class is one replay of the window's own length for an engine whose conflicts are
-	 * in fact prompt, which is the direction worth being wrong in; #915 removes the trade by bounding the
-	 * attempt itself.
+	 * in fact prompt, which is the direction worth being wrong in. The bound #915 puts on the attempt itself
+	 * does not remove the trade here: it is armed through the {@link Dialect} the driver name resolves to, so
+	 * an unrecognised driver is exactly where it arms nothing.
 	 */
 	private static Conflict classOf(SQLException e, Dialect dialect) {
 		if (!isConflict(e, dialect)) {
@@ -4142,12 +4582,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	/**
 	 * Whether this replay is the one {@link #RETRY_WINDOW_NANOS} does not get to deny: the first replay of a
 	 * conflict its engine reports promptly, taken although the window is already spent. The wait an engine spends
-	 * before reporting such a conflict is charged to the attempt that hit it and is unbounded on three of the four
-	 * engines here - SQL Server took some 12 s to pick a victim in CI - so there is no window that some wait does
-	 * not outlast, and measuring one against it only leaves the operation with no replay at all, which is issue
-	 * #903. The grant does not extend to {@link Conflict#AFTER_LOCK_WAIT}, whose wait the engine has already
-	 * bounded for us: replaying that costs the same bounded wait again, which is exactly what the window is here
-	 * to refuse. Nor to {@link Conflict#UNKNOWN_ENGINE}, of which the same cannot be ruled out.
+	 * before reporting such a conflict is charged to the attempt that hit it, and where nothing bounds that wait -
+	 * SQL Server took some 12 s to pick a victim in CI, before #915 bounded it - there is no window that some
+	 * wait does not outlast, and measuring one against it only leaves the operation with no replay at all, which
+	 * is issue #903. The grant does not extend to {@link Conflict#AFTER_LOCK_WAIT}, whose wait the engine has
+	 * already bounded for us: replaying that costs the same bounded wait again, which is exactly what the window
+	 * is here to refuse. Nor to {@link Conflict#UNKNOWN_ENGINE}, of which the same cannot be ruled out.
 	 * <p>
 	 * Asked as a question of its own so that the line reporting the replay can name the bound that was actually
 	 * applied instead of inferring it from the clock: {@code elapsed >= window} coincides with this grant only
@@ -4156,8 +4596,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * <p>
 	 * {@code attempt==1} is a proxy and not the invariant: the invariant is that no clock can bound a wait
 	 * nothing else bounds, and that holds on every attempt, not only the first. Widening the grant to all of them
-	 * would leave {@link #MAX_RETRIES} as the only real cap, so it is held to one replay until the attempt itself
-	 * carries a lock bound - see #915, which retires this method rather than widening it.
+	 * would leave {@link #MAX_RETRIES} as the only real cap, so it is held to one replay.
+	 * <p>
+	 * What is left for it to do, now that {@link #ROW_LOCK_TIMEOUT_PROPERTY} bounds the attempt, is the attempts
+	 * that bound does not reach: oracle, which has no setting for the wait, the property at 0, and a session that
+	 * would not take the setting - there the wait is as unbounded as it was when this grant was written. Where
+	 * the bound is armed an attempt gives up on its lock long before this window is spent, so the grant is not
+	 * asked whether the bound was on: a prompt conflict that still reaches here past the window came out of a
+	 * long transaction rather than a long wait, and the one replay it is granted runs under the same bound.
 	 */
 	static boolean grantedPastTheWindow(int attempt, long elapsedNanos, Conflict conflict) {
 		return attempt==1 && conflict==Conflict.PROMPT && elapsedNanos>=RETRY_WINDOW_NANOS;

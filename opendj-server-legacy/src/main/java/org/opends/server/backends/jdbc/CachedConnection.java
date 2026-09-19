@@ -1208,6 +1208,14 @@ public class CachedConnection implements Connection {
     private volatile boolean poolable;
 
     /**
+     * The session value the row lock bound of this backend displaces on this connection, read once and
+     * kept for its life: see {@link #rowLockBoundDisplaces()}. Volatile for the reason
+     * {@link #poolable} is - it is written by one borrower and read by the next, which is another
+     * thread, and the value is a plain field of an object the pool hands between them.
+     */
+    private volatile Long rowLockBoundDisplaces;
+
+    /**
      * When this connection last answered the database, as a {@link System#nanoTime()} reading:
      * established - the login and the two round trips that set it up have just answered - or
      * validated. It is never stamped on the way back into the pool, although that is where a
@@ -1252,12 +1260,32 @@ public class CachedConnection implements Connection {
     /**
      * Keeps this connection out of the pool: it serves the borrower holding it and is closed rather
      * than pooled when that borrow ends. For a borrower that left something of its own on the session
-     * and could not take it off again - {@code JDBCStorage.restoreDdlLockBound()} is the one that
+     * and could not take it off again - {@code JDBCStorage.restoreLockBound()} is the one that
      * does (#885) - where the blast radius is then this one connection instead of every borrow it
      * would have served after this one.
      */
     void keepOutOfThePool() {
         poolable = false;
+    }
+
+    /**
+     * What this session carried before the row lock bound of {@code JDBCStorage.write()} first
+     * displaced it, or null while that has not been read yet (#915).
+     * <p>
+     * Remembered for the life of the connection because that bound is on the hot path - one write of
+     * the server, one arming - while the readback it saves is a round trip. Only this backend writes
+     * that setting on a connection of this pool, every write puts the value back before the
+     * connection is released, and a connection whose restore failed is kept out of the pool by
+     * {@link #keepOutOfThePool} rather than handed on: so a value remembered here cannot outlive the
+     * session that answered it. Not reset on borrow for the same reason - it describes the session,
+     * which outlives every borrow of it.
+     */
+    Long rowLockBoundDisplaces() {
+        return rowLockBoundDisplaces;
+    }
+
+    void rowLockBoundDisplaces(Long previous) {
+        rowLockBoundDisplaces = previous;
     }
 
     /** Gives back the right to hold this connection, once and only if it was taken. */
