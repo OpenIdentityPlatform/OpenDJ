@@ -2838,9 +2838,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * the state checkpointer runs one restart for every change the threads of the
            * pool hand back on their way out, rather than each of them running one while
            * the configuration change which is stopping them waits. A domain whose session
-           * has an owner is left alone the way the give-back left it: nothing was asked
-           * for on that road, and a request another thread left standing is not this
-           * one's to spend on a restart which is refused where it runs.
+           * has an owner is left alone as well: the restart is refused where it runs, and
+           * a run here would spend the request on the refusal - the give-back's own, made
+           * under the owner for the state checkpointer to run once the owner is gone, and
+           * any other thread's standing next to it (see sessionHasAnOwner()).
            */
           runRequestedSessionRestarts();
         }
@@ -3540,8 +3541,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       if (replayFailed && recoverFromReplayFailure(msg.getCSN(), replayThreadShutdown))
       {
         // The ack has been published and the change is given back: the replication server
-        // delivers it again, now or - while a total update owns the session - after the
-        // import restarts it. There is nothing left to replay here.
+        // delivers it again, now or - while a total update owns the session - over the
+        // session the import starts, or the one the state checkpointer restarts once the
+        // owner is gone. There is nothing left to replay here.
         return;
       }
 
@@ -3984,36 +3986,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      */
     remotePendingChanges.replayFailed(csn);
 
-    if (sessionHasAnOwner())
-    {
-      /*
-       * This whole domain is going away or is being imported into: there is no session of
-       * this thread's to restart. Restarting the one which is being stopped would leave a
-       * broker and a listener thread behind on a domain whose alert generator, flush
-       * thread and RSUpdater are already gone; restarting the one an import streams over
-       * would end the import on the entries which had arrived. The change given back here
-       * is forgotten with the rest of the pending changes when the ServerState is loaded
-       * again, from the backend or from the imported data, and the session started then
-       * asks for everything that state does not cover - or, when the total update it was
-       * given back for never begins, it is asked for by the next restart
-       * (see sessionHasAnOwner()).
-       */
-      return true;
-    }
-
-    if (!outOfMemory)
-    {
-      /*
-       * Not on the road out of a JVM which has run out of memory: building this line asks
-       * it for the memory it has just refused, and the ack of the delivery already says
-       * that the change was not applied. The constant that ack carries exists for the same
-       * reason. The throttle is left alone as well - the trace line a folded delivery is
-       * written to asks for that memory too, and this delivery is not one which goes
-       * unlogged: the error ends the replay thread, and the uncaught exception handler of
-       * DirectoryThread writes the line and raises the alert for it.
-       */
-      logReplayRetryWarning(csn, failure);
-    }
     /*
      * This change is not owned by anyone anymore, so the session has to be restarted for
      * the replication server to deliver it again. Ask for the restart before trying to
@@ -4031,6 +4003,40 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      */
     sessionRestarts.request(replayThreadShutdown.get() || outOfMemory
         ? SessionRestart.NOW : SessionRestart.AFTER_BACKOFF);
+
+    if (sessionHasAnOwner())
+    {
+      /*
+       * This whole domain is going away or is being imported into: there is no session of
+       * this thread's to restart. Restarting the one which is being stopped would leave a
+       * broker and a listener thread behind on a domain whose alert generator, flush
+       * thread and RSUpdater are already gone; restarting the one an import streams over
+       * would end the import on the entries which had arrived. The request made above is
+       * left standing, the way it is on every road which releases a change under an owner
+       * (see sessionHasAnOwner()): the owners which forget the pending changes forget the
+       * request with them, and the one which does not - a total update which never begins
+       * - leaves it to the state checkpointer, which runs it once the owner is gone and
+       * has the replication server send the change again. The line which says the change
+       * is being asked for again is not logged here: a server which is shutting down
+       * abandons every change in flight, and none of them is asked for again before it is
+       * started back.
+       */
+      return true;
+    }
+
+    if (!outOfMemory)
+    {
+      /*
+       * Not on the road out of a JVM which has run out of memory: building this line asks
+       * it for the memory it has just refused, and the ack of the delivery already says
+       * that the change was not applied. The constant that ack carries exists for the same
+       * reason. The throttle is left alone as well - the trace line a folded delivery is
+       * written to asks for that memory too, and this delivery is not one which goes
+       * unlogged: the error ends the replay thread, and the uncaught exception handler of
+       * DirectoryThread writes the line and raises the alert for it.
+       */
+      logReplayRetryWarning(csn, failure);
+    }
     runRequestedSessionRestarts();
     return true;
   }
@@ -4188,16 +4194,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * to be restarted, and a session which starts is given its receive window anew.
    * <p>
    * On a domain whose session has an owner - the domain itself, going away, or a total
-   * update into it, from the moment it is asked for - they are released and nothing more,
-   * the way {@code abandonReplay()} hands a change back on that road (see
-   * {@link #sessionHasAnOwner()}): there is no session of this thread's to restart, and
-   * the restart it would ask for is refused where it runs. The domain forgets its pending
-   * changes on its way down, the import forgets them at its end, and a change released
-   * for a total update which never begins stays listed until the next failed replay of
-   * this domain restarts the session, which has the replication server send it again. A
-   * line which says the replication server sends the change again would not hold on any
-   * of these - a server which is shutting down abandons every change in flight, and none
-   * of them is delivered again before it is started back.
+   * update into it, from the moment it is asked for - they are released and asked for, and
+   * nothing more, the way {@code abandonReplay()} hands a change back on that road (see
+   * {@link #sessionHasAnOwner()}): there is no session of this thread's to restart, so the
+   * request is left standing for the state checkpointer, which runs it once the owner is
+   * gone - or finds it forgotten, with the pending changes it was made for, by the domain
+   * on its way down or by the import at its end. A line which says the replication server
+   * sends the change again would not hold on every one of these - a server which is
+   * shutting down abandons every change in flight, and none of them is delivered again
+   * before it is started back - so none is logged, and the deliveries are not counted.
    * <p>
    * A replay thread which is stopping calls this through
    * {@link #giveBackChangesParkedByStoppingThread()}, for every domain of this server: what
@@ -4220,18 +4225,18 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       return false;
     }
-    if (sessionHasAnOwner())
-    {
-      // The domain owns its session, or a total update does: both forget the pending
-      // changes, and neither leaves a session for this thread to restart.
-      return true;
-    }
     /*
      * Asked for before the changes are reported: a throw out of the report - the JVM which
      * unwound this replay is out of memory - must not lose the restart which is what brings
      * them back.
      */
     sessionRestarts.request(restart);
+    if (sessionHasAnOwner())
+    {
+      // The domain owns its session, or a total update does: neither leaves a session for
+      // this thread to restart, and the request stands for the state checkpointer.
+      return true;
+    }
     for (CSN csn : parked)
     {
       incProcessedUpdates();
@@ -4253,10 +4258,28 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private void abandonReplay(CSN csn)
   {
     remotePendingChanges.replayFailed(csn);
+    /*
+     * Asked for rather than run here. The threads of the pool are stopped one after the
+     * other and joined, so every one of them which was replaying a change would stop and
+     * start the session on its way out, one restart per change abandoned and none of them
+     * waiting - while the configuration change which is stopping them waits for all of
+     * them. The state checkpointer runs one restart for the lot a moment later, which is
+     * all the replication server needs to send every change which was handed back.
+     *
+     * Asked for whether or not the session has an owner, the way every road which releases
+     * a change asks (see sessionHasAnOwner()): the domain on its way down and the import at
+     * its end forget the request with the pending changes, and a total update which never
+     * begins leaves it to the state checkpointer. Asked for once the change is released and
+     * not before: asked for first, it could be taken and run by another thread while this
+     * one still owned the change, and the delivery the new session brought would be turned
+     * down as the duplicate of a change a replay thread owns.
+     */
+    sessionRestarts.request(SessionRestart.NOW);
     if (sessionHasAnOwner())
     {
-      // The domain, or the import into it, owns its session, and the pending changes are
-      // forgotten with the ServerState on its way down or at the end of the import.
+      // The domain, or the import into it, owns its session: a server which is shutting
+      // down abandons every change in flight, and none of them is delivered again before
+      // it is started back, so the line below would not hold.
       return;
     }
     /*
@@ -4265,15 +4288,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * is started back - one line per change would say otherwise.
      */
     logger.info(NOTE_REPLAY_ABANDONED_CHANGE, csn, getBaseDN());
-    /*
-     * Asked for rather than run here. The threads of the pool are stopped one after the
-     * other and joined, so every one of them which was replaying a change would stop and
-     * start the session on its way out, one restart per change abandoned and none of them
-     * waiting - while the configuration change which is stopping them waits for all of
-     * them. The state checkpointer runs one restart for the lot a moment later, which is
-     * all the replication server needs to send every change which was handed back.
-     */
-    sessionRestarts.request(SessionRestart.NOW);
   }
 
   /**
@@ -4415,10 +4429,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * running it.
    * <p>
    * Only there for the tests, which have no other way to leave a request standing at a
-   * time of their choosing: the one a replay thread makes is made and run in one go, and
-   * the requests which stand across a span nothing runs them in - the domain disabled, or
-   * being imported into - are made in a window between a thread's read of the flag and the
-   * flag being set, which no test can hit on purpose.
+   * time of their choosing without a change released for it: the one a replay thread makes
+   * on a domain whose session has no owner is made and run in one go, and one made under
+   * an owner stands for a change which is listed, and which the owner forgets or the
+   * checkpointer has delivered again.
    */
   @VisibleForTesting
   public void requestSessionRestart()
@@ -5390,24 +5404,25 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     synchronized (serviceStateLock)
     {
       /*
-       * Cleared here as well as by disable(): a request made in the window between a
-       * replay thread's read of the flag and disable()'s own clear - abandonReplay() reads
-       * it, then logs, then asks - survives the whole of the disabled span, and the state
-       * checkpointer would restart the session started below within the second for a
-       * change which is gone with the pending changes. Every request standing here is that
-       * one: the domain has been disabled since anything could ask, and the session started
-       * below asks for everything the ServerState loaded below does not cover.
+       * Cleared here as well as by disable(): a request made after disable()'s own clear -
+       * every road which releases a change asks for the restart, whether or not the domain
+       * owns its session, and a replay which outlasted the drain disable() waits for
+       * releases its change under the flag - survives the whole of the disabled span, and
+       * the state checkpointer would restart the session started below within the second
+       * for a change which is gone with the pending changes. Every request standing here
+       * is that one: the domain has been disabled since anything could ask, and the
+       * session started below asks for everything the ServerState loaded below does not
+       * cover.
        *
-       * The deliveries folded into no warning are forgotten here for the same window: a
-       * thread which is recording a failed replay reads the flag, then folds the delivery
-       * - recoverFromReplayFailure() logs before it asks - then asks, and runs what it
-       * asked for itself, which restartSession() turns down on a domain which owns its
-       * session. So on that road it is the fold rather than the request which outlives
-       * disable()'s clear, and the first warning over the data loaded back would count a
-       * delivery of a change which went with the pending changes. What reads the count is
-       * a warning, and none is logged between disable() and here short of that thread's
-       * own, so a test tells this zeroing and disable()'s apart by nothing: they stand or
-       * fall together.
+       * The deliveries folded into no warning are forgotten here for a window of the same
+       * kind: a thread which is recording a failed replay asks, then reads the flag, then
+       * folds the delivery and runs what it asked for, which restartSession() turns down
+       * on a domain which owns its session. A read which found the domain enabled a moment
+       * before disable() set the flag leaves a fold which outlives disable()'s clear, and
+       * the first warning over the data loaded back would count a delivery of a change
+       * which went with the pending changes. What reads the count is a warning, and none
+       * is logged between disable() and here short of that thread's own, so a test tells
+       * this zeroing and disable()'s apart by nothing: they stand or fall together.
        */
       sessionRestarts.clear();
       foldedReplayRetryWarnings.set(0);
@@ -5430,12 +5445,11 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        * stopping one: enableService() ends with startListenService(), so the listener it
        * starts can list a delivery and hand it to a replay thread while this method is
        * still running. A replay thread which reads a flag that still says "disabled"
-       * gives the change up at the top of its replay loop, and abandonReplay() does not
-       * ask for it again - a domain on its way down owns its session - so the change is
-       * left listed, uncommitted and owned by nobody. Nothing would replay it: the
-       * replication server only sends it again over a session which is restarted, so this
-       * domain's ServerState, and every change which depends on that one, would be held
-       * back for as long as the session lives.
+       * gives the change up at the top of its replay loop, and abandonReplay() releases it
+       * with a request standing - made after the clear above, so nothing clears it - which
+       * the state checkpointer runs within its tick: the change would be delivered again,
+       * but over a restart of the session just started rather than to the replay it had
+       * been handed to.
        */
       disabled = false;
       boolean started = false;
@@ -6215,13 +6229,25 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * arrives over that session, so a restart made while it is on its way loses it, and the
    * import which follows reads its entries over the same session - stopping it ends the
    * import on the entries which had arrived. The import starts the next session itself,
-   * from the state it loaded. A change given back while the total update owned the session
-   * is not asked for again by anyone until then; if no import follows - the request was
-   * refused, or gave up waiting - it stays listed until the next failed replay restarts
-   * the session, which has the replication server send it again with everything after it.
-   * Listed, it holds the ServerState back as well: a commit moves the state no further than
-   * the oldest uncommitted change, so the state in memory, and the one persisted from it,
-   * stop at the change until that restart.
+   * from the state it loaded.
+   * <p>
+   * A change released while the session has an owner is asked for again all the same - every
+   * road which releases one asks, owner or not - and the request is what is left to the
+   * owner: none of the roads runs the restart it asks for under an owner, since
+   * {@link #restartSession(boolean)} refuses it and the request would be spent on the
+   * refusal, and the state checkpointer holds every request for as long as the session has
+   * an owner. Two owners forget the pending changes and the request with them, when the
+   * ServerState they went with is replaced: {@link #disable()} and {@link #enable()}, and
+   * the import at its end - the session started then asks for everything the state it
+   * loaded does not cover. The third does not: a total update which is asked for and never
+   * begins - the request refused, or given up as unanswered - replaces nothing, and the
+   * request left standing under it is run by the checkpointer within its tick of the owner
+   * letting go, which has the replication server send the change again with everything
+   * after it. Left listed and asked for by nobody, the change would hold the ServerState
+   * back for good on a domain which then goes quiet: a commit moves the state no further
+   * than the oldest uncommitted change, so the state in memory, and the one persisted from
+   * it, would stop at the change until the next failed replay of this domain restarted
+   * the session (issue #1061).
    */
   private boolean sessionHasAnOwner()
   {
