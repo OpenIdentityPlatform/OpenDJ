@@ -3781,9 +3781,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * commits inside {@link WriteOperation#run}, and mysql and oracle commit before a DDL statement whether asked
 	 * to or not, so the attempt no longer rolls back as a whole - and {@link WriteOperation} is only idempotent in
 	 * the database. {@code RootContainer.open} opens and registers every entry container of every base DN in one
-	 * write: replayed after the trees of the first base DN were created and committed, it registers that base DN a
-	 * second time and fails with ERR_ENTRY_CONTAINER_ALREADY_REGISTERED, which masks the failure that caused the
-	 * replay and leaves the indexes of the previous attempt behind with their configuration listeners.
+	 * write, and before OpenDJ issue #896 a replay of it, run after the trees of the first base DN were created
+	 * and committed, registered that base DN a second time and failed with ERR_ENTRY_CONTAINER_ALREADY_REGISTERED,
+	 * which masked the failure that caused the replay and left the indexes of the previous attempt behind with
+	 * their configuration listeners.
 	 *
 	 * @param conflict the class {@link #conflictVerdict} read from the failure, asked of it once by the caller
 	 * @param committing whether the failure was reported by {@code commit()}, which leaves the outcome unknown
