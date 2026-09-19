@@ -14,6 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2014 Manuel Gaupp
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -924,18 +925,53 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       // indexIdToIndexes
       newIndexIdToIndexes.putAll(updatedIndexes);
 
+      // What the new configuration asks of the indexes which stay is decided here, before any of
+      // the three writes below, and reported here as well. Decided before the write which applies
+      // it: neither the entry limit an index holds nor its in-memory trusted flag is rolled back
+      // with the transaction, while the removal of the persisted TRUSTED flag is, so an attempt
+      // which rolls back would leave the raised limit in place, and a replay of it would compare
+      // that limit against itself, find nothing to rebuild, and commit an index whose entry limit
+      // was raised and which the storage still records as trusted. Reported before the writes
+      // rather than once they have committed, because the instruction holds whichever way they go:
+      // the configuration entry already holds the raised limit when this listener runs, and the
+      // next open of the index applies it to a tree whose keys were given up under the lower one.
+      // Only the limit itself waits for the write which untrusts the index to commit.
+      final List<Index> indexesToUntrust = new ArrayList<>();
+      final List<LocalizableMessage> rebuildMessages = new ArrayList<>();
+      planIndexUpdates(updatedIndexes.values(), newConfiguration, indexesToUntrust, rebuildMessages);
+      for (LocalizableMessage rebuildMessage : rebuildMessages)
+      {
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(rebuildMessage);
+      }
+
       // Open added indexes *before* adding them to indexIdToIndexes
+      final List<TreeName> addedIndexesToRebuild = new ArrayList<>();
       entryContainer.getRootContainer().getStorage().write(new WriteOperation()
       {
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
+          // Emptied at the start of every attempt: the storage may replay this operation, and what
+          // has to be reported is what the attempt which commits found, not what every attempt did.
+          addedIndexesToRebuild.clear();
           for (MatchingRuleIndex addedIndex : addedIndexes.values())
           {
-            createIndex(txn, addedIndex, ccr);
+            if (createIndex(txn, addedIndex))
+            {
+              addedIndexesToRebuild.add(addedIndex.getName());
+            }
           }
         }
       });
+      // Reported once that write has committed, since a message an attempt which rolls back added
+      // to the result stays there, and the operator would be told once per attempt.
+      // EntryContainer.applyConfigurationAdd reports the index it adds the same way.
+      for (TreeName addedIndex : addedIndexesToRebuild)
+      {
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(addedIndex));
+      }
 
       config = newConfiguration;
       indexingOptions = newIndexingOptions;
@@ -962,17 +998,28 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
         entryContainer.unlock();
       }
 
-      entryContainer.getRootContainer().getStorage().write(new WriteOperation()
+      // The only part of what the indexes which stay are asked for that is written down. A change
+      // which untrusts none of them - a lowered limit - opens no transaction, rather than one a
+      // bounded storage could give up on with nothing to give up; VLVIndex guards its write the
+      // same way.
+      if (!indexesToUntrust.isEmpty())
       {
-        @Override
-        public void run(WriteableTransaction txn) throws Exception
+        entryContainer.getRootContainer().getStorage().write(new WriteOperation()
         {
-          for (final Index updatedIndex : updatedIndexes.values())
+          @Override
+          public void run(WriteableTransaction txn) throws Exception
           {
-            updateIndex(updatedIndex, newConfiguration, ccr, txn);
+            for (final Index updatedIndex : indexesToUntrust)
+            {
+              updatedIndex.setTrusted(txn, false);
+            }
           }
-        }
-      });
+        });
+      }
+      for (final Index updatedIndex : updatedIndexes.values())
+      {
+        updatedIndex.setIndexEntryLimit(newConfiguration.getIndexEntryLimit());
+      }
     }
     catch (Exception e)
     {
@@ -983,36 +1030,45 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     return ccr;
   }
 
-  private static void createIndex(WriteableTransaction txn, MatchingRuleIndex index, ConfigChangeResult ccr)
+  /**
+   * Opens an index this change adds, and answers whether it has to be rebuilt before it is used.
+   * Answered to the caller rather than reported from here: this runs inside a {@link WriteOperation}
+   * the storage may replay, and the report belongs to the attempt which commits.
+   */
+  private static boolean createIndex(WriteableTransaction txn, MatchingRuleIndex index)
   {
     index.open(txn, true);
-    if (!index.isTrusted())
-    {
-      ccr.setAdminActionRequired(true);
-      ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
-    }
+    return !index.isTrusted();
   }
 
-  private static void updateIndex(Index updatedIndex, BackendIndexCfg newConfig, ConfigChangeResult ccr,
-      WriteableTransaction txn)
+  /**
+   * Works out what the new configuration asks of the indexes which stay: which of them may no longer
+   * be trusted, and what the operator has to be told about each of them. Decided from the state the
+   * indexes are in before anything is applied to them, so that a write the storage replays reaches
+   * the same answer on every attempt.
+   */
+  private static void planIndexUpdates(Collection<MatchingRuleIndex> updatedIndexes, BackendIndexCfg newConfig,
+      List<Index> indexesToUntrust, List<LocalizableMessage> rebuildMessages)
   {
-    // This index could still be used since a new smaller index size limit doesn't impact validity of the results.
-    boolean newLimitRequiresRebuild = updatedIndex.setIndexEntryLimit(newConfig.getIndexEntryLimit());
-    if (newLimitRequiresRebuild)
+    for (Index updatedIndex : updatedIndexes)
     {
-      ccr.setAdminActionRequired(true);
-      ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(updatedIndex.getName()));
-    }
-    // This index could still be used when disabling confidentiality.
-    boolean newConfidentialityRequiresRebuild = updatedIndex.setConfidential(newConfig.isConfidentialityEnabled());
-    if (newConfidentialityRequiresRebuild)
-    {
-      ccr.setAdminActionRequired(true);
-      ccr.addMessage(NOTE_CONFIG_INDEX_CONFIDENTIALITY_REQUIRES_REBUILD.get(updatedIndex.getName()));
-    }
-    if (newLimitRequiresRebuild || newConfidentialityRequiresRebuild)
-    {
-      updatedIndex.setTrusted(txn, false);
+      // This index could still be used since a new smaller index size limit doesn't impact validity of the results.
+      boolean newLimitRequiresRebuild = updatedIndex.getIndexEntryLimit() < newConfig.getIndexEntryLimit();
+      if (newLimitRequiresRebuild)
+      {
+        rebuildMessages.add(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(updatedIndex.getName()));
+      }
+      // This index could still be used when disabling confidentiality. Asked rather than told: for an
+      // index this only compares the configuration with the parameters its crypto suite holds.
+      boolean newConfidentialityRequiresRebuild = updatedIndex.setConfidential(newConfig.isConfidentialityEnabled());
+      if (newConfidentialityRequiresRebuild)
+      {
+        rebuildMessages.add(NOTE_CONFIG_INDEX_CONFIDENTIALITY_REQUIRES_REBUILD.get(updatedIndex.getName()));
+      }
+      if (newLimitRequiresRebuild || newConfidentialityRequiresRebuild)
+      {
+        indexesToUntrust.add(updatedIndex);
+      }
     }
   }
 
