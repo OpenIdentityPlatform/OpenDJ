@@ -597,8 +597,9 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       addBaseEntry(backend, KEPT, "b907a");
       final AttributeIndex index = backend.getRootContainer().getEntryContainer(KEPT).getAttributeIndex(cnType);
 
-      // The first of the three writes a change makes is the one which opens the indexes it adds.
-      backend.storage.conflictAtCommit(1);
+      // The second of the four writes a change makes is the one which opens the indexes it adds;
+      // the first drops what an earlier index left behind for them.
+      backend.storage.conflictAtCommitOnWrite(2, 1);
       final ConfigChangeResult ccr =
           index.applyConfigurationChange(indexCfg(newTreeSet(IndexType.EQUALITY, IndexType.PRESENCE), 4000));
 
@@ -634,7 +635,8 @@ public class ReplayedConfigChangeTest extends DirectoryServerTestCase
       assertThat(persistedFlags(rootContainer, ec, cnIndex.getName())).contains(TRUSTED);
 
       // The third write is the one which removes the flag: the first two open the indexes the
-      // change adds and delete the ones it removes, and it neither adds nor removes any.
+      // change adds and delete the ones it removes, and it neither adds nor removes any - so the
+      // write which drops what an earlier index left behind for the added ones is not made.
       final int writesBefore = backend.storage.writes();
       backend.storage.conflictAtCommitOnWrite(3, 1);
       final ConfigChangeResult ccr = index.applyConfigurationChange(indexCfg(newTreeSet(IndexType.EQUALITY), 8000));

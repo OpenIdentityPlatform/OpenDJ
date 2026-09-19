@@ -711,7 +711,8 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
    * @throws ConfigException
    *           if memory cannot be reserved
    */
-  JEStorage(final JEBackendCfg cfg, ServerContext serverContext) throws ConfigException
+  // Public as PDBStorage's is: a pluggable backend test which runs the same case over both storages builds them.
+  public JEStorage(final JEBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
     this.serverContext = serverContext;
     backendDirectory = getBackendDirectory(cfg);
