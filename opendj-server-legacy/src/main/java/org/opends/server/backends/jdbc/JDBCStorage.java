@@ -89,29 +89,28 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	private static final double MAX_SLEEP_ON_RETRY_MS = 1000.0;
 
 	/**
-	 * Number of links walked by the questions that are not asked to the end of the chains: a guard against a chain
-	 * long enough to matter, at the cost of what truncation costs each of them. One number for three chains at
-	 * once - the causes, the next exceptions and the suppressed exceptions are walked together and counted
-	 * together - so it is set well above the depth a wrapped failure of this backend reaches: mssql-jdbc chains
-	 * every error of one message it received through {@code setNextException}, and a budget spent on those would
-	 * never reach the cause the wrapper carries.
+	 * Number of links walked by the one question of this class whose answer truncation makes less precise rather
+	 * than wrong: the fallback of {@link #conflictSummary} that names the first {@link SQLException} of a failure,
+	 * where a link past the budget costs a less precise line in the log and no decision. Every question a decision
+	 * reads is asked with {@link #EVERY_LINK} instead: a budget does not leave those unanswered, it answers them
+	 * with the verdict of a failure that carries nothing - which is what issue #961 was.
 	 * <p>
-	 * For the fallbacks of {@link #conflictSummary} truncation leaves a question unanswered and nothing more: the
-	 * line reporting the replay names a less precise link, and no decision moves. For
-	 * {@link #isConnectionFailure} it does weaken the verdict, which is the test {@link #EVERY_LINK} exists to
-	 * apply: a class 08 link past this many links leaves {@code dropped} false in {@link #write}, so
-	 * {@link #distrustPool} is not called and the pool keeps handing out - unvalidated - the connections it had
-	 * established before the same restart or failover. That is what this walk did before #903 and it is left as it
-	 * is here rather than widened along with the two below, since nothing about the grant of #903 depends on it;
-	 * the budget is pinned from both sides by {@code testTheWalkOfAFailureStopsAtItsBudget}, which is where
-	 * widening it would have to start.
+	 * One number for three chains at once - the causes, the next exceptions and the suppressed exceptions are walked
+	 * together and counted together - so it is set well above the depth a wrapped failure of this backend reaches:
+	 * mssql-jdbc chains every error of one message it received through {@code setNextException}, and a budget spent
+	 * on those would never reach the cause the wrapper carries.
 	 */
 	private static final int MAX_CHAIN_LINKS = 64;
 
 	/**
-	 * The budget of the two walks whose verdict would weaken rather than go unnoticed under truncation:
-	 * {@link #failureScope} and {@link #conflictVerdict}. See the comments above them; the {@code seen} set of
-	 * the walk terminates it either way.
+	 * The budget of every walk of this class but one: {@link #failureScope}, {@link #isConnectionFailure},
+	 * {@link #conflictVerdict}, {@link #lockNotAvailable} and the lookup of {@link #conflictSummary} that mirrors
+	 * {@link #isConnectionFailure} all read to the end of the chains - see the comments above them. A budget does
+	 * not leave a question a decision reads unanswered, it answers it with the verdict of a failure that carries
+	 * nothing, which is what issue #961 was. The one exception is what {@link #MAX_CHAIN_LINKS} is left for, where
+	 * truncation costs the precision of a line of the log and no decision. The {@code seen} set terminates the walk
+	 * whatever budget it is given, so this one costs a walk of the links the driver has already allocated and
+	 * nothing else.
 	 */
 	private static final int EVERY_LINK = Integer.MAX_VALUE;
 
@@ -3841,9 +3840,16 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * 14.20.3.1) rather than as a cause. The walk starts at the failure this class was handed because it reaches it
 	 * wrapped in a {@link StorageRuntimeException}, and a caller such as {@code EntryContainer.addEntry} may wrap
 	 * it once more.
+	 * <p>
+	 * Every link of them is walked, rather than {@link #MAX_CHAIN_LINKS} of them, for the reason
+	 * {@link #failureScope} walks every link: truncation does not leave this question unanswered, it answers it with
+	 * the {@code false} of a failure that says nothing about the connection. A class 08 link past a budget leaves
+	 * {@code dropped} false in {@link #write} and in {@link #read}, so {@link #distrustPool} is not called and the
+	 * pool keeps handing out - unvalidated, for the rest of the alive window - the connections the same restart or
+	 * failover took, and {@link #replayReason} fails an attempt that was worth replaying (issue #961).
 	 */
 	static boolean isConnectionFailure(Throwable failure) {
-		return firstLinkMatching(failure, WITH_THE_RELEASE, JDBCStorage::saysTheConnectionIsGone)!=null;
+		return firstLinkMatching(failure, WITH_THE_RELEASE, EVERY_LINK, JDBCStorage::saysTheConnectionIsGone)!=null;
 	}
 
 	/**
@@ -3860,13 +3866,11 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * The first {@link SQLException} of the chains of a failure that answers the given question, or null where none
 	 * does. Every classifier of this class walks the failure this way, so that none of them reads a chain the others
 	 * act on: what makes a write replayable must also be what the pool is told about and what the replay logs.
+	 * <p>
+	 * The number of links it may look at is named by every caller rather than defaulted, so that a walk whose
+	 * verdict decides something cannot inherit a budget without saying so: {@link #EVERY_LINK} for the questions a
+	 * decision reads, {@link #MAX_CHAIN_LINKS} for the one that only names a link in a line of the log.
 	 */
-	private static SQLException firstLinkMatching(Throwable failure, boolean withTheRelease,
-			Predicate<SQLException> matches) {
-		return firstLinkMatching(failure, withTheRelease, MAX_CHAIN_LINKS, matches);
-	}
-
-	/** The walk above, with the number of links it is allowed to look at. */
 	private static SQLException firstLinkMatching(Throwable failure, boolean withTheRelease, int links,
 			Predicate<SQLException> matches) {
 		final SQLException[] found=new SQLException[1];
@@ -4195,13 +4199,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		// that merely resembles the one the decision was taken on
 		SQLException named=verdict.link;
 		if (named==null) {
-			named=firstLinkMatching(failure, WITH_THE_RELEASE, JDBCStorage::saysTheConnectionIsGone);
+			named=firstLinkMatching(failure, WITH_THE_RELEASE, EVERY_LINK, JDBCStorage::saysTheConnectionIsGone);
 		}
 		if (named==null) {
 			// without the release, so that the line names the statement that failed rather than the rollback
 			// behind it: this is the fallback of a replay decided on isClosed(con) alone, where neither chain
-			// carries a verdict, and the walk reaches the suppressed exceptions before the cause
-			named=firstLinkMatching(failure, WITHOUT_THE_RELEASE, e -> true);
+			// carries a verdict, and the walk reaches the suppressed exceptions before the cause. The one walk
+			// left bounded: no decision reads it, so a link past the budget costs the precision of this line
+			named=firstLinkMatching(failure, WITHOUT_THE_RELEASE, MAX_CHAIN_LINKS, e -> true);
 		}
 		return named==null
 			? String.valueOf(failure)
