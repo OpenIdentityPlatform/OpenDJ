@@ -13,7 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
- * Portions Copyright 2023-2025 3A Systems, LLC.
+ * Portions Copyright 2023-2026 3A Systems, LLC.
  */
 package org.opends.server;
 
@@ -462,6 +462,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private void appendFailureInfo(StringBuilder failureInfo)
   {
     TestCaseUtils.appendLogsContents(failureInfo);
+    TestCaseUtils.appendReplicationServersState(failureInfo);
   }
 
   @Override
