@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.types;
 
@@ -26,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -106,6 +108,114 @@ public final class TestEntry extends TypesTestCase {
     // This test suite depends on having the schema available, so we'll start
     // the server.
     TestCaseUtils.startServer();
+  }
+
+  /*
+   * An entry holds its object classes apart from its attributes, and hands them out as an
+   * attribute which it builds on demand and keeps. Every change of the object classes must be
+   * visible to the next read of that attribute: a backend stores the object classes themselves
+   * but indexes the entry through the attribute, so an attribute left behind by a change silently
+   * takes the object class index out of step with the stored entry. The tests below read the
+   * attribute first, the way the server reads an entry before modifying it.
+   */
+
+  /** Returns an entry to change the object classes of. */
+  private Entry newTestUserEntry() throws Exception
+  {
+    return TestCaseUtils.makeEntry(
+        "dn: cn=Test User,ou=People,dc=example,dc=com",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "cn: Test User",
+        "sn: User");
+  }
+
+  /** Returns the object classes of the entry as its object class attribute reports them. */
+  private List<String> objectClassAttributeOf(Entry e)
+  {
+    List<String> values = new ArrayList<>();
+    for (Attribute attr : e.getAllAttributes(getObjectClassAttributeType()))
+    {
+      for (ByteString value : attr)
+      {
+        values.add(value.toString());
+      }
+    }
+    return values;
+  }
+
+  /** An object class added with {@code addAttribute()}, the way the core applies "add: objectClass". */
+  @Test
+  public void testObjectClassAttributeAfterAddAttribute() throws Exception
+  {
+    Entry e = newTestUserEntry();
+    assertThat(objectClassAttributeOf(e)).doesNotContain("extensibleObject");
+
+    e.addAttribute(Attributes.create(getObjectClassAttributeType(), "extensibleObject"),
+        new LinkedList<ByteString>());
+
+    assertThat(objectClassAttributeOf(e))
+        .containsOnly("top", "person", "organizationalPerson", "inetOrgPerson", "extensibleObject");
+  }
+
+  /**
+   * An object class removed with {@code removeAttribute()}, the way the core applies
+   * "delete: objectClass".
+   */
+  @Test
+  public void testObjectClassAttributeAfterRemoveAttribute() throws Exception
+  {
+    Entry e = newTestUserEntry();
+    assertThat(objectClassAttributeOf(e)).contains("organizationalPerson");
+
+    e.removeAttribute(Attributes.create(getObjectClassAttributeType(), "organizationalPerson"),
+        new LinkedList<ByteString>());
+
+    assertThat(objectClassAttributeOf(e)).containsOnly("top", "person", "inetOrgPerson");
+  }
+
+  /**
+   * The object classes replaced with {@code replaceAttribute()}, the way the core applies
+   * "replace: objectClass".
+   */
+  @Test
+  public void testObjectClassAttributeAfterReplaceAttribute() throws Exception
+  {
+    Entry e = newTestUserEntry();
+    assertThat(objectClassAttributeOf(e)).contains("inetOrgPerson");
+
+    e.replaceAttribute(Attributes.create(getObjectClassAttributeType(), "domain"));
+
+    assertThat(objectClassAttributeOf(e)).containsOnly("domain");
+  }
+
+  /** An object class added with {@code addObjectClass()}. */
+  @Test
+  public void testObjectClassAttributeAfterAddObjectClass() throws Exception
+  {
+    Entry e = newTestUserEntry();
+    assertThat(objectClassAttributeOf(e)).doesNotContain("extensibleObject");
+
+    e.addObjectClass(CoreSchema.getExtensibleObjectObjectClass());
+
+    assertThat(objectClassAttributeOf(e))
+        .containsOnly("top", "person", "organizationalPerson", "inetOrgPerson", "extensibleObject");
+  }
+
+  /** All the object classes removed with {@code removeAttribute()}, then a new one added. */
+  @Test
+  public void testObjectClassAttributeAfterRemoveOfTheWholeAttribute() throws Exception
+  {
+    Entry e = newTestUserEntry();
+    assertThat(objectClassAttributeOf(e)).contains("inetOrgPerson");
+
+    e.removeAttribute(getObjectClassAttributeType());
+    assertThat(objectClassAttributeOf(e)).isEmpty();
+
+    e.addObjectClass(CoreSchema.getTopObjectClass());
+    assertThat(objectClassAttributeOf(e)).containsOnly("top");
   }
 
   /**

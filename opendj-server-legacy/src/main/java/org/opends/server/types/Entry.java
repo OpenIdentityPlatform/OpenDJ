@@ -120,6 +120,13 @@ public class Entry
   /** The set of objectclasses for this entry. */
   private Map<ObjectClass,String> objectClasses;
 
+  /**
+   * The set of objectclasses of this entry in its attribute form, built on demand by
+   * {@link #getObjectClassAttribute()}. Every change of {@link #objectClasses} must reset it:
+   * a backend stores the objectclasses themselves but indexes the entry through this attribute,
+   * so an attribute left behind by a change takes the objectClass index out of step with the
+   * stored entry, without anything failing.
+   */
   private Attribute objectClassAttribute;
 
   /** The DN for this entry. */
@@ -295,6 +302,7 @@ public class Entry
     }
 
     objectClasses.put(oc, oc.getNameOrOID());
+    objectClassAttribute = null;
   }
 
 
@@ -1268,6 +1276,7 @@ public class Entry
     if (attributeType.isObjectClass())
     {
       objectClasses.clear();
+      objectClassAttribute = null;
       return true;
     }
     return userAttributes.remove(attributeType) != null
@@ -1320,6 +1329,7 @@ public class Entry
     if (attribute.isEmpty())
     {
       objectClasses.clear();
+      objectClassAttribute = null;
       return true;
     }
 
@@ -1335,6 +1345,7 @@ public class Entry
         if (oc.hasNameOrOID(ocName))
         {
           objectClasses.remove(oc);
+          objectClassAttribute = null;
           return true;
         }
       }
@@ -4358,6 +4369,7 @@ public class Entry
     AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
     // We will not do any validation of the object classes - this is
     // left to the caller.
+    objectClassAttribute = null;
     if (replace)
     {
       objectClasses.clear();
