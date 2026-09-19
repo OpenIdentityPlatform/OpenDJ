@@ -1224,29 +1224,32 @@ public class ConfigureDS
 
     if (defaultCipher != null)
     {
-      // Check that the default cipher is supported by the JVM.
+      final String cipher;
       try
       {
-        Cipher.getInstance(defaultCipher);
+        cipher = supportedKeyWrappingTransformation(defaultCipher);
       }
       catch (final GeneralSecurityException ex)
       {
-        // The cipher is not supported: try to find an alternative one.
-        final String alternativeCipher = getAlternativeCipher();
-        if (alternativeCipher != null)
+        // The default stays, and the server will refuse to start with it: there is no secure
+        // transformation to fall back to (#776), so the administrator has to choose one, and
+        // has to be told so here rather than by the failed start.
+        printWrappedText(err, WARN_CONFIGDS_KEY_WRAPPING_TRANSFORMATION_UNSUPPORTED.get(defaultCipher, ex.getMessage()));
+        return;
+      }
+      if (!cipher.equals(defaultCipher))
+      {
+        try
         {
-          try
-          {
-            updateConfigEntryWithAttribute(
-                DN_CRYPTO_MANAGER,
-                ATTR_CRYPTO_CIPHER_KEY_WRAPPING_TRANSFORMATION,
-                CoreSchema.getDirectoryStringSyntax(),
-                alternativeCipher);
-          }
-          catch (final Exception e)
-          {
-            throw new ConfigureDSException(e, ERR_CONFIGDS_CANNOT_UPDATE_CRYPTO_MANAGER.get(e));
-          }
+          updateConfigEntryWithAttribute(
+              DN_CRYPTO_MANAGER,
+              ATTR_CRYPTO_CIPHER_KEY_WRAPPING_TRANSFORMATION,
+              CoreSchema.getDirectoryStringSyntax(),
+              cipher);
+        }
+        catch (final Exception e)
+        {
+          throw new ConfigureDSException(e, ERR_CONFIGDS_CANNOT_UPDATE_CRYPTO_MANAGER.get(e));
         }
       }
     }
@@ -1324,6 +1327,34 @@ public class ConfigureDS
       }
     }
     return duplicateEntry;
+  }
+
+  /**
+   * Returns the key wrapping transformation this Java runtime supports: the default one when it
+   * does, otherwise the OAEP alternative of {@link #getAlternativeCipher()}.
+   *
+   * @param defaultCipher
+   *          The default key wrapping transformation of the crypto manager.
+   * @return The transformation to configure.
+   * @throws GeneralSecurityException
+   *           If the runtime supports neither, with the reason the default one is not.
+   */
+  static String supportedKeyWrappingTransformation(final String defaultCipher) throws GeneralSecurityException
+  {
+    try
+    {
+      Cipher.getInstance(defaultCipher);
+      return defaultCipher;
+    }
+    catch (final GeneralSecurityException ex)
+    {
+      final String alternativeCipher = getAlternativeCipher();
+      if (alternativeCipher == null)
+      {
+        throw ex;
+      }
+      return alternativeCipher;
+    }
   }
 
   /**

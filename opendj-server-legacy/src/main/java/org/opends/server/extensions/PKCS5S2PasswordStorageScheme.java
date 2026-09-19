@@ -13,6 +13,7 @@
  *
  * Copyright 2014-2016 ForgeRock AS.
  * Portions Copyright 2014 Emidio Stani & Andrea Stani
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -85,13 +86,15 @@ public class PKCS5S2PasswordStorageScheme
   {
     try
     {
-      random = SecureRandom.getInstance(SECURE_PRNG_SHA1);
+      // The provider's default random source: a FIPS-restricted JCE registers no SHA1PRNG.
+      random = new SecureRandom();
       // Just try to verify if the algorithm is supported
       SecretKeyFactory.getInstance(MESSAGE_DIGEST_ALGORITHM_PBKDF2);
     }
     catch (NoSuchAlgorithmException e)
     {
-      throw new InitializationException(null);
+      throw new InitializationException(
+          ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(MESSAGE_DIGEST_ALGORITHM_PBKDF2, e), e);
     }
   }
 
@@ -246,8 +249,7 @@ public class PKCS5S2PasswordStorageScheme
   {
     try
     {
-      final SecureRandom random = SecureRandom.getInstance(SECURE_PRNG_SHA1);
-      return encodeWithRandomSalt(plaintext, saltBytes, random);
+      return encodeWithRandomSalt(plaintext, saltBytes, new SecureRandom());
     }
     catch (DirectoryException e)
     {
