@@ -426,8 +426,9 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   /**
    * An attempt that committed part of its own work is not replayed, whatever the failure says: what it did no
    * longer rolls back as a whole, and a WriteOperation is only idempotent in the database. RootContainer.open
-   * opens and registers the entry containers of every base DN in one write, and a replay of it fails with
-   * ERR_ENTRY_CONTAINER_ALREADY_REGISTERED, masking the failure that caused the replay.
+   * opens and registers the entry containers of every base DN in one write, and until #993 (PR #999) a replay
+   * of it failed with ERR_ENTRY_CONTAINER_ALREADY_REGISTERED - OpenDJ issue #896 - masking the failure that
+   * caused the replay.
    */
   @Test
   public void testAnAttemptThatCommittedPartOfItsWorkIsNotReplayed()
