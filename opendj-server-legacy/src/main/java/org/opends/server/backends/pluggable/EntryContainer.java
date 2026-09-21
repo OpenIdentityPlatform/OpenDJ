@@ -181,6 +181,12 @@ public class EntryContainer
     @Override
     public boolean isConfigurationAddAcceptable(final BackendIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
     {
+      final LocalizableMessage alreadyIndexed = alreadyIndexedBy(cfg);
+      if (alreadyIndexed != null)
+      {
+        unacceptableReasons.add(alreadyIndexed);
+        return false;
+      }
       try
       {
         newAttributeIndex(cfg, null);
@@ -193,14 +199,56 @@ public class EntryContainer
       }
     }
 
+    /**
+     * Why an index for the attribute of this configuration must not be added, or null if it may be.
+     * <p>
+     * The map is keyed by the attribute type, which every one of the attribute's names and its OID resolve to,
+     * while the configuration entry is named by whichever of them was typed. An index declared under another of
+     * them - commonName or 2.5.4.3 for cn - names the very trees the live index serves, and the add would drop
+     * them as left behind by an index which is gone.
+     */
+    private LocalizableMessage alreadyIndexedBy(final BackendIndexCfg cfg)
+    {
+      final AttributeIndex existing = attrIndexMap.get(cfg.getAttribute());
+      if (existing == null)
+      {
+        return null;
+      }
+      return ERR_CONFIG_INDEX_ATTRIBUTE_ALREADY_INDEXED.get(cfg.getAttribute().getNameOrOID(), getBaseDN(),
+          existing.getConfiguration().dn());
+    }
+
     @Override
     public ConfigChangeResult applyConfigurationAdd(final BackendIndexCfg cfg)
     {
       final ConfigChangeResult ccr = new ConfigChangeResult();
+      // Refused by isConfigurationAddAcceptable() before the configuration is written; asked again here since what
+      // follows drops the trees of the index it would have found.
+      final LocalizableMessage alreadyIndexed = alreadyIndexedBy(cfg);
+      if (alreadyIndexed != null)
+      {
+        ccr.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+        ccr.addMessage(alreadyIndexed);
+        return ccr;
+      }
+      // Dropped in a write of its own, committed before the write which opens the index: the two must not
+      // share a transaction, see AttributeIndex.dropLeftovers(). discarded is filled by that write and reported
+      // from a finally below: every attempt fills it afresh, so a replayed attempt repeats nothing, and the
+      // report is not skipped when the write which opens the index throws after it, nor when the drop write
+      // fails at its own commit - for the reason AttributeIndex.dropLeftovers() gives.
+      final AtomicBoolean discarded = new AtomicBoolean();
       try
       {
         final CryptoSuite cryptoSuite = newCryptoSuite(cfg.isConfidentialityEnabled());
         final AttributeIndex index = newAttributeIndex(cfg, cryptoSuite);
+        storage.write(new WriteOperation()
+        {
+          @Override
+          public void run(WriteableTransaction txn) throws Exception
+          {
+            discarded.set(index.dropLeftovers(txn));
+          }
+        });
         final AtomicBoolean trusted = new AtomicBoolean();
         storage.write(new WriteOperation()
         {
@@ -228,6 +276,13 @@ public class EntryContainer
       {
         ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(LocalizableMessage.raw(e.getLocalizedMessage()));
+      }
+      finally
+      {
+        if (discarded.get())
+        {
+          AttributeIndex.reportDiscardedLeftovers(ccr, cfg.getAttribute().getNameOrOID(), getBaseDN());
+        }
       }
       return ccr;
     }
@@ -306,8 +361,21 @@ public class EntryContainer
     public ConfigChangeResult applyConfigurationAdd(final BackendVLVIndexCfg cfg)
     {
       final ConfigChangeResult ccr = new ConfigChangeResult();
+      // Dropped in a write of its own, committed before the write which builds and opens the index, for the
+      // reason given in the index add listener above. discarded is filled by that write and reported from a
+      // finally below, on the terms given there: not repeated by a replayed attempt, not skipped when the write
+      // which builds and opens the index throws after it, nor when the drop write fails at its own commit.
+      final AtomicBoolean discarded = new AtomicBoolean();
       try
       {
+        storage.write(new WriteOperation()
+        {
+          @Override
+          public void run(WriteableTransaction txn) throws Exception
+          {
+            discarded.set(VLVIndex.dropLeftovers(txn, EntryContainer.this, state, cfg.getName()));
+          }
+        });
         final AtomicReference<VLVIndex> built = new AtomicReference<>();
         final AtomicBoolean trusted = new AtomicBoolean();
         storage.write(new WriteOperation()
@@ -342,6 +410,13 @@ public class EntryContainer
       {
         ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
+      }
+      finally
+      {
+        if (discarded.get())
+        {
+          AttributeIndex.reportDiscardedLeftovers(ccr, cfg.getName(), getBaseDN());
+        }
       }
       return ccr;
     }

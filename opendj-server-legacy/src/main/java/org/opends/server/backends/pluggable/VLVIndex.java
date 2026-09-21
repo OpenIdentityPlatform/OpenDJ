@@ -114,8 +114,8 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
       final EntryContainer entryContainer, final WriteableTransaction txn) throws StorageRuntimeException,
       ConfigException
   {
-    super(new TreeName(entryContainer.getTreePrefix(), "vlv." + config.getName()));
-    this.counter = new ShardedCounter(new TreeName(entryContainer.getTreePrefix(), "counter.vlv." + config.getName()));
+    super(treeNameOf(entryContainer, config.getName()));
+    this.counter = new ShardedCounter(counterTreeNameOf(entryContainer, config.getName()));
     this.config = config;
     this.baseDN = config.getBaseDN();
     this.scope = convertScope(config.getScope());
@@ -168,6 +168,57 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
        */
       setTrusted(txn, true);
     }
+  }
+
+  private static TreeName treeNameOf(EntryContainer entryContainer, String indexName)
+  {
+    return new TreeName(entryContainer.getTreePrefix(), "vlv." + indexName);
+  }
+
+  private static TreeName counterTreeNameOf(EntryContainer entryContainer, String indexName)
+  {
+    return new TreeName(entryContainer.getTreePrefix(), "counter.vlv." + indexName);
+  }
+
+  /**
+   * Drops whatever a VLV index of the same name left behind for the VLV index the configuration is
+   * adding: its tree, the counter which goes with it and the {@code state} record which carries
+   * their TRUSTED flag.
+   * <p>
+   * What they hold is what the backend was told before the configuration stopped naming them, and no
+   * entry written in between is in it; a rebuild regenerates all of it. See
+   * {@link AttributeIndex#dropLeftovers} for why it is dropped rather than adopted (#990), and for
+   * why this must run in a write of its own, committed before the one which builds and opens the
+   * index: the constructor then reads its flag out of a record which is gone, and finds none.
+   *
+   * @param txn a non null transaction
+   * @param entryContainer the entry container the index is being added to
+   * @param state the tree holding the index flags
+   * @param indexName the name of the VLV index being added
+   * @return true if a tree was dropped; a record deleted on its own discards nothing
+   * @throws StorageRuntimeException if an error occurs in the storage
+   */
+  static boolean dropLeftovers(WriteableTransaction txn, EntryContainer entryContainer, State state, String indexName)
+      throws StorageRuntimeException
+  {
+    final TreeName name = treeNameOf(entryContainer, indexName);
+    final TreeName counterName = counterTreeNameOf(entryContainer, indexName);
+    boolean dropped = false;
+    // Each of the two is asked for on its own: deleting a tree which is not there fails on PersistIt,
+    // and a change which stopped halfway can have left one of them without the other.
+    if (txn.treeExists(counterName))
+    {
+      txn.deleteTree(counterName);
+      dropped = true;
+    }
+    if (txn.treeExists(name))
+    {
+      txn.deleteTree(name);
+      dropped = true;
+    }
+    // The record can outlive the trees: see AttributeIndex.dropLeftoversOf.
+    state.deleteRecord(txn, name);
+    return dropped;
   }
 
   @Override
