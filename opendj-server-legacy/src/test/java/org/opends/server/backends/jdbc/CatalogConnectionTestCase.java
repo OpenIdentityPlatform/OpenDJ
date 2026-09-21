@@ -62,9 +62,9 @@ import static org.testng.Assert.fail;
  * The two bounds of the connect are handed in rather than set as system properties, which is where
  * it reads them from: both are read on every connect and on every borrow of the pool, so a case
  * setting them holds them for the whole jvm while it runs, and a borrow made anywhere else in that
- * window computes a deadline it was never meant to have (#932). The four cases about the reading
+ * window computes a deadline it was never meant to have (#932). The five cases about the reading
  * itself do set them - that is the thing they assert - and each holds them for one connect that is
- * answered at once.
+ * answered at once, refused or established.
  */
 @SuppressWarnings("javadoc")
 public class CatalogConnectionTestCase extends DirectoryServerTestCase {
@@ -82,6 +82,14 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 	 * them (#932).
 	 */
 	private static final long DEFAULT_BOUND = CachedConnection.DEFAULT_CONNECT_TIMEOUT_SECONDS;
+
+	/**
+	 * The bound the one case asserting on what reaches the driver hands in instead: a value neither
+	 * the property nor the default of this code would produce, so that what the case pins is the
+	 * bound it handed in and not what the jvm happens to read. Handed to a connect that reads the
+	 * property instead, it would answer {@link #DEFAULT_BOUND} and the case would say so (#932).
+	 */
+	private static final long HANDED_IN_BOUND = 7;
 
 	private ProbeDriver probeDriver;
 
@@ -225,10 +233,17 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 		// where the classifier reading it expects the driver's own
 		probeDriver.refusal = new SQLException("the database system is starting up", "57P03", 3113);
 		probeDriver.refusalsLeft.set(Integer.MAX_VALUE);
+		final long startedAt = System.currentTimeMillis();
 		try {
 			storageFor(ProbeDriver.URL).newCatalogConnection(NO_REPLAY_WINDOW, DEFAULT_BOUND, 1);
 			fail("a connect refused for the whole deadline was not given up on");
 		} catch (SQLTimeoutException expected) {
+			// the deadline it waited out is the one it was handed and not one the jvm was holding: a
+			// connect reading the property in its place gives up a minute from now and says "1s" all
+			// the same, the line naming what it was handed either way (#932)
+			final long waited = System.currentTimeMillis() - startedAt;
+			assertTrue(waited < 30_000,
+				"the connect waited " + waited + " ms, which is a deadline of the jvm's rather than the one handed in");
 			// the state of the driver's own refusal and not one of this code's making: a manufactured
 			// 08001 is read by write() as a connection the database dropped, which would replay an
 			// attempt whose pooled connection is healthy and distrust the pool over it
@@ -252,6 +267,11 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 	 * the window already spent and is thrown unreplayed - the retry would cost the caller the replay
 	 * it had before there was a retry here at all. The shorter of the two bounds is the deadline of
 	 * the wait; the bound of one attempt is not taken from it, and this case pins that too.
+	 * <p>
+	 * The bound of the attempt is handed in at {@link #HANDED_IN_BOUND} rather than at the default,
+	 * this being the one case that asserts on what reaches the driver from a connect that was handed
+	 * its bounds: a connect reading the property in its place answers the default, which every other
+	 * case hands in, so a value of neither is what tells the two apart (#932).
 	 */
 	@Test
 	public void testTheCatalogConnectDoesNotOutlastTheReplayWindowOfItsCaller() throws Exception {
@@ -261,7 +281,7 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 		probeDriver.refusalsLeft.set(Integer.MAX_VALUE);
 		final long startedAt = System.currentTimeMillis();
 		try {
-			storageFor(ProbeDriver.URL).newCatalogConnection(startedAt + 300, DEFAULT_BOUND, 60);
+			storageFor(ProbeDriver.URL).newCatalogConnection(startedAt + 300, HANDED_IN_BOUND, 60);
 			fail("a connect refused past the replay window of its caller was not given up on");
 		} catch (SQLTimeoutException expected) {
 			final long waited = System.currentTimeMillis() - startedAt;
@@ -278,8 +298,10 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 			// and one attempt keeps the bound the operator configured for a login of this database:
 			// the window decides how long it is worth retrying, not how long a login may take, and
 			// an attempt cut to what is left of the window is the connect dying where the pooled one
-			// beside it succeeds - the backend that stops opening
-			assertBoundedAt(probeDriver.lastProperties, CachedConnection.DEFAULT_CONNECT_TIMEOUT_SECONDS);
+			// beside it succeeds - the backend that stops opening. The bound that reaches the driver
+			// is the one handed in: cut to the window it would be a second, and read off the property
+			// instead of taken from the argument it would be the default of the pool
+			assertBoundedAt(probeDriver.lastProperties, HANDED_IN_BOUND);
 		}
 	}
 
@@ -403,6 +425,49 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 			assertTrue(probeDriver.lastProperties.isEmpty(),
 				"a connect the operator asked for no bound on was bounded anyway: " + probeDriver.lastProperties);
 			verify(con, never()).setNetworkTimeout(any(), anyInt());
+		} finally {
+			restore(previous);
+			restorePool(previousPool);
+		}
+	}
+
+	/**
+	 * The two properties reach the connect the way round they are written: the bound of one attempt
+	 * as the bound of one attempt, and the deadline of the whole wait as the deadline.
+	 * <p>
+	 * What reaches the driver cannot tell the two apart - the attempt takes the lesser of the bound
+	 * and what is left of the deadline, which is symmetric in the pair - so the line the connect
+	 * gives up with is the one observable that can: it names the deadline of the wait, and a connect
+	 * handed the pair the other way round names the bound of one attempt there. Left unpinned, a
+	 * swap of the two would reach an operator as a line sending them to raise a property that is
+	 * already higher than the one that ran out.
+	 * <p>
+	 * It costs the jvm nothing to ask: the replay window handed in is spent already, so the first
+	 * refusal ends the wait and the properties stand for one connect that is answered at once, the
+	 * way they stand in the cases above (#932).
+	 */
+	@Test
+	public void testTheCatalogConnectReadsTheTwoBoundsTheWayRoundTheyAreWritten() throws Exception {
+		// the properties themselves, this being one of the cases about the reading of them: two values
+		// far apart, and neither of them the default of the other, so that the line names which of the
+		// two it was handed
+		final String previous = System.getProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY);
+		final String previousPool = System.getProperty(CachedConnection.POOL_TIMEOUT_PROPERTY);
+		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, "5");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "120");
+		probeDriver.refusal = new SQLException("the database system is starting up", "57P03");
+		probeDriver.refusalsLeft.set(Integer.MAX_VALUE);
+		try {
+			// a replay window already spent: the first refusal is past the deadline, so there is no
+			// backoff to sleep out and no second attempt to make
+			storageFor(ProbeDriver.URL).newCatalogConnection(System.currentTimeMillis() - 1);
+			fail("a connect refused with the replay window of its caller already spent was not given up on");
+		} catch (SQLTimeoutException expected) {
+			assertEquals(probeDriver.attempts.get(), 1,
+				"a connect whose deadline was spent before it began was retried anyway");
+			assertTrue(expected.getMessage().contains(CachedConnection.POOL_TIMEOUT_PROPERTY + " is 120s"),
+				"the line named the bound of one attempt where the deadline of the wait belongs: "
+					+ expected.getMessage());
 		} finally {
 			restore(previous);
 			restorePool(previousPool);
