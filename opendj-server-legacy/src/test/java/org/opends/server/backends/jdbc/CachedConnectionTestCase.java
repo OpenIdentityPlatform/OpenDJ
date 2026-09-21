@@ -843,6 +843,9 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	 * Walked by identity rather than link by link: a driver is free to make the cause and the next
 	 * exception of a link the same failure, which is the very shape the sibling test builds, and a
 	 * helper looping on it would hang the run it is checking for exactly that.
+	 * <p>
+	 * The suppressed links along with the rest: the close of a connection whose set-up failed is
+	 * carried there (#929), and everything that prints a failure prints those too.
 	 */
 	private static void assertNoCredentials(Throwable failure) {
 		final Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
@@ -856,6 +859,9 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 				enqueue(pending, seen, ((SQLException) t).getNextException());
 			}
 			enqueue(pending, seen, t.getCause());
+			for (final Throwable suppressed : t.getSuppressed()) {
+				enqueue(pending, seen, suppressed);
+			}
 		}
 	}
 
@@ -933,6 +939,44 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		}
 		assertTrue(String.valueOf(last.getMessage()).contains("left out"),
 			"the tail a rebuild had no budget for has to say so: " + last.getMessage());
+	}
+
+	/**
+	 * A credential named by a suppressed link alone is redacted like any other. The close of a
+	 * connection whose set-up failed rides there (establish(), #929) and an interrupt that ended a
+	 * wait for a catalog connect does, and a driver names the url it could not close as readily as
+	 * the one it could not open. Left out of the walk, such a link is the one way the password of
+	 * this backend reaches the server error log as it stands: the failure it hangs on says nothing
+	 * of the url, so the failure is handed on unredacted, suppressed link and all.
+	 */
+	@Test(timeOut = 60000)
+	public void testACredentialNamedOnlyBySuppressedIsStillRedacted() throws Exception {
+		final String url = "jdbc:postgresql://opendj:S3cretOfTheBackend@127.0.0.1:5432/opendj";
+		final SQLException setupFailure = new SQLException("Connection to 127.0.0.1:5432 refused", "08006", 1);
+		setupFailure.addSuppressed(new SQLException("could not close " + url, "08003", 2));
+
+		assertNoCredentials(CachedConnection.reported(setupFailure, url));
+	}
+
+	/**
+	 * ... and the link itself survives the rebuild rather than being dropped along with the
+	 * password. A redacted failure is the only failure the deployment with a password in its url
+	 * ever sees, so a rebuild that left the suppressed links behind would answer "the set-up failed"
+	 * where the log of that deployment alone has to say "and the connection would not close either".
+	 */
+	@Test(timeOut = 60000)
+	public void testTheSuppressedLinksOfAFailureSurviveItsRedaction() throws Exception {
+		final String url = "jdbc:postgresql://opendj:S3cretOfTheBackend@127.0.0.1:5432/opendj";
+		final SQLException setupFailure = new SQLException("no transaction on " + url, "08006", 1);
+		setupFailure.addSuppressed(new SQLException("the connection would not close", "08003", 2));
+
+		final SQLException reported = CachedConnection.reported(setupFailure, url);
+
+		assertNoCredentials(reported);
+		assertEquals(reported.getSuppressed().length, 1,
+			"the rebuild of a redacted failure dropped what was suppressed on it");
+		assertTrue(String.valueOf(reported.getSuppressed()[0].getMessage()).contains("would not close"),
+			"the suppressed link of a redacted failure: " + reported.getSuppressed()[0]);
 	}
 
 	/**
@@ -1288,12 +1332,20 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 			"the session limit of an instance is cleared by a session ending");
 	}
 
-	/** A connection the setup of which failed belongs to nobody: it has to be closed, not leaked. */
+	/**
+	 * A connection the setup of which failed belongs to nobody: it has to be closed, not leaked.
+	 * <p>
+	 * And a driver that will not close is said so on the failure being unwound rather than swallowed
+	 * (#929): the connection is gone either way, but a driver refusing to close is the shape of a
+	 * leak nobody would otherwise hear about, and the failure of the set-up is the one report this
+	 * attempt makes.
+	 */
 	@Test(timeOut = 120000)
 	public void testConnectionIsClosedWhenItsSetupFails() throws Exception {
 		final String url = StubDriver.PREFIX + "setup-failure";
 		final Connection broken = mock(Connection.class);
 		doThrow(new SQLException("read only")).when(broken).setAutoCommit(false);
+		doThrow(new SQLException("will not close")).when(broken).close();
 		stub.answerWith(broken);
 
 		try {
@@ -1301,6 +1353,9 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 			fail("a connection that cannot be set up must be reported");
 		} catch (SQLException expected) {
 			assertEquals(expected.getMessage(), "read only");
+			assertEquals(expected.getSuppressed().length, 1,
+				"the failure of the close is not carried on the failure being unwound");
+			assertEquals(expected.getSuppressed()[0].getMessage(), "will not close");
 		}
 		verify(broken).close();
 	}
@@ -1311,6 +1366,7 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		final String url = StubDriver.PREFIX + "setup-unchecked";
 		final Connection broken = mock(Connection.class);
 		doThrow(new IllegalStateException("driver internal")).when(broken).setTransactionIsolation(anyInt());
+		doThrow(new IllegalStateException("will not close")).when(broken).close();
 		stub.answerWith(broken);
 
 		try {
@@ -1318,6 +1374,11 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 			fail("a connection that cannot be set up must be reported");
 		} catch (IllegalStateException expected) {
 			assertEquals(expected.getMessage(), "driver internal");
+			// the unchecked failure of a close as well: it runs from the catch of a failure it must
+			// not replace (JLS 14.20.2), which is the rule every close of this class keeps
+			assertEquals(expected.getSuppressed().length, 1,
+				"the failure of the close is not carried on the failure being unwound");
+			assertEquals(expected.getSuppressed()[0].getMessage(), "will not close");
 		}
 		verify(broken).close();
 	}
@@ -2302,17 +2363,46 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	 */
 	@Test(timeOut = 120000)
 	public void testTheBackoffOfARetriedConnectDoublesToItsCeiling() {
-		assertEquals(CachedConnection.nextBackoffMs(0), 1, "the first wait of a retry is not a millisecond");
+		// the schedule itself and not a property of it: "grows until it reaches the ceiling" is
+		// answered by every factor there is - a schedule tripling from 1 reaches 1000 in eight steps
+		// and grows at every one of them - and the factor is what the two loops share
 		long backoffMs = 0;
-		for (int attempt = 0; attempt < 20; attempt++) {
+		for (final long expected : new long[] { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1000, 1000 }) {
 			final long previous = backoffMs;
 			backoffMs = CachedConnection.nextBackoffMs(backoffMs);
-			assertTrue(backoffMs > previous || backoffMs == CachedConnection.MAX_BACKOFF_MS,
-				"the wait neither grew nor stood at its ceiling: " + previous + " -> " + backoffMs);
-			assertTrue(backoffMs <= CachedConnection.MAX_BACKOFF_MS,
-				"the wait of a retry grew past the ceiling of the schedule: " + backoffMs);
+			assertEquals(backoffMs, expected,
+				"the wait of a retry left the doubling schedule after " + previous + "ms");
 		}
-		assertEquals(backoffMs, CachedConnection.MAX_BACKOFF_MS, "the wait never reached its ceiling");
+		assertEquals(backoffMs, CachedConnection.MAX_BACKOFF_MS, "the wait of a retry is not at its ceiling");
+	}
+
+	/**
+	 * The warning about a read bound a driver would not take is throttled per consequence and not
+	 * once for the JVM, so that one connection does not report for another.
+	 * <p>
+	 * The two connections this happens to do not share a fate: a connection of the pool is closed
+	 * rather than pooled, while the one catalog connection of a backend is kept and carries the
+	 * bound of its login for the rest of its life (#929). The pool meets the failure on every
+	 * connect and the catalog once per open of the backend, so a single timestamp has the pool
+	 * silence the line about the catalog connection - and the line that did come out says the
+	 * connection was closed, of a connection that is still being read from.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheReadBoundWarningOfOneConnectionDoesNotSilenceAnother() {
+		final long now = System.currentTimeMillis();
+		final String pooled = "a connection of this pool of testTheReadBoundWarning";
+		final String catalog = "the catalog connection of backend testTheReadBoundWarning";
+		CachedConnection.lastReadBoundWarning.remove(pooled);
+		CachedConnection.lastReadBoundWarning.remove(catalog);
+
+		assertTrue(CachedConnection.readBoundWarningDue(pooled, now), "the first line about a connection was not due");
+		assertTrue(CachedConnection.readBoundWarningDue(catalog, now),
+			"a line about one connection silenced the line about another, which has no other line about it");
+
+		assertFalse(CachedConnection.readBoundWarningDue(pooled, now + 1),
+			"the same consequence was reported twice inside one interval");
+		assertTrue(CachedConnection.readBoundWarningDue(pooled, now + CachedConnection.STALL_WARNING_INTERVAL_MS),
+			"a connection carrying a bound it was never meant to keep was reported once and never again");
 	}
 
 	/**

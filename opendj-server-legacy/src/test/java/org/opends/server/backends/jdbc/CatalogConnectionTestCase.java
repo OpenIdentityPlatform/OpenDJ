@@ -126,6 +126,10 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 		// the same for the bound the connect reads off the class: a case that varies it and fails
 		// before its finally would otherwise hand its value to whatever runs after it
 		CachedConnection.readTimeoutMillis = CONFIGURED_READ_TIMEOUT_MILLIS;
+		// and for the throttle the warning about a read bound that would not take is filed in: it is
+		// a static of that class, so a case reading it would otherwise be reading whatever the case
+		// before it left there
+		CachedConnection.lastReadBoundWarning.clear();
 	}
 
 	private static JDBCStorage storageFor(String url) {
@@ -414,6 +418,10 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 	 * Both properties, which is what the pool itself says leaves a connect unbounded: the deadline of
 	 * the retry bounds the attempt where there is one, so turning the per-attempt bound off alone
 	 * leaves the attempt bounded by what is left of that deadline - the case above.
+	 * <p>
+	 * The standing read bound is pinned along with them, the way this class pins the two properties:
+	 * this connect reads {@link CachedConnection#READ_TIMEOUT_PROPERTY} as a pooled connect does, so
+	 * a JVM started with a value of it would have "unbounded" mean the bound of that value here.
 	 */
 	@Test
 	public void testTheCatalogConnectIsUnboundedWhereTheOperatorTurnedTheBoundOff() throws Exception {
@@ -423,6 +431,7 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 		final String previousPool = System.getProperty(CachedConnection.POOL_TIMEOUT_PROPERTY);
 		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, "0");
 		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "0");
+		CachedConnection.readTimeoutMillis = 0;
 		try {
 			probeDriver.lastProperties = null;
 			final Connection con = storageFor(ProbeDriver.URL).newCatalogConnection(NO_REPLAY_WINDOW);
@@ -482,14 +491,25 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 
 	/**
 	 * What the connection is handed back for: rows of its own, committed where they are written. The
-	 * read bound of the login is lifted as soon as the login is through (#872) - it is a bound of the
+	 * read bound of the login is gone as soon as the login is through (#872) - it is a bound of the
 	 * connect and not of the statements of the catalog - and the isolation is the pool's, a repeatable
 	 * read gap-locking a catalog two transactions enrol into.
+	 * <p>
+	 * The one {@code setNetworkTimeout} of this case is the standing read bound taking the place of
+	 * the bound of the login, at the 0 of a deployment that configured none: what the connection
+	 * carries afterwards is that value and not a lift followed by a second call. Pinned here for the
+	 * same reason the two bounds of the connect are handed in (#932) - the value is read off {@link
+	 * CachedConnection} on every connect, and a JVM started with {@link
+	 * CachedConnection#READ_TIMEOUT_PROPERTY} set would put its own number in this call.
 	 */
 	@Test
 	public void testTheCatalogConnectionIsSetUpForItsRows() throws Exception {
 		// the read bound is lifted only where the attempt was given one, and the attempt takes the
 		// shorter of the two bounds: a deadline of 0 leaves the per-attempt bound as the only one
+		// ... and the bound the connection carries afterwards is the standing one of #885, handed in
+		// here the way the other two are: a jvm started with the property set would otherwise put its
+		// own number in the call this case reads
+		CachedConnection.readTimeoutMillis = 0;
 		final Connection con = storageFor(ProbeDriver.URL).newCatalogConnection(NO_REPLAY_WINDOW, DEFAULT_BOUND, 0);
 		con.close();
 		verify(con).setAutoCommit(false);
@@ -518,6 +538,49 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 		assertNotNull(con, "a connection whose read bound would not come off was not handed back");
 		verify(con).setAutoCommit(false);
 		verify(con, never()).close();
+	}
+
+	/**
+	 * ... and the line an operator meets says which connection that was and what became of it. The
+	 * establish of a connect is shared with the pool now (#929), and this is the whole of what is
+	 * not: a connection of the pool that would not take the bound is closed rather than pooled,
+	 * while this one is kept and carries the bound of its login for the rest of its life - an
+	 * operator reading "closed rather than pooled" about the connection the catalog of this backend
+	 * goes on using is being told the opposite of what happened.
+	 * <p>
+	 * Read off the throttle the warning is filed in rather than off the logger: the line itself goes
+	 * to a logger with a JVM-wide interval no test can wind back, while the key of the throttle is
+	 * the consequence that was reported - which is the thing this case is about.
+	 */
+	@Test
+	public void testTheReadBoundWarningOfTheCatalogNamesTheConnectionAndWhatBecomesOfIt() throws Exception {
+		final String previous = System.getProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY);
+		final String previousPool = System.getProperty(CachedConnection.POOL_TIMEOUT_PROPERTY);
+		System.setProperty(CachedConnection.CONNECT_TIMEOUT_PROPERTY, "30");
+		System.setProperty(CachedConnection.POOL_TIMEOUT_PROPERTY, "0");
+		CachedConnection.readTimeoutMillis = 90000;
+		final Connection keeping = mock(Connection.class);
+		doThrow(new SQLFeatureNotSupportedException("no network timeout here"))
+			.when(keeping).setNetworkTimeout(any(), anyInt());
+		probeDriver.answer = keeping;
+		try {
+			storageFor(ProbeDriver.URL).newCatalogConnection(NO_REPLAY_WINDOW);
+
+			final String reported = CachedConnection.readBoundConsequence(true, 30,
+				JDBCStorage.catalogConnectionNamed("catalogProbe"), JDBCStorage.CATALOG_CONNECTION_FATE);
+			assertTrue(CachedConnection.lastReadBoundWarning.containsKey(reported),
+				"the catalog connect reported the read bound it could not lift as something else: "
+					+ CachedConnection.lastReadBoundWarning.keySet());
+			assertTrue(reported.contains("catalogProbe") && reported.contains("kept"),
+				"the line names neither the backend whose catalog connection this is nor its fate: " + reported);
+			assertFalse(CachedConnection.lastReadBoundWarning.containsKey(
+					CachedConnection.readBoundConsequence(true, 30, CachedConnection.POOLED_CONNECTION,
+						CachedConnection.POOLED_CONNECTION_FATE)),
+				"the catalog connect reported the fate of a pooled connection, which is closed rather than kept");
+		} finally {
+			restore(previous);
+			restorePool(previousPool);
+		}
 	}
 
 	/**

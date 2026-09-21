@@ -1629,9 +1629,10 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 			// transaction.
 			con.commit();
 		}catch (SQLException e) { // nothing else holds this connection yet: it would leak
-			try {
-				con.close();
-			}catch (SQLException e2) {}
+			// and a driver that will not close is said so on the failure being unwound, as it is on
+			// the two roads CachedConnection.establish() holds (#929): this connection is gone either
+			// way, and the failure of the set-up is the one report this attempt makes
+			CachedConnection.closeQuietly(con, e);
 			throw e;
 		}
 		return con;
@@ -1886,6 +1887,19 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		return timeout;
 	}
 
+	/** How this connection is named where the read bound of its login would not come off. */
+	static String catalogConnectionNamed(String backendId) {
+		return "the catalog connection of backend "+backendId;
+	}
+
+	/**
+	 * And what becomes of it, which is the whole of what this road does not share with the pool's:
+	 * the pool closes such a connection rather than pooling it, having a borrower to hand another
+	 * to, while this backend has one catalog connection and nothing behind it.
+	 */
+	static final String CATALOG_CONNECTION_FATE=
+		"it is kept as it is: this backend has one catalog connection and no second to fall back to";
+
 	/**
 	 * One attempt of {@link #newCatalogConnection}, established and set up or left holding nothing.
 	 * Failures leave here as the driver reported them, checked and unchecked alike: what a retry is
@@ -1913,8 +1927,7 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	private Connection connectCatalog(String connectionString, CachedConnection.ConnectDialect dialect,
 			long timeoutSeconds) throws SQLException {
 		return CachedConnection.establish(connectionString, dialect, timeoutSeconds,
-			"the catalog connection of backend "+config.getBackendId(),
-			"it is kept as it is: this backend has one catalog connection and no second to fall back to").con;
+			catalogConnectionNamed(config.getBackendId()), CATALOG_CONNECTION_FATE).con;
 	}
 
 	/**
