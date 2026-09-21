@@ -150,8 +150,22 @@ public final class TestEntry extends TypesTestCase {
     Entry e = newTestUserEntry();
 
     List<ByteString> missingValues = new LinkedList<>();
-    assertFalse(e.removeAttribute(
+    assertTrue(e.removeAttribute(
         Attributes.create("objectClass", "inetOrgPerson", "domain"), missingValues));
+
+    assertThat(missingValues).containsOnly(ByteString.valueOfUtf8("domain"));
+    assertThat(e.getObjectClasses().values()).containsOnly("top", "person", "organizationalPerson");
+  }
+
+  /** The same, with the missing value first: the walk must not stop at it. */
+  @Test
+  public void testRemoveObjectClassValuesTheFirstOfWhichIsMissing() throws Exception
+  {
+    Entry e = newTestUserEntry();
+
+    List<ByteString> missingValues = new LinkedList<>();
+    assertTrue(e.removeAttribute(
+        Attributes.create("objectClass", "domain", "inetOrgPerson"), missingValues));
 
     assertThat(missingValues).containsOnly(ByteString.valueOfUtf8("domain"));
     assertThat(e.getObjectClasses().values()).containsOnly("top", "person", "organizationalPerson");

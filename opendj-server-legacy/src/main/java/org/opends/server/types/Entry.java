@@ -1323,7 +1323,9 @@ public class Entry
       return true;
     }
 
-    boolean allSuccessful = true;
+    // The objectClass attribute is present as soon as the entry has an object class: a value of
+    // the modification which the entry does not have is a missing value, not an absent attribute.
+    boolean attributeTypePresent = !objectClasses.isEmpty();
 
     MatchingRule rule = attrType.getEqualityMatchingRule();
     for (ByteString v : attribute)
@@ -1343,12 +1345,11 @@ public class Entry
 
       if (!matchFound)
       {
-        allSuccessful = false;
         missingValues.add(v);
       }
     }
 
-    return allSuccessful;
+    return attributeTypePresent;
   }
 
   private boolean removeNonObjectClassAttribute(Attribute attribute, Collection<? super ByteString> missingValues)
