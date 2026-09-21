@@ -49,6 +49,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -83,12 +84,22 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 
 	/** The backend the storage of a case is configured as, which is what names its tree catalog. */
 	private static final String BACKEND_ID = "ddlLockBound";
-	/** That catalog's table, which the connection of a case answers as not being there: see engine(). */
-	private static final String NO_CATALOG_TABLE =
+	/**
+	 * That catalog's table, which the connection of a case answers as not being there (see engine()):
+	 * a case reaching {@code openTree()} therefore takes the branch that creates it.
+	 */
+	private static final String CATALOG_TABLE =
 		JDBCStorage.toTableName(new TreeName(JDBCStorage.CATALOG_BASE_DN, BACKEND_ID));
 
 	/** What the connection of a case was asked to run, in the order it was asked to run it. */
 	private final List<String> issued = new ArrayList<>();
+
+	/**
+	 * What the catalog's own connection was asked to run. The create table of the catalog is issued
+	 * on that connection rather than on the caller's ({@code CatalogSession}), so what is issued
+	 * around it is read off a list of its own instead of out of the middle of the caller's.
+	 */
+	private final List<String> catalogIssued = new ArrayList<>();
 
 	private JDBCStorage storage;
 
@@ -96,6 +107,7 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	public void createStorage() {
 		storage = new JDBCStorage(backendCfg(), null);
 		issued.clear();
+		catalogIssued.clear();
 	}
 
 	/** A configuration naming this backend, which is all any case here reads off one. */
@@ -189,6 +201,67 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	public void testAnEngineThisBackendDoesNotKnowIsLeftAlone() throws Exception {
 		storage.withDdlLockBound(recording(mock(Connection.class), "0"), null, theDdl());
 		assertEquals(issued, singletonList(THE_DDL));
+	}
+
+	/**
+	 * ... and is told so once, rather than left to be found out. {@code dialectOf()} keys on the class
+	 * name of the driver, so a mariadb, percona or aurora driver against a live mysql answers null
+	 * here - and that is a session whose {@code lock_wait_timeout} is a year, which is the wait this
+	 * bound exists to end. The strict parsing of the property exists so that a deployment which asked
+	 * for a bound is never quietly left with none, and this is the same silence one property later.
+	 */
+	@Test
+	public void testAnEngineThisBackendDoesNotKnowIsReported() throws Exception {
+		final Connection con = recording(mock(Connection.class), "0");
+
+		storage.withDdlLockBound(con, null, theDdl());
+
+		assertTrue(storage.ddlLockBoundEngineUnknownWarned.get(),
+			"a driver this backend knows no lock bound for left the wait of every DDL unbounded and unsaid");
+		final String said = storage.ddlLockBoundEngineUnknownSaid;
+		assertTrue(said != null && said.contains(JDBCStorage.driverNameOf(con)),
+			"the driver left unbounded was not named: " + said);
+		assertTrue(said != null && said.contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY),
+			"the property that would have bounded it was not named: " + said);
+	}
+
+	/**
+	 * Once per storage, not once per DDL: the line is there to be found in a log, and a copy of it
+	 * beside every create index and every drop table would bury what it says.
+	 */
+	@Test
+	public void testAnEngineThisBackendDoesNotKnowIsReportedOnce() throws Exception {
+		final Connection con = recording(mock(Connection.class), "0");
+		storage.withDdlLockBound(con, null, theDdl());
+		assertTrue(storage.ddlLockBoundEngineUnknownWarned.get(), "the first DDL on the engine said nothing");
+
+		storage.ddlLockBoundEngineUnknownSaid = null;
+		storage.withDdlLockBound(con, null, theDdl());
+
+		assertNull(storage.ddlLockBoundEngineUnknownSaid, "an engine this backend does not know was reported twice");
+	}
+
+	/** A deployment that turned the bound off asked for none anywhere, and has nothing to act on. */
+	@Test
+	public void testAWaitNobodyAskedToBoundIsNotReportedAsAnUnknownEngine() throws Exception {
+		System.setProperty(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY, "0");
+
+		storage.withDdlLockBound(recording(mock(Connection.class), "0"), null, theDdl());
+
+		assertFalse(storage.ddlLockBoundEngineUnknownWarned.get(),
+			"a bound nobody asked for was reported as an engine this backend does not know");
+	}
+
+	/**
+	 * And oracle is an engine this backend knows perfectly well: it is left to its own
+	 * {@code ddl_lock_timeout} on purpose, which is a decision rather than a gap to report.
+	 */
+	@Test
+	public void testOracleIsNotReportedAsAnEngineThisBackendDoesNotKnow() throws Exception {
+		storage.withDdlLockBound(recording(mock(Connection.class), "0"), Dialect.ORACLE, theDdl());
+
+		assertFalse(storage.ddlLockBoundEngineUnknownWarned.get(),
+			"the engine left alone deliberately was reported as one this backend cannot bound");
 	}
 
 	/** Turning the bound off costs no round trip either: the DDL waits exactly as it did before. */
@@ -556,6 +629,201 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 		when(con.getMetaData()).thenReturn(metaData);
 	}
 
+	/**
+	 * The create table of the tree catalog is the DDL of this backend that goes through neither
+	 * {@code commitStatement()} nor the drop loop: {@code openTree()} creates that table on the
+	 * catalog's own connection before it enrols the tree it is opening, and a backend upgraded from a
+	 * version that kept no catalog meets it on the open of every one of its trees.
+	 */
+	@Test
+	public void testTheCreateOfTheCatalogTableIsBounded() throws Exception {
+		final JDBCStorage bounded = storageHandingOut(engine(postgresConnection.class, "0"),
+			engine(postgresConnection.class, "0", catalogIssued));
+
+		bounded.write(txn -> txn.openTree(TREE, true));
+
+		assertEquals(firstOfTheCatalog(2), asList("set local lock_timeout = 5000",
+			"create table " + CATALOG_TABLE + " (h char(128),k bytea,v bytea,primary key(h,k))"));
+	}
+
+	/**
+	 * And it goes through the same helper every other DDL of this backend does, so the session of an
+	 * engine whose setting outlives the transaction is read back first and given its value back after
+	 * - on a connection which is not the pool's, and which the write that opened it closes.
+	 */
+	@Test
+	public void testTheCreateOfTheCatalogTableGivesMysqlItsValueBack() throws Exception {
+		final JDBCStorage bounded = storageHandingOut(engine(mysqlConnection.class, "31536000"),
+			engine(mysqlConnection.class, "31536000", catalogIssued));
+
+		bounded.write(txn -> txn.openTree(TREE, true));
+
+		assertEquals(firstOfTheCatalog(4), asList("select @@session.lock_wait_timeout",
+			"set session lock_wait_timeout=5",
+			"create table " + CATALOG_TABLE + " (h char(128),k varbinary(255),v longblob,primary key(h,k))",
+			"set session lock_wait_timeout=31536000"));
+	}
+
+	/**
+	 * A catalog connection whose bound could not be taken off again is not closed by that catch: the
+	 * catch of {@code restoreDdlLockBound()} does {@code keepOutOfThePool()} for a {@link
+	 * CachedConnection} only, and the catalog's own is never one - {@code enrolInCatalog()} still has
+	 * a row to write on it after {@code openTree()} returns. It is {@code write()}'s own {@code
+	 * finally} that closes it, once every tree of the attempt has been enrolled.
+	 */
+	@Test
+	public void testACatalogConnectionWhoseBoundCouldNotBeTakenOffStaysTheWritesConnection() throws Exception {
+		final Connection catalogCon = refusingToGiveTheValueBack(
+			engine(mysqlConnection.class, "31536000", catalogIssued), "31536000", catalogIssued);
+		final JDBCStorage bounded = storageHandingOut(engine(mysqlConnection.class, "31536000"), catalogCon);
+
+		bounded.write(txn -> {
+			txn.openTree(TREE, true);
+			verify(catalogCon, never()).close();
+		});
+
+		verify(catalogCon).close();
+	}
+
+	/**
+	 * A lock that create gave up on names the property that ended the wait, all the way out to the
+	 * operator: the failure is wrapped as the backend not being able to create the table which holds
+	 * its catalog, and a bare 55P03 inside that says nothing about which wait ended or what to raise.
+	 * <p>
+	 * Pinned on the wrapper thrown by {@code createCatalogTable()} itself, not merely on some link of
+	 * its cause chain: a wait renamed by {@code gaveUpOnTheLock()} names the property on its own, so a
+	 * wrapper that dropped the distinction and always blamed a missing privilege would still leave
+	 * that name reachable through the cause - which is the gap this asserts on the outer message too.
+	 * The outer message is the one line {@code ERR_OPEN_ENV_FAIL} carries to the operator, so the
+	 * property has to be on it and not only one link down.
+	 */
+	@Test
+	public void testALockTheCreateOfTheCatalogTableGaveUpOnNamesTheProperty() throws Exception {
+		final JDBCStorage bounded = storageHandingOut(engine(postgresConnection.class, "0"),
+			failingTheCreate(engine(postgresConnection.class, "0", catalogIssued),
+				new SQLException("canceling statement due to lock timeout", "55P03")));
+
+		try {
+			bounded.write(txn -> txn.openTree(TREE, true));
+			fail("a create of the catalog table that gave up on a lock has to reach the caller");
+		}catch (StorageRuntimeException expected) {
+			assertTrue(expected.getMessage().contains(CATALOG_TABLE), expected.getMessage());
+			assertFalse(expected.getMessage().contains("privilege"),
+				"a lock gave up on was blamed on a missing privilege: " + expected.getMessage());
+			assertTrue(expected.getMessage().contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY),
+				"the line the operator reads does not name the property that ended the wait: " + expected.getMessage());
+			assertTrue(expected.getCause() instanceof SQLTimeoutException,
+				"the lock was left as the engine reported it rather than as this bound renamed it: "
+					+ expected.getCause());
+			assertTrue(expected.getCause().getMessage().contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY),
+				expected.getCause().getMessage());
+			assertEquals(((SQLException) expected.getCause().getCause()).getSQLState(), "55P03");
+		}
+	}
+
+	/**
+	 * A lock the engine's own setting gave up on is a lock all the same, and is named as one: with the
+	 * property at 0 nothing is put on the session and the create runs bare, so a 55P03 out of a
+	 * {@code lock_timeout} the DBA set - or a 1205 out of a {@code lock_wait_timeout} already tighter
+	 * than ours, or ORA-00054 on the engine left alone - reaches the catch without the rename
+	 * {@code gaveUpOnTheLock()} gives a wait this backend's own bound ended. The catch reads the failure
+	 * the way {@code lockNotAvailable()} does, on every road, rather than by the class the rename
+	 * leaves behind on one of them: a lock another session holds is not a privilege the account lacks,
+	 * whichever bound ended the wait for it.
+	 */
+	@Test
+	public void testALockTheCreateOfTheCatalogTableMetUnderNoBoundOfOursIsStillNamedAsOne() throws Exception {
+		System.setProperty(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY, "0");
+		final SQLException lockNotAvailable = new SQLException("canceling statement due to lock timeout", "55P03");
+		final JDBCStorage unbounded = storageHandingOut(engine(postgresConnection.class, "0"),
+			failingTheCreate(engine(postgresConnection.class, "0", catalogIssued), lockNotAvailable));
+
+		try {
+			unbounded.write(txn -> txn.openTree(TREE, true));
+			fail("a create of the catalog table that gave up on a lock has to reach the caller");
+		}catch (StorageRuntimeException expected) {
+			assertTrue(expected.getMessage().contains("waited for a lock another session holds"),
+				"a lock the engine gave up on was not named as one: " + expected.getMessage());
+			assertFalse(expected.getMessage().contains("privilege"),
+				"a lock the engine gave up on was blamed on a missing privilege: " + expected.getMessage());
+			assertSame(expected.getCause(), lockNotAvailable,
+				"a wait no bound of ours ended was renamed as if one had: " + expected.getCause());
+		}
+	}
+
+	/**
+	 * And a create the bound of its own class cut short - {@code bulk.timeout}, where a deployment
+	 * gave it a value - is neither: {@code timedOut()} has already named that property, and the
+	 * wrapper carries its line rather than blame a lock the statement may not have been queued for,
+	 * or a privilege the account has.
+	 */
+	@Test
+	public void testACreateOfTheCatalogTableItsOwnBoundCancelledIsBlamedOnNeitherALockNorAPrivilege() throws Exception {
+		final SQLException cancelled = new SQLTimeoutException("jdbc: the statement took 100200 ms, reaching the"
+			+ " 100s of " + StatementBound.BULK.property, "57014", 0);
+		final JDBCStorage bounded = storageHandingOut(engine(postgresConnection.class, "0"),
+			failingTheCreate(engine(postgresConnection.class, "0", catalogIssued), cancelled));
+
+		try {
+			bounded.write(txn -> txn.openTree(TREE, true));
+			fail("a create of the catalog table its own bound cancelled has to reach the caller");
+		}catch (StorageRuntimeException expected) {
+			assertTrue(expected.getMessage().contains(StatementBound.BULK.property),
+				"the bound that cut the create short is not on the line the operator reads: " + expected.getMessage());
+			assertFalse(expected.getMessage().contains("waited for a lock another session holds"),
+				"a statement its own bound cancelled was reported as a lock wait: " + expected.getMessage());
+			assertFalse(expected.getMessage().contains("privilege"),
+				"a statement its own bound cancelled was blamed on a missing privilege: " + expected.getMessage());
+			assertSame(expected.getCause(), cancelled);
+		}
+	}
+
+	/**
+	 * What is left is the privilege the account is missing, which is what the line said before the
+	 * catch told the failures apart - kept for the failure it fits, and only for that one.
+	 */
+	@Test
+	public void testAPrivilegeTheCreateOfTheCatalogTableLacksIsNamedAsOne() throws Exception {
+		final SQLException denied = new SQLException("permission denied for schema public", "42501");
+		final JDBCStorage bounded = storageHandingOut(engine(postgresConnection.class, "0"),
+			failingTheCreate(engine(postgresConnection.class, "0", catalogIssued), denied));
+
+		try {
+			bounded.write(txn -> txn.openTree(TREE, true));
+			fail("a create of the catalog table the account may not issue has to reach the caller");
+		}catch (StorageRuntimeException expected) {
+			assertTrue(expected.getMessage().contains(CATALOG_TABLE), expected.getMessage());
+			assertTrue(expected.getMessage().contains("privilege"),
+				"a privilege the account lacks was named as something else: " + expected.getMessage());
+			assertFalse(expected.getMessage().contains("waited for a lock another session holds"),
+				"a privilege the account lacks was reported as a lock wait: " + expected.getMessage());
+			assertSame(expected.getCause(), denied, "a failure that was no lock wait was renamed");
+		}
+	}
+
+	/** The statements of the catalog's connection a case reads, without running off its end. */
+	private List<String> firstOfTheCatalog(int statements) {
+		return catalogIssued.subList(0, Math.min(statements, catalogIssued.size()));
+	}
+
+	/** A connection whose create table is the statement the engine refuses, with the given failure. */
+	private Connection failingTheCreate(final Connection con, final SQLException failure) throws SQLException {
+		// doAnswer() rather than when(): the connection has been given a prepareStatement() already, and
+		// calling it inside a when() would run that answer - which stubs a mock of its own - in the
+		// middle of this stubbing, which mockito reads as a stubbing that never named a method
+		doAnswer(invocation -> {
+			final String sql = (String) invocation.getArguments()[0];
+			catalogIssued.add(sql);
+			final PreparedStatement statement = mock(PreparedStatement.class);
+			when(statement.getConnection()).thenReturn(con);
+			if (sql.startsWith("create table ")) {
+				when(statement.executeUpdate()).thenThrow(failure);
+			}
+			return statement;
+		}).when(con).prepareStatement(anyString());
+		return con;
+	}
+
 	/** A catalog naming each of the given trees at the table its name hashes to. */
 	private static Map<TreeName, String> catalogOf(TreeName... trees) {
 		final Map<TreeName, String> catalog = new LinkedHashMap<>();
@@ -725,13 +993,19 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	 * setting with the value a session of that engine carries.
 	 */
 	private Connection recording(final Connection con, final String carries) throws SQLException {
+		return recording(con, carries, issued);
+	}
+
+	/** The same, recording into the list the statements of this connection belong in. */
+	private Connection recording(final Connection con, final String carries, final List<String> into)
+			throws SQLException {
 		final Statement statement = mock(Statement.class);
 		when(statement.execute(anyString())).thenAnswer(invocation -> {
-			issued.add((String) invocation.getArguments()[0]);
+			into.add((String) invocation.getArguments()[0]);
 			return false;
 		});
 		when(statement.executeQuery(anyString())).thenAnswer(invocation -> {
-			issued.add((String) invocation.getArguments()[0]);
+			into.add((String) invocation.getArguments()[0]);
 			final ResultSet carried = mock(ResultSet.class);
 			when(carried.next()).thenReturn(true, false);
 			when(carried.getString(1)).thenReturn(carries);
@@ -765,10 +1039,16 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 
 	/** And one that takes the bound and will not take back the value that bound displaced. */
 	private Connection refusingToGiveTheValueBack(final Connection con, final String carries) throws SQLException {
-		final Statement statement = recording(con, carries).createStatement();
+		return refusingToGiveTheValueBack(con, carries, issued);
+	}
+
+	/** The same, recording into the list the statements of this connection belong in. */
+	private Connection refusingToGiveTheValueBack(final Connection con, final String carries, final List<String> into)
+			throws SQLException {
+		final Statement statement = recording(con, carries, into).createStatement();
 		final AtomicBoolean bound = new AtomicBoolean();
 		doAnswer(invocation -> {
-			issued.add((String) invocation.getArguments()[0]);
+			into.add((String) invocation.getArguments()[0]);
 			if (!bound.compareAndSet(false, true)) {
 				throw new SQLException("the connection went before the value could be given back", "08006");
 			}
@@ -787,15 +1067,25 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	interface postgresConnection extends Connection {
 	}
 
+	/** The same for mysql, whose setting outlives the transaction and is read back and put back. */
+	interface mysqlConnection extends Connection {
+	}
+
 	/**
 	 * A connection of the given engine, recording the statements it is asked to run - the DDL among the
 	 * session settings around it - over a catalog holding the table of every tree named here.
 	 */
 	private Connection engine(Class<? extends Connection> engine, String carries) throws SQLException {
-		final Connection con = recording(mock(engine), carries);
+		return engine(engine, carries, issued);
+	}
+
+	/** The same, recording into the list the statements of this connection belong in. */
+	private Connection engine(Class<? extends Connection> engine, String carries, List<String> into)
+			throws SQLException {
+		final Connection con = recording(mock(engine), carries, into);
 		when(con.isValid(anyInt())).thenReturn(true);
 		when(con.prepareStatement(anyString())).thenAnswer(invocation -> {
-			issued.add((String) invocation.getArguments()[0]);
+			into.add((String) invocation.getArguments()[0]);
 			final PreparedStatement statement = mock(PreparedStatement.class);
 			when(statement.getConnection()).thenReturn(con);
 			return statement;
@@ -809,11 +1099,21 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 			// backend upgraded from a version that kept no catalog takes the shortest way to the funnel
 			// carrying them - the catalog would otherwise want a connection of its own, which is not a
 			// connection this mock hands out. CatalogConnectionTestCase covers that one.
-			when(tables.next()).thenReturn(!NO_CATALOG_TABLE.equals(asked), false);
+			when(tables.next()).thenReturn(!CATALOG_TABLE.equals(asked), false);
 			// the name the catalog was asked about, so that every tree of a case is found to exist
 			when(tables.getString("TABLE_NAME")).thenReturn(asked);
 			return tables;
 		});
+		// The index of a tree is found missing, which is the shortest way through openTree() to the
+		// catalog table it creates on the way: a getIndexInfo() no case answers comes back null, which
+		// is a NullPointerException inside the lookup rather than a case. The create index that then
+		// follows is issued on the caller's connection, where these cases read nothing.
+		when(metaData.getIndexInfo(any(), any(), anyString(), anyBoolean(), anyBoolean()))
+			.thenAnswer(invocation -> {
+				final ResultSet indexes = mock(ResultSet.class);
+				when(indexes.next()).thenReturn(false);
+				return indexes;
+			});
 		when(con.getMetaData()).thenReturn(metaData);
 		return con;
 	}
@@ -824,10 +1124,37 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	 * around a DDL, not the pool that produced the connection carrying them.
 	 */
 	private JDBCStorage storageHandingOut(final Connection con) {
+		return storageHandingOut(con, null);
+	}
+
+	/**
+	 * The same, handing out the given connection for the tree catalog as well: that connection is not
+	 * a pooled one - {@code CatalogSession} opens it through {@code newCatalogConnection()} - so it is
+	 * given its own seam rather than borrowed through the one above.
+	 */
+	private JDBCStorage storageHandingOut(final Connection con, final Connection catalogCon) {
 		final JDBCStorage handing = new JDBCStorage(backendCfg(), null) {
 			@Override
 			Connection getConnection(boolean trusted) {
 				return new CachedConnection("jdbc:mock", con);
+			}
+
+			@Override
+			Connection newCatalogConnection(long budgetDeadline) throws SQLException {
+				if (catalogCon == null) {
+					throw new SQLException("this case opens no catalog connection");
+				}
+				return catalogCon;
+			}
+
+			@Override
+			Connection newStampConnection(Dialect dialect) throws SQLException {
+				// The stamp of an open is no part of any case here, and commentTable() takes this for
+				// what it is - a stamp connection that could not be made, which leaves the table
+				// unstamped and the open unaffected. Answered here rather than left to fail on its own,
+				// because failing on its own means DriverManager: this suite needs no database, and a
+				// mock-only case has no business registering every jdbc driver on the classpath.
+				throw new SQLException("this case stamps nothing");
 			}
 
 			@Override
