@@ -183,10 +183,33 @@ public class ServerWriter extends DirectoryThread
        * instead. There is nothing to send to this one: the message is not part of the protocol
        * version it negotiated, and no version of it will ever reach it.
        */
-      logger.warn(WARN_IGNORING_UPDATE_UNSUPPORTED_BY_PEER,
-          handler.getReplicationServerId(), updateMsg.getCSN(), handler.getBaseDN(),
-          handler.getServerId(), session.getReadableRemoteAddress(),
-          handler.getProtocolVersion());
+      if (handler.isDataServer())
+      {
+        /*
+         * Traced rather than reported on this road: ReplicationServerDomain.put() never queues a
+         * ReplicaOfflineMsg for a directory server and says nothing when it drops it, so a copy
+         * only reaches here when the handler is catching up from the changelog, where
+         * ReplicaCursor synthesizes one from the offline CSN of the replica. That CSN never
+         * enters the state of the handler - updateServerState() leaves it out by design - so
+         * every refill of its late queue serves the copy again, and a warning per copy would
+         * report a non-event once per refill.
+         */
+        if (logger.isTraceEnabled())
+        {
+          logger.trace("Not sending update " + updateMsg.getCSN() + " for domain "
+              + handler.getBaseDN() + " to directory server " + handler.getServerId() + " at "
+              + session.getReadableRemoteAddress() + " because the replication protocol version "
+              + handler.getProtocolVersion() + " negotiated with it has no encoding for this"
+              + " message");
+        }
+      }
+      else
+      {
+        logger.warn(WARN_IGNORING_UPDATE_UNSUPPORTED_BY_PEER,
+            handler.getReplicationServerId(), updateMsg.getCSN(), handler.getBaseDN(),
+            handler.getServerId(), session.getReadableRemoteAddress(),
+            handler.getProtocolVersion());
+      }
       return true;
     }
     if (handler.isDataServer())

@@ -16,6 +16,7 @@
 package org.opends.server.replication.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.opends.messages.ReplicationMessages.WARN_IGNORING_UPDATE_UNSUPPORTED_BY_PEER;
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.util.CollectionUtils.newArrayList;
 
@@ -99,6 +100,13 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
    * published one, so the shutdown spends its whole grace period waiting for it.
    */
   private static final int UNREACHABLE_DS_ID = 98;
+  /**
+   * Base of the id of the replication server serving a peer of a chosen protocol version: the
+   * version is added to it, so that the two rows of
+   * {@link #onlyAPeerWhichCanDecodeTheMessageIsToldTheReplicaWentOffline(short, boolean)} do not
+   * share a server id.
+   */
+  private static final int PEER_VERSION_RS_ID = 8240;
   /** Send window a peer advertises when nothing has to hold its writer back. */
   private static final int PEER_WINDOW = 100;
   /**
@@ -262,12 +270,19 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
    * no encoding for such a peer and {@link Session#publish(ReplicationMsg)} drops what it cannot
    * encode. Nothing can be done about the peer itself - the announcement is not part of the
    * protocol it speaks - but the writer must not report that drop as a forward, or the shutdown
-   * stops waiting for the peers which do need the message.
+   * counts this peer as told by a writer which sent nothing - and, for an announcement no
+   * recipient was recorded for, stops waiting for the peers which do need the message.
+   * <p>
+   * The drop is reported to the operator as well, once for the copy the writer took, and that
+   * record is the only account of a peer the topology leaves behind: what it names is asserted
+   * here next to what the writer told the shutdown. The peer is waited on until it is served
+   * from its queue - see {@link #waitForFollowing(ReplicationServerDomain, int)} - so that the
+   * writer is handed the announcement once and the count is not a race.
    * <p>
    * The change published after the announcement is the synchronization point: the writer of a
    * peer takes from one queue in order, so a peer which has received that change has already
-   * dealt with the announcement which precedes it - forwarded it, or dropped it and told the
-   * shutdown to stop waiting for this peer.
+   * dealt with the announcement which precedes it - forwarded it, or dropped it, logged the drop
+   * and told the shutdown to stop waiting for this peer.
    */
   @Test(dataProvider = "peerProtocolVersions")
   public void onlyAPeerWhichCanDecodeTheMessageIsToldTheReplicaWentOffline(
@@ -282,7 +297,8 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     {
       final int replicationPort = TestCaseUtils.findFreePort();
       replicationServer = newReplicationServer(shutdownSync,
-          "shutdownSyncPeerVersion" + peerVersion + "Db", 8240 + peerVersion, replicationPort);
+          "shutdownSyncPeerVersion" + peerVersion + "Db", PEER_VERSION_RS_ID + peerVersion,
+          replicationPort);
       broker = openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
       peer = FakePeerReplicationServer.connected(
           replicationPort, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID, PEER_WINDOW, peerVersion);
@@ -290,16 +306,23 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       final ReplicationServerDomain domain =
           replicationServer.getReplicationServerDomain(baseDN, true);
       waitForConnectedReplicationServer(domain, REMOTE_RS_ID);
+      waitForFollowing(domain, REMOTE_RS_ID);
       final Future<List<ReplicationMsg>> received = peer.receiveUntil(DeleteMsg.class);
 
       final CSNGenerator csns = new CSNGenerator(LOCAL_DS_ID, 0);
       final CSN offlineCSN = csns.newCSN();
-      shutdownSync.replicaOfflineMsgSent(baseDN, offlineCSN);
-      broker.publish(new ReplicaOfflineMsg(offlineCSN));
-      broker.publish(new DeleteMsg(DN.valueOf("uid=marker," + TEST_ROOT_DN_STRING),
-          csns.newCSN(), "22222222-2222-2222-2222-222222222222"));
+      final ReplicationBroker publishingBroker = broker;
+      final AtomicReference<List<ReplicationMsg>> drained = new AtomicReference<>();
+      final List<String> records = errorLogRecordsOf(() -> {
+        shutdownSync.replicaOfflineMsgSent(baseDN, offlineCSN);
+        publishingBroker.publish(new ReplicaOfflineMsg(offlineCSN));
+        publishingBroker.publish(new DeleteMsg(DN.valueOf("uid=marker," + TEST_ROOT_DN_STRING),
+            csns.newCSN(), "22222222-2222-2222-2222-222222222222"));
+        drained.set(received.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS));
+        return null;
+      });
 
-      final List<ReplicationMsg> msgs = received.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      final List<ReplicationMsg> msgs = drained.get();
       assertThat(lastOf(msgs))
           .as("the peer never received the change published after the announcement, its read "
               + "ended with: %s", peer.failure())
@@ -329,6 +352,48 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
                 + "telling the shutdown to stop waiting for the peer it was queued for",
                 peerVersion)
             .containsExactly(REMOTE_RS_ID);
+      }
+
+      /*
+       * The records are picked by the id of the message and the peer they name rather than by
+       * their whole text: the address the writer logs is the one the replication server sees the
+       * peer on, which this side does not hold. What the record has to carry is asserted below,
+       * so that an argument dropped or permuted does not pass here.
+       */
+      final List<String> drops = new ArrayList<>();
+      for (String record : records)
+      {
+        if (record.contains("msgID=" + WARN_IGNORING_UPDATE_UNSUPPORTED_BY_PEER.ordinal())
+            && record.contains("to server " + REMOTE_RS_ID))
+        {
+          drops.add(record);
+        }
+      }
+      if (expectedToBeTold)
+      {
+        assertThat(drops)
+            .as("a message the peer speaking protocol version %s did receive was reported as "
+                + "dropped", peerVersion)
+            .isEmpty();
+      }
+      else
+      {
+        assertThat(drops)
+            .as("the drop for the peer speaking protocol version %s should be logged once",
+                peerVersion)
+            .hasSize(1);
+        /*
+         * The severity is part of what this reports: an operator reads the warnings, and a drop
+         * demoted to a trace or an info leaves the announcement lost with nothing said about it.
+         */
+        assertThat(drops.get(0))
+            .as("the drop should be reported as a warning naming this replication server, the "
+                + "domain, the change and the version it has no encoding for")
+            .contains("severity=WARNING")
+            .contains("RS(" + (PEER_VERSION_RS_ID + peerVersion) + ")")
+            .contains(offlineCSN.toString())
+            .contains("domain \"" + baseDN + "\"")
+            .contains("protocol version " + peerVersion);
       }
     }
     finally
@@ -1009,7 +1074,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     try (ServerSocket listen = TestCaseUtils.bindFreePort())
     {
       listen.setSoTimeout(SOCKET_TIMEOUT_MS);
-      replicationServer = newReplicationServer(shutdownSync, "shutdownSyncOldPeerDb", 8234);
+      replicationServer = newReplicationServer(shutdownSync, "shutdownSyncOldPeerDb", 8236);
       final Session[] sessionPair = connectSessionPair(listen, getReplSessionSecurity());
       try (Session remoteEnd = sessionPair[0];
           Session session = sessionPair[1])
@@ -1244,6 +1309,37 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
    * puts every connection accepted before it - the collocated directory server of these tests
    * among them - past it.
    */
+  /**
+   * Waits for the handler of the peer to be served from its in-memory queue rather than from the
+   * changelog.
+   * <p>
+   * A freshly connected peer is behind by definition, and a handler which is catching up reads
+   * its updates from the changelog, where {@code ReplicaCursor} synthesizes a
+   * {@link ReplicaOfflineMsg} from the offline CSN of the replica - on top of the copy
+   * {@code ReplicationServerDomain.put()} queues for it, and again on every refill of its late
+   * queue, since an offline CSN never enters the state of a handler. How many copies of one
+   * announcement its writer takes is then a race, which is a race on how many times the writer
+   * reports the drop.
+   */
+  private void waitForFollowing(final ReplicationServerDomain domain, final int serverId)
+      throws Exception
+  {
+    newConnectionTimer().repeatUntilSuccess(new TestTimer.CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        final ReplicationServerHandler rsHandler = domain.getConnectedRSs().get(serverId);
+        assertThat(rsHandler)
+            .as("the peer replication server %s is no longer connected", serverId).isNotNull();
+        assertThat(rsHandler.isFollowing())
+            .as("the peer replication server %s is still catching up from the changelog",
+                serverId)
+            .isTrue();
+      }
+    });
+  }
+
   private void waitForConnectedReplicationServer(
       final ReplicationServerDomain domain, final int serverId) throws Exception
   {
