@@ -20,6 +20,7 @@ import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
 import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,6 +49,14 @@ public class ClearReportTestCase extends DirectoryServerTestCase {
 	private static final class ReportedLines extends JDBCStorage {
 		private final List<String> lines = new ArrayList<>();
 
+		/**
+		 * What the scan of what a clear left standing answered, handed in rather than looked up: the
+		 * lists of {@code reportClearOutcome()} are the tables of a schema and the stamps they carry,
+		 * and a stamp is a comment somebody else may write. Asked of a database they would be this
+		 * backend's own tables and nothing else - which is the one input the lines are not written for.
+		 */
+		private ClearLeftovers leftovers = new ClearLeftovers();
+
 		ReportedLines() {
 			super(backendCfg(), null);
 		}
@@ -61,6 +70,16 @@ public class ClearReportTestCase extends DirectoryServerTestCase {
 		@Override
 		void reportClearLine(LocalizableMessage line) {
 			lines.add(line.toString());
+		}
+
+		@Override
+		ClearLeftovers leftoverTables(Connection con, TableScope scope) {
+			return leftovers;
+		}
+
+		/** The outcome of a clear which dropped nothing, so that the lists below are what it has to say. */
+		void reportOutcome() {
+			reportClearOutcome(null, TableScope.of(this, null, false), 0, 0, 0, new SkippedRows());
 		}
 	}
 
@@ -102,15 +121,52 @@ public class ClearReportTestCase extends DirectoryServerTestCase {
 	 */
 	@Test
 	public void testForLogBoundsHowMuchOfAValueALineCarries() {
+		// every character of its own: a value of 5000 identical ones has every substring of it equal to
+		// every other, so an escape keeping the last 200 - or every twenty-fifth - renders the same
+		// string and passes. What an operator recognises a value by is its head, and that is the thing
+		// asserted below
 		final StringBuilder huge = new StringBuilder();
 		for (int i = 0; i < 5000; i++) {
-			huge.append('x');
+			huge.append((char) ('a' + i % 26));
 		}
 		final String escaped = JDBCStorage.forLog(huge.toString());
 		assertTrue(escaped.length() < JDBCStorage.MAX_LOGGED_VALUE_LENGTH + 64,
 			"the whole of a 5000 character value reached the line: " + escaped.length() + " characters");
+		assertTrue(escaped.startsWith(huge.substring(0, JDBCStorage.MAX_LOGGED_VALUE_LENGTH)),
+			"the line does not show the head of the value it carries: " + escaped);
 		assertTrue(escaped.contains("(+" + (5000 - JDBCStorage.MAX_LOGGED_VALUE_LENGTH) + " more characters)"),
 			"the line does not say how much of the value it is not showing: " + escaped);
+	}
+
+	/**
+	 * And cuts between characters and not inside one. The cap counts code units, so a key decoded from
+	 * a four-byte sequence - a surrogate pair - can straddle it, and a cut between the two leaves a
+	 * high surrogate standing on its own: no control character, no separator, and written out as
+	 * U+FFFD or "?" by whatever encoder the log has.
+	 */
+	@Test
+	public void testForLogDoesNotCutASupplementaryCharacterInHalf() {
+		final StringBuilder value = new StringBuilder();
+		for (int i = 0; i < JDBCStorage.MAX_LOGGED_VALUE_LENGTH - 1; i++) {
+			value.append('x');
+		}
+		value.appendCodePoint(0x1F600); // two units: the second of them is on the far side of the cap
+		value.append("tail");
+
+		final String escaped = JDBCStorage.forLog(value.toString());
+		for (int i = 0; i < escaped.length(); i++) {
+			final char c = escaped.charAt(i);
+			if (Character.isHighSurrogate(c)) {
+				assertTrue(i + 1 < escaped.length() && Character.isLowSurrogate(escaped.charAt(i + 1)),
+					"a surrogate pair was cut in half at " + i + ": " + escaped);
+			}
+			assertFalse(Character.isLowSurrogate(c) && (i == 0 || !Character.isHighSurrogate(escaped.charAt(i - 1))),
+				"a low surrogate reached the line on its own at " + i + ": " + escaped);
+		}
+		// the unit given back is counted by the tail like any other: 199 kept of 205
+		assertTrue(escaped.contains("(+" + (value.length() - (JDBCStorage.MAX_LOGGED_VALUE_LENGTH - 1))
+				+ " more characters)"),
+			"the line does not count the unit the cut gave back: " + escaped);
 	}
 
 	/**
@@ -183,6 +239,52 @@ public class ClearReportTestCase extends DirectoryServerTestCase {
 		assertFalse(line.indexOf('\r') >= 0, "the line can be split in two by a value it carries: " + line);
 		assertTrue(line.contains("(and " + (100 - JDBCStorage.MAX_REPORTED_VALUES) + " more, not described here)"),
 			"the line describes every row it counted, or says nothing about the ones it left out: " + line);
+	}
+
+	/**
+	 * The other three lists a clear renders, and the road every one of them reaches a line by. They
+	 * are the {@code opendj} tables of a schema and the stamps they carry: a table name is whatever
+	 * the database was told to call it, a stamp is a comment somebody else may write, and neither is
+	 * bounded by anything this backend does - a clear of a database several backends share can meet
+	 * any number of them.
+	 */
+	@Test
+	public void testTheListsOfWhatAClearLeftStandingAreBoundedAndCarryNoControlCharacter() {
+		final ReportedLines storage = new ReportedLines();
+		for (int i = 0; i < 100; i++) {
+			storage.leftovers.ours.add("opendj_o" + i + " (/dc=x/" + SPLICED + ")");
+			storage.leftovers.unattributed.add("opendj_u" + i + SPLICED);
+			storage.leftovers.unreadable.add("opendj_r" + i + SPLICED);
+		}
+		storage.reportOutcome();
+
+		for (final String line : storage.lines) {
+			assertFalse(line.indexOf('\n') >= 0, "a line of the report can be split in two by a value it carries: " + line);
+			assertFalse(line.indexOf('\r') >= 0, "a line of the report can be split in two by a value it carries: " + line);
+		}
+		// one line per list: the count is the whole of it, the naming is the first of it, and it says
+		// how much of itself it is not showing
+		assertList(storage, "hold trees of this backend that its catalog does not name", "opendj_o0", "opendj_o99");
+		assertList(storage, "are named by no catalog of this backend and carry no tree stamp", "opendj_u0", "opendj_u99");
+		assertList(storage, "could not be read, so this clear says nothing about whose they are", "opendj_r0", "opendj_r99");
+	}
+
+	private static void assertList(ReportedLines storage, String marker, String named, String unnamed) {
+		final String line = lineHolding(storage, marker);
+		assertTrue(line.contains("100 "), "the list did not count the whole of itself: " + line);
+		assertTrue(line.contains(named), "the list does not name its first value: " + line);
+		assertFalse(line.contains(unnamed), "the list names more values than the cap allows: " + line);
+		assertTrue(line.contains("(and " + (100 - JDBCStorage.MAX_REPORTED_VALUES) + " more, not named here)"),
+			"the list does not say how many of its values it is not naming: " + line);
+	}
+
+	private static String lineHolding(ReportedLines storage, String marker) {
+		for (final String line : storage.lines) {
+			if (line.contains(marker)) {
+				return line;
+			}
+		}
+		throw new AssertionError("no line of the report says \"" + marker + "\": " + storage.lines);
 	}
 
 	/** And says nothing at all where there is nothing to say, which is every clear of a catalog this backend wrote. */

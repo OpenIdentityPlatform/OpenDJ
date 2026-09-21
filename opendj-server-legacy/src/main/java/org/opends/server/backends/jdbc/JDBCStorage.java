@@ -2929,16 +2929,23 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		final TreeName catalogTree=getCatalogTree();
 		return withDdlLockBound(con, dialectOf(con), () -> {
 			final ClearCounts counts=new ClearCounts();
+			// rows whose table was not there, and how many of them were named in a line of their own.
+			// Both are read off the catalog: a row of this kind is one another writer may have put
+			// there, so nothing this backend does bounds how many of them a clear meets, and neither
+			// value of the line is bounded either - a tree name is anything at all with two slashes in
+			// it, and the recorded name has been through isOwnTableName(), which bounds the characters
+			// of it and not the length. See MAX_REPORTED_VALUES and MAX_LOGGED_VALUE_LENGTH
+			int missingRows=0;
 			for (final Map.Entry<TreeName,String> tree : trees.entrySet()) {
 				final String tableName=tree.getValue();
 				final boolean isCatalog=catalogTree.equals(tree.getKey());
 				if (!isExistsTable(con, scope, tableName)) { // a row of the catalog outliving its table
-					// the tree name through forLog() and the table name as it stands: the second was read
-					// back out of the same row but has been through isOwnTableName(), which leaves nothing
-					// but a bare identifier, while a tree name is anything at all with two slashes in it
-					reportClearLine(LocalizableMessage.raw(
-						"jdbc: backend %s names tree %s, whose table %s is not there: nothing to drop for it",
-						config.getBackendId(), forLog(tree.getKey().toString()), tableName));
+					missingRows++;
+					if (missingRows<=MAX_REPORTED_VALUES) {
+						reportClearLine(LocalizableMessage.raw(
+							"jdbc: backend %s names tree %s, whose table %s is not there: nothing to drop for it",
+							config.getBackendId(), forLog(tree.getKey().toString()), forLog(tableName)));
+					}
 					if (!isCatalog) {
 						counts.missingTrees++;
 					}
@@ -2949,6 +2956,14 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 				if (!isCatalog) {
 					counts.droppedTrees++;
 				}
+			}
+			// said where the cap cut in, and nowhere else: the count it states is every such row, which
+			// is what missingTrees goes on counting too, so what the cap takes away is the naming and
+			// nothing an operator counts by
+			if (missingRows>MAX_REPORTED_VALUES) {
+				reportClearLine(LocalizableMessage.raw(
+					"jdbc: backend %s: %d row(s) of its catalog name a tree whose table is not there and the first %d of them are named above, the rest having gone by without a line of their own: there was nothing to drop for any of them",
+					config.getBackendId(), missingRows, MAX_REPORTED_VALUES));
 			}
 			con.commit();
 			return counts;
@@ -3166,7 +3181,15 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		if (value==null) {
 			return null;
 		}
-		final int kept=Math.min(value.length(), MAX_LOGGED_VALUE_LENGTH);
+		int kept=Math.min(value.length(), MAX_LOGGED_VALUE_LENGTH);
+		// never cut a surrogate pair in half: the cap counts code units, and a key decoded from a
+		// four-byte sequence is a pair, so a cut between the two leaves a high surrogate standing on
+		// its own - which is no control character and no separator, reaches the line as it is, and is
+		// written out as U+FFFD or "?" by whatever encoder the log has. The unit given back is counted
+		// by the tail below like any other
+		if (kept<value.length() && Character.isHighSurrogate(value.charAt(kept-1))) {
+			kept--;
+		}
 		final StringBuilder escaped=new StringBuilder(kept+32);
 		for (int i=0;i<kept;i++) {
 			final char c=value.charAt(i);
