@@ -53,7 +53,7 @@ import org.testng.annotations.Test;
  * not the address it is configured <i>as</i> -- used to be recognised by the address the
  * socket of one of its sessions happened to carry.
  * <p>
- * {@code ServerHandler.toServerAddressURL()} takes the host of a handler from
+ * {@code ReplicationServerHandler.toServerAddressURL()} takes the host of a handler from
  * {@code session.getRemoteAddress()} and its port from the start message that handler
  * received, so the address a peer is registered under is an artefact of which interface its
  * connection used, not an identity. Two things followed, and the tests below drive both:
@@ -69,7 +69,9 @@ import org.testng.annotations.Test;
  * message, which is what a peer behind a NAT looks like to the server it dials, and the
  * session the server dials that other address on reports the address it dialled, which is
  * what reaching the same peer at its configured address gives. The addresses named are
- * documentation addresses (RFC 5737), so nothing the tests do can leave the machine.
+ * documentation addresses (RFC 5737): nothing answers at them, which is what the connect
+ * thread of the server under test finds when it dials one -- a host stack sends that SYN to
+ * its default route, and the connect fails, once per pass until the peer has registered.
  */
 @SuppressWarnings("javadoc")
 public class MultiHomedPeerTest extends ReplicationTestCase
@@ -85,6 +87,12 @@ public class MultiHomedPeerTest extends ReplicationTestCase
   private static final byte[] PEER_ADDRESS = { (byte) 192, 0, 2, 1 };
   /** TEST-NET-2: the address of a second, genuinely different server. */
   private static final byte[] OTHER_ADDRESS = { (byte) 198, 51, 100, 1 };
+  /**
+   * A name under the .invalid top level domain (RFC 6761), which resolvers answer does not
+   * exist: the host name of a peer which this server has no way to resolve, and what
+   * {@code ReplicationServer.setServerURL()} falls back to naming.
+   */
+  private static final String UNRESOLVABLE_HOST = "nonexistent.invalid";
 
   /**
    * Tests that a peer which dialled this server from an address it is not configured under
@@ -94,6 +102,10 @@ public class MultiHomedPeerTest extends ReplicationTestCase
    * handler is registered under is the loopback address the peer's own connection came
    * from, and the only address which can match the configured one is the address the peer
    * named in its start message.
+   * <p>
+   * Both halves are asserted, because the predicate and the call site which reads it fail
+   * apart: what the connect thread does with a peer it finds connected is reported by the
+   * outage it closes, and an outage is recorded here for it to close.
    */
   @Test
   public void aPeerRegisteredUnderTheAddressItDialledFromIsFoundByItsConfiguredAddress()
@@ -111,6 +123,17 @@ public class MultiHomedPeerTest extends ReplicationTestCase
     {
       rs = startServerWithPeerConfiguredAt(ports[0], "multiHomedPeerSkipDb", peerAddress);
       final ReplicationServerDomain domain = rs.getReplicationServerDomain(baseDN, true);
+
+      /*
+       * An outage for the configured address, which nothing but the already connected
+       * branch of runConnect() closes: a peer that branch skips is dialled by no one, so a
+       * connection is reported for it nowhere else. Recorded from this thread rather than
+       * waited for, because whether the connect thread has dialled that address before the
+       * peer registers is a race and what is asserted below is not.
+       */
+      assertThat(rs.connect(peerAddress, baseDN))
+          .as("nothing answers at " + peerAddress).isFalse();
+
       inbound = registerPeerFrom(ports[0], peerAddress, baseDN);
       final ReplicationServerHandler registered = waitForRegistration(domain);
 
@@ -125,6 +148,10 @@ public class MultiHomedPeerTest extends ReplicationTestCase
 
       assertThat(domain.isConnectedToServerAt(peerAddress))
           .as("the peer is connected, so its configured address must not be dialled again")
+          .isTrue();
+      assertThat(waitForConnectRestored(rs, peerAddress, baseDN))
+          .as("the connect thread must find the peer at its configured address and close the"
+              + " outage reported for it, rather than dial it again")
           .isTrue();
     }
     finally
@@ -182,13 +209,132 @@ public class MultiHomedPeerTest extends ReplicationTestCase
   }
 
   /**
+   * Tests that a peer which names an address this configuration does not use is found by
+   * the address its own connection came from, which is the only one known of it.
+   * <p>
+   * The peer of the first case names the address it is configured under, and is found by
+   * it. This one is the other way round: it is configured at the address it dials this
+   * server from, and names one this topology does not configure it at -- the host name of
+   * its machine under another of its addresses, which {@code setServerURL()} falls back to.
+   * The address it names matches nothing here, so the address its session came from is what
+   * has to match.
+   */
+  @Test
+  public void aPeerWhichNamesAnAddressThisConfigurationDoesNotUseIsFoundByTheOneItDialledFrom()
+      throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final int[] ports = TestCaseUtils.findFreePorts(2);
+    final HostPort peerAddress = loopbackAt(ports[1]);
+    final HostPort namedAddress = documentationAddress(OTHER_ADDRESS, ports[1]);
+
+    ReplicationServer rs = null;
+    Session inbound = null;
+    try
+    {
+      rs = startServerWithPeerConfiguredAt(ports[0], "multiHomedPeerNamedDb", peerAddress);
+      final ReplicationServerDomain domain = rs.getReplicationServerDomain(baseDN, true);
+      inbound = registerPeerFrom(ports[0], namedAddress, baseDN);
+      final ReplicationServerHandler registered = waitForRegistration(domain);
+
+      // The precondition of the case rather than an assumption, as in the first case: a
+      // peer which names the address it is configured under is the peer of that one.
+      assertThat(registered.getServerURL())
+          .as("the peer should name the address this configuration does not use")
+          .isEqualTo(namedAddress.toString());
+      assertThat(registered.getServerAddressURL())
+          .as("the peer should be registered under the loopback address it dialled from")
+          .isEqualTo(peerAddress.toString());
+
+      assertThat(domain.isConnectedToServerAt(peerAddress))
+          .as("the address the connection of such a peer came from is the only one which"
+              + " can match the address it is configured at")
+          .isTrue();
+    }
+    finally
+    {
+      close(inbound);
+      removeQuietly(rs);
+    }
+  }
+
+  /**
+   * Tests that a peer which names a host this server cannot resolve is recognised by that
+   * name all the same, rather than reported as two servers sharing a server id.
+   * <p>
+   * {@code setServerURL()} falls back to the host name of the machine when none of the
+   * addresses a peer is configured with is local to it, and the rest of the topology has no
+   * reason to resolve that name. Both handlers of such a peer name it, so it is what tells
+   * this server they are one -- but a comparison which resolves both sides answers that a
+   * name it cannot resolve is equivalent to nothing at all, not even to itself, and the
+   * handshake this server offers such a peer would abort on a duplicate server id on every
+   * pass which reaches it.
+   */
+  @Test
+  public void aPeerWhichNamesAnUnresolvableHostIsNotReportedAsADuplicateServerId()
+      throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final int[] ports = TestCaseUtils.findFreePorts(2);
+    final HostPort peerAddress = documentationAddress(PEER_ADDRESS, ports[1]);
+    final HostPort namedAddress = new HostPort(UNRESOLVABLE_HOST, ports[1]);
+
+    ReplicationServer rs = null;
+    Session inbound = null;
+    try
+    {
+      rs = startServerWithPeerConfiguredAt(ports[0], "multiHomedPeerUnresolvedDb", peerAddress);
+      final ReplicationServerDomain domain = rs.getReplicationServerDomain(baseDN, true);
+      inbound = registerPeerFrom(ports[0], namedAddress, baseDN);
+      final ReplicationServerHandler registered = waitForRegistration(domain);
+
+      /*
+       * What the addresses are built from is read once, when the start message names them:
+       * a name which cannot be resolved is reported by HostPort each time one is built from
+       * it, and the connect thread compares them on every pass. The comparison below is the
+       * one that thread makes.
+       */
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
+      for (int pass = 0; pass < 3; pass++)
+      {
+        domain.isConnectedToServerAt(peerAddress);
+      }
+      assertThat(recordsContaining(TestCaseUtils.ERROR_TEXT_WRITER.getMessages(),
+          ERR_COULD_NOT_SOLVE_HOSTNAME.get(UNRESOLVABLE_HOST).toString()))
+          .as("comparing the addresses of a handler must not build them again")
+          .isEmpty();
+
+      final List<String> records =
+          errorLogRecordsOfHandshakeWith(rs, baseDN, peerAddress, namedAddress);
+
+      assertThat(duplicateServerIdRecords(records, rs, loopbackAt(ports[1]), peerAddress))
+          .as("a peer whose name this server cannot resolve is one server all the same, and"
+              + " every attempt to reach it would log this again")
+          .isEmpty();
+      assertThat(domain.getConnectedRSs().get(PEER_RS_ID))
+          .as("the session the peer dialled must outlive the duplicate connection")
+          .isSameAs(registered);
+    }
+    finally
+    {
+      close(inbound);
+      removeQuietly(rs);
+    }
+  }
+
+  /**
    * Tests that two genuinely different replication servers sharing a server id are still
    * reported, which is the misconfiguration the address comparison is there to catch.
    * <p>
    * Nothing is shared here: the connected peer names one address and dialled from the
    * loopback interface, and the server answering the handshake names, and is reached at,
-   * another address altogether. The two are the same server only by their server id, which
-   * is exactly what the message says.
+   * another address on the same port. The port is the same one on purpose: it is the host
+   * which tells the two servers apart, and a second port would answer the comparison before
+   * any host of it is read.
    */
   @Test
   public void twoServersSharingAServerIdAreStillReported() throws Exception
@@ -196,9 +342,9 @@ public class MultiHomedPeerTest extends ReplicationTestCase
     TestCaseUtils.startServer();
 
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
-    final int[] ports = TestCaseUtils.findFreePorts(3);
+    final int[] ports = TestCaseUtils.findFreePorts(2);
     final HostPort peerAddress = documentationAddress(PEER_ADDRESS, ports[1]);
-    final HostPort otherAddress = documentationAddress(OTHER_ADDRESS, ports[2]);
+    final HostPort otherAddress = documentationAddress(OTHER_ADDRESS, ports[1]);
 
     ReplicationServer rs = null;
     Session inbound = null;
@@ -460,6 +606,35 @@ public class MultiHomedPeerTest extends ReplicationTestCase
   }
 
   /**
+   * Waits for the connect thread to report the peer at the provided address connected,
+   * driving a pass rather than waiting one out.
+   * <p>
+   * That report is what the already connected branch of {@code runConnect()} does with a
+   * peer it finds registered, and the only thing this server does with one: the branch
+   * which dials a peer reports a connection only for a handshake it completed, which the
+   * documentation address of these tests never gives.
+   */
+  private boolean waitForConnectRestored(ReplicationServer rs, HostPort peer, DN baseDN)
+      throws Exception
+  {
+    final String message =
+        NOTE_REPLICATION_SERVER_CONNECT_RESTORED.get(RS_ID, peer, baseDN).toString();
+    final long deadline = System.currentTimeMillis() + REGISTRATION_TIMEOUT_MS;
+    while (true)
+    {
+      if (!recordsContaining(TestCaseUtils.ERROR_TEXT_WRITER.getMessages(), message).isEmpty())
+      {
+        return true;
+      }
+      if (System.currentTimeMillis() > deadline)
+      {
+        return false;
+      }
+      rs.waitConnections();
+    }
+  }
+
+  /**
    * Returns the records of the provided log which report the two provided address URLs as
    * two replication servers sharing a server id.
    * <p>
@@ -469,8 +644,13 @@ public class MultiHomedPeerTest extends ReplicationTestCase
   private List<String> duplicateServerIdRecords(List<String> records,
       ReplicationServer rs, HostPort connectedAs, HostPort reachedAt)
   {
-    final String message = ERR_DUPLICATE_REPLICATION_SERVER_ID.get(
-        rs.getMonitorInstanceName(), connectedAs, reachedAt, PEER_RS_ID).toString();
+    return recordsContaining(records, ERR_DUPLICATE_REPLICATION_SERVER_ID.get(
+        rs.getMonitorInstanceName(), connectedAs, reachedAt, PEER_RS_ID).toString());
+  }
+
+  /** Returns the records of the provided log which carry the provided message. */
+  private List<String> recordsContaining(List<String> records, String message)
+  {
     final List<String> results = newArrayList();
     for (String record : records)
     {

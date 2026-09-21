@@ -57,11 +57,13 @@ public class ReplicationServerHandler extends ServerHandler
   /** Properties filled only if remote server is a RS. */
   private String serverAddressURL;
   /**
-   * The addresses the remote replication server is known by, resolved once, when its start
+   * The addresses the remote replication server is known by, built once, when its start
    * message names it: the connect thread compares them on every one of its passes, and
    * {@link HostPort} logs a name it cannot resolve each time it is built from one -- which
    * the fall back of {@code ReplicationServer.setServerURL()} to the host name of the
-   * machine makes an ordinary thing for a peer to name.
+   * machine makes an ordinary thing for a peer to name. What the comparison of two of them
+   * resolves is reported nowhere above trace, so building them once is what keeps that name
+   * out of the error log rather than what keeps it out of the resolver.
    */
   private List<HostPort> addresses = Collections.emptyList();
   /**
@@ -771,6 +773,16 @@ public class ReplicationServerHandler extends ServerHandler
    * under in its own configuration, which is the one the rest of the topology configures it
    * at as well, while the address its session came from is the only one known of a server
    * which names an address this configuration does not use.
+   * <p>
+   * A name neither end can resolve is compared as the name it is, which is what
+   * {@link HostPort#equals(Object)} does with it: {@link HostPort#isEquivalentTo(HostPort)}
+   * resolves both hosts and answers {@code false} for a name it cannot resolve, even
+   * against that same name. The peer which names one is the peer of the fall back of
+   * {@code ReplicationServer.setServerURL()}, whose own host name the rest of the topology
+   * has no reason to resolve, and it is the peer the addresses are there for. What that
+   * gives up is two servers which share a server id and both name one unresolvable name on
+   * one port: they are read as one, as two servers which name the same resolvable address
+   * already are.
    *
    * @param address
    *          a configured address of a replication server
@@ -780,7 +792,7 @@ public class ReplicationServerHandler extends ServerHandler
   {
     for (HostPort known : addresses)
     {
-      if (address.isEquivalentTo(known))
+      if (address.equals(known) || address.isEquivalentTo(known))
       {
         return true;
       }

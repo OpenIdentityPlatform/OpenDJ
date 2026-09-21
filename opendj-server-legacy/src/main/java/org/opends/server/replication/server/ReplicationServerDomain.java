@@ -1046,6 +1046,15 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   /**
    * Returns whether this domain already holds a session with the replication
    * server configured at the provided address.
+   * <p>
+   * A connected server answers to the address its session came from and to the address it
+   * named in its start message, and the second of the two is what that server says of
+   * itself: a peer which names an address this configuration gives to another replication
+   * server hides that one from the connect thread, which then dials nothing for it and
+   * reports it connected while it is down. A replication server names itself from its own
+   * configuration ({@code ReplicationServer.setServerURL()}), so that takes two of them
+   * configured at one address -- a configuration copied whole, or two sites whose private
+   * ranges overlap -- and the peer it hides is still the one which dials this server.
    *
    * @param address
    *          the configured address of a replication server
