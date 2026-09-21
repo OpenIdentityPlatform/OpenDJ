@@ -2580,9 +2580,10 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 
 	/**
 	 * What a clear leaves standing it reports, and it reports it as what it is: a table stamped with a
-	 * tree of a base DN this backend serves is its own and can be removed by hand, while a table of a
-	 * backend sharing this database (#873) is that backend's business and no part of this outcome.
-	 * Told apart by the stamp of #866 and by nothing else - a table name is a bare hash.
+	 * tree of a base DN this backend serves, or with one of the trees this backend names after its own
+	 * id, is its own and can be removed by hand, while a table of a backend sharing this database
+	 * (#873) is that backend's business and no part of this outcome. Told apart by the stamp of #866
+	 * and by nothing else - a table name is a bare hash.
 	 */
 	@Test
 	public void testAClearReportsTheTablesItCanAttributeToThisBackend() throws Exception {
@@ -2593,6 +2594,9 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		final DN neighbourBaseDN = DN.valueOf("dc=clear-report-neighbour,dc=com");
 		final TreeName neighbourTree = new TreeName(neighbourBaseDN.toNormalizedUrlSafeString(), "id2entry");
 		final JDBCStorage storage = new JDBCStorage(createBackendCfg(getBackendId() + "_reported", baseDN), null);
+		// one of the pair this backend names after its own id (#881) rather than after a base DN: such
+		// a table is this backend's own by a term of the decision that no base DN of it can answer for
+		final TreeName ownSchema = new TreeName(storage.ownCompressedSchemaBaseDN(), "compressed_attributes");
 		final JDBCStorage neighbour =
 			new JDBCStorage(createBackendCfg(getBackendId() + "_reportedNeighbour", neighbourBaseDN), null);
 		try {
@@ -2601,6 +2605,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				@Override
 				public void run(WriteableTransaction txn) throws Exception {
 					txn.openTree(owned, true);
+					txn.openTree(ownSchema, true);
 				}
 			});
 			neighbour.open(AccessMode.READ_WRITE);
@@ -2630,6 +2635,8 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 					"a table of a base DN this backend serves was not reported as its own: " + leftovers.ours);
 				assertFalse(leftovers.unattributed.toString().toLowerCase().contains(storage.getTableName(owned).toLowerCase()),
 					"a table this backend can name was reported as attributable to nobody: " + leftovers.unattributed);
+				assertTrue(leftovers.ours.toString().toLowerCase().contains(storage.getTableName(ownSchema).toLowerCase()),
+					"a table of this backend's own compressed schema pair was not reported as its own: " + leftovers.ours);
 				assertTrue(leftovers.unreadable.isEmpty(),
 					"the stamp of a table this database does give up was reported as unreadable: " + leftovers.unreadable);
 			}
@@ -2640,6 +2647,7 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			// purpose is dropped here by hand, as the report says such a table has to be
 			clearQuietly(storage);
 			dropTableIfExists(storage.getTableName(owned));
+			dropTableIfExists(storage.getTableName(ownSchema));
 		}
 	}
 
@@ -2666,6 +2674,11 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			assertNotNull(theirs, "the database would not say which tables the neighbour is holding");
 			assertTrue(theirs.ours.toString().toLowerCase().contains(other.getTableName(otherTree).toLowerCase()),
 				"the table left unreported is one the scan does not reach at all: " + theirs.ours);
+			// and the catalog standing beside it is that backend's own: the clear of the case above
+			// dropped its own catalog by hand, so this is where a catalog is there to be reported
+			assertTrue(theirs.ours.toString().toLowerCase()
+					.contains(other.getTableName(other.getCatalogTree()).toLowerCase()),
+				"a backend's own standing catalog was not reported as its own: " + theirs.ours);
 		}
 	}
 

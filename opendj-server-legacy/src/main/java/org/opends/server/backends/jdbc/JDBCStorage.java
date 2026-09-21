@@ -1104,8 +1104,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * The catalog is per backend and named after the backend id alone: a process that has opened
 	 * nothing can still find its table, and backends sharing one database URL - which nothing
 	 * forbids (#873) - never name each other's trees. The id goes in escaped, for the reason {@link
-	 * #escapedBackendId} states: a name that does not survive being read back is a table of this
-	 * backend that its own clear cannot recognize.
+	 * OwnNames#escapedBackendId} states: a name that does not survive being read back is a table of
+	 * this backend that its own clear cannot recognize.
 	 * <p>
 	 * Built once and remembered; see {@link OwnNames}.
 	 */
@@ -2603,24 +2603,8 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * <p>
 	 * Built once and remembered; see {@link OwnNames}.
 	 */
-	private String ownCompressedSchemaBaseDN() {
+	String ownCompressedSchemaBaseDN() {
 		return ownNames().compressedSchemaBaseDN;
-	}
-
-	/**
-	 * The backend id as one component of a tree name. A tree name is {@code /<base DN>/<id>} and is
-	 * read back by splitting on its slashes ({@code TreeName.valueOf}), so an id carrying one of them
-	 * would name a tree that parses into another tree than it was built from - and a table is stamped
-	 * with that name (#866), so a clear reading the stamp of a table of this backend's own would then
-	 * fail to recognize it and pass it over in silence. The escape is the one {@code
-	 * PersistentCompressedSchema} spells its own prefix with, percent first so that the escape of the
-	 * slash cannot be produced twice, and it leaves an id of the ordinary shape exactly as it is -
-	 * which is what keeps the table names of an installation unchanged.
-	 * <p>
-	 * Escaped once and remembered; see {@link OwnNames}.
-	 */
-	private String escapedBackendId() {
-		return ownNames().escapedBackendId;
 	}
 
 	/**
@@ -2643,6 +2627,16 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * call sites is already paying a round trip to the database.
 	 */
 	private static final class OwnNames {
+		/**
+		 * The backend id as one component of a tree name. A tree name is {@code /<base DN>/<id>} and is
+		 * read back by splitting on its slashes ({@code TreeName.valueOf}), so an id carrying one of
+		 * them would name a tree that parses into another tree than it was built from - and a table is
+		 * stamped with that name (#866), so a clear reading the stamp of a table of this backend's own
+		 * would then fail to recognize it and pass it over in silence. The escape is the one {@code
+		 * PersistentCompressedSchema} spells its own prefix with, percent first so that the escape of
+		 * the slash cannot be produced twice, and it leaves an id of the ordinary shape exactly as it
+		 * is - which is what keeps the table names of an installation unchanged.
+		 */
 		final String escapedBackendId;
 		final TreeName catalogTree;
 		final String compressedSchemaBaseDN;

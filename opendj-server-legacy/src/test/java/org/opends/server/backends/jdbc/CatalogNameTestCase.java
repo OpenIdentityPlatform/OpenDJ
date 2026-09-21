@@ -63,4 +63,41 @@ public class CatalogNameTestCase extends DirectoryServerTestCase {
 		assertEquals(storage.getCatalogTree(), built,
 			"the catalog followed a backend id changed under the storage, naming a table nothing created");
 	}
+
+	/**
+	 * The second name built from the id, the base DN of this backend's own pair of compressed schema
+	 * trees (#881), is pinned for the reason the catalog is: the pair stands under the id the storage
+	 * created it with, and a name read again from a configuration that has moved would leave a clear
+	 * reporting this backend's own pair as a table attributable to nobody.
+	 */
+	@Test
+	public void testTheCompressedSchemaNameKeepsTheBackendIdTheStorageWasBuiltWith() {
+		final JDBCStorage storage = storageFor("pinnedBackend");
+		final String built = storage.ownCompressedSchemaBaseDN();
+		assertEquals(built, JDBCStorage.SHARED_COMPRESSED_SCHEMA_BASE_DN + "_pinnedBackend");
+
+		final JDBCBackendCfg renamed = mockCfg(JDBCBackendCfg.class);
+		when(renamed.getBackendId()).thenReturn("renamedBackend");
+		storage.applyConfigurationChange(renamed);
+
+		assertEquals(storage.ownCompressedSchemaBaseDN(), built,
+			"the compressed schema pair followed a backend id changed under the storage");
+	}
+
+	/**
+	 * Both names carry the id escaped, and escaped the way {@code PersistentCompressedSchema} spells
+	 * the prefix of the same pair: the percent first, so that the escape of a slash cannot itself be
+	 * escaped a second time. A tree name is {@code /<base DN>/<id>} and is read back by splitting on
+	 * its slashes, so an id spelled into one unescaped names a tree that parses into another tree
+	 * than it was built from - and the clear reading the stamp of such a table would pass a table of
+	 * this backend's own over in silence. An id of that shape is possible: {@code backend-id} is a
+	 * plain string in the configuration definition, constrained to nothing.
+	 */
+	@Test
+	public void testBothNamesEscapeTheSlashAndThePercentOfTheBackendId() {
+		final JDBCStorage storage = storageFor("a/b%c");
+		assertEquals(storage.getCatalogTree(), new TreeName(JDBCStorage.CATALOG_BASE_DN, "a%2Fb%25c"));
+		assertEquals(storage.ownCompressedSchemaBaseDN(),
+			JDBCStorage.SHARED_COMPRESSED_SCHEMA_BASE_DN + "_a%2Fb%25c");
+	}
 }
