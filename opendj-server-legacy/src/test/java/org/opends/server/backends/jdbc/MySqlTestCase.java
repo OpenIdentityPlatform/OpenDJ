@@ -25,6 +25,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -83,12 +84,94 @@ public class MySqlTestCase extends TestCase {
             } catch (SQLException refused) {
                 assertEquals(refused.getErrorCode(), 1226,
                     "the server reports a per-account connection limit as: " + refused);
+                // the resource is what tells this code from the ones no wait clears, and the server
+                // writes it as a literal of its own: read here from the server rather than assumed
+                assertTrue(refused.getMessage().contains("'max_user_connections'"),
+                    "the server names the resource of the concurrent limit as: " + refused.getMessage());
                 assertTrue(CachedConnection.isWorthRetrying(refused, CachedConnection.ConnectDialect.of(limited)),
                     "a borrow must wait a per-account limit out rather than fail on it: " + refused);
             }
         } finally {
             grant(url, "drop user if exists 'limited1011'@'%'");
         }
+    }
+
+    /**
+     * The connections an account is granted per hour carry the same 1226 as the ones it may hold at
+     * once, and only the top of the hour clears them: a borrow waiting one out would park a worker
+     * thread in every attempt for as long as the hour lasts. What tells the two apart is the
+     * resource the server names, and this pins that name against the server itself (#1011).
+     */
+    @Test(timeOut = 120000)
+    public void testTheHourlyConnectionLimitIsNotWorthRetrying() throws Exception {
+        final String url = getJdbcUrl();
+        final String limited = url.replace("root:password", "perhour1011:secret");
+        grant(url, "drop user if exists 'perhour1011'@'%'",
+            "create user 'perhour1011'@'%' identified by 'secret' with max_connections_per_hour 1",
+            "grant all on database_name.* to 'perhour1011'@'%'");
+        try {
+            try (final Connection spent = DriverManager.getConnection(limited)) {
+                assertTrue(spent.isValid(CachedConnection.VALIDATION_TIMEOUT_SECONDS),
+                    "the account is refused the one connection of its hour already");
+            }
+            try (final Connection second = DriverManager.getConnection(limited)) {
+                fail("an account granted one connection an hour must be refused a second: " + second);
+            } catch (SQLException refused) {
+                assertEquals(refused.getErrorCode(), 1226,
+                    "the server reports an hourly connection limit as: " + refused);
+                assertTrue(refused.getMessage().contains("'max_connections_per_hour'"),
+                    "the server names the hourly resource as: " + refused.getMessage());
+                assertFalse(CachedConnection.isWorthRetrying(refused, CachedConnection.ConnectDialect.of(limited)),
+                    "an hourly limit must be reported rather than waited out: " + refused);
+            }
+        } finally {
+            grant(url, "drop user if exists 'perhour1011'@'%'");
+        }
+    }
+
+    /**
+     * The queries an account is granted per hour are named by the server without the _per_hour of
+     * the GRANT keyword - max_questions - and they reach this gate on the road it guards: an
+     * account whose quota is spent is refused the connect itself, Connector/J spending what is
+     * left of the quota on the queries of its own login. Waited out, that would cost every borrow
+     * and every catalog connect the whole deadline of the pool until the hour turned (#1011).
+     */
+    @Test(timeOut = 120000)
+    public void testTheHourlyQueryLimitIsNotWorthRetrying() throws Exception {
+        final String url = getJdbcUrl();
+        final String limited = url.replace("root:password", "hourly1011:secret");
+        grant(url, "drop user if exists 'hourly1011'@'%'",
+            "create user 'hourly1011'@'%' identified by 'secret' with max_queries_per_hour 1",
+            "grant all on database_name.* to 'hourly1011'@'%'");
+        try {
+            final SQLException refused = spendTheHourlyQueries(limited);
+            assertEquals(refused.getErrorCode(), 1226,
+                "the server reports an hourly query limit as: " + refused);
+            assertTrue(refused.getMessage().contains("'max_questions'"),
+                "the server names the hourly query resource as: " + refused.getMessage());
+            assertFalse(CachedConnection.isWorthRetrying(refused, CachedConnection.ConnectDialect.of(limited)),
+                "an hourly query limit must be reported rather than waited out: " + refused);
+        } finally {
+            grant(url, "drop user if exists 'hourly1011'@'%'");
+        }
+    }
+
+    /**
+     * Spends the hourly query quota of an account and hands back what the server refused it with.
+     * The connect is attempted rather than one statement over a connection held open, since the
+     * login of the driver spends the quota as readily as a statement does: whichever of the two
+     * meets the limit, the failure is the one a borrow of this pool would catch.
+     */
+    private static SQLException spendTheHourlyQueries(String url) throws SQLException {
+        for (int attempt = 0; attempt < 4; attempt++) {
+            try (final Connection con = DriverManager.getConnection(url);
+                 final Statement st = con.createStatement()) {
+                st.execute("select 1");
+            } catch (SQLException refused) {
+                return refused;
+            }
+        }
+        throw new AssertionError("an account granted one query an hour must be refused within four connects");
     }
 
     /** The account of the test is made and unmade on the connection of the suite's own credentials. */

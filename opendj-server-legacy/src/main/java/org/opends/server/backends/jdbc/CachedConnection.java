@@ -939,6 +939,14 @@ public class CachedConnection implements Connection {
          * the rest of it, which is why it can be read there (#1011).
          */
         final int[] accountLimitCodes;
+        /**
+         * The resource such a code names, as the server writes it: quoted, lower case and starting
+         * in max_, which is what every resource of ER_USER_LIMIT_REACHED is called - and what the
+         * user name beside it in the same message is not, save for an account named after one.
+         */
+        private static final Pattern GRANTED_RESOURCE = Pattern.compile("'(max_[a-z_]+)'");
+        /** the one resource of those codes that a connection of this pool going back clears */
+        private static final String CONCURRENT_ACCOUNT_LIMIT = "max_user_connections";
 
         ConnectDialect(String urlPrefix, char parameterSeparator,
                        String[] connectProperties, int connectUnitsPerSecond, long maxConnectSeconds,
@@ -1047,22 +1055,52 @@ public class CachedConnection implements Connection {
             }
             // asked of the message of this link and not of the failure as a whole: a wrapper is
             // free to carry the text of something else entirely beside the code of this one
-            return contains(accountLimitCodes, errorCode) && !namesAnHourlyResource(e.getMessage());
+            return contains(accountLimitCodes, errorCode) && !namesALimitNoConnectionClears(e.getMessage());
         }
 
         /**
-         * Whether the message of a failure names a resource an account is granted per hour. Every
-         * one of them ends in _per_hour - max_connections_per_hour is the one a connect meets,
-         * max_queries_per_hour and max_updates_per_hour reach a statement - so the suffix is asked
-         * for rather than the three names: a resource added to that family would otherwise be
-         * waited out an hour long, a borrow at a time, with a worker thread parked in each of them.
-         * A message naming none of them - a proxy that rewrote it, a driver that kept the code and
-         * dropped the text - is taken for the concurrent limit: that is the one an account is given
-         * in practice, the wait it costs is bounded by the deadline of the borrow, and reading it
-         * as permanent fails an operation a connection of ours coming back would have served.
+         * Whether the message of a failure names a resource of an account that no connection of
+         * this pool coming back can clear.
+         * <p>
+         * The resource is asked for by name rather than by the shape of the name: mysql fills it
+         * into ER_USER_LIMIT_REACHED - "User '%s' has exceeded the '%s' resource (current value:
+         * %ld)" - as a literal of its own, and the literals are not the keywords of GRANT.
+         * Measured against mysql:9.2, a grant of MAX_USER_CONNECTIONS is named
+         * max_user_connections and MAX_CONNECTIONS_PER_HOUR is named max_connections_per_hour,
+         * while MAX_QUERIES_PER_HOUR and MAX_UPDATES_PER_HOUR are named max_questions and
+         * max_updates - two of the three granted per hour carrying no _per_hour about them, so a
+         * suffix is no way to tell the families apart.
+         * <p>
+         * What is asked instead is the one resource of this code a wait does clear: the
+         * connections this account may hold at once are held by this pool, and one of them is on
+         * its way back. Everything else the server names is left to the caller - the resources
+         * granted per hour are cleared by the top of the hour and nothing else, and waiting one of
+         * those out would cost every borrow the whole deadline of the pool, a worker thread parked
+         * in each, for as long as the hour lasts, with the message naming the resource hidden
+         * behind a timeout. A resource this code carries and this server has yet to be given is
+         * treated the same way: reported, the way master reported every one of them.
+         * <p>
+         * A message naming no resource at all - a proxy that rewrote it, a driver that kept the
+         * code and dropped the text - is taken for the concurrent limit: that is the one an
+         * account is given in practice, the wait it costs is bounded by the deadline of the
+         * borrow, and reading it as permanent fails an operation a connection of ours coming back
+         * would have served. The literal is read wherever it stands rather than out of the
+         * sentence around it, since the sentence is the server's to translate while the resource
+         * it fills in is not (#1011).
          */
-        private static boolean namesAnHourlyResource(String message) {
-            return message != null && message.contains("_per_hour");
+        private static boolean namesALimitNoConnectionClears(String message) {
+            if (message == null) {
+                return false;
+            }
+            final Matcher resource = GRANTED_RESOURCE.matcher(message);
+            boolean named = false;
+            while (resource.find()) {
+                if (CONCURRENT_ACCOUNT_LIMIT.equals(resource.group(1))) {
+                    return false; // the limit of this account on the connections this pool holds
+                }
+                named = true;
+            }
+            return named;
         }
 
         private static boolean contains(int[] codes, int code) {

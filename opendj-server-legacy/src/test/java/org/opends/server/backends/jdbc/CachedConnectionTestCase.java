@@ -1137,6 +1137,54 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
+	 * ... and the resource is read by the name the server gives it rather than by the shape of that
+	 * name: the queries an account is granted per hour are named max_questions, with no _per_hour
+	 * about them (measured against mysql:9.2). This one reaches the road this gate guards - an
+	 * account whose quota is spent is refused the connect itself, Connector/J spending what is left
+	 * of it on the queries of its own login - so a wait would park a worker thread in every borrow
+	 * and every catalog connect until the hour turns, with the message naming the resource hidden
+	 * behind the timeout of the borrow.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheHourlyQueryLimitOfAMysqlAccountIsNotRetried() {
+		assertFalse(CachedConnection.isWorthRetrying(
+				new SQLException("User 'opendj' has exceeded the 'max_questions' resource (current value: 5)",
+					"42000", 1226),
+				CachedConnection.ConnectDialect.of("jdbc:mysql://db.example.com:3306/opendj")),
+			"the queries granted per hour are named max_questions, and no connection coming back clears them");
+	}
+
+	/**
+	 * The same for the updates granted per hour, which the server names max_updates: this one is met
+	 * by a statement that changes data rather than by a connect, so it reaches this gate only where
+	 * a driver hands the pool a failure of something else entirely - and it is no more cleared by a
+	 * connection coming back than the queries are.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheHourlyUpdateLimitOfAMysqlAccountIsNotRetried() {
+		assertFalse(CachedConnection.isWorthRetrying(
+				new SQLException("User 'opendj' has exceeded the 'max_updates' resource (current value: 5)",
+					"42000", 1226),
+				CachedConnection.ConnectDialect.of("jdbc:mysql://db.example.com:3306/opendj")),
+			"the updates granted per hour are named max_updates, and no connection coming back clears them");
+	}
+
+	/**
+	 * A resource this code carries that this server has yet to be given is reported rather than
+	 * waited out: what the wait clears is the connections of this pool, and a resource nobody here
+	 * has heard of is not those. That is what master did with every one of these codes, so an
+	 * unknown resource costs a borrow nothing it did not cost before (#1011).
+	 */
+	@Test(timeOut = 120000)
+	public void testAMysqlResourceThisGateDoesNotKnowIsNotRetried() {
+		assertFalse(CachedConnection.isWorthRetrying(
+				new SQLException("User 'opendj' has exceeded the 'max_statements_per_minute' resource"
+					+ " (current value: 5)", "42000", 1226),
+				CachedConnection.ConnectDialect.of("jdbc:mysql://db.example.com:3306/opendj")),
+			"a resource of this code that is not the concurrent limit is the caller's to see");
+	}
+
+	/**
 	 * A 1226 that names no resource - a proxy that rewrote the message, a driver that kept the code
 	 * and not the text - is waited out rather than reported: the concurrent limit is the one an
 	 * account is given in practice, the wait it costs is bounded by the deadline of the borrow, and
@@ -1147,6 +1195,14 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		assertTrue(CachedConnection.isWorthRetrying(new SQLException("connection rejected", "42000", 1226),
 				CachedConnection.ConnectDialect.of("jdbc:mysql://db.example.com:3306/opendj")),
 			"a limit whose resource is not named is taken for the concurrent one");
+	}
+
+	/** ... which is the message of a driver that kept the code and dropped the text: none at all. */
+	@Test(timeOut = 120000)
+	public void testAMysqlAccountLimitWithNoMessageIsRetried() {
+		assertTrue(CachedConnection.isWorthRetrying(new SQLException(null, "42000", 1226),
+				CachedConnection.ConnectDialect.of("jdbc:mysql://db.example.com:3306/opendj")),
+			"a limit arriving without a message is taken for the concurrent one rather than thrown at");
 	}
 
 	/**
@@ -1161,6 +1217,36 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 					+ " unblock with 'mysqladmin flush-hosts'", "HY000", 1129),
 				CachedConnection.ConnectDialect.of("jdbc:mysql://db.example.com:3306/opendj")),
 			"a blocked host is cleared by an administrator, not by waiting");
+	}
+
+	/**
+	 * The resource is read off the link the code arrived on, not off the failure as a whole: a
+	 * wrapper - a proxy, a DataSource of a container - is free to carry the text of something else
+	 * entirely above the exception that carries the code, and a verdict made of the two together
+	 * belongs to neither of them.
+	 */
+	@Test(timeOut = 120000)
+	public void testTheResourceIsReadOffTheLinkCarryingTheCode() {
+		final SQLException wrapped = new SQLException("could not connect: the account has exceeded the"
+			+ " 'max_connections_per_hour' resource", "08006",
+			new SQLException("User 'opendj' has exceeded the 'max_user_connections' resource (current value: 4)",
+				"42000", 1226));
+
+		assertTrue(CachedConnection.isWorthRetrying(wrapped,
+				CachedConnection.ConnectDialect.of("jdbc:mysql://db.example.com:3306/opendj")),
+			"the resource of the link carrying the code is what the verdict is made of");
+	}
+
+	/** ... and the other way around: the text of the wrapper decides nothing for the code beneath it. */
+	@Test(timeOut = 120000)
+	public void testTheResourceOfAWrapperDecidesNothing() {
+		final SQLException wrapped = new SQLException("could not connect to the server", "08006",
+			new SQLException("User 'opendj' has exceeded the 'max_connections_per_hour' resource (current value: 5)",
+				"42000", 1226));
+
+		assertFalse(CachedConnection.isWorthRetrying(wrapped,
+				CachedConnection.ConnectDialect.of("jdbc:mysql://db.example.com:3306/opendj")),
+			"an hourly limit stays an hourly limit under a wrapper that names no resource");
 	}
 
 	/**
