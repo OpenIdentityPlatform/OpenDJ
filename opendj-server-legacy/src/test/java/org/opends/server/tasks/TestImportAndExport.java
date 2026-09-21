@@ -20,12 +20,14 @@ package org.opends.server.tasks;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.reflect.Field;
 import java.util.UUID;
 
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.TestTaskListener;
+import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BackendConfigManager;
@@ -390,7 +392,10 @@ public class TestImportAndExport extends TasksTestCase
   /**
    * An import which cannot disable its backend must still tell the import task listeners
    * that the import is over: a listener which took something offline when the import began
-   * - a replication domain disables itself - has no other chance to put it back.
+   * - a replication domain disables itself - has no other chance to put it back. The reject
+   * and skip files it opened before touching the backend must be closed on that road too:
+   * it is the one which ends furthest from the backend, so a close which rides on the
+   * backend having been disabled, or on the import having been launched, misses it.
    */
   @Test
   public void testImportEndsWhenTheBackendCannotBeDisabled() throws Exception
@@ -401,6 +406,7 @@ public class TestImportAndExport extends TasksTestCase
      */
     final String backendID = "importTaskUnconfiguredBackend";
     TestCaseUtils.initializeMemoryBackend(backendID, "dc=unconfigured,dc=com", true);
+    File skipFile = File.createTempFile("import-test-skipped", ".ldif");
     try
     {
       int importBeginCount = TestTaskListener.importBeginCount.get();
@@ -413,15 +419,24 @@ public class TestImportAndExport extends TasksTestCase
           "objectclass: ds-task-import",
           "ds-task-class-name: org.opends.server.tasks.ImportTask",
           "ds-task-import-backend-id: " + backendID,
-          "ds-task-import-ldif-file: " + ldifFile.getPath());
+          "ds-task-import-ldif-file: " + ldifFile.getPath(),
+          "ds-task-import-reject-file: " + rejectFile.getPath(),
+          "ds-task-import-skip-file: " + skipFile.getPath(),
+          "ds-task-import-overwrite-rejects: TRUE");
 
+      TestTaskListener.lastImportEndConfig.set(null);
       testTask(taskEntry, TaskState.STOPPED_BY_ERROR, 60);
 
       assertEquals(TestTaskListener.importBeginCount.get(), importBeginCount + 1);
       assertEquals(TestTaskListener.importEndCount.get(), importEndCount + 1);
+      LDIFImportConfig importConfig = TestTaskListener.lastImportEndConfig.get();
+      assertNotNull(importConfig, "The import end was not notified");
+      assertClosed(importConfig.getRejectWriter(), "reject");
+      assertClosed(importConfig.getSkipWriter(), "skip");
     }
     finally
     {
+      skipFile.delete();
       removeMemoryBackend(backendID);
     }
   }
@@ -490,6 +505,43 @@ public class TestImportAndExport extends TasksTestCase
     {
       skipFile.delete();
     }
+  }
+
+  /**
+   * An import which cannot open its skip file must close the reject file it already opened.
+   * That failure returns before the import is announced, so the config cannot be read through
+   * the listener the other cases use, and is read from the task the scheduler kept instead.
+   */
+  @Test
+  public void testImportWhichCannotOpenItsSkipFileClosesItsRejectFile() throws Exception
+  {
+    Entry taskEntry = TestCaseUtils.makeEntry(
+        "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+        "objectclass: top",
+        "objectclass: ds-task",
+        "objectclass: ds-task-import",
+        "ds-task-class-name: org.opends.server.tasks.ImportTask",
+        "ds-task-import-backend-id: userRoot",
+        "ds-task-import-ldif-file: " + ldifFile.getPath(),
+        "ds-task-import-reject-file: " + rejectFile.getPath(),
+        // The task stores the path as it is given, and a directory cannot be opened for writing.
+        "ds-task-import-skip-file: " + ldifFile.getParent(),
+        "ds-task-import-overwrite-rejects: TRUE");
+
+    testTask(taskEntry, TaskState.STOPPED_BY_ERROR, 60);
+
+    LDIFImportConfig importConfig = importConfigOf(getDoneTask(taskEntry.getName()));
+    assertNotNull(importConfig, "The task never built an import config");
+    assertClosed(importConfig.getRejectWriter(), "reject");
+    assertNull(importConfig.getSkipWriter(), "The skip writer was opened after all");
+  }
+
+  /** The config an import task worked with, which the task keeps to itself. */
+  private static LDIFImportConfig importConfigOf(Task task) throws Exception
+  {
+    Field importConfig = ImportTask.class.getDeclaredField("importConfig");
+    importConfig.setAccessible(true);
+    return (LDIFImportConfig) importConfig.get(task);
   }
 
   private static void assertClosed(Writer writer, String name)
