@@ -731,6 +731,29 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   }
 
   /**
+   * The other arm of that rule: a driver saying it stores an unquoted identifier as it was written is asked
+   * about the name as it was written. The case above pins the fold alone, and a guard folding upwards
+   * whatever the driver answers would pass it: on oracle the two spellings are one, and on postgresql - where
+   * the stored form is the lower case name the guard was given - the lookup would report no index of a table
+   * that carries one, and the {@code create index if not exists} behind it would reissue in silence, taking
+   * every write that opens a tree out of the conflict replay it is guarded for. Nothing would fail and
+   * nothing would be logged, so what is pinned here is the question being put to the driver rather than the
+   * answer one engine gives.
+   */
+  @Test
+  public void testTheIndexGuardNamesTheTableAsWrittenWhenTheDatabaseStoresItSo() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(postgresConnection.class, true);
+    final DatabaseMetaData metaData = engineConnection.getMetaData();
+    // a database of this driver storing what it is given: storesUpperCaseIdentifiers() and
+    // storesLowerCaseIdentifiers() both answer false, and the name to ask about is the one the caller wrote
+
+    storage.write(txn -> txn.openTree(TREE, true));
+
+    verify(metaData).getIndexInfo(any(), any(), eq(storage.getTableName(TREE)), anyBoolean(), anyBoolean());
+  }
+
+  /**
    * postgresql runs DDL inside the transaction, so a create index the engine rolled back has committed nothing:
    * {@code write()} rolls the attempt back whole and replays it. Raising the flag in front of the statement -
    * which is what mysql and oracle need, since they commit before a DDL of their own accord - would turn a
