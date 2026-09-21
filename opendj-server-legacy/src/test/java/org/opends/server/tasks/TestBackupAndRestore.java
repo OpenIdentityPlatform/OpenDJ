@@ -219,8 +219,8 @@ public class TestBackupAndRestore extends TasksTestCase
 
   /**
    * A restore which cannot lock its backend has restored nothing and must say so: the task
-   * ends in error and the restore task listeners are told the restore failed, exactly as
-   * when the restore itself fails.
+   * ends STOPPED_BY_ERROR and the restore task listeners are told the restore failed, as they
+   * are when the restore itself fails.
    */
   @Test
   public void testRestoreEndsInErrorWhenTheBackendCannotBeLocked() throws Exception
@@ -283,6 +283,37 @@ public class TestBackupAndRestore extends TasksTestCase
       assertEquals(restoreSuccessful.get(), Boolean.FALSE);
       // The backend the task took offline is back.
       assertNotNull(TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackendById("userRoot"));
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(backupDirectory);
+    }
+  }
+
+  /**
+   * A verify-only restore never takes the backend lock: the backend stays enabled and keeps the
+   * shared lock it was given when it was enabled, which an exclusive lock request is refused over.
+   */
+  @Test
+  public void testVerifyOnlyRestoreDoesNotTakeTheBackendLock() throws Exception
+  {
+    File backupDirectory = TestCaseUtils.createTemporaryDirectory("restore-verify-only");
+    try
+    {
+      testTask(TestCaseUtils.makeEntry(
+          "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+          "objectclass: top",
+          "objectclass: ds-task",
+          "objectclass: ds-task-backup",
+          "ds-task-class-name: org.opends.server.tasks.BackupTask",
+          "ds-task-backup-backend-id: userRoot",
+          "ds-backup-directory-path: " + backupDirectory.getPath()),
+          TaskState.COMPLETED_SUCCESSFULLY, 30);
+
+      testTask(TestCaseUtils.makeEntry(restoreTask(
+          "ds-backup-directory-path: " + backupDirectory.getPath(),
+          "ds-task-restore-verify-only: true")),
+          TaskState.COMPLETED_SUCCESSFULLY, 30);
     }
     finally
     {
