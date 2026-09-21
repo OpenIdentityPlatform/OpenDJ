@@ -37,6 +37,10 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -2282,6 +2286,90 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	}
 
 	/**
+	 * The adopt road again, on the arm where the failed create could not even be rolled back: the
+	 * session is given up rather than left holding a connection the database has dropped, and the
+	 * read of the rows that table already holds has to establish it again - the one connect this
+	 * class makes under {@code catalogLock}, which the invariant of {@code openCatalog()} names as
+	 * its exception.
+	 * <p>
+	 * A rollback refused once is the second state no case can reach from outside, beside the hidden
+	 * lookup it is armed with: a create that fails because its own connection is gone fails its
+	 * rollback with it. What says the read was made on a session established for it is the count of
+	 * connections the adopting write opened - the one the create ran on, and the one the read had to
+	 * make - and what says that read filled the memo all the same is the write after it, whose tree
+	 * the catalog already names and which therefore opens none.
+	 * <p>
+	 * The attempt is counted beside them, because {@code write()} would otherwise answer for this
+	 * road itself: a storage that gave the session up without letting go of it reads on a closed
+	 * connection, which is classified as a dropped connection and replayed, and the replay makes the
+	 * very table it failed to make usable. The counts above are then the counts of an attempt that
+	 * never met the race, so the case asks for the one attempt as well.
+	 */
+	@Test
+	public void testAnOpenThatAdoptsTheCatalogTableReadsItOnASessionItHadToEstablishAgain() throws Exception {
+		final TreeName opened = new TreeName("testRefusedRollbackCatalog", "opened");
+		final TreeName recorded = new TreeName("testRefusedRollbackCatalog", "recorded");
+		final JDBCStorage owner = new JDBCStorage(createBackendCfg(getBackendId() + "_refused"), null);
+		// one backend in two storages, as in the case above: the clear at the end drops what either of
+		// them left behind, and constructing it here reaches that clear whichever half failed
+		final AdoptingStorage racing = new AdoptingStorage(createBackendCfg(getBackendId() + "_refused"));
+		try {
+			try {
+				owner.open(AccessMode.READ_WRITE);
+				owner.write(new WriteOperation() {
+					@Override
+					public void run(WriteableTransaction txn) throws Exception {
+						txn.openTree(opened, true); // the catalog table, and a row naming each of these trees
+						txn.openTree(recorded, true);
+					}
+				});
+			} finally {
+				owner.close();
+			}
+
+			racing.open(AccessMode.READ_WRITE);
+			// armed after the open, for the reason the case above arms its lookup there: the catalog of a
+			// transaction is established at the first row it has to write, which is inside the write below
+			racing.hideOnce(racing.getTableName(racing.getCatalogTree()));
+			racing.refuseNextRollback();
+			final int connectsBeforeTheAdoptingWrite = racing.catalogConnects();
+			final AtomicInteger attemptsOfTheAdoptingWrite = new AtomicInteger();
+			racing.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					attemptsOfTheAdoptingWrite.incrementAndGet();
+					txn.openTree(opened, true);
+				}
+			});
+			assertTrue(racing.hidTheCatalogTable(), "the case never reached the create this is about");
+			// a session the storage gave up and did not let go of is a select on a closed connection, which
+			// write() classifies as a dropped connection and replays: the road recovers, and the counts
+			// below are the counts of the attempt that replaced it. This is what says the read was made
+			// inside the attempt that met the race, at the cost of the one connect and no replay at all
+			assertEquals(attemptsOfTheAdoptingWrite.get(), 1,
+				"the write which adopted the table was replayed: the read of the adopted rows has to be"
+					+ " made on a session established inside that attempt, not by spending another one");
+			assertEquals(racing.catalogConnects(), connectsBeforeTheAdoptingWrite + 2,
+				"the session the refused rollback gave up was not established again for the read of the"
+					+ " adopted rows: this road costs one connection for the create and one for that read");
+
+			racing.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(recorded, true); // named by the catalog already, so there is no row to write
+				}
+			});
+			assertEquals(racing.catalogConnects(), connectsBeforeTheAdoptingWrite + 2,
+				"a transaction whose tree the catalog already names opened a connection to write that row"
+					+ " again: the read made on the re-established session recorded nothing of what the"
+					+ " adopted table holds");
+			assertTrue(racing.listTrees().contains(recorded), "the read of the adopted rows rewrote or removed them");
+		} finally {
+			clearQuietly(racing);
+		}
+	}
+
+	/**
 	 * A row of the catalog whose table is not there any more must not fail the clear, and must not
 	 * stop it dropping the rest. Nothing of the backend leaves such a row behind - deleteTree() takes
 	 * it out in the commit that drops the table - but a table dropped by hand, or a catalog restored
@@ -3107,10 +3195,15 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	 * The count is what says whether the storage remembered what that table records: the catalog of a
 	 * transaction is opened at the first row the transaction has to write, so a write whose trees the
 	 * catalog already names opens no connection at all - see {@link JDBCStorage.CatalogSession}.
+	 * <p>
+	 * It refuses one rollback where a case asks for it, which is the other state no case reaches from
+	 * outside: the create of a session the database has dropped fails its rollback with it, and the
+	 * read of the adopted rows is then made on a session established again for it.
 	 */
 	protected static final class AdoptingStorage extends JDBCStorage {
 		private volatile String tableToHide;
 		private volatile boolean hidden;
+		private volatile boolean refuseNextRollback;
 		private final AtomicInteger catalogConnects = new AtomicInteger();
 		private final AtomicInteger catalogReads = new AtomicInteger();
 
@@ -3126,6 +3219,16 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		/** Whether that answer was given, so that a case cannot pass without having reached the race. */
 		boolean hidTheCatalogTable() {
 			return hidden;
+		}
+
+		/**
+		 * Hands the next catalog connection out with its first rollback refused: the state of a
+		 * session the database has dropped, whose create fails and whose rollback of that create fails
+		 * with it, which is what leaves {@code reset()} giving the session up instead of rolling it
+		 * back.
+		 */
+		void refuseNextRollback() {
+			refuseNextRollback = true;
 		}
 
 		/** How many connections this storage has opened its catalog on since it was constructed. */
@@ -3152,7 +3255,38 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 		@Override
 		Connection newCatalogConnection(long budgetDeadline) throws SQLException {
 			catalogConnects.incrementAndGet();
-			return super.newCatalogConnection(budgetDeadline);
+			final Connection real = super.newCatalogConnection(budgetDeadline);
+			if (!refuseNextRollback) {
+				return real;
+			}
+			refuseNextRollback = false;
+			return refusingItsFirstRollback(real);
+		}
+
+		/**
+		 * The connection above with one rollback of its own refused, and everything else the driver's.
+		 * The rollback of a whole transaction alone: a rollback to a savepoint is what the bound of a
+		 * DDL takes back where its setting failed ({@code withDdlLockBound}), and refusing that one
+		 * would arm a road other than the one this case is about.
+		 */
+		private static Connection refusingItsFirstRollback(final Connection real) {
+			return (Connection) Proxy.newProxyInstance(Connection.class.getClassLoader(),
+				new Class<?>[] { Connection.class }, new InvocationHandler() {
+					private boolean refused;
+
+					@Override
+					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+						if (!refused && "rollback".equals(method.getName()) && method.getParameterCount() == 0) {
+							refused = true;
+							throw new SQLException("the case refused the rollback of this catalog connection");
+						}
+						try {
+							return method.invoke(real, args);
+						} catch (InvocationTargetException e) {
+							throw e.getCause(); // the driver's own failure, and not a wrapper of the call
+						}
+					}
+				});
 		}
 
 		// the only caller of the two-argument overload is readEnrolledTrees(): catalogTables() (a
