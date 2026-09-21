@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import com.forgerock.opendj.util.FipsStaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
@@ -202,7 +203,11 @@ public class InstallDS extends ConsoleApplication
   private Integer lastResetAdminConnectorPort;
   private Integer lastResetJmxPort;
 
-  private final TempLogFile tempLogFile;
+  /**
+   * The temporary log file where messages will be logged, asked for only once an install is
+   * about to run: the roads which return before that one leave no log behind (issue #1030).
+   */
+  private final Supplier<TempLogFile> tempLogFile;
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -216,7 +221,7 @@ public class InstallDS extends ConsoleApplication
    * @param tempLogFile
    *          the temporary log file where messages will be logged.
    */
-  private InstallDS(PrintStream out, PrintStream err, TempLogFile tempLogFile)
+  private InstallDS(PrintStream out, PrintStream err, Supplier<TempLogFile> tempLogFile)
   {
     super(out, err);
     this.tempLogFile = tempLogFile;
@@ -229,10 +234,12 @@ public class InstallDS extends ConsoleApplication
    * @param args
    *          the command-line arguments provided to this program.
    * @param tempLogFile
-   *          the temporary log file where messages will be logged.
+   *          supplies the temporary log file where messages will be logged. It is called on
+   *          the road that runs the install and not on the roads which return before it, so
+   *          that a run which installs nothing creates no log.
    * @return The error code.
    */
-  public static int mainCLI(String[] args, final TempLogFile tempLogFile)
+  public static int mainCLI(String[] args, final Supplier<TempLogFile> tempLogFile)
   {
     return mainCLI(args, System.out, System.err, tempLogFile);
   }
@@ -259,7 +266,29 @@ public class InstallDS extends ConsoleApplication
     //
     // *NOTE* this method has been kept public because it is used by OpenAM.
     //
+    return mainCLI(args, outStream, errStream, () -> tempLogFile);
+  }
 
+  /**
+   * Parses the provided command-line arguments and uses that information to run
+   * the setup tool.
+   *
+   * @param args
+   *          The command-line arguments provided to this program.
+   * @param outStream
+   *          The output stream to use for standard output, or <CODE>null</CODE>
+   *          if standard output is not needed.
+   * @param errStream
+   *          The output stream to use for standard error, or <CODE>null</CODE>
+   *          if standard error is not needed.
+   * @param tempLogFile
+   *          supplies the temporary log file where messages will be logged, see
+   *          {@link #mainCLI(String[], Supplier)}.
+   * @return The error code.
+   */
+  public static int mainCLI(
+      String[] args, OutputStream outStream, OutputStream errStream, Supplier<TempLogFile> tempLogFile)
+  {
     final PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
 
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
@@ -349,7 +378,9 @@ public class InstallDS extends ConsoleApplication
 
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
     final Installer installer = new Installer();
-    installer.setTempLogFile(tempLogFile);
+    // The first point where an install can fail: from here on there is a log to keep, and
+    // this is where it gets created.
+    installer.setTempLogFile(tempLogFile.get());
     installer.setUserData(uData);
     installer.setProgressMessageFormatter(formatter);
     installer.addProgressUpdateListener(

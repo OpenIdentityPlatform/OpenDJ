@@ -314,6 +314,10 @@ public class Installer extends GuiApplication
         uninstall();
         setCurrentProgressStep(InstallProgressStep.FINISHED_CANCELED);
         notifyListeners(null);
+        // Nothing names this log on this road - notifyListenersOfExistingLogFile() belongs to
+        // handleInstallationError() below - and uninstall() has just taken the installation
+        // back, so keeping the file would leave a report nobody is told about (issue #1030).
+        tempLogFile.deleteLogFileAfterSuccess();
       } else {
         handleInstallationError(ex);
       }
@@ -614,7 +618,8 @@ public class Installer extends GuiApplication
     return Utils.getInstancePathFromInstallPath(installPath);
   }
 
-  private void notifyListenersOfExistingLogFile()
+  /** Package-private so that {@code InstallerTest} can drive every road of this report. */
+  void notifyListenersOfExistingLogFile()
   {
     if (!tempLogFile.isEnabled())
     {

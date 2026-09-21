@@ -15,7 +15,7 @@
  */
 package org.opends.quicksetup;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.charset.Charset.defaultCharset;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -97,8 +97,12 @@ public class TempLogFileTest extends DirectoryServerTestCase
   public void testReadContentsReturnsWhatIsInTheFile() throws Exception
   {
     final TempLogFile logFile = track(TempLogFile.newTempLogFile(PREFIX, new File(tempDir, "logs")));
+    // The log's own stream is not in append mode and sits at the end of its own bytes, so a
+    // record written after the marker would be written over it: shut the writer first, and
+    // the marker is the last thing in the file whatever else the JVM logs.
+    logFile.writer.shutdown();
     final String marker = "the last line written before the failure";
-    Files.write(logFile.getLogFile().toPath(), (marker + "\n").getBytes(UTF_8), APPEND);
+    Files.write(logFile.getLogFile().toPath(), (marker + "\n").getBytes(defaultCharset()), APPEND);
 
     assertTrue(logFile.readContents().endsWith(marker + "\n"));
   }
@@ -110,7 +114,10 @@ public class TempLogFileTest extends DirectoryServerTestCase
     final TempLogFile logFile = track(TempLogFile.newTempLogFile(PREFIX, new File(tempDir, "logs")));
     assertTrue(logFile.isReadable());
 
-    assertTrue(logFile.getLogFile().delete());
+    // Not File.delete(): the writer still holds the file, and Windows does not delete a file
+    // that is open. deleteLogFileAfterSuccess() shuts the writer first, as setup does.
+    logFile.deleteLogFileAfterSuccess();
+    assertFalse(logFile.getLogFile().exists());
 
     assertTrue(logFile.isEnabled());
     assertFalse(logFile.isReadable());
@@ -123,6 +130,18 @@ public class TempLogFileTest extends DirectoryServerTestCase
     {
       // the caller reports it instead of promising the file
     }
+  }
+
+  /** A directory where the log was is not a log: there is nothing to hand over either. */
+  @Test
+  public void testADirectoryAtTheLogPathIsNotReadable() throws Exception
+  {
+    final TempLogFile logFile = track(TempLogFile.newTempLogFile(PREFIX, new File(tempDir, "logs")));
+    logFile.deleteLogFileAfterSuccess();
+    assertTrue(logFile.getLogFile().mkdir());
+
+    assertTrue(Files.isReadable(logFile.getLogFile().toPath()));
+    assertFalse(logFile.isReadable());
   }
 
   @Test

@@ -83,6 +83,11 @@ public class SetupLauncher extends Launcher {
    * space of every tool, which {@code start-ds} - run by setup itself to start the server -
    * used to sweep clean (issue #1030). The log of a failed setup belongs next to the server's
    * own logs instead, where {@code server.out} tells the other half of the story.
+   * <p>
+   * Neither the directory nor the log is created here: {@link Launcher#getTempLogFile()}
+   * creates both when an install is about to run, so that a road which installs nothing -
+   * {@code setup --help} on a package whose instance directory is not laid down yet, for one -
+   * leaves nothing behind.
    *
    * @return the logs directory of the instance, or {@code null} when the launcher is not
    *         running from an installation and the OS temporary directory has to do.
@@ -133,7 +138,7 @@ public class SetupLauncher extends Launcher {
       else if (isCli())
       {
         Utils.checkJavaVersion();
-        System.exit(InstallDS.mainCLI(args, tempLogFile));
+        System.exit(InstallDS.mainCLI(args, this::getTempLogFile));
       }
       else
       {
@@ -145,7 +150,7 @@ public class SetupLauncher extends Launcher {
         if (exitCode != 0) {
           guiLaunchFailed();
           Utils.checkJavaVersion();
-          System.exit(InstallDS.mainCLI(args, tempLogFile));
+          System.exit(InstallDS.mainCLI(args, this::getTempLogFile));
         }
       }
     }
@@ -169,8 +174,8 @@ public class SetupLauncher extends Launcher {
   @Override
   protected void guiLaunchFailed() {
       System.err.println(
-          tempLogFile.isEnabled() ? INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS.get(tempLogFile.getPath())
-                                  : INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED.get());
+          hasTempLogFile() ? INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS.get(getTempLogFile().getPath())
+                           : INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED.get());
   }
 
   @Override

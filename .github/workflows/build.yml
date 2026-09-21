@@ -241,7 +241,16 @@ jobs:
           --baseDN dc=example,dc=com --sampleData 5000 --cli --acceptLicense --no-prompt \
           --propertiesFilePath /tmp/opendj-setup.properties.bcfks --doNotStart
         
+        # start-ds sweeps the native libraries the BC FIPS loader leaves in tmp/ and nothing
+        # else: the rest of tmp/ belongs to tools that may still be running, setup among them
+        # (issue #1030). Without these two probes a sweep back to "tmp/*" passes every cell.
+        mkdir -p opendj-server-legacy/target/package/opendj/tmp/bc-fips-jni_123
+        touch opendj-server-legacy/target/package/opendj/tmp/keep.me
+        
         opendj-server-legacy/target/package/opendj/bin/start-ds
+        
+        test ! -e opendj-server-legacy/target/package/opendj/tmp/bc-fips-jni_123
+        test -e opendj-server-legacy/target/package/opendj/tmp/keep.me
         
         opendj-server-legacy/target/package/opendj/bin/status --hostname localhost --bindDN "cn=Directory Manager" --bindPassword password --trustAll
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
@@ -397,7 +406,14 @@ jobs:
         opendj-server-legacy\target\package\opendj\upgrade.bat
         opendj-server-legacy\target\package\opendj\bat\import-ldif.bat --offline --ldifFile test.ldif --backendID=example2
         opendj-server-legacy\target\package\opendj\bat\rebuild-index.bat --offline --bindDN "cn=Directory Manager" --bindPassword password  --baseDN "dc=example2,dc=com" --rebuildAll
+        # The same probe as the Unix FIPS step, for start-ds.bat: the sweep takes the BC FIPS
+        # directories and leaves everything else in tmp\ alone (issue #1030). The runner's
+        # install path has no space in it, so this does not settle the quoting of the for /D line.
+        New-Item -ItemType Directory -Force opendj-server-legacy\target\package\opendj\tmp\bc-fips-jni_123 | Out-Null
+        New-Item -ItemType File -Force opendj-server-legacy\target\package\opendj\tmp\keep.me | Out-Null
         opendj-server-legacy\target\package\opendj\bat\start-ds.bat
+        if (Test-Path opendj-server-legacy\target\package\opendj\tmp\bc-fips-jni_123) { throw "start-ds.bat left a bc-fips-jni_* directory behind" }
+        if (-not (Test-Path opendj-server-legacy\target\package\opendj\tmp\keep.me)) { throw "start-ds.bat removed a tmp file that is not its own" }
         opendj-server-legacy\target\package\opendj\bat\rebuild-index.bat --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "10000"
         opendj-server-legacy\target\package\opendj\bat\stop-ds.bat

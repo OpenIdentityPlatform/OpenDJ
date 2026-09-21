@@ -20,7 +20,7 @@ package org.opends.quicksetup;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.Date;
 import java.text.DateFormat;
@@ -72,6 +72,7 @@ public class TempLogFile
    */
   public static TempLogFile newTempLogFile(final String prefix, final File directory)
   {
+    IOException fallbackReason = null;
     if (directory != null)
     {
       try
@@ -81,13 +82,21 @@ public class TempLogFile
       }
       catch (final IOException e)
       {
-        localizedLogger.warn(LocalizableMessage.raw("Unable to create temp log file in " + directory
-            + " because: " + e.getMessage() + ", falling back to the temporary directory"), e);
+        // Nothing can be logged yet: the first publisher is the one the constructor installs
+        // below, so the warning has to wait until there is a log to write it to.
+        fallbackReason = e;
       }
     }
     try
     {
-      return new TempLogFile(Files.createTempFile(prefix, ".log").toFile());
+      final TempLogFile tempLogFile = new TempLogFile(Files.createTempFile(prefix, ".log").toFile());
+      if (fallbackReason != null)
+      {
+        localizedLogger.warn(LocalizableMessage.raw("Unable to create temp log file in " + directory
+            + " because: " + fallbackReason.getMessage() + ", falling back to the temporary directory"),
+            fallbackReason);
+      }
+      return tempLogFile;
     }
     catch (final IOException e)
     {
@@ -102,9 +111,14 @@ public class TempLogFile
   {
     this.logFile = null;
     this.writer=null;
+    this.startupErrorLogPublisher = null;
+    this.startupDebugLogPublisher = null;
   }
 
   final TextWriter writer;
+  /** Kept so that they can be taken off the logger singletons again, see {@link #deleteLogFileAfterSuccess()}. */
+  private final ErrorLogPublisher startupErrorLogPublisher;
+  private final DebugLogPublisher startupDebugLogPublisher;
   
   private TempLogFile(final File file) throws IOException
   {
@@ -117,9 +131,9 @@ public class TempLogFile
     }else {
     	writer=new TextWriter.STREAM(new FileOutputStream(file));
     }
-    ErrorLogPublisher startupErrorLogPublisher = TextErrorLogPublisher.getServerStartupTextErrorPublisher(writer);
+    startupErrorLogPublisher = TextErrorLogPublisher.getServerStartupTextErrorPublisher(writer);
     ErrorLogger.getInstance().addLogPublisher(startupErrorLogPublisher);
-    DebugLogger.getInstance().addPublisherIfRequired(writer);
+    startupDebugLogPublisher = DebugLogger.getInstance().addPublisherIfRequired(writer);
 
     localizedLogger.info(LocalizableMessage.raw("QuickSetup application launched " + DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG).format(new Date()), null));
   }
@@ -134,11 +148,23 @@ public class TempLogFile
     return logFile;
   }
 
-  /** Closes the log file handler and delete the temp log file . */
+  /**
+   * Closes the log file handler and delete the temp log file .
+   * <p>
+   * The publishers installed by the constructor go with it: they are held by the logger
+   * singletons, which outlive this object, and once the writer is shut everything they are
+   * handed is written to a closed stream and swallowed.
+   */
   public void deleteLogFileAfterSuccess()
   {
     if (isEnabled())
     {
+      if (startupErrorLogPublisher != null) {
+        ErrorLogger.getInstance().removeLogPublisher(startupErrorLogPublisher);
+      }
+      if (startupDebugLogPublisher != null) {
+        DebugLogger.getInstance().removeLogPublisher(startupDebugLogPublisher);
+      }
     	if (writer!=null) {
     		writer.shutdown();
     	}
@@ -171,8 +197,12 @@ public class TempLogFile
 
   /**
    * Reads the whole temp log file.
+   * <p>
+   * The file is decoded with the default charset of the JVM, which is the one
+   * {@link TextWriter.STREAM} wrote it with: reader and writer are the same JVM, so a
+   * non-ASCII path or base DN in a report comes back as it was logged.
    *
-   * @return the contents of the temp log file, decoded as UTF-8.
+   * @return the contents of the temp log file.
    * @throws IOException
    *           if the file cannot be read, for instance because it is no longer there.
    */
@@ -182,7 +212,7 @@ public class TempLogFile
     {
       throw new IOException("No temp log file");
     }
-    return new String(Files.readAllBytes(logFile.toPath()), StandardCharsets.UTF_8);
+    return new String(Files.readAllBytes(logFile.toPath()), Charset.defaultCharset());
   }
 
   /**

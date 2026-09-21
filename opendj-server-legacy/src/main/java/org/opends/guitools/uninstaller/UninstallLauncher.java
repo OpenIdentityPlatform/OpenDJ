@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.uninstaller;
 
@@ -129,8 +130,8 @@ public class UninstallLauncher extends Launcher {
   @Override
   protected void guiLaunchFailed() {
       System.err.println(
-          tempLogFile.isEnabled() ? ERR_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS.get(tempLogFile.getPath())
-                                  : ERR_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED.get());
+          hasTempLogFile() ? ERR_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS.get(getTempLogFile().getPath())
+                           : ERR_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED.get());
   }
 
   @Override

@@ -42,8 +42,14 @@ public abstract class Launcher {
   /** Arguments with which this launcher was invoked. */
   protected final String[] args;
 
-  /** The temporary log file which will be kept if an error occurs. */
-  protected final TempLogFile tempLogFile;
+  private final String tempLogFilePrefix;
+  private final File tempLogFileDirectory;
+  /**
+   * The temporary log file which will be kept if an error occurs; see {@link #getTempLogFile()}.
+   * Volatile because the GUI road asks for it from the thread that runs the splash screen and
+   * the roads after it read it from the main thread.
+   */
+  private volatile TempLogFile tempLogFile;
 
   /**
    * Creates a Launcher.
@@ -73,7 +79,36 @@ public abstract class Launcher {
       throw new IllegalArgumentException("args cannot be null");
     }
     this.args = args;
-    this.tempLogFile = TempLogFile.newTempLogFile(tempLogFilePrefix, tempLogFileDirectory);
+    this.tempLogFilePrefix = tempLogFilePrefix;
+    this.tempLogFileDirectory = tempLogFileDirectory;
+  }
+
+  /**
+   * The temporary log file of this launcher, created the first time it is asked for.
+   * <p>
+   * Creating it costs a file - and, with a directory of the caller's choosing, the directory
+   * as well - that nothing removes afterwards unless the operation succeeds. So it is created
+   * on the first road that can fail an operation and not before: {@code --help},
+   * {@code --version}, a usage error and the other roads that attempt nothing leave no log
+   * behind (issue #1030).
+   *
+   * @return the temporary log file, creating it if this is the first call.
+   */
+  protected synchronized TempLogFile getTempLogFile() {
+    if (tempLogFile == null) {
+      tempLogFile = TempLogFile.newTempLogFile(tempLogFilePrefix, tempLogFileDirectory);
+    }
+    return tempLogFile;
+  }
+
+  /**
+   * Whether there is a log to name, without creating one to answer.
+   *
+   * @return {@code true} if a temporary log file has been created and can be used to log
+   *         messages.
+   */
+  protected boolean hasTempLogFile() {
+    return tempLogFile != null && tempLogFile.isEnabled();
   }
 
   /**
@@ -211,12 +246,12 @@ public abstract class Launcher {
       {
         try
         {
-          SplashScreen.main(tempLogFile, args);
+          SplashScreen.main(getTempLogFile(), args);
           returnValue[0] = 0;
         }
         catch (Throwable t)
         {
-          if (tempLogFile.isEnabled())
+          if (hasTempLogFile())
           {
             logger.warn(LocalizableMessage.raw("Error launching GUI: "+t));
             StringBuilder buf = new StringBuilder();
@@ -354,6 +389,9 @@ public abstract class Launcher {
       }
       System.exit(ReturnCode.SUCCESSFUL.getReturnCode());
     } else if (isCli()) {
+      // An operation is about to run: from here on there is something worth logging, and
+      // preExit() names the file. The roads above attempt nothing and leave no log behind.
+      getTempLogFile();
       CliApplication cliApp = createCliApplication();
       int exitCode = launchCli(cliApp);
       preExit(cliApp);
@@ -378,8 +416,8 @@ public abstract class Launcher {
 
         // Add an extra space systematically
         System.out.println();
-        if (tempLogFile.isEnabled()) {
-          System.out.println(INFO_GENERAL_SEE_FOR_DETAILS.get(tempLogFile.getPath()));
+        if (hasTempLogFile()) {
+          System.out.println(INFO_GENERAL_SEE_FOR_DETAILS.get(getTempLogFile().getPath()));
         }
       }
     }
