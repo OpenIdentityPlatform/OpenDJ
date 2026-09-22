@@ -2127,19 +2127,21 @@ public abstract class ReplicationDomain
 
         if (msg == null)
         {
-          if (broker.shuttingDown())
-          {
-            // The server is in the shutdown process
-            return null;
-          }
-          else
-          {
-            // Handle connection issues
-            ieCtx.setExceptionIfNoneSet(new DirectoryException(
-                ResultCode.OTHER, ERR_INIT_RS_DISCONNECTION_DURING_IMPORT
-                    .get(broker.getReplicationServer())));
-            return null;
-          }
+          /*
+           * The stream ended before the DoneMsg of the exporter: the broker lost its
+           * connection, or it was stopped under the import - by the shutdown of the server,
+           * or by a restart of the session which every road takes through disableService().
+           * Either way the import is a failure and is recorded as one (issue #1039): the
+           * import which ends on the entries which had arrived would otherwise be reported
+           * as finished, with the generationId of the exporter loaded from the base entry
+           * among them, and the replica would come up as a peer of the exporter over part of
+           * its data. A failed import has its generationId computed over the data instead.
+           */
+          final LocalizableMessage cause = broker.shuttingDown()
+              ? ERR_INIT_SESSION_STOPPED_DURING_IMPORT.get(getBaseDN(), getServerId(), ieCtx.importSource)
+              : ERR_INIT_RS_DISCONNECTION_DURING_IMPORT.get(broker.getReplicationServer());
+          ieCtx.setExceptionIfNoneSet(new DirectoryException(ResultCode.OTHER, cause));
+          return null;
         }
 
         // Check good ordering of msg received
