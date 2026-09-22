@@ -40,6 +40,7 @@ import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLRecoverableException;
 import java.sql.Statement;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -57,6 +58,7 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.startsWith;
@@ -1061,6 +1063,55 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
 
     assertEquals(attempts.get(), 2, "a transaction that committed nothing was not replayed");
     verify(statements, never()).executeUpdate();
+  }
+
+  /**
+   * The table the index guard names to the catalog is spelled the way the database stores it, and which way
+   * that is comes from the driver rather than from the name of the engine. An unquoted identifier is stored
+   * folded - upper case on oracle, lower case on postgresql - and {@link DatabaseMetaData#getIndexInfo} matches
+   * its argument against the stored form and not against the name as it was written, so a guard spelling it
+   * any other way finds no index of a table that carries one and reissues the create behind it: on the two
+   * engines whose {@code create index} has no {@code if not exists} that is the open of the tree failing
+   * (#902). It is the rule {@code isExistsTable()} takes {@code storedIdentifier()} for, and the guard of the
+   * index had it hard-coded in the oracle branch of its caller alone - the one engine of the three that was
+   * known to fold upwards.
+   */
+  @Test
+  public void testTheIndexGuardNamesTheTableAsTheDatabaseStoresIt() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(postgresConnection.class, true);
+    final DatabaseMetaData metaData = engineConnection.getMetaData();
+    // a database of this driver that stores what it is given in upper case: what the guard has to ask about
+    // is then the folded name, whichever branch of openTree() the driver took to get here
+    when(metaData.storesUpperCaseIdentifiers()).thenReturn(true);
+
+    storage.write(txn -> txn.openTree(TREE, true));
+
+    verify(metaData).getIndexInfo(any(), any(), eq(storage.getTableName(TREE).toUpperCase(Locale.ROOT)),
+        anyBoolean(), anyBoolean());
+  }
+
+  /**
+   * The other arm of that rule: a driver saying it stores an unquoted identifier as it was written is asked
+   * about the name as it was written. The case above pins the fold alone, and a guard folding upwards
+   * whatever the driver answers would pass it: on oracle the two spellings are one, and on postgresql - where
+   * the stored form is the lower case name the guard was given - the lookup would report no index of a table
+   * that carries one, and the {@code create index if not exists} behind it would reissue in silence, taking
+   * every write that opens a tree out of the conflict replay it is guarded for. Nothing would fail and
+   * nothing would be logged, so what is pinned here is the question being put to the driver rather than the
+   * answer one engine gives.
+   */
+  @Test
+  public void testTheIndexGuardNamesTheTableAsWrittenWhenTheDatabaseStoresItSo() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(postgresConnection.class, true);
+    final DatabaseMetaData metaData = engineConnection.getMetaData();
+    // a database of this driver storing what it is given: storesUpperCaseIdentifiers() and
+    // storesLowerCaseIdentifiers() both answer false, and the name to ask about is the one the caller wrote
+
+    storage.write(txn -> txn.openTree(TREE, true));
+
+    verify(metaData).getIndexInfo(any(), any(), eq(storage.getTableName(TREE)), anyBoolean(), anyBoolean());
   }
 
   /**

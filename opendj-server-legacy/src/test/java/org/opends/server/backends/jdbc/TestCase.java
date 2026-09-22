@@ -102,6 +102,14 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 	/**
 	 * Backend test classes sharing one database map the same tree names to the same tables,
 	 * so a previous run may leave trees behind — including entries encrypted with a lost cipher key.
+	 * <p>
+	 * Each one is dropped where it was listed: this lookup is narrowed to no schema, so it reports the
+	 * tables of the whole database - pgjdbc adds a schema predicate for a pattern that is not null and
+	 * for nothing else - while an unqualified {@code drop table} resolves through the search_path alone.
+	 * A table left behind outside it would fail to drop, and the failure of one drop is a
+	 * {@link SkipException} over the whole class in {@link #setUp()}: the class would go on skipping run
+	 * after run, and the leftover would never be dropped. A driver reporting no schema of its own - mysql
+	 * names the database in the catalog instead - keeps the name as it was listed.
 	 */
 	static void dropStaleTrees(Connection con) throws SQLException {
 		final List<String> stale = new ArrayList<>();
@@ -109,7 +117,8 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			while (rs.next()) {
 				final String name = rs.getString("TABLE_NAME");
 				if (name.toLowerCase().startsWith("opendj_")) {
-					stale.add(name);
+					final String schema = rs.getString("TABLE_SCHEM");
+					stale.add(schema == null || schema.isEmpty() ? name : schema + "." + name);
 				}
 			}
 		}
