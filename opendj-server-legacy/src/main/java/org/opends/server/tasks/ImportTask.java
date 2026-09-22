@@ -617,6 +617,14 @@ public class ImportTask extends Task
       catch (Exception e)
       {
         logger.error(ERR_LDIFIMPORT_CANNOT_OPEN_SKIP_FILE, skipFile, getExceptionMessage(e));
+        /*
+         * The reject file is already open and this return is the one which is above the try
+         * whose finally closes it. The two files are not opened inside that try instead: a
+         * listener told an import began puts back what it took offline when it is told the
+         * import ended - a replication domain reloads and rewinds its state - and an import
+         * which never reached a backend has nothing for it to put back.
+         */
+        importConfig.close();
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -720,6 +728,11 @@ public class ImportTask extends Task
     }
     finally
     {
+      // Close the LDIF reader and the reject and skip files whichever way the import ended.
+      // The backend closes them with its reader, but an import which fails before that reader
+      // exists - or before the import is even launched - leaves them to this task.
+      importConfig.close();
+
       // Enable the backend, if it was this task which disabled it.
       boolean backendLeftDisabled = false;
       if (backendDisabled)
@@ -748,8 +761,6 @@ public class ImportTask extends Task
       }
     }
 
-    // Clean up after the import by closing the import config.
-    importConfig.close();
     return getFinalTaskState();
   }
 

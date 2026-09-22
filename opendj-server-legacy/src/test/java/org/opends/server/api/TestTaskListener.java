@@ -13,10 +13,12 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.api;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.BackupConfig;
@@ -42,6 +44,8 @@ public class TestTaskListener
   public static final AtomicInteger importEndCount    = new AtomicInteger(0);
   public static final AtomicInteger restoreBeginCount = new AtomicInteger(0);
   public static final AtomicInteger restoreEndCount   = new AtomicInteger(0);
+  /** The import config the last import end notification carried, {@code null} until the first. */
+  public static final AtomicReference<LDIFImportConfig> lastImportEndConfig = new AtomicReference<>();
 
   /** Registers the task listeners with the Directory Server. */
   public static void registerListeners()
@@ -107,5 +111,6 @@ public class TestTaskListener
   public void processImportEnd(LocalBackend<?> backend, LDIFImportConfig config, boolean successful)
   {
     importEndCount.incrementAndGet();
+    lastImportEndConfig.set(config);
   }
 }
