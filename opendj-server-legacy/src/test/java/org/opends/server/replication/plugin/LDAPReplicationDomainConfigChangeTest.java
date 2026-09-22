@@ -241,6 +241,58 @@ public class LDAPReplicationDomainConfigChangeTest extends ReplicationTestCase
     }
   }
 
+  /**
+   * The fractional twin of the test above: the fractional configuration is what the session
+   * filters the changes it receives on, and a change of it restarts the session. A domain
+   * which owns its session is given no restart, and the configuration is applied all the
+   * same - the session its enable() starts filters on it - and the change says a session
+   * is waiting for it.
+   */
+  @Test
+  public void fractionalConfigurationIsAppliedToADomainWhichOwnsItsSession() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    try
+    {
+      final SortedSet<String> replServers = unstartedReplicationServer();
+      final LDAPReplicationDomain domain = startDomain(new DomainFakeCfg(baseDN, SERVER_ID, replServers));
+      assertFalse(domain.getFractionalConfig().isFractional());
+
+      // Disabled is what an online import leaves the domain: it owns its session, so this
+      // change is applied to it without a session being restarted for it.
+      domain.disable();
+      waitForListenerThread(baseDN, false);
+
+      final DomainFakeCfg fractional = new DomainFakeCfg(baseDN, SERVER_ID, replServers);
+      // The same as the configuration in place, or the broker would restart the session for
+      // the heartbeat interval and the change would no longer be the fractional one alone.
+      fractional.setHeartbeatInterval(HEARTBEAT_INTERVAL_IN_MS);
+      fractional.getFractionalExclude().add("*:description");
+      final ConfigChangeResult ccr = domain.applyConfigurationChange(fractional);
+
+      assertEquals(ccr.getResultCode(), ResultCode.SUCCESS, ccr.getMessages().toString());
+      assertFalse(hasListenerThread(baseDN),
+          "the change started a session on a domain which was disabled for a total update");
+      final LDAPReplicationDomain.FractionalConfig applied = domain.getFractionalConfig();
+      assertTrue(applied.isFractional(),
+          "the fractional configuration was dropped although the change reported success");
+      assertTrue(applied.isFractionalExclusive(),
+          "the fractional configuration was applied in the wrong mode");
+      assertTrue(applied.getFractionalAllClassesAttributes().contains("description"),
+          "the attribute the change excludes was dropped: " + applied.getFractionalAllClassesAttributes());
+      assertTrue(ccr.adminActionRequired(),
+          "the fractional configuration is what a session filters on, and this domain was"
+              + " given no session to filter over");
+
+      // Left as a total update leaves it: enabled back, on the configuration it was given.
+      domain.enable();
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+    }
+  }
+
   @Test
   public void changeIsRefusedWhenTheExternalChangelogDomainRejectsIt() throws Exception
   {
