@@ -45,7 +45,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotSame;
@@ -133,6 +135,32 @@ public class StampConnectionTestCase extends DirectoryServerTestCase {
 			assertNotSame(handed, dialect.connectProperties,
 				"the driver was handed the declaration of " + dialect + " rather than a copy of it");
 		}
+	}
+
+	/**
+	 * A stamp connection whose set-up failed belongs to nobody and is closed, and a driver that will
+	 * not close is said so on the failure being unwound rather than swallowed - the rule the two
+	 * roads of {@code CachedConnection.establish()} keep (#929), and this connection is established
+	 * apart from them, with bounds of its own.
+	 */
+	@Test
+	public void testAStampConnectionWhoseSetUpFailsIsClosedAndSaysWhenItWillNotClose() throws Exception {
+		final Connection broken = mock(Connection.class);
+		doThrow(new SQLException("read only")).when(broken).setAutoCommit(false);
+		doThrow(new SQLException("will not close")).when(broken).close();
+		probeDriver.answer = broken;
+		try {
+			storageFor(ProbeDriver.URL).newStampConnection(JDBCStorage.Dialect.POSTGRES);
+			fail("a stamp connection that cannot be set up must be reported");
+		} catch (SQLException expected) {
+			assertEquals(expected.getMessage(), "read only");
+			assertEquals(expected.getSuppressed().length, 1,
+				"the failure of the close is not carried on the failure being unwound");
+			assertEquals(expected.getSuppressed()[0].getMessage(), "will not close");
+		} finally {
+			probeDriver.answer = null;
+		}
+		verify(broken).close();
 	}
 
 	/**
@@ -316,12 +344,18 @@ public class StampConnectionTestCase extends DirectoryServerTestCase {
 
 		volatile Properties lastProperties;
 
+		/** The connection to answer with, for the one case about what is done with a connection; a fresh mock otherwise. */
+		volatile Connection answer;
+
 		@Override
 		public Connection connect(String url, Properties info) throws SQLException {
 			if (!acceptsURL(url)) {
 				return null; // not ours: DriverManager goes on to the next driver
 			}
 			lastProperties = info;
+			if (answer != null) {
+				return answer;
+			}
 			final Connection con = mock(Connection.class);
 			when(con.createStatement()).thenReturn(mock(Statement.class));
 			return con;

@@ -244,6 +244,16 @@ public class CachedConnection implements Connection {
     static final long STALL_WARNING_AFTER_MS = 1000;
     static final long STALL_WARNING_INTERVAL_MS = 10000;
 
+    /**
+     * The next wait of a connect that is being retried: a millisecond, doubling to {@link
+     * #MAX_BACKOFF_MS} and staying there. One schedule for both loops that retry a connect of this
+     * backend - the borrow of {@link #getConnection} and the catalog connect of {@code
+     * JDBCStorage.newCatalogConnection} - so that the next change to it is a change to both (#929).
+     */
+    static long nextBackoffMs(long backoffMs) {
+        return Math.min(backoffMs == 0 ? 1 : backoffMs * 2, MAX_BACKOFF_MS);
+    }
+
     /** How many links of the cause and getNextException() chains of a failure are looked at. */
     private static final int MAX_CHAIN_LENGTH = 32;
 
@@ -275,7 +285,24 @@ public class CachedConnection implements Connection {
     // safe form of it, the way warnedOnce below is: a static field of this class outlives every
     // borrow, and the password of the backend has no business in one.
     private static final Map<String, AtomicLong> lastStallWarning = new ConcurrentHashMap<>();
-    private static final AtomicLong lastReadBoundWarning = new AtomicLong();
+
+    /**
+     * When a connection this backend could not put a read bound on was last reported, per
+     * consequence of that failure rather than once for the JVM.
+     * <p>
+     * Keyed for the reason the stall warning above is keyed, and the reason is sharper here: the
+     * connections this happens to do not share a fate. A connection of the pool is closed rather
+     * than pooled, while the one catalog connection of a backend is kept and carries the bound of
+     * its login for the rest of its life ({@code JDBCStorage.connectCatalog}, #929) - so a single
+     * timestamp has the pool, which meets the failure first and on every connect, report for the
+     * catalog connection beside it, and an operator reads that the connection was closed when the
+     * one they will meet again was kept.
+     * <p>
+     * Package private so that a test can read what was reported and clear it, the way
+     * {@link #warnedOnce} is read: the warning itself goes to a logger with a throttle no test can
+     * wind back.
+     */
+    static final Map<String, AtomicLong> lastReadBoundWarning = new ConcurrentHashMap<>();
 
     /**
      * When an operation last reported that the database had dropped a connection of a pool, as a
@@ -1500,7 +1527,15 @@ public class CachedConnection implements Connection {
                     timeout.initCause(reported(e, connectionString));
                     throw timeout;
                 }
-                backoffMs = Math.min(backoffMs == 0 ? 1 : backoffMs * 2, MAX_BACKOFF_MS);
+                // The schedule the catalog connect of JDBCStorage waits on as well, from the one
+                // place that holds it (#929). What the two do with the wait is not the same and is
+                // not meant to be: this one hands it to the poll of the deque at the head of the
+                // loop, where a peer returning a connection ends the wait early, while a catalog
+                // connect has no peer to wait for and sleeps it out. The failure at the end of the
+                // deadline differs as deliberately - 08001 here, the driver's own state there, a
+                // manufactured class 08 being read by JDBCStorage.write() as a connection the
+                // database dropped.
+                backoffMs = nextBackoffMs(backoffMs);
                 waitMs = Math.min(backoffMs, remaining);
                 warnStall(connectionString, attempts, startedAt, e);
             } catch (RuntimeException e) {
@@ -1733,8 +1768,48 @@ public class CachedConnection implements Connection {
         return previous < 0 ? 0 : previous;
     }
 
+    /** How a connection of this pool is named where the read bound of its login would not come off. */
+    static final String POOLED_CONNECTION = "a connection of this pool";
+    /**
+     * And what becomes of it: whatever the driver will not take there it has warned about already,
+     * so such a connection serves the borrower that is waiting for it and is closed rather than
+     * pooled - the bound of its login does not outlive it in the pool.
+     */
+    static final String POOLED_CONNECTION_FATE = "it is closed rather than pooled";
+
     static CachedConnection connect(String connectionString, ConnectDialect dialect, long connectTimeoutSeconds,
             Pool pool, boolean metered) throws SQLException {
+        final Established established = establish(connectionString, dialect, connectTimeoutSeconds,
+            POOLED_CONNECTION, POOLED_CONNECTION_FATE);
+        final CachedConnection con = new CachedConnection(connectionString, established.con, pool, metered,
+            established.loginBoundLifted);
+        con.lastKnownAliveNanos = established.provenAt;
+        return con;
+    }
+
+    /**
+     * The login and the set-up behind it: one attempt of a connect, wherever this backend makes one.
+     * <p>
+     * The pool makes them through {@link #connect}, and the tree catalog of a backend opens a
+     * connection of its own beside the pool ({@code JDBCStorage.newCatalogConnection}), the caller of
+     * {@code openTree()} being inside a transaction and holding a pooled connection already. What an
+     * attempt is, is the same either way and is here: the properties the driver is handed, the login,
+     * the transaction the rows of this backend need, and the read bound the connection carries from
+     * here on. Written out twice it drifted within one round - the standing read bound of #885 was
+     * given to the pooled half alone, leaving the catalog connection with the lift and no bound at
+     * all between its statements - which is why the two share this rather than being kept in step by
+     * hand (#929).
+     * <p>
+     * What is not shared is what a caller makes of the connection, which is what {@link Established}
+     * hands back, and what becomes of one whose read bound would not come off: the pool closes such a
+     * connection rather than pooling it, while the catalog keeps it, having no second connection to
+     * fall back to. That difference is the {@code fate} of the warning, and it is the whole of it.
+     *
+     * @param what how the connection is named in the warning about a read bound that would not take
+     * @param fate what becomes of such a connection, named in the same warning
+     */
+    static Established establish(String connectionString, ConnectDialect dialect, long connectTimeoutSeconds,
+            String what, String fate) throws SQLException {
         // A driver is free to write into the map it is handed, so it gets one of its own.
         final Properties properties = new Properties();
         final boolean readBoundSet = dialect != null && connectTimeoutSeconds > 0
@@ -1744,22 +1819,39 @@ public class CachedConnection implements Connection {
         // it returned could outlive a drop reported while it was still going on.
         final long provenAt = System.nanoTime();
         final Connection conNew = DriverManager.getConnection(connectionString, properties);
-        boolean poolable = true;
+        final boolean loginBoundLifted;
         try {
             // still under the read bound: both of these are round trips of their own
             conNew.setAutoCommit(false);
             conNew.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
-            // whatever the driver will not take here it has warned about already: a connection left
-            // carrying the read bound of its login serves the borrower that is waiting for it and is
-            // closed rather than pooled, so that bound does not outlive it in the pool
-            poolable = applyStandingReadBound(conNew, connectionString, dialect, connectTimeoutSeconds, readBoundSet);
+            loginBoundLifted = applyStandingReadBound(conNew, connectionString, dialect, connectTimeoutSeconds,
+                readBoundSet, what, fate);
         } catch (SQLException | RuntimeException e) { // nothing holds this connection yet: it would leak
-            closeQuietly(conNew);
+            closeQuietly(conNew, e);
             throw e;
         }
-        final CachedConnection established = new CachedConnection(connectionString, conNew, pool, metered, poolable);
-        established.lastKnownAliveNanos = provenAt;
-        return established;
+        return new Established(conNew, loginBoundLifted, provenAt);
+    }
+
+    /** A connection just established, and what the caller that asked for it has to know about it. */
+    static final class Established {
+        /** The connection, set up and carrying the read bound it keeps from here on. */
+        final Connection con;
+        /**
+         * Whether the read bound of the login is off it. False for a driver that would not take the
+         * bound back, and the one thing a caller has to act on: such a connection fails every
+         * statement slower than a connect for the rest of its life, so the pool hands it to the
+         * borrower waiting for it and does not pool it afterwards.
+         */
+        final boolean loginBoundLifted;
+        /** When the login was known to be through, as {@link System#nanoTime()} reads it. */
+        final long provenAt;
+
+        Established(Connection con, boolean loginBoundLifted, long provenAt) {
+            this.con = con;
+            this.loginBoundLifted = loginBoundLifted;
+            this.provenAt = provenAt;
+        }
     }
 
     /**
@@ -1780,47 +1872,88 @@ public class CachedConnection implements Connection {
      * the deadline of the borrow instead, and a deployment running that way would otherwise set the
      * property here and get nothing for it.
      * <p>
-     * Returns whether the connection may be pooled. A connection still carrying the bound of its
-     * login must not be: it would fail the statements of every borrower after this one. A
-     * connection that merely never took the standing bound may be - that is the connection this
-     * pool handed out before the property existed.
+     * Returns whether the read bound of the login is off the connection. One still carrying it must
+     * not be pooled: it would fail the statements of every borrower after this one. A connection
+     * that merely never took the standing bound may be - that is the connection this pool handed out
+     * before the property existed.
+     *
+     * @param what how the connection is named in the warning; the caller's, since the same failure
+     *        ends a connection of the pool and the one connection of a backend's tree catalog
+     * @param fate what becomes of a connection whose read bound would not take, named in the same
+     *        warning: the pool closes it rather than pooling it, the catalog keeps it
      */
     private static boolean applyStandingReadBound(Connection con, String connectionString, ConnectDialect dialect,
-                                                  long loginBoundSeconds, boolean readBoundSet) {
+                                                  long loginBoundSeconds, boolean readBoundSet,
+                                                  String what, String fate) {
         final int millis = standingReadBoundMillis(connectionString, dialect);
         if (millis == 0 && !readBoundSet) {
             return true; // nothing of ours on this connection: nothing to set here, and nothing to lift
         }
-        final String consequence = readBoundSet
-            ? "statements taking longer than the " + loginBoundSeconds
-                + "s the login of this connection was bounded by fail on it, and it is closed rather than pooled"
-            : "this connection carries no read bound of its own, so a read of it the database stops answering waits"
+        return setNetworkTimeout(con, millis, readBoundConsequence(readBoundSet, loginBoundSeconds, what, fate))
+            || !readBoundSet;
+    }
+
+    /**
+     * What a driver refusing the read bound costs the connection it refused it on, as the warning
+     * about it says so.
+     * <p>
+     * Built apart from the logging of it for the reason {@link #stallMessage} is, and it is what
+     * tells the two callers of {@link #establish} apart in the one place they differ: a connection
+     * of the pool is closed rather than pooled where this fails, while the one catalog connection
+     * of a backend is kept and carries the bound of its login for the rest of its life (#929).
+     * Reached through the shipped path only by a driver that really refuses the call, which is why
+     * it is a method a test can hold to the difference rather than a string inline.
+     */
+    static String readBoundConsequence(boolean readBoundSet, long loginBoundSeconds, String what, String fate) {
+        return readBoundSet
+            ? "statements on " + what + " taking longer than the " + loginBoundSeconds
+                + "s the login of this connection was bounded by fail on it, and " + fate
+            : what + " carries no read bound of its own, so a read of it the database stops answering waits"
                 + " with no deadline able to reach it";
-        return setNetworkTimeout(con, millis, consequence) || !readBoundSet;
     }
 
     /**
      * Puts a network timeout on a connection, reporting a driver that will not take one. The
      * consequence is the caller's to name: the same failure ends a freshly established connection
      * carrying the read bound of its login and a pooled one whose bound could not be put back.
+     * <p>
+     * The failure itself rather than its message alone: the drivers that refuse this call refuse it
+     * as {@code SQLFeatureNotSupportedException}, which a driver is free to raise with no message
+     * at all - and a line reading "(null)" says neither what refused nor why.
      */
     private static boolean setNetworkTimeout(Connection con, int millis, String consequence) {
         try {
             con.setNetworkTimeout(DIRECT_EXECUTOR, millis);
             return true;
         } catch (SQLException | RuntimeException e) {
-            // Throttled rather than reported once for the life of the JVM: every connection this
-            // happens to carries a read bound it was never meant to keep, and a statement dying of
-            // it hours later needs a warning of its own to be traced back to here.
-            final long now = System.currentTimeMillis();
-            final long last = lastReadBoundWarning.get();
-            if (now - last >= STALL_WARNING_INTERVAL_MS && lastReadBoundWarning.compareAndSet(last, now)) {
+            if (readBoundWarningDue(consequence, System.currentTimeMillis())) {
                 logger.warn(LocalizableMessage.raw(
                     "The read bound of a JDBC connection could not be set to %d ms (%s): %s",
-                    millis, e.getMessage(), consequence));
+                    millis, e, consequence));
             }
             return false;
         }
+    }
+
+    /**
+     * Whether the warning about a read bound that would not take is due, and the filing of it.
+     * <p>
+     * Throttled rather than reported once for the life of the JVM: every connection this happens to
+     * carries a read bound it was never meant to keep, and a statement dying of it hours later needs
+     * a warning of its own to be traced back to here. Throttled per consequence and not once for the
+     * JVM, for the reason {@link #stallWarningDue} is keyed per url: a connection of the pool meets
+     * this failure on every connect and would otherwise silence the line about the one catalog
+     * connection of a backend, which is kept rather than closed and has no other line about it at
+     * all (#929).
+     * <p>
+     * Filing the moment is part of deciding it, so that two threads meeting the failure at once
+     * report once.
+     */
+    static boolean readBoundWarningDue(String consequence, long now) {
+        final AtomicLong lastOfThisConsequence =
+            lastReadBoundWarning.computeIfAbsent(consequence, key -> new AtomicLong());
+        final long last = lastOfThisConsequence.get();
+        return now - last >= STALL_WARNING_INTERVAL_MS && lastOfThisConsequence.compareAndSet(last, now);
     }
 
     /**
@@ -1965,6 +2098,11 @@ public class CachedConnection implements Connection {
      * RootContainer.open() makes the message of the cause the message of what it throws - so a
      * link left as it stands would carry the password past the wrapper. The SQLState and the
      * vendor code of every link survive it: they are what tells a caller what happened.
+     * <p>
+     * The whole chain is the causes, the further exceptions of {@code getNextException()} and what
+     * was suppressed on each of them - the last being where this class puts the failure of a close
+     * it could not make (#929), and a link nothing else points at is a link a walk that skipped it
+     * would report unredacted.
      */
     static SQLException reported(SQLException e, String connectionString) {
         return holdsCredentials(e, connectionString)
@@ -1972,7 +2110,15 @@ public class CachedConnection implements Connection {
             : e;
     }
 
-    /** The same of an unchecked failure: a driver is free to report a connect it will not make as one. */
+    /**
+     * The same of an unchecked failure: a driver is free to report a connect it will not make as one.
+     * <p>
+     * Flat where {@link #reported} rebuilds a chain - the cause of a failure of this shape is the
+     * driver's own business - with the one exception of what was suppressed on it, which is this
+     * class's own: the close of a connection whose set-up failed is reported there (#929), and a
+     * rebuild dropping it would say nothing of a driver that will not close on the only path where
+     * the message is redacted at all.
+     */
     static Exception reportedUnchecked(RuntimeException e, String connectionString) {
         if (!holdsCredentials(e, connectionString)) {
             return e;
@@ -1981,6 +2127,7 @@ public class CachedConnection implements Connection {
             + (e.getMessage() == null ? "" : ": " + redact(e.getMessage(), connectionString)),
             CONNECT_FAILED_SQL_STATE);
         redacted.setStackTrace(e.getStackTrace());
+        copySuppressed(e, redacted, connectionString, new int[] { MAX_CHAIN_LENGTH });
         return redacted;
     }
 
@@ -2008,6 +2155,14 @@ public class CachedConnection implements Connection {
                 enqueue(pending, visited, ((SQLException) t).getNextException());
             }
             enqueue(pending, visited, t.getCause());
+            // and the links nothing else of a failure points at: a close that could not be made is
+            // carried here (establish(), #929) and an interrupt that ended a wait for a connect is
+            // (JDBCStorage.newCatalogConnection), and a driver names the url it could not close as
+            // readily as the one it could not open. Left out of this walk, such a link is the one
+            // way a password of this backend reaches the log unredacted.
+            for (final Throwable suppressed : t.getSuppressed()) {
+                enqueue(pending, visited, suppressed);
+            }
         }
         return false;
     }
@@ -2038,7 +2193,23 @@ public class CachedConnection implements Connection {
         if (e.getCause() != null) {
             copy.initCause(budget[0] > 0 ? redactedLink(e.getCause(), connectionString, budget) : droppedTail());
         }
+        copySuppressed(e, copy, connectionString, budget);
         return copy;
+    }
+
+    // The suppressed links of a failure are rebuilt with the rest of it and counted against the
+    // same budget. They are not decoration here: the failure of a close that could not be made
+    // rides on the failure being unwound (establish(), #929), and a rebuild that dropped them
+    // would lose it at the one deployment whose log is redacted - which is the deployment whose
+    // url has a password in it, the log that is worth reading.
+    private static void copySuppressed(Throwable from, Throwable to, String connectionString, int[] budget) {
+        for (final Throwable suppressed : from.getSuppressed()) {
+            if (budget[0] <= 0) {
+                to.addSuppressed(droppedTail());
+                return;
+            }
+            to.addSuppressed(redactedLink(suppressed, connectionString, budget));
+        }
     }
 
     // What stands where the budget ran out. Without it the same failure logs its root cause when
@@ -2062,6 +2233,7 @@ public class CachedConnection implements Connection {
         if (t.getCause() != null) {
             copy.initCause(budget[0] > 0 ? redactedLink(t.getCause(), connectionString, budget) : droppedTail());
         }
+        copySuppressed(t, copy, connectionString, budget);
         return copy;
     }
 
@@ -2317,6 +2489,25 @@ public class CachedConnection implements Connection {
             con.close();
         } catch (SQLException | RuntimeException e) {
             // ignore: it is on its way out anyway, and the caller has a permit to give back
+        }
+    }
+
+    /**
+     * Closes a connection nothing holds yet, reporting the failure of the close on the one being
+     * unwound: the connection is gone either way, and a driver that will not close is worth knowing
+     * about where the failure that leads here is reported.
+     * <p>
+     * Package private because every connect of this backend closes a connection it could not set up
+     * the same way: the two roads {@link #establish} holds, and the stamp connection of {@code
+     * JDBCStorage.newStampConnection}, which has bounds of its own but the same rule about a close.
+     */
+    static void closeQuietly(Connection con, Throwable unwinding) {
+        try {
+            con.close();
+        } catch (SQLException | RuntimeException e) {
+            // the unchecked one as well: this runs from the catch of a failure it must not replace
+            // (JLS 14.20.2)
+            unwinding.addSuppressed(e);
         }
     }
 
