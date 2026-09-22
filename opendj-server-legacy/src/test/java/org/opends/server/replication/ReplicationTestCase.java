@@ -29,6 +29,7 @@ import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -65,6 +66,7 @@ import org.opends.server.loggers.TextWriter;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.DomainFakeCfg;
 import org.opends.server.replication.plugin.DummyReplicationDomain;
@@ -74,6 +76,7 @@ import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.Session;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.file.FileChangelogDB;
 import org.opends.server.replication.service.ReplicationBroker;
@@ -1404,6 +1407,40 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     fail("Failed to receive an expected " + msgTypes2 + " message after 5 seconds."
         + " Also received the following messages during wait time: " + msgs);
     return null;
+  }
+
+  /**
+   * Receives from the broker until the update with the given CSN arrives, returning everything
+   * received before it - so that what the broker was not sent can be asserted on without
+   * waiting out a timeout.
+   *
+   * @param broker Broker from which the update is expected.
+   * @param csn CSN of the update to receive up to.
+   * @return the messages received before that update, in order
+   * @throws AssertionError if the broker is stopped or times out before the update arrives
+   */
+  protected static List<ReplicationMsg> receiveUntil(ReplicationBroker broker, CSN csn) throws Exception
+  {
+    final List<ReplicationMsg> received = new ArrayList<>();
+    try
+    {
+      while (true)
+      {
+        final ReplicationMsg msg = broker.receive();
+        assertNotNull(msg, "The broker was stopped before the update " + csn + " reached it."
+            + " Received the following messages before that: " + received);
+        if (msg instanceof UpdateMsg && csn.equals(((UpdateMsg) msg).getCSN()))
+        {
+          return received;
+        }
+        received.add(msg);
+      }
+    }
+    catch (SocketTimeoutException e)
+    {
+      throw new AssertionError("Failed to receive the update " + csn + " before the socket timeout."
+          + " Received the following messages during wait time: " + received, e);
+    }
   }
 
   /**
