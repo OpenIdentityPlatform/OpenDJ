@@ -20,6 +20,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -51,6 +52,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -2794,12 +2796,13 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			recordAnotherTable(catalogTable, "a_table_of_something_else");
 
 			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
-				final List<String> skipped = new ArrayList<>();
+				final JDBCStorage.SkippedRows skipped = new JDBCStorage.SkippedRows();
 				assertFalse(storage.readCatalogRows(con, catalogTable, skipped).containsKey(tree),
 					"a row recording a name no table of this backend goes by was read as a tree to drop");
-				assertEquals(skipped.size(), 1, "the row the read passed over was not described to its caller: " + skipped);
-				assertTrue(skipped.get(0).contains("a_table_of_something_else"),
-					"what the row records is named by nothing the clear could report: " + skipped);
+				assertEquals(skipped.size(), 1,
+					"the row the read passed over was not described to its caller: " + skipped.descriptions());
+				assertTrue(skipped.descriptions().get(0).contains("a_table_of_something_else"),
+					"what the row records is named by nothing the clear could report: " + skipped.descriptions());
 			}
 
 			// the clear still drops what it can: the catalog itself, which it names last
@@ -2818,6 +2821,241 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			// left standing on purpose above, so this case removes it rather than the next one meeting it
 			dropTableIfExists(tableName);
 		}
+	}
+
+	/**
+	 * The line above carries what the row recorded, and what the row recorded is a value somebody else
+	 * wrote into this database - the premise of the line being a catalog written into by something
+	 * other than this backend. A newline in it would splice the rest of the value into the server log
+	 * as further records; #931. The clear runs against a database rather than the escape being asserted
+	 * on its own, which is what pins the value going through it on the way to the line: the unit of it
+	 * is {@code ClearReportTestCase}.
+	 */
+	@Test
+	public void testAClearDoesNotLetACatalogRowEndTheLineReportingIt() throws Exception {
+		final TreeName tree = new TreeName("testCatalogSplicedRow", "tree");
+		final ReportingStorage storage = new ReportingStorage(createBackendCfg(getBackendId() + "_splicedRow"));
+		final String tableName = storage.getTableName(tree);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			final String catalogTable = storage.getTableName(storage.getCatalogTree());
+			recordAnotherTable(catalogTable, "a_table\nSEVERE: a record of somebody else's");
+
+			// the clear drops what it can - its own catalog - and reports the row it passed over
+			storage.removeStorageFiles();
+
+			storage.assertReported("the row the clear could not act on was reported by no line of it",
+				"a_table\\nSEVERE: a record of somebody else's", "passed over");
+			for (final String line : storage.reported()) {
+				assertFalse(line.indexOf('\n') >= 0,
+					"a value read out of the catalog ended the line carrying it: " + line);
+				assertFalse(line.indexOf('\r') >= 0,
+					"a value read out of the catalog ended the line carrying it: " + line);
+			}
+		} finally {
+			clearQuietly(storage);
+			// left standing on purpose above, so this case removes it rather than the next one meeting it
+			dropTableIfExists(tableName);
+		}
+	}
+
+	/**
+	 * The same for the key of such a row, which is read as the name of a tree and reported where it is
+	 * not one: {@code TreeName.valueOf()} asks for a slash at the front and another one after it and
+	 * nothing else, so everything between and after is whatever the row holds. #931.
+	 */
+	@Test
+	public void testAClearDoesNotLetACatalogKeyThatNamesNoTreeEndTheLineReportingIt() throws Exception {
+		final TreeName tree = new TreeName("testCatalogSplicedKey", "tree");
+		final ReportingStorage storage = new ReportingStorage(createBackendCfg(getBackendId() + "_splicedKey"));
+		final String tableName = storage.getTableName(tree);
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			final String catalogTable = storage.getTableName(storage.getCatalogTree());
+			insertCatalogRow(catalogTable, "no-tree-name\nSEVERE: a record of somebody else's", "opendj_whatever");
+
+			storage.removeStorageFiles();
+
+			storage.assertReported("the row whose key names no tree was reported by no line of the clear",
+				"no-tree-name\\nSEVERE: a record of somebody else's", "passed over");
+			assertNoLineIsSplit(storage);
+		} finally {
+			clearQuietly(storage);
+			dropTableIfExists(tableName);
+		}
+	}
+
+	/**
+	 * And for the line naming a tree whose table is not there, which carries two values off the one
+	 * row: the tree name the key spells, and the name the row records - which {@code isOwnTableName()}
+	 * bounds the characters of and not the length, {@code v} being a blob on every engine. #931.
+	 */
+	@Test
+	public void testAClearDoesNotLetTheRowOfAMissingTableEndTheLineReportingIt() throws Exception {
+		final TreeName tree = new TreeName("testCatalogSplicedMissingTable", "tree");
+		final ReportingStorage storage = new ReportingStorage(createBackendCfg(getBackendId() + "_splicedMissing"));
+		final String tableName = storage.getTableName(tree);
+		final StringBuilder recorded = new StringBuilder("opendj");
+		while (recorded.length() < 260) { // a bare identifier, and longer than any line may carry
+			recorded.append('q');
+		}
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			final String catalogTable = storage.getTableName(storage.getCatalogTree());
+			// a row naming a tree this backend never enrolled and recording a name of its own namespace
+			// that no table goes by: the clear finds nothing to drop for it, and says so naming both
+			insertCatalogRow(catalogTable, "/dc=spliced\nSEVERE: a record of somebody else's/tree",
+				recorded.toString());
+
+			storage.removeStorageFiles();
+
+			storage.assertReported("the row naming a tree whose table is not there was reported by no line",
+				"/dc=spliced\\nSEVERE: a record of somebody else's/tree", "is not there: nothing to drop for it");
+			assertNoLineIsSplit(storage);
+			for (final String line : storage.reported()) {
+				assertFalse(line.contains(recorded.toString()),
+					"the whole of a 260 character name recorded by a row reached the line carrying it: " + line);
+			}
+			storage.assertReported("the line does not say how much of the recorded name it is not showing",
+				"more characters)");
+		} finally {
+			clearQuietly(storage);
+			dropTableIfExists(tableName);
+		}
+	}
+
+	/**
+	 * And there is a bound on how many such rows are named at all. One line per row of a catalog is
+	 * one line per row somebody else may have put there: the row reaches this line by recording a name
+	 * of this backend's namespace that no table goes by, which nothing this backend does bounds the
+	 * number of. What the clear reports as trees which had lost their table stays the count of them
+	 * all. #931.
+	 */
+	@Test
+	public void testAClearBoundsHowManyRowsOfAMissingTableItNames() throws Exception {
+		final TreeName tree = new TreeName("testCatalogManyMissingTables", "tree");
+		final ReportingStorage storage = new ReportingStorage(createBackendCfg(getBackendId() + "_manyMissing"));
+		final String tableName = storage.getTableName(tree);
+		final int rows = JDBCStorage.MAX_REPORTED_VALUES + 1;
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			final String catalogTable = storage.getTableName(storage.getCatalogTree());
+			for (int i = 0; i < rows; i++) {
+				insertCatalogRow(catalogTable, "/dc=missing" + i + "/tree", "opendj_nosuchtable" + i);
+			}
+
+			storage.removeStorageFiles();
+
+			int named = 0;
+			for (final String line : storage.reported()) {
+				if (line.contains("is not there: nothing to drop for it")) {
+					named++;
+				}
+			}
+			assertEquals(named, JDBCStorage.MAX_REPORTED_VALUES,
+				"a line was reported for every row whose table was not there: " + storage.reported());
+			// the count the line states is every such row and not the twenty it named: what the cap
+			// takes away is the naming
+			storage.assertReported("the clear does not say how many rows it named no line for",
+				rows + " row(s) of its catalog name a tree whose table is not there",
+				"the first " + JDBCStorage.MAX_REPORTED_VALUES + " of them are named above");
+		} finally {
+			clearQuietly(storage);
+			dropTableIfExists(tableName);
+		}
+	}
+
+	/**
+	 * The warnings a read of a catalog writes as it goes are bounded by the same cap, and for the same
+	 * reason: a reader with nobody to tell - a read of {@code dbtest}, or the one an enrolment makes -
+	 * has them as its whole report, and a catalog holding a million rows this backend cannot act on
+	 * was a million records of the server log. One line at the end says how many rows went by without
+	 * one, so that reader is not left believing the rows it was shown were all there were. #931.
+	 */
+	@Test
+	public void testAReadOfACatalogBoundsTheWarningsItWritesPerRow() throws Exception {
+		final TreeName tree = new TreeName("testCatalogManySkippedRows", "tree");
+		final ReportingStorage storage = new ReportingStorage(createBackendCfg(getBackendId() + "_manySkipped"));
+		final String tableName = storage.getTableName(tree);
+		final int rows = JDBCStorage.MAX_REPORTED_VALUES + 1;
+		try {
+			storage.open(AccessMode.READ_WRITE);
+			storage.write(new WriteOperation() {
+				@Override
+				public void run(WriteableTransaction txn) throws Exception {
+					txn.openTree(tree, true);
+				}
+			});
+			final String catalogTable = storage.getTableName(storage.getCatalogTree());
+			for (int i = 0; i < rows; i++) {
+				insertCatalogRow(catalogTable, "no-tree-name" + i, "opendj_whatever");
+			}
+
+			final JDBCStorage.SkippedRows skipped = new JDBCStorage.SkippedRows();
+			TestCaseUtils.clearLoggersContents();
+			try (final Connection con = DriverManager.getConnection(getJdbcUrl())) {
+				storage.readCatalogRows(con, catalogTable, skipped);
+			}
+			// by the records that differ: the error log of a test run holds every one of them twice,
+			// each of the two publishers registered for it keeping its own copy
+			final Set<String> warned = new LinkedHashSet<>(TestCaseUtils.ERROR_TEXT_WRITER.getMessages());
+
+			assertEquals(skipped.size(), rows, "the read counted fewer rows than it passed over");
+			assertEquals(skipped.descriptions().size(), JDBCStorage.MAX_REPORTED_VALUES,
+				"the read described more rows than the cap allows: " + skipped.descriptions());
+			assertEquals(countHolding(warned, "which is not the name of a tree: skipped"),
+				JDBCStorage.MAX_REPORTED_VALUES,
+				"a warning was written for every row the read passed over: " + warned);
+			assertEquals(countHolding(warned, "row(s) this backend could not act on"), 1,
+				"the read did not say once how many rows it passed over without a line of their own: " + warned);
+		} finally {
+			clearQuietly(storage);
+			dropTableIfExists(tableName);
+		}
+	}
+
+	/** Fails unless every line a clear reported is one log record, which is what the escape is for. */
+	private static void assertNoLineIsSplit(ReportingStorage storage) {
+		for (final String line : storage.reported()) {
+			assertFalse(line.indexOf('\n') >= 0,
+				"a value read out of the catalog ended the line carrying it: " + line);
+			assertFalse(line.indexOf('\r') >= 0,
+				"a value read out of the catalog ended the line carrying it: " + line);
+		}
+	}
+
+	private static int countHolding(Collection<String> records, String fragment) {
+		int held = 0;
+		for (final String record : records) {
+			if (record.contains(fragment)) {
+				held++;
+			}
+		}
+		return held;
 	}
 
 	/**
@@ -3092,6 +3330,32 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 			statement.executeUpdate();
 		}
 	}
+
+	/**
+	 * Puts a row into a catalog with a key of this case's own, which nothing this backend writes would
+	 * make: every key it writes is a {@code TreeName.toString()} and every value a name it derived
+	 * itself. The premise of the lines these cases hold to account is a catalog written into by
+	 * something other than this backend, and this is what writes into one.
+	 * <p>
+	 * By hand and not through the storage, which has no way of enrolling a tree under a name of
+	 * somebody else's choosing. {@code h} is the column a key is sought by and no part of the
+	 * {@code select k,v} a clear reads the catalog with, so anything unique will do - unique because
+	 * it alone is the primary key on sql server - and the key goes through {@code real2db()} exactly
+	 * as an enrolment puts it there.
+	 */
+	private void insertCatalogRow(String catalogTable, String key, String tableName) throws SQLException {
+		try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+			 final PreparedStatement statement = con.prepareStatement(
+				 "insert into " + catalogTable + " (h,k,v) values (?,?,?)")) {
+			statement.setString(1, "byHand" + rowsPutInByHand.incrementAndGet());
+			statement.setBytes(2, JDBCStorage.real2db(key.getBytes(StandardCharsets.UTF_8)));
+			statement.setBytes(3, tableName.getBytes(StandardCharsets.UTF_8));
+			statement.executeUpdate();
+		}
+	}
+
+	/** Tells one such row from the next: see {@link #insertCatalogRow}. */
+	private static final AtomicInteger rowsPutInByHand = new AtomicInteger();
 
 	/** Empties the recorded table name of every row of a catalog, as a version recording none would have left it. */
 	private void emptyTheRecordedTableNames(String catalogTable) throws SQLException {
