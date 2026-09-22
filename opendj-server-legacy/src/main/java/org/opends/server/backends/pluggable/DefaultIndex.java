@@ -53,7 +53,18 @@ class DefaultIndex extends AbstractTree implements Index
   /** The limit on the number of entry IDs that may be indexed by one key. */
   private int indexEntryLimit;
 
-  private EntryIDSetCodec codec;
+  /**
+   * Volatile because {@link #afterOpen} binds it to the confidentiality then in force, and an index
+   * whose configuration gives that setting up - or asks for it - is opened again while operations of
+   * other threads are holding this instance.
+   */
+  private volatile EntryIDSetCodec codec;
+  /**
+   * Whether that codec encrypts: the confidentiality this index was opened under. Held here rather
+   * than read from the suite, since the suite carries the setting now in force for the attribute,
+   * which this index writes under only once its tree has been given up and opened again.
+   */
+  private volatile boolean encrypted;
   private CryptoSuite cryptoSuite;
 
   /**
@@ -98,7 +109,8 @@ class DefaultIndex extends AbstractTree implements Index
   {
     final EnumSet<IndexFlag> flags = state.getIndexFlags(txn, getName());
     codec = flags.contains(COMPACTED) ? CODEC_V2 : CODEC_V1;
-    if (cryptoSuite.isEncrypted())
+    encrypted = cryptoSuite.isEncrypted();
+    if (encrypted)
     {
       codec = new EntryIDSet.EntryIDSetCodecV3(codec, cryptoSuite);
     }
@@ -307,12 +319,6 @@ class DefaultIndex extends AbstractTree implements Index
   }
 
   @Override
-  public boolean setConfidential(boolean indexConfidential)
-  {
-    return cryptoSuite.isEncrypted() != indexConfidential;
-  }
-
-  @Override
   public final int getIndexEntryLimit()
   {
     return indexEntryLimit;
@@ -338,8 +344,31 @@ class DefaultIndex extends AbstractTree implements Index
     return trusted;
   }
 
+  /** Whether this index encrypts what it writes: the confidentiality its tree was opened under. */
   final boolean isEncrypted()
   {
-    return cryptoSuite.isEncrypted();
+    return encrypted;
+  }
+
+  /** The codec this index currently reads and writes under. */
+  final EntryIDSetCodec codec()
+  {
+    return codec;
+  }
+
+  /**
+   * Puts this index back to the confidentiality, codec and trust it answered before its tree was
+   * given up and opened again, for a reopen whose commit the storage gave up: what
+   * {@link #afterOpen} binds is memory, and outlives a write the storage rolled back, so a change
+   * asked for again would otherwise find this index already agreeing with the setting that write
+   * never durably reached. The trust is bound the same way - an index opened over an empty entry
+   * container is trusted on the spot - and, left behind, is what an operation which then fails
+   * writes down for every index in its buffer, for a tree the give-up took with it.
+   */
+  final void revertFailedReopen(boolean encrypted, EntryIDSetCodec codec, boolean trusted)
+  {
+    this.encrypted = encrypted;
+    this.codec = codec;
+    this.trusted = trusted;
   }
 }
