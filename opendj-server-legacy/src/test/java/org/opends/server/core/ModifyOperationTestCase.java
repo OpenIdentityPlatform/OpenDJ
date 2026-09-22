@@ -2136,6 +2136,91 @@ public class ModifyOperationTestCase
 
 
   /**
+   * Adds the entry the object class deletes below work on: two auxiliary classes which the entry
+   * can lose without breaking the schema.
+   */
+  private void addUserWithTwoAuxiliaryObjectClasses(String baseDN) throws Exception
+  {
+    TestCaseUtils.addEntry(
+         "dn: uid=test.user," + baseDN,
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "objectClass: uidObject",
+         "objectClass: userSecurityInformation",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User");
+  }
+
+  private void assertObjectClassesAre(String baseDN, String... objectClasses) throws Exception
+  {
+    Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
+    assertThat(e.getObjectClasses().values()).containsOnly(objectClasses);
+  }
+
+  /**
+   * A delete of several object class values must remove every one of them, not just the first
+   * (see issue #1023).
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessRemoveSeveralObjectClassValues(String baseDN) throws Exception
+  {
+    addUserWithTwoAuxiliaryObjectClasses(baseDN);
+
+    RawModification mod =
+        newRawModification(DELETE, "objectClass", "uidObject", "userSecurityInformation");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    retrieveSuccessfulOperationElements(modifyOperation);
+
+    assertObjectClassesAre(baseDN, "top", "person", "organizationalPerson", "inetOrgPerson");
+  }
+
+  /**
+   * A delete of several object class values one of which the entry does not have must name that
+   * value: the objectClass attribute itself is there, so this is a missing value and not an
+   * absent attribute.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testFailRemoveSeveralObjectClassValuesOneOfWhichIsMissing(String baseDN)
+         throws Exception
+  {
+    addUserWithTwoAuxiliaryObjectClasses(baseDN);
+
+    RawModification mod = newRawModification(DELETE, "objectClass", "uidObject", "domain");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.NO_SUCH_ATTRIBUTE);
+    assertThat(modifyOperation.getErrorMessage().toString()).contains("domain");
+    retrieveFailedOperationElements(modifyOperation);
+
+    assertObjectClassesAre(baseDN, "top", "person", "organizationalPerson", "inetOrgPerson",
+        "uidObject", "userSecurityInformation");
+  }
+
+  /**
+   * The permissive modify control drops the object class value which the entry does not have, and
+   * the values it does have are all removed.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessPermissiveModifyControlRemoveSeveralObjectClassValuesOneMissing(
+      String baseDN) throws Exception
+  {
+    addUserWithTwoAuxiliaryObjectClasses(baseDN);
+
+    ModifyRequest modifyRequest = Requests.newModifyRequest("uid=test.user," + baseDN)
+        .addModification(DELETE, "objectClass", "uidObject", "domain", "userSecurityInformation")
+        .addControl(newControl(OID_PERMISSIVE_MODIFY_CONTROL));
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    retrieveSuccessfulOperationElements(modifyOperation);
+
+    assertObjectClassesAre(baseDN, "top", "person", "organizationalPerson", "inetOrgPerson");
+  }
+
+  /**
    * Tests the ability to perform a modification that adds an auxiliary
    * objectclass.
    *
