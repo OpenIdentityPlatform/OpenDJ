@@ -100,6 +100,8 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
    * published one, so the shutdown spends its whole grace period waiting for it.
    */
   private static final int UNREACHABLE_DS_ID = 98;
+  /** The peer replication server which speaks a protocol version with no ReplicaOfflineMsg. */
+  private static final int OLD_PEER_RS_ID = 99;
   /**
    * Base of the id of the replication server serving a peer of a chosen protocol version: the
    * version is added to it, so that the two rows of
@@ -1099,6 +1101,60 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
   }
 
   /**
+   * A peer which cannot decode the message says nothing about the peers which can: a topology
+   * where one of the connected peers still speaks a protocol version without the
+   * ReplicaOfflineMsg is waited for, for the sake of the peers which do get it.
+   * <p>
+   * What decides is whether <em>any</em> connected peer can be told, not which handler is
+   * iterated first - {@code connectedRSs} is a ConcurrentHashMap, so the order the two peers
+   * below are registered in is not the order they are read in. This case asserts the wait
+   * rather than the peer which caused it for that reason.
+   */
+  @Test
+  public void shutdownWaitsWhenOnlySomeOfTheConnectedPeersCanDecodeTheMessage() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final DSRSShutdownSync shutdownSync = new DSRSShutdownSync();
+    ReplicationServer replicationServer = null;
+    try (ServerSocket oldPeerListen = TestCaseUtils.bindFreePort();
+        ServerSocket currentPeerListen = TestCaseUtils.bindFreePort())
+    {
+      oldPeerListen.setSoTimeout(SOCKET_TIMEOUT_MS);
+      currentPeerListen.setSoTimeout(SOCKET_TIMEOUT_MS);
+      replicationServer = newReplicationServer(shutdownSync, "shutdownSyncMixedPeersDb", 8237);
+      final Session[] oldPeerPair = connectSessionPair(oldPeerListen, getReplSessionSecurity());
+      final Session[] currentPeerPair =
+          connectSessionPair(currentPeerListen, getReplSessionSecurity());
+      try (Session oldPeerRemoteEnd = oldPeerPair[0];
+          Session oldPeerSession = oldPeerPair[1];
+          Session currentPeerRemoteEnd = currentPeerPair[0];
+          Session currentPeerSession = currentPeerPair[1])
+      {
+        oldPeerSession.setProtocolVersion(ProtocolVersion.REPLICATION_PROTOCOL_V7);
+        currentPeerSession.setProtocolVersion(ProtocolVersion.getCurrentVersion());
+        registerConnectedReplicationServer(
+            replicationServer, baseDN, oldPeerSession, OLD_PEER_RS_ID);
+        registerConnectedReplicationServer(
+            replicationServer, baseDN, currentPeerSession, REMOTE_RS_ID);
+
+        final long startTime = System.nanoTime();
+        shutdownSync.replicaOfflineMsgSent(baseDN, newOfflineCSN());
+        replicationServer.shutdown();
+        final long elapsed = elapsedMillis(startTime);
+
+        assertThat(elapsed)
+            .as("the shutdown stopped waiting although a connected peer can still be told that "
+                + "the replica went offline")
+            .isGreaterThanOrEqualTo(DSRSShutdownSync.REPLICA_OFFLINE_GRACE_PERIOD);
+      }
+    }
+    finally
+    {
+      removeQuietly(replicationServer);
+    }
+  }
+
+  /**
    * The writer serving a directory server must not hold back the shutdown either: it used to
    * loop on the pending message until the grace period expired, although its handler had already
    * been shut down - which deactivates its consumer and leaves the loop nothing to take.
@@ -1309,6 +1365,24 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
    * puts every connection accepted before it - the collocated directory server of these tests
    * among them - past it.
    */
+  private void waitForConnectedReplicationServer(
+      final ReplicationServerDomain domain, final int serverId) throws Exception
+  {
+    newConnectionTimer().repeatUntilSuccess(new TestTimer.CallableVoid()
+    {
+      @Override
+      public void call() throws Exception
+      {
+        final ReplicationServerHandler rsHandler = domain.getConnectedRSs().get(serverId);
+        assertThat(rsHandler)
+            .as("the peer replication server %s never connected", serverId).isNotNull();
+        assertThat(handshakeIsOver(rsHandler))
+            .as("the handshake of the peer replication server %s never finished", serverId)
+            .isTrue();
+      }
+    });
+  }
+
   /**
    * Waits for the handler of the peer to be served from its in-memory queue rather than from the
    * changelog.
@@ -1335,24 +1409,6 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
         assertThat(rsHandler.isFollowing())
             .as("the peer replication server %s is still catching up from the changelog",
                 serverId)
-            .isTrue();
-      }
-    });
-  }
-
-  private void waitForConnectedReplicationServer(
-      final ReplicationServerDomain domain, final int serverId) throws Exception
-  {
-    newConnectionTimer().repeatUntilSuccess(new TestTimer.CallableVoid()
-    {
-      @Override
-      public void call() throws Exception
-      {
-        final ReplicationServerHandler rsHandler = domain.getConnectedRSs().get(serverId);
-        assertThat(rsHandler)
-            .as("the peer replication server %s never connected", serverId).isNotNull();
-        assertThat(handshakeIsOver(rsHandler))
-            .as("the handshake of the peer replication server %s never finished", serverId)
             .isTrue();
       }
     });

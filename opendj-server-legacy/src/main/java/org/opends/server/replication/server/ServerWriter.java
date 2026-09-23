@@ -182,34 +182,19 @@ public class ServerWriter extends DirectoryThread
        * still be told - see OPENDJ-1453 and issue #1014. Dropping it here reports what happened
        * instead. There is nothing to send to this one: the message is not part of the protocol
        * version it negotiated, and no version of it will ever reach it.
+       * <p>
+       * The drop is reported rather than traced whoever the consumer is: today the only message
+       * gated on a protocol version is the ReplicaOfflineMsg, which never reaches the writer of
+       * a directory server at all - ReplicationServerDomain.put() does not queue it for one, and
+       * DataServerHandler.updateServerState() drops the copy the changelog cursor of a directory
+       * server which is catching up synthesizes from the offline CSN of the replica (issue
+       * #1029). A message which does get here is one the consumer was to be sent and will not
+       * be, which is what this record says.
        */
-      if (handler.isDataServer())
-      {
-        /*
-         * Traced rather than reported on this road: ReplicationServerDomain.put() never queues a
-         * ReplicaOfflineMsg for a directory server and says nothing when it drops it, so a copy
-         * only reaches here when the handler is catching up from the changelog, where
-         * ReplicaCursor synthesizes one from the offline CSN of the replica. That CSN never
-         * enters the state of the handler - updateServerState() leaves it out by design - so
-         * every refill of its late queue serves the copy again, and a warning per copy would
-         * report a non-event once per refill.
-         */
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("Not sending update " + updateMsg.getCSN() + " for domain "
-              + handler.getBaseDN() + " to directory server " + handler.getServerId() + " at "
-              + session.getReadableRemoteAddress() + " because the replication protocol version "
-              + handler.getProtocolVersion() + " negotiated with it has no encoding for this"
-              + " message");
-        }
-      }
-      else
-      {
-        logger.warn(WARN_IGNORING_UPDATE_UNSUPPORTED_BY_PEER,
-            handler.getReplicationServerId(), updateMsg.getCSN(), handler.getBaseDN(),
-            handler.getServerId(), session.getReadableRemoteAddress(),
-            handler.getProtocolVersion());
-      }
+      logger.warn(WARN_IGNORING_UPDATE_UNSUPPORTED_BY_PEER,
+          handler.getReplicationServerId(), updateMsg.getCSN(), handler.getBaseDN(),
+          handler.getServerId(), session.getReadableRemoteAddress(),
+          handler.getProtocolVersion());
       return true;
     }
     if (handler.isDataServer())
