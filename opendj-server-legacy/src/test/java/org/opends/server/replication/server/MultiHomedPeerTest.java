@@ -28,6 +28,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,10 +54,11 @@ import org.testng.annotations.Test;
  * not the address it is configured <i>as</i> -- used to be recognised by the address the
  * socket of one of its sessions happened to carry.
  * <p>
- * {@code ReplicationServerHandler.toServerAddressURL()} takes the host of a handler from
- * {@code session.getRemoteAddress()} and its port from the start message that handler
- * received, so the address a peer is registered under is an artefact of which interface its
- * connection used, not an identity. Two things followed, and the tests below drive both:
+ * {@code ReplicationServerHandler.toServerAddressURL()}, which this change removes, took
+ * the host of a handler from {@code session.getRemoteAddress()} and its port from the start
+ * message that handler received, so the address a peer was registered under was an artefact
+ * of which interface its connection used, not an identity. Two things followed, and the
+ * tests below drive both:
  * the already connected test of {@code runConnect()} compared a configured address against
  * one which never matches it, so the peer was dialled again on every pass, about once a
  * second, for as long as it stayed where it was; and the handshake offered to that same
@@ -71,7 +73,8 @@ import org.testng.annotations.Test;
  * what reaching the same peer at its configured address gives. The addresses named are
  * documentation addresses (RFC 5737): nothing answers at them, which is what the connect
  * thread of the server under test finds when it dials one -- a host stack sends that SYN to
- * its default route, and the connect fails, once per pass until the peer has registered.
+ * its default route, and the connect fails, once per six passes -- a failed dial is
+ * blacklisted for the five passes after it -- until the peer has registered.
  */
 @SuppressWarnings("javadoc")
 public class MultiHomedPeerTest extends ReplicationTestCase
@@ -82,6 +85,8 @@ public class MultiHomedPeerTest extends ReplicationTestCase
 
   private static final int RS_ID = 8251;
   private static final int PEER_RS_ID = 8252;
+  /** The server id of the second fake peer, which only the removal case registers. */
+  private static final int SECOND_PEER_RS_ID = 8253;
 
   /** TEST-NET-1: the address the peer is configured under and answers on. */
   private static final byte[] PEER_ADDRESS = { (byte) 192, 0, 2, 1 };
@@ -293,6 +298,21 @@ public class MultiHomedPeerTest extends ReplicationTestCase
       final ReplicationServerHandler registered = waitForRegistration(domain);
 
       /*
+       * The premise of this case rather than an assumption about the network it runs on:
+       * HostPort reports a name it cannot resolve each time it builds an address from one,
+       * so those records are what says this machine answers that the name below does not
+       * exist. A resolver which synthesises an address for a name which does not -- consumer
+       * ISPs, captive portals, some corporate DNS -- would have isEquivalentTo() answer this
+       * case on its own, which leaves the arm the case is here for unread, the count below
+       * vacuous and nothing red to say so.
+       */
+      assertThat(recordsContaining(TestCaseUtils.ERROR_TEXT_WRITER.getMessages(),
+          ERR_COULD_NOT_SOLVE_HOSTNAME.get(UNRESOLVABLE_HOST).toString()))
+          .as("the resolver of this machine must answer that " + UNRESOLVABLE_HOST
+              + " does not exist, which is the premise of this case")
+          .isNotEmpty();
+
+      /*
        * What the addresses are built from is read once, when the start message names them:
        * a name which cannot be resolved is reported by HostPort each time one is built from
        * it, and the connect thread compares them on every pass. The comparison below is the
@@ -370,6 +390,62 @@ public class MultiHomedPeerTest extends ReplicationTestCase
   }
 
   /**
+   * Tests that a second session which comes from the address a peer is already connected on
+   * is read as that peer, whatever that session names.
+   * <p>
+   * This is the other arm of the comparison the handshake makes, and what it gives up:
+   * a session from the address a peer is connected on is that peer, so two replication
+   * servers which share a server id and reach this one from behind a single gateway are read
+   * as one and the second of them is dropped in silence. The base did the same with them --
+   * it compared the addresses the two sockets carried, which for such a pair is one string
+   * twice -- and this is the arm which recognises the peer of the case above, whose named
+   * address matches nothing in this configuration.
+   */
+  @Test
+  public void aSecondSessionFromTheAddressAPeerIsConnectedOnIsReadAsThatPeer() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final int[] ports = TestCaseUtils.findFreePorts(2);
+    final HostPort peerAddress = documentationAddress(PEER_ADDRESS, ports[1]);
+    final HostPort otherAddress = documentationAddress(OTHER_ADDRESS, ports[1]);
+
+    ReplicationServer rs = null;
+    Session inbound = null;
+    try
+    {
+      rs = startServerWithPeerConfiguredAt(ports[0], "multiHomedPeerGatewayDb", peerAddress);
+      final ReplicationServerDomain domain = rs.getReplicationServerDomain(baseDN, true);
+      inbound = registerPeerFrom(ports[0], peerAddress, baseDN);
+      final ReplicationServerHandler registered = waitForRegistration(domain);
+
+      /*
+       * The handshake is answered from the loopback address the session of the registered
+       * peer came from, and what answers it names an address neither handler carries
+       * otherwise: the named addresses of the two differ, so the address the two sessions
+       * have in common is the only thing which can match them.
+       */
+      final List<String> records =
+          errorLogRecordsOfHandshakeWith(rs, baseDN, loopbackAt(ports[1]), otherAddress);
+
+      assertThat(
+          duplicateServerIdRecords(records, rs, loopbackAt(ports[1]), loopbackAt(ports[1])))
+          .as("a session from the address a peer is connected on is that peer, whatever that"
+              + " session names")
+          .isEmpty();
+      assertThat(domain.getConnectedRSs().get(PEER_RS_ID))
+          .as("the session the peer dialled must outlive the duplicate connection")
+          .isSameAs(registered);
+    }
+    finally
+    {
+      close(inbound);
+      removeQuietly(rs);
+    }
+  }
+
+  /**
    * Tests that a peer taken out of the configuration is disconnected even though the
    * session it is connected on came from another address.
    * <p>
@@ -411,17 +487,108 @@ public class MultiHomedPeerTest extends ReplicationTestCase
   }
 
   /**
+   * Tests that taking the entry of this server out of {@code ds-cfg-replication-server}
+   * stops no peer, while taking the entry of a peer out still stops that peer.
+   * <p>
+   * {@code HostPort} normalises every address local to this machine to {@code localhost}, so
+   * the entry of this server and the loopback address a peer names for itself are one
+   * address on this port: a peer whose own configuration lists {@code localhost:P} for
+   * itself names exactly that in its start messages -- {@code setServerURL()} takes the
+   * first configured entry which is local to it -- and on this server that name normalises
+   * to what its own entry does. The connect thread skips the entry of this server before it
+   * dials; the road which disconnects removed replication servers has to skip it as well, or
+   * removing it -- a configuration which does not list this server is supported, see
+   * {@code runConnect()} -- costs such a peer its session, which it then has to dial again.
+   * <p>
+   * Both entries go in one change, so what tells the two peers apart is that guard alone:
+   * the peer which names the entry of this server stays, the peer whose own entry was
+   * removed goes. What the in JVM fixture cannot give is the fold itself, which needs one
+   * port on two machines; what it names is the address of this server, which normalises the
+   * same way.
+   */
+  @Test
+  public void removingTheEntryOfThisServerStopsNoPeer() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final int[] ports = TestCaseUtils.findFreePorts(2);
+    final HostPort ownAddress = loopbackAt(ports[0]);
+    final HostPort peerAddress = loopbackAt(ports[1]);
+    final String dbDirName = "multiHomedPeerOwnEntryDb";
+
+    ReplicationServer rs = null;
+    Session namesThisServer = null;
+    Session namesItsOwnEntry = null;
+    try
+    {
+      rs = startServerWithPeersConfiguredAt(ports[0], dbDirName, ownAddress, peerAddress);
+      final ReplicationServerDomain domain = rs.getReplicationServerDomain(baseDN, true);
+      namesThisServer = registerPeerFrom(ports[0], PEER_RS_ID, ownAddress, baseDN);
+      final ReplicationServerHandler namedThisServer = waitForRegistration(domain, PEER_RS_ID);
+      namesItsOwnEntry = registerPeerFrom(ports[0], SECOND_PEER_RS_ID, peerAddress, baseDN);
+      waitForRegistration(domain, SECOND_PEER_RS_ID);
+
+      // The precondition of the case rather than an assumption: a peer which does not answer
+      // to the entry of this server is a peer this case says nothing about.
+      assertThat(namedThisServer.isServerAt(HostPort.localAddress(ports[0])))
+          .as("the peer which names a loopback address on the port of this server should"
+              + " answer to the entry of this server")
+          .isTrue();
+
+      // Both entries removed at once, which is what an administrator emptying the list does.
+      rs.applyConfigurationChange(configurationWithPeersAt(ports[0], dbDirName));
+
+      assertThat(domain.getConnectedRSs().keySet())
+          .as("a peer which names the address this server listens on must outlive the removal"
+              + " of the entry of this server")
+          .contains(PEER_RS_ID);
+      assertThat(domain.getConnectedRSs().keySet())
+          .as("the peer whose own entry was removed must still be disconnected")
+          .doesNotContain(SECOND_PEER_RS_ID);
+    }
+    finally
+    {
+      close(namesThisServer);
+      close(namesItsOwnEntry);
+      removeQuietly(rs);
+    }
+  }
+
+  /**
    * Starts a replication server whose only configured peer is at the provided address.
    * <p>
    * Nothing ever answers there -- the address is a documentation address -- which is what
    * the connect thread of the server does with it: it dials it, fails, and comes back to it
-   * on the next pass. Whether it dials it at all is what the first case is about.
+   * six passes later, the failed dial being blacklisted for the five in between. Whether it
+   * dials it at all is what the first case is about.
    */
   private ReplicationServer startServerWithPeerConfiguredAt(int port, String dbDirName,
       HostPort peerAddress) throws Exception
   {
-    return new ReplicationServer(new ReplServerFakeConfiguration(
-        port, dbDirName, 0, RS_ID, 0, 100, newTreeSet(peerAddress.toString())));
+    return startServerWithPeersConfiguredAt(port, dbDirName, peerAddress);
+  }
+
+  /** Starts a replication server whose configured peers are the provided addresses. */
+  private ReplicationServer startServerWithPeersConfiguredAt(int port, String dbDirName,
+      HostPort... peerAddresses) throws Exception
+  {
+    return new ReplicationServer(configurationWithPeersAt(port, dbDirName, peerAddresses));
+  }
+
+  /**
+   * Returns the configuration of the server under test, listing the provided addresses as
+   * the replication servers of its topology.
+   */
+  private ReplServerFakeConfiguration configurationWithPeersAt(int port, String dbDirName,
+      HostPort... peerAddresses)
+  {
+    final SortedSet<String> configured = newTreeSet();
+    for (HostPort peerAddress : peerAddresses)
+    {
+      configured.add(peerAddress.toString());
+    }
+    return new ReplServerFakeConfiguration(port, dbDirName, 0, RS_ID, 0, 100, configured);
   }
 
   /**
@@ -433,6 +600,19 @@ public class MultiHomedPeerTest extends ReplicationTestCase
    */
   private Session registerPeerFrom(int port, HostPort registeredAs, DN baseDN) throws Exception
   {
+    return registerPeerFrom(port, PEER_RS_ID, registeredAs, baseDN);
+  }
+
+  /**
+   * Has a fake peer of the provided server id dial the server under test, as
+   * {@link #registerPeerFrom(int, HostPort, DN)} does for the peer of the cases which need
+   * one peer only.
+   *
+   * @return the session the registration hangs on, closed by the caller
+   */
+  private Session registerPeerFrom(int port, int peerServerId, HostPort registeredAs, DN baseDN)
+      throws Exception
+  {
     final ReplSessionSecurity security = getReplSessionSecurity();
     final Socket socket = new Socket();
     Session session = null;
@@ -441,7 +621,7 @@ public class MultiHomedPeerTest extends ReplicationTestCase
       socket.setTcpNoDelay(true);
       socket.connect(new InetSocketAddress("127.0.0.1", port), SOCKET_TIMEOUT_MS);
       session = security.createClientSession(socket, SOCKET_TIMEOUT_MS);
-      session.publish(peerStartMsg(registeredAs, baseDN));
+      session.publish(peerStartMsg(peerServerId, registeredAs, baseDN));
       session.receive();
       // The initiator of a session decides whether it is encrypted, and the start message
       // above asked for it not to be: both ends leave the SSL session together, right after
@@ -454,7 +634,7 @@ public class MultiHomedPeerTest extends ReplicationTestCase
        * an empty one ends the handshake on an IndexOutOfBoundsException instead, which is
        * an abort like any other and would leave the peer unregistered.
        */
-      final RSInfo peerInfo = new RSInfo(PEER_RS_ID, registeredAs.toString(), -1, (byte) 1, 1);
+      final RSInfo peerInfo = new RSInfo(peerServerId, registeredAs.toString(), -1, (byte) 1, 1);
       session.publish(new TopologyMsg(Collections.<DSInfo> emptyList(), newArrayList(peerInfo)));
       session.receive();
       return session;
@@ -566,7 +746,13 @@ public class MultiHomedPeerTest extends ReplicationTestCase
   /** Returns the start message of the fake peer, naming the provided address. */
   private ReplServerStartMsg peerStartMsg(HostPort address, DN baseDN)
   {
-    return new ReplServerStartMsg(PEER_RS_ID, address.toString(), baseDN, 100,
+    return peerStartMsg(PEER_RS_ID, address, baseDN);
+  }
+
+  /** Returns the start message of a fake peer of the provided server id. */
+  private ReplServerStartMsg peerStartMsg(int peerServerId, HostPort address, DN baseDN)
+  {
+    return new ReplServerStartMsg(peerServerId, address.toString(), baseDN, 100,
         new ServerState(), -1, false, (byte) 1, 5000);
   }
 
@@ -590,18 +776,32 @@ public class MultiHomedPeerTest extends ReplicationTestCase
   private ReplicationServerHandler waitForRegistration(ReplicationServerDomain domain)
       throws Exception
   {
+    return waitForRegistration(domain, PEER_RS_ID);
+  }
+
+  /**
+   * Waits for the domain to hold the handler of the fake peer of the provided server id, as
+   * {@link #waitForRegistration(ReplicationServerDomain)} does for the peer of the cases
+   * which need one peer only.
+   */
+  private ReplicationServerHandler waitForRegistration(ReplicationServerDomain domain,
+      int peerServerId) throws Exception
+  {
     final long deadline = System.currentTimeMillis() + REGISTRATION_TIMEOUT_MS;
     ReplicationServerHandler registered;
     while (true)
     {
-      registered = domain.getConnectedRSs().get(PEER_RS_ID);
+      registered = domain.getConnectedRSs().get(peerServerId);
       if (registered != null || System.currentTimeMillis() > deadline)
       {
         break;
       }
       Thread.sleep(50);
     }
-    assertThat(registered).as("the fake peer should have registered with the domain").isNotNull();
+    assertThat(registered)
+        .as("the fake peer of server id " + peerServerId + " should have registered with the"
+            + " domain")
+        .isNotNull();
     return registered;
   }
 

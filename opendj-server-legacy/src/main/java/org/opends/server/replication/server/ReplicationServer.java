@@ -2034,10 +2034,19 @@ public class ReplicationServer
   {
     final Collection<HostPort> serversToDisconnect = new ArrayList<>();
 
+    /*
+     * The entry of this server is never one to disconnect, and is skipped here as
+     * runConnect() skips it before it dials: this server holds no session with itself, and
+     * a peer which names a loopback address of its own machine on this port does answer to
+     * that entry, because HostPort folds every address local to this machine to localhost.
+     * Removing the entry of this server -- a list without it is supported, see
+     * runConnect() -- would otherwise stop the session of such a peer once.
+     */
+    final HostPort localAddress = HostPort.localAddress(getReplicationPort());
     final Set<HostPort> newRSAddresses = getConfiguredRSAddresses();
     for (HostPort oldRSAddress : oldRSAddresses)
     {
-      if (!newRSAddresses.contains(oldRSAddress))
+      if (!newRSAddresses.contains(oldRSAddress) && !oldRSAddress.equals(localAddress))
       {
         serversToDisconnect.add(oldRSAddress);
       }

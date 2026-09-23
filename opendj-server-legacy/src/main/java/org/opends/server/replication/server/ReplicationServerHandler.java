@@ -782,7 +782,15 @@ public class ReplicationServerHandler extends ServerHandler
    * has no reason to resolve, and it is the peer the addresses are there for. What that
    * gives up is two servers which share a server id and both name one unresolvable name on
    * one port: they are read as one, as two servers which name the same resolvable address
-   * already are.
+   * are under the other arm.
+   * <p>
+   * A pair the names alone do not answer is resolved on every call, and the handshake road
+   * makes those calls under the domain lock: both {@code startFromRemoteRS()} and the
+   * connect road hold that lock across
+   * {@link ReplicationServerDomain#isAlreadyConnectedToRS(ReplicationServerHandler)}, so a
+   * resolver which does not answer holds the domain for its own timeout on the road where
+   * two handlers of one server id name different hosts. Only replication servers reach it:
+   * the handshake of a data server makes no such comparison.
    *
    * @param address
    *          a configured address of a replication server

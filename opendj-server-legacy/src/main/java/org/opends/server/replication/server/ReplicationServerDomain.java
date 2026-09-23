@@ -1052,9 +1052,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * itself: a peer which names an address this configuration gives to another replication
    * server hides that one from the connect thread, which then dials nothing for it and
    * reports it connected while it is down. A replication server names itself from its own
-   * configuration ({@code ReplicationServer.setServerURL()}), so that takes two of them
-   * configured at one address -- a configuration copied whole, or two sites whose private
-   * ranges overlap -- and the peer it hides is still the one which dials this server.
+   * configuration, or, when none of the addresses it is configured with is local to it,
+   * from the host name of its machine ({@code ReplicationServer.setServerURL()}), so what
+   * it takes is a named address which resolves here to one this configuration gives to
+   * another replication server: two of them configured at one address -- a configuration
+   * copied whole, or two sites whose private ranges overlap -- or that fall back host name
+   * mapped there by the resolver of this server, which a clone host name, split DNS or a
+   * stale hosts file gives. The peer it hides is still the one which dials this server.
    *
    * @param address
    *          the configured address of a replication server
