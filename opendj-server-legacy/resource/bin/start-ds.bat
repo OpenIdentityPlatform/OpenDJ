@@ -62,7 +62,10 @@ rem Remove the native libraries the BC FIPS loader extracts into the tmp
 rem directory on every start, so that they do not pile up. Nothing else in
 rem there is ours to remove: the tmp directory is java.io.tmpdir for every
 rem tool, and a tool may still be running - setup starts the server through
-rem this script and keeps its own log open (issue #1030).
+rem this script and keeps its own log open (issue #1030). The logs a failed
+rem dsreplication or status run leaves there (opendj-replication-*.log,
+rem opendj-status-*.log) are the operator's to read and to remove; starting
+rem the server no longer takes them.
 set OPENDJ_TMP_DIR=%INSTANCE_ROOT%\tmp
 rem %%~i drops the quotes cmd would hand back if it ever kept them: an install path with a
 rem space would otherwise split the rmdir argument, and the redirect would hide it.

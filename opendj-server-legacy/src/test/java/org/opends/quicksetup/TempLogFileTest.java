@@ -25,12 +25,16 @@ import static org.testng.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.loggers.ErrorLogger;
+import org.testng.SkipException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -166,5 +170,51 @@ public class TempLogFileTest extends DirectoryServerTestCase
     assertTrue(logFile.isReadable());
     assertNotEquals(parentOf(logFile), notADirectory.getCanonicalFile());
     assertEquals(parentOf(logFile), new File(System.getProperty("java.io.tmpdir")).getCanonicalFile());
+
+    // Why the log is not where it was asked for is warned about once there is a log to carry
+    // the warning: at the point the directory failed, no publisher was installed yet.
+    assumeTheLogGoesToTheFile();
+    logFile.writer.shutdown();
+    final String contents = logFile.readContents();
+    assertTrue(contents.contains("falling back to the temporary directory"), contents);
+    assertTrue(contents.contains(notADirectory.toString()), contents);
+  }
+
+  /**
+   * The publishers the constructor puts on the logger singletons come off again with the log:
+   * the singletons outlive the file, and what a leaked publisher is handed goes to a closed
+   * stream and is swallowed.
+   */
+  @Test
+  public void testDeletingTheLogTakesItsPublisherOffTheLogger() throws Exception
+  {
+    final int before = errorLogPublishers();
+
+    final TempLogFile logFile = track(TempLogFile.newTempLogFile(PREFIX, new File(tempDir, "logs")));
+    assertEquals(errorLogPublishers(), before + 1, "the log logs through a publisher of its own");
+
+    logFile.deleteLogFileAfterSuccess();
+
+    assertEquals(errorLogPublishers(), before, "the publisher must not outlive the log");
+  }
+
+  /** How many publishers the error logger holds; {@code getLogPublishers()} is protected. */
+  private static int errorLogPublishers() throws Exception
+  {
+    final Method getLogPublishers = ErrorLogger.class.getDeclaredMethod("getLogPublishers");
+    getLogPublishers.setAccessible(true);
+    return ((Collection<?>) getLogPublishers.invoke(ErrorLogger.getInstance())).size();
+  }
+
+  /**
+   * {@code OPENDJ_LOG_TO_STDOUT} sends the records to stdout and leaves the file empty, so a
+   * case which reads the log back has nothing to look at.
+   */
+  private static void assumeTheLogGoesToTheFile()
+  {
+    if ("true".equalsIgnoreCase(System.getenv("OPENDJ_LOG_TO_STDOUT")))
+    {
+      throw new SkipException("OPENDJ_LOG_TO_STDOUT writes the log to stdout, not to the file");
+    }
   }
 }

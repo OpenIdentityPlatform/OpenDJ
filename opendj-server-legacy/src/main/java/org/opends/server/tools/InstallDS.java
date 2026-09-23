@@ -378,9 +378,11 @@ public class InstallDS extends ConsoleApplication
 
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
     final Installer installer = new Installer();
-    // The first point where an install can fail: from here on there is a log to keep, and
-    // this is where it gets created.
-    installer.setTempLogFile(tempLogFile.get());
+    // The supplier is handed over, not the file: the installer creates it when it starts to
+    // run, which is the first point where something can fail. The roads above - a usage
+    // error, "already installed", a refused licence, a cancel at the prompt - return without
+    // asking for it and leave no log behind (issue #1030).
+    installer.setTempLogFile(tempLogFile);
     installer.setUserData(uData);
     installer.setProgressMessageFormatter(formatter);
     installer.addProgressUpdateListener(

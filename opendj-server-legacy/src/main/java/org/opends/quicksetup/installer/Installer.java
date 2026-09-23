@@ -241,6 +241,11 @@ public class Installer extends GuiApplication
   @Override
   public void run()
   {
+    // The install begins here: this is the first point where something can fail and be worth
+    // a report, so this is where the log file is created. Every road which stops before this
+    // one - a quit at any step of the wizard, "already configured", a refused licence, a
+    // cancel at the prompt - leaves neither the log nor its directory behind (issue #1030).
+    openTempLogFile();
     applicationException = null;
     PrintStream origErr = System.err;
     PrintStream origOut = System.out;

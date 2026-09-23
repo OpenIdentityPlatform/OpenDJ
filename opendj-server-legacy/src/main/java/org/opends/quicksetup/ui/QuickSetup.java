@@ -27,6 +27,7 @@ import java.awt.Cursor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.logging.Handler;
 
 import javax.swing.SwingUtilities;
@@ -91,12 +92,14 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * blocked.
    *
    * @param tempLogFile
-   *          temporary log file where messages will be logged.
+   *          supplies the temporary log file where messages will be logged. The wizard does
+   *          not create it: the application does, when it starts the operation, so that a
+   *          wizard the user quits leaves no log behind (issue #1030).
    * @param args
    *          for the moment this parameter is not used but we keep it in order
    *          to (in case of need) pass parameters through the command line.
    */
-  public void initialize(final TempLogFile tempLogFile, String[] args)
+  public void initialize(final Supplier<TempLogFile> tempLogFile, String[] args)
   {
     ProgressMessageFormatter formatter = new HtmlProgressMessageFormatter();
 

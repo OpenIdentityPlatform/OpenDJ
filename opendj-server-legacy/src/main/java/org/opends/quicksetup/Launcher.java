@@ -24,6 +24,7 @@ import static org.opends.server.util.DynamicConstants.*;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.util.function.Supplier;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -50,6 +51,8 @@ public abstract class Launcher {
    * the roads after it read it from the main thread.
    */
   private volatile TempLogFile tempLogFile;
+  /** Why the GUI did not come up, kept until there is a log to write it to. */
+  private volatile Throwable guiLaunchFailure;
 
   /**
    * Creates a Launcher.
@@ -97,6 +100,7 @@ public abstract class Launcher {
   protected synchronized TempLogFile getTempLogFile() {
     if (tempLogFile == null) {
       tempLogFile = TempLogFile.newTempLogFile(tempLogFilePrefix, tempLogFileDirectory);
+      logGuiLaunchFailure();
     }
     return tempLogFile;
   }
@@ -109,6 +113,29 @@ public abstract class Launcher {
    */
   protected boolean hasTempLogFile() {
     return tempLogFile != null && tempLogFile.isEnabled();
+  }
+
+  /** Writes the reason the GUI did not come up, now that there is a log to hold it. */
+  private void logGuiLaunchFailure() {
+    Throwable failure = guiLaunchFailure;
+    if (failure == null) {
+      return;
+    }
+    logger.warn(LocalizableMessage.raw("Error launching GUI: " + failure));
+    StringBuilder buf = new StringBuilder();
+    while (failure != null)
+    {
+      for (StackTraceElement aStack : failure.getStackTrace()) {
+        buf.append(aStack).append("\n");
+      }
+
+      failure = failure.getCause();
+      if (failure != null)
+      {
+        buf.append("Root cause:\n");
+      }
+    }
+    logger.warn(LocalizableMessage.raw(buf));
   }
 
   /**
@@ -246,29 +273,16 @@ public abstract class Launcher {
       {
         try
         {
-          SplashScreen.main(getTempLogFile(), args);
+          startSplashScreen(Launcher.this::getTempLogFile, args);
           returnValue[0] = 0;
         }
         catch (Throwable t)
         {
-          if (hasTempLogFile())
-          {
-            logger.warn(LocalizableMessage.raw("Error launching GUI: "+t));
-            StringBuilder buf = new StringBuilder();
-            while (t != null)
-            {
-              for (StackTraceElement aStack : t.getStackTrace()) {
-                buf.append(aStack).append("\n");
-              }
-
-              t = t.getCause();
-              if (t != null)
-              {
-                buf.append("Root cause:\n");
-              }
-            }
-            logger.warn(LocalizableMessage.raw(buf));
-          }
+          // Kept rather than logged: a GUI which does not come up is not by itself an
+          // operation that failed, and creating a log here would leave one behind on every
+          // headless road that installs nothing (issue #1030). It goes into the log as soon
+          // as something asks for one.
+          guiLaunchFailure = t;
         }
       }
     });
@@ -289,6 +303,26 @@ public abstract class Launcher {
     }
     System.setErr(printStream);
     return returnValue[0];
+  }
+
+  /**
+   * Shows the splash screen and, behind it, builds the wizard.
+   * <p>
+   * The log file is handed over as a supplier and not as a file: the splash screen comes up
+   * before the user has said anything, and a log created there outlives every road that
+   * installs nothing - a quit at any wizard step, a server which is configured already
+   * (issue #1030). The application asks for it when it starts the operation.
+   * <p>
+   * Package-private so that a test can drive {@link #launchGui(String[])} without a display.
+   *
+   * @param tempLogFile
+   *          supplies the temporary log file of the application
+   * @param args
+   *          the arguments to pass to the splash screen
+   */
+  void startSplashScreen(final Supplier<TempLogFile> tempLogFile, final String[] args)
+  {
+    SplashScreen.main(tempLogFile, args);
   }
 
   /**
@@ -401,6 +435,9 @@ public abstract class Launcher {
       int exitCode = launchGui(args);
       if (exitCode != 0) {
         guiLaunchFailed();
+        // The GUI did not come up and the operation runs on the command line after all: from
+        // here on there is something worth logging, the reason the GUI failed included.
+        getTempLogFile();
         CliApplication cliApp = createCliApplication();
         exitCode = launchCli(cliApp);
         preExit(cliApp);

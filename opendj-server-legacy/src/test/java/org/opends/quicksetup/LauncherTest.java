@@ -22,6 +22,9 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.DirectoryServerTestCase;
@@ -46,7 +49,7 @@ public class LauncherTest extends DirectoryServerTestCase
   private static final String PREFIX = "opendj-setup-";
 
   private File tempDir;
-  private TempLogFile created;
+  private final List<TempLogFile> created = new ArrayList<>();
 
   @BeforeClass
   public void setUp() throws IOException
@@ -57,9 +60,9 @@ public class LauncherTest extends DirectoryServerTestCase
   @AfterClass
   public void tearDown() throws IOException
   {
-    if (created != null)
+    for (TempLogFile logFile : created)
     {
-      created.deleteLogFileAfterSuccess();
+      logFile.deleteLogFileAfterSuccess();
     }
     TestCaseUtils.deleteDirectory(tempDir);
   }
@@ -84,7 +87,7 @@ public class LauncherTest extends DirectoryServerTestCase
     final TestLauncher launcher = new TestLauncher(logs);
 
     final TempLogFile logFile = launcher.getTempLogFile();
-    created = logFile;
+    created.add(logFile);
 
     assertTrue(logFile.isReadable(), logFile.getPath());
     assertEquals(logFile.getLogFile().getCanonicalFile().getParentFile(), logs.getCanonicalFile());
@@ -92,12 +95,48 @@ public class LauncherTest extends DirectoryServerTestCase
     assertSame(launcher.getTempLogFile(), logFile, "a second ask must not create a second log");
   }
 
+  /**
+   * The wizard road: the splash screen comes up before the user has said anything, so the log
+   * cannot be created on the way to it - it is the application that asks for one, when it
+   * starts the install. A wizard quit at any step leaves nothing behind.
+   */
+  @Test
+  public void testLaunchingTheGuiCreatesNoLog() throws Exception
+  {
+    final File instance = new File(tempDir, "quit-at-the-first-step");
+    final File logs = new File(instance, "logs");
+    final TestLauncher launcher = new TestLauncher(logs);
+
+    // The wizard behind the splash screen quits without installing anything.
+    launcher.launchGui(new String[0]);
+
+    assertFalse(launcher.hasTempLogFile(), "the splash screen must not cost a log");
+    assertFalse(logs.exists(), logs.getPath());
+    assertFalse(instance.exists(), instance.getPath());
+
+    // What the wizard was handed is the launcher's own log, made on the first ask.
+    final TempLogFile logFile = launcher.splashLogFile.get();
+    created.add(logFile);
+    assertTrue(logFile.isReadable(), logFile.getPath());
+    assertSame(logFile, launcher.getTempLogFile());
+  }
+
   /** A launcher with nothing in it but the log file behaviour under test. */
   private static final class TestLauncher extends Launcher
   {
+    /** What {@link Launcher#launchGui(String[])} handed the splash screen. */
+    private Supplier<TempLogFile> splashLogFile;
+
     TestLauncher(final File tempLogFileDirectory)
     {
       super(new String[0], PREFIX, tempLogFileDirectory);
+    }
+
+    @Override
+    void startSplashScreen(final Supplier<TempLogFile> tempLogFile, final String[] args)
+    {
+      // No display here, and no install either: the wizard is quit at its first step.
+      splashLogFile = tempLogFile;
     }
 
     @Override
