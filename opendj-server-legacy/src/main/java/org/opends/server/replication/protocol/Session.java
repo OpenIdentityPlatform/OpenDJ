@@ -31,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.DataFormatException;
@@ -114,6 +115,14 @@ public final class Session extends DirectoryThread implements Closeable
   private final LinkedBlockingQueue<byte[]> sendQueue = new LinkedBlockingQueue<>(4000);
   private AtomicBoolean isRunning = new AtomicBoolean(false);
   private final CountDownLatch latch = new CountDownLatch(1);
+
+  /**
+   * How many buffers the publisher thread took off {@code sendQueue} and failed to write. After a
+   * failed write that thread goes on taking the queue until the session is closed, and every
+   * write after the first fails as well, so these are messages the peer was not told about just
+   * as much as what is still queued - see {@link #close()}.
+   */
+  private final AtomicInteger publisherFailedWrites = new AtomicInteger();
 
   /**
    * Creates a new Session.
@@ -221,16 +230,18 @@ public final class Session extends DirectoryThread implements Closeable
     {
       /*
        * Nothing more is written to a session which already failed, neither what the publisher left
-       * queued nor the StopMsg: writing more to it cannot work. The queue is still reported - the
-       * publisher may have failed while this thread was joining it, with a backlog behind the
-       * write which failed - and it is left without taking publishLock, so that a thread blocked
-       * in a write of this socket is released by the close of the sockets below rather than
-       * waited for.
+       * queued nor the StopMsg: writing more to it cannot work. What it gives up on is still
+       * reported: what is left in the queue, and what the publisher took off it and failed to
+       * write - the write which failed first, and every one it went on failing until this close
+       * stopped it, which the join above makes complete. It is done without taking publishLock,
+       * so that a thread blocked in a write of this socket is released by the close of the
+       * sockets below rather than waited for.
        */
       isRunning.set(false);
-      if (!sendQueue.isEmpty())
+      final int notSent = publisherFailedWrites.get() + takeWhatIsLeftQueued();
+      if (notSent > 0)
       {
-        reportQueueNotSent(sendQueue.size(), "the session had already failed: " + localSessionError);
+        reportQueueNotSent(notSent, "the session had already failed: " + localSessionError);
       }
       StaticUtils.close(plainSocket, secureSocket);
       return;
@@ -245,9 +256,9 @@ public final class Session extends DirectoryThread implements Closeable
      * HeartbeatThread outlives this close. It is this thread, not run(), which takes the session
      * off the queueing branch of publish(), and it does so under publishLock and keeps the lock
      * across the queue and the StopMsg: until then a publish() concurrent with the close takes
-     * the queueing branch, sees closeInitiated and returns, and from then on it takes the
-     * synchronous branch and waits for the lock. Either way nothing newer is written between two
-     * of the drained messages - see sendWhatThePublisherLeftQueued() below.
+     * the queueing branch, and from then on it takes the synchronous branch and waits for the
+     * lock. Either way nothing newer is written between two of the drained messages - see
+     * sendWhatThePublisherLeftQueued() below.
      */
     publishLock.lock();
     try
@@ -306,9 +317,12 @@ public final class Session extends DirectoryThread implements Closeable
    * older ones - which a peer replication server answers by dropping the older ones at debug
    * level, its log file refusing a record which would break its key ordering. The close takes
    * the session off the queueing branch under the same lock it holds here, so such a
-   * {@code publish()} either returns at the door, having seen the close, or waits for the drain
-   * and lands after it. The wait for the lock itself is not part of the budget below, no more
-   * than it is for the {@code StopMsg} which follows.
+   * {@code publish()} either queues ahead of that and is drained here, or waits for the drain and
+   * lands after it, or returns at the door, having seen the close. One which read the close as
+   * not yet begun can still be descheduled before its buffer is queued and queue it after the
+   * last poll below; it checks for that once it has, and takes the buffer back and reports it -
+   * see {@link #publish(ReplicationMsg)}. The wait for the lock itself is not part of the budget
+   * below, no more than it is for the {@code StopMsg} which follows.
    * <p>
    * The budget bounds how many messages a close spends on a peer which is reading slowly. A peer
    * which is reading pays none of it; a peer which answers with a reset pays one failed write. It
@@ -332,7 +346,7 @@ public final class Session extends DirectoryThread implements Closeable
     {
       if (System.nanoTime() - deadline >= 0)
       {
-        reportQueueNotSent(sendQueue.size() + 1, "the peer did not read them within "
+        reportQueueNotSent(1 + takeWhatIsLeftQueued(), "the peer did not read them within "
             + DRAIN_BUDGET_MS + " ms");
         return;
       }
@@ -349,11 +363,26 @@ public final class Session extends DirectoryThread implements Closeable
          * failed with is the whole of what a reader of the log needs - a directory server
          * re-reads these from the changelog when it reconnects, a replication server does not.
          */
-        reportQueueNotSent(sendQueue.size() + 1,
+        reportQueueNotSent(1 + takeWhatIsLeftQueued(),
             "the write failed with " + e.getClass().getName() + ": " + e.getMessage());
         return;
       }
     }
+  }
+
+  /**
+   * Empties the queue a close gives up on, and answers how many buffers it held. Taking them
+   * rather than counting them is what keeps a {@code publish()} which queued a buffer late from
+   * reporting it a second time: it reports only a buffer it still finds in the queue.
+   */
+  private int takeWhatIsLeftQueued()
+  {
+    int taken = 0;
+    while (sendQueue.poll() != null)
+    {
+      taken++;
+    }
+    return taken;
   }
 
   /** Says which messages a close could not hand to the peer, and why. */
@@ -482,6 +511,10 @@ public final class Session extends DirectoryThread implements Closeable
           // Avoid blocking forever so that we can check for session closure.
           if (sendQueue.offer(buffer, 100, TimeUnit.MILLISECONDS))
           {
+            if (!isRunning.get())
+            {
+              takeBackWhatWasQueuedTooLate(buffer);
+            }
             return;
           }
         }
@@ -495,6 +528,34 @@ public final class Session extends DirectoryThread implements Closeable
     else
     {
       send(buffer);
+    }
+  }
+
+  /**
+   * Takes a buffer back out of the queue if nothing is going to send it, and reports it.
+   * <p>
+   * {@code publish()} reads the close as not yet begun and queues the buffer after that, with no
+   * lock in between: descheduled there, it can queue the buffer after a close has stopped the
+   * publisher thread and drained the queue, and nothing would then send it or say so. Once the
+   * session is off the queueing branch, the lock here is the one the close holds while it takes
+   * the session off that branch and drains the queue, so what is still in the queue after it is
+   * what nothing sends. A buffer queued before the session came off the queueing branch is left
+   * to the drain - it cannot have seen the flag cleared - and a buffer the drain or the close
+   * already took is not found here, so nothing is reported twice.
+   */
+  private void takeBackWhatWasQueuedTooLate(final byte[] buffer)
+  {
+    publishLock.lock();
+    try
+    {
+      if (sendQueue.remove(buffer))
+      {
+        reportQueueNotSent(1, "it was queued after the publisher of the session had stopped");
+      }
+    }
+    finally
+    {
+      publishLock.unlock();
     }
   }
 
@@ -686,7 +747,20 @@ public final class Session extends DirectoryThread implements Closeable
   @Override
   public void run()
   {
-    isRunning.set(true);
+    synchronized (stateLock)
+    {
+      /*
+       * A close which came before the start has already run, and it is not coming back to clear
+       * the flag - nor is the end of this method, which leaves that to the close. Set, the flag
+       * would keep every later publish() on the queueing branch, which returns at once on a
+       * closed session as if the message had been queued; unset, publish() stays on the
+       * synchronous branch, which fails on the closed socket.
+       */
+      if (!closeInitiated)
+      {
+        isRunning.set(true);
+      }
+    }
     latch.countDown();
     if (logger.isTraceEnabled())
     {
@@ -711,6 +785,7 @@ public final class Session extends DirectoryThread implements Closeable
       catch (IOException e)
       {
         setSessionError(e);
+        publisherFailedWrites.incrementAndGet();
         needClosing = true;
       }
     }

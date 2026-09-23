@@ -58,9 +58,12 @@ import org.testng.annotations.Test;
  * still went out - leaving the peer with an orderly close and no sign that something was lost.
  * That is the limitation PR #919 recorded, and
  * {@code aSessionWithAPublisherThreadSendsWhatIsStillQueuedWhenItIsClosed} is what holds the
- * close to sending that queue instead. The two cases after it pin what a close gives up on: a
- * queue whose write fails is reported with every message it held, and a session which had
- * already failed is written nothing more and still has its queue reported.
+ * close to sending that queue instead. The cases after it pin what a close gives up on: a
+ * queue whose write fails is reported with every message it held; a session which had already
+ * failed is written nothing more and still has its queue reported, together with what its
+ * publisher took and failed to write, and nothing when there is nothing; and a closed session -
+ * one closed before it was started included - fails a later {@code publish()} rather than take
+ * it into a queue nothing sends.
  * <p>
  * The first two cases pin which end could ever pay it. Only {@code ServerHandler} starts a session's
  * publisher, so it is the replication-server end of a session which has one; the broker of a
@@ -333,20 +336,8 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
           }
         });
 
-        /*
-         * The text from the report on, so that the severity and the timestamp a record carries do
-         * not make one give-up captured twice look like two - and so that two give-ups, which is
-         * what a drain which does not stop at the first failed write reports, still do.
-         */
-        final Set<String> reported = new LinkedHashSet<>();
-        for (final String record : records)
-        {
-          final int start = record.indexOf(NOT_SENT_REPORT);
-          if (start >= 0)
-          {
-            reported.add(record.substring(start));
-          }
-        }
+        // Two give-ups are what a drain which does not stop at the first failed write reports.
+        final Set<String> reported = reportsIn(records);
         assertThat(reported)
             .as("a close which could not write the queue reports that once, and here it reported: "
                 + reported)
@@ -418,15 +409,7 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
             .as("the close wrote to a session which had already failed")
             .isNull();
 
-        final Set<String> reported = new LinkedHashSet<>();
-        for (final String record : records)
-        {
-          final int start = record.indexOf(NOT_SENT_REPORT);
-          if (start >= 0)
-          {
-            reported.add(record.substring(start));
-          }
-        }
+        final Set<String> reported = reportsIn(records);
         assertThat(reported)
             .as("the close of a failed session holding a queue reports that queue once, and here "
                 + "it reported: " + reported)
@@ -441,6 +424,187 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
         StaticUtils.close(sender, receiver);
       }
     }
+  }
+
+  /**
+   * A close of a failed session which has nothing it could not send says nothing: the report is
+   * for messages the peer was not told about, and there are none.
+   */
+  @Test
+  public void aCloseOfAFailedSessionWithNothingLeftToSendReportsNothing() throws Exception
+  {
+    try (ServerSocket listen = new ServerSocket(0))
+    {
+      final Session[] pair = connectSessionPair(listen);
+      final Session sender = pair[0];
+      final Session receiver = pair[1];
+      try
+      {
+        final Field sessionError = Session.class.getDeclaredField("sessionError");
+        sessionError.setAccessible(true);
+        sessionError.set(sender, new java.io.IOException("injected"));
+
+        final List<String> records = errorLogRecordsOf(new Callable<Void>()
+        {
+          @Override
+          public Void call()
+          {
+            sender.close();
+            return null;
+          }
+        });
+
+        assertThat(reportsIn(records))
+            .as("the close of a failed session with an empty queue reported a loss")
+            .isEmpty();
+      }
+      finally
+      {
+        StaticUtils.close(sender, receiver);
+      }
+    }
+  }
+
+  /**
+   * On a started session whose writes fail, the publisher thread goes on taking the queue and
+   * failing each write until the close: what it took is lost as much as what it left, and the
+   * close reports both. Once closed, the session is off the queueing branch, so a later
+   * {@code publish()} - a {@code ServerWriter} or a {@code HeartbeatThread}, which end only on
+   * that exception - fails instead of returning as if the message had been queued.
+   * <p>
+   * The count is exact whatever the thread got through before the close: every message published
+   * is either still in the queue or was taken and failed. The case waits for the queue to empty so
+   * that it is the publisher's own count the report stands on - the queue alone would report
+   * nothing.
+   */
+  @Test
+  public void aCloseOfAStartedSessionWhoseWritesFailedReportsWhatThePublisherTookAsWell()
+      throws Exception
+  {
+    final CSNGenerator csns = new CSNGenerator(RS_ID, 0);
+    try (ServerSocket listen = new ServerSocket(0))
+    {
+      final Session[] pair = connectSessionPair(listen);
+      final Session sender = pair[0];
+      final Session receiver = pair[1];
+      try
+      {
+        sender.start();
+        sender.waitForStartup();
+        closeTheSocketsUnder(sender);
+        for (int i = 0; i < MESSAGES_LEFT_UNSENT; i++)
+        {
+          sender.publish(new DeleteMsg(DN.valueOf("uid=takenandlost" + i + ","
+              + TEST_ROOT_DN_STRING), csns.newCSN(), "00000000-0000-0000-0000-000000000000"));
+        }
+        final Queue<byte[]> sendQueue = sendQueueOf(sender);
+        final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(SOCKET_TIMEOUT_MS);
+        while (!sendQueue.isEmpty() && System.nanoTime() - deadline < 0)
+        {
+          Thread.sleep(10);
+        }
+        assertThat(sendQueue)
+            .as("the publisher thread did not take the queue off a session whose writes fail")
+            .isEmpty();
+
+        final List<String> records = errorLogRecordsOf(new Callable<Void>()
+        {
+          @Override
+          public Void call()
+          {
+            sender.close();
+            return null;
+          }
+        });
+
+        final Set<String> reported = reportsIn(records);
+        assertThat(reported)
+            .as("the close reports once what the publisher took and could not write, and here "
+                + "it reported: " + reported)
+            .hasSize(1);
+        assertThat(reported.iterator().next())
+            .contains(MESSAGES_LEFT_UNSENT + " message(s)")
+            .contains("the session had already failed");
+
+        try
+        {
+          sender.publish(new DeleteMsg(DN.valueOf("uid=afterclose," + TEST_ROOT_DN_STRING),
+              csns.newCSN(), "00000000-0000-0000-0000-000000000000"));
+          org.assertj.core.api.Assertions.fail(
+              "a publish() on a closed session returned as if it had queued the message");
+        }
+        catch (final java.io.IOException expected)
+        {
+          // The close put the session on the synchronous branch, which fails on the closed socket.
+        }
+      }
+      finally
+      {
+        StaticUtils.close(sender, receiver);
+      }
+    }
+  }
+
+  /**
+   * A session closed before its publisher thread is started - which a handler whose session is
+   * closed by a stop of all servers during its handshake does, before it goes on to start it -
+   * stays on the synchronous branch of {@code publish()}. Put on the queueing one, a publish
+   * would return at once, as if queued, onto a queue nothing sends, and a {@code HeartbeatThread}
+   * started after it would go on publishing into it until the server stops.
+   */
+  @Test
+  public void aSessionClosedBeforeItIsStartedKeepsFailingPublishes() throws Exception
+  {
+    final CSNGenerator csns = new CSNGenerator(RS_ID, 0);
+    try (ServerSocket listen = new ServerSocket(0))
+    {
+      final Session[] pair = connectSessionPair(listen);
+      final Session sender = pair[0];
+      final Session receiver = pair[1];
+      try
+      {
+        sender.close();
+        sender.start();
+        sender.waitForStartup();
+        sender.join(SOCKET_TIMEOUT_MS);
+
+        try
+        {
+          sender.publish(new DeleteMsg(DN.valueOf("uid=afterclose," + TEST_ROOT_DN_STRING),
+              csns.newCSN(), "00000000-0000-0000-0000-000000000000"));
+          org.assertj.core.api.Assertions.fail(
+              "a publish() on a session closed before it was started returned as if it had "
+              + "queued the message");
+        }
+        catch (final java.io.IOException expected)
+        {
+          // The synchronous branch, failing on the closed socket.
+        }
+      }
+      finally
+      {
+        StaticUtils.close(sender, receiver);
+      }
+    }
+  }
+
+  /**
+   * The reports of a queue not sent among the records, from the text of the report on, so that
+   * the severity and the timestamp a record carries do not make one report captured twice look
+   * like two - and so that two reports still do.
+   */
+  private static Set<String> reportsIn(final List<String> records)
+  {
+    final Set<String> reported = new LinkedHashSet<>();
+    for (final String record : records)
+    {
+      final int start = record.indexOf(NOT_SENT_REPORT);
+      if (start >= 0)
+      {
+        reported.add(record.substring(start));
+      }
+    }
+    return reported;
   }
 
   /**
