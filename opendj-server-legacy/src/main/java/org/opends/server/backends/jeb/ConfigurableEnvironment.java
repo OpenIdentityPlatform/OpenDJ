@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2010-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends.jeb;
 
@@ -353,9 +354,11 @@ class ConfigurableEnvironment
       envConfig.setConfigParam(LOG_FAULT_READ_SIZE, String.valueOf(4 * 1024));
     }
 
-    // Disable lock timeouts, meaning that no lock wait
-    // timelimit is enforced and a deadlocked operation
-    // will block indefinitely.
+    // Disable lock timeouts, meaning that no lock wait timelimit is enforced: a writer waiting for a lock
+    // blocks until it is granted. A deadlock does not block: JE detects the cycle as soon as a wait would
+    // close it and ends one of its transactions, chosen at random, with a DeadlockException - the one
+    // conflict left under this setting, which JEStorage.write replays. An operator may set a timeout back
+    // through ds-cfg-je-property, and a wait that long is then reported and replayed the same way.
     envConfig.setLockTimeout(0, TimeUnit.MICROSECONDS);
 
     //FIX https://github.com/OpenIdentityPlatform/OpenDJ/issues/53 https://docs.oracle.com/cd/E17277_02/html/java/com/sleepycat/je/EnvironmentConfig.html#FREE_DISK
