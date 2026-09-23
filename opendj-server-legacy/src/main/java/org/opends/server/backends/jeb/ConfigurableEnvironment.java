@@ -403,11 +403,14 @@ class ConfigurableEnvironment
         throw new ConfigException(ERR_CONFIG_JEB_CACHE_SIZE_TOO_SMALL.get(
             dbCacheSize, MemoryBudget.MIN_MAX_MEMORY_SIZE));
       }
+      // Asked, not taken: the storage this configuration is built for reserves the size itself and
+      // gives that reservation back when it closes. A size the quota cannot grant is only warned
+      // about - the open goes ahead without a reservation, and at startup nothing checks it earlier.
       MemoryQuota memoryQuota = DirectoryServer.getInstance().getServerContext().getMemoryQuota();
-      if (!memoryQuota.acquireMemory(dbCacheSize))
+      if (!memoryQuota.isMemoryAvailable(dbCacheSize))
       {
         logger.warn(ERR_BACKEND_CONFIG_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
-            dbCacheSize, memoryQuota.getMaxMemory()));
+            dbCacheSize, memoryQuota.getAvailableMemory()));
       }
     }
   }
