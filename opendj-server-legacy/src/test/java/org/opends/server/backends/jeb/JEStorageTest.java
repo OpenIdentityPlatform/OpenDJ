@@ -17,6 +17,7 @@ package org.opends.server.backends.jeb;
 
 import static com.sleepycat.je.EnvironmentConfig.CLEANER_MIN_AGE;
 import static com.sleepycat.je.EnvironmentConfig.CLEANER_MIN_UTILIZATION;
+import static com.sleepycat.je.EnvironmentConfig.CLEANER_READ_SIZE;
 import static com.sleepycat.je.EnvironmentConfig.CLEANER_THREADS;
 import static com.sleepycat.je.EnvironmentConfig.ENV_RUN_CLEANER;
 import static com.sleepycat.je.EnvironmentConfig.EVICTOR_CORE_THREADS;
@@ -34,10 +35,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.opends.messages.BackendMessages.ERR_CONFIG_JEB_DURABILITY_CONFLICT;
 import static org.opends.messages.BackendMessages.NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART;
+import static org.opends.messages.BackendMessages.NOTE_CONFIG_DB_DIR_REQUIRES_RESTART;
 import static org.opends.messages.BackendMessages.NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_JE_PROPERTY_INVALID;
 import static org.opends.server.util.CollectionUtils.newTreeSet;
 import static org.opends.server.util.StaticUtils.MB;
+import static org.opends.server.util.StaticUtils.getFileForPath;
+import static org.opends.server.util.StaticUtils.recursiveDelete;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -106,6 +110,8 @@ public class JEStorageTest extends DirectoryServerTestCase
    * what a backend whose directory the server cannot use meets.
    */
   private static final String BLOCKED_DB_DIRECTORY = BACKEND_ID + "-blocked";
+  /** Where a change moves db-directory to; the environment stays where it opened until a restart. */
+  private static final String MOVED_DB_DIRECTORY = BACKEND_ID + "-moved";
   /** A window no run of replays can spend, so that a test of the attempt cap is only ever ended by the cap. */
   private static final long UNREACHABLE_RETRY_WINDOW_NANOS = 300L * 1000L * 1000L * 1000L; //5 min
   /** A window a single attempt outlasts, so that a test of the window reaches it without seconds of build time. */
@@ -643,6 +649,101 @@ public class JEStorageTest extends DirectoryServerTestCase
         .get(LOG_ITERATOR_READ_SIZE, BACKEND_ID, readSizeAtOpen, "16384").toString());
     assertThat(env.getMutableConfig().getConfigParam(CLEANER_MIN_AGE)).isEqualTo("5");
     assertThat(env.getConfig().getConfigParam(LOG_ITERATOR_READ_SIZE)).isEqualTo(readSizeAtOpen);
+  }
+
+  /**
+   * A native property JE takes while it runs goes back to JE's default when it is removed from
+   * je-property: the environment keeps the value it runs with of every parameter it is not handed,
+   * so the removal hands it the default explicitly.
+   */
+  @Test
+  public void aRemovedNativePropertyGoesBackToJEsDefault() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    final String minAgeAtOpen = env.getMutableConfig().getConfigParam(CLEANER_MIN_AGE);
+    assertThat(minAgeAtOpen).isNotEqualTo("5");
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getJEProperty()).thenReturn(new TreeSet<>(Arrays.asList(CLEANER_MIN_AGE + "=5")));
+    assertThat(storage.applyConfigurationChange(cfg).getMessages()).isEmpty();
+    assertThat(env.getMutableConfig().getConfigParam(CLEANER_MIN_AGE)).isEqualTo("5");
+
+    final ConfigChangeResult removed = storage.applyConfigurationChange(createBackendCfg());
+
+    assertThat(removed.adminActionRequired()).isFalse();
+    assertThat(removed.getMessages()).isEmpty();
+    assertThat(env.getMutableConfig().getConfigParam(CLEANER_MIN_AGE)).isEqualTo(minAgeAtOpen);
+  }
+
+  /**
+   * A native property whose default JE does not take as a value - the 0 of je.cleaner.readSize
+   * stands for "computed at the open" - cannot be put back while the environment runs: its removal
+   * asks for a restart instead of failing the change, and the environment keeps what it runs with.
+   */
+  @Test
+  public void aRemovedNativePropertyJECannotPutBackWhileItRunsAsksForARestart() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getJEProperty()).thenReturn(new TreeSet<>(Arrays.asList(CLEANER_READ_SIZE + "=16384")));
+    assertThat(storage.applyConfigurationChange(cfg).getMessages()).isEmpty();
+    assertThat(env.getMutableConfig().getConfigParam(CLEANER_READ_SIZE)).isEqualTo("16384");
+
+    final ConfigChangeResult removed = storage.applyConfigurationChange(createBackendCfg());
+
+    assertThat(removed.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(removed.adminActionRequired()).isTrue();
+    assertThat(removed.getMessages()).hasSize(1);
+    assertThat(removed.getMessages().get(0).toString()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART
+        .get(CLEANER_READ_SIZE, BACKEND_ID, "16384", "0").toString());
+    assertThat(env.getMutableConfig().getConfigParam(CLEANER_READ_SIZE)).isEqualTo("16384");
+  }
+
+  /**
+   * A change which moves db-directory as well is still applied and reported: the note of the moved
+   * directory, which asks for a restart of its own, does not end the change before the rest of it.
+   */
+  @Test
+  public void aChangeWhichMovesTheDirectoryIsStillAppliedToTheEnvironment() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    final String fileMaxAtOpen = env.getConfig().getConfigParam(LOG_FILE_MAX);
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBDirectory()).thenReturn(MOVED_DB_DIRECTORY);
+    when(cfg.isDBTxnNoSync()).thenReturn(true);
+    when(cfg.isDBTxnWriteNoSync()).thenReturn(false);
+    when(cfg.getDBLogFileMax()).thenReturn(2 * Long.parseLong(fileMaxAtOpen));
+    try
+    {
+      final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.adminActionRequired()).isTrue();
+      assertThat(ccr.getMessages()).hasSize(2);
+      assertThat(ccr.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.ordinal());
+      assertThat(ccr.getMessages().get(1).ordinal()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART.ordinal());
+      assertThat(env.getConfig().getDurability()).isEqualTo(Durability.COMMIT_NO_SYNC);
+    }
+    finally
+    {
+      recursiveDelete(getFileForPath(MOVED_DB_DIRECTORY));
+    }
+  }
+
+  /**
+   * The cache a percentage sizes stays where the open put it as well: the percentage the environment
+   * runs with is handed back to it along with its size, or a change of db-cache-percent would resize
+   * the live cache while the quota still holds what the open reserved.
+   */
+  @Test
+  public void aCachePercentChangedWhileOpenLeavesTheCacheWhereTheOpenReservedIt() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    final long cacheAtOpen = env.getMutableConfig().getCacheSize();
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBCachePercent()).thenReturn(30);
+
+    assertThat(storage.applyConfigurationChange(cfg).adminActionRequired()).isTrue();
+    assertThat(env.getMutableConfig().getCacheSize()).isEqualTo(cacheAtOpen);
   }
 
   /**

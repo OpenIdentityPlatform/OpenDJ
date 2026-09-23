@@ -53,6 +53,7 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.JEBackendCfg;
@@ -1576,13 +1577,15 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
           || !cfg.getDBDirectory().equals(config.getDBDirectory()))
       {
         checkDBDirPermissions(cfg.getDBDirectoryPermissions(), cfg.dn(), ccr);
-        if (!ccr.getMessages().isEmpty())
+        // By its result code: the note of a moved directory is in the result already, and the rest of
+        // the change is still applied and reported alongside it.
+        if (ccr.getResultCode() != ResultCode.SUCCESS)
         {
           return ccr;
         }
 
         setDBDirPermissions(newBackendDirectory, cfg.getDBDirectoryPermissions(), cfg.dn(), ccr);
-        if (!ccr.getMessages().isEmpty())
+        if (ccr.getResultCode() != ResultCode.SUCCESS)
         {
           return ccr;
         }
@@ -1632,23 +1635,54 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     {
       // Replication parameters are not set through an environment configuration; a multi-value
       // parameter is not read as one value. Neither is set by this storage.
-      if (param.isMutable() || param.isForReplication() || param.isMultiValueParam())
+      if (param.isForReplication() || param.isMultiValueParam())
       {
         continue;
       }
       final String runningValue = running.getConfigParam(param.getName());
       final String nextValue = next.getConfigParam(param.getName());
-      if (!Objects.equals(runningValue, nextValue))
+      if (Objects.equals(runningValue, nextValue)
+          || (param.isMutable() && (next.isConfigParamSet(param.getName())
+                                    || resetsToDefault(next, param.getName(), nextValue))))
       {
-        ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART.get(
-            ConfigurableEnvironment.configuredNameOf(param.getName()), cfg.getBackendId(), runningValue, nextValue));
+        continue;
       }
+      ccr.setAdminActionRequired(true);
+      ccr.addMessage(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART.get(
+          ConfigurableEnvironment.configuredNameOf(param.getName()), cfg.getBackendId(), runningValue, nextValue));
     }
     next.setConfigParam(MAX_MEMORY, running.getConfigParam(MAX_MEMORY));
     next.setConfigParam(MAX_MEMORY_PERCENT, running.getConfigParam(MAX_MEMORY_PERCENT));
     // What JE takes while it runs, of the properties the configuration sets; the rest it ignores.
     env.setMutableConfig(next);
+  }
+
+  /**
+   * Sets a mutable parameter the configuration no longer sets - a je-property removed - to JE's
+   * default, since the environment keeps the value it runs with of every parameter it is not handed.
+   * A default JE does not take as a value, such as the 0 of je.cleaner.readSize, which JE reads as
+   * "computed at the open", leaves the parameter to the next open.
+   *
+   * @param next the environment configuration handed to the running environment
+   * @param name the name of the parameter
+   * @param defaultValue JE's default of the parameter, as the configuration reads it
+   * @return whether the default is handed to the environment along with the rest
+   */
+  private static boolean resetsToDefault(EnvironmentConfig next, String name, String defaultValue)
+  {
+    if (defaultValue == null)
+    {
+      return false;
+    }
+    try
+    {
+      next.setConfigParam(name, defaultValue);
+      return true;
+    }
+    catch (IllegalArgumentException e)
+    {
+      return false;
+    }
   }
 
   private void registerMonitoredDirectory(JEBackendCfg cfg)

@@ -51,6 +51,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.meta.PDBBackendCfgDefn;
 import org.forgerock.opendj.server.config.server.PDBBackendCfg;
 import org.forgerock.util.Reject;
@@ -1640,13 +1641,15 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
           || !cfg.getDBDirectory().equals(config.getDBDirectory()))
       {
         checkDBDirPermissions(cfg.getDBDirectoryPermissions(), cfg.dn(), ccr);
-        if (!ccr.getMessages().isEmpty())
+        // By its result code: the note of a moved directory is in the result already, and the rest of
+        // the change is still applied and reported alongside it.
+        if (ccr.getResultCode() != ResultCode.SUCCESS)
         {
           return ccr;
         }
 
         setDBDirPermissions(newBackendDirectory, cfg.getDBDirectoryPermissions(), cfg.dn(), ccr);
-        if (!ccr.getMessages().isEmpty())
+        if (ccr.getResultCode() != ResultCode.SUCCESS)
         {
           return ccr;
         }

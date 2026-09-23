@@ -892,6 +892,39 @@ public class PDBStorageTest extends DirectoryServerTestCase
         .get("db-checkpointer-wakeup-interval", "PDBStorageTest", intervalAtOpen, 4 * intervalAtOpen)
         .toString());
     assertThat(checkpointIntervalOf(storage)).isEqualTo(intervalAtOpen);
+
+    // held against the interval the database runs with, not against the configuration the last change left:
+    // a later change which leaves the interval where the first one put it still asks for the restart,
+    assertThat(storage.applyConfigurationChange(cfg).adminActionRequired()).isTrue();
+    // and one which puts it back to what the database runs with asks for nothing
+    assertThat(storage.applyConfigurationChange(createBackendCfg()).getMessages()).isEmpty();
+  }
+
+  /**
+   * A change which moves db-directory as well is still reported whole: the note of the moved
+   * directory, which asks for a restart of its own, does not end the change before the rest of it.
+   */
+  @Test
+  public void aChangeWhichMovesTheDirectoryStillReportsTheRest() throws Exception
+  {
+    final long intervalAtOpen = createBackendCfg().getDBCheckpointerWakeupInterval();
+    final PDBBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBDirectory()).thenReturn("PDBStorageTest-moved");
+    when(cfg.getDBCheckpointerWakeupInterval()).thenReturn(4 * intervalAtOpen);
+    try
+    {
+      final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.adminActionRequired()).isTrue();
+      assertThat(ccr.getMessages()).hasSize(2);
+      assertThat(ccr.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.ordinal());
+      assertThat(ccr.getMessages().get(1).ordinal()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART.ordinal());
+    }
+    finally
+    {
+      recursiveDelete(getFileForPath("PDBStorageTest-moved"));
+    }
   }
 
   /** A storage which is closed has no database to hold a change against: the next open takes it. */
