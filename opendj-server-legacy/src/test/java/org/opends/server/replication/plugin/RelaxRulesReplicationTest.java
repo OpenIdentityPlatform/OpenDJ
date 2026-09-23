@@ -131,7 +131,8 @@ public class RelaxRulesReplicationTest extends ReplicationTestCase
         "objectClass: person",
         "sn: relaxed",
         "cn: relaxed modify");
-    assertThat(nextUpdate()).as("the add of the entry to modify was not published").isNotNull();
+    assertThat(nextUpdateFor(MODIFIED_DN)).as("the add of the entry to modify was not published")
+        .isInstanceOf(AddMsg.class);
 
     TestCaseUtils.ERROR_TEXT_WRITER.clear();
     connection.modify(Requests.newModifyRequest(MODIFIED_DN)
@@ -140,9 +141,8 @@ public class RelaxRulesReplicationTest extends ReplicationTestCase
 
     assertThat(attributeOf(MODIFIED_DN, RELAXED_ATTRIBUTE)).isEqualTo(RELAXED_VALUE);
 
-    final LDAPUpdateMsg published = nextUpdate();
+    final LDAPUpdateMsg published = nextUpdateFor(MODIFIED_DN);
     assertThat(published).as("the relaxed modify was not published").isInstanceOf(ModifyMsg.class);
-    assertThat((Object) published.getDN()).isEqualTo(DN.valueOf(MODIFIED_DN));
     assertThat(((ModifyMsg) published).getMods())
         .as("the published change does not carry the relaxed attribute")
         .anyMatch(this::modifiesTheRelaxedAttribute);
@@ -170,9 +170,15 @@ public class RelaxRulesReplicationTest extends ReplicationTestCase
 
     assertThat(attributeOf(ADDED_DN, RELAXED_ATTRIBUTE)).isEqualTo(RELAXED_VALUE);
 
-    final LDAPUpdateMsg published = nextUpdate();
+    final LDAPUpdateMsg published = nextUpdateFor(ADDED_DN);
     assertThat(published).as("the relaxed add was not published").isInstanceOf(AddMsg.class);
-    assertThat((Object) published.getDN()).isEqualTo(DN.valueOf(ADDED_DN));
+    assertThat(((AddMsg) published).getAttributes())
+        .as("the published add does not carry the relaxed attribute")
+        .anyMatch(attr -> attr.getAttributeDescription().getAttributeType().hasName(RELAXED_ATTRIBUTE));
+    // An add with no history cannot be published again from the entry on the next session.
+    assertThat(valuesOf(ADDED_DN, "ds-sync-hist"))
+        .as("the relaxed add left no historical information")
+        .anyMatch(value -> value.startsWith("dn:") && value.endsWith(":add"));
     final List<String> records = new ArrayList<>(TestCaseUtils.ERROR_TEXT_WRITER.getMessages());
     assertThat(records).as("the relaxed add was taken for a replayed change")
         .noneMatch(record -> record.contains(NOT_IN_PENDING));
@@ -202,12 +208,16 @@ public class RelaxRulesReplicationTest extends ReplicationTestCase
   }
 
   /**
-   * The next update the replication server forwards, or {@code null} if none comes within a
-   * few seconds - long enough for a change published by the operation which just returned,
-   * which the replication server forwards as soon as it has it.
+   * The next update the replication server forwards for the provided entry, or {@code null} if
+   * none comes within a few seconds - long enough for a change published by the operation which
+   * just returned, which the replication server forwards as soon as it has it.
+   * <p>
+   * The updates of other entries are skipped: those a failed case leaves behind on the broker
+   * the cases share must not be taken for the ones of the next case.
    */
-  private LDAPUpdateMsg nextUpdate() throws Exception
+  private LDAPUpdateMsg nextUpdateFor(String dn) throws Exception
   {
+    final DN entryDN = DN.valueOf(dn);
     final long deadline = System.nanoTime() + SECONDS.toNanos(4);
     while (deadline - System.nanoTime() > 0)
     {
@@ -225,7 +235,7 @@ public class RelaxRulesReplicationTest extends ReplicationTestCase
       {
         throw new AssertionError("the broker session is gone");
       }
-      if (msg instanceof LDAPUpdateMsg)
+      if (msg instanceof LDAPUpdateMsg && ((LDAPUpdateMsg) msg).getDN().equals(entryDN))
       {
         return (LDAPUpdateMsg) msg;
       }

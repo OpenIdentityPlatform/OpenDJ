@@ -461,8 +461,12 @@
     <para>Lets a client with the <literal>bypass-acl</literal> privilege add
     or modify attributes marked <literal>NO-USER-MODIFICATION</literal> or
     <literal>OBSOLETE</literal>, and skips the schema check of the resulting
-    entry. The change is an ordinary one otherwise: it is logged, and it is
-    replicated like any other.</para>
+    entry. The values the client supplies for <literal>creatorsName</literal>,
+    <literal>createTimestamp</literal>, <literal>modifiersName</literal>,
+    <literal>modifyTimestamp</literal> and <literal>pwdChangedTime</literal>
+    are kept, and a pre-encoded password is accepted. The change is an
+    ordinary one otherwise: it is logged, and it is replicated like any
+    other.</para>
    </listitem>
   </varlistentry>
  </variablelist>

@@ -267,7 +267,7 @@ Object Identifier: 1.3.6.1.4.1.4203.666.5.12
 Internet-Draft: link:https://tools.ietf.org/html/draft-zeilenga-ldap-relax-03[draft-zeilenga-ldap-relax-03 - The LDAP Relax Rules Control, window=\_top]
 
 +
-Lets a client with the `bypass-acl` privilege add or modify attributes marked `NO-USER-MODIFICATION` or `OBSOLETE`, and skips the schema check of the resulting entry. The change is an ordinary one otherwise: it is logged, and it is replicated like any other.
+Lets a client with the `bypass-acl` privilege add or modify attributes marked `NO-USER-MODIFICATION` or `OBSOLETE`, and skips the schema check of the resulting entry. The values the client supplies for `creatorsName`, `createTimestamp`, `modifiersName`, `modifyTimestamp` and `pwdChangedTime` are kept, and a pre-encoded password is accepted. The change is an ordinary one otherwise: it is logged, and it is replicated like any other.
 
 --
 

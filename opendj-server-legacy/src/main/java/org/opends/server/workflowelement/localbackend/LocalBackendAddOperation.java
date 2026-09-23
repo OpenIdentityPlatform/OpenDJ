@@ -111,10 +111,15 @@ public class LocalBackendAddOperation
   /** The set of user attributes for the entry to add. */
   private Map<AttributeType, List<Attribute>> userAttributes;
   /**
-   * Indicates whether the request included the Relax Rules request control, which relaxes the
-   * constraints of the schema on this change and nothing else.
+   * Indicates whether the rules are relaxed on this change: the request included the Relax Rules
+   * request control, and the client has the {@code bypass-acl} privilege.
+   * <p>
+   * The checks of the attributes and of the schema run before the request controls are
+   * processed, so this is decided up front, from the request as it came and from the
+   * authentication identity of the client. Once the controls are processed,
+   * {@link #relaxedRulesStillHold()} verifies it against the identity the request runs as.
    *
-   * @see LocalBackendWorkflowElement#isRelaxRulesRequested(org.opends.server.types.Operation)
+   * @see LocalBackendWorkflowElement#isRelaxRulesRequested(org.opends.server.types.operation.PluginOperation)
    */
   private final boolean relaxRules;
 
@@ -129,7 +134,28 @@ public class LocalBackendAddOperation
     super(add);
 
     LocalBackendWorkflowElement.attachLocalOperation (add, this);
-    relaxRules = LocalBackendWorkflowElement.isRelaxRulesRequested(add);
+    relaxRules = LocalBackendWorkflowElement.isRelaxRulesRequested(this)
+        && getClientConnection().hasPrivilege(Privilege.BYPASS_ACL, this);
+  }
+
+  /**
+   * Indicates whether the request may go on as far as the Relax Rules control is concerned, once
+   * the request controls the client may not use are removed and the proxied authorization, if
+   * any, is applied.
+   * <p>
+   * A control still there needs the {@code bypass-acl} privilege of the identity the request
+   * runs as, which may not be the one {@link #relaxRules} was decided for. A control which is
+   * gone after the rules were relaxed on the checks already run cannot leave them relaxed. A
+   * control which is gone and relaxed nothing leaves an ordinary request.
+   */
+  private boolean relaxedRulesStillHold()
+  {
+    final boolean controlKept = LocalBackendWorkflowElement.isRelaxRulesRequested(this);
+    if (controlKept)
+    {
+      return getClientConnection().hasPrivilege(Privilege.BYPASS_ACL, this);
+    }
+    return !relaxRules;
   }
 
 
@@ -416,7 +442,7 @@ public class LocalBackendAddOperation
       // sensitive information to the client.
       try
       {
-        if (!getAccessControlHandler().isAllowed(this) || (relaxRules && !clientConnection.hasPrivilege(Privilege.BYPASS_ACL, this)))
+        if (!getAccessControlHandler().isAllowed(this) || !relaxedRulesStillHold())
         {
           setResultCodeAndMessageNoInfoDisclosure(entryDN,
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -702,7 +728,8 @@ public class LocalBackendAddOperation
           : UserPasswordSyntax.isEncoded(value);
       if (isPreEncoded)
       {
-        if (isInternalOperation() || passwordPolicy.isAllowPreEncodedPasswords())
+        // A client relaxing the rules may bring a password encoded elsewhere, e.g. to migrate it.
+        if (isInternalOperation() || passwordPolicy.isAllowPreEncodedPasswords() || relaxRules)
         {
           builder.add(value);
           continue;
@@ -765,10 +792,15 @@ public class LocalBackendAddOperation
     entry.replaceAttribute(builder.toAttribute());
 
 
-    // Set the password changed time attribute.
+    // Set the password changed time attribute, unless a client relaxing the
+    // rules supplies the time the password was changed at.
     Attribute changedTime = Attributes.create(
         OP_ATTR_PWPOLICY_CHANGED_TIME, TimeThread.getGeneralizedTime());
-    entry.putAttribute(changedTime.getAttributeDescription().getAttributeType(), newArrayList(changedTime));
+    AttributeType changedTimeType = changedTime.getAttributeDescription().getAttributeType();
+    if (!relaxRules || !entry.hasAttribute(changedTimeType))
+    {
+      entry.putAttribute(changedTimeType, newArrayList(changedTime));
+    }
 
 
     // If we should force change on add, then set the appropriate flag.
