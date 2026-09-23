@@ -18,10 +18,14 @@ package org.opends.server.replication.protocol;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 
+import java.io.Closeable;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -76,6 +80,15 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
    * send queue holds, past which {@code publish()} would block instead of queueing.
    */
   private static final int MESSAGES_PUBLISHED = 3000;
+
+  /**
+   * The number of messages the case of a queue which cannot be sent leaves on the sender. It is
+   * small and exact: what that case is about is the count the close reports, not a backlog.
+   */
+  private static final int MESSAGES_LEFT_UNSENT = 7;
+
+  /** What the line a close writes about a queue it could not send is recognised by. */
+  private static final String NOT_SENT_REPORT = "was closed with";
 
   /**
    * The session a directory server publishes its changes on has no publisher thread: nothing
@@ -217,14 +230,25 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
         senderReader.start();
 
         /*
-         * Nothing reads the peer end while these are published, so the socket buffers fill and
-         * the publisher thread is left inside its write with the rest of them still queued.
+         * Nothing reads the peer end while these are published, but that is not what leaves the
+         * backlog: 3000 frames of ~150 B are ~440 KB, which the socket buffers of a loopback pair
+         * swallow, so the publisher thread is not blocked inside a write. What leaves the backlog
+         * is publish() - encode and offer - outrunning the publisher, which writes and flushes one
+         * frame at a time through the TLS layer. That is a race rather than a state, so the case
+         * asserts below that it was still won when the close ran: with an empty queue there is
+         * nothing for the close to drain and this pins nothing.
          */
         for (int i = 0; i < MESSAGES_PUBLISHED; i++)
         {
           sender.publish(new DeleteMsg(DN.valueOf("uid=queued" + i + "," + TEST_ROOT_DN_STRING),
               csns.newCSN(), "00000000-0000-0000-0000-000000000000"));
         }
+
+        final int queuedAtClose = sendQueueOf(sender).size();
+        assertThat(queuedAtClose)
+            .as("the publisher had sent everything before the close ran, so this case drained "
+                + "nothing: what it measures is the socket rather than close()")
+            .isGreaterThan(0);
 
         final Future<?> closed = executor.submit(new Callable<Void>()
         {
@@ -243,6 +267,10 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
             .as("the peer received %d of the %d messages published; the read ended by %s",
                 drained.received.size(), MESSAGES_PUBLISHED, drained.endedBy)
             .hasSize(MESSAGES_PUBLISHED);
+        assertThat(drained.endedBy)
+            .as("the StopMsg is what ended the stream, which is what puts the drained queue "
+                + "ahead of it rather than after it")
+            .isEqualTo("a StopMsg");
       }
       finally
       {
@@ -252,6 +280,82 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
     finally
     {
       executor.shutdownNow();
+    }
+  }
+
+  /**
+   * A close which cannot write the queue reports what the peer was not told, once, and counts the
+   * message it was writing when the write failed.
+   * <p>
+   * The road is a peer which is gone by the time the close reaches the queue - a directory server
+   * whose {@code StopMsg} brought the {@code ServerReader} of its handler to the {@code close()}
+   * of its finally, with the publisher of that session still holding a backlog. Here the sockets
+   * of the sender are closed under it instead, which is the same failed write with an exact
+   * count: the first {@code send()} of the drain throws, so the report has to name every message
+   * the queue held. A peer closed from the outside gives up somewhere inside the TCP buffers
+   * instead, and would pin no number at all.
+   * <p>
+   * The queue is filled through the field rather than by publishing on a started session for the
+   * same reason: what a publisher thread has left behind is a race, and this case is the count.
+   */
+  @Test
+  public void aCloseWhichCannotSendTheQueueReportsEveryMessageTheQueueHeld() throws Exception
+  {
+    final CSNGenerator csns = new CSNGenerator(RS_ID, 0);
+    try (ServerSocket listen = new ServerSocket(0))
+    {
+      final Session[] pair = connectSessionPair(listen);
+      final Session sender = pair[0];
+      final Session receiver = pair[1];
+      try
+      {
+        final Queue<byte[]> sendQueue = sendQueueOf(sender);
+        for (int i = 0; i < MESSAGES_LEFT_UNSENT; i++)
+        {
+          sendQueue.add(new DeleteMsg(DN.valueOf("uid=unsent" + i + "," + TEST_ROOT_DN_STRING),
+              csns.newCSN(), "00000000-0000-0000-0000-000000000000")
+              .getBytes(sender.getProtocolVersion()));
+        }
+        closeTheSocketsUnder(sender);
+
+        final List<String> records = errorLogRecordsOf(new Callable<Void>()
+        {
+          @Override
+          public Void call()
+          {
+            sender.close();
+            return null;
+          }
+        });
+
+        /*
+         * The text from the report on, so that the severity and the timestamp a record carries do
+         * not make one give-up captured twice look like two - and so that two give-ups, which is
+         * what a drain which does not stop at the first failed write reports, still do.
+         */
+        final Set<String> reported = new LinkedHashSet<>();
+        for (final String record : records)
+        {
+          final int start = record.indexOf(NOT_SENT_REPORT);
+          if (start >= 0)
+          {
+            reported.add(record.substring(start));
+          }
+        }
+        assertThat(reported)
+            .as("a close which could not write the queue reports that once, and here it reported: "
+                + reported)
+            .hasSize(1);
+        assertThat(reported.iterator().next())
+            .as("the report has to account for the message the failed write took out of the queue "
+                + "as well as for the ones left in it")
+            .contains(MESSAGES_LEFT_UNSENT + " message(s)")
+            .contains("the write failed with");
+      }
+      finally
+      {
+        StaticUtils.close(sender, receiver);
+      }
     }
   }
 
@@ -336,6 +440,29 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
     {
       drained.endedBy = e.getClass().getName() + ": " + e.getMessage();
       return drained;
+    }
+  }
+
+  /** The queue a started session's publisher thread takes its buffers from. */
+  @SuppressWarnings("unchecked")
+  private static Queue<byte[]> sendQueueOf(final Session session) throws Exception
+  {
+    final Field sendQueue = Session.class.getDeclaredField("sendQueue");
+    sendQueue.setAccessible(true);
+    return (Queue<byte[]>) sendQueue.get(session);
+  }
+
+  /**
+   * Closes the sockets a session writes through while leaving the session unaware of it, so that
+   * its next write fails - the state a peer which has gone away leaves it in.
+   */
+  private static void closeTheSocketsUnder(final Session session) throws Exception
+  {
+    for (final String name : new String[] { "secureSocket", "plainSocket" })
+    {
+      final Field socket = Session.class.getDeclaredField(name);
+      socket.setAccessible(true);
+      StaticUtils.close((Closeable) socket.get(session));
     }
   }
 

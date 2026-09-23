@@ -182,6 +182,18 @@ public final class Session extends DirectoryThread implements Closeable
       Thread.currentThread().interrupt();
     }
 
+    /*
+     * Re-read the error rather than answer with the snapshot taken before the join: a publisher
+     * whose send() failed while this thread was joining it recorded the error there, and what
+     * follows - the drain and the StopMsg - is what must not be written to a socket which has
+     * already failed. Reading it before the join left both writing to one, the drain naming its
+     * own failure rather than the one the publisher had recorded.
+     */
+    synchronized (stateLock)
+    {
+      localSessionError = sessionError;
+    }
+
     // Perform close outside of critical section.
     if (logger.isTraceEnabled())
     {
@@ -204,11 +216,14 @@ public final class Session extends DirectoryThread implements Closeable
     }
 
     /*
-     * The publisher thread has stopped, so this thread is the only one left writing this socket -
-     * which is what lets the StopMsg below be published on it - and what that thread had not sent
-     * is still in the queue. Send it, rather than let the close drop it: nothing publishes these
-     * again, and the StopMsg which follows leaves the peer reading an orderly close with no sign
-     * that anything was missing.
+     * The publisher thread has stopped and what it had not sent is still in the queue. Send it,
+     * rather than let the close drop it: nothing publishes these again, and the StopMsg which
+     * follows leaves the peer reading an orderly close with no sign that anything was missing.
+     *
+     * This thread is not the only one which can write the socket here - a ServerWriter or a
+     * HeartbeatThread outlives this close and its publish() now takes the synchronous branch -
+     * so the drain holds publishLock across the whole queue - see
+     * sendWhatThePublisherLeftQueued() below.
      *
      * Skipped on a session which already failed, for the reason the StopMsg is: writing more to it
      * cannot work. That is also the path where close() runs on the publisher thread itself
@@ -242,18 +257,31 @@ public final class Session extends DirectoryThread implements Closeable
    * Sends the buffers the publisher thread had not sent when it stopped, so that a close of the
    * session does not drop them.
    * <p>
-   * Called from {@link #close()} once the publisher has been joined, so the socket is this
-   * thread's alone. A queued message is already encoded for this peer's protocol version -
-   * {@link #publish(ReplicationMsg)} did that before queueing it - so there is nothing to decide
-   * here beyond how long to keep trying.
+   * Called from {@link #close()} once the publisher has been joined. A queued message is already
+   * encoded for this peer's protocol version - {@link #publish(ReplicationMsg)} did that before
+   * queueing it - so there is nothing to decide here beyond how long to keep trying.
    * <p>
-   * The budget is what bounds a close of a session whose peer has stopped reading: without one,
-   * a stalled consumer would hold the thread which is shutting the server down for as long as it
-   * stays stalled. A peer which is reading pays none of it, and a peer which is gone pays none
-   * either - the write fails at once. It is checked between messages, so a single write which
-   * blocks past the budget still runs to completion: bounding that needs a non-blocking socket,
-   * which this session is not. What is given up on is reported rather than dropped in silence,
-   * that being the part of this which cost the most to diagnose.
+   * The whole queue goes out under {@code publishLock}, because the publisher is not the only
+   * thread which writes this socket: a {@code ServerWriter} is joined only after the close which
+   * gets here (ServerHandler.shutdown() closes the session before joining it, and ServerReader's
+   * finally closes it before stopping the handler), and a {@code HeartbeatThread} is shut down
+   * after it too. Their {@code publish()} takes the synchronous branch once the publisher has
+   * stopped, so without the lock a newer message could be written between two of these older
+   * ones - which a peer replication server answers by dropping the older ones at debug level,
+   * its log file refusing a record which would break its key ordering. Holding the lock makes
+   * them wait for the drain and land after it. The wait for the lock itself is not part of the
+   * budget below, no more than it is for the {@code StopMsg} which follows.
+   * <p>
+   * The budget bounds how many messages a close spends on a peer which is reading slowly. A peer
+   * which is reading pays none of it; a peer which answers with a reset pays one failed write. It
+   * is checked between messages, so a single write which blocks past the budget still runs to
+   * completion - for a peer which has stopped reading, or which vanished without a reset, that is
+   * for as long as TCP keeps the connection alive: bounding it needs a non-blocking socket, which
+   * this session is not. On the road which does not shut the whole server down the wait is paid
+   * under the lock of the replication domain - ReplicationServerDomain.stopServer() holds it
+   * across the handler shutdown which closes this session - where a handshake meanwhile waiting
+   * on that lock times out and the broker retries. What is given up on is reported rather than
+   * dropped in silence, that being the part of this which cost the most to diagnose.
    */
   private void sendWhatThePublisherLeftQueued()
   {
@@ -264,24 +292,39 @@ public final class Session extends DirectoryThread implements Closeable
 
     final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(DRAIN_BUDGET_MS);
     byte[] buffer;
-    while ((buffer = sendQueue.poll()) != null)
+    publishLock.lock();
+    try
     {
-      if (System.nanoTime() - deadline >= 0)
+      while ((buffer = sendQueue.poll()) != null)
       {
-        reportQueueNotSent(sendQueue.size() + 1, "the peer did not read them within "
-            + DRAIN_BUDGET_MS + " ms");
-        return;
+        if (System.nanoTime() - deadline >= 0)
+        {
+          reportQueueNotSent(sendQueue.size() + 1, "the peer did not read them within "
+              + DRAIN_BUDGET_MS + " ms");
+          return;
+        }
+        try
+        {
+          send(buffer);
+        }
+        catch (final IOException e)
+        {
+          /*
+           * send() has recorded the error; the rest of the queue cannot go out either. The
+           * exception is named rather than traced: this is reached whenever a peer which has
+           * announced it is leaving closes before the drain reaches it, where what the write
+           * failed with is the whole of what a reader of the log needs - a directory server
+           * re-reads these from the changelog when it reconnects, a replication server does not.
+           */
+          reportQueueNotSent(sendQueue.size() + 1,
+              "the write failed with " + e.getClass().getName() + ": " + e.getMessage());
+          return;
+        }
       }
-      try
-      {
-        send(buffer);
-      }
-      catch (final IOException e)
-      {
-        // send() has recorded the error; the rest of the queue cannot go out either.
-        reportQueueNotSent(sendQueue.size() + 1, stackTraceToSingleLineString(e));
-        return;
-      }
+    }
+    finally
+    {
+      publishLock.unlock();
     }
   }
 

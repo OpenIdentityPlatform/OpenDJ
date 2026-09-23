@@ -726,9 +726,12 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
           .isNotNull();
       /*
        * The forward asserted above proves the message reached the Session, not the wire: close()
-       * discards whatever is still in its send queue without draining it, which is the
-       * limitation issue #919 recorded. If this is the only assertion which fails, that window
-       * is the explanation rather than the granularity of the barrier.
+       * now sends what its publisher left queued, but only within its own budget, and it writes
+       * that queue under publishLock so that a message published meanwhile lands after it rather
+       * than between two of its own. If this is the only assertion which fails, the close is
+       * where to look before the granularity of the barrier: the warning close() writes for a
+       * queue it could not hand over says the budget ran out, and its absence says the message
+       * left this end and the loss is past it.
        */
       assertThat(receivedWhenHeldBack.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS))
           .as("the peer which was held back never learned that the replica went offline, "
