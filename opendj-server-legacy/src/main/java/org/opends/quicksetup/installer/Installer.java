@@ -133,6 +133,7 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
+import org.opends.server.tools.ConfigureDS;
 import org.opends.server.types.HostPort;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.CollectionUtils;
@@ -1346,6 +1347,13 @@ public class Installer extends GuiApplication
     };
     invokeLongOperation(thread);
     notifyListeners(getFormattedDoneWithLineBreak());
+    // Given here rather than by ConfigureDS, whose output the listeners do not see while it runs.
+    final LocalizableMessage keyWrappingWarning = ConfigureDS.unsupportedKeyWrappingTransformationWarning();
+    if (keyWrappingWarning != null)
+    {
+      notifyListeners(getFormattedWarning(keyWrappingWarning));
+      notifyListeners(getLineBreak());
+    }
     checkAbort();
     configureCertificate(sec);
   }

@@ -1208,20 +1208,7 @@ public class ConfigureDS
    */
   private void updateCryptoCipher() throws ConfigureDSException
   {
-    final CryptoManagerCfgDefn cryptoManager = CryptoManagerCfgDefn.getInstance();
-    final StringPropertyDefinition prop = cryptoManager.getKeyWrappingTransformationPropertyDefinition();
-    String defaultCipher = null;
-
-    final DefaultBehaviorProvider<?> p = prop.getDefaultBehaviorProvider();
-    if (p instanceof DefinedDefaultBehaviorProvider)
-    {
-      final Collection<?> defaultValues = ((DefinedDefaultBehaviorProvider<?>) p).getDefaultValues();
-      if (!defaultValues.isEmpty())
-      {
-        defaultCipher = defaultValues.iterator().next().toString();
-      }
-    }
-
+    final String defaultCipher = defaultKeyWrappingTransformation();
     if (defaultCipher != null)
     {
       final String cipher;
@@ -1232,9 +1219,10 @@ public class ConfigureDS
       catch (final GeneralSecurityException ex)
       {
         // The default stays, and the server will refuse to start with it: there is no secure
-        // transformation to fall back to (#776), so the administrator has to choose one, and
-        // has to be told so here rather than by the failed start.
-        printWrappedText(err, WARN_CONFIGDS_KEY_WRAPPING_TRANSFORMATION_UNSUPPORTED.get(defaultCipher, ex.getMessage()));
+        // transformation to fall back to (#776), so the administrator has to choose one. Under
+        // setup this stream reaches the setup log only, and the installer gives the warning
+        // itself (see unsupportedKeyWrappingTransformationWarning()).
+        printWrappedText(err, unsupportedKeyWrappingTransformationWarning(defaultCipher, ex));
         return;
       }
       if (!cipher.equals(defaultCipher))
@@ -1327,6 +1315,55 @@ public class ConfigureDS
       }
     }
     return duplicateEntry;
+  }
+
+  /**
+   * Returns the warning to give when this Java runtime supports neither the default key wrapping
+   * transformation of the crypto manager nor an alternative to it: the server will then refuse to
+   * start until the administrator sets one. The installer calls this itself, since what
+   * {@code configMain} writes while it runs under setup reaches the setup log only.
+   *
+   * @return The warning, or {@code null} when the runtime supports a transformation.
+   */
+  public static LocalizableMessage unsupportedKeyWrappingTransformationWarning()
+  {
+    final String defaultCipher = defaultKeyWrappingTransformation();
+    if (defaultCipher == null)
+    {
+      return null;
+    }
+    try
+    {
+      supportedKeyWrappingTransformation(defaultCipher);
+      return null;
+    }
+    catch (final GeneralSecurityException ex)
+    {
+      return unsupportedKeyWrappingTransformationWarning(defaultCipher, ex);
+    }
+  }
+
+  private static LocalizableMessage unsupportedKeyWrappingTransformationWarning(
+      final String defaultCipher, final GeneralSecurityException ex)
+  {
+    return WARN_CONFIGDS_KEY_WRAPPING_TRANSFORMATION_UNSUPPORTED.get(defaultCipher, ex.getMessage());
+  }
+
+  /** Returns the default key wrapping transformation of the crypto manager, or {@code null}. */
+  private static String defaultKeyWrappingTransformation()
+  {
+    final StringPropertyDefinition prop =
+        CryptoManagerCfgDefn.getInstance().getKeyWrappingTransformationPropertyDefinition();
+    final DefaultBehaviorProvider<?> p = prop.getDefaultBehaviorProvider();
+    if (p instanceof DefinedDefaultBehaviorProvider)
+    {
+      final Collection<?> defaultValues = ((DefinedDefaultBehaviorProvider<?>) p).getDefaultValues();
+      if (!defaultValues.isEmpty())
+      {
+        return defaultValues.iterator().next().toString();
+      }
+    }
+    return null;
   }
 
   /**

@@ -95,7 +95,7 @@ public class PBKDF2PasswordStorageSchemeTestCase
       catch (InitializationException e)
       {
         assertNotNull(e.getMessageObject(), "the failure carries no message");
-        assertTrue(e.getMessage().contains("PBKDF2WithHmacSHA1"), e.getMessage());
+        assertTrue(e.getMessage().contains("for the PBKDF2WithHmacSHA1 algorithm"), e.getMessage());
       }
       return null;
     });

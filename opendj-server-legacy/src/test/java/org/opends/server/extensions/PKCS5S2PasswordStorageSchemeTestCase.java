@@ -150,7 +150,7 @@ public class PKCS5S2PasswordStorageSchemeTestCase
     });
   }
 
-  /** Same for the offline encoder, which is what encode-password and the initial root password use. */
+  /** Same for the offline encoder, which a tool may call before any scheme is initialized. */
   @Test
   public void testEncodesOfflineWithoutSha1Prng() throws Exception
   {
@@ -183,7 +183,7 @@ public class PKCS5S2PasswordStorageSchemeTestCase
       catch (InitializationException e)
       {
         assertNotNull(e.getMessageObject(), "the failure carries no message");
-        assertTrue(e.getMessage().contains("PBKDF2WithHmacSHA1"), e.getMessage());
+        assertTrue(e.getMessage().contains("for the PBKDF2WithHmacSHA1 algorithm"), e.getMessage());
       }
       return null;
     });

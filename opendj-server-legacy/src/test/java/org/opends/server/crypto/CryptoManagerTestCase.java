@@ -39,6 +39,7 @@ import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.security.Provider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -318,7 +319,40 @@ public class CryptoManagerTestCase extends CryptoTestCase {
 
     assertThat(acceptable).isFalse();
     assertThat(why).hasSize(1);
+    assertThat(why.get(0).ordinal()).isEqualTo(ERR_CRYPTOMGR_KEY_WRAPPING_TRANSFORMATION_UNSUPPORTED.ordinal());
     assertThat(why.get(0).toString()).contains(unsupported).contains("key-wrapping-transformation");
+  }
+
+  /**
+   A transformation the runtime provides, refused because of the rest of the check (here the
+   MD5 digest of the instance key identifier), is not reported as a matter of the property:
+   changing key-wrapping-transformation would not help.
+   */
+  @Test
+  public void testKeyWrappingRefusalForAnotherCauseDoesNotNameTheProperty() throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final String supported = "RSA/ECB/OAEPWITHSHA1ANDMGF1PADDING";
+    assertThat(supported).isNotEqualTo(cfg.getKeyWrappingTransformation());
+    final List<LocalizableMessage> why = new ArrayList<>();
+
+    // Withdrawing MD5 withdraws the SUN provider, whose SHA-1 digest the OAEP cipher still needs.
+    final Provider sha1Only = new Provider("Sha1OnlyDigest", "1.0", "SHA-1 digest only") {};
+    sha1Only.put("MessageDigest.SHA-1", "sun.security.provider.SHA");
+    sha1Only.put("Alg.Alias.MessageDigest.SHA1", "SHA-1");
+
+    withoutJceService("MessageDigest", "MD5", () ->
+    {
+      assertThat(cm.isConfigurationChangeAcceptable(withProperty(cfg, "getKeyWrappingTransformation", supported), why))
+          .isFalse();
+      return null;
+    }, sha1Only);
+
+    assertThat(why).hasSize(1);
+    final String reason = why.get(0).toString();
+    assertThat(why.get(0).ordinal()).as(reason).isEqualTo(ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_KEY_WRAPPING_CIPHER.ordinal());
+    assertThat(reason).contains("MD5").doesNotContain("key-wrapping-transformation");
   }
 
   /**
