@@ -694,24 +694,16 @@ public abstract class Application implements ProgressNotifier, Runnable {
   }
 
   /**
-   * Sets the temporary log file where messages will be logged.
-   *
-   * @param tempLogFile
-   *            temporary log file where messages will be logged.
-   */
-  public void setTempLogFile(final TempLogFile tempLogFile)
-  {
-    this.tempLogFile = tempLogFile;
-    this.tempLogFileSupplier = () -> tempLogFile;
-  }
-
-  /**
    * Sets where the temporary log file of this application comes from, without creating it.
    * <p>
    * The wizard and the CLI hand the supplier over as they start: the file itself is created by
    * {@link #openTempLogFile()}, on the road that runs the operation, so that a run which does
    * nothing - a quit at any step of the wizard, a server which turns out to be installed
    * already - leaves no log behind (issue #1030).
+   * <p>
+   * There is deliberately no setter taking the file itself: a caller holding a supplier could
+   * then resolve it on the spot, and the log would be created before anything is attempted
+   * again.
    *
    * @param tempLogFile
    *            supplies the temporary log file where messages will be logged.
@@ -727,12 +719,15 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * <p>
    * Called where the operation begins and not before: from that point on the log is worth
    * keeping, because there is something which can fail and be reported.
+   * <p>
+   * An application nobody handed a supplier to has no log of its own: the command line
+   * uninstaller is built that way, and its launcher creates the log before running it.
    *
-   * @return the temporary log file of this application.
+   * @return the temporary log file of this application, or {@code null} if it was given none.
    */
   protected TempLogFile openTempLogFile()
   {
-    if (tempLogFile == null)
+    if (tempLogFile == null && tempLogFileSupplier != null)
     {
       tempLogFile = tempLogFileSupplier.get();
     }

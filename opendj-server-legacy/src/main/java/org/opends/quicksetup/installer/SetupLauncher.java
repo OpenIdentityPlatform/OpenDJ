@@ -173,9 +173,10 @@ public class SetupLauncher extends Launcher {
 
   @Override
   protected void guiLaunchFailed() {
-      System.err.println(
-          hasTempLogFile() ? INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS.get(getTempLogFile().getPath())
-                           : INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED.get());
+    // No log is named here: none exists yet, and creating one to name would leave it behind on
+    // every command line road that installs nothing (issue #1030). The reason the GUI failed
+    // goes into the log of the install that follows, and a failed install names that log.
+    System.err.println(INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED.get());
   }
 
   @Override

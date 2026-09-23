@@ -434,10 +434,11 @@ public abstract class Launcher {
       willLaunchGui();
       int exitCode = launchGui(args);
       if (exitCode != 0) {
-        guiLaunchFailed();
         // The GUI did not come up and the operation runs on the command line after all: from
-        // here on there is something worth logging, the reason the GUI failed included.
+        // here on there is something worth logging, the reason the GUI failed included. The
+        // log comes first, so that guiLaunchFailed() can name the file holding that reason.
         getTempLogFile();
+        guiLaunchFailed();
         CliApplication cliApp = createCliApplication();
         exitCode = launchCli(cliApp);
         preExit(cliApp);

@@ -16,13 +16,18 @@
 package org.opends.server.tools;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
+import java.io.File;
+import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.TempLogFile;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.testng.annotations.Test;
 
 /**
@@ -41,6 +46,8 @@ public class InstallDSTest extends DirectoryServerTestCase
   private static final int SUCCESSFUL_NOP = 0;
   /** {@code InstallReturnCode.ERROR_USER_DATA}: the arguments could not be parsed. */
   private static final int ERROR_USER_DATA = 2;
+  /** {@code InstallReturnCode.ERROR_SERVER_ALREADY_INSTALLED}: the server is configured already. */
+  private static final int ERROR_SERVER_ALREADY_INSTALLED = 3;
 
   /** {@code setup --help} displays the usage and returns before anything can fail. */
   @Test
@@ -54,6 +61,41 @@ public class InstallDSTest extends DirectoryServerTestCase
   public void testAUsageErrorAsksForNoLog() throws Exception
   {
     assertAsksForNoLog(ERROR_USER_DATA, "--no-such-option");
+  }
+
+  /**
+   * A server which is configured already is reported as such, and no install is attempted.
+   * <p>
+   * This is the first road past the argument parser - the licence and the prompts come after
+   * it - so it is the one which tells a log asked for as soon as the arguments are known from
+   * one asked for where the install begins.
+   */
+  @Test
+  public void testAServerWhichIsConfiguredAlreadyAsksForNoLog() throws Exception
+  {
+    // The installation the setup looks at: one whose configuration directory holds something.
+    // Neither the class path of a test run nor the server the tests run against will do - the
+    // former is no installation, and the latter is not to be taken as one - so the setup is
+    // pointed at a directory of its own. A locks directory keeps it from reading as running.
+    final File instance = TestCaseUtils.createTemporaryDirectory("installDSTest");
+    assertTrue(new File(instance, "locks").mkdirs());
+    assertTrue(new File(instance, "config").mkdirs());
+    assertTrue(new File(instance, "config/config.ldif").createNewFile());
+
+    // Installation.getLocal() keeps what it resolved first in a static field.
+    final Field local = Installation.class.getDeclaredField("local");
+    local.setAccessible(true);
+    final Object previous = local.get(null);
+    local.set(null, new Installation(instance, instance));
+    try
+    {
+      assertAsksForNoLog(ERROR_SERVER_ALREADY_INSTALLED);
+    }
+    finally
+    {
+      local.set(null, previous);
+      TestCaseUtils.deleteDirectory(instance);
+    }
   }
 
   /**

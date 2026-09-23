@@ -29,6 +29,7 @@ import java.util.function.Supplier;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.testng.SkipException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -121,11 +122,42 @@ public class LauncherTest extends DirectoryServerTestCase
     assertSame(logFile, launcher.getTempLogFile());
   }
 
+  /**
+   * A GUI which does not come up costs no log either, and its reason is not lost for that: it
+   * goes into the log as soon as something asks for one - on the headless road, the operation
+   * which runs on the command line instead.
+   */
+  @Test
+  public void testAGuiWhichDoesNotComeUpIsLoggedOnceThereIsALog() throws Exception
+  {
+    if ("true".equalsIgnoreCase(System.getenv("OPENDJ_LOG_TO_STDOUT")))
+    {
+      // The reason is written to the log, which then goes to stdout and leaves the file empty.
+      throw new SkipException("OPENDJ_LOG_TO_STDOUT writes the log to stdout, not to the file");
+    }
+    final File logs = new File(tempDir, "headless/logs");
+    final TestLauncher launcher = new TestLauncher(logs);
+    launcher.splashFailure = new IllegalStateException("no display at all");
+
+    assertTrue(launcher.launchGui(new String[0]) != 0, "a GUI which does not come up is reported");
+
+    assertFalse(launcher.hasTempLogFile(), "a GUI which does not come up must not cost a log");
+    assertFalse(logs.exists(), logs.getPath());
+
+    final TempLogFile logFile = launcher.getTempLogFile();
+    created.add(logFile);
+    logFile.writer.shutdown();
+    final String contents = logFile.readContents();
+    assertTrue(contents.contains("no display at all"), contents);
+  }
+
   /** A launcher with nothing in it but the log file behaviour under test. */
   private static final class TestLauncher extends Launcher
   {
     /** What {@link Launcher#launchGui(String[])} handed the splash screen. */
     private Supplier<TempLogFile> splashLogFile;
+    /** What the splash screen throws, if it is not to come up. */
+    private RuntimeException splashFailure;
 
     TestLauncher(final File tempLogFileDirectory)
     {
@@ -135,8 +167,13 @@ public class LauncherTest extends DirectoryServerTestCase
     @Override
     void startSplashScreen(final Supplier<TempLogFile> tempLogFile, final String[] args)
     {
-      // No display here, and no install either: the wizard is quit at its first step.
+      // No display here, and no install either: the wizard is quit at its first step - or it
+      // does not come up at all.
       splashLogFile = tempLogFile;
+      if (splashFailure != null)
+      {
+        throw splashFailure;
+      }
     }
 
     @Override

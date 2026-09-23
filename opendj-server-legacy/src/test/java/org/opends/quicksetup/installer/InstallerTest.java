@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import java.io.File;
@@ -154,11 +155,12 @@ public class InstallerTest extends DirectoryServerTestCase
   }
 
   /**
-   * A cancelled install takes its log with it.
+   * A cancelled install takes its log with it - and asks for it only when it begins.
    * <p>
    * Nothing names the log on that road - the report belongs to the failure road - and the
    * cancel has just taken the installation back, so a log kept there is a report nobody is
-   * ever pointed at (issue #1030).
+   * ever pointed at (issue #1030). The installer is handed the log the way the wizard and the
+   * command line hand it over, as a supplier: nothing asks for it before {@code run()}.
    */
   @Test
   public void testACancelledInstallTakesItsLogWithIt() throws Exception
@@ -169,31 +171,32 @@ public class InstallerTest extends DirectoryServerTestCase
     // server as running and goes off to stop it.
     assertTrue(new File(instance, "locks").mkdirs());
 
-    // An installation under the temporary directory rather than the one the class path names:
-    // the installer takes both paths from there, and in a test run there is none.
-    final Installer installer = new Installer()
-    {
-      @Override
-      public String getInstallationPath()
-      {
-        return instance.getAbsolutePath();
-      }
-
-      @Override
-      public String getInstancePath()
-      {
-        return instance.getAbsolutePath();
-      }
-    };
+    final TestInstaller installer = new TestInstaller(instance);
     installer.setProgressMessageFormatter(new MarkedArmsFormatter());
-    installer.setTempLogFile(logFile);
+    final int[] asked = { 0 };
+    installer.setTempLogFile(() -> {
+      asked[0]++;
+      return logFile;
+    });
     installer.setUserData(new UserData());
     installer.cancel();
+    assertEquals(asked[0], 0, "nothing is logged before the install begins");
 
     installer.run();
 
+    assertEquals(asked[0], 1, "the install asks for its log once, as it begins");
     assertEquals(installer.getCurrentProgressStep(), InstallProgressStep.FINISHED_CANCELED);
     assertFalse(logFile.getLogFile().exists(), logFile.getPath());
+  }
+
+  /**
+   * An application nobody handed a log to has none, and asking for it is not a failure: the
+   * command line uninstaller is built that way, its launcher having created the log already.
+   */
+  @Test
+  public void testAnApplicationGivenNoLogHasNone() throws Exception
+  {
+    assertNull(new TestInstaller(null).openTempLogFile());
   }
 
   private TempLogFile newLogFile()
@@ -206,7 +209,7 @@ public class InstallerTest extends DirectoryServerTestCase
   /** What the listeners of a failed installation are told about the log file. */
   private static String reportOf(final TempLogFile logFile)
   {
-    final Installer installer = new Installer();
+    final TestInstaller installer = new TestInstaller(null);
     installer.setProgressMessageFormatter(new MarkedArmsFormatter());
     final StringBuilder report = new StringBuilder();
     installer.addProgressUpdateListener(new ProgressUpdateListener()
@@ -220,7 +223,9 @@ public class InstallerTest extends DirectoryServerTestCase
         }
       }
     });
-    installer.setTempLogFile(logFile);
+    installer.setTempLogFile(() -> logFile);
+    // The report is made by an install which has begun, and so has asked for its log.
+    installer.openTempLogFile();
     installer.notifyListenersOfExistingLogFile();
     return report.toString();
   }
@@ -233,6 +238,40 @@ public class InstallerTest extends DirectoryServerTestCase
   private static void assertDoesNotContain(final String report, final LocalizableMessage unexpected)
   {
     assertFalse(report.contains(unexpected.toString()), "unexpected <" + unexpected + "> in <" + report + ">");
+  }
+
+  /** An installer which can be told where it lives, and whose log can be asked for. */
+  private static final class TestInstaller extends Installer
+  {
+    /** The installation, or {@code null} for the one the class path names. */
+    private final File instance;
+
+    TestInstaller(final File instance)
+    {
+      this.instance = instance;
+    }
+
+    /**
+     * An installation under the temporary directory rather than the one the class path names:
+     * the installer takes both paths from there, and in a test run there is none.
+     */
+    @Override
+    public String getInstallationPath()
+    {
+      return instance != null ? instance.getAbsolutePath() : super.getInstallationPath();
+    }
+
+    @Override
+    public String getInstancePath()
+    {
+      return instance != null ? instance.getAbsolutePath() : super.getInstancePath();
+    }
+
+    @Override
+    protected TempLogFile openTempLogFile()
+    {
+      return super.openTempLogFile();
+    }
   }
 
   /**
