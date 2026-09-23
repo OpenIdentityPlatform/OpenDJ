@@ -815,6 +815,22 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   }
 
   /**
+   * The ReplicaOfflineMsg was introduced by the 8th version of the replication protocol and has
+   * no encoding below it, where getBytes() returns null. Session.publish() drops such a message
+   * without a trace, so whoever goes on to report that a peer was told must ask first.
+   */
+  @Test
+  public void replicaOfflineMsgHasNoEncodingBelowV8() throws Exception
+  {
+    final ReplicaOfflineMsg msg = new ReplicaOfflineMsg(new CSN(System.currentTimeMillis(), 0, 42));
+
+    assertTrue(msg.isEncodableFor(REPLICATION_PROTOCOL_V8));
+    assertNotNull(msg.getBytes(REPLICATION_PROTOCOL_V8));
+    assertFalse(msg.isEncodableFor(REPLICATION_PROTOCOL_V7));
+    assertNull(msg.getBytes(REPLICATION_PROTOCOL_V7));
+  }
+
+  /**
    * Test that WindowMsg encoding and decoding works
    * by checking that : msg == new WindowMsg(msg.getBytes()).
    */
