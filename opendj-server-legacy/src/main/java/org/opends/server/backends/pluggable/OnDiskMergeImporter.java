@@ -3553,6 +3553,17 @@ final class OnDiskMergeImporter
   }
 
   /**
+   * The number of entry IDs at which the collectors give a key up. An index-entry-limit of 0 is no
+   * limit at all ("For no limit, use 0 for the value"), as the live index takes it; compared as a
+   * count it would have every key given up.
+   */
+  private static int entryLimitOf(DefaultIndex index)
+  {
+    final int indexEntryLimit = index.getIndexEntryLimit();
+    return indexEntryLimit > 0 ? indexEntryLimit : Integer.MAX_VALUE;
+  }
+
+  /**
    * {@link Collector} that accepts encoded {@link EntryIDSet} objects and
    * produces a {@link ByteString} representing the merged {@link EntryIDSet}.
    */
@@ -3564,7 +3575,7 @@ final class OnDiskMergeImporter
     EntryIDsCollector(DefaultIndex index)
     {
       this.index = index;
-      this.indexLimit = index.getIndexEntryLimit();
+      this.indexLimit = entryLimitOf(index);
     }
 
     @Override
@@ -3638,7 +3649,7 @@ final class OnDiskMergeImporter
     EntryIDSetsCollector(DefaultIndex index)
     {
       this.index = index;
-      this.indexLimit = index.getIndexEntryLimit();
+      this.indexLimit = entryLimitOf(index);
     }
 
     @Override
