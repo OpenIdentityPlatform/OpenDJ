@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.installer;
 
@@ -21,6 +22,8 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import static com.forgerock.opendj.util.StaticUtils.registerBcProvider;
+
+import java.io.File;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.CliApplication;
@@ -65,12 +68,38 @@ public class SetupLauncher extends Launcher {
    * @param args the arguments passed by the command lines.
    */
   public SetupLauncher(String[] args) {
-    super(args, LOG_FILE_PREFIX);
+    super(args, LOG_FILE_PREFIX, instanceLogsDirectory());
     if (System.getProperty(PROPERTY_SCRIPT_NAME) == null)
     {
       System.setProperty(PROPERTY_SCRIPT_NAME, Installation.getSetupFileName());
     }
     initializeParser();
+  }
+
+  /**
+   * The {@code logs/} directory of the instance being set up, where the setup log is kept.
+   * <p>
+   * The launcher scripts point {@code java.io.tmpdir} at {@code <instance>/tmp}, the scratch
+   * space of every tool, which {@code start-ds} - run by setup itself to start the server -
+   * used to sweep clean (issue #1030). The log of a failed setup belongs next to the server's
+   * own logs instead, where {@code server.out} tells the other half of the story.
+   * <p>
+   * Neither the directory nor the log is created here: {@link Launcher#getTempLogFile()}
+   * creates both when an install is about to run, so that a road which installs nothing -
+   * {@code setup --help} on a package whose instance directory is not laid down yet, for one -
+   * leaves nothing behind.
+   *
+   * @return the logs directory of the instance, or {@code null} when the launcher is not
+   *         running from an installation and the OS temporary directory has to do.
+   */
+  private static File instanceLogsDirectory()
+  {
+    final String installPath = Utils.getInstallPathFromClasspath();
+    if (installPath == null)
+    {
+      return null;
+    }
+    return new File(Utils.getInstancePathFromInstallPath(installPath), Installation.LOGS_PATH_RELATIVE);
   }
 
   /** Initialize the contents of the argument parser. */
@@ -109,7 +138,7 @@ public class SetupLauncher extends Launcher {
       else if (isCli())
       {
         Utils.checkJavaVersion();
-        System.exit(InstallDS.mainCLI(args, tempLogFile));
+        System.exit(InstallDS.mainCLI(args, this::getTempLogFile));
       }
       else
       {
@@ -121,7 +150,7 @@ public class SetupLauncher extends Launcher {
         if (exitCode != 0) {
           guiLaunchFailed();
           Utils.checkJavaVersion();
-          System.exit(InstallDS.mainCLI(args, tempLogFile));
+          System.exit(InstallDS.mainCLI(args, this::getTempLogFile));
         }
       }
     }
@@ -144,9 +173,10 @@ public class SetupLauncher extends Launcher {
 
   @Override
   protected void guiLaunchFailed() {
-      System.err.println(
-          tempLogFile.isEnabled() ? INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS.get(tempLogFile.getPath())
-                                  : INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED.get());
+    // No log is named here: none exists yet, and creating one to name would leave it behind on
+    // every command line road that installs nothing (issue #1030). The reason the GUI failed
+    // goes into the log of the install that follows, and a failed install names that log.
+    System.err.println(INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED.get());
   }
 
   @Override

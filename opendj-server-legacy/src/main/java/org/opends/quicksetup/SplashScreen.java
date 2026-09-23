@@ -26,6 +26,7 @@ import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.util.function.Supplier;
 
 import javax.swing.SwingUtilities;
 
@@ -51,7 +52,12 @@ public class SplashScreen extends Window
   private Object quickSetup;
 
   private Class<?> quickSetupClass;
-  private TempLogFile tempLogFile;
+  /**
+   * Supplies the temporary log file of the application behind this splash screen. Nothing
+   * here asks for it: the splash screen shows before anything is attempted, and a log created
+   * at that point outlives every road that attempts nothing (issue #1030).
+   */
+  private Supplier<TempLogFile> tempLogFile;
 
   /** Constant for the display of the splash screen. */
   private static final int MIN_SPLASH_DISPLAY = 3000;
@@ -61,11 +67,11 @@ public class SplashScreen extends Window
    * It can be called from the event thread and outside the event thread.
    *
    * @param tempLogFile
-   *        temporary log file where messages will be logged
+   *        supplies the temporary log file where messages will be logged
    * @param args
    *        arguments to be passed to the method QuickSetup.initialize
    */
-  public static void main(final TempLogFile tempLogFile, String[] args)
+  public static void main(final Supplier<TempLogFile> tempLogFile, String[] args)
   {
     SplashScreen screen = new SplashScreen();
     screen.tempLogFile = tempLogFile;
@@ -196,7 +202,7 @@ public class SplashScreen extends Window
     {
       quickSetupClass = Class.forName("org.opends.quicksetup.ui.QuickSetup");
       quickSetup = quickSetupClass.getDeclaredConstructor().newInstance();
-      quickSetupClass.getMethod("initialize", new Class[] { TempLogFile.class, String[].class })
+      quickSetupClass.getMethod("initialize", new Class[] { Supplier.class, String[].class })
                      .invoke(quickSetup, tempLogFile, args);
     } catch (Exception e)
     {

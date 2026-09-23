@@ -42,9 +42,6 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -244,6 +241,11 @@ public class Installer extends GuiApplication
   @Override
   public void run()
   {
+    // The install begins here: this is the first point where something can fail and be worth
+    // a report, so this is where the log file is created. Every road which stops before this
+    // one - a quit at any step of the wizard, "already configured", a refused licence, a
+    // cancel at the prompt - leaves neither the log nor its directory behind (issue #1030).
+    openTempLogFile();
     applicationException = null;
     PrintStream origErr = System.err;
     PrintStream origOut = System.out;
@@ -317,6 +319,10 @@ public class Installer extends GuiApplication
         uninstall();
         setCurrentProgressStep(InstallProgressStep.FINISHED_CANCELED);
         notifyListeners(null);
+        // Nothing names this log on this road - notifyListenersOfExistingLogFile() belongs to
+        // handleInstallationError() below - and uninstall() has just taken the installation
+        // back, so keeping the file would leave a report nobody is told about (issue #1030).
+        tempLogFile.deleteLogFileAfterSuccess();
       } else {
         handleInstallationError(ex);
       }
@@ -617,23 +623,34 @@ public class Installer extends GuiApplication
     return Utils.getInstancePathFromInstallPath(installPath);
   }
 
-  private void notifyListenersOfExistingLogFile()
+  /** Package-private so that {@code InstallerTest} can drive every road of this report. */
+  void notifyListenersOfExistingLogFile()
   {
-    if (tempLogFile.isEnabled())
+    if (!tempLogFile.isEnabled())
     {
-      final String tempLogFilePath = tempLogFile.getPath();
-      notifyListeners(getFormattedProgress(INFO_GENERAL_PROVIDE_LOG_IN_ERROR.get(tempLogFilePath)));
-    //write log
-      try {
-    	notifyListeners(getLineBreak());
-		notifyListeners(LocalizableMessage.valueOf(new String(Files.readAllBytes(Paths.get(tempLogFilePath)),"UTF-8")));
-      } catch (UnsupportedEncodingException e) {
-		e.printStackTrace();
-      } catch (IOException e) {
-		e.printStackTrace();
-      }
-      notifyListeners(getLineBreak());
+      return;
     }
+    final String tempLogFilePath = tempLogFile.getPath();
+    if (!tempLogFile.isReadable())
+    {
+      // Something removed the log while it was being written (issue #1030): say so
+      // rather than ask for a file that is not there.
+      notifyListeners(getFormattedWarning(INFO_GENERAL_LOG_IN_ERROR_MISSING.get(tempLogFilePath)));
+      notifyListeners(getLineBreak());
+      return;
+    }
+    notifyListeners(getFormattedProgress(INFO_GENERAL_PROVIDE_LOG_IN_ERROR.get(tempLogFilePath)));
+    notifyListeners(getLineBreak());
+    // Write the log out as well, so that a report has it even when the file is not attached.
+    try
+    {
+      notifyListeners(LocalizableMessage.raw(tempLogFile.readContents()));
+    }
+    catch (final IOException e)
+    {
+      notifyListeners(getFormattedWarning(INFO_GENERAL_LOG_IN_ERROR_UNREADABLE.get(tempLogFilePath, e)));
+    }
+    notifyListeners(getLineBreak());
   }
 
   /** Creates a default instance. */

@@ -696,6 +696,11 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /** Actually performs the uninstall in this thread. The thread is blocked. */
   @Override
   public void run() {
+    // The uninstall begins here, as the install begins in Installer.run(): the errors below go
+    // to the error logger, and only the log file puts a publisher on it. Without it a failed
+    // uninstall in the wizard leaves no record anywhere (issue #1030). The command line
+    // uninstaller is given no supplier - its launcher has created the log already.
+    openTempLogFile();
     status = STARTED;
     logger.info(LocalizableMessage.raw("run of the Uninstaller started"));
 

@@ -64,7 +64,7 @@ public final class Installation
   /** The relative path where the database files are. */
   private static final String DATABASES_PATH_RELATIVE = "db";
   /** The relative path where the log files are. */
-  private static final String LOGS_PATH_RELATIVE = "logs";
+  public static final String LOGS_PATH_RELATIVE = "logs";
   /** The relative path where the LDIF files are. */
   private static final String LDIFS_PATH_RELATIVE = "ldif";
   /** The relative path where the backup files are. */

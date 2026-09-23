@@ -26,6 +26,7 @@ import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -76,8 +77,16 @@ public abstract class Application implements ProgressNotifier, Runnable {
   private final ErrorPrintStream err = new ErrorPrintStream();
   private final OutputPrintStream out = new OutputPrintStream();
 
-  /** Temporary log file where messages will be logged. */
+  /**
+   * Temporary log file where messages will be logged, once {@link #openTempLogFile()} has
+   * asked for it. It stays {@code null} until then: creating it costs a file - and the
+   * directory it lives in - that nothing removes unless the operation succeeds, so the roads
+   * which attempt nothing must not create one (issue #1030).
+   */
   protected TempLogFile tempLogFile;
+
+  /** Supplies the temporary log file, see {@link #openTempLogFile()}. */
+  private Supplier<TempLogFile> tempLogFileSupplier;
 
   /**
    * Creates an application by instantiating the Application class
@@ -685,14 +694,44 @@ public abstract class Application implements ProgressNotifier, Runnable {
   }
 
   /**
-   * Sets the temporary log file where messages will be logged.
+   * Sets where the temporary log file of this application comes from, without creating it.
+   * <p>
+   * The wizard and the CLI hand the supplier over as they start: the file itself is created by
+   * {@link #openTempLogFile()}, on the road that runs the operation, so that a run which does
+   * nothing - a quit at any step of the wizard, a server which turns out to be installed
+   * already - leaves no log behind (issue #1030).
+   * <p>
+   * There is deliberately no setter taking the file itself: a caller holding a supplier could
+   * then resolve it on the spot, and the log would be created before anything is attempted
+   * again.
    *
    * @param tempLogFile
-   *            temporary log file where messages will be logged.
+   *            supplies the temporary log file where messages will be logged.
    */
-  public void setTempLogFile(final TempLogFile tempLogFile)
+  public void setTempLogFile(final Supplier<TempLogFile> tempLogFile)
   {
-    this.tempLogFile = tempLogFile;
+    this.tempLogFile = null;
+    this.tempLogFileSupplier = tempLogFile;
+  }
+
+  /**
+   * Creates the temporary log file of this application, unless it has one already.
+   * <p>
+   * Called where the operation begins and not before: from that point on the log is worth
+   * keeping, because there is something which can fail and be reported.
+   * <p>
+   * An application nobody handed a supplier to has no log of its own: the command line
+   * uninstaller is built that way, and its launcher creates the log before running it.
+   *
+   * @return the temporary log file of this application, or {@code null} if it was given none.
+   */
+  protected TempLogFile openTempLogFile()
+  {
+    if (tempLogFile == null && tempLogFileSupplier != null)
+    {
+      tempLogFile = tempLogFileSupplier.get();
+    }
+    return tempLogFile;
   }
 
   /**

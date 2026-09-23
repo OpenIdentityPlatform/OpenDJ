@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup;
 
@@ -21,7 +22,9 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.server.util.DynamicConstants.*;
 
+import java.io.File;
 import java.io.PrintStream;
+import java.util.function.Supplier;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -40,8 +43,16 @@ public abstract class Launcher {
   /** Arguments with which this launcher was invoked. */
   protected final String[] args;
 
-  /** The temporary log file which will be kept if an error occurs. */
-  protected final TempLogFile tempLogFile;
+  private final String tempLogFilePrefix;
+  private final File tempLogFileDirectory;
+  /**
+   * The temporary log file which will be kept if an error occurs; see {@link #getTempLogFile()}.
+   * Volatile because the GUI road asks for it from the thread that runs the splash screen and
+   * the roads after it read it from the main thread.
+   */
+  private volatile TempLogFile tempLogFile;
+  /** Why the GUI did not come up, kept until there is a log to write it to. */
+  private volatile Throwable guiLaunchFailure;
 
   /**
    * Creates a Launcher.
@@ -52,11 +63,79 @@ public abstract class Launcher {
    *          temporary log file path where messages will be logged
    */
   public Launcher(final String[] args, final String tempLogFilePrefix) {
+    this(args, tempLogFilePrefix, null);
+  }
+
+  /**
+   * Creates a Launcher whose temporary log file lives in the given directory.
+   *
+   * @param args
+   *          String[] of argument passes from the command line
+   * @param tempLogFilePrefix
+   *          temporary log file path where messages will be logged
+   * @param tempLogFileDirectory
+   *          the directory to create the temporary log file in, or {@code null} for the OS
+   *          temporary directory
+   */
+  public Launcher(final String[] args, final String tempLogFilePrefix, final File tempLogFileDirectory) {
     if (args == null) {
       throw new IllegalArgumentException("args cannot be null");
     }
     this.args = args;
-    this.tempLogFile = TempLogFile.newTempLogFile(tempLogFilePrefix);
+    this.tempLogFilePrefix = tempLogFilePrefix;
+    this.tempLogFileDirectory = tempLogFileDirectory;
+  }
+
+  /**
+   * The temporary log file of this launcher, created the first time it is asked for.
+   * <p>
+   * Creating it costs a file - and, with a directory of the caller's choosing, the directory
+   * as well - that nothing removes afterwards unless the operation succeeds. So it is created
+   * on the first road that can fail an operation and not before: {@code --help},
+   * {@code --version}, a usage error and the other roads that attempt nothing leave no log
+   * behind (issue #1030).
+   *
+   * @return the temporary log file, creating it if this is the first call.
+   */
+  protected synchronized TempLogFile getTempLogFile() {
+    if (tempLogFile == null) {
+      tempLogFile = TempLogFile.newTempLogFile(tempLogFilePrefix, tempLogFileDirectory);
+      logGuiLaunchFailure();
+    }
+    return tempLogFile;
+  }
+
+  /**
+   * Whether there is a log to name, without creating one to answer.
+   *
+   * @return {@code true} if a temporary log file has been created and can be used to log
+   *         messages.
+   */
+  protected boolean hasTempLogFile() {
+    return tempLogFile != null && tempLogFile.isEnabled();
+  }
+
+  /** Writes the reason the GUI did not come up, now that there is a log to hold it. */
+  private void logGuiLaunchFailure() {
+    Throwable failure = guiLaunchFailure;
+    if (failure == null) {
+      return;
+    }
+    logger.warn(LocalizableMessage.raw("Error launching GUI: " + failure));
+    StringBuilder buf = new StringBuilder();
+    while (failure != null)
+    {
+      for (StackTraceElement aStack : failure.getStackTrace()) {
+        buf.append(aStack).append("\n");
+      }
+
+      failure = failure.getCause();
+      if (failure != null)
+      {
+        buf.append("Root cause:\n");
+      }
+    }
+    logger.warn(LocalizableMessage.raw(buf));
   }
 
   /**
@@ -194,29 +273,16 @@ public abstract class Launcher {
       {
         try
         {
-          SplashScreen.main(tempLogFile, args);
+          startSplashScreen(Launcher.this::getTempLogFile, args);
           returnValue[0] = 0;
         }
         catch (Throwable t)
         {
-          if (tempLogFile.isEnabled())
-          {
-            logger.warn(LocalizableMessage.raw("Error launching GUI: "+t));
-            StringBuilder buf = new StringBuilder();
-            while (t != null)
-            {
-              for (StackTraceElement aStack : t.getStackTrace()) {
-                buf.append(aStack).append("\n");
-              }
-
-              t = t.getCause();
-              if (t != null)
-              {
-                buf.append("Root cause:\n");
-              }
-            }
-            logger.warn(LocalizableMessage.raw(buf));
-          }
+          // Kept rather than logged: a GUI which does not come up is not by itself an
+          // operation that failed, and creating a log here would leave one behind on every
+          // headless road that installs nothing (issue #1030). It goes into the log as soon
+          // as something asks for one.
+          guiLaunchFailure = t;
         }
       }
     });
@@ -237,6 +303,26 @@ public abstract class Launcher {
     }
     System.setErr(printStream);
     return returnValue[0];
+  }
+
+  /**
+   * Shows the splash screen and, behind it, builds the wizard.
+   * <p>
+   * The log file is handed over as a supplier and not as a file: the splash screen comes up
+   * before the user has said anything, and a log created there outlives every road that
+   * installs nothing - a quit at any wizard step, a server which is configured already
+   * (issue #1030). The application asks for it when it starts the operation.
+   * <p>
+   * Package-private so that a test can drive {@link #launchGui(String[])} without a display.
+   *
+   * @param tempLogFile
+   *          supplies the temporary log file of the application
+   * @param args
+   *          the arguments to pass to the splash screen
+   */
+  void startSplashScreen(final Supplier<TempLogFile> tempLogFile, final String[] args)
+  {
+    SplashScreen.main(tempLogFile, args);
   }
 
   /**
@@ -337,6 +423,9 @@ public abstract class Launcher {
       }
       System.exit(ReturnCode.SUCCESSFUL.getReturnCode());
     } else if (isCli()) {
+      // An operation is about to run: from here on there is something worth logging, and
+      // preExit() names the file. The roads above attempt nothing and leave no log behind.
+      getTempLogFile();
       CliApplication cliApp = createCliApplication();
       int exitCode = launchCli(cliApp);
       preExit(cliApp);
@@ -345,6 +434,10 @@ public abstract class Launcher {
       willLaunchGui();
       int exitCode = launchGui(args);
       if (exitCode != 0) {
+        // The GUI did not come up and the operation runs on the command line after all: from
+        // here on there is something worth logging, the reason the GUI failed included. The
+        // log comes first, so that guiLaunchFailed() can name the file holding that reason.
+        getTempLogFile();
         guiLaunchFailed();
         CliApplication cliApp = createCliApplication();
         exitCode = launchCli(cliApp);
@@ -361,8 +454,8 @@ public abstract class Launcher {
 
         // Add an extra space systematically
         System.out.println();
-        if (tempLogFile.isEnabled()) {
-          System.out.println(INFO_GENERAL_SEE_FOR_DETAILS.get(tempLogFile.getPath()));
+        if (hasTempLogFile()) {
+          System.out.println(INFO_GENERAL_SEE_FOR_DETAILS.get(getTempLogFile().getPath()));
         }
       }
     }
