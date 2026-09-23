@@ -140,6 +140,14 @@ public class PDBStorageTest extends DirectoryServerTestCase
     storage.open(AccessMode.READ_WRITE);
   }
 
+  /**
+   * The sources are wrapped rather than copied: a value on its way into Persistit is copied twice more -
+   * {@code toByteArray()} and the value buffer of the exchange, which doubles up to 64 MB - so with a copy
+   * here as well the 63 MB value had four copies of itself live at once, on top of the buffer pool and the
+   * server: about 310 MB left after a collection, in a JVM of 512 MB, which one CI leg ran out of. Wrapped,
+   * about 165 MB. The three values stay in one transaction on purpose: the value buffer the 32 MB one
+   * grew fits the 63 MB one without growing again.
+   */
   @Test
   public void testCanAddLargeValues() throws Exception
   {
@@ -151,10 +159,10 @@ public class PDBStorageTest extends DirectoryServerTestCase
       public void run(WriteableTransaction txn) throws Exception
       {
         txn.openTree(treeName, true);
-        txn.put(treeName, valueOfUtf8("4mb"), valueOfBytes(new byte[4 * MB]));
-        txn.put(treeName, valueOfUtf8("32mb"), valueOfBytes(new byte[32 * MB]));
+        txn.put(treeName, valueOfUtf8("4mb"), wrap(new byte[4 * MB]));
+        txn.put(treeName, valueOfUtf8("32mb"), wrap(new byte[32 * MB]));
         // 64Mb is the maximum allowed for value size. But Persistit has header reducing the payload.
-        txn.put(treeName, valueOfUtf8("64mb"), valueOfBytes(new byte[63 * MB]));
+        txn.put(treeName, valueOfUtf8("64mb"), wrap(new byte[63 * MB]));
       }
     });
   }
