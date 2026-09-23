@@ -56,10 +56,13 @@ import org.testng.annotations.Test;
  * Session#close()} used to drain neither: it set the flag the publisher loops on, interrupted it
  * and joined, so anything still queued was dropped while the {@code StopMsg} published afterwards
  * still went out - leaving the peer with an orderly close and no sign that something was lost.
- * That is the limitation PR #919 recorded, and the last test here is what holds the close to
- * sending that queue instead.
+ * That is the limitation PR #919 recorded, and
+ * {@code aSessionWithAPublisherThreadSendsWhatIsStillQueuedWhenItIsClosed} is what holds the
+ * close to sending that queue instead. The two cases after it pin what a close gives up on: a
+ * queue whose write fails is reported with every message it held, and a session which had
+ * already failed is written nothing more and still has its queue reported.
  * <p>
- * The other two pin which end could ever pay it. Only {@code ServerHandler} starts a session's
+ * The first two cases pin which end could ever pay it. Only {@code ServerHandler} starts a session's
  * publisher, so it is the replication-server end of a session which has one; the broker of a
  * directory server never starts its own. A change a directory server publishes is therefore on
  * the wire by the time {@code publish()} returns, and no close of that session could drop it -
@@ -75,9 +78,11 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
   private static final int SOCKET_TIMEOUT_MS = 5000;
 
   /**
-   * The number of messages the queued-message test publishes. It has to outrun what the socket
-   * buffers of a loopback pair can swallow while nothing reads them, and stay under the 4000 the
-   * send queue holds, past which {@code publish()} would block instead of queueing.
+   * The number of messages the queued-message test publishes. It has to be enough for
+   * {@code publish()} to outrun the publisher thread and leave a backlog behind it - the socket
+   * buffers of a loopback pair swallow all of it, so it is not a full buffer which leaves one -
+   * and stay under the 4000 the send queue holds, past which {@code publish()} would block
+   * instead of queueing.
    */
   private static final int MESSAGES_PUBLISHED = 3000;
 
@@ -148,8 +153,8 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
             csn, "00000000-0000-0000-0000-000000000000"));
         /*
          * No drain, no flush and no wait in between - the close of the restore path of #963 is
-         * this close. What publish() already wrote stays readable by the peer: a close sends a
-         * FIN, it does not unsend the bytes ahead of it.
+         * this close. What publish() already wrote stays readable by the peer: the session
+         * closes, it does not unsend the bytes ahead of it.
          */
         sender.close();
 
@@ -351,6 +356,85 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
                 + "as well as for the ones left in it")
             .contains(MESSAGES_LEFT_UNSENT + " message(s)")
             .contains("the write failed with");
+      }
+      finally
+      {
+        StaticUtils.close(sender, receiver);
+      }
+    }
+  }
+
+  /**
+   * A close of a session which has already failed writes nothing more to it - neither the queue
+   * nor the {@code StopMsg} - and still reports the queue it gives up on, once.
+   * <p>
+   * The error is set through the field, with the sockets left intact: a close which wrote the
+   * queue regardless would then get it through, and the peer reading a change is what says so.
+   * With the sockets closed under it, as in the case above, such a close would fail at its first
+   * write and look the same from the peer.
+   */
+  @Test
+  public void aCloseOfAFailedSessionWritesNothingAndReportsTheQueue() throws Exception
+  {
+    final CSNGenerator csns = new CSNGenerator(RS_ID, 0);
+    try (ServerSocket listen = new ServerSocket(0))
+    {
+      final Session[] pair = connectSessionPair(listen);
+      final Session sender = pair[0];
+      final Session receiver = pair[1];
+      try
+      {
+        final Queue<byte[]> sendQueue = sendQueueOf(sender);
+        for (int i = 0; i < MESSAGES_LEFT_UNSENT; i++)
+        {
+          sendQueue.add(new DeleteMsg(DN.valueOf("uid=failed" + i + "," + TEST_ROOT_DN_STRING),
+              csns.newCSN(), "00000000-0000-0000-0000-000000000000")
+              .getBytes(sender.getProtocolVersion()));
+        }
+        final Field sessionError = Session.class.getDeclaredField("sessionError");
+        sessionError.setAccessible(true);
+        sessionError.set(sender, new java.io.IOException("injected"));
+
+        final List<String> records = errorLogRecordsOf(new Callable<Void>()
+        {
+          @Override
+          public Void call()
+          {
+            sender.close();
+            return null;
+          }
+        });
+
+        ReplicationMsg read = null;
+        try
+        {
+          read = receiver.receive();
+        }
+        catch (final java.io.IOException expected)
+        {
+          // The socket was closed with nothing written to it, which is what this case expects.
+        }
+        assertThat(read)
+            .as("the close wrote to a session which had already failed")
+            .isNull();
+
+        final Set<String> reported = new LinkedHashSet<>();
+        for (final String record : records)
+        {
+          final int start = record.indexOf(NOT_SENT_REPORT);
+          if (start >= 0)
+          {
+            reported.add(record.substring(start));
+          }
+        }
+        assertThat(reported)
+            .as("the close of a failed session holding a queue reports that queue once, and here "
+                + "it reported: " + reported)
+            .hasSize(1);
+        assertThat(reported.iterator().next())
+            .contains(MESSAGES_LEFT_UNSENT + " message(s)")
+            .contains("the session had already failed")
+            .contains("injected");
       }
       finally
       {

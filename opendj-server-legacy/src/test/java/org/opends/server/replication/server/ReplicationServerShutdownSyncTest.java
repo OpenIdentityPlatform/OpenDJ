@@ -730,8 +730,9 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
        * that queue under publishLock so that a message published meanwhile lands after it rather
        * than between two of its own. If this is the only assertion which fails, the close is
        * where to look before the granularity of the barrier: the warning close() writes for a
-       * queue it could not hand over says the budget ran out, and its absence says the message
-       * left this end and the loss is past it.
+       * queue it could not hand over says why it gave that queue up, and its absence does not
+       * prove the message left this end - a publish() concurrent with the close is still dropped
+       * at the door without one.
        */
       assertThat(receivedWhenHeldBack.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS))
           .as("the peer which was held back never learned that the replica went offline, "
